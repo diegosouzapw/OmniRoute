@@ -320,10 +320,10 @@ Konfigurasjonspakken bygges av `src/lib/sync/bundle.ts`. Konsumenter sammenligne
 
 Alle kall for leverandørvalidering og modelloppdagelse går nå gjennom en tolagsbeskyttelse for utgående trafikk:
 
-1. **URL-beskyttelse** (`src/shared/network/outboundUrlGuard.ts`) — Blokkerer private, lokale tilbakekoblings- og lenkelokale IP-områder før sokkelen åpnes.
-2. **Sikker fetch-innpakning** (`src/shared/network/safeOutboundFetch.ts`) — Bruker URL-beskyttelsen, normaliserer tidsavbrudd og prøver midlertidige feil på nytt med eksponentiell tilbakeholdelse.
+1. **URL-beskyttelse** (`src/shared/network/outboundUrlGuard.ts`) — Kontrollerer først målets vertsnavn eller IP-literal slik det er skrevet. I modus for kun offentlige adresser løser wrapperen for sikker henting også opp navnet og avviser private adresser. Som standard blokkeres endepunkter for skymetadata — hele 169.254.0.0/16 samt kjente vertsnavn for metadata. `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blokkerer også private verter og loopback-verter. `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (eller den eldre `OUTBOUND_SSRF_GUARD_ENABLED=false`) deaktiverer kontrollene. En verdi som lagres via innstillingens bryter i kontrollpanelet, har forrang over den tilhørende variabelen, og innebygde lokale leverandører hopper over beskyttelsen under nøkkelvalidering. Se `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper for sikker henting** (`src/shared/network/safeOutboundFetch.ts`) — Bruker URL-beskyttelsen, normaliserer tidsavbrudd og prøver midlertidige feil på nytt med eksponentiell tilbakekobling.
 
-Brudd på beskyttelsesreglene returneres som HTTP 422 (`URL_GUARD_BLOCKED`) og skrives til revisjonsloggen for samsvar via `providerAudit.ts`.
+Brudd på beskyttelsen vises som `URL_GUARD_BLOCKED` — HTTP 503 via `getSafeOutboundFetchErrorStatus` (400 på ruten for modelloppdagelse) — og reelle SSRF-blokkeringer under validering skrives til revisjonsloggen som `provider.validation.ssrf_blocked`-hendelser.
 
 ---
 

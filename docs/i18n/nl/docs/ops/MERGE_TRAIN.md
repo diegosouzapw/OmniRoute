@@ -4,68 +4,87 @@
 
 ---
 
-Sinds v3.8.49 (WS3.2/WS3.4 van het kwaliteits-/snelheidsplan) is het standaardpad voor het
-mergen van beoordeelde PR's naar `release/vX.Y.Z` de **Mergify-mergewachtrij** (`.mergify.yml`);
-de hieronder gedocumenteerde **handmatige merge-train** is het TERUGVALMECHANISME — te gebruiken tijdens incidenten,
-release-freezes of als het Open Source-abonnement van Mergify ooit verandert.
+Sinds v3.8.49 (WS3.2/WS3.4 van het kwaliteits-/snelheidsplan) is het standaard mergepad voor
+beoordeelde PR's naar `release/vX.Y.Z` de **Mergify-mergewachtrij** (`.mergify.yml`);
+de hieronder gedocumenteerde **handmatige merge-train** is de TERUGVALOPTIE — gebruikt tijdens incidenten,
+release-freezes of als het Mergify Open Source-abonnement ooit verandert.
 
 ## Standaardpad: de Mergify-wachtrij
 
-1. De PR is beoordeeld/op groen gezet door de campagnes en goedgekeurd via de pre-merge-⭐-poort
-   van de eigenaar (het rapport + de beslissing per item — zie `/merge-prs` stap 0.75).
-2. De eigenaar (of de sessie die handelt op basis van de beslissing van de eigenaar) past het label **`queue`**
-   toe. Het label IS de mergegoedkeuring; Mergify voert deze alleen uit.
-3. Mergify bundelt maximaal 10 PR's in de wachtrij, valideert de batch aan de hand van de fast-gates
-   en merget deze (squash). Een rode batch wordt **automatisch gebisect** — de problematische PR
-   wordt in ~log2(N) hervalidaties geïsoleerd en uit de wachtrij verwijderd; de rest gaat door.
-4. Na het mergen valideert de continue release-green-workflow de nieuwe tip bij een push
-   en opent deze een attributie-issue als de combinatie een regressie veroorzaakte (nooit automatisch reverten).
+1. De PR wordt beoordeeld/goedgekeurd door de campagnes en goedgekeurd via de pre-merge-⭐
+   poort van de eigenaar (het rapport + de beslissing per item — zie `/merge-prs` Stap 0.75).
+2. De eigenaar (of de sessie die handelt op basis van de beslissing van de eigenaar) past het
+   **`queue`**-label toe. Het label IS de goedkeuring voor het samenvoegen; Mergify voert deze alleen uit.
+3. Mergify valideert PR's in de wachtrij **serieel** (één tegelijk) aan de hand van de snelle controles
+   en voegt ze samen (squash). Batching + automatische bisectie is onderdeel van een betaalde Mergify-laag
+   ("Cannot use Merge Queue batch" bij het gratis abonnement, #7220), dus stelt `.mergify.yml` geen
+   `batch_size` in; batching blijft de taak van de onderstaande handmatige merge train. Een PR waarvan
+   de controles na `checks_timeout` (240 min = 2× de gemeten p95 van
+   `quality.yml`) nog steeds in behandeling zijn, wordt uit de wachtrij verwijderd in plaats van deze te blokkeren.
+4. Na het samenvoegen valideert de continue release-green-workflow de nieuwe tip bij een push
+   en opent deze een attributie-issue als de combinatie een regressie heeft veroorzaakt (nooit automatisch terugdraaien).
 
-Beveiligingsregels (conform `CLAUDE.md` Harde regels #21/#22):
+Beveiligingsmaatregelen (conform de harde regels #21/#22 van `CLAUDE.md`):
 
-- **Release-freeze actief** → label GEEN PR's die op de bevroren branch zijn gericht; richt ze eerst opnieuw op
+- **Release freeze actief** → label PR's die op de bevroren branch zijn gericht NIET; richt ze eerst opnieuw op
   de actieve `release/vX+1`.
-- **Lopende PR van een andere sessie** → label deze nooit; alleen de eigenaarssessie plaatst
-  zijn eigen werk in de wachtrij.
-- Diffs met alleen tests en PR's met het label `hotfix` draaien al beperkte CI (zie
+- **Lopende PR van een andere sessie** → label deze nooit; alleen de sessie die eigenaar is, zet
+  het eigen werk in de wachtrij.
+- Diffs met alleen tests en PR's met het label `hotfix` voeren al gereduceerde CI uit (zie
   `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); de wachtrijvoorwaarden accepteren elke
-  daadwerkelijk uitgevoerde set checks (`#check-failure=0` + `#check-pending=0`).
+  daadwerkelijk uitgevoerde set controles (`#check-failure=0` + `#check-pending=0`).
 
-## Terugvalmechanisme: de handmatige merge-train
+## Terugvaloptie: de handmatige merge-train
 
-Te gebruiken wanneer de wachtrij niet beschikbaar is. Dit formaliseert de werkwijze waarmee tijdens
+Wordt gebruikt wanneer de wachtrij niet beschikbaar is. Dit formaliseert de werkwijze waarmee tijdens
 de v3.8.47-cyclus in één dag 33 PR's zijn weggewerkt:
 
 1. **Stel de batch samen** (~10–30 beoordeelde+goedgekeurde PR's). Controleer op `linked:`-conflicten
-   (dezelfde `tap.testFiles`, dezelfde CHANGELOG-secties) en verwerk die achtereenvolgens.
-2. **Valideer EENMALIG**: merge in een geïsoleerde worktree vanaf de release-tip alle batch-heads
-   lokaal en voer vervolgens de met de release overeenkomende suite uit
+   (dezelfde `tap.testFiles`, dezelfde CHANGELOG-secties) en verwerk die na elkaar.
+2. **Valideer EENMAAL**: merge in een geïsoleerde worktree vanaf de release-tip alle batch-heads
+   lokaal en voer vervolgens de release-equivalente suite uit
    (`npm run check:release-green`; voeg vóór een release `--with-build` toe).
    `scripts/release/merge-train.sh <base> <PR#>…` automatiseert stappen 1–2 (conflicterende
-   PR's worden uitgestoten, de train gaat door). De volledige modus voert `npm run test:unit` uit — de
-   op de machine afgestemde runner (`--test-concurrency=20`), **niet** de twee opeenvolgende CI-shards
-   met 4 cores, waardoor de dominante fase op ~25% van een machine met 16 cores draaide (opgelost op
-   2026-07-18). `--fast` (voor het binnen één dag wegwerken van mega-trains, goedgekeurd door de eigenaar op 2026-07-18)
-   behoudt elke statische poort + vitest, maar voert alleen de node:test-bestanden uit die zijn gewijzigd door de
-   opgenomen PR's; de VOLLEDIGE suite moet nog steeds minstens eenmaal per dag op de
-   geaccumuleerde tip worden uitgevoerd (één train zonder `--fast`).
-3. **Groen** → merge de PR's achtereenvolgens (waarbij vóór elke PR `state,headRefOid` opnieuw wordt gecontroleerd —
-   een PR waarvan de head is gewijzigd, gaat terug naar de reviewwachtrij). Bewijs dat de netto-diff van elke merge
-   uitsluitend de eigen wijziging van de PR bevat (geen door automatisch oplossen veroorzaakte reverts: controleer `git diff --stat` op
-   verwijderingen buiten de scope).
-4. **Rood** → bisect de batch in helften (valideer elke helft) in plaats van elke PR
-   afzonderlijk opnieuw te valideren; plaats de problematische PR met het bewijsmateriaal terug in de reviewwachtrij.
-5. **Nooit**: tijdens een freeze naar de bevroren branch mergen; waar dan ook `git stash` gebruiken;
+   PR's worden verwijderd, de trein gaat verder). De volledige modus voert `npm run test:unit` uit — de
+   op de machine afgestemde runner (`--test-concurrency=20`), **niet** de twee sequentiële CI-shards met 4 cores,
+   die de dominante fase op ~25% van een machine met 16 cores lieten draaien (opgelost op
+   2026-07-18). `--fast` (mega-trains binnen één dag wegwerken, goedgekeurd door de eigenaar op 2026-07-18)
+   behoudt elke statische controle + vitest, maar voert alleen de node:test-bestanden uit die zijn gewijzigd door de
+   ingestapte PR's; de VOLLEDIGE suite moet nog steeds minstens eenmaal per dag op de
+   opgebouwde tip worden uitgevoerd (één trein zonder `--fast`).
+3. **Groen** → merge de PR's op volgorde (controleer vóór elke merge opnieuw `state,headRefOid` —
+   een PR waarvan de head is gewijzigd, gaat opnieuw de beoordeling in). Bewijs dat de netto diff van elke merge de
+   eigen wijziging van de PR is (geen automatisch opgeloste terugdraaiingen: controleer `git diff --stat` op
+   verwijderingen buiten het bereik).
+4. **Rood** → bisecteer de batch in helften (valideer elke helft) in plaats van PR's
+   één voor één opnieuw te valideren; plaats de veroorzakende PR met het bewijs terug in de beoordelingswachtrij.
+5. **Nooit**: tijdens een freeze naar de bevroren branch mergen; ergens `git stash` gebruiken;
    CI klakkeloos opnieuw uitvoeren in de hoop dat rood verdwijnt (regel: rood is informatie).
 
-## Niveaus (waarom de wachtrij veilig is met alleen fast-gates)
+## Niveaus (waarom de wachtrij veilig is met alleen snelle controles)
 
-- **Per PR** (quality.yml fast-gates): door TIA beïnvloede tests + volledige unit-suite met 4 shards +
-  vitest + lint-verzameling + typecheck + integriteitscontrole van documentatie/changelog.
-- **Per batch/tip** (continue release-green): `--quick` HARDE poorten bij elke push naar
-  de releasebranch; volledige `--with-build --full-ci`-rondes 3×/dag.
+- **Per PR** (snelle controles van quality.yml): door TIA beïnvloede tests + volledige unit-suite met 4 shards +
+  vitest + lint-verzameling + typecheck + integriteitscontrole voor documentatie/changelog.
+- **Per batch/tip** (continue release-green): HARDE `--quick`-controles bij elke push naar
+  de releasebranch; volledige `--with-build --full-ci`-controles 3×/dag.
 - **Per release** (ci.yml op de release-PR): de volledige matrix incl. E2E ×9,
-  package-artifact + tarball boot-smoke, coverage/ratchets.
+  package-artifact + opstartrooktest voor tarball, coverage/ratchets.
 
 Niets wordt minder gevalideerd dan voorheen — het zware testoppervlak wordt alleen per batch/tip uitgevoerd
-in plaats van per PR, waardoor de O(N)-heen-en-weerrondes verdwijnen.
+in plaats van per PR, wat de O(N)-rondgangen elimineert.
+
+## Vereisten voor een nieuwe checkout voor `merge-train.sh`
+
+Het script voert een onmiddellijk afbrekende **preflight** uit op de root-checkout (vóór enig werk
+in een worktree), zodat een defecte installatie zich nooit als een rode trein kan voordoen:
+
+1. `npm ci`, voer daarna de `bun`-postinstall uit die npm blokkeert:
+   `(cd node_modules/bun && node install.js)` — anders mislukken `check:provider-consistency`
+   en `check:known-symbols` (beide `bun scripts/…`) op de trein EN de basis zonder
+   overtredingsregel.
+2. Geen verdwaalde `node_modules/node_modules` (een dubbele dependencystructuur; React wordt tweemaal geladen
+   en UI-vitest-suites mislukken onmiddellijk).
+3. `node_modules/.bin/tsc` aanwezig en uitvoerbaar (bij een gedeeltelijke installatie ontbreekt dit).
+
+De trein voert het blokkerende `npm run check:cycles:ratchet` uit; alleen `npm run check:cycles`
+is adviserend (het vermeldt de SCC's en eindigt met een niet-nulstatus, zelfs op een gezonde basis).

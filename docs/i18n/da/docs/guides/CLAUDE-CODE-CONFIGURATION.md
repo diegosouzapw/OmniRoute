@@ -126,12 +126,12 @@ generator, enhedstestet), vist af `ClaudeGatewayOnboardingBlock`.
 ## Profiler (`CLAUDE_CONFIG_DIR`)
 
 Claude Code har **ingen indbyggede profilfiler** (i modsætning til Codex' `~/.codex/<name>.config.toml`).
-Den anbefalede mekanisme er `CLAUDE_CONFIG_DIR` — en separat konfigurationsmappe for hver
+Den idiomatiske mekanisme er `CLAUDE_CONFIG_DIR` — en separat konfigurationsmappe for hver
 profil, hver med sin egen `settings.json`, legitimationsoplysninger, historik og cache.
 
 `omniroute setup-claude` henter det aktuelle `/v1/models`-katalog og skriver én
-profil pr. model i `~/.claude/profiles/<name>/settings.json` ved at genbruge
-**de samme navne som `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+profil pr. model til `~/.claude/profiles/<name>/settings.json` og genbruger de
+**samme navne som `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -149,15 +149,15 @@ profil pr. model i `~/.claude/profiles/<name>/settings.json` ved at genbruge
 ```
 
 > **Godkendelsestokenet skrives aldrig til profilen.** Start med
-> `omniroute launch --profile <name>` (den injicerer `ANTHROPIC_AUTH_TOKEN` fra den
+> `omniroute launch --profile <name>` (den indsætter `ANTHROPIC_AUTH_TOKEN` fra den
 > aktive kontekst), eller eksportér selv `ANTHROPIC_AUTH_TOKEN`, og kør
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Automatisk synkronisering efter modelregistrering (valgfrit).** OmniRoute kan automatisk regenerere de samme
-`~/.claude/profiles/<name>/settings.json`-filer, hver gang en synkronisering af udbydermodeller
-ændrer det aktuelle katalog — så nye eller omdøbte modeller får profiler, uden at kommandoen skal køres igen.
-Det er **deaktiveret som standard**: slå det til fra **CLI Code-dashboardet** ("Automatisk synkronisering af
-CLI-profiler" → Claude Code), eller indstil `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (den respekterer også
+**Automatisk synkronisering efter modelregistrering (tilvalg).** OmniRoute kan automatisk gendanne disse
+samme `~/.claude/profiles/<name>/settings.json`-filer, hver gang en synkronisering af udbydermodeller
+ændrer det aktuelle katalog — så nye modeller og modeller med ændrede navne får profiler, uden at
+kommandoen skal køres igen. Funktionen er **deaktiveret som standard**: Slå den til fra **CLI Code-dashboardet** ("Automatisk
+synkronisering af CLI-profiler" → Claude Code), eller angiv `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (den respekterer også
 `CLI_ALLOW_CONFIG_WRITES`, som er aktiveret som standard). Når funktionen er aktiveret, skriver den kun profilfiler; den ændrer aldrig
 din aktive Claude-standardkonfiguration, godkendelse eller `~/.claude/settings.json`.
 
@@ -170,8 +170,12 @@ omniroute setup-claude
 # Ekstern VPS (indlejrer VPS-URL'en i hver profil)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# Kun nogle udbydere
+# Kun visse udbydere
 omniroute setup-claude --only glm,kimi
+
+# Skriv også profiler for lokale CLI-udbydere (zcode, auggie, devin-cli-agentic,
+# codex-app-server), som ikke registreres på denne vært (udelades som standard for et lokalt mål)
+omniroute setup-claude --include-local
 
 # Forhåndsvisning uden at skrive
 omniroute setup-claude --dry-run

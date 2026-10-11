@@ -277,10 +277,10 @@ codex -p chat     # cx/gpt-5.5, aucun effort défini (valeur par défaut du serv
 Si vous exécutez OmniRoute sur un VPS, vous pouvez générer automatiquement des fichiers de profil à partir du catalogue de modèles actif :
 
 ```bash
-# Depuis un VPS (utilise OmniRoute local sur le port 20128)
+# Depuis un VPS (utilise l’instance OmniRoute locale sur le port 20128)
 omniroute setup-codex
 
-# Depuis n’importe quelle machine — ciblez votre VPS
+# Depuis n’importe quelle machine — pointez vers votre VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Prévisualiser sans écrire de fichiers
@@ -293,9 +293,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-La commande récupère `/v1/models`, utilise des profils optimisés pour les modèles connus, se rabat sur les métadonnées du catalogue pour les autres modèles de texte compatibles et écrit `~/.codex/<name>.config.toml` pour chacun d’eux. Elle est idempotente — vous pouvez la réexécuter sans risque.
+La commande récupère `/v1/models`, utilise des profils optimisés pour les modèles connus, se rabat sur les métadonnées du catalogue pour les autres modèles de texte compatibles et écrit `~/.codex/<name>.config.toml` pour chacun d’eux. Elle est idempotente et peut donc être réexécutée sans risque.
 
-OmniRoute peut également **synchroniser automatiquement** ces mêmes fichiers de profil après qu’une découverte ou un import réussi des modèles d’un fournisseur a modifié le catalogue actif. Cette fonctionnalité est **facultative et désactivée par défaut** : activez-la depuis le **tableau de bord CLI Code** (« CLI profile auto-sync » → Codex), ou définissez `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (elle respecte également `CLI_ALLOW_CONFIG_WRITES`, activé par défaut). Lorsqu’elle est activée, elle écrit uniquement des fichiers de profil `~/.codex/*.config.toml` distincts ; elle ne modifie jamais le fichier actif/par défaut `~/.codex/config.toml`, les paramètres de Codex-lb, l’authentification ou la sélection du fournisseur.
+Si le fichier `config.toml` de base ne contient aucune définition `model_providers.omniroute`, une exécution explicite de
+`setup-codex` inclut cette définition dans chaque surcouche générée, en utilisant le point de terminaison
+local ou distant sélectionné. Le fichier de base reste inchangé. Une définition de fournisseur existante
+est héritée, y compris ses paramètres de point de terminaison et d’authentification. Un fichier TOML
+de base non valide interrompt la génération avant l’écriture des profils.
+
+Lorsque vous fournissez `--api-key` ou `OMNIROUTE_API_KEY`, un fournisseur nouvellement défini fait référence à
+`env_key = "OMNIROUTE_API_KEY"` ; la clé elle-même n’est jamais enregistrée ni affichée dans la
+prévisualisation. Définissez cette variable dans l’environnement depuis lequel vous lancez Codex. Si aucune
+clé n’est fournie, la nouvelle définition n’impose aucune clé, pour une instance OmniRoute
+configurée pour accepter les requêtes non authentifiées.
+
+La synchronisation automatique facultative du catalogue décrite ci-dessous conserve les définitions de fournisseur déjà
+présentes dans une surcouche, mais n’amorce pas de nouveaux paramètres de fournisseur ; configurez d’abord le fournisseur
+via une configuration explicite ou le tableau de bord. Les paramètres de fournisseur existants sont omis
+des prévisualisations avec `--dry-run`, car ils peuvent contenir des identifiants gérés par l’opérateur.
+
+OmniRoute peut également **synchroniser automatiquement** ces mêmes fichiers de profil après qu’une découverte/importation réussie des modèles d’un fournisseur a modifié le catalogue actif. Cette fonctionnalité est **facultative et désactivée par défaut** : activez-la depuis le **tableau de bord CLI Code** (« Synchronisation automatique des profils CLI » → Codex), ou définissez `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (elle respecte également `CLI_ALLOW_CONFIG_WRITES`, activé par défaut). Lorsqu’elle est activée, elle écrit uniquement des fichiers de profil `~/.codex/*.config.toml` distincts ; elle ne modifie jamais le fichier actif/par défaut `~/.codex/config.toml`, les paramètres de Codex-lb, l’authentification ou la sélection du fournisseur.
 
 ---
 
@@ -392,7 +409,7 @@ region  = "us-east-1"
 
 ---
 
-## Serveurs multiples
+## Plusieurs serveurs
 
 ```toml
 [model_providers.omniroute-main]

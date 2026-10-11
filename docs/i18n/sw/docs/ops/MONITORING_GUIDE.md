@@ -101,18 +101,18 @@ Kwa kila mchanganyiko:
 
 ## API ya Ukaguzi wa Afya
 
-OmniRoute hutoa sehemu **mbili** za afya kupitia HTTP. Haziwezi kutumika kwa kubadilishana katika viratibu.
+OmniRoute hutoa sehemu **mbili** za HTTP za ukaguzi wa afya. Hazitumiki kwa kubadilishana kwa waratibu.
 
-| Njia                         | Madhumuni                                                                  | Uzito                                                   | Tumia kwa                                                                           |
-| ---------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `GET /healthz`               | Uhai/utayari wa mzunguko wa maisha (`ok` / `starting` / `stopping`)        | Mwepesi sana (alama ya awamu pekee)                     | **Utayari** wa Kubernetes; **uhai** usio mkali ikiwa ni lazima utumie HTTP          |
-| `GET /api/monitoring/health` | Muhtasari wa kina wa mfumo + watoa huduma (DB, heap, idadi za katalogi, …) | Mzito (kazi ya DB / ufuatiliaji inayosubiri kukamilika) | Dashibodi, ukaguzi wa kina wa blackbox, ukaguzi wa afya uliojengewa ndani wa Docker |
+| Njia                         | Madhumuni                                                                 | Uzito                                      | Tumia kwa                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `GET /healthz`               | Uhai/utayari wa mzunguko wa maisha (`ok` / `starting` / `stopping`)       | Mwepesi sana (alama ya awamu pekee)        | **Utayari** wa Kubernetes; **uhai** usio mkali ikiwa lazima utumie HTTP             |
+| `GET /api/monitoring/health` | Muhtasari wa kina wa mfumo + mtoa huduma (DB, heap, idadi za katalogi, …) | Mzito (kazi sawazishi ya DB / ufuatiliaji) | Dashibodi, ukaguzi wa kina wa blackbox, ukaguzi wa afya uliojengewa ndani wa Docker |
 
-> **Kumbuka:** Majedwali ya afya ya watoa huduma, matatizo ya autopilot, vifuatiliaji vya kikomo cha matumizi, afya ya tokeni, na maelezo ya muda wa kusubiri yanayozidi `/api/monitoring/health` yanapatikana kupitia **zana ya MCP** `observability_snapshot` au kurasa za **dashibodi** — hakuna njia mahususi za REST kwa hayo.
+> **Kumbuka:** Majedwali ya afya ya watoa huduma, matatizo ya autopilot, vifuatiliaji vya mgao, afya ya tokeni, na maelezo ya ucheleweshaji yanayozidi `/api/monitoring/health` yanapatikana kupitia **zana ya MCP** `observability_snapshot` au kurasa za **dashibodi** — hakuna njia mahususi za REST kwa ajili ya hayo.
 
-Njia zote mbili hutekelezwa kwenye **event loop ileile ya Node** inayoshughulikia maombi. Njia inayotumia CPU kwa kiwango kikubwa (kazi ya katalogi kubwa ya `GET /v1/models`, ufinyaji wa muktadha mrefu / kuhesabu tokeni) inaweza kuchelewesha vishughulikiaji **vyote** vya HTTP, ikiwemo `/healthz`. Event loop kuwa na shughuli nyingi ≠ mchakato kufa. Pendelea kurekebisha kinachosababisha mzigo; kurekebisha mipangilio ya probe hupunguza tu kusitishwa kimakosa.
+Njia zote mbili hutekelezwa kwenye **mzunguko uleule wa matukio wa Node** unaoshughulikia maombi. Njia inayotumia CPU kwa wingi (kazi kubwa ya katalogi ya `GET /v1/models`, ufupishaji wa muktadha mrefu / kuhesabu tokeni) inaweza kuchelewesha vishughulikiaji **vyote** vya HTTP, ikiwemo `/healthz`. Mzunguko wa matukio kuwa na shughuli nyingi ≠ mchakato kufa. Pendelea kurekebisha kinachosababisha matumizi makubwa; urekebishaji wa vipimo hupunguza tu kusitishwa kimakosa.
 
-### Probe nyepesi ya kiratibu
+### Kipimo chepesi cha mratibu
 
 ```bash
 GET /healthz
@@ -153,43 +153,43 @@ Jibu:
 }
 ```
 
-#### `credentialHealth`: akiba ya probe dhidi ya `test_status` ya SQLite
+#### `credentialHealth`: probe-cache dhidi ya `test_status` ya SQLite
 
-`GET /api/monitoring/health` → `credentialHealth` ni **kipimo cha akiba ya probe kilicho
+`GET /api/monitoring/health` → `credentialHealth` ni **kipimo cha probe-cache kilicho
 kwenye kumbukumbu**, si nakala ya moja kwa moja ya `provider_connections.test_status`. Baada ya #12532,
-njia ya ombi husoma `getCachedCredentialHealthSummary()` pekee; probe za usuli
-husasisha akiba nje ya event loop.
+njia ya ombi husoma `getCachedCredentialHealthSummary()` pekee; vipimo vya usuli
+huonyesha upya akiba bila kutumia mzunguko wa matukio.
 
-| Tabaka                             | Mahali                                                                | Maana yake                                                                                                                                                                                                                    |
-| ---------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kipimo cha akiba ya probe          | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Matokeo ya mwisho ya probe ya afya ya kitambulisho ambayo bado yamehifadhiwa kwenye kumbukumbu ya mchakato. `source` daima ni `probe-cache`.                                                                                  |
-| Maelezo ya muunganisho ulioshindwa | `credentialHealth.failedConnections`                                  | Huwepo **tu wakati `failed > 0`**. Orodha yenye kikomo ya safu za akiba zenye `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` zilizosafishwa). `failedOmitted` huwekwa wakati orodha imefikia kikomo. |
-| Hali ya kudumu ya SQLite           | `credentialHealth.staleDbNonOkCount`                                  | Idadi ya safu za miunganisho **inayotumika** (`is_active=1`) ambazo `test_status` yake iliyohifadhiwa ni hali inayojulikana kuwa si sawa (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).   |
+| Tabaka                             | Mahali                                                                | Maana yake                                                                                                                                                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kipimo cha probe-cache             | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Matokeo ya mwisho ya ukaguzi wa afya ya kitambulisho ambayo bado yapo kwenye kumbukumbu ya mchakato. `source` daima ni `probe-cache`.                                                                                           |
+| Maelezo ya muunganisho ulioshindwa | `credentialHealth.failedConnections`                                  | Huwepo **tu wakati `failed > 0`**. Orodha yenye kikomo ya safu za akiba zenye `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` iliyosafishwa). `failedOmitted` huwekwa wakati orodha imefikia kikomo.    |
+| Hali inayodumu ya SQLite           | `credentialHealth.staleDbNonOkCount`                                  | Idadi ya safu za miunganisho **inayotumika** (`is_active=1`) ambazo `test_status` yake iliyohifadhiwa ni hali inayojulikana isiyo sawa na ok (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`). |
 
 Tabaka hizi mbili zinaweza kutofautiana kwa makusudi:
 
 - Kipimo `failed=0` huku `staleDbNonOkCount>0` — SQLite bado ina
-  `test_status` ya kudumu (kwa mfano `expired` au `credits_exhausted`) ambayo snapshot ya hivi karibuni
-  ya akiba ya probe haihesabu kama `status=error`.
-- Kipimo `failed>0` huku SQLite ikionekana kuwa na afya — probe ya hivi karibuni ilishindwa na
-  imehifadhiwa kwenye akiba; safu ya DB haijasasishwa, au ilisafishwa baadaye.
+  `test_status` inayodumu (kwa mfano `expired` au `credits_exhausted`) ambayo picha ya hivi karibuni ya
+  probe-cache haihesabu kama `status=error`.
+- Kipimo `failed>0` huku SQLite ikionekana kuwa na afya — kipimo cha hivi karibuni kilishindwa na
+  kimehifadhiwa kwenye akiba; safu ya DB haijasasishwa, au ilifutwa baadaye.
 
-Usitoe tahadhari kwa kutegemea tu `provider_connections.test_status` unapochota data kutoka
-endpoint hii. Tumia `failed` + `failedConnections` kwa hitilafu za moja kwa moja za probe, na
-`staleDbNonOkCount` unapohitaji idadi ya hali za kudumu zilizohifadhiwa.
+Usitoe tahadhari kwa kutegemea `provider_connections.test_status` pekee unapokusanya data kutoka
+endpointi hii. Tumia `failed` + `failedConnections` kwa hitilafu za vipimo vya moja kwa moja, na
+`staleDbNonOkCount` unapohitaji idadi ya hali zinazodumu zilizohifadhiwa.
 
-### Mapendekezo ya probe za Kubernetes
+### Mapendekezo ya vipimo vya Kubernetes
 
-OmniRoute ni **mchakato mmoja wa Node** (event loop moja). `HEALTHCHECK` ya kawaida ya Docker hulenga `/healthz` iliyo nyepesi. `/api/monitoring/health` ni **nzito mno** kwa vipindi vya ukaguzi wa uhai vya kubelet.
+OmniRoute ni **mchakato mmoja wa Node** (mzunguko mmoja wa matukio). `HEALTHCHECK` ya kawaida ya Docker hulenga `/healthz` iliyo nyepesi. `/api/monitoring/health` ni **nzito mno** kwa vipindi vya ukaguzi wa uhai vya kubelet.
 
-| Uchunguzi        | Lengo linalopendekezwa                                                                  | Vidokezo                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Uanzishaji**   | HTTP `GET /healthz` yenye `failureThreshold` ndefu (au `startPeriod` kubwa)             | Uanzishaji wa kwanza + uhamishaji wa SQLite unaweza kuzidi sekunde chache                                                                                                                                                                                                                                                                                                                                                                           |
-| **Utayari**      | HTTP `GET /healthz`                                                                     | Hali za mzunguko wa maisha `ok` / `starting` / `stopping` (200 dhidi ya 503). Bado hubadilika-badilika ikiwa kitanzi kimezuiwa na CPU. **Jibu la 200 linalochukua sekunde kadhaa si dalili ya afya nzuri** (#10303) — linamaanisha kitanzi cha matukio kilikosa muda wa kuchakata kabla ya kishughulikiaji cha baiti 3 kutekelezwa                                                                                                                  |
-| **Uhai**         | HTTP `GET /livez`, **au TCP** kwenye port kuu ya huduma (`PORT`, chaguo-msingi `20128`) | `/livez` huonyesha tu kuwa mchakato uko hai (daima 200 ikiwa kishughulikiaji kinatekelezwa). Bado hutumia kitanzi kilekile cha matukio — kuwa na shughuli nyingi ≠ kufa, na haitambui kunyimwa muda kwa kitanzi cha matukio (#10303) vizuri zaidi kuliko TCP. Pendelea **TCP** ikiwa uchunguzi wa HTTP unaisha muda chini ya mzigo wa katalogi/mbano; **usiue** pod kwa sababu ya kusimama kwa muda mfupi kwa kitanzi cha matukio kwa vyovyote vile |
-| **Afya ya kina** | `GET /api/monitoring/health` kutoka kwa kikaguzi cha nje                                | Si ya `livenessProbe` ya kubelet / `readinessProbe` yenye vipindi vifupi                                                                                                                                                                                                                                                                                                                                                                            |
+| Uchunguzi        | Lengo linalopendekezwa                                                                   | Maelezo                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kuanzisha**    | HTTP `GET /healthz` yenye `failureThreshold` ndefu (au `startPeriod` kubwa)              | Uanzishaji wa awali + uhamishaji wa SQLite unaweza kuzidi sekunde chache                                                                                                                                                                                                                                                                                                                                                                            |
+| **Utayari**      | HTTP `GET /healthz`                                                                      | Hali ya mzunguko wa maisha `ok` / `starting` / `stopping` (200 dhidi ya 503). Bado hubadilika-badilika ikiwa kitanzi kimezuiwa na CPU. **200 inayopatikana baada ya sekunde kadhaa si hali nzuri** (#10303) — inamaanisha kitanzi cha matukio kilikosa muda wa kuchakata kabla ya kishughulikiaji cha baiti 3 kutekelezwa                                                                                                                           |
+| **Uhai**         | HTTP `GET /livez`, **au TCP** kwenye porti kuu ya huduma (`PORT`, chaguo-msingi `20128`) | `/livez` huonyesha tu kuwa mchakato uko hai (daima 200 ikiwa kishughulikiaji kinatekelezwa). Bado hutumia kitanzi kilekile cha matukio — kuwa na shughuli nyingi ≠ kufa, na haitambui kunyimwa muda kwa kitanzi cha matukio (#10303) vizuri zaidi ya TCP. Pendelea **TCP** ikiwa uchunguzi wa HTTP unaisha muda chini ya mzigo wa katalogi/ufinyazaji; **usiue** podi kwa sababu ya kusimama kwa muda mfupi kwa kitanzi cha matukio kwa njia yoyote |
+| **Afya ya kina** | `GET /api/monitoring/health` kutoka kwa kikaguzi cha nje                                 | Si kwa ajili ya `livenessProbe` ya kubelet / `readinessProbe` ya mara kwa mara sana                                                                                                                                                                                                                                                                                                                                                                 |
 
-Mfano wa muundo (rekebisha viwango kulingana na mzigo wako wa uanzishaji wa kwanza na mbano):
+Mfano wa muundo (rekebisha vizingiti kulingana na mzigo wako wa uanzishaji wa awali na ufinyazaji):
 
 ```yaml
 ports:
@@ -215,19 +215,50 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Kitanzi cha matukio kikisimama, HTTP /livez bado inaweza kuisha muda. TCP ndiyo
-  # njia mbadala ya tahadhari zaidi:
+  # Kitanzi cha matukio kinaposimama, HTTP /livez bado inaweza kuisha muda. TCP ndiyo
+  # njia mbadala ya tahadhari:
   # tcpSocket:
   #   port: http
 ```
 
 **Usielekeze** **liveness** ya kubelet kwenye `/api/monitoring/health`. Njia hiyo hufanya kazi halisi ya DB/ufuatiliaji na itatoa matokeo chanya ya uongo chini ya mzigo.
 
-Yanayohusiana: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (uchunguzi wakati kitanzi cha matukio kina shughuli nyingi), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (bei za katalogi zinazotumia rasilimali nyingi), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (uhesabuji wa tokeni za mbano unaotumia rasilimali nyingi).
+Yanayohusiana: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (uchunguzi wakati kitanzi cha matukio kina shughuli nyingi), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (ukokotoaji wa bei wa katalogi unaotawala rasilimali), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (uhesabuji wa tokeni za ufinyazaji unaotawala rasilimali).
 
-### Kazi ya hiari ya njia ya ombi (kumbukumbu, ujuzi, kuonyesha upya tokeni)
+### watchdog ya systemd (kitanzi cha matukio kilichoganda)
 
-Uchimbaji wa kumbukumbu, uingizaji wa ujuzi, na kuonyesha upya tokeni ya OAuth hutumia **kitanzi kikuu cha matukio cha Node** pamoja na `/healthz`. Hivi ni vipengele vinavyowashwa au kuzimwa kwenye dashibodi (`memoryEnabled`, `skillsEnabled`), si kundi la michakato ya kazi. Tazama [Mazingira — gharama ya kitanzi cha matukio](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Kwenye seva pangishi ya systemd, OmniRoute humjulisha kidhibiti cha huduma inapokuwa tayari na huendelea kukitumia ping, ili seva ambayo kitanzi chake cha matukio kimekwama iuawe na kuanzishwa upya badala ya kuendelea kufanya kazi kimya. Ping hutoka kwenye kitanzi cha matukio cha seva yenyewe: kinapozuiwa, ping husimama, na systemd huanzisha upya huduma mara tu muda wa `WatchdogSec` unapopita bila ping.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) tayari huandika unit ya mtumiaji yenye kipengele hiki. Unit unayoandika mwenyewe (`Type=simple` kwa chaguo-msingi) haina watchdog, kwa hivyo ongeza mistari hii kwenye sehemu yake ya `[Service]`:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Unit inayozalishwa huweka `Restart=on-failure`, kwa hivyo ongeza mstari huo pia — bila huo, watchdog huua tu huduma iliyokwama badala ya kuianzisha upya.
+
+- `Type=notify`: huduma huwa "imeanzishwa" seva inapotuma `READY=1`, si mchakato unapofanya fork. `TimeoutStartSec` huweka kikomo kwa uanzishaji wa polepole.
+- `NotifyAccess=all`: ping hutumwa na mchakato wa seva, ambao ni mchakato mtoto wa msimamizi wa `omniroute serve`.
+- `WatchdogSec`: ping hutumwa kila baada ya sekunde 60, kwa hivyo tumia **120 au zaidi**. Thamani ndogo zaidi zingeanzisha upya seva yenye afya.
+- Endesha `omniroute serve` katika mandhari ya mbele. `--daemon` hutenganisha seva na cgroup ya unit na mawasiliano ya uthibitishaji wa notify hayakamiliki.
+
+Hakikisha inatumika baada ya kuanzisha upya:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` huonyesha muda wa kusubiri uliosanidiwa na `WatchdogTimestamp` husonga mbele kila dakika. Uanzishaji upya uliosababishwa na watchdog hurekodiwa kama `Result=watchdog`. Ili kuzima ping huku ukiiacha unit kama ilivyo, weka `OMNIROUTE_DISABLE_SD_NOTIFY=1`; bila `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows) hakuna kinachotumwa.
+
+Watchdog hukagua tu kwamba kitanzi cha matukio kinaendelea kufanya kazi. Seva ambayo ni polepole lakini bado inaendelea kuchakata haianzishwi upya.
+
+### Kazi ya hiari ya njia ya ombi (kumbukumbu, ujuzi, uonyeshaji upya wa tokeni)
+
+Uchimbaji wa kumbukumbu, uingizaji wa ujuzi, na uonyeshaji upya wa tokeni ya OAuth hushiriki **kitanzi kikuu cha matukio cha Node** pamoja na `/healthz`. Hivi ni vipengele vinavyowashwa au kuzimwa kwenye dashibodi (`memoryEnabled`, `skillsEnabled`), si mkusanyiko wa vichakataji. Tazama [Mazingira — gharama ya kitanzi cha matukio](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Afya ya Mtoa Huduma
 

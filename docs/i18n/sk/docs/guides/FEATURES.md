@@ -318,12 +318,12 @@ Vo v3.6.6 pribudlo aj **hybridné počítanie tokenov**: keď poskytovateľ komp
 
 ## 🛡️ Bezpečné odchádzajúce načítavanie a ochrana pred SSRF _(v3.6.6+)_
 
-Všetky volania na overenie poskytovateľov a zisťovanie modelov teraz prechádzajú cez dvojvrstvovú ochranu odchádzajúcich spojení:
+Všetky volania na overenie poskytovateľov a zisťovanie modelov teraz prechádzajú cez dvojvrstvovú ochranu odchádzajúcej komunikácie:
 
-1. **Ochrana URL** (`src/shared/network/outboundUrlGuard.ts`) — Blokuje súkromné, slučkové a lokálne IP rozsahy liniek ešte pred otvorením soketu.
-2. **Bezpečný obal funkcie fetch** (`src/shared/network/safeOutboundFetch.ts`) — Aplikuje ochranu URL, zjednocuje časové limity a pri prechodných chybách opakuje pokusy s exponenciálne rastúcim oneskorením.
+1. **Ochrana URL** (`src/shared/network/outboundUrlGuard.ts`) — Najprv kontroluje názov hostiteľa alebo literál IP cieľa presne v zadanom tvare; v režime iba pre verejné adresy obal bezpečného načítavania zároveň preloží názov a odmietne privátne adresy. Predvolene blokuje koncové body cloudových metadát — celý rozsah 169.254.0.0/16 spolu so známymi názvami hostiteľov metadát; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blokuje aj privátne adresy a adresy spätnej slučky; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (alebo staršie nastavenie `OUTBOUND_SSRF_GUARD_ENABLED=false`) tieto kontroly vypne. Hodnota uložená pomocou prepínača príznaku na ovládacom paneli má prednosť pred príslušnou premennou a vstavaní lokálni poskytovatelia počas overovania kľúča túto ochranu obchádzajú. Pozrite si `docs/reference/ENVIRONMENT.md`.
+2. **Obal bezpečného načítavania** (`src/shared/network/safeOutboundFetch.ts`) — Aplikuje ochranu URL, normalizuje časové limity a pri prechodných chybách opakuje požiadavky s exponenciálnym predlžovaním intervalov.
 
-Porušenia ochrany sa prejavia ako HTTP 422 (`URL_GUARD_BLOCKED`) a prostredníctvom `providerAudit.ts` sa zapíšu do audítorského denníka súladu.
+Porušenia pravidiel ochrany sa zobrazujú ako `URL_GUARD_BLOCKED` — HTTP 503 prostredníctvom `getSafeOutboundFetchErrorStatus` (400 na trase zisťovania modelov) — a skutočné blokovania SSRF počas overovania sa zapisujú do audítorského denníka ako udalosti `provider.validation.ssrf_blocked`.
 
 ---
 

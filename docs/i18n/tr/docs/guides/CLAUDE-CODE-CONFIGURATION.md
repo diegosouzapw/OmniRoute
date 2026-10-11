@@ -123,9 +123,13 @@ Kaynak: `ClaudeGatewayOnboardingBlock` tarafından görüntülenen `src/shared/s
 
 ## Profiller (`CLAUDE_CONFIG_DIR`)
 
-Claude Code'un **yerleşik profil dosyaları yoktur** (Codex'in `~/.codex/<name>.config.toml` dosyasından farklı olarak). Standart mekanizma `CLAUDE_CONFIG_DIR`'dır — her profil için ayrı bir yapılandırma dizini bulunur ve her birinin kendi `settings.json` dosyası, kimlik bilgileri, geçmişi ve önbelleği vardır.
+Claude Code'un **yerleşik profil dosyaları yoktur** (Codex'in `~/.codex/<name>.config.toml` dosyalarının aksine).
+Yaygın kullanılan mekanizma `CLAUDE_CONFIG_DIR`'dır — her profil için ayrı bir yapılandırma
+dizini bulunur ve her birinin kendi `settings.json` dosyası, kimlik bilgileri, geçmişi ve önbelleği vardır.
 
-`omniroute setup-claude`, canlı `/v1/models` kataloğunu getirir ve `~/.claude/profiles/<name>/settings.json` konumuna model başına bir profil yazar; **`setup-codex` ile aynı adları** (`glm52`, `kimi-k27`, `deepseek-pro`, …) yeniden kullanır:
+`omniroute setup-claude`, canlı `/v1/models` kataloğunu alır ve
+`~/.claude/profiles/<name>/settings.json` konumuna model başına bir profil yazar; bunu yaparken
+**`setup-codex` ile aynı adları** (`glm52`, `kimi-k27`, `deepseek-pro`, …) yeniden kullanır:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -142,11 +146,22 @@ Claude Code'un **yerleşik profil dosyaları yoktur** (Codex'in `~/.codex/<name>
 }
 ```
 
-> **Kimlik doğrulama belirteci hiçbir zaman profile yazılmaz.** `omniroute launch --profile <name>` ile başlatın (etkin bağlamdaki `ANTHROPIC_AUTH_TOKEN` değerini enjekte eder) veya `ANTHROPIC_AUTH_TOKEN` değişkenini kendiniz dışa aktararak `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` komutunu çalıştırın.
+> **Kimlik doğrulama belirteci hiçbir zaman profile yazılmaz.** Başlatmak için
+> `omniroute launch --profile <name>` komutunu kullanın (etkin bağlamdaki `ANTHROPIC_AUTH_TOKEN`
+> değerini enjekte eder) veya `ANTHROPIC_AUTH_TOKEN` değerini kendiniz dışa aktarıp
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` komutunu çalıştırın.
 
-**Model keşfinden sonra otomatik eşitleme (isteğe bağlı).** OmniRoute, sağlayıcı modeli eşitlemesi canlı kataloğu değiştirdiğinde aynı `~/.claude/profiles/<name>/settings.json` dosyalarını otomatik olarak yeniden oluşturabilir; böylece yeni veya yeniden adlandırılmış modeller, komutu yeniden çalıştırmadan profil edinir. Bu özellik **varsayılan olarak kapalıdır**: **CLI Code kontrol panelinden** etkinleştirin ("CLI profilini otomatik eşitle" → Claude Code) veya `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` olarak ayarlayın (`CLI_ALLOW_CONFIG_WRITES` ayarını da dikkate alır; bu ayar varsayılan olarak açıktır). Etkinleştirildiğinde yalnızca profil dosyalarını yazar; etkin/varsayılan Claude yapılandırmanızı, kimlik doğrulamanızı veya `~/.claude/settings.json` dosyasını hiçbir zaman değiştirmez.
+**Model keşfinden sonra otomatik eşitleme (isteğe bağlı).** OmniRoute, sağlayıcı model
+eşitlemesi canlı kataloğu her değiştirdiğinde aynı `~/.claude/profiles/<name>/settings.json`
+dosyalarını otomatik olarak yeniden oluşturabilir; böylece yeni/yeniden adlandırılmış modeller,
+komutu tekrar çalıştırmaya gerek kalmadan profil edinir. Bu özellik **varsayılan olarak kapalıdır**:
+**CLI Code panosundan** etkinleştirin ("CLI profilini otomatik eşitleme" → Claude Code) veya
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` olarak ayarlayın (varsayılan olarak etkin olan
+`CLI_ALLOW_CONFIG_WRITES` ayarını da dikkate alır). Etkinleştirildiğinde yalnızca profil
+dosyalarını yazar; etkin/varsayılan Claude yapılandırmanızı, kimlik doğrulamanızı veya
+`~/.claude/settings.json` dosyasını hiçbir zaman değiştirmez.
 
-### Profil oluşturma ve kullanma
+### Profilleri oluşturma + kullanma
 
 ```bash
 # Yerel OmniRoute
@@ -158,10 +173,14 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # Yalnızca bazı sağlayıcılar
 omniroute setup-claude --only glm,kimi
 
-# Yazmadan önizleme
+# Ayrıca bu ana makinede algılanmayan yerel CLI sağlayıcıları (zcode, auggie,
+# devin-cli-agentic, codex-app-server) için de profil yaz (yerel hedefte varsayılan olarak atlanır)
+omniroute setup-claude --include-local
+
+# Yazmadan önizle
 omniroute setup-claude --dry-run
 
-# Bir profil başlatın
+# Bir profili başlat
 omniroute launch --profile kimi-k27
 ```
 

@@ -17,77 +17,77 @@ _最後更新：2026-06-28_
 
 ## 執行摘要
 
-OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
-它提供單一的 OpenAI 相容端點（`/v1/*`），並透過轉換、備援、令牌刷新與用量追蹤，將流量路由至多個上游提供者。
+OmniRoute 是一個以 Next.js 建置的本機 AI 路由閘道與儀表板。
+它提供單一 OpenAI 相容端點（`/v1/*`），並透過格式轉換、備援、權杖重新整理及用量追蹤，將流量路由至多個上游提供者。
 
-核心能力：
+核心功能：
 
-- OpenAI 相容的 API 表面，適用於 CLI/工具（268 個提供者、84 個執行器）
-- 跨提供者格式的請求/回應轉換
+- 為 CLI／工具提供 OpenAI 相容的 API 介面（372 個提供者、148 個執行器）
+- 跨提供者格式的請求／回應轉換
 - 模型組合備援（多模型序列）
-- 結構化組合步驟（`提供者 + 模型 + 連線`），支援執行期依 `compositeTiers` 排序
-- 帳戶層級備援（每個提供者多帳戶）
-- 主要聊天路徑中的配額預檢與配額感知 P2C 帳戶選擇
-- OAuth + API 金鑰提供者連線管理（19 個 OAuth 提供者模組）
-- 透過 `/v1/embeddings` 生成嵌入向量（6 個提供者、9 個模型）
-- 透過 `/v1/images/generations` 生成圖片（10+ 個提供者、20+ 個模型）
-- 透過 `/v1/audio/transcriptions` 進行語音轉錄（7 個提供者）
-- 透過 `/v1/audio/speech` 進行文字轉語音（10 個提供者）
-- 透過 `/v1/videos/generations` 生成影片（ComfyUI + SD WebUI）
-- 透過 `/v1/music/generations` 生成音樂（ComfyUI）
-- 透過 `/v1/search` 進行網路搜尋（5 個提供者）
+- 結構化組合步驟（`provider + model + connection`），並依 `compositeTiers` 於執行階段排序
+- 帳戶層級備援（每個提供者可使用多個帳戶）
+- 主要聊天路徑中的配額預檢，以及具配額感知能力的 P2C 帳戶選擇
+- OAuth + API 金鑰提供者連線管理（27 個 OAuth 提供者模組）
+- 透過 `/v1/embeddings` 產生嵌入向量（18 個提供者）
+- 透過 `/v1/images/generations` 產生影像（10 多個提供者、20 多個模型）
+- 透過 `/v1/audio/transcriptions` 進行音訊轉錄（18 個提供者）
+- 透過 `/v1/audio/speech` 將文字轉為語音（24 個內建提供者）
+- 透過 `/v1/videos/generations` 產生影片（ComfyUI + SD WebUI）
+- 透過 `/v1/music/generations` 產生音樂（ComfyUI）
+- 透過 `/v1/search` 進行網頁搜尋（20 個提供者）
 - 透過 `/v1/moderations` 進行內容審核
 - 透過 `/v1/rerank` 進行重新排序
-- Think 標籤解析（`<think>...</think>`）用於推理模型
-- 回應淨化處理，確保嚴格的 OpenAI SDK 相容性
-- 角色正規化（developer→system, system→user）以實現跨提供者相容性
+- 為推理模型解析思考標籤（``）
+- 清理回應，以確保與嚴格的 OpenAI SDK 相容
+- 角色正規化（developer→system、system→user），以實現跨提供者相容性
 - 結構化輸出轉換（json_schema → Gemini responseSchema）
-- 提供者、金鑰、別名、組合、設定、定價的本地持久化（26 個 DB 模組）
-- 用量/成本追蹤與請求記錄
-- 選用雲端同步，支援多裝置/狀態同步
-- 用於 API 存取控制的 IP 允許清單/封鎖清單
-- 思考預算管理（透傳/自動/自訂/自適應）
-- 全域系統提示注入
+- 提供者、金鑰、別名、組合、設定及定價的本機持久化（122 個 DB 模組）
+- 用量／成本追蹤與請求記錄
+- 可選用的雲端同步，用於多裝置／狀態同步
+- 用於 API 存取控制的 IP 允許清單／封鎖清單
+- 思考預算管理（直通／自動／自訂／自適應）
+- 全域系統提示詞注入
 - 工作階段追蹤與指紋辨識
-- 每個帳戶的增強速率限制，附提供者特定設定檔
-- 用於提供者韌性的斷路器模式
-- 使用互斥鎖防止驚群效應
-- 基於簽章的請求去重快取
-- 領域層：成本規則、備援政策、鎖定政策
-- 上下文轉接：帳戶輪換連續性的工作階段交接摘要
-- 領域狀態持久化（SQLite 寫穿透快取，用於備援、預算、鎖定、斷路器）
-- 用於集中化請求評估的政策引擎（鎖定 → 預算 → 備援）
-- 請求遙測，含 p50/p95/p99 延遲彙總
-- 組合目標遙測及歷史組合目標健康狀態（透過 `combo_execution_key` / `combo_step_id`）
-- 關聯 ID（X-Request-Id）實現端到端追蹤
-- 合規稽核記錄，可依 API 金鑰選擇退出
+- 具提供者特定設定檔的個別帳戶增強型速率限制
+- 提升提供者韌性的斷路器模式
+- 使用互斥鎖避免驚群效應
+- 基於簽章的請求去重複快取
+- 領域層：成本規則、備援原則、鎖定原則
+- Context Relay：用於帳戶輪替連續性的工作階段交接摘要
+- 領域狀態持久化（針對備援、預算、鎖定及斷路器的 SQLite 直寫式快取）
+- 用於集中式請求評估的原則引擎（鎖定 → 預算 → 備援）
+- 具 p50／p95／p99 延遲彙總的請求遙測
+- 透過 `combo_execution_key`／`combo_step_id` 提供組合目標遙測及歷史組合目標健康狀態
+- 用於端對端追蹤的關聯 ID（X-Request-Id）
+- 可針對每個 API 金鑰選擇停用的合規稽核記錄
 - 用於 LLM 品質保證的評估框架
-- 健康狀態儀表板，即時顯示提供者斷路器狀態
-- MCP 伺服器（87 個工具）支援 3 種傳輸方式（stdio/SSE/Streamable HTTP）
-- A2A 伺服器（JSON-RPC 2.0 + SSE）含技能與任務生命週期
-- 記憶系統（提取、注入、檢索、摘要）
+- 具即時提供者斷路器狀態的健康狀態儀表板
+- MCP Server（110 個工具），支援 3 種傳輸方式（stdio／SSE／Streamable HTTP）
+- A2A Server（JSON-RPC 2.0 + SSE），具備技能與任務生命週期
+- 記憶系統（擷取、注入、檢索、摘要）
 - 技能系統（註冊表、執行器、沙箱、內建技能）
-- MITM 代理，含憑證管理與 DNS 處理
-- 提示注入防護中介軟體
-- 提示壓縮管線，含 Caveman、RTK、堆疊管線、壓縮組合、語言套件與分析功能
-- ACP（代理通訊協定）註冊表
-- 模組化 OAuth 提供者（22 個獨立模組，位於 `src/lib/oauth/providers/`）
-- 解除安裝/完整解除安裝指令碼
+- 具憑證管理與 DNS 處理功能的 MITM proxy
+- 提示詞注入防護中介軟體
+- 提示詞壓縮管線，支援 Caveman、RTK、堆疊式管線、壓縮組合、語言套件及分析
+- ACP（Agent Communication Protocol）註冊表
+- 模組化 OAuth 提供者（`src/lib/oauth/providers/` 下的 22 個獨立模組）
+- 解除安裝／完整解除安裝指令碼
 - OAuth 環境修復動作
-- WebSocket 橋接，供 OpenAI 相容的 WS 客戶端使用（`/v1/ws`）
-- 同步令牌管理（簽發/撤銷，ETag 版本化設定套件下載）
-- GLM Thinking（`glmt`）第一級提供者預設
-- 混合令牌計數（提供者端 `/messages/count_tokens` 搭配估算備援）
-- 模型別名自動播種（啟動時 30+ 跨代理方言正規化）
-- 安全的外送請求，含 SSRF 防護、私人 URL 封鎖與可設定的重試
-- 具冷卻感知的聊天重試，含可設定的 `requestRetry` 與 `maxRetryIntervalSec`
-- 啟動時使用 Zod 進行執行環境驗證
-- 合規稽核 v2，含分頁、提供者 CRUD 事件與 SSRF 封鎖驗證記錄
+- 適用於 OpenAI 相容 WS 用戶端的 WebSocket 橋接器（`/v1/ws`）
+- 同步權杖管理（核發／撤銷、下載以 ETag 進行版本控管的設定套件）
+- GLM Thinking（`glmt`）一級提供者預設組態
+- 混合式權杖計數（提供者端 `/messages/count_tokens`，並提供估算備援）
+- 模型別名自動植入（啟動時進行 30 多種跨代理方言正規化）
+- 具 SSRF 防護、私有 URL 封鎖及可設定重試機制的安全對外擷取
+- 可感知冷卻時間的聊天重試，並支援可設定的 `requestRetry` 與 `maxRetryIntervalSec`
+- 啟動時使用 Zod 進行執行階段環境驗證
+- 合規稽核 v2，具備分頁、提供者 CRUD 事件及 SSRF 封鎖驗證記錄
 
-主要執行模型：
+主要執行階段模型：
 
-- `src/app/api/*` 下的 Next.js 應用路由同時實作儀表板 API 與相容性 API
-- `src/sse/*` + `open-sse/*` 中的共用 SSE/路由核心負責提供者執行、轉換、串流、備援與用量
+- `src/app/api/*` 下的 Next.js 應用程式路由同時實作儀表板 API 與相容性 API
+- `src/sse/*` + `open-sse/*` 中的共用 SSE／路由核心負責處理提供者執行、格式轉換、串流、備援及用量追蹤
 
 ## 參考圖表
 
@@ -264,71 +264,73 @@ flowchart LR
 - 設定套件：`src/app/api/sync/bundle`（GET，設定/提供者/組合/金鑰的 ETag 版本化快照）
 - WebSocket：`src/app/api/v1/ws/route.ts` — OpenAI 相容 WS 客戶端的升級處理器
 
-## 2) SSE + 轉換核心
+## 2) SSE + 翻譯核心
 
 主要流程模組：
 
 - 入口：`src/sse/handlers/chat.ts`
 - 核心協調：`open-sse/handlers/chatCore.ts`
-- 提供者執行轉接器：`open-sse/executors/*`
-- 格式偵測/提供者設定：`open-sse/services/provider.ts`
-- 模型解析/解析：`src/sse/services/model.ts`、`open-sse/services/model.ts`
+- 提供者執行配接器：`open-sse/executors/*`
+- 格式偵測／提供者設定：`open-sse/services/provider.ts`
+- 模型解析／解析決策：`src/sse/services/model.ts`、`open-sse/services/model.ts`
 - 帳戶備援邏輯：`open-sse/services/accountFallback.ts`
-- 轉換註冊表：`open-sse/translator/index.ts`
+- 翻譯器登錄表：`open-sse/translator/index.ts`
 - 串流轉換：`open-sse/utils/stream.ts`、`open-sse/utils/streamHandler.ts`
-- 用量提取/正規化：`open-sse/utils/usageTracking.ts`
-- Think 標籤解析器：`open-sse/utils/thinkTagParser.ts`
+- 使用量擷取／正規化：`open-sse/utils/usageTracking.ts`
+- Think 標籤剖析器：`open-sse/utils/thinkTagParser.ts`
 - 嵌入處理器：`open-sse/handlers/embeddings.ts`
-- 嵌入提供者註冊表：`open-sse/config/embeddingRegistry.ts`
-- 圖片生成處理器：`open-sse/handlers/imageGeneration.ts`
-- 圖片提供者註冊表：`open-sse/config/imageRegistry.ts`
-- 回應淨化：`open-sse/handlers/responseSanitizer.ts`
+- 嵌入提供者登錄表：`open-sse/config/embeddingRegistry.ts`
+- 圖像生成處理器：`open-sse/handlers/imageGeneration.ts`
+- 圖像提供者登錄表：`open-sse/config/imageRegistry.ts`
+- 回應清理：`open-sse/handlers/responseSanitizer.ts`
 - 角色正規化：`open-sse/services/roleNormalizer.ts`
 
-服務（商業邏輯）：
+服務（業務邏輯）：
 
-- 帳戶選擇/評分：`open-sse/services/accountSelector.ts`
+- 帳戶選擇／評分：`open-sse/services/accountSelector.ts`
 - 上下文生命週期管理：`open-sse/services/contextManager.ts`
-- IP 過濾器執行：`open-sse/services/ipFilter.ts`
+- IP 篩選器強制執行：`open-sse/services/ipFilter.ts`
 - 工作階段追蹤：`open-sse/services/sessionManager.ts`
 - 請求去重：`open-sse/services/signatureCache.ts`
-- 系統提示注入：`open-sse/services/systemPrompt.ts`
+- 系統提示詞注入：`open-sse/services/systemPrompt.ts`
 - 思考預算管理：`open-sse/services/thinkingBudget.ts`
 - 萬用字元模型路由：`open-sse/services/wildcardRouter.ts`
 - 速率限制管理：`open-sse/services/rateLimitManager.ts`
 - 斷路器：`src/shared/utils/circuitBreaker.ts`
-- 上下文交接：`open-sse/services/contextHandoff.ts` — 用於上下文轉接策略的交接摘要產生與注入
-- 壓縮：`open-sse/services/compression/*` — 提供者轉換前的主動壓縮；包含 Caveman 規則、RTK 過濾器、堆疊管線、壓縮組合、統計資料與驗證
-- Codex 配額擷取器：`open-sse/services/codexQuotaFetcher.ts` — 擷取 Codex 配額用於上下文轉接交接決策
-- 具冷卻感知的重試：`src/sse/services/cooldownAwareRetry.ts` — 每個模型的冷卻重試，具可設定的 `requestRetry` / `maxRetryIntervalSec`
-- 安全外送請求：`src/shared/network/safeOutboundFetch.ts` — 受防護的提供者/模型請求，含 SSRF 防護、私人 URL 封鎖、重試與逾時
-- 外送 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 驗證提供者 URL 是否位於私人/本地 CIDR 範圍
+- 上下文移交：`open-sse/services/contextHandoff.ts` — 為上下文中繼策略產生並注入移交摘要
+- 壓縮：`open-sse/services/compression/*` — 在提供者翻譯前主動壓縮；
+  包含 Caveman 規則、RTK 篩選器、堆疊管線、壓縮組合、統計資料及驗證
+- Codex 配額擷取器：`open-sse/services/codexQuotaFetcher.ts` — 擷取 Codex 配額，以供上下文中繼移交決策使用
+- 感知冷卻時間的重試：`src/sse/services/cooldownAwareRetry.ts` — 依模型執行冷卻重試，並可透過 `requestRetry`／`maxRetryIntervalSec` 設定
+- 安全對外擷取：`src/shared/network/safeOutboundFetch.ts` — 受保護的提供者／模型擷取，具備 SSRF 防護、私有 URL 封鎖、重試及逾時機制
+- 對外 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 檢查提供者 URL 的主機；`src/shared/network/outboundUrlGuardPolicy.ts` 會根據 `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`、`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` 及其儀表板切換設定選擇模式（請參閱 `docs/reference/ENVIRONMENT.md`）
 - 提供者請求預設值：`open-sse/services/providerRequestDefaults.ts` — 提供者層級的 `maxTokens`、`temperature`、`thinkingBudgetTokens` 預設值
-- GLM 提供者常數：`open-sse/config/glmProvider.ts` — 共用的 GLM 模型、配額 URL、GLMT 逾時/預設值
+- GLM 提供者常數：`open-sse/config/glmProvider.ts` — 共用的 GLM 模型、配額 URL、GLMT 逾時及預設值
 - Antigravity 上游：`open-sse/config/antigravityUpstream.ts` — 基礎 URL 與探索路徑常數
-- Codex 客戶端常數：`open-sse/config/codexClient.ts` — 版本化的使用者代理與客戶端版本值
-- 模型別名播種：`src/lib/modelAliasSeed.ts` — 啟動時播種 30+ 跨代理方言別名
+- Codex 用戶端常數：`open-sse/config/codexClient.ts` — 帶版本的使用者代理程式與用戶端版本值
+- 模型別名種子：`src/lib/modelAliasSeed.ts` — 在啟動時植入 30 多個跨代理方言別名
 
 領域層模組：
 
-- 成本規則/預算：`src/domain/costRules.ts`
+- 成本規則／預算：`src/domain/costRules.ts`
 - 備援政策：`src/domain/fallbackPolicy.ts`
 - 組合解析器：`src/domain/comboResolver.ts`
 - 鎖定政策：`src/domain/lockoutPolicy.ts`
-- 政策引擎：`src/domain/policyEngine.ts` — 集中化的鎖定 → 預算 → 備援評估
-- 錯誤碼目錄：`src/shared/constants/errorCodes.ts`
+- 政策引擎：`src/domain/policyEngine.ts` — 集中進行鎖定 → 預算 → 備援評估
+- 錯誤代碼目錄：`src/shared/constants/errorCodes.ts`
 - 請求 ID：`src/shared/utils/requestId.ts`
 - 擷取逾時：`src/shared/utils/fetchTimeout.ts`
 - 請求遙測：`src/shared/utils/requestTelemetry.ts`
-- 合規/稽核：`src/lib/compliance/index.ts`
+- 合規／稽核：`src/lib/compliance/index.ts`
 - 評估執行器：`src/lib/evals/evalRunner.ts`
-- 領域狀態持久化：`src/lib/db/domainState.ts` — 備援鏈、預算、成本歷史、鎖定狀態、斷路器的 SQLite CRUD
+- 領域狀態持久化：`src/lib/db/domainState.ts` — 對備援鏈、預算、成本歷程、鎖定狀態及斷路器執行 SQLite CRUD
 
-OAuth 提供者模組（`src/lib/oauth/providers/` 下的 22 個個別檔案）：
+OAuth 提供者模組（`src/lib/oauth/providers/` 下的 27 個獨立檔案）：
 
-- 註冊表索引：`src/lib/oauth/providers/index.ts`
-- 個別提供者：`agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- 薄包裝層：`src/lib/oauth/providers.ts` — 從個別模組重新匯出
+- 登錄表索引：`src/lib/oauth/providers/index.ts`
+- 個別提供者：`agy.ts`、`antigravity.ts`、`claude.ts`、`cline.ts`、`codebuddy-cn.ts`、`codebuddy-intl.ts`、`codex.ts`、`cursor.ts`、`devin-desktop.ts`、`ghe-copilot.ts`、`github.ts`、`gitlab-duo.ts`、`grok-cli-oauth.ts`、`grok-cli.ts`、`kilocode.ts`、`kimi-coding.ts`、`kiro.ts`、`muse-code.ts`、`openference.ts`、`qoder.ts`、`trae.ts`、`workbuddy.ts`、`xai-oauth.ts`、`zed-hosted.ts`、`zed.ts`
+- 共用輔助工具：`codebuddyDeviceAuth.ts`（CodeBuddy CN／intl 裝置流程）、`museCodeDeviceResponse.ts`
+- 輕量包裝器：`src/lib/oauth/providers.ts` — 從個別模組重新匯出
 
 ## 5) 嵌入式服務（v3.8.4）
 

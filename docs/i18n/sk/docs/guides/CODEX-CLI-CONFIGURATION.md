@@ -275,7 +275,7 @@ codex -p chat     # cx/gpt-5.5, intenzita nie je nastavená (predvolené nastave
 
 ## Automatické generovanie profilov pomocou `omniroute setup-codex`
 
-Ak OmniRoute prevádzkujete na VPS, môžete automaticky generovať súbory profilov zo živého katalógu modelov:
+Ak prevádzkujete OmniRoute na VPS, môžete automaticky generovať súbory profilov zo živého katalógu modelov:
 
 ```bash
 # Z VPS (používa lokálny OmniRoute na porte 20128)
@@ -294,9 +294,27 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Príkaz načíta `/v1/models`, použije vyladené profily pre známe modely, pri ostatných kompatibilných textových modeloch použije ako náhradné riešenie metadáta katalógu a pre každý z nich zapíše `~/.codex/<name>.config.toml`. Je idempotentný — možno ho bezpečne spustiť opakovane.
+Príkaz načíta `/v1/models`, použije vyladené profily pre známe modely, pri ostatných kompatibilných textových modeloch použije ako náhradné riešenie metadáta katalógu a pre každý z nich zapíše `~/.codex/<name>.config.toml`. Je idempotentný — možno ho bezpečne spúšťať opakovane.
 
-OmniRoute môže tieto isté súbory profilov tiež **automaticky synchronizovať** po úspešnom vyhľadaní/importovaní modelov poskytovateľa, ktoré zmení živý katalóg. Táto funkcia je **voliteľná a predvolene vypnutá**: zapnite ju v **CLI Code dashboard** („CLI profile auto-sync“ → Codex) alebo nastavte `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (rešpektuje aj `CLI_ALLOW_CONFIG_WRITES`, ktoré je predvolene zapnuté). Keď je táto funkcia zapnutá, zapisuje iba samostatné súbory profilov `~/.codex/*.config.toml`; nikdy nemení aktívny/predvolený súbor `~/.codex/config.toml`, nastavenia Codex-lb, autentifikáciu ani výber poskytovateľa.
+Ak základný súbor `config.toml` neobsahuje definíciu `model_providers.omniroute`, explicitné
+spustenie `setup-codex` zahrnie túto definíciu do každého vygenerovaného prekrývajúceho
+súboru s použitím vybraného lokálneho alebo vzdialeného koncového bodu. Základný súbor
+ponechá nezmenený. Existujúca definícia poskytovateľa sa zdedí vrátane nastavení jej
+koncového bodu a autentifikácie. Neplatný základný súbor TOML zastaví generovanie ešte
+pred zápisom profilov.
+
+Keď zadáte `--api-key` alebo `OMNIROUTE_API_KEY`, novovytvorená definícia poskytovateľa odkazuje na
+`env_key = "OMNIROUTE_API_KEY"`; samotný kľúč sa nikdy neuloží ani nevypíše v
+náhľade. Nastavte túto premennú v prostredí, v ktorom spúšťate Codex. Bez
+zadaného kľúča nová definícia nevyžaduje kľúč, čo je určené pre inštanciu OmniRoute
+nakonfigurovanú tak, aby prijímala neautentifikované požiadavky.
+
+Voliteľná automatická synchronizácia katalógu opísaná nižšie zachová definície poskytovateľov, ktoré sa už
+nachádzajú v prekrývajúcom súbore, ale nezavádza nové nastavenia poskytovateľa; poskytovateľa
+najskôr nakonfigurujte explicitným nastavením alebo prostredníctvom ovládacieho panela. Existujúce nastavenia poskytovateľa sa
+v náhľadoch skúšobného spustenia vynechávajú, pretože môžu obsahovať prihlasovacie údaje spravované prevádzkovateľom.
+
+OmniRoute môže tieto isté súbory profilov aj **automaticky synchronizovať** po tom, ako úspešné zisťovanie/import modelov poskytovateľa zmení živý katalóg. Táto funkcia je **voliteľná a predvolene vypnutá**: zapnite ju na **ovládacom paneli CLI Code** („Automatická synchronizácia profilov CLI“ → Codex) alebo nastavte `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (rešpektuje aj `CLI_ALLOW_CONFIG_WRITES`, ktoré je predvolene zapnuté). Keď je povolená, zapisuje iba samostatné súbory profilov `~/.codex/*.config.toml`; nikdy nemení aktívny/predvolený súbor `~/.codex/config.toml`, nastavenia Codex-lb, autentifikáciu ani výber poskytovateľa.
 
 ---
 
@@ -393,7 +411,7 @@ region  = "us-east-1"
 
 ---
 
-## Viacero serverov
+## Viaceré servery
 
 ```toml
 [model_providers.omniroute-main]

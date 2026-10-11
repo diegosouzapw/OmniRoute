@@ -4,9 +4,12 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Språk:** 🇺🇸 [Engelsk](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
 
-Kjernereferanse for OmniRoute API. Den dekker den offentlige `/v1`-overflaten og de mest brukte administrasjonsendepunktene; de maskinlesbare [`docs/openapi.yaml`](../openapi.yaml) og rutetreet under `src/app/api/` er de uttømmende kildene.
+Kjernereferanse for OmniRoute-API-et. Den dekker den offentlige `/v1`-overflaten og de mest brukte administrasjonsendepunktene. Den maskinlesbare [`docs/openapi.yaml`](../openapi.yaml) og rutetreet under `src/app/api/` er de uttømmende kildene.
+
+For den fokuserte OpenAI-kompatible protokollen og matrisen over leverandørfunksjoner, se
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
 
 ---
 
@@ -213,7 +216,7 @@ hvor `<source>` er en av `request-header`, `routing-override`, `active-profile`,
 
 ---
 
-## Embeddings
+## Embeddinger
 
 ```bash
 POST /v1/embeddings
@@ -228,16 +231,16 @@ Content-Type: application/json
 
 Tilgjengelige leverandører: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, Jina AI.
 
-Katalog-ID-er er `provider/model` (eksempel: `jina-ai/jina-embeddings-v5-omni-small`). Bare Jina-modell-ID-er som vises i registeret (for eksempel `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`) løses også. Jina embed/rerank/classify/segment bruker først dashboard `jina-ai`-legitimasjon; `JINA_AI_API_KEY` er en fallback bare når ingen dashboard-nøkkel eksisterer. `jina-reader`-kortet er kun Reader / `r.jina.ai` (`POST /v1/web/fetch`) og leverer aldri embeddings eller rerank.
+Katalog-ID-er er `provider/model` (eksempel: `jina-ai/jina-embeddings-v5-omni-small`). Rene Jina-modell-ID-er som finnes i registeret (for eksempel `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`), blir også gjenkjent. Jina-operasjonene embed/rerank/classify/segment bruker først `jina-ai`-legitimasjon fra kontrollpanelet. `JINA_AI_API_KEY` brukes bare som reserve når det ikke finnes noen nøkkel fra kontrollpanelet. `jina-reader`-kortet er bare for Reader / `r.jina.ai` (`POST /v1/web/fetch`) og tilbyr aldri embedding eller rerank.
 
-Registermodeller som annonserer multimodal støtte aksepterer også opptil 32 leverandørnøytrale strukturerte
-elementer. Medieelementtyper er `text`, `image`, `audio`, `video` og `document`. Deres mediekilde
+Registermodeller som oppgir støtte for multimodalitet, godtar også opptil 32 leverandørnøytrale strukturerte
+elementer. Medietypene er `text`, `image`, `audio`, `video` og `document`. Deres `source`
 er enten `{"type":"url","url":"https://..."}` eller
 `{"type":"base64","data":"...","media_type":"..."}`.
 
-Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-v5-omni-nano`,
-og familiealiaset `jina-ai/jina-embeddings-v5-omni` → omni-small) aksepterer også Jinas native
-EmbeddingsV5Request-dokumenter og **videresender dem intakte** til `https://api.jina.ai/v1/embeddings`:
+Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-v5-omni-nano`
+og familiealiaset `jina-ai/jina-embeddings-v5-omni` → omni-small) godtar også Jinas opprinnelige
+EmbeddingsV5Request-dokumenter og **videresender dem intakt** til `https://api.jina.ai/v1/embeddings`:
 
 ```json
 {
@@ -254,27 +257,33 @@ EmbeddingsV5Request-dokumenter og **videresender dem intakte** til `https://api.
 }
 ```
 
-Native `{ image | audio | video | pdf }`-verdier kan være en offentlig HTTPS-URL, en `data:`-URI, eller rå
-base64. OmniRoute strengifiserer ikke disse objektene eller henter native bilde-URL-er – Jina henter
-offentlige medier selv. Ekstra Jina-felt (`task`, `normalized`, `truncate`, `embedding_type`)
-videresendes. Tekst-eneste Jina SKU-er avviser fortsatt ikke-tekstdokumenter.
+Opprinnelige `{ image | audio | video | pdf }`-verdier kan være en offentlig HTTPS-URL, en `data:`-URI eller rå
+base64. OmniRoute konverterer ikke disse objektene til strenger og henter heller ikke opprinnelige bilde-URL-er – Jina henter
+offentlige medier selv. Ekstra Jina-felter (`task`, `normalized`, `truncate`, `embedding_type`) blir
+videresendt. Jina-SKU-er som bare støtter tekst, avviser fortsatt dokumenter som ikke er tekst.
 
 Sikkerhets- og transportgrenser:
 
-- Eksterne medie-URL-er må være offentlige HTTPS. Kanoniske `{type,source:url}`-elementer hentes
-  på serversiden (omdirigeringsrevalidering, tidsavbrudd, størrelsesbegrensninger, offentlig DNS, tilkoblingspinning) og
-  innlines før leverandørkallet. Jina-native `{image:"https://..."}`-elementer videresendes som de er
-  etter samme offentlig-HTTPS-sjekk; Jina henter URL-en.
-- Innebygd base64-media er begrenset til 8 MiB dekodet per element og 16 MiB dekodet over hele forespørselen.
+- Eksterne medie-URL-er må bruke offentlig HTTPS. Kanoniske `{type,source:url}`-elementer hentes
+  på serversiden (ny validering ved omdirigering, tidsavbrudd, størrelsesgrenser, offentlig DNS og
+  tilkoblingsbinding) og bygges inn før leverandørkallet. Jina-spesifikke `{image:"https://..."}`-elementer videresendes som de er
+  etter den samme offentlige HTTPS-kontrollen. Jina henter URL-en.
+- Innebygde base64-medier er begrenset til 8 MiB dekodet per element og 16 MiB dekodet totalt for forespørselen.
 
 Leverandøroversettelse (kanoniske elementer videresendes aldri uendret):
 
-- Jina multimodale modeller: hvert toppnivåelement blir ett modalitetsnøkkelobjekt
-  (`text` / `image` / `audio` / `video` / `pdf`) ved hjelp av data-URI-er for innebygd media; én vektor per
-  toppnivåelement.
-- Gemini Embedding 2-familien: én toppnivåmatrise blir en enkelt native
+- Multimodale Jina-modeller: Hvert element på toppnivå blir ett objekt med en modalitetsnøkkel
+  (`text` / `image` / `audio` / `video` / `pdf`) som bruker data-URI-er for innebygde medier; én vektor per
+  element på toppnivå.
+- Gemini Embedding 2-familien: Én matrise på toppnivå blir én opprinnelig
   `models/{model}:embedContent`-forespørsel med `content.parts` (`text` eller `inline_data`).
-- Ukjente/dynamiske modeller uten eksplisitt modalitetsmetadata avviser strukturert input med HTTP 400.
+- llama.cpp (`llama-cpp/<model>`, enhver modell den lokale serveren har lastet inn): Kanoniske `text`-elementer
+  blir vanlige strenger, mens `image` / `audio` / `video` blir ett
+  `{"content": [part]}`-objekt hver, ved bruk av llama-servers innholdsdeler for chat (`image_url`,
+  `input_audio` med formatet `wav` / `mp3` / `flac`, `input_video`) med innebygde data; én vektor
+  per element på toppnivå. Serveren må kjøre med `--embedding --mmproj …`; uten en projektor
+  avviser den medier selv. `document` støttes ikke.
+- Ukjente/dynamiske modeller uten eksplisitte metadata om modalitet avviser strukturerte inndata med HTTP 400.
 
 ```json
 {
@@ -291,11 +300,11 @@ Leverandøroversettelse (kanoniske elementer videresendes aldri uendret):
 }
 ```
 
-Ikke-støttede modell-/modalitetskombinasjoner returnerer HTTP 400 i stedet for å tvinge elementet. Ikke-input
-utvidelsesfelt på eldre streng-/tokenforespørsler fortsetter å passere uendret.
+Modell-/modalitetskombinasjoner som ikke støttes, returnerer HTTP 400 i stedet for å konvertere elementet. Utvidelsesfelter
+som ikke er inndata, i eldre streng-/tokenforespørsler fortsetter å sendes videre uendret.
 
 ```bash
-# List all embedding models
+# Vis alle embeddingmodeller
 GET /v1/embeddings
 ```
 
@@ -305,20 +314,39 @@ GET /v1/embeddings
 
 ```bash
 POST /v1/images/generations
-Authorization: Bearer your-api-key
+Authorization: Bearer din-api-nøkkel
 Content-Type: application/json
 
 {
   "model": "openai/gpt-image-2",
-  "prompt": "A beautiful sunset over mountains",
+  "prompt": "En vakker solnedgang over fjell",
   "size": "1024x1024"
 }
 ```
 
-Tilgjengelige leverandører: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (lokal), ComfyUI (lokal).
+Tilgjengelige leverandører inkluderer OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (lokal), ComfyUI (lokal).
+
+ZenMux gjenbruker den eksisterende API-nøkkeltilkoblingen og godtar prefiksene `zenmux/` eller `zm/`:
+
+- `zenmux/openai/gpt-image-2` bruker ZenMux sin OpenAI Images API. Alternativene inkluderer `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background` og `response_format`.
+- Andre utgivere, som `zm/meta/muse-image-1.0`, bruker ZenMux sitt Vertex AI-`:predict`-
+  endepunkt. `n` tilsvarer `sampleCount`, `aspect_ratio` tilsvarer `aspectRatio`, og `image_size`
+  (`1K`, `2K`, `4K`) tilsvarer `sampleImageSize`. En pikselbasert `size` angir bare et sideforhold,
+  ikke garanterte pikseldimensjoner. Støttede sideforhold, oppløsninger og antall varierer etter modell.
+- `zm/inclusionai/ming-image-0.1-design` velger dimensjonene selv. Utelat `size`,
+  `aspect_ratio` og `image_size`; eksplisitte verdier returnerer HTTP 400. PNG, JPEG og WebP
+  kan forespørres med `output_format`.
+
+Denne integrasjonen støtter generering av bilder fra tekst, ikke redigering basert på referansebilder. Utdata fra Vertex
+normaliseres til `data[].b64_json`; `response_format: "url"` returnerer en oppstrøms
+HTTPS-URL eller en base64-data-URL når bare bildedata er tilgjengelige. Tomme/filtrerte utdata
+returnerer en feil i stedet for en tom vellykket respons. Modelltilgang avhenger av ZenMux-kontoen.
+Se [ZenMux sin Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) og
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
-# List alle bildemodeller
+# Vis alle bildemodeller
 GET /v1/images/generations
 ```
 
@@ -451,40 +479,40 @@ Bruk dette endepunktet når en sidecar kjører utenfor prosessen og ikke kan imp
 
 ## Kompatibilitetsendepunkter
 
-| Metode | Bane                                      | Format                                |
-| ------ | ----------------------------------------- | ------------------------------------- |
-| POST   | `/v1/chat/completions`                    | OpenAI                                |
-| POST   | `/v1/messages`                            | Anthropic                             |
-| POST   | `/v1/responses`                           | OpenAI Responses                      |
-| POST   | `/v1/embeddings`                          | OpenAI                                |
-| POST   | `/v1/images/generations`                  | OpenAI Images                         |
-| POST   | `/v1/images/edits`                        | OpenAI Images (redigering/inpainting) |
-| POST   | `/v1/videos/generations`                  | OpenAI-lignende videogenerering       |
-| POST   | `/v1/music/generations`                   | OpenAI-lignende musikkgenerering      |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (tale til tekst)         |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnerer lydinnhold)    |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-lignende omrangering    |
-| POST   | `/v1/classify`                            | Jina-klassifisering (`api.jina.ai`)   |
-| POST   | `/v1/segment`                             | Jina-segmentering (`segment.jina.ai`) |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                    |
-| GET    | `/v1/models`                              | OpenAI                                |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                             |
-| GET    | `/v1beta/models`                          | Gemini                                |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                |
-| POST   | `/v1/api/chat`                            | Ollama                                |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI-katalogalias                   |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI-modellalias                    |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenisert OpenAI-alias               |
-| POST   | `/api/v1/vscode/{token}/responses`        | Tokenisert OpenAI Responses-alias     |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenisert Ollama-alias               |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenisert alias for Ollama-tagger    |
+| Metode | Bane                                      | Format                                 |
+| ------ | ----------------------------------------- | -------------------------------------- |
+| POST   | `/v1/chat/completions`                    | OpenAI                                 |
+| POST   | `/v1/messages`                            | Anthropic                              |
+| POST   | `/v1/responses`                           | OpenAI Responses                       |
+| POST   | `/v1/embeddings`                          | OpenAI                                 |
+| POST   | `/v1/images/generations`                  | OpenAI Images                          |
+| POST   | `/v1/images/edits`                        | OpenAI Images (redigering/inpainting)  |
+| POST   | `/v1/videos/generations`                  | Videogenerering i OpenAI-stil          |
+| POST   | `/v1/music/generations`                   | Musikkgenerering i OpenAI-stil         |
+| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (tale-til-tekst)          |
+| POST   | `/v1/audio/speech`                        | OpenAI TTS (returnerer lydinnhold)     |
+| POST   | `/v1/rerank`                              | Rangering i Cohere-/Voyage-stil        |
+| POST   | `/v1/classify`                            | Jina-klassifisering (`api.jina.ai`)    |
+| POST   | `/v1/segment`                             | Jina-segmentering (`segment.jina.ai`)  |
+| POST   | `/v1/moderations`                         | OpenAI Moderations                     |
+| GET    | `/v1/models`                              | OpenAI                                 |
+| POST   | `/v1/messages/count_tokens`               | Anthropic                              |
+| GET    | `/v1beta/models`                          | Gemini                                 |
+| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                 |
+| POST   | `/v1/api/chat`                            | Ollama                                 |
+| GET    | `/api/v1/vscode/{token}/`                 | Alias for OpenAI-katalog               |
+| GET    | `/api/v1/vscode/{token}/models`           | Alias for OpenAI-modeller              |
+| POST   | `/api/v1/vscode/{token}/chat/completions` | Tokenbasert OpenAI-alias               |
+| POST   | `/api/v1/vscode/{token}/responses`        | Tokenbasert alias for OpenAI Responses |
+| POST   | `/api/v1/vscode/{token}/api/chat`         | Tokenbasert Ollama-alias               |
+| GET    | `/api/v1/vscode/{token}/api/tags`         | Tokenbasert alias for Ollama-tagger    |
 
-Alle POST-ruter følger samme struktur: `Bearer your-api-key` + Zod-validert JSON-innhold (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv.; se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
+Alle POST-ruter følger samme oppbygning: `Bearer your-api-key` + et Zod-validert JSON-innhold (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` osv., se `src/shared/validation/schemas.ts`). 4xx returneres ved skjemafeil.
 
-For klienter som ikke kan legge ved `Authorization: Bearer ...`, godtar OmniRoute også API-nøkler i URL-en, enten gjennom kompatible spørringsparametere (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerte `/api/v1/vscode/{token}/...`-endepunktene som er dokumentert nedenfor.
+For klienter som ikke kan legge ved `Authorization: Bearer ...`, godtar OmniRoute også API-nøkler i URL-en, enten via kompatible spørringsparametere (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) eller de dedikerte `/api/v1/vscode/{token}/...`-endepunktene som er dokumentert nedenfor.
 
 ```bash
-# Omrangering (leverandør fra skyregisteret eller en OpenAI-kompatibel leverandørnode som "<prefix>/<model>")
+# Rangering (leverandør fra skyregisteret eller en OpenAI-kompatibel leverandørnode som "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina-klassifisering (legitimasjon for Foundation API)
@@ -499,10 +527,10 @@ POST /v1/search      { "query": "...", "provider": "jina-search" }
 # Moderering
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — returnerer audio/mpeg-innhold (eller forespurt format)
+# TTS — returnerer lydinnhold i audio/mpeg (eller det forespurte formatet)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Soniox TTS krever språk og stemme: `language` bruker som standard "en"; en manglende
+# Soniox TTS krever et språk og en stemme: `language` har "en" som standard; en manglende
 # stemme eller et standard stemmenavn fra OpenAI (alloy, nova, …) blir til "Adrian"
 POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
@@ -514,26 +542,29 @@ POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Leverandørnoder for omrangering:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder
-> (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Loopback-
-> noder (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte. Noder på alle andre
-> verter — en maskin på lokalnettet eller en Tailscale-node — er bare kvalifiserte når operatøren aktiverer
+> **Leverandørnoder for rangering:** `POST /v1/rerank` ruter også til OpenAI-kompatible leverandørnoder
+> (oMLX, vLLM, Infinity, TEI bak en gateway, …) adressert som `<node-prefix>/<model>`. Tilbakesløyfenoder
+> (`localhost`, `127.0.0.1`, `172.16.0.0/12`) er alltid kvalifiserte, og det samme gjelder vertsnavn som
+> operatøren oppgir i `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (f.eks. et Docker-/Compose-tjenestenavn som
+> `http://reranker:8080/v1`; disse kalles direkte, aldri gjennom `HTTP(S)_PROXY` eller en
+> tilkoblings fastlåste proxy). Noder på alle andre
+> verter — en maskin på lokalnettet eller en Tailscale-motpart — er bare kvalifiserte når operatøren aktiverer
 > funksjonsflagget `RERANK_REMOTE_PROVIDER_NODES` **og** nodens basis-URL består leverandørens
-> policy for utgående URL-er (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> verter for skymetadata rutes aldri til. Minnefunksjonens omrangeringstrinn kaller denne ruten via
-> loopback, så samme regel gjelder for `rerankProviderModel` i minneinnstillingene.
+> policy for utgående URL-er (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
+> Minnemotorens rangeringstrinn kaller denne ruten over
+> tilbakesløyfen, så den samme regelen gjelder for `rerankProviderModel` i minneinnstillingene.
 >
-> **Lokale serverformater:** noden kalles på `<base>/v1/rerank` og, ved 404, på `<base>/rerank`
-> (Infinity, TEI). Oppstrømsinnholdet inneholder både Cohere/OpenAI-stavemåten (`documents`,
+> **Lokale serverformater:** Noden kalles på `<base>/v1/rerank` og, ved 404, på `<base>/rerank`
+> (Infinity, TEI). Oppstrømsinnholdet har både Cohere-/OpenAI-stavemåten (`documents`,
 > `return_documents`) og TEI-stavemåten (`texts`, `return_text`), og oppstrømssvaret
 > normaliseres til Cohere-konvolutten: TEIs uinnpakkede `[{index, score, text}]`, `{results: [{index, score}]}`
-> fra enkle gatewayer og Voyage-lignende `{data: [...]}` returneres alle til klienten som
+> fra enkle gatewayer og Voyage-formatet `{data: [...]}` returneres alle til klienten som
 > `{results: [{index, relevance_score, document?}]}`, sortert etter poengsum og begrenset til `top_n`.
 
 > **Oppdagelse av leverandørnoder:** Modeller på en OpenAI-kompatibel leverandørnode vises i `GET /v1/models`
-> under nodens prefiks. Rader uten endepunktmetadata (typisk for lokale `/v1/models`-oppføringer)
+> under nodeprefikset. Rader uten endepunktmetadata (typisk for lokale `/v1/models`-oppføringer)
 > arver nodens `apiType`, slik at modellene til en `embeddings`-node får `type: "embedding"` og
-> modellene til en `rerank`-node får `type: "rerank"` i stedet for å bruke chat som standard; en eksplisitt
+> modellene til en `rerank`-node får `type: "rerank"` i stedet for å bruke chat som standard. En eksplisitt
 > `supportedEndpoints` på en synkronisert eller manuelt lagt til rad har fortsatt forrang.
 
 ### Dedikerte leverandørruter
@@ -784,40 +815,76 @@ Enhver forespørsel kan omgå hurtigbufferen uavhengig av nøkkelinnstillinger:
 X-OmniRoute-No-Cache: true
 ```
 
-## Dashbord og administrasjon
+## Kontrollpanel og administrasjon
 
-Administrasjonsruter (`/api/*`, unntatt offentlig autentisering/pålogging) autoriseres **ikke** med
-vanlige API-nøkler for inferens. Informasjon om legitimasjonstyper, omfang og curl-eksempler:
-[Autentisering for administrasjon](../guides/MANAGEMENT-AUTH.md).
+Administrasjonsruter (`/api/*`, unntatt offentlig autentisering/innlogging) autoriseres **ikke** med
+vanlige API-nøkler for inferens. Se legitimasjonstyper, tilganger og curl-eksempler:
+[Administrasjonsautentisering](../guides/MANAGEMENT-AUTH.md).
 
 ### Autentisering
 
-| Endepunkt                     | Metode  | Beskrivelse                 |
-| ----------------------------- | ------- | --------------------------- |
-| `/api/auth/login`             | POST    | Logg på                     |
-| `/api/auth/logout`            | POST    | Logg av                     |
-| `/api/settings/require-login` | GET/PUT | Slå krav om pålogging av/på |
+| Endepunkt                     | Metode  | Beskrivelse                  |
+| ----------------------------- | ------- | ---------------------------- |
+| `/api/auth/login`             | POST    | Logg inn                     |
+| `/api/auth/logout`            | POST    | Logg ut                      |
+| `/api/settings/require-login` | GET/PUT | Slå krav om innlogging av/på |
 
 ### Leverandøradministrasjon
 
-| Endepunkt                               | Metode                | Beskrivelse                                                                                                                                                                   |
-| --------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Vis / opprett leverandører                                                                                                                                                    |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Administrer en leverandør                                                                                                                                                     |
-| `/api/providers/[id]/test`              | POST                  | Test leverandørtilkoblingen                                                                                                                                                   |
-| `/api/providers/[id]/models`            | GET                   | Vis leverandørmodeller                                                                                                                                                        |
-| `/api/providers/validate`               | POST                  | Valider leverandørkonfigurasjonen                                                                                                                                             |
-| `/api/providers/bulk`                   | POST                  | Legg til flere API-nøkler for ÉN leverandør                                                                                                                                   |
-| `/api/providers/import`                 | POST                  | Importer en heterogen leverandørLISTE fra en tolket CSV-/JSON-fil (#6836); resultater med delvis feil per rad                                                                 |
-| `/api/provider-nodes*`                  | Diverse               | Administrasjon av leverandørnoder                                                                                                                                             |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Egendefinerte modeller (legg til, oppdater, skjul/vis, slett)                                                                                                                 |
-| `/api/provider-models/validate-and-add` | POST                  | Administrasjonsautentisert, valgfri streng validering av tilkoblingen og atomisk registrering av egendefinerte modeller; se [Modellvalidering](../guides/MODEL-VALIDATION.md) |
+| Endepunkt                               | Metode                    | Beskrivelse                                                                                                                                                                   |
+| --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Vis / opprett leverandører                                                                                                                                                    |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Administrer en leverandør                                                                                                                                                     |
+| `/api/providers/[id]/test`              | POST                      | Test leverandørtilkoblingen                                                                                                                                                   |
+| `/api/providers/[id]/models`            | GET                       | Vis leverandørmodeller                                                                                                                                                        |
+| `/api/providers/validate`               | POST                      | Valider leverandørkonfigurasjonen                                                                                                                                             |
+| `/api/providers/bulk`                   | POST                      | Legg til flere API-nøkler samtidig for ÉN leverandør                                                                                                                          |
+| `/api/providers/import`                 | POST                      | Importer en heterogen LISTE over leverandører fra en analysert CSV-/JSON-fil (#6836); resultater med delvise feil per rad                                                     |
+| `/api/provider-nodes*`                  | Diverse                   | Administrasjon av leverandørnoder                                                                                                                                             |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Egendefinerte modeller og overstyringer per modell (legg til, oppdater, skjul/vis, slett)                                                                                     |
+| `/api/provider-models/validate-and-add` | POST                      | Administrasjonsautentisert, valgfri streng validering av tilkoblingen og atomisk registrering av egendefinerte modeller; se [Modellvalidering](../guides/MODEL-VALIDATION.md) |
+
+For synkroniserte/importerte modeller godtar `PUT /api/provider-models` `provider`, `modelId` og
+`maxOutputTokenOverride`: Et positivt heltall angir den manuelle grensen for utdata-tokener, mens `null`
+fjerner den for å gjenopprette standardverdien. `GET /api/provider-models?provider=<provider>` returnerer disse
+verdiene i `modelOutputOverrides`, inkludert modeller uten en rad for egendefinert modell. Overstyringen
+bruker kjøretidsfunksjonen `max_output_tokens` og beholdes etter en ny synkronisering av modellen. Siden for den OpenAI-kompatible
+leverandøren tilbyr de samme kontrollene for redigering/fjerning og markerer modeller med eksplisitt støtte for bildeanalyse.
+
+Egendefinerte Chat Completions-noder tilpasser eksplisitte fravalg av resonnering til oppstrømsserveren. En
+vellykket tilkoblingstest velger automatisk kontroller for chatmaler for hver eksakte modell-ID
+der `/models`-oppføringen dokumenterer en gjenkjent `owned_by`-verdi: `vllm`, `sglang` eller `llamacpp`.
+Transparente OpenAI-kompatible mellomlag kan beholde den opprinnelige modelloppføringen i et nøstet
+`openai`-objekt; oppdagelsen følger opptil tre slike innpakninger. Modeller med manglende, ukjent eller
+motstridende eierskap beholder vanlig OpenAI-atferd. Oppdagelsen gjenbruker den eksisterende katalogforespørselen,
+genererer ingen fullføringstokener og ugyldiggjøres når endepunktet for tilkoblingen endres.
+
+For å låse atferden for en oppstrømsserver som ikke eksponerer disse metadataene, bruker du det eksisterende API-et
+for delvis oppdatering av leverandøren:
+
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
+
+Send denne brødteksten med `PUT /api/providers/<connection-id>`. På denne tilkoblingen sendes en eksplisitt
+resonneringsinnsats på `none` som `chat_template_kwargs.thinking=false` og
+`chat_template_kwargs.enable_thinking=false`. Eksplisitte innebygde malverdier forblir autoritative
+med mindre en resonneringsregel på serversiden fremtvinger en innsats. Innstillingen gjelder bare når en egendefinert
+OpenAI-kompatibel tilkobling sender en Chat Completions-brødtekst; Responses-forespørsler og vanlige
+leverandører beholder sin opprinnelige forespørselsstruktur. Sett `reasoningControl` til `openai` for å fremtvinge vanlig OpenAI-
+videresending av `reasoning_effort`, eller utelat den / sett den til `null` for å bruke automatisk oppdagelse.
+
+Claude Code-klassifiseringsforespørsler i automodus deaktiverer innebygd tenkning som standard når de ikke inneholder eksplisitte resonneringskontroller. Deteksjonen bruker klassifiseringens systemmarkør i forespørsler i Claude-format, ikke modellnavn eller fullføringsgrenser. Eksplisitte kontroller i forespørselskroppen, støttede innsats-/tenkningshoder, rutingsregler og modellens fastsatte innsatsnivå beholder sin eksisterende prioritet. Begge klassifiseringstrinnene beholder instruksjonene, fullføringsgrensene, stoppsekvensene og de reelle oppstrøms tillatelsesavgjørelsene sine. Det andre trinnet kan fortsatt produsere den forespurte synlige resonneringen som vanlig tekst.
 
 ### OAuth-flyter
 
-| Endepunkt                        | Metode  | Beskrivelse               |
-| -------------------------------- | ------- | ------------------------- |
-| `/api/oauth/[provider]/[action]` | Diverse | Leverandørspesifikk OAuth |
+| Endepunkt                        | Metode   | Beskrivelse               |
+| -------------------------------- | -------- | ------------------------- |
+| `/api/oauth/[provider]/[action]` | Varierer | Leverandørspesifikk OAuth |
 
 ### Ruting og konfigurasjon
 
@@ -825,74 +892,115 @@ vanlige API-nøkler for inferens. Informasjon om legitimasjonstyper, omfang og c
 | --------------------- | -------- | ------------------------------------- |
 | `/api/models/alias`   | GET/POST | Modellaliaser                         |
 | `/api/models/catalog` | GET      | Alle modeller etter leverandør + type |
-| `/api/combos*`        | Diverse  | Administrasjon av kombinasjoner       |
-| `/api/keys*`          | Diverse  | Administrasjon av API-nøkler          |
-| `/api/pricing`        | GET      | Modellprising                         |
+| `/api/combos*`        | Varierer | Administrasjon av kombinasjoner       |
+| `/api/keys*`          | Varierer | Administrasjon av API-nøkler          |
+| `/api/pricing`        | GET      | Modellpriser                          |
 
 ### Bruk og analyse
 
-| Endepunkt                        | Metode          | Beskrivelse                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Brukshistorikk                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/usage/logs`                | GET             | Brukslogger                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/request-logs`        | GET             | Logger på forespørselsnivå                                                                                                                                                                                                                                                                                                                                       |
-| `/api/usage/[connectionId]`      | GET             | Bruk per tilkobling                                                                                                                                                                                                                                                                                                                                              |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Budsjetter for tokenbegrensning per API-nøkkel                                                                                                                                                                                                                                                                                                                   |
-| `/api/usage/model-latency-stats` | GET             | Rullerende samlet forsinkelsesstatistikk per leverandør/modell (gj.sn./p50/p95/p99, suksessrate); filtre: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                        |
-| `/api/usage/cache-health`        | GET             | Sammendrag av tilstanden til ledetekstbufferen basert på `call_logs` — skrive-/leseforhold, p50/p90/p99-fordeling av skrivestørrelse, konsentrasjon av omfattende skriving, fordeling per modell og en vurdering som `healthy`/`degraded`/`thrash`/`no-data`; spørringsparametrene `range` (`1h`\|`24h`\|`7d`\|`30d`, standard `24h`) og valgfri `model` (#8827) |
+| Endepunkt                        | Metode          | Beskrivelse                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/usage/history`             | GET             | Brukshistorikk                                                                                                                                                                                                                                                                                                                                         |
+| `/api/usage/logs`                | GET             | Brukslogger                                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/request-logs`        | GET             | Logger på forespørselsnivå                                                                                                                                                                                                                                                                                                                             |
+| `/api/usage/[connectionId]`      | GET             | Bruk per tilkobling                                                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Budsjetter for tokenbegrensning per API-nøkkel                                                                                                                                                                                                                                                                                                         |
+| `/api/usage/model-latency-stats` | GET             | Løpende samlet latensstatistikk per leverandør/modell (gj.sn./p50/p95/p99, suksessrate); filtre: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                       |
+| `/api/usage/cache-health`        | GET             | Sammendrag av tilstanden til promptbufferen over `call_logs` — skrive-/leseforhold, p50/p90/p99-fordeling av skrivestørrelser, konsentrasjon av omfattende skriving, fordeling per modell og en `healthy`/`degraded`/`thrash`/`no-data`-avgjørelse; spørringsparametrene `range` (`1h`\|`24h`\|`7d`\|`30d`, standard `24h`) og valgfri `model` (#8827) |
+
+### Tillatelser for API-nøkler
+
+`PATCH /api/keys/{id}` oppdaterer tillatelsene til en eksisterende nøkkel. Som alle `/api/keys*`-ruter krever den administrasjonsautorisasjon (se [Administrasjonsautentisering](../guides/MANAGEMENT-AUTH.md)), ikke en inferensnøkkel. Send bare feltene du vil endre. En forespørsel uten noen av dem avvises med `No valid fields to update`. De godkjente feltene defineres av `updateKeyPermissionsSchema` i `src/shared/validation/schemas/keys.ts`.
+
+| Felt                                        | Type                                                                       | Merknader                                                                                                                             |
+| ------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | streng, 1–200 tegn                                                         |                                                                                                                                       |
+| `isActive`                                  | boolsk verdi                                                               |                                                                                                                                       |
+| `isBanned`                                  | boolsk verdi                                                               |                                                                                                                                       |
+| `expiresAt`                                 | ISO 8601-dato og -klokkeslett eller `null`                                 | `null` fjerner utløpstiden                                                                                                            |
+| `modelAccessMode`                           | `all` \| `restricted`                                                      | `allowedModels` må være tom når modusen er `all`                                                                                      |
+| `allowedModels`, `blockedModels`            | matrise med strenger, opptil 1000                                          |                                                                                                                                       |
+| `allowedCombos`                             | matrise med strenger, opptil 500                                           | Styrer hvilke kombinasjoner nøkkelen kan kalle; direkte modeller styres av `modelAccessMode` / `allowedModels`                        |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                      | `allowedConnections` kan ikke være tom når modusen er `restricted`, og må være tom når modusen er `all`                               |
+| `allowedConnections`                        | matrise med UUID-er, opptil 100                                            |                                                                                                                                       |
+| `allowAutoCombos`                           | boolsk verdi                                                               | `false` avviser forespørsler om `auto/*`-modeller med denne nøkkelen; nøkler som aldri har angitt den, tillates                       |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                              | Hva `GET /v1/models` viser for denne nøkkelen (bare kombinasjoner, bare modeller eller begge); det endrer ikke hva nøkkelen kan kalle |
+| `noLog`, `autoResolve`                      | boolsk verdi                                                               |                                                                                                                                       |
+| `throttleDelayMs`                           | heltall, 0–300000                                                          |                                                                                                                                       |
+| `maxSessions`                               | heltall, 0–10000                                                           |                                                                                                                                       |
+| `rateLimits`                                | matrise med `{ limit, window }` (positive heltall, opptil 50) eller `null` | `null` fjerner grensene                                                                                                               |
+| `accessSchedule`                            | tidsplanobjekt eller `null`                                                | `null` fjerner tidsplanen                                                                                                             |
+| `scopes`                                    | matrise med strenger, opptil 32                                            |                                                                                                                                       |
+| `allowedEndpoints`                          | matrise med strenger, opptil 20                                            |                                                                                                                                       |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                         |                                                                                                                                       |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                       | Se [Hurtigbufferomgåelse per nøkkel](#per-key-cache-bypass)                                                                           |
+| `compressionEnabled`                        | boolsk verdi                                                               |                                                                                                                                       |
+| `codexServiceMode`                          | én av Codex-tjenestemodusene                                               |                                                                                                                                       |
+| `disableNonPublicModels`                    | boolsk verdi                                                               |                                                                                                                                       |
+| `allowUsageCommand`                         | boolean                                                                    |                                                                                                                                       |
+| `usageLimitEnabled`                         | boolean                                                                    |                                                                                                                                       |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 eller `null`                                                   |                                                                                                                                       |
+| `chaosModeEnabled`                          | boolean                                                                    |                                                                                                                                       |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Innstillinger
 
-| Endepunkt                             | Metode        | Beskrivelse                                                                                                                                                                                                    |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Generelle innstillinger                                                                                                                                                                                        |
-| `/api/settings/proxy`                 | GET/PUT       | Konfigurasjon av nettverksproxy                                                                                                                                                                                |
-| `/api/settings/proxy/test`            | POST          | Test proxytilkoblingen                                                                                                                                                                                         |
-| `/api/settings/ip-filter`             | GET/PUT       | Tillatelses-/blokkeringsliste for IP-adresser                                                                                                                                                                  |
-| `/api/settings/thinking-budget`       | GET/PUT       | Omskrivingsmodus for **forespørsler** om tenking/resonnering (videresending / automatisk fjerning / egendefinert / adaptiv). Uavhengig av komprimering. Se [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Global systemledetekst                                                                                                                                                                                         |
-| `/api/settings/compression`           | GET/PUT       | Global komprimeringskonfigurasjon                                                                                                                                                                              |
-| `/api/settings/purge-request-history` | POST          | Slett forespørselsloggrader og lokale kallogg-artefakter                                                                                                                                                       |
+| Endepunkt                             | Metode        | Beskrivelse                                                                                                                                                                                    |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Generelle innstillinger                                                                                                                                                                        |
+| `/api/settings/proxy`                 | GET/PUT       | Konfigurasjon av nettverksproxy                                                                                                                                                                |
+| `/api/settings/proxy/test`            | POST          | Test proxytilkoblingen                                                                                                                                                                         |
+| `/api/settings/ip-filter`             | GET/PUT       | Liste over tillatte/blokkerte IP-adresser                                                                                                                                                      |
+| `/api/settings/thinking-budget`       | GET/PUT       | Omskrivingsmodus for **forespørsler** om tenking/resonnering (passthrough / auto-strip / custom / adaptive). Uavhengig av komprimering. Se [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Global systeminstruks                                                                                                                                                                          |
+| `/api/settings/compression`           | GET/PUT       | Global komprimeringskonfigurasjon                                                                                                                                                              |
+| `/api/settings/purge-request-history` | POST          | Slett rader i forespørselsloggen og lokale anropsloggartefakter                                                                                                                                |
 
 ### Kontekst og komprimering
 
-| Endepunkt                              | Metode         | Beskrivelse                                                                          |
-| -------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
-| `/api/compression/preview`             | POST           | Forhåndsvis komprimering med off/lite/standard/aggressive/ultra/RTK/stacked          |
-| `/api/compression/language-packs`      | GET            | Vis tilgjengelige Caveman-språkpakker                                                |
-| `/api/compression/rules`               | GET            | Vis metadata for Caveman-regler                                                      |
-| `/api/context/caveman/config`          | GET/PUT        | Alias for Caveman-spesifikke innstillinger                                           |
-| `/api/context/rtk/config`              | GET/PUT        | RTK-spesifikke innstillinger, inkludert egendefinerte filtre og bevaring av råutdata |
-| `/api/context/rtk/filters`             | GET            | RTK-filterkatalog og diagnostikk for egendefinerte filtre                            |
-| `/api/context/rtk/test`                | POST           | Kjør RTK-forhåndsvisning/-test mot en tekstnyttelast                                 |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Les bevarte, redigerte råutdata etter peker-ID                                       |
-| `/api/context/combos`                  | GET/POST       | Vis/opprett komprimeringskombinasjoner                                               |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detaljer/oppdatering/sletting for komprimeringskombinasjon                           |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Tilordne komprimeringskombinasjoner til rutingskombinasjoner                         |
-| `/api/context/analytics`               | GET            | Alias for komprimeringsanalyse                                                       |
+| Endepunkt                              | Metode         | Beskrivelse                                                                       |
+| -------------------------------------- | -------------- | --------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | Forhåndsvis komprimering med off/lite/standard/aggressive/ultra/RTK/stacked       |
+| `/api/compression/language-packs`      | GET            | Vis tilgjengelige Caveman-språkpakker                                             |
+| `/api/compression/rules`               | GET            | Vis metadata for Caveman-regler                                                   |
+| `/api/context/caveman/config`          | GET/PUT        | Alias for Caveman-spesifikke innstillinger                                        |
+| `/api/context/rtk/config`              | GET/PUT        | RTK-spesifikke innstillinger, inkludert egendefinerte filtre og lagring av rådata |
+| `/api/context/rtk/filters`             | GET            | RTK-filterkatalog og diagnostikk for egendefinerte filtre                         |
+| `/api/context/rtk/test`                | POST           | Kjør en RTK-forhåndsvisning/-test mot en tekstnyttelast                           |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Les lagrede, sladdede rådata etter peker-ID                                       |
+| `/api/context/combos`                  | GET/POST       | Vis/opprett komprimeringskombinasjoner                                            |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detaljer for/oppdater/slett komprimeringskombinasjon                              |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Tilordne komprimeringskombinasjoner til rutingskombinasjoner                      |
+| `/api/context/analytics`               | GET            | Alias for komprimeringsanalyse                                                    |
 
 ### Overvåking
 
-| Endepunkt                            | Metode     | Beskrivelse                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | Sporing av aktive økter                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `/api/rate-limits`                   | GET        | Hastighetsgrenser per konto                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `/api/monitoring/health`             | GET        | Helsesjekk og leverandørsammendrag (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Administrasjonsvisningen inkluderer `credentialHealth`: skalarverdier fra probehurtigbufferen, `failedConnections` når `failed>0`, og `staleDbNonOkCount` (vedvarende `test_status` i SQLite, ikke måleren). Se [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Hurtigbufferstatistikk / tøm                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/stats`         | GET        | Minneinterne `attempts`, vellykkede forsøk/`bridged`, feil, hurtigbuffertreff, `totalLatencyMs`, `latencySamples`, utvalgsnevnerbasert `averageLatencyMs` og tidspunkt for siste bruk (tilbakestilles ved omstart; krever administrasjonsautentisering)                                                                                                                                                                        |
-| `/api/modality-bridge/video/runtime` | GET        | Streng kontroll av klarert loopback før administrasjonsautentisering/probing; renset tilgjengelighets- og versjonsinformasjon for FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                    |
-| `/api/modality-bridge/video/extract` | POST       | Intern, autentisert byte-megler for klarert loopback; inndata på 50 MiB, begrenset kø/utdata på 32 MiB, `503` ved kapasitetsmangel, `499` ved frakobling, `504` ved tidsfrist; ikke et offentlig API for opplasting                                                                                                                                                                                                            |
+| Endepunkt                            | Metode     | Beskrivelse                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Sporing av aktive økter                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/rate-limits`                   | GET        | Hastighetsbegrensninger per konto                                                                                                                                                                                                                                                                                                                                                                                             |
+| `/api/monitoring/health`             | GET        | Helsesjekk + leverandørsammendrag (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Administrasjonsvisningen inkluderer `credentialHealth`: skalarverdier fra probehurtigbufferen, `failedConnections` når `failed>0`, og `staleDbNonOkCount` (vedvarende `test_status` i SQLite, ikke måleren). Se [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Hurtigbufferstatistikk / tøm                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `/api/modality-bridge/stats`         | GET        | `attempts`, vellykkede/`bridged`, feil, hurtigbuffertreff, `totalLatencyMs`, `latencySamples`, utvalgsbasert `averageLatencyMs` og tidspunkt for siste bruk i minnet (tilbakestilles ved omstart; administrasjonsautentisering)                                                                                                                                                                                               |
+| `/api/modality-bridge/video/runtime` | GET        | Streng kontroll av klarert loopback før administrasjonsautentisering/probing; renset tilgjengelighets- og versjonsinformasjon for FFmpeg/ffprobe (ingen lagring)                                                                                                                                                                                                                                                              |
+| `/api/modality-bridge/video/extract` | POST       | Intern, autentisert byteformidler for klarert loopback; 50 MiB inndata, begrenset kø/32 MiB utdata, `503` ved kapasitetsmangel, `499` ved frakobling, `504` ved tidsfrist; ikke et offentlig API for opplasting                                                                                                                                                                                                               |
 
 ### Sikkerhetskopiering og eksport/import
 
-| Endepunkt                   | Metode | Beskrivelse                                                 |
-| --------------------------- | ------ | ----------------------------------------------------------- |
-| `/api/db-backups`           | GET    | Vis tilgjengelige sikkerhetskopier                          |
-| `/api/db-backups`           | PUT    | Opprett en manuell sikkerhetskopi                           |
-| `/api/db-backups`           | POST   | Gjenopprett fra en bestemt sikkerhetskopi                   |
-| `/api/db-backups/export`    | GET    | Last ned databasen som en .sqlite-fil                       |
-| `/api/db-backups/import`    | POST   | Last opp en .sqlite-fil for å erstatte databasen            |
-| `/api/db-backups/exportAll` | GET    | Last ned en fullstendig sikkerhetskopi som et .tar.gz-arkiv |
+| Endepunkt                   | Metode | Beskrivelse                                          |
+| --------------------------- | ------ | ---------------------------------------------------- |
+| `/api/db-backups`           | GET    | Vis tilgjengelige sikkerhetskopier                   |
+| `/api/db-backups`           | PUT    | Opprett en manuell sikkerhetskopi                    |
+| `/api/db-backups`           | POST   | Gjenopprett fra en bestemt sikkerhetskopi            |
+| `/api/db-backups/export`    | GET    | Last ned databasen som en .sqlite-fil                |
+| `/api/db-backups/import`    | POST   | Last opp en .sqlite-fil for å erstatte databasen     |
+| `/api/db-backups/exportAll` | GET    | Last ned en full sikkerhetskopi som et .tar.gz-arkiv |
 
 ### Skysynkronisering
 
@@ -904,12 +1012,12 @@ vanlige API-nøkler for inferens. Informasjon om legitimasjonstyper, omfang og c
 
 ### Tunneler
 
-| Endepunkt                  | Metode | Beskrivelse                                                                      |
-| -------------------------- | ------ | -------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Les installasjons-/kjøretidsstatus for Cloudflare Quick Tunnel i kontrollpanelet |
-| `/api/tunnels/cloudflared` | POST   | Aktiver eller deaktiver Cloudflare Quick Tunnel (`action=enable/disable`)        |
-| `/api/tunnels/ngrok`       | GET    | Les kjøretidsstatus for ngrok Tunnel i kontrollpanelet                           |
-| `/api/tunnels/ngrok`       | POST   | Aktiver eller deaktiver ngrok Tunnel (`action=enable/disable`)                   |
+| Endepunkt                  | Metode | Beskrivelse                                                                   |
+| -------------------------- | ------ | ----------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Les installasjons-/kjøretidsstatusen for Cloudflare Quick Tunnel i dashbordet |
+| `/api/tunnels/cloudflared` | POST   | Aktiver eller deaktiver Cloudflare Quick Tunnel (`action=enable/disable`)     |
+| `/api/tunnels/ngrok`       | GET    | Les kjøretidsstatusen for ngrok Tunnel i dashbordet                           |
+| `/api/tunnels/ngrok`       | POST   | Aktiver eller deaktiver ngrok Tunnel (`action=enable/disable`)                |
 
 ### CLI-verktøy
 
@@ -925,11 +1033,11 @@ CLI-svar inkluderer: `installed`, `runnable`, `command`, `commandPath`, `runtime
 
 ### ACP-agenter
 
-| Endepunkt         | Metode | Beskrivelse                                                       |
-| ----------------- | ------ | ----------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Vis alle oppdagede agenter (innebygde + egendefinerte) med status |
-| `/api/acp/agents` | POST   | Legg til en egendefinert agent eller oppdater deteksjonsbufferen  |
-| `/api/acp/agents` | DELETE | Fjern en egendefinert agent med spørringsparameteren `id`         |
+| Endepunkt         | Metode | Beskrivelse                                                        |
+| ----------------- | ------ | ------------------------------------------------------------------ |
+| `/api/acp/agents` | GET    | Vis alle oppdagede agenter (innebygde + egendefinerte) med status  |
+| `/api/acp/agents` | POST   | Legg til egendefinert agent eller oppdater deteksjonsbufferen      |
+| `/api/acp/agents` | DELETE | Fjern en egendefinert agent ved hjelp av spørringsparameteren `id` |
 
 GET-svaret inkluderer `agents[]` (id, name, binary, version, installed, protocol, isCustom) og `summary` (total, installed, notFound, builtIn, custom).
 
@@ -941,16 +1049,16 @@ GET-svaret inkluderer `agents[]` (id, name, binary, version, installed, protocol
 | `/api/resilience/reset`           | POST      | Tilbakestill leverandørenes kretsbrytere                                               |
 | `/api/resilience/model-cooldowns` | GET       | Vis aktive sperrer per (leverandør, tilkobling, modell), sortert etter gjenværende tid |
 | `/api/resilience/model-cooldowns` | DELETE    | Fjern en modellsperre — body `{provider, model}` eller `{all: true}` for å fjerne alt  |
-| `/api/rate-limits`                | GET       | Status for hastighetsgrenser per konto                                                 |
+| `/api/rate-limits`                | GET       | Status for hastighetsgrense per konto                                                  |
 | `/api/rate-limit`                 | GET       | Global konfigurasjon av hastighetsgrenser                                              |
 
-> Alle de fire rutene under `/api/resilience/*` krever **administrasjonsautentisering** (`requireManagementAuth`). Se [Robusthet (utvidet)](#resilience-extended) for en fullstendig gjennomgang av leverandørbryter kontra tilkoblingspause kontra modellsperre.
+> Alle de fire rutene under `/api/resilience/*` krever **administrasjonsautentisering** (`requireManagementAuth`). Se [Robusthet (utvidet)](#resilience-extended) for en fullstendig gjennomgang av forskjellene mellom leverandørbryter, tilkoblingspause og modellsperre.
 
 ### Evalueringer
 
-| Endepunkt    | Metode   | Beskrivelse                             |
-| ------------ | -------- | --------------------------------------- |
-| `/api/evals` | GET/POST | Vis evalueringspakker / kjør evaluering |
+| Endepunkt    | Metode   | Beskrivelse                                |
+| ------------ | -------- | ------------------------------------------ |
+| `/api/evals` | GET/POST | Vis evalueringssamlinger / kjør evaluering |
 
 ### Retningslinjer
 
@@ -971,7 +1079,7 @@ GET-svaret inkluderer `agents[]` (id, name, binary, version, installed, protocol
 | `/v1beta/models`           | GET    | Vis modeller i Gemini-format         |
 | `/v1beta/models/{...path}` | POST   | Gemini-endepunktet `generateContent` |
 
-Disse endepunktene gjenspeiler Geminis API-format for klienter som forventer innebygd kompatibilitet med Gemini SDK.
+Disse endepunktene gjenspeiler Geminis API-format for klienter som forventer kompatibilitet med det opprinnelige Gemini SDK-et.
 
 ### Interne API-er / system-API-er
 
@@ -982,10 +1090,12 @@ Disse endepunktene gjenspeiler Geminis API-format for klienter som forventer inn
 | `/api/restart`           | POST   | Utløs kontrollert omstart av serveren                              |
 | `/api/shutdown`          | POST   | Utløs kontrollert avslutning av serveren                           |
 | `/api/system/env/repair` | POST   | Reparer miljøvariabler for OAuth-leverandører                      |
+| `/api/system/version`    | GET    | Gjeldende/siste versjon, oppdateringsstatus, utgivelseskanal       |
+| `/api/system/version`    | POST   | Start en distribusjonstilpasset oppdatering til siste versjon      |
 
 > **Merk:** Disse endepunktene brukes internt av systemet eller for kompatibilitet med Ollama-klienter. De kalles vanligvis ikke av sluttbrukere.
 
-### Reparasjon av OAuth-miljøvariabler _(v3.6.1+)_
+### Reparasjon av OAuth-miljø _(v3.6.1+)_
 
 ```bash
 POST /api/system/env/repair
@@ -996,7 +1106,7 @@ Content-Type: application/json
 }
 ```
 
-Reparerer manglende eller ødelagte OAuth-miljøvariabler for en bestemt leverandør. Returnerer:
+Reparerer manglende eller skadede OAuth-miljøvariabler for en bestemt leverandør. Returnerer:
 
 ```json
 {
@@ -1005,6 +1115,43 @@ Reparerer manglende eller ødelagte OAuth-miljøvariabler for en bestemt leveran
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Versjon og utgivelseskanal
+
+```bash
+GET /api/system/version
+```
+
+Administrasjonsrute kun for loopback (administratorautentisering). Returnerer den kjørende versjonen, den nyeste
+publiserte versjonen og statusen for automatisk oppdatering. `releaseChannel` og `channels` er additive
+felt (spor 3.8.54); `channel` beholder betydningen sin — distribusjonsmodusen som kontrollpanelets oppdateringsfunksjon
+bruker (`npm`, `source` eller `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm-kanalen til den kjørende byggeversjonen: `nightly` for `-nightly.*`-versjoner,
+  `next` for andre forhåndsversjoner (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for en stabil versjon med et
+  eldre hovedversjonsnummer enn `channels.latest`, ellers `latest`. Samme regler som i
+  `scripts/release/dist-tag.mjs`, som velger npm dist-tag ved publisering.
+- `channels` — det publiserte toppunktet for hver dist-tag, fra `npm view omniroute dist-tags` (reserve via
+  registerets HTTP-endepunkt), bufret med samme TTL på 10 minutter som `latest`. `latest` er alltid til stede
+  (faller tilbake til feltet `latest`, deretter `"unavailable"`); `next`, `nightly` og `lts` vises
+  bare når den aktuelle dist-tag-en finnes. En forespørsel med `Cache-Control: no-cache` oppdaterer begge oppslagene.
+
+Kanalmodellen (`latest` = v3 frem til 4.0 GA, `next` = rc, `nightly` = bygg fra `develop`,
+`lts` = v3-oppdateringer etter 4.0 GA) er beskrevet i `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

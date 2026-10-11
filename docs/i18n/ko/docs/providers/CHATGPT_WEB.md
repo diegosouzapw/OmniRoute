@@ -23,15 +23,25 @@
 
 ## 대시보드 설정
 
-1. **ChatGPT Web (Codex)** 공급자를 열고 연결을 추가합니다.
-2. 전체 ChatGPT Cookie 헤더, 터널 ID, 런타임 키 및 사용자 지정 커넥터 이름을 붙여 넣습니다. 새로운 도구 지원 설정에서는 정확히 `OmniRoute Codex v2`라는 이름으로 새로 생성한 커넥터를 사용해야 하며, Authentication은 None으로, Permissions는 Allow all actions로 설정해야 합니다.
-3. 연결 검사를 실행합니다. OmniRoute가 브라우저 기반 Temporary Chat을 열고 해당 계정에서 Sol과 Pro를 사용할 수 있는지 감지합니다.
-4. 연결을 저장합니다. OmniRoute는 붙여 넣은 쿠키를 검증된 Playwright 저장소 상태로 대체하고, 암호화된 자격 증명 추상화를 통해 런타임 키와 함께 저장합니다.
+1. **ChatGPT Web (Codex)** 제공자를 열고 연결을 추가합니다.
+2. 전체 ChatGPT Cookie 헤더, 터널 ID, 런타임 키 및 사용자 지정 커넥터
+   이름을 붙여넣습니다. 도구를 사용할 수 있는 새로운 설정에서는 정확히
+   `OmniRoute Codex v2`라는 이름으로 새로 생성한 커넥터를 사용하고, Authentication은 None으로, Permissions는 Allow all
+   actions로 설정해야 합니다.
+3. 연결 검사를 실행합니다. OmniRoute는 브라우저 기반 Temporary Chat을 열고 해당
+   계정에서 Sol과 Pro를 사용할 수 있는지 감지합니다.
+4. 연결을 저장합니다. OmniRoute는 붙여넣은 쿠키를 검증된
+   Playwright 스토리지 상태로 대체하고, 암호화된
+   자격 증명 추상화 계층을 통해 런타임 키와 함께 저장합니다.
 
-성공적으로 저장된 후에는 원시 쿠키가 보관되지 않습니다. 세션이 만료되면 연결을 열고 새로운 전체 Cookie 헤더를 붙여 넣은 다음 검사를 다시 실행합니다. 편집 대화 상자의 doctor 상태는 브라우저, 저장소 상태, 로그인, Temporary Chat, 터널, 커넥터 및 도구 왕복 상태를 각각 보고합니다.
+성공적으로 저장한 후에는 원본 쿠키가 유지되지 않습니다. 세션이 만료되면
+연결을 열고 새로운 전체 Cookie 헤더를 붙여넣은 다음 검사를 다시 실행합니다. 편집 대화 상자의 doctor 상태에는
+브라우저, 스토리지 상태, 로그인, Temporary Chat, 터널,
+커넥터 및 도구 왕복 테스트 결과가 각각 표시됩니다. 세션이 교체될 때 쿠키 업데이트를 자동화하려면
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md)의 보조 도구를 참조하세요.
 
-> 실제 쿠키, 런타임 키, 저장소 상태 또는 기능 토큰을 절대로 커밋하지 마세요. 테스트 및
-> 문서 값에는 항상 자리표시자를 사용해야 합니다.
+> 실제 쿠키, 런타임 키, 스토리지 상태 또는 기능 토큰을 절대로 커밋하지 마세요. 테스트 및
+> 문서의 값에는 항상 자리표시자를 사용해야 합니다.
 
 ## 모델 및 콤보
 
@@ -78,7 +88,7 @@ Docker `web` 프로필은 내부 Compose 네트워크에서 `chatgpt-web-codex-b
 
 ## 검증
 
-폐기된 공급자를 호출하지 않고 공급자 제어 테스트를 실행합니다.
+사용 중단된 제공자를 호출하지 않고 제공자 제어 테스트를 실행합니다:
 
 ```bash
 node --import tsx/esm --test \\
@@ -87,7 +97,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-폐기 회귀 방지 테스트는 다음 위치에 있습니다.
+사용 중단 회귀 방지 테스트는 다음 위치에 있습니다:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

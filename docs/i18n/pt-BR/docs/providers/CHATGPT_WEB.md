@@ -33,25 +33,28 @@ suas conexões não são afetados por essa descontinuação.
 O túnel é necessário apenas para turnos com ferramentas. Todas as rotas listadas, incluindo `pro`, podem usar a
 mesma capacidade de ferramenta local vinculada ao turno quando o túnel e o conector estão configurados.
 
-## Configuração pelo painel
+## Configuração do painel
 
 1. Abra o provedor **ChatGPT Web (Codex)** e adicione uma conexão.
-2. Cole o cabeçalho Cookie completo do ChatGPT, o ID do túnel, a chave de runtime e o nome do conector
-   personalizado. Novas configurações com suporte a ferramentas devem usar um conector recém-criado chamado exatamente
-   `OmniRoute Codex v2`, com Authentication definido como None e Permissions definido como Allow all
-   actions.
-3. Execute a verificação da conexão. O OmniRoute abre um Temporary Chat controlado pelo navegador e detecta
-   se Sol e Pro estão disponíveis para a conta.
-4. Salve a conexão. O OmniRoute substitui o cookie colado pelo estado de armazenamento verificado do
-   Playwright e o armazena com a chave de runtime por meio da abstração de credenciais criptografadas.
+2. Cole o cabeçalho Cookie completo do ChatGPT, o ID do túnel, a chave de runtime e o nome
+   do conector personalizado. Novas configurações com suporte a ferramentas devem usar um
+   conector recém-criado chamado exatamente `OmniRoute Codex v2`, com Authentication
+   definido como None e Permissions definido como Allow all actions.
+3. Execute a verificação da conexão. O OmniRoute abre um Temporary Chat baseado em navegador
+   e detecta se Sol e Pro estão disponíveis para a conta.
+4. Salve a conexão. O OmniRoute substitui o cookie colado pelo estado de armazenamento
+   verificado do Playwright e o armazena com a chave de runtime por meio da abstração de
+   credenciais criptografadas.
 
 O cookie bruto não é mantido após um salvamento bem-sucedido. Quando a sessão expirar, abra
-a conexão, cole um novo cabeçalho Cookie completo e execute novamente a verificação. O status do doctor
-na caixa de diálogo de edição relata separadamente o navegador, o estado de armazenamento, a autenticação, o Temporary Chat, o túnel,
-o conector e o ciclo completo da ferramenta.
+a conexão, cole um novo cabeçalho Cookie completo e execute novamente a verificação. O status
+do diagnóstico na caixa de diálogo de edição informa separadamente o estado do navegador, do
+armazenamento, do login, do Temporary Chat, do túnel, do conector e da comunicação de ida e
+volta da ferramenta. Para automatizar as atualizações de cookies quando as sessões forem
+renovadas, consulte a ferramenta complementar em [Extensão de sincronização de sessão do navegador](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nunca faça commit de um cookie real, chave de runtime, estado de armazenamento ou token de capacidade. Os valores de teste e
-> documentação devem ser sempre placeholders.
+> Nunca faça commit de um cookie real, uma chave de runtime, um estado de armazenamento ou
+> um token de capacidade. Os valores de teste e de documentação devem ser sempre placeholders.
 
 ## Modelos e combos
 

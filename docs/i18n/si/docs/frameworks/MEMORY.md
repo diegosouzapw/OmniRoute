@@ -159,36 +159,35 @@ RRF(d) = Σ  1 / (k + rank_i(d))      මෙහි k = 60 (MEMORY_RRF_K හර�
 
 ## සැකසුම් දිගුව
 
-`src/shared/schemas/memory.ts` තුළ ඇති `MemorySettingsExtended` හි embedding සහ vector ක්ෂේත්ර නවයක් පවතින අතර, ඒවා `src/lib/db/settings.ts` හරහා සුරැකේ:
+`src/shared/schemas/memory.ts` හි `MemorySettingsExtended` තුළ embedding සහ vector ක්ෂේත්ර නවයක් ලබා ගත හැකි අතර, ඒවා `src/lib/db/settings.ts` හරහා ස්ථිරව සුරැකේ:
 
-| ක්ෂේත්රය                 | වර්ගය                                              | පෙරනිමිය | විස්තරය                                                                   |
-| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | භාවිත කළ යුතු embedding මූලාශ්රය                                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ සැපයුම්කරු/මාදිලිය                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory සඳහා පමණක් වන OpenAI-අනුකූල endpoint මූලික URL එක                  |
-| `customModelId`          | `string \| null`                                   | `null`   | අභිරුචි endpoint එකට යවන මාදිලි ID එක                                     |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js සඳහා කැමැත්ත පළ කිරීම (MiniLM, ~400MB)                    |
-| `staticEnabled`          | `boolean`                                          | `false`  | ස්ථිතික potion-base-8M දේශීය මාදිලිය සඳහා කැමැත්ත පළ කිරීම                |
-| `rerankEnabled`          | `boolean`                                          | `false`  | නැවත ශ්රේණිගත කිරීමේ පියවර සක්රීය කරන්න (එක් ඉල්ලීමකට +200-500ms එකතු වේ) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ නැවත ශ්රේණිගත කිරීමේ සැපයුම්කරු/මාදිලිය          |
+| ක්ෂේත්රය                 | වර්ගය                                              | පෙරනිමිය | විස්තරය                                                                     |
+| ------------------------ | -------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | භාවිත කළ යුතු embedding මූලාශ්රය                                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ සැපයුම්කරු/මාදිලිය                                 |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory සඳහා පමණක් වන OpenAI-අනුකූල endpoint මූලික URL එක                    |
+| `customModelId`          | `string \| null`                                   | `null`   | අභිරුචි endpoint වෙත යවන මාදිලි ID එක                                       |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js සඳහා තේරීම්-සක්රීය කිරීම (MiniLM, ~400MB)                   |
+| `staticEnabled`          | `boolean`                                          | `false`  | ස්ථිතික potion-base-8M දේශීය මාදිලිය සඳහා තේරීම්-සක්රීය කිරීම               |
+| `rerankEnabled`          | `boolean`                                          | `false`  | නැවත ශ්රේණිගත කිරීමේ පියවර සක්රීය කරන්න (එක් ඉල්ලීමකට +200-500ms එකතු කරයි) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ආකෘතියේ නැවත ශ්රේණිගත කිරීමේ සැපයුම්කරු/මාදිලිය            |
 
-`rerankProviderModel` විසඳනු ලබන්නේ `POST /v1/rerank` මඟින්ය (loopback හරහා කැඳවනු ලැබේ), එබැවින් එම route එක පිළිගන්නා ඕනෑම දෙයක් එය පිළිගනී: තෝරාගත් cloud නැවත ශ්රේණිගත කිරීමේ මාදිලියක් (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) හෝ `<node-prefix>/<model>` ආකාරයේ OpenAI-අනුකූල සැපයුම්කරු node එකක් (උදා. TEI/Infinity box එකක් සඳහා `skilled-mini/bge-reranker-v2-m3`). Loopback nodes සැමවිටම සුදුසුකම් ලබයි; වෙනත් host එකක (LAN, Tailscale) ඇති node එකකට අමතරව `RERANK_REMOTE_PROVIDER_NODES` feature flag එක අවශ්ය වන අතර, එය සැපයුම්කරුගේ outbound URL ප්රතිපත්තිය සමත් විය යුතුය — [Feature Flags](../reference/FEATURE_FLAGS.md) බලන්න. Dashboard selector එක තෝරාගත් සැපයුම්කරුවන් සහ දේශීය nodes ලැයිස්තුගත කරයි; වලංගු ඕනෑම `provider/model` string එකක් `PUT /api/settings/memory` හරහා සෘජුවම සැකසිය හැක.
+`rerankProviderModel` එක `POST /v1/rerank` මඟින් (ලූප්බැක් හරහා කැඳවනු ලබන) නිරාකරණය කෙරෙන බැවින්, එම මාර්ගය පිළිගන්නා ඕනෑම දෙයක් එය පිළිගනී: තෝරා සකස් කළ cloud නැවත ශ්රේණිගත කිරීමේ මාදිලියක් (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) හෝ `<node-prefix>/<model>` ලෙස OpenAI-අනුකූල සැපයුම්කරු node එකක් (උදා. TEI/Infinity පද්ධතියක් සඳහා `skilled-mini/bge-reranker-v2-m3`). ලූප්බැක් node සහ `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` තුළ ලැයිස්තුගත කර ඇති hostname (උදා. Docker/Compose සේවා නාමයක්) සැමවිටම සුදුසුකම් ලබයි; වෙනත් host එකක ඇති node එකකට (LAN, Tailscale) අමතරව `RERANK_REMOTE_PROVIDER_NODES` විශේෂාංග ධජය අවශ්ය වන අතර, එය සැපයුම්කරුගේ පිටතට යන URL ප්රතිපත්තිය සමත් විය යුතුය — [විශේෂාංග ධජ](../reference/FEATURE_FLAGS.md) බලන්න. dashboard තේරීම්කාරකය තෝරා සකස් කළ සැපයුම්කරුවන් සහ දේශීය node ලැයිස්තුගත කරයි; ඕනෑම වලංගු `provider/model` තන්තුවක් `PUT /api/settings/memory` හරහා සෘජුවම සැකසිය හැක.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | භාවිත කළ යුතු vector backend එක |
 
-මේවා `GET /PUT /api/settings/memory` හරහා නිරාවරණය කර ඇත (schema එක `MemorySettingsExtendedSchema`).
+මේවා `GET /PUT /api/settings/memory` හරහා නිරාවරණය කර ඇත (`MemorySettingsExtendedSchema` schema එක).
 
-`remote` මූලාශ්රය සඳහා, Memory විසින් විකල්ප `customBaseUrl` සහ
-`customModelId` සැකසුම් ද පිළිගනී. ගෝලීය embedding registry එක වෙනස් නොකර,
-මේවා එක්ව OpenAI-අනුකූල `/embeddings` endpoint එකක් සහ මාදිලියක් තෝරයි. භාවිතයට
-පෙර endpoint එක normalized කර සැපයුම්කරුගේ outbound URL ප්රතිපත්තිය මඟින් පරීක්ෂා
-කරනු ලැබේ: HTTP(S) අවශ්යය, කාවැද්දූ credentials සහ query strings ප්රතික්ෂේප කරනු
-ලබන අතර cloud-metadata ලිපින තවදුරටත් අවහිර කර ඇත. හිස් අගයන් තෝරාගත් registry
-සැපයුම්කරු රඳවා ගනී. Dashboard එකට ආපසු යවන දෝෂ sanitize කරනු ලබන අතර endpoint
-credentials කිසිවිටෙකත් log නොකෙරේ.
+`remote` මූලාශ්රය සඳහා, Memory විකල්ප `customBaseUrl` සහ
+`customModelId` සැකසුම් ද පිළිගනී. ඒවා එක්ව, ගෝලීය embedding ලේඛනය වෙනස් නොකර
+OpenAI-අනුකූල `/embeddings` endpoint එකක් සහ මාදිලියක් තෝරයි. භාවිතයට පෙර endpoint එක
+සාමාන්යකරණය කර සැපයුම්කරුගේ පිටතට යන URL ප්රතිපත්තියට අනුව පරීක්ෂා කරනු ලැබේ: HTTP(S)
+අවශ්ය වේ, අන්තර්ගත කළ අක්තපත්ර සහ query string ප්රතික්ෂේප කරනු ලැබේ, සහ cloud-metadata
+ලිපින තවදුරටත් අවහිර කර තැබේ. හිස් අගයන් තෝරාගත් registry සැපයුම්කරු රඳවා ගනී. dashboard වෙත
+ආපසු ලබා දෙන දෝෂ සනීපාරක්ෂිත කරනු ලබන අතර endpoint අක්තපත්ර කිසි විටෙකත් log නොකෙරේ.
 
-> **TODO (D20):** `global` scope එක (සියලු API keys හරහා memories බෙදාගැනීම) මෙම
-> නිකුතුවේ ක්රියාත්මක කර නොමැත. ඒ සඳහා schema වෙනස්කම් සහ ගෝලීය retrieval
-> path එකක් අවශ්ය වේ. වෙනම නිරීක්ෂණය කරන්න.
+> **TODO (D20):** සියලුම API key අතර memories බෙදාගැනීම සඳහා වන `global` scope එක මෙම
+> නිකුතුව තුළ ක්රියාත්මක කර නොමැත. ඒ සඳහා schema වෙනස්කම් සහ ගෝලීය retrieval
+> මාර්ගයක් අවශ්ය වේ. වෙනම නිරීක්ෂණය කරන්න.
 
 ## ගබඩා ස්තර
 
@@ -870,12 +869,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## MemoryBackend සැපයුම්කරු රටාව
+## MemoryBackend සපයන්නාගේ රටාව
 
 > **සත්යයේ මූලාශ්රය:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **පරීක්ෂණ:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend සැපයුම්කරු රටාව, පවතින මතක එන්ජිම මත **සම්බන්ධ කළ හැකි පසුඅන්ත වියුක්තකරණ ස්තරයක්** හඳුන්වා දෙයි. තනි ආචයන ක්රියාත්මක කිරීමකට බැඳී සිටීම වෙනුවට, මතක පද්ධතිය දැන් වින්යාස කළ හැකි ප්රාථමික/විකල්ප මාර්ගගත කිරීම සමඟ බහුවිධ පසුඅන්තවලට (SQLite, Obsidian, Notion, අභිරුචි HTTP පසුඅන්ත) සහාය දක්වයි.
+MemoryBackend සපයන්නාගේ රටාව, පවතින මතක එන්ජිම මත **සවි කළ හැකි පසුඅන්ත වියුක්තකරණ ස්තරයක්** හඳුන්වා දෙයි. තනි ආචයන ක්රියාත්මක කිරීමකට බැඳී සිටීම වෙනුවට, මතක පද්ධතිය දැන් වින්යාස කළ හැකි ප්රාථමික/විකල්ප මාර්ගගත කිරීම සමඟ පසුඅන්ත කිහිපයකට (SQLite, Obsidian, Notion, අභිරුචි HTTP පසුඅන්ත) සහාය දක්වයි.
 
 ### ගෘහනිර්මාණය
 
@@ -889,9 +888,9 @@ MemoryBackend සැපයුම්කරු රටාව, පවතින ම�
 │                   MemoryManager                           │
 │           තනි අවස්ථා සංවිධායකය (manager.ts)              │
 │                                                          │
-│  ප්රාථමික ──► පසුඅන්තය A  (උදා. SQLite)                 │
-│  විකල්ප    ──► පසුඅන්තය B  (උදා. Obsidian)               │
-│                පසුඅන්තය C  (උදා. GenericBackend හරහා Notion)│
+│  ප්රාථමික ──► පසුඅන්ත A  (උදා. SQLite)                  │
+│  විකල්ප    ──► පසුඅන්ත B  (උදා. Obsidian)                │
+│                පසුඅන්ත C  (උදා. GenericBackend හරහා Notion)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -921,7 +920,7 @@ interface MemoryBackend {
   // සෙවීම
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // සෞඛ්ය තත්ත්වය
+  // සෞඛ්යය
   health(): Promise<HealthCheckResult>;
 
   // ජීවන චක්රය (විකල්ප)
@@ -932,30 +931,30 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-පහත දේ සිදු කරන තනි අවස්ථා සංවිධායකයකි:
+පහත දෑ සිදු කරන තනි අවස්ථා සංවිධායකයකි:
 
-- `register(backend)` හරහා පසුඅන්ත **ලියාපදිංචි කරයි** — ආරම්භයේදී `index.ts` වෙතින් කැඳවනු ලැබේ
+- `register(backend)` හරහා පසුඅන්ත **ලියාපදිංචි කරයි** — `index.ts` වෙතින් ආරම්භයේදී කැඳවනු ලැබේ
 - `configure(primary, fallbacks)` හරහා ප්රාථමික + විකල්ප පසුඅන්ත **වින්යාස කරයි**
-- අසාර්ථක වූ විට විකල්ප දාමය භාවිත කරමින් CRUD/සෙවීම් ප්රාථමික පසුඅන්තයට **මාර්ගගත කරයි**
-- සියලු පසුඅන්තවල **සෞඛ්ය පරීක්ෂණ** කාලානුරූපව සිදු කරයි
+- අසමත් වූ විට විකල්ප දාමය භාවිත කරමින් CRUD/සෙවීම් ප්රාථමික පසුඅන්තය වෙත **මාර්ගගත කරයි**
+- සියලු පසුඅන්තවල **සෞඛ්ය පරීක්ෂණ** වරින් වර සිදු කරයි
 
-**විකල්ප ක්රියාකාරීත්වය:**
+**විකල්ප හැසිරීම:**
 
-| මෙහෙයුම  | ප්රාථමිකය                      | විකල්ප                                |
-| -------- | ------------------------------ | ------------------------------------- |
-| `create` | ✅ ප්රාථමිකය පමණි              | ❌                                    |
-| `get`    | ✅ පළමුව ප්රාථමිකය උත්සාහ කරයි | ✅ null නම් විකල්පය                   |
-| `update` | ✅ ප්රාථමිකය පමණි              | ✅ ප්රතිඵලය බලා නොසිටින සමමුහුර්තකරණය |
-| `delete` | ✅ ප්රාථමිකය පමණි              | ✅ ප්රතිඵලය බලා නොසිටින සමමුහුර්තකරණය |
-| `list`   | ✅ ප්රාථමිකය පමණි              | ❌                                    |
-| `search` | ✅ පළමුව ප්රාථමිකය             | ✅ දෝෂයකදී විකල්පය                    |
+| මෙහෙයුම  | ප්රාථමිකය                      | විකල්ප                               |
+| -------- | ------------------------------ | ------------------------------------ |
+| `create` | ✅ ප්රාථමිකය පමණි              | ❌                                   |
+| `get`    | ✅ පළමුව ප්රාථමිකය උත්සාහ කරයි | ✅ null නම් විකල්පය භාවිත කරයි       |
+| `update` | ✅ ප්රාථමිකය පමණි              | ✅ ප්රතිචාරය නොබලා සමමුහුර්ත කරයි    |
+| `delete` | ✅ ප්රාථමිකය පමණි              | ✅ ප්රතිචාරය නොබලා සමමුහුර්ත කරයි    |
+| `list`   | ✅ ප්රාථමිකය පමණි              | ❌                                   |
+| `search` | ✅ පළමුව ප්රාථමිකය             | ✅ දෝෂයක් ඇති විට විකල්පය භාවිත කරයි |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
 ඕනෑම REST API එකක් MemoryBackend එකකට අනුවර්තනය කරන සාමාන්ය HTTP සම්බන්ධකයකි. පහත දෑ සඳහා ප්රයෝජනවත් වේ:
 
-- **Notion** — Notion API හරහා සම්බන්ධ කරන්න
-- **Obsidian** — Obsidian Local REST API හරහා සම්බන්ධ කරන්න
+- **Notion** — Notion API හරහා සම්බන්ධ වන්න
+- **Obsidian** — Obsidian Local REST API හරහා සම්බන්ධ වන්න
 - **අභිරුචි පසුඅන්ත** — RESTful මතක API එකක් නිරාවරණය කරන ඕනෑම සේවාවක්
 
 **වින්යාසය:**
@@ -964,8 +963,8 @@ interface MemoryBackend {
 interface GenericBackendConfig {
   baseUrl: string;           // පසුඅන්ත API හි මූලික URL එක
   apiKey?: string;           // සත්යාපනය සඳහා Bearer ටෝකනය
-  headers?: Record<string, string>;  // අභිරුචි HTTP ශීර්ෂක
-  timeout?: number;          // ඉල්ලීමේ කාල සීමාව (පෙරනිමිය: 30000ms)
+  headers?: Record<string, string>;  // අභිරුචි HTTP ශීර්ෂ
+  timeout?: number;          // ඉල්ලීම් කාලසීමාව (පෙරනිමිය: 30000ms)
   backendType?: string;      // ලොග් කිරීම සඳහා
 
   // අන්ත ලක්ෂ්ය අතික්රමණ (පෙරනිමි REST සම්මුතීන් භාවිත කරයි)
@@ -979,30 +978,30 @@ interface GenericBackendConfig {
     health?: string;   // පෙරනිමිය: "/health"
   };
 
-  // විමසුම් පරාමිති නාම සිතියම්ගත කිරීම්
+  // විමසුම් පරාමිති නාම සිතියම්කරණ
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // මාර්ග පරාමිති නාම සිතියම්ගත කිරීම්
+  // මාර්ග පරාමිති නාම සිතියම්කරණ
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**දන්නා පසුඅන්ත** `KNOWN_BACKENDS` තුළ පූර්ව-වින්යාස කර ඇත:
+**හඳුනාගත් පසුඅන්ත** `KNOWN_BACKENDS` තුළ පෙර-වින්යාස කර ඇත:
 
 ```typescript
 createKnownBackend("obsidian"); // → localhost:27123 වෙත යොමු කළ GenericMemoryBackend
 createKnownBackend("notion"); // → api.notion.com/v1 වෙත යොමු කළ GenericMemoryBackend
 ```
 
-#### අන්තර්ගත පසුඅන්ත
+#### ඇතුළත් පසුඅන්ත
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-පෙරනිමි ප්රාථමික පසුඅන්තයයි. `src/lib/memory/store.ts` භාවිතයෙන් පවතින SQLite-පාදක මතක ගබඩාව ආවරණය කරයි. ආරම්භයේදී ස්වයංක්රීයව ලියාපදිංචි කෙරේ.
+පෙරනිමි ප්රාථමික පසුඅන්තයයි. `src/lib/memory/store.ts` භාවිතයෙන් පවතින SQLite-පාදක මතක ගබඩාව ආවරණය කරයි. ආරම්භයේදී ස්වයංක්රීයව ලියාපදිංචි වේ.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1011,41 +1010,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-පවතින Obsidian ඒකාබද්ධතාව (`src/lib/memory/obsidianBackend.ts`) ආවරණය කරයි. Obsidian Local REST API හරහා Obsidian vault එකකට සම්බන්ධ වෙයි.
+පවතින Obsidian ඒකාබද්ධකරණය (`src/lib/memory/obsidianBackend.ts`) ආවරණය කරයි. Obsidian Local REST API හරහා Obsidian vault එකකට සම්බන්ධ වේ.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+කේතකරණ සැසි "නිරීක්ෂණ" ලෙස ග්රහණය කරන Claude Code / Codex / Cursor මතක ප්ලගිනය වන, දේශීය [claude-mem](https://github.com/thedotmack/claude-mem) worker එකක් සඳහා අනුවර්තකයකි.
+එය ලියාපදිංචි කළ විට, `/api/memory` REST මාර්ග සහ A2A මතක සෙවීමට claude-mem හි hooks පුරවන එම ගබඩාවම කියවීමට සහ ලිවීමට හැකිය.
+
+worker එක loopback වෙත පමණක් බැඳෙන අතර, `GenericMemoryBackend` හි SSRF ආරක්ෂකය එය හිතාමතාම ප්රතික්ෂේප කරයි.
+මෙම අනුවර්තකය එම ආරක්ෂකය ලිහිල් නොකරයි: host එක `127.0.0.1` ලෙස දෘඪ-කේතගත කර ඇති අතර වින්යාස schema එක (`ClaudeMemBackendConfigSchema`, `.strict()`) පිළිගන්නේ පහත දෑ පමණි:
+
+| යතුර        | වර්ගය  | පෙරනිමිය | සටහන්                                                                                                                      |
+| ----------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | අංකය   | —        | අනිවාර්යයි, 1024–65535. එහි සැකසුම් ගොනුවේ ඇති claude-mem worker port එක (පෙරනිමිය `37700 + uid % 100`).                   |
+| `project`   | තන්තුව | —        | භාවිත කළ යුතු claude-mem ව්යාපෘතිය. සකසා නැතිනම් → සෑම OmniRoute API යතුරක්ම තමන්ගේම ව්යාපෘතියට (`apiKeyId`) සිතියම්ගත වේ. |
+| `timeoutMs` | අංකය   | `5000`   | එක් එක් ඉල්ලීම සඳහා කාලසීමාව, 100–30000.                                                                                   |
+
+`PUT /api/settings/memory` හරහා එය සබල කර OmniRoute නැවත ආරම්භ කරන්න (backends ලියාපදිංචි කරනු ලබන්නේ
+එක් වරක් පමණි, `initMemoryBackends()` තුළ):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+එය REST API සඳහා ගබඩාව බවට පත් කිරීමට ඒ වෙනුවට `"primaryBackend": "claude-mem"` භාවිත කරන්න. වලංගු නොවන
+වින්යාසයක් ලොග් කර (`claude-mem.backend.invalid_config`) මඟහරින බැවින් SQLite ප්රධාන backend එක ලෙස පවතී.
+
+සිතියම්ගත කිරීම සහ සීමා:
+
+- IDs `claude-mem:<observationId>` ආකාරය ගනී; `get`/`delete`, ජාල ඇමතුමක් නොකර වෙනත් backends වල IDs
+  නොසලකා හරියි.
+- `create` → `POST /api/memory/save`; OmniRoute ක්ෂේත්ර (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem හි `metadata.omniroute` තුළ යවන අතර කියවීමේදී නැවත ඒ ආකාරයෙන්ම ලැබේ.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens`
+  දක්වා කප්පාදු කරයි (අක්ෂර / 4). `list` → worker හි පිටුගත කළ observations endpoint එක (`total` යනු පහළ සීමාවකි — worker
+  ගණනක් නොව `hasMore` ආපසු ලබා දෙයි).
+- Hook මඟින් ග්රහණය කළ observations සඳහා `discovery` → `factual`, `decision` → `procedural`, සහ
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` ලෙස සිතියම්ගත කරයි.
+- **යාවත්කාලීන කිරීම් නොමැත** (`update()` මඟින් `false` ආපසු ලබා දෙයි; observations වෙනස් කළ නොහැක) සහ **TTL නොමැත**
+  (`expiresAt` නොසලකා හරියි). claude-mem, `key` අනුව upsert කිරීම වෙනුවට සමාන saves අනුපිටපත් ඉවත් කරයි.
+- Prompt injection (`retrieval.ts`) සහ `omniroute_memory_*` MCP මෙවලම් තවමත් SQLite
+  වෙතින් සෘජුවම කියවයි — ඒවා `memoryManager` හරහා නොයන බැවින් මෙම backend එක ඒවාට දත්ත සපයන්නේ නැත.
+
+**claude-mem හිම LLM ඇමතුම් OmniRoute හරහා මාර්ගගත කිරීම.** claude-mem observations
+LLM එකක් සමඟ සම්පීඩනය කරයි (පෙරනිමිය: Claude Agent SDK). ඒ වෙනුවට එහි `openai-compatible` provider එක
+OmniRoute වෙත යොමු කළ හැකි අතර, එමඟින් combo fallback සහ පිරිවැය හඹා යාම ලබා ගත හැක. `~/.claude-mem/settings.json` තුළ:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API යතුර>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model හෝ combo>"
+}
+```
 
 ### සැකසුම්
 
-මතක පසුඅන්ත සැකසුම් යෙදුම් සැකසුම් වගුවේ ගබඩා කර ඇති අතර `src/lib/memory/settings.ts` හරහා කළමනාකරණය කෙරේ:
+Memory backend සැකසුම් යෙදුමේ settings වගුවේ ගබඩා කර ඇති අතර `src/lib/memory/settings.ts` හරහා කළමනාකරණය කරයි:
 
-| සැකසුම            | පරිසර/වින්යාස යතුර       | පෙරනිමිය   | විස්තරය                                   |
-| ----------------- | ------------------------ | ---------- | ----------------------------------------- |
-| ප්රාථමික පසුඅන්තය | `memoryPrimaryBackend`   | `"sqlite"` | ප්රාථමික පසුඅන්තයේ ID එක                  |
-| විකල්ප පසුඅන්ත    | `memoryFallbackBackends` | `[]`       | අනුපිළිවෙළට සකස් කළ විකල්ප පසුඅන්ත ID     |
-| පසුඅන්ත වින්යාස   | `memoryBackendConfigs`   | `{}`       | එක් එක් පසුඅන්තය සඳහා වන වින්යාස අතික්රමණ |
+| සැකසුම            | Env/Config යතුර          | පෙරනිමිය   | විස්තරය                                  |
+| ----------------- | ------------------------ | ---------- | ---------------------------------------- |
+| ප්රධාන backend එක | `memoryPrimaryBackend`   | `"sqlite"` | ප්රධාන backend එකේ ID එක                 |
+| Fallback backends | `memoryFallbackBackends` | `[]`       | අනුපිළිවෙළට සකස් කළ fallback backend IDs |
+| Backend වින්යාස   | `memoryBackendConfigs`   | `{}`       | එක් එක් backend සඳහා වින්යාස අතික්රමණ    |
 
-සැකසුම් `normalizeMemorySettings()` හරහා සාමාන්යකරණය කර `getMemorySettings()` හි නිහිත කරනු ලැබේ.
+සැකසුම් `normalizeMemorySettings()` හරහා ප්රමිතිකරණය කර `getMemorySettings()` හි cache කරයි.
 
 ### ආරම්භක ප්රවාහය
 
 ```
-යෙදුම ඇරඹීම
-  → index.ts ආයාත කිරීම් (අතුරු ප්රතිඵලයක් ලෙස): SQLiteBackend ලියාපදිංචි කරයි
-  → යෙදුමේ ජීවන චක්රයෙන් initMemoryBackends() කැඳවනු ලැබේ:
+යෙදුම bootstrap කිරීම
+  → index.ts imports (අතුරු ප්රතිඵලයක් ලෙස): SQLiteBackend ලියාපදිංචි කරයි
+  → යෙදුම් ජීවන චක්රයෙන් initMemoryBackends() කැඳවයි:
       1. සැකසුම් පූරණය කරන්න (getMemorySettings)
-      2. ප්රාථමික + විකල්ප පසුඅන්ත වින්යාස කරන්න
-      3. සියලු පසුඅන්ත ආරම්භ කරන්න (සෞඛ්ය පරීක්ෂාව)
+      1b. backendConfigs තුළ ඇති opt-in backends ලියාපදිංචි කරන්න (claude-mem)
+      2. ප්රධාන + fallback වින්යාස කරන්න
+      3. සියලු backends ආරම්භ කරන්න (සෞඛ්ය පරීක්ෂාව)
       4. ඉල්ලීම් සඳහා සූදානම්
 ```
 
-### නව පසුඅන්තයක් එක් කිරීම
+### නව Backend එකක් එක් කිරීම
 
-1. `src/lib/memory/<name>Backend.ts` තුළ **`MemoryBackend` අතුරුමුහුණත ක්රියාත්මක කරන්න**
-2. `src/lib/memory/index.ts` වෙතින් **නිර්යාත කරන්න**
+1. `src/lib/memory/<name>Backend.ts` තුළ **`MemoryBackend` ක්රියාත්මක කරන්න**
+2. `src/lib/memory/index.ts` වෙතින් **අපනයනය කරන්න**
 3. ආරම්භයේදී `memoryManager.register(yourBackend)` සමඟ **ලියාපදිංචි කරන්න**
-4. සැකසුම් හරහා **වින්යාස කරන්න**: `memoryPrimaryBackend` ඔබේ පසුඅන්ත ID එකට සකසන්න
-5. `src/lib/memory/__tests__/generic-backend.test.ts` යොමුවක් ලෙස භාවිතයෙන් **පරීක්ෂා කරන්න**
+4. සැකසුම් හරහා **වින්යාස කරන්න**: `memoryPrimaryBackend` ඔබගේ backend ID එකට සකසන්න
+5. `src/lib/memory/__tests__/generic-backend.test.ts` යොමුවක් ලෙස භාවිත කර **පරීක්ෂා කරන්න**
 
-#### උදාහරණය: Brain පසුඅන්තය
+#### උදාහරණය: Brain Backend
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1071,24 +1127,24 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-අපේක්ෂිත ප්රතිදානය: පහත කරුණු ආවරණය කරන **පරීක්ෂණ 35ක්, සියල්ල සමත්**:
+අපේක්ෂිත ප්රතිදානය: පහත දෑ ආවරණය කරන **පරීක්ෂණ 35ක්, සියල්ල සමත්**:
 
-- නිර්මාපකය (2)
-- සෞඛ්ය පරීක්ෂාව (4) — සාර්ථකත්වය, 500 අසාර්ථකත්වය, ජාල දෝෂය, ප්රමාදය
-- ආරම්භ කිරීම (2) — සාර්ථකත්වය, අසාර්ථකත්වය
-- නිර්මාණය කිරීම (2) — පෙරනිමි අන්ත ලක්ෂ්යය, අභිරුචි අන්ත ලක්ෂ්යය
-- ලබා ගැනීම (4) — සාර්ථකත්වය, 404 → null, 404 නොවන අවස්ථාවක throw කිරීම, අභිරුචි මාර්ග පරාමිති
-- යාවත්කාලීන කිරීම (2) — සාර්ථකත්වය, 404 → false
-- මකා දැමීම (2) — සාර්ථකත්වය, 404 → false
-- ලැයිස්තුගත කිරීම (2) — විමසුම් පරාමිති, අභිරුචි පරාමිති නාම
-- සෙවීම (3) — විමසුම් පරාමිති, අභිරුචි අන්ත ලක්ෂ්යය, විකල්ප ශ්රේණිගතකරණය
-- සත්යාපන ශීර්ෂක (2) — Bearer ටෝකනය, අභිරුචි ශීර්ෂක
+- Constructor (2)
+- Health check (4) — සාර්ථකත්වය, 500 අසාර්ථකත්වය, ජාල දෝෂය, ප්රමාදය
+- Initialize (2) — සාර්ථකත්වය, අසාර්ථකත්වය
+- Create (2) — පෙරනිමි endpoint එක, අභිරුචි endpoint එක
+- Get (4) — සාර්ථකත්වය, 404 → null, 404 නොවන විට දෝෂයක් නිකුත් කිරීම, අභිරුචි path params
+- Update (2) — සාර්ථකත්වය, 404 → false
+- Delete (2) — සාර්ථකත්වය, 404 → false
+- List (2) — query params, අභිරුචි param නම්
+- Search (3) — query params, අභිරුචි endpoint එක, options serialization
+- Auth headers (2) — Bearer token, අභිරුචි headers
 - Factory (1)
 
-#### වර්ග පරීක්ෂාව
+#### Type පරීක්ෂාව
 
 ```bash
 npm run typecheck:core
 ```
 
-අපේක්ෂිත ප්රතිඵලය: **දෝෂ 0යි**.
+අපේක්ෂිත ප්රතිඵලය: **දෝෂ 0ක්**.

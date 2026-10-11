@@ -4,21 +4,21 @@
 
 ---
 
-Ndị na-eweta Web Cookie na-enye OmniRoute ohere iji ọrụ AI site na nnọkọ ihe nchọgharị gị dị ugbu a kama iji igodo API. Ha bara uru mgbe ị nwere ohere ịnweta ọrụ site na webụsaịtị ya ma chọọ ka OmniRoute jiri otu nnọkọ ahụ e gosipụtarala njirimara ya.
+Ndị na-eweta Web Cookie na-enye OmniRoute ohere iji ọrụ AI site na nnọkọ ihe nchọgharị gị dị ugbu a kama iji igodo API. Ha bara uru mgbe i nwere ohere iji ọrụ site na webụsaịtị ya ma chọọ ka OmniRoute jiri otu nnọkọ ahụ e nyochalarị njirimara ya.
 
-N'adịghị ka ndị na-eweta nke na-eji igodo API, ndị na-eweta Web Cookie na-egosipụta njirimara site na iji ozi njirimara nke ihe nchọgharị gị na-ezigara webụsaịtị ahụ.
+N'adịghị ka ndị na-eweta ji igodo API, ndị na-eweta Web Cookie na-enyocha njirimara site na nzere ndị ihe nchọgharị gị na-eziga na webụsaịtị ahụ.
 
 ---
 
 # Tupu Ịmalite
 
-> **Ihe dị mkpa:** Na-edepụta ozi njirimara mgbe niile site na **arịrịọ netwọkụ na-arụ ọrụ ugbu a**, **ọ bụghị** site na ebe ihe nchọgharị gị na-echekwa kuki.
+> **Ihe dị mkpa:** Na-edepụta nzere mgbe niile site na **arịrịọ netwọkụ dị ndụ**, **ọ bụghị** site na ebe nchekwa cookie nke ihe nchọgharị gị.
 
-Ọtụtụ nsogbu ngosipụta njirimara na-esite n'ịdepụta kuki site n'ebe na-ezighi ezi.
+Ọtụtụ nsogbu nyocha njirimara na-esite n'ịdepụta cookie site n'ebe na-ezighi ezi.
 
-## Edepụtala Site na Ebe Nchekwa Kuki
+## Edepụtala Site na Ebe Nchekwa Cookie
 
-Ọtụtụ ihe nchọgharị na-egosi kuki echekwara site na:
+Ọtụtụ ihe nchọgharị na-egosi cookie echekwara site na:
 
 ```
 DevTools
@@ -26,17 +26,17 @@ DevTools
 → Cookies
 ```
 
-Ọ bụ ezie na kuki ndị a nwere ike ịdị ka ha ziri ezi, ha nwere ike ịbụ:
+Ọ bụ ezie na cookie ndị a yiri ka ha ziri ezi, ha nwere ike ịbụ:
 
-- nke kara aka
-- nke ezughị ezu
-- nke na-enweghị kuki ndị a na-eziga naanị na arịrịọ e gosipụtarala njirimara ya
+- nke merela ochie
+- nke na-ezughị ezu
+- nke cookie ndị a na-eziga naanị na arịrịọ ndị enyochalarị njirimara ha na-efu
 
-Iji ụkpụrụ ndị a nwere ike ime ka ngosipụta njirimara daa ọbụna ma ọ bụrụ na ha yiri ka ha ziri ezi.
+Iji ụkpụrụ ndị a nwere ike ịkpata ọdịda nyocha njirimara ọbụlagodi ma ha yie ka ha ziri ezi.
 
-## Detuo Site na Arịrịọ Na-arụ Ọrụ Ugbu A
+## Detuo Site na Arịrịọ Dị Ndụ
 
-Kama nke ahụ, jiri kuki sitere na arịrịọ gara nke ọma:
+Kama nke ahụ, jiri cookie sitere na arịrịọ gara nke ọma:
 
 ```
 DevTools
@@ -47,91 +47,141 @@ DevTools
 → Cookie
 ```
 
-Isi arịrịọ `Cookie` nwere kpọmkwem ozi ngosipụta njirimara nke ihe nchọgharị gị jiri nke ọma.
+Isiokwu arịrịọ `Cookie` nwere ozi nyocha njirimara kpọmkwem nke ihe nchọgharị gị jiri mee ihe nke ọma.
 
-Maka ọtụtụ ndị na-eweta Web Cookie, nke a bụ ụkpụrụ e kwesịrị mado n'ime OmniRoute.
+Maka ọtụtụ ndị na-eweta Web Cookie, nke a bụ ụkpụrụ ekwesịrị ịmado n'ime OmniRoute.
 
 ---
 
 # Nhazi Izugbe
 
-Usoro nhazi ahụ bụ otu ihe maka ọtụtụ ndị na-eweta Web Cookie.
+Usoro nhazi ahụ bụ otu maka ọtụtụ ndị na-eweta Web Cookie.
 
-1. Banye na webụsaịtị onye na-eweta ọrụ.
-2. Mepee Ngwaọrụ Ndị Mmepụta nke ihe nchọgharị.
+1. Banye na webụsaịtị onye na-eweta ahụ.
+2. Mepee Ngwaọrụ Ndị Mmepụta nke ihe nchọgharị ahụ.
 3. Mepee taabụ **Network**.
 4. Mee ka ibe ahụ dị ọhụrụ.
-5. Mepee arịrịọ nkata ma ọ bụ mkparịta ụka e gosipụtarala njirimara ya.
-6. Detuo ozi njirimara achọrọ.
+5. Mepee arịrịọ nkata ma ọ bụ mkparịta ụka enyochalarị njirimara ya.
+6. Detuo nzere nyocha njirimara achọrọ.
 7. Mepee OmniRoute.
 8. Gaa na **Providers → Add Provider**.
 9. Họrọ onye na-eweta Web Cookie gị.
-10. Mado ozi njirimara ahụ.
+10. Mado nzere ndị ahụ.
 11. Pịa **Test Connection**.
-12. Chekwaa onye na-eweta ọrụ ahụ.
+12. Chekwaa onye na-eweta ahụ.
 
-Ozi njirimara a chọrọ kpọmkwem dabere na onye na-eweta ọrụ ahụ.
+Nzere kpọmkwem achọrọ dabere na onye na-eweta ya.
 
 ---
 
-# Ụdị Ozi Njirimara Ndị Na-eweta Ọrụ
+# Ụdị Nzere Ndị Na-eweta
 
-Webụsaịtị dị iche iche na-echekwa ozi ngosipụta njirimara n'ụzọ dị iche iche. Ụfọdụ chọrọ naanị kuki, ebe ndị ọzọ nwere ike ịchọ isi arịrịọ ma ọ bụ token ndị ọzọ.
+Webụsaịtị dị iche iche na-echekwa nyocha njirimara n'ụzọ dị iche iche. Ụfọdụ chọrọ naanị cookie, ebe ndị ọzọ nwere ike ịchọ isiokwu ma ọ bụ token ndị ọzọ.
 
-| Onye Na-eweta Ọrụ               | Ụdị Ozi Njirimara             | Ntuziaka Onye Na-eweta Ọrụ       |
-| ------------------------------- | ----------------------------- | -------------------------------- |
-| Claude Web                      | Isi arịrịọ Cookie zuru ezu    | `docs/providers/CLAUDE_WEB.md`   |
-| ChatGPT Web (Codex)             | Isi Cookie zuru ezu           | `docs/providers/CHATGPT_WEB.md`  |
-| Gemini Web                      | _(nyochaa)_                   |                                  |
-| Copilot Web                     | _(nyochaa)_                   | `docs/providers/COPILOT-M365.md` |
-| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath | `docs/providers/COPILOT-M365.md` |
-| Grok Web                        | _(nyochaa)_                   |                                  |
-| ...                             | ...                           | ...                              |
+| Onye Na-eweta                   | Ụdị Nzere                      | Ntuziaka Onye Na-eweta           |
+| ------------------------------- | ------------------------------ | -------------------------------- |
+| Claude Web                      | Isiokwu arịrịọ Cookie zuru ezu | `docs/providers/CLAUDE_WEB.md`   |
+| ChatGPT Web (Codex)             | Isiokwu Cookie zuru ezu        | `docs/providers/CHATGPT_WEB.md`  |
+| Gemini Web                      | _(nyochaa)_                    |                                  |
+| Copilot Web                     | _(nyochaa)_                    | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath  | `docs/providers/COPILOT-M365.md` |
+| Grok Web                        | _(nyochaa)_                    |                                  |
+| ...                             | ...                            | ...                              |
 
-> Melite tebụl a mgbe agbakwunyere ndị na-eweta Web Cookie ọhụrụ ma ọ bụ mgbe ndị dị ugbu a gbanwere ihe ha chọrọ maka ngosipụta njirimara.
+> Melite tebụl a ka a na-agbakwunye ndị na-eweta Web Cookie ọhụrụ ma ọ bụ ka ndị na-eweta dị ugbu a na-agbanwe ihe ha chọrọ maka nyocha njirimara.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) bụ ikpo okwu nkata ndị ahịa n’efu nke na-achọghị ndebanye aha — a na-emepụta nnọkọ ahụ n’amaghị onye ọrụ na nleta mbụ, ọ na-adịgidekwa site na kuki atọ: `uid`, `si_usr_id`, na `si_ses_id`. OmniRoute na-ebufe otu endpoint `/api/dispatch` ahụ site n’otu NJ model (`notrack-c`, aha ọzọ `ntw`).
+
+### Usoro ijikọ
+
+1. Mepee [notrack.ai](https://notrack.ai) na ihe nchọgharị gị ma hapụ ka edobe kuki nnọkọ nke amaghị onye ọrụ.
+2. Mepee **DevTools → Network**, mee ka ibe ahụ buo ọzọ, wee pịa arịrịọ `/api` ọ bụla.
+3. N’ime **Request Headers**, detuo uru header `Cookie` ahụ dum.
+4. Na OmniRoute, gaa na **Providers → Add Provider → NoTrack Web (Free)**.
+5. Mado eriri kuki ahụ n’ime mpaghara `apiKey` wee **Save**.
+
+OmniRoute na-ewepụta `uid`, `si_usr_id`, na `si_ses_id` site na eriri ahụ e madore, ma wughachi header `Cookie` dị ọcha nke nwere naanị ụzọ abụọ ndị ahụ — tinyere `nt_session` (token `ntk_…` a na-edobe maka akaụntụ ndị banyere) mgbe ọ dị. Ọ bụrụ na nke ọ bụla n’ime atọ ahụ adịghị, a na-ebufe eriri e madore ahụ dịka ọ dị ka ndị na-ahụ maka sistemụ nwee ike ịnwale nhazi ndị ọzọ.
+
+### NJ model
+
+| NJ model    | Aha ngosi | Nkọwa                                                       |
+| ----------- | --------- | ----------------------------------------------------------- |
+| `notrack-c` | NoTrack C | Nke ndabara — model dispatch nke upstream `C`.              |
+| `C`         | NoTrack C | Aha ọzọ maka `notrack-c` (koodu dispatch upstream nke mbụ). |
+| `notrack`   | NoTrack C | Aha ọzọ maka `notrack-c`.                                   |
+| `ntw`       | NoTrack C | Aha ọzọ dị mkpụmkpụ maka `notrack-c`.                       |
+
+NJ model anọ ahụ niile na-ezo aka n’otu model dispatch upstream ahụ (`C`).
+
+### Nhọrọ arịrịọ
+
+Executor ahụ na-anabata mpaghara ndị a na-abụghị iwu na body arịrịọ ahụ:
+
+| Mpaghara body         | Nke ndabara | Ebumnuche                                                                     |
+| --------------------- | ----------- | ----------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`     | Ụdị dispatch (eriri nwere ike ịbụ ihe ọ bụla; upstream na-anabata `usual`, …) |
+| `notrack_max_turns`   | `6`         | Ọnụọgụ oge ime nke upstream nwere ike iji tupu ọ zaa.                         |
+| `notrack_chat_id`     | `null`      | Gaa n’ihu na nkata upstream dị adị (hapụ ya maka nkata ọhụrụ).                |
+| `notrack_attachments` | `[]`        | Ndepụta descriptors mgbakwunye upstream a na-ebufe ozugbo.                    |
+| `notrack_regenerate`  | `false`     | Tọọ ya ka ọ bụrụ `true` iji rịọ ka ewepụtaghachi azịza maka oge gara aga.     |
+
+### Ikike
+
+- Mmecha nkata **na-asọba na nke anaghị asọba**.
+- **Ịkpọ ngwaọrụ** — tọọ `tools: [...]` na arịrịọ ahụ; executor ahụ na-ahazi ha n’ime nkwekọrịta envelopu ịkpọ ngwaọrụ ma tụgharịa nzaghachi model ahụ laghachi n’ime OpenAI `tool_calls`.
+- **`response_format`** — a na-akwado `json_object` na `json_schema`. Executor ahụ na-ewepụta JSON object mbụ n’ime nzaghachi model ahụ ma gbanwee ya ka ọ bụrụ eriri tupu o weghachite ya.
+- **Ihe ngosi ntụgharị uche** — executor ahụ na-ewepụta delta `reasoning` mgbe upstream zipụrụ event `thinking`.
+
+### Mmachi
+
+- Upstream na-amanye oke ojiji nke ndị ọrụ amaghị aha — mgbe e ruru oke ahụ, executor na-ewepụta 429 tinyere ozi dị mfe nghọta.
+- NJ model niile na-ezo aka n’otu model dispatch upstream ahụ; enweghị mgbanwe pụrụ iche maka model ọ bụla.
+- Executor anaghị akpọ endpoint upstream `/api/chats`, ya mere anaghị ejikwa akụkọ nkata / nnọkọ na-akpaghị aka. Jiri `notrack_chat_id` gaa n’ihu na nkata upstream dị adị.
 
 ---
 
 # Ihe Ndị Na-eweta Web Cookie Nwere Ike Ime na Ihe Ha Na-enweghị Ike Ime
 
-Ndị na-eweta Web Cookie na-ejigharị ihu nkata nke webụsaịtị. Ha **anaghị** enye otu ikike ahụ API ndị gọọmentị na-enye.
+Ndị na-eweta Web Cookie na-eji interface nkata nke webụsaịtị ọzọ. Ha **anaghị** enye otu ikike ahụ API gọọmentị na-enye.
 
 ## Ihe A Na-akwado
 
-- Igosipụta njirimara site na iji nnọkọ ihe nchọgharị gị dị ugbu a
-- Ịnweta model ndị dị site na akaụntụ gị
-- Ikwanye nzaghachi nkata ozugbo
+- Jiri nnọkọ ihe nchọgharị gị dị ugbu a mee nkwenye njirimara
+- Nweta ụdịdị dị site na akaụntụ gị
+- Nata nzaghachi nkata ka ha na-abịa
 - Achọghị igodo API
 
 ## Ihe A Na-akwadoghị
 
-- Ịkpọ function
-- Ịkpọ tool
+- Ịkpọ ọrụ
+- Ịkpọ ngwaọrụ
 - Idezi faịlụ na-akpaghị aka
-- Usoro ọrụ IDE nke agent na-achị
-- Njirimara dị naanị na API
+- Usoro ọrụ IDE nke ndị nnọchi anya
+- Njirimara ndị dị naanị site na API
 
-Nke a bụ omume a tụrụ anya ya, ọ **bụghịkwa** ntụpọ.
+Nke a bụ omume a tụrụ anya ya, ọ bụkwa **ọ bụghị** ntụpọ.
 
-Ọ bụrụ na ịchọrọ ka e mee tool, ka e dezie faịlụ na-akpaghị aka, ma ọ bụ usoro ọrụ agent ndị ọzọ, jiri **onye na-eweta nke na-eji igodo API** kama iji onye na-eweta Web Cookie.
-
----
-
-# Ịdọ Aka Ná Ntị Banyere Nnyocha Nkwado
-
-**Test Connection** gara nke ọma ma ọ bụ nkwado kuki na-egosi naanị na ozi njirimara e nyere yiri ka ọ nọ n'ụdị a tụrụ anya ya.
-
-Ruo mgbe edozi Issue #7857, nkwado gara nke ọma **anaghị ekwe nkwa** na onye na-eweta ọrụ ahụ ga-enwe ike igosipụta njirimara nke ọma.
-
-Ọ bụrụ na ngosipụta njirimara ka na-ada, nyochaa na i depụtara ozi njirimara site na arịrịọ netwọkụ na-arụ ọrụ ugbu a kama site na ebe ihe nchọgharị na-echekwa kuki.
+Ọ bụrụ na ịchọrọ ka e mee ngwaọrụ, ka e dezie faịlụ na-akpaghị aka, ma ọ bụ usoro ọrụ ndị nnọchi anya ndị ọzọ, jiri **onye na-enye ọrụ nke na-eji igodo API** kama onye na-enye ọrụ Web Cookie.
 
 ---
 
-# Idozi Nsogbu
+# Ịdọ Aka ná Ntị Banyere Nnyocha Nkwado
 
-## Ngosipụta Njirimara Dara
+**Test Connection** ma ọ bụ nkwado kuki gara nke ọma na-egosi naanị na ozi njirimara e nyere yiri ka ọ dị n'ụdị a tụrụ anya ya.
 
-Nyochaa na e depụtara ozi njirimara site na:
+Ruo mgbe e doziri Issue #7857, nkwado gara nke ọma **anaghị ekwe nkwa** na onye na-enye ọrụ ga-eme nkwenye njirimara nke ọma.
+
+Ọ bụrụ na nkwenye njirimara ka na-ada, chọpụta na i depụtaghachiri ozi njirimara ahụ site na arịrịọ netwọk dị ndụ kama site na ebe nchekwa kuki nke ihe nchọgharị.
+
+---
+
+# Nchọpụta na Ndozi Nsogbu
+
+## Nkwenye Njirimara Dara
+
+Chọpụta na e depụtaghachiri ozi njirimara ahụ site na:
 
 ```
 Network
@@ -139,7 +189,7 @@ Network
 → Cookie
 ```
 
-ma **ọ bụghị** site na:
+ọ bụghịkwa site na:
 
 ```
 Application
@@ -148,44 +198,44 @@ Application
 
 ---
 
-## Kuki Na-arụ Ọrụ na Ihe Nchọgharị Ma Ọ Naghị Arụ Ọrụ na OmniRoute
+## Kuki Na-arụ Ọrụ n'Ihe Nchọgharị mana Ọ naghị arụ Ọrụ na OmniRoute
 
-Ụfọdụ ndị na-eweta ọrụ na-agụnye kuki ndị a na-eziga naanị n'oge arịrịọ e gosipụtarala njirimara ya.
+Ụfọdụ ndị na-enye ọrụ na-etinye kuki ndị a na-eziga naanị n'oge arịrịọ nwere nkwenye njirimara.
 
-Detuo ozi njirimara ọzọ site na arịrịọ netwọkụ ọhụrụ mgbe ị mepechara mkparịta ụka nke ọma.
-
----
-
-## Nnọkọ Kubiela Oge
-
-Ndị na-eweta Web Cookie na-eji nnọkọ ihe nchọgharị gị dị ugbu a.
-
-Ọ bụrụ na oge nnọkọ ihe nchọgharị gị agwụ ma ọ bụ na ị pụọ, ị ga-edegharị otu ozi njirimara ọhụrụ.
+Depụtaghachi ozi njirimara ahụ site na arịrịọ netwọk ọhụrụ mgbe i meghere mkparịta ụka nke ọma.
 
 ---
 
-## Test Connection Gara Nke Ọma Mana Arịrịọ Na-ada
+## Nnọkọ Agwụla
 
-Ruo mgbe edozi Issue #7857, ịgafe nkwado anaghị ekwe nkwa na arịrịọ ngosipụta njirimara ga-aga nke ọma.
+Ndị na-enye ọrụ Web Cookie na-eji nnọkọ ihe nchọgharị gị dị ugbu a.
 
-Detuo ozi njirimara gị ọzọ site na arịrịọ ọhụrụ e gosipụtarala njirimara ya tupu ịga n'ihu na idozi nsogbu.
+Ọ bụrụ na nnọkọ ihe nchọgharị gị agwụ ma ọ bụ na ị pụọ na akaụntụ, ị ga-edegharị usoro ozi njirimara ọhụrụ. Iji mee ka mmeghari kuki bụrụ akpaka maka ndị na-enye ọrụ webụ a na-akwado, lee ngwa enyemaka [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-# Ihe Nlereanya Onye Na-eweta Ọrụ
+## Test Connection Gafere mana Arịrịọ Na-ada
 
-Maka ntuziaka zuru ezu nke akọwapụtara maka otu onye na-eweta ọrụ, lee:
+Ruo mgbe e doziri Issue #7857, ịgafe nkwado anaghị ekwe nkwa na arịrịọ nkwenye njirimara ga-aga nke ọma.
+
+Depụtaghachi ozi njirimara gị site na arịrịọ ọhụrụ nwere nkwenye njirimara tupu ịga n'ihu na nchọpụta nsogbu.
+
+---
+
+# Ihe Nlereanya Onye Na-enye Ọrụ
+
+Maka ntuziaka zuru ezu nke metụtara otu onye na-enye ọrụ, lee:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Ntuziaka Claude Web na-egosi usoro nhazi zuru ezu maka onye na-eweta Web Cookie ma na-arụkwa ọrụ dịka mmejuputa ntụaka.
+Ntuziaka Claude Web na-egosi usoro nhazi zuru ezu maka onye na-enye ọrụ Web Cookie ma bụrụkwa mmejuputa ntụaka.
 
 ---
 
-# Omume Kachasị Mma
+# Omume Kacha Mma
 
-- Detuo ozi njirimara site na arịrịọ ọhụrụ e gosipụtarala njirimara ya.
-- Zere ijigharị kuki ochie.
-- Mee ka nnọkọ ihe nchọgharị gị nọgide na-arụ ọrụ mgbe ị na-eji ndị na-eweta Web Cookie.
-- Were kuki e depụtara dịka ozi njirimara dị nzuzo.
-- Jiri ndị na-eweta nke na-eji igodo API mgbe ịchọrọ ịkpọ function ma ọ bụ usoro ọrụ agent.
+- Depụtaghachi ozi njirimara site na arịrịọ ọhụrụ nwere nkwenye njirimara.
+- Zere iji kuki ochie ọzọ.
+- Mee ka nnọkọ ihe nchọgharị gị nọgide na-arụ ọrụ mgbe ị na-eji ndị na-enye ọrụ Web Cookie.
+- Were kuki e depụtaghachiri dị ka ozi njirimara dị nro.
+- Jiri ndị na-enye ọrụ nke na-eji igodo API mgbe ịchọrọ ịkpọ ọrụ ma ọ bụ usoro ọrụ ndị nnọchi anya.

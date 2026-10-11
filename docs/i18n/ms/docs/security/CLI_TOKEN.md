@@ -41,19 +41,11 @@ kata laluan pada setiap pelaksanaan.
 | **Tiada pintasan perlindungan `always`** | `isAlwaysProtectedPath()` dinilai sebelum pemeriksaan token CLI. `/api/shutdown` dan `/api/settings/database` sentiasa memerlukan JWT.                                                                                           |
 | **Tidak boleh dieksport**                | Token tidak pernah ditulis ke cakera atau direkodkan dalam log.                                                                                                                                                                  |
 
-## Garam lalai (rawak bagi setiap pemasangan)
+## Salt lalai (rawak bagi setiap pemasangan)
 
-Apabila `OMNIROUTE_CLI_SALT` tidak ditetapkan, garam tersebut ialah rentetan heks rawak 64 aksara
-yang dijana sekali dan disimpan secara berterusan di `<DATA_DIR>/cli-token-salt.json` (mod `0600`) —
-bukannya nilai literal `omniroute-cli-auth-v1` yang disertakan dalam repositori. Kedua-dua `getActiveSalt()` dalam
-`src/lib/machineToken.ts` dan cerminannya dalam `bin/cli/utils/cliToken.mjs` membaca fail
-yang sama, supaya pelayan dan setiap pelaksanaan CLI pada pemasangan ini menggunakan
-nilai yang sama; nilai literal yang disertakan dalam repositori hanya digunakan sebagai sandaran terakhir apabila
-garam tersimpan atau garam persekitaran masih belum dapat diwujudkan (contohnya, pemasangan baharu untuk CLI sahaja
-sebelum pelayan pernah dijalankan). Ini menutup kelemahan lalai literal tetap yang lama:
-`/etc/machine-id` lazimnya boleh dibaca oleh semua pengguna, maka mana-mana pengguna setempat
-sebaliknya boleh menerbitkan token yang sama bagi setiap pemasangan yang tidak pernah menetapkan
-`OMNIROUTE_CLI_SALT`.
+Apabila `OMNIROUTE_CLI_SALT` tidak ditetapkan, salt ialah rentetan perenambelasan rawak sepanjang 64 aksara yang dijana sekali dan disimpan secara berterusan di `<DATA_DIR>/cli-token-salt.json` (mod `0600`) — bukan literal `omniroute-cli-auth-v1` yang disertakan dalam repositori. Kedua-dua `getActiveSalt()` dalam `src/lib/machineToken.ts` dan versi sepadannya dalam `bin/cli/utils/cliToken.mjs` membaca fail yang sama, maka pelayan dan setiap pemanggilan CLI pada pemasangan ini akan menggunakan nilai yang sama; literal yang disertakan dalam repositori hanya digunakan sebagai sandaran terakhir apabila salt tersimpan atau salt persekitaran masih belum dapat diwujudkan (contohnya pemasangan baharu CLI sahaja sebelum pelayan pernah dijalankan). Ini menutup kelemahan lalai literal tetap yang lama: `/etc/machine-id` lazimnya boleh dibaca oleh semua pengguna, maka mana-mana pengguna setempat boleh memperoleh token yang sama bagi setiap pemasangan yang tidak pernah menetapkan `OMNIROUTE_CLI_SALT`.
+
+Jika salt tidak dapat dibaca atau dicipta, kedua-dua pelayan dan CLI mengeluarkan satu amaran bagi setiap proses sebelum menggunakan sandaran keserasian tersebut. Amaran itu tidak mengandungi salt, token, laluan sistem fail atau ralat mentah. Pulihkan akses kepada `DATA_DIR` atau tetapkan `OMNIROUTE_CLI_SALT`, kemudian mulakan semula proses yang terjejas. Amaran tersebut menjadikan kegagalan itu dapat dilihat; ia tidak menjadikan salt sandaran awam itu peribadi atau menyahdayakan pengesahan CLI. Salt tersimpan sedia ada yang sah dan penggantian persekitaran yang ditetapkan secara eksplisit mengekalkan nilai token sebelumnya.
 
 ## Putaran salt
 

@@ -5,67 +5,86 @@
 ---
 
 Mula v3.8.49 (WS3.2/WS3.4 ng quality/velocity plan), ang default na merge path para sa
-mga nasuring PR papunta sa `release/vX.Y.Z` ay ang **Mergify merge queue** (`.mergify.yml`);
+mga na-review na PR papunta sa `release/vX.Y.Z` ay ang **Mergify merge queue** (`.mergify.yml`);
 ang **manual merge-train** na nakadokumento sa ibaba ang FALLBACK — ginagamit sa panahon ng mga insidente,
 release freeze, o kung sakaling magbago ang Mergify Open Source plan.
 
-## Default na path: ang Mergify queue
+## Default na landas: ang pila ng Mergify
 
-1. Sinuri/naging green ang PR sa pamamagitan ng mga campaign at inaprubahan ng pre-merge ⭐
-   gate ng may-ari (ang ulat + desisyon sa bawat item — tingnan ang `/merge-prs` Hakbang 0.75).
-2. Ilalapat ng may-ari (o ng session na kumikilos batay sa desisyon ng may-ari) ang label na **`queue`**.
-   Ang label MISMO ang pag-apruba sa merge; isinasagawa lamang ito ng Mergify.
-3. Pinapangkat ng Mergify ang hanggang 10 nakapilang PR, bina-validate ang batch laban sa mga fast-gate,
-   at mina-merge (squash). Ang red na batch ay **awtomatikong bina-bisect** — ang problematikong PR
-   ay naihihiwalay sa humigit-kumulang log2(N) muling pag-validate at inaalis sa queue; nagpapatuloy ang iba.
-4. Pagkatapos ng merge, bina-validate ng tuloy-tuloy na release-green workflow ang bagong tip sa pag-push
+1. Sinusuri/nagiging green ang PR sa pamamagitan ng mga campaign at inaaprubahan ng ⭐
+   gate bago mag-merge ng may-ari (ang ulat + desisyon sa bawat item — tingnan ang `/merge-prs` Hakbang 0.75).
+2. Inilalapat ng may-ari (o ng session na kumikilos batay sa desisyon ng may-ari) ang label na **`queue`**.
+   Ang label MISMO ang pag-apruba sa pag-merge; isinasagawa lamang ito ng Mergify.
+3. **Sunud-sunod** na bina-validate ng Mergify ang mga nakapilang PR (paisa-isa) laban sa mga fast-gate
+   at mine-merge ang mga ito (squash). Ang batching + awtomatikong bisection ay nasa bayad na tier ng Mergify
+   ("Cannot use Merge Queue batch" sa libreng plan, #7220), kaya walang itinatakdang
+   `batch_size` ang `.mergify.yml`; nananatiling gawain ng manu-manong merge-train sa ibaba ang batching. Ang PR na
+   nakabinbin pa rin ang mga check pagkalipas ng `checks_timeout` (240 min = 2× ng nasukat na p95 ng
+   `quality.yml`) ay inaalis sa pila sa halip na patigilin ang pila.
+4. Pagkatapos ng pag-merge, bina-validate ng tuloy-tuloy na release-green workflow ang bagong tip sa pag-push
    at nagbubukas ng attribution issue kung nagkaroon ng regression ang kombinasyon (hindi kailanman awtomatikong nagre-revert).
 
-Mga guardrail (katulad ng `CLAUDE.md` Hard Rules #21/#22):
+Mga pananggalang (sumasalamin sa Mga Mahigpit na Panuntunan #21/#22 ng `CLAUDE.md`):
 
-- **Bukas ang release freeze** → HUWAG lagyan ng label ang mga PR na naka-target sa frozen na branch; i-retarget muna sa
+- **Bukas ang release freeze** → HUWAG lagyan ng label ang mga PR na nagta-target sa naka-freeze na branch; i-retarget muna sa
   aktibong `release/vX+1`.
-- **In-flight na PR ng ibang session** → huwag itong lagyan ng label; ang nagmamay-aring session lamang ang naglalagay
-  sa queue ng sarili nitong gawain.
-- Ang mga diff na tests-only at mga PR na may label na `hotfix` ay nagpapatakbo na ng pinaikling CI (tingnan ang
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); tinatanggap ng mga kondisyon ng queue ang anumang
-  aktuwal na set ng check na tumakbo (`#check-failure=0` + `#check-pending=0`).
+- **In-flight na PR ng ibang session** → huwag kailanman itong lagyan ng label; tanging ang nagmamay-aring session lamang ang
+  naglalagay sa pila ng sarili nitong gawain.
+- Ang mga diff na tests-only at mga PR na may label na `hotfix` ay nagpapatakbo na ng pinababang CI (tingnan ang
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); tinatanggap ng mga kondisyon ng pila ang anumang
+  hanay ng mga check na aktuwal na tumakbo (`#check-failure=0` + `#check-pending=0`).
 
 ## Fallback: ang manual merge-train
 
-Ginagamit kapag hindi available ang queue. Isinasapormal nito ang pamamaraang nakapag-ubos ng 33 PR sa
-loob ng isang araw noong v3.8.47 cycle:
+Ginagamit kapag hindi available ang queue. Isinasapormal nito ang praktis na nagproseso ng 33 PR
+sa loob ng isang araw noong v3.8.47 cycle:
 
-1. **Buuin ang batch** (~10–30 nasuri+naaprubahang PR). Suriin kung may mga banggaan sa `linked:`
+1. **Buuin ang batch** (~10–30 na na-review+naaprubahang PR). Suriin ang mga banggaan sa `linked:`
    (parehong `tap.testFiles`, parehong CHANGELOG hunks) at isa-isahin ang mga iyon.
-2. **Mag-validate NANG ISANG BESES**: sa isang nakahiwalay na worktree mula sa release tip, lokal na i-merge ang lahat ng
-   batch head, pagkatapos ay patakbuhin ang suite na katumbas ng para sa release
-   (`npm run check:release-green`, idagdag ang `--with-build` bago ang release).
-   Ina-automate ng `scripts/release/merge-train.sh <base> <PR#>…` ang mga hakbang 1–2 (inaalis ang mga
-   nagkakasalungat na PR, at nagpapatuloy ang train). Pinapatakbo ng full mode ang `npm run test:unit` — ang
-   runner na na-tune para sa box (`--test-concurrency=20`), **hindi** ang dalawang sunod-sunod na 4-core CI
-   shard, na dahilan kung bakit tumatakbo ang pangunahing phase sa ~25% lamang ng isang 16-core na box (naayos noong
+2. **Mag-validate NANG ISANG BESES**: sa isang nakahiwalay na worktree mula sa release tip, lokal na i-merge ang lahat ng batch
+   head, pagkatapos ay patakbuhin ang suite na katumbas ng release
+   (`npm run check:release-green`, idagdag ang `--with-build` bago ang isang release).
+   Ino-automate ng `scripts/release/merge-train.sh <base> <PR#>…` ang mga hakbang 1–2 (inaalis ang mga
+   sumasalungat na PR, nagpapatuloy ang train). Pinapatakbo ng full mode ang `npm run test:unit` — ang
+   runner na naka-tune para sa box (`--test-concurrency=20`), **hindi** ang dalawang sunod-sunod na 4-core CI
+   shard, na nagpatakbo sa pangunahing phase sa ~25% ng isang 16-core box (naayos noong
    2026-07-18). Pinananatili ng `--fast` (mga intra-day mega-train drain, inaprubahan ng may-ari noong 2026-07-18)
    ang bawat static gate + vitest ngunit pinapatakbo lamang ang mga node:test file na binago ng
-   mga PR na isinama sa train; dapat pa ring patakbuhin ang FULL suite nang hindi bababa sa isang beses bawat araw sa
+   mga nakasakay na PR; kailangan pa ring tumakbo ang FULL suite nang kahit isang beses bawat araw sa
    naipong tip (isang train na walang `--fast`).
-3. **Green** → i-merge nang sunod-sunod ang mga PR (muling sinusuri ang `state,headRefOid` bago ang bawat isa —
-   ang PR na nagbago ang head ay muling dadaan sa review). Patunayan na ang net diff ng bawat merge ay
+3. **Berde** → i-merge ang mga PR nang sunod-sunod (muling sinusuri ang `state,headRefOid` bago ang bawat isa —
+   ang PR na nagbago ang head ay babalik sa review). Patunayang ang net diff ng bawat merge ay
    sariling pagbabago ng PR (walang mga auto-resolve revert: i-audit ang `git diff --stat` para sa
-   mga pagtanggal na wala sa saklaw).
-4. **Red** → i-bisect ang batch sa mga kalahati (i-validate ang bawat kalahati) sa halip na muling mag-validate
-   nang isa-isa; ibalik ang problematikong PR sa review queue kasama ang ebidensya.
-5. **Huwag kailanman**: mag-merge sa frozen na branch habang may freeze; gumamit ng `git stash` saanman;
-   paulit-ulit na patakbuhin ang buong CI sa pag-asang mawawala ang red (panuntunan: ang red ay impormasyon).
+   mga out-of-scope na deletion).
+4. **Pula** → i-bisect ang batch sa mga hati (i-validate ang bawat hati) sa halip na muling mag-validate
+   nang paisa-isa; ibalik ang may-salang PR sa review queue kasama ang ebidensya.
+5. **Huwag kailanman**: mag-merge sa naka-freeze na branch habang may freeze; gumamit ng `git stash` saanman;
+   basta muling patakbuhin ang CI sa pag-asang mawawala ang pula (panuntunan: impormasyon ang pula).
 
 ## Tiering (kung bakit ligtas ang queue kahit fast-gates lamang)
 
-- **Bawat PR** (quality.yml fast-gates): mga test na naapektuhan ayon sa TIA + buong unit 4-shard +
+- **Bawat PR** (quality.yml fast-gates): mga test na apektado ng TIA + buong unit 4-shard +
   vitest + lint bag + typecheck + integridad ng docs/changelog.
-- **Bawat batch/tip** (tuloy-tuloy na release-green): mga HARD gate ng `--quick` sa bawat push sa
+- **Bawat batch/tip** (continuous release-green): `--quick` HARD gates sa bawat push sa
   release branch; buong `--with-build --full-ci` sweep nang 3×/araw.
 - **Bawat release** (ci.yml sa release PR): ang kumpletong matrix kasama ang E2E ×9,
   package-artifact + tarball boot-smoke, coverage/ratchets.
 
-Walang naba-validate nang mas kaunti kaysa dati — tumatakbo lamang ang mabibigat na saklaw sa bawat batch/tip
-sa halip na sa bawat PR, at ito ang nag-aalis sa O(N) na mga round-trip.
+Walang bina-validate nang mas kaunti kaysa dati — tumatakbo lamang ang mabigat na surface sa bawat batch/tip
+sa halip na sa bawat PR, at ito ang nag-aalis sa mga O(N) round-trip.
+
+## Mga prerequisite ng fresh checkout para sa `merge-train.sh`
+
+Nagpapatakbo ang script ng fail-fast na **preflight** sa root checkout (bago ang anumang gawain sa worktree)
+upang hindi kailanman mapagkamalang pulang train ang sirang install:
+
+1. `npm ci`, pagkatapos ay patakbuhin ang `bun` postinstall na bina-block ng npm:
+   `(cd node_modules/bun && node install.js)` — kung hindi, mabibigo ang `check:provider-consistency`
+   at `check:known-symbols` (parehong `bun scripts/…`) sa train AT sa base nang
+   walang violation line.
+2. Walang ligaw na `node_modules/node_modules` (isang dobleng dependency tree; dalawang beses naglo-load ang React
+   at agad na nabibigo ang mga UI vitest suite).
+3. Naroon at executable ang `node_modules/.bin/tsc` (wala nito ang isang partial install).
+
+Pinapatakbo ng train ang blocking na `npm run check:cycles:ratchet`; advisory ang simpleng `npm run check:cycles`
+(iniilista nito ang mga SCC at nag-e-exit nang non-zero kahit sa isang maayos na base).

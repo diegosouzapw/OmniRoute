@@ -566,7 +566,7 @@ kiro-cli status
 
 ---
 
-## 10. ആഭ്യന്തര OmniRoute CLI
+## 10. ആന്തരിക OmniRoute CLI
 
 സെർവർ ലൈഫ്സൈക്കിൾ, സജ്ജീകരണം, ഡയഗ്നോസ്റ്റിക്സ്, പ്രൊവൈഡർ മാനേജ്മെന്റ് എന്നിവയ്ക്കുള്ള കമാൻഡുകൾ `omniroute` ബൈനറി നൽകുന്നു. എൻട്രി പോയിന്റ്: `bin/omniroute.mjs`.
 
@@ -583,16 +583,16 @@ omniroute --version                    # പതിപ്പ് പ്രിന�
 omniroute --help                       # എല്ലാ കമാൻഡുകളും കാണിക്കുക
 ```
 
-### സജ്ജീകരണവും ഇനിഷ്യലൈസേഷനും
+### സജ്ജീകരണവും ആരംഭിക്കലും
 
 ```bash
 omniroute setup                        # ഇന്ററാക്ടീവ് സജ്ജീകരണ വിസാർഡ്
-omniroute setup --non-interactive      # CI/ഓട്ടോമേഷൻ മോഡ് (എൻവയോൺമെന്റ് വേരിയബിളുകളും ഫ്ലാഗുകളും വായിക്കുന്നു)
+omniroute setup --non-interactive      # CI/ഓട്ടോമേഷൻ മോഡ് (env വേരിയബിളുകൾ + ഫ്ലാഗുകൾ വായിക്കുന്നു)
 omniroute setup --password '<value>'   # അഡ്മിൻ പാസ്വേഡ് നേരിട്ട് സജ്ജമാക്കുക
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ഒരൊറ്റ ഘട്ടത്തിൽ ഒരു പ്രൊവൈഡറെ ചേർത്ത് പരിശോധിക്കുക
+  --test-provider                      # ഒറ്റ ഘട്ടത്തിൽ ഒരു പ്രൊവൈഡറെ ചേർത്ത് പരിശോധിക്കുക
 ```
 
 നോൺ-ഇന്ററാക്ടീവ് സജ്ജീകരണത്തിനായി തിരിച്ചറിയുന്ന എൻവയോൺമെന്റ് വേരിയബിളുകൾ:
@@ -609,14 +609,14 @@ omniroute setup --add-provider \
 ### ഡയഗ്നോസ്റ്റിക്സ്
 
 ```bash
-omniroute doctor                       # കോൺഫിഗ്, DB, പോർട്ടുകൾ, റൺടൈം, മെമ്മറി, ലൈവ്നസ് എന്നിവ പരിശോധിക്കുക
+omniroute doctor                       # കോൺഫിഗ്, DB, പോർട്ടുകൾ, റൺടൈം, മെമ്മറി, ലൈവ്നെസ് എന്നിവ പരിശോധിക്കുക
 omniroute doctor --json                # മെഷീൻ വായിക്കാവുന്ന JSON
 omniroute doctor --no-liveness         # HTTP ആരോഗ്യനില പ്രോബ് ഒഴിവാക്കുക
-omniroute doctor --host 0.0.0.0        # ലൈവ്നസ് ഹോസ്റ്റ് ഓവർറൈഡ് ചെയ്യുക
+omniroute doctor --host 0.0.0.0        # ലൈവ്നെസ് ഹോസ്റ്റ് ഓവർറൈഡ് ചെയ്യുക
 omniroute doctor --liveness-url <url>  # പൂർണ്ണ ആരോഗ്യനില എൻഡ്പോയിന്റ് URL ഓവർറൈഡ്
 ```
 
-ഡോക്ടർ ഈ പരിശോധനകൾ നടത്തുന്നു: `Config`, `Database`, `Storage/encryption`,
+doctor ഈ പരിശോധനകൾ നടത്തുന്നു: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
 `Memory`, `Server liveness`. ഏതെങ്കിലും പരിശോധന `fail` ആണെങ്കിൽ ഇത് പൂജ്യമല്ലാത്ത എക്സിറ്റ് കോഡോടെ അവസാനിക്കും.
 
@@ -624,7 +624,7 @@ omniroute doctor --liveness-url <url>  # പൂർണ്ണ ആരോഗ്യ�
 
 ```bash
 omniroute providers available                       # OmniRoute പ്രൊവൈഡർ കാറ്റലോഗ്
-omniroute providers available --search openai       # id/പേര്/അപരനാമം/വിഭാഗം അനുസരിച്ച് കാറ്റലോഗ് ഫിൽട്ടർ ചെയ്യുക
+omniroute providers available --search openai       # id/name/alias/category അനുസരിച്ച് കാറ്റലോഗ് ഫിൽട്ടർ ചെയ്യുക
 omniroute providers available --category api-key    # വിഭാഗം അനുസരിച്ച് ഫിൽട്ടർ ചെയ്യുക (api-key, oauth, free, ...)
 omniroute providers available --json                # മെഷീൻ വായിക്കാവുന്ന JSON
 
@@ -633,7 +633,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # കോൺഫിഗർ ചെയ്ത ഒരു കണക്ഷൻ പരിശോധിക്കുക
 omniroute providers test-all                        # സജീവമായ എല്ലാ കണക്ഷനുകളും പരിശോധിക്കുക
-omniroute providers validate                        # ലോക്കൽ-മാത്രമുള്ള ഘടനാപരമായ സാധൂകരണം
+omniroute providers validate                        # ലോക്കൽ-മാത്രമായ ഘടനാപരമായ സാധൂകരണം
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # നിലവിലുള്ള OAuth ഫ്ലോ
@@ -641,44 +641,57 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-ഫസ്റ്റ് ആയതിനാൽ, സജീവമായ ലോക്കൽ അല്ലെങ്കിൽ റിമോട്ട് കോൺടെക്സ്റ്റിൽ അവ പ്രവർത്തിക്കുന്നു. ക്രെഡൻഷ്യൽ ഇൻപുട്ടിന്
+`providers add/import/auth/edit/remove` API-പ്രഥമമായതിനാൽ സജീവമായ
+ലോക്കൽ അല്ലെങ്കിൽ റിമോട്ട് കോൺടെക്സ്റ്റിനെതിരെ പ്രവർത്തിക്കുന്നു. ക്രെഡൻഷ്യൽ ഇൻപുട്ടിനായി
 `--credential-stdin` അല്ലെങ്കിൽ `--credential-env` ഉപയോഗിക്കണം; `--dry-run --json`
-മറച്ചുവെച്ച സാന്നിധ്യം/ഘടന മാത്രമാണ് റിപ്പോർട്ട് ചെയ്യുന്നത്. `providers available` OmniRoute കാറ്റലോഗ് വായിക്കുന്നു;
+റിഡാക്റ്റ് ചെയ്ത സാന്നിധ്യം/ഘടന മാത്രം റിപ്പോർട്ട് ചെയ്യുന്നു. `providers available` OmniRoute കാറ്റലോഗ് വായിക്കുന്നു;
 `providers list/test/test-all/validate` അവയുടെ ലോക്കൽ SQLite പ്രവർത്തനരീതി നിലനിർത്തുകയും
 സെർവർ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കണമെന്ന് ആവശ്യപ്പെടാതിരിക്കുകയും ചെയ്യുന്നു.
+
+ഒരു കസ്റ്റം OpenAI-അനുയോജ്യമായ അല്ലെങ്കിൽ Anthropic-അനുയോജ്യമായ നോഡിനായി,
+`omniroute nodes add` നൽകുന്ന നോഡ് ID-യിലേക്ക് `omniroute keys add "$NODE_ID" --stdin` ഉപയോഗിച്ച് ക്രെഡൻഷ്യലുകൾ അറ്റാച്ച് ചെയ്യുക.
+ഇതിന് പ്രവർത്തിച്ചുകൊണ്ടിരിക്കുന്ന സെർവറും സജീവ കോൺടെക്സ്റ്റിനുള്ള മാനേജ്മെന്റ് ഓതന്റിക്കേഷനും ആവശ്യമാണ്.
+CLI `POST /api/providers` ഉപയോഗിക്കുന്നു; ഇത് നോഡ് സാധൂകരിക്കുകയും അതിന്റെ എൻഡ്പോയിന്റ്
+ക്രമീകരണങ്ങൾ കണക്ഷനിലേക്ക് പകർത്തുകയും ചെയ്യുന്നു. നോഡ് ഇല്ലാതിരിക്കൽ, ഓതറൈസേഷൻ പരാജയം, അല്ലെങ്കിൽ ലഭ്യമല്ലാത്ത
+സെർവർ എന്നിവ ലോക്കൽ ഫാൾബാക്ക് ക്രെഡൻഷ്യൽ സൃഷ്ടിക്കാതെ ഒരു പിശക് നൽകും.
+
+`nodes add --base-url` നോഡ് എൻഡ്പോയിന്റ് സജ്ജമാക്കുന്നു; ഇത്
+`OMNIROUTE_BASE_URL`-ലെ സെർവർ വിലാസത്തിൽ നിന്ന് വ്യത്യസ്തമാണ്. OpenAPI ഫയലുകൾക്കായി,
+`omniroute openapi dump --format json --out ./openapi.json` ഉപയോഗിക്കുക; ഗ്ലോബൽ `--output`
+ഒരു ലക്ഷ്യസ്ഥാന ഫയൽനാമമല്ല, CLI ഡിസ്പ്ലേ ഫോർമാറ്റിംഗാണ് തിരഞ്ഞെടുക്കുന്നത്.
 
 ### വീണ്ടെടുക്കലും റീസെറ്റും
 
 ```bash
-omniroute reset-password                # അഡ്മിൻ പാസ്വേഡ് റീസെറ്റ് ചെയ്യുക (ഇങ്ങനെയും: omniroute-reset-password)
-omniroute reset-encrypted-columns       # എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യൽ റീസെറ്റിനുള്ള മുന്നറിയിപ്പും ഡ്രൈ-റണ്ണും കാണിക്കുക
-omniroute reset-encrypted-columns --force  # SQLite-ൽ എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യലുകൾ യഥാർത്ഥത്തിൽ null ആക്കുക
+omniroute reset-password                # അഡ്മിൻ പാസ്വേഡ് റീസെറ്റ് ചെയ്യുക (ഇതും ഉപയോഗിക്കാം: omniroute-reset-password)
+omniroute reset-encrypted-columns       # എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യൽ റീസെറ്റിനുള്ള മുന്നറിയിപ്പ് + ഡ്രൈ-റൺ കാണിക്കുക
+omniroute reset-encrypted-columns --force  # SQLite-ലെ എൻക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യലുകൾ യഥാർത്ഥത്തിൽ null ആക്കുക
 ```
 
 ### ക്രെഡൻഷ്യൽ എക്സ്പോർട്ട് (⚠ ശ്രദ്ധയോടെ കൈകാര്യം ചെയ്യുക)
 
 ```bash
-omniroute auth export                                 # മുന്നറിയിപ്പും സ്ഥിരീകരണ ഘട്ടവും കാണിക്കുക — DB ആക്സസ് ഇല്ല
+omniroute auth export                                 # മുന്നറിയിപ്പ് + സ്ഥിരീകരണ ഗേറ്റ് കാണിക്കുക — DB ആക്സസ് ഇല്ല
 omniroute auth export --force                          # എല്ലാ കണക്ഷനുകളുടെയും ഡീക്രിപ്റ്റ് ചെയ്ത ക്രെഡൻഷ്യലുകൾ JSON ആയി stdout-ലേക്ക് എക്സ്പോർട്ട് ചെയ്യുക
 omniroute auth export --force --id <id>                 # പൊരുത്തപ്പെടുന്ന കണക്ഷൻ മാത്രം എക്സ്പോർട്ട് ചെയ്യുക
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> വരികൾ ഔട്ട്പുട്ട് ചെയ്യുക
 omniroute auth export --force --out creds.json           # ഒരു ഫയലിലേക്ക് എഴുതുക (0600 അനുമതികളോടെ സൃഷ്ടിക്കുന്നു)
 ```
 
-`auth export` **ലോക്കൽ-മാത്രമാണ്** (നേരിട്ടുള്ള SQLite റീഡ്, HTTP റൂട്ട് ഇല്ല), കൂടാതെ മനഃപൂർവം
-**പ്ലെയിൻടെക്സ്റ്റ്** `apiKey`/`accessToken`/`refreshToken`/`idToken` മൂല്യങ്ങൾ പ്രിന്റ്/റൈറ്റ് ചെയ്യുന്നു — അതൊരു സവിശേഷതയാണ്, ബഗ് അല്ല.
-`--force` ഇല്ലാതെ ഡാറ്റാബേസിൽ നിന്ന് ഒന്നും വായിക്കുകയോ ഒന്നും ഡീക്രിപ്റ്റ് ചെയ്യുകയോ ചെയ്യില്ല. ഏതെങ്കിലും പ്ലെയിൻടെക്സ്റ്റ് ഔട്ട്പുട്ട് ചെയ്യുന്നതിന് മുമ്പ് stderr-ൽ
-ഒരു മുന്നറിയിപ്പ് ബാനർ എല്ലായ്പ്പോഴും പ്രിന്റ് ചെയ്യും. `STORAGE_ENCRYPTION_KEY` സജ്ജമാക്കിയിരിക്കണം.
-ഡീക്രിപ്റ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെടുന്ന ഒരു ഫീൽഡ് (കാലഹരണപ്പെട്ട കീ, കേടായ സൈഫർടെക്സ്റ്റ്), മുഴുവൻ എക്സ്പോർട്ടും നിർത്തുകയോ അടിസ്ഥാന പിശക് വെളിപ്പെടുത്തുകയോ ചെയ്യുന്നതിനുപകരം
-`<field>DecryptFailed: true` ആയി റിപ്പോർട്ട് ചെയ്യും.
+`auth export` **ലോക്കലിൽ മാത്രം** പ്രവർത്തിക്കുന്നതാണ് (നേരിട്ടുള്ള SQLite റീഡ്, HTTP റൂട്ട് ഇല്ല), കൂടാതെ ഇത് മനഃപൂർവം
+**പ്ലെയിൻടെക്സ്റ്റ്** `apiKey`/`accessToken`/`refreshToken`/`idToken` മൂല്യങ്ങൾ പ്രിന്റ് ചെയ്യുന്നു/എഴുതുന്നു — അത് ഒരു സവിശേഷതയാണ്,
+ബഗ് അല്ല. `--force` ഇല്ലാതെ ഡാറ്റാബേസിൽനിന്ന് ഒന്നും വായിക്കുകയോ ഒന്നും ഡീക്രിപ്റ്റ് ചെയ്യുകയോ ഇല്ല. ഏതെങ്കിലും പ്ലെയിൻടെക്സ്റ്റ് പുറത്തുവിടുന്നതിന് മുമ്പ്
+ഒരു മുന്നറിയിപ്പ് ബാനർ എല്ലായ്പ്പോഴും stderr-ൽ പ്രിന്റ് ചെയ്യും. `STORAGE_ENCRYPTION_KEY` സജ്ജീകരിച്ചിരിക്കണം.
+ഡീക്രിപ്റ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെടുന്ന ഒരു ഫീൽഡ് (കാലഹരണപ്പെട്ട കീ, കേടായ സൈഫർടെക്സ്റ്റ്), മുഴുവൻ എക്സ്പോർട്ടും നിർത്തുകയോ
+അടിസ്ഥാന പിശക് വെളിപ്പെടുത്തുകയോ ചെയ്യുന്നതിന് പകരം `<field>DecryptFailed: true` ആയി റിപ്പോർട്ട് ചെയ്യപ്പെടും.
 
-### മറ്റ് സബ്കമാൻഡുകൾ
+### മറ്റ് ഉപകമാൻഡുകൾ
 
-വേറിട്ട് സൂചിപ്പിച്ചിട്ടില്ലെങ്കിൽ, ഇവ പ്രവർത്തിച്ചുകൊണ്ടിരിക്കുന്ന ഒരു OmniRoute സെർവർ ഉണ്ടെന്ന് കരുതുന്നു:
+മറ്റുവിധത്തിൽ സൂചിപ്പിച്ചിട്ടില്ലെങ്കിൽ, പ്രവർത്തിച്ചുകൊണ്ടിരിക്കുന്ന ഒരു OmniRoute സെർവർ ഇവയ്ക്ക് ആവശ്യമാണെന്ന് കരുതുന്നു:
 
 ```bash
 omniroute status                       # സമഗ്രമായ റൺടൈം നില
-omniroute logs                         # അഭ്യർത്ഥന ലോഗുകൾ സ്ട്രീം ചെയ്യുക (--json, --search, --follow)
+omniroute logs                         # റിക്വസ്റ്റ് ലോഗുകൾ സ്ട്രീം ചെയ്യുക (--json, --search, --follow)
 omniroute config list                  # കോൺഫിഗർ ചെയ്ത CLI ടൂളുകൾ പ്രദർശിപ്പിക്കുക
 
 omniroute provider list                # ലഭ്യമായ പ്രൊവൈഡറുകൾ പട്ടികപ്പെടുത്തുക (providers list-ന്റെ അപരനാമം)
@@ -687,11 +700,11 @@ omniroute keys add | list | remove     # API കീകൾ കൈകാര്യ�
 omniroute models [provider]            # മോഡലുകൾ പട്ടികപ്പെടുത്തുക (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # കോൺഫിഗറേഷന്റെയും DB-യുടെയും സ്നാപ്പ്ഷോട്ട് എടുക്കുക
-omniroute restore                      # മുമ്പത്തെ സ്നാപ്പ്ഷോട്ടിൽ നിന്ന് പുനഃസ്ഥാപിക്കുക
+omniroute backup                       # കോൺഫിഗറേഷൻ + DB സ്നാപ്പ്ഷോട്ട് എടുക്കുക
+omniroute restore                      # മുമ്പത്തെ സ്നാപ്പ്ഷോട്ടിൽനിന്ന് പുനഃസ്ഥാപിക്കുക
 
 omniroute health                       # വിശദമായ ആരോഗ്യനില (ബ്രേക്കറുകൾ, കാഷ്, മെമ്മറി)
-omniroute quota                        # പ്രൊവൈഡർ ക്വോട്ട ഉപയോഗം
+omniroute quota                        # പ്രൊവൈഡർ ക്വാട്ട ഉപയോഗം
 omniroute cache                        # കാഷ് നില
 omniroute cache clear                  # സെമാന്റിക് + സിഗ്നേച്ചർ കാഷുകൾ മായ്ക്കുക
 
@@ -699,24 +712,24 @@ omniroute mcp status | restart         # MCP സെർവർ നില / പു�
 omniroute a2a status | card            # A2A സെർവർ നില / ഏജന്റ് കാർഡ്
 
 omniroute tunnel list | create | stop  # ടണലുകൾ കൈകാര്യം ചെയ്യുക (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # പരിസ്ഥിതി വേരിയബിളുകൾ പരിശോധിക്കുക / സജ്ജമാക്കുക (താൽക്കാലികം)
+omniroute env show | get <k> | set <k> <v>  # എൻവയോൺമെന്റ് വേരിയബിളുകൾ പരിശോധിക്കുക / സജ്ജീകരിക്കുക (താൽക്കാലികം)
 
-omniroute test                         # പ്രൊവൈഡർ കണക്റ്റിവിറ്റിക്കായുള്ള സ്മോക്ക് ടെസ്റ്റ്
+omniroute test                         # പ്രൊവൈഡർ കണക്റ്റിവിറ്റി സ്മോക്ക് ടെസ്റ്റ്
 omniroute update                       # അപ്ഡേറ്റുകൾക്കായി പരിശോധിക്കുക
 omniroute completion                   # ഷെൽ കംപ്ലീഷൻ സൃഷ്ടിക്കുക
 ```
 
-### സാധാരണ ഫ്ലാഗുകൾ
+### പൊതുവായ ഫ്ലാഗുകൾ
 
-| ഫ്ലാഗ്              | വിവരണം                                                           |
-| ------------------- | ---------------------------------------------------------------- |
-| `--no-open`         | ആരംഭിക്കുമ്പോൾ ബ്രൗസർ സ്വയമേവ തുറക്കരുത്                         |
-| `--port <n>`        | API പോർട്ട് അസാധുവാക്കുക (സ്ഥിരസ്ഥിതി 20128)                     |
-| `--mcp`             | stdio വഴി MCP സെർവറായി പ്രവർത്തിപ്പിക്കുക (IDE-കൾക്കായി)         |
-| `--non-interactive` | CI മോഡ് (പ്രോംപ്റ്റുകളില്ല; env/ഫ്ലാഗുകളിൽ നിന്ന് വായിക്കുന്നു)  |
-| `--json`            | മെഷീൻ വായനാസൗഹൃദമായ JSON ഔട്ട്പുട്ട് (doctor, providers മുതലായവ) |
-| `--help`, `-h`      | കമാൻഡ്-നിർദ്ദിഷ്ട സഹായം കാണിക്കുക                                |
-| `--version`, `-v`   | ഇൻസ്റ്റാൾ ചെയ്ത പതിപ്പ് പ്രിന്റ് ചെയ്യുക                         |
+| ഫ്ലാഗ്              | വിവരണം                                                          |
+| ------------------- | --------------------------------------------------------------- |
+| `--no-open`         | ആരംഭിക്കുമ്പോൾ ബ്രൗസർ സ്വയമേവ തുറക്കരുത്                        |
+| `--port <n>`        | API പോർട്ട് അസാധുവാക്കി മറ്റൊന്ന് ഉപയോഗിക്കുക (ഡിഫോൾട്ട് 20128) |
+| `--mcp`             | stdio വഴി MCP സെർവറായി പ്രവർത്തിപ്പിക്കുക (IDE-കൾക്കായി)        |
+| `--non-interactive` | CI മോഡ് (പ്രോംപ്റ്റുകളില്ല; env/ഫ്ലാഗുകളിൽനിന്ന് വായിക്കുന്നു)  |
+| `--json`            | മെഷീൻ വായനയോഗ്യമായ JSON ഔട്ട്പുട്ട് (doctor, providers മുതലായവ) |
+| `--help`, `-h`      | കമാൻഡിന് പ്രത്യേകമായ സഹായം കാണിക്കുക                            |
+| `--version`, `-v`   | ഇൻസ്റ്റാൾ ചെയ്ത പതിപ്പ് പ്രിന്റ് ചെയ്യുക                        |
 
 ---
 

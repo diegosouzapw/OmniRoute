@@ -318,12 +318,12 @@ A **contagem híbrida de tokens** também chega na v3.6.6: quando um fornecedor 
 
 ## 🛡️ Obtenção Externa Segura e Proteção contra SSRF _(v3.6.6+)_
 
-Todas as chamadas de validação de fornecedores e de descoberta de modelos passam agora por uma proteção externa de duas camadas:
+Todas as chamadas de validação de fornecedores e descoberta de modelos passam agora por uma proteção externa de duas camadas:
 
-1. **Proteção de URL** (`src/shared/network/outboundUrlGuard.ts`) — Bloqueia intervalos de endereços IP privados, de loopback e link-local antes de o socket ser aberto.
-2. **Wrapper de obtenção segura** (`src/shared/network/safeOutboundFetch.ts`) — Aplica a proteção de URL, normaliza os tempos limite e repete erros transitórios com recuo exponencial.
+1. **Proteção de URL** (`src/shared/network/outboundUrlGuard.ts`) — Verifica primeiro o nome de anfitrião ou o literal de IP do destino tal como foi escrito; no modo exclusivamente público, o wrapper de obtenção segura também resolve o nome e recusa endereços privados. Por predefinição, bloqueia endpoints de metadados da cloud — todo o intervalo 169.254.0.0/16, além dos nomes de anfitrião de metadados conhecidos; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` também bloqueia anfitriões privados e de loopback; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (ou a variável legada `OUTBOUND_SSRF_GUARD_ENABLED=false`) desativa as verificações. Um valor guardado através do seletor de uma opção no painel tem precedência sobre a respetiva variável, e os fornecedores locais integrados ignoram a proteção durante a validação da chave. Consulte `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper de obtenção segura** (`src/shared/network/safeOutboundFetch.ts`) — Aplica a proteção de URL, normaliza os tempos limite e repete tentativas após erros transitórios, utilizando recuo exponencial.
 
-As violações da proteção são apresentadas como HTTP 422 (`URL_GUARD_BLOCKED`) e registadas no registo de auditoria de conformidade através de `providerAudit.ts`.
+As violações da proteção são apresentadas como `URL_GUARD_BLOCKED` — HTTP 503 através de `getSafeOutboundFetchErrorStatus` (400 na rota de descoberta de modelos) — e os bloqueios de SSRF genuínos durante a validação são registados no registo de auditoria como eventos `provider.validation.ssrf_blocked`.
 
 ---
 

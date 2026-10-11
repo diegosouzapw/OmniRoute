@@ -4,68 +4,89 @@
 
 ---
 
-Kopš v3.8.49 (kvalitātes/ātruma plāna WS3.2/WS3.4) noklusējuma sapludināšanas ceļš
-pārskatītiem PR uz `release/vX.Y.Z` ir **Mergify sapludināšanas rinda** (`.mergify.yml`);
-tālāk dokumentētais **manuālais sapludināšanas vilciens** ir REZERVES RISINĀJUMS — to izmanto incidentu,
+Kopš v3.8.49 (kvalitātes/ātruma plāna WS3.2/WS3.4) noklusējuma apvienošanas ceļš
+pārskatītiem PR zarā `release/vX.Y.Z` ir **Mergify apvienošanas rinda** (`.mergify.yml`);
+tālāk dokumentētais **manuālais apvienošanas vilciens** ir REZERVES RISINĀJUMS — to izmanto incidentu,
 laidiena iesaldēšanas laikā vai tad, ja Mergify Open Source plāns kādreiz mainās.
 
 ## Noklusējuma ceļš: Mergify rinda
 
-1. Kampaņas ir pārskatījušas PR, un tā pārbaudes ir zaļas; to ir apstiprinājis arī īpašnieka pirmsapvienošanas ⭐
-   kontroles posms (atskaite + lēmums par katru vienumu — skatiet `/merge-prs` 0.75. soli).
+1. Kampaņas pārskata/apstiprina PR, un īpašnieks to apstiprina savā pirmsapvienošanas ⭐
+   kontrolpunktā (atskaite + lēmums par katru vienumu — skatiet `/merge-prs` 0.75. darbību).
 2. Īpašnieks (vai sesija, kas rīkojas saskaņā ar īpašnieka lēmumu) pievieno **`queue`**
-   etiķeti. Šī etiķete IR sapludināšanas apstiprinājums; Mergify to tikai izpilda.
-3. Mergify apvieno grupā līdz 10 rindā ievietotiem PR, validē grupu, izmantojot ātrās pārbaudes,
-   un sapludina (squash). Neveiksmīga grupa tiek **automātiski sadalīta uz pusēm** — vainīgais PR
-   tiek izolēts aptuveni log2(N) atkārtotās validācijās un izņemts no rindas; pārējie turpina procesu.
-4. Pēc sapludināšanas nepārtrauktā laidiena zaļā statusa darbplūsma pēc push validē jauno galotni
-   un izveido attiecinājuma problēmu, ja kombinācija izraisījusi regresiju (nekad neveic automātisku atsaukšanu).
+   etiķeti. Šī etiķete IR apvienošanas apstiprinājums; Mergify to tikai izpilda.
+3. Mergify pārbauda rindā ievietotos PR **secīgi** (pa vienam), izmantojot ātrās pārbaudes,
+   un apvieno tos (`squash`). Pakešapstrāde + automātiska dalīšana ir pieejama maksas Mergify
+   līmenī ("Nevar izmantot apvienošanas rindas pakešapstrādi" bezmaksas plānā, #7220), tāpēc
+   `.mergify.yml` nenosaka `batch_size`; pakešapstrāde joprojām ir tālāk aprakstītā manuālā
+   apvienošanas vilciena uzdevums. PR, kura pārbaudes pēc `checks_timeout` (240 min = 2×
+   izmērītais `quality.yml` p95) joprojām nav pabeigtas, tiek izņemts no rindas, nevis
+   bloķē visu rindu.
+4. Pēc apvienošanas nepārtrauktā laidiena zaļā statusa darbplūsma `push` notikuma laikā
+   pārbauda jauno zara galu un, ja kombinācija izraisījusi regresiju, izveido problēmas
+   pieteikumu vainīgā noteikšanai (nekad neveic automātisku atsaukšanu).
 
-Drošības ierobežojumi (atbilst `CLAUDE.md` stingrajiem noteikumiem Nr. 21/Nr. 22):
+Drošības ierobežojumi (atbilst `CLAUDE.md` stingrajiem noteikumiem #21/#22):
 
-- **Ir spēkā laidiena iesaldēšana** → NEPIEVIENOJIET etiķetes PR, kuru mērķis ir iesaldētais zars; vispirms mainiet mērķi uz
-  aktīvo `release/vX+1`.
-- **Citas sesijas izpildē esošs PR** → nekad nepievienojiet tam etiķeti; tikai īpašnieka sesija ievieto
-  rindā savu darbu.
-- Izmaiņas, kas skar tikai testus, un PR ar `hotfix` etiķeti jau izpilda samazinātu CI (skatiet
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); rindas nosacījumi pieņem faktiski
-  izpildīto pārbaužu kopu (`#check-failure=0` + `#check-pending=0`).
+- **Aktīva laidiena iesaldēšana** → NEPIEVIENOJIET etiķetes PR, kuru mērķis ir iesaldētais
+  zars; vispirms mainiet mērķi uz aktīvo `release/vX+1`.
+- **Citas sesijas procesā esošs PR** → nekad nepievienojiet tam etiķeti; tikai īpašnieka
+  sesija ievieto rindā savu darbu.
+- PR, kuros mainīti tikai testi, un PR ar `hotfix` etiķeti jau izmanto samazinātu CI pārbaužu
+  kopu (skatiet `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); rindas nosacījumi pieņem jebkuru
+  faktiski izpildīto pārbaužu kopu (`#check-failure=0` + `#check-pending=0`).
 
-## Rezerves risinājums: manuālais sapludināšanas vilciens
+## Rezerves risinājums: manuālais apvienošanas vilciens
 
-Izmanto, kad rinda nav pieejama. Tas formalizē praksi, ar kuru v3.8.47 cikla laikā
+To izmanto, kad rinda nav pieejama. Tas formalizē praksi, ar kuru v3.8.47 cikla laikā
 vienā dienā tika apstrādāti 33 PR:
 
-1. **Izveidojiet grupu** (~10–30 pārskatīti un apstiprināti PR). Pārbaudiet `linked:` sadursmes
-   (tie paši `tap.testFiles`, tās pašas CHANGELOG sadaļas) un šādus PR apstrādājiet secīgi.
-2. **Validējiet VIENU REIZI**: izolētā worktree, kas izveidots no laidiena galotnes, lokāli sapludiniet visas grupas
-   galotnes un pēc tam palaidiet laidienam ekvivalento komplektu
+1. **Izveidojiet grupu** (~10–30 pārskatīti un apstiprināti PR). Pārbaudiet `linked:` kolīzijas
+   (tie paši `tap.testFiles`, tie paši CHANGELOG fragmenti) un apstrādājiet tās secīgi.
+2. **Validējiet VIENU REIZI**: izolētā darba kokā, kas izveidots no laidiena zara gala, lokāli apvienojiet visus grupas
+   galvenos zarus un pēc tam izpildiet laidienam līdzvērtīgo komplektu
    (`npm run check:release-green`; pirms laidiena pievienojiet `--with-build`).
-   `scripts/release/merge-train.sh <base> <PR#>…` automatizē 1.–2. soli (konfliktējošie
-   PR tiek izņemti, vilciens turpina darbu). Pilnais režīms palaiž `npm run test:unit` — konkrētajai
-   iekārtai pielāgoto izpildītāju (`--test-concurrency=20`), **nevis** divus secīgus 4 kodolu CI
-   segmentus, kuru dēļ dominējošā fāze izmantoja tikai ~25% no 16 kodolu iekārtas (izlabots
-   2026-07-18). `--fast` (vienas dienas milzu vilciena iztukšošanai, īpašnieks apstiprināja 2026-07-18)
-   saglabā visas statiskās pārbaudes un vitest, taču palaiž tikai tos node:test failus, kurus mainījuši
-   vilcienā iekļautie PR; PILNAIS komplekts joprojām jāpalaiž vismaz reizi dienā uz
-   uzkrātās galotnes (viens vilciens bez `--fast`).
-3. **Zaļš statuss** → sapludiniet PR secīgi (pirms katra vēlreiz pārbaudot `state,headRefOid` —
-   PR, kura galotne ir mainījusies, atgriežas pārskatīšanā). Pierādiet, ka katras sapludināšanas neto izmaiņas ir
-   paša PR izmaiņas (nekādu automātiskās konfliktu atrisināšanas izraisītu atsaukšanu: auditējiet `git diff --stat`, meklējot
-   ārpus tvēruma esošus dzēsumus).
-4. **Sarkans statuss** → sadaliet grupu uz pusēm (validējiet katru pusi), nevis atkārtoti validējiet
-   katru PR atsevišķi; pārvietojiet vainīgo PR atpakaļ uz pārskatīšanas rindu, pievienojot pierādījumus.
-5. **Nekad**: iesaldēšanas laikā nesapludiniet iesaldētajā zarā; neizmantojiet `git stash`;
-   akli neatkārtojiet CI, cerot, ka sarkanais statuss pazudīs (noteikums: sarkans statuss ir informācija).
+   `scripts/release/merge-train.sh <base> <PR#>…` automatizē 1.–2. darbību (konfliktējošie
+   PR tiek izslēgti, vilciens turpina darbu). Pilnais režīms izpilda `npm run test:unit` — sistēmai
+   pielāgoto izpildītāju (`--test-concurrency=20`), **nevis** divus secīgus 4 kodolu CI
+   segmentus, kuru dēļ dominējošais posms izmantoja tikai ~25% no 16 kodolu sistēmas (izlabots
+   2026-07-18). `--fast` (dienas laikā izpildāmai lielā vilciena iztukšošanai, īpašnieks apstiprinājis 2026-07-18)
+   saglabā visas statiskās pārbaudes + vitest, bet izpilda tikai tos node:test failus, kurus mainījuši
+   vilcienā iekļautie PR; PILNAIS komplekts joprojām vismaz reizi dienā ir jāizpilda
+   uz uzkrātā zara gala (viens vilciens bez `--fast`).
+3. **Zaļš statuss** → apvienojiet PR secīgi (pirms katra vēlreiz pārbaudot `state,headRefOid` —
+   PR, kura galvenais zars ir mainījies, atgriežas pārskatīšanā). Pierādiet, ka katras apvienošanas neto atšķirības ir
+   paša PR izmaiņas (nekādu automātiskās konfliktu atrisināšanas izraisītu atsaukšanu: pārbaudiet `git diff --stat`, vai nav
+   ārpus tvēruma esošu dzēsumu).
+4. **Sarkans statuss** → sadaliet grupu uz pusēm (validējiet katru pusi), nevis veiciet atkārtotu validāciju
+   pa vienam; atgrieziet problemātisko PR pārskatīšanas rindā kopā ar pierādījumiem.
+5. **Nekad**: iesaldēšanas laikā neapvienojiet izmaiņas iesaldētajā zarā; neizmantojiet `git stash`;
+   atkārtoti nepalaidiet visu CI, cerot, ka sarkanais statuss pazudīs (noteikums: sarkans statuss ir informācija).
 
 ## Līmeņi (kāpēc rinda ir droša, izmantojot tikai ātrās pārbaudes)
 
-- **Katram PR** (quality.yml ātrās pārbaudes): TIA ietekmētie testi + pilns vienību testu 4 segmentu komplekts +
-  vitest + lint komplekts + tipu pārbaude + dokumentācijas/izmaiņu žurnāla integritāte.
-- **Katrai grupai/galotnei** (nepārtrauktais laidiena zaļais statuss): `--quick` OBLIGĀTĀS pārbaudes pēc katra push uz
-  laidiena zaru; pilnās `--with-build --full-ci` pārbaudes 3× dienā.
+- **Katram PR** (quality.yml ātrās pārbaudes): TIA ietekmētie testi + pilns vienību testu komplekts 4 segmentos +
+  vitest + lint pārbaužu kopa + tipu pārbaude + dokumentācijas/izmaiņu žurnāla integritāte.
+- **Katrai grupai/zara galam** (nepārtraukta laidiena zaļā statusa pārbaude): `--quick` OBLIGĀTĀS pārbaudes pēc katras izmaiņu
+  nosūtīšanas laidiena zarā; pilnās `--with-build --full-ci` pārbaudes 3× dienā.
 - **Katram laidienam** (ci.yml laidiena PR): pilnā matrica, tostarp E2E ×9,
-  pakotnes artefakts + tarball sāknēšanas pamatpārbaude, pārklājums/sliekšņi.
+  pakotnes artefakts + tarball pamata palaišanas pārbaude, pārklājums/sliekšņi.
 
-Nekas netiek validēts mazāk nekā iepriekš — resursietilpīgās pārbaudes vienkārši tiek izpildītas katrai grupai/galotnei,
-nevis katram PR, un tieši tas novērš O(N) aprites.
+Nekas netiek validēts mazāk nekā iepriekš — resursietilpīgās pārbaudes vienkārši tiek izpildītas katrai grupai/zara galam,
+nevis katram PR, un tieši tas novērš O(N) atkārtotos ciklus.
+
+## Svaigas repozitorija kopijas priekšnosacījumi skriptam `merge-train.sh`
+
+Skripts saknes repozitorija kopijā izpilda tūlītēji pārtraucošu **pirmsstarta pārbaudi** (pirms jebkādām darbībām
+darba kokā), lai bojāta instalācija nekad nevarētu izskatīties pēc neveiksmīga vilciena:
+
+1. `npm ci`, pēc tam izpildiet `bun` pēcinatalēšanas darbību, ko npm bloķē:
+   `(cd node_modules/bun && node install.js)` — pretējā gadījumā `check:provider-consistency`
+   un `check:known-symbols` (abi `bun scripts/…`) neizdodas gan vilcienam, GAN bāzei,
+   neuzrādot nevienu pārkāpuma rindu.
+2. Nedrīkst būt lieka `node_modules/node_modules` direktorija (dublēts atkarību koks; React tiek ielādēts divreiz,
+   un UI vitest komplekti uzreiz neizdodas).
+3. Failam `node_modules/.bin/tsc` jābūt pieejamam un izpildāmam (daļējā instalācijā tā nav).
+
+Vilciens izpilda bloķējošo `npm run check:cycles:ratchet`; vienkāršais `npm run check:cycles`
+ir informatīvs (tas uzskaita SCC un beidz darbu ar kodu, kas nav nulle, pat veselai bāzei).

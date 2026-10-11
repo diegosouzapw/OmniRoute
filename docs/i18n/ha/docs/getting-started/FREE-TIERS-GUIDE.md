@@ -4,129 +4,128 @@
 
 ---
 
-> **A taƙaice**: OmniRoute yana rajistar ID na masu samarwa guda 357, tare da **shigarwar kundin masu samarwa guda 152 da aka yi wa alamar `hasFree`**. Kundin samfuran kyauta da aka tantance da tsauraran ƙa’idoji ya ƙunshi **maɓallan rukunin da ake maimaitawa guda 35 / shigarwa guda 482** (475 masu aiki + 7 da aka daina). Haɗa masu samarwa da dama da suka dace domin samun ƙarin damar amfani da madadin; duk ƙayyadaddun amfani, ƙa’idojin amincewa, manufofin sirri, da sharuɗɗan cajin amfani fiye da ƙayyadadden adadin suna nan daram.
+> **A taƙaice**: Yi amfani da asusun masu samar da sabis da suka cancanta da kake da su. OmniRoute yana haɗa hanyoyin sadarwar da ka saita; ba shi ne ke bayar da jimillar adadin token da aka tallata ba. Samun damar kyauta na iya buƙatar yin rajista, maɓallin API, amincewa, ko hanyar biyan kuɗi. Har yanzu iyakokin masu samar da sabis, manufofin keɓantawa, da sharuɗɗa suna aiki.
 
 ---
 
-## Mene Ne Matakan Kyauta?
+## Menene Matakan Kyauta?
 
-Masu samar da AI da yawa suna bayar da wani nau’i na **samun dama kyauta**. Ya danganta da mai samarwa, wannan na iya
-nufin endpoint da ba ya buƙatar tantancewa, ƙayyadadden amfani mai sabuntawa, damar da ba ta da iyakar amfani amma aka takaita saurin buƙatu, kyautar rajista,
-amincewar hannu, ko tayin wucin gadi. Wasu zaɓuɓɓuka suna buƙatar asusu, API key,
-katin kuɗi, KYC, ko amincewa da sharuɗɗan da suka keɓanta ga mai samarwa.
+Yawancin masu samar da AI suna bayar da wani nau'in **samun dama kyauta**. Dangane da mai samarwar, hakan na iya
+nufin endpoint da ba ya buƙatar tantancewa, ƙason amfani mai sabuntawa, damar amfani marar iyaka amma mai ƙuntata yawan buƙatu, kyautar rajista,
+amincewar hannu, ko wani tayin wucin gadi. Wasu zaɓuɓɓuka suna buƙatar asusu, API key,
+katin kuɗi, KYC, ko amincewa da sharuɗɗan da suka keɓanta ga mai samarwar.
 
-OmniRoute yana **haɗa** waɗannan matakan kyauta a cikin endpoint guda ɗaya. Maimakon yin rajista da hidimomi daban-daban guda 10, za ka haɗa su duka da OmniRoute sannan ka yi amfani da `model: "auto"` domin zaɓar mafi kyawun zaɓin kyauta kai tsaye ga kowace buƙata.
-
----
-
-## Misalan Masu Samar da Damar Kyauta
-
-### Dama Mai Sabuntawa, Marar Maɓalli, ko Marar Iyaka
-
-Waɗannan masu samarwa suna da hanyar samun dama kyauta mai sabuntawa, marar maɓalli, ko marar iyaka a cikin kundin da aka tantance. “Marar iyaka” yana nufin babu iyakar token da aka bayyana; ƙayyadaddun sauri, yawan ayyukan lokaci guda, asusu, yanki, da manufofi har yanzu na iya aiki:
-
-| Mai Samarwa       | Samfura                                                                                            | Ƙayyadadden Amfani                                                                                                                     | Yadda Ake Haɗawa                                                                              |
-| ----------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, da sauransu                                           | Kundin da aka tantance ya kiyasta tarin token 25K na wata-wata da ake amfani da shi tare                                               | Tsarin OAuth/asusu; an yi wa ToS alamar `avoid` a cikin kundin                                |
-| **OpenCode Free** | Saitin samfuran `*-free` na yanzu a cikin rajistar mai samarwa                                     | Marar maɓalli; babu iyakar token da aka bayyana                                                                                        | Ba a buƙatar bayanan shaidar mai samarwa; an yi wa ToS alamar `avoid`                         |
-| **Pollinations**  | Saitin samfura marasa maɓalli na yanzu; an daina wasu tsoffin samfura ko kuma suna buƙatar maɓalli | Marar maɓalli; babu iyakar token da aka bayyana                                                                                        | Ba a buƙatar bayanan shaidar mai samarwa ga samfuran marasa maɓalli                           |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, da ƙari                               | API key kyauta (babu iyakar sauri, babu kati); **ana yin rikodin kowace buƙata** don bincike (a fice daga wannan a logfare.ai/consent) | Sami maɓalli nan take a logfare.ai/register; ToS/sirri a logfare.ai/tos da logfare.ai/privacy |
-| **Cloudflare AI** | Kundin Workers AI                                                                                  | Tarin da aka tantance ya kiyasta ~30M tokens/wata daga ma’aunin amfani da aka bayyana                                                  | Asusun Cloudflare da bayanan shaidar API                                                      |
-| **Gemini**        | Iyalan Gemini Flash                                                                                | Tarin da aka tantance ya kiyasta ~60M tokens/wata                                                                                      | API key na Google AI Studio; iyakokin saurin buƙatu suna aiki                                 |
-| **Groq**          | Samfuran Llama, GPT-OSS, da Qwen                                                                   | Tarin da aka tantance ya kiyasta ~15M tokens/wata                                                                                      | API key na Groq; iyakokin saurin buƙatu suna aiki                                             |
-| **Cerebras**      | GLM 4.7 da GPT-OSS 120B                                                                            | Tarin da aka tantance ya kiyasta ~30M tokens/wata                                                                                      | API key na Cerebras; iyakokin saurin buƙatu suna aiki                                         |
-
-### Kyaututtukan Rajista da Kuɗaɗen Amfani na Musamman ga Mai Samarwa
-
-Waɗannan masu samarwa suna ba ka **kuɗaɗen amfani kyauta** idan ka yi rajista:
-
-| Mai Samarwa   | Kuɗaɗen Amfani Kyauta                                                                       | Samfura                         | Yadda Ake Samu                                                     |
-| ------------- | ------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------ |
-| **DeepSeek**  | Tokens kyauta 5M                                                                            | DeepSeek V4                     | Yi rajista a platform.deepseek.com                                 |
-| **LongCat**   | Kyautar tokens 10M ta lokaci ɗaya                                                           | LongCat 2.0                     | API key + KYC; biya gwargwadon amfani bayan kyautar                |
-| **Vertex AI** | Kuɗin rajista na $300 wanda aka wakilta a matsayin ~300M tokens a cikin tsarin kasafin kuɗi | Gemini da samfuran abokan hulɗa | Asusun Google Cloud; ƙa’idojin lissafin kuɗi da cancanta suna aiki |
-
-### Sauran Iyakantattun Dama
-
-Waɗannan masu samarwa suna da **matakan kyauta** tare da takamaiman iyakoki:
-
-| Mai bayarwa                | Iyakar Kyauta                                                                                       | Samfura                                | Mafi Dacewa Da |
-| -------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------- |
-| **GitHub Models**          | Ƙiyasin tafkin haɗin gwiwa da aka tantance ya kai ~token miliyan 18/wata                            | Tantance samfura iri-iri               |
-| **Hugging Face**           | Ƙaramin tafki mai sabuntawa kowane wata                                                             | Gwaje-gwaje da nau’ikan samfura        |
-| **OpenRouter free models** | Tafkin haɗin gwiwa mai iyakar buƙatu; ƙarin kuɗi na zaɓi sau ɗaya yana ƙara adadin da ake sabuntawa | Faɗaɗɗen kundin madadin                |
-| **AI Horde**               | Ƙarfin al’umma ba tare da maɓalli ba; samuwa tana bambanta                                          | Ƙididdigar rarrabawa idan dama ta samu |
+OmniRoute yana **tattara** haɗin da aka saita zuwa endpoint guda ɗaya. Har yanzu dole ne ka yi rajista daban ga kowane mai samarwa da ke buƙatar asusu. Haɗa waɗannan asusun sannan ka yi amfani da `model: "auto"` don karkatar da buƙatu tsakanin wuraren da suka cancanta. Sabon girkawa na iya rasa wurin da ya cancanta wanda baya buƙatar maɓalli; girka OmniRoute kaɗai ba ya tabbatar da samun nasarar amsar taɗi.
 
 ---
 
-## Yadda Ake Haɗa Matakan Amfani Kyauta
+## Masu Bayar da Sabis na Samun Dama Kyauta da Aka Zaɓa
 
-Sirrin OmniRoute shi ne **haɗa matakan amfani kyauta**. Maimakon dogaro da mai bayarwa guda ɗaya, kana haɗa masu bayarwa kyauta da yawa sannan ka bar OmniRoute ya zaɓi mafi dacewa ta atomatik ga kowace buƙata.
+### Samun Dama Mai Maimaituwa, Mara Maɓalli, ko Mara Iyakar Amfani
 
-### Misali: Faɗaɗɗen Ɗaukar Nauyin Matakin Kyauta
+Waɗannan masu bayar da sabis suna da hanyar samun dama kyauta mai maimaituwa, mara maɓalli, ko mara iyakar amfani a cikin kundin da aka tantance. “Mara iyakar amfani” na nufin babu iyakar token da aka wallafa; har yanzu ana iya amfani da iyakokin saurin buƙata, yawan ayyukan lokaci guda, asusu, yanki, da manufofi:
 
-Haɗa masu bayarwa da yawa don rage dogaro da ƙayyadadden kaso guda ɗaya:
+| Mai Bayar da Sabis | Samfura                                                                                                  | Ƙayyadadden Amfani                                                                                                                                       | Yadda Ake Haɗawa                                                                             |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Kiro AI**        | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, da sauransu                                                 | Kundin da aka tantance ya kiyasta tarin token 25K na bai ɗaya kowane wata                                                                                | Tsarin OAuth/asusu; an yi wa ToS alamar `avoid` a cikin kundin                               |
+| **OpenCode Free**  | Jerin samfuran `*-free` na yanzu a cikin rajistar mai bayar da sabis                                     | Mara maɓalli; babu iyakar token da aka wallafa                                                                                                           | Ba a buƙatar bayanan shaidar mai bayar da sabis; an yi wa ToS alamar `avoid`                 |
+| **Pollinations**   | Jerin samfura marasa maɓalli na yanzu; an dakatar da wasu tsofaffin samfura ko kuma suna buƙatar maɓalli | Mara maɓalli; babu iyakar token da aka wallafa                                                                                                           | Ba a buƙatar bayanan shaidar mai bayar da sabis don samfuran marasa maɓalli                  |
+| **Logfare**        | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, da ƙari                                     | Maɓallin API kyauta (babu iyakar saurin buƙata, babu buƙatar kati); **ana adana bayanan kowace buƙata** don bincike (a daina shiga a logfare.ai/consent) | Maɓalli nan take a logfare.ai/register; ToS/keɓantawa a logfare.ai/tos da logfare.ai/privacy |
+| **Cloudflare AI**  | Kundin Workers AI                                                                                        | Tarin da aka tantance ya kiyasta token kusan 30M/wata daga raka’o’in amfani da aka wallafa                                                               | Asusun Cloudflare da bayanan shaidar API                                                     |
+| **Gemini**         | Iyalan Gemini Flash                                                                                      | Iyakokin saurin buƙata suna bambanta bisa aiki/samfuri; ba a haɗa wani tabbataccen adadin token na wata-wata a cikin babban bayani ba                    | Maɓallin API na Google AI Studio; duba iyakokin da ke aiki na aikin                          |
+| **Groq**           | Samfuran Llama, GPT-OSS, da Qwen                                                                         | Tarin da aka tantance ya kiyasta token kusan 15M/wata                                                                                                    | Maɓallin API na Groq; iyakokin saurin buƙata suna aiki                                       |
 
-1. **Gemini** — ƙayyadadden kaso mai sabuntawa na API-key
-2. **Groq** — ƙayyadadden kaso mai sabuntawa na API-key
-3. **Pollinations** — damar shiga marar maɓalli, mai iyakance yawan buƙatu
-4. **LongCat** — tallafin rajista na sau ɗaya (yana buƙatar KYC)
+### Tallafin Rijista da Kuɗaɗen Amfani na Musamman ga Mai Bayar da Sabis
+
+Waɗannan masu bayar da sabis suna bayar da tallafin rijista ko kuɗaɗen amfani na talla, bisa ƙa’idojin cancantarsu. Kamar yadda aka tabbatar a 2026-10-08, [farashin Cerebras](https://www.cerebras.ai/pricing) yana buƙatar hanyar biyan kuɗi domin samun kuɗin amfani na $5 sau ɗaya wanda zai ƙare bayan kwanaki 30; ba ƙayyadadden adadin token mai maimaituwa ba ne. [Iyakokin saurin buƙata na Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) suna bambanta bisa aiki, samfur, da mataki, don haka ba a mayar da su zuwa tabbataccen tallafin token na wata-wata ba.
+
+| Mai Bayar da Sabis | Kuɗaɗen Amfani Kyauta                                                                            | Samfura                         | Yadda Ake Samu                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------- | ---------------------------------------------------------- |
+| **Cerebras**       | Kuɗin amfani na talla na $5 sau ɗaya; zai ƙare bayan kwanaki 30                                  | Kundin inferens na yanzu        | Asusu da ingantacciyar hanyar biyan kuɗi                   |
+| **DeepSeek**       | Token 5M kyauta                                                                                  | DeepSeek V4                     | Yi rijista a platform.deepseek.com                         |
+| **LongCat**        | Tallafin token 10M na sau ɗaya                                                                   | LongCat 2.0                     | Maɓallin API + KYC; biyan gwargwadon amfani bayan tallafin |
+| **Vertex AI**      | Kuɗin amfani na rijista na $300 da aka wakilta a matsayin token kusan 300M a tsarin kasafin kuɗi | Gemini da samfuran abokan hulɗa | Asusun Google Cloud; ƙa’idojin caji da cancanta suna aiki  |
+
+### Sauran Iyakantattun Hanyoyin Samun Dama
+
+Waɗannan masu bayar da sabis suna da **matakan kyauta** masu takamaiman iyakoki:
+
+| Mai Bayar da Sabis         | Iyakar Kyauta                                                                                               | Samfura                                 | Ya Fi Dacewa Don |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---------------- |
+| **GitHub Models**          | An kiyasta tarin bai ɗaya da aka tantance a token kusan 18M/wata                                            | Tantance samfura iri-iri                |
+| **Hugging Face**           | Ƙaramin tarin wata-wata mai maimaituwa                                                                      | Gwaje-gwaje da nau’o’in samfura         |
+| **OpenRouter free models** | Tarin bai ɗaya mai iyakar buƙatu; ƙarin kuɗi na zaɓi sau ɗaya yana ƙara adadin izinin amfani mai maimaituwa | Faɗaɗɗen kundin madadin                 |
+| **AI Horde**               | Ƙarfin al’umma mara maɓalli; samuwarsa tana bambanta                                                        | Inferens mai amfani da damar da ta samu |
+
+---
+
+## Yadda Ake Haɗa Matakan Kyauta
+
+Sirrin OmniRoute shi ne **haɗa matakan kyauta**. Maimakon dogaro da mai samarwa guda ɗaya, kana haɗa masu samar da sabis na kyauta da yawa sannan ka bar OmniRoute ya zaɓi mafi dacewa ta atomatik ga kowace buƙata.
+
+### Misali: Faɗaɗɗen Rufin Matakin Kyauta
+
+Haɗa masu samar da sabis da yawa don rage dogaro da ƙayyadadden kaso na guda ɗaya:
+
+1. **Gemini** — ƙayyadadden kaso na API-key mai sabuntawa
+2. **Groq** — ƙayyadadden kaso na API-key mai sabuntawa
+3. **Pollinations** — damar shiga marar maɓalli, mai iyakacin adadin amfani
+4. **LongCat** — tallafin rajista na lokaci guda (yana buƙatar KYC)
 
 Sannan yi amfani da `model: "auto"` kuma OmniRoute zai:
 
 - Fara gwada haɗin da ya cancanta kuma yake da matsayi mafi girma
-- Idan ƙayyadadden kasonsa ya ƙare ko gwajin lafiyarsa ya gaza → gwada mai bayarwa na gaba da aka saita
-- Idan mai bayarwa marar maɓalli ba ya samuwa → ci gaba da gwada sauran wuraren da aka nufa
-- Idan duk sun gaza → yi amfani da LongCat a matsayin madadin
+- Idan ƙayyadadden kasonsa ya ƙare ko binciken lafiyarsa ya gaza → gwada mai samar da sabis na gaba da aka saita
+- Idan mai samar da sabis marar maɓalli ba ya samuwa → ci gaba da gwada sauran wuraren da aka nufa
+- Idan babu haɗin da ya cancanta da ya yi nasara → dawo da kuskure; ana iya amfani da kuɗaɗen rajista ne kawai muddin suna aiki kuma suna nan
 
-**Sakamako**: faɗaɗɗen ɗaukar nauyin matakin kyauta tare da sauyawa zuwa madadin ta atomatik — ba tabbacin ƙarfin aiki marar iyaka ba ne.
+**Sakamako**: faɗaɗɗen rufin matakin kyauta tare da komawa zuwa wani zaɓi ta atomatik — ba garantin ƙarfin amfani marar iyaka ba.
 
 ---
 
-## Yadda Ake Haɗa Masu Bayarwa Kyauta
+## Yadda Ake Haɗa Masu Bayar da Sabis na Kyauta
 
 ### Mataki na 1: Buɗe Dashboard
 
-Je zuwa `http://localhost:20128` a burauzarka.
+Je zuwa `http://localhost:20128` a cikin burauzarka.
 
-### Mataki na 2: Je zuwa Masu Bayarwa
+### Mataki na 2: Je zuwa Masu Bayar da Sabis
 
-Danna **Masu Bayarwa** a sandar gefe.
+Danna **Providers** a cikin maɓallin gefe.
 
-### Mataki na 3: Danna Ƙara Mai Bayarwa
+### Mataki na 3: Danna Ƙara Mai Bayar da Sabis
 
-Danna maɓallin **+ Ƙara Mai Bayarwa**.
+Danna maɓallin **+ Add Provider**.
 
-### Mataki na 4: Zaɓi Mai Bayarwa Kyauta
+### Mataki na 4: Zaɓi Mai Bayar da Sabis na Kyauta
 
-Bincika kundin sannan ka duba `hasFree`, auth, quota, privacy,
-da bayanan ToS na yanzu na kowane mai bayarwa. Katin mai bayarwa da
-[Madogarar Matakan Kyauta](../reference/FREE_TIERS.md) suna bambance ma'ajiyoyin da ke sabuntawa,
-damar shiga marar iyaka da aka bayyana/marar maɓalli, kuɗin rajista, shigarwar da aka daina, da tushe masu haɗari sosai.
+Bincika kundin kuma duba `hasFree`, hanyar tantancewa, ƙayyadadden amfani, sirri,
+da metadata na ToS na yanzu na kowane mai bayar da sabis. Katin mai bayar da sabis da
+[Madogarar Matakan Kyauta](../reference/FREE_TIERS.md) suna bambance albarkatun da ake sabuntawa,
+damar amfani marar iyaka/marar maɓalli, kuɗaɗen rajista, bayanan da aka daina amfani da su, da hanyoyin da ke da haɗari mafi girma.
 
 ### Mataki na 5: Danna Haɗa
 
-Ga mai bayarwa na `NOAUTH`, ba a buƙatar wata shaidar shiga. Dole ne a haɗa masu bayarwa na OAuth da API-key
-ta hanyar tsarin asusunsu da aka rubuta a takardu.
+Ga mai bayar da sabis na `NOAUTH`, OmniRoute ba ya neman bayanan shaidar shiga na sabis na sama. Wannan ba ya tabbatar da cewa sabis na saman zai karɓi manhajojin wasu ɓangarori ko kuma yana da wadataccen ƙarfin aiki. Dole ne a haɗa masu bayar da sabis na OAuth da API-key ta hanyar tsarin asusun da aka bayyana a takardunsu. Har yanzu manhajarka za ta yi amfani da maɓallin API na OmniRoute da aka nuna a **Dashboard → Endpoints** idan an kunna tantancewar na'ura mai ba da hanya.
 
 ### Mataki na 6: Maimaita
 
-Haɗa masu bayarwa da yawa waɗanda sharuɗɗansu da tsarin sirrinsu suka dace da yanayin amfaninka.
+Haɗa masu bayar da sabis da dama waɗanda sharuɗɗansu da tsarin sirrinsu suka dace da yanayin amfaninka.
 
 ---
 
-## Yadda Ake Fahimtar Kundin Daidai
+## Karanta Katalojin Daidai
 
-- `NOAUTH` yana nufin OmniRoute ba ya tambayarka shaidar shiga ta mai bayarwa; ba ya
-  tabbatar da ci gaba da aiki, sirri, ko ƙarfin aiki marar iyaka.
-- `hasFree` bayanan gano sabis ne. Zai iya wakiltar ƙayyadadden kaso mai sabuntawa, damar shiga marar maɓalli,
+- `NOAUTH` yana nufin OmniRoute ba ya neman shaidar mai samarwa daga gare ku; wannan ba ya
+  tabbatar da ci gaba da aiki, sirri, ko ƙarfin amfani marar iyaka.
+- `hasFree` metadata ne na ganowa. Zai iya wakiltar ƙason amfani mai maimaituwa, samun dama ba tare da maɓalli ba,
   kuɗin rajista, shirin amincewa, ko talla.
-- `recurring-uncapped` yana nufin babu iyakar token da aka wallafa da aka samu; iyakokin yawan buƙatu da
-  ayyukan lokaci guda har yanzu suna aiki.
-- `one-time-initial` ba ya sake samuwa bayan an cinye tallafin rajista.
-- `tos: avoid` gargaɗi ne na duba sharuɗɗan mai bayarwa da haɗarin asusu kafin amfani.
-- Shigarwar da aka yi wa alamar `discontinued` suna nan a matsayin shaidar tarihi kuma kada a gabatar da su a matsayin
-  waɗanda suke kyauta a halin yanzu.
+- `recurring-uncapped` yana nufin babu iyakar token da aka wallafa; amma iyakokin adadin buƙatu da
+  buƙatun da za a iya gudanarwa lokaci guda har yanzu suna aiki.
+- `one-time-initial` ba ya maimaituwa bayan an cinye kyautar rajista.
+- Ana cire masu samarwa masu `tos: avoid` daga sarrafa zirga-zirga ta atomatik bisa tsoho (`excludeTosAvoid`). Haɗa asusu ba ya ƙetare wannan tacewar. Duk wani sauyi da mai gudanarwa ya yi ya kamata ya biyo bayan nazarin sharuɗɗan mai samarwa da haɗarin asusun.
+- Abubuwan da aka yi wa alamar `discontinued` suna nan a matsayin shaidar tarihi kuma ba dole ba ne a gabatar da su a matsayin
+  masu kyauta a halin yanzu.
 
 ---
 
@@ -160,19 +159,16 @@ haɗi a matsayin ɗan takarar zaɓen hanya na daban. Kada ka ƙirƙiri ƙarin as
 
 ## Lissafin Matakin Kyauta
 
-Kundin samfura mai aiki, wanda aka cire maimaituwar wuraren ajiya, a halin yanzu yana bayar da rahoton:
+Kundin bayanan kai-tsaye da aka cire maimaituwar rukuni a cikinsa a halin yanzu yana bayar da rahoton:
 
-| Ma'auni                                                     |              Ƙimar da aka tantance a halin yanzu | Bayani                                                                                                                                                                           |
-| ----------------------------------------------------------- | -----------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tallafin maimaitacce da aka ƙididdige                       |                          **~1.62B tokens/month** | An ƙirga wuraren ajiya na haɗin gwiwa sau ɗaya; ba a haɗa masu samarwa marasa iyaka cikin jimillar ba                                                                            |
-| Watan farko tare da tallafin rajista                        |                                **~2.22B tokens** | Jimillar maimaitacciya tare da kiredit na sau ɗaya da na maimaitawa                                                                                                              |
-| Ƙididdigar samfuran kyauta da aka tantance                  | **35 recurring pool keys / 482 catalog entries** | 475 masu aiki + 7 da aka daina; sun bambanta da kundin masu samarwa 357                                                                                                          |
-| Masu samar da kyauta na dindindin da aka wakilta            |                                           **53** | Masu samarwa na musamman a nau'ikan kundin maimaitawa na yau da kullum/wata-wata/kiredit/marasa iyaka da marasa buƙatar maɓalli; ba a haɗa layukan da suka dogara da cancanta ba |
-| Shigarwar kundin masu samarwa da aka yi wa alamar `hasFree` |                                    **152 / 357** | Faɗaɗɗun metadata na masu samarwa; ba dukkansu ke da adadin maimaitaccen kaso da za a iya ƙididdigewa ba                                                                         |
+| Ma'auni                              | Ƙimar da aka tantance a yanzu | Bayani                                                                                   |
+| ------------------------------------ | ----------------------------: | ---------------------------------------------------------------------------------------- |
+| Tallafin adadi mai maimaituwa        |        **~1.62B tokens/wata** | An ƙirga rukunin da aka raba sau ɗaya; ba a haɗa masu bayarwa marasa iyaka a jimillar ba |
+| Watan farko tare da tallafin rajista |             **~2.22B tokens** | Jimillar da ke maimaituwa tare da kiredit na lokaci ɗaya da masu maimaituwa              |
 
-Ana ƙididdige waɗannan ƙimomin daga `open-sse/config/freeModelCatalog.ts`; duba
-[Manazartar Matakan Kyauta](../reference/FREE_TIERS.md) don cire maimaituwar wuraren ajiya, alamomin ToS,
-shigarwar da aka daina, da tsarin ƙididdigar kiredit na rajista.
+Waɗannan ƙiyasin kundin bayanai ne gaba ɗaya daga asusu daban-daban da suka cancanta, ba wani kaso da OmniRoute ke bayarwa ba ko hasashe ga sabon girkawa. Ƙarfin da za ka iya amfani da shi ya dogara da masu bayarwar da ka haɗa da kuma sharuɗɗansu na yanzu. Ana lissafa ƙimomin daga `open-sse/config/freeModelCatalog.ts`; duba
+[Manazartar Matakan Kyauta](../reference/FREE_TIERS.md) don cire maimaituwar rukuni, alamomin ToS,
+shigarwar da aka dakatar, da tsarin ƙididdigar kiredit ɗin rajista.
 
 ---
 

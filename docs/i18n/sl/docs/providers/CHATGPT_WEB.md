@@ -39,23 +39,13 @@ povezovalnik konfigurirana.
 ## Nastavitev nadzorne plošče
 
 1. Odprite ponudnika **ChatGPT Web (Codex)** in dodajte povezavo.
-2. Prilepite celotno glavo Cookie za ChatGPT, ID tunela, izvajalni ključ in ime
-   povezovalnika po meri. Nove nastavitve z možnostjo uporabe orodij morajo uporabljati
-   novo ustvarjen povezovalnik z natančnim imenom `OmniRoute Codex v2`, pri katerem je
-   Authentication nastavljen na None, Permissions pa na Allow all actions.
-3. Zaženite preverjanje povezave. OmniRoute odpre brskalniško podprt Temporary Chat in
-   preveri, ali sta za račun na voljo Sol in Pro.
-4. Shranite povezavo. OmniRoute zamenja prilepljeni piškotek s preverjenim stanjem
-   shrambe Playwright in ga skupaj z izvajalnim ključem shrani prek šifrirane abstrakcije
-   poverilnic.
+2. Prilepite celotno glavo Cookie za ChatGPT, ID tunela, izvajalni ključ in ime priključka po meri. Nove nastavitve z možnostjo uporabe orodij morajo uporabljati na novo ustvarjen priključek z natančnim imenom `OmniRoute Codex v2`, pri čemer mora biti Authentication nastavljeno na None, Permissions pa na Allow all actions.
+3. Zaženite preverjanje povezave. OmniRoute odpre začasni klepet Temporary Chat v brskalniku in preveri, ali sta Sol in Pro na voljo za račun.
+4. Shranite povezavo. OmniRoute zamenja prilepljeni piškotek s preverjenim stanjem shrambe Playwright in ga skupaj z izvajalnim ključem shrani prek šifrirane abstrakcije poverilnic.
 
-Neobdelani piškotek se po uspešnem shranjevanju ne hrani. Ko seja poteče, odprite
-povezavo, prilepite novo celotno glavo Cookie in znova zaženite preverjanje. Stanje
-diagnostike v pogovornem oknu za urejanje ločeno poroča o brskalniku, stanju shrambe,
-prijavi, Temporary Chat, tunelu, povezovalniku in povratnem preizkusu orodja.
+Neobdelani piškotek se po uspešnem shranjevanju ne ohrani. Ko seja poteče, odprite povezavo, prilepite novo celotno glavo Cookie in znova zaženite preverjanje. Stanje diagnostike v pogovornem oknu za urejanje ločeno poroča o brskalniku, stanju shrambe, prijavi, začasnem klepetu Temporary Chat, tunelu, priključku in celotnem preizkusu orodja. Za avtomatizacijo posodobitev piškotkov ob menjavi sej glejte spremljevalno orodje v [Razširitev za sinhronizacijo seje brskalnika](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nikoli ne objavite pravega piškotka, izvajalnega ključa, stanja shrambe ali žetona
-> zmogljivosti. Vrednosti v testih in dokumentaciji morajo biti vedno nadomestne oznake.
+> Resničnega piškotka, izvajalnega ključa, stanja shrambe ali žetona zmogljivosti nikoli ne vključite v repozitorij. Vrednosti za preizkušanje in dokumentacijo morajo biti vedno nadomestne vrednosti.
 
 ## Modeli in kombinacije
 
@@ -134,7 +124,7 @@ povezave z nadrejenim strežnikom zahteva rezervno možnost HTTP/SSE. Prenos nat
 
 ## Preverjanje
 
-Zaženite preverjanja ponudnika brez klica opuščenega ponudnika:
+Zaženite preverjanja ponudnika, ne da bi priklicali opuščenega ponudnika:
 
 ```bash
 node --import tsx/esm --test \\
@@ -143,7 +133,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Zaščite pred regresijami zaradi opustitve so v:
+Varovala pred regresijami zaradi opustitve so v:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

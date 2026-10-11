@@ -4,81 +4,81 @@
 
 ---
 
-Penyedia Kuki Web membolehkan OmniRoute menggunakan perkhidmatan AI melalui sesi pelayar sedia ada anda dan bukannya kunci API. Penyedia ini berguna apabila anda sudah mempunyai akses kepada sesuatu perkhidmatan melalui laman webnya dan mahu OmniRoute menggunakan sesi disahkan yang sama.
+Penyedia Web Cookie membolehkan OmniRoute menggunakan perkhidmatan AI melalui sesi pelayar sedia ada anda dan bukannya kunci API. Penyedia ini berguna apabila anda sudah mempunyai akses kepada sesuatu perkhidmatan melalui laman webnya dan mahu OmniRoute menggunakan sesi disahkan yang sama.
 
-Tidak seperti penyedia kunci API, penyedia Kuki Web membuat pengesahan menggunakan kelayakan yang dihantar oleh pelayar anda kepada laman web tersebut.
+Tidak seperti penyedia kunci API, penyedia Web Cookie membuat pengesahan menggunakan bukti kelayakan yang dihantar oleh pelayar anda kepada laman web tersebut.
 
 ---
 
 # Sebelum Anda Bermula
 
-> **Penting:** Sentiasa salin kelayakan daripada **permintaan rangkaian langsung**, **bukan** daripada storan kuki pelayar anda.
+> **Penting:** Sentiasa salin bukti kelayakan daripada **permintaan rangkaian langsung**, **bukan** daripada storan kuki pelayar anda.
 
-Banyak isu pengesahan berpunca daripada menyalin kuki dari tempat yang salah.
+Banyak isu pengesahan berpunca daripada penyalinan kuki dari tempat yang salah.
 
 ## JANGAN salin daripada Storan Kuki
 
 Kebanyakan pelayar memaparkan kuki yang disimpan melalui:
 
 ```
-Alat Pembangun
-→ Aplikasi (atau Storan)
-→ Kuki
+DevTools
+→ Application (atau Storage)
+→ Cookies
 ```
 
-Walaupun kuki ini kelihatan betul, kuki tersebut mungkin:
+Walaupun kuki ini kelihatan betul, ia mungkin:
 
 - lapuk
 - tidak lengkap
-- tidak mengandungi kuki yang hanya dihantar dalam permintaan yang disahkan
+- kehilangan kuki yang hanya dihantar semasa permintaan yang disahkan
 
-Menggunakan nilai ini boleh menyebabkan kegagalan pengesahan walaupun nilai tersebut kelihatan sah.
+Penggunaan nilai ini boleh menyebabkan kegagalan pengesahan walaupun nilai tersebut kelihatan sah.
 
 ## Salin daripada Permintaan Langsung
 
 Sebaliknya, gunakan kuki daripada permintaan yang berjaya:
 
 ```
-Alat Pembangun
-→ Rangkaian
+DevTools
+→ Network
 → Muat semula halaman
 → Buka permintaan sembang atau perbualan
-→ Pengepala Permintaan
+→ Request Headers
 → Cookie
 ```
 
 Pengepala permintaan `Cookie` mengandungi maklumat pengesahan tepat yang berjaya digunakan oleh pelayar anda.
 
-Bagi kebanyakan penyedia Kuki Web, inilah nilai yang perlu ditampal ke dalam OmniRoute.
+Bagi kebanyakan penyedia Web Cookie, nilai inilah yang perlu ditampalkan ke dalam OmniRoute.
 
 ---
 
 # Persediaan Umum
 
-Proses persediaan adalah sama bagi kebanyakan penyedia Kuki Web.
+Proses persediaan adalah sama bagi kebanyakan penyedia Web Cookie.
 
 1. Log masuk ke laman web penyedia.
 2. Buka Alat Pembangun pelayar.
-3. Buka tab **Rangkaian**.
+3. Buka tab **Network**.
 4. Muat semula halaman.
 5. Buka permintaan sembang atau perbualan yang disahkan.
-6. Salin kelayakan pengesahan yang diperlukan.
+6. Salin bukti kelayakan pengesahan yang diperlukan.
 7. Buka OmniRoute.
-8. Pergi ke **Penyedia → Tambah Penyedia**.
-9. Pilih penyedia Kuki Web anda.
-10. Tampal kelayakan tersebut.
-11. Klik **Uji Sambungan**.
+8. Pergi ke **Providers → Add Provider**.
+9. Pilih penyedia Web Cookie anda.
+10. Tampalkan bukti kelayakan.
+11. Klik **Test Connection**.
 12. Simpan penyedia.
 
-Kelayakan tepat yang diperlukan bergantung pada penyedia.
+Bukti kelayakan tepat yang diperlukan bergantung pada penyedia.
 
 ---
 
-# Format Kelayakan Penyedia
+# Format Bukti Kelayakan Penyedia
 
 Laman web yang berbeza menyimpan pengesahan dengan cara yang berbeza. Sesetengahnya hanya memerlukan kuki, manakala yang lain mungkin memerlukan pengepala atau token tambahan.
 
-| Penyedia                        | Format Kelayakan                  | Panduan Penyedia                 |
+| Penyedia                        | Format Bukti Kelayakan            | Panduan Penyedia                 |
 | ------------------------------- | --------------------------------- | -------------------------------- |
 | Claude Web                      | Pengepala permintaan Cookie penuh | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Pengepala Cookie penuh            | `docs/providers/CHATGPT_WEB.md`  |
@@ -88,62 +88,112 @@ Laman web yang berbeza menyimpan pengesahan dengan cara yang berbeza. Sesetengah
 | Grok Web                        | _(sahkan)_                        |                                  |
 | ...                             | ...                               | ...                              |
 
-> Kemas kini jadual ini apabila penyedia Kuki Web baharu ditambah atau penyedia sedia ada mengubah keperluan pengesahan mereka.
+> Kemas kini jadual ini apabila penyedia Web Cookie baharu ditambahkan atau penyedia sedia ada mengubah keperluan pengesahan mereka.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) ialah platform sembang pengguna percuma yang tidak memerlukan pendaftaran — sesi dicipta secara tanpa nama pada lawatan pertama dan dikekalkan melalui tiga kuki: `uid`, `si_usr_id`, dan `si_ses_id`. OmniRoute memproksikan titik akhir `/api/dispatch` yang sama melalui satu ID model (`notrack-c`, alias `ntw`).
+
+### Langkah untuk menyambung
+
+1. Buka [notrack.ai](https://notrack.ai) dalam pelayar anda dan biarkan kuki sesi tanpa nama ditetapkan.
+2. Buka **DevTools → Network**, muat semula halaman, dan klik mana-mana permintaan `/api`.
+3. Dalam **Request Headers**, salin nilai penuh pengepala `Cookie`.
+4. Dalam OmniRoute, pergi ke **Providers → Add Provider → NoTrack Web (Free)**.
+5. Tampalkan rentetan kuki ke dalam medan `apiKey` dan klik **Save**.
+
+OmniRoute mengekstrak `uid`, `si_usr_id`, dan `si_ses_id` daripada rentetan yang ditampal lalu membina semula pengepala `Cookie` yang bersih dengan hanya pasangan tersebut — serta `nt_session` (token `ntk_…` yang ditetapkan untuk akaun yang telah log masuk) jika ada. Jika mana-mana satu daripada ketiga-tiganya tiada, rentetan mentah yang ditampal akan dimajukan tanpa perubahan supaya pengendali boleh bereksperimen dengan format alternatif.
+
+### ID model
+
+| ID model    | Nama paparan | Catatan                                                   |
+| ----------- | ------------ | --------------------------------------------------------- |
+| `notrack-c` | NoTrack C    | Lalai — model penghantaran huluan `C`.                    |
+| `C`         | NoTrack C    | Alias untuk `notrack-c` (kod penghantaran huluan mentah). |
+| `notrack`   | NoTrack C    | Alias untuk `notrack-c`.                                  |
+| `ntw`       | NoTrack C    | Alias ringkas untuk `notrack-c`.                          |
+
+Keempat-empat ID model dipetakan kepada model penghantaran huluan yang sama (`C`).
+
+### Pilihan permintaan
+
+Pelaksana menerima medan pilihan berikut dalam badan permintaan:
+
+| Medan badan           | Lalai   | Tujuan                                                                                   |
+| --------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual` | Mod penghantaran (rentetan bentuk bebas; huluan menerima `usual`, …)                     |
+| `notrack_max_turns`   | `6`     | Bilangan giliran dalaman yang boleh diambil oleh huluan sebelum menjawab.                |
+| `notrack_chat_id`     | `null`  | Sambung semula sembang huluan sedia ada (abaikan untuk sembang baharu).                  |
+| `notrack_attachments` | `[]`    | Tatasusunan telus deskriptor lampiran huluan.                                            |
+| `notrack_regenerate`  | `false` | Tetapkan kepada `true` untuk meminta jawapan yang dijana semula bagi giliran sebelumnya. |
+
+### Keupayaan
+
+- Pelengkapan sembang **penstriman dan bukan penstriman**.
+- **Panggilan alat** — tetapkan `tools: [...]` pada permintaan; pelaksana mensirikan kandungannya ke dalam kontrak sampul panggilan alat dan menghuraikan semula respons model kepada `tool_calls` OpenAI.
+- **`response_format`** — `json_object` dan `json_schema` disokong. Pelaksana mengekstrak objek JSON pertama daripada balasan model dan menukarkannya kepada rentetan sebelum dikembalikan.
+- **Petunjuk penaakulan** — pelaksana memancarkan delta `reasoning` apabila huluan menghantar peristiwa `thinking`.
+
+### Batasan
+
+- Huluan menguatkuasakan kuota penggunaan tanpa nama — apabila kuota dicapai, pelaksana memaparkan ralat 429 dengan mesej yang mesra.
+- Semua ID model dipetakan kepada model penghantaran huluan yang sama; tiada pertukaran khusus bagi setiap model.
+- Pelaksana tidak memanggil titik akhir `/api/chats` huluan, jadi sejarah sembang / sesi tidak diurus secara automatik. Gunakan `notrack_chat_id` untuk menyambung semula sembang huluan sedia ada.
 
 ---
 
 # Perkara yang Boleh dan Tidak Boleh Dilakukan oleh Penyedia Kuki Web
 
-Penyedia Kuki Web menggunakan semula antara muka sembang sesebuah laman web. Penyedia ini **tidak** menawarkan keupayaan yang sama seperti API rasmi.
+Penyedia Kuki Web menggunakan semula antara muka sembang sesebuah laman web. Ia **tidak** menyediakan keupayaan yang sama seperti API rasmi.
 
 ## Disokong
 
-- Membuat pengesahan menggunakan sesi pelayar sedia ada anda
-- Mengakses model yang tersedia melalui akaun anda
-- Menstrim respons sembang
+- Sahkan identiti menggunakan sesi pelayar sedia ada anda
+- Akses model yang tersedia melalui akaun anda
+- Strim respons sembang
 - Tiada kunci API diperlukan
 
 ## Tidak Disokong
 
-- Pemanggilan fungsi
-- Pemanggilan alat
+- Panggilan fungsi
+- Panggilan alat
 - Penyuntingan fail automatik
-- Aliran kerja IDE berautonomi
-- Ciri khusus API
+- Aliran kerja IDE berasaskan ejen
+- Ciri yang hanya tersedia melalui API
 
 Ini ialah tingkah laku yang dijangkakan dan **bukan** pepijat.
 
-Jika anda memerlukan pelaksanaan alat, penyuntingan fail automatik atau aliran kerja ejen yang lain, gunakan **penyedia kunci API** dan bukannya penyedia Kuki Web.
+Jika anda memerlukan pelaksanaan alat, penyuntingan fail automatik atau aliran kerja ejen lain, gunakan **penyedia kunci API** dan bukannya penyedia Web Cookie.
 
 ---
 
-# Peringatan Pengesahan
+# Perhatian Tentang Pengesahan
 
-**Uji Sambungan** yang berjaya atau pengesahan kuki hanya mengesahkan bahawa kelayakan yang diberikan kelihatan dalam format yang dijangkakan.
+**Test Connection** yang berjaya atau pengesahan kuki hanya mengesahkan bahawa bukti kelayakan yang diberikan kelihatan dalam format yang dijangkakan.
 
-Sehingga Isu #7857 diselesaikan, pengesahan yang berjaya **tidak menjamin** bahawa penyedia akan berjaya membuat pengesahan.
+Sehingga Isu #7857 diselesaikan, pengesahan yang berjaya **tidak menjamin** bahawa penyedia akan berjaya mengesahkan identiti.
 
-Jika pengesahan masih gagal, pastikan anda menyalin kelayakan daripada permintaan rangkaian langsung dan bukannya storan kuki pelayar.
+Jika pengesahan identiti masih gagal, pastikan anda menyalin bukti kelayakan daripada permintaan rangkaian aktif dan bukannya daripada storan kuki pelayar.
 
 ---
 
 # Penyelesaian Masalah
 
-## Pengesahan Gagal
+## Pengesahan Identiti Gagal
 
-Pastikan kelayakan disalin daripada:
+Pastikan bukti kelayakan disalin daripada:
 
 ```
-Rangkaian
-→ Pengepala Permintaan
+Network
+→ Request Headers
 → Cookie
 ```
 
 dan **bukan** daripada:
 
 ```
-Aplikasi
-→ Kuki
+Application
+→ Cookies
 ```
 
 ---
@@ -152,23 +202,23 @@ Aplikasi
 
 Sesetengah penyedia menyertakan kuki yang hanya dihantar semasa permintaan yang disahkan.
 
-Salin semula kelayakan daripada permintaan rangkaian baharu selepas berjaya membuka perbualan.
+Salin semula bukti kelayakan daripada permintaan rangkaian baharu selepas berjaya membuka perbualan.
 
 ---
 
 ## Sesi Tamat Tempoh
 
-Penyedia Kuki Web menggunakan sesi pelayar sedia ada anda.
+Penyedia Web Cookie menggunakan sesi pelayar sedia ada anda.
 
-Jika sesi pelayar anda tamat tempoh atau anda log keluar, anda mesti menyalin set kelayakan baharu.
+Jika sesi pelayar anda tamat tempoh atau anda mendaftar keluar, anda mesti menyalin set bukti kelayakan yang baharu. Untuk mengautomasikan pembaharuan kuki bagi penyedia web yang disokong, lihat alat pendamping [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-## Uji Sambungan Berjaya tetapi Permintaan Gagal
+## Test Connection Berjaya tetapi Permintaan Gagal
 
-Sehingga Isu #7857 diselesaikan, pengesahan yang lulus tidak menjamin bahawa permintaan pengesahan akan berjaya.
+Sehingga Isu #7857 diselesaikan, kejayaan pengesahan tidak menjamin bahawa permintaan pengesahan identiti akan berjaya.
 
-Salin semula kelayakan anda daripada permintaan disahkan yang baharu sebelum meneruskan penyelesaian masalah.
+Salin semula bukti kelayakan anda daripada permintaan baharu yang telah disahkan sebelum meneruskan penyelesaian masalah.
 
 ---
 
@@ -178,14 +228,14 @@ Untuk panduan lengkap khusus bagi penyedia, lihat:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Panduan Claude Web menunjukkan proses persediaan lengkap untuk penyedia Kuki Web dan berfungsi sebagai pelaksanaan rujukan.
+Panduan Claude Web menunjukkan proses persediaan lengkap untuk penyedia Web Cookie dan berfungsi sebagai pelaksanaan rujukan.
 
 ---
 
 # Amalan Terbaik
 
-- Salin kelayakan daripada permintaan disahkan yang baharu.
+- Salin bukti kelayakan daripada permintaan baharu yang telah disahkan.
 - Elakkan menggunakan semula kuki lama.
-- Pastikan sesi pelayar anda kekal aktif semasa menggunakan penyedia Kuki Web.
-- Anggap kuki yang disalin sebagai kelayakan sensitif.
-- Gunakan penyedia kunci API apabila anda memerlukan pemanggilan fungsi atau aliran kerja ejen.
+- Pastikan sesi pelayar anda kekal aktif semasa menggunakan penyedia Web Cookie.
+- Anggap kuki yang disalin sebagai bukti kelayakan sensitif.
+- Gunakan penyedia kunci API apabila anda memerlukan panggilan fungsi atau aliran kerja ejen.

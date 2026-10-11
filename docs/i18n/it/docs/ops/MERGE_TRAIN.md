@@ -4,68 +4,87 @@
 
 ---
 
-Dalla v3.8.49 (WS3.2/WS3.4 del piano qualità/velocità), il percorso di merge predefinito per le
+A partire dalla v3.8.49 (WS3.2/WS3.4 del piano qualità/velocità), il percorso di merge predefinito per le
 PR revisionate in `release/vX.Y.Z` è la **coda di merge di Mergify** (`.mergify.yml`);
-il **merge train manuale** documentato di seguito è il PERCORSO ALTERNATIVO, usato durante gli incidenti,
-i freeze di release o nel caso in cui il piano Open Source di Mergify dovesse cambiare.
+il **merge train manuale** documentato di seguito è il FALLBACK, usato durante incidenti,
+freeze delle release o nel caso in cui il piano Open Source di Mergify dovesse cambiare.
 
 ## Percorso predefinito: la coda di Mergify
 
-1. La PR viene revisionata e resa verde dalle campagne e approvata dal gate ⭐
-   pre-merge del proprietario (il report + la decisione per ciascun elemento — vedere `/merge-prs`, passaggio 0.75).
-2. Il proprietario (o la sessione che agisce in base alla decisione del proprietario) applica l'etichetta **`queue`**.
-   L'etichetta È l'approvazione al merge; Mergify si limita a eseguirlo.
-3. Mergify raggruppa fino a 10 PR in coda, convalida il batch rispetto ai fast-gate
-   ed esegue il merge (squash). Un batch rosso viene **suddiviso automaticamente tramite bisezione**: la PR
-   responsabile viene isolata in circa log2(N) riconvalide e rimossa dalla coda; le altre procedono.
+1. La PR viene esaminata/convalidata dalle campagne e approvata dal gate ⭐
+   pre-merge del proprietario (il report + la decisione per ogni elemento — vedere il passaggio 0.75 di `/merge-prs`).
+2. Il proprietario (o la sessione che agisce in base alla decisione del proprietario) applica
+   l'etichetta **`queue`**. L'etichetta COSTITUISCE l'approvazione al merge; Mergify si limita a eseguirlo.
+3. Mergify convalida le PR in coda **in modo seriale** (una alla volta) rispetto ai fast gate
+   ed esegue il merge (squash). L'elaborazione in batch + la bisezione automatica richiedono un piano Mergify
+   a pagamento ("Cannot use Merge Queue batch" nel piano gratuito, #7220), quindi `.mergify.yml` non imposta alcun
+   `batch_size`; l'elaborazione in batch rimane compito del merge train manuale descritto di seguito. Una PR i cui
+   controlli sono ancora in sospeso dopo `checks_timeout` (240 min = 2× il p95 misurato di
+   `quality.yml`) viene rimossa dalla coda anziché bloccarla.
 4. Dopo il merge, il workflow continuo release-green convalida il nuovo tip al push
-   e apre una issue di attribuzione se la combinazione ha introdotto una regressione (senza mai eseguire un auto-revert).
+   e apre una issue di attribuzione se la combinazione ha introdotto una regressione (senza mai eseguire un revert automatico).
 
-Misure di sicurezza (rispecchiano le regole vincolanti n. 21/22 di `CLAUDE.md`):
+Misure di sicurezza (rispecchiano le regole inderogabili #21/#22 di `CLAUDE.md`):
 
-- **Freeze di release aperto** → NON etichettare le PR destinate al branch congelato; indirizzarle prima
-  al branch `release/vX+1` attivo.
+- **Release freeze attivo** → NON etichettare le PR destinate al branch bloccato; modificarne prima la destinazione
+  impostandola sul branch `release/vX+1` attivo.
 - **PR in corso di un'altra sessione** → non etichettarla mai; solo la sessione proprietaria mette in coda
   il proprio lavoro.
-- Le diff di soli test e le PR con etichetta `hotfix` eseguono già una CI ridotta (vedere
-  `RELEASE_CHECKLIST.md` → Corsia rapida per hotfix); le condizioni della coda accettano qualsiasi
-  insieme di check sia stato effettivamente eseguito (`#check-failure=0` + `#check-pending=0`).
+- Le diff relative esclusivamente ai test e le PR con etichetta `hotfix` eseguono già una CI ridotta (vedere
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); le condizioni della coda accettano qualsiasi
+  insieme di controlli sia stato effettivamente eseguito (`#check-failure=0` + `#check-pending=0`).
 
-## Percorso alternativo: il merge train manuale
+## Fallback: il merge train manuale
 
-Da usare quando la coda non è disponibile. Formalizza la pratica che ha smaltito 33 PR in
-un solo giorno durante il ciclo v3.8.47:
+Utilizzato quando la coda non è disponibile. Questo formalizza la procedura che ha smaltito 33 PR
+in un giorno durante il ciclo v3.8.47:
 
-1. **Comporre il batch** (~10–30 PR revisionate e approvate). Controllare le collisioni `linked:`
+1. **Comporre il batch** (~10–30 PR revisionate e approvate). Verificare le collisioni `linked:`
    (stessi `tap.testFiles`, stesse sezioni del CHANGELOG) e serializzarle.
-2. **Convalidare UNA SOLA VOLTA**: in un worktree isolato basato sul tip della release, eseguire localmente il merge di tutte le
-   head del batch, quindi eseguire la suite equivalente a quella di release
-   (`npm run check:release-green`, aggiungendo `--with-build` prima di una release).
+2. **Convalidare UNA SOLA VOLTA**: in un worktree isolato basato sul tip della release, eseguire localmente il merge di tutti gli
+   head del batch, quindi avviare la suite equivalente a quella della release
+   (`npm run check:release-green`; aggiungere `--with-build` prima di una release).
    `scripts/release/merge-train.sh <base> <PR#>…` automatizza i passaggi 1–2 (le
-   PR in conflitto vengono espulse e il train prosegue). La modalità completa esegue `npm run test:unit`, ossia il
-   runner ottimizzato per la macchina (`--test-concurrency=20`), **non** i due shard CI sequenziali
-   da 4 core, che facevano girare la fase dominante a circa il 25% di una macchina a 16 core (problema risolto il
-   2026-07-18). `--fast` (per smaltire mega-train nella stessa giornata, con approvazione del proprietario il 2026-07-18)
-   mantiene tutti i gate statici + vitest, ma esegue soltanto i file node:test modificati dalle
-   PR incluse; la suite COMPLETA deve comunque essere eseguita almeno una volta al giorno sul
-   tip accumulato (un train senza `--fast`).
-3. **Verde** → eseguire il merge delle PR in sequenza (ricontrollando `state,headRefOid` prima di ciascuna:
-   una PR la cui head è stata modificata torna in revisione). Dimostrare che la diff netta di ogni merge corrisponda alla
-   modifica propria della PR (nessun revert tramite risoluzione automatica: verificare `git diff --stat` per individuare
+   PR in conflitto vengono espulse, mentre il train prosegue). La modalità completa esegue `npm run test:unit`, ovvero il
+   runner ottimizzato per la macchina (`--test-concurrency=20`), **non** i due shard CI sequenziali da 4 core,
+   che portavano la fase dominante a utilizzare circa il 25% di una macchina a 16 core (corretto il
+   2026-07-18). `--fast` (per lo smaltimento di mega-train nella stessa giornata, approvato dal proprietario il 2026-07-18)
+   mantiene ogni gate statico + vitest, ma esegue solo i file node:test modificati dalle
+   PR incluse nel train; la suite COMPLETA deve comunque essere eseguita almeno una volta al giorno sul
+   tip cumulativo (un train senza `--fast`).
+3. **Green** → eseguire il merge delle PR in sequenza (ricontrollando `state,headRefOid` prima di ciascuna:
+   una PR il cui head è cambiato rientra nel processo di revisione). Dimostrare che la diff netta di ogni merge corrisponde alla
+   modifica propria della PR (nessun revert tramite risoluzione automatica: controllare `git diff --stat` per rilevare
    eliminazioni fuori ambito).
-4. **Rosso** → suddividere il batch a metà tramite bisezione (convalidando ciascuna metà), anziché riconvalidare
-   le PR una per una; reinserire la PR responsabile nella coda di revisione insieme alle evidenze.
-5. **Mai**: eseguire il merge in un branch congelato durante un freeze; usare `git stash` ovunque;
-   rieseguire indiscriminatamente la CI sperando che un rosso scompaia (regola: un rosso è un'informazione).
+4. **Rosso** → suddividere il batch a metà tramite bisezione (convalidando ciascuna metà), anziché eseguire nuovamente la convalida
+   una PR alla volta; riportare la PR responsabile nella coda di revisione insieme alle evidenze.
+5. **Mai**: eseguire il merge nel branch congelato durante un freeze; usare `git stash` ovunque;
+   rieseguire indiscriminatamente la CI sperando che un risultato rosso scompaia (regola: un rosso è un'informazione).
 
-## Livelli (perché la coda è sicura anche solo con i fast-gate)
+## Livelli (perché la coda è sicura anche solo con i fast gate)
 
-- **Per PR** (fast-gate di quality.yml): test interessati dalla TIA + unit test completi su 4 shard +
-  vitest + insieme di controlli lint + typecheck + integrità di documentazione/changelog.
-- **Per batch/tip** (release-green continuo): gate VINCOLANTI `--quick` a ogni push sul
-  branch di release; esecuzioni complete `--with-build --full-ci` 3 volte al giorno.
+- **Per PR** (fast gate di quality.yml): test interessati dalla TIA + test unitari completi su 4 shard +
+  vitest + insieme dei lint + controllo dei tipi + integrità di documentazione/changelog.
+- **Per batch/tip** (release-green continuo): gate RIGIDI `--quick` a ogni push sul
+  branch di release; scansioni complete `--with-build --full-ci` 3 volte al giorno.
 - **Per release** (ci.yml sulla PR di release): la matrice completa, inclusi E2E ×9,
-  artefatto del pacchetto + test rapido di avvio del tarball, coverage/ratchet.
+  artefatto del pacchetto + test rapido di avvio del tarball, copertura/ratchet.
 
 Nulla viene convalidato meno di prima: la parte più pesante viene semplicemente eseguita per batch/tip
 anziché per PR, eliminando così i round trip O(N).
+
+## Prerequisiti di un checkout pulito per `merge-train.sh`
+
+Lo script esegue un **preflight** fail-fast sul checkout root (prima di qualsiasi operazione
+sui worktree), affinché un'installazione non funzionante non possa mai essere scambiata per un train rosso:
+
+1. Eseguire `npm ci`, quindi il postinstall di `bun` bloccato da npm:
+   `(cd node_modules/bun && node install.js)`; in caso contrario, `check:provider-consistency`
+   e `check:known-symbols` (entrambi `bun scripts/…`) falliscono sia sul train SIA sulla base,
+   senza alcuna riga relativa alla violazione.
+2. Nessun `node_modules/node_modules` residuo (un albero delle dipendenze duplicato; React viene caricato due volte
+   e le suite vitest dell'interfaccia utente falliscono immediatamente).
+3. `node_modules/.bin/tsc` deve essere presente ed eseguibile (un'installazione parziale ne è priva).
+
+Il train esegue il controllo bloccante `npm run check:cycles:ratchet`; il semplice `npm run check:cycles`
+è informativo (elenca gli SCC e termina con un codice diverso da zero anche su una base sana).

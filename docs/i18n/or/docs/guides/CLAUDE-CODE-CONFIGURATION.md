@@ -99,9 +99,13 @@ Claude ଟୁଲ୍ କାର୍ଡ (**Dashboard → CLI Code**) ଏହି ଇ�
 
 ## ପ୍ରୋଫାଇଲ୍ଗୁଡ଼ିକ (`CLAUDE_CONFIG_DIR`)
 
-Claude Codeରେ **କୌଣସି ନେଟିଭ୍ ପ୍ରୋଫାଇଲ୍ ଫାଇଲ୍ ନାହିଁ** (Codexର `~/.codex/<name>.config.toml` ପରି ନୁହେଁ)। ପ୍ରଚଳିତ ପ୍ରଣାଳୀ ହେଉଛି `CLAUDE_CONFIG_DIR` — ପ୍ରତ୍ୟେକ ପ୍ରୋଫାଇଲ୍ ପାଇଁ ଏକ ପୃଥକ କନ୍ଫିଗ୍ ଡିରେକ୍ଟୋରୀ, ଯେଉଁଥିରେ ପ୍ରତ୍ୟେକର ନିଜସ୍ୱ `settings.json`, କ୍ରେଡେନ୍ସିଆଲ୍, ଇତିହାସ ଏବଂ କ୍ୟାଶ୍ ରହେ।
+Claude Codeରେ **କୌଣସି ନେଟିଭ୍ ପ୍ରୋଫାଇଲ୍ ଫାଇଲ୍ ନାହିଁ** (Codexର `~/.codex/<name>.config.toml` ପରି ନୁହେଁ)।
+ପ୍ରଚଳିତ ପଦ୍ଧତି ହେଉଛି `CLAUDE_CONFIG_DIR` — ପ୍ରତ୍ୟେକ ପ୍ରୋଫାଇଲ୍ ପାଇଁ ଏକ ପୃଥକ କନଫିଗ୍ ଡିରେକ୍ଟୋରୀ,
+ଯେଉଁଥିରେ ନିଜସ୍ୱ `settings.json`, ପରିଚୟପତ୍ର, ଇତିହାସ ଏବଂ କ୍ୟାଶ୍ ରହିଥାଏ।
 
-`omniroute setup-claude` ଲାଇଭ୍ `/v1/models` କ୍ୟାଟାଲଗ୍କୁ ଆଣିଥାଏ ଏବଂ `~/.claude/profiles/<name>/settings.json`ରେ ପ୍ରତ୍ୟେକ ମଡେଲ୍ ପାଇଁ ଗୋଟିଏ ପ୍ରୋଫାଇଲ୍ ଲେଖେ, **`setup-codex` ସହିତ ସମାନ ନାମଗୁଡ଼ିକୁ** (`glm52`, `kimi-k27`, `deepseek-pro`, …) ପୁନଃବ୍ୟବହାର କରି:
+`omniroute setup-claude` ସକ୍ରିୟ `/v1/models` କ୍ୟାଟାଲଗ୍ ଆଣେ ଏବଂ
+`~/.claude/profiles/<name>/settings.json`ରେ ପ୍ରତ୍ୟେକ ମଡେଲ୍ ପାଇଁ ଗୋଟିଏ ପ୍ରୋଫାଇଲ୍ ଲେଖେ, ଯେଉଁଥିରେ
+**`setup-codex` ସହ ସମାନ ନାମଗୁଡ଼ିକ** (`glm52`, `kimi-k27`, `deepseek-pro`, …) ପୁନଃବ୍ୟବହାର କରାଯାଏ:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -118,26 +122,41 @@ Claude Codeରେ **କୌଣସି ନେଟିଭ୍ ପ୍ରୋଫାଇଲ�
 }
 ```
 
-> **ଅଥ୍ ଟୋକେନ୍ କେବେ ମଧ୍ୟ ପ୍ରୋଫାଇଲ୍ରେ ଲେଖାଯାଏ ନାହିଁ।** `omniroute launch --profile <name>` ସହିତ ଲଞ୍ଚ୍ କରନ୍ତୁ (ଏହା ସକ୍ରିୟ କଣ୍ଟେକ୍ସ୍ଟରୁ `ANTHROPIC_AUTH_TOKEN` ଇଞ୍ଜେକ୍ଟ କରେ), କିମ୍ବା ନିଜେ `ANTHROPIC_AUTH_TOKEN` ଏକ୍ସପୋର୍ଟ୍ କରି `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` ଚଲାନ୍ତୁ।
+> **ପ୍ରମାଣୀକରଣ ଟୋକନ୍ କେବେବି ପ୍ରୋଫାଇଲ୍ରେ ଲେଖାଯାଏ ନାହିଁ।** `omniroute launch --profile <name>` ସହିତ
+> ଆରମ୍ଭ କରନ୍ତୁ (ଏହା ସକ୍ରିୟ କଣ୍ଟେକ୍ସ୍ଟରୁ `ANTHROPIC_AUTH_TOKEN` ଇଞ୍ଜେକ୍ଟ କରେ), କିମ୍ବା ନିଜେ
+> `ANTHROPIC_AUTH_TOKEN` ଏକ୍ସପୋର୍ଟ କରି `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`
+> ଚଲାନ୍ତୁ।
 
-**ମଡେଲ୍ ଡିସ୍କଭରି ପରେ ଅଟୋ-ସିଙ୍କ୍ (ଅପ୍ଟ-ଇନ୍)।** ଯେତେବେଳେ ଏକ ପ୍ରୋଭାଇଡର୍ ମଡେଲ୍ ସିଙ୍କ୍ ଲାଇଭ୍ କ୍ୟାଟାଲଗ୍କୁ ପରିବର୍ତ୍ତନ କରେ, OmniRoute ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଏହି ସମାନ `~/.claude/profiles/<name>/settings.json` ଫାଇଲ୍ଗୁଡ଼ିକୁ ପୁନଃସୃଷ୍ଟି କରିପାରେ — ତେଣୁ କମାଣ୍ଡ୍କୁ ପୁନର୍ବାର ଚଲାଇବା ବିନା ନୂଆ/ପୁନଃନାମିତ ମଡେଲ୍ଗୁଡ଼ିକ ପ୍ରୋଫାଇଲ୍ ପାଆନ୍ତି। ଏହା **ଡିଫଲ୍ଟ ଭାବରେ ବନ୍ଦ** ଥାଏ: **CLI Code dashboard**ରୁ ଏହାକୁ ଟଗଲ୍ କରନ୍ତୁ ("CLI profile auto-sync" → Claude Code), କିମ୍ବା `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` ସେଟ୍ କରନ୍ତୁ (ଏହା `CLI_ALLOW_CONFIG_WRITES`କୁ ମଧ୍ୟ ସମ୍ମାନ କରେ, ଯାହା ଡିଫଲ୍ଟ ଭାବରେ ସକ୍ରିୟ)। ସକ୍ରିୟ ଥିବାବେଳେ ଏହା କେବଳ ପ୍ରୋଫାଇଲ୍ ଫାଇଲ୍ଗୁଡ଼ିକୁ ଲେଖେ; ଏହା କେବେ ମଧ୍ୟ ଆପଣଙ୍କ ସକ୍ରିୟ/ଡିଫଲ୍ଟ Claude କନ୍ଫିଗ୍, ଅଥ୍ କିମ୍ବା `~/.claude/settings.json`କୁ ପରିବର୍ତ୍ତନ କରେ ନାହିଁ।
+**ମଡେଲ୍ ଆବିଷ୍କାର ପରେ ସ୍ୱୟଂଚାଳିତ ସିଙ୍କ୍ (ଇଚ୍ଛାଧୀନ)।** କୌଣସି ପ୍ରଦାତା ମଡେଲ୍
+ସିଙ୍କ୍ ସକ୍ରିୟ କ୍ୟାଟାଲଗ୍କୁ ପରିବର୍ତ୍ତନ କଲେ OmniRoute ସ୍ୱୟଂଚାଳିତ ଭାବେ ଏହି ସମାନ
+`~/.claude/profiles/<name>/settings.json` ଫାଇଲ୍ଗୁଡ଼ିକୁ ପୁନଃସୃଷ୍ଟି କରିପାରେ — ତେଣୁ କମାଣ୍ଡକୁ
+ପୁଣି ଚଲାଇବା ବିନା ନୂଆ/ପୁନଃନାମିତ ମଡେଲ୍ଗୁଡ଼ିକ ପ୍ରୋଫାଇଲ୍ ପାଆନ୍ତି।
+ଏହା **ଡିଫଲ୍ଟ ଭାବେ ବନ୍ଦ** ରହେ: **CLI Code ଡ୍ୟାସ୍ବୋର୍ଡ**ରୁ ଏହାକୁ ଟୋଗଲ୍ କରନ୍ତୁ ("CLI ପ୍ରୋଫାଇଲ୍
+ସ୍ୱୟଂଚାଳିତ ସିଙ୍କ୍" → Claude Code), କିମ୍ବା `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` ସେଟ୍ କରନ୍ତୁ (ଏହା
+ଡିଫଲ୍ଟ ଭାବେ ସକ୍ରିୟ ଥିବା `CLI_ALLOW_CONFIG_WRITES`କୁ ମଧ୍ୟ ସମ୍ମାନ କରେ)। ସକ୍ରିୟ ଥିବାବେଳେ ଏହା କେବଳ
+ପ୍ରୋଫାଇଲ୍ ଫାଇଲ୍ଗୁଡ଼ିକ ଲେଖେ; ଏହା କେବେବି ଆପଣଙ୍କର ସକ୍ରିୟ/ଡିଫଲ୍ଟ Claude କନଫିଗ୍, ପ୍ରମାଣୀକରଣ,
+କିମ୍ବା `~/.claude/settings.json`କୁ ପରିବର୍ତ୍ତନ କରେ ନାହିଁ।
 
 ### ପ୍ରୋଫାଇଲ୍ ସୃଷ୍ଟି + ବ୍ୟବହାର
 
 ```bash
-# ଲୋକାଲ୍ OmniRoute
+# ସ୍ଥାନୀୟ OmniRoute
 omniroute setup-claude
 
-# ରିମୋଟ୍ VPS (ପ୍ରତ୍ୟେକ ପ୍ରୋଫାଇଲ୍ରେ VPS URLକୁ ସଂଯୋଜନ କରେ)
+# ରିମୋଟ୍ VPS (ପ୍ରତ୍ୟେକ ପ୍ରୋଫାଇଲ୍ରେ VPS URL ସମ୍ମିଳିତ କରେ)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# କେବଳ କିଛି ପ୍ରୋଭାଇଡର୍
+# କେବଳ କିଛି ପ୍ରଦାତା
 omniroute setup-claude --only glm,kimi
 
-# ନ ଲେଖି ପ୍ରିଭ୍ୟୁ କରନ୍ତୁ
+# ଏହି ହୋଷ୍ଟରେ ଚିହ୍ନଟ ହୋଇନଥିବା ସ୍ଥାନୀୟ-CLI ପ୍ରଦାତାମାନଙ୍କ (zcode, auggie, devin-cli-agentic,
+# codex-app-server) ପାଇଁ ମଧ୍ୟ ପ୍ରୋଫାଇଲ୍ ଲେଖନ୍ତୁ (ସ୍ଥାନୀୟ ଟାର୍ଗେଟ୍ ପାଇଁ ଡିଫଲ୍ଟ ଭାବେ ଏଡ଼ାଇ ଦିଆଯାଏ)
+omniroute setup-claude --include-local
+
+# ନ ଲେଖି ପୂର୍ବାବଲୋକନ କରନ୍ତୁ
 omniroute setup-claude --dry-run
 
-# ଏକ ପ୍ରୋଫାଇଲ୍ ଲଞ୍ଚ୍ କରନ୍ତୁ
+# ଗୋଟିଏ ପ୍ରୋଫାଇଲ୍ ଆରମ୍ଭ କରନ୍ତୁ
 omniroute launch --profile kimi-k27
 ```
 

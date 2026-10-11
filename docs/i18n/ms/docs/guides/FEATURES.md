@@ -320,10 +320,10 @@ Himpunan konfigurasi dibina oleh `src/lib/sync/bundle.ts`. Pengguna membandingka
 
 Semua panggilan pengesahan penyedia dan penemuan model kini melalui perlindungan keluar dua lapisan:
 
-1. **Perlindungan URL** (`src/shared/network/outboundUrlGuard.ts`) — Menyekat julat IP peribadi/gelung balik/pautan setempat sebelum soket dibuka.
-2. **Pembalut pengambilan selamat** (`src/shared/network/safeOutboundFetch.ts`) — Menggunakan perlindungan URL, menormalkan tamat masa dan mencuba semula ralat sementara dengan undur eksponen.
+1. **Perlindungan URL** (`src/shared/network/outboundUrlGuard.ts`) — Mula-mula menyemak nama hos atau literal IP sasaran seperti yang ditulis; dalam mod awam sahaja, pembalut pengambilan selamat turut menyelesaikan nama tersebut dan menolak jawapan peribadi. Secara lalai, ia menyekat titik akhir metadata awan — keseluruhan 169.254.0.0/16 serta nama hos metadata yang diketahui; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` turut menyekat hos peribadi dan gelung balik; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (atau `OUTBOUND_SSRF_GUARD_ENABLED=false` yang legasi) mematikan semakan tersebut. Nilai yang disimpan melalui togol papan pemuka sesuatu bendera mengatasi pemboleh ubahnya, dan penyedia tempatan terbina dalam melangkau perlindungan semasa pengesahan kunci. Lihat `docs/reference/ENVIRONMENT.md`.
+2. **Pembalut pengambilan selamat** (`src/shared/network/safeOutboundFetch.ts`) — Menggunakan perlindungan URL, menormalkan tamat masa, dan mencuba semula ralat sementara dengan sela masa eksponen.
 
-Pelanggaran perlindungan dipaparkan sebagai HTTP 422 (`URL_GUARD_BLOCKED`) dan ditulis ke dalam log audit pematuhan melalui `providerAudit.ts`.
+Pelanggaran perlindungan dipaparkan sebagai `URL_GUARD_BLOCKED` — HTTP 503 melalui `getSafeOutboundFetchErrorStatus` (400 pada laluan penemuan model) — dan sekatan SSRF sebenar semasa pengesahan ditulis ke dalam log audit sebagai peristiwa `provider.validation.ssrf_blocked`.
 
 ---
 

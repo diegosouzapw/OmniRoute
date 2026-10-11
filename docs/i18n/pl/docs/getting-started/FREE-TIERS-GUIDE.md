@@ -4,82 +4,79 @@
 
 ---
 
-> **TL;DR**: OmniRoute rejestruje 357 identyfikatorów dostawców, w tym **152 wpisy w katalogu dostawców oznaczone jako `hasFree`**. Bardziej rygorystyczny, poddany audytowi katalog bezpłatnych modeli obejmuje **35 kluczy cyklicznych pul / 482 wpisy** (475 aktywnych + 7 wycofanych). Połącz kilku odpowiednich dostawców, aby zwiększyć możliwości przełączania awaryjnego; nadal obowiązują wszystkie limity, zasady zatwierdzania, polityki prywatności oraz warunki płatnego przekroczenia limitów.
+> **TL;DR**: Użyj własnych kont u kwalifikujących się dostawców. OmniRoute łączy skonfigurowane przez Ciebie połączenia; nie zapewnia reklamowanego, łącznego budżetu tokenów. Bezpłatny dostęp może wymagać rejestracji, klucza API, zatwierdzenia lub metody płatności. Nadal obowiązują limity, polityki prywatności i warunki dostawców.
 
 ---
 
-## Czym są bezpłatne poziomy?
+## Czym są darmowe poziomy dostępu?
 
-Wielu dostawców AI oferuje pewną formę **bezpłatnego dostępu**. W zależności od dostawcy może to
-oznaczać punkt końcowy niewymagający uwierzytelniania, cykliczny limit, dostęp bez limitu użycia z ograniczoną częstotliwością żądań, środki przyznawane przy rejestracji,
-ręczne zatwierdzenie lub tymczasową promocję. Niektóre opcje wymagają konta, klucza API,
-karty kredytowej, weryfikacji KYC lub zaakceptowania warunków określonych przez dostawcę.
+Wielu dostawców AI oferuje pewną formę **bezpłatnego dostępu**. W zależności od dostawcy może to oznaczać punkt końcowy niewymagający uwierzytelniania, odnawialny limit, dostęp bez limitu łącznego, ale z ograniczeniem częstotliwości, bonus za rejestrację, ręczne zatwierdzenie lub tymczasową promocję. Niektóre opcje wymagają konta, klucza API, karty kredytowej, weryfikacji KYC lub zaakceptowania warunków określonych przez dostawcę.
 
-OmniRoute **agreguje** te bezpłatne poziomy w jednym punkcie końcowym. Zamiast rejestrować się w 10 różnych usługach, łączysz je wszystkie z OmniRoute i używasz `model: "auto"`, aby automatycznie wybierać najlepszą bezpłatną opcję dla każdego żądania.
+OmniRoute **agreguje** skonfigurowane połączenia w jednym punkcie końcowym. Nadal musisz osobno zarejestrować się u każdego dostawcy, który wymaga konta. Połącz te konta i użyj `model: "auto"`, aby kierować żądania do kwalifikujących się usług docelowych. W nowej instalacji może nie być żadnej kwalifikującej się usługi docelowej niewymagającej klucza; samo zainstalowanie OmniRoute nie gwarantuje pomyślnej odpowiedzi na czacie.
 
 ---
 
 ## Reprezentatywni dostawcy bezpłatnego dostępu
 
-### Dostęp cykliczny, bez klucza lub bez limitu użycia
+### Dostęp odnawialny, bez klucza lub bez ustalonego limitu
 
-Ci dostawcy mają w poddanym audytowi katalogu ścieżkę bezpłatnego dostępu cyklicznego, bez klucza lub bez limitu użycia. „Bez limitu użycia” oznacza brak opublikowanego limitu tokenów; nadal mogą obowiązywać ograniczenia dotyczące częstotliwości żądań, współbieżności, konta, regionu i zasad:
+Ci dostawcy oferują w zweryfikowanym katalogu odnawialną, niewymagającą klucza lub pozbawioną ustalonego limitu ścieżkę bezpłatnego dostępu. „Bez ustalonego limitu” oznacza brak opublikowanego limitu tokenów; nadal mogą obowiązywać limity szybkości, współbieżności, konta i regionu oraz ograniczenia wynikające z zasad:
 
-| Dostawca          | Modele                                                                                              | Limit                                                                                                                                                                 | Jak połączyć                                                                                                                      |
-| ----------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 i inne                                                  | Audytowany katalog szacuje wspólną miesięczną pulę na 25 tys. tokenów                                                                                                 | Proces OAuth/konta; warunki korzystania oznaczone w katalogu jako `avoid`                                                         |
-| **OpenCode Free** | Bieżący zestaw modeli `*-free` w rejestrze dostawców                                                | Bez klucza; brak opublikowanego limitu tokenów                                                                                                                        | Brak danych uwierzytelniających dostawcy; warunki korzystania oznaczone jako `avoid`                                              |
-| **Pollinations**  | Bieżący zestaw modeli bez klucza; niektóre wcześniejsze modele zostały wycofane lub wymagają klucza | Bez klucza; brak opublikowanego limitu tokenów                                                                                                                        | Brak danych uwierzytelniających dostawcy dla modeli bez klucza                                                                    |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 i inne                                  | Bezpłatny klucz API (bez limitów częstotliwości żądań i bez karty); **każde żądanie jest rejestrowane** do celów badawczych (można zrezygnować na logfare.ai/consent) | Natychmiastowy klucz na logfare.ai/register; warunki korzystania i polityka prywatności na logfare.ai/tos oraz logfare.ai/privacy |
-| **Cloudflare AI** | Katalog Workers AI                                                                                  | Audytowana pula szacowana na około 30 mln tokenów miesięcznie na podstawie opublikowanych jednostek użycia                                                            | Konto Cloudflare i dane uwierzytelniające API                                                                                     |
-| **Gemini**        | Rodzina Gemini Flash                                                                                | Audytowana pula szacowana na około 60 mln tokenów miesięcznie                                                                                                         | Klucz API Google AI Studio; obowiązują limity częstotliwości żądań                                                                |
-| **Groq**          | Modele Llama, GPT-OSS i Qwen                                                                        | Audytowana pula szacowana na około 15 mln tokenów miesięcznie                                                                                                         | Klucz API Groq; obowiązują limity częstotliwości żądań                                                                            |
-| **Cerebras**      | GLM 4.7 i GPT-OSS 120B                                                                              | Audytowana pula szacowana na około 30 mln tokenów miesięcznie                                                                                                         | Klucz API Cerebras; obowiązują limity częstotliwości żądań                                                                        |
+| Dostawca          | Modele                                                                                              | Limit                                                                                                                                                     | Jak się połączyć                                                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 i inne                                                  | Zweryfikowany katalog szacuje wspólną miesięczną pulę na 25 tys. tokenów                                                                                  | Przepływ OAuth/konta; regulamin oznaczony w katalogu jako `avoid`                                                       |
+| **OpenCode Free** | Bieżący zestaw modeli `*-free` w rejestrze dostawców                                                | Bez klucza; brak opublikowanego limitu tokenów                                                                                                            | Brak danych uwierzytelniających dostawcy; regulamin oznaczony jako `avoid`                                              |
+| **Pollinations**  | Bieżący zestaw modeli bez klucza; niektóre wcześniejsze modele zostały wycofane lub wymagają klucza | Bez klucza; brak opublikowanego limitu tokenów                                                                                                            | Brak danych uwierzytelniających dostawcy dla modeli niewymagających klucza                                              |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 i inne                                  | Bezpłatny klucz API (bez limitów szybkości, bez karty); **każde żądanie jest rejestrowane** do celów badawczych (można zrezygnować na logfare.ai/consent) | Natychmiastowy klucz na logfare.ai/register; regulamin i polityka prywatności na logfare.ai/tos oraz logfare.ai/privacy |
+| **Cloudflare AI** | Katalog Workers AI                                                                                  | Zweryfikowana pula szacowana na ~30 mln tokenów miesięcznie na podstawie opublikowanych jednostek użycia                                                  | Konto Cloudflare i dane uwierzytelniające API                                                                           |
+| **Gemini**        | Rodzina Gemini Flash                                                                                | Zmienne limity szybkości zależne od projektu/modelu; podsumowanie nie obejmuje stałego miesięcznego przydziału tokenów                                    | Klucz API Google AI Studio; sprawdź aktywne limity projektu                                                             |
+| **Groq**          | Modele Llama, GPT-OSS i Qwen                                                                        | Zweryfikowana pula szacowana na ~15 mln tokenów miesięcznie                                                                                               | Klucz API Groq; obowiązują limity szybkości                                                                             |
 
-### Środki przyznawane przy rejestracji i środki specyficzne dla dostawcy
+### Przydziały rejestracyjne i środki przyznawane przez poszczególnych dostawców
 
-Ci dostawcy przyznają **bezpłatne środki** po rejestracji:
+Ci dostawcy oferują przydziały rejestracyjne lub środki promocyjne, z zastrzeżeniem ich zasad kwalifikacji. Zgodnie ze stanem zweryfikowanym 2026-10-08 [cennik Cerebras](https://www.cerebras.ai/pricing) wymaga podania metody płatności w celu otrzymania jednorazowego środka w wysokości $5, który wygasa po 30 dniach; nie jest to odnawialny limit tokenów. [Limity szybkości Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) różnią się w zależności od projektu, modelu i poziomu, dlatego nie są przeliczane na gwarantowany miesięczny przydział tokenów.
 
-| Dostawca      | Bezpłatne środki                                                                                | Modele                      | Jak je uzyskać                                                       |
-| ------------- | ----------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------- |
-| **DeepSeek**  | 5 mln bezpłatnych tokenów                                                                       | DeepSeek V4                 | Zarejestruj się na platform.deepseek.com                             |
-| **LongCat**   | Jednorazowo 10 mln tokenów                                                                      | LongCat 2.0                 | Klucz API + KYC; po wykorzystaniu środków płatność zgodnie z użyciem |
-| **Vertex AI** | Środki powitalne w wysokości $300, przedstawione w modelu budżetowym jako około 300 mln tokenów | Gemini i modele partnerskie | Konto Google Cloud; obowiązują zasady rozliczeń i kwalifikowalności  |
+| Dostawca      | Bezpłatne środki                                                                               | Modele                      | Jak uzyskać                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------- |
+| **Cerebras**  | Jednorazowy środek promocyjny w wysokości $5; wygasa po 30 dniach                              | Bieżący katalog inferencji  | Konto i prawidłowa metoda płatności                             |
+| **DeepSeek**  | 5 mln bezpłatnych tokenów                                                                      | DeepSeek V4                 | Zarejestruj się na platform.deepseek.com                        |
+| **LongCat**   | Jednorazowy przydział 10 mln tokenów                                                           | LongCat 2.0                 | Klucz API + KYC; po wykorzystaniu przydziału płatność za użycie |
+| **Vertex AI** | Środek rejestracyjny w wysokości $300, przedstawiony w modelu budżetowym jako ~300 mln tokenów | Gemini i modele partnerskie | Konto Google Cloud; obowiązują zasady rozliczeń i kwalifikacji  |
 
-### Inny ograniczony dostęp
+### Inne formy ograniczonego dostępu
 
 Ci dostawcy oferują **bezpłatne poziomy** z określonymi limitami:
 
-| Dostawca                   | Bezpłatny limit                                                                  | Modele                               | Najlepsze zastosowanie |
-| -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------ | ---------------------- |
-| **GitHub Models**          | Szacowany, kontrolowany wspólny limit ~18 mln tokenów/miesiąc                    | Ocena szerokiej gamy modeli          |
-| **Hugging Face**           | Niewielki, odnawiany co miesiąc limit                                            | Eksperymenty i różnorodność modeli   |
-| **OpenRouter free models** | Wspólny limit żądań; opcjonalne jednorazowe doładowanie zwiększa odnawiany limit | Szeroki katalog modeli zapasowych    |
-| **AI Horde**               | Społecznościowe zasoby bez klucza; dostępność jest zmienna                       | Okazjonalne wnioskowanie rozproszone |
+| Dostawca                   | Bezpłatny limit                                                                                         | Modele                               | Najlepsze zastosowanie |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------ | ---------------------- |
+| **GitHub Models**          | Zweryfikowana wspólna pula szacowana na ~18 mln tokenów miesięcznie                                     | Ocena szerokiej gamy modeli          |
+| **Hugging Face**           | Mała, odnawiana co miesiąc pula                                                                         | Eksperymenty i różnorodność modeli   |
+| **OpenRouter free models** | Wspólna pula ograniczona liczbą żądań; opcjonalne jednorazowe doładowanie zwiększa odnawialny przydział | Szeroki katalog modeli zapasowych    |
+| **AI Horde**               | Niewymagająca klucza przepustowość społecznościowa; dostępność jest zmienna                             | Okazjonalne wnioskowanie rozproszone |
 
 ---
 
-## Jak łączyć bezpłatne pule
+## Jak łączyć bezpłatne limity
 
-Siła OmniRoute tkwi w **łączeniu bezpłatnych pul**. Zamiast polegać na jednym dostawcy, łączysz wielu bezpłatnych dostawców i pozwalasz OmniRoute automatycznie wybierać najlepszego z nich dla każdego żądania.
+Siła OmniRoute tkwi w **łączeniu bezpłatnych limitów**. Zamiast polegać na jednym dostawcy, możesz połączyć wielu bezpłatnych dostawców i pozwolić OmniRoute automatycznie wybierać najlepszego z nich dla każdego żądania.
 
-### Przykład: szerszy dostęp w ramach bezpłatnych pul
+### Przykład: szerszy zakres bezpłatnych limitów
 
 Połącz kilku dostawców, aby zmniejszyć zależność od pojedynczego limitu:
 
 1. **Gemini** — odnawialny limit klucza API
 2. **Groq** — odnawialny limit klucza API
 3. **Pollinations** — dostęp bez klucza, z ograniczeniem częstotliwości
-4. **LongCat** — jednorazowy pakiet za rejestrację (wymaga KYC)
+4. **LongCat** — jednorazowy pakiet powitalny (wymaga KYC)
 
 Następnie użyj `model: "auto"`, a OmniRoute:
 
-- Najpierw wypróbuje kwalifikujące się połączenie o najwyższym priorytecie
+- Najpierw wypróbuje najwyżej sklasyfikowane kwalifikujące się połączenie
 - Jeśli jego limit zostanie wyczerpany lub kontrola stanu zakończy się niepowodzeniem → wypróbuje następnego skonfigurowanego dostawcę
-- Jeśli dostawca niewymagający klucza jest niedostępny → przejdzie do pozostałych opcji docelowych
-- Jeśli wszystkie zawiodą → użyje LongCat jako rozwiązania zapasowego
+- Jeśli dostawca niewymagający klucza będzie niedostępny → przejdzie do pozostałych usług docelowych
+- Jeśli żadne kwalifikujące się połączenie nie zadziała → zwróci błąd; środki przyznane przy rejestracji są dostępne tylko wtedy, gdy są ważne i niewykorzystane
 
-**Rezultat**: szerszy dostęp w ramach bezpłatnych pul z automatycznym przełączaniem awaryjnym — nie jest to gwarancja nieograniczonej przepustowości.
+**Rezultat**: szerszy zakres bezpłatnych limitów z automatycznym mechanizmem awaryjnym — bez gwarancji nieograniczonej przepustowości.
 
 ---
 
@@ -89,43 +86,42 @@ Następnie użyj `model: "auto"`, a OmniRoute:
 
 Przejdź w przeglądarce do `http://localhost:20128`.
 
-### Krok 2: Przejdź do sekcji dostawców
+### Krok 2: Przejdź do dostawców
 
 Kliknij **Dostawcy** na pasku bocznym.
 
-### Krok 3: Kliknij przycisk dodawania dostawcy
+### Krok 3: Kliknij Dodaj dostawcę
 
 Kliknij przycisk **+ Dodaj dostawcę**.
 
 ### Krok 4: Wybierz bezpłatnego dostawcę
 
-Przejrzyj katalog i sprawdź aktualne metadane `hasFree`, uwierzytelniania, limitów, prywatności
-oraz warunków świadczenia usług każdego dostawcy. Karta dostawcy oraz
-[Dokumentacja bezpłatnych pul](../reference/FREE_TIERS.md) rozróżniają odnawialne pule,
-dostęp bez limitu lub klucza, środki za rejestrację, wycofane wpisy oraz źródła podwyższonego ryzyka.
+Przejrzyj katalog i sprawdź aktualne metadane każdego dostawcy dotyczące `hasFree`, uwierzytelniania, limitów, prywatności
+oraz warunków korzystania z usługi. Karta dostawcy i dokument
+[Informacje o bezpłatnych planach](../reference/FREE_TIERS.md) rozróżniają pule odnawialne,
+dostęp bez limitów lub klucza, środki przyznawane po rejestracji, wycofane pozycje oraz źródła o podwyższonym ryzyku.
 
-### Krok 5: Kliknij przycisk połączenia
+### Krok 5: Kliknij Połącz
 
-W przypadku dostawcy `NOAUTH` dane uwierzytelniające nie są wymagane. Dostawców korzystających z OAuth i kluczy API należy
-połączyć zgodnie z udokumentowanym przez nich procesem konfiguracji konta.
+W przypadku dostawcy `NOAUTH` OmniRoute nie wymaga danych uwierzytelniających do usługi nadrzędnej. Nie gwarantuje to, że usługa nadrzędna akceptuje klientów zewnętrznych ani że dysponuje dostępnymi zasobami. Dostawców korzystających z OAuth i klucza API należy połączyć zgodnie z udokumentowaną procedurą konta. Gdy uwierzytelnianie routera jest włączone, klient nadal korzysta z klucza API OmniRoute widocznego w sekcji **Panel → Punkty końcowe**.
 
 ### Krok 6: Powtórz
 
-Połącz kilku dostawców, których warunki i model prywatności odpowiadają Twojemu zastosowaniu.
+Połącz kilku dostawców, których warunki i model prywatności odpowiadają Twojemu przypadkowi użycia.
 
 ---
 
-## Jak prawidłowo interpretować katalog
+## Jak prawidłowo odczytywać katalog
 
 - `NOAUTH` oznacza, że OmniRoute nie wymaga od Ciebie danych uwierzytelniających dostawcy; nie
   gwarantuje to dostępności, prywatności ani nieograniczonej przepustowości.
 - `hasFree` to metadane ułatwiające wyszukiwanie. Mogą oznaczać odnawialny limit, dostęp bez klucza,
-  środki za rejestrację, program wymagający zatwierdzenia lub promocję.
-- `recurring-uncapped` oznacza, że nie był dostępny żaden opublikowany limit tokenów; nadal obowiązują
-  ograniczenia częstotliwości i współbieżności.
-- `one-time-initial` nie odnawia się po wykorzystaniu pakietu przyznanego za rejestrację.
-- `tos: avoid` to ostrzeżenie, aby przed użyciem zapoznać się z warunkami dostawcy i ryzykiem dotyczącym konta.
-- Wpisy oznaczone jako `discontinued` pozostają historycznym świadectwem i nie mogą być przedstawiane jako
+  środki przyznawane przy rejestracji, program wymagający zatwierdzenia lub promocję.
+- `recurring-uncapped` oznacza, że nie znaleziono opublikowanego limitu tokenów; nadal obowiązują
+  limity częstotliwości żądań i współbieżności.
+- `one-time-initial` nie odnawia się po wykorzystaniu środków przyznanych przy rejestracji.
+- Dostawcy oznaczeni jako `tos: avoid` są domyślnie wykluczeni z automatycznego trasowania (`excludeTosAvoid`). Podłączenie konta nie omija tego filtra. Każde ręczne nadpisanie przez operatora powinno być poprzedzone przeglądem warunków dostawcy i ryzyka związanego z kontem.
+- Wpisy oznaczone jako `discontinued` pozostają świadectwem historycznym i nie mogą być przedstawiane jako
   obecnie bezpłatne.
 
 ---
@@ -158,20 +154,18 @@ lub zasad dostępu dostawcy.
 
 ---
 
-## Obliczenia dla darmowego planu
+## Wyliczenia bezpłatnego poziomu
 
-Bieżący katalog z deduplikacją pul raportuje obecnie:
+Aktualny katalog działający na żywo, z deduplikacją pul, obecnie wskazuje:
 
-| Metryka                                                                    |                        Bieżąca zweryfikowana wartość | Interpretacja                                                                                                                                                                                   |
-| -------------------------------------------------------------------------- | ---------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cykliczny, ilościowo określony limit                                       |                        **~1,62 mld tokenów/miesiąc** | Współdzielone pule policzono jednokrotnie; dostawcy bez limitów nie są uwzględnieni w sumie                                                                                                     |
-| Pierwszy miesiąc z kredytami za rejestrację                                |                                **~2,22 mld tokenów** | Cykliczna suma powiększona o jednorazowe i cykliczne kredyty                                                                                                                                    |
-| Zweryfikowany katalog darmowych modeli                                     | **35 kluczy cyklicznych pul / 482 wpisy katalogowe** | 475 aktywnych + 7 wycofanych; odrębny od katalogu obejmującego 357 dostawców                                                                                                                    |
-| Uwzględnieni cykliczni/bezkluczowi dostawcy bezterminowo bezpłatnych usług |                                               **53** | Unikalni dostawcy w ramach cyklicznych dziennych/miesięcznych limitów, kredytów, ofert bez limitów oraz bezkluczowych typów katalogowych; wiersze objęte kryteriami kwalifikacyjnymi wykluczono |
-| Wpisy katalogowe dostawców oznaczone jako `hasFree`                        |                                        **152 / 357** | Szersze metadane dostawców; nie wszyscy oferują mierzalny cykliczny limit                                                                                                                       |
+| Metryka                                     | Aktualna zweryfikowana wartość | Interpretacja                                                                     |
+| ------------------------------------------- | -----------------------------: | --------------------------------------------------------------------------------- |
+| Cykliczny, określony ilościowo przydział    |     **~1.62B tokenów/miesiąc** | Współdzielone pule policzono jednokrotnie; suma nie obejmuje dostawców bez limitu |
+| Pierwszy miesiąc z grantami rejestracyjnymi |             **~2.22B tokenów** | Cykliczna suma wraz z jednorazowymi i cyklicznymi środkami                        |
 
-Wartości te są obliczane na podstawie `open-sse/config/freeModelCatalog.ts`; szczegółowe informacje na temat deduplikacji pul, oznaczeń warunków świadczenia usług, wycofanych wpisów oraz metodologii dotyczącej kredytów za rejestrację zawiera
-[Dokumentacja darmowych planów](../reference/FREE_TIERS.md).
+Są to szacunki obejmujące cały katalog i odrębne kwalifikujące się konta, a nie limit zapewniany przez OmniRoute ani prognoza dla nowej instalacji. Dostępna pojemność zależy od podłączonych dostawców i ich aktualnych warunków. Wartości są obliczane na podstawie `open-sse/config/freeModelCatalog.ts`; informacje o deduplikacji pul, oznaczeniach regulaminu,
+wycofanych wpisach i metodologii naliczania środków za rejestrację zawiera
+[Dokumentacja bezpłatnych poziomów](../reference/FREE_TIERS.md).
 
 ---
 

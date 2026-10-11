@@ -292,101 +292,107 @@ Transporty SSE i strumieniowy HTTP są blokowane do czasu włączenia serwera MC
 
 ## Uwierzytelnianie i zakresy
 
-Narzędzie MCP odczytuje ciągi zakresów od wywołującego. To sprawdzenie jest jedną z trzech
-niezależnych przestrzeni nazw. Zaliczenie przez jeden sprawdzacz nie jest zaliczeniem przez pozostałe.
-Zasady to [Trzy przestrzenie nazw zakresów](#trzy-przestrzenie-nazw-zakresów).
-Katalog narzędzi to [Zakresy narzędzi MCP](#zakresy-narzędzi-mcp).
+Wywołania narzędzi MCP odczytują ciągi zakresów od wywołującego. To sprawdzenie jest jedną z trzech
+niezależnych przestrzeni nazw. Pomyślne przejście jednego mechanizmu sprawdzającego nie oznacza pomyślnego przejścia pozostałych.
+Reguły opisano w sekcji [Trzy przestrzenie nazw zakresów](#three-scope-namespaces).
+Katalog narzędzi znajduje się w sekcji [Zakresy narzędzi MCP](#mcp-tool-scopes).
 
 ### Trzy przestrzenie nazw zakresów
 
-`manage` na kluczu API, `read:compression` na narzędziu MCP i `read` na
-tokenie dostępu `oma_live_…` to trzy różne uprawnienia. Wywołujący, którzy wysyłają token dostępu `read`
-do mutującej trasy zarządzania, otrzymują HTTP 403
+`manage` w kluczu API, `read:compression` w narzędziu MCP oraz `read` w
+tokenie dostępu `oma_live_…` to trzy różne uprawnienia. Wywołujący, którzy wysyłają token dostępu
+`read` do mutującej trasy zarządzania, otrzymują HTTP 403
 `Access token scope 'read' is insufficient; 'write' required.`
-Ta ranga to `scopeSatisfies`. Nie konsultuje się z tabelą MCP, a dopasowywacz MCP
-nie konsultuje się z nią.
+Ta hierarchia jest obsługiwana przez `scopeSatisfies`. Nie korzysta ona z tabeli MCP, a mechanizm
+dopasowywania MCP nie korzysta z niej.
 
-| Przestrzeń nazw          | Poświadczenie                                                                              | Sprawdzacz               | Zaliczenie pozwala na                                         |
-| :----------------------- | :----------------------------------------------------------------------------------------- | :----------------------- | :------------------------------------------------------------ |
-| Zarządzanie kluczami API | `api_keys.scopes`                                                                          | `hasManageScope`         | Zarządzanie REST dla tego klucza Bearer                       |
-| Dodatkowe klucze API     | ta sama tablica, jeden dokładny ciąg znaków                                                | pomocnik nazwany poniżej | Tylko ta jedna zdolność                                       |
-| Zakresy narzędzi MCP     | ta sama tablica, w przeciwnym razie MCP `_meta`, w przeciwnym razie `OMNIROUTE_MCP_SCOPES` | `scopeMatches`           | To narzędzie, gdy egzekwowanie jest włączone                  |
-| Token dostępu            | `oma_live_…`                                                                               | `scopeSatisfies`         | Trasa zarządzania, której metoda i ścieżka wymagają tej rangi |
+| Przestrzeń nazw              | Poświadczenie                                                                       | Mechanizm sprawdzający                | Pomyślne przejście umożliwia                                       |
+| :--------------------------- | :---------------------------------------------------------------------------------- | :------------------------------------ | :----------------------------------------------------------------- |
+| Zarządzanie kluczami API     | `api_keys.scopes`                                                                   | `hasManageScope`                      | Dostęp do REST zarządzania przy użyciu danego klucza Bearer        |
+| Dodatkowe zakresy klucza API | ta sama tablica, jeden dokładny ciąg znaków                                         | pomocnicza funkcja wymieniona poniżej | Tylko tę jedną funkcję                                             |
+| Zakresy narzędzi MCP         | ta sama tablica, w przeciwnym razie `_meta` MCP, a następnie `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                        | Dostęp do danego narzędzia po włączeniu egzekwowania zakresów      |
+| Token dostępu                | `oma_live_…`                                                                        | `scopeSatisfies`                      | Trasę zarządzania, której metoda i ścieżka wymagają danego poziomu |
 
-Tworzenie każdego poświadczenia jest omówione w
+Tworzenie każdego poświadczenia opisano w sekcji
 [Uwierzytelnianie zarządzania](../guides/MANAGEMENT-AUTH.md).
 
 #### Zakresy kluczy API
 
-Jedna tablica `api_keys.scopes` zasila dwa zadania. Używają one różnych funkcji.
+Jedna tablica `api_keys.scopes` służy do dwóch zadań. Używają one różnych funkcji.
 
-**Zarządzanie REST.** `manage` i `admin` są członkami
+**REST zarządzania.** `manage` i `admin` są elementami
 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
-`hasManageScope` autoryzuje trasy zarządzania dla tego klucza. `admin` jest
-zdolny do zarządzania na tych trasach. Słowo `admin` tutaj nie jest
-rangą tokenu dostępu i nie rozszerza się na zakresy narzędzi MCP.
+To `hasManageScope` autoryzuje trasy zarządzania dla danego klucza. `admin`
+umożliwia zarządzanie za pośrednictwem tych tras. Słowo `admin` nie oznacza tutaj
+poziomu tokena dostępu i nie rozszerza się na zakresy narzędzi MCP.
 
-**Ciągi dodatkowe.** Każdy z nich jest dokładnym testem członkostwa, i każdy z nich pozostaje
+**Dodatkowe ciągi znaków.** Każdy z nich jest sprawdzany przez dokładne członkostwo i każdy pozostaje
 poza `MANAGEMENT_API_KEY_SCOPES`.
 
-| Zakres                         | Zaliczenie pozwala na                                                                                                                                                     |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mcp:connect`                  | Wyłącznie nie-loopbackowe `/api/mcp/` LOCAL_ONLY wycięcie (`hasMcpConnectOrManageScope`). Klucz z `manage` lub `admin` nadal przechodzi to wycięcie.                      |
-| `self:usage`                   | `GET /api/v1/me/status` dla tego klucza (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` dodaje ten zakres przy tworzeniu (`normalizeSelfServiceScopesForCreate`). |
-| `self:account-quota`           | Limity konta upstream w tym ładunku statusu (`src/lib/usage/apiKeySelfService.ts`). Trasa statusu nadal wymaga `self:usage`.                                              |
-| `policy:bypass-provider-quota` | Wywołania wnioskowania tego klucza pomijają politykę limitu dostawcy (`hasProviderQuotaBypassScope` w `src/sse/handlers/chat.ts`).                                        |
+| Zakres                         | Pomyślne przejście umożliwia                                                                                                                                                              |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Wyłącznie wyjątek od `LOCAL_ONLY` dla `/api/mcp/` spoza interfejsu pętli zwrotnej (`hasMcpConnectOrManageScope`). Klucz z `manage` lub `admin` również przechodzi to sprawdzenie wyjątku. |
+| `self:usage`                   | `GET /api/v1/me/status` dla tego klucza (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` dodaje ten zakres podczas tworzenia (`normalizeSelfServiceScopesForCreate`).              |
+| `self:account-quota`           | Limity konta dostawcy nadrzędnego w ramach tego ładunku statusu (`src/lib/usage/apiKeySelfService.ts`). Trasa statusu nadal wymaga `self:usage`.                                          |
+| `policy:bypass-provider-quota` | Wywołania inferencji wykonywane przy użyciu tego klucza pomijają politykę limitu dostawcy (`hasProviderQuotaBypassScope` w `src/sse/handlers/chat.ts`).                                   |
 
 #### Dopasowywanie
 
-Katalog to tabela pod [Zakresy narzędzi MCP](#zakresy-narzędzi-mcp). Nie
-traktuj `MCP_SCOPE_LIST` w `src/shared/constants/mcpScopes.ts` jako tego katalogu:
-jest to oryginalny podzbiór typowany. Późniejsze narzędzia deklarują dalsze zakresy obok niego
-(`read:notion`, `read:skills`, `read:local-corpus` i reszta tabeli).
+Katalogiem jest tabela w sekcji [Zakresy narzędzi MCP](#mcp-tool-scopes). Nie należy
+traktować `MCP_SCOPE_LIST` w `src/shared/constants/mcpScopes.ts` jako tego katalogu:
+jest to pierwotny typowany podzbiór. Późniejsze narzędzia deklarują obok niego kolejne zakresy
+(`read:notion`, `read:skills`, `read:local-corpus` oraz pozostałe zakresy z tabeli).
 
-`evaluateToolScopes` w `open-sse/mcp-server/scopeEnforcement.ts` pozwala na wywołanie
-gdy każdy wymagany zakres pasuje do jakiegoś przyznanego zakresu:
+`evaluateToolScopes` w `open-sse/mcp-server/scopeEnforcement.ts` zezwala na wywołanie,
+gdy każdy wymagany zakres pasuje do któregoś z przyznanych zakresów:
 
 - `*` pasuje do każdego wymaganego zakresu.
-- Przyznany zakres kończący się na `*` pasuje do wymaganego zakresu, który zaczyna się od
-  prefiks przed gwiazdką. `read:*` pasuje do `read:compression`.
-- Każdy inny przyznany zakres pasuje tylko do identycznego wymaganego ciągu.
+- Przyznany zakres kończący się znakiem `*` pasuje do wymaganego zakresu rozpoczynającego się
+  prefiksem poprzedzającym gwiazdkę. `read:*` pasuje do `read:compression`.
+- Każdy inny przyznany zakres pasuje wyłącznie do identycznego wymaganego ciągu znaków.
 
 Klucz, którego zakresy to `["manage"]`, nie przechodzi `scopeMatches` dla `read:compression`.
-To samo wywołanie nie przechodzi dla `admin`, `mcp:connect`, `read` i `write`, gdy te
-są jedynymi przyznanymi ciągami. Nie ma hierarchii wśród zakresów narzędzi MCP
-poza końcową `*`.
+To samo wywołanie nie powiedzie się dla `admin`, `mcp:connect`, `read` ani `write`, jeśli są to
+jedyne przyznane ciągi znaków. Poza końcowym znakiem `*` nie istnieje żadna hierarchia zakresów
+narzędzi MCP.
 
-Egzekwowanie jest wyłączone, chyba że `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (domyślnie
-`false`). Gdy jest wyłączone, `evaluateToolScopes` pozwala na wywołanie i pomija
+Egzekwowanie zakresów jest wyłączone, chyba że `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (wartość domyślna:
+`false`). Gdy jest wyłączone, `evaluateToolScopes` zezwala na wywołanie i pomija
 katalog. Gdy jest włączone, HTTP używa `api_keys.scopes` klucza Bearer jako
-`authInfo` (patrz [Wiązanie zakresu HTTP dla każdego klucza](#per-key-http-scope-binding-7895)).
-Gdy żadne zakresy kluczy nie zostaną rozwiązane, przyznany zestaw przechodzi do MCP `_meta`, a następnie
-`OMNIROUTE_MCP_SCOPES`.
+`authInfo` (zobacz [Powiązanie zakresów HTTP z poszczególnymi kluczami](#per-key-http-scope-binding-7895)).
+Jeśli nie uda się rozpoznać żadnych zakresów klucza, zestaw przyznanych zakresów jest pobierany najpierw z `_meta`
+MCP, a następnie z `OMNIROUTE_MCP_SCOPES`.
 
 #### Zakresy tokenów dostępu
 
-Tokeny `oma_live_…` (`src/lib/accessTokens/scopes.ts`) przenoszą `read`, `write`
-lub `admin`. `scopeSatisfies` to ranga: `admin` obejmuje `write` i `read`, a
-`write` obejmuje `read`. Nieznane zakresy niczego nie obejmują.
+Tokeny `oma_live_…` (`src/lib/accessTokens/scopes.ts`) mają zakres `read`, `write`
+lub `admin`. `scopeSatisfies` definiuje hierarchię: `admin` obejmuje `write` i `read`, a
+`write` obejmuje `read`. Nieznane zakresy nie obejmują żadnych uprawnień.
 
 `evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) porównuje tę
-rangę z `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+hierarchię z `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
 - `GET`, `HEAD` i `OPTIONS` wymagają `read`.
 - Każda inna metoda wymaga `write`.
 - Ścieżki w `ADMIN_SCOPE_PREFIXES` wymagają `admin` dla każdej metody. `/api/mcp`
-  jest na tej liście, więc token dostępu `write` nadal nie może wywołać powierzchni HTTP MCP.
-- Ścieżki w `ADMIN_MUTATION_PREFIXES` wymagają `admin` tylko dla mutacji.
+  znajduje się na tej liście, więc token dostępu `write` nadal nie może wywoływać interfejsu HTTP
+  MCP.
+- Ścieżki w `ADMIN_MUTATION_PREFIXES` wymagają `admin` tylko w przypadku mutacji.
 
-`PATCH /api/keys/{id}` jest mutacją i nie znajduje się na tych listach administratorów, więc token `read` otrzymuje 403
+`PATCH /api/keys/{id}` jest operacją modyfikującą i nie znajduje się na tych listach administracyjnych, dlatego token z zakresem
+`read` otrzymuje odpowiedź 403:
 `Access token scope 'read' is insufficient; 'write' required.`
-Token dostępu `write` lub `admin` spełnia wymagania tej trasy. JWT pulpitu nawigacyjnego, token machine-id CLI loopback oraz klucz API z `manage` lub `admin` podążają innymi ścieżkami i nie są ograniczane przez tę rangę.
+Token dostępu z zakresem `write` lub `admin` spełnia wymagania tej trasy. Token JWT panelu,
+token machine-id interfejsu CLI działającego przez loopback oraz klucz API z zakresem `manage` lub `admin` przechodzą
+innymi ścieżkami i nie są ograniczane przez tę rangę.
 
-Token dostępu, który przechodzi `scopeSatisfies` dla `/api/mcp`, przeszedł tylko bramę zarządzania. Wywołania narzędzi nadal uruchamiają `scopeMatches` w stosunku do zakresów kluczy API. Ranga tokena dostępu nie jest daną wejściową dla `scopeMatches`.
+Token dostępu, który przejdzie weryfikację `scopeSatisfies` dla `/api/mcp`, przeszedł
+jedynie kontrolę dostępu do zarządzania. Wywołania narzędzi nadal uruchamiają `scopeMatches` w odniesieniu do zakresów
+klucza API. Ranga tokenu dostępu nie jest daną wejściową dla `scopeMatches`.
 
 ### Zakresy narzędzi MCP
 
-Wymuszanie zakresów jest scentralizowane w `open-sse/mcp-server/scopeEnforcement.ts`.
+Egzekwowanie zakresów jest scentralizowane w `open-sse/mcp-server/scopeEnforcement.ts`.
 Każde narzędzie wymaga określonych zakresów:
 
 | Zakres                | Narzędzia                                                                                                                                                                             |
@@ -425,35 +431,66 @@ Każde narzędzie wymaga określonych zakresów:
 | `write:obsidian`      | 9 narzędzi do zapisu — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                 |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                     |
 
-Obsługiwane są zakresy z symbolami wieloznacznymi: `read:*` przyznaje wszystkie zakresy odczytu, `*` przyznaje pełny dostęp.
+Obsługiwane są zakresy z symbolami wieloznacznymi: `read:*` przyznaje wszystkie zakresy odczytu, a `*` przyznaje pełny dostęp.
 
-### `mcp:connect` — wąska zdolność routingu (#7895)
+### `mcp:connect` — wąskie uprawnienie do trasy (#7895)
 
-Dostęp do transportu HTTP/SSE MCP (`/api/mcp/*`) spoza pętli zwrotnej wymaga wyłączenia `/api/mcp/` LOCAL_ONLY (zobacz `docs/security/ROUTE_GUARD_TIERS.md`). Historycznie to wyłączenie akceptowało tylko klucz API z pełnym zakresem `manage`/`admin` — zbyt szeroki dla wywołującego, który potrzebuje jedynie komunikować się z MCP. `src/shared/constants/managementScopes.ts` eksportuje teraz `MCP_CONNECT_SCOPE = "mcp:connect"`: dodatkowy, wąski zakres (ten sam precedens co `SELF_USAGE_SCOPE`), który autoryzuje TYLKO obejście `/api/mcp/` w `src/server/authz/policies/management.ts` — nie przyznaje żadnego innego dostępu do tras zarządzania i jest celowo wyłączony z `MANAGEMENT_API_KEY_SCOPES`. Klucz posiadający `manage`/`admin` nadal przechodzi przez wyłączenie bez zmian; `mcp:connect` to alternatywa o niższych uprawnieniach dla zdalnych wywołujących tylko MCP, sprawdzana za pomocą `hasMcpConnectOrManageScope()`.
+Dostęp do transportu HTTP/SSE MCP (`/api/mcp/*`) spoza interfejsu loopback wymaga
+wyjątku LOCAL_ONLY dla `/api/mcp/` (patrz `docs/security/ROUTE_GUARD_TIERS.md`). Wcześniej
+ten wyjątek akceptował wyłącznie klucz API z pełnym zakresem `manage`/`admin` — zbyt szerokim dla
+klienta, który potrzebuje jedynie komunikować się z MCP. `src/shared/constants/managementScopes.ts` teraz
+eksportuje `MCP_CONNECT_SCOPE = "mcp:connect"`: dodatkowy, wąski zakres (zgodny z precedensem
+`SELF_USAGE_SCOPE`), który autoryzuje WYŁĄCZNIE obejście `/api/mcp/` w
+`src/server/authz/policies/management.ts` — nie przyznaje dostępu do żadnych innych tras zarządzania
+i celowo NIE jest uwzględniony w `MANAGEMENT_API_KEY_SCOPES`. Klucz z zakresem `manage`/`admin`
+nadal przechodzi przez ten wyjątek bez zmian; `mcp:connect` jest alternatywą o niższych uprawnieniach dla
+zdalnych klientów korzystających wyłącznie z MCP, sprawdzaną za pomocą `hasMcpConnectOrManageScope()`.
 
-### Wiązanie zakresu HTTP dla poszczególnych kluczy (#7895)
+### Powiązanie zakresów HTTP z poszczególnymi kluczami (#7895)
 
-Przez HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` teraz rozwiązuje rzeczywiste `api_keys.scopes` wywołującego za pomocą `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) i przekazuje je do `transport.handleRequest(req, { authInfo })` SDK MCP, tak aby `extra.authInfo.scopes` docierające do każdego wywołania narzędzia odzwierciedlały własne zakresy klucza Bearer. `resolveCallerScopeContext()` z `scopeEnforcement.ts` już priorytetyzowało `authInfo` nad `_meta` i awaryjnym rozwiązaniem środowiskowym `OMNIROUTE_MCP_SCOPES` — to tylko wypełnia to pierwsze, najwyżej priorytetowe źródło, które wcześniej nie było zasilane przez HTTP.
+W przypadku HTTP/SSE plik `open-sse/mcp-server/httpTransport.ts` rozpoznaje teraz rzeczywiste
+`api_keys.scopes` klienta za pomocą `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+i przekazuje je do `transport.handleRequest(req, { authInfo })` zestawu SDK MCP, dzięki czemu
+`extra.authInfo.scopes` docierające do każdego wywołania narzędzia odzwierciedlają zakresy własnego klucza Bearer.
+Funkcja `resolveCallerScopeContext()` z `scopeEnforcement.ts` już wcześniej nadawała `authInfo` wyższy priorytet niż
+`_meta` i rezerwowe ustawienie zmiennej środowiskowej `OMNIROUTE_MCP_SCOPES` — ta zmiana jedynie zasila pierwsze,
+najwyżej priorytetyzowane źródło, które wcześniej nie było zasilane przez HTTP. Gdy nie uda się rozpoznać żadnego klucza API
+(brak nagłówka, nieprawidłowy klucz), `authInfo` pozostaje `undefined`, a rozpoznawanie przechodzi do
+istniejącego łańcucha `meta`/zmienna środowiskowa bez zmian. stdio nie ma tożsamości powiązanej z klientem (patrz
+`mcpCallerIdentity.ts`) i ta zmiana go nie dotyczy — nadal korzysta z rezerwowego łańcucha `_meta`/zmienna środowiskowa.
 
-Gdy żaden klucz API nie zostanie rozwiązany (brak nagłówka, nieprawidłowy klucz), `authInfo` pozostaje `undefined`, a rozwiązanie przechodzi do istniejącego łańcucha `meta`/env bez zmian. To NIE zmienia domyślnego ustawienia `OMNIROUTE_MCP_ENFORCE_SCOPES` — wymuszenie nadal musi być jawnie włączone; ta zmiana jedynie sprawia, że ścieżka dla poszczególnych kluczy ma pierwszeństwo, gdy jest włączona. stdio nie ma tożsamości dla poszczególnych wywołujących (zobacz `mcpCallerIdentity.ts`) i pozostaje nienaruszone — pozostaje w łańcuchu awaryjnym `_meta`/env.
+**Egzekwowanie zakresów jest wymuszane dla klientów HTTP/SSE o wąskich zakresach niezależnie od
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.** Domyślna wartość `false` dla `OMNIROUTE_MCP_ENFORCE_SCOPES` jest bezpieczna tylko
+dla lokalnego przepływu stdio obsługiwanego przez jednego operatora, w którym nie istnieje tożsamość klienta, względem której można stosować zakresy.
+`open-sse/mcp-server/server.ts::withScopeEnforcement()` bezwarunkowo włącza egzekwowanie zakresów
+dla poszczególnych narzędzi (`shouldForceScopeEnforcement()` w `scopeEnforcement.ts`),
+gdy `resolveCallerScopeContext()` rozpozna
+`source === "authInfo"` (tj. rzeczywisty nagłówek HTTP Authorization powiązany z kluczem, wyłącznie dla HTTP/SSE) ORAZ gdy
+ten klucz nie ma pełnego zakresu `manage`/`admin`. Eliminuje to lukę, przez którą klucz mający WYŁĄCZNIE
+wąski zakres obejścia `mcp:connect` — opisany powyżej jako autoryzujący wyłącznie
+wyjątek LOCAL_ONLY dla `/api/mcp/` — mógłby w przeciwnym razie wywołać każde narzędzie MCP po
+włączeniu przez operatora zdalnego dostępu do MCP lub dostępu spoza interfejsu loopback tylko dlatego, że domyślną
+wartością dostarczaną dla `OMNIROUTE_MCP_ENFORCE_SCOPES` jest `false`. Klucz z pełnym zakresem `manage`/`admin`
+używany przez HTTP oraz każdy klient stdio/lokalny zachowują bez zmian istniejące zachowanie kontrolowane przez
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.
 
 ---
 
 ## Zmienne środowiskowe
 
-| Zmienna                                 | Wartość domyślna                  | Przeznaczenie                                                                                                                              |
-| :-------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`          | Bazowy adres URL używany przez serwer MCP podczas wywoływania wewnętrznych interfejsów API OmniRoute                                       |
-| `OMNIROUTE_API_KEY`                     | (pusta)                           | Klucz API przekazywany jako `Authorization: Bearer` do wewnętrznych wywołań API                                                            |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (włącza tylko `"true"`)   | Po włączeniu brakujące zakresy powodują odrzucenie wywołań narzędzi i zapisanie `scope_denied:<reason>` w dzienniku audytu                 |
-| `OMNIROUTE_MCP_SCOPES`                  | (pusta)                           | Rozdzielona przecinkami lista dozwolonych zakresów uznawanych domyślnie za „dostępne” (używana, gdy wywołujący nie poda własnych zakresów) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nieustawiona = włączone)         | Ustawienie na `0/false/off/no` wyłącza kompresję opisów MCP podczas rejestracji                                                            |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nieustawiona = włączone)         | Alternatywny alias tego samego przełącznika co powyżej                                                                                     |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                           | Limit czasu do przerwania wewnętrznych odczytów zarządzania (kondycja, odporność, kombinacje, limity, użycie)                              |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                           | Limit czasu do przerwania etapów oczekujących na dostawcę (`route_request`, `web_search`, `web_fetch`)                                     |
-| `MCP_TOOL_DENY`                         | (nieustawiona = brak filtrowania) | Rozdzielone przecinkami nazwy narzędzi usuwanych z `tools/list` (redukcja liczby narzędzi — zobacz poniżej)                                |
-| `MCP_TOOL_ALLOW`                        | (nieustawiona = brak filtrowania) | Rozdzielone przecinkami nazwy narzędzi, które mają zostać zachowane jako jedyne (tryb listy dozwolonych — zobacz poniżej)                  |
-| `DATA_DIR`                              | `~/.omniroute`                    | Plik pulsu jest zapisywany w `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                      |
+| Zmienna                                 | Wartość domyślna                | Przeznaczenie                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :-------------------------------------- | :------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`        | Bazowy adres URL używany przez serwer MCP podczas wywoływania wewnętrznych interfejsów API OmniRoute                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `OMNIROUTE_API_KEY`                     | (pusta)                         | Klucz API przekazywany jako `Authorization: Bearer` do wewnętrznych wywołań API                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (włącza tylko `"true"`) | Po włączeniu brakujące zakresy powodują odrzucenie wywołań narzędzi i zapisanie `scope_denied:<reason>` w dzienniku audytu. Egzekwowanie jest RÓWNIEŻ wymuszane niezależnie od tej flagi dla każdego wywołującego HTTP/SSE rozpoznanego na podstawie nagłówka Authorization przypisanego do klucza (`source === "authInfo"`), który nie ma pełnego zakresu `manage`/`admin` — np. klucza mającego tylko wąski zakres obejścia `mcp:connect` — dlatego ta wartość domyślna jest bezpieczna wyłącznie dla lokalnego przepływu stdio obsługiwanego przez jednego operatora, nigdy dla zdalnego dostępu spoza interfejsu loopback |
+| `OMNIROUTE_MCP_SCOPES`                  | (pusta)                         | Rozdzielana przecinkami lista dozwolonych zakresów uznawanych domyślnie za „dostępne” (używana, gdy wywołujący nie podaje własnych zakresów)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (nieustawiona = włączone)       | Ustawienie na `0/false/off/no` wyłącza kompresję opisów MCP podczas rejestracji                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (nieustawiona = włączone)       | Alternatywny alias tego samego przełącznika co powyżej                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                         | Limit czasu do przerwania wewnętrznych odczytów zarządzających (stan, odporność, kombinacje, limit, użycie)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                         | Limit czasu do przerwania operacji oczekujących na dostawcę (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `MCP_TOOL_DENY`                         | (nieustawiona = brak filtra)    | Rozdzielane przecinkami nazwy narzędzi usuwanych z `tools/list` (ograniczenie liczby narzędzi — patrz poniżej)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `MCP_TOOL_ALLOW`                        | (nieustawione = brak filtra)    | Oddzielone przecinkami nazwy narzędzi, które mają zostać zachowane na wyłączność (tryb listy dozwolonych — patrz poniżej)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `DATA_DIR`                              | `~/.omniroute`                  | Plik pulsu jest zapisywany w `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ---
 

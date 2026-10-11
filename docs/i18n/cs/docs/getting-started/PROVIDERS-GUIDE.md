@@ -171,20 +171,19 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## Nejlepší bezplatní poskytovatelé
 
-Tito poskytovatelé nabízejí **bezplatný přístup** bez platební karty:
+Tito poskytovatelé nabízejí **bezplatný přístup** bez nutnosti zadávat platební kartu:
 
-| Poskytovatel      | Bezplatná kvóta         | Modely                                   | Jak se připojit       |
+| Poskytovatel      | Bezplatná kvóta         | Modely                                   | Způsob připojení      |
 | ----------------- | ----------------------- | ---------------------------------------- | --------------------- |
 | **Kiro AI**       | 50 kreditů/měsíc        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Bez ověření           |
 | **OpenCode Free** | Neomezeně               | GPT-4o, Claude, Gemini                   | Bez ověření           |
 | **Pollinations**  | Klíč není potřeba       | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez ověření           |
-| **LongCat**       | Jednorázově 10M         | LongCat-2.0                              | Klíč API + KYC        |
-| **Cloudflare AI** | 10K neuronů/den         | Více než 50 modelů                       | Bez ověření           |
-| **NVIDIA NIM**    | ~40 RPM                 | 129 modelů                               | Je vyžadován klíč API |
+| **LongCat**       | Jednorázově 10 milionů  | LongCat-2.0                              | Klíč API + KYC        |
+| **Cloudflare AI** | 10 tisíc neuronů/den    | Více než 50 modelů                       | Bez ověření           |
+| **NVIDIA NIM**    | ~40 požadavků za minutu | 129 modelů                               | Je vyžadován klíč API |
 | **Cerebras**      | Kredit $5 za registraci | GLM 4.7, GPT-OSS 120B                    | Klíč API + karta      |
-| **Qoder**         | Neomezeně               | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Bez ověření           |
 
-**Tip**: Připojte více bezplatných poskytovatelů a získejte **neomezenou AI zdarma** s automatickým přepnutím při selhání!
+**Tip**: Připojte více bezplatných poskytovatelů a získejte **neomezenou AI zdarma** s automatickým přepnutím při výpadku!
 
 ---
 
@@ -258,37 +257,77 @@ Poté použijte `model: "auto"` a OmniRoute automaticky vybere pro každý poža
 
 ---
 
-## Nastavení pro konkrétní poskytovatele
+## Nastavení specifická pro poskytovatele
 
 ### OpenAI
 
-1. Získejte API klíč: https://platform.openai.com/api-keys
+1. Získejte klíč API: https://platform.openai.com/api-keys
 2. V OmniRoute: Poskytovatelé → Přidat poskytovatele → OpenAI
-3. Vložte API klíč → Připojit
+3. Vložte klíč API → Připojit
 
 ### Anthropic
 
-1. Získejte API klíč: https://console.anthropic.com/
+1. Získejte klíč API: https://console.anthropic.com/
 2. V OmniRoute: Poskytovatelé → Přidat poskytovatele → Anthropic
-3. Vložte API klíč → Připojit
+3. Vložte klíč API → Připojit
 
 ### Google (Gemini)
 
-1. Získejte API klíč: https://aistudio.google.com/apikey
+1. Získejte klíč API: https://aistudio.google.com/apikey
 2. V OmniRoute: Poskytovatelé → Přidat poskytovatele → Gemini
-3. Vložte API klíč → Připojit
+3. Vložte klíč API → Připojit
 
 ### DeepSeek
 
-1. Získejte API klíč: https://platform.deepseek.com/
+1. Získejte klíč API: https://platform.deepseek.com/
 2. V OmniRoute: Poskytovatelé → Přidat poskytovatele → DeepSeek
-3. Vložte API klíč → Připojit
+3. Vložte klíč API → Připojit
+
+### Qoder: zvolte způsob přenosu přihlašovacích údajů
+
+Qoder vyžaduje přihlašovací údaje. Jeho dva způsoby přenosu mají odlišné možnosti; samotný název modelu
+neurčuje, co konkrétní připojení dokáže.
+
+| Přihlašovací údaj                           | Způsob přenosu OmniRoute                        | Volání nástrojů volajícím                                     | Streamování                                                             |
+| ------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| PAT začínající na `pt-`                     | Místní proces `qodercli` na hostiteli OmniRoute | Nepodporováno                                                 | S vyrovnávací pamětí: SSE se odešle až poté, co CLI vrátí celou odpověď |
+| Přístupový token jiný než PAT nebo klíč API | HTTP endpoint DashScope kompatibilní s OpenAI   | Předává se beze změny v závislosti na nadřazeném modelu/klíči | Nadřazená cesta HTTP/SSE                                                |
+
+Pro PAT nainstalujte Qoder CLI na stejného hostitele nebo do stejného kontejneru jako OmniRoute. Spustitelný soubor
+musí být dostupný jako `qodercli`, případně nastavte `CLI_QODER_BIN` na cestu k jeho spustitelnému souboru. CLI
+nainstalované pouze na hostiteli Dockeru není automaticky dostupné v kontejneru. Chybějící
+binární soubory způsobí explicitní chybu, která vás odkáže na instalaci nebo nastavení cesty.
+
+Cesta chatu PAT má časový limit procesu 45 sekund. Konverzaci sloučí do jednoho
+promptu a spustí CLI v nestreamovacím režimu výpisu. Požadavek `stream: true` změní
+formát odpovědi na SSE; neposkytuje však průběžné doručování tokenů z nadřazené služby.
+Ověření pomocí CLI a výpis modelů používají samostatný časový limit 20 sekund. Jedná se o aktuální výchozí hodnoty
+v kódu, nikoli o konfigurovatelná nastavení ovládacího panelu.
+
+Připojení PAT používejte pro běžný chat. Požadavky agentů obsahující `tools` nebo starší `functions`
+vylučují účty PAT při výběru přihlašovacích údajů, včetně připnutých kombinovaných cílů. Smíšený
+fond Qoder může nadále vybrat svůj HTTP účet. Přímá volání exekutoru PAT také selžou
+explicitně před spuštěním CLI, místo aby definice nástrojů bez upozornění zahodila. Toto
+omezení se týká nástrojů poskytnutých volajícím API, nikoli interních nástrojů, které může používat samotné
+Qoder CLI. Klíč HTTP nezaručuje, že každý model podporuje nástroje; nadále platí běžné
+kontroly schopností modelu.
+
+OAuth v prohlížeči je k dispozici pouze tehdy, když správce nakonfiguruje všech pět nastavení:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` a `QODER_OAUTH_CLIENT_SECRET`. Jejich výchozí hodnoty jsou prázdné; v
+nenakonfigurované instalaci je třeba použít podporovaný import přihlašovacích údajů namísto předpokladu,
+že je přihlašování přes prohlížeč připraveno.
+
+Odkazy na implementaci: [exekutor Qoder](../../open-sse/executors/qoder.ts),
+[běhové prostředí CLI](../../open-sse/services/qoderCli.ts) a
+[konfigurace OAuth](../../src/lib/oauth/constants/oauth.ts). Průběžné streamování PAT
+a konfigurovatelný časový limit jsou samostatná vylepšení; toto chování je nezaručuje.
 
 ### Groq
 
-1. Získejte API klíč: https://console.groq.com/
+1. Získejte klíč API: https://console.groq.com/
 2. V OmniRoute: Poskytovatelé → Přidat poskytovatele → Groq
-3. Vložte API klíč → Připojit
+3. Vložte klíč API → Připojit
 
 ---
 

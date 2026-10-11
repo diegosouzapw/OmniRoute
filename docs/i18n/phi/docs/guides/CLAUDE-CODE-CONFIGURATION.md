@@ -122,15 +122,15 @@ builder na may mga unit test) na nire-render ng `ClaudeGatewayOnboardingBlock`.
 
 ---
 
-## Mga profile (`CLAUDE_CONFIG_DIR`)
+## Mga Profile (`CLAUDE_CONFIG_DIR`)
 
 Ang Claude Code ay **walang native na mga profile file** (hindi tulad ng `~/.codex/<name>.config.toml` ng Codex).
-Ang idiomatic na mekanismo ay `CLAUDE_CONFIG_DIR` — isang hiwalay na config directory para sa bawat
-profile, na may sarili nitong `settings.json`, credentials, history, at cache.
+Ang karaniwang mekanismo ay `CLAUDE_CONFIG_DIR` — isang hiwalay na direktoryo ng config para sa bawat
+profile, na may sarili nitong `settings.json`, mga kredensyal, history, at cache.
 
-Kinukuha ng `omniroute setup-claude` ang live na `/v1/models` catalog at nagsusulat ng isang
+Kinukuha ng `omniroute setup-claude` ang kasalukuyang catalog na `/v1/models` at nagsusulat ng isang
 profile para sa bawat model sa `~/.claude/profiles/<name>/settings.json`, gamit muli ang
-**mga pangalan ding ginagamit ng `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+**mga kaparehong pangalan gaya ng `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -152,11 +152,11 @@ profile para sa bawat model sa `~/.claude/profiles/<name>/settings.json`, gamit 
 > aktibong context), o ikaw mismo ang mag-export ng `ANTHROPIC_AUTH_TOKEN` at patakbuhin ang
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Auto-sync pagkatapos ng model discovery (opt-in).** Maaaring awtomatikong buuin muli ng OmniRoute ang parehong
-mga `~/.claude/profiles/<name>/settings.json` file tuwing binabago ng pag-sync ng provider model
-ang live na catalog — kaya nagkakaroon ng mga profile ang mga bago o pinalitang-pangalan na model nang hindi muling pinapatakbo ang
+**Awtomatikong pag-sync pagkatapos ng model discovery (opt-in).** Maaaring awtomatikong muling buuin ng OmniRoute ang parehong
+mga file na `~/.claude/profiles/<name>/settings.json` tuwing binabago ng pag-sync ng provider model
+ang kasalukuyang catalog — kaya nagkakaroon ng mga profile ang mga bago o pinalitang-pangalan na model nang hindi muling pinapatakbo ang
 command. **Naka-off ito bilang default**: i-toggle ito mula sa **CLI Code dashboard** ("CLI profile
-auto-sync" → Claude Code), o itakda ang `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (sinusunod din nito ang
+auto-sync" → Claude Code), o itakda ang `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (iginagalang din nito ang
 `CLI_ALLOW_CONFIG_WRITES`, na naka-on bilang default). Kapag naka-enable, mga profile file lamang ang isinusulat nito; hindi nito kailanman
 binabago ang iyong aktibo/default na Claude config, auth, o ang `~/.claude/settings.json`.
 
@@ -166,11 +166,15 @@ binabago ang iyong aktibo/default na Claude config, auth, o ang `~/.claude/setti
 # Lokal na OmniRoute
 omniroute setup-claude
 
-# Remote na VPS (isinusulat ang VPS URL sa bawat profile)
+# Remote VPS (isinasama ang VPS URL sa bawat profile)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Ilang provider lamang
 omniroute setup-claude --only glm,kimi
+
+# Magsulat din ng mga profile para sa mga local-CLI provider (zcode, auggie, devin-cli-agentic,
+# codex-app-server) na hindi natukoy sa host na ito (nilalaktawan bilang default para sa lokal na target)
+omniroute setup-claude --include-local
 
 # I-preview nang hindi nagsusulat
 omniroute setup-claude --dry-run

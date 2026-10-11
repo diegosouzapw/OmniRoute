@@ -39,23 +39,24 @@
 ## ड्यासबोर्ड सेटअप
 
 1. **ChatGPT Web (Codex)** प्रदायक खोल्नुहोस् र एउटा जडान थप्नुहोस्।
-2. पूर्ण ChatGPT Cookie हेडर, टनेल ID, रनटाइम कुञ्जी, र कस्टम कनेक्टरको नाम
-   टाँस्नुहोस्। उपकरण-सक्षम नयाँ सेटअपहरूले ठ्याक्कै `OmniRoute Codex v2` नाम भएको
-   नयाँ सिर्जना गरिएको कनेक्टर प्रयोग गर्नुपर्छ, जसमा Authentication लाई None र
-   Permissions लाई Allow all actions मा सेट गरिएको हुनुपर्छ।
-3. जडान जाँच चलाउनुहोस्। OmniRoute ले ब्राउजर-समर्थित Temporary Chat खोल्छ र
+2. पूर्ण ChatGPT Cookie हेडर, tunnel ID, runtime key, र अनुकूलन connector को
+   नाम टाँस्नुहोस्। नयाँ उपकरण-सक्षम सेटअपहरूले ठ्याक्कै
+   `OmniRoute Codex v2` नाम दिइएको नयाँ connector प्रयोग गर्नुपर्छ, जसमा Authentication लाई None र Permissions लाई Allow all
+   actions मा सेट गरिएको हुनुपर्छ।
+3. जडान जाँच चलाउनुहोस्। OmniRoute ले ब्राउजरद्वारा समर्थित Temporary Chat खोल्छ र
    खाताका लागि Sol र Pro उपलब्ध छन् कि छैनन् भनेर पत्ता लगाउँछ।
-4. जडान सुरक्षित गर्नुहोस्। OmniRoute ले टाँसिएको कुकीलाई प्रमाणित Playwright भण्डारण
-   अवस्थाले प्रतिस्थापन गर्छ र इन्क्रिप्टेड क्रेडेन्सियल अमूर्तीकरणमार्फत त्यसलाई रनटाइम
-   कुञ्जीसँग भण्डारण गर्छ।
+4. जडान सुरक्षित गर्नुहोस्। OmniRoute ले टाँसिएको cookie लाई प्रमाणित
+   Playwright storage state ले प्रतिस्थापन गर्छ र encrypted
+   credential abstraction मार्फत runtime key सँगै भण्डारण गर्छ।
 
-सफलतापूर्वक सुरक्षित गरेपछि कच्चा कुकी राखिँदैन। सत्रको म्याद सकिएपछि जडान खोल्नुहोस्,
-नयाँ पूर्ण Cookie हेडर टाँस्नुहोस्, र जाँच पुनः चलाउनुहोस्। सम्पादन संवादमा रहेको doctor
-स्थितिले ब्राउजर, भण्डारण अवस्था, साइन-इन, Temporary Chat, टनेल, कनेक्टर, र उपकरणको
-राउन्ड-ट्रिपलाई छुट्टाछुट्टै रिपोर्ट गर्छ।
+सफलतापूर्वक सुरक्षित गरेपछि कच्चा cookie राखिँदैन। सत्रको म्याद सकिएपछि,
+जडान खोल्नुहोस्, नयाँ पूर्ण Cookie हेडर टाँस्नुहोस्, र जाँच पुनः चलाउनुहोस्। सम्पादन संवादमा रहेको doctor स्थितिले
+ब्राउजर, storage state, sign-in, Temporary Chat, tunnel,
+connector, र tool round-trip लाई छुट्टाछुट्टै रिपोर्ट गर्छ। सत्रहरू परिवर्तन हुँदा cookie अद्यावधिकहरू स्वचालित बनाउन,
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) मा रहेको सहायक उपकरण हेर्नुहोस्।
 
-> वास्तविक कुकी, रनटाइम कुञ्जी, भण्डारण अवस्था, वा क्षमता टोकन कहिल्यै कमिट नगर्नुहोस्।
-> परीक्षण र दस्तावेजीकरणका मानहरू सधैँ प्लेसहोल्डर हुनुपर्छ।
+> वास्तविक cookie, runtime key, storage state, वा capability token कहिल्यै commit नगर्नुहोस्। परीक्षण र
+> दस्तावेजीकरणका मानहरू सधैँ placeholders हुनुपर्छ।
 
 ## मोडेल र कम्बोहरू
 
@@ -130,7 +131,7 @@ upstream मा जडान गर्नुअघि HTTP/SSE fallback अन�
 
 ## प्रमाणीकरण
 
-सेवानिवृत्त provider लाई आह्वान नगरी provider controls चलाउनुहोस्:
+निवृत्त प्रदायकलाई आह्वान नगरी प्रदायक नियन्त्रणहरू चलाउनुहोस्:
 
 ```bash
 node --import tsx/esm --test \\
@@ -139,7 +140,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-सेवानिवृत्ति regression guards यहाँ छन्:
+निवृत्ति प्रतिगमन सुरक्षाहरू यहाँ छन्:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

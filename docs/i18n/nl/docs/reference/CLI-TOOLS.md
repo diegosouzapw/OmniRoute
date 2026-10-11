@@ -560,7 +560,7 @@ onder `/dashboard/cli-tools → Kiro`.
 
 ## 10. Interne OmniRoute-CLI
 
-Het binaire bestand `omniroute` biedt opdrachten voor de serverlevenscyclus, configuratie, diagnostiek en providerbeheer. Startpunt: `bin/omniroute.mjs`.
+Het binaire bestand `omniroute` biedt opdrachten voor serverlevenscyclusbeheer, configuratie, diagnostiek en providerbeheer. Toegangspunt: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Server starten (standaardpoort 20128)
@@ -570,7 +570,7 @@ omniroute providers list               # Geconfigureerde providerverbindingen
 omniroute providers test-all           # Elke actieve verbinding testen
 omniroute reset-password               # Het beheerderswachtwoord opnieuw instellen
 omniroute logs                         # Aanvraaglogboeken streamen
-omniroute health                       # Gedetailleerde status (stroomonderbrekers, cache, geheugen)
+omniroute health                       # Gedetailleerde status (circuitbreakers, cache, geheugen)
 omniroute --version                    # Versie weergeven
 omniroute --help                       # Alle opdrachten weergeven
 ```
@@ -594,23 +594,23 @@ Herkende omgevingsvariabelen voor niet-interactieve configuratie:
 | `OMNIROUTE_API_KEY` | API-sleutel van provider (via Commander `.env()` gekoppeld aan `--api-key`) |
 | `DATA_DIR`          | De OmniRoute-gegevensmap overschrijven                                      |
 
-Alle overige niet-interactieve invoer wordt als vlag doorgegeven, niet als omgevingsvariabele:
+Alle andere niet-interactieve invoer wordt doorgegeven als vlaggen, niet als omgevingsvariabelen:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (zie de bovenstaande opties voor `omniroute setup`).
 
 ### Diagnostiek
 
 ```bash
-omniroute doctor                       # Configuratie, DB, poorten, runtime, geheugen en beschikbaarheid controleren
+omniroute doctor                       # Configuratie, DB, poorten, runtime, geheugen en bereikbaarheid controleren
 omniroute doctor --json                # Machineleesbare JSON
 omniroute doctor --no-liveness         # De HTTP-statuscontrole overslaan
-omniroute doctor --host 0.0.0.0        # Host voor beschikbaarheidscontrole overschrijven
+omniroute doctor --host 0.0.0.0        # Host voor bereikbaarheidscontrole overschrijven
 omniroute doctor --liveness-url <url>  # Volledige URL van statuseindpunt overschrijven
 ```
 
-De doctor voert deze controles uit: `Config`, `Database`, `Storage/encryption`,
+De doctor voert de volgende controles uit: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` en `Server liveness`. De opdracht wordt afgesloten met een niet-nulwaarde als een controle de status `fail` heeft.
+`Memory` en `Server liveness`. De opdracht wordt afgesloten met een andere code dan nul als een controle `fail` is.
 
 ### Providerbeheer
 
@@ -633,41 +633,54 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` werken primair via de API en daardoor met
-de actieve lokale of externe context. Gebruik voor invoer van referenties
+`providers add/import/auth/edit/remove` werken primair via de API en werken daarom met
+de actieve lokale of externe context. Gebruik voor invoer van aanmeldgegevens
 `--credential-stdin` of `--credential-env`; `--dry-run --json` rapporteert uitsluitend
-geredigeerde aanwezigheid/structuur. `providers available` leest de OmniRoute-catalogus;
+geredigeerde informatie over aanwezigheid/structuur. `providers available` leest de OmniRoute-catalogus;
 `providers list/test/test-all/validate` behouden hun lokale SQLite-gedrag en
 vereisen niet dat de server actief is.
+
+Koppel voor een aangepast OpenAI-compatibel of Anthropic-compatibel knooppunt aanmeldgegevens aan
+de knooppunt-ID die door `omniroute nodes add` wordt geretourneerd, met `omniroute keys add "$NODE_ID" --stdin`.
+Hiervoor zijn een actieve server en beheerauthenticatie voor de actieve context vereist.
+De CLI gebruikt `POST /api/providers`, waarmee het knooppunt wordt gevalideerd en de eindpuntinstellingen
+ervan naar de verbinding worden gekopieerd. Een ontbrekend knooppunt, een autorisatiefout of een niet-beschikbare
+server resulteert in een fout zonder lokale vervangende aanmeldgegevens aan te maken.
+
+`nodes add --base-url` stelt het knooppunteindpunt in; dit verschilt van het serveradres
+in `OMNIROUTE_BASE_URL`. Gebruik voor OpenAPI-bestanden
+`omniroute openapi dump --format json --out ./openapi.json`; de globale optie `--output`
+selecteert de weergave-indeling van de CLI, niet de bestandsnaam van de bestemming.
 
 ### Herstel en opnieuw instellen
 
 ```bash
 omniroute reset-password                # Het beheerderswachtwoord opnieuw instellen (ook: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Waarschuwing en testuitvoering voor het opnieuw instellen van versleutelde referenties weergeven
-omniroute reset-encrypted-columns --force  # Versleutelde referenties daadwerkelijk op null instellen in SQLite
+omniroute reset-encrypted-columns       # Waarschuwing en proefuitvoering voor het opnieuw instellen van versleutelde aanmeldgegevens weergeven
+omniroute reset-encrypted-columns --force  # Versleutelde aanmeldgegevens daadwerkelijk op null zetten in SQLite
 ```
 
-### Export van referenties (⚠ ga hier voorzichtig mee om)
+### Export van aanmeldgegevens (⚠ voorzichtig behandelen)
 
 ```bash
-omniroute auth export                                 # Waarschuwing en bevestigingsstap weergeven — geen databasetoegang
-omniroute auth export --force                          # ONTSLEUTELDE referenties van ALLE verbindingen als JSON naar stdout exporteren
+omniroute auth export                                 # Waarschuwing en bevestiging weergeven — geen DB-toegang
+omniroute auth export --force                          # ONTSLEUTELDE aanmeldgegevens van ALLE verbindingen als JSON naar stdout exporteren
 omniroute auth export --force --id <id>                 # Alleen de overeenkomende verbinding exporteren
 omniroute auth export --force --format env               # Regels in de vorm OMNIROUTE_<PROVIDER>_<FIELD>=<value> uitvoeren
 omniroute auth export --force --out creds.json           # Naar een bestand schrijven (aangemaakt met machtigingen 0600)
 ```
 
-`auth export` is **uitsluitend lokaal** (rechtstreeks lezen uit SQLite, geen HTTP-route) en toont/schrijft opzettelijk
-**platte tekst**-waarden voor `apiKey`/`accessToken`/`refreshToken`/`idToken` — dat is de functie, geen
-fout. Zonder `--force` wordt niets uit de database gelezen en wordt niets ontsleuteld. Er wordt altijd een
-waarschuwingsbanner naar stderr geschreven voordat platte tekst wordt uitgevoerd. Vereist dat `STORAGE_ENCRYPTION_KEY`
-is ingesteld. Een veld dat niet kan worden ontsleuteld (verouderde sleutel, beschadigde versleutelde tekst) wordt gerapporteerd als
-`<field>DecryptFailed: true`, in plaats van de volledige export af te breken of de onderliggende fout bloot te leggen.
+`auth export` is **alleen lokaal** (leest SQLite rechtstreeks uit, zonder HTTP-route) en toont/schrijft bewust
+**platte tekst**-waarden voor `apiKey`/`accessToken`/`refreshToken`/`idToken` — dat is een functie, geen
+bug. Zonder `--force` wordt niets uit de database gelezen en niets ontsleuteld. Er wordt altijd een
+waarschuwingsbanner naar stderr geschreven voordat er platte tekst wordt uitgevoerd. Vereist dat
+`STORAGE_ENCRYPTION_KEY` is ingesteld. Een veld dat niet kan worden ontsleuteld (verouderde sleutel,
+beschadigde cijfertekst), wordt gerapporteerd als `<field>DecryptFailed: true` in plaats van de
+volledige export af te breken of de onderliggende fout prijs te geven.
 
-### Overige subopdrachten
+### Andere subopdrachten
 
-Deze gaan ervan uit dat er een OmniRoute-server actief is, tenzij anders aangegeven:
+Deze gaan ervan uit dat er een OmniRoute-server actief is, tenzij anders vermeld:
 
 ```bash
 omniroute status                       # Uitgebreide runtimestatus
@@ -675,7 +688,7 @@ omniroute logs                         # Aanvraaglogboeken streamen (--json, --s
 omniroute config list                  # Geconfigureerde CLI-tools weergeven
 
 omniroute provider list                # Beschikbare providers weergeven (alias van providers list)
-omniroute provider add                 # OmniRoute als provider registreren bij een tool
+omniroute provider add                 # OmniRoute als provider registreren voor een tool
 omniroute keys add | list | remove     # API-sleutels beheren
 omniroute models [provider]            # Modellen weergeven (--json, --search)
 omniroute combo list | switch | create | delete
@@ -686,7 +699,7 @@ omniroute restore                      # Herstellen vanuit een eerdere momentopn
 omniroute health                       # Gedetailleerde status (stroomonderbrekers, cache, geheugen)
 omniroute quota                        # Gebruik van providerquota
 omniroute cache                        # Cachestatus
-omniroute cache clear                  # Semantische cache + handtekeningcache wissen
+omniroute cache clear                  # Semantische caches en handtekeningcaches wissen
 
 omniroute mcp status | restart         # MCP-serverstatus / opnieuw starten
 omniroute a2a status | card            # A2A-serverstatus / agentkaart
@@ -699,16 +712,16 @@ omniroute update                       # Controleren op updates
 omniroute completion                   # Shell-aanvulling genereren
 ```
 
-### Veelgebruikte vlaggen
+### Algemene vlaggen
 
 | Vlag                | Beschrijving                                                   |
 | ------------------- | -------------------------------------------------------------- |
-| `--no-open`         | Browser bij het starten niet automatisch openen                |
-| `--port <n>`        | De API-poort overschrijven (standaard 20128)                   |
-| `--mcp`             | Als MCP-server via stdio uitvoeren (voor IDE's)                |
+| `--no-open`         | Browser niet automatisch openen bij het starten                |
+| `--port <n>`        | API-poort overschrijven (standaard 20128)                      |
+| `--mcp`             | Als MCP-server uitvoeren via stdio (voor IDE's)                |
 | `--non-interactive` | CI-modus (geen prompts; leest uit omgevingsvariabelen/vlaggen) |
-| `--json`            | Machineleesbare JSON-uitvoer (doctor, providers, enz.)         |
-| `--help`, `-h`      | Opdrachtspecifieke hulp weergeven                              |
+| `--json`            | Machineleesbare JSON-uitvoer (doctor, providers enz.)          |
+| `--help`, `-h`      | Opdrachtspecifieke Help weergeven                              |
 | `--version`, `-v`   | De geïnstalleerde versie weergeven                             |
 
 ---

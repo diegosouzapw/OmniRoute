@@ -38,29 +38,17 @@ Tunel jest wymagany tylko w turach korzystających z narzędzi. Każda wymienion
 w tym `pro`, może korzystać z tej samej lokalnej funkcji narzędzi powiązanej z turą,
 gdy tunel i konektor są skonfigurowane.
 
-## Konfiguracja w panelu
+## Konfiguracja pulpitu
 
 1. Otwórz dostawcę **ChatGPT Web (Codex)** i dodaj połączenie.
-2. Wklej pełny nagłówek Cookie z ChatGPT, identyfikator tunelu, klucz środowiska
-   uruchomieniowego oraz nazwę niestandardowego konektora. Nowe konfiguracje obsługujące
-   narzędzia muszą używać nowo utworzonego konektora o nazwie dokładnie
-   `OmniRoute Codex v2`, z opcją Authentication ustawioną na None i opcją Permissions
-   ustawioną na Allow all actions.
-3. Uruchom sprawdzanie połączenia. OmniRoute otworzy obsługiwany przez przeglądarkę
-   Temporary Chat i wykryje, czy funkcje Sol oraz Pro są dostępne dla konta.
-4. Zapisz połączenie. OmniRoute zastąpi wklejony plik cookie zweryfikowanym stanem
-   pamięci Playwright i zapisze go wraz z kluczem środowiska uruchomieniowego za
-   pośrednictwem szyfrowanej abstrakcji poświadczeń.
+2. Wklej pełny nagłówek Cookie ChatGPT, identyfikator tunelu, klucz środowiska uruchomieniowego oraz nazwę niestandardowego łącznika. Nowe konfiguracje obsługujące narzędzia muszą używać nowo utworzonego łącznika o dokładnej nazwie `OmniRoute Codex v2`, z opcją Uwierzytelnianie ustawioną na Brak i opcją Uprawnienia ustawioną na Zezwalaj na wszystkie działania.
+3. Uruchom sprawdzanie połączenia. OmniRoute otworzy obsługiwany przez przeglądarkę czat tymczasowy i wykryje, czy opcje Sol i Pro są dostępne dla konta.
+4. Zapisz połączenie. OmniRoute zastąpi wklejony plik cookie zweryfikowanym stanem magazynu Playwright i zapisze go wraz z kluczem środowiska uruchomieniowego za pośrednictwem szyfrowanej abstrakcji danych uwierzytelniających.
 
-Nieprzetworzony plik cookie nie jest zachowywany po pomyślnym zapisaniu. Gdy sesja
-wygaśnie, otwórz połączenie, wklej nowy pełny nagłówek Cookie i ponownie uruchom
-sprawdzanie. Status diagnostyczny w oknie dialogowym edycji osobno raportuje stan
-przeglądarki, pamięci, logowania, Temporary Chat, tunelu, konektora oraz obiegu
-narzędziowego.
+Nieprzetworzony plik cookie nie jest przechowywany po pomyślnym zapisaniu. Gdy sesja wygaśnie, otwórz połączenie, wklej nowy, pełny nagłówek Cookie i ponownie uruchom sprawdzanie. Status diagnostyczny w oknie dialogowym edycji osobno raportuje stan przeglądarki, magazynu, logowania, czatu tymczasowego, tunelu, łącznika oraz komunikacji zwrotnej z narzędziem. Aby zautomatyzować aktualizacje plików cookie podczas rotacji sesji, zapoznaj się z narzędziem towarzyszącym opisanym w dokumencie [Rozszerzenie synchronizacji sesji przeglądarki](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nigdy nie umieszczaj w repozytorium prawdziwego pliku cookie, klucza środowiska
-> uruchomieniowego, stanu pamięci ani tokenu możliwości. Wartości używane w testach
-> i dokumentacji muszą zawsze być symbolami zastępczymi.
+> Nigdy nie zatwierdzaj w repozytorium prawdziwego pliku cookie, klucza środowiska uruchomieniowego, stanu magazynu ani tokenu uprawnień. Wartości używane w testach i
+> dokumentacji muszą zawsze być symbolami zastępczymi.
 
 ## Modele i kombinacje
 
@@ -139,7 +127,7 @@ awaryjnego przejścia na HTTP/SSE przed połączeniem z usługą nadrzędną. Tr
 
 ## Weryfikacja
 
-Uruchom mechanizmy kontroli dostawcy bez wywoływania wycofanego dostawcy:
+Uruchom testy kontrolne dostawcy bez wywoływania wycofanego dostawcy:
 
 ```bash
 node --import tsx/esm --test \\
@@ -148,7 +136,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Testy chroniące przed regresją związaną z wycofaniem znajdują się w:
+Testy zabezpieczające przed regresją po wycofaniu znajdują się w:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

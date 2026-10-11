@@ -606,16 +606,16 @@ pod `/dashboard/cli-tools → Kiro`.
 
 ## 10. Интерни OmniRoute CLI
 
-Извршна датотека `omniroute` пружа команде за управљање животним циклусом сервера, подешавање, дијагностику и управљање добављачима. Улазна тачка: `bin/omniroute.mjs`.
+Бинарна датотека `omniroute` пружа команде за управљање животним циклусом сервера, подешавање, дијагностику и управљање провајдерима. Улазна тачка: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Покрени сервер (подразумевани порт 20128)
 omniroute setup                        # Интерактивни чаробњак за подешавање
-omniroute doctor                       # Провери конфигурацију, базу података, портове и извршно окружење
-omniroute providers list               # Конфигурисане везе са добављачима
+omniroute doctor                       # Провери конфигурацију, базу података, портове и окружење за извршавање
+omniroute providers list               # Конфигурисане везе са провајдерима
 omniroute providers test-all           # Тестирај сваку активну везу
 omniroute reset-password               # Ресетуј администраторску лозинку
-omniroute logs                         # Приказуј евиденцију захтева у реалном времену
+omniroute logs                         # Приказуј дневнике захтева у реалном времену
 omniroute health                       # Детаљно стање (прекидачи, кеш, меморија)
 omniroute --version                    # Прикажи верзију
 omniroute --help                       # Прикажи све команде
@@ -625,53 +625,53 @@ omniroute --help                       # Прикажи све команде
 
 ```bash
 omniroute setup                        # Интерактивни чаробњак за подешавање
-omniroute setup --non-interactive      # Режим за CI/аутоматизацију (чита променљиве окружења + опције)
+omniroute setup --non-interactive      # Режим за CI/аутоматизацију (чита променљиве окружења и опције)
 omniroute setup --password '<value>'   # Директно постави администраторску лозинку
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Додај и тестирај добављача у једном кораку
+  --test-provider                      # Додај и тестирај провајдера у једном кораку
 ```
 
 Препознате променљиве окружења за неинтерактивно подешавање:
 
-| Променљива          | Намена                                                               |
-| ------------------- | -------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API кључ добављача (повезан са `--api-key` преко Commander `.env()`) |
-| `DATA_DIR`          | Замена директоријума за OmniRoute податке                            |
+| Променљива          | Намена                                                                       |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API кључ провајдера (повезан са `--api-key` преко Commander методе `.env()`) |
+| `DATA_DIR`          | Замена OmniRoute директоријума за податке                                    |
 
 Сви остали неинтерактивни улази прослеђују се као опције, а не као променљиве окружења:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(погледајте горенаведене опције за `omniroute setup`).
+(погледајте опције за `omniroute setup` изнад).
 
 ### Дијагностика
 
 ```bash
-omniroute doctor                       # Провери конфигурацију, базу података, портове, извршно окружење, меморију и доступност
+omniroute doctor                       # Провери конфигурацију, базу података, портове, окружење за извршавање, меморију и доступност
 omniroute doctor --json                # Машински читљив JSON
 omniroute doctor --no-liveness         # Прескочи HTTP проверу стања
 omniroute doctor --host 0.0.0.0        # Замени хост за проверу доступности
-omniroute doctor --liveness-url <url>  # Замени пуну URL адресу крајње тачке за проверу стања
+omniroute doctor --liveness-url <url>  # Замени пуни URL крајње тачке за проверу стања
 ```
 
 Команда doctor извршава следеће провере: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` и `Server liveness`. Завршава се кодом различитим од нуле ако било која провера има вредност `fail`.
+`Memory` и `Server liveness`. Завршава се ненултим излазним кодом ако било која провера има статус `fail`.
 
-### Управљање добављачима
+### Управљање провајдерима
 
 ```bash
-omniroute providers available                       # OmniRoute каталог добављача
-omniroute providers available --search openai       # Филтрирај каталог према идентификатору/називу/псеудониму/категорији
+omniroute providers available                       # OmniRoute каталог провајдера
+omniroute providers available --search openai       # Филтрирај каталог према ID-у/називу/алијасу/категорији
 omniroute providers available --category api-key    # Филтрирај према категорији (api-key, oauth, free, ...)
 omniroute providers available --json                # Машински читљив JSON
 
-omniroute providers list                            # Конфигурисане везе са добављачима
+omniroute providers list                            # Конфигурисане везе са провајдерима
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Тестирај једну конфигурисану везу
 omniroute providers test-all                        # Тестирај сваку активну везу
-omniroute providers validate                        # Само локална структурна валидација
+omniroute providers validate                        # Структурна валидација само локалних података
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Постојећи OAuth ток
@@ -686,38 +686,50 @@ omniroute providers remove <id|name> --yes
 `providers list/test/test-all/validate` задржавају своје локално SQLite понашање и
 не захтевају да сервер буде покренут.
 
+За прилагођени чвор компатибилан са OpenAI или Anthropic системом, придружите акредитиве
+ID-у чвора који врати `omniroute nodes add`, користећи `omniroute keys add "$NODE_ID" --stdin`.
+Ово захтева покренут сервер и управљачку аутентификацију за активни контекст.
+CLI користи `POST /api/providers`, који валидира чвор и копира подешавања његове крајње тачке
+у везу. Ако чвор недостаје, ауторизација не успе или сервер није доступан,
+враћа се грешка без креирања резервног локалног акредитива.
+
+`nodes add --base-url` поставља крајњу тачку чвора; она се разликује од адресе сервера
+у `OMNIROUTE_BASE_URL`. За OpenAPI датотеке користите
+`omniroute openapi dump --format json --out ./openapi.json`; глобална опција `--output`
+бира формат приказа CLI-ја, а не назив одредишне датотеке.
+
 ### Опоравак и ресетовање
 
 ```bash
 omniroute reset-password                # Ресетуј администраторску лозинку (такође: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Прикажи упозорење + пробно извршавање ресетовања шифрованих акредитива
-omniroute reset-encrypted-columns --force  # Заиста постави шифроване акредитиве у SQLite-у на null
+omniroute reset-encrypted-columns       # Прикажи упозорење и пробно извршавање за ресетовање шифрованих акредитива
+omniroute reset-encrypted-columns --force  # Заиста постави шифроване акредитиве у SQLite бази на null
 ```
 
 ### Извоз акредитива (⚠ поступајте опрезно)
 
 ```bash
-omniroute auth export                                 # Прикажи упозорење + захтев за потврду — без приступа бази података
-omniroute auth export --force                          # Извези ДЕШИФРОВАНЕ акредитиве СВИХ веза у stdout као JSON
+omniroute auth export                                 # Прикажи упозорење и затражи потврду — без приступа бази података
+omniroute auth export --force                          # Извези ДЕШИФРОВАНЕ акредитиве СВИХ веза на стандардни излаз као JSON
 omniroute auth export --force --id <id>                 # Извези само одговарајућу везу
 omniroute auth export --force --format env               # Испиши редове OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Упиши у датотеку (направљену са дозволама 0600)
+omniroute auth export --force --out creds.json           # Упиши у датотеку (креирану са дозволама 0600)
 ```
 
-`auth export` је **искључиво локална** команда (директно читање SQLite-а, без HTTP руте) и намерно приказује/уписује
-вредности `apiKey`/`accessToken`/`refreshToken`/`idToken` као **обичан текст** — то је функционалност, а не
-грешка. Без `--force` ништа се не чита из базе података и ништа се не дешифрује. Банер са упозорењем
-увек се исписује у stderr пре него што се емитује било какав обичан текст. Захтева да `STORAGE_ENCRYPTION_KEY`
-буде постављен. Поље чије дешифровање не успе (застарео кључ, оштећен шифрат) пријављује се као
-`<field>DecryptFailed: true`, уместо да се прекине цео извоз или открије основна грешка.
+`auth export` је **искључиво локална** команда (директно чита SQLite, без HTTP руте) и намерно исписује/уписује
+**отворене** вредности `apiKey`/`accessToken`/`refreshToken`/`idToken` — то је функционалност, а не
+грешка. Ништа се не чита из базе података и ништа се не дешифрује без опције `--force`. Банер са
+упозорењем се увек исписује на stderr пре него што се емитује било који отворени текст. Захтева да
+`STORAGE_ENCRYPTION_KEY` буде подешен. Поље које не може да се дешифрује (застарели кључ, оштећен шифрат)
+пријављује се као `<field>DecryptFailed: true`, уместо да се прекине цео извоз или открије основна грешка.
 
 ### Остале поткоманде
 
 Оне подразумевају да је OmniRoute сервер покренут, осим ако није другачије наведено:
 
 ```bash
-omniroute status                       # Свеобухватан статус током извршавања
-omniroute logs                         # Праћење дневника захтева у реалном времену (--json, --search, --follow)
+omniroute status                       # Свеобухватан статус извршавања
+omniroute logs                         # Стримовање евиденције захтева (--json, --search, --follow)
 omniroute config list                  # Приказ конфигурисаних CLI алата
 
 omniroute provider list                # Листа доступних добављача (алијас за providers list)
@@ -726,23 +738,23 @@ omniroute keys add | list | remove     # Управљање API кључевим
 omniroute models [provider]            # Листа модела (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Прављење снимка конфигурације и базе података
+omniroute backup                       # Снимак конфигурације + базе података
 omniroute restore                      # Враћање из претходног снимка
 
 omniroute health                       # Детаљно стање (прекидачи, кеш, меморија)
 omniroute quota                        # Искоришћеност квоте добављача
 omniroute cache                        # Статус кеша
-omniroute cache clear                  # Брисање семантичког кеша и кеша потписа
+omniroute cache clear                  # Брисање семантичког кеша + кеша потписа
 
 omniroute mcp status | restart         # Статус / поновно покретање MCP сервера
 omniroute a2a status | card            # Статус A2A сервера / картица агента
 
 omniroute tunnel list | create | stop  # Управљање тунелима (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Преглед / постављање променљивих окружења (привремено)
+omniroute env show | get <k> | set <k> <v>  # Преглед / подешавање променљивих окружења (привремено)
 
-omniroute test                         # Брзи тест повезивања са добављачем
+omniroute test                         # Основни тест повезивања са добављачем
 omniroute update                       # Провера доступности ажурирања
-omniroute completion                   # Генерисање довршавања команди за љуску
+omniroute completion                   # Генерисање допуњавања команди за љуску
 ```
 
 ### Уобичајене опције
@@ -750,7 +762,7 @@ omniroute completion                   # Генерисање довршавањ
 | Опција              | Опис                                                 |
 | ------------------- | ---------------------------------------------------- |
 | `--no-open`         | Не отварај аутоматски прегледач при покретању        |
-| `--port <n>`        | Промени API порт (подразумевано 20128)               |
+| `--port <n>`        | Замени API порт (подразумевано 20128)                |
 | `--mcp`             | Покрени као MCP сервер преко stdio (за IDE окружења) |
 | `--non-interactive` | CI режим (без упита; чита из окружења/опција)        |
 | `--json`            | Машински читљив JSON излаз (doctor, providers итд.)  |

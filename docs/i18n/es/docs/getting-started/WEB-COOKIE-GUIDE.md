@@ -4,9 +4,9 @@
 
 ---
 
-Los proveedores de cookies web permiten que OmniRoute use un servicio de IA a través de tu sesión actual del navegador en lugar de una clave de API. Son útiles cuando ya tienes acceso a un servicio mediante su sitio web y quieres que OmniRoute use la misma sesión autenticada.
+Los proveedores de cookies web permiten que OmniRoute use un servicio de IA mediante tu sesión existente del navegador en lugar de una clave de API. Son útiles cuando ya tienes acceso a un servicio a través de su sitio web y quieres que OmniRoute use la misma sesión autenticada.
 
-A diferencia de los proveedores con clave de API, los proveedores de cookies web se autentican usando las credenciales que tu navegador envía al sitio web.
+A diferencia de los proveedores con clave de API, los proveedores de cookies web se autentican mediante las credenciales que tu navegador envía al sitio web.
 
 ---
 
@@ -32,11 +32,11 @@ Aunque estas cookies parezcan correctas, pueden estar:
 - incompletas
 - sin cookies que solo se envían en solicitudes autenticadas
 
-El uso de estos valores puede provocar errores de autenticación, aunque parezcan válidos.
+Usar estos valores puede provocar errores de autenticación aunque parezcan válidos.
 
 ## Copia las cookies de una solicitud activa
 
-En su lugar, usa las cookies de una solicitud correcta:
+En su lugar, usa las cookies de una solicitud realizada correctamente:
 
 ```
 Herramientas para desarrolladores
@@ -47,9 +47,9 @@ Herramientas para desarrolladores
 → Cookie
 ```
 
-El encabezado de solicitud `Cookie` contiene la información de autenticación exacta que tu navegador ha utilizado correctamente.
+El encabezado de solicitud `Cookie` contiene la información de autenticación exacta que tu navegador usó correctamente.
 
-Para la mayoría de los proveedores de cookies web, este es el valor que debes pegar en OmniRoute.
+Para la mayoría de los proveedores de cookies web, este es el valor que debe pegarse en OmniRoute.
 
 ---
 
@@ -62,7 +62,7 @@ El proceso de configuración es el mismo para la mayoría de los proveedores de 
 3. Abre la pestaña **Red**.
 4. Actualiza la página.
 5. Abre una solicitud autenticada de chat o conversación.
-6. Copia las credenciales de autenticación necesarias.
+6. Copia las credenciales de autenticación requeridas.
 7. Abre OmniRoute.
 8. Ve a **Proveedores → Añadir proveedor**.
 9. Selecciona tu proveedor de cookies web.
@@ -70,25 +70,75 @@ El proceso de configuración es el mismo para la mayoría de los proveedores de 
 11. Haz clic en **Probar conexión**.
 12. Guarda el proveedor.
 
-Las credenciales exactas necesarias dependen del proveedor.
+Las credenciales exactas requeridas dependen del proveedor.
 
 ---
 
 # Formatos de credenciales de los proveedores
 
-Los distintos sitios web almacenan la autenticación de formas diferentes. Algunos solo requieren cookies, mientras que otros pueden necesitar encabezados o tokens adicionales.
+Los distintos sitios web almacenan la autenticación de diferentes maneras. Algunos solo requieren cookies, mientras que otros pueden requerir encabezados o tokens adicionales.
 
-| Proveedor                       | Formato de credenciales                    | Guía del proveedor               |
-| ------------------------------- | ------------------------------------------ | -------------------------------- |
-| Claude Web                      | Encabezado completo de la solicitud Cookie | `docs/providers/CLAUDE_WEB.md`   |
-| ChatGPT Web (Codex)             | Encabezado Cookie completo                 | `docs/providers/CHATGPT_WEB.md`  |
-| Gemini Web                      | _(por verificar)_                          |                                  |
-| Copilot Web                     | _(por verificar)_                          | `docs/providers/COPILOT-M365.md` |
-| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath              | `docs/providers/COPILOT-M365.md` |
-| Grok Web                        | _(por verificar)_                          |                                  |
-| ...                             | ...                                        | ...                              |
+| Proveedor                       | Formato de credenciales                   | Guía del proveedor               |
+| ------------------------------- | ----------------------------------------- | -------------------------------- |
+| Claude Web                      | Encabezado completo de solicitud `Cookie` | `docs/providers/CLAUDE_WEB.md`   |
+| ChatGPT Web (Codex)             | Encabezado completo `Cookie`              | `docs/providers/CHATGPT_WEB.md`  |
+| Gemini Web                      | _(verificar)_                             |                                  |
+| Copilot Web                     | _(verificar)_                             | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath             | `docs/providers/COPILOT-M365.md` |
+| Grok Web                        | _(verificar)_                             |                                  |
+| ...                             | ...                                       | ...                              |
 
-> Actualiza esta tabla a medida que se añadan nuevos proveedores de cookies web o que los proveedores existentes cambien sus requisitos de autenticación.
+> Actualiza esta tabla a medida que se añadan nuevos proveedores de cookies web o cambien los requisitos de autenticación de los proveedores existentes.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) es una plataforma gratuita de chat para consumidores que no requiere registro; la sesión se crea de forma anónima en la primera visita y persiste mediante tres cookies: `uid`, `si_usr_id` y `si_ses_id`. OmniRoute utiliza como proxy el mismo endpoint `/api/dispatch` mediante un único id de modelo (`notrack-c`, alias `ntw`).
+
+### Pasos para conectarse
+
+1. Abra [notrack.ai](https://notrack.ai) en su navegador y permita que se establezca la cookie de sesión anónima.
+2. Abra **Herramientas de desarrollo → Red**, actualice la página y haga clic en cualquier solicitud a `/api`.
+3. En **Encabezados de solicitud**, copie el valor completo del encabezado `Cookie`.
+4. En OmniRoute, vaya a **Proveedores → Añadir proveedor → NoTrack Web (Gratis)**.
+5. Pegue la cadena de cookies en el campo `apiKey` y haga clic en **Guardar**.
+
+OmniRoute extrae `uid`, `si_usr_id` y `si_ses_id` de la cadena pegada y reconstruye un encabezado `Cookie` limpio que contiene únicamente esos pares, además de `nt_session` (el token `ntk_…` establecido para las cuentas autenticadas), cuando está presente. Si falta cualquiera de los tres, la cadena original pegada se reenvía sin cambios para que los operadores puedan experimentar con formatos alternativos.
+
+### Id. de modelos
+
+| Id. de modelo | Nombre mostrado | Notas                                                          |
+| ------------- | --------------- | -------------------------------------------------------------- |
+| `notrack-c`   | NoTrack C       | Predeterminado: el modelo de despacho ascendente `C`.          |
+| `C`           | NoTrack C       | Alias de `notrack-c` (código de despacho ascendente original). |
+| `notrack`     | NoTrack C       | Alias de `notrack-c`.                                          |
+| `ntw`         | NoTrack C       | Alias corto de `notrack-c`.                                    |
+
+Los cuatro id. de modelos se asignan al mismo modelo de despacho ascendente (`C`).
+
+### Opciones de solicitud
+
+El ejecutor acepta estos campos opcionales en el cuerpo de la solicitud:
+
+| Campo del cuerpo      | Valor predeterminado | Propósito                                                                               |
+| --------------------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`              | Modo de despacho (cadena de formato libre; el servicio ascendente acepta `usual`, …)    |
+| `notrack_max_turns`   | `6`                  | Número de turnos internos que el servicio ascendente puede realizar antes de responder. |
+| `notrack_chat_id`     | `null`               | Reanuda un chat ascendente existente (omítalo para iniciar un chat nuevo).              |
+| `notrack_attachments` | `[]`                 | Matriz transferida sin cambios de descriptores de archivos adjuntos ascendentes.        |
+| `notrack_regenerate`  | `false`              | Establézcalo en `true` para solicitar una respuesta regenerada para el turno anterior.  |
+
+### Capacidades
+
+- Finalizaciones de chat **con streaming y sin streaming**.
+- **Llamadas a herramientas**: establezca `tools: [...]` en la solicitud; el ejecutor las serializa en un contrato de envoltura para llamadas a herramientas y vuelve a convertir las respuestas del modelo en `tool_calls` de OpenAI.
+- **`response_format`**: se admiten `json_object` y `json_schema`. El ejecutor extrae el primer objeto JSON de la respuesta del modelo y lo convierte en una cadena antes de devolverlo.
+- **Indicio de razonamiento**: el ejecutor emite un delta `reasoning` cuando el servicio ascendente envía un evento `thinking`.
+
+### Limitaciones
+
+- El servicio ascendente aplica cuotas de uso anónimo; cuando se alcanzan, el ejecutor devuelve un error 429 con un mensaje descriptivo.
+- Todos los id. de modelos se resuelven al mismo modelo de despacho ascendente; no existe un selector por modelo.
+- El ejecutor no llama al endpoint `/api/chats` del servicio ascendente, por lo que el historial de chat y las sesiones no se administran automáticamente. Use `notrack_chat_id` para reanudar un chat ascendente existente.
 
 ---
 
@@ -98,8 +148,8 @@ Los proveedores de cookies web reutilizan la interfaz de chat de un sitio web. *
 
 ## Compatible
 
-- Autenticación mediante tu sesión actual del navegador
-- Acceso a los modelos disponibles en tu cuenta
+- Autenticación mediante la sesión existente de tu navegador
+- Acceso a los modelos disponibles a través de tu cuenta
 - Transmisión en tiempo real de las respuestas del chat
 - No se requiere una clave de API
 
@@ -113,15 +163,15 @@ Los proveedores de cookies web reutilizan la interfaz de chat de un sitio web. *
 
 Este es el comportamiento esperado y **no** es un error.
 
-Si necesitas ejecutar herramientas, editar archivos automáticamente u otros flujos de trabajo con agentes, usa un **proveedor con clave de API** en lugar de un proveedor de cookies web.
+Si necesitas ejecutar herramientas, editar archivos automáticamente u otros flujos de trabajo con agentes, utiliza un **proveedor con clave de API** en lugar de un proveedor de cookies web.
 
 ---
 
 # Advertencia sobre la validación
 
-Una **Prueba de conexión** correcta o una validación correcta de las cookies solo verifica que las credenciales proporcionadas parezcan tener el formato esperado.
+Una **prueba de conexión** o validación de cookies correcta solo verifica que las credenciales proporcionadas parezcan tener el formato esperado.
 
-Hasta que se resuelva la incidencia #7857, una validación correcta **no garantiza** que el proveedor pueda autenticarse correctamente.
+Hasta que se resuelva el problema #7857, una validación correcta **no garantiza** que el proveedor pueda autenticarse correctamente.
 
 Si la autenticación sigue fallando, comprueba que hayas copiado las credenciales de una solicitud de red activa y no del almacenamiento de cookies del navegador.
 
@@ -131,15 +181,15 @@ Si la autenticación sigue fallando, comprueba que hayas copiado las credenciale
 
 ## Error de autenticación
 
-Comprueba que las credenciales se hayan copiado de:
+Comprueba que las credenciales se hayan copiado desde:
 
 ```
 Red
-→ Encabezados de solicitud
+→ Encabezados de la solicitud
 → Cookie
 ```
 
-y **no** de:
+y **no** desde:
 
 ```
 Aplicación
@@ -150,7 +200,7 @@ Aplicación
 
 ## La cookie funciona en el navegador, pero no en OmniRoute
 
-Algunos proveedores incluyen cookies que solo se envían durante las solicitudes autenticadas.
+Algunos proveedores incluyen cookies que solo se envían durante solicitudes autenticadas.
 
 Vuelve a copiar las credenciales de una solicitud de red reciente después de abrir correctamente una conversación.
 
@@ -158,15 +208,15 @@ Vuelve a copiar las credenciales de una solicitud de red reciente después de ab
 
 ## Sesión caducada
 
-Los proveedores de cookies web usan tu sesión actual del navegador.
+Los proveedores de cookies web utilizan la sesión existente de tu navegador.
 
-Si la sesión de tu navegador caduca o cierras sesión, debes copiar un nuevo conjunto de credenciales.
+Si la sesión de tu navegador caduca o cierras sesión, debes copiar un nuevo conjunto de credenciales. Para automatizar la renovación de cookies de los proveedores web compatibles, consulta la herramienta complementaria [Extensión de sincronización de sesiones del navegador](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
 ## La prueba de conexión se supera, pero las solicitudes fallan
 
-Hasta que se resuelva la incidencia #7857, superar la validación no garantiza que la solicitud de autenticación vaya a realizarse correctamente.
+Hasta que se resuelva el problema #7857, superar la validación no garantiza que la solicitud de autenticación se realice correctamente.
 
 Vuelve a copiar tus credenciales de una solicitud autenticada reciente antes de continuar con la solución de problemas.
 
@@ -186,6 +236,6 @@ La guía de Claude Web muestra el proceso completo de configuración de un prove
 
 - Copia las credenciales de una solicitud autenticada reciente.
 - Evita reutilizar cookies antiguas.
-- Mantén activa la sesión de tu navegador mientras uses proveedores de cookies web.
+- Mantén activa la sesión de tu navegador mientras utilizas proveedores de cookies web.
 - Trata las cookies copiadas como credenciales confidenciales.
-- Usa proveedores con clave de API cuando necesites llamadas a funciones o flujos de trabajo con agentes.
+- Utiliza proveedores con clave de API cuando necesites llamadas a funciones o flujos de trabajo con agentes.

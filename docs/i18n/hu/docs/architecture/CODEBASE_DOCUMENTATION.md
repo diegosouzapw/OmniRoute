@@ -436,8 +436,8 @@ Célzott alkönyvtárakra felosztva:
 
 ## 4. `open-sse/` — Streamelési motor munkaterülete
 
-Különálló npm-munkaterület, amely `@omniroute/open-sse` néven van közzétéve. Ez kezeli a kérések
-feldolgozását, a végrehajtókat, a fordítókat, a szolgáltatásokat, a transzformátort és az MCP-kiszolgálót.
+Különálló npm-munkaterület, amely `@omniroute/open-sse` néven van közzétéve. Ez felel a kérések
+feldolgozásáért, a végrehajtókért, a fordítókért, a szolgáltatásokért, a transzformátorért és az MCP-kiszolgálóért.
 
 ```
 open-sse/
@@ -445,13 +445,13 @@ open-sse/
 ├── package.json            Munkaterület-manifeszt
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 Szolgáltatói nyilvántartások, fejlécprofilok, identitás, …
+├── config/                 Szolgáltatói regiszterek, fejlécprofilok, identitás, …
 ├── handlers/               Kéréskezelők (csevegés, beágyazások, hang, kép, …)
 ├── executors/              108 szolgáltatóspecifikus HTTP-végrehajtó
 ├── translator/             Formátumkonverzió (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions streamtranszformátor
 ├── services/               Több mint 80 szolgáltatásmodul (kombinációk, tartalék útvonalak, kvóták, identitás, …)
-├── utils/                  Streamelési segédprogramok, TLS-kliens, AWS SigV4, proxys lekérés, …
+├── utils/                  Streamelési segédeszközök, TLS-kliens, AWS SigV4, proxy fetch, …
 └── mcp-server/             MCP-kiszolgáló (3 átviteli mód, 33 hatókör, 110 eszköz)
 ```
 
@@ -463,7 +463,7 @@ open-sse/
 | `responsesHandler.ts`   | Az OpenAI Responses API belépési pontja                                                              |
 | `embeddings.ts`         | Beágyazások                                                                                          |
 | `imageGeneration.ts`    | Képgenerálás                                                                                         |
-| `audioSpeech.ts`        | Szöveg beszéddé alakítása                                                                            |
+| `audioSpeech.ts`        | Szövegfelolvasás                                                                                     |
 | `audioTranscription.ts` | Beszéd szöveggé alakítása                                                                            |
 | `videoGeneration.ts`    | Videógenerálás                                                                                       |
 | `musicGeneration.ts`    | Zenegenerálás                                                                                        |
@@ -471,27 +471,27 @@ open-sse/
 | `moderations.ts`        | Moderálás                                                                                            |
 | `search.ts`             | Webes keresés                                                                                        |
 | `sseParser.ts`          | SSE-eseményelemző                                                                                    |
-| `usageExtractor.ts`     | Tokenszámok kinyerése a felsőbb rétegbeli streamekből                                                |
+| `usageExtractor.ts`     | Tokenszámok kinyerése a felsőbb szintű streamekből                                                   |
 | `responseSanitizer.ts`  | Szolgáltatóspecifikus zaj eltávolítása                                                               |
-| `responseTranslator.ts` | Összekötő réteg a szolgáltatói válasz és a fordítóréteg között                                       |
+| `responseTranslator.ts` | Kapcsolóréteg a szolgáltatói válasz és a fordítási réteg között                                      |
 
 ### 4.2 `open-sse/executors/`
 
-108 szolgáltatói végrehajtó, amelyek mindegyike a `BaseExecutor` (`base.ts`) osztályt terjeszti ki:
+148 szolgáltatói végrehajtó, amelyek mindegyike a `BaseExecutor` (`base.ts`) osztályt terjeszti ki:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, továbbá a `claudeIdentity.ts`
-(megosztott identitássegéd) és az `index.ts` (nyilvántartás).
+(megosztott identitássegéd) és az `index.ts` (regiszter).
 
-> Megjegyzés: az itt nem felsorolt szolgáltatókat a `default.ts` szolgálja ki az általános,
+> Megjegyzés: az itt fel nem sorolt szolgáltatókat a `default.ts` kezeli az általános,
 > OpenAI-kompatibilis végrehajtó használatával. A teljes szolgáltatói katalógus (355 szolgáltató) a
 > `src/shared/constants/providers.ts` fájlban található.
 
 ### 4.3 `open-sse/translator/`
 
-Központi elosztó és kapcsolódó ágak szerinti fordítás (a központ az OpenAI).
+Központi csomópontokra épülő fordítás (a központ az OpenAI).
 
 - **9 kérésfordító** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -517,21 +517,21 @@ Központi elosztó és kapcsolódó ágak szerinti fordítás (a központ az Ope
 
 Kiemelt elemek (a teljes lista az `open-sse/services/` alatt található):
 
-| Terület                 | Fájlok                                                                                                                                                                                                                                                   |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kombinált útválasztás   | `combo.ts` (19 stratégia), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
-| Auto Combo motor        | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
-| Hibatűrés               | `accountFallback.ts` (várakozási idő + zárolás), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                   |
-| Kvóták                  | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
-| Gyorsítótárazás         | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
-| Intelligens útválasztás | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
-| Modellkezelés           | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| Tömörítés               | `compression/` — a teljes tömörítési motor bekötése                                                                                                                                                                                                      |
-| Token + munkamenet      | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| Szint / manifeszt       | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
-| IP / hálózat            | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| Kötegek                 | `batchProcessor.ts`                                                                                                                                                                                                                                      |
-| Használat               | `usage.ts`                                                                                                                                                                                                                                               |
+| Szempont                   | Fájlok                                                                                                                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kombinált útválasztás      | `combo.ts` (19 stratégia), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| Auto Combo motor           | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Hibatűrés                  | `accountFallback.ts` (várakozási idő + zárolás), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                   |
+| Kvóták                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Gyorsítótárazás            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Útválasztási intelligencia | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Modellkezelés              | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Tömörítés                  | `compression/` — a teljes tömörítési motor bekötése                                                                                                                                                                                                      |
+| Token + munkamenet         | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Szint / jegyzék            | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / hálózat               | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Kötegek                    | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Használat                  | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
@@ -539,13 +539,13 @@ Kiemelt elemek (a teljes lista az `open-sse/services/` alatt található):
   memória-, készség-, GitHub-készség-, készlet-, gamifikációs, bővítmény-, Notion-, Obsidian-,
   helyikorpusz- és tömörítési modulok — az uniót a `countUniqueMcpTools` számolja).
 - **3 átviteli mód**: stdio, HTTP Streamable, SSE.
-- **33 hatókör** van futásidőben kikényszerítve — az alaplista a `src/shared/constants/mcpScopes.ts` fájlban található, a teljes készlet pedig az egyes eszközmodulok által deklarált hatókörök uniója.
-- Auditnapló-tábla: `mcp_tool_audit` (az `audit.ts` tölti fel).
+- **33 hatókör** futásidőben kikényszerítve — az alaplista a `src/shared/constants/mcpScopes.ts` fájlban található, a teljes készlet pedig az egyes eszközmodulok által deklarált hatókörök uniója.
+- Auditálási tábla: `mcp_tool_audit` (az `audit.ts` tölti fel).
 - Fájlok: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
   valamint tesztek a `__tests__/` alatt.
-- A teljes eszközkatalógust lásd az [MCP-SERVER.md](../frameworks/MCP-SERVER.md) dokumentumban.
+- A teljes eszközkatalógust lásd az [MCP-SERVER.md](../frameworks/MCP-SERVER.md) fájlban.
 
 ### 4.7 `open-sse/config/`
 
@@ -553,11 +553,11 @@ Szolgáltatói nyilvántartások (`providerRegistry.ts`, `providerModels.ts`,
 `providerHeaderProfiles.ts`), formátumonkénti modellnyilvántartások (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-identitássegédek (`codexIdentity.ts`, `codexInstructions.ts`,
+identitási segédeszközök (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-hitelesítőadat-segédek (`credentialLoader.ts`, `codexClient.ts`) és felhőadapterek
-(`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+hitelesítőadat-segédeszközök (`credentialLoader.ts`, `codexClient.ts`) és felhőalapú
+adapterek (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 

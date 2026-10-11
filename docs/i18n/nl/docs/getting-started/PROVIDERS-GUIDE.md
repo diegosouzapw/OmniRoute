@@ -181,10 +181,9 @@ Deze providers bieden **gratis toegang** zonder creditcard:
 | **LongCat**       | Eenmalig 10M       | LongCat-2.0                              | API-sleutel + KYC        |
 | **Cloudflare AI** | 10K neuronen/dag   | Meer dan 50 modellen                     | Geen authenticatie nodig |
 | **NVIDIA NIM**    | ~40 RPM            | 129 modellen                             | API-sleutel nodig        |
-| **Cerebras**      | $5 inschrijftegoed | GLM 4.7, GPT-OSS 120B                    | API-sleutel + kaart      |
-| **Qoder**         | Onbeperkt          | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Geen authenticatie nodig |
+| **Cerebras**      | $5 aanmeldtegoed   | GLM 4.7, GPT-OSS 120B                    | API-sleutel + kaart      |
 
-**Tip**: Verbind meerdere gratis providers voor **onbeperkte gratis AI** met automatische failover!
+**Tip**: Verbind meerdere gratis providers voor **onbeperkt gratis AI-gebruik** met automatische fallback!
 
 ---
 
@@ -283,6 +282,46 @@ Gebruik vervolgens `model: "auto"`, waarna OmniRoute automatisch voor elk verzoe
 1. Verkrijg een API-sleutel: https://platform.deepseek.com/
 2. In OmniRoute: Providers → Add Provider → DeepSeek
 3. Plak de API-sleutel → Connect
+
+### Qoder: kies het transport voor referenties
+
+Qoder vereist referenties. De twee transportmethoden hebben verschillende mogelijkheden; alleen een modelnaam
+geeft niet aan wat een bepaalde verbinding kan doen.
+
+| Referentie                            | OmniRoute-transport                           | Toolaanroepen door de aanroeper                           | Streaming                                                                                  |
+| ------------------------------------- | --------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| PAT die begint met `pt-`              | Lokaal `qodercli`-proces op de OmniRoute-host | Niet ondersteund                                          | Gebufferd: SSE wordt pas verzonden nadat de CLI het volledige antwoord heeft geretourneerd |
+| Niet-PAT-toegangstoken of API-sleutel | DashScope OpenAI-compatibel HTTP-eindpunt     | Doorgegeven, afhankelijk van het upstreammodel/de sleutel | Upstream HTTP/SSE-pad                                                                      |
+
+Installeer voor een PAT de Qoder CLI op dezelfde host of in dezelfde container als OmniRoute. Het uitvoerbare bestand
+moet vindbaar zijn als `qodercli`; stel anders `CLI_QODER_BIN` in op het pad naar het uitvoerbare bestand. Een CLI
+die alleen op de Docker-host is geïnstalleerd, is niet automatisch aanwezig in de container. Ontbrekende
+binaire bestanden veroorzaken een expliciete foutmelding die u naar de installatie- of padinstelling verwijst.
+
+Het PAT-chatpad heeft een procestime-out van 45 seconden. Het zet het gesprek om in één
+prompt en roept de CLI aan in niet-streamende afdrukmodus. Het aanvragen van `stream: true` wijzigt
+de responsschil naar SSE; dit biedt geen incrementele upstreamlevering van tokens.
+Voor CLI-validatie/modelvermelding geldt een afzonderlijke time-out van 20 seconden. Dit zijn de huidige standaardwaarden
+in de code, geen configureerbare dashboardinstellingen.
+
+Gebruik PAT-verbindingen voor gewone chat. Agentaanvragen die `tools` of verouderde `functions`
+bevatten, sluiten PAT-accounts uit tijdens de selectie van referenties, inclusief vastgezette combinatiedoelen. Een gemengde
+Qoder-pool kan nog steeds het HTTP-account selecteren. Rechtstreekse aanroepen van de PAT-executor mislukken eveneens
+expliciet voordat de CLI wordt gestart, in plaats van tooldefinities stilzwijgend te negeren. Deze
+beperking heeft betrekking op tools die door de API-aanroeper worden aangeleverd, niet op interne tools die de Qoder
+CLI mogelijk zelf gebruikt. Een HTTP-sleutel garandeert niet dat elk model tools ondersteunt; de normale
+controles van modelmogelijkheden blijven van toepassing.
+
+Browser-OAuth is alleen beschikbaar wanneer de beheerder alle vijf instellingen configureert:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` en `QODER_OAUTH_CLIENT_SECRET`. Deze zijn standaard leeg; een
+niet-geconfigureerde installatie moet een ondersteunde importmethode voor referenties gebruiken in plaats van aan te nemen
+dat de aanmeldingsstroom via de browser gereed is.
+
+Implementatiereferenties: [Qoder-executor](../../open-sse/executors/qoder.ts),
+[CLI-runtime](../../open-sse/services/qoderCli.ts) en
+[OAuth-configuratie](../../src/lib/oauth/constants/oauth.ts). Incrementele PAT-streaming
+en een configureerbare time-out zijn afzonderlijke verbeteringen; dit gedrag belooft deze niet.
 
 ### Groq
 

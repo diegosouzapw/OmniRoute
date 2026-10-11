@@ -35,26 +35,16 @@ Tunel je potrebný iba pri kolách s nástrojmi. Každá uvedená trasa vrátane
 používať rovnakú lokálnu funkcionalitu nástrojov viazanú na kolo, ak sú tunel a konektor
 nakonfigurované.
 
-## Nastavenie v ovládacom paneli
+## Nastavenie ovládacieho panela
 
 1. Otvorte poskytovateľa **ChatGPT Web (Codex)** a pridajte pripojenie.
-2. Vložte úplnú hlavičku Cookie služby ChatGPT, ID tunela, runtime kľúč a názov vlastného
-   konektora. Nové nastavenia podporujúce nástroje musia používať novovytvorený konektor
-   s presným názvom `OmniRoute Codex v2`, s možnosťou Authentication nastavenou na None
-   a Permissions nastavenou na Allow all actions.
-3. Spustite kontrolu pripojenia. OmniRoute otvorí prehliadačom podporovaný Temporary Chat
-   a zistí, či sú pre daný účet dostupné režimy Sol a Pro.
-4. Uložte pripojenie. OmniRoute nahradí vložený súbor cookie overeným stavom úložiska
-   Playwright a uloží ho spolu s runtime kľúčom prostredníctvom abstrakcie šifrovaných
-   prihlasovacích údajov.
+2. Vložte úplnú hlavičku ChatGPT Cookie, ID tunela, runtime kľúč a názov vlastného konektora. Nové nastavenia s podporou nástrojov musia používať novovytvorený konektor s presným názvom `OmniRoute Codex v2`, pričom Authentication musí byť nastavené na None a Permissions na Allow all actions.
+3. Spustite kontrolu pripojenia. OmniRoute otvorí dočasný chat Temporary Chat podporovaný prehliadačom a zistí, či sú pre daný účet dostupné Sol a Pro.
+4. Uložte pripojenie. OmniRoute nahradí vložený súbor cookie overeným stavom úložiska Playwright a uloží ho spolu s runtime kľúčom prostredníctvom abstrakcie šifrovaných prihlasovacích údajov.
 
-Nespracovaný súbor cookie sa po úspešnom uložení neuchováva. Keď relácia vyprší, otvorte
-pripojenie, vložte novú úplnú hlavičku Cookie a znova spustite kontrolu. Stav diagnostiky
-v dialógovom okne úprav samostatne uvádza stav prehliadača, úložiska, prihlásenia,
-Temporary Chat, tunela, konektora a obojsmernej komunikácie s nástrojom.
+Nespracovaný súbor cookie sa po úspešnom uložení nezachová. Keď platnosť relácie vyprší, otvorte pripojenie, vložte novú úplnú hlavičku Cookie a znova spustite kontrolu. Stav diagnostiky v dialógovom okne úprav samostatne uvádza stav prehliadača, úložiska, prihlásenia, dočasného chatu Temporary Chat, tunela, konektora a kompletného overenia nástroja. Informácie o automatizácii aktualizácií súborov cookie pri rotácii relácií nájdete v sprievodnom nástroji [Rozšírenie na synchronizáciu relácie prehliadača](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nikdy neukladajte skutočný súbor cookie, runtime kľúč, stav úložiska ani token
-> funkcionality do repozitára. Hodnoty v testoch a dokumentácii musia byť vždy zástupné.
+> Nikdy neukladajte skutočný súbor cookie, runtime kľúč, stav úložiska ani token oprávnení do systému na správu verzií. Testovacie hodnoty a hodnoty v dokumentácii musia byť vždy zástupné.
 
 ## Modely a kombinácie
 
@@ -140,7 +130,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Ochranné regresné testy vyradenia sa nachádzajú v:
+Ochrany proti regresii po vyradení sa nachádzajú v:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

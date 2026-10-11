@@ -140,37 +140,37 @@ RRF विषम पुनर्प्राप्ति प्रणाली�
 - `last_reset_at` — पछिल्लो पूर्ण रिसेटको टाइमस्ट्याम्प।
 - `vec_loaded` — sqlite-vec सफलतापूर्वक लोड भयो कि भएन भन्ने 0/1 फ्ल्याग।
 
-## सेटिङ विस्तार
+## सेटिङ्स विस्तार
 
-नौवटा एम्बेडिङ र भेक्टर फिल्डहरू `src/shared/schemas/memory.ts` को `MemorySettingsExtended` मा उपलब्ध छन्, र `src/lib/db/settings.ts` मार्फत स्थायी रूपमा भण्डारण गरिन्छन्:
+नौवटा embedding र vector फिल्डहरू `src/shared/schemas/memory.ts` को `MemorySettingsExtended` मा उपलब्ध छन्, र तिनलाई `src/lib/db/settings.ts` मार्फत स्थायी रूपमा भण्डारण गरिन्छ:
 
-| फिल्ड                    | प्रकार                                             | पूर्वनिर्धारित | विवरण                                                           |
-| ------------------------ | -------------------------------------------------- | -------------- | --------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`       | प्रयोग गरिने एम्बेडिङ स्रोत                                     |
-| `embeddingProviderModel` | `string \| null`                                   | `null`         | `provider/model` ढाँचामा प्रदायक/मोडेल                          |
-| `customBaseUrl`          | `string \| null`                                   | `null`         | मेमोरीका लागि मात्र OpenAI-सङ्गत एन्डपोइन्टको आधार URL          |
-| `customModelId`          | `string \| null`                                   | `null`         | अनुकूलन एन्डपोइन्टमा पठाइने मोडेल ID                            |
-| `transformersEnabled`    | `boolean`                                          | `false`        | Transformers.js (MiniLM, ~400MB) का लागि अप्ट-इन                |
-| `staticEnabled`          | `boolean`                                          | `false`        | स्थिर potion-base-8M स्थानीय मोडेलका लागि अप्ट-इन               |
-| `rerankEnabled`          | `boolean`                                          | `false`        | पुनःक्रमबद्ध गर्ने चरण सक्षम पार्नुहोस् (+200-500ms/req थपिन्छ) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`         | `provider/model` ढाँचामा पुनःक्रमबद्ध प्रदायक/मोडेल             |
+| फिल्ड                    | प्रकार                                             | पूर्वनिर्धारित | विवरण                                              |
+| ------------------------ | -------------------------------------------------- | -------------- | -------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`       | प्रयोग गरिने embedding स्रोत                       |
+| `embeddingProviderModel` | `string \| null`                                   | `null`         | `provider/model` ढाँचामा provider/model            |
+| `customBaseUrl`          | `string \| null`                                   | `null`         | Memory-मात्र OpenAI-सङ्गत endpoint को base URL     |
+| `customModelId`          | `string \| null`                                   | `null`         | अनुकूलित endpoint मा पठाइने model ID               |
+| `transformersEnabled`    | `boolean`                                          | `false`        | Transformers.js का लागि opt-in (MiniLM, ~400MB)    |
+| `staticEnabled`          | `boolean`                                          | `false`        | स्थानीय static potion-base-8M model का लागि opt-in |
+| `rerankEnabled`          | `boolean`                                          | `false`        | reranking चरण सक्षम पार्ने (+200-500ms/req थपिन्छ) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`         | `provider/model` ढाँचामा rerank provider/model     |
 
-`rerankProviderModel` लाई `POST /v1/rerank` द्वारा समाधान गरिन्छ (लुपब्याकमार्फत कल गरिन्छ), त्यसैले यसले उक्त रुटले स्वीकार गर्ने जुनसुकै कुरा स्वीकार गर्छ: क्युरेट गरिएको क्लाउड पुनःक्रमबद्ध मोडेल (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) वा `<node-prefix>/<model>` को रूपमा OpenAI-सङ्गत प्रदायक नोड (उदाहरणका लागि, TEI/Infinity बक्सका लागि `skilled-mini/bge-reranker-v2-m3`)। लुपब्याक नोडहरू सधैं योग्य हुन्छन्; अर्को होस्टमा रहेको नोड (LAN, Tailscale) का लागि थप रूपमा `RERANK_REMOTE_PROVIDER_NODES` फिचर फ्ल्याग आवश्यक हुन्छ र त्यसले प्रदायकको आउटबाउन्ड URL नीति पार गर्नुपर्छ — [फिचर फ्ल्यागहरू](../reference/FEATURE_FLAGS.md) हेर्नुहोस्। ड्यासबोर्ड चयनकर्ताले क्युरेट गरिएका प्रदायकहरूका साथै स्थानीय नोडहरू पनि सूचीबद्ध गर्छ; कुनै पनि मान्य `provider/model` स्ट्रिङलाई `PUT /api/settings/memory` मार्फत सीधै सेट गर्न सकिन्छ।
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | प्रयोग गरिने भेक्टर ब्याकएन्ड |
+`rerankProviderModel` लाई `POST /v1/rerank` द्वारा resolve गरिन्छ (loopback मार्फत आह्वान गरिन्छ), त्यसैले यसले उक्त route ले स्वीकार गर्ने जुनसुकै कुरा स्वीकार गर्छ: curated cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) वा `<node-prefix>/<model>` को रूपमा OpenAI-सङ्गत provider node (उदाहरणका लागि, TEI/Infinity box का लागि `skilled-mini/bge-reranker-v2-m3`)। Loopback node हरू र `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` मा सूचीबद्ध hostname हरू (उदाहरणका लागि, Docker/Compose service name) सधैँ योग्य हुन्छन्; अर्को host (LAN, Tailscale) मा रहेको node का लागि थप रूपमा `RERANK_REMOTE_PROVIDER_NODES` feature flag आवश्यक हुन्छ र त्यसले provider outbound URL policy पार गर्नुपर्छ — [Feature Flags](../reference/FEATURE_FLAGS.md) हेर्नुहोस्। Dashboard selector ले curated provider हरूका साथै local node हरू पनि सूचीबद्ध गर्छ; कुनै पनि मान्य `provider/model` string लाई `PUT /api/settings/memory` मार्फत सीधै सेट गर्न सकिन्छ।
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | प्रयोग गरिने vector backend |
 
-यी `GET /PUT /api/settings/memory` मार्फत उपलब्ध गराइएका छन् (स्किमा `MemorySettingsExtendedSchema`)।
+यी `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`) मार्फत उपलब्ध गराइएका छन्।
 
 `remote` स्रोतका लागि, Memory ले वैकल्पिक `customBaseUrl` र
-`customModelId` सेटिङहरू पनि स्वीकार गर्छ। यी दुवैले सँगै विश्वव्यापी एम्बेडिङ रजिस्ट्री
-परिवर्तन नगरी OpenAI-सङ्गत `/embeddings` एन्डपोइन्ट र मोडेल चयन गर्छन्। प्रयोगअघि
-एन्डपोइन्टलाई सामान्यीकृत गरिन्छ र प्रदायकको आउटबाउन्ड URL नीतिद्वारा जाँचिन्छ: HTTP(S)
-आवश्यक हुन्छ, समाविष्ट प्रमाणहरू र क्वेरी स्ट्रिङहरू अस्वीकार गरिन्छन्, र क्लाउड-मेटाडेटा
-ठेगानाहरू अवरुद्ध नै रहन्छन्। खाली मानहरूले चयन गरिएको रजिस्ट्री प्रदायकलाई कायम राख्छन्। ड्यासबोर्डमा
-फर्काइने त्रुटिहरूलाई सुरक्षित बनाइन्छ र एन्डपोइन्टका प्रमाणहरू कहिल्यै लग गरिँदैनन्।
+`customModelId` सेटिङ्स पनि स्वीकार गर्छ। यी दुवैले सँगै global embedding registry
+परिवर्तन नगरी OpenAI-सङ्गत `/embeddings` endpoint र model चयन गर्छन्। प्रयोगअघि endpoint लाई
+normalize गरिन्छ र provider outbound URL policy द्वारा जाँच गरिन्छ: HTTP(S)
+आवश्यक हुन्छ, embedded credential र query string अस्वीकार गरिन्छन्, र cloud-metadata
+address हरू अवरुद्ध नै रहन्छन्। खाली मानहरूले चयन गरिएको registry provider कायम राख्छन्। Dashboard मा
+फर्काइएका error हरू sanitize गरिन्छन् र endpoint credential हरू कहिल्यै log गरिँदैनन्।
 
-> **TODO (D20):** `global` स्कोप (सबै API कुञ्जीहरूमा मेमोरीहरू साझा गर्ने) यस
-> रिलिजमा कार्यान्वयन गरिएको छैन। यसका लागि स्किमा परिवर्तन र विश्वव्यापी पुनःप्राप्ति
-> मार्ग आवश्यक छ। यसलाई छुट्टै ट्र्याक गर्नुहोस्।
+> **TODO (D20):** `global` scope (सबै API key हरूमा memory साझा गर्ने) यस
+> release मा कार्यान्वयन गरिएको छैन। यसका लागि schema परिवर्तन र global retrieval
+> path आवश्यक पर्छ। यसलाई छुट्टै track गर्नुहोस्।
 
 ## भण्डारण तहहरू
 
@@ -860,43 +860,43 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 > **आधिकारिक स्रोत:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **परीक्षणहरू:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend प्रदायक ढाँचाले विद्यमान स्मृति इन्जिनमाथि **जडानयोग्य ब्याकइन्ड अमूर्तीकरण तह** प्रस्तुत गर्छ। एउटै भण्डारण कार्यान्वयनमा बाँधिनुको सट्टा, स्मृति प्रणालीले अब कन्फिगर गर्न मिल्ने प्राथमिक/फलब्याक राउटिङसहित धेरै ब्याकइन्डहरू (SQLite, Obsidian, Notion, अनुकूलित HTTP ब्याकइन्डहरू) समर्थन गर्छ।
+MemoryBackend प्रदायक ढाँचाले विद्यमान मेमोरी इन्जिनमाथि एउटा **जडानयोग्य ब्याकइन्ड अमूर्तीकरण तह** प्रस्तुत गर्छ। एउटै भण्डारण कार्यान्वयनमा सीमित हुनुको सट्टा, मेमोरी प्रणालीले अब कन्फिगर गर्न मिल्ने प्राथमिक/फल्ब्याक राउटिङसहित धेरै ब्याकइन्डहरू (SQLite, Obsidian, Notion, अनुकूलन HTTP ब्याकइन्डहरू) समर्थन गर्छ।
 
 ### वास्तुकला
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    API रुटहरू                             │
+│                    API रुटहरू                            │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           सिङ्गलटन संयोजक (manager.ts)                    │
+│           सिङ्गलटन संयोजक (manager.ts)                   │
 │                                                          │
-│  प्राथमिक ──► ब्याकइन्ड A  (जस्तै SQLite)                 │
-│  फलब्याक  ──► ब्याकइन्ड B  (जस्तै Obsidian)               │
-│              ब्याकइन्ड C  (जस्तै GenericBackend मार्फत Notion) │
+│  प्राथमिक ──► ब्याकइन्ड A  (उदाहरण: SQLite)             │
+│  फल्ब्याक ──► ब्याकइन्ड B  (उदाहरण: Obsidian)           │
+│             ब्याकइन्ड C  (उदाहरण: GenericBackend मार्फत Notion) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ ब्याकइन्ड   │ │ ब्याकइन्ड   │ │ ब्याकइन्ड (HTTP) │
+│ ब्याकइन्ड  │ │ ब्याकइन्ड  │ │ ब्याकइन्ड (HTTP) │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
 #### मुख्य इन्टरफेस (`backend.ts`)
 
-हरेक ब्याकइन्डले `MemoryBackend` इन्टरफेस कार्यान्वयन गर्नुपर्छ:
+प्रत्येक ब्याकइन्डले `MemoryBackend` इन्टरफेस कार्यान्वयन गर्नुपर्छ:
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // सिर्जना, पठन, अद्यावधिक र मेटाउने
+  // सिर्जना, पठन, अद्यावधिक र मेटाउने कार्यहरू
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -917,43 +917,43 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-एउटा सिङ्गलटन संयोजक जसले:
+निम्न कार्य गर्ने सिङ्गलटन संयोजक:
 
 - `register(backend)` मार्फत ब्याकइन्डहरू **दर्ता गर्छ** — बुट हुँदा `index.ts` बाट कल गरिन्छ
-- `configure(primary, fallbacks)` मार्फत प्राथमिक + फलब्याक **कन्फिगर गर्छ**
-- विफल हुँदा फलब्याक शृङ्खलासहित CRUD/खोजलाई प्राथमिकतर्फ **रुट गर्छ**
+- `configure(primary, fallbacks)` मार्फत प्राथमिक + फल्ब्याक **कन्फिगर गर्छ**
+- विफल हुँदा फल्ब्याक शृङ्खला प्रयोग गर्दै CRUD/खोजलाई प्राथमिकतर्फ **रुट गर्छ**
 - सबै ब्याकइन्डहरूको आवधिक रूपमा **स्वास्थ्य जाँच गर्छ**
 
-**फलब्याक व्यवहार:**
+**फल्ब्याक व्यवहार:**
 
-| सञ्चालन  | प्राथमिक                   | फलब्याकहरू                  |
-| -------- | -------------------------- | --------------------------- |
-| `create` | ✅ प्राथमिक मात्र          | ❌                          |
-| `get`    | ✅ पहिले प्राथमिकमा प्रयास | ✅ null भएमा फलब्याक        |
-| `update` | ✅ प्राथमिक मात्र          | ✅ प्रतिक्रिया नपर्खी सिङ्क |
-| `delete` | ✅ प्राथमिक मात्र          | ✅ प्रतिक्रिया नपर्खी सिङ्क |
-| `list`   | ✅ प्राथमिक मात्र          | ❌                          |
-| `search` | ✅ पहिले प्राथमिक          | ✅ त्रुटि हुँदा फलब्याक     |
+| कार्य    | प्राथमिक                       | फल्ब्याकहरू               |
+| -------- | ------------------------------ | ------------------------- |
+| `create` | ✅ प्राथमिकमा मात्र            | ❌                        |
+| `get`    | ✅ पहिले प्राथमिक प्रयास गर्ने | ✅ null भएमा फल्ब्याक     |
+| `update` | ✅ प्राथमिकमा मात्र            | ✅ प्रतीक्षा नगरी समक्रमण |
+| `delete` | ✅ प्राथमिकमा मात्र            | ✅ प्रतीक्षा नगरी समक्रमण |
+| `list`   | ✅ प्राथमिकमा मात्र            | ❌                        |
+| `search` | ✅ पहिले प्राथमिक              | ✅ त्रुटि भएमा फल्ब्याक   |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-कुनै पनि REST API लाई MemoryBackend मा अनुकूलित गर्ने एउटा सामान्य HTTP कनेक्टर। निम्नका लागि उपयोगी:
+कुनै पनि REST API लाई MemoryBackend मा अनुकूलित गर्ने सामान्य HTTP कनेक्टर। निम्नका लागि उपयोगी:
 
 - **Notion** — Notion API मार्फत जडान गर्नुहोस्
 - **Obsidian** — Obsidian Local REST API मार्फत जडान गर्नुहोस्
-- **अनुकूलित ब्याकइन्डहरू** — RESTful स्मृति API उपलब्ध गराउने कुनै पनि सेवा
+- **अनुकूलन ब्याकइन्डहरू** — RESTful मेमोरी API उपलब्ध गराउने कुनै पनि सेवा
 
 **कन्फिगरेसन:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // ब्याकएन्ड API को आधार URL
+  baseUrl: string;           // ब्याकइन्ड API को आधारभूत URL
   apiKey?: string;           // प्रमाणीकरणका लागि Bearer टोकन
   headers?: Record<string, string>;  // अनुकूलन HTTP हेडरहरू
-  timeout?: number;          // अनुरोधको समयसीमा (पूर्वनिर्धारित: 30000ms)
+  timeout?: number;          // अनुरोध समयसीमा (पूर्वनिर्धारित: 30000ms)
   backendType?: string;      // लगिङका लागि
 
-  // एन्डपोइन्ट ओभरराइडहरू (पूर्वनिर्धारितहरूले REST परम्पराहरू प्रयोग गर्छन्)
+  // इन्डपोइन्ट अधिलेखनहरू (पूर्वनिर्धारितहरूले REST परम्पराहरू प्रयोग गर्छन्)
   endpoints?: {
     search?: string;   // पूर्वनिर्धारित: "/memories/search"
     create?: string;   // पूर्वनिर्धारित: "/memories"
@@ -976,18 +976,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**ज्ञात ब्याकएन्डहरू** `KNOWN_BACKENDS` मा पूर्व-कन्फिगर गरिएका छन्:
+**ज्ञात ब्याकइन्डहरू** `KNOWN_BACKENDS` मा पूर्व-कन्फिगर गरिएका छन्:
 
 ```typescript
 createKnownBackend("obsidian"); // → localhost:27123 तर्फ निर्देशित GenericMemoryBackend
 createKnownBackend("notion"); // → api.notion.com/v1 तर्फ निर्देशित GenericMemoryBackend
 ```
 
-#### बिल्ट-इन ब्याकएन्डहरू
+#### अन्तर्निर्मित ब्याकइन्डहरू
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-पूर्वनिर्धारित प्राथमिक ब्याकएन्ड। `src/lib/memory/store.ts` प्रयोग गरेर विद्यमान SQLite-आधारित मेमोरी स्टोरलाई र्याप गर्छ। बुट हुँदा स्वचालित रूपमा दर्ता हुन्छ।
+पूर्वनिर्धारित प्राथमिक ब्याकइन्ड। `src/lib/memory/store.ts` प्रयोग गरेर विद्यमान SQLite-आधारित मेमोरी भण्डारलाई र्याप गर्छ। बुट हुँदा स्वचालित रूपमा दर्ता हुन्छ।
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -998,39 +998,99 @@ memoryManager.register(sqliteBackend);
 
 विद्यमान Obsidian एकीकरण (`src/lib/memory/obsidianBackend.ts`) लाई र्याप गर्छ। Obsidian Local REST API मार्फत Obsidian भल्टमा जडान हुन्छ।
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+स्थानीय [claude-mem](https://github.com/thedotmack/claude-mem) वर्करका लागि एडाप्टर — कोडिङ सत्रहरूलाई "अवलोकनहरू" का रूपमा सङ्कलन गर्ने
+Claude Code / Codex / Cursor मेमोरी प्लगइन।
+यसलाई दर्ता गरेपछि, `/api/memory` REST रुटहरू र A2A मेमोरी खोजले claude-mem का हुकहरूले भर्ने
+उही भण्डार पढ्न र लेख्न सक्छन्।
+
+वर्करले लुपब्याकमा मात्र बाइन्ड गर्छ, जसलाई `GenericMemoryBackend` को SSRF गार्डले जानाजानी अस्वीकार गर्छ।
+यस एडाप्टरले उक्त गार्डलाई खुकुलो बनाउँदैन: होस्टलाई `127.0.0.1` मा हार्ड-कोड गरिएको छ र कन्फिगरेसन
+स्किमा (`ClaudeMemBackendConfigSchema`, `.strict()`) ले निम्न मात्र स्वीकार गर्छ:
+
+| कुञ्जी      | प्रकार  | पूर्वनिर्धारित | टिप्पणी                                                                                                                    |
+| ----------- | ------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | संख्या  | —              | आवश्यक, 1024–65535। यसको सेटिङ फाइलबाट प्राप्त claude-mem worker पोर्ट (पूर्वनिर्धारित `37700 + uid % 100`)।               |
+| `project`   | स्ट्रिङ | —              | प्रयोग गरिने claude-mem प्रोजेक्ट। सेट नगरिएको → प्रत्येक OmniRoute API कुञ्जी आफ्नै प्रोजेक्टमा (`apiKeyId`) म्याप हुन्छ। |
+| `timeoutMs` | संख्या  | `5000`         | प्रत्येक अनुरोधको टाइमआउट, 100–30000।                                                                                      |
+
+यसलाई `PUT /api/settings/memory` मार्फत सक्षम गर्नुहोस् र OmniRoute पुनः सुरु गर्नुहोस् (ब्याकइन्डहरू
+`initMemoryBackends()` मा एकपटक मात्र दर्ता हुन्छन्):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+यसलाई REST API को भण्डार बनाउन सट्टामा `"primaryBackend": "claude-mem"` प्रयोग गर्नुहोस्। अमान्य
+कन्फिग लग गरिन्छ (`claude-mem.backend.invalid_config`) र छोडिन्छ, त्यसैले SQLite प्राथमिक नै रहन्छ।
+
+म्यापिङ र सीमाहरू:
+
+- ID हरू `claude-mem:<observationId>` हुन्छन्; `get`/`delete` ले नेटवर्क कल नगरी अन्य ब्याकइन्डका ID हरू
+  बेवास्ता गर्छन्।
+- `create` → `POST /api/memory/save`; OmniRoute का फिल्डहरू (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem को `metadata.omniroute` मा जान्छन् र पढ्दा राउन्ड-ट्रिप हुन्छन्।
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens`
+  (अक्षर / 4) मा छोट्याइन्छ। `list` → worker को पृष्ठाङ्कित observations endpoint (`total` तल्लो सीमा हो — worker ले
+  सङ्ख्या होइन, `hasMore` फर्काउँछ)।
+- Hook बाट सङ्कलित observations ले `discovery` → `factual`, `decision` → `procedural`, र
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` म्याप गर्छन्।
+- **अपडेटहरू छैनन्** (`update()` ले `false` फर्काउँछ; observations अपरिवर्तनीय छन्) र **TTL छैन**
+  (`expiresAt` बेवास्ता गरिन्छ)। claude-mem ले `key` अनुसार upsert गर्नुको सट्टा समान saves लाई dedup गर्छ।
+- Prompt injection (`retrieval.ts`) र `omniroute_memory_*` MCP उपकरणहरूले अझै पनि SQLite बाट
+  सीधै पढ्छन् — तिनीहरू `memoryManager` मार्फत जाँदैनन्, त्यसैले यस ब्याकइन्डले तिनीहरूलाई डेटा उपलब्ध गराउँदैन।
+
+**claude-mem का आफ्नै LLM कलहरू OmniRoute मार्फत राउट गर्ने।** claude-mem ले observations लाई
+LLM मार्फत सङ्कुचित गर्छ (पूर्वनिर्धारित: Claude Agent SDK)। यसको `openai-compatible` provider लाई
+OmniRoute तर्फ देखाउन सकिन्छ, जसले combo fallback र लागत ट्र्याकिङ प्रयोग गर्छ। `~/.claude-mem/settings.json` मा:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API कुञ्जी>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute मोडेल वा combo>"
+}
+```
+
 ### सेटिङहरू
 
-मेमोरी ब्याकएन्ड सेटिङहरू एप सेटिङ्स तालिकामा भण्डारण गरिन्छन् र `src/lib/memory/settings.ts` मार्फत व्यवस्थापन गरिन्छन्:
+Memory backend सेटिङहरू एपको settings table मा भण्डारण गरिन्छन् र `src/lib/memory/settings.ts` मार्फत व्यवस्थापन गरिन्छन्:
 
-| सेटिङ                | Env/कन्फिग कुञ्जी        | पूर्वनिर्धारित | विवरण                                  |
-| -------------------- | ------------------------ | -------------- | -------------------------------------- |
-| प्राथमिक ब्याकएन्ड   | `memoryPrimaryBackend`   | `"sqlite"`     | प्राथमिक ब्याकएन्डको ID                |
-| फलब्याक ब्याकएन्डहरू | `memoryFallbackBackends` | `[]`           | क्रमबद्ध फलब्याक ब्याकएन्ड ID हरू      |
-| ब्याकएन्ड कन्फिगहरू  | `memoryBackendConfigs`   | `{}`           | प्रत्येक ब्याकएन्डका कन्फिग ओभरराइडहरू |
+| सेटिङ                 | Env/Config कुञ्जी        | पूर्वनिर्धारित | विवरण                                    |
+| --------------------- | ------------------------ | -------------- | ---------------------------------------- |
+| प्राथमिक ब्याकइन्ड    | `memoryPrimaryBackend`   | `"sqlite"`     | प्राथमिक ब्याकइन्डको ID                  |
+| Fallback ब्याकइन्डहरू | `memoryFallbackBackends` | `[]`           | क्रमबद्ध fallback ब्याकइन्ड ID हरू       |
+| ब्याकइन्ड कन्फिगहरू   | `memoryBackendConfigs`   | `{}`           | प्रत्येक ब्याकइन्डका कन्फिग override हरू |
 
-सेटिङहरू `normalizeMemorySettings()` मार्फत सामान्यीकृत गरिन्छन् र `getMemorySettings()` मा क्यास गरिन्छन्।
+सेटिङहरू `normalizeMemorySettings()` मार्फत सामान्यीकृत हुन्छन् र `getMemorySettings()` मा cache गरिन्छन्।
 
-### प्रारम्भीकरण प्रवाह
+### प्रारम्भिकरण प्रवाह
 
 ```
-एप बुटस्ट्र्याप
-  → index.ts आयातहरू (साइड-इफेक्ट): SQLiteBackend दर्ता गर्छ
-  → एपको जीवनचक्रबाट initMemoryBackends() कल गरिन्छ:
+एप bootstrap
+  → index.ts imports (side-effect): SQLiteBackend दर्ता गर्छ
+  → एप lifecycle बाट initMemoryBackends() कल गरिन्छ:
       1. सेटिङहरू लोड गर्ने (getMemorySettings)
-      2. प्राथमिक + फलब्याक कन्फिगर गर्ने
-      3. सबै ब्याकएन्डहरू प्रारम्भ गर्ने (स्वास्थ्य जाँच)
+      1b. backendConfigs मा उपस्थित opt-in ब्याकइन्डहरू दर्ता गर्ने (claude-mem)
+      2. प्राथमिक + fallback कन्फिगर गर्ने
+      3. सबै ब्याकइन्डहरू प्रारम्भ गर्ने (health check)
       4. अनुरोधहरूका लागि तयार
 ```
 
-### नयाँ ब्याकएन्ड थप्ने
+### नयाँ ब्याकइन्ड थप्ने
 
-1. `src/lib/memory/<name>Backend.ts` मा **`MemoryBackend` कार्यान्वयन गर्नुहोस्**
-2. `src/lib/memory/index.ts` बाट **निर्यात गर्नुहोस्**
-3. बुट हुँदा `memoryManager.register(yourBackend)` प्रयोग गरेर **दर्ता गर्नुहोस्**
-4. सेटिङहरूमार्फत **कन्फिगर गर्नुहोस्**: `memoryPrimaryBackend` लाई आफ्नो ब्याकएन्ड ID मा सेट गर्नुहोस्
+1. `src/lib/memory/<name>Backend.ts` मा **`MemoryBackend` interface कार्यान्वयन गर्नुहोस्**
+2. `src/lib/memory/index.ts` बाट **export गर्नुहोस्**
+3. boot हुँदा `memoryManager.register(yourBackend)` मार्फत **दर्ता गर्नुहोस्**
+4. सेटिङहरू मार्फत **कन्फिगर गर्नुहोस्**: `memoryPrimaryBackend` लाई आफ्नो ब्याकइन्ड ID मा सेट गर्नुहोस्
 5. सन्दर्भका रूपमा `src/lib/memory/__tests__/generic-backend.test.ts` प्रयोग गरेर **परीक्षण गर्नुहोस्**
 
-#### उदाहरण: Brain ब्याकएन्ड
+#### उदाहरण: Brain ब्याकइन्ड
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1056,19 +1116,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-अपेक्षित आउटपुट: निम्न समेट्ने **35 परीक्षणहरू, सबै उत्तीर्ण**:
+अपेक्षित आउटपुट: निम्नलाई समेट्ने **35 परीक्षण, सबै उत्तीर्ण**:
 
-- कन्स्ट्रक्टर (2)
-- स्वास्थ्य जाँच (4) — सफलता, विफलता 500, नेटवर्क त्रुटि, विलम्बता
-- प्रारम्भीकरण (2) — सफलता, विफलता
-- सिर्जना (2) — पूर्वनिर्धारित एन्डपोइन्ट, अनुकूलन एन्डपोइन्ट
-- प्राप्ति (4) — सफलता, 404 → null, गैर-404 थ्रो, अनुकूलन पाथ प्यारामिटरहरू
-- अद्यावधिक (2) — सफलता, 404 → false
-- मेटाउने (2) — सफलता, 404 → false
-- सूची (2) — क्वेरी प्यारामिटरहरू, अनुकूलन प्यारामिटर नामहरू
-- खोज (3) — क्वेरी प्यारामिटरहरू, अनुकूलन एन्डपोइन्ट, विकल्प सिरियलाइजेसन
-- प्रमाणीकरण हेडरहरू (2) — Bearer टोकन, अनुकूलन हेडरहरू
-- फ्याक्ट्री (1)
+- Constructor (2)
+- Health check (4) — सफलता, असफलता 500, नेटवर्क त्रुटि, विलम्बता
+- Initialize (2) — सफलता, असफलता
+- Create (2) — पूर्वनिर्धारित endpoint, अनुकूलित endpoint
+- Get (4) — सफलता, 404 → null, non-404 throw, अनुकूलित path params
+- Update (2) — सफलता, 404 → false
+- Delete (2) — सफलता, 404 → false
+- List (2) — query params, अनुकूलित param नामहरू
+- Search (3) — query params, अनुकूलित endpoint, options serialization
+- Auth headers (2) — Bearer token, अनुकूलित headers
+- Factory (1)
 
 #### प्रकार जाँच
 

@@ -10,18 +10,18 @@ _Päivitetty viimeksi: 2026-06-28_
 
 ## Yhteenveto
 
-OmniRoute on Next.js:n päälle rakennettu paikallinen tekoälyliikenteen reititysyhdyskäytävä ja hallintapaneeli.
-Se tarjoaa yhden OpenAI-yhteensopivan päätepisteen (`/v1/*`) ja reitittää liikenteen useille taustapalveluntarjoajille hyödyntäen muunnoksia, varareititystä, tunnisteiden päivitystä ja käytön seurantaa.
+OmniRoute on Next.js-pohjainen paikallinen tekoälyreititysyhdyskäytävä ja hallintapaneeli.
+Se tarjoaa yhden OpenAI-yhteensopivan päätepisteen (`/v1/*`) ja reitittää liikenteen useille taustapalveluntarjoajille tukien muunnoksia, varareititystä, tunnisteiden päivitystä ja käytön seurantaa.
 
 Keskeiset ominaisuudet:
 
-- OpenAI-yhteensopiva API-pinta komentorivityökaluille ja muille työkaluille (355 palveluntarjoajaa, 108 suorittajaa)
-- Pyyntöjen ja vastausten muuntaminen palveluntarjoajien eri muotojen välillä
+- OpenAI-yhteensopiva API-rajapinta komentorivityökaluille ja muille työkaluille (372 palveluntarjoajaa, 148 suorittajaa)
+- Pyyntöjen ja vastausten muuntaminen palveluntarjoajien formaattien välillä
 - Malliyhdistelmien varareititys (usean mallin sarja)
-- Rakenteiset yhdistelmävaiheet (`provider + model + connection`) ja niiden ajonaikainen järjestäminen `compositeTiers`-arvon perusteella
+- Rakenteiset yhdistelmävaiheet (`provider + model + connection`) ja suorituksenaikainen järjestäminen `compositeTiers`-arvon perusteella
 - Tilitason varareititys (useita tilejä palveluntarjoajaa kohden)
-- Kiintiön ennakkotarkistus ja kiintiöt huomioiva P2C-tilinvalinta pääasiallisessa keskustelupolussa
-- OAuth- ja API-avaimiin perustuva palveluntarjoajayhteyksien hallinta (22 OAuth-palveluntarjoajamoduulia)
+- Kiintiöiden ennakkotarkistus ja kiintiöt huomioiva P2C-tilinvalinta keskustelun pääreitillä
+- OAuth- ja API-avaimiin perustuva palveluntarjoajayhteyksien hallinta (27 OAuth-palveluntarjoajamoduulia)
 - Upotusten luonti `/v1/embeddings`-päätepisteen kautta (18 palveluntarjoajaa)
 - Kuvien luonti `/v1/images/generations`-päätepisteen kautta (yli 10 palveluntarjoajaa, yli 20 mallia)
 - Äänen litterointi `/v1/audio/transcriptions`-päätepisteen kautta (18 palveluntarjoajaa)
@@ -29,58 +29,58 @@ Keskeiset ominaisuudet:
 - Videoiden luonti `/v1/videos/generations`-päätepisteen kautta (ComfyUI + SD WebUI)
 - Musiikin luonti `/v1/music/generations`-päätepisteen kautta (ComfyUI)
 - Verkkohaku `/v1/search`-päätepisteen kautta (20 palveluntarjoajaa)
-- Sisällön moderointi `/v1/moderations`-päätepisteen kautta
-- Uudelleenjärjestäminen `/v1/rerank`-päätepisteen kautta
-- Ajattelutunnisteiden jäsennys (`<think>...</think>`) päättelymalleille
+- Moderointi `/v1/moderations`-päätepisteen kautta
+- Uudelleenjärjestely `/v1/rerank`-päätepisteen kautta
+- Think-tunnisteiden jäsennys (``) päättelymalleille
 - Vastausten puhdistus tiukkaa OpenAI SDK -yhteensopivuutta varten
 - Roolien normalisointi (developer→system, system→user) palveluntarjoajien välisen yhteensopivuuden varmistamiseksi
-- Rakenteisen tulosteen muuntaminen (json_schema → Gemini responseSchema)
-- Palveluntarjoajien, avainten, aliasten, yhdistelmien, asetusten ja hinnoittelun paikallinen pysyväistallennus (122 tietokantamoduulia)
+- Rakenteisen tulosteen muunnos (json_schema → Gemini responseSchema)
+- Palveluntarjoajien, avainten, aliasten, yhdistelmien, asetusten ja hinnoittelun paikallinen tallennus (122 DB-moduulia)
 - Käytön ja kustannusten seuranta sekä pyyntöjen lokitus
-- Valinnainen pilvisynkronointi useiden laitteiden ja tilan synkronointia varten
-- IP-osoitteiden sallittujen ja estettyjen luettelot API-käytön hallintaan
+- Valinnainen pilvisynkronointi useiden laitteiden ja tilan synkronointiin
+- IP-sallittujen ja estettyjen osoitteiden luettelot API-käytön hallintaan
 - Ajattelubudjetin hallinta (läpivienti/automaattinen/mukautettu/mukautuva)
 - Globaalin järjestelmäkehotteen lisääminen
-- Istuntojen seuranta ja sormenjälkien luonti
+- Istuntojen seuranta ja sormenjälkien muodostaminen
 - Tilikohtainen tehostettu nopeusrajoitus palveluntarjoajakohtaisilla profiileilla
 - Katkaisijamalli palveluntarjoajien häiriönsietokyvyn parantamiseksi
 - Samanaikaisten pyyntöryöppyjen esto mutex-lukituksella
-- Allekirjoitukseen perustuva pyyntöjen duplikaattien poistovälimuisti
+- Allekirjoituspohjainen välimuisti päällekkäisten pyyntöjen poistamiseen
 - Toimialuekerros: kustannussäännöt, varareitityskäytäntö ja lukituskäytäntö
-- Context Relay: istuntojen siirtoyhteenvedot jatkuvuuden säilyttämiseksi tiliä vaihdettaessa
-- Toimialueen tilan pysyväistallennus (SQLite-läpikirjoitusvälimuisti varareitityksille, budjeteille, lukituksille ja katkaisijoille)
+- Context Relay: istunnon siirron yhteenvedot jatkuvuuden säilyttämiseksi tiliä vaihdettaessa
+- Toimialueen tilan pysyvä tallennus (SQLite-läpikirjoitusvälimuisti varareitityksille, budjeteille, lukituksille ja katkaisijoille)
 - Käytäntömoottori pyyntöjen keskitettyyn arviointiin (lukitus → budjetti → varareititys)
-- Pyyntötelemetria p50/p95/p99-viiveiden aggregoinnilla
-- Yhdistelmäkohteiden telemetria ja historiallinen terveystila tunnisteiden `combo_execution_key` / `combo_step_id` avulla
-- Korrelaatiotunnus (X-Request-Id) päästä päähän -jäljitystä varten
-- Vaatimustenmukaisuuden auditointilokitus API-avainkohtaisella käytöstäpoistolla
-- Arviointikehys LLM-laadunvarmistusta varten
-- Terveystilan hallintapaneeli palveluntarjoajien katkaisijoiden reaaliaikaisella tilalla
+- Pyyntötelemetria p50/p95/p99-latenssien koostamiseen
+- Yhdistelmäkohteiden telemetria ja historiallinen yhdistelmäkohteiden kunto `combo_execution_key`- / `combo_step_id`-arvojen avulla
+- Korrelaatiotunnus (X-Request-Id) päästä päähän -jäljitykseen
+- Vaatimustenmukaisuuden auditointilokitus, jonka voi poistaa käytöstä API-avainkohtaisesti
+- Arviointikehys LLM-laadunvarmistukseen
+- Kunnon hallintapaneeli, joka näyttää palveluntarjoajien katkaisijoiden reaaliaikaisen tilan
 - MCP Server (110 työkalua), jossa on 3 siirtotapaa (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE), joka sisältää taidot ja tehtävien elinkaaren
-- Muistijärjestelmä (poiminta, lisääminen, haku, yhteenvetojen luonti)
+- A2A Server (JSON-RPC 2.0 + SSE), jossa on taidot ja tehtävien elinkaari
+- Muistijärjestelmä (poiminta, lisääminen, haku, yhteenvetojen muodostaminen)
 - Taitojärjestelmä (rekisteri, suorittaja, hiekkalaatikko, sisäänrakennetut taidot)
 - MITM-välityspalvelin varmenteiden hallinnalla ja DNS-käsittelyllä
-- Kehotesyötteiden manipuloinnilta suojaava väliohjelmisto
-- Kehotteiden pakkausputki, joka sisältää Cavemanin, RTK:n, pinotut putket, pakkausyhdistelmät, kielipaketit ja analytiikan
+- Kehotesyötteiden suojausväliohjelmisto
+- Kehotteiden pakkausputki, jossa ovat Caveman, RTK, pinotut putket, pakkausyhdistelmät, kielipaketit ja analytiikka
 - ACP (Agent Communication Protocol) -rekisteri
 - Modulaariset OAuth-palveluntarjoajat (22 erillistä moduulia hakemistossa `src/lib/oauth/providers/`)
 - Asennuksen poisto- ja täydellisen asennuksen poiston komentosarjat
 - OAuth-ympäristön korjaustoiminto
 - WebSocket-silta OpenAI-yhteensopiville WS-asiakkaille (`/v1/ws`)
-- Synkronointitunnisteiden hallinta (myöntäminen/peruminen, ETag-versioidun määrityspaketin lataus)
-- GLM Thinking (`glmt`) ensiluokkaisena palveluntarjoajan esiasetuksena
-- Hybriditunnisteiden laskenta (palveluntarjoajan `/messages/count_tokens` ja varamenetelmänä estimointi)
-- Mallialiasten automaattinen alustus (yli 30 välityspalvelinmurteiden välistä normalisointia käynnistyksen yhteydessä)
-- Turvallinen lähtevä nouto SSRF-suojauksella, yksityisten URL-osoitteiden estolla ja määritettävillä uudelleenyrityksillä
-- Jäähtymisajan huomioivat keskustelun uudelleenyritykset määritettävillä `requestRetry`- ja `maxRetryIntervalSec`-arvoilla
-- Ajoympäristön validointi Zodilla käynnistyksen yhteydessä
-- Vaatimustenmukaisuuden auditointi v2 sivutuksella, palveluntarjoajien CRUD-tapahtumilla ja SSRF-estojen validointilokituksella
+- Synkronointitunnisteiden hallinta (myöntäminen/peruuttaminen, ETag-versioidun määrityspaketin lataus)
+- GLM Thinking (`glmt`) ensisijaisena palveluntarjoajaesiasetuksena
+- Hybriditunnistelaskenta (palveluntarjoajan `/messages/count_tokens` sekä arviointiin perustuva varamenetelmä)
+- Mallialiasten automaattinen alustaminen (yli 30 välityspalvelindialektien välistä normalisointia käynnistyksen yhteydessä)
+- Turvallinen lähtevä haku SSRF-suojauksella, yksityisten URL-osoitteiden estolla ja määritettävillä uudelleenyrityksillä
+- Jäähtymisajan huomioivat keskustelupyyntöjen uudelleenyritykset määritettävillä `requestRetry`- ja `maxRetryIntervalSec`-arvoilla
+- Suoritusympäristön tarkistus Zodilla käynnistyksen yhteydessä
+- Vaatimustenmukaisuuden auditointi v2 sivutuksella, palveluntarjoajien CRUD-tapahtumilla ja SSRF-estojen tarkistuslokituksella
 
-Ensisijainen ajonaikainen malli:
+Ensisijainen suoritusmalli:
 
-- Hakemiston `src/app/api/*` Next.js-sovellusreitit toteuttavat sekä hallintapaneelin API:t että yhteensopivuus-API:t
-- Hakemistojen `src/sse/*` ja `open-sse/*` jaettu SSE- ja reititysydin käsittelee palveluntarjoajien suorituksen, muunnokset, suoratoiston, varareitityksen ja käytön seurannan
+- Next.js-sovellusreitit hakemistossa `src/app/api/*` toteuttavat sekä hallintapaneelin API:t että yhteensopivuus-API:t
+- Jaettu SSE- ja reititysydin hakemistoissa `src/sse/*` + `open-sse/*` käsittelee palveluntarjoajien suorituksen, muunnokset, suoratoiston, varareitityksen ja käytön
 
 ## Viitekaaviot
 
@@ -265,65 +265,66 @@ Pääprosessin moduulit:
 - Aloituspiste: `src/sse/handlers/chat.ts`
 - Ydinkoordinointi: `open-sse/handlers/chatCore.ts`
 - Palveluntarjoajien suoritusadapterit: `open-sse/executors/*`
-- Muodon tunnistus / palveluntarjoajan määritykset: `open-sse/services/provider.ts`
-- Mallin jäsennys/ratkaisu: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Muodon tunnistus / palveluntarjoajan määritys: `open-sse/services/provider.ts`
+- Mallin jäsennys / ratkaisu: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - Tilin varajärjestelylogiikka: `open-sse/services/accountFallback.ts`
 - Käännösrekisteri: `open-sse/translator/index.ts`
 - Virtamuunnokset: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Käyttötietojen poiminta/normalisointi: `open-sse/utils/usageTracking.ts`
-- Ajattelutunnisteen jäsennin: `open-sse/utils/thinkTagParser.ts`
+- Käyttötietojen poiminta / normalisointi: `open-sse/utils/usageTracking.ts`
+- Think-tunnisteen jäsennin: `open-sse/utils/thinkTagParser.ts`
 - Upotusten käsittelijä: `open-sse/handlers/embeddings.ts`
 - Upotuspalveluntarjoajien rekisteri: `open-sse/config/embeddingRegistry.ts`
-- Kuvien generoinnin käsittelijä: `open-sse/handlers/imageGeneration.ts`
+- Kuvien luonnin käsittelijä: `open-sse/handlers/imageGeneration.ts`
 - Kuvapalveluntarjoajien rekisteri: `open-sse/config/imageRegistry.ts`
-- Vastausten puhdistus: `open-sse/handlers/responseSanitizer.ts`
+- Vastauksen puhdistus: `open-sse/handlers/responseSanitizer.ts`
 - Roolien normalisointi: `open-sse/services/roleNormalizer.ts`
 
 Palvelut (liiketoimintalogiikka):
 
-- Tilien valinta/pisteytys: `open-sse/services/accountSelector.ts`
+- Tilin valinta / pisteytys: `open-sse/services/accountSelector.ts`
 - Kontekstin elinkaaren hallinta: `open-sse/services/contextManager.ts`
-- IP-suodattimen käytäntöönpano: `open-sse/services/ipFilter.ts`
+- IP-suodatuksen valvonta: `open-sse/services/ipFilter.ts`
 - Istuntojen seuranta: `open-sse/services/sessionManager.ts`
-- Pyyntöjen duplikaattien poisto: `open-sse/services/signatureCache.ts`
-- Järjestelmäkehotteen lisääminen: `open-sse/services/systemPrompt.ts`
+- Pyyntöjen kaksoiskappaleiden poisto: `open-sse/services/signatureCache.ts`
+- Järjestelmäkehotteen lisäys: `open-sse/services/systemPrompt.ts`
 - Ajattelubudjetin hallinta: `open-sse/services/thinkingBudget.ts`
-- Jokerimerkkimallien reititys: `open-sse/services/wildcardRouter.ts`
-- Kutsurajoitusten hallinta: `open-sse/services/rateLimitManager.ts`
+- Jokerimallien reititys: `open-sse/services/wildcardRouter.ts`
+- Nopeusrajoitusten hallinta: `open-sse/services/rateLimitManager.ts`
 - Katkaisija: `src/shared/utils/circuitBreaker.ts`
-- Kontekstin siirto: `open-sse/services/contextHandoff.ts` — siirtoyhteenvetojen generointi ja lisääminen context-relay-strategiaa varten
-- Pakkaus: `open-sse/services/compression/*` — ennakoiva pakkaus ennen palveluntarjoajalle tehtävää käännöstä;
+- Kontekstin siirto: `open-sse/services/contextHandoff.ts` — siirtoyhteenvetojen luonti ja lisäys kontekstinvälitysstrategiaa varten
+- Pakkaus: `open-sse/services/compression/*` — ennakoiva pakkaus ennen palveluntarjoajamuunnosta;
   sisältää Caveman-säännöt, RTK-suodattimet, pinotut käsittelyketjut, pakkausyhdistelmät, tilastot ja validoinnin
-- Codex-kiintiön noutaja: `open-sse/services/codexQuotaFetcher.ts` — noutaa Codex-kiintiön context-relay-siirtopäätöksiä varten
-- Jäähtymisajan huomioiva uudelleenyritys: `src/sse/services/cooldownAwareRetry.ts` — mallikohtaiset jäähtymisajan uudelleenyritykset määritettävillä `requestRetry`- / `maxRetryIntervalSec`-asetuksilla
-- Turvallinen lähtevä nouto: `src/shared/network/safeOutboundFetch.ts` — suojattu palveluntarjoaja-/mallinouto SSRF-suojauksella, yksityisten URL-osoitteiden estolla, uudelleenyrityksillä ja aikakatkaisulla
-- Lähtevien URL-osoitteiden suojaus: `src/shared/network/outboundUrlGuard.ts` — validoi palveluntarjoajien URL-osoitteet yksityisten ja localhost-CIDR-alueiden perusteella
+- Codex-kiintiön noutaja: `open-sse/services/codexQuotaFetcher.ts` — noutaa Codex-kiintiön kontekstinvälityksen siirtopäätöksiä varten
+- Jäähdytysajan huomioiva uudelleenyritys: `src/sse/services/cooldownAwareRetry.ts` — mallikohtaiset jäähdytysajan jälkeiset uudelleenyritykset määritettävillä `requestRetry`- / `maxRetryIntervalSec`-asetuksilla
+- Turvallinen lähtevä nouto: `src/shared/network/safeOutboundFetch.ts` — suojattu palveluntarjoajan/mallin nouto, joka sisältää SSRF-suojauksen, yksityisten URL-osoitteiden eston, uudelleenyrityksen ja aikakatkaisun
+- Lähtevien URL-osoitteiden suojaus: `src/shared/network/outboundUrlGuard.ts` — palveluntarjoajien URL-osoitteiden isäntätarkistukset; `src/shared/network/outboundUrlGuardPolicy.ts` valitsee tilan muuttujista `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` ja niiden hallintapaneelivalinnoista (katso `docs/reference/ENVIRONMENT.md`)
 - Palveluntarjoajapyyntöjen oletusarvot: `open-sse/services/providerRequestDefaults.ts` — palveluntarjoajakohtaiset `maxTokens`-, `temperature`- ja `thinkingBudgetTokens`-oletusarvot
-- GLM-palveluntarjoajan vakiot: `open-sse/config/glmProvider.ts` — jaetut GLM-mallit, kiintiöiden URL-osoitteet sekä GLMT-aikakatkaisu/oletusarvot
-- Antigravity-ylävirta: `open-sse/config/antigravityUpstream.ts` — perus-URL-osoitteen ja löytämispolun vakiot
-- Codex-asiakasohjelman vakiot: `open-sse/config/codexClient.ts` — versioidut user-agent- ja asiakasohjelmaversion arvot
-- Mallialiasten alustustiedot: `src/lib/modelAliasSeed.ts` — alustaa käynnistyksen yhteydessä yli 30 välityspalvelindialektien välistä aliasta
+- GLM-palveluntarjoajan vakiot: `open-sse/config/glmProvider.ts` — jaetut GLM-mallit, kiintiöiden URL-osoitteet sekä GLMT:n aikakatkaisu ja oletusarvot
+- Antigravity-vastapalvelu: `open-sse/config/antigravityUpstream.ts` — perus-URL:n ja etsintäpolun vakiot
+- Codex-asiakasohjelman vakiot: `open-sse/config/codexClient.ts` — versioidut user-agent- ja asiakasohjelmaversioarvot
+- Mallialiasten alkutiedot: `src/lib/modelAliasSeed.ts` — alustaa käynnistyksen yhteydessä yli 30 välityspalvelindialektien välistä aliasta
 
-Toimialakerroksen moduulit:
+Toimialokerroksen moduulit:
 
-- Kustannussäännöt/budjetit: `src/domain/costRules.ts`
+- Kustannussäännöt / budjetit: `src/domain/costRules.ts`
 - Varajärjestelykäytäntö: `src/domain/fallbackPolicy.ts`
-- Yhdistelmien ratkaisija: `src/domain/comboResolver.ts`
+- Yhdistelmän ratkaisija: `src/domain/comboResolver.ts`
 - Lukituskäytäntö: `src/domain/lockoutPolicy.ts`
 - Käytäntömoottori: `src/domain/policyEngine.ts` — keskitetty lukituksen → budjetin → varajärjestelyn arviointi
 - Virhekoodiluettelo: `src/shared/constants/errorCodes.ts`
 - Pyynnön tunniste: `src/shared/utils/requestId.ts`
 - Noudon aikakatkaisu: `src/shared/utils/fetchTimeout.ts`
 - Pyyntötelemetria: `src/shared/utils/requestTelemetry.ts`
-- Vaatimustenmukaisuus/auditointi: `src/lib/compliance/index.ts`
+- Vaatimustenmukaisuus / auditointi: `src/lib/compliance/index.ts`
 - Arviointien suorittaja: `src/lib/evals/evalRunner.ts`
-- Toimialan tilan pysyvä tallennus: `src/lib/db/domainState.ts` — SQLite CRUD varajärjestelyketjuille, budjeteille, kustannushistorialle, lukitustilalle ja katkaisijoille
+- Toimialan tilan pysyväistallennus: `src/lib/db/domainState.ts` — SQLite CRUD varajärjestelyketjuille, budjeteille, kustannushistorialle, lukitustilalle ja katkaisijoille
 
-OAuth-palveluntarjoajamoduulit (22 erillistä tiedostoa hakemistossa `src/lib/oauth/providers/`):
+OAuth-palveluntarjoajamoduulit (27 erillistä tiedostoa hakemistossa `src/lib/oauth/providers/`):
 
-- Rekisterin indeksi: `src/lib/oauth/providers/index.ts`
-- Yksittäiset palveluntarjoajat: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- Ohut kääre: `src/lib/oauth/providers.ts` — vie yksittäisten moduulien viennit uudelleen
+- Rekisterin hakemistotiedosto: `src/lib/oauth/providers/index.ts`
+- Yksittäiset palveluntarjoajat: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Jaetut apumoduulit: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl -laiteprosessi), `museCodeDeviceResponse.ts`
+- Ohut kääremoduuli: `src/lib/oauth/providers.ts` — vie uudelleen yksittäisistä moduuleista
 
 ## 5) Upotetut palvelut (v3.8.4)
 
@@ -559,46 +560,46 @@ Toimialueen tilatietokanta (SQLite):
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK-asiakas
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as Mallin ratkaisija
+    participant Auth as Tunnistetietojen valitsin
+    participant Exec as Palveluntarjoajan suorittaja
+    participant Prov as Ylävirran palveluntarjoaja
+    participant Stream as Suoratoiston muunnin
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: jäsennä/ratkaise malli tai yhdistelmä
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt Yhdistelmämalli
+        Chat->>Chat: käy yhdistelmämallit läpi (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: aktiivinen tili + tunnukset/API-avain
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: tunnista lähdemuoto
+    Core->>Core: muunna pyyntö kohdemuotoon
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: ylävirran API-kutsu
+    Prov-->>Exec: SSE/JSON-vastaus
+    Exec-->>Core: vastaus + metatiedot
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: päivitetyt tunnukset
+        Core->>Exec: yritä pyyntöä uudelleen
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: muunna/normalisoi suoratoisto asiakkaan muotoon
+    Stream-->>Client: SSE-lohkot / JSON-vastaus
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: poimi käyttötiedot + tallenna historia/loki
 ```
 
 ## Yhdistelmä- ja tilivarauspolku
@@ -811,21 +812,21 @@ Fyysiset tallennustiedostot:
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[Kehittäjän isäntäkone]
+        CLI[CLI-työkalut]
+        Browser[Hallintapaneelin selain]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[OmniRoute-ajoympäristö]
+        Next[Next.js-palvelin\nPORT=20128]
+        Core[SSE-ydin + suorittajat]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(käyttötaulut + lokiartefaktit)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[Ulkoiset palvelut]
+        Providers[AI-palveluntarjoajat]
+        SyncCloud[Pilvisynkronointipalvelu]
     end
 
     CLI --> Next

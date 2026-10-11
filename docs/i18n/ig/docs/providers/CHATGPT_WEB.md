@@ -36,23 +36,24 @@ otu ikike ngwa mpaghara ahụ e kegidere na ntụgharị mgbe a haziri tunnel na
 
 ## Nhazi dashboard
 
-1. Mepee provider **ChatGPT Web (Codex)** ma tinye njikọ.
-2. Tapawa header Cookie ChatGPT zuru ezu, ID tunnel, runtime key, na aha custom connector.
-   Nhazi ọhụrụ nwere ikike ngwa ga-eji connector e mepụtara ọhụrụ nke aha ya bụ kpọmkwem
-   `OmniRoute Codex v2`, ebe atọrọ Authentication ka ọ bụrụ None na Permissions ka ọ bụrụ Allow all
+1. Mepee onye na-eweta **ChatGPT Web (Codex)** ma tinye njikọ.
+2. Mado nkụnye isi ChatGPT Cookie zuru ezu, tunnel ID, runtime key, na aha custom connector.
+   Nhazi ọhụrụ nwere ike iji ngwa ga-ejirịrị connector e mepụtara ọhụrụ nke aha ya bụ kpọmkwem
+   `OmniRoute Codex v2`, ebe edobere Authentication ka ọ bụrụ None ma debe Permissions ka ọ bụrụ Allow all
    actions.
-3. Gbaa nyocha njikọ ahụ. OmniRoute na-emepe Temporary Chat nke ihe nchọgharị na-akwado ma chọpụta
+3. Mee nyocha njikọ ahụ. OmniRoute ga-emepe Temporary Chat nke ihe nchọgharị na-akwado ma chọpụta
    ma Sol na Pro dị maka akaụntụ ahụ.
-4. Chekwaa njikọ ahụ. OmniRoute na-eji ọnọdụ nchekwa Playwright e nyochara dochie cookie
-   e tapawara, ma site na abstraction nzere e zoro ezo chekwaa ya na runtime key.
+4. Chekwaa njikọ ahụ. OmniRoute ga-eji ọnọdụ nchekwa Playwright a kwadoro dochie cookie ahụ
+   e madoro ma chekwaa ya na runtime key site na usoro nchekwa nzere ezoro ezo.
 
-A naghị edowe raw cookie mgbe echekwara ya nke ọma. Mgbe nnọkọ ahụ kubie ume, mepee
-njikọ ahụ, tapawa header Cookie zuru ezu nke ọhụrụ, ma gbaa nyocha ahụ ọzọ. Ọnọdụ doctor
-dị na dialog ndezi na-akọ browser, storage state, sign-in, Temporary Chat, tunnel,
-connector, na tool round-trip iche iche.
+A naghị edowe cookie mbụ ahụ mgbe echekwara ya nke ọma. Mgbe oge nnọkọ ahụ gwụrụ, mepee
+njikọ ahụ, mado nkụnye isi Cookie zuru ezu ọhụrụ, ma mee nyocha ahụ ọzọ. Ọnọdụ doctor
+dị na dialog ndezi na-akọ ọnọdụ ihe nchọgharị, ọnọdụ nchekwa, nbanye, Temporary Chat, tunnel,
+connector, na njem ngwa gaa-na-laghachi, nke ọ bụla iche. Iji mee ka mmelite cookie na-eme na-akpaghị aka mgbe nnọkọ gbanwere,
+lee ngwa ibe ya na [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Etinyekwala ezigbo cookie, runtime key, storage state, ma ọ bụ capability token na commit. Uru ule na
-> akwụkwọ nkọwa ga-abụrịrị placeholder mgbe niile.
+> Etinyekwala ezigbo cookie, runtime key, ọnọdụ nchekwa, ma ọ bụ capability token na commit. Uru nnwale na
+> nke akwụkwọ nkọwa ga-abụrịrị placeholders mgbe niile.
 
 ## Model na combo
 
@@ -122,7 +123,7 @@ HTTP/SSE fallback tupu ọ jikọọ na upstream. Mgbe ahụ, mbufe ahụ na-aga
 
 ## Nkwenye
 
-Mee ka njikwa provider rụọ ọrụ n’akpọghị provider e wepụrụ n’ọrụ:
+Mee ka njikwa ndị na-eweta ọrụ rụọ ọrụ n'akpọghị onye na-eweta ọrụ ahụ e wepụrụ:
 
 ```bash
 node --import tsx/esm --test \\
@@ -131,7 +132,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Ihe nchebe regression maka mwepụ ahụ dị na:
+Ihe nchebe megide nlọghachi nke mwepụ ahụ dị na:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

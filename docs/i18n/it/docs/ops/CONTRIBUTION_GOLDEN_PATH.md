@@ -5,33 +5,33 @@
 ---
 
 Usa questa guida per scegliere il ciclo di sviluppo affidabile più breve per una pull request. Non
-sostituisce i documenti specifici per area relativi all'architettura e alla sicurezza collegati di seguito; mette in relazione ogni comune
-tipo di modifica con i relativi contratti, controlli mirati e copertura CI.
+sostituisce i documenti di architettura e sicurezza specifici per area collegati di seguito; mette in relazione ogni tipologia
+comune di modifica con i relativi contratti, controlli mirati e copertura CI.
 
 ## Il percorso seguito da ogni modifica
 
-1. **Scegli la base prima di apportare modifiche.** Trova il branch `release/v*` attivo con la versione più alta e crea il tuo branch
-   dalla sua punta. Usa quel branch come destinazione, non `main`. Se è attivo un blocco dei rilasci, non usare come destinazione il branch
+1. **Scegli la base prima di apportare modifiche.** Individua il branch `release/v*` attivo con la versione più alta e crea un branch
+   a partire dal suo commit più recente. Imposta quel branch come destinazione, non `main`. Se è in corso un blocco della release, non usare come destinazione il branch
    bloccato; usa il successivo ciclo attivo descritto in
-   [Modello di branching e rilascio](BRANCHING_MODEL.md).
-2. **Indica i contratti.** Identifica ogni catalogo, schema, artefatto generato, API pubblica o interfaccia
-   utente interessati dalla modifica. La tabella seguente fornisce l'insieme iniziale minimo.
+   [Modello di branching e release](BRANCHING_MODEL.md).
+2. **Individua i contratti.** Identifica ogni catalogo, schema, artefatto generato, API pubblica o interfaccia
+   utente interessati dalla modifica. La tabella seguente indica l'insieme minimo da cui partire.
 3. **Scrivi o aggiorna test mirati.** Le modifiche al codice di produzione in `src/`, `open-sse/`, `electron/` o
-   `bin/` richiedono un test automatizzato nella stessa PR. Esegui i file di test più circoscritti che dimostrano il
+   `bin/` richiedono un test automatizzato nella stessa PR. Esegui i file di test minimi che dimostrano il
    comportamento, quindi i controlli mirati elencati.
-4. **Lascia che la CI esegua la matrice completa.** Gli shard completi dei test unitari, Vitest, il controllo incrementale della copertura e
-   la build di produzione vengono eseguiti sulla PR. Esegui localmente una suite completa solo quando un errore mirato indica
-   un impatto più ampio o quando la modifica coinvolge diversi sottosistemi.
-5. **Riconcilia prima della revisione.** Recupera la base attiva, esamina i relativi nuovi commit e il tuo diff rispetto
-   a essa, quindi esegui il rebase o il merge della base in conformità con il flusso di lavoro dei contributori. Risolvi i conflitti nei file generati
-   e nei cataloghi a partire dalla loro sorgente, rigenerali, riesegui il ciclo mirato e verifica che la
-   PR abbia ancora come destinazione il branch di rilascio attivo.
+4. **Lascia che la CI esegua la matrice completa.** Sulla PR vengono eseguiti tutti gli shard dei test unitari, Vitest, il controllo incrementale della copertura e
+   la build di produzione. Esegui localmente una suite estesa solo quando un errore mirato indica
+   un impatto più ampio o quando la modifica interessa diversi sottosistemi.
+5. **Riconcilia prima della revisione.** Recupera la base attiva, esamina i nuovi commit e il tuo diff rispetto
+   a essa, quindi esegui il rebase o il merge della base secondo il flusso di lavoro dei contributori. Risolvi i conflitti nei file
+   generati e nei cataloghi a partire dalle rispettive sorgenti, rigenerali, riesegui il ciclo mirato e verifica che la
+   PR abbia ancora come destinazione il branch di release attivo.
 6. **Registra le evidenze.** Nel template della PR, elenca i comandi eseguiti, ogni file di test aggiunto o modificato,
-   le migrazioni o i feature flag e qualsiasi convalida eseguita esclusivamente in CI ancora in sospeso.
+   le migrazioni o i feature flag e qualsiasi convalida eseguita solo dalla CI ancora in sospeso.
 
-## Percorsi consigliati per tipo di modifica
+## Percorsi consigliati per tipologia di modifica
 
-I comandi seguenti sono i controlli mirati minimi, non un'autorizzazione a omettere un test che copra direttamente il
+I comandi seguenti rappresentano i controlli mirati minimi, non un'autorizzazione a omettere un test che verifica direttamente il
 comportamento modificato.
 
 ### Provider
@@ -41,10 +41,10 @@ comportamento modificato.
 - Definizione del provider in `src/shared/constants/providers/` e relativa composizione in
   `src/shared/constants/providers.ts`.
 - Modelli e funzionalità in `open-sse/config/providerRegistry.ts` o nei relativi file di registro estratti.
-- Selezione dell'executor/traduttore, configurazione OAuth o della chiave API, risorse della dashboard e riferimento
+- Selezione dell'esecutore/traduttore, configurazione OAuth o della chiave API, risorse della dashboard e riferimento
   generato del provider, ove applicabile.
 - Le credenziali pubbliche devono usare `resolvePublicCred()`; le risposte di errore devono usare gli helper condivisi
-  per la sanitizzazione degli errori. Consulta `docs/security/PUBLIC_CREDS.md` (git; non compilato in `/docs`) e
+  per la sanitizzazione degli errori. Consulta `docs/security/PUBLIC_CREDS.md` (git; non incluso nella compilazione di `/docs`) e
   [Sanitizzazione degli errori](../security/ERROR_SANITIZATION.md).
 
 **Ciclo mirato**
@@ -59,27 +59,27 @@ npm run lint
 ```
 
 Testa inoltre ogni famiglia di richieste interessata: chat, Responses, immagini, embedding, audio o video.
-Esamina i diff del catalogo generato e dei golden file come modifiche ai contratti; non accettarli alla cieca.
+Esamina i diff del catalogo generato e dei golden file come modifiche ai contratti; non accettarli senza verificarli.
 
 ### Routing
 
 **Contratti**
 
 - Valori pubblici delle strategie e metadati dell'interfaccia utente in `src/shared/constants/routingStrategies.ts`.
-- Invio e ordinamento in `open-sse/services/combo.ts` e `open-sse/services/combo/`.
+- Dispatch e ordinamento in `open-sse/services/combo.ts` e `open-sse/services/combo/`.
 - Schemi delle combo, persistenza, stato di resilienza, funzionalità dei modelli e controlli API/interfaccia utente.
-- [Motore Auto-Combo](../routing/AUTO-COMBO.md) e documentazione sulla resilienza quando cambia il comportamento.
+- [Motore Auto-Combo](../routing/AUTO-COMBO.md) e documentazione sulla resilienza quando il comportamento cambia.
 
 **Ciclo mirato**
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # modifiche alla strategia o all'invio
+npm run test:combo:matrix        # modifiche alla strategia o al dispatch
 npm run check:known-symbols      # modifiche alla registrazione delle strategie
 npm run lint
 ```
 
-Usa localmente test deterministici con upstream simulati. Gli smoke test live delle combo richiedono credenziali e sono
+Usa localmente test deterministici con upstream simulato. Gli smoke test live delle combo richiedono credenziali e sono
 manuali, non sostituti della CI.
 
 ### UI / UX
@@ -88,9 +88,9 @@ manuali, non sostituti della CI.
 
 - Route/pagina Next.js e confini dei componenti condivisi in `src/app/` e
   `src/shared/components/`.
-- Formati delle risposte API, stati di caricamento/vuoto/errore, comportamento con tastiera e screen reader,
-  layout responsivo, temi ed espansione delle lingue.
-- Stringhe sorgente inglesi dell'interfaccia utente in `src/i18n/messages/en.json`; non inserire direttamente nel codice nuovi testi rivolti agli utenti.
+- Formati delle risposte API, stati di caricamento/vuoto/errore, comportamento da tastiera e con screen reader,
+  layout responsivo, gestione dei temi ed espansione delle impostazioni locali.
+- Stringhe sorgente inglesi dell'interfaccia utente in `src/i18n/messages/en.json`; non inserire direttamente nel codice nuovi testi destinati agli utenti.
 
 **Ciclo mirato**
 
@@ -101,19 +101,19 @@ npm run check:dashboard-typecheck
 npm run lint
 ```
 
-Esegui l'app per le modifiche all'interazione o all'aspetto visivo e controlla sia viewport strette sia ampie. La CI esegue la
-build di produzione e le suite più ampie; il comportamento visivo richiede comunque un controllo mirato tramite componente, Playwright
-o una verifica manuale documentata appropriata alla modifica.
+Esegui l'app per le modifiche visive o di interazione e verifica sia viewport strette sia ampie. La CI esegue la
+build di produzione e suite più estese; il comportamento visivo richiede comunque un controllo mirato del componente, con Playwright
+o manuale documentato, appropriato alla modifica.
 
 ### i18n
 
 **Contratti**
 
-- `src/i18n/messages/en.json` è la sorgente dell'interfaccia utente; `config/i18n.json` è la sorgente delle lingue.
+- `src/i18n/messages/en.json` è la sorgente dell'interfaccia utente; `config/i18n.json` è la sorgente delle impostazioni locali.
 - I cataloghi della CLI si trovano separatamente in `bin/cli/locales/`.
-- Mantieni invariati i segnaposto e i tag ICU. Non tradurre nomi di prodotti/provider/modelli,
-  nomi di protocolli e header, comandi, identificatori di codice/JSON, URL, variabili d'ambiente o
-  termini protetti come `OmniRoute`, `OAuth`, `MCP` e `A2A`. L'elenco sorgente attuale è
+- Mantieni esattamente i placeholder e i tag ICU. Non tradurre nomi di prodotti/provider/modelli,
+  nomi di protocolli e intestazioni, comandi, identificatori di codice/JSON, URL, variabili di ambiente o
+  termini protetti come `OmniRoute`, `OAuth`, `MCP` e `A2A`. L'elenco sorgente corrente è
   `scripts/i18n/glossary/protected-terms.json`.
 
 **Ciclo mirato**
@@ -123,12 +123,12 @@ npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # quando cambiano le stringhe/i cataloghi della CLI
+npm run check:cli-i18n          # quando cambiano le stringhe o i cataloghi della CLI
 npm run lint
 ```
 
 Queste sono indicazioni per il sistema esistente, non un invito ad ampliarne gli strumenti o il modello delle chiavi.
-Mantieni le patch i18n circoscritte mentre viene progettato il sistema sostitutivo. Non eseguire comandi di traduzione
+Mantieni le patch i18n chirurgiche mentre viene progettato il sistema sostitutivo. Non eseguire comandi di traduzione
 che chiamano servizi esterni, a meno che l'attività non richieda esplicitamente traduzioni generate e
 tu abbia esaminato il diff risultante.
 
@@ -137,7 +137,7 @@ tu abbia esaminato il diff risultante.
 **Contratti**
 
 - Comandi pubblici e flag in `bin/cli/`, comandi API generati, codici di uscita, stdout/stderr e
-  struttura dell'output JSON, comportamento della configurazione/dell'ambiente e file inclusi nel pacchetto.
+  struttura dell'output JSON, comportamento di configurazione/ambiente e file inclusi nel pacchetto.
 - Le stringhe della CLI rivolte all'utente devono utilizzare il livello i18n della CLI e mantenere allineati i cataloghi `en`/`pt-BR`.
 - Mantenere Node come runtime supportato e preservare il contratto del binario pubblicato.
 
@@ -146,20 +146,22 @@ tu abbia esaminato il diff risultante.
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # modifiche alla CLI generata/assemblata
+npm run build:cli             # modifiche alla CLI generata/in bundle
 npm run check:pack-policy     # modifiche alla superficie del pacchetto
 npm run lint
 ```
 
-Utilizzare il comando esatto in una directory temporanea per i dati quando il comportamento dipende dal parsing, dai file o dallo stato di uscita. La CI esegue i controlli più ampi sugli artefatti del pacchetto e sull'ecosistema.
+Utilizzare il comando esatto in una directory dati temporanea quando il comportamento dipende dal parsing, dai file o dallo
+stato di uscita. La CI esegue i controlli più ampi sugli artefatti del pacchetto e sull'ecosistema.
 
 ### Database
 
 **Contratti**
 
-- Moduli di dominio in `src/lib/db/`; importare direttamente moduli specifici (il precedente livello di riesportazione `localDb.ts` è stato rimosso).
-- Migrazioni SQL numerate e idempotenti in `src/lib/db/migrations/`, sicurezza delle transazioni, comportamento degli aggiornamenti, indici e ogni chiamante interessato dallo schema.
-- Le route e i gestori non eseguono mai direttamente SQL grezzo.
+- Moduli di dominio in `src/lib/db/`; importare direttamente i moduli specifici (il precedente livello di riesportazione `localDb.ts` è stato rimosso).
+- Migrazioni SQL numerate e idempotenti in `src/lib/db/migrations/`, sicurezza delle transazioni, comportamento
+  di aggiornamento, indici e ogni chiamante interessato dallo schema.
+- Route e gestori non eseguono mai direttamente SQL grezzo.
 
 **Ciclo mirato**
 
@@ -171,15 +173,18 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-Quando si aggiunge una migrazione, testare sia un database nuovo sia l'aggiornamento dallo schema precedente. I test del database devono chiudere gli handle e chiamare `resetDbInstance()` durante la pulizia. Eseguire `npm run test:bun:db` solo quando cambia il percorso dell'adattatore Bun supportato secondo il criterio del massimo sforzo possibile; Node resta l'implementazione autorevole.
+Quando si aggiunge una migrazione, testare sia un database nuovo sia l'aggiornamento dallo schema precedente. I test del database
+devono chiudere gli handle e chiamare `resetDbInstance()` durante la pulizia. Eseguire `npm run test:bun:db` solo quando
+cambia il percorso dell'adattatore Bun con supporto best-effort; Node rimane autorevole.
 
 ### Build / distribuzione
 
 **Contratti**
 
-- Manifest e lockfile della directory radice e dei workspace, `scripts/build/`, assemblaggio standalone di Next.js, contenuto del pacchetto `dist/`, metadati di piattaforma di Electron, workflow di CI e sentinelle di distribuzione.
-- Gli intervalli di versioni Node supportati e l'uso di Bun consentito esplicitamente in `CLAUDE.md` devono rimanere invariati.
-- Gli artefatti di build restano non tracciati; si applicano le policy relative a dipendenze, licenze, workflow e pacchetti.
+- Manifest e lockfile della root e dei workspace, `scripts/build/`, assemblaggio standalone di Next.js, contenuto del pacchetto
+  `dist/`, metadati di piattaforma Electron, workflow di CI e sentinelle di distribuzione.
+- Gli intervalli di versioni Node supportati e l'uso di Bun incluso nell'elenco consentito in `CLAUDE.md` devono rimanere invariati.
+- Gli artefatti di build devono rimanere non tracciati; si applicano le policy relative a dipendenze, licenze, workflow e pacchetti.
 
 **Ciclo mirato**
 
@@ -191,31 +196,74 @@ npm run check:pack-policy      # modifiche alla superficie del pacchetto pubblic
 npm run lint
 ```
 
-Utilizzare `npm run build` localmente solo quando la modifica influisce sulla compilazione, sull'assemblaggio standalone, sugli asset o sulla creazione del bundle di runtime. Utilizzare `npm run build:release` solo per la convalida del rilascio o della distribuzione. La build della CI costituisce il segnale multipiattaforma definitivo; le modifiche a Electron specifiche per una piattaforma richiedono la corrispondente build mirata o evidenze di smoke test.
+Utilizzare `npm run build` localmente solo quando la modifica influisce sulla compilazione, sull'assemblaggio standalone, sugli asset
+o sul bundling di runtime. Utilizzare `npm run build:release` solo per la convalida della release/distribuzione. La build della CI è
+il segnale multipiattaforma finale; le modifiche Electron specifiche per una piattaforma richiedono la build mirata corrispondente
+o prove di smoke test.
+
+## Ciclo locale del candidato
+
+I test sul codice sorgente non possono dimostrare che l'artefatto pacchettizzato si avvii: gli elenchi di inclusione nel pacchetto, le dipendenze eliminate e i binari nativi possono causare errori solo dopo che il tarball è stato installato e avviato. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) è la parte locale del flusso compila una volta / convalida / promuovi descritto nella
+RFC #8084: crea un singolo candidato, convalida esattamente quell'artefatto, lo promuove rinominando le
+directory e ne esegue il rollback quando lo slot promosso non supera il controllo di integrità.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # stampa il piano senza modificare nulla
+npm run dev:candidate -- run                   # compila + convalida + promuove, rollback automatico
+npm run dev:candidate -- build                 # npm pack + installazione in _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # avvio su una porta libera, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # scambia current e previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # riutilizza un tarball creato altrove (CI)
+```
+
+- **Compila una volta.** `build` crea il pacchetto dall'albero corrente (richiede `dist/server.js`, quindi esegui prima
+  `npm run build:release`) oppure copia `--from-tarball`, quindi installa il tarball in un
+  prefisso npm isolato, perché il tarball non contiene `node_modules`. L'id è lo sha breve di `HEAD`
+  (`-dirty` quando l'albero contiene modifiche locali) oppure `tgz-<sha256>` per un tarball. Un id pulito
+  già compilato viene riutilizzato anziché ricompilato; passa `--force` per ricompilarlo.
+- **Convalida il pacchetto, non il codice sorgente.** `validate` avvia la CLI installata
+  (`serve --port <free port>`) con un nuovo `DATA_DIR=<candidate>/data`, segreti fittizi e le variabili
+  `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` e `INITIAL_PASSWORD` dell'operatore rimosse
+  dall'ambiente, in modo da verificare la configurazione di loopback senza chiavi di una nuova installazione. Attende che
+  `GET /api/health` restituisca 200, richiede che `GET /v1/models` restituisca 200, arresta il gruppo di processi
+  e registra il verdetto in `validation.json` insieme all'hash del tarball.
+- **Promuovi lo stesso artefatto.** `promote` rifiuta un candidato privo di una convalida superata per
+  l'hash del tarball corrente. Lo slot attivo predefinito è `_artifacts/candidate/current`; `--target <dir>`
+  seleziona un'altra directory sullo stesso filesystem, mentre il relativo slot precedente è `<dir>.previous`.
+  Ogni ridenominazione è atomica e un errore durante l'operazione annulla le ridenominazioni già eseguite.
+- **Esegui il rollback.** `run` convalida nuovamente lo slot promosso e ripristina lo scambio tra `current` e `previous` quando
+  tale controllo non riesce. Un candidato che non supera la prima convalida non viene mai promosso.
+
+Tutto viene scritto nella directory ignorata da git `_artifacts/candidate/`; un'installazione OmniRoute
+esistente e la relativa directory dei dati non vengono mai modificate. La CLI promossa si trova in
+`_artifacts/candidate/current/prefix/bin/omniroute`; quando la utilizzi, avviala con il tuo `DATA_DIR`.
+Codici di uscita: `0` operazione riuscita, `1` convalida o promozione non riuscita, `2` errore di utilizzo o build mancante.
 
 ## Ciclo locale rispetto alla CI
 
-| Esecuzione locale per ogni patch                                                                              | La CI fornisce il segnale complessivo                                                      |
-| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Test diretti del comportamento e controlli di categoria indicati sopra                                        | Suite completa di unit test suddivisa in shard e test seriali                              |
-| `npm run lint`                                                                                                | Suite Vitest e soglie progressive di copertura/qualità                                     |
-| Controllo dei tipi o build solo quando richiesto dal contratto interessato                                    | Build di produzione e controlli di sicurezza, documentazione, dipendenze e policy delle PR |
-| Controlli manuali di interazione/in tempo reale solo quando l'automazione non può verificare il comportamento | Controlli di integrazione tra job e di piattaforma configurati dal workflow                |
+| Esecuzione locale per ogni patch                                                                 | La CI fornisce il segnale più ampio                                                          |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Test diretti del comportamento e controlli di categoria sopra indicati                           | Suite completa di unit test suddivisa in shard e test seriali                                |
+| `npm run lint`                                                                                   | Suite Vitest e soglie incrementali di copertura/qualità                                      |
+| Controllo dei tipi o build solo quando richiesto dal contratto interessato                       | Build di produzione, sicurezza, documentazione, dipendenze e controlli delle policy delle PR |
+| Interazioni manuali/controlli live solo quando l'automazione non può verificare il comportamento | Controlli di integrazione tra job e di piattaforma configurati dal workflow                  |
 
 Un ciclo mirato completato con successo costituisce una prova relativa al contratto modificato, non la garanzia che i controlli CI non correlati
-verranno superati. Analogamente, non fare in modo che ogni modifica locale debba attendere l'intera matrice del repository.
+avranno esito positivo. Analogamente, non fare in modo che ogni modifica locale debba attendere l'intera matrice del repository.
 
 ## Checklist di riconciliazione
 
 Prima di richiedere una revisione:
 
-- Verifica che la base della PR sia ancora il branch `release/v*` attivo più recente.
-- Esegui il fetch di tale base ed esamina i commit integrati da quando hai creato il branch.
+- Verifica che la base della PR sia ancora il branch `release/v*` attivo con la versione più alta.
+- Esegui il fetch di tale base ed esamina i commit aggiunti dopo la creazione del tuo branch.
 - Esamina `git diff <active-base>...HEAD` per individuare modifiche accidentali o generate.
-- Risolvi i conflitti nei cataloghi e nei documenti generati aggiornando la sorgente e rigenerando l'output.
-- Riesegui ogni test/controllo mirato elencato nella descrizione della PR dopo la riconciliazione.
-- Non indebolire mai le asserzioni né rimuovere i test richiesti soltanto per adeguarti a una base cambiata.
+- Risolvi i conflitti nei cataloghi e nei documenti generati aggiornando la fonte e rigenerando l'output.
+- Esegui nuovamente ogni test/controllo mirato elencato nella descrizione della PR dopo la riconciliazione.
+- Non indebolire mai le asserzioni né rimuovere test obbligatori soltanto per adeguarti a una base spostata.
 
-Per le regole relative al blocco delle release e al retargeting, consulta
-[Modello di branching e release](BRANCHING_MODEL.md). Per l'inventario completo della CI, consulta
+Per le regole relative al blocco dei rilasci e al retargeting, consulta
+[Modello di branching e rilascio](BRANCHING_MODEL.md). Per l'inventario completo della CI, consulta
 [Riferimento dei controlli di qualità](../architecture/QUALITY_GATES.md).

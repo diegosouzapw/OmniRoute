@@ -316,14 +316,14 @@ Mit v3.6.6 wird außerdem die **hybride Token-Zählung** eingeführt: Wenn ein C
 
 ---
 
-## 🛡️ Sicherer ausgehender Abruf & SSRF-Schutz _(v3.6.6+)_
+## 🛡️ Sicherer ausgehender Abruf und SSRF-Schutz _(v3.6.6+)_
 
-Alle Aufrufe zur Provider-Validierung und Modellerkennung durchlaufen jetzt einen zweistufigen Schutz für ausgehende Verbindungen:
+Alle Aufrufe zur Anbieterüberprüfung und Modellerkennung werden jetzt durch einen zweistufigen Schutz für ausgehende Verbindungen geleitet:
 
-1. **URL-Schutz** (`src/shared/network/outboundUrlGuard.ts`) — Blockiert private, Loopback- und linklokale IP-Bereiche, bevor der Socket geöffnet wird.
-2. **Wrapper für sichere Abrufe** (`src/shared/network/safeOutboundFetch.ts`) — Wendet den URL-Schutz an, vereinheitlicht Timeouts und wiederholt Anfragen bei vorübergehenden Fehlern mit exponentiellem Backoff.
+1. **URL-Schutz** (`src/shared/network/outboundUrlGuard.ts`) — Prüft zunächst den Hostnamen oder das IP-Literal des Ziels in der angegebenen Form; im Modus „Nur öffentlich“ löst der Wrapper für sichere Abrufe außerdem den Namen auf und lehnt private Adressen ab. Standardmäßig blockiert er Cloud-Metadaten-Endpunkte — den gesamten Bereich 169.254.0.0/16 sowie die bekannten Metadaten-Hostnamen; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blockiert zusätzlich private Hosts und Loopback-Hosts; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (oder die veraltete Einstellung `OUTBOUND_SSRF_GUARD_ENABLED=false`) deaktiviert die Prüfungen. Ein über den Umschalter im Dashboard gespeicherter Wert hat Vorrang vor der entsprechenden Variable, und integrierte lokale Anbieter überspringen den Schutz während der Schlüsselüberprüfung. Siehe `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper für sichere Abrufe** (`src/shared/network/safeOutboundFetch.ts`) — Wendet den URL-Schutz an, vereinheitlicht Zeitüberschreitungen und wiederholt den Vorgang bei vorübergehenden Fehlern mit exponentiellem Backoff.
 
-Schutzverletzungen werden als HTTP 422 (`URL_GUARD_BLOCKED`) ausgegeben und über `providerAudit.ts` in das Compliance-Auditprotokoll geschrieben.
+Schutzverletzungen werden als `URL_GUARD_BLOCKED` ausgegeben — HTTP 503 über `getSafeOutboundFetchErrorStatus` (400 auf der Modellerkennungsroute) — und tatsächliche SSRF-Blockierungen während der Überprüfung werden als `provider.validation.ssrf_blocked`-Ereignisse im Audit-Protokoll erfasst.
 
 ---
 

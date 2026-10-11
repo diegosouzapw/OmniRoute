@@ -21,17 +21,27 @@ Migratsioon `168_retire_chatgpt_web.sql` märgib vastavad teenusepakkuja ühendu
 
 Tunnelit on vaja ainult tööriistapööreteks. Iga loetletud marsruut, sealhulgas `pro`, saab kasutada sama pöördega seotud kohaliku tööriista võimekust, kui tunnel ja konnektor on seadistatud.
 
-## Seadistamine juhtpaneelil
+## Töölaua seadistamine
 
 1. Avage teenusepakkuja **ChatGPT Web (Codex)** ja lisage ühendus.
-2. Kleepige täielik ChatGPT Cookie-päis, tunneli ID, käituskeskkonna võti ja kohandatud konnektori nimi. Uued tööriistatoega seadistused peavad kasutama äsja loodud konnektorit, mille täpne nimi on `OmniRoute Codex v2`, mille Authentication on seatud väärtusele None ja Permissions väärtusele Allow all actions.
-3. Käivitage ühenduse kontroll. OmniRoute avab brauseripõhise ajutise vestluse ja tuvastab, kas Sol ja Pro on konto jaoks saadaval.
-4. Salvestage ühendus. OmniRoute asendab kleebitud küpsise kontrollitud Playwrighti salvestusolekuga ja talletab selle koos käituskeskkonna võtmega krüpteeritud identimisteabe abstraktsiooni kaudu.
+2. Kleepige täielik ChatGPT Cookie-päis, tunneli ID, käitusvõti ja kohandatud konnektori
+   nimi. Uued tööriistu toetavad seadistused peavad kasutama äsja loodud konnektorit täpse nimega
+   `OmniRoute Codex v2`, mille Authentication on seatud väärtusele None ja Permissions väärtusele Allow all
+   actions.
+3. Käivitage ühenduse kontroll. OmniRoute avab brauseripõhise ajutise vestluse Temporary Chat ja tuvastab,
+   kas Sol ja Pro on konto jaoks saadaval.
+4. Salvestage ühendus. OmniRoute asendab kleebitud küpsise kontrollitud
+   Playwrighti salvestusolekuga ja talletab selle koos käitusvõtmega krüpteeritud
+   mandaadiabstraktsiooni kaudu.
 
-Pärast edukat salvestamist toorküpsist ei säilitata. Kui seanss aegub, avage ühendus, kleepige uus täielik Cookie-päis ja käivitage kontroll uuesti. Muutmise dialoogi diagnostikaolek kuvab eraldi brauseri, salvestusoleku, sisselogimise, ajutise vestluse, tunneli, konnektori ja tööriista edasi-tagasi toimimise oleku.
+Pärast edukat salvestamist toorküpsist ei säilitata. Kui seanss aegub, avage
+ühendus, kleepige uus täielik Cookie-päis ja käivitage kontroll uuesti. Muutmisdialoogi diagnostikaolek
+kuvab eraldi brauseri, salvestusoleku, sisselogimise, Temporary Chati, tunneli,
+konnektori ja tööriista edasi-tagasi päringu oleku. Küpsiste automaatseks uuendamiseks seansside vahetumisel
+vaadake kaasnevat tööriista jaotisest [Brauseriseansi sünkroonimise laiendus](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Ärge kunagi kinnistage hoidlasse tegelikku küpsist, käituskeskkonna võtit, salvestusolekut ega võimekuse luba. Test- ja
-> dokumentatsiooniväärtused peavad alati olema kohatäitjad.
+> Ärge kunagi lisage hoidlasse tegelikku küpsist, käitusvõtit, salvestusolekut ega võimekustõendit. Test- ja
+> dokumentatsiooniväärtused peavad alati olema kohatäited.
 
 ## Mudelid ja kombinatsioonid
 
@@ -92,7 +102,7 @@ HTTP/SSE-varulahendust. Seejärel liigub edastus läbi
 
 ## Kontrollimine
 
-Käivitage teenusepakkuja kontrollid, kutsumata välja kasutuselt kõrvaldatud teenusepakkujat:
+Käivitage pakkuja kontrollid ilma kasutuselt kõrvaldatud pakkujat käivitamata:
 
 ```bash
 node --import tsx/esm --test \\

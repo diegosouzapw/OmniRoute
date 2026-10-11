@@ -157,35 +157,35 @@ Cormack وآخرين الأصلية، وتعمل جيدًا مع المجموع�
 ## امتداد الإعدادات
 
 تتوفر تسعة حقول للتضمين والمتجهات في `MemorySettingsExtended` ضمن
-`src/shared/schemas/memory.ts`، ويتم حفظها عبر `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts`، ويجري حفظها عبر `src/lib/db/settings.ts`:
 
-| الحقل                    | النوع                                              | القيمة الافتراضية | الوصف                                                               |
-| ------------------------ | -------------------------------------------------- | ----------------- | ------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | مصدر التضمين الذي سيُستخدم                                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`            | المزوّد/النموذج بتنسيق `provider/model`                             |
-| `customBaseUrl`          | `string \| null`                                   | `null`            | عنوان URL الأساسي لنقطة نهاية متوافقة مع OpenAI ومخصّصة للذاكرة فقط |
-| `customModelId`          | `string \| null`                                   | `null`            | معرّف النموذج المُرسل إلى نقطة النهاية المخصّصة                     |
-| `transformersEnabled`    | `boolean`                                          | `false`           | الاشتراك الاختياري في Transformers.js ‏(MiniLM، بحجم ~400MB)        |
-| `staticEnabled`          | `boolean`                                          | `false`           | الاشتراك الاختياري في نموذج potion-base-8M المحلي الثابت            |
-| `rerankEnabled`          | `boolean`                                          | `false`           | تمكين خطوة إعادة الترتيب (تضيف +200-500ms/req)                      |
-| `rerankProviderModel`    | `string \| null`                                   | `null`            | مزوّد/نموذج إعادة الترتيب بتنسيق `provider/model`                   |
+| الحقل                    | النوع                                              | القيمة الافتراضية | الوصف                                                            |
+| ------------------------ | -------------------------------------------------- | ----------------- | ---------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | مصدر التضمين المطلوب استخدامه                                    |
+| `embeddingProviderModel` | `string \| null`                                   | `null`            | المزوّد/النموذج بتنسيق `provider/model`                          |
+| `customBaseUrl`          | `string \| null`                                   | `null`            | عنوان URL أساسي لنقطة نهاية متوافقة مع OpenAI ومخصصة للذاكرة فقط |
+| `customModelId`          | `string \| null`                                   | `null`            | معرّف النموذج المُرسل إلى نقطة النهاية المخصصة                   |
+| `transformersEnabled`    | `boolean`                                          | `false`           | الاشتراك في استخدام Transformers.js ‏(MiniLM، بحجم ~400MB)       |
+| `staticEnabled`          | `boolean`                                          | `false`           | الاشتراك في استخدام نموذج potion-base-8M المحلي الثابت           |
+| `rerankEnabled`          | `boolean`                                          | `false`           | تمكين خطوة إعادة الترتيب (تضيف +200-500ms/req)                   |
+| `rerankProviderModel`    | `string \| null`                                   | `null`            | مزوّد/نموذج إعادة الترتيب بتنسيق `provider/model`                |
 
-يتم تحليل `rerankProviderModel` بواسطة `POST /v1/rerank` (ويُستدعى عبر واجهة الاسترجاع المحلية)، لذا فهو يقبل أي قيمة يقبلها ذلك المسار: نموذج إعادة ترتيب سحابي منسّق (`cohere/rerank-v3.5`، `jina-ai/jina-reranker-v3.5`، …) أو عقدة مزوّد متوافقة مع OpenAI بالصيغة `<node-prefix>/<model>` (مثل `skilled-mini/bge-reranker-v2-m3` لصندوق TEI/Infinity). تكون عقد الاسترجاع المحلية مؤهلة دائمًا؛ أما العقدة الموجودة على مضيف آخر (LAN، Tailscale) فتتطلب أيضًا علامة الميزة `RERANK_REMOTE_PROVIDER_NODES` ويجب أن تجتاز سياسة عناوين URL الصادرة الخاصة بالمزوّد — راجع [علامات الميزات](../reference/FEATURE_FLAGS.md). تعرض أداة الاختيار في لوحة المعلومات المزوّدين المنسّقين بالإضافة إلى العقد المحلية؛ ويمكن تعيين أي سلسلة `provider/model` صالحة مباشرةً عبر `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | مخزن المتجهات الخلفي الذي سيُستخدم |
+يُحلّ `rerankProviderModel` بواسطة `POST /v1/rerank` (ويُستدعى عبر واجهة الاسترجاع المحلية)، ولذلك يقبل أي شيء تقبله تلك النقطة: نموذج إعادة ترتيب سحابي منسّق (`cohere/rerank-v3.5`، `jina-ai/jina-reranker-v3.5`، …) أو عقدة مزوّد متوافقة مع OpenAI بصيغة `<node-prefix>/<model>` (مثل `skilled-mini/bge-reranker-v2-m3` لصندوق TEI/Infinity). تكون عقد الاسترجاع المحلية وأسماء المضيفين المدرجة في `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (مثل اسم خدمة Docker/Compose) مؤهلة دائمًا؛ أما العقدة الموجودة على مضيف آخر (LAN، Tailscale) فتتطلب أيضًا علامة الميزة `RERANK_REMOTE_PROVIDER_NODES`، ويجب أن تجتاز سياسة عناوين URL الصادرة للمزوّد — راجع [علامات الميزات](../reference/FEATURE_FLAGS.md). يعرض محدد لوحة المعلومات المزوّدين المنسقين بالإضافة إلى العقد المحلية؛ ويمكن تعيين أي سلسلة `provider/model` صالحة مباشرةً عبر `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | مخزن المتجهات الخلفي المطلوب استخدامه |
 
-تُعرض هذه الإعدادات عبر `GET /PUT /api/settings/memory` (المخطط `MemorySettingsExtendedSchema`).
+تتاح هذه الإعدادات عبر `GET /PUT /api/settings/memory` (المخطط `MemorySettingsExtendedSchema`).
 
-بالنسبة إلى المصدر `remote`، تقبل الذاكرة أيضًا الإعدادين الاختياريين `customBaseUrl` و
-`customModelId`. ويحددان معًا نقطة نهاية `/embeddings` متوافقة مع OpenAI
-والنموذج، من دون تغيير سجل التضمين العام. تتم تسوية نقطة النهاية
-قبل استخدامها وفحصها وفقًا لسياسة عناوين URL الصادرة الخاصة بالمزوّد: يلزم استخدام HTTP(S)،
-وتُرفض بيانات الاعتماد المضمّنة وسلاسل الاستعلام، كما تظل عناوين
-بيانات تعريف السحابة محظورة. تحافظ القيم الفارغة على مزوّد السجل المحدد. تُنقَّح الأخطاء
-المُعادة إلى لوحة المعلومات، ولا تُسجَّل بيانات اعتماد نقطة النهاية مطلقًا.
+بالنسبة إلى المصدر `remote`، تقبل Memory أيضًا الإعدادين الاختياريين `customBaseUrl`
+و`customModelId`. ويحددان معًا نقطة نهاية `/embeddings` متوافقة مع OpenAI
+ونموذجًا، من دون تغيير سجل التضمين العام. يُطبَّع عنوان نقطة النهاية قبل استخدامه
+ويُفحص وفق سياسة عناوين URL الصادرة للمزوّد: يلزم استخدام HTTP(S)، وتُرفض بيانات
+الاعتماد المضمّنة وسلاسل الاستعلام، وتظل عناوين بيانات تعريف السحابة محظورة. تُبقي
+القيم الفارغة على مزوّد السجل المحدد. تُنقَّح الأخطاء المُعادة إلى لوحة المعلومات،
+ولا تُسجَّل بيانات اعتماد نقطة النهاية مطلقًا.
 
-> **مهمة مطلوبة (D20):** النطاق `global` (مشاركة الذكريات عبر جميع مفاتيح API) غير
-> مطبّق في هذا الإصدار. فهو يتطلب تغييرات في المخطط ومسار استرجاع
-> عامًا. يجب تتبعه بشكل منفصل.
+> **مطلوب (D20):** النطاق `global` (مشاركة الذكريات عبر جميع مفاتيح API) غير
+> منفّذ في هذا الإصدار. فهو يتطلب تغييرات في المخطط ومسار استرجاع عامًا.
+> يجب تتبعه بشكل منفصل.
 
 ## طبقات التخزين
 
@@ -894,10 +894,10 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ## نمط موفّر MemoryBackend
 
-> **المصدر المرجعي:** `src/lib/memory/backend.ts`، `src/lib/memory/genericBackend.ts`، `src/lib/memory/manager.ts`
+> **مصدر الحقيقة:** `src/lib/memory/backend.ts`، `src/lib/memory/genericBackend.ts`، `src/lib/memory/manager.ts`
 > **الاختبارات:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-يقدم نمط موفّر MemoryBackend **طبقة تجريدية قابلة للتوصيل للواجهة الخلفية** فوق محرك الذاكرة الحالي. وبدلًا من الارتباط بتنفيذ تخزين واحد، يدعم نظام الذاكرة الآن عدة واجهات خلفية (SQLite وObsidian وNotion وواجهات HTTP خلفية مخصصة) مع توجيه قابل للتهيئة بين الواجهة الأساسية والواجهات الاحتياطية.
+يقدّم نمط موفّر MemoryBackend **طبقة تجريد قابلة للتوصيل للواجهات الخلفية** فوق محرّك الذاكرة الحالي. وبدلًا من الارتباط بتنفيذ تخزين واحد، يدعم نظام الذاكرة الآن عدة واجهات خلفية (SQLite وObsidian وNotion وواجهات HTTP خلفية مخصّصة) مع توجيه قابل للتهيئة بين الواجهة الأساسية والواجهات الاحتياطية.
 
 ### البنية
 
@@ -909,19 +909,19 @@ curl -X POST http://localhost:20128/api/memory/summarize \
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           مُنسّق Singleton (manager.ts)                   │
+│           منسّق فردي (manager.ts)                         │
 │                                                          │
-│  الأساسية ──► الواجهة الخلفية A  (مثل SQLite)           │
-│  الاحتياطية ─► الواجهة الخلفية B  (مثل Obsidian)        │
+│  الأساسية ──► الواجهة الخلفية A  (مثل SQLite)            │
+│  الاحتياطية ─► الواجهة الخلفية B  (مثل Obsidian)         │
 │                الواجهة الخلفية C  (مثل Notion عبر GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
+│ واجهة      │ │ واجهة      │ │ واجهة            │
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ الواجهة    │ │ الواجهة    │ │ الواجهة الخلفية │
-│ الخلفية    │ │ الخلفية    │ │ (HTTP)           │
+│ الخلفية    │ │ الخلفية    │ │ الخلفية (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -934,7 +934,7 @@ interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // عمليات CRUD
+  // عمليات الإنشاء والقراءة والتحديث والحذف
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -944,7 +944,7 @@ interface MemoryBackend {
   // البحث
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // حالة التشغيل
+  // الصحة
   health(): Promise<HealthCheckResult>;
 
   // دورة الحياة (اختيارية)
@@ -955,39 +955,39 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-مُنسّق Singleton يقوم بما يلي:
+منسّق فردي يقوم بما يلي:
 
-- **يسجّل** الواجهات الخلفية عبر `register(backend)` — ويُستدعى عند بدء التشغيل من `index.ts`
-- **يهيئ** الواجهة الأساسية والواجهات الاحتياطية عبر `configure(primary, fallbacks)`
-- **يوجّه** عمليات CRUD/البحث إلى الواجهة الأساسية، مع سلسلة انتقال إلى الواجهات الاحتياطية عند الفشل
-- **يفحص حالة تشغيل** جميع الواجهات الخلفية دوريًا
+- **يسجّل** الواجهات الخلفية عبر `register(backend)` — ويُستدعى عند الإقلاع من `index.ts`
+- **يهيّئ** الواجهة الأساسية والواجهات الاحتياطية عبر `configure(primary, fallbacks)`
+- **يوجّه** عمليات الإنشاء والقراءة والتحديث والحذف/البحث إلى الواجهة الأساسية، مع استخدام سلسلة الواجهات الاحتياطية عند الفشل
+- **يفحص صحة** جميع الواجهات الخلفية دوريًا
 
 **سلوك الواجهات الاحتياطية:**
 
-| العملية  | الأساسية                 | الواجهات الاحتياطية                 |
-| -------- | ------------------------ | ----------------------------------- |
-| `create` | ✅ الأساسية فقط          | ❌                                  |
-| `get`    | ✅ محاولة الأساسية أولًا | ✅ الاحتياطية إذا كانت النتيجة null |
-| `update` | ✅ الأساسية فقط          | ✅ مزامنة دون انتظار النتيجة        |
-| `delete` | ✅ الأساسية فقط          | ✅ مزامنة دون انتظار النتيجة        |
-| `list`   | ✅ الأساسية فقط          | ❌                                  |
-| `search` | ✅ الأساسية أولًا        | ✅ الاحتياطية عند حدوث خطأ          |
+| العملية  | الواجهة الأساسية                | الواجهات الاحتياطية                 |
+| -------- | ------------------------------- | ----------------------------------- |
+| `create` | ✅ الواجهة الأساسية فقط         | ❌                                  |
+| `get`    | ✅ تجربة الواجهة الأساسية أولًا | ✅ الاحتياطية إذا كانت النتيجة null |
+| `update` | ✅ الواجهة الأساسية فقط         | ✅ مزامنة دون انتظار النتيجة        |
+| `delete` | ✅ الواجهة الأساسية فقط         | ✅ مزامنة دون انتظار النتيجة        |
+| `list`   | ✅ الواجهة الأساسية فقط         | ❌                                  |
+| `search` | ✅ الواجهة الأساسية أولًا       | ✅ الاحتياطية عند حدوث خطأ          |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-موصّل HTTP عام يكيّف أي REST API ليصبح MemoryBackend. وهو مفيد من أجل:
+موصّل HTTP عام يكيّف أي REST API ليصبح MemoryBackend. وهو مفيد لما يلي:
 
 - **Notion** — الاتصال عبر Notion API
 - **Obsidian** — الاتصال عبر Obsidian Local REST API
-- **واجهات خلفية مخصصة** — أي خدمة توفر RESTful API للذاكرة
+- **واجهات خلفية مخصّصة** — أي خدمة توفّر API RESTful للذاكرة
 
 **التهيئة:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // عنوان URL الأساسي لواجهة API الخاصة بالواجهة الخلفية
+  baseUrl: string;           // عنوان URL الأساسي لـ API الواجهة الخلفية
   apiKey?: string;           // رمز Bearer للمصادقة
-  headers?: Record<string, string>;  // ترويسات HTTP مخصصة
+  headers?: Record<string, string>;  // ترويسات HTTP مخصّصة
   timeout?: number;          // مهلة الطلب (القيمة الافتراضية: 30000ms)
   backendType?: string;      // لأغراض التسجيل
 
@@ -1014,18 +1014,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**الواجهات الخلفية المعروفة** مُهيأة مسبقًا في `KNOWN_BACKENDS`:
+تكون **الواجهات الخلفية المعروفة** مهيّأة مسبقًا في `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend تشير إلى localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend تشير إلى api.notion.com/v1
+createKnownBackend("obsidian"); // ← GenericMemoryBackend موجّه إلى localhost:27123
+createKnownBackend("notion"); // ← GenericMemoryBackend موجّه إلى api.notion.com/v1
 ```
 
-#### الواجهات الخلفية المضمنة
+#### الواجهات الخلفية المضمّنة
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-الواجهة الخلفية الأساسية الافتراضية. تُغلّف مخزن الذاكرة الحالي المستند إلى SQLite باستخدام `src/lib/memory/store.ts`. تُسجَّل تلقائيًا عند بدء التشغيل.
+الواجهة الخلفية الأساسية الافتراضية. تغلّف مخزن الذاكرة الحالي المستند إلى SQLite باستخدام `src/lib/memory/store.ts`. وتُسجّل تلقائيًا عند الإقلاع.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1034,38 +1034,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-تُغلّف تكامل Obsidian الحالي (`src/lib/memory/obsidianBackend.ts`). تتصل بخزنة Obsidian عبر واجهة Obsidian Local REST API.
+تغلّف تكامل Obsidian الحالي (`src/lib/memory/obsidianBackend.ts`). وتتصل بخزنة Obsidian عبر Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+مكيّف لعامل [claude-mem](https://github.com/thedotmack/claude-mem) محلي — إضافة ذاكرة
+Claude Code / Codex / Cursor التي تلتقط جلسات البرمجة على هيئة «ملاحظات».
+عند تسجيله، يمكن لمسارات REST الخاصة بـ `/api/memory` وبحث ذاكرة A2A القراءة من
+المخزن نفسه الذي تملؤه خطّافات claude-mem والكتابة إليه.
+
+يرتبط العامل بواجهة الاسترجاع فقط، وهو ما يرفضه حاجز SSRF الخاص بـ `GenericMemoryBackend` عمدًا.
+لا يخفّف هذا المكيّف ذلك الحاجز: فالمضيف مضمّن بشكل ثابت على `127.0.0.1`، ومخطط
+التهيئة (`ClaudeMemBackendConfigSchema`، `.strict()`) لا يقبل سوى:
+
+| المفتاح     | النوع  | القيمة الافتراضية | ملاحظات                                                                                                    |
+| ----------- | ------ | ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —                 | مطلوب، 1024–65535. منفذ عامل claude-mem من ملف إعداداته (الافتراضي `37700 + uid % 100`).                   |
+| `project`   | string | —                 | مشروع claude-mem المراد استخدامه. إذا لم يُعيَّن، يُربط كل مفتاح OmniRoute API بمشروعه الخاص (`apiKeyId`). |
+| `timeoutMs` | number | `5000`            | مهلة كل طلب، 100–30000.                                                                                    |
+
+فعّله عبر `PUT /api/settings/memory` ثم أعد تشغيل OmniRoute (تُسجَّل الواجهات الخلفية
+مرة واحدة، في `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+استخدم `"primaryBackend": "claude-mem"` بدلاً من ذلك لجعله مخزن REST API. يُسجَّل
+الإعداد غير الصالح (`claude-mem.backend.invalid_config`) ويُتخطى، لذا يظل SQLite الواجهة الخلفية الأساسية.
+
+التعيين والحدود:
+
+- تكون المعرّفات بالصيغة `claude-mem:<observationId>`؛ وتتجاهل `get`/`delete` معرّفات الواجهات الخلفية الأخرى من دون
+  إجراء استدعاء شبكي.
+- `create` ← `POST /api/memory/save`؛ تُضمَّن حقول OmniRoute (`apiKeyId`، و`sessionId`، و`type`،
+  و`key`، و`metadata`) في `metadata.omniroute` الخاص بـ claude-mem، وتُستعاد كما هي عند القراءة.
+- `search` ← `GET /api/search?format=json&type=observations`، مع تقليص النتائج إلى `maxTokens`
+  (عدد الأحرف / 4). و`list` ← نقطة نهاية الملاحظات المرقّمة بالصفحات الخاصة بالعامل (`total` حد أدنى — يُرجع العامل
+  `hasMore`، وليس عدداً).
+- تُعيَّن الملاحظات الملتقطة بواسطة الخطافات كالتالي: `discovery` ← `factual`، و`decision` ← `procedural`، و
+  `bugfix`/`feature`/`refactor`/`change` ← `episodic`.
+- **لا توجد تحديثات** (تُرجع `update()` القيمة `false`؛ فالملاحظات غير قابلة للتغيير) و**لا توجد TTL**
+  (يُتجاهل `expiresAt`). يزيل claude-mem التكرار من عمليات الحفظ المتطابقة بدلاً من إجراء upsert حسب `key`.
+- لا تزال عملية حقن الموجّه (`retrieval.ts`) وأدوات MCP المسماة `omniroute_memory_*` تقرأ SQLite
+  مباشرةً — فهي لا تمر عبر `memoryManager`، لذا لا تغذيها هذه الواجهة الخلفية.
+
+**توجيه استدعاءات LLM الخاصة بـ claude-mem عبر OmniRoute.** يضغط claude-mem الملاحظات
+باستخدام LLM (الافتراضي: Claude Agent SDK). ويمكن توجيه موفّر `openai-compatible` الخاص به إلى
+OmniRoute بدلاً من ذلك، للاستفادة من الرجوع الاحتياطي للمجموعات وتتبع التكلفة. في `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<مفتاح OmniRoute API>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<نموذج أو مجموعة OmniRoute>"
+}
+```
 
 ### الإعدادات
 
 تُخزَّن إعدادات الواجهة الخلفية للذاكرة في جدول إعدادات التطبيق، وتُدار عبر `src/lib/memory/settings.ts`:
 
-| الإعداد                     | مفتاح البيئة/التهيئة     | القيمة الافتراضية | الوصف                                        |
+| الإعداد                     | مفتاح البيئة/الإعداد     | القيمة الافتراضية | الوصف                                        |
 | --------------------------- | ------------------------ | ----------------- | -------------------------------------------- |
 | الواجهة الخلفية الأساسية    | `memoryPrimaryBackend`   | `"sqlite"`        | معرّف الواجهة الخلفية الأساسية               |
 | الواجهات الخلفية الاحتياطية | `memoryFallbackBackends` | `[]`              | معرّفات الواجهات الخلفية الاحتياطية بالترتيب |
-| تهيئات الواجهات الخلفية     | `memoryBackendConfigs`   | `{}`              | تجاوزات التهيئة لكل واجهة خلفية              |
+| إعدادات الواجهات الخلفية    | `memoryBackendConfigs`   | `{}`              | تجاوزات الإعداد لكل واجهة خلفية              |
 
-تُطبَّع الإعدادات عبر `normalizeMemorySettings()` وتُخزَّن مؤقتًا في `getMemorySettings()`.
+تُطبَّع الإعدادات عبر `normalizeMemorySettings()` وتُخزَّن مؤقتاً عند `getMemorySettings()`.
 
 ### تدفق التهيئة
 
 ```
-بدء تشغيل التطبيق
-  → عمليات استيراد index.ts (كتأثير جانبي): تسجّل SQLiteBackend
-  → يُستدعى initMemoryBackends() من دورة حياة التطبيق:
+تمهيد التطبيق
+  → عمليات استيراد index.ts (أثر جانبي): تسجيل SQLiteBackend
+  → استدعاء initMemoryBackends() من دورة حياة التطبيق:
       1. تحميل الإعدادات (getMemorySettings)
-      2. تهيئة الواجهة الأساسية + الاحتياطية
+      1b. تسجيل الواجهات الخلفية الاختيارية الموجودة في backendConfigs (claude-mem)
+      2. إعداد الواجهة الأساسية + الاحتياطية
       3. تهيئة جميع الواجهات الخلفية (فحص السلامة)
-      4. جاهز لاستقبال الطلبات
+      4. الجاهزية للطلبات
 ```
 
 ### إضافة واجهة خلفية جديدة
 
 1. **نفّذ واجهة `MemoryBackend`** في `src/lib/memory/<name>Backend.ts`
 2. **صدّرها** من `src/lib/memory/index.ts`
-3. **سجّلها** باستخدام `memoryManager.register(yourBackend)` عند بدء التشغيل
-4. **هيّئها** عبر الإعدادات: اضبط `memoryPrimaryBackend` على معرّف واجهتك الخلفية
+3. **سجّلها** باستخدام `memoryManager.register(yourBackend)` عند التمهيد
+4. **اضبطها** عبر الإعدادات: عيّن `memoryPrimaryBackend` إلى معرّف واجهتك الخلفية
 5. **اختبرها** بالاستعانة بـ `src/lib/memory/__tests__/generic-backend.test.ts` كمرجع
 
 #### مثال: واجهة Brain الخلفية
@@ -1094,19 +1154,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-الناتج المتوقع: **35 اختبارًا، جميعها ناجحة** وتغطي:
+الناتج المتوقع: **35 اختباراً، جميعها ناجحة** وتغطي:
 
 - المُنشئ (2)
-- فحص السلامة (4) — نجاح، فشل 500، خطأ في الشبكة، زمن الاستجابة
-- التهيئة (2) — نجاح، فشل
-- الإنشاء (2) — نقطة النهاية الافتراضية، نقطة نهاية مخصصة
-- الجلب (4) — نجاح، 404 ← null، طرح خطأ لرمز غير 404، معاملات مسار مخصصة
-- التحديث (2) — نجاح، 404 ← false
-- الحذف (2) — نجاح، 404 ← false
-- السرد (2) — معاملات الاستعلام، أسماء معاملات مخصصة
-- البحث (3) — معاملات الاستعلام، نقطة نهاية مخصصة، تسلسل الخيارات
-- ترويسات المصادقة (2) — رمز Bearer، ترويسات مخصصة
-- دالة المصنع (1)
+- فحص السلامة (4) — نجاح، وفشل 500، وخطأ في الشبكة، وزمن الاستجابة
+- التهيئة (2) — نجاح، وفشل
+- الإنشاء (2) — نقطة النهاية الافتراضية، ونقطة نهاية مخصصة
+- الجلب (4) — نجاح، و404 ← null، ورمي خطأ لغير 404، ومعلمات مسار مخصصة
+- التحديث (2) — نجاح، و404 ← false
+- الحذف (2) — نجاح، و404 ← false
+- السرد (2) — معلمات الاستعلام، وأسماء معلمات مخصصة
+- البحث (3) — معلمات الاستعلام، ونقطة نهاية مخصصة، وتسلسل الخيارات
+- ترويسات المصادقة (2) — رمز Bearer، وترويسات مخصصة
+- المصنع (1)
 
 #### فحص الأنواع
 

@@ -4,18 +4,18 @@
 
 ---
 
-> **Pe scurt**: OmniRoute înregistrează 357 de ID-uri de furnizor, cu **152 de intrări în catalogul furnizorilor marcate `hasFree`**. Catalogul auditat mai strict al modelelor gratuite acoperă **35 de chei recurente de grup / 482 de intrări** (475 active + 7 retrase). Conectați mai mulți furnizori adecvați pentru o capacitate de rezervă mai extinsă; toate cotele, regulile de aprobare, politicile de confidențialitate și condițiile privind depășirile contra cost rămân aplicabile.
+> **Pe scurt**: Folosiți propriile conturi eligibile de furnizor. OmniRoute combină conexiunile pe care le configurați; nu oferă bugetul agregat de tokenuri promovat. Accesul gratuit poate necesita înregistrare, o cheie API, aprobare sau o metodă de plată. Limitele furnizorilor, politicile de confidențialitate și termenii rămân aplicabile.
 
 ---
 
 ## Ce sunt nivelurile gratuite?
 
-Mulți furnizori de servicii AI oferă o anumită formă de **acces gratuit**. În funcție de furnizor, aceasta poate
-însemna un endpoint fără autentificare, o cotă recurentă, acces fără plafon dar cu limitarea ratei, un credit acordat
-la înregistrare, aprobare manuală sau o promoție temporară. Unele opțiuni necesită un cont, o cheie API,
-un card de credit, KYC sau acceptarea termenilor specifici furnizorului.
+Mulți furnizori de servicii AI oferă o formă de **acces gratuit**. În funcție de furnizor, aceasta poate
+însemna un endpoint fără autentificare, o cotă recurentă, acces nelimitat cu o limită a ratei de solicitări, un credit acordat la înregistrare,
+aprobare manuală sau o promoție temporară. Unele opțiuni necesită un cont, o cheie API,
+un card de credit, verificarea KYC sau acceptarea condițiilor specifice furnizorului.
 
-OmniRoute **agregă** aceste niveluri gratuite într-un singur endpoint. În loc să vă înregistrați la 10 servicii diferite, le conectați pe toate la OmniRoute și utilizați `model: "auto"` pentru a selecta automat cea mai bună opțiune gratuită pentru fiecare solicitare.
+OmniRoute **agregă** conexiunile configurate într-un singur endpoint. Trebuie în continuare să vă înregistrați separat la fiecare furnizor care necesită un cont. Conectați conturile respective și utilizați `model: "auto"` pentru a direcționa solicitările între destinațiile eligibile. Este posibil ca o instalare nouă să nu aibă nicio destinație eligibilă fără cheie; simpla instalare a OmniRoute nu garantează un răspuns reușit la conversație.
 
 ---
 
@@ -23,108 +23,106 @@ OmniRoute **agregă** aceste niveluri gratuite într-un singur endpoint. În loc
 
 ### Acces recurent, fără cheie sau fără plafon
 
-Acești furnizori au în catalogul auditat o modalitate de acces gratuit recurent, fără cheie sau fără plafon. „Fără plafon” înseamnă că nu există o limită publicată de tokenuri; se pot aplica în continuare limite privind rata, concurența, contul, regiunea și politicile:
+Acești furnizori oferă în catalogul auditat o modalitate de acces gratuit recurent, fără cheie sau fără plafon. „Fără plafon” înseamnă că nu există o limită publicată de tokenuri; se pot aplica în continuare limite privind rata, concurența, contul, regiunea și politicile:
 
-| Furnizor          | Modele                                                                                        | Cotă                                                                                                                                                  | Cum se conectează                                                                                                          |
-| ----------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 și altele                                         | Catalogul auditat estimează un pool lunar comun de 25K de tokenuri                                                                                    | Flux OAuth/de cont; termenii de utilizare sunt marcați `avoid` în catalog                                                  |
-| **OpenCode Free** | Setul actual de modele `*-free` din registrul furnizorului                                    | Fără cheie; fără limită publicată de tokenuri                                                                                                         | Nu sunt necesare credențiale de furnizor; termenii de utilizare sunt marcați `avoid`                                       |
-| **Pollinations**  | Setul actual de modele fără cheie; unele modele anterioare au fost retrase sau necesită cheie | Fără cheie; fără limită publicată de tokenuri                                                                                                         | Nu sunt necesare credențiale de furnizor pentru modelele fără cheie                                                        |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 și altele                         | Cheie API gratuită (fără limite de rată, fără card); **fiecare solicitare este înregistrată** pentru cercetare (puteți renunța la logfare.ai/consent) | Cheie instantanee la logfare.ai/register; termenii de utilizare/confidențialitatea la logfare.ai/tos și logfare.ai/privacy |
-| **Cloudflare AI** | Catalogul Workers AI                                                                          | Pool-ul auditat estimează ~30M de tokenuri/lună pe baza unităților de utilizare publicate                                                             | Cont Cloudflare și credențiale API                                                                                         |
-| **Gemini**        | Familia Gemini Flash                                                                          | Pool-ul auditat estimează ~60M de tokenuri/lună                                                                                                       | Cheie API Google AI Studio; se aplică limite de rată                                                                       |
-| **Groq**          | Modelele Llama, GPT-OSS și Qwen                                                               | Pool-ul auditat estimează ~15M de tokenuri/lună                                                                                                       | Cheie API Groq; se aplică limite de rată                                                                                   |
-| **Cerebras**      | GLM 4.7 și GPT-OSS 120B                                                                       | Pool-ul auditat estimează ~30M de tokenuri/lună                                                                                                       | Cheie API Cerebras; se aplică limite de rată                                                                               |
+| Furnizor          | Modele                                                                                        | Cotă                                                                                                                                                 | Cum vă conectați                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 și altele                                         | Catalogul auditat estimează un fond lunar comun de 25K de tokenuri                                                                                   | Flux OAuth/de cont; termenii și condițiile sunt marcați cu `avoid` în catalog                                  |
+| **OpenCode Free** | Setul actual de modele `*-free` din registrul furnizorului                                    | Fără cheie; fără plafon publicat de tokenuri                                                                                                         | Nu sunt necesare date de autentificare ale furnizorului; termenii și condițiile sunt marcați cu `avoid`        |
+| **Pollinations**  | Setul actual de modele fără cheie; unele modele anterioare au fost retrase sau necesită cheie | Fără cheie; fără plafon publicat de tokenuri                                                                                                         | Nu sunt necesare date de autentificare ale furnizorului pentru modelele fără cheie                             |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 și altele                         | Cheie API gratuită (fără limite de rată, fără card); **fiecare solicitare este înregistrată** pentru cercetare (puteți refuza la logfare.ai/consent) | Cheie instantanee la logfare.ai/register; termeni și confidențialitate la logfare.ai/tos și logfare.ai/privacy |
+| **Cloudflare AI** | Catalogul Workers AI                                                                          | Fondul auditat este estimat la ~30M de tokenuri/lună pe baza unităților de utilizare publicate                                                       | Cont Cloudflare și date de autentificare API                                                                   |
+| **Gemini**        | Familia Gemini Flash                                                                          | Limite variabile de rată în funcție de proiect/model; oferta principală nu include o alocare lunară fixă de tokenuri                                 | Cheie API Google AI Studio; verificați limitele active ale proiectului                                         |
+| **Groq**          | Modele Llama, GPT-OSS și Qwen                                                                 | Fondul auditat este estimat la ~15M de tokenuri/lună                                                                                                 | Cheie API Groq; se aplică limite de rată                                                                       |
 
-### Credite de înregistrare și credite specifice furnizorilor
+### Alocări la înregistrare și credite specifice furnizorilor
 
-Acești furnizori vă oferă **credite gratuite** atunci când vă înregistrați:
+Acești furnizori oferă alocări la înregistrare sau credite promoționale, în conformitate cu regulile lor de eligibilitate. Conform verificării din 2026-10-08, [tarifele Cerebras](https://www.cerebras.ai/pricing) necesită o metodă de plată pentru un credit unic de 5 USD, care expiră după 30 de zile; acesta nu reprezintă o cotă recurentă de tokenuri. [Limitele de rată Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) variază în funcție de proiect, model și nivel, astfel că nu sunt convertite într-o alocare lunară garantată de tokenuri.
 
-| Furnizor      | Credite gratuite                                                                     | Modele                     | Cum se obțin                                                               |
-| ------------- | ------------------------------------------------------------------------------------ | -------------------------- | -------------------------------------------------------------------------- |
-| **DeepSeek**  | 5M de tokenuri gratuite                                                              | DeepSeek V4                | Înregistrați-vă la platform.deepseek.com                                   |
-| **LongCat**   | Credit unic de 10M de tokenuri                                                       | LongCat 2.0                | Cheie API + KYC; plată în funcție de utilizare după epuizarea creditului   |
-| **Vertex AI** | Credit de înregistrare de $300, reprezentat ca ~300M de tokenuri în modelul de buget | Gemini și modele partenere | Cont Google Cloud; se aplică regulile privind facturarea și eligibilitatea |
+| Furnizor      | Credite gratuite                                                                        | Modele                        | Cum se obțin                                                           |
+| ------------- | --------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------- |
+| **Cerebras**  | Credit promoțional unic de 5 USD; expiră după 30 de zile                                | Catalogul actual de inferență | Cont și metodă de plată validă                                         |
+| **DeepSeek**  | 5M de tokenuri gratuite                                                                 | DeepSeek V4                   | Înregistrați-vă la platform.deepseek.com                               |
+| **LongCat**   | Alocare unică de 10M de tokenuri                                                        | LongCat 2.0                   | Cheie API + KYC; plată în funcție de utilizare după epuizarea alocării |
+| **Vertex AI** | Credit de înregistrare de 300 USD, reprezentat ca ~300M de tokenuri în modelul de buget | Gemini și modele partenere    | Cont Google Cloud; se aplică reguli de facturare și eligibilitate      |
 
-### Alte tipuri de acces limitat
+### Alte forme de acces limitat
 
 Acești furnizori au **niveluri gratuite** cu limite specifice:
 
-| Furnizor                   | Limită gratuită                                                                                         | Modele                              | Recomandat pentru |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------- |
-| **GitHub Models**          | Rezervă comună auditată, estimată la ~18M de tokenuri/lună                                              | Evaluarea unei game largi de modele |
-| **Hugging Face**           | Rezervă lunară recurentă mică                                                                           | Experimente și varietate de modele  |
-| **OpenRouter free models** | Rezervă comună cu număr limitat de solicitări; o reîncărcare unică opțională mărește alocarea recurentă | Catalog larg de opțiuni de rezervă  |
-| **AI Horde**               | Capacitate comunitară fără cheie; disponibilitatea variază                                              | Inferență distribuită oportunistă   |
+| Furnizor                   | Limită gratuită                                                                                     | Modele                               | Recomandat pentru |
+| -------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------- |
+| **GitHub Models**          | Fondul comun auditat este estimat la ~18M de tokenuri/lună                                          | Evaluarea unei game largi de modele  |
+| **Hugging Face**           | Fond lunar recurent de dimensiuni reduse                                                            | Experimente și varietate de modele   |
+| **OpenRouter free models** | Fond comun cu număr limitat de solicitări; o reîncărcare unică opțională mărește alocarea recurentă | Catalog extins de opțiuni de rezervă |
+| **AI Horde**               | Capacitate comunitară fără cheie; disponibilitatea variază                                          | Inferență distribuită oportunistă    |
 
 ---
 
 ## Cum să combinați nivelurile gratuite
 
-Secretul OmniRoute este **combinarea nivelurilor gratuite**. În loc să vă bazați pe un singur furnizor, conectați mai mulți furnizori gratuiți și permiteți OmniRoute să îl aleagă automat pe cel mai bun pentru fiecare solicitare.
+Secretul OmniRoute este **combinarea nivelurilor gratuite**. În loc să vă bazați pe un singur furnizor, conectați mai mulți furnizori gratuiți și permiteți OmniRoute să îl selecteze automat pe cel mai potrivit pentru fiecare solicitare.
 
-### Exemplu: acoperire mai largă prin nivelurile gratuite
+### Exemplu: acoperire mai largă prin niveluri gratuite
 
 Conectați mai mulți furnizori pentru a reduce dependența de o singură cotă:
 
 1. **Gemini** — cotă recurentă bazată pe cheie API
 2. **Groq** — cotă recurentă bazată pe cheie API
-3. **Pollinations** — acces fără cheie, cu limită de rată
+3. **Pollinations** — acces fără cheie, cu limitare a frecvenței
 4. **LongCat** — credit unic acordat la înregistrare (necesită KYC)
 
 Apoi utilizați `model: "auto"`, iar OmniRoute va:
 
 - Încerca mai întâi conexiunea eligibilă cu cel mai înalt rang
 - Dacă verificarea cotei sau a stării acesteia eșuează → va încerca următorul furnizor configurat
-- Dacă furnizorul fără cheie nu este disponibil → va continua cu țintele rămase
-- Dacă toate eșuează → va utiliza LongCat ca variantă de rezervă
+- Dacă furnizorul fără cheie este indisponibil → va continua cu țintele rămase
+- Dacă nicio conexiune eligibilă nu reușește → va returna o eroare; creditele de înregistrare pot fi utilizate numai cât timp sunt valabile și disponibile
 
-**Rezultat**: o acoperire mai largă prin nivelurile gratuite, cu revenire automată la o alternativă — nu o garanție a unei capacități nelimitate.
+**Rezultat**: acoperire mai largă prin niveluri gratuite, cu comutare automată la o alternativă — nu o garanție a unei capacități nelimitate.
 
 ---
 
 ## Cum să conectați furnizori gratuiți
 
-### Pasul 1: deschideți panoul de control
+### Pasul 1: Deschideți tabloul de bord
 
 Accesați `http://localhost:20128` în browser.
 
-### Pasul 2: accesați Furnizori
+### Pasul 2: Accesați Furnizori
 
 Faceți clic pe **Furnizori** în bara laterală.
 
-### Pasul 3: faceți clic pe Adăugați un furnizor
+### Pasul 3: Faceți clic pe Adăugați un furnizor
 
 Faceți clic pe butonul **+ Adăugați un furnizor**.
 
-### Pasul 4: selectați un furnizor gratuit
+### Pasul 4: Selectați un furnizor gratuit
 
-Răsfoiți catalogul și verificați metadatele curente `hasFree`, de autentificare, cotă, confidențialitate
-și ToS ale fiecărui furnizor. Cardul furnizorului și
+Răsfoiți catalogul și verificați metadatele actuale `hasFree`, de autentificare, cotă, confidențialitate și ToS ale fiecărui furnizor. Cardul furnizorului și
 [Referința nivelurilor gratuite](../reference/FREE_TIERS.md) fac distincția între resursele recurente,
-accesul nelimitat/fără cheie, creditele acordate la înregistrare, intrările retrase și sursele cu risc mai ridicat.
+accesul nelimitat/fără cheie, creditele de înregistrare, intrările întrerupte și sursele cu risc mai ridicat.
 
-### Pasul 5: faceți clic pe Conectare
+### Pasul 5: Faceți clic pe Conectare
 
-Pentru un furnizor `NOAUTH`, nu sunt necesare date de autentificare. Furnizorii OAuth și cei bazați pe chei API trebuie
-conectați prin fluxul de cont documentat al acestora.
+Pentru un furnizor `NOAUTH`, OmniRoute nu solicită o acreditare pentru serviciul din amonte. Acest lucru nu garantează că serviciul din amonte acceptă clienți terți sau că dispune de capacitate. Furnizorii OAuth și cei care utilizează chei API trebuie conectați prin fluxul de cont documentat. Clientul dvs. utilizează în continuare cheia API OmniRoute afișată în **Tablou de bord → Puncte finale** atunci când autentificarea routerului este activată.
 
-### Pasul 6: repetați
+### Pasul 6: Repetați
 
-Conectați mai mulți furnizori ale căror condiții și al căror model de confidențialitate corespund cazului dumneavoastră de utilizare.
+Conectați mai mulți furnizori ale căror condiții și al căror model de confidențialitate se potrivesc cazului dvs. de utilizare.
 
 ---
 
-## Cum să interpretați corect catalogul
+## Citirea corectă a catalogului
 
-- `NOAUTH` înseamnă că OmniRoute nu vă solicită date de autentificare pentru furnizor; aceasta nu
+- `NOAUTH` înseamnă că OmniRoute nu vă solicită o credențială de furnizor; aceasta nu
   garantează disponibilitatea, confidențialitatea sau capacitatea nelimitată.
 - `hasFree` reprezintă metadate pentru descoperire. Poate indica o cotă recurentă, acces fără cheie,
-  credit acordat la înregistrare, un program de aprobare sau o promoție.
-- `recurring-uncapped` înseamnă că nu era disponibilă nicio limită publicată de tokenuri; limitele privind rata și
-  concurența se aplică în continuare.
-- `one-time-initial` nu se reînnoiește după consumarea creditului acordat la înregistrare.
-- `tos: avoid` este un avertisment care recomandă verificarea condițiilor furnizorului și a riscurilor privind contul înainte de utilizare.
+  credit la înregistrare, un program de aprobare sau o promoție.
+- `recurring-uncapped` înseamnă că nu a fost disponibilă nicio limită publicată de tokenuri; limitele de rată și
+  concurență se aplică în continuare.
+- `one-time-initial` nu se repetă după consumarea creditului acordat la înregistrare.
+- Furnizorii cu `tos: avoid` sunt excluși implicit din rutarea automată (`excludeTosAvoid`). Conectarea unui cont nu eludează acest filtru. Orice suprascriere efectuată de operator trebuie să urmeze unei analize a condițiilor furnizorului și a riscului asociat contului.
 - Intrările marcate `discontinued` rămân dovezi istorice și nu trebuie prezentate ca fiind
   gratuite în prezent.
 
@@ -160,19 +158,16 @@ cota sau politica de acces a unui furnizor.
 
 ## Calculul nivelului gratuit
 
-Catalogul live, cu deduplicare la nivel de grup, raportează în prezent:
+Catalogul activ, cu deduplicare la nivel de fonduri comune, raportează în prezent:
 
-| Metrică                                                          |                                     Valoare auditată actuală | Interpretare                                                                                                                                                        |
-| ---------------------------------------------------------------- | -----------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Alocare recurentă cuantificată                                   |                                     **~1.62B tokenuri/lună** | Grupurile partajate sunt numărate o singură dată; furnizorii fără limită sunt excluși din sumă                                                                      |
-| Prima lună, cu alocările de la înregistrare                      |                                          **~2.22B tokenuri** | Totalul recurent plus creditele unice și recurente                                                                                                                  |
-| Inventarul auditat de modele gratuite                            | **35 de chei de grup recurente / 482 de intrări în catalog** | 475 active + 7 retrase; diferit de catalogul cu 357 de furnizori                                                                                                    |
-| Furnizori recurenți/fără cheie, gratuiți permanent, reprezentați |                                                       **53** | Furnizori unici din tipurile de catalog recurente zilnice/lunare/pe bază de credite/fără limită și fără cheie; rândurile condiționate de eligibilitate sunt excluse |
-| Intrări din catalogul de furnizori marcate cu `hasFree`          |                                                **152 / 357** | Metadate mai ample despre furnizori; nu toate au o cotă recurentă cuantificabilă                                                                                    |
+| Indicator                          | Valoarea auditată actuală | Interpretare                                                                                |
+| ---------------------------------- | ------------------------: | ------------------------------------------------------------------------------------------- |
+| Alocare cuantificată recurentă     |  **~1.62B tokenuri/lună** | Fondurile comune sunt numărate o singură dată; furnizorii fără limită sunt excluși din sumă |
+| Prima lună cu alocări la înscriere |       **~2.22B tokenuri** | Totalul recurent plus creditele unice și recurente                                          |
 
-Aceste valori sunt calculate din `open-sse/config/freeModelCatalog.ts`; consultați
-[Referința nivelurilor gratuite](../reference/FREE_TIERS.md) pentru deduplicarea grupurilor, marcajele ToS,
-intrările retrase și metodologia creditelor acordate la înregistrare.
+Acestea sunt estimări pentru întregul catalog, calculate pentru conturi eligibile separate, nu o alocare oferită de OmniRoute sau o predicție pentru o instalare nouă. Capacitatea pe care o puteți utiliza depinde de furnizorii pe care îi conectați și de condițiile lor actuale. Valorile sunt calculate din `open-sse/config/freeModelCatalog.ts`; consultați
+[Referința nivelurilor gratuite](../reference/FREE_TIERS.md) pentru deduplicarea fondurilor comune, marcajele privind termenii și condițiile,
+intrările întrerupte și metodologia creditelor acordate la înscriere.
 
 ---
 

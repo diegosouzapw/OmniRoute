@@ -4,9 +4,9 @@
 
 ---
 
-> **Pour les utilisateurs** : Vous cherchez des solutions rapides ? Consultez la [Référence rapide](#quick-reference) ci-dessous.
+> **Pour les utilisateurs** : Vous cherchez des solutions rapides ? Consultez la [Référence rapide](#référence-rapide) ci-dessous.
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Langues :** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/TROUBLESHOOTING.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/TROUBLESHOOTING.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/TROUBLESHOOTING.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/TROUBLESHOOTING.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/TROUBLESHOOTING.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/TROUBLESHOOTING.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/TROUBLESHOOTING.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/TROUBLESHOOTING.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/TROUBLESHOOTING.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Problèmes courants et solutions pour OmniRoute.
 
@@ -14,22 +14,22 @@ Problèmes courants et solutions pour OmniRoute.
 
 ## Référence rapide
 
-**Vous découvrez OmniRoute ?** Commencez ici — ces solutions règlent 90 % des problèmes :
+**Vous découvrez OmniRoute ?** Commencez ici — ces solutions résolvent 90 % des problèmes :
 
-| Je vois ceci                    | Ce que cela signifie                                     | Ce qu'il faut faire                                                                                    |
-| ------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| « Impossible de se connecter »  | OmniRoute ne fonctionne pas                              | Exécutez `omniroute` ou `docker restart omniroute`                                                     |
-| « Clé API non valide »          | Votre clé est incorrecte ou a expiré                     | Copiez à nouveau la clé depuis le site web du fournisseur                                              |
-| « Limite de débit dépassée »    | Vous envoyez trop de requêtes                            | Attendez 1 minute ou utilisez `model: "auto"` pour un basculement automatique                          |
-| « Quota dépassé »               | Vous avez épuisé votre quota gratuit ou payant           | Connectez davantage de fournisseurs ou utilisez des fournisseurs gratuits (Kiro, Pollinations)         |
-| « Réponses lentes »             | Le fournisseur est surchargé ou géographiquement éloigné | Utilisez `model: "auto/fast"` ou connectez un fournisseur plus rapide (Groq, Cerebras)                 |
-| « Mauvais fournisseur utilisé » | `auto` a choisi un autre fournisseur                     | C'est normal ! `auto` choisit le meilleur. Imposez un fournisseur précis avec `model: "openai/gpt-4o"` |
-| « 502 Bad Gateway »             | Le fournisseur est indisponible                          | Attendez et réessayez, ou utilisez `model: "auto"` pour changer de fournisseur                         |
-| « 401 Unauthorized »            | Vos identifiants sont incorrects                         | Vérifiez votre clé API ou authentifiez-vous à nouveau avec OAuth                                       |
-| « omniroute n'est pas reconnu » | Les modules globaux de node sont absents du PATH Windows | Ajoutez votre préfixe npm global au PATH Windows. Trouvez-le avec `npm config get prefix`.             |
-| « 429 Too Many Requests »       | Limite de débit atteinte                                 | Attendez 1 minute ou connectez davantage de fournisseurs                                               |
+| Je vois ceci                  | Ce que cela signifie                                  | Que faire                                                                                             |
+| ----------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| "Can't connect"               | OmniRoute n’est pas en cours d’exécution              | Exécutez `omniroute` ou `docker restart omniroute`                                                    |
+| "Invalid API key"             | Votre clé est incorrecte ou a expiré                  | Copiez à nouveau la clé depuis le site web du fournisseur                                             |
+| "Rate limit exceeded"         | Vous envoyez trop de requêtes                         | Attendez 1 minute ou utilisez `model: "auto"` pour un basculement automatique                         |
+| "Quota exceeded"              | Vous avez épuisé votre quota gratuit ou payant        | Connectez davantage de fournisseurs ou utilisez des fournisseurs gratuits (Kiro, Pollinations)        |
+| "Slow responses"              | Le fournisseur est surchargé ou éloigné               | Utilisez `model: "auto/fast"` ou connectez un fournisseur plus rapide (Groq, Cerebras)                |
+| "Wrong provider used"         | `auto` a choisi un autre fournisseur                  | C’est normal ! `auto` choisit le meilleur. Forcez un fournisseur précis avec `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"             | Le fournisseur est indisponible                       | Attendez et réessayez, ou utilisez `model: "auto"` pour changer de fournisseur                        |
+| "401 Unauthorized"            | Vos identifiants sont incorrects                      | Vérifiez votre clé API ou authentifiez-vous à nouveau avec OAuth                                      |
+| "omniroute is not recognized" | Les modules node globaux sont absents du PATH Windows | Ajoutez votre préfixe npm global au PATH Windows. Trouvez-le avec `npm config get prefix`.            |
+| "429 Too Many Requests"       | Le débit de requêtes est limité                       | Attendez 1 minute ou connectez davantage de fournisseurs                                              |
 
-**Toujours bloqué ?** Consultez le [dépannage détaillé](#dépannage-détaillé) ci-dessous ou demandez de l'aide sur [Discord](https://discord.gg/U47eFqAXCn).
+**Toujours bloqué ?** Consultez le [dépannage détaillé](#detailed-troubleshooting) ci-dessous ou demandez de l’aide sur [Discord](https://discord.gg/U47eFqAXCn).
 
 ---
 
@@ -39,65 +39,114 @@ Problèmes courants et solutions pour OmniRoute.
 
 ### Limitation du débit chez les fournisseurs gratuits (429 / 400 / 401)
 
-**Symptôme** : lorsque vous utilisez `model: "auto"` avec des fournisseurs gratuits/sans authentification (opencode, auggie, etc.), vous obtenez par intermittence des réponses `HTTP 429`, `400` ou `401` au lieu des réponses attendues. Les requêtes aboutissent lorsque vous réessayez la même invite quelques instants plus tard, mais l’automatisation (tâches cron, agents, scripts) échoue dès la première erreur.
+**Symptôme** : Lorsque vous utilisez `model: "auto"` avec des fournisseurs gratuits ou sans authentification (opencode, auggie, etc.), vous obtenez par intermittence des erreurs `HTTP 429`, `400` ou `401` au lieu de réponses. Les requêtes aboutissent lorsque vous réessayez la même invite quelques instants plus tard, mais les automatisations (tâches cron, agents, scripts) échouent dès la première erreur.
 
-**Cause racine** : trois modes de défaillance indépendants se cumulent :
+**Cause principale** : Trois modes de défaillance indépendants se cumulent :
 
-1. **Limitation du débit par le fournisseur (`429`)** : les offres gratuites peuvent imposer un quota par fenêtre temporelle. Une rafale d’appels parallèles l’épuise, de sorte que la requête suivante est refusée jusqu’à la réinitialisation de la fenêtre.
-2. **Modèle défectueux en mode passthrough (`400`/`401`)** : les pools `auto/*` peuvent inclure des modèles passthrough provenant d’`opencode`, qui sont enregistrés dans le catalogue mais ne disposent d’aucun identifiant actif (par ex. `oc/north-mini-code-free` → `401`). L’auto-routeur en essaie un, échoue, puis l’erreur se propage avant que le mécanisme de repli ne s’active.
-3. **Amplification due à la concurrence (`429` sous charge)** : lorsque plusieurs sessions d’agent/cron sollicitent `auto` simultanément, le débit agrégé des requêtes dépasse ce que les fournisseurs gratuits tolèrent, de sorte que des appels légitimes sont signalés comme abusifs.
+1. **Limitation de débit du fournisseur (`429`)** : Les offres gratuites peuvent imposer un quota par fenêtre temporelle. Une rafale d’appels parallèles l’épuise, si bien que la requête suivante est refusée jusqu’à la réinitialisation de la fenêtre.
+2. **Modèle défectueux en transfert direct (`400`/`401`)** : Les groupes `auto/*` peuvent inclure des modèles en transfert direct provenant d’`opencode`, enregistrés dans le catalogue mais ne disposant d’aucun identifiant actif (par exemple `oc/north-mini-code-free` → `401`). Le routeur automatique en essaie un, échoue, puis l’erreur est propagée avant que le basculement ne se déclenche.
+3. **Amplification due à la concurrence (`429` sous charge)** : Lorsque plusieurs sessions d’agent ou tâches cron sollicitent `auto` simultanément, le débit cumulé des requêtes dépasse ce que les fournisseurs gratuits tolèrent ; des appels légitimes sont alors signalés comme abusifs.
 
-**Correctif vérifié (signalé par la communauté, 2026-08-10)** : ajustez trois variables d’environnement afin que la rotation, la concurrence et le mécanisme de repli absorbent l’instabilité de l’offre gratuite au lieu d’échouer :
+**Correctif vérifié (signalé par la communauté, 2026-08-10)** : ajustez trois variables d’environnement afin que la rotation, la concurrence et le basculement absorbent l’instabilité des offres gratuites au lieu d’échouer :
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # passer à un autre modèle/fournisseur en cas de 400/401 (ignore les modèles passthrough défectueux)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # plafond d’admission explicite pour les requêtes lourdes (non défini par défaut : aucune limite sur le nombre de requêtes, voir la remarque ci-dessous)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # augmenter l’attente limitée au-delà de la valeur par défaut de RATE_LIMIT_MAX_WAIT_MS pour les services en amont lents
+export OMNIROUTE_ROTATE_ON_400=true           # passer à un autre modèle/fournisseur en cas de 400/401 (ignore les modèles défectueux en transfert direct)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # plafond d’admission explicite pour les requêtes lourdes (non défini par défaut : aucune limite du nombre de requêtes, voir la remarque ci-dessous)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # prolonger l’attente limitée au-delà de la valeur par défaut de RATE_LIMIT_MAX_WAIT_MS pour les services en amont lents
 ```
 
-Définissez ces variables dans l’environnement du processus OmniRoute (le démon, par ex. via le plist LaunchAgent ou `systemctl edit`), puis redémarrez OmniRoute. L’indicateur de rotation est le levier le plus efficace : il transforme un échec définitif en une nouvelle tentative transparente auprès d’un fournisseur opérationnel du pool.
+Définissez-les dans l’environnement du processus OmniRoute (le démon, par exemple via le fichier plist LaunchAgent ou `systemctl edit`), puis redémarrez OmniRoute. L’indicateur de rotation est le levier le plus efficace : il transforme une défaillance définitive en nouvelle tentative transparente auprès d’un fournisseur opérationnel du groupe.
 
-**Remarque** : `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limite le nombre de requêtes lourdes — à contexte long — pouvant s’exécuter simultanément ; cette limite est un contrôle d’admission, et non un limiteur de débit du fournisseur. **Mise à jour concernant la propagation en éventail des erreurs 503 :** cette variable n’est désormais plus définie par défaut (elle ne s’applique maintenant que lorsqu’elle est explicitement configurée, comme ci-dessus) — l’admission des requêtes lourdes est plutôt contrôlée par un budget d’octets calculé automatiquement (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), qui s’adapte à la limite de mémoire réelle de l’hôte. Ainsi, un nouveau déploiement devrait produire nettement moins de rejets `503 chat_admission_busy` sans qu’il soit nécessaire de définir cette variable ; sa définition explicite ici continue néanmoins de fonctionner exactement comme indiqué. Les remplacements explicites du budget d’octets sont bornés entre 8 Mio et 2 Gio. Une erreur `413 body_exceeds_budget` n’est pas transitoire : augmentez ce budget d’octets, réduisez `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ou augmentez la limite de mémoire du processus. Un délestage `inflight_bytes_budget` correspond à une contention temporaire et peut toujours faire l’objet d’une nouvelle tentative. La limitation du débit propre à chaque fournisseur (`open-sse/services/rateLimitManager.ts`) est régie séparément par `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` et `RATE_LIMIT_AUTO_ENABLE` — consultez `.env.example`.
+**Remarque** : `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limite le nombre de requêtes lourdes — à contexte long — exécutées simultanément ; cette limite est un mécanisme de contrôle d’admission, et non un limiteur de débit propre au fournisseur. **Mise à jour concernant la démultiplication des erreurs #503 :** cette variable n’est désormais plus définie par défaut (elle ne s’applique maintenant que lorsqu’elle est explicitement configurée, comme ci-dessus) — l’admission des requêtes lourdes est plutôt contrôlée par un budget d’octets calculé automatiquement (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), qui s’adapte à la limite de mémoire réelle de l’hôte. Un nouveau déploiement devrait donc produire beaucoup moins de rejets `503 chat_admission_busy` sans qu’il soit nécessaire de définir cette variable ; sa définition explicite ici continue néanmoins de fonctionner exactement comme indiqué. Les remplacements explicites du budget d’octets sont limités à une plage comprise entre 8 MiB et 2 GiB. Une erreur `413 body_exceeds_budget` n’est pas transitoire : augmentez ce budget d’octets, réduisez `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ou augmentez la limite de mémoire du processus. Un délestage `inflight_bytes_budget` correspond à une contention temporaire et peut toujours faire l’objet d’une nouvelle tentative. La limitation du débit propre à chaque fournisseur (`open-sse/services/rateLimitManager.ts`) est régie séparément par `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` et `RATE_LIMIT_AUTO_ENABLE` — consultez `.env.example`.
 
-**Comment vérifier que le correctif fonctionne** : exécutez votre agent/tâche cron deux fois à quelques instants d’intervalle et vérifiez que les deux exécutions aboutissent. Avant le correctif, la seconde exécution génère généralement une erreur `429`/`401`. Après le correctif, les échecs éventuels font l’objet de nouvelles tentatives transparentes et l’appel aboutit. Vous pouvez également exécuter `curl /monitoring/health` et surveiller le champ `rateLimitedUntil` des connexions aux fournisseurs, ainsi que `circuitBreakers.providerBreakers[].state` pour les fournisseurs concernés — l’état est l’un des suivants : `CLOSED`, `DEGRADED`, `OPEN` ou `HALF_OPEN` (consultez `src/shared/utils/circuitBreaker.ts`). Un fournisseur qui continue d’échouer passera de `CLOSED → DEGRADED → OPEN` avant que la fenêtre de réinitialisation n’autorise une requête de test (`HALF_OPEN`).
+**Comment vérifier que cela a fonctionné** : exécutez votre agent/cron deux fois de suite à bref intervalle et vérifiez que les deux exécutions réussissent. Avant le correctif, la deuxième exécution renvoie généralement une erreur `429`/`401`. Après le correctif, les échecs éventuels sont retentés de manière transparente et l’appel aboutit. Vous pouvez également exécuter `curl /monitoring/health` et surveiller le champ `rateLimitedUntil` des connexions aux fournisseurs ainsi que `circuitBreakers.providerBreakers[].state` pour les fournisseurs concernés — l’état peut être `CLOSED`, `DEGRADED`, `OPEN` ou `HALF_OPEN` (voir `src/shared/utils/circuitBreaker.ts`), et un fournisseur dont les échecs persistent passera de `CLOSED → DEGRADED → OPEN` avant que la fenêtre de réinitialisation n’autorise une requête de test (`HALF_OPEN`).
 
-**Si vous voyez encore des erreurs 429** : le compte actif de ce fournisseur a réellement épuisé son _quota_ (et pas seulement sa limite de débit). Ajoutez un second compte pour le même fournisseur dans le tableau de bord OmniRoute → Fournisseurs → Comptes, ou ajoutez un autre fournisseur gratuit au pool (par ex. `routeway`, `auggie`). La rotation ne résout que les limitations transitoires et les erreurs 400/401 ; l’épuisement définitif d’un quota nécessite un second identifiant ou un autre fournisseur.
+**Si l’erreur 429 persiste** : le compte actif de ce fournisseur a réellement épuisé son _quota_ (et pas seulement sa limite de débit). Ajoutez un deuxième compte pour le même fournisseur dans le tableau de bord OmniRoute → Providers → Accounts, ou ajoutez un autre fournisseur gratuit (par exemple `routeway`, `auggie`). La rotation n’aide qu’en cas d’erreurs transitoires de limite de débit/400/401 ; l’épuisement complet d’un quota nécessite un deuxième identifiant ou un autre fournisseur.
 
-**Si vous voyez des erreurs 403 avec les modèles de vision (`auto/vision`, `bazaarlink/*`)** : le compte connecté ne dispose pas d’une offre payante incluant la vision, ou la clé API possède des autorisations insuffisantes. Vérifiez dans le tableau de bord du fournisseur que la portée de la clé inclut la vision/le multimodal, ou connectez un compte avec une offre payante et conservez-le comme cible pour la vision.
+**Si vous rencontrez une erreur 403 avec les modèles de vision (`auto/vision`, `bazaarlink/*`)** : le compte connecté ne dispose pas d’un forfait payant incluant la vision, ou la clé d’API ne possède pas les autorisations suffisantes. Vérifiez dans le tableau de bord du fournisseur que la portée de la clé inclut la vision/le multimodal, ou connectez un compte avec un forfait payant et conservez-le comme cible pour la vision.
 
 ---
 
-## Avertissements lors de npm install (ERESOLVE / peer / deprecated)
+## Avertissements de npm install (ERESOLVE / dépendance homologue / obsolète)
 
-Lorsque vous exécutez `npm install -g omniroute`, vous pouvez voir s’afficher une multitude d’avertissements tels que `npm warn ERESOLVE`, des notifications concernant les dépendances homologues et des messages `deprecated`. **Ces avertissements sont attendus et sans conséquence.** L’installation a réussi si la sortie contient `added <N> packages`.
+Lorsque vous exécutez `npm install -g omniroute`, vous pouvez voir apparaître de nombreux avertissements tels que `npm warn ERESOLVE`, des notifications concernant les dépendances homologues et des messages `deprecated`. **Ces avertissements sont attendus et sans danger.** L'installation a réussi si la sortie contient `added <N> packages`.
 
-Pour supprimer les avertissements de résolution des dépendances homologues, utilisez la forme d’installation prise en charge par OmniRoute :
+Pour supprimer les avertissements de résolution des dépendances homologues, utilisez la commande d'installation prise en charge par OmniRoute :
 
 ```bash
 npm install -g omniroute --legacy-peer-deps
 ```
 
-`--legacy-peer-deps` supprime uniquement les notifications `ERESOLVE` et celles concernant les dépendances homologues. Les avis d’obsolescence restent visibles, car ils proviennent de paquets tiers transitifs ; ils ne signifient pas que l’installation a échoué.
+`--legacy-peer-deps` supprime uniquement `ERESOLVE` et les notifications concernant les dépendances homologues. Les notifications d'obsolescence restent visibles, car elles proviennent de paquets tiers transitifs ; elles n'indiquent pas que l'installation a échoué.
 
-Les avertissements proviennent de plages de versions de dépendances homologues obsolètes dans des paquets tiers qu’OmniRoute ne contrôle pas :
+Les avertissements proviennent de plages de versions de dépendances homologues obsolètes dans des paquets tiers qu'OmniRoute ne contrôle pas :
 
-1. **`marked-terminal` nécessite `marked >=1 <16`, mais `marked@18` a été trouvé** — cela fonctionne correctement en pratique ; la plage de dépendances homologues du projet en amont est simplement obsolète.
-2. **`deprecated prebuild-install@7.1.3`** — un utilitaire transitif de récupération de binaires natifs. Il n’est pas
-   utilisé pour installer la liaison de transport `wreq-js` épinglée et ne signifie pas que la configuration
-   du transport du fournisseur de cookies web a échoué.
+1. **`marked-terminal` nécessite `marked >=1 <16`, mais `marked@18` a été trouvé** — cela fonctionne correctement en pratique ; seule la plage de versions homologues en amont est obsolète.
+2. **`deprecated prebuild-install@7.1.3`** — un utilitaire transitif de récupération de binaires natifs. Il n'est pas
+   utilisé pour installer la liaison de transport `wreq-js` épinglée et n'indique pas que la configuration
+   du transport du fournisseur de cookies Web a échoué.
 
-**Aucune action requise** — les avertissements ne peuvent pas être entièrement supprimés sans créer des forks des paquets en amont.
+**Aucune action nécessaire** — les avertissements ne peuvent pas être entièrement supprimés sans créer un fork des paquets en amont.
+
+---
+
+## Avertissement de blocage des scripts npm install (installation globale)
+
+<a name="npm-install-scripts-blocked-warning-global-install"></a>
+
+Lors de l'exécution de `npm install -g omniroute`, les versions récentes de npm (v11+ et v12+) bloquent par défaut les scripts de cycle de vie des paquets et affichent un avertissement relatif aux scripts d'installation :
+
+```
+npm warn install-scripts 7 paquets ont eu leurs scripts d'installation bloqués, car ils ne sont pas couverts par allowScripts :
+  omniroute@<version> (postinstall: node scripts/build/postinstall.mjs)
+  keytar, @parcel/watcher, @swc/core, protobufjs, esbuild, onnxruntime-node
+```
+
+### Cet avertissement peut-il être ignoré ?
+
+**Partiellement, mais l'exécution sans scripts n'est pas recommandée.** OmniRoute inclut des mécanismes de repli progressifs : si les liaisons natives `better-sqlite3` ne peuvent pas être chargées depuis le bundle autonome, l'application se rabat sur des pilotes alternatifs tels que `node:sqlite` ou `sql.js` (voir [Résolution de l'environnement d'exécution SQLite](../ops/SQLITE_RUNTIME.md)). Le serveur démarrera tout de même, mais l'utilisation de solutions de repli WASM telles que `sql.js` désactive le mode WAL (Write-Ahead Logging, journalisation anticipée) de SQLite et augmente la surcharge liée à la mémoire et à la synchronisation sur disque.
+
+### Quels scripts sont réellement requis ?
+
+Les scripts bloqués ne sont pas tous indispensables à l'exécution d'OmniRoute :
+
+- **Essentiels (`omniroute`, `better-sqlite3`) :** OmniRoute s'exécute à partir d'un bundle d'application autonome Next.js (`dist/`). Pendant l'installation, npm télécharge ou compile le pilote SQLite natif propre à l'hôte dans le répertoire `node_modules/better-sqlite3/` de premier niveau. Le script `postinstall` d'OmniRoute (`scripts/build/postinstall.mjs`) vérifie ensuite ces binaires propres à l'hôte et les copie dans `dist/node_modules/` afin que le serveur autonome puisse y accéder. Si le script post-installation d'`omniroute` est bloqué, cette étape de copie est ignorée.
+- **Facultatifs/transitifs (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`) :** Il s'agit d'outils d'aide à la compilation, d'outils de surveillance ou d'utilitaires de trousseau système. Les autoriser évite les avertissements de compilation, mais ils ne sont pas requis pour les fonctionnalités principales de routage.
+- **Exclu (`onnxruntime-node`) :** Il s'agit d'une dépendance facultative pour les plongements d'IA locaux, qui n'est **pas** requise pour exécuter OmniRoute. Son script post-installation télécharge environ 300 Mo de ressources CUDA depuis NuGet ; ne l'incluez pas dans la liste d'autorisation, sauf si vous prévoyez explicitement d'utiliser l'accélération ONNX locale sur du matériel pris en charge.
+
+### Correctif recommandé
+
+Pour autoriser les scripts d'installation requis lors d'une installation globale et supprimer les avertissements, transmettez `--allow-scripts` pour OmniRoute et ses dépendances natives :
+
+```bash
+npm install -g omniroute --allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild
+```
+
+Vous pouvez également configurer ce paramètre de façon permanente pour toutes les installations globales de votre compte utilisateur :
+
+```bash
+npm config set allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+npm install -g omniroute
+```
+
+### Vérifier votre installation
+
+Après l'installation, exécutez l'outil de diagnostic intégré pour vous assurer que les liaisons natives et l'environnement d'exécution fonctionnent correctement :
+
+```bash
+omniroute doctor
+```
 
 ---
 
 ## Gemini Web et Playwright Chromium
 
 Si une requête Gemini Web renvoie `503` avec un message indiquant que Playwright Chromium
-n’est pas installé, le paquet npm est présent, mais le binaire du navigateur est absent.
-Playwright sépare délibérément le téléchargement des navigateurs de l’installation du paquet
-npm ; cette réponse est donc attendue tant que le navigateur n’est pas installé.
+n’est pas installé, le package npm est présent, mais le binaire du navigateur est manquant.
+Playwright sépare volontairement le téléchargement des navigateurs de l’installation du
+package npm ; cette réponse est donc attendue tant que le navigateur n’est pas installé.
 
-Pour une installation npm globale, installez Chromium depuis le répertoire du paquet
+Pour une installation globale avec npm, installez Chromium depuis le répertoire du package
 OmniRoute afin que le cache du navigateur appartienne à la même installation de Playwright :
 
 ```bash
@@ -107,26 +156,26 @@ npx playwright install chromium
 
 Redémarrez OmniRoute après l’installation, puis réessayez la requête Gemini Web. Si vous
 exécutez OmniRoute depuis une image Docker, utilisez l’image `-web` (ou la cible de
-compilation `runner-web`), qui inclut Chromium et ses dépendances ; l’image de base ne
-les inclut pas.
+build `runner-web`), qui inclut Chromium et ses dépendances ; l’image de base ne les
+inclut pas.
 
 ---
 
-## Solutions rapides
+## Correctifs rapides
 
-| Problème                                                           | Solution                                                                                                                                                                              |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| La première connexion ne fonctionne pas                            | Définissez `INITIAL_PASSWORD` dans `.env` (aucune valeur par défaut codée en dur)                                                                                                     |
-| Le tableau de bord s’ouvre sur le mauvais port                     | Définissez `PORT=20128` et `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                              |
-| Aucun journal n’est écrit sur le disque                            | Définissez `APP_LOG_TO_FILE=true` et vérifiez que la capture du journal des appels est activée                                                                                        |
-| EACCES : autorisation refusée                                      | Définissez `DATA_DIR=/path/to/writable/dir` pour remplacer `~/.omniroute`                                                                                                             |
-| La stratégie de routage n’est pas enregistrée                      | Mettez à jour vers la dernière version v3.x (le correctif du schéma Zod pour la persistance des paramètres a été publié dans des versions antérieures)                                |
-| Plantage à la connexion / page blanche                             | Vérifiez la version de Node.js — consultez [Compatibilité avec Node.js](#nodejs-compatibility) ci-dessous                                                                             |
-| `dlopen` / `slice is not valid mach-o file` (macOS)                | Exécutez `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — consultez [Recompilation du module natif sous macOS](#macos-native-module-rebuild) ci-dessous |
-| Échec de récupération (« fetch failed ») du proxy                  | Vérifiez que la configuration du proxy est définie au niveau approprié — consultez [Problèmes de proxy](#proxy-issues) ci-dessous                                                     |
-| Docker `curl: (56) Recv failure: Connection reset by peer`         | La liaison de port Docker peut utiliser IPv6. Utilisez `-p 127.0.0.1:20128:20128` pour forcer IPv4, ou testez avec `curl -4`. Consultez [IPv6 avec Docker](#docker-ipv6) ci-dessous   |
-| L’antivirus met `README.md` en quarantaine                         | Faux positif — consultez [Faux positifs des antivirus](#antivirus-false-positives) ci-dessous                                                                                         |
-| Kaspersky signale l’application de bureau comme un cheval de Troie | Faux positif comportemental dû au programme d’installation non signé — consultez [Faux positifs des antivirus](#antivirus-false-positives) ci-dessous                                 |
+| Problème                                                           | Solution                                                                                                                                                                                |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| La première connexion ne fonctionne pas                            | Définissez `INITIAL_PASSWORD` dans `.env` (aucune valeur par défaut codée en dur)                                                                                                       |
+| Le tableau de bord s’ouvre sur le mauvais port                     | Définissez `PORT=20128` et `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                |
+| Aucun journal n’est écrit sur le disque                            | Définissez `APP_LOG_TO_FILE=true` et vérifiez que la capture des journaux d’appels est activée                                                                                          |
+| EACCES : autorisation refusée                                      | Définissez `DATA_DIR=/path/to/writable/dir` pour remplacer `~/.omniroute`                                                                                                               |
+| La stratégie de routage n’est pas enregistrée                      | Effectuez la mise à jour vers la dernière version v3.x (le correctif du schéma Zod pour la persistance des paramètres a été publié dans des versions antérieures)                       |
+| Plantage à la connexion / page blanche                             | Vérifiez la version de Node.js — consultez [Compatibilité avec Node.js](#nodejs-compatibility) ci-dessous                                                                               |
+| `dlopen` / `slice is not valid mach-o file` (macOS)                | Exécutez `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — consultez [Reconstruction du module natif sous macOS](#macos-native-module-rebuild) ci-dessous  |
+| Échec de récupération (« fetch failed ») du proxy                  | Assurez-vous que la configuration du proxy est définie au niveau approprié — consultez [Problèmes de proxy](#proxy-issues) ci-dessous                                                   |
+| Docker `curl: (56) Recv failure: Connection reset by peer`         | La liaison de port Docker utilise peut-être IPv6. Utilisez `-p 127.0.0.1:20128:20128` pour forcer IPv4, ou testez avec `curl -4`. Consultez [IPv6 avec Docker](#docker-ipv6) ci-dessous |
+| L’antivirus met `README.md` en quarantaine                         | Faux positif — consultez [Faux positifs des antivirus](#antivirus-false-positives) ci-dessous                                                                                           |
+| Kaspersky signale l’application de bureau comme un cheval de Troie | Faux positif comportemental concernant le programme d’installation non signé — consultez [Faux positifs des antivirus](#antivirus-false-positives) ci-dessous                           |
 
 ---
 
@@ -140,14 +189,14 @@ les inclut pas.
 
 Avast et AVG utilisent une heuristique qui signale les fichiers texte brut/Markdown contenant de nombreux
 liens ressemblant à des requêtes HTTP. Le fichier `README.md` d’OmniRoute est inclus dans le package npm (il est
-répertorié dans `package.json` → `files`) ; lors d’une installation globale, il se retrouve donc dans
-`node_modules/omniroute/README.md` — et contient environ 15 exemples `http://localhost:20128/...` (les points
-de terminaison HTTP/SSE de MCP, l’URL A2A `.well-known` et des extraits `curl`). Cette densité de liens suffit
+répertorié dans `package.json` → `files`) ; il se retrouve donc dans `node_modules/omniroute/README.md` lors
+d’une installation globale — et il contient environ 15 exemples `http://localhost:20128/...` (les points
+de terminaison HTTP/SSE de MCP, l’URL `.well-known` d’A2A et des extraits `curl`). Cette densité de liens suffit
 à déclencher l’heuristique.
 
 Si cela n’a commencé que récemment : la nature du fichier n’a pas changé. Le tableau des points de terminaison
-du README s’est étoffé (MCP HTTP + SSE + A2A ont été ajoutés), tout comme le nombre d’exemples `curl`, ce qui
-lui a fait dépasser le seuil.
+du README s’est étoffé (MCP HTTP + SSE + A2A ont été ajoutés), tout comme le nombre d’exemples `curl`, ce qui lui
+a fait dépasser le seuil.
 
 Ce fichier est une documentation inerte ne contenant aucun contenu exécutable. Vous pouvez le restaurer
 depuis la quarantaine en toute sécurité.
@@ -155,25 +204,25 @@ depuis la quarantaine en toute sécurité.
 **Que faire :**
 
 1. **Arrêter les notifications** — excluez le répertoire d’installation dans votre antivirus
-   (Avast : Paramètres → Exceptions), en ajoutant le chemin de votre répertoire global `node_modules` et/ou le
+   (Avast : Paramètres → Exceptions), en ajoutant le chemin de votre dossier global `node_modules` et/ou le
    répertoire de données d’OmniRoute (`~/.omniroute/`).
 2. **Signaler le faux positif** — <https://www.avast.com/false-positive-file-form.php>,
-   en joignant le fichier `README.md` mis en quarantaine. C’est la correction qui aide tout le monde, puisque
-   l’heuristique de l’éditeur réagit de manière excessive à un fichier texte.
+   en joignant le fichier `README.md` mis en quarantaine. C’est la solution qui aide tout le monde, puisque c’est
+   l’heuristique de l’éditeur qui réagit de manière excessive à un fichier texte.
 
-**Pourquoi nous ne « corrigeons » pas cela de notre côté :** tous les exemples utilisent `http://localhost`, et
-localhost ne peut pas utiliser `https` sans les contraintes liées aux certificats autosignés. Altérer la documentation
-pour contourner l’heuristique d’un seul éditeur nuirait à tous les lecteurs pour satisfaire un bogue d’analyseur.
+**Pourquoi nous ne « corrigeons » pas cela de notre côté :** les exemples utilisent tous `http://localhost`, et
+localhost ne peut pas utiliser `https` sans les complications liées aux certificats autosignés. Altérer la documentation
+pour contourner l’heuristique d’un seul éditeur nuirait à tous les lecteurs afin de satisfaire un bogue d’analyseur.
 
 ### Kaspersky signale l’application de bureau comme `PDM:Trojan.Win32.Generic`
 
 **Il s’agit d’un faux positif provenant d’une heuristique comportementale. Rien n’est infecté.** Le préfixe
 `PDM:` de Kaspersky signifie que le verdict provient de son module de défense proactive (System Watcher),
-qui évalue ce que le programme d’installation _fait_ plutôt que de le comparer à des logiciels malveillants connus. Lorsqu’il
-se déclenche, Kaspersky « annule » l’ensemble de l’installation — en supprimant les fichiers qu’il avait déjà
-écrits — si bien que l’application finit par être défectueuse ou absente.
+qui évalue ce que le programme d’installation _fait_ au lieu de le comparer à des logiciels malveillants connus. Lorsqu’il
+se déclenche, Kaspersky « annule » l’intégralité de l’installation — en supprimant les fichiers qu’il avait déjà
+écrits — de sorte que l’application se retrouve endommagée ou absente.
 
-Les fichiers qu’il signale sont des composants standard de dépendances open source déclarées et incluses avec
+Les fichiers signalés sont des composants standard de dépendances open source déclarées, incluses avec
 l’application de bureau, par exemple :
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` et
@@ -181,18 +230,18 @@ l’application de bureau, par exemple :
   utilisée pour la connexion aux fournisseurs depuis l’application et les conversations reposant sur un navigateur.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
   — la liaison native `wreq-js` dont la version est épinglée, utilisée pour les requêtes HTTP avec empreinte de navigateur
-  auprès des fournisseurs utilisant des cookies web (`<arch>` vaut `x64` ou `arm64`).
+  auprès des fournisseurs reposant sur des cookies web (`<arch>` vaut `x64` ou `arm64`).
 
-**Pourquoi cela se déclenche :** le programme d’installation Windows n’est **pas encore signé numériquement** ; un programme
-d’installation NSIS non signé ne bénéficie donc d’aucune réputation, et les heuristiques comportementales fonctionnent avec
-une agressivité maximale. Combiné à une DLL native incluse et à des centaines de fichiers `.js` écrits sous
-`%LOCALAPPDATA%\Programs\OmniRoute` (y compris des répertoires de packages avec suffixe de hachage provenant de la
-version autonome de Next.js), cela suffit à déclencher l’heuristique. La signature du code est prévue ;
-d’ici là, le problème peut se reproduire avec les nouvelles versions.
+**Pourquoi il se déclenche :** le programme d’installation Windows n’est **pas encore signé avec un certificat de code** ;
+un programme d’installation NSIS non signé n’a donc aucune réputation, et les heuristiques comportementales fonctionnent
+avec une agressivité maximale. Associé à une DLL native incluse et à des centaines de fichiers `.js` écrits sous
+`%LOCALAPPDATA%\Programs\OmniRoute` (y compris des répertoires de packages dont le nom comporte un suffixe de hachage,
+issus de la compilation autonome de Next.js), cela suffit à déclencher l’heuristique. La signature du code est prévue ;
+d’ici là, ce problème peut se reproduire à chaque nouvelle version.
 
 **Que faire :**
 
-1. **Vérifiez d’abord votre téléchargement** (afin d’écarter l’hypothèse d’un fichier altéré). Chaque version publie
+1. **Vérifiez d’abord votre téléchargement** (cela permet d’écarter l’hypothèse d’un fichier altéré). Chaque version publie
    `latest.yml`, dont le champ `sha512` (base64) couvre le programme d’installation
    `OmniRoute.Setup.<version>.exe`. Dans PowerShell, depuis le dossier contenant le programme d’installation :
    ```powershell
@@ -201,12 +250,12 @@ d’ici là, le problème peut se reproduire avec les nouvelles versions.
    [Convert]::ToBase64String($b)
    ```
    La sortie doit correspondre à `latest.yml` → `sha512`. Si ce n’est pas le cas, supprimez le fichier et
-   téléchargez-le à nouveau uniquement depuis la [page des versions GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
-2. **Restaurez et excluez** — restaurez depuis la quarantaine les éléments supprimés lors de l’annulation et ajoutez une exclusion
+   téléchargez-le de nouveau uniquement depuis la [page des versions GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
+2. **Restaurer + exclure** — restaurez depuis la quarantaine les éléments supprimés lors de l’annulation et ajoutez une exclusion
    pour `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Paramètres → Menaces et exclusions),
    puis réinstallez l’application.
-3. **Signalez le faux positif** — <https://opentip.kaspersky.com/>. Les signalements de faux positifs
-   envoyés par les utilisateurs accélèrent réellement l’ajout à la liste d’autorisation.
+3. **Signaler le faux positif** — <https://opentip.kaspersky.com/>. Les signalements de faux positifs
+   envoyés par les utilisateurs accélèrent réellement l’ajout à la liste blanche.
 
 ---
 
@@ -216,22 +265,22 @@ d’ici là, le problème peut se reproduire avec les nouvelles versions.
 
 ### La page de connexion plante ou affiche l’erreur « Module self-registration »
 
-**Cause :** Vous utilisez une version de Node.js qui ne respecte pas la version minimale sécurisée approuvée par OmniRoute. Le cas le plus courant est l’utilisation d’une ancienne version corrective de Node 22 ou 24, antérieure à la version minimale corrigée requise par OmniRoute pour des raisons de sécurité.
+**Cause :** Vous exécutez une version de Node.js qui ne respecte pas le niveau minimal d’exécution sécurisée approuvé par OmniRoute. Le cas le plus courant est l’utilisation d’un ancien niveau de correctif de Node 22 ou 24, antérieur au niveau minimal de sécurité corrigé requis par OmniRoute.
 
 **Symptômes :**
 
-- La page de connexion affiche un écran vide ou une erreur du serveur
-- La console affiche `Error: Module did not self-register` ou des erreurs similaires liées aux bindings natifs
-- La page de connexion affiche une **bannière d’avertissement orange** indiquant votre version de Node si l’environnement d’exécution ne respecte pas la politique de sécurité prise en charge
+- La page de connexion affiche un écran vide ou une erreur serveur
+- La console affiche `Error: Module did not self-register` ou des erreurs similaires de liaison native
+- La page de connexion affiche une **bannière d’avertissement orange** avec votre version de Node si l’environnement d’exécution ne respecte pas la politique de sécurité prise en charge
 
 **Correctif :**
 
-1. Installez une version LTS prise en charge de Node.js (recommandation : Node.js 24.x) :
+1. Installez une version LTS de Node.js prise en charge (recommandation : Node.js 24.x) :
    ```bash
    nvm install 24
    nvm use 24
    ```
-2. Vérifiez votre version : `node --version` doit afficher `v24.0.0` ou une version ultérieure de la branche LTS 24.x
+2. Vérifiez votre version : `node --version` doit afficher `v24.0.0` ou une version plus récente de la branche LTS 24.x
 3. Réinstallez OmniRoute : `npm install -g omniroute`
 4. Redémarrez : `omniroute`
 
@@ -253,12 +302,12 @@ et nécessite une compilation native (`node-gyp rebuild`), npm l’ignore silenc
 
 **Correctif :**
 
-1. Approuvez les scripts d’installation et réinstallez :
+1. Autorisez les scripts d’installation et réinstallez :
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Vous pouvez également installer manuellement la version précompilée :
+2. Ou installez manuellement la version précompilée :
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
@@ -271,7 +320,7 @@ et nécessite une compilation native (`node-gyp rebuild`), npm l’ignore silenc
 
 <a name="macos-native-module-rebuild"></a>
 
-**Cause :** Après une installation globale avec `npm install -g omniroute`, le binaire natif de `better-sqlite3` inclus dans le package peut avoir été compilé pour une architecture ou une ABI Node.js différente de celle utilisée localement. Ce problème est courant sous macOS (aussi bien sur Apple Silicon que sur Intel) lorsque le binaire précompilé ne correspond pas à votre environnement.
+**Cause :** Après une installation globale avec `npm install -g omniroute`, le binaire natif de `better-sqlite3` inclus dans le package peut avoir été compilé pour une architecture ou une ABI Node.js différente de celle utilisée localement. Ce problème est fréquent sous macOS (sur Apple Silicon comme sur Intel) lorsque le binaire précompilé ne correspond pas à votre environnement.
 
 **Symptômes :**
 
@@ -283,7 +332,7 @@ et nécessite une compilation native (`node-gyp rebuild`), npm l’ignore silenc
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Correctif — recompilez pour votre environnement local (aucune rétrogradation de Node.js n’est nécessaire) :**
+**Correctif — recompilez pour votre environnement local (aucun retour à une version antérieure de Node.js n’est nécessaire) :**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -291,7 +340,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Remarque :** Cette opération recompile le binding natif pour votre version locale de Node.js et l’architecture de votre processeur, ce qui résout l’incompatibilité du binaire. La plage d’environnements d’exécution officiellement prise en charge est **`>=22.22.2 <23` ou `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` dans `src/shared/utils/nodeRuntimeSupport.ts`, alignée sur le champ `engines` de `package.json`). Node.js 24.x LTS (Krypton) et Node.js 26 sont entièrement pris en charge avec `better-sqlite3` v12.x.
+> **Remarque :** Cette opération recompile la liaison native pour votre version locale de Node.js et l’architecture de votre processeur, ce qui résout l’incompatibilité binaire. La plage d’environnements d’exécution officiellement prise en charge est **`>=22.22.2 <23` ou `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` dans `src/shared/utils/nodeRuntimeSupport.ts`, alignée sur le champ `engines` de `package.json`). Node.js 24.x LTS (Krypton) et Node.js 26 sont entièrement pris en charge avec `better-sqlite3` v12.x.
 
 ---
 
@@ -301,27 +350,27 @@ omniroute
 
 ### La validation du fournisseur affiche « fetch failed »
 
-**Cause :** Le point de terminaison de validation de la clé API (`POST /api/providers/validate`) contournait auparavant la configuration du proxy, provoquant des échecs dans les environnements nécessitant un routage par proxy.
+**Cause :** Le point de terminaison de validation de la clé API (`POST /api/providers/validate`) contournait auparavant la configuration du proxy, entraînant des échecs dans les environnements nécessitant un routage via proxy.
 
-**Correction (v3.5.5+) :** Ce problème est désormais corrigé. La validation du fournisseur passe par `runWithProxyContext`, en respectant automatiquement les paramètres de proxy propres au fournisseur et les paramètres globaux.
+**Correctif (v3.5.5+) :** Ce problème est désormais corrigé. Les requêtes de validation du fournisseur passent par `runWithProxyContext`, en respectant automatiquement les paramètres de proxy propres au fournisseur et les paramètres globaux.
 
 ### La vérification de l’état du jeton échoue avec « fetch failed »
 
-**Cause :** L’actualisation en arrière-plan des jetons OAuth ne résolvait pas la configuration du proxy pour chaque connexion.
+**Cause :** L’actualisation des jetons OAuth en arrière-plan ne déterminait pas la configuration du proxy pour chaque connexion.
 
-**Correction (v3.5.5+) :** Le planificateur de vérification de l’état des jetons résout désormais la configuration du proxy pour chaque connexion avant de tenter une actualisation. Mettez à jour vers v3.5.5+.
+**Correctif (v3.5.5+) :** Le planificateur de vérification de l’état des jetons détermine désormais la configuration du proxy pour chaque connexion avant de tenter une actualisation. Mettez à jour vers la v3.5.5+.
 
 ### Le proxy SOCKS5 renvoie « invalid onRequestStart method »
 
 **Cause :** Sous Node.js 22, le répartiteur undici@8 est incompatible avec l’implémentation intégrée de `fetch()` de Node.
 
-**Correction (v3.5.5+) :** OmniRoute utilise désormais la propre fonction `fetch()` d’undici lorsqu’un répartiteur de proxy est actif, garantissant ainsi un comportement cohérent. Mettez à jour vers v3.5.5+.
+**Correctif (v3.5.5+) :** OmniRoute utilise désormais la propre fonction `fetch()` d’undici lorsqu’un répartiteur de proxy est actif, garantissant ainsi un comportement cohérent. Mettez à jour vers la v3.5.5+.
 
 ### Proxy MITM sous WSL : les applications de bureau sur l’hôte Windows ne sont pas interceptées
 
-**Cause :** Le proxy MITM et son certificat d’autorité de certification sont installés dans l’environnement où OmniRoute s’exécute. Sous WSL, cet environnement correspond au système Linux invité, tandis que les applications d’IA de bureau (Kiro, Trae, Copilot, Zed, …) s’exécutent sur l’hôte Windows. Les applications de l’hôte ne font pas confiance au magasin de certificats du système invité et n’acheminent pas leur trafic par le proxy système de celui-ci ; l’interception des applications de bureau ne s’active donc pas.
+**Cause :** Le proxy MITM et son certificat d’autorité de certification sont installés dans l’environnement où OmniRoute s’exécute. Sous WSL, cet environnement est l’invité Linux, tandis que les applications d’IA de bureau (Kiro, Trae, Copilot, Zed, …) s’exécutent sur l’hôte Windows. Les applications de l’hôte ne font pas confiance au magasin de certificats de l’invité et n’utilisent pas le proxy système de l’invité ; l’interception des applications de bureau ne s’y active donc pas.
 
-**Recommandation :** Exécutez OmniRoute nativement sur le même système d’exploitation que les applications de bureau que vous souhaitez intercepter (Windows pour les applications Windows ; de même pour macOS/Linux). Conserver OmniRoute dans WSL tout en ciblant les applications de l’hôte nécessite d’approuver manuellement le certificat d’autorité de certification généré sur l’hôte Windows et de configurer les paramètres réseau/proxy de chaque application hôte pour utiliser le point de terminaison du proxy WSL — une configuration non prise en charge et fragile.
+**Recommandation :** Exécutez OmniRoute nativement sur le même système d’exploitation que les applications de bureau que vous souhaitez intercepter (Windows pour les applications Windows ; de même pour macOS/Linux). Conserver OmniRoute dans WSL tout en ciblant les applications de l’hôte nécessite d’approuver manuellement le certificat d’autorité de certification généré sur l’hôte Windows et de configurer les paramètres réseau/proxy de chaque application de l’hôte afin qu’ils utilisent le point de terminaison du proxy WSL — une configuration non prise en charge et fragile.
 
 ---
 
@@ -331,19 +380,19 @@ omniroute
 
 **Cause :** Quota du fournisseur épuisé.
 
-**Correction :**
+**Correctif :**
 
 1. Vérifiez le suivi des quotas dans le tableau de bord
-2. Utilisez une combinaison avec des niveaux de secours
+2. Utilisez une combinaison avec des niveaux de repli
 3. Passez à un niveau moins cher/gratuit
 
 ### Limitation du débit
 
 **Cause :** Quota de l’abonnement épuisé.
 
-**Correction :**
+**Correctif :**
 
-- Ajoutez une solution de secours : `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
+- Ajoutez une solution de repli : `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Utilisez GLM/MiniMax comme solution de secours économique
 
 ### Jeton OAuth expiré
@@ -353,22 +402,22 @@ OmniRoute actualise automatiquement les jetons. Si les problèmes persistent :
 1. Tableau de bord → Fournisseur → Reconnecter
 2. Supprimez et ajoutez à nouveau la connexion au fournisseur
 
-### Kiro avec plusieurs comptes : le deuxième compte invalide le premier
+### Comptes multiples Kiro : le deuxième compte invalide le premier
 
-**Cause :** Le backend de Kiro n’autorise qu’une seule session active par enregistrement de client OIDC.
-Lorsque deux comptes partagent le même client enregistré (connexions importées avant v3.8.0),
+**Cause :** Le serveur de Kiro impose une seule session active par enregistrement de client OIDC.
+Lorsque deux comptes partagent le même client enregistré (connexions importées avant la v3.8.0),
 l’actualisation du jeton d’un compte invalide le jeton d’actualisation de l’autre.
 
-**Correction (v3.8.0+) :** Réimportez les connexions concernées.
-À partir de v3.8.0, chaque nouvelle connexion Kiro créée via **Importation de jeton**,
-**connexion sociale Google/GitHub** ou **Importation automatique** enregistre automatiquement son propre
+**Correctif (v3.8.0+) :** Réimportez les connexions concernées.
+À partir de la v3.8.0, chaque nouvelle connexion Kiro créée via **Importer un jeton**,
+**Connexion sociale Google/GitHub** ou **Importation automatique** enregistre automatiquement son propre
 client OIDC dédié. La connexion est donc entièrement isolée et l’actualisation d’un
 compte n’a aucun effet sur les autres comptes.
 
-Les connexions importées _avant_ v3.8.0 ne disposent pas d’un enregistrement de client
-propre à chaque connexion. Ces connexions continuent d’utiliser le point de terminaison d’actualisation partagé de l’authentification sociale.
+Les connexions importées _avant_ la v3.8.0 ne disposent pas d’un enregistrement de client
+propre à la connexion. Ces connexions continuent d’utiliser le point de terminaison d’actualisation partagé de l’authentification sociale.
 Pour bénéficier de l’isolation, supprimez l’ancienne connexion depuis Tableau de bord → Fournisseurs et ajoutez-la à nouveau
-via l’un des trois processus d’importation.
+via l’un des trois flux d’importation.
 
 Pour obtenir tous les détails et des instructions étape par étape afin d’ajouter deux comptes Kiro côte à côte,
 consultez [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
@@ -379,7 +428,7 @@ consultez [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ### Erreurs de synchronisation avec le cloud
 
-1. Vérifiez que `BASE_URL` pointe vers votre instance en cours d’exécution (par exemple, `http://localhost:20128`)
+1. Vérifiez que `BASE_URL` pointe vers votre instance en cours d'exécution (par exemple, `http://localhost:20128`)
 2. Vérifiez que `CLOUD_URL` pointe vers votre point de terminaison cloud (par exemple, `https://omniroute.dev`)
 3. Veillez à ce que les valeurs `NEXT_PUBLIC_*` correspondent aux valeurs côté serveur
 
@@ -389,9 +438,9 @@ consultez [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 **Cause :** Le service en amont renvoie une charge utile SSE alors que le client attend du JSON.
 
-**Solution de contournement :** Utilisez `stream=true` pour les appels directs au cloud. L’environnement d’exécution local inclut un mécanisme de repli SSE→JSON.
+**Solution de contournement :** Utilisez `stream=true` pour les appels directs au cloud. L'environnement d'exécution local inclut une solution de repli SSE→JSON.
 
-### Le cloud indique qu’il est connecté, mais affiche « Invalid API key »
+### Le cloud indique qu'il est connecté, mais affiche « Invalid API key »
 
 1. Créez une nouvelle clé depuis le tableau de bord local (`/api/keys`)
 2. Lancez la synchronisation avec le cloud : Activer le cloud → Synchroniser maintenant
@@ -405,30 +454,30 @@ consultez [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 <a name="docker-ipv6"></a>
 
-**Symptômes :** `curl http://localhost:20128/v1/models` renvoie `curl: (56) Recv failure: Connection reset by peer`. Le tableau de bord et les points de terminaison non authentifiés fonctionnent, mais les points de terminaison authentifiés échouent — cela ressemble à un problème d’authentification, mais ce n’est pas le cas.
+**Symptômes :** `curl http://localhost:20128/v1/models` renvoie `curl: (56) Recv failure: Connection reset by peer`. Le tableau de bord et les points de terminaison non authentifiés fonctionnent, mais les points de terminaison authentifiés échouent — cela ressemble à un problème d'authentification, mais ce n'en est pas un.
 
-**Cause :** `docker run -p 20128:20128` publie à la fois sur `0.0.0.0` (IPv4) et `::` (IPv6), mais le processus à l’intérieur du conteneur écoute uniquement sur IPv4. Sur les hôtes où `localhost` est d’abord résolu en `::1`, la connexion arrive sur le port IPv6 publié sans qu’aucun processus n’écoute derrière celui-ci → réinitialisation de la connexion.
+**Cause :** `docker run -p 20128:20128` publie à la fois sur `0.0.0.0` (IPv4) et `::` (IPv6), mais le processus à l'intérieur du conteneur écoute uniquement sur IPv4. Sur les hôtes où `localhost` est d'abord résolu en `::1`, la connexion arrive sur le port IPv6 publié, sans processus à l'écoute derrière celui-ci → réinitialisation de la connexion.
 
-**Correctif :**
+**Correction :**
 
 1. **Diagnostic rapide :** Exécutez `curl -4 http://localhost:20128/v1/models`. Si cela fonctionne avec `-4`, mais échoue sans cette option, vous avez une incompatibilité de liaison IPv6.
-2. **Correctif permanent :** Liez explicitement le port à IPv4 en utilisant `-p 127.0.0.1:20128:20128` dans votre commande `docker run` :
+2. **Correction permanente :** Forcez explicitement la liaison à IPv4 en utilisant `-p 127.0.0.1:20128:20128` dans votre commande `docker run` :
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Cela force la liaison IPv4 et évite également d’exposer le proxy sur toutes les interfaces de l’hôte.
+   Cela force la liaison IPv4 et évite également d'exposer le proxy sur toutes les interfaces de l'hôte.
 
 ---
 
-### L’outil CLI est indiqué comme non installé
+### L'outil CLI est indiqué comme non installé
 
-1. Vérifiez les champs de l’environnement d’exécution : `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Pour le mode portable : utilisez la cible d’image `runner-cli` (CLI incluses)
-3. Pour le mode de montage de l’hôte : définissez `CLI_EXTRA_PATHS` et montez le répertoire des exécutables de l’hôte en lecture seule
-4. Si `installed=true` et `runnable=false` : l’exécutable a été trouvé, mais le contrôle d’intégrité a échoué
+1. Vérifiez les champs de l'environnement d'exécution : `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. Pour le mode portable : utilisez la cible d'image `runner-cli` (CLI incluses)
+3. Pour le mode de montage de l'hôte : définissez `CLI_EXTRA_PATHS` et montez le répertoire des binaires de l'hôte en lecture seule
+4. Si `installed=true` et `runnable=false` : le binaire a été trouvé, mais le contrôle d'intégrité a échoué
 
-### Validation rapide de l’environnement d’exécution
+### Validation rapide de l'environnement d'exécution
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -438,14 +487,14 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## Problèmes liés aux coûts
+## Problèmes de coûts
 
 ### Coûts élevés
 
-1. Consultez les statistiques d’utilisation dans Tableau de bord → Utilisation
+1. Consultez les statistiques d'utilisation dans Tableau de bord → Utilisation
 2. Remplacez le modèle principal par GLM/MiniMax
-3. Utilisez l’offre gratuite (Qoder, Kiro) pour les tâches non critiques
-4. Définissez des budgets de coûts pour chaque clé API : Tableau de bord → Clés API → Budget
+3. Utilisez l'offre gratuite (Qoder, Kiro) pour les tâches non critiques
+4. Définissez des budgets par clé API : Tableau de bord → Clés API → Budget
 
 ---
 
@@ -453,55 +502,55 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Activer les fichiers journaux
 
-Définissez `APP_LOG_TO_FILE=true` dans votre fichier `.env`. Les journaux de l’application sont écrits dans `logs/`.
-Les artefacts des requêtes sont stockés dans `${DATA_DIR}/call_logs/` lorsque le pipeline de journalisation des appels est
+Définissez `APP_LOG_TO_FILE=true` dans votre fichier `.env`. Les journaux de l'application sont écrits sous `logs/`.
+Les artefacts des requêtes sont stockés sous `${DATA_DIR}/call_logs/` lorsque le pipeline de journalisation des appels est
 activé dans les paramètres.
 Lorsque la capture du pipeline est activée, définissez `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` pour omettre
-les charges utiles des fragments de flux, ou ajustez `CALL_LOG_PIPELINE_MAX_SIZE_KB` pour modifier la taille maximale des artefacts en Ko.
+les charges utiles des fragments de flux, ou ajustez `CALL_LOG_PIPELINE_MAX_SIZE_KB` pour modifier la limite des artefacts en Ko.
 
-### Vérifier l’état des fournisseurs
+### Vérifier l'état des fournisseurs
 
 ```bash
-# Tableau de bord d’état
+# Tableau de bord de l'état
 http://localhost:20128/dashboard/health
 
-# Contrôle d’intégrité de l’API
+# Vérification de l'état de l'API
 curl http://localhost:20128/api/monitoring/health
 ```
 
-### Stockage de l’environnement d’exécution
+### Stockage de l'environnement d'exécution
 
 - État principal : `${DATA_DIR}/storage.sqlite` (fournisseurs, combinaisons, alias, clés, paramètres)
 - Utilisation : tables SQLite dans `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + `${DATA_DIR}/call_logs/` facultatif
-- Journaux de l’application : `<repo>/logs/...` (lorsque `APP_LOG_TO_FILE=true`)
-- Artefacts des journaux d’appels : `${DATA_DIR}/call_logs/YYYY-MM-DD/...` lorsque le pipeline de journalisation des appels est activé
+- Journaux de l'application : `<repo>/logs/...` (lorsque `APP_LOG_TO_FILE=true`)
+- Artefacts des journaux d'appels : `${DATA_DIR}/call_logs/YYYY-MM-DD/...` lorsque le pipeline de journalisation des appels est activé
 
-L’action **Nettoyer l’historique** de la page Journaux des requêtes efface `call_logs`, l’ancien
-`request_detail_logs` et le répertoire local d’artefacts `${DATA_DIR}/call_logs/`.
+L'action **Nettoyer l'historique** de la page Journaux des requêtes efface `call_logs`, l'ancien
+`request_detail_logs` et le répertoire local d'artefacts `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Problèmes de disjoncteur
+## Problèmes liés au disjoncteur
 
-### Fournisseur bloqué à l’état OPEN
+### Fournisseur bloqué dans l’état OPEN
 
 Lorsque le disjoncteur d’un fournisseur est à l’état OPEN, les requêtes sont bloquées jusqu’à l’expiration du délai de récupération.
 
 **Solution :**
 
 1. Accédez à **Tableau de bord → Paramètres → Résilience**
-2. Consultez la carte du disjoncteur correspondant au fournisseur concerné
+2. Vérifiez la carte du disjoncteur du fournisseur concerné
 3. Cliquez sur **Tout réinitialiser** pour réinitialiser tous les disjoncteurs, ou attendez l’expiration du délai de récupération
-4. Vérifiez que le fournisseur est effectivement disponible avant de procéder à la réinitialisation
+4. Vérifiez que le fournisseur est réellement disponible avant de procéder à la réinitialisation
 
 ### Le fournisseur déclenche continuellement le disjoncteur
 
-Si un fournisseur passe à plusieurs reprises à l’état OPEN :
+Si un fournisseur passe de manière répétée à l’état OPEN :
 
-1. Consultez **Tableau de bord → Santé → Santé des fournisseurs** pour identifier le schéma des échecs
-2. Accédez à **Paramètres → Résilience → Profils des fournisseurs** et augmentez le seuil d’échec
+1. Consultez **Tableau de bord → Santé → Santé des fournisseurs** pour identifier le schéma des défaillances
+2. Accédez à **Paramètres → Résilience → Profils des fournisseurs** et augmentez le seuil de défaillance
 3. Vérifiez si le fournisseur a modifié les limites de son API ou exige une nouvelle authentification
-4. Examinez la télémétrie de latence — une latence élevée peut provoquer des échecs dus à l’expiration du délai
+4. Examinez la télémétrie de latence — une latence élevée peut provoquer des défaillances dues à l’expiration du délai
 
 ---
 
@@ -516,30 +565,30 @@ Si un fournisseur passe à plusieurs reprises à l’état OPEN :
 
 - Vérifiez les formats audio pris en charge : `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
 - Vérifiez que la taille du fichier respecte les limites du fournisseur (généralement < 25MB)
-- Vérifiez la validité de la clé API du fournisseur dans la carte correspondante
+- Vérifiez la validité de la clé API du fournisseur dans sa carte
 
 ---
 
 ## Débogage du traducteur
 
-Utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de conversion de format :
+Utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de traduction de format :
 
 | Mode                   | Quand l’utiliser                                                                                                            |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Bac à sable**        | Comparez côte à côte les formats d’entrée et de sortie — collez une requête qui échoue pour voir comment elle est convertie |
-| **Testeur de chat**    | Envoyez des messages en direct et examinez la charge utile complète de la requête et de la réponse, y compris les en-têtes  |
-| **Banc de test**       | Exécutez des tests par lots sur différentes combinaisons de formats afin d’identifier les conversions défectueuses          |
-| **Moniteur en direct** | Observez le flux de requêtes en temps réel afin de détecter les problèmes de conversion intermittents                       |
+| **Terrain d’essai**    | Comparez les formats d’entrée et de sortie côte à côte — collez une requête défaillante pour voir comment elle est traduite |
+| **Testeur de chat**    | Envoyez des messages en direct et inspectez la charge utile complète de la requête et de la réponse, y compris les en-têtes |
+| **Banc de test**       | Exécutez des tests par lots sur différentes combinaisons de formats pour identifier les traductions défaillantes            |
+| **Moniteur en direct** | Observez le flux de requêtes en temps réel pour détecter les problèmes de traduction intermittents                          |
 
 ### Problèmes de format courants
 
 - **Les balises de réflexion ne s’affichent pas** — Vérifiez si le fournisseur cible prend en charge la réflexion ainsi que le paramètre de budget de réflexion
-- **Les appels d’outils sont supprimés** — Certaines conversions de format peuvent supprimer les champs non pris en charge ; vérifiez-les en mode Bac à sable
-- **L’invite système est absente** — Claude et Gemini gèrent différemment les invites système ; vérifiez la sortie de la conversion
-- **Le SDK renvoie une chaîne brute au lieu d’un objet** — Résolu dans v1.x ; le dispositif de nettoyage des réponses supprime les champs non standard (`x_groq`, `usage_breakdown`, etc.) qui provoquent des échecs de validation Pydantic dans le SDK OpenAI. Si le problème persiste dans v3.x+, veuillez le signaler.
-- **GLM/ERNIE refuse le rôle `system`** — Résolu dans v1.x ; le normalisateur de rôles fusionne automatiquement les messages système avec les messages utilisateur pour les modèles incompatibles. Si le problème persiste dans v3.x+, veuillez le signaler.
-- **Le rôle `developer` n’est pas reconnu** — Résolu dans v1.x ; il est automatiquement converti en `system` pour les fournisseurs autres qu’OpenAI. Si le problème persiste dans v3.x+, veuillez le signaler.
-- **`json_schema` ne fonctionne pas avec Gemini** — Résolu dans v1.x ; `response_format` est désormais converti en `responseMimeType` + `responseSchema` pour Gemini. Si le problème persiste dans v3.x+, veuillez le signaler.
+- **Les appels d’outils disparaissent** — Certaines traductions de format peuvent supprimer les champs non pris en charge ; vérifiez-les en mode Terrain d’essai
+- **L’invite système est absente** — Claude et Gemini traitent les invites système différemment ; vérifiez la sortie de traduction
+- **Le SDK renvoie une chaîne brute au lieu d’un objet** — Résolu dans la v1.x ; le nettoyeur de réponses supprime les champs non standard (`x_groq`, `usage_breakdown`, etc.) qui provoquent des échecs de validation Pydantic dans le SDK OpenAI. Si vous rencontrez encore ce problème avec la v3.x+, veuillez le signaler.
+- **GLM/ERNIE rejette le rôle `system`** — Résolu dans la v1.x ; le normalisateur de rôles fusionne automatiquement les messages système dans les messages utilisateur pour les modèles incompatibles. Si vous rencontrez encore ce problème avec la v3.x+, veuillez le signaler.
+- **Le rôle `developer` n’est pas reconnu** — Résolu dans la v1.x ; il est automatiquement converti en `system` pour les fournisseurs autres qu’OpenAI. Si vous rencontrez encore ce problème avec la v3.x+, veuillez le signaler.
+- **`json_schema` ne fonctionne pas avec Gemini** — Résolu dans la v1.x ; `response_format` est désormais converti en `responseMimeType` + `responseSchema` de Gemini. Si vous rencontrez encore ce problème avec la v3.x+, veuillez le signaler.
 
 ---
 
@@ -547,7 +596,7 @@ Utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de con
 
 ### La limitation automatique du débit ne se déclenche pas
 
-- La limitation automatique du débit s’applique uniquement aux fournisseurs utilisant une clé API (pas à OAuth/aux abonnements)
+- La limitation automatique du débit s’applique uniquement aux fournisseurs utilisant des clés API (et non OAuth/abonnement)
 - Vérifiez que la limitation automatique du débit est activée dans **Paramètres → Résilience → Profils de fournisseurs**
 - Vérifiez si le fournisseur renvoie des codes d’état `429` ou des en-têtes `Retry-After`
 
@@ -555,27 +604,27 @@ Utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de con
 
 Les profils de fournisseurs prennent en charge les paramètres suivants :
 
-- **Délai de base** — Temps d’attente initial après le premier échec (valeur par défaut : 1s)
-- **Délai maximal** — Limite maximale du temps d’attente (valeur par défaut : 30s)
-- **Multiplicateur** — Facteur d’augmentation du délai par échec consécutif (valeur par défaut : 2x)
+- **Délai de base** — Temps d’attente initial après le premier échec (valeur par défaut : 1 s)
+- **Délai maximal** — Plafond du temps d’attente maximal (valeur par défaut : 30 s)
+- **Multiplicateur** — Facteur d’augmentation du délai pour chaque échec consécutif (valeur par défaut : 2x)
 
 ### Prévention de l’effet de troupeau
 
-Lorsque de nombreuses requêtes simultanées atteignent un fournisseur soumis à une limitation du débit, OmniRoute utilise un mutex et la limitation automatique du débit pour sérialiser les requêtes et éviter les défaillances en cascade. Ce mécanisme est automatique pour les fournisseurs utilisant une clé API.
+Lorsque de nombreuses requêtes simultanées atteignent un fournisseur soumis à une limitation de débit, OmniRoute utilise un mutex et la limitation automatique du débit pour sérialiser les requêtes et éviter les défaillances en cascade. Ce mécanisme est automatique pour les fournisseurs utilisant des clés API.
 
 ### Les requêtes de chat échouent avec 503 / chat_admission_busy
 
 **Symptômes :**
 
-- Le point de terminaison des complétions de chat renvoie une réponse `503` pouvant faire l’objet d’une nouvelle tentative, dont le code d’erreur est
+- Le point de terminaison des complétions de chat renvoie une réponse `503` réessayable dont le code d’erreur est
   `chat_admission_busy`.
 - La réponse inclut `Retry-After`. Depuis #12135, la valeur est dérivée de l’occupation observée :
-  il s’agit de la plus grande valeur entre la fenêtre `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` pendant laquelle la requête a déjà
+  la plus grande valeur entre la fenêtre `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` pendant laquelle la requête a déjà
   attendu et la durée de détention des baux lourds actuels, arrondie à la seconde entière
-  supérieure et plafonnée à 60. Lorsque le mécanisme d’admission est inactif, les valeurs minimales historiques sont conservées : 2 secondes pour le
-  chemin basé sur les octets, 1 seconde pour le chemin basé sur la structure (qui inclut également
+  supérieure et plafonnée à 60. Lorsque le contrôleur est inactif, les valeurs planchers historiques sont conservées : 2 secondes sur le
+  chemin basé sur les octets, 1 seconde sur le chemin basé sur la structure (qui inclut également
   `reason: "structure_limit"`).
-- Cela peut se produire alors qu’un autre chat lourd ou une réponse en streaming de longue durée est encore
+- Cela peut se produire alors qu’une autre requête de chat lourde ou qu’une réponse en streaming de longue durée est toujours
   en cours.
 
 Le corps de la réponse basée sur les octets est :
@@ -593,47 +642,48 @@ Le corps de la réponse basée sur les octets est :
 La réponse basée sur la structure utilise le même type et le même code, avec le message
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 et `reason: "structure_limit"`.
-Avec les seuils par défaut, une requête est considérée comme structurellement lourde lorsqu’elle contient au moins `200` messages,
-au moins `64` outils ou au moins `32,000` jetons estimés, ou lorsque l’estimation structurelle bornée
-épuise ses limites de `10,000` nœuds visités ou de profondeur `12`.
+Avec les seuils par défaut, une requête est structurellement lourde lorsqu’elle contient au moins `200` messages,
+au moins `64` outils ou au moins `32,000` jetons estimés, ou lorsque l’estimation bornée de la structure
+épuise ses limites de `10,000` nœuds visités ou d’une profondeur de `12`.
 
 **Cause :** Il s’agit d’un délestage de charge intentionnel au sein d’OmniRoute, et non d’une défaillance d’un fournisseur en amont.
-Chaque processus utilise une protection locale au processus afin de réserver une capacité limitée pour les requêtes lourdes avant de conserver
-et d’analyser un corps de requête volumineux. Un bail lourd reste détenu pendant toute la durée d’une
-réponse SSE.
+Chaque processus utilise un dispositif de protection local au processus pour réserver une capacité lourde limitée avant de conserver
+et d’analyser le corps d’une requête volumineuse. Un bail lourd reste détenu pendant toute la durée de vie d’une réponse
+SSE.
 
-**#503-fanout :** avant ce correctif, la protection limitait la concurrence à un NOMBRE fixe de requêtes
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, valeur par défaut `1`), indépendamment de la mémoire de l’hôte. La
-parallélisation des agents de programmation (plusieurs sous-agents/CLI, avec des corps dépassant couramment 256 Ko) réduisait donc la
-concurrence effective à environ 1 et provoquait des erreurs 503 sous une charge parfaitement normale. La protection s’ajuste désormais
-automatiquement : elle est régie par un budget d’OCTETS d’ingestion dérivé automatiquement (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionné à partir de la
-limite réelle de mémoire du processus, et consulte également un signal en temps réel de pression sur les ressources. Ainsi, elle
-ne déleste que lorsque l’hôte subit réellement une pression mémoire, et non simplement parce que plusieurs
-requêtes lourdes sont arrivées simultanément. L’ancienne limite de nombre (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) est
-toujours respectée, mais uniquement si vous la définissez explicitement.
+**#503-fanout :** avant ce correctif, le dispositif de protection plafonnait la concurrence à un NOMBRE fixe de requêtes
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, valeur par défaut : `1`), indépendamment de la mémoire de l’hôte. Ainsi, la
+distribution en éventail des agents de codage (plusieurs sous-agents/CLI, avec des corps dépassant couramment 256 Ko) réduisait la
+concurrence effective à environ 1 et provoquait des erreurs 503 sous une charge tout à fait normale. Le dispositif de protection s’ajuste
+désormais automatiquement : il est contrôlé par un budget d’OCTETS d’ingestion dérivé automatiquement
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionné en fonction de la limite mémoire réelle du
+processus, et il consulte également un signal en temps réel de pression sur les ressources. Il ne procède donc au délestage que lorsque
+l’hôte subit réellement une pression mémoire, et non simplement parce que plusieurs
+requêtes lourdes sont arrivées simultanément. L’ancien plafond de nombre de requêtes (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) est
+toujours respecté, mais uniquement si vous le définissez explicitement.
 
 Lorsque la capacité est occupée, une requête lourde attend d’abord jusqu’à
 `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (valeur par défaut : `RATE_LIMIT_MAX_WAIT_MS` ; `0` désactive l’attente) qu’une place se libère
-avant de renvoyer la réponse `503` pouvant faire l’objet d’une nouvelle tentative. Cette attente bornée permet aux clients de type agent
-(OpenCode, Claude Code, Cursor), qui parallélisent des sous-requêtes lourdes, de sérialiser la rafale
+avant de renvoyer la réponse `503` réessayable. Cette attente bornée permet aux clients de type agent
+(OpenCode, Claude Code, Cursor), qui distribuent simultanément des sous-requêtes lourdes en éventail, de sérialiser la rafale
 au lieu d’épuiser l’intégralité de leur budget de nouvelles tentatives sur des rejets immédiats et d’échouer en cours de tâche.
-L’occupation actuelle des baux lourds, le budget d’octets déterminé et le niveau de pression en temps réel sont
-exposés dans `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+L’occupation actuelle des baux lourds, le budget d’octets résolu et le niveau de pression en temps réel sont
+exposés sous `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — vérifiez-les avant de modifier une variable d’environnement.
 Paramètres → Résilience → File d’attente des requêtes → Requêtes simultanées ne contrôle pas ce mécanisme ; ce paramètre
 régit un mécanisme distinct de file d’attente des requêtes du fournisseur.
 
 **Correctif :**
 
-1. Commencez par réessayer. Les clients doivent respecter `Retry-After` et utiliser un backoff plutôt que de
-   répéter immédiatement la requête.
-2. Vérifiez `/api/monitoring/health` → `chatAdmission` avant tout ajustement. `countCapEnabled:
-false` et une valeur généreuse de `maxInflightBytes` signifient que le budget dérivé automatiquement remplit déjà son
-   rôle ; une valeur `pressureSeverity` de `high`/`critical` signifie que l’hôte manque réellement de mémoire —
-   cela ne peut pas être corrigé par une variable d’environnement d’admission : il faut davantage de RAM ou une charge de travail plus faible.
+1. Réessayez d’abord. Les clients doivent respecter `Retry-After` et utiliser un backoff plutôt que de répéter
+   immédiatement la requête.
+2. Vérifiez `/api/monitoring/health` → `chatAdmission` avant d’ajuster quoi que ce soit. `countCapEnabled:
+false` et une valeur généreuse de `maxInflightBytes` signifient que le budget dérivé automatiquement remplit déjà
+   son rôle ; une valeur `pressureSeverity` de `high`/`critical` signifie que l’hôte manque réellement de mémoire —
+   ce problème ne peut pas être corrigé au moyen d’une variable d’environnement d’admission : il nécessite davantage de RAM ou une charge de travail plus faible.
 3. Uniquement si `/api/monitoring/health` indique que le budget dérivé automatiquement est réellement trop faible pour
-   votre hôte (cas rare — il s’adapte déjà des conteneurs aux machines physiques), remplacez-le directement avec
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` plutôt que de revenir à l’ancienne limite basée sur le nombre de requêtes.
+   votre hôte (ce qui est rare, car il s’adapte déjà des conteneurs aux serveurs physiques), remplacez-le directement avec
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` plutôt que de revenir à l’ancien plafond du nombre de requêtes.
 
 Consultez la [référence des variables d’environnement](../reference/ENVIRONMENT.md#4-security--authentication)
 pour connaître les paramètres d’admission faisant autorité.
@@ -642,49 +692,49 @@ pour connaître les paramètres d’admission faisant autorité.
 
 ## Taxonomie facultative des défaillances RAG / LLM (16 problèmes)
 
-Certains utilisateurs d’OmniRoute placent la passerelle devant des piles RAG ou d’agents. Dans ces configurations, il est courant d’observer un comportement étrange : OmniRoute semble fonctionner correctement (fournisseurs disponibles, profils de routage corrects, aucune alerte de limitation de débit), mais la réponse finale reste erronée.
+Certains utilisateurs d’OmniRoute placent la passerelle devant des piles RAG ou d’agents. Dans ces configurations, il est courant d’observer un comportement étrange : OmniRoute semble fonctionner correctement (fournisseurs disponibles, profils de routage corrects, aucune alerte de limitation de débit), mais la réponse finale reste incorrecte.
 
 En pratique, ces incidents proviennent généralement du pipeline RAG en aval, et non de la passerelle elle-même.
 
-Si vous souhaitez disposer d’un vocabulaire commun pour décrire ces défaillances, vous pouvez utiliser WFGY ProblemMap, une ressource textuelle externe sous licence MIT qui définit seize schémas récurrents de défaillance RAG / LLM. De manière générale, elle couvre :
+Si vous souhaitez disposer d’un vocabulaire commun pour décrire ces défaillances, vous pouvez utiliser le WFGY ProblemMap, une ressource textuelle externe sous licence MIT qui définit seize schémas récurrents de défaillance des systèmes RAG / LLM. De manière générale, il couvre :
 
 - la dérive de la récupération et les limites de contexte rompues
 - les index et magasins vectoriels vides ou obsolètes
-- l’inadéquation entre embeddings et sémantique
+- l’inadéquation entre les embeddings et la sémantique
 - les problèmes d’assemblage des prompts et de fenêtre de contexte
-- l’effondrement logique et les réponses excessivement affirmatives
+- l’effondrement logique et les réponses excessivement confiantes
 - les défaillances des longues chaînes et de la coordination des agents
-- la dérive de la mémoire et des rôles dans les systèmes multi-agents
+- la mémoire multi-agents et la dérive des rôles
 - les problèmes d’ordre de déploiement et d’amorçage
 
 Le principe est simple :
 
-1. Lorsque vous examinez une mauvaise réponse, consignez :
+1. Lorsque vous analysez une mauvaise réponse, consignez :
    - la tâche et la requête de l’utilisateur
-   - la combinaison de routes ou de fournisseurs dans OmniRoute
+   - la route ou la combinaison de fournisseurs dans OmniRoute
    - tout contexte RAG utilisé en aval (documents récupérés, appels d’outils, etc.)
-2. Associez l’incident à un ou deux numéros de WFGY ProblemMap (`No.1` … `No.16`).
-3. Enregistrez le numéro dans votre propre tableau de bord, guide opérationnel ou outil de suivi des incidents, à côté des journaux OmniRoute.
+2. Associez l’incident à un ou deux numéros du WFGY ProblemMap (`No.1` … `No.16`).
+3. Enregistrez le numéro dans votre propre tableau de bord, procédure opérationnelle ou outil de suivi des incidents, à côté des journaux OmniRoute.
 4. Utilisez la page WFGY correspondante pour déterminer si vous devez modifier votre pile RAG, votre système de récupération ou votre stratégie de routage.
 
 Le texte intégral et des procédures concrètes sont disponibles ici (licence MIT, texte uniquement) :
 
-[README de WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
+[README du WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
 Vous pouvez ignorer cette section si vous n’exécutez pas de pipelines RAG ou d’agents derrière OmniRoute.
 
 ---
 
-## Problèmes connus de v3.8.0
+## Problèmes connus de la v3.8.0
 
-Problèmes propres à la version v3.8.0 et solutions de contournement actuellement disponibles. Si un correctif est intégré dans un patch ultérieur, l’entrée sera mise à jour ou supprimée.
+Problèmes propres à la version v3.8.0 et solutions de contournement actuellement disponibles. Si un correctif est intégré dans une mise à jour corrective ultérieure, l’entrée sera mise à jour ou supprimée.
 
 ### Échecs d’authentification de la CLI Devin
 
 **Symptômes :**
 
 - « CLI Devin introuvable » ou « échec de l’authentification » lors de l’appel d’outils reposant sur Devin
-- La vérification d’exécution de la CLI indique `installed=false`
+- La vérification de l’environnement d’exécution de la CLI indique `installed=false`
 
 **Causes :**
 
@@ -697,16 +747,16 @@ Problèmes propres à la version v3.8.0 et solutions de contournement actuelleme
 2. Définissez `CLI_DEVIN_BIN=/usr/local/bin/devin` (ou le chemin réel) dans `.env`
 3. Redémarrez OmniRoute et effectuez un nouveau test depuis **Tableau de bord → Outils CLI**
 
-### Modèle bloqué en période de refroidissement (réinitialisation manuelle)
+### Délai de récupération du modèle bloqué (réinitialisation manuelle)
 
 **Symptômes :**
 
-- Un modèle reste indiqué comme étant en période de refroidissement même après l’expiration du délai
-- Les requêtes continuent d’ignorer le modèle dans le routage combiné alors que l’horodatage est dépassé
+- Un modèle reste répertorié comme étant en délai de récupération même après l’expiration de celui-ci
+- Les requêtes continuent d’ignorer le modèle dans le routage combiné, bien que l’horodatage soit dépassé
 
 **Réinitialisation manuelle :**
 
-- **Tableau de bord :** **Paramètres → Périodes de refroidissement des modèles** → cliquez sur **Réactiver** sur la carte concernée
+- **Tableau de bord :** **Paramètres → Délais de récupération des modèles** → cliquez sur **Réactiver** sur la carte concernée
 - **API :** `DELETE /api/resilience/model-cooldowns` avec les en-têtes d’authentification de gestion
 
 ### Échec de la connexion au fournisseur Command Code avec une erreur 403
@@ -714,34 +764,34 @@ Problèmes propres à la version v3.8.0 et solutions de contournement actuelleme
 **Symptômes :**
 
 - Erreur 403 lors du test de la connexion au fournisseur Command Code
-- La carte du fournisseur indique « non autorisé » après un nouvel ajout
+- La carte du fournisseur affiche « non autorisé » après un nouvel ajout
 
 **Cause :** Le flux OAuth ne s’est pas terminé (rappel non reçu ou jeton non conservé).
 
 **Correctif :**
 
-- Exécutez `omniroute providers` depuis la CLI pour relancer le flux OAuth, ou
+- Exécutez `omniroute providers` depuis la CLI pour déclencher à nouveau le flux OAuth, ou
 - Relancez OAuth depuis **Tableau de bord → Fournisseurs → Command Code → Reconnecter**
 
-### ModelScope renvoie des périodes de refroidissement 429 agressives
+### ModelScope renvoie des délais de récupération 429 agressifs
 
 **Symptômes :**
 
-- Périodes de refroidissement très courtes ou immédiates sur ModelScope après une petite rafale de requêtes
+- Délais de récupération très courts ou immédiats sur ModelScope après une petite rafale de requêtes
 - Le routage combiné ignore ModelScope plus tôt que prévu
 
-**Cause :** ModelScope émet des en-têtes `Retry-After` propres au fournisseur. v3.8.0 inclut une gestion spécifique de ces en-têtes, tandis que les versions antérieures les interprètent incorrectement comme des indications génériques de limitation de débit.
+**Cause :** ModelScope émet des en-têtes `Retry-After` propres au fournisseur. La v3.8.0 inclut une gestion dédiée de ces en-têtes ; les versions antérieures les interprètent donc à tort comme des indications génériques de limitation de débit.
 
 **Correctif :**
 
-- Vérifiez que vous utilisez v3.8.0 ou une version ultérieure
+- Vérifiez que vous utilisez la v3.8.0 ou une version ultérieure
 - Vérifiez que l’option `useUpstream429BreakerHints` est activée sous **Paramètres → Résilience**
 
 ### OMNIROUTE_WS_BRIDGE_SECRET absent en production
 
 **Symptômes :**
 
-- Erreur 401 pour chaque requête adressée au pont WebSocket Codex/Responses lors de l’exécution sur un hôte de production distant
+- Erreur 401 sur chaque requête adressée au pont WebSocket Codex/Responses lors de l’exécution sur un hôte de production distant
 - La négociation du pont WebSocket se ferme immédiatement après la connexion
 
 **Cause :** La variable d’environnement `OMNIROUTE_WS_BRIDGE_SECRET` est absente de l’environnement de production.
@@ -749,31 +799,31 @@ Problèmes propres à la version v3.8.0 et solutions de contournement actuelleme
 **Correctif :**
 
 1. Générez un secret aléatoire : `openssl rand -hex 32`
-2. Définissez `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` dans l’environnement du serveur de production (ainsi que dans tout client communiquant avec le pont)
+2. Définissez `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` dans l’environnement du serveur de production (ainsi que dans tout client qui communique avec le pont)
 3. Redémarrez OmniRoute
 
-### API Responses : mode d’arrière-plan dégradé en mode synchrone
+### API Responses : mode d’arrière-plan rétrogradé en mode synchrone
 
 **Symptômes :**
 
-- Avertissement consigné : `background mode degraded to synchronous`
-- Une requête `background: true` renvoie une réponse synchrone normale au lieu d’un descripteur de tâche en arrière-plan
+- Avertissement enregistré : `background mode degraded to synchronous`
+- Une requête avec `background: true` renvoie une réponse synchrone normale au lieu d’un descripteur de tâche en arrière-plan
 
-**Cause :** v3.8.0 dégrade intentionnellement `background: true` sur l’API Responses en une exécution synchrone tout en émettant un avertissement. L’exécution asynchrone complète en arrière-plan sera livrée ultérieurement.
+**Cause :** La v3.8.0 rétrograde intentionnellement `background: true` vers une exécution synchrone sur l’API Responses, tout en émettant un avertissement. L’exécution asynchrone complète en arrière-plan est prévue pour une version future.
 
 **Correctif :**
 
 - Modifiez le client afin qu’il effectue l’appel sans `background`, ou
-- Attendez une version ultérieure proposant un mode d’arrière-plan entièrement asynchrone (consultez le journal des modifications)
+- Attendez une version ultérieure intégrant le mode d’arrière-plan entièrement asynchrone (suivez le journal des modifications)
 
 ---
 
-## Démarrage lent / Délai d’expiration de la vérification de disponibilité
+## Démarrage lent / délai d’expiration de disponibilité
 
 Si la CLI affiche `⚠ Server did not respond within 60s` alors que le serveur
-fonctionne correctement, le délai alloué à la vérification de disponibilité est trop court pour votre environnement.
+fonctionne correctement, le délai alloué à la sonde de disponibilité est trop court pour votre environnement.
 
-Cela se produit couramment sous Windows (antivirus, observateurs du système de fichiers) ou dans les conteneurs
+Cela se produit fréquemment sous Windows (antivirus, observateurs du système de fichiers) ou dans des conteneurs
 soumis à de lourdes charges de travail au démarrage.
 
 **Solution — augmentez le délai alloué :**
@@ -783,11 +833,11 @@ soumis à de lourdes charges de travail au démarrage.
 export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 minutes
 omniroute serve
 
-# Via une option de la CLI (usage ponctuel) :
+# Via une option de la CLI (utilisation ponctuelle) :
 omniroute serve --ready-timeout 180000
 ```
 
-La valeur par défaut est de 60 000 ms (60 s). L’avertissement est uniquement informatif ; le serveur
+La valeur par défaut est de 60 000 ms (60 s). L’avertissement est fourni à titre informatif uniquement ; le serveur
 continue de démarrer en arrière-plan et sera accessible une fois le démarrage terminé.
 
 Consultez [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) pour obtenir tous les
@@ -797,8 +847,8 @@ détails sur `OMNIROUTE_READY_TIMEOUT_MS`.
 
 ## Toujours bloqué ?
 
-- **Tickets GitHub** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture** : consultez [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) pour plus de détails sur le fonctionnement interne
+- **Problèmes GitHub** : [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **Architecture** : consultez [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md) pour les détails internes
 - **Référence de l’API** : consultez [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md) pour connaître tous les points de terminaison
 - **Tableau de bord d’état** : consultez **Tableau de bord → État** pour connaître l’état du système en temps réel
-- **Traducteur** : utilisez **Tableau de bord → Traducteur** pour déboguer les problèmes de format
+- **Traducteur** : utilisez **Tableau de bord → Traducteur** pour diagnostiquer les problèmes de formatage

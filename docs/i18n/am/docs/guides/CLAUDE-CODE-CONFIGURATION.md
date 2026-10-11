@@ -116,9 +116,11 @@ glm/glm-5.2              →  claude/glm/glm-5.2         "GLM 5.2 (OmniRoute)"
 
 ## መገለጫዎች (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **ቤተኛ የመገለጫ ፋይሎች የሉትም** (ከCodex `~/.codex/<name>.config.toml` በተለየ)። የተለመደው ዘዴ `CLAUDE_CONFIG_DIR` ነው — ለእያንዳንዱ መገለጫ የተለየ የውቅር ማውጫ፣ እያንዳንዱም የራሱ `settings.json`፣ ማረጋገጫዎች፣ ታሪክ እና መሸጎጫ ያለው።
+Claude Code **አብሮገነብ የመገለጫ ፋይሎች የሉትም** (እንደ Codex `~/.codex/<name>.config.toml` አይደለም)።
+የተለመደው ዘዴ `CLAUDE_CONFIG_DIR` ነው — ለእያንዳንዱ መገለጫ የተለየ የውቅረት ማውጫ ሲሆን፣
+እያንዳንዱም የራሱ `settings.json`፣ የመግቢያ ማረጋገጫዎች፣ ታሪክ እና መሸጎጫ አለው።
 
-`omniroute setup-claude` በቀጥታ ያለውን የ`/v1/models` ካታሎግ ያመጣና ለእያንዳንዱ ሞዴል አንድ መገለጫ በ`~/.claude/profiles/<name>/settings.json` ላይ ይጽፋል፤ እንዲሁም **ከ`setup-codex` ጋር ተመሳሳይ ስሞችን** (`glm52`፣ `kimi-k27`፣ `deepseek-pro`፣ …) እንደገና ይጠቀማል፦
+`omniroute setup-claude` ቀጥታውን `/v1/models` ካታሎግ አምጥቶ፣ ከ**`setup-codex` ጋር ተመሳሳይ ስሞችን** (`glm52`፣ `kimi-k27`፣ `deepseek-pro`፣ …) በመጠቀም ለእያንዳንዱ ሞዴል አንድ መገለጫ በ`~/.claude/profiles/<name>/settings.json` ይጽፋል፦
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -135,14 +137,17 @@ Claude Code **ቤተኛ የመገለጫ ፋይሎች የሉትም** (ከCodex `~
 }
 ```
 
-> **የማረጋገጫ ቶከኑ በመገለጫው ውስጥ በፍጹም አይጻፍም።** በ
-> `omniroute launch --profile <name>` ያስጀምሩት (ከንቁው አውድ `ANTHROPIC_AUTH_TOKEN`ን
-> ያስገባል)፣ ወይም `ANTHROPIC_AUTH_TOKEN`ን እራስዎ ወደ ውጭ ይላኩና
-> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`ን ያስኪዱ።
+> **የማረጋገጫ ቶከኑ በመገለጫው ውስጥ ፈጽሞ አይጻፍም።** በ
+> `omniroute launch --profile <name>` ያስጀምሩ (ከንቁ አውድ `ANTHROPIC_AUTH_TOKEN`ን ያስገባል)፣ ወይም `ANTHROPIC_AUTH_TOKEN`ን ራስዎ export አድርገው
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`ን ያሂዱ።
 
-**ከሞዴል ግኝት በኋላ ራስ-ሰር ማመሳሰል (በምርጫ የሚነቃ)።** የአቅራቢ ሞዴል ማመሳሰል በቀጥታ ያለውን ካታሎግ በሚቀይርበት ጊዜ ሁሉ OmniRoute እነዚህን ተመሳሳይ የ`~/.claude/profiles/<name>/settings.json` ፋይሎች በራስ-ሰር እንደገና ሊፈጥር ይችላል — ስለዚህ ትዕዛዙን እንደገና ሳያስኬዱ አዲስ ወይም እንደገና የተሰየሙ ሞዴሎች መገለጫዎችን ያገኛሉ። በነባሪነት **ጠፍቷል**፦ ከ**CLI Code dashboard** ("የCLI መገለጫ ራስ-ሰር ማመሳሰል" → Claude Code) ያብሩት፣ ወይም `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`ን ያቀናብሩ (`CLI_ALLOW_CONFIG_WRITES`ንም ያከብራል፣ ይህም በነባሪነት በርቷል)። ሲነቃ የመገለጫ ፋይሎችን ብቻ ይጽፋል፤ ንቁውን/ነባሪውን የClaude ውቅር፣ ማረጋገጫ ወይም `~/.claude/settings.json`ን ፈጽሞ አይቀይርም።
+**ከሞዴል ፍለጋ በኋላ ራስ-ሰር ማመሳሰል (በምርጫ የሚነቃ)።** የአቅራቢ ሞዴል
+ማመሳሰል ቀጥታውን ካታሎግ በሚቀይርበት ጊዜ ሁሉ፣ OmniRoute እነዚህን ተመሳሳይ
+`~/.claude/profiles/<name>/settings.json` ፋይሎች በራስ-ሰር እንደገና ማመንጨት ይችላል — ስለዚህ አዲስ/እንደገና የተሰየሙ ሞዴሎች ትዕዛዙን እንደገና ሳያሂዱ መገለጫዎችን ያገኛሉ።
+በ**ነባሪነት ጠፍቷል**፦ ከ**CLI Code ዳሽቦርድ** ("CLI profile
+auto-sync" → Claude Code) ያብሩት፣ ወይም `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` ያዘጋጁ (`CLI_ALLOW_CONFIG_WRITES`ንም ያከብራል፤ ይህም በነባሪነት እንዲሰራ ተደርጓል)። ሲነቃ የሚጽፈው የመገለጫ ፋይሎችን ብቻ ነው፤ ንቁ/ነባሪ የClaude ውቅርዎን፣ ማረጋገጫዎን ወይም `~/.claude/settings.json`ን ፈጽሞ አይቀይርም።
 
-### መገለጫዎችን መፍጠር + መጠቀም
+### መገለጫዎችን ማመንጨት + መጠቀም
 
 ```bash
 # አካባቢያዊ OmniRoute
@@ -154,10 +159,14 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # የተወሰኑ አቅራቢዎች ብቻ
 omniroute setup-claude --only glm,kimi
 
-# ሳይጻፍ ቅድመ ዕይታ
+# በዚህ አስተናጋጅ ላይ ያልተገኙ የአካባቢያዊ-CLI አቅራቢዎችን (zcode, auggie, devin-cli-agentic,
+# codex-app-server) መገለጫዎችም ይጻፉ (ለአካባቢያዊ ዒላማ በነባሪነት ይዘለላሉ)
+omniroute setup-claude --include-local
+
+# ሳይጽፉ ቅድመ ዕይታ ያድርጉ
 omniroute setup-claude --dry-run
 
-# መገለጫ ማስጀመር
+# አንድ መገለጫ ያስጀምሩ
 omniroute launch --profile kimi-k27
 ```
 

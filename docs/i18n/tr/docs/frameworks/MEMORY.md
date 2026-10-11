@@ -161,7 +161,7 @@ girdiyi işler. İlerleme, `GET /api/memory/engine-status`
 ## Ayarlar uzantısı
 
 Dokuz gömme ve vektör alanı, `src/shared/schemas/memory.ts` içindeki
-`MemorySettingsExtended` kapsamında kullanılabilir ve `src/lib/db/settings.ts` aracılığıyla kalıcı olarak saklanır:
+`MemorySettingsExtended` kapsamında kullanılabilir ve `src/lib/db/settings.ts` aracılığıyla kalıcı hâle getirilir:
 
 | Alan                     | Tür                                                | Varsayılan | Açıklama                                                               |
 | ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------------------- |
@@ -169,26 +169,26 @@ Dokuz gömme ve vektör alanı, `src/shared/schemas/memory.ts` içindeki
 | `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` biçimindeki sağlayıcı/model                           |
 | `customBaseUrl`          | `string \| null`                                   | `null`     | Yalnızca Memory için OpenAI uyumlu uç nokta temel URL'si               |
 | `customModelId`          | `string \| null`                                   | `null`     | Özel uç noktaya gönderilen model kimliği                               |
-| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js için isteğe bağlı etkinleştirme (MiniLM, ~400MB)       |
-| `staticEnabled`          | `boolean`                                          | `false`    | Yerel statik potion-base-8M modeli için isteğe bağlı etkinleştirme     |
+| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js için etkinleştirme tercihi (MiniLM, ~400MB)            |
+| `staticEnabled`          | `boolean`                                          | `false`    | Statik potion-base-8M yerel modeli için etkinleştirme tercihi          |
 | `rerankEnabled`          | `boolean`                                          | `false`    | Yeniden sıralama adımını etkinleştirir (istek başına +200-500ms ekler) |
 | `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` biçimindeki yeniden sıralama sağlayıcısı/modeli       |
 
-`rerankProviderModel`, `POST /v1/rerank` tarafından çözümlenir (geri döngü üzerinden çağrılır); bu nedenle söz konusu rotanın kabul ettiği her şeyi kabul eder: seçilmiş bir bulut yeniden sıralama modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) veya `<node-prefix>/<model>` biçiminde OpenAI uyumlu bir sağlayıcı düğümü (ör. bir TEI/Infinity kutusu için `skilled-mini/bge-reranker-v2-m3`). Geri döngü düğümleri her zaman uygundur; başka bir ana makinedeki (LAN, Tailscale) bir düğüm ayrıca `RERANK_REMOTE_PROVIDER_NODES` özellik bayrağını gerektirir ve sağlayıcı giden URL politikasını geçmelidir — bkz. [Özellik Bayrakları](../reference/FEATURE_FLAGS.md). Pano seçicisi, seçilmiş sağlayıcıların yanı sıra yerel düğümleri de listeler; geçerli herhangi bir `provider/model` dizesi, `PUT /api/settings/memory` aracılığıyla doğrudan ayarlanabilir.
+`rerankProviderModel`, `POST /v1/rerank` tarafından çözümlenir (geri döngü üzerinden çağrılır), dolayısıyla bu rotanın kabul ettiği her şeyi kabul eder: seçilmiş bir bulut yeniden sıralama modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) veya `<node-prefix>/<model>` biçiminde OpenAI uyumlu bir sağlayıcı düğümü (ör. bir TEI/Infinity sunucusu için `skilled-mini/bge-reranker-v2-m3`). Geri döngü düğümleri ve `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` içinde listelenen ana bilgisayar adları (ör. bir Docker/Compose hizmet adı) her zaman uygundur; başka bir ana bilgisayardaki (LAN, Tailscale) düğüm ayrıca `RERANK_REMOTE_PROVIDER_NODES` özellik bayrağını gerektirir ve sağlayıcı giden URL politikasından geçmelidir — bkz. [Özellik Bayrakları](../reference/FEATURE_FLAGS.md). Pano seçicisi, seçilmiş sağlayıcıları ve yerel düğümleri listeler; geçerli herhangi bir `provider/model` dizesi doğrudan `PUT /api/settings/memory` aracılığıyla ayarlanabilir.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Kullanılacak vektör arka ucu |
 
-Bunlar, `GET /PUT /api/settings/memory` aracılığıyla kullanıma sunulur (`MemorySettingsExtendedSchema` şeması).
+Bunlar `GET /PUT /api/settings/memory` aracılığıyla kullanıma sunulur (`MemorySettingsExtendedSchema` şeması).
 
 `remote` kaynağı için Memory, isteğe bağlı `customBaseUrl` ve
-`customModelId` ayarlarını da kabul eder. Bu ayarlar birlikte, genel gömme kayıt defterini değiştirmeden OpenAI uyumlu bir `/embeddings`
-uç noktası ve modeli seçer. Uç nokta kullanılmadan önce
-normalleştirilir ve sağlayıcı giden URL politikası tarafından denetlenir: HTTP(S)
-gereklidir; gömülü kimlik bilgileri ve sorgu dizeleri reddedilir, bulut meta veri
+`customModelId` ayarlarını da kabul eder. Bu ayarlar birlikte, genel gömme kayıt defterini
+değiştirmeden OpenAI uyumlu bir `/embeddings` uç noktası ve modeli seçer. Uç nokta,
+kullanımdan önce normalleştirilir ve sağlayıcının giden URL politikasına göre denetlenir: HTTP(S)
+zorunludur; gömülü kimlik bilgileri ve sorgu dizeleri reddedilir, bulut meta veri
 adresleri ise engellenmeye devam eder. Boş değerler, seçili kayıt defteri sağlayıcısını korur. Panoya
 döndürülen hatalar hassas bilgilerden arındırılır ve uç nokta kimlik bilgileri hiçbir zaman günlüğe kaydedilmez.
 
-> **YAPILACAK (D20):** `global` kapsamı (belleklerin tüm API anahtarları arasında paylaşılması) bu
-> sürümde uygulanmamıştır. Şema değişiklikleri ve genel bir getirme
+> **TODO (D20):** `global` kapsamı (belleklerin tüm API anahtarları arasında paylaşılması) bu sürümde
+> uygulanmamıştır. Şema değişiklikleri ve genel bir erişim
 > yolu gerektirir. Ayrı olarak takip edin.
 
 ## Depolama Katmanları
@@ -884,12 +884,12 @@ Kapalı bırakmak için `autoSummarize` ayarını varsayılan değerinde (`false
 
 ---
 
-## MemoryBackend Sağlayıcı Kalıbı
+## MemoryBackend Sağlayıcı Deseni
 
 > **Doğruluk kaynağı:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testler:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend sağlayıcı kalıbı, mevcut bellek motorunun üzerine **takılıp çıkarılabilir bir arka uç soyutlama katmanı** ekler. Bellek sistemi artık tek bir depolama uygulamasına bağlı olmak yerine, yapılandırılabilir birincil/yedek yönlendirmeyle birden fazla arka ucu (SQLite, Obsidian, Notion, özel HTTP arka uçları) destekler.
+MemoryBackend sağlayıcı deseni, mevcut bellek motoru üzerinde **takılıp çıkarılabilir bir arka uç soyutlama katmanı** sunar. Bellek sistemi, tek bir depolama uygulamasına bağlı kalmak yerine artık yapılandırılabilir birincil/yedek yönlendirmeyle birden fazla arka ucu (SQLite, Obsidian, Notion, özel HTTP arka uçları) destekler.
 
 ### Mimari
 
@@ -901,7 +901,7 @@ MemoryBackend sağlayıcı kalıbı, mevcut bellek motorunun üzerine **takılı
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           Tekil düzenleyici (manager.ts)                  │
+│         Tekil örnek düzenleyici (manager.ts)              │
 │                                                          │
 │  Birincil ──► Arka Uç A  (örn. SQLite)                   │
 │  Yedek    ──► Arka Uç B  (örn. Obsidian)                 │
@@ -946,39 +946,39 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Aşağıdakileri yapan tekil düzenleyici:
+Şunları gerçekleştiren tekil örnek düzenleyici:
 
-- Arka uçları `register(backend)` aracılığıyla **kaydeder** — önyükleme sırasında `index.ts` içinden çağrılır
-- Birincil ve yedekleri `configure(primary, fallbacks)` aracılığıyla **yapılandırır**
-- CRUD/arama işlemlerini birincil arka uca **yönlendirir**, hata durumunda yedek zincirini kullanır
-- Tüm arka uçlarda düzenli olarak **sistem durumu kontrolleri** gerçekleştirir
+- Arka uçları `register(backend)` aracılığıyla **kaydeder** — önyükleme sırasında `index.ts` üzerinden çağrılır
+- Birincil + yedek arka uçları `configure(primary, fallbacks)` aracılığıyla **yapılandırır**
+- CRUD/arama işlemlerini birincil arka uca **yönlendirir** ve hata durumunda yedek zincirini kullanır
+- Tüm arka uçlarda düzenli olarak **sistem durumu denetimleri** gerçekleştirir
 
 **Yedek davranışı:**
 
 | İşlem    | Birincil               | Yedekler                        |
 | -------- | ---------------------- | ------------------------------- |
 | `create` | ✅ Yalnızca birincil   | ❌                              |
-| `get`    | ✅ Önce birincili dene | ✅ null ise yedeği kullan       |
+| `get`    | ✅ Önce birincili dene | ✅ Sonuç null ise yedeği kullan |
 | `update` | ✅ Yalnızca birincil   | ✅ Beklemeden eşitle            |
 | `delete` | ✅ Yalnızca birincil   | ✅ Beklemeden eşitle            |
 | `list`   | ✅ Yalnızca birincil   | ❌                              |
-| `search` | ✅ Önce birincil       | ✅ Hata durumunda yedeği kullan |
+| `search` | ✅ Önce birincili dene | ✅ Hata durumunda yedeği kullan |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
 Herhangi bir REST API'sini MemoryBackend'e uyarlayan genel amaçlı bir HTTP bağlayıcısıdır. Şunlar için kullanışlıdır:
 
-- **Notion** — Notion API aracılığıyla bağlanın
-- **Obsidian** — Obsidian Local REST API aracılığıyla bağlanın
-- **Özel arka uçlar** — RESTful bir bellek API'si sunan herhangi bir hizmet
+- **Notion** — Notion API aracılığıyla bağlanır
+- **Obsidian** — Obsidian Local REST API aracılığıyla bağlanır
+- **Özel arka uçlar** — RESTful bellek API'si sunan herhangi bir hizmet
 
 **Yapılandırma:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Backend API'sinin temel URL'si
-  apiKey?: string;           // Kimlik doğrulama için Bearer belirteci
-  headers?: Record<string, string>;  // Özel HTTP üstbilgileri
+  baseUrl: string;           // Arka uç API'sinin temel URL'si
+  apiKey?: string;           // Kimlik doğrulaması için taşıyıcı belirteci
+  headers?: Record<string, string>;  // Özel HTTP üst bilgileri
   timeout?: number;          // İstek zaman aşımı (varsayılan: 30000ms)
   backendType?: string;      // Günlük kaydı için
 
@@ -1005,18 +1005,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**Bilinen backend'ler** `KNOWN_BACKENDS` içinde önceden yapılandırılmıştır:
+**Bilinen arka uçlar**, `KNOWN_BACKENDS` içinde önceden yapılandırılmıştır:
 
 ```typescript
 createKnownBackend("obsidian"); // → localhost:27123 adresine yönlendirilmiş GenericMemoryBackend
 createKnownBackend("notion"); // → api.notion.com/v1 adresine yönlendirilmiş GenericMemoryBackend
 ```
 
-#### Yerleşik Backend'ler
+#### Yerleşik Arka Uçlar
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Varsayılan birincil backend'dir. `src/lib/memory/store.ts` kullanarak mevcut SQLite tabanlı bellek deposını sarmalar. Başlatma sırasında otomatik olarak kaydedilir.
+Varsayılan birincil arka uçtur. `src/lib/memory/store.ts` içindeki mevcut SQLite tabanlı bellek deposını sarmalar. Önyükleme sırasında otomatik olarak kaydedilir.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1027,39 +1027,97 @@ memoryManager.register(sqliteBackend);
 
 Mevcut Obsidian entegrasyonunu (`src/lib/memory/obsidianBackend.ts`) sarmalar. Obsidian Local REST API aracılığıyla bir Obsidian kasasına bağlanır.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Kodlama oturumlarını "gözlemler" olarak yakalayan Claude Code / Codex / Cursor bellek eklentisi olan yerel bir [claude-mem](https://github.com/thedotmack/claude-mem) çalışanı için adaptördür.
+Kaydedildiğinde `/api/memory` REST rotaları ve A2A bellek araması, claude-mem kancalarının doldurduğu aynı depoyu okuyabilir ve bu depoya yazabilir.
+
+Çalışan yalnızca geri döngü arabirimine bağlanır ve `GenericMemoryBackend`'in SSRF koruması bunu kasıtlı olarak reddeder.
+Bu adaptör söz konusu korumayı gevşetmez: ana makine `127.0.0.1` olarak sabit kodlanmıştır ve yapılandırma
+şeması (`ClaudeMemBackendConfigSchema`, `.strict()`) yalnızca şunları kabul eder:
+
+| Anahtar     | Tür    | Varsayılan | Notlar                                                                                                            |
+| ----------- | ------ | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —          | Zorunlu, 1024–65535. Ayarlar dosyasındaki claude-mem worker portu (varsayılan `37700 + uid % 100`).               |
+| `project`   | string | —          | Kullanılacak claude-mem projesi. Ayarlanmazsa → her OmniRoute API anahtarı kendi projesiyle (`apiKeyId`) eşleşir. |
+| `timeoutMs` | number | `5000`     | İstek başına zaman aşımı, 100–30000.                                                                              |
+
+Bunu `PUT /api/settings/memory` üzerinden etkinleştirin ve OmniRoute'u yeniden başlatın (arka uçlar
+`initMemoryBackends()` içinde yalnızca bir kez kaydedilir):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+REST API'nin depolama alanı yapmak için bunun yerine `"primaryBackend": "claude-mem"` kullanın. Geçersiz
+bir yapılandırma günlüğe kaydedilir (`claude-mem.backend.invalid_config`) ve atlanır; böylece SQLite birincil olarak kalır.
+
+Eşleme ve sınırlar:
+
+- Kimlikler `claude-mem:<observationId>` biçimindedir; `get`/`delete`, diğer arka uçların kimliklerini
+  ağ çağrısı yapmadan yok sayar.
+- `create` → `POST /api/memory/save`; OmniRoute alanları (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem'in `metadata.omniroute` alanında taşınır ve okuma sırasında aynen geri alınır.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens` değerine
+  (karakter / 4) göre kırpılır. `list` → worker'ın sayfalandırılmış gözlemler uç noktası (`total` bir alt sınırdır — worker
+  sayı değil, `hasMore` döndürür).
+- Hook tarafından yakalanan gözlemler `discovery` → `factual`, `decision` → `procedural` ve
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` olarak eşlenir.
+- **Güncelleme yoktur** (`update()` işlevi `false` döndürür; gözlemler değiştirilemez) ve **TTL yoktur**
+  (`expiresAt` yok sayılır). claude-mem, `key` üzerinden upsert yapmak yerine aynı kayıtları tekilleştirir.
+- İstem enjeksiyonu (`retrieval.ts`) ve `omniroute_memory_*` MCP araçları SQLite'ı hâlâ
+  doğrudan okur — `memoryManager` üzerinden geçmezler, dolayısıyla bu arka uç onları beslemez.
+
+**claude-mem'in kendi LLM çağrılarını OmniRoute üzerinden yönlendirme.** claude-mem, gözlemleri
+bir LLM ile sıkıştırır (varsayılan: Claude Agent SDK). `openai-compatible` sağlayıcısı bunun yerine
+OmniRoute'u işaret ederek birleşik geri dönüş ve maliyet takibinden yararlanabilir. `~/.claude-mem/settings.json` içinde:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API anahtarı>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute modeli veya birleşimi>"
+}
+```
+
 ### Ayarlar
 
-Bellek backend ayarları, uygulama ayarları tablosunda saklanır ve `src/lib/memory/settings.ts` aracılığıyla yönetilir:
+Bellek arka ucu ayarları, uygulama ayarları tablosunda saklanır ve `src/lib/memory/settings.ts` üzerinden yönetilir:
 
 | Ayar                     | Ortam/Yapılandırma Anahtarı | Varsayılan | Açıklama                                       |
 | ------------------------ | --------------------------- | ---------- | ---------------------------------------------- |
-| Birincil backend         | `memoryPrimaryBackend`      | `"sqlite"` | Birincil backend'in kimliği                    |
-| Yedek backend'ler        | `memoryFallbackBackends`    | `[]`       | Sıralı yedek backend kimlikleri                |
-| Backend yapılandırmaları | `memoryBackendConfigs`      | `{}`       | Backend başına yapılandırma geçersiz kılmaları |
+| Birincil arka uç         | `memoryPrimaryBackend`      | `"sqlite"` | Birincil arka ucun kimliği                     |
+| Geri dönüş arka uçları   | `memoryFallbackBackends`    | `[]`       | Sıralı geri dönüş arka uç kimlikleri           |
+| Arka uç yapılandırmaları | `memoryBackendConfigs`      | `{}`       | Arka uç başına yapılandırma geçersiz kılmaları |
 
 Ayarlar `normalizeMemorySettings()` aracılığıyla normalleştirilir ve `getMemorySettings()` içinde önbelleğe alınır.
 
 ### Başlatma Akışı
 
 ```
-Uygulamanın önyüklenmesi
-  → index.ts içe aktarmaları (yan etki): SQLiteBackend'i kaydeder
-  → initMemoryBackends() uygulama yaşam döngüsünden çağrılır:
+Uygulama önyüklemesi
+  → index.ts içe aktarımları (yan etki): SQLiteBackend'i kaydeder
+  → uygulama yaşam döngüsünden initMemoryBackends() çağrılır:
       1. Ayarları yükle (getMemorySettings)
-      2. Birincil + yedek backend'leri yapılandır
-      3. Tüm backend'leri başlat (sağlık kontrolü)
+      1b. backendConfigs içinde bulunan isteğe bağlı arka uçları kaydet (claude-mem)
+      2. Birincil + geri dönüşü yapılandır
+      3. Tüm arka uçları başlat (sağlık kontrolü)
       4. İstekler için hazır
 ```
 
-### Yeni Bir Backend Ekleme
+### Yeni Bir Arka Uç Ekleme
 
 1. `src/lib/memory/<name>Backend.ts` içinde **`MemoryBackend` arayüzünü uygulayın**
-2. `src/lib/memory/index.ts` içinden **dışa aktarın**
-3. Başlatma sırasında `memoryManager.register(yourBackend)` ile **kaydedin**
-4. Ayarlar aracılığıyla **yapılandırın**: `memoryPrimaryBackend` değerini backend kimliğiniz olarak ayarlayın
-5. `src/lib/memory/__tests__/generic-backend.test.ts` dosyasını referans alarak **test edin**
+2. `src/lib/memory/index.ts` üzerinden **dışa aktarın**
+3. Önyükleme sırasında `memoryManager.register(yourBackend)` ile **kaydedin**
+4. Ayarlar üzerinden **yapılandırın**: `memoryPrimaryBackend` değerini arka uç kimliğiniz olarak ayarlayın
+5. Referans olarak `src/lib/memory/__tests__/generic-backend.test.ts` ile **test edin**
 
-#### Örnek: Brain Backend
+#### Örnek: Brain Arka Ucu
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1085,21 +1143,21 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Beklenen çıktı: Aşağıdakileri kapsayan **35 test; tümü başarılı**:
+Beklenen çıktı: Aşağıdakileri kapsayan **35 test, tümü başarılı**:
 
 - Oluşturucu (2)
-- Sağlık kontrolü (4) — başarılı, 500 hatası, ağ hatası, gecikme
-- Başlatma (2) — başarılı, başarısız
+- Sağlık kontrolü (4) — başarı, 500 hatası, ağ hatası, gecikme
+- Başlatma (2) — başarı, başarısızlık
 - Oluşturma (2) — varsayılan uç nokta, özel uç nokta
-- Alma (4) — başarılı, 404 → null, 404 dışındaki hatayı fırlatma, özel yol parametreleri
-- Güncelleme (2) — başarılı, 404 → false
-- Silme (2) — başarılı, 404 → false
+- Getirme (4) — başarı, 404 → null, 404 dışı hata fırlatma, özel yol parametreleri
+- Güncelleme (2) — başarı, 404 → false
+- Silme (2) — başarı, 404 → false
 - Listeleme (2) — sorgu parametreleri, özel parametre adları
-- Arama (3) — sorgu parametreleri, özel uç nokta, seçenekleri serileştirme
-- Kimlik doğrulama üstbilgileri (2) — Bearer belirteci, özel üstbilgiler
+- Arama (3) — sorgu parametreleri, özel uç nokta, seçeneklerin serileştirilmesi
+- Kimlik doğrulama başlıkları (2) — Bearer belirteci, özel başlıklar
 - Fabrika (1)
 
-#### Tür kontrolü
+#### Tür denetimi
 
 ```bash
 npm run typecheck:core

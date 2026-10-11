@@ -4,7 +4,7 @@
 
 ---
 
-Veebiküpsiste pakkujad võimaldavad OmniRoute'il kasutada AI-teenust API-võtme asemel teie olemasoleva brauseriseansi kaudu. Need on kasulikud, kui teil on juba teenuse veebisaidi kaudu juurdepääs ja soovite, et OmniRoute kasutaks sama autenditud seanssi.
+Veebiküpsiste pakkujad võimaldavad OmniRoute’il kasutada tehisintellektiteenust API-võtme asemel teie olemasoleva brauseriseansi kaudu. Need on kasulikud, kui teil on teenusele selle veebisaidi kaudu juba juurdepääs ja soovite, et OmniRoute kasutaks sama autentitud seanssi.
 
 Erinevalt API-võtme pakkujatest kasutavad veebiküpsiste pakkujad autentimiseks identimisteavet, mille teie brauser veebisaidile saadab.
 
@@ -12,25 +12,25 @@ Erinevalt API-võtme pakkujatest kasutavad veebiküpsiste pakkujad autentimiseks
 
 # Enne alustamist
 
-> **Oluline:** Kopeerige identimisteave alati **aktiivsest võrgupäringust**, **mitte** brauseri küpsiste salvestuskohast.
+> **Oluline:** Kopeerige identimisteave alati **aktiivsest võrgupäringust**, **mitte** brauseri küpsiste salvest.
 
-Paljud autentimisprobleemid tekivad küpsiste kopeerimisest valest kohast.
+Paljud autentimisprobleemid on põhjustatud küpsiste kopeerimisest valest kohast.
 
-## ÄRGE kopeerige küpsiste salvestuskohast
+## ÄRGE kopeerige küpsiste salvest
 
-Enamik brausereid kuvab salvestatud küpsiseid siin:
+Enamik brausereid kuvab salvestatud küpsiseid järgmises kohas:
 
 ```
-Arendajatööriistad
-→ Rakendus (või Salvestusruum)
-→ Küpsised
+DevTools
+→ Application (või Storage)
+→ Cookies
 ```
 
 Kuigi need küpsised võivad näida õiged, võivad need olla:
 
 - aegunud
-- mittetäielikud
-- ilma küpsisteta, mis saadetakse ainult autenditud päringutega
+- puudulikud
+- ilma küpsisteta, mis saadetakse ainult autentitud päringutega
 
 Nende väärtuste kasutamine võib põhjustada autentimistõrkeid isegi siis, kui need näivad kehtivad.
 
@@ -39,17 +39,17 @@ Nende väärtuste kasutamine võib põhjustada autentimistõrkeid isegi siis, ku
 Selle asemel kasutage eduka päringu küpsiseid:
 
 ```
-Arendajatööriistad
-→ Võrk
+DevTools
+→ Network
 → Värskendage lehte
 → Avage vestluse või suhtluse päring
-→ Päringu päised
+→ Request Headers
 → Cookie
 ```
 
-Päringu päis `Cookie` sisaldab täpselt seda autentimisteavet, mida teie brauser edukalt kasutas.
+Päringupäis `Cookie` sisaldab täpselt seda autentimisteavet, mida teie brauser edukalt kasutas.
 
-Enamiku veebiküpsiste pakkujate puhul tuleb just see väärtus OmniRoute'i kleepida.
+Enamiku veebiküpsiste pakkujate puhul tuleb OmniRoute’i kleepida just see väärtus.
 
 ---
 
@@ -59,28 +59,28 @@ Seadistamisprotsess on enamiku veebiküpsiste pakkujate puhul sama.
 
 1. Logige pakkuja veebisaidile sisse.
 2. Avage brauseri arendajatööriistad.
-3. Avage vahekaart **Võrk**.
+3. Avage vahekaart **Network**.
 4. Värskendage lehte.
-5. Avage autenditud vestluse või suhtluse päring.
+5. Avage autentitud vestluse või suhtluse päring.
 6. Kopeerige nõutav autentimise identimisteave.
 7. Avage OmniRoute.
-8. Valige **Pakkujad → Lisa pakkuja**.
+8. Avage **Providers → Add Provider**.
 9. Valige oma veebiküpsiste pakkuja.
 10. Kleepige identimisteave.
-11. Klõpsake nuppu **Testi ühendust**.
+11. Klõpsake **Test Connection**.
 12. Salvestage pakkuja.
 
-Nõutav täpne identimisteave sõltub pakkujast.
+Täpne nõutav identimisteave sõltub pakkujast.
 
 ---
 
 # Pakkujate identimisteabe vormingud
 
-Eri veebisaidid salvestavad autentimisandmeid erinevalt. Mõni nõuab ainult küpsiseid, teine võib nõuda täiendavaid päiseid või lubasid.
+Eri veebisaidid talletavad autentimisteavet erinevalt. Mõned nõuavad ainult küpsiseid, teised võivad nõuda lisapäiseid või -lubasid.
 
 | Pakkuja                         | Identimisteabe vorming          | Pakkuja juhend                   |
 | ------------------------------- | ------------------------------- | -------------------------------- |
-| Claude Web                      | Päringu täielik Cookie-päis     | `docs/providers/CLAUDE_WEB.md`   |
+| Claude Web                      | Täielik Cookie-päringupäis      | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Täielik Cookie-päis             | `docs/providers/CHATGPT_WEB.md`  |
 | Gemini Web                      | _(kontrollida)_                 |                                  |
 | Copilot Web                     | _(kontrollida)_                 | `docs/providers/COPILOT-M365.md` |
@@ -88,69 +88,119 @@ Eri veebisaidid salvestavad autentimisandmeid erinevalt. Mõni nõuab ainult kü
 | Grok Web                        | _(kontrollida)_                 |                                  |
 | ...                             | ...                             | ...                              |
 
-> Uuendage seda tabelit, kui lisatakse uusi veebiküpsiste pakkujaid või olemasolevate pakkujate autentimisnõuded muutuvad.
+> Värskendage seda tabelit uute veebiküpsiste pakkujate lisamisel või olemasolevate pakkujate autentimisnõuete muutumisel.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) on tasuta tarbijatele mõeldud vestlusplatvorm, mis ei nõua registreerumist — seanss luuakse esimesel külastusel anonüümselt ja see säilib kolme küpsise abil: `uid`, `si_usr_id` ja `si_ses_id`. OmniRoute vahendab sama `/api/dispatch` lõpp-punkti ühe mudeli-ID (`notrack-c`, alias `ntw`) kaudu.
+
+### Ühendamise sammud
+
+1. Avage brauseris [notrack.ai](https://notrack.ai) ja laske anonüümse seansi küpsis määrata.
+2. Avage **Arendajatööriistad → Võrk**, värskendage lehte ja klõpsake mis tahes `/api` päringul.
+3. Kopeerige jaotises **Päringu päised** päise `Cookie` täielik väärtus.
+4. Avage OmniRoute'is **Pakkujad → Lisa pakkuja → NoTrack Web (tasuta)**.
+5. Kleepige küpsisestring väljale `apiKey` ja klõpsake nuppu **Salvesta**.
+
+OmniRoute eraldab kleebitud stringist väärtused `uid`, `si_usr_id` ja `si_ses_id` ning koostab puhta `Cookie` päise, mis sisaldab ainult neid paare — ja olemasolu korral ka `nt_session` väärtust (sisselogitud kontodele määratud `ntk_…` luba). Kui mõni neist kolmest puudub, edastatakse kleebitud toorstring muutmata kujul, et operaatorid saaksid katsetada alternatiivsete vormingutega.
+
+### Mudeli-ID-d
+
+| Mudeli-ID   | Kuvatav nimi | Märkused                                              |
+| ----------- | ------------ | ----------------------------------------------------- |
+| `notrack-c` | NoTrack C    | Vaikimisi — ülesvoolu väljasaatmismudel `C`.          |
+| `C`         | NoTrack C    | Mudeli `notrack-c` alias (ülesvoolu töötlemata kood). |
+| `notrack`   | NoTrack C    | Mudeli `notrack-c` alias.                             |
+| `ntw`       | NoTrack C    | Mudeli `notrack-c` lühike alias.                      |
+
+Kõik neli mudeli-ID-d viitavad samale ülesvoolu väljasaatmismudelile (`C`).
+
+### Päringu valikud
+
+Täitur aktsepteerib päringu kehas järgmisi valikulisi välju:
+
+| Keha väli             | Vaikeväärtus | Otstarve                                                                   |
+| --------------------- | ------------ | -------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`      | Väljasaatmisrežiim (vabas vormis string; ülesvool aktsepteerib `usual`, …) |
+| `notrack_max_turns`   | `6`          | Sisemiste voorude arv, mille ülesvool võib enne vastamist teha.            |
+| `notrack_chat_id`     | `null`       | Olemasoleva ülesvoolu vestluse jätkamine (uue vestluse jaoks jätke välja). |
+| `notrack_attachments` | `[]`         | Ülesvoolu manusekirjelduste muutmata kujul edastatav massiiv.              |
+| `notrack_regenerate`  | `false`      | Eelmise vooru vastuse uuesti genereerimiseks määrake väärtuseks `true`.    |
+
+### Võimalused
+
+- Vestlusvastuste **voogedastus ja voogedastuseta edastus**.
+- **Tööriistade kutsumine** — määrake päringus `tools: [...]`; täitur jadastab need tööriistakutse ümbriku lepingusse ja teisendab mudeli vastused tagasi OpenAI `tool_calls` vormingusse.
+- **`response_format`** — toetatud on `json_object` ja `json_schema`. Täitur eraldab mudeli vastusest esimese JSON-objekti ja teisendab selle enne tagastamist stringiks.
+- **Arutluskäigu vihje** — täitur väljastab `reasoning` delta, kui ülesvool saadab sündmuse `thinking`.
+
+### Piirangud
+
+- Ülesvool rakendab anonüümse kasutuse kvoote — nende ületamisel tagastab täitur oleku 429 koos sõbraliku teatega.
+- Kõik mudeli-ID-d viitavad samale ülesvoolu väljasaatmismudelile; mudelipõhine ümberlülitamine puudub.
+- Täitur ei kutsu ülesvoolu `/api/chats` lõpp-punkti, seega vestluste ajalugu ega seansse automaatselt ei hallata. Olemasoleva ülesvoolu vestluse jätkamiseks kasutage välja `notrack_chat_id`.
 
 ---
 
 # Mida veebiküpsiste pakkujad saavad ja ei saa teha
 
-Veebiküpsiste pakkujad kasutavad uuesti veebisaidi vestlusliidest. Need **ei** paku samu võimalusi nagu ametlikud API-d.
+Veebiküpsiste pakkujad taaskasutavad veebisaidi vestlusliidest. Need **ei** paku samu võimalusi nagu ametlikud API-d.
 
 ## Toetatud
 
 - Autentimine olemasoleva brauseriseansi abil
 - Juurdepääs teie konto kaudu saadaolevatele mudelitele
-- Vestluse vastuste voogedastus
+- Vestlusvastuste voogedastus
 - API-võtit pole vaja
 
-## Pole toetatud
+## Ei ole toetatud
 
-- Funktsioonide väljakutsumine
-- Tööriistade väljakutsumine
-- Automaatne failide redigeerimine
-- Agentsed IDE töövood
+- Funktsioonide kutsumine
+- Tööriistade kutsumine
+- Failide automaatne redigeerimine
+- Agendipõhised IDE töövood
 - Ainult API kaudu saadaolevad funktsioonid
 
 See on ootuspärane käitumine ja **ei ole** viga.
 
-Kui vajate tööriistade käivitamist, automaatset failide redigeerimist või muid agendipõhiseid töövooge, kasutage veebiküpsiste pakkuja asemel **API-võtme pakkujat**.
+Kui vajate tööriistade käivitamist, failide automaatset redigeerimist või muid agendipõhiseid töövooge, kasutage Web Cookie pakkuja asemel **API-võtme pakkujat**.
 
 ---
 
 # Valideerimise piirang
 
-Edukas **Ühenduse testimine** või küpsiste valideerimine kontrollib ainult seda, kas esitatud identimisteave näib olevat oodatud vormingus.
+Õnnestunud **Test Connection** või küpsiste valideerimine kinnitab ainult seda, et esitatud identimisteave näib olevat oodatud vormingus.
 
-Kuni probleem #7857 pole lahendatud, **ei taga** edukas valideerimine, et pakkuja autentimine õnnestub.
+Kuni probleem nr 7857 on lahendatud, **ei garanteeri** edukas valideerimine, et pakkuja autentimine õnnestub.
 
-Kui autentimine endiselt nurjub, veenduge, et kopeerisite identimisteabe aktiivsest võrgupäringust, mitte brauseri küpsiste salvestuskohast.
+Kui autentimine endiselt ebaõnnestub, kontrollige, et kopeerisite identimisteabe aktiivsest võrgupäringust, mitte brauseri küpsiste salvestuskohast.
 
 ---
 
 # Tõrkeotsing
 
-## Autentimine nurjub
+## Autentimine ebaõnnestub
 
-Veenduge, et identimisteave kopeeriti siit:
+Kontrollige, et identimisteave kopeeriti siit:
 
 ```
-Võrk
-→ Päringu päised
+Network
+→ Request Headers
 → Cookie
 ```
 
 ja **mitte** siit:
 
 ```
-Rakendus
-→ Küpsised
+Application
+→ Cookies
 ```
 
 ---
 
 ## Küpsis töötab brauseris, kuid mitte OmniRoute'is
 
-Mõni pakkuja kasutab küpsiseid, mis saadetakse ainult autenditud päringute ajal.
+Mõned pakkujad kasutavad küpsiseid, mis saadetakse ainult autenditud päringute ajal.
 
 Pärast vestluse edukat avamist kopeerige identimisteave uuesti värskest võrgupäringust.
 
@@ -158,15 +208,15 @@ Pärast vestluse edukat avamist kopeerige identimisteave uuesti värskest võrgu
 
 ## Seanss on aegunud
 
-Veebiküpsiste pakkujad kasutavad teie olemasolevat brauseriseanssi.
+Web Cookie pakkujad kasutavad teie olemasolevat brauseriseanssi.
 
-Kui teie brauseriseanss aegub või logite välja, peate kopeerima uue identimisteabe komplekti.
+Kui brauseriseanss aegub või logite välja, peate kopeerima uue identimisteabe komplekti. Toetatud veebipakkujate küpsiste uuendamise automatiseerimiseks vaadake kaastööriista [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-## Ühenduse test õnnestub, kuid päringud nurjuvad
+## Test Connection õnnestub, kuid päringud ebaõnnestuvad
 
-Kuni probleem #7857 pole lahendatud, ei taga edukas valideerimine autentimispäringu õnnestumist.
+Kuni probleem nr 7857 on lahendatud, ei garanteeri edukas valideerimine autentimispäringu õnnestumist.
 
 Enne edasist tõrkeotsingut kopeerige identimisteave uuesti värskest autenditud päringust.
 
@@ -178,14 +228,14 @@ Täieliku pakkujapõhise juhendi leiate siit:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Claude Webi juhend näitab veebiküpsiste pakkuja täielikku seadistamisprotsessi ja toimib etalonlahendusena.
+Claude Webi juhend kirjeldab Web Cookie pakkuja täielikku seadistusprotsessi ja toimib etalonlahendusena.
 
 ---
 
 # Head tavad
 
 - Kopeerige identimisteave värskest autenditud päringust.
-- Vältige vanade küpsiste korduskasutamist.
-- Hoidke veebiküpsiste pakkujate kasutamise ajal brauseriseanss aktiivsena.
+- Vältige vanade küpsiste taaskasutamist.
+- Hoidke brauseriseanss Web Cookie pakkujate kasutamise ajal aktiivsena.
 - Käsitlege kopeeritud küpsiseid tundliku identimisteabena.
-- Kasutage API-võtme pakkujaid, kui vajate funktsioonide väljakutsumist või agendipõhiseid töövooge.
+- Kasutage API-võtme pakkujaid, kui vajate funktsioonide kutsumist või agendipõhiseid töövooge.

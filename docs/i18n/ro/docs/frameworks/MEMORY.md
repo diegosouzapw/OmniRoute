@@ -168,37 +168,37 @@ Tabelul `memory_vec_meta` (migrarea `083_memory_vec.sql`) stochează:
 
 ## Extensia setărilor
 
-Nouă câmpuri pentru embeddings și vectori sunt disponibile în `MemorySettingsExtended` din
+Nouă câmpuri pentru înglobări și vectori sunt disponibile în `MemorySettingsExtended` din
 `src/shared/schemas/memory.ts` și sunt persistate prin `src/lib/db/settings.ts`:
 
-| Câmp                     | Tip                                                | Valoare implicită | Descriere                                                                |
-| ------------------------ | -------------------------------------------------- | ----------------- | ------------------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Sursa de embeddings care trebuie utilizată                               |
-| `embeddingProviderModel` | `string \| null`                                   | `null`            | Furnizor/model în formatul `provider/model`                              |
-| `customBaseUrl`          | `string \| null`                                   | `null`            | URL de bază al endpointului compatibil cu OpenAI, exclusiv pentru Memory |
-| `customModelId`          | `string \| null`                                   | `null`            | ID-ul modelului trimis către endpointul personalizat                     |
-| `transformersEnabled`    | `boolean`                                          | `false`           | Activare opțională pentru Transformers.js (MiniLM, ~400MB)               |
-| `staticEnabled`          | `boolean`                                          | `false`           | Activare opțională pentru modelul local static potion-base-8M            |
-| `rerankEnabled`          | `boolean`                                          | `false`           | Activează etapa de reclasificare (adaugă +200-500ms/cerere)              |
-| `rerankProviderModel`    | `string \| null`                                   | `null`            | Furnizor/model de reclasificare în formatul `provider/model`             |
+| Câmp                     | Tip                                                | Valoare implicită | Descriere                                                                          |
+| ------------------------ | -------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Sursa de înglobări care va fi utilizată                                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`            | Furnizorul/modelul în formatul `provider/model`                                    |
+| `customBaseUrl`          | `string \| null`                                   | `null`            | URL-ul de bază al endpointului compatibil cu OpenAI, utilizat numai pentru memorie |
+| `customModelId`          | `string \| null`                                   | `null`            | ID-ul modelului trimis către endpointul personalizat                               |
+| `transformersEnabled`    | `boolean`                                          | `false`           | Activare opțională pentru Transformers.js (MiniLM, ~400MB)                         |
+| `staticEnabled`          | `boolean`                                          | `false`           | Activare opțională pentru modelul local static potion-base-8M                      |
+| `rerankEnabled`          | `boolean`                                          | `false`           | Activează etapa de rerangare (adaugă +200-500ms/cerere)                            |
+| `rerankProviderModel`    | `string \| null`                                   | `null`            | Furnizorul/modelul de rerangare în formatul `provider/model`                       |
 
-`rerankProviderModel` este rezolvat prin `POST /v1/rerank` (apelat prin interfața loopback), astfel încât acceptă orice acceptă ruta respectivă: un model cloud de reclasificare din lista selectată (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) sau un nod furnizor compatibil cu OpenAI sub forma `<node-prefix>/<model>` (de exemplu, `skilled-mini/bge-reranker-v2-m3` pentru un server TEI/Infinity). Nodurile loopback sunt întotdeauna eligibile; un nod de pe altă gazdă (LAN, Tailscale) necesită suplimentar indicatorul de funcționalitate `RERANK_REMOTE_PROVIDER_NODES` și trebuie să respecte politica pentru URL-urile de ieșire ale furnizorului — consultați [Indicatori de funcționalitate](../reference/FEATURE_FLAGS.md). Selectorul din panoul de control afișează furnizorii selectați și nodurile locale; orice șir valid `provider/model` poate fi setat direct prin `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backendul vectorial care trebuie utilizat |
+`rerankProviderModel` este rezolvat de `POST /v1/rerank` (apelat prin loopback), astfel încât acceptă orice acceptă ruta respectivă: un model cloud de rerangare selectat (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) sau un nod furnizor compatibil cu OpenAI sub forma `<node-prefix>/<model>` (de exemplu, `skilled-mini/bge-reranker-v2-m3` pentru o instanță TEI/Infinity). Nodurile loopback și numele de gazdă enumerate în `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (de exemplu, numele unui serviciu Docker/Compose) sunt întotdeauna eligibile; un nod de pe altă gazdă (LAN, Tailscale) necesită suplimentar indicatorul de funcționalitate `RERANK_REMOTE_PROVIDER_NODES` și trebuie să respecte politica URL-urilor de ieșire ale furnizorului — consultați [Indicatori de funcționalitate](../reference/FEATURE_FLAGS.md). Selectorul din panoul de control afișează furnizorii selectați și nodurile locale; orice șir valid `provider/model` poate fi configurat direct prin `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backendul vectorial care va fi utilizat |
 
 Acestea sunt expuse prin `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Pentru sursa `remote`, Memory acceptă și setările opționale `customBaseUrl` și
 `customModelId`. Împreună, acestea selectează un endpoint `/embeddings` compatibil
-cu OpenAI și un model, fără a modifica registrul global de embeddings. Endpointul este
-normalizat înainte de utilizare și verificat conform politicii pentru URL-urile de ieșire
-ale furnizorului: este necesar HTTP(S), credențialele încorporate și șirurile de interogare
-sunt respinse, iar adresele de metadate cloud rămân blocate. Valorile necompletate păstrează
-furnizorul selectat din registru. Erorile returnate panoului de control sunt igienizate, iar
-credențialele endpointului nu sunt înregistrate niciodată în jurnale.
+cu OpenAI și un model, fără a modifica registrul global de înglobări. Endpointul este
+normalizat înainte de utilizare și verificat conform politicii URL-urilor de ieșire ale
+furnizorului: este necesar HTTP(S), acreditările încorporate și șirurile de interogare
+sunt respinse, iar adresele serviciilor de metadate cloud rămân blocate. Valorile goale
+păstrează furnizorul selectat din registru. Erorile returnate către panoul de control sunt
+sanitizate, iar acreditările endpointului nu sunt înregistrate niciodată în jurnale.
 
 > **DE FĂCUT (D20):** Domeniul `global` (partajarea memoriilor între toate cheile API) nu este
-> implementat în această versiune. Acesta necesită modificări ale schemei și o cale globală
-> de recuperare. Trebuie urmărit separat.
+> implementat în această versiune. Necesită modificări ale schemei și o cale globală de
+> regăsire. Trebuie urmărit separat.
 
 ## Straturi de stocare
 
@@ -874,12 +874,12 @@ Pentru a o menține dezactivată, păstrați pur și simplu valoarea implicită 
 
 ---
 
-## Modelul de furnizor MemoryBackend
+## Modelul furnizorului MemoryBackend
 
-> **Sursa oficială:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Sursa de referință:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Teste:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Modelul de furnizor MemoryBackend introduce un **strat de abstractizare cu backend interschimbabil** peste motorul de memorie existent. În loc să fie dependent de o singură implementare de stocare, sistemul de memorie acceptă acum mai multe backenduri (SQLite, Obsidian, Notion, backenduri HTTP personalizate), cu rutare configurabilă principală/de rezervă.
+Modelul furnizorului MemoryBackend introduce un **strat de abstractizare cu backend-uri interschimbabile** peste motorul de memorie existent. În loc să fie legat de o singură implementare de stocare, sistemul de memorie acceptă acum mai multe backend-uri (SQLite, Obsidian, Notion, backend-uri HTTP personalizate), cu rutare configurabilă către backend-ul principal și cele de rezervă.
 
 ### Arhitectură
 
@@ -891,23 +891,23 @@ Modelul de furnizor MemoryBackend introduce un **strat de abstractizare cu backe
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│       Orchestrator singleton (manager.ts)                 │
+│        Orchestrator singleton (manager.ts)                │
 │                                                          │
-│  Principal ─► Backend A  (de ex. SQLite)                 │
-│  Rezervă   ─► Backend B  (de ex. Obsidian)               │
-│              Backend C  (de ex. Notion prin GenericBackend)│
+│  Principal ──► Backend A  (de ex. SQLite)                │
+│  Rezervă   ──► Backend B  (de ex. Obsidian)              │
+│                Backend C  (de ex. Notion prin GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ Backend    │ │ Backend    │ │ Backend de       │
-│ SQLite     │ │ Obsidian   │ │ memorie generic  │
+│ Backend    │ │ Backend    │ │ Backend          │
+│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
 │            │ │            │ │ (HTTP)           │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Interfața principală (`backend.ts`)
+#### Interfața de bază (`backend.ts`)
 
 Fiecare backend trebuie să implementeze interfața `MemoryBackend`:
 
@@ -926,7 +926,7 @@ interface MemoryBackend {
   // Căutare
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Stare de funcționare
+  // Stare
   health(): Promise<HealthCheckResult>;
 
   // Ciclu de viață (opțional)
@@ -939,41 +939,41 @@ interface MemoryBackend {
 
 Orchestrator singleton care:
 
-- **Înregistrează** backenduri prin `register(backend)` — apelat la pornire din `index.ts`
-- **Configurează** backendul principal și cele de rezervă prin `configure(primary, fallbacks)`
-- **Rutează** operațiunile CRUD/căutare către backendul principal, cu un lanț de rezervă în caz de eșec
-- **Verifică periodic starea de funcționare** a tuturor backendurilor
+- **Înregistrează** backend-uri prin `register(backend)` — apelată la pornire din `index.ts`
+- **Configurează** backend-ul principal și cele de rezervă prin `configure(primary, fallbacks)`
+- **Direcționează** operațiunile CRUD/căutare către backend-ul principal, folosind în lanț backend-urile de rezervă în caz de eșec
+- **Verifică starea** periodic pentru toate backend-urile
 
 **Comportamentul mecanismului de rezervă:**
 
-| Operațiune | Principal                         | Backenduri de rezervă                     |
-| ---------- | --------------------------------- | ----------------------------------------- |
-| `create`   | ✅ Numai principal                | ❌                                        |
-| `get`      | ✅ Încearcă mai întâi principalul | ✅ Rezervă dacă rezultatul este null      |
-| `update`   | ✅ Numai principal                | ✅ Sincronizare fără a aștepta rezultatul |
-| `delete`   | ✅ Numai principal                | ✅ Sincronizare fără a aștepta rezultatul |
-| `list`     | ✅ Numai principal                | ❌                                        |
-| `search`   | ✅ Mai întâi principalul          | ✅ Rezervă în caz de eroare               |
+| Operațiune | Principal                         | Backend-uri de rezervă                   |
+| ---------- | --------------------------------- | ---------------------------------------- |
+| `create`   | ✅ Numai principal                | ❌                                       |
+| `get`      | ✅ Încearcă mai întâi principalul | ✅ Rezervă dacă rezultatul este null     |
+| `update`   | ✅ Numai principal                | ✅ Sincronizare asincronă fără așteptare |
+| `delete`   | ✅ Numai principal                | ✅ Sincronizare asincronă fără așteptare |
+| `list`     | ✅ Numai principal                | ❌                                       |
+| `search`   | ✅ Mai întâi principalul          | ✅ Rezervă în caz de eroare              |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
 Un conector HTTP generic care adaptează orice API REST la un MemoryBackend. Util pentru:
 
-- **Notion** — conectare prin Notion API
-- **Obsidian** — conectare prin Obsidian Local REST API
-- **Backenduri personalizate** — orice serviciu care expune un API RESTful pentru memorie
+- **Notion** — conectare prin API-ul Notion
+- **Obsidian** — conectare prin API-ul REST local Obsidian
+- **Backend-uri personalizate** — orice serviciu care expune un API RESTful pentru memorie
 
 **Configurare:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // URL-ul de bază al API-ului backend
+  baseUrl: string;           // URL-ul de bază al API-ului backend-ului
   apiKey?: string;           // Token Bearer pentru autentificare
   headers?: Record<string, string>;  // Antete HTTP personalizate
-  timeout?: number;          // Timp de expirare al cererii (implicit: 30000ms)
+  timeout?: number;          // Timp-limită pentru cerere (implicit: 30000ms)
   backendType?: string;      // Pentru jurnalizare
 
-  // Suprascrieri ale endpointurilor (valorile implicite folosesc convențiile REST)
+  // Suprascrieri ale punctelor finale (valorile implicite folosesc convențiile REST)
   endpoints?: {
     search?: string;   // implicit: "/memories/search"
     create?: string;   // implicit: "/memories"
@@ -996,18 +996,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**Backendurile cunoscute** sunt preconfigurate în `KNOWN_BACKENDS`:
+**Backend-urile cunoscute** sunt preconfigurate în `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend orientat către localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend orientat către api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend direcționat către localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend direcționat către api.notion.com/v1
 ```
 
-#### Backenduri încorporate
+#### Backend-uri încorporate
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Backendul principal implicit. Încapsulează depozitul de memorie existent, bazat pe SQLite, utilizând `src/lib/memory/store.ts`. Este înregistrat automat la pornire.
+Backend-ul principal implicit. Încapsulează depozitul de memorie existent bazat pe SQLite, folosind `src/lib/memory/store.ts`. Este înregistrat automat la pornire.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1018,28 +1018,88 @@ memoryManager.register(sqliteBackend);
 
 Încapsulează integrarea Obsidian existentă (`src/lib/memory/obsidianBackend.ts`). Se conectează la un seif Obsidian prin API-ul REST local Obsidian.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adaptor pentru un worker local [claude-mem](https://github.com/thedotmack/claude-mem) — pluginul de memorie pentru
+Claude Code / Codex / Cursor care capturează sesiunile de programare sub formă de „observații”.
+Atunci când este înregistrat, rutele REST `/api/memory` și căutarea A2A în memorie pot citi și scrie
+în același depozit populat de hook-urile claude-mem.
+
+Worker-ul ascultă numai pe interfața loopback, pe care protecția SSRF a `GenericMemoryBackend` o respinge intenționat.
+Acest adaptor nu relaxează protecția respectivă: gazda este fixată în cod la `127.0.0.1`, iar schema de
+configurare (`ClaudeMemBackendConfigSchema`, `.strict()`) acceptă numai:
+
+| Cheie       | Tip    | Implicit | Note                                                                                                                   |
+| ----------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —        | Obligatoriu, 1024–65535. Portul workerului claude-mem din fișierul său de setări (implicit `37700 + uid % 100`).       |
+| `project`   | string | —        | Proiectul claude-mem de utilizat. Nesetat → fiecare cheie API OmniRoute este asociată propriului proiect (`apiKeyId`). |
+| `timeoutMs` | number | `5000`   | Timp de expirare per solicitare, 100–30000.                                                                            |
+
+Activați-l prin `PUT /api/settings/memory` și reporniți OmniRoute (backendurile sunt înregistrate
+o singură dată, în `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Utilizați în schimb `"primaryBackend": "claude-mem"` pentru a-l transforma în spațiul de stocare al API-ului REST. O configurație
+nevalidă este înregistrată în jurnal (`claude-mem.backend.invalid_config`) și omisă, astfel încât SQLite rămâne backendul principal.
+
+Mapare și limite:
+
+- ID-urile sunt `claude-mem:<observationId>`; `get`/`delete` ignoră ID-urile altor backenduri fără un
+  apel de rețea.
+- `create` → `POST /api/memory/save`; câmpurile OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) sunt transmise în `metadata.omniroute` din claude-mem și sunt restituite la citire.
+- `search` → `GET /api/search?format=json&type=observations`, restrâns la `maxTokens`
+  (caractere / 4). `list` → endpointul paginat al workerului pentru observații (`total` este o limită inferioară — workerul
+  returnează `hasMore`, nu un număr).
+- Observațiile capturate prin hook mapează `discovery` → `factual`, `decision` → `procedural`, iar
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Fără actualizări** (`update()` returnează `false`; observațiile sunt imuabile) și **fără TTL**
+  (`expiresAt` este ignorat). claude-mem deduplică salvările identice în loc să efectueze upsert după `key`.
+- Injectarea în prompt (`retrieval.ts`) și instrumentele MCP `omniroute_memory_*` citesc în continuare direct din SQLite
+  — acestea nu trec prin `memoryManager`, astfel încât acest backend nu le furnizează date.
+
+**Rutarea propriilor apeluri LLM ale claude-mem prin OmniRoute.** claude-mem comprimă observațiile
+cu un LLM (implicit: Claude Agent SDK). Furnizorul său `openai-compatible` poate indica în schimb spre
+OmniRoute, beneficiind de fallbackul combo și de urmărirea costurilor. În `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<cheie API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<model sau combo OmniRoute>"
+}
+```
+
 ### Setări
 
-Setările backendurilor de memorie sunt stocate în tabelul cu setările aplicației și gestionate prin `src/lib/memory/settings.ts`:
+Setările backendului de memorie sunt stocate în tabelul de setări al aplicației și gestionate prin `src/lib/memory/settings.ts`:
 
-| Setare                | Cheie env/config         | Valoare implicită | Descriere                                          |
-| --------------------- | ------------------------ | ----------------- | -------------------------------------------------- |
-| Backend principal     | `memoryPrimaryBackend`   | `"sqlite"`        | ID-ul backendului principal                        |
-| Backenduri de rezervă | `memoryFallbackBackends` | `[]`              | ID-uri ordonate ale backendurilor de rezervă       |
-| Configurații backend  | `memoryBackendConfigs`   | `{}`              | Suprascrieri de configurare pentru fiecare backend |
+| Setare               | Cheie env/config         | Implicit   | Descriere                                  |
+| -------------------- | ------------------------ | ---------- | ------------------------------------------ |
+| Backend principal    | `memoryPrimaryBackend`   | `"sqlite"` | ID-ul backendului principal                |
+| Backenduri fallback  | `memoryFallbackBackends` | `[]`       | ID-uri ordonate ale backendurilor fallback |
+| Configurații backend | `memoryBackendConfigs`   | `{}`       | Suprascrieri de configurare per backend    |
 
-Setările sunt normalizate prin `normalizeMemorySettings()` și stocate în cache în `getMemorySettings()`.
+Setările sunt normalizate prin `normalizeMemorySettings()` și memorate în cache la `getMemorySettings()`.
 
 ### Fluxul de inițializare
 
 ```
 Inițializarea aplicației
-  → importurile index.ts (efect secundar): înregistrează SQLiteBackend
-  → initMemoryBackends() este apelată din ciclul de viață al aplicației:
+  → importuri index.ts (efect secundar): înregistrează SQLiteBackend
+  → initMemoryBackends() apelată din ciclul de viață al aplicației:
       1. Încarcă setările (getMemorySettings)
-      2. Configurează backendul principal și backendurile de rezervă
+      1b. Înregistrează backendurile opționale prezente în backendConfigs (claude-mem)
+      2. Configurează backendul principal + fallback
       3. Inițializează toate backendurile (verificarea stării)
-      4. Pregătit pentru cereri
+      4. Pregătit pentru solicitări
 ```
 
 ### Adăugarea unui backend nou
@@ -1050,7 +1110,7 @@ Inițializarea aplicației
 4. **Configurați** prin setări: setați `memoryPrimaryBackend` la ID-ul backendului dvs.
 5. **Testați** folosind `src/lib/memory/__tests__/generic-backend.test.ts` drept referință
 
-#### Exemplu: backendul Brain
+#### Exemplu: backend Brain
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1082,7 +1142,7 @@ Rezultat așteptat: **35 de teste, toate reușite**, care acoperă:
 - Verificarea stării (4) — succes, eroare 500, eroare de rețea, latență
 - Inițializare (2) — succes, eșec
 - Creare (2) — endpoint implicit, endpoint personalizat
-- Obținere (4) — succes, 404 → null, eroare non-404, parametri de cale personalizați
+- Obținere (4) — succes, 404 → null, eroare diferită de 404, parametri de cale personalizați
 - Actualizare (2) — succes, 404 → false
 - Ștergere (2) — succes, 404 → false
 - Listare (2) — parametri de interogare, nume de parametri personalizate

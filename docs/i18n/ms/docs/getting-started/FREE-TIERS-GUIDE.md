@@ -4,80 +4,80 @@
 
 ---
 
-> **Ringkasnya**: OmniRoute mendaftarkan 357 ID penyedia, dengan **152 entri katalog penyedia ditandai sebagai `hasFree`**. Katalog model percuma yang diaudit dengan lebih ketat merangkumi **35 kunci kumpulan berulang / 482 entri** (475 aktif + 7 dihentikan). Sambungkan beberapa penyedia yang sesuai untuk kapasiti sandaran yang lebih luas; setiap kuota, peraturan kelulusan, dasar privasi dan syarat lebihan penggunaan berbayar masih terpakai.
+> **Ringkasnya**: Gunakan akaun penyedia anda sendiri yang layak. OmniRoute menggabungkan sambungan yang anda konfigurasikan; ia tidak menyediakan bajet token agregat yang diiklankan. Akses percuma mungkin memerlukan pendaftaran, kunci API, kelulusan atau kaedah pembayaran. Had, dasar privasi dan terma penyedia masih terpakai.
 
 ---
 
 ## Apakah Itu Tahap Percuma?
 
 Banyak penyedia AI menawarkan beberapa bentuk **akses percuma**. Bergantung pada penyedia, ini mungkin
-bermaksud titik akhir tanpa pengesahan, kuota berulang, akses tanpa had yang dikenakan had kadar, geran pendaftaran,
-kelulusan manual atau promosi sementara. Sesetengah pilihan memerlukan akaun, kekunci API,
-kad kredit, KYC atau penerimaan syarat khusus penyedia.
+bermaksud titik akhir tanpa pengesahan, kuota berulang, akses tanpa had yang dihadkan kadar, geran pendaftaran,
+kelulusan manual atau promosi sementara. Sesetengah pilihan memerlukan akaun, kunci API,
+kad kredit, KYC atau penerimaan terma khusus penyedia.
 
-OmniRoute **menggabungkan** tahap percuma ini ke dalam satu titik akhir. Daripada mendaftar untuk 10 perkhidmatan yang berbeza, anda menyambungkan semuanya kepada OmniRoute dan menggunakan `model: "auto"` untuk memilih pilihan percuma terbaik secara automatik bagi setiap permintaan.
+OmniRoute **mengagregatkan** sambungan yang dikonfigurasikan ke dalam satu titik akhir. Anda masih perlu mendaftar secara berasingan dengan setiap penyedia yang memerlukan akaun. Sambungkan akaun tersebut dan gunakan `model: "auto"` untuk menghalakan permintaan antara sasaran yang layak. Pemasangan baharu mungkin tidak mempunyai sebarang sasaran tanpa kunci yang layak; pemasangan OmniRoute sahaja tidak menjamin respons sembang yang berjaya.
 
 ---
 
 ## Penyedia Akses Percuma Representatif
 
-### Akses Berulang, Tanpa Kekunci atau Tanpa Had
+### Akses Berulang, Tanpa Kunci, atau Tanpa Had
 
-Penyedia ini mempunyai laluan akses percuma yang berulang, tanpa kekunci atau tanpa had dalam katalog yang diaudit. “Tanpa had” bermaksud tiada had token yang diterbitkan; had kadar, keserentakan, akaun, wilayah dan dasar masih boleh dikenakan:
+Penyedia ini mempunyai laluan akses percuma yang berulang, tanpa kunci, atau tanpa had dalam katalog yang diaudit. “Tanpa had” bermaksud tiada had token yang diterbitkan; had kadar, keserentakan, akaun, wilayah dan dasar masih boleh dikenakan:
 
-| Penyedia          | Model                                                                                               | Kuota                                                                                                                               | Cara Menyambung                                                                             |
-| ----------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 dan lain-lain                                           | Katalog yang diaudit menganggarkan kumpulan bulanan dikongsi sebanyak 25K token                                                     | Aliran OAuth/akaun; ToS ditandakan `avoid` dalam katalog                                    |
-| **OpenCode Free** | Set model `*-free` semasa dalam daftar penyedia                                                     | Tanpa kekunci; tiada had token yang diterbitkan                                                                                     | Tiada kelayakan penyedia; ToS ditandakan `avoid`                                            |
-| **Pollinations**  | Set model tanpa kekunci semasa; sesetengah model terdahulu telah dihentikan atau memerlukan kekunci | Tanpa kekunci; tiada had token yang diterbitkan                                                                                     | Tiada kelayakan penyedia untuk model tanpa kekunci                                          |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 dan banyak lagi                         | Kekunci API percuma (tiada had kadar, tiada kad); **setiap permintaan dilog** untuk penyelidikan (tarik diri di logfare.ai/consent) | Kekunci segera di logfare.ai/register; ToS/privasi di logfare.ai/tos dan logfare.ai/privacy |
-| **Cloudflare AI** | Katalog Workers AI                                                                                  | Kumpulan yang diaudit menganggarkan ~30M token/bulan berdasarkan unit penggunaan yang diterbitkan                                   | Akaun Cloudflare dan kelayakan API                                                          |
-| **Gemini**        | Keluarga Gemini Flash                                                                               | Kumpulan yang diaudit menganggarkan ~60M token/bulan                                                                                | Kekunci API Google AI Studio; had kadar dikenakan                                           |
-| **Groq**          | Model Llama, GPT-OSS dan Qwen                                                                       | Kumpulan yang diaudit menganggarkan ~15M token/bulan                                                                                | Kekunci API Groq; had kadar dikenakan                                                       |
-| **Cerebras**      | GLM 4.7 dan GPT-OSS 120B                                                                            | Kumpulan yang diaudit menganggarkan ~30M token/bulan                                                                                | Kekunci API Cerebras; had kadar dikenakan                                                   |
+| Penyedia          | Model                                                                                           | Kuota                                                                                                                             | Cara Menyambung                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 dan lain-lain                                       | Katalog yang diaudit menganggarkan kumpulan kongsi bulanan sebanyak 25K token                                                     | Aliran OAuth/akaun; Syarat Perkhidmatan ditandai `avoid` dalam katalog                                    |
+| **OpenCode Free** | Set model `*-free` semasa dalam daftar penyedia                                                 | Tanpa kunci; tiada had token yang diterbitkan                                                                                     | Tiada kelayakan penyedia; Syarat Perkhidmatan ditandai `avoid`                                            |
+| **Pollinations**  | Set model tanpa kunci semasa; sesetengah model terdahulu telah dihentikan atau memerlukan kunci | Tanpa kunci; tiada had token yang diterbitkan                                                                                     | Tiada kelayakan penyedia untuk model tanpa kunci                                                          |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 dan lain-lain                       | Kunci API percuma (tiada had kadar, tiada kad); **setiap permintaan dilog** untuk penyelidikan (tarik diri di logfare.ai/consent) | Kunci segera di logfare.ai/register; Syarat Perkhidmatan/privasi di logfare.ai/tos dan logfare.ai/privacy |
+| **Cloudflare AI** | Katalog Workers AI                                                                              | Kumpulan yang diaudit menganggarkan ~30M token/bulan berdasarkan unit penggunaan yang diterbitkan                                 | Akaun Cloudflare dan kelayakan API                                                                        |
+| **Gemini**        | Keluarga Gemini Flash                                                                           | Had kadar projek/model yang berubah-ubah; tiada peruntukan token bulanan tetap disertakan dalam angka utama                       | Kunci API Google AI Studio; semak had aktif projek                                                        |
+| **Groq**          | Model Llama, GPT-OSS dan Qwen                                                                   | Kumpulan yang diaudit menganggarkan ~15M token/bulan                                                                              | Kunci API Groq; had kadar dikenakan                                                                       |
 
 ### Geran Pendaftaran dan Kredit Khusus Penyedia
 
-Penyedia ini memberikan **kredit percuma** apabila anda mendaftar:
+Penyedia ini menawarkan geran pendaftaran atau kredit promosi, tertakluk pada peraturan kelayakan mereka. Seperti yang disahkan pada 2026-10-08, [harga Cerebras](https://www.cerebras.ai/pricing) memerlukan kaedah pembayaran untuk kredit sekali sahaja sebanyak $5 yang tamat tempoh selepas 30 hari; ia bukan kuota token berulang. [Had kadar Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) berbeza mengikut projek, model dan peringkat, maka ia tidak ditukarkan kepada geran token bulanan yang dijamin.
 
-| Penyedia      | Kredit Percuma                                                                   | Model                         | Cara Mendapatkannya                                              |
-| ------------- | -------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------- |
-| **DeepSeek**  | 5M token percuma                                                                 | DeepSeek V4                   | Daftar di platform.deepseek.com                                  |
-| **LongCat**   | Geran sekali sahaja sebanyak 10M token                                           | LongCat 2.0                   | Kekunci API + KYC; bayar mengikut penggunaan selepas geran       |
-| **Vertex AI** | Kredit pendaftaran $300 yang diwakili sebagai ~300M token dalam model belanjawan | Gemini dan model rakan kongsi | Akaun Google Cloud; peraturan pengebilan dan kelayakan dikenakan |
+| Penyedia      | Kredit Percuma                                                                            | Model                         | Cara Mendapatkannya                                              |
+| ------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------- |
+| **Cerebras**  | Kredit promosi sekali sahaja sebanyak $5; tamat tempoh selepas 30 hari                    | Katalog inferens semasa       | Akaun dan kaedah pembayaran yang sah                             |
+| **DeepSeek**  | 5M token percuma                                                                          | DeepSeek V4                   | Daftar di platform.deepseek.com                                  |
+| **LongCat**   | Geran sekali sahaja sebanyak 10M token                                                    | LongCat 2.0                   | Kunci API + KYC; bayar mengikut penggunaan selepas geran         |
+| **Vertex AI** | Kredit pendaftaran sebanyak $300 yang diwakili sebagai ~300M token dalam model belanjawan | Gemini dan model rakan kongsi | Akaun Google Cloud; peraturan pengebilan dan kelayakan dikenakan |
 
 ### Akses Terhad Lain
 
-Penyedia ini mempunyai **tahap percuma** dengan had tertentu:
+Penyedia ini mempunyai **peringkat percuma** dengan had khusus:
 
-| Penyedia                   | Had Percuma                                                                                                | Model                             | Paling Sesuai Untuk |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------- |
-| **GitHub Models**          | Anggaran kumpulan kongsi yang diaudit ~18J token/bulan                                                     | Penilaian model yang meluas       |
-| **Hugging Face**           | Kumpulan bulanan berulang yang kecil                                                                       | Eksperimen dan kepelbagaian model |
-| **OpenRouter free models** | Kumpulan kongsi dengan had permintaan; tambah nilai sekali secara pilihan meningkatkan peruntukan berulang | Katalog sandaran yang luas        |
-| **AI Horde**               | Kapasiti komuniti tanpa kunci; ketersediaan berbeza-beza                                                   | Inferens teragih mengikut peluang |
+| Penyedia                   | Had Percuma                                                                                                         | Model                                | Paling Sesuai Untuk |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------- |
+| **GitHub Models**          | Kumpulan kongsi yang diaudit menganggarkan ~18M token/bulan                                                         | Penilaian model yang luas            |
+| **Hugging Face**           | Kumpulan bulanan berulang yang kecil                                                                                | Eksperimen dan kepelbagaian model    |
+| **OpenRouter free models** | Kumpulan kongsi dengan had permintaan; tambah nilai sekali sahaja yang bersifat pilihan meningkatkan elaun berulang | Katalog sandaran yang luas           |
+| **AI Horde**               | Kapasiti komuniti tanpa kunci; ketersediaan berbeza-beza                                                            | Inferens teragih secara oportunistik |
 
 ---
 
-## Cara Menyusun Berbilang Peringkat Percuma
+## Cara Menyusun Peringkat Percuma
 
-Keistimewaan OmniRoute ialah **menyusun berbilang peringkat percuma**. Daripada bergantung pada satu penyedia, anda boleh menyambungkan beberapa penyedia percuma dan membiarkan OmniRoute memilih penyedia terbaik secara automatik bagi setiap permintaan.
+Keistimewaan OmniRoute ialah **menyusun peringkat percuma**. Daripada bergantung pada satu penyedia, anda menghubungkan beberapa penyedia percuma dan membiarkan OmniRoute memilih penyedia terbaik secara automatik untuk setiap permintaan.
 
 ### Contoh: Liputan Peringkat Percuma yang Lebih Luas
 
-Sambungkan beberapa penyedia untuk mengurangkan kebergantungan pada mana-mana satu kuota:
+Hubungkan beberapa penyedia untuk mengurangkan kebergantungan pada mana-mana satu kuota:
 
-1. **Gemini** — kuota kunci API berulang
-2. **Groq** — kuota kunci API berulang
+1. **Gemini** — kuota kunci API yang diperbaharui secara berkala
+2. **Groq** — kuota kunci API yang diperbaharui secara berkala
 3. **Pollinations** — akses tanpa kunci dengan had kadar
 4. **LongCat** — peruntukan pendaftaran sekali sahaja (memerlukan KYC)
 
 Kemudian gunakan `model: "auto"` dan OmniRoute akan:
 
-- Mencuba sambungan layak dengan kedudukan tertinggi terlebih dahulu
-- Jika semakan kuota atau kesihatannya gagal → cuba penyedia seterusnya yang dikonfigurasikan
-- Jika penyedia tanpa kunci tidak tersedia → teruskan dengan sasaran yang selebihnya
-- Jika semuanya gagal → gunakan LongCat sebagai sandaran
+- Mencuba sambungan layak yang berkedudukan tertinggi terlebih dahulu
+- Jika semakan kuota atau kesihatannya gagal → mencuba penyedia dikonfigurasikan yang seterusnya
+- Jika penyedia tanpa kunci tidak tersedia → meneruskan melalui sasaran yang selebihnya
+- Jika tiada sambungan layak yang berjaya → mengembalikan ralat; kredit pendaftaran hanya boleh digunakan selagi masih sah dan tersedia
 
 **Hasil**: liputan peringkat percuma yang lebih luas dengan sandaran automatik — bukan jaminan kapasiti tanpa had.
 
@@ -91,7 +91,7 @@ Pergi ke `http://localhost:20128` dalam pelayar anda.
 
 ### Langkah 2: Pergi ke Penyedia
 
-Klik **Penyedia** dalam bar sisi.
+Klik **Penyedia** pada bar sisi.
 
 ### Langkah 3: Klik Tambah Penyedia
 
@@ -99,34 +99,33 @@ Klik butang **+ Tambah Penyedia**.
 
 ### Langkah 4: Pilih Penyedia Percuma
 
-Layari katalog dan periksa metadata semasa `hasFree`, pengesahan, kuota, privasi,
-dan ToS bagi setiap penyedia. Kad penyedia dan
+Semak katalog dan teliti metadata semasa `hasFree`, pengesahan, kuota, privasi,
+dan Terma Perkhidmatan bagi setiap penyedia. Kad penyedia dan
 [Rujukan Peringkat Percuma](../reference/FREE_TIERS.md) membezakan kumpulan berulang,
-akses tanpa had/tanpa kunci, kredit pendaftaran, entri yang telah dihentikan dan sumber berisiko tinggi.
+akses tanpa had/tanpa kunci, kredit pendaftaran, entri yang telah dihentikan, dan sumber berisiko lebih tinggi.
 
-### Langkah 5: Klik Sambung
+### Langkah 5: Klik Sambungkan
 
-Bagi penyedia `NOAUTH`, tiada bukti kelayakan diperlukan. Penyedia OAuth dan kunci API mesti
-disambungkan melalui aliran akaun yang didokumenkan.
+Bagi penyedia `NOAUTH`, OmniRoute tidak meminta kelayakan akses huluan. Ini tidak menjamin bahawa perkhidmatan huluan menerima klien pihak ketiga atau mempunyai kapasiti yang tersedia. Penyedia OAuth dan kunci API mesti disambungkan melalui aliran akaun yang didokumenkan. Klien anda masih menggunakan kunci API OmniRoute yang dipaparkan dalam **Papan Pemuka → Titik Akhir** apabila pengesahan penghala didayakan.
 
-### Langkah 6: Ulang
+### Langkah 6: Ulangi
 
-Sambungkan beberapa penyedia yang syarat dan model privasinya sesuai dengan kes penggunaan anda.
+Sambungkan beberapa penyedia yang terma dan model privasinya sesuai dengan kes penggunaan anda.
 
 ---
 
-## Cara Membaca Katalog dengan Betul
+## Membaca Katalog dengan Betul
 
-- `NOAUTH` bermaksud OmniRoute tidak meminta bukti kelayakan penyedia daripada anda; ini tidak
+- `NOAUTH` bermaksud OmniRoute tidak meminta kelayakan penyedia daripada anda; ini tidak
   menjamin masa operasi, privasi atau kapasiti tanpa had.
 - `hasFree` ialah metadata penemuan. Ia boleh mewakili kuota berulang, akses tanpa kunci,
   kredit pendaftaran, program kelulusan atau promosi.
 - `recurring-uncapped` bermaksud tiada had token yang diterbitkan tersedia; had kadar dan
   keserentakan masih terpakai.
-- `one-time-initial` tidak berulang selepas peruntukan pendaftaran habis digunakan.
-- `tos: avoid` ialah amaran supaya anda menyemak syarat penyedia dan risiko akaun sebelum digunakan.
-- Entri yang ditandakan `discontinued` kekal sebagai bukti sejarah dan tidak boleh dipaparkan sebagai
-  percuma pada masa ini.
+- `one-time-initial` tidak berulang selepas geran pendaftaran habis digunakan.
+- Penyedia `tos: avoid` dikecualikan daripada penghalaan automatik secara lalai (`excludeTosAvoid`). Penyambungan akaun tidak memintas penapis ini. Sebarang penggantian oleh pengendali hendaklah dilakukan selepas menyemak syarat penyedia dan risiko akaun.
+- Entri yang ditandai `discontinued` kekal sebagai bukti sejarah dan tidak boleh dipaparkan sebagai
+  masih percuma pada masa ini.
 
 ---
 
@@ -160,18 +159,15 @@ kuota atau dasar akses penyedia.
 
 ## Pengiraan Peringkat Percuma
 
-Katalog langsung yang dinyahpendua mengikut kumpulan pada masa ini melaporkan:
+Katalog aktif yang dinyahpendua mengikut kumpulan pada masa ini melaporkan:
 
-| Metrik                                                             |                               Nilai diaudit semasa | Tafsiran                                                                                                                                                |
-| ------------------------------------------------------------------ | -------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Peruntukan berulang yang dikuantifikasi                            |                             **~1.62B token/bulan** | Kumpulan dikongsi dikira sekali; penyedia tanpa had dikecualikan daripada jumlah                                                                        |
-| Bulan pertama dengan peruntukan pendaftaran                        |                                   **~2.22B token** | Jumlah berulang ditambah kredit sekali sahaja dan berulang                                                                                              |
-| Inventori model percuma yang diaudit                               | **35 kunci kumpulan berulang / 482 entri katalog** | 475 aktif + 7 dihentikan; berbeza daripada katalog 357 penyedia                                                                                         |
-| Penyedia percuma selama-lamanya berulang/tanpa kunci yang diwakili |                                             **53** | Penyedia unik merentas jenis katalog harian/bulanan/kredit/tanpa had yang berulang serta tanpa kunci, tidak termasuk baris yang dihadkan oleh kelayakan |
-| Entri katalog penyedia yang ditandai `hasFree`                     |                                      **152 / 357** | Metadata penyedia yang lebih luas; bukan semuanya mempunyai kuota berulang yang boleh dikuantifikasi                                                    |
+| Metrik                                      | Nilai semasa yang diaudit | Tafsiran                                                                         |
+| ------------------------------------------- | ------------------------: | -------------------------------------------------------------------------------- |
+| Peruntukan berkuantiti berulang             |    **~1.62B token/bulan** | Kumpulan dikongsi dikira sekali; penyedia tanpa had dikecualikan daripada jumlah |
+| Bulan pertama dengan peruntukan pendaftaran |          **~2.22B token** | Jumlah berulang ditambah kredit sekali sahaja dan kredit berulang                |
 
-Nilai-nilai ini dikira daripada `open-sse/config/freeModelCatalog.ts`; lihat
-[Rujukan Peringkat Percuma](../reference/FREE_TIERS.md) untuk penyahpenduaan kumpulan, penanda ToS,
+Ini ialah anggaran seluruh katalog merentas akaun layak yang berasingan, bukannya peruntukan yang disediakan oleh OmniRoute atau ramalan untuk pemasangan baharu. Kapasiti yang boleh anda gunakan bergantung pada penyedia yang anda sambungkan dan syarat semasa mereka. Nilai dikira daripada `open-sse/config/freeModelCatalog.ts`; lihat
+[Rujukan Peringkat Percuma](../reference/FREE_TIERS.md) untuk penyahduaan kumpulan, penanda ToS,
 entri yang dihentikan dan metodologi kredit pendaftaran.
 
 ---

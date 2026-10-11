@@ -39,30 +39,16 @@ El túnel solo es necesario para los turnos con herramientas. Todas las rutas en
 incluida `pro`, pueden usar la misma capacidad de herramientas locales vinculada al turno
 cuando el túnel y el conector están configurados.
 
-## Configuración en el panel
+## Configuración del panel
 
 1. Abra el proveedor **ChatGPT Web (Codex)** y añada una conexión.
-2. Pegue la cabecera Cookie completa de ChatGPT, el identificador del túnel, la clave de
-   tiempo de ejecución y el nombre del conector personalizado. Las nuevas configuraciones
-   con capacidad de usar herramientas deben utilizar un conector recién creado llamado
-   exactamente `OmniRoute Codex v2`, con Autenticación establecida en Ninguna y Permisos
-   establecidos en Permitir todas las acciones.
-3. Ejecute la comprobación de la conexión. OmniRoute abre un Chat temporal respaldado por
-   navegador y detecta si Sol y Pro están disponibles para la cuenta.
-4. Guarde la conexión. OmniRoute sustituye la cookie pegada por el estado de
-   almacenamiento verificado de Playwright y lo almacena junto con la clave de tiempo de
-   ejecución mediante la abstracción de credenciales cifradas.
+2. Pegue el encabezado Cookie completo de ChatGPT, el ID del túnel, la clave de tiempo de ejecución y el nombre del conector personalizado. Las nuevas configuraciones con capacidad para usar herramientas deben utilizar un conector recién creado llamado exactamente `OmniRoute Codex v2`, con Authentication establecido en None y Permissions establecido en Allow all actions.
+3. Ejecute la comprobación de la conexión. OmniRoute abre un chat temporal respaldado por un navegador y detecta si Sol y Pro están disponibles para la cuenta.
+4. Guarde la conexión. OmniRoute sustituye la cookie pegada por el estado de almacenamiento verificado de Playwright y lo almacena con la clave de tiempo de ejecución mediante la abstracción de credenciales cifradas.
 
-La cookie sin procesar no se conserva después de guardarla correctamente. Cuando la
-sesión caduque, abra la conexión, pegue una nueva cabecera Cookie completa y vuelva a
-ejecutar la comprobación. El estado de diagnóstico del cuadro de diálogo de edición
-informa por separado sobre el navegador, el estado de almacenamiento, el inicio de
-sesión, el Chat temporal, el túnel, el conector y el recorrido de ida y vuelta de la
-herramienta.
+La cookie sin procesar no se conserva después de guardarla correctamente. Cuando caduque la sesión, abra la conexión, pegue un encabezado Cookie completo nuevo y vuelva a ejecutar la comprobación. El estado de diagnóstico del cuadro de diálogo de edición informa por separado sobre el navegador, el estado de almacenamiento, el inicio de sesión, el chat temporal, el túnel, el conector y el recorrido de ida y vuelta de la herramienta. Para automatizar las actualizaciones de cookies cuando roten las sesiones, consulte la herramienta complementaria en [Extensión de sincronización de sesiones del navegador](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nunca confirme en el repositorio una cookie real, una clave de tiempo de ejecución, un
-> estado de almacenamiento ni un token de capacidad. Los valores de pruebas y
-> documentación deben ser siempre marcadores de posición.
+> Nunca confirme en el repositorio una cookie real, una clave de tiempo de ejecución, un estado de almacenamiento ni un token de capacidad. Los valores de prueba y de documentación siempre deben ser marcadores de posición.
 
 ## Modelos y combos
 
@@ -141,7 +127,7 @@ alternativa HTTP/SSE antes de conectarse con el servidor ascendente. La transfer
 
 ## Verificación
 
-Ejecute los controles del proveedor sin invocar el proveedor retirado:
+Ejecuta los controles del proveedor sin invocar el proveedor retirado:
 
 ```bash
 node --import tsx/esm --test \\

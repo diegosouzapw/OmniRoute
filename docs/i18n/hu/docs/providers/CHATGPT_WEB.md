@@ -21,16 +21,26 @@ A `168_retire_chatgpt_web.sql` migráció töröltként jelöli a megfelelő szo
 
 Az alagútra csak az eszközöket használó fordulókhoz van szükség. A felsorolt útvonalak mindegyike, beleértve a `pro` útvonalat is, ugyanazt a fordulóhoz kötött helyi eszközképességet használhatja, ha az alagút és az összekötő konfigurálva van.
 
-## Beállítás az irányítópulton
+## Irányítópult beállítása
 
 1. Nyissa meg a **ChatGPT Web (Codex)** szolgáltatót, és adjon hozzá egy kapcsolatot.
-2. Illessze be a teljes ChatGPT Cookie fejlécet, az alagútazonosítót, a futtatókörnyezeti kulcsot és az egyéni összekötő nevét. Az új, eszközhasználatra képes beállításokhoz egy újonnan létrehozott, pontosan `OmniRoute Codex v2` nevű összekötőt kell használni, amelynél az Authentication értéke None, a Permissions értéke pedig Allow all actions.
-3. Futtassa a kapcsolat ellenőrzését. Az OmniRoute megnyit egy böngészőalapú Temporary Chat munkamenetet, és észleli, hogy a Sol és a Pro elérhető-e a fiók számára.
-4. Mentse a kapcsolatot. Az OmniRoute a beillesztett cookie-t az ellenőrzött Playwright-tárolási állapotra cseréli, és a futtatókörnyezeti kulccsal együtt, a titkosított hitelesítőadat-absztrakción keresztül tárolja.
+2. Illessze be a teljes ChatGPT Cookie fejlécet, az alagút azonosítóját, a futtatókörnyezeti kulcsot és az egyéni összekötő
+   nevét. Az új, eszközhasználatra képes beállításokhoz újonnan létrehozott, pontosan
+   `OmniRoute Codex v2` nevű összekötőt kell használni, amelynél az Authentication értéke None, a Permissions értéke pedig Allow all
+   actions.
+3. Futtassa a kapcsolat ellenőrzését. Az OmniRoute megnyit egy böngészőalapú Temporary Chat-beszélgetést, és észleli,
+   hogy a Sol és a Pro elérhető-e a fiók számára.
+4. Mentse a kapcsolatot. Az OmniRoute a beillesztett cookie-t az ellenőrzött
+   Playwright-tárolási állapotra cseréli, és azt a futtatókörnyezeti kulccsal együtt, a titkosított
+   hitelesítőadat-absztrakción keresztül tárolja.
 
-Sikeres mentés után a nyers cookie nem marad meg. Amikor a munkamenet lejár, nyissa meg a kapcsolatot, illesszen be egy friss, teljes Cookie fejlécet, és futtassa újra az ellenőrzést. A szerkesztési párbeszédpanel diagnosztikai állapota külön-külön jelzi a böngésző, a tárolási állapot, a bejelentkezés, a Temporary Chat, az alagút, az összekötő és az eszköz oda-vissza kommunikációjának állapotát.
+Sikeres mentés után a nyers cookie nem marad meg. Amikor a munkamenet lejár, nyissa meg
+a kapcsolatot, illesszen be egy friss, teljes Cookie fejlécet, majd futtassa újra az ellenőrzést. A szerkesztési párbeszédpanelen
+látható diagnosztikai állapot külön-külön jelzi a böngésző, a tárolási állapot, a bejelentkezés, a Temporary Chat, az alagút,
+az összekötő és az eszköz teljes oda-vissza kommunikációjának állapotát. A cookie-frissítések automatizálásához a munkamenetek cserélődésekor
+tekintse meg a kapcsolódó eszközt itt: [Böngésző-munkamenet szinkronizálási bővítménye](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Soha ne véglegesítsen valódi cookie-t, futtatókörnyezeti kulcsot, tárolási állapotot vagy képességtokent. A teszt- és
+> Soha ne véglegesítsen valódi cookie-t, futtatókörnyezeti kulcsot, tárolási állapotot vagy képességtokent. A tesztelési és
 > dokumentációs értékeknek mindig helyőrzőknek kell lenniük.
 
 ## Modellek és kombinációk
@@ -79,7 +89,7 @@ Ha egy kombináció tartalmazza a ChatGPT Web (Codex) szolgáltatást, a Respons
 
 ## Ellenőrzés
 
-Futtassa a szolgáltatói ellenőrzéseket a kivezetett szolgáltató meghívása nélkül:
+Futtassa a szolgáltató ellenőrzéseit a kivezetett szolgáltató meghívása nélkül:
 
 ```bash
 node --import tsx/esm --test \\
@@ -88,7 +98,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-A kivezetés regressziós védelmei a következő helyeken találhatók:
+A kivezetéssel kapcsolatos regresszióvédelmi tesztek itt találhatók:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

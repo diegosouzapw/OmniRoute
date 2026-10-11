@@ -43,18 +43,9 @@ pasfhocal a sholáthar gach uair a ritear iad.
 
 ## Salann réamhshocraithe (randamach do gach suiteáil)
 
-Nuair nach bhfuil `OMNIROUTE_CLI_SALT` socraithe, is teaghrán randamach heicsidheachúlach
-64-charachtar é an salann a ghintear uair amháin agus a bhuantar ag
-`<DATA_DIR>/cli-token-salt.json` (mód `0600`) — ní hé an litiríocht
-`omniroute-cli-auth-v1` atá seiceáilte isteach. Léann `getActiveSalt()` in
-`src/lib/machineToken.ts` agus a mhacasamhail in `bin/cli/utils/cliToken.mjs` an
-comhad céanna, ionas go dtagann an freastalaí agus gach rith CLI sa tsuiteáil seo ar an
-luach céanna; ní úsáidtear an litiríocht atá seiceáilte isteach ach mar chúltaca deiridh nuair nach féidir
-salann buanaithe nó salann timpeallachta a bhunú fós (mar shampla, suiteáil úr CLI amháin
-sular ritheadh an freastalaí riamh). Réitíonn sé seo laige a bhain leis an seanluach
-réamhshocraithe seasta: is minic a bhíonn `/etc/machine-id` inléite ag cách, mar sin d’fhéadfadh aon úsáideoir áitiúil
-an comhartha céanna a dhíorthú murach sin do gach suiteáil nár shocraigh
-`OMNIROUTE_CLI_SALT` riamh.
+Nuair nach bhfuil `OMNIROUTE_CLI_SALT` socraithe, is teaghrán randamach heicsidheachúlach 64 carachtar é an salann a ghintear uair amháin agus a bhuanaítear ag `<DATA_DIR>/cli-token-salt.json` (mód `0600`) — ní hé an litirín `omniroute-cli-auth-v1` atá seiceáilte isteach é. Léann `getActiveSalt()` in `src/lib/machineToken.ts` agus a mhacasamhail in `bin/cli/utils/cliToken.mjs` an comhad céanna, ionas go dtagann an freastalaí agus gach glao CLI ar an tsuiteáil seo le chéile ar an luach céanna; ní úsáidtear an litirín atá seiceáilte isteach ach mar rogha chúltaca dheiridh nuair nach féidir salann buanaithe ná salann timpeallachta a bhunú fós (mar shampla, suiteáil úr CLI amháin sula mbíonn an freastalaí rite riamh). Réitíonn sé seo laige sa seanluach réamhshocraithe litriúil seasta: is minic a bhíonn `/etc/machine-id` inléite ag cách, agus dá bhrí sin d’fhéadfadh aon úsáideoir áitiúil an comhartha céanna a dhíorthú murach sin do gach suiteáil nár shocraigh `OMNIROUTE_CLI_SALT` riamh.
+
+Mura féidir an salann a léamh ná a chruthú, astaíonn an freastalaí agus an CLI araon rabhadh amháin in aghaidh an phróisis sula n-úsáideann siad an rogha chúltaca chomhoiriúnachta sin. Níl aon salann, comhartha, cosán córais comhad ná amh-earráid sa rabhadh. Athbhunaigh rochtain ar `DATA_DIR` nó socraigh `OMNIROUTE_CLI_SALT`, agus ansin atosaigh an próiseas lena mbaineann. Fágann an rabhadh go bhfuil an teip infheicthe; ní dhéanann sé an salann poiblí cúltaca príobháideach ná ní dhíchumasaíonn sé fíordheimhniú CLI. Coinníonn salainn bhailí atá buanaithe cheana agus sáruithe sainráite timpeallachta na luachanna comhartha a bhí acu roimhe seo.
 
 ## Rothlú an tsalainn
 

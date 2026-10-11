@@ -167,34 +167,35 @@ Teburin `memory_vec_meta` (migration `083_memory_vec.sql`) yana adana:
 Akwai filayen embedding da vector guda tara a cikin `MemorySettingsExtended` da ke
 `src/shared/schemas/memory.ts`, waɗanda ake adanawa ta hanyar `src/lib/db/settings.ts`:
 
-| Fili                     | Nau'i                                              | Na asali | Bayani                                                            |
-| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Tushen embedding da za a yi amfani da shi                         |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Mai samarwa/model a tsarin `provider/model`                       |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL na asalin endpoint mai dacewa da OpenAI don Memory kawai      |
-| `customModelId`          | `string \| null`                                   | `null`   | ID na model da ake aikawa zuwa endpoint na musamman               |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Zaɓin shiga don Transformers.js (MiniLM, ~400MB)                  |
-| `staticEnabled`          | `boolean`                                          | `false`  | Zaɓin shiga don model na cikin gida static potion-base-8M         |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Kunna matakin sake tsara matsayi (yana ƙara +200-500ms/req)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Mai samarwa/model na sake tsara matsayi a tsarin `provider/model` |
+| Fili                     | Nau'i                                              | Tsoho    | Bayani                                                       |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Tushen embedding da za a yi amfani da shi                    |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Mai samarwa/samfuri a tsarin `provider/model`                |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL na asalin endpoint mai dacewa da OpenAI, na Memory kaɗai |
+| `customModelId`          | `string \| null`                                   | `null`   | ID na samfurin da ake aikawa zuwa endpoint na musamman       |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Zaɓin kunna Transformers.js (MiniLM, ~400MB)                 |
+| `staticEnabled`          | `boolean`                                          | `false`  | Zaɓin kunna samfurin gida na static potion-base-8M           |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Kunna matakin sake-jerewa (yana ƙara +200-500ms/req)         |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Mai samarwa/samfurin sake-jerewa a tsarin `provider/model`   |
 
-Ana tantance `rerankProviderModel` ta hanyar `POST /v1/rerank` (ana kiransa ta loopback), don haka yana karɓar duk abin da wannan route ɗin ke karɓa: zaɓaɓɓen model na sake tsara matsayi na cloud (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ko node na mai samarwa mai dacewa da OpenAI a matsayin `<node-prefix>/<model>` (misali `skilled-mini/bge-reranker-v2-m3` don akwatin TEI/Infinity). Nodes na loopback koyaushe sun cancanta; node da ke kan wani host (LAN, Tailscale) kuma yana buƙatar feature flag na `RERANK_REMOTE_PROVIDER_NODES` kuma dole ne ya bi ƙa'idar URL mai fita ta mai samarwa — duba [Feature Flags](../reference/FEATURE_FLAGS.md). Mai zaɓen dashboard yana jera zaɓaɓɓun masu samarwa tare da nodes na cikin gida; ana iya saita kowane ingantaccen string na `provider/model` kai tsaye ta hanyar `PUT /api/settings/memory`.
+Ana tantance `rerankProviderModel` ta hanyar `POST /v1/rerank` (wanda ake kira ta loopback), don haka yana karɓar duk abin da wannan route ɗin ke karɓa: samfurin sake-jerewa na cloud da aka zaɓa (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ko node na mai samarwa mai dacewa da OpenAI a matsayin `<node-prefix>/<model>` (misali, `skilled-mini/bge-reranker-v2-m3` don akwatin TEI/Infinity). Nodes na loopback, da hostnames da aka jera a cikin `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (misali, sunan sabis na Docker/Compose), koyaushe sun cancanta; node da ke kan wani host (LAN, Tailscale) yana kuma buƙatar tutar fasalin `RERANK_REMOTE_PROVIDER_NODES` kuma dole ne ya cika manufofin URL na fitar mai samarwa — duba [Tutocin Fasali](../reference/FEATURE_FLAGS.md). Mai zaɓin dashboard yana jera zaɓaɓɓun masu samarwa tare da nodes na gida; ana iya saita duk wani ingantaccen string na `provider/model` kai tsaye ta hanyar `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend na vector da za a yi amfani da shi |
 
 Ana samar da waɗannan ta hanyar `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
-Don tushen `remote`, Memory kuma yana karɓar saitunan `customBaseUrl` da
-`customModelId` na zaɓi. Tare suna zaɓar endpoint na `/embeddings` mai dacewa da
-OpenAI da kuma model ba tare da canza rajistar embedding ta duniya ba. Ana daidaita
-endpoint kafin amfani kuma ana bincikarsa ta ƙa'idar URL mai fita ta mai samarwa:
-ana buƙatar HTTP(S), ana ƙin bayanan shiga da aka saka a ciki da query strings,
-kuma ana ci gaba da toshe adiresoshin metadata na cloud. Ƙimomin da babu komai suna
-barin zaɓaɓɓen mai samarwa na rajista yadda yake. Ana tsabtace kurakuran da ake
-mayarwa dashboard, kuma ba a taɓa rubuta bayanan shiga na endpoint a log ba.
+Ga tushen `remote`, Memory kuma yana karɓar saitunan `customBaseUrl` da
+`customModelId` na zaɓi. Tare, suna zaɓar endpoint na `/embeddings` mai dacewa
+da OpenAI da kuma samfurinsa ba tare da canza rajistar embedding ta duniya ba.
+Ana daidaita endpoint ɗin kafin amfani kuma ana bincika shi bisa manufofin URL na
+fitar mai samarwa: ana buƙatar HTTP(S), ana ƙin bayanan shiga da aka saka a ciki
+da query strings, sannan adireshin metadata na cloud suna ci gaba da kasancewa
+a toshe. Ƙimomi marasa komai suna barin zaɓaɓɓen mai samarwa na rajista yadda
+yake. Ana tsabtace kurakuran da ake mayarwa zuwa dashboard kuma ba a taɓa rubuta
+bayanan shiga na endpoint cikin log ba.
 
-> **TODO (D20):** Ba a aiwatar da scope na `global` (raba memories tsakanin dukkan
-> API keys) a wannan sakin ba. Yana buƙatar canje-canjen schema da hanyar retrieval
-> ta duniya. A bibiyi wannan daban.
+> **TODO (D20):** Ba a aiwatar da scope na `global` (raba abubuwan tunawa tsakanin dukkan API keys) ba
+> a wannan fitowar. Yana buƙatar sauye-sauyen schema da hanyar dawo da bayanai ta duniya.
+> A bibiyi wannan daban.
 
 ## Matakan Ma'ajiya
 
@@ -904,14 +905,14 @@ Domin barin sa a kashe, kawai ka bar `autoSummarize` a ƙimarsa ta tsohuwa (`fal
 
 ---
 
-## Tsarin Mai Samar da MemoryBackend
+## Tsarin Mai Bayar da MemoryBackend
 
-> **Tushen gaskiya:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Madogarar gaskiya:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Gwaje-gwaje:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Tsarin mai samar da MemoryBackend yana gabatar da **shimfiɗar abstraction ta backend mai sauƙin sauyawa** a saman injin ƙwaƙwalwar da ake da shi. Maimakon a ɗaure shi ga aiwatarwar ma'ajiya guda ɗaya, tsarin ƙwaƙwalwar yanzu yana goyon bayan backend da yawa (SQLite, Obsidian, Notion, backend na HTTP na musamman) tare da hanyar tura buƙatu zuwa primary/fallback mai iya daidaitawa.
+Tsarin mai bayar da MemoryBackend yana ƙara **shimfiɗar abstraction ta backend mai sauƙin sauyawa** a kan injin ƙwaƙwalwar da ake da shi. Maimakon tsarin ya dogara da aiwatarwar ma’ajiya guda ɗaya, yanzu tsarin ƙwaƙwalwar yana goyon bayan backend da yawa (SQLite, Obsidian, Notion, backend na HTTP na musamman), tare da daidaitaccen tsarin tura buƙatu zuwa na farko/na madadin.
 
-### Tsari
+### Tsarin Gine-gine
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -921,11 +922,11 @@ Tsarin mai samar da MemoryBackend yana gabatar da **shimfiɗar abstraction ta ba
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           Mai tsara aiki na Singleton (manager.ts)        │
+│       Mai tsara aiki na singleton (manager.ts)            │
 │                                                          │
-│  Primary ──► Backend A  (misali SQLite)                  │
-│  Fallback ─► Backend B  (misali Obsidian)                │
-│             Backend C  (misali Notion ta GenericBackend)  │
+│  Na farko ──► Backend A  (misali SQLite)                 │
+│  Madadin ───► Backend B  (misali Obsidian)               │
+│               Backend C  (misali Notion ta GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -955,7 +956,7 @@ interface MemoryBackend {
   // Bincike
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Lafiyar tsari
+  // Lafiyar tsarin
   health(): Promise<HealthCheckResult>;
 
   // Zagayowar rayuwa (na zaɓi)
@@ -966,43 +967,43 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Mai tsara aiki na Singleton wanda yake:
+Mai tsara aiki na singleton wanda yake:
 
-- **Rijistar** backend ta hanyar `register(backend)` — ana kiransa lokacin farawa daga `index.ts`
-- **Daidaita** primary + fallback ta hanyar `configure(primary, fallbacks)`
-- **Tura** CRUD/bincike zuwa primary, tare da jerin fallback idan aka samu gazawa
+- **Rajistar** backend ta hanyar `register(backend)` — ana kiransa yayin farawa daga `index.ts`
+- **Daidaita** backend na farko + na madadin ta hanyar `configure(primary, fallbacks)`
+- **Tura** CRUD/bincike zuwa backend na farko, tare da jerin backend na madadin idan aka samu gazawa
 - **Duba lafiyar** dukkan backend lokaci-lokaci
 
-**Halayen fallback:**
+**Halin amfani da madadin:**
 
-| Aiki     | Primary               | Fallbacks                        |
-| -------- | --------------------- | -------------------------------- |
-| `create` | ✅ Primary kawai      | ❌                               |
-| `get`    | ✅ Fara gwada primary | ✅ Fallback idan null            |
-| `update` | ✅ Primary kawai      | ✅ Aiki tare ba tare da jira ba  |
-| `delete` | ✅ Primary kawai      | ✅ Aiki tare ba tare da jira ba  |
-| `list`   | ✅ Primary kawai      | ❌                               |
-| `search` | ✅ Primary da farko   | ✅ Fallback idan an samu kuskure |
+| Aiki     | Na farko               | Na madadin                        |
+| -------- | ---------------------- | --------------------------------- |
+| `create` | ✅ Na farko kawai      | ❌                                |
+| `get`    | ✅ Fara gwada na farko | ✅ Yi amfani da madadin idan null |
+| `update` | ✅ Na farko kawai      | ✅ Daidaitawa ba tare da jira ba  |
+| `delete` | ✅ Na farko kawai      | ✅ Daidaitawa ba tare da jira ba  |
+| `list`   | ✅ Na farko kawai      | ❌                                |
+| `search` | ✅ Na farko da farko   | ✅ Madadin idan an samu kuskure   |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Haɗin HTTP na gama-gari wanda yake daidaita kowane REST API zuwa MemoryBackend. Yana da amfani ga:
+Mai haɗa HTTP na bai-ɗaya wanda yake daidaita kowane REST API ya zama MemoryBackend. Yana da amfani ga:
 
-- **Notion** — haɗa ta Notion API
-- **Obsidian** — haɗa ta Obsidian Local REST API
+- **Notion** — haɗa ta hanyar Notion API
+- **Obsidian** — haɗa ta hanyar Obsidian Local REST API
 - **Backend na musamman** — duk wani sabis da ke samar da RESTful memory API
 
 **Daidaitawa:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Tushen URL na backend API
-  apiKey?: string;           // Bearer token don tantancewa
-  headers?: Record<string, string>;  // Keɓaɓɓun HTTP headers
-  timeout?: number;          // Wa'adin ƙarewar buƙata (tsoho: 30000ms)
-  backendType?: string;      // Don yin rajista
+  baseUrl: string;           // Tushen URL na API na backend
+  apiKey?: string;           // Bearer token don tabbatar da izini
+  headers?: Record<string, string>;  // HTTP headers na musamman
+  timeout?: number;          // Wa'adin jiran buƙata (tsoho: 30000ms)
+  backendType?: string;      // Don rubuta bayanan log
 
-  // Sauya endpoints (tsoffin ƙimomi suna amfani da ƙa'idojin REST)
+  // Sauya endpoint (tsoffin ƙimomi suna amfani da ƙa'idojin REST)
   endpoints?: {
     search?: string;   // tsoho: "/memories/search"
     create?: string;   // tsoho: "/memories"
@@ -1013,30 +1014,30 @@ interface GenericBackendConfig {
     health?: string;   // tsoho: "/health"
   };
 
-  // Taswirar sunayen sigogin query
+  // Taswirar sunayen query parameter
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Taswirar sunayen sigogin path
+  // Taswirar sunayen path parameter
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-An riga an saita **sanannun backends** a cikin `KNOWN_BACKENDS`:
+**Sanannun backend** an riga an daidaita su a cikin `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend wanda aka nuna wa localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend wanda aka nuna wa api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend da aka nuna zuwa localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend da aka nuna zuwa api.notion.com/v1
 ```
 
-#### Ginannun Backends
+#### Backend da Aka Gina a Ciki
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Tsohon babban backend. Yana naɗe ma'ajiyar ƙwaƙwalwa da ke amfani da SQLite ta hanyar `src/lib/memory/store.ts`. Ana yi masa rajista ta atomatik lokacin farawa.
+Backend na farko na tsohuwa. Yana naɗe ma’ajiyar ƙwaƙwalwa ta SQLite da ake da ita ta amfani da `src/lib/memory/store.ts`. Ana yi masa rajista ta atomatik yayin farawa.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1045,39 +1046,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Yana naɗe haɗin Obsidian da ake da shi (`src/lib/memory/obsidianBackend.ts`). Yana haɗuwa da ma'ajiyar Obsidian ta hanyar Obsidian Local REST API.
+Yana naɗe haɗin Obsidian da ake da shi (`src/lib/memory/obsidianBackend.ts`). Yana haɗawa da rumbun Obsidian ta hanyar Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adafta don worker na [claude-mem](https://github.com/thedotmack/claude-mem) na gida — plugin ɗin ƙwaƙwalwa na
+Claude Code / Codex / Cursor wanda yake adana zaman shirye-shirye a matsayin "abubuwan lura".
+Idan aka yi masa rajista, hanyoyin REST na `/api/memory` da binciken ƙwaƙwalwar A2A za su iya karantawa da rubutawa
+a ma’ajiya ɗaya da hooks na claude-mem suke cikawa.
+
+Worker ɗin yana ɗaurewa da loopback kawai, wanda kariyar SSRF ta `GenericMemoryBackend` take ƙi da gangan.
+Wannan adaftar ba ta sassauta wannan kariyar: an ƙayyade host ɗin kai tsaye zuwa `127.0.0.1`, kuma schema na
+daidaitawa (`ClaudeMemBackendConfigSchema`, `.strict()`) yana karɓar waɗannan kaɗai:
+
+| Maɓalli     | Nau'i   | Na asali | Bayanan kula                                                                                                                            |
+| ----------- | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | lamba   | —        | Wajibi ne, 1024–65535. tashar claude-mem worker daga fayil ɗin saitunansa (na asali `37700 + uid % 100`).                               |
+| `project`   | kirtani | —        | Aikin claude-mem da za a yi amfani da shi. Idan ba a saita ba → kowane maɓallin OmniRoute API zai yi daidai da nasa aikin (`apiKeyId`). |
+| `timeoutMs` | lamba   | `5000`   | Wa'adin kowace buƙata, 100–30000.                                                                                                       |
+
+Kunna shi ta hanyar `PUT /api/settings/memory` sannan a sake kunna OmniRoute (ana rajistar backends
+sau ɗaya, a cikin `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+A maimakon haka, yi amfani da `"primaryBackend": "claude-mem"` don sanya shi ma'ajiyar REST API. Ana rubuta
+config mara inganci a log (`claude-mem.backend.invalid_config`) sannan a tsallake shi, don haka SQLite zai ci gaba da zama na farko.
+
+Taswira da iyakoki:
+
+- IDs suna da tsarin `claude-mem:<observationId>`; `get`/`delete` suna yin watsi da IDs na sauran backends ba tare da
+  kiran hanyar sadarwa ba.
+- `create` → `POST /api/memory/save`; filayen OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) suna tafiya a cikin `metadata.omniroute` na claude-mem kuma suna dawowa yadda suke lokacin karantawa.
+- `search` → `GET /api/search?format=json&type=observations`, ana rage shi zuwa `maxTokens`
+  (haruffa / 4). `list` → endpoint na observations mai rarraba shafuka na worker (`total` ƙaramar iyaka ce — worker
+  yana mayar da `hasMore`, ba ƙidaya ba).
+- Observations da hooks suka kama suna taswirta `discovery` → `factual`, `decision` → `procedural`, da
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Babu sabuntawa** (`update()` yana mayar da `false`; observations ba sa canzawa) kuma **babu TTL**
+  (ana yin watsi da `expiresAt`). claude-mem yana cire maimaitattun ajiye-aijiye masu kama ɗaya maimakon yin upsert ta `key`.
+- Shigar da prompt (`retrieval.ts`) da kayan aikin MCP na `omniroute_memory_*` har yanzu suna karanta SQLite
+  kai tsaye — ba sa bi ta `memoryManager`, don haka wannan backend ba ya samar musu da bayanai.
+
+**Tura kiran LLM na claude-mem ta cikin OmniRoute.** claude-mem yana matse observations
+ta amfani da LLM (na asali: Claude Agent SDK). Za a iya nuna mai samar da sabis na `openai-compatible` zuwa
+OmniRoute maimakon haka, domin ya yi amfani da combo fallback da bin diddigin farashi. A cikin `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
 
 ### Saituna
 
-Ana adana saitunan backend na ƙwaƙwalwa a cikin teburin saitunan manhaja kuma ana sarrafa su ta hanyar `src/lib/memory/settings.ts`:
+Ana adana saitunan memory backend a cikin jadawalin saitunan manhaja kuma ana sarrafa su ta `src/lib/memory/settings.ts`:
 
-| Saiti               | Maɓallin Env/Config      | Tsoho      | Bayani                               |
-| ------------------- | ------------------------ | ---------- | ------------------------------------ |
-| Babban backend      | `memoryPrimaryBackend`   | `"sqlite"` | ID na babban backend                 |
-| Backends na madadin | `memoryFallbackBackends` | `[]`       | IDs na backends na madadin a jere    |
-| Saitunan backends   | `memoryBackendConfigs`   | `{}`       | Sauye-sauyen saiti ga kowane backend |
+| Saiti               | Maɓallin Env/Config      | Na asali   | Bayani                                   |
+| ------------------- | ------------------------ | ---------- | ---------------------------------------- |
+| Backend na farko    | `memoryPrimaryBackend`   | `"sqlite"` | ID na backend na farko                   |
+| Backends na madadin | `memoryFallbackBackends` | `[]`       | Jerin IDs na fallback backend bisa tsari |
+| Configs na backend  | `memoryBackendConfigs`   | `{}`       | Sauye-sauyen config na kowane backend    |
 
-Ana daidaita saitunan ta hanyar `normalizeMemorySettings()` kuma ana adana su a cache a `getMemorySettings()`.
+Ana daidaita saituna ta `normalizeMemorySettings()` kuma ana adana su a cache a `getMemorySettings()`.
 
 ### Tsarin Farawa
 
 ```
 Fara manhaja
-  → shigarwar index.ts (sakamakon gefe): tana yi wa SQLiteBackend rajista
+  → index.ts imports (tasirin gefe): yana rajistar SQLiteBackend
   → ana kiran initMemoryBackends() daga tsarin rayuwar manhaja:
       1. Loda saituna (getMemorySettings)
-      2. Saita babban backend + na madadin
-      3. Fara dukkan backends (duba lafiya)
-      4. A shirye don buƙatu
+      1b. Rajistar backends na zaɓi da suke cikin backendConfigs (claude-mem)
+      2. Saita na farko + madadin
+      3. Fara duk backends (duba lafiyarsu)
+      4. Shirye don buƙatu
 ```
 
 ### Ƙara Sabon Backend
 
-1. **Aiwatar da interface na `MemoryBackend`** a cikin `src/lib/memory/<name>Backend.ts`
+1. **Aiwayar da `MemoryBackend`** interface a cikin `src/lib/memory/<name>Backend.ts`
 2. **Fitar da shi** daga `src/lib/memory/index.ts`
-3. **Yi rajista** da `memoryManager.register(yourBackend)` lokacin farawa
-4. **Saita shi** ta saituna: saita `memoryPrimaryBackend` zuwa ID na backend ɗinka
-5. **Gwada shi** ta amfani da `src/lib/memory/__tests__/generic-backend.test.ts` a matsayin madogara
+3. **Yi rajista** da `memoryManager.register(yourBackend)` yayin farawa
+4. **Yi config** ta saituna: saita `memoryPrimaryBackend` zuwa ID na backend ɗinka
+5. **Gwada** ta amfani da `src/lib/memory/__tests__/generic-backend.test.ts` a matsayin abin dubawa
 
 #### Misali: Brain Backend
 
@@ -1099,24 +1160,24 @@ memoryManager.register(brainBackend);
 
 ### Tabbatarwa
 
-#### Gwaje-gwajen ɓangare
+#### Gwaje-gwajen unit
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Sakamakon da ake sa ran samu: **gwaje-gwaje 35, duk sun yi nasara**, waɗanda suka haɗa da:
+Fitowar da ake tsammani: **gwaje-gwaje 35, dukkansu sun yi nasara** waɗanda suka ƙunshi:
 
 - Constructor (2)
 - Duba lafiya (4) — nasara, gazawar 500, kuskuren hanyar sadarwa, jinkiri
 - Farawa (2) — nasara, gazawa
-- Ƙirƙira (2) — tsohon endpoint, keɓaɓɓen endpoint
-- Samu (4) — nasara, 404 → null, jefa kuskure idan ba 404 ba, keɓaɓɓun sigogin path
+- Ƙirƙira (2) — endpoint na asali, endpoint na musamman
+- Samu (4) — nasara, 404 → null, wanda ba 404 ba ya jefa kuskure, path params na musamman
 - Sabuntawa (2) — nasara, 404 → false
 - Sharewa (2) — nasara, 404 → false
-- Jerantawa (2) — sigogin query, keɓaɓɓun sunayen sigogi
-- Bincike (3) — sigogin query, keɓaɓɓen endpoint, mayar da options zuwa tsari
-- Auth headers (2) — Bearer token, keɓaɓɓun headers
+- Jeri (2) — query params, sunayen params na musamman
+- Bincike (3) — query params, endpoint na musamman, serialization na options
+- Headers na tantancewa (2) — Bearer token, headers na musamman
 - Factory (1)
 
 #### Duba nau'i
@@ -1125,4 +1186,4 @@ Sakamakon da ake sa ran samu: **gwaje-gwaje 35, duk sun yi nasara**, waɗanda su
 npm run typecheck:core
 ```
 
-Abin da ake sa ran samu: **kurakurai 0**.
+Abin da ake tsammani: **kuskure 0**.

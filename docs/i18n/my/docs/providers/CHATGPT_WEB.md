@@ -21,17 +21,27 @@ Migration `168_retire_chatgpt_web.sql` သည် ကိုက်ညီသော 
 
 Tunnel ကို tool turn များအတွက်သာ လိုအပ်သည်။ `pro` အပါအဝင် စာရင်းပြုထားသော route အားလုံးသည် tunnel နှင့် connector ကို configure လုပ်ထားသည့်အခါ တူညီသော turn-bound local tool စွမ်းရည်ကို အသုံးပြုနိုင်သည်။
 
-## Dashboard ထည့်သွင်းသတ်မှတ်ခြင်း
+## Dashboard စနစ်ထည့်သွင်းခြင်း
 
-1. **ChatGPT Web (Codex)** provider ကိုဖွင့်ပြီး connection တစ်ခု ထည့်ပါ။
-2. ChatGPT Cookie header အပြည့်အစုံ၊ tunnel ID၊ runtime key နှင့် custom connector အမည်တို့ကို ထည့်ပါ။ Tool အသုံးပြုနိုင်သော setup အသစ်များတွင် `OmniRoute Codex v2` ဟု အတိအကျ အမည်ပေးထားသော အသစ်ဖန်တီးသည့် connector ကို အသုံးပြုရမည်ဖြစ်ပြီး Authentication ကို None၊ Permissions ကို Allow all actions ဟု သတ်မှတ်ထားရမည်။
-3. Connection check ကို လုပ်ဆောင်ပါ။ OmniRoute သည် browser-backed Temporary Chat တစ်ခုကို ဖွင့်ပြီး အကောင့်အတွက် Sol နှင့် Pro ရရှိနိုင်ခြင်းရှိမရှိ စစ်ဆေးသည်။
-4. Connection ကို သိမ်းဆည်းပါ။ OmniRoute သည် ထည့်သွင်းထားသော cookie ကို အတည်ပြုပြီးသော Playwright storage state ဖြင့် အစားထိုးကာ encrypted credential abstraction မှတစ်ဆင့် runtime key နှင့်အတူ သိမ်းဆည်းသည်။
+1. **ChatGPT Web (Codex)** provider ကိုဖွင့်ပြီး connection တစ်ခုထည့်ပါ။
+2. ChatGPT Cookie header အပြည့်အစုံ၊ tunnel ID၊ runtime key နှင့် custom connector
+   အမည်ကို ကူးထည့်ပါ။ Tool အသုံးပြုနိုင်သည့် စနစ်ထည့်သွင်းမှုအသစ်များတွင် အသစ်ဖန်တီးထားပြီး
+   `OmniRoute Codex v2` ဟု အတိအကျအမည်ပေးထားသော connector ကို အသုံးပြုရမည်ဖြစ်ကာ Authentication ကို None၊ Permissions ကို Allow all
+   actions ဟု သတ်မှတ်ရမည်။
+3. Connection check ကို လုပ်ဆောင်ပါ။ OmniRoute သည် browser မှတစ်ဆင့် လုပ်ဆောင်သော Temporary Chat ကိုဖွင့်ပြီး
+   account အတွက် Sol နှင့် Pro ရရှိနိုင်ခြင်းရှိမရှိ စစ်ဆေးသည်။
+4. Connection ကို သိမ်းဆည်းပါ။ OmniRoute သည် ကူးထည့်ထားသော cookie ကို အတည်ပြုပြီးသား
+   Playwright storage state ဖြင့် အစားထိုးပြီး encrypted
+   credential abstraction မှတစ်ဆင့် runtime key နှင့်အတူ သိမ်းဆည်းသည်။
 
-အောင်မြင်စွာ သိမ်းဆည်းပြီးနောက် raw cookie ကို ဆက်လက်သိမ်းထားမည်မဟုတ်ပါ။ Session သက်တမ်းကုန်ဆုံးသောအခါ connection ကိုဖွင့်ပြီး Cookie header အပြည့်အစုံအသစ်ကို ထည့်ကာ check ကို ပြန်လည်လုပ်ဆောင်ပါ။ Edit dialog ရှိ doctor status သည် browser၊ storage state၊ sign-in၊ Temporary Chat၊ tunnel၊ connector နှင့် tool round-trip တို့၏ အခြေအနေကို သီးခြားစီ အစီရင်ခံသည်။
+အောင်မြင်စွာ သိမ်းဆည်းပြီးနောက် မူရင်း cookie ကို ဆက်လက်သိမ်းဆည်းမထားပါ။ Session သက်တမ်းကုန်ဆုံးသည့်အခါ
+connection ကိုဖွင့်၍ အသစ်ဖြစ်သော Cookie header အပြည့်အစုံကို ကူးထည့်ပြီး check ကို ပြန်လည်လုပ်ဆောင်ပါ။ Edit dialog ရှိ doctor status သည်
+browser၊ storage state၊ sign-in၊ Temporary Chat၊ tunnel၊
+connector နှင့် tool round-trip တို့၏ အခြေအနေကို သီးခြားစီ ဖော်ပြသည်။ Session များ ပြောင်းလဲသည့်အခါ cookie update များကို အလိုအလျောက်လုပ်ဆောင်ရန်
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) ရှိ တွဲဖက် tool ကို ကြည့်ပါ။
 
-> တကယ့် cookie၊ runtime key၊ storage state သို့မဟုတ် capability token ကို မည်သည့်အခါမျှ commit မလုပ်ပါနှင့်။ စမ်းသပ်မှုနှင့်
-> စာရွက်စာတမ်းတန်ဖိုးများသည် placeholder များသာ အမြဲဖြစ်ရမည်။
+> တကယ့် cookie၊ runtime key၊ storage state သို့မဟုတ် capability token ကို မည်သည့်အခါမျှ commit မလုပ်ပါနှင့်။ Test နှင့်
+> documentation တန်ဖိုးများသည် placeholder များသာ အမြဲဖြစ်ရမည်။
 
 ## Model များနှင့် combo များ
 

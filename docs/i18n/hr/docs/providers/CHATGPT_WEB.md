@@ -36,28 +36,16 @@ Tunel je potreban samo za interakcije s alatima. Svaka navedena ruta, uključuju
 može koristiti istu lokalnu mogućnost alata vezanu uz interakciju kada su tunel i
 poveznik konfigurirani.
 
-## Postavljanje putem nadzorne ploče
+## Postavljanje nadzorne ploče
 
-1. Otvorite pružatelja **ChatGPT Web (Codex)** i dodajte vezu.
-2. Zalijepite potpuno ChatGPT Cookie zaglavlje, ID tunela, ključ izvođenja i naziv
-   prilagođenog poveznika. Nove postavke s podrškom za alate moraju koristiti
-   novostvoreni poveznik nazvan točno `OmniRoute Codex v2`, s opcijom Authentication
-   postavljenom na None i opcijom Permissions postavljenom na Allow all actions.
-3. Pokrenite provjeru veze. OmniRoute otvara Temporary Chat putem preglednika i otkriva
-   jesu li Sol i Pro dostupni za račun.
-4. Spremite vezu. OmniRoute zamjenjuje zalijepljeni kolačić provjerenim stanjem pohrane
-   Playwrighta i pohranjuje ga zajedno s ključem izvođenja putem apstrakcije šifriranih
-   vjerodajnica.
+1. Otvorite pružatelja usluge **ChatGPT Web (Codex)** i dodajte vezu.
+2. Zalijepite cijelo zaglavlje kolačića ChatGPT Cookie, ID tunela, ključ izvođenja i naziv prilagođenog poveznika. Nove postavke koje podržavaju alate moraju upotrebljavati novostvoreni poveznik nazvan točno `OmniRoute Codex v2`, pri čemu je Authentication postavljen na None, a Permissions na Allow all actions.
+3. Pokrenite provjeru veze. OmniRoute otvara privremeni razgovor Temporary Chat podržan preglednikom i otkriva jesu li Sol i Pro dostupni za račun.
+4. Spremite vezu. OmniRoute zamjenjuje zalijepljeni kolačić provjerenim stanjem pohrane Playwright i pohranjuje ga zajedno s ključem izvođenja putem apstrakcije šifriranih vjerodajnica.
 
-Neobrađeni kolačić ne zadržava se nakon uspješnog spremanja. Kada sesija istekne,
-otvorite vezu, zalijepite novo potpuno Cookie zaglavlje i ponovno pokrenite provjeru.
-Status dijagnostike u dijaloškom okviru za uređivanje zasebno izvještava o pregledniku,
-stanju pohrane, prijavi, Temporary Chatu, tunelu, povezniku i povratnoj komunikaciji s
-alatom.
+Izvorni kolačić ne zadržava se nakon uspješnog spremanja. Kada sesija istekne, otvorite vezu, zalijepite novo cijelo zaglavlje Cookie i ponovno pokrenite provjeru. Status dijagnostike u dijaloškom okviru za uređivanje zasebno izvješćuje o pregledniku, stanju pohrane, prijavi, privremenom razgovoru Temporary Chat, tunelu, povezniku i povratnom prolazu alata. Za automatizaciju ažuriranja kolačića pri rotaciji sesija pogledajte popratni alat u odjeljku [Proširenje za sinkronizaciju sesije preglednika](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nikada nemojte predati stvarni kolačić, ključ izvođenja, stanje pohrane ili token
-> mogućnosti. Vrijednosti za testiranje i dokumentaciju uvijek moraju biti rezervirana
-> mjesta.
+> Nikada nemojte predati stvarni kolačić, ključ izvođenja, stanje pohrane ili token mogućnosti u repozitorij. Vrijednosti za testiranje i dokumentaciju uvijek moraju biti rezervirana mjesta.
 
 ## Modeli i kombinacije
 

@@ -23,15 +23,24 @@
 
 ## डॅशबोर्ड सेटअप
 
-1. **ChatGPT Web (Codex)** प्रोव्हायडर उघडा आणि कनेक्शन जोडा.
-2. संपूर्ण ChatGPT Cookie हेडर, टनल ID, रनटाइम की आणि कस्टम कनेक्टरचे नाव पेस्ट करा. नवीन टूल-क्षम सेटअप्सनी `OmniRoute Codex v2` याच अचूक नावाने नव्याने तयार केलेला कनेक्टर वापरणे आवश्यक आहे, ज्यामध्ये Authentication हे None आणि Permissions हे Allow all actions असे सेट केलेले असावे.
-3. कनेक्शन तपासणी चालवा. OmniRoute ब्राउझर-आधारित Temporary Chat उघडतो आणि खात्यासाठी Sol व Pro उपलब्ध आहेत की नाही हे शोधतो.
-4. कनेक्शन जतन करा. OmniRoute पेस्ट केलेल्या कुकीच्या जागी सत्यापित Playwright स्टोरेज स्टेट ठेवतो आणि एनक्रिप्टेड क्रेडेन्शियल अॅब्स्ट्रॅक्शनद्वारे ते रनटाइम कीसह संग्रहित करतो.
+1. **ChatGPT Web (Codex)** प्रदाता उघडा आणि कनेक्शन जोडा.
+2. संपूर्ण ChatGPT Cookie हेडर, tunnel ID, runtime key आणि सानुकूल connector
+   नाव पेस्ट करा. नवीन tool-सक्षम सेटअपसाठी नेमके
+   `OmniRoute Codex v2` नाव असलेला नव्याने तयार केलेला connector वापरणे आवश्यक आहे; त्यामध्ये Authentication हे None आणि Permissions हे Allow all
+   actions असे सेट केलेले असावे.
+3. कनेक्शन तपासणी चालवा. OmniRoute ब्राउझर-आधारित Temporary Chat उघडते आणि
+   खात्यासाठी Sol आणि Pro उपलब्ध आहेत की नाही हे शोधते.
+4. कनेक्शन जतन करा. OmniRoute पेस्ट केलेली cookie सत्यापित
+   Playwright storage state ने बदलते आणि encrypted credential abstraction द्वारे runtime key सोबत ती संग्रहित करते.
 
-यशस्वीरीत्या जतन केल्यानंतर मूळ कुकी राखून ठेवली जात नाही. सत्र कालबाह्य झाल्यावर, कनेक्शन उघडा, नवीन संपूर्ण Cookie हेडर पेस्ट करा आणि तपासणी पुन्हा चालवा. संपादन संवादातील डॉक्टर स्थिती ब्राउझर, स्टोरेज स्टेट, साइन-इन, Temporary Chat, टनल, कनेक्टर आणि टूल राउंड-ट्रिप यांचा अहवाल स्वतंत्रपणे देते.
+यशस्वीरीत्या जतन केल्यानंतर कच्ची cookie राखून ठेवली जात नाही. सत्राची मुदत संपल्यावर,
+कनेक्शन उघडा, नवीन संपूर्ण Cookie हेडर पेस्ट करा आणि तपासणी पुन्हा चालवा. संपादन संवादातील doctor status
+ब्राउझर, storage state, sign-in, Temporary Chat, tunnel,
+connector आणि tool round-trip यांचा स्वतंत्रपणे अहवाल देतो. सत्रे बदलल्यावर cookie अद्यतने स्वयंचलित करण्यासाठी,
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) मधील पूरक tool पहा.
 
-> वास्तविक कुकी, रनटाइम की, स्टोरेज स्टेट किंवा क्षमता टोकन कधीही कमिट करू नका. चाचणी आणि
-> दस्तऐवजीकरणातील मूल्ये नेहमी प्लेसहोल्डर्स असली पाहिजेत.
+> वास्तविक cookie, runtime key, storage state किंवा capability token कधीही commit करू नका. चाचणी आणि
+> दस्तऐवजीकरणातील मूल्ये नेहमी placeholders असली पाहिजेत.
 
 ## मॉडेल्स आणि कॉम्बोज
 
@@ -97,7 +106,7 @@ HTTP/SSE फॉलबॅकची विनंती करतो. त्या�
 
 ## पडताळणी
 
-निवृत्त provider ला आवाहन न करता provider नियंत्रणे चालवा:
+निवृत्त provider ला invoke न करता provider controls चालवा:
 
 ```bash
 node --import tsx/esm --test \\
@@ -106,7 +115,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-निवृत्ती regression guards येथे आहेत:
+निवृत्तीचे regression guards येथे आहेत:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

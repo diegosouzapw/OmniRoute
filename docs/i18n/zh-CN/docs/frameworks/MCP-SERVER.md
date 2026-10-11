@@ -268,137 +268,198 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ---
 
-## 身份验证与作用域 (Scopes)
+## 身份验证与作用域
 
-MCP 工具调用从调用方读取作用域字符串。该检查是三个独立命名空间之一。通过一个检查器的验证并不代表通过其他检查器的验证。规则见 [三个作用域命名空间](#three-scope-namespaces)。工具目录见 [MCP 工具作用域](#mcp-tool-scopes)。
+MCP 工具调用会从调用方读取作用域字符串。该检查属于三个相互独立的命名空间之一。通过其中一个检查器并不代表能通过其他检查器。
+相关规则参见[三个作用域命名空间](#three-scope-namespaces)。
+工具目录参见 [MCP 工具作用域](#mcp-tool-scopes)。
 
 ### 三个作用域命名空间
 
-API 密钥上的 `manage`、MCP 工具上的 `read:compression` 以及 `oma_live_…` 访问令牌上的 `read` 是三种不同的授权。向变更管理路由发送 `read` 访问令牌的调用方将收到 HTTP 403 `Access token scope 'read' is insufficient; 'write' required.`。该等级由 `scopeSatisfies` 判定。它不参考 MCP 表，MCP 匹配器也不参考它。
+API 密钥上的 `manage`、MCP 工具上的 `read:compression`，以及
+`oma_live_…` 访问令牌上的 `read` 是三种不同的授权。调用方若向会执行变更的管理路由发送 `read`
+访问令牌，将收到 HTTP 403：
+`Access token scope 'read' is insufficient; 'write' required.`
+该等级由 `scopeSatisfies` 判定。它不会查询 MCP 表，而 MCP
+匹配器也不会查询它。
 
-| 命名空间       | 凭据                                                        | 检查器             | 通过后允许的操作               |
-| :------------- | :---------------------------------------------------------- | :----------------- | :----------------------------- |
-| API 密钥管理   | `api_keys.scopes`                                           | `hasManageScope`   | 该 Bearer 密钥的管理 REST      |
-| API 密钥附加项 | 同一数组，一个精确字符串                                    | 下文命名的辅助函数 | 仅限该项功能                   |
-| MCP 工具作用域 | 同一数组，否则为 MCP `_meta`，否则为 `OMNIROUTE_MCP_SCOPES` | `scopeMatches`     | 该工具（一旦启用强制执行）     |
-| 访问令牌       | `oma_live_…`                                                | `scopeSatisfies`   | 方法和路径要求该等级的管理路由 |
+| 命名空间           | 凭据                                                              | 检查器             | 通过后允许的操作                         |
+| :----------------- | :---------------------------------------------------------------- | :----------------- | :--------------------------------------- |
+| API 密钥管理       | `api_keys.scopes`                                                 | `hasManageScope`   | 使用该 Bearer 密钥访问管理 REST          |
+| API 密钥附加作用域 | 同一数组中的一个精确字符串                                        | 下文所述的辅助函数 | 仅允许对应的单项能力                     |
+| MCP 工具作用域     | 同一数组，否则使用 MCP `_meta`，再否则使用 `OMNIROUTE_MCP_SCOPES` | `scopeMatches`     | 启用强制执行后，允许使用对应工具         |
+| 访问令牌           | `oma_live_…`                                                      | `scopeSatisfies`   | 允许访问其方法和路径需要该等级的管理路由 |
 
-每种凭据的铸造在 [管理身份验证](../guides/MANAGEMENT-AUTH.md) 中有详细说明。
+每种凭据的签发方式均在
+[管理身份验证](../guides/MANAGEMENT-AUTH.md)中介绍。
 
 #### API 密钥作用域
 
-一个 `api_keys.scopes` 数组服务于两项任务。它们使用不同的函数。
+一个 `api_keys.scopes` 数组承担两项任务。它们使用不同的函数。
 
-**管理 REST。** `manage` 和 `admin` 是 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) 的成员。`hasManageScope` 用于授权该密钥的管理路由。`admin` 在这些路由上具有管理能力。此处的 `admin` 单词并非访问令牌等级，也不会扩展为 MCP 工具作用域。
+**管理 REST。** `manage` 和 `admin` 是
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`) 的成员。
+`hasManageScope` 用于授权该密钥访问管理路由。在这些路由上，`admin`
+具备管理能力。此处的 `admin` 并非
+访问令牌等级，也不会扩展为 MCP 工具作用域。
 
-**附加字符串。** 每一个都是精确的成员资格测试，且每一个都保持在 `MANAGEMENT_API_KEY_SCOPES` 之外。
+**附加字符串。** 每个字符串都进行精确成员资格测试，并且都不属于
+`MANAGEMENT_API_KEY_SCOPES`。
 
-| 作用域                         | 通过后允许的操作                                                                                                                                        |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mcp:connect`                  | 仅限非回环 `/api/mcp/` LOCAL_ONLY 例外情况 (`hasMcpConnectOrManageScope`)。带有 `manage` 或 `admin` 的密钥仍能通过该例外检查。                          |
-| `self:usage`                   | 该密钥的 `GET /api/v1/me/status` (`src/app/api/v1/me/status/route.ts`)。`POST /api/keys` 在创建时添加此作用域 (`normalizeSelfServiceScopesForCreate`)。 |
-| `self:account-quota`           | 该状态负载中的上游账户配额 (`src/lib/usage/apiKeySelfService.ts`)。状态路由仍需要 `self:usage`。                                                        |
-| `policy:bypass-provider-quota` | 该密钥的推理调用跳过提供者配额策略 (`src/sse/handlers/chat.ts` 中的 `hasProviderQuotaBypassScope`)。                                                    |
+| 作用域                         | 通过后允许的操作                                                                                                                                                |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | 仅允许非回环地址访问 `/api/mcp/` 的 LOCAL_ONLY 例外（`hasMcpConnectOrManageScope`）。具有 `manage` 或 `admin` 的密钥仍可通过该例外检查。                        |
+| `self:usage`                   | 获取此密钥的 `GET /api/v1/me/status`（`src/app/api/v1/me/status/route.ts`）。`POST /api/keys` 会在创建时添加此作用域（`normalizeSelfServiceScopesForCreate`）。 |
+| `self:account-quota`           | 在该状态载荷中包含上游账户配额（`src/lib/usage/apiKeySelfService.ts`）。状态路由仍要求 `self:usage`。                                                           |
+| `policy:bypass-provider-quota` | 此密钥的推理调用会跳过提供者配额策略（`src/sse/handlers/chat.ts` 中的 `hasProviderQuotaBypassScope`）。                                                         |
 
 #### 匹配
 
-目录是 [MCP 工具作用域](#mcp-tool-scopes) 下的表格。不要将 `src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 视为该目录：它是原始的类型化子集。后来的工具在其之外声明了更多作用域（`read:notion`、`read:skills`、`read:local-corpus` 以及表格中的其余部分）。
+目录即 [MCP 工具作用域](#mcp-tool-scopes)下的表。不要将
+`src/shared/constants/mcpScopes.ts` 中的 `MCP_SCOPE_LIST` 视为该目录：
+它只是最初的类型化子集。后续工具在其旁边声明了更多作用域
+（`read:notion`、`read:skills`、`read:local-corpus`，以及表中的其余作用域）。
 
-`open-sse/mcp-server/scopeEnforcement.ts` 中的 `evaluateToolScopes` 在每个所需作用域都匹配某个已授予作用域时允许调用：
+`open-sse/mcp-server/scopeEnforcement.ts` 中的 `evaluateToolScopes` 会在
+每个必需作用域都能与某个已授予作用域匹配时允许调用：
 
-- `*` 匹配每个所需作用域。
-- 以 `*` 结尾的已授予作用域匹配以星号前缀开头的所需作用域。`read:*` 匹配 `read:compression`。
-- 所有其他已授予作用域仅匹配完全相同的所需字符串。
+- `*` 匹配所有必需作用域。
+- 以 `*` 结尾的已授予作用域，会匹配以星号前缀开头的必需作用域。
+  `read:*` 匹配 `read:compression`。
+- 其他所有已授予作用域仅匹配完全相同的必需字符串。
 
-作用域为 `["manage"]` 的密钥在 `read:compression` 的 `scopeMatches` 检查中会失败。当仅授予 `admin`、`mcp:connect`、`read` 和 `write` 字符串时，同样的调用也会失败。除了结尾的 `*` 之外，MCP 工具作用域之间没有层级关系。
+作用域为 `["manage"]` 的密钥无法通过针对 `read:compression` 的 `scopeMatches`。
+同一调用在唯一授予的字符串为 `admin`、`mcp:connect`、`read` 或 `write` 时
+也会失败。除末尾的 `*` 外，MCP 工具作用域之间不存在层级关系。
 
-除非 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`（默认为 `false`），否则强制执行处于关闭状态。关闭时，`evaluateToolScopes` 允许调用并跳过目录。开启时，HTTP 使用 Bearer 密钥的 `api_keys.scopes` 作为 `authInfo`（参见 [按密钥 HTTP 作用域绑定](#per-key-http-scope-binding-7895)）。当没有密钥作用域解析时，授予集将回退到 MCP `_meta`，然后是 `OMNIROUTE_MCP_SCOPES`。
+除非设置 `OMNIROUTE_MCP_ENFORCE_SCOPES=true`（默认为
+`false`），否则不会强制执行作用域。关闭时，`evaluateToolScopes` 会允许调用并跳过
+目录检查。开启时，HTTP 使用 Bearer 密钥的 `api_keys.scopes` 作为
+`authInfo`（参见[按密钥绑定 HTTP 作用域](#per-key-http-scope-binding-7895)）。
+如果无法解析出任何密钥作用域，已授予作用域集合会依次回退到 MCP `_meta`，然后是
+`OMNIROUTE_MCP_SCOPES`。
 
 #### 访问令牌作用域
 
-`oma_live_…` 令牌 (`src/lib/accessTokens/scopes.ts`) 携带 `read`、`write` 或 `admin`。`scopeSatisfies` 是一个等级：`admin` 涵盖 `write` 和 `read`，而 `write` 涵盖 `read`。未知作用域不涵盖任何内容。
+`oma_live_…` 令牌（`src/lib/accessTokens/scopes.ts`）携带 `read`、`write`
+或 `admin`。`scopeSatisfies` 按等级判定：`admin` 涵盖 `write` 和 `read`，而
+`write` 涵盖 `read`。未知作用域不涵盖任何权限。
 
-`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) 将该等级与 `inferRequiredScope` (`src/server/authz/accessScopes.ts`) 进行比较：
+`evaluateAccessTokenAuth`（`src/server/authz/accessTokenAuth.ts`）会将该
+等级与 `inferRequiredScope`（`src/server/authz/accessScopes.ts`）进行比较：
 
-- `GET`、`HEAD` 和 `OPTIONS` 需要 `read`。
-- 所有其他方法都需要 `write`。
-- `ADMIN_SCOPE_PREFIXES` 中的路径对所有方法都需要 `admin`。`/api/mcp` 在该列表中，因此 `write` 访问令牌仍然无法调用 MCP HTTP 接口。
-- `ADMIN_MUTATION_PREFIXES` 中的路径仅在变更 (mutations) 时需要 `admin`。
+- `GET`、`HEAD` 和 `OPTIONS` 要求 `read`。
+- 其他所有方法要求 `write`。
+- `ADMIN_SCOPE_PREFIXES` 中的路径对所有方法都要求 `admin`。`/api/mcp`
+  位于该列表中，因此 `write` 访问令牌仍然无法调用 MCP HTTP
+  接口。
+- `ADMIN_MUTATION_PREFIXES` 中的路径仅对变更操作要求 `admin`。
 
-`PATCH /api/keys/{id}` 是一个修改操作，并且不在那些管理员列表中，因此一个 `read` 令牌会收到 403 错误
+`PATCH /api/keys/{id}` 是一个变更操作，并且不在这些管理员列表中，因此
+`read` 令牌会收到 403：
 `Access token scope 'read' is insufficient; 'write' required.`
-一个 `write` 或 `admin` 访问令牌满足该路由的要求。仪表盘 JWT、loopback CLI 机器 ID 令牌以及具有 `manage` 或 `admin` 权限的 API 密钥会走其他分支，并且不受此等级的限制。
+`write` 或 `admin` 访问令牌可满足该路由的要求。控制面板 JWT、回环 CLI machine-id 令牌，以及具有 `manage` 或 `admin` 的 API 密钥会进入其他分支，不受此等级限制。
 
-一个通过了 `/api/mcp` 的 `scopeSatisfies` 检查的访问令牌仅通过了管理关卡。工具调用仍然会针对 API 密钥范围运行 `scopeMatches`。访问令牌等级不是 `scopeMatches` 的输入。
+通过 `/api/mcp` 的 `scopeSatisfies` 检查的访问令牌仅通过了管理入口检查。工具调用仍会使用 API 密钥作用域执行 `scopeMatches`。访问令牌等级不是 `scopeMatches` 的输入。
 
-### MCP 工具范围
+### MCP 工具作用域
 
-范围强制执行集中在 `open-sse/mcp-server/scopeEnforcement.ts` 中。
-每个工具都需要特定的范围：
+作用域强制执行逻辑集中在 `open-sse/mcp-server/scopeEnforcement.ts` 中。每个工具都需要特定的作用域：
 
-| 范围                 | 工具                                                                                                                                                                         |
-| :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `读取:健康状况`      | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
-| `读取:组合`          | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
-| `写入:组合`          | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
-| `读取:配额`          | `check_quota`                                                                                                                                                                |
-| `读取:用量`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
-| `读取:模型`          | `list_models_catalog`                                                                                                                                                        |
-| `执行:补全`          | `route_request`, `test_combo`                                                                                                                                                |
-| `执行:搜索`          | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
-| `写入:预算`          | `set_budget_guard`                                                                                                                                                           |
-| `写入:弹性`          | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
-| `定价:写入`          | `sync_pricing`                                                                                                                                                               |
-| `读取:缓存`          | `cache_stats`                                                                                                                                                                |
-| `写入:缓存`          | `cache_flush`                                                                                                                                                                |
-| `读取:压缩`          | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
-| `写入:压缩`          | `compression_configure`, `set_compression_engine`                                                                                                                            |
-| `读取:代理`          | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
-| `读取:Notion`        | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
-| `写入:Notion`        | `notion_append_blocks`                                                                                                                                                       |
-| `读取:内存`          | `memory_search`                                                                                                                                                              |
-| `写入:内存`          | `memory_add`, `memory_clear`                                                                                                                                                 |
-| `读取:技能`          | `skills_list`, `skills_executions`                                                                                                                                           |
-| `写入:技能`          | `skills_enable`                                                                                                                                                              |
-| `执行:技能`          | `skills_execute`                                                                                                                                                             |
-| `读取:目录`          | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
-| `读取:工具`          | `omniroute_tool_search`                                                                                                                                                      |
-| `读取:雷达`          | `omniroute_radar_catalog`                                                                                                                                                    |
-| `读取:游戏化`        | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
-| `write:gamification` | `gamification_invite`, `gamification_transfer`                                                                                                                               |
-| `read:plugins`       | `plugin_list`, `plugin_executions`                                                                                                                                           |
-| `write:plugins`      | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
-| `read:obsidian`      | 13 个读取工具 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`     | 9 个写入工具 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
-| `read:local-corpus`  | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
+| 权限范围              | 工具                                                                                                                                                                         |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                            |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                    |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                       |
+| `read:quota`          | `check_quota`                                                                                                                                                                |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                       |
+| `read:models`         | `list_models_catalog`                                                                                                                                                        |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                        |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                           |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                  |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                               |
+| `read:cache`          | `cache_stats`                                                                                                                                                                |
+| `write:cache`         | `cache_flush`                                                                                                                                                                |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                   |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                            |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                        |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                             |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                       |
+| `read:memory`         | `memory_search`                                                                                                                                                              |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                 |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                           |
+| `write:skills`        | `skills_enable`                                                                                                                                                              |
+| `execute:skills`      | `skills_execute`                                                                                                                                                             |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                             |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                      |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                    |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
+| `read:obsidian`       | 13 个读取工具 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 个写入工具 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
 
-支持通配符范围：`read:*` 授予所有读取范围，`*` 授予完全访问权限。
+支持通配符作用域：`read:*` 授予所有读取作用域，`*` 授予完整访问权限。
 
-### `mcp:connect` — 窄路由能力 (#7895)
+### `mcp:connect` — 窄化的路由权限 (#7895)
 
-从非环回地址访问 HTTP/SSE MCP 传输 (`/api/mcp/*`) 需要 `/api/mcp/` LOCAL_ONLY 豁免（参见 `docs/security/ROUTE_GUARD_TIERS.md`）。历史上，该豁免只接受完整的 `manage`/`admin` 范围 API 密钥——对于只需要与 MCP 通信的调用者来说，这太宽泛了。`src/shared/constants/managementScopes.ts` 现在导出了 `MCP_CONNECT_SCOPE = "mcp:connect"`：这是一个附加的、窄范围（与 `SELF_USAGE_SCOPE` 具有相同的先例），它**只**授权 `src/server/authz/policies/management.ts` 中的 `/api/mcp/` 绕过——它不授予任何其他管理路由访问权限，并且被有意地排除在 `MANAGEMENT_API_KEY_SCOPES` 之外。持有 `manage`/`admin` 的密钥仍然可以不变地通过豁免；`mcp:connect` 是远程仅 MCP 调用者的低权限替代方案，通过 `hasMcpConnectOrManageScope()` 进行检查。
+从非环回地址访问 HTTP/SSE MCP 传输端点（`/api/mcp/*`）需要
+`/api/mcp/` 的 LOCAL_ONLY 例外规则（参见 `docs/security/ROUTE_GUARD_TIERS.md`）。以往，
+该例外规则仅接受具有完整 `manage`/`admin` 作用域的 API 密钥——对于
+只需要与 MCP 通信的调用方而言，权限过于宽泛。`src/shared/constants/managementScopes.ts` 现在
+导出 `MCP_CONNECT_SCOPE = "mcp:connect"`：这是一个附加的窄作用域（遵循与
+`SELF_USAGE_SCOPE` 相同的先例），仅授权绕过
+`src/server/authz/policies/management.ts` 中的 `/api/mcp/` 限制——它不会授予任何其他管理路由访问权限，
+并被特意排除在 `MANAGEMENT_API_KEY_SCOPES` 之外。持有 `manage`/`admin`
+的密钥仍可照常通过该例外规则；对于仅需远程访问 MCP 的调用方，`mcp:connect` 是权限更低的替代方案，
+通过 `hasMcpConnectOrManageScope()` 进行检查。
 
-### 每密钥 HTTP 范围绑定 (#7895)
+### 按密钥绑定 HTTP 作用域 (#7895)
 
-通过 HTTP/SSE，`open-sse/mcp-server/httpTransport.ts` 现在通过 `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) 解析调用者的真实 `api_keys.scopes`，并将其传递给 MCP SDK 的 `transport.handleRequest(req, { authInfo })`，因此到达每个工具调用的 `extra.authInfo.scopes` 反映了 Bearer 密钥自身的范围。`scopeEnforcement.ts` 的 `resolveCallerScopeContext()` 已经优先考虑 `authInfo` 而非 `_meta` 和 `OMNIROUTE_MCP_SCOPES` 环境变量回退——这只是填充了第一个、最高优先级的来源，该来源以前在 HTTP 上未被提供。当没有 API 密钥解析（无头，无效密钥）时，`authInfo` 保持 `undefined`，并且解析会回退到现有的 `meta`/env 链，保持不变。这并**不**改变 `OMNIROUTE_MCP_ENFORCE_SCOPES` 的默认值——强制执行仍然必须明确启用；此更改只使得一旦启用，每密钥路径将优先。stdio 没有每调用者身份（参见 `mcpCallerIdentity.ts`），因此不受影响——它仍然依赖于 `_meta`/env 回退链。
+通过 HTTP/SSE 访问时，`open-sse/mcp-server/httpTransport.ts` 现在会通过
+`resolveMcpCallerAuthInfo()`（`open-sse/mcp-server/httpAuthContext.ts`）解析调用方实际的
+`api_keys.scopes`，并将其传递给 MCP SDK 的 `transport.handleRequest(req, { authInfo })`，因此
+每次工具调用接收到的 `extra.authInfo.scopes` 都会反映 Bearer 密钥自身的作用域。
+`scopeEnforcement.ts` 中的 `resolveCallerScopeContext()` 已优先使用 `authInfo`，而非
+`_meta` 和 `OMNIROUTE_MCP_SCOPES` 环境变量回退值——此次更改只是填充了这个优先级最高的来源，
+此前通过 HTTP 访问时该来源并未得到填充。当无法解析出 API 密钥时
+（无请求头或密钥无效），`authInfo` 保持为 `undefined`，解析过程会按原有逻辑继续回退到
+`meta`/环境变量链。stdio 没有按调用方区分的身份信息（参见
+`mcpCallerIdentity.ts`），因此不受影响——它仍使用 `_meta`/环境变量回退链。
+
+**对于使用窄作用域的 HTTP/SSE 调用方，无论
+`OMNIROUTE_MCP_ENFORCE_SCOPES` 的设置如何，都会强制启用作用域检查。** `OMNIROUTE_MCP_ENFORCE_SCOPES` 默认为 `false`，
+仅对本地/stdio 单操作员流程是安全的，因为在该流程中没有可用于作用域检查的调用方身份。
+只要 `resolveCallerScopeContext()` 解析出
+`source === "authInfo"`（即真实的按密钥区分的 HTTP Authorization 请求头，仅限 HTTP/SSE），并且该
+密钥不具备完整的 `manage`/`admin` 作用域，`open-sse/mcp-server/server.ts::withScopeEnforcement()` 就会
+无条件启用按工具进行的作用域检查（通过 `scopeEnforcement.ts` 中的 `shouldForceScopeEnforcement()`）。
+这弥补了一个权限缺口：仅持有窄作用域 `mcp:connect` 绕过权限的密钥——如上所述，它只授权绕过
+`/api/mcp/` 的 LOCAL_ONLY 限制——在操作员启用远程/非环回 MCP 访问后，原本可能仅仅因为
+`OMNIROUTE_MCP_ENFORCE_SCOPES` 默认以 `false` 发布，就能调用所有 MCP 工具。通过 HTTP 使用的完整
+`manage`/`admin` 密钥，以及所有 stdio/本地调用方，仍保持现有由
+`OMNIROUTE_MCP_ENFORCE_SCOPES` 控制的行为不变。
 
 ---
 
 ## 环境变量
 
-| 变量                                    | 默认值                        | 用途                                                                             |
-| :-------------------------------------- | :---------------------------- | :------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`      | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                               |
-| `OMNIROUTE_API_KEY`                     | （空）                        | 作为 `Authorization: Bearer` 转发到内部 API 调用的 API 密钥                      |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`（仅 `"true"` 会启用） | 启用后，缺少作用域将拒绝工具调用，并在审计日志中记录 `scope_denied:<reason>`     |
-| `OMNIROUTE_MCP_SCOPES`                  | （空）                        | 以逗号分隔的作用域允许列表，默认视为“可用”（当调用方未提供自己的作用域时使用）   |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | （未设置 = 开启）             | 设置为 `0/false/off/no` 时，禁用注册期间的 MCP 描述压缩                          |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | （未设置 = 开启）             | 上述开关的替代别名                                                               |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                       | 内部管理读取（健康状态、弹性、组合、配额、用量）的中止超时                       |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                       | 等待提供者响应的请求跳转（`route_request`、`web_search`、`web_fetch`）的中止超时 |
-| `MCP_TOOL_DENY`                         | （未设置 = 不筛选）           | 要从 `tools/list` 中移除的工具名称，以逗号分隔（减少工具基数——见下文）           |
-| `MCP_TOOL_ALLOW`                        | （未设置 = 不筛选）           | 要专门保留的工具名称，以逗号分隔（允许列表模式——见下文）                         |
-| `DATA_DIR`                              | `~/.omniroute`                | 心跳文件写入 `${DATA_DIR}/runtime/mcp-heartbeat.json`                            |
+| 变量                                    | 默认值                        | 用途                                                                                                                                                                                                                                                                                                                                                                                               |
+| :-------------------------------------- | :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`      | MCP 服务器调用 OmniRoute 内部 API 时使用的基础 URL                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_API_KEY`                     | （空）                        | 转发给内部 API 调用的 API 密钥，格式为 `Authorization: Bearer`                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`（仅 `"true"` 会启用） | 启用后，缺少作用域将拒绝工具调用，并在审计日志中记录 `scope_denied:<reason>`。此外，无论此标志为何值，对于通过每个密钥的 Authorization 标头解析出的任何 HTTP/SSE 调用方（`source === "authInfo"`），如果其不具备完整的 `manage`/`admin` 作用域，也会强制执行此策略——例如，仅持有权限较窄的 `mcp:connect` 绕过作用域的密钥——因此，此默认值仅适用于本地/stdio 单操作员流程，绝不适用于远程非环回访问 |
+| `OMNIROUTE_MCP_SCOPES`                  | （空）                        | 默认视为“可用”的作用域白名单，以逗号分隔（当调用方未提供自己的作用域时使用）                                                                                                                                                                                                                                                                                                                       |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | （未设置 = 开启）             | 设置为 `0/false/off/no` 时，禁用注册期间的 MCP 描述压缩                                                                                                                                                                                                                                                                                                                                            |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | （未设置 = 开启）             | 与上述开关相同的备用别名                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                       | 内部管理读取（健康状态、弹性、组合、配额、用量）的中止超时                                                                                                                                                                                                                                                                                                                                         |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                       | 等待提供者响应的请求跳转（`route_request`、`web_search`、`web_fetch`）的中止超时                                                                                                                                                                                                                                                                                                                   |
+| `MCP_TOOL_DENY`                         | （未设置 = 不过滤）           | 要从 `tools/list` 中移除的工具名称，以逗号分隔（减少工具基数——见下文）                                                                                                                                                                                                                                                                                                                             |
+| `MCP_TOOL_ALLOW`                        | （未设置 = 不过滤）           | 以逗号分隔的工具名称，仅保留这些工具（允许列表模式——见下文）                                                                                                                                                                                                                                                                                                                                       |
+| `DATA_DIR`                              | `~/.omniroute`                | 心跳文件写入 `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                              |
 
 ---
 
@@ -442,7 +503,7 @@ MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
 
 ## 运行时心跳
 
-stdio 传输每 5 秒将活跃度持久化到 `${DATA_DIR}/runtime/mcp-heartbeat.json`。仪表板 (`/api/mcp/status`) 读取此文件以及 PID 活跃度以推断 `online` 状态。HTTP 传输则从进程内的 `getMcpHttpStatus()` 报告状态（不写入文件）。
+stdio 传输每 5 秒将存活状态写入 `${DATA_DIR}/runtime/mcp-heartbeat.json`。仪表板（`/api/mcp/status`）读取此文件并结合 PID 存活状态来确定 `online`。HTTP 传输则通过进程内的 `getMcpHttpStatus()` 报告状态（不写入文件）。
 
 心跳快照包含：
 

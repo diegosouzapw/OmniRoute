@@ -6,66 +6,85 @@
 
 Od wersji v3.8.49 (WS3.2/WS3.4 planu jakości/szybkości) domyślną ścieżką scalania
 zrecenzowanych PR-ów do `release/vX.Y.Z` jest **kolejka scalania Mergify** (`.mergify.yml`);
-opisana poniżej **ręczna kolejka scalania** jest rozwiązaniem AWARYJNYM — używanym podczas incydentów,
+opisany poniżej **ręczny merge train** stanowi ROZWIĄZANIE AWARYJNE — używane podczas incydentów,
 zamrożeń wydań lub w przypadku zmiany planu Mergify Open Source.
 
-## Ścieżka domyślna: kolejka Mergify
+## Domyślna ścieżka: kolejka Mergify
 
-1. PR zostaje zrecenzowany i otrzymuje zielony status od kampanii oraz akceptację w ramach należącej do właściciela
-   bramki ⭐ poprzedzającej scalanie (raport + decyzja dla każdego elementu — zobacz `/merge-prs`, krok 0.75).
-2. Właściciel (lub sesja działająca na podstawie decyzji właściciela) dodaje etykietę **`queue`**.
-   Etykieta JEST zgodą na scalenie; Mergify jedynie ją wykonuje.
-3. Mergify grupuje maksymalnie 10 PR-ów oczekujących w kolejce, weryfikuje partię przy użyciu szybkich bramek
-   i scala ją (squash). Partia z czerwonym statusem jest **automatycznie dzielona na połowy** — problematyczny PR
-   zostaje wyizolowany po około log2(N) ponownych walidacjach i usunięty z kolejki; pozostałe są kontynuowane.
-4. Po scaleniu przepływ pracy ciągłej weryfikacji zielonego stanu wydania sprawdza nowy wierzchołek po wypchnięciu
-   zmian i otwiera zgłoszenie z informacją o pochodzeniu problemu, jeśli połączenie zmian spowodowało regresję (nigdy nie wykonuje automatycznego wycofania).
+1. PR zostaje sprawdzony/otrzymuje zielony status w ramach kampanii i zatwierdzony przez należącą do właściciela bramkę ⭐
+   przed scaleniem (raport + decyzja dla każdej pozycji — zobacz krok 0.75 w `/merge-prs`).
+2. Właściciel (lub sesja działająca na podstawie decyzji właściciela) nadaje etykietę **`queue`**.
+   Etykieta JEST zgodą na scalenie; Mergify jedynie je wykonuje.
+3. Mergify weryfikuje PR-y w kolejce **sekwencyjnie** (pojedynczo) względem szybkich bramek
+   i scala je (squash). Grupowanie + automatyczna bisekcja wymagają płatnego planu Mergify
+   („Cannot use Merge Queue batch” w bezpłatnym planie, #7220), dlatego `.mergify.yml` nie ustawia
+   `batch_size`; grupowanie pozostaje zadaniem ręcznego procesu merge-train opisanego poniżej. PR, którego
+   testy nadal oczekują po upływie `checks_timeout` (240 min = 2× zmierzony p95 dla
+   `quality.yml`), zostaje usunięty z kolejki, zamiast ją blokować.
+4. Po scaleniu ciągły workflow weryfikacji wydania sprawdza nowy najnowszy commit po pushu
+   i otwiera issue wskazujące źródło problemu, jeśli dana kombinacja spowodowała regresję (nigdy nie wykonuje automatycznego revertu).
 
-Zabezpieczenia (odzwierciedlają twarde reguły nr 21/22 z `CLAUDE.md`):
+Zabezpieczenia (odzwierciedlają Twarde reguły #21/#22 z `CLAUDE.md`):
 
-- **Aktywne zamrożenie wydania** → NIE dodawaj etykiet do PR-ów kierowanych do zamrożonej gałęzi; najpierw zmień ich cel na
-  aktywną gałąź `release/vX+1`.
-- **PR w toku należący do innej sesji** → nigdy nie dodawaj do niego etykiety; tylko sesja będąca właścicielem umieszcza
-  własną pracę w kolejce.
-- PR-y zawierające wyłącznie zmiany w testach oraz PR-y z etykietą `hotfix` już uruchamiają ograniczony zestaw CI (zobacz
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); warunki kolejki akceptują dowolny
-  faktycznie uruchomiony zestaw kontroli (`#check-failure=0` + `#check-pending=0`).
+- **Aktywne zamrożenie wydania** → NIE nadawaj etykiet PR-om kierowanym do zamrożonej gałęzi; najpierw
+  zmień ich gałąź docelową na aktywną `release/vX+1`.
+- **PR innej sesji będący w toku** → nigdy nie nadawaj mu etykiety; tylko sesja będąca właścicielem dodaje
+  własną pracę do kolejki.
+- Zmiany obejmujące wyłącznie testy oraz PR-y z etykietą `hotfix` już korzystają z ograniczonego CI (zobacz
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); warunki kolejki akceptują dowolny zestaw
+  testów, który faktycznie został uruchomiony (`#check-failure=0` + `#check-pending=0`).
 
-## Rozwiązanie awaryjne: ręczna kolejka scalania
+## Rozwiązanie awaryjne: ręczny merge train
 
-Używana, gdy kolejka jest niedostępna. Formalizuje praktykę, dzięki której podczas
-cyklu v3.8.47 scalono 33 PR-y w ciągu jednego dnia:
+Używane, gdy kolejka jest niedostępna. Formalizuje praktykę, dzięki której w ciągu jednego dnia
+w cyklu v3.8.47 przetworzono 33 PR-y:
 
-1. **Zbierz partię** (~10–30 zrecenzowanych i zaakceptowanych PR-ów). Sprawdź kolizje `linked:`
-   (te same `tap.testFiles`, te same fragmenty CHANGELOG-u) i przetwarzaj takie PR-y sekwencyjnie.
-2. **Przeprowadź walidację RAZ**: w odizolowanym drzewie roboczym utworzonym od wierzchołka gałęzi wydania scal lokalnie wszystkie
-   wierzchołki z partii, a następnie uruchom zestaw równoważny wydaniu
+1. **Zbierz grupę** (~10–30 zrecenzowanych i zatwierdzonych PR-ów). Sprawdź kolizje `linked:`
+   (te same `tap.testFiles`, te same fragmenty CHANGELOG-u) i przetwarzaj je sekwencyjnie.
+2. **Przeprowadź walidację RAZ**: w odizolowanym worktree utworzonym na wierzchołku gałęzi wydania scal lokalnie wszystkie
+   wierzchołki z grupy, a następnie uruchom zestaw równoważny procesowi wydania
    (`npm run check:release-green`; przed wydaniem dodaj `--with-build`).
    `scripts/release/merge-train.sh <base> <PR#>…` automatyzuje kroki 1–2 (PR-y powodujące konflikty
-   są usuwane, a kolejka jest kontynuowana). Tryb pełny uruchamia `npm run test:unit` — dostrojony
-   do maszyny moduł uruchamiający (`--test-concurrency=20`), **a nie** dwa sekwencyjne fragmenty CI
-   wykorzystujące po 4 rdzenie, przez które dominująca faza używała około 25% maszyny 16-rdzeniowej (naprawiono
-   2026-07-18). `--fast` (opróżnianie dużych kolejek w ciągu dnia, zatwierdzone przez właściciela 2026-07-18)
-   zachowuje każdą bramkę statyczną + vitest, ale uruchamia wyłącznie pliki node:test zmienione przez
-   dołączone PR-y; PEŁNY zestaw musi mimo to zostać uruchomiony co najmniej raz dziennie na
-   skumulowanym wierzchołku (jedna kolejka bez `--fast`).
+   są usuwane, a merge train jest kontynuowany). Tryb pełny uruchamia `npm run test:unit` — dostrojony
+   do maszyny runner (`--test-concurrency=20`), **a nie** dwa sekwencyjne, 4-rdzeniowe shardy CI,
+   przez które dominująca faza wykorzystywała około 25% maszyny 16-rdzeniowej (naprawiono
+   2026-07-18). `--fast` (opróżnianie dużych merge trainów w ciągu dnia, zatwierdzone przez właściciela 2026-07-18)
+   zachowuje każdą bramkę statyczną oraz vitest, ale uruchamia jedynie pliki node:test zmienione przez
+   PR-y dołączone do merge trainu; PEŁNY zestaw nadal musi zostać uruchomiony co najmniej raz dziennie na
+   skumulowanym wierzchołku (jeden merge train bez `--fast`).
 3. **Zielony status** → scal PR-y po kolei (przed każdym ponownie sprawdzając `state,headRefOid` —
-   PR, którego wierzchołek się zmienił, wraca do recenzji). Potwierdź, że wynikowa różnica każdego scalenia stanowi
-   wyłącznie zmianę z danego PR-a (bez automatycznego rozwiązywania konfliktów przez wycofywanie zmian: sprawdź `git diff --stat` pod kątem
+   PR, którego wierzchołek się zmienił, wraca do recenzji). Udowodnij, że wynikowa różnica każdego scalenia odpowiada
+   wyłącznie zmianom z danego PR-a (bez automatycznego rozwiązywania przez wycofanie zmian: sprawdź `git diff --stat` pod kątem
    usunięć wykraczających poza zakres).
-4. **Czerwony status** → dziel partię na połowy (weryfikując każdą połowę), zamiast ponownie weryfikować
-   każdy PR osobno; odłóż problematyczny PR z powrotem do kolejki recenzji wraz z dowodami.
+4. **Czerwony status** → dziel grupę na połowy (sprawdzając każdą z nich), zamiast ponownie sprawdzać
+   każdy PR osobno; odeślij powodujący problem PR do kolejki recenzji wraz z dowodami.
 5. **Nigdy**: nie scalaj podczas zamrożenia z zamrożoną gałęzią; nie używaj nigdzie `git stash`;
-   nie uruchamiaj ponownie całego CI z nadzieją, że czerwony status zniknie (reguła: czerwony status to informacja).
+   nie uruchamiaj ponownie całego CI z nadzieją, że czerwony status zniknie (zasada: czerwony status jest informacją).
 
 ## Poziomy (dlaczego kolejka jest bezpieczna przy użyciu wyłącznie szybkich bramek)
 
-- **Dla każdego PR-a** (szybkie bramki quality.yml): testy objęte TIA + pełne testy jednostkowe w 4 fragmentach +
-  vitest + zestaw kontroli lintowania + kontrola typów + integralność dokumentacji/CHANGELOG-u.
-- **Dla każdej partii/wierzchołka** (ciągła weryfikacja zielonego stanu wydania): TWARDE bramki `--quick` przy każdym wypchnięciu zmian do
+- **Dla każdego PR-a** (szybkie bramki quality.yml): testy zależne od wpływu według TIA + pełne testy jednostkowe w 4 shardach +
+  vitest + zestaw lintowania + typecheck + kontrola integralności dokumentacji/CHANGELOG-u.
+- **Dla każdej grupy/wierzchołka** (ciągły release-green): TWARDЕ bramki `--quick` przy każdym wypchnięciu zmian do
   gałęzi wydania; pełne przebiegi `--with-build --full-ci` 3× dziennie.
-- **Dla każdego wydania** (ci.yml w PR-ze wydania): kompletna macierz, w tym E2E ×9,
-  package-artifact + test uruchomieniowy paczki tarball, pokrycie/progi zapadkowe.
+- **Dla każdego wydania** (ci.yml dla PR-a wydania): pełna macierz, w tym E2E ×9,
+  package-artifact + test uruchomieniowy paczki tarball, coverage/ratchets.
 
-Nic nie jest weryfikowane w mniejszym zakresie niż wcześniej — obciążające testy są po prostu uruchamiane dla każdej partii/wierzchołka,
-zamiast dla każdego PR-a, co eliminuje O(N) rund oczekiwania.
+Zakres walidacji nie jest mniejszy niż wcześniej — ciężkie testy są po prostu uruchamiane dla każdej grupy/wierzchołka,
+a nie dla każdego PR-a, co eliminuje O(N) rund komunikacji.
+
+## Wymagania wstępne świeżego checkoutu dla `merge-train.sh`
+
+Skrypt uruchamia na głównym checkoucie **kontrolę wstępną** kończącą działanie przy pierwszym błędzie (przed jakimikolwiek operacjami
+na worktree), dzięki czemu uszkodzona instalacja nigdy nie może zostać błędnie uznana za czerwony merge train:
+
+1. Uruchom `npm ci`, a następnie skrypt postinstall pakietu `bun`, który npm blokuje:
+   `(cd node_modules/bun && node install.js)` — w przeciwnym razie `check:provider-consistency`
+   i `check:known-symbols` (oba używają `bun scripts/…`) zakończą się niepowodzeniem zarówno dla merge trainu, JAK I bazy,
+   bez wskazania naruszenia.
+2. Brak zbędnego `node_modules/node_modules` (zduplikowanego drzewa zależności; React ładuje się dwukrotnie,
+   a zestawy testów interfejsu użytkownika w vitest natychmiast kończą się niepowodzeniem).
+3. `node_modules/.bin/tsc` musi istnieć i być wykonywalny (brakuje go w niepełnej instalacji).
+
+Merge train uruchamia blokujące `npm run check:cycles:ratchet`; samo `npm run check:cycles`
+ma charakter informacyjny (wyświetla SCC i kończy się kodem niezerowym nawet dla prawidłowej bazy).

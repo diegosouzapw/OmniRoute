@@ -36,26 +36,16 @@ avviklingen.
 Tunnelen er bare nødvendig for verktøyrunder. Alle oppførte ruter, inkludert `pro`, kan bruke den
 samme rundenære lokale verktøyfunksjonaliteten når tunnelen og tilkoblingen er konfigurert.
 
-## Oppsett i kontrollpanelet
+## Oppsett av kontrollpanelet
 
 1. Åpne leverandøren **ChatGPT Web (Codex)** og legg til en tilkobling.
-2. Lim inn den fullstendige ChatGPT Cookie-headeren, tunnel-ID-en, kjøretidsnøkkelen og navnet på den
-   egendefinerte tilkoblingen. Nye oppsett med verktøystøtte må bruke en nyopprettet tilkobling med
-   navnet nøyaktig `OmniRoute Codex v2`, der Authentication er satt til None og Permissions er satt til Allow all
-   actions.
-3. Kjør tilkoblingskontrollen. OmniRoute åpner en nettleserbasert midlertidig chat og registrerer
-   om Sol og Pro er tilgjengelige for kontoen.
-4. Lagre tilkoblingen. OmniRoute erstatter den innlimte informasjonskapselen med den verifiserte
-   Playwright-lagringstilstanden og lagrer den sammen med kjøretidsnøkkelen via den krypterte
-   abstraksjonen for påloggingsinformasjon.
+2. Lim inn hele ChatGPT Cookie-headeren, tunnel-ID-en, kjøretidsnøkkelen og navnet på den egendefinerte koblingen. Nye oppsett med verktøystøtte må bruke en nyopprettet kobling med navnet nøyaktig `OmniRoute Codex v2`, med Authentication satt til None og Permissions satt til Allow all actions.
+3. Kjør tilkoblingskontrollen. OmniRoute åpner en nettleserbasert midlertidig chat og registrerer om Sol og Pro er tilgjengelige for kontoen.
+4. Lagre tilkoblingen. OmniRoute erstatter den innlimte informasjonskapselen med den verifiserte Playwright-lagringstilstanden og lagrer den sammen med kjøretidsnøkkelen via den krypterte abstraksjonen for påloggingsopplysninger.
 
-Den rå informasjonskapselen beholdes ikke etter vellykket lagring. Når økten utløper, åpner du
-tilkoblingen, limer inn en ny fullstendig Cookie-header og kjører kontrollen på nytt. Doctor-statusen
-i redigeringsdialogen rapporterer nettleser, lagringstilstand, innlogging, midlertidig chat, tunnel,
-tilkobling og verktøyets rundturskontroll separat.
+Den ubehandlede informasjonskapselen beholdes ikke etter en vellykket lagring. Når økten utløper, åpner du tilkoblingen, limer inn en ny, fullstendig Cookie-header og kjører kontrollen på nytt. Doctor-statusen i redigeringsdialogen rapporterer nettleser, lagringstilstand, pålogging, midlertidig chat, tunnel, kobling og verktøyets rundturskontroll separat. Hvis du vil automatisere oppdateringer av informasjonskapsler når økter roteres, kan du se det tilhørende verktøyet i [Utvidelse for synkronisering av nettleserøkter](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Aldri legg inn en ekte informasjonskapsel, kjøretidsnøkkel, lagringstilstand eller funksjonstoken i versjonskontroll. Test- og
-> dokumentasjonsverdier må alltid være plassholdere.
+> Aldri legg en ekte informasjonskapsel, kjøretidsnøkkel, lagringstilstand eller funksjonstoken inn i versjonskontrollen. Test- og dokumentasjonsverdier må alltid være plassholdere.
 
 ## Modeller og kombinasjoner
 
@@ -132,7 +122,7 @@ HTTP/SSE-reserveløsningen før den kobler til oppstrøms. Overføringen går de
 
 ## Verifisering
 
-Kjør leverandørkontrollene uten å aktivere den utgåtte leverandøren:
+Kjør leverandørkontrollene uten å aktivere den utfasede leverandøren:
 
 ```bash
 node --import tsx/esm --test \\

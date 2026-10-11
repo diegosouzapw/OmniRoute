@@ -124,13 +124,13 @@ builder එකක්, unit test කර ඇත), `ClaudeGatewayOnboardingBlock` �
 
 ## පැතිකඩ (`CLAUDE_CONFIG_DIR`)
 
-Claude Code සතුව **ස්වදේශීය profile ගොනු නොමැත** (Codex හි `~/.codex/<name>.config.toml` මෙන් නොව).
-සාමාන්යයෙන් නිර්දේශිත යාන්ත්රණය `CLAUDE_CONFIG_DIR` වේ — එක් එක් profile එක සඳහා වෙනම config directory එකක්,
-ඒ සෑම එකකම තමන්ගේම `settings.json`, අක්තපත්ර, ඉතිහාසය සහ cache එක ඇත.
+Claude Code සතුව **ස්වදේශීය පැතිකඩ ගොනු නොමැත** (Codex හි `~/.codex/<name>.config.toml` මෙන් නොව).
+සාමාන්යයෙන් භාවිත කරන යාන්ත්රණය වන්නේ `CLAUDE_CONFIG_DIR` ය — එක් එක් පැතිකඩ සඳහා වෙනම වින්යාස නාමාවලියක් වන අතර,
+ඒ සෑම එකකටම තමන්ගේම `settings.json`, අක්තපත්ර, ඉතිහාසය සහ හැඹිලිය ඇත.
 
-`omniroute setup-claude` සජීවී `/v1/models` නාමාවලිය ලබාගෙන, එක් model එකකට එක්
-profile එක බැගින් `~/.claude/profiles/<name>/settings.json` වෙත ලියයි, එහිදී
-**`setup-codex` හි නම්ම නැවත භාවිත කරයි** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+`omniroute setup-claude` සජීවී `/v1/models` නාමාවලිය ලබාගෙන,
+**`setup-codex` හි ඇති නම්ම භාවිත කරමින්** (`glm52`, `kimi-k27`, `deepseek-pro`, …)
+එක් එක් ආකෘතිය සඳහා `~/.claude/profiles/<name>/settings.json` හි පැතිකඩක් ලියයි:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -147,36 +147,40 @@ profile එක බැගින් `~/.claude/profiles/<name>/settings.json` ව�
 }
 ```
 
-> **සත්යාපන token එක කිසිවිටෙක profile එකට ලියනු නොලැබේ.** `omniroute launch --profile <name>`
-> සමඟ දියත් කරන්න (එය සක්රිය context එකෙන් `ANTHROPIC_AUTH_TOKEN` ඇතුළත් කරයි), නැතහොත්
-> `ANTHROPIC_AUTH_TOKEN` ඔබ විසින්ම export කර
+> **සත්යාපන ටෝකනය කිසිවිටෙකත් පැතිකඩට ලියනු නොලැබේ.** `omniroute launch --profile <name>`
+> සමඟ දියත් කරන්න (එය සක්රිය සන්දර්භයෙන් `ANTHROPIC_AUTH_TOKEN` ඇතුළත් කරයි), නැතහොත්
+> `ANTHROPIC_AUTH_TOKEN` ඔබම export කර
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` ධාවනය කරන්න.
 
-**Model discovery පසු ස්වයංක්රීය සමමුහුර්තකරණය (තෝරා සක්රිය කළ යුතුය).** Provider model
-sync කිරීමකින් සජීවී නාමාවලිය වෙනස් වන සෑම අවස්ථාවකම OmniRoute හට මෙම
-`~/.claude/profiles/<name>/settings.json` ගොනු ස්වයංක්රීයව නැවත ජනනය කළ හැක — එවිට නව/නැවත නම් කළ
-model සඳහා command එක නැවත ධාවනය නොකර profiles ලැබේ. මෙය **පෙරනිමියෙන් අක්රියයි**: එය
-**CLI Code උපකරණ පුවරුවෙන්** ("CLI profile auto-sync" → Claude Code) මාරු කරන්න, නැතහොත්
-`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` සකසන්න (එය පෙරනිමියෙන් සක්රිය `CLI_ALLOW_CONFIG_WRITES`
-ද පිළිපදියි). සක්රිය කළ විට එය ලියන්නේ profile ගොනු පමණි; එය කිසිවිටෙක ඔබේ සක්රිය/පෙරනිමි Claude
-config, auth, හෝ `~/.claude/settings.json` වෙනස් නොකරයි.
+**ආකෘති සොයාගැනීමෙන් පසු ස්වයංක්රීය සමමුහුර්තකරණය (තෝරා සක්රිය කළ යුතුය).** සැපයුම්කරුවෙකුගේ ආකෘති
+සමමුහුර්තකරණයක් සජීවී නාමාවලිය වෙනස් කරන සෑම අවස්ථාවකම OmniRoute හට මෙම
+`~/.claude/profiles/<name>/settings.json` ගොනු ස්වයංක්රීයව නැවත ජනනය කළ හැක — එබැවින් විධානය නැවත
+ධාවනය නොකරම නව/නැවත නම් කළ ආකෘති සඳහා පැතිකඩ ලැබේ. එය **පෙරනිමියෙන් අක්රියය**: **CLI Code උපකරණ පුවරුවෙන්**
+("CLI පැතිකඩ ස්වයංක්රීය සමමුහුර්තකරණය" → Claude Code) එය මාරු කරන්න, නැතහොත්
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` සකසන්න (එය පෙරනිමියෙන් සක්රිය `CLI_ALLOW_CONFIG_WRITES` ද
+ගරු කරයි). සක්රිය කළ විට එය ලියන්නේ පැතිකඩ ගොනු පමණි; එය කිසිවිටෙකත් ඔබේ සක්රිය/පෙරනිමි Claude වින්යාසය,
+සත්යාපනය හෝ `~/.claude/settings.json` වෙනස් නොකරයි.
 
-### Profiles ජනනය කිරීම + භාවිත කිරීම
+### පැතිකඩ ජනනය කිරීම + භාවිත කිරීම
 
 ```bash
 # දේශීය OmniRoute
 omniroute setup-claude
 
-# දුරස්ථ VPS (සෑම profile එකකටම VPS URL එක ඇතුළත් කරයි)
+# දුරස්ථ VPS (සෑම පැතිකඩකටම VPS URL එක ඇතුළත් කරයි)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# ඇතැම් providers පමණි
+# ඇතැම් සැපයුම්කරුවන් පමණි
 omniroute setup-claude --only glm,kimi
 
-# ලිවීමෙන් තොරව පෙරදසුන
+# මෙම ධාරකයේ හඳුනා නොගත් local-CLI සැපයුම්කරුවන් සඳහාද (zcode, auggie, devin-cli-agentic,
+# codex-app-server) පැතිකඩ ලියන්න (දේශීය ඉලක්කයක් සඳහා පෙරනිමියෙන් මඟ හරිනු ලැබේ)
+omniroute setup-claude --include-local
+
+# නොලියා පෙරදසුනක් බලන්න
 omniroute setup-claude --dry-run
 
-# Profile එකක් දියත් කරන්න
+# පැතිකඩක් දියත් කරන්න
 omniroute launch --profile kimi-k27
 ```
 

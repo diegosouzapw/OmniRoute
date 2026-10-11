@@ -121,9 +121,12 @@ Forrás: `src/shared/services/claudeCliConfig.ts::buildClaudeDiscoverySettingsSn
 ## Profilok (`CLAUDE_CONFIG_DIR`)
 
 A Claude Code **nem rendelkezik natív profilfájlokkal** (ellentétben a Codex `~/.codex/<name>.config.toml` fájljával).
-A bevett megoldás a `CLAUDE_CONFIG_DIR` használata — profilonként külön konfigurációs könyvtárral, amelyek mindegyike saját `settings.json` fájllal, hitelesítő adatokkal, előzményekkel és gyorsítótárral rendelkezik.
+Az idiomatikus megoldás a `CLAUDE_CONFIG_DIR` — profilonként külön konfigurációs könyvtár,
+mindegyik saját `settings.json` fájllal, hitelesítő adatokkal, előzményekkel és gyorsítótárral.
 
-Az `omniroute setup-claude` lekéri az aktuális `/v1/models` katalógust, és modellenként egy profilt ír a `~/.claude/profiles/<name>/settings.json` helyre, **ugyanazokat a neveket használva, mint a `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+Az `omniroute setup-claude` lekéri az aktuális `/v1/models` katalógust, és modellenként
+egy profilt ír a `~/.claude/profiles/<name>/settings.json` helyre, a
+**`setup-codex` parancsnál használt nevekkel megegyező neveket** használva (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -141,10 +144,18 @@ Az `omniroute setup-claude` lekéri az aktuális `/v1/models` katalógust, és m
 ```
 
 > **A hitelesítési token soha nem kerül bele a profilba.** Indítsa a következővel:
-> `omniroute launch --profile <name>` (ez az aktív kontextusból beilleszti az `ANTHROPIC_AUTH_TOKEN` értékét), vagy exportálja saját maga az `ANTHROPIC_AUTH_TOKEN` változót, majd futtassa ezt:
+> `omniroute launch --profile <name>` (ez beilleszti az `ANTHROPIC_AUTH_TOKEN` értékét az
+> aktív kontextusból), vagy exportálja saját maga az `ANTHROPIC_AUTH_TOKEN` változót, majd futtassa ezt:
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Automatikus szinkronizálás modellfelderítés után (külön engedélyezhető).** Az OmniRoute automatikusan újragenerálhatja ugyanezeket a `~/.claude/profiles/<name>/settings.json` fájlokat, amikor egy szolgáltatói modell szinkronizálása módosítja az aktuális katalógust — így az új vagy átnevezett modellekhez a parancs ismételt futtatása nélkül jönnek létre profilok. Ez **alapértelmezés szerint ki van kapcsolva**: kapcsolja be a **CLI-kód irányítópulton** („CLI-profilok automatikus szinkronizálása” → Claude Code), vagy állítsa be az `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` értéket (figyelembe veszi az alapértelmezés szerint bekapcsolt `CLI_ALLOW_CONFIG_WRITES` beállítást is). Ha engedélyezve van, kizárólag profilfájlokat ír; soha nem módosítja az aktív/alapértelmezett Claude-konfigurációt, a hitelesítést vagy a `~/.claude/settings.json` fájlt.
+**Automatikus szinkronizálás a modellfelderítés után (opcionális).** Az OmniRoute automatikusan újragenerálhatja ugyanezeket a
+`~/.claude/profiles/<name>/settings.json` fájlokat, amikor egy szolgáltatói modellszinkronizálás
+módosítja az aktuális katalógust — így az új vagy átnevezett modellekhez a parancs ismételt futtatása
+nélkül jönnek létre profilok. Ez **alapértelmezés szerint ki van kapcsolva**: kapcsolja be a **CLI Code irányítópulton**
+("CLI profile auto-sync" → Claude Code), vagy állítsa be az `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` értéket
+(ez a `CLI_ALLOW_CONFIG_WRITES` beállítást is figyelembe veszi, amely alapértelmezés szerint be van kapcsolva).
+Bekapcsolt állapotban csak profilfájlokat ír; soha nem módosítja az aktív/alapértelmezett Claude-konfigurációt,
+a hitelesítést vagy a `~/.claude/settings.json` fájlt.
 
 ### Profilok létrehozása és használata
 
@@ -152,11 +163,15 @@ Az `omniroute setup-claude` lekéri az aktuális `/v1/models` katalógust, és m
 # Helyi OmniRoute
 omniroute setup-claude
 
-# Távoli VPS (minden profilba beágyazza a VPS URL-jét)
+# Távoli VPS (minden profilba beépíti a VPS URL-jét)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# Csak néhány szolgáltató
+# Csak bizonyos szolgáltatók
 omniroute setup-claude --only glm,kimi
+
+# Profilok írása a helyi CLI-szolgáltatókhoz is (zcode, auggie, devin-cli-agentic,
+# codex-app-server), amelyek ezen a gazdagépen nem észlelhetők (helyi cél esetén alapértelmezés szerint kihagyva)
+omniroute setup-claude --include-local
 
 # Előnézet írás nélkül
 omniroute setup-claude --dry-run

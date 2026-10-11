@@ -36,24 +36,25 @@ vienu un to pašu ar mijiedarbības soli saistīto lokālā rīka iespēju, ja t
 
 ## Informācijas paneļa iestatīšana
 
-1. Atveriet **ChatGPT Web (Codex)** nodrošinātāju un pievienojiet savienojumu.
-2. Ielīmējiet pilno ChatGPT Cookie galveni, tuneļa ID, izpildlaika atslēgu un pielāgotā savienotāja
-   nosaukumu. Jaunās konfigurācijās ar rīku atbalstu jāizmanto jaunizveidots savienotājs ar precīzu nosaukumu
-   `OmniRoute Codex v2`, autentifikācijai iestatot None un atļaujām — Allow all
+1. Atveriet pakalpojuma sniedzēju **ChatGPT Web (Codex)** un pievienojiet savienojumu.
+2. Ielīmējiet pilnu ChatGPT Cookie galveni, tuneļa ID, izpildlaika atslēgu un pielāgotā savienotāja
+   nosaukumu. Jaunos iestatījumos ar rīku atbalstu jāizmanto jaunizveidots savienotājs ar precīzu nosaukumu
+   `OmniRoute Codex v2`, opcijai Authentication jābūt iestatītai uz None, bet opcijai Permissions — uz Allow all
    actions.
-3. Palaidiet savienojuma pārbaudi. OmniRoute atver pārlūkprogrammas atbalstītu pagaidu tērzēšanu un nosaka,
+3. Palaidiet savienojuma pārbaudi. OmniRoute atver pārlūkprogrammā balstītu pagaidu tērzēšanu (Temporary Chat) un nosaka,
    vai kontam ir pieejami Sol un Pro.
-4. Saglabājiet savienojumu. OmniRoute aizstāj ielīmēto sīkfailu ar verificētu
+4. Saglabājiet savienojumu. OmniRoute aizstāj ielīmēto sīkfailu ar pārbaudīto
    Playwright krātuves stāvokli un glabā to kopā ar izpildlaika atslēgu, izmantojot šifrētu
    akreditācijas datu abstrakciju.
 
-Pēc veiksmīgas saglabāšanas neapstrādātais sīkfails netiek paturēts. Kad sesijas derīgums beidzas, atveriet
-savienojumu, ielīmējiet jaunu pilnu Cookie galveni un atkārtoti palaidiet pārbaudi. Diagnostikas statuss
-rediģēšanas dialoglodziņā atsevišķi ziņo par pārlūkprogrammu, krātuves stāvokli, pierakstīšanos, pagaidu tērzēšanu, tuneli,
-savienotāju un rīka pilna cikla pārbaudi.
+Pēc veiksmīgas saglabāšanas neapstrādātais sīkfails netiek saglabāts. Kad sesijas derīgums beidzas, atveriet
+savienojumu, ielīmējiet jaunu pilnu Cookie galveni un vēlreiz palaidiet pārbaudi. Diagnostikas statuss
+rediģēšanas dialoglodziņā atsevišķi parāda pārlūkprogrammas, krātuves stāvokļa, pierakstīšanās, pagaidu tērzēšanas (Temporary Chat), tuneļa,
+savienotāja un rīka pilna cikla pārbaudes rezultātus. Lai automatizētu sīkfailu atjaunināšanu sesiju maiņas laikā,
+skatiet saistīto rīku sadaļā [Pārlūkprogrammas sesijas sinhronizācijas paplašinājums](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nekad nekomitojiet īstu sīkfailu, izpildlaika atslēgu, krātuves stāvokli vai iespējas pilnvaru. Testu un
-> dokumentācijas vērtībām vienmēr jābūt vietturiem.
+> Nekad neiekļaujiet repozitorija komitā īstu sīkfailu, izpildlaika atslēgu, krātuves stāvokli vai iespēju pilnvaru. Testos un
+> dokumentācijā vienmēr jāizmanto vietturi.
 
 ## Modeļi un kombinācijas
 
@@ -130,7 +131,7 @@ savienojuma izveides ar augšupējo serveri pieprasa HTTP/SSE atkāpšanās meh�
 
 ## Verifikācija
 
-Palaidiet nodrošinātāja pārbaudes, neizsaucot vairs neizmantoto nodrošinātāju:
+Palaidiet nodrošinātāja pārbaudes, neizsaucot no lietošanas izņemto nodrošinātāju:
 
 ```bash
 node --import tsx/esm --test \\
@@ -139,7 +140,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Regresijas aizsargi pret vairs neizmantotās funkcionalitātes atjaunošanu atrodas šeit:
+Regresijas aizsargpārbaudes saistībā ar izņemšanu no lietošanas atrodas šeit:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

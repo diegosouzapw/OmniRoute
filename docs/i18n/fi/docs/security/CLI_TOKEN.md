@@ -43,22 +43,11 @@ salasanaa jokaisella suorituskerralla.
 | **Ei `always`-suojauksen ohitusta** | `isAlwaysProtectedPath()` arvioidaan ennen CLI-tunnisteen tarkistusta. `/api/shutdown` ja `/api/settings/database` vaativat aina JWT:n.                                                                                                                       |
 | **Ei vietävissä**                   | Tunnistetta ei koskaan kirjoiteta levylle eikä lokiteta.                                                                                                                                                                                                      |
 
-## Oletussuola (satunnainen asennuskohtainen arvo)
+## Oletussuola (satunnainen asennuskohtaisesti)
 
-Kun `OMNIROUTE_CLI_SALT`-muuttujaa ei ole asetettu, suolana käytetään satunnaista,
-64 merkkiä pitkää heksadesimaalista merkkijonoa, joka luodaan kerran ja tallennetaan
-polkuun `<DATA_DIR>/cli-token-salt.json` (tila `0600`) — ei versionhallintaan
-tallennettua literaalia `omniroute-cli-auth-v1`. Sekä `getActiveSalt()` tiedostossa
-`src/lib/machineToken.ts` että sen vastine tiedostossa
-`bin/cli/utils/cliToken.mjs` lukevat saman tiedoston, joten palvelin ja tämän
-asennuksen jokainen CLI-suorituskerta päätyvät samaan arvoon. Versionhallintaan
-tallennettua literaalia käytetään vain viimeisenä varavaihtoehtona, kun pysyvää tai
-ympäristömuuttujasta saatavaa suolaa ei vielä voida muodostaa (esimerkiksi tuoreessa,
-vain CLI:n sisältävässä asennuksessa ennen kuin palvelinta on koskaan suoritettu).
-Tämä korjaa vanhan kiinteän oletusliteraalin heikkouden: `/etc/machine-id` on
-yleensä kaikkien käyttäjien luettavissa, joten kuka tahansa paikallinen käyttäjä
-olisi muuten voinut johtaa saman tunnisteen kaikille asennuksille, joissa
-`OMNIROUTE_CLI_SALT`-muuttujaa ei ollut asetettu.
+Kun `OMNIROUTE_CLI_SALT`-muuttujaa ei ole asetettu, suolana käytetään satunnaista 64-merkkistä heksadesimaalijonoa, joka luodaan kerran ja tallennetaan pysyvästi tiedostoon `<DATA_DIR>/cli-token-salt.json` (tila `0600`) — ei lähdekoodiin sisällytettyä literaalia `omniroute-cli-auth-v1`. Sekä `src/lib/machineToken.ts`-tiedoston `getActiveSalt()` että sen vastine tiedostossa `bin/cli/utils/cliToken.mjs` lukevat saman tiedoston, joten palvelin ja jokainen tämän asennuksen CLI-kutsu käyttävät samaa arvoa. Lähdekoodiin sisällytettyä literaalia käytetään vain viimeisenä varavaihtoehtona, kun pysyvää tai ympäristömuuttujassa määritettyä suolaa ei vielä voida ottaa käyttöön (esimerkiksi tuoreessa pelkän CLI:n asennuksessa ennen kuin palvelinta on käynnistetty kertaakaan). Tämä korjaa vanhan kiinteän oletusliteraalin heikkouden: `/etc/machine-id` on yleensä kaikkien luettavissa, joten muuten kuka tahansa paikallinen käyttäjä voisi johtaa saman tunnisteen jokaiselle asennukselle, jossa `OMNIROUTE_CLI_SALT`-muuttujaa ei ole asetettu.
+
+Jos suolaa ei voida lukea tai luoda, sekä palvelin että CLI antavat yhden varoituksen prosessia kohden ennen yhteensopivuuden varavaihtoehdon käyttämistä. Varoitus ei sisällä suolaa, tunnistetta, tiedostojärjestelmäpolkua eikä käsittelemätöntä virhettä. Palauta `DATA_DIR`-hakemiston käyttöoikeus tai aseta `OMNIROUTE_CLI_SALT` ja käynnistä sitten kyseinen prosessi uudelleen. Varoitus tekee ongelman näkyväksi, mutta se ei tee julkisesta varasuolasta yksityistä eikä poista CLI-todennusta käytöstä. Olemassa olevat kelvolliset pysyvästi tallennetut suolat ja eksplisiittiset ympäristömuuttujaohitukset säilyttävät aiemmat tunnistearvonsa.
 
 ## Suolan kierrätys
 

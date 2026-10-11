@@ -320,10 +320,10 @@ OmniRoute תומכת כעת ב**לקוחות WebSocket תואמי OpenAI** דר�
 
 כל קריאות האימות של ספקים וגילוי המודלים עוברות כעת דרך מנגנון הגנה דו-שכבתי לתעבורה יוצאת:
 
-1. **הגנת URL** (`src/shared/network/outboundUrlGuard.ts`) — חוסמת טווחי כתובות IP פרטיות, כתובות loopback וכתובות link-local לפני פתיחת ה-socket.
-2. **מעטפת אחזור בטוחה** (`src/shared/network/safeOutboundFetch.ts`) — מחילה את הגנת ה-URL, מאחדת את הטיפול בזמנים קצובים ומנסה שוב לאחר שגיאות זמניות באמצעות השהיה מעריכית.
+1. **הגנת URL** (`src/shared/network/outboundUrlGuard.ts`) — בודקת תחילה את שם המארח או את כתובת ה-IP המפורשת של היעד כפי שנכתבו; במצב ציבורי בלבד, מעטפת האחזור הבטוח גם פותרת את השם ומסרבת לכתובות פרטיות שמתקבלות. כברירת מחדל, היא חוסמת נקודות קצה של מטא-נתוני ענן — את כל הטווח 169.254.0.0/16 וכן את שמות המארחים הידועים של מטא-נתונים; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` חוסם גם מארחים פרטיים ומארחי loopback;‏ `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (או המשתנה הישן `OUTBOUND_SSRF_GUARD_ENABLED=false`) משבית את הבדיקות. ערך שנשמר באמצעות מתג הדגל בלוח הבקרה מקבל עדיפות על פני המשתנה שלו, וספקים מקומיים מובנים מדלגים על מנגנון ההגנה במהלך אימות המפתח. ראו `docs/reference/ENVIRONMENT.md`.
+2. **מעטפת אחזור בטוח** (`src/shared/network/safeOutboundFetch.ts`) — מחילה את הגנת ה-URL, מנרמלת זמני קצוב ומנסה מחדש לאחר שגיאות זמניות באמצעות השהיה מעריכית.
 
-הפרות של מנגנון ההגנה מוחזרות כ-HTTP 422 (`URL_GUARD_BLOCKED`) ונכתבות ביומן ביקורת התאימות באמצעות `providerAudit.ts`.
+הפרות של מנגנון ההגנה מוצגות כ-`URL_GUARD_BLOCKED` —‏ HTTP 503 באמצעות `getSafeOutboundFetchErrorStatus` (או 400 בנתיב גילוי המודלים) — וחסימות SSRF אמיתיות במהלך האימות נכתבות ביומן הביקורת כאירועי `provider.validation.ssrf_blocked`.
 
 ---
 

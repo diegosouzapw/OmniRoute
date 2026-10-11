@@ -4,118 +4,125 @@
 
 ---
 
-> **TL;DR**: OmniRoute registruje 357 ID-ova provajdera, sa **152 unosa u katalogu provajdera označenih sa `hasFree`**. Stroži revidirani katalog besplatnih modela pokriva **35 ključeva ponavljajućih skupova / 482 unosa** (475 aktivnih + 7 ukinutih). Povežite nekoliko odgovarajućih provajdera za širi kapacitet rezervnih opcija (fallback); svaka kvota, pravilo odobrenja, politika privatnosti i uslov za plaćanje prekoračenja i dalje važe.
+> **Ukratko**: Koristite vlastite odgovarajuće račune kod pružalaca usluga. OmniRoute objedinjuje veze koje konfigurirate; ne dodjeljuje oglašeni zbirni budžet tokena. Besplatan pristup može zahtijevati registraciju, API ključ, odobrenje ili način plaćanja. Ograničenja pružalaca usluga, pravila privatnosti i uslovi korištenja i dalje se primjenjuju.
 
 ---
 
 ## Šta su besplatni nivoi?
 
-Mnogi AI provajderi nude neki oblik **besplatnog pristupa**. U zavisnosti od provajdera, to može značiti krajnju tačku (endpoint) bez autentifikacije, ponavljajuću kvotu, neograničen pristup sa ograničenom brzinom (rate-limited), grant pri registraciji, ručno odobrenje ili privremenu promociju. Neke opcije zahtevaju nalog, API ključ, kreditnu karticu, KYC ili prihvatanje uslova specifičnih za provajdera.
+Mnogi pružaoci AI usluga nude neki oblik **besplatnog pristupa**. U zavisnosti od pružaoca, to može podrazumijevati krajnju tačku bez autentifikacije, periodično obnavljanu kvotu, neograničen pristup uz ograničenje brzine, početni kredit nakon registracije, ručno odobrenje ili privremenu promociju. Neke opcije zahtijevaju račun, API ključ, kreditnu karticu, KYC ili prihvatanje uslova specifičnih za pružaoca.
 
-OmniRoute **objedinjuje** ove besplatne nivoe u jednu krajnju tačku. Umesto da se registrujete na 10 različitih servisa, povezujete ih sve sa OmniRoute-om i koristite `model: "auto"` da automatski izaberete najbolju besplatnu opciju za svaki zahtev.
+OmniRoute **objedinjuje** konfigurirane veze u jednu krajnju tačku. I dalje se morate zasebno registrovati kod svakog pružaoca koji zahtijeva račun. Povežite te račune i koristite `model: "auto"` za usmjeravanje između dostupnih odredišta. Nova instalacija možda neće imati nijedno dostupno odredište bez ključa; sama instalacija OmniRoutea ne garantuje uspješan odgovor chata.
 
 ---
 
-## Reprezentativni provajderi sa besplatnim pristupom
+## Reprezentativni pružaoci besplatnog pristupa
 
-### Ponavljajući, bez ključa ili neograničen pristup
+### Obnavljajući pristup, pristup bez ključa ili neograničeni pristup
 
-Ovi provajderi imaju putanju za besplatan pristup koja se ponavlja, bez ključa ili je neograničena u revidiranom katalogu. „Neograničeno“ znači da nema objavljenog ograničenja tokena; ograničenja brzine, konkurentnosti, naloga, regionalna i ograničenja politike i dalje mogu da važe:
+Ovi pružaoci u pregledanom katalogu nude besplatan pristup koji se obnavlja, ne zahtijeva ključ ili nema ograničenje. „Neograničen” znači da nema objavljenog ograničenja broja tokena; ograničenja brzine, istovremenih zahtjeva, računa, regije i pravila i dalje se mogu primjenjivati:
 
-| Provajder         | Modeli                                                                            | Kvota                                                                                                                                      | Kako se povezati                                                                             |
-| ----------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 i drugi                               | Revidirani katalog procenjuje deljeni mesečni skup od 25K tokena                                                                           | OAuth/tok naloga; ToS označen sa `avoid` u katalogu                                          |
-| **OpenCode Free** | Trenutni `*-free` skup modela u registru provajdera                               | Bez ključa; nema objavljenog ograničenja tokena                                                                                            | Nema akreditiva provajdera; ToS označen sa `avoid`                                           |
-| **Pollinations**  | Trenutni skup modela bez ključa; neki bivši modeli su ukinuti ili zahtevaju ključ | Bez ključa; nema objavljenog ograničenja tokena                                                                                            | Nema akreditiva provajdera za modele bez ključa                                              |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 i više                | Besplatan API ključ (bez ograničenja brzine, bez kartice); **svaki zahtev se evidentira** radi istraživanja (odjava na logfare.ai/consent) | Trenutni ključ na logfare.ai/register; ToS/privatnost na logfare.ai/tos i logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI katalog                                                                | Revidirani skup procenjuje ~30M tokena/mesečno na osnovu objavljenih jedinica korišćenja                                                   | Cloudflare nalog i API akreditivi                                                            |
-| **Gemini**        | Porodica Gemini Flash                                                             | Revidirani skup procenjuje ~60M tokena/mesečno                                                                                             | Google AI Studio API ključ; važe ograničenja brzine                                          |
-| **Groq**          | Llama, GPT-OSS i Qwen modeli                                                      | Revidirani skup procenjuje ~15M tokena/mesečno                                                                                             | Groq API ključ; važe ograničenja brzine                                                      |
-| **Cerebras**      | GLM 4.7 i GPT-OSS 120B                                                            | Revidirani skup procenjuje ~30M tokena/mesečno                                                                                             | Cerebras API ključ; važe ograničenja brzine                                                  |
+| Pružalac          | Modeli                                                                               | Kvota                                                                                                                                    | Način povezivanja                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 i drugi                                  | Pregledani katalog procjenjuje zajednički mjesečni fond od 25K tokena                                                                    | OAuth/tok računa; Uslovi korištenja označeni su kao `avoid` u katalogu                                                |
+| **OpenCode Free** | Trenutni skup `*-free` modela u registru pružalaca                                   | Bez ključa; nema objavljenog ograničenja broja tokena                                                                                    | Nisu potrebni pristupni podaci pružaoca; Uslovi korištenja označeni su kao `avoid`                                    |
+| **Pollinations**  | Trenutni skup modela bez ključa; neki raniji modeli su ukinuti ili zahtijevaju ključ | Bez ključa; nema objavljenog ograničenja broja tokena                                                                                    | Za modele bez ključa nisu potrebni pristupni podaci pružaoca                                                          |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 i drugi                  | Besplatan API ključ (bez ograničenja brzine, bez kartice); **svaki zahtjev se bilježi** radi istraživanja (odjava na logfare.ai/consent) | Trenutno dobijanje ključa na logfare.ai/register; Uslovi korištenja/privatnost na logfare.ai/tos i logfare.ai/privacy |
+| **Cloudflare AI** | Katalog Workers AI                                                                   | Pregledani fond procjenjuje ~30M tokena mjesečno na osnovu objavljenih jedinica korištenja                                               | Cloudflare račun i API pristupni podaci                                                                               |
+| **Gemini**        | Porodica Gemini Flash                                                                | Promjenjiva ograničenja brzine prema projektu/modelu; u istaknutoj ponudi nije uključena fiksna mjesečna dodjela tokena                  | API ključ za Google AI Studio; provjerite aktivna ograničenja projekta                                                |
+| **Groq**          | Modeli Llama, GPT-OSS i Qwen                                                         | Pregledani fond procjenjuje ~15M tokena mjesečno                                                                                         | Groq API ključ; primjenjuju se ograničenja brzine                                                                     |
 
-### Grantovi pri registraciji i krediti specifični za provajdera
+### Početne dodjele i krediti specifični za pružaoce
 
-Ovi provajderi vam daju **besplatne kredite** kada se registrujete:
+Ovi pružaoci nude početne dodjele ili promotivne kredite, u skladu sa svojim pravilima podobnosti. Prema provjeri od 2026-10-08, [cijene usluge Cerebras](https://www.cerebras.ai/pricing) zahtijevaju način plaćanja za jednokratni kredit od $5 koji ističe nakon 30 dana; to nije obnavljajuća kvota tokena. [Ograničenja brzine za Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) razlikuju se prema projektu, modelu i nivou, pa se ne pretvaraju u zagarantovanu mjesečnu dodjelu tokena.
 
-| Provajder     | Besplatni krediti                                                                | Modeli                     | Kako dobiti                                             |
-| ------------- | -------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------- |
-| **DeepSeek**  | 5M besplatnih tokena                                                             | DeepSeek V4                | Registrujte se na platform.deepseek.com                 |
-| **LongCat**   | Jednokratni grant od 10M tokena                                                  | LongCat 2.0                | API ključ + KYC; plaćanje po korišćenju nakon granta    |
-| **Vertex AI** | $300 kredita za registraciju predstavljenog kao ~300M tokena u budžetskom modelu | Gemini i partnerski modeli | Google Cloud nalog; važe pravila o naplati i podobnosti |
+| Pružalac      | Besplatni krediti                                                        | Modeli                          | Kako ih dobiti                                                       |
+| ------------- | ------------------------------------------------------------------------ | ------------------------------- | -------------------------------------------------------------------- |
+| **Cerebras**  | Jednokratni promotivni kredit od $5; ističe nakon 30 dana                | Trenutni katalog za inferenciju | Račun i važeći način plaćanja                                        |
+| **DeepSeek**  | 5M besplatnih tokena                                                     | DeepSeek V4                     | Registrujte se na platform.deepseek.com                              |
+| **LongCat**   | Jednokratna dodjela od 10M tokena                                        | LongCat 2.0                     | API ključ + KYC; plaćanje prema potrošnji nakon iskorištenja dodjele |
+| **Vertex AI** | Početni kredit od $300 predstavljen kao ~300M tokena u budžetskom modelu | Gemini i partnerski modeli      | Google Cloud račun; primjenjuju se pravila naplate i podobnosti      |
 
 ### Drugi ograničeni pristup
 
-Ovi provajderi imaju **besplatne nivoe** sa specifičnim ograničenjima:
+Ovi pružaoci imaju **besplatne nivoe** sa specifičnim ograničenjima:
 
-| Provajder                  | Besplatni limit                                                                               | Modeli                                     | Najbolje za |
-| -------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------- |
-| **GitHub Models**          | Revidirani zajednički fond procjenjuje se na ~18M tokena/mjesečno                             | Široka evaluacija modela                   |
-| **Hugging Face**           | Mali mjesečni fond koji se obnavlja                                                           | Eksperimenti i raznolikost modela          |
-| **OpenRouter free models** | Zajednički fond ograničen brojem zahtjeva; opciona jednokratna dopuna povećava mjesečni iznos | Široki katalog za rezervne opcije          |
-| **AI Horde**               | Kapacitet zajednice bez ključa; dostupnost varira                                             | Oportunističko distribuirano zaključivanje |
+| Pružalac                   | Besplatno ograničenje                                                                                  | Modeli                                   | Najpogodnije za |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------- | --------------- |
+| **GitHub Models**          | Procjena pregledanog zajedničkog fonda iznosi ~18M tokena mjesečno                                     | Procjenu širokog raspona modela          |
+| **Hugging Face**           | Mali obnavljajući mjesečni fond                                                                        | Eksperimente i raznovrsnost modela       |
+| **OpenRouter free models** | Zajednički fond ograničen brojem zahtjeva; opcionalna jednokratna dopuna povećava obnavljajuću dodjelu | Širok katalog rezervnih opcija           |
+| **AI Horde**               | Kapacitet zajednice bez ključa; dostupnost se razlikuje                                                | Oportunističku distribuiranu inferenciju |
 
 ---
 
-## Kako slagati besplatne nivoe
+## Kako kombinovati besplatne nivoe
 
-Magija OmniRoute-a je u **slaganju besplatnih nivoa**. Umjesto da se oslanjate na jednog provajdera, povezujete više besplatnih provajdera i dozvoljavate OmniRoute-u da automatski odabere najboljeg za svaki zahtjev.
+Čarolija OmniRoutea je u **kombinovanju besplatnih nivoa**. Umjesto da se oslanjate na jednog pružaoca usluga, povežete više besplatnih pružalaca i omogućite OmniRouteu da automatski odabere najboljeg za svaki zahtjev.
 
 ### Primjer: Šira pokrivenost besplatnim nivoima
 
-Povežite nekoliko provajdera kako biste smanjili zavisnost od bilo koje pojedinačne kvote:
+Povežite nekoliko pružalaca kako biste smanjili zavisnost od bilo koje pojedinačne kvote:
 
-1. **Gemini** — ponavljajuća kvota API ključa
-2. **Groq** — ponavljajuća kvota API ključa
-3. **Pollinations** — pristup bez ključa, ograničen brzinom
-4. **LongCat** — jednokratni grant za registraciju (zahtijeva KYC)
+1. **Gemini** — obnavljajuća kvota API ključa
+2. **Groq** — obnavljajuća kvota API ključa
+3. **Pollinations** — pristup bez ključa, uz ograničenje broja zahtjeva
+4. **LongCat** — jednokratni kredit pri registraciji (zahtijeva KYC)
 
 Zatim koristite `model: "auto"` i OmniRoute će:
 
-- Prvo pokušati sa najbolje rangiranom kvalifikovanom konekcijom
-- Ako njena kvota ili provjera ispravnosti (health check) ne uspiju → pokušati sa sljedećim konfigurisanim provajderom
-- Ako provajder bez ključa nije dostupan → nastaviti kroz preostale ciljeve
-- Ako svi ne uspiju → koristiti LongCat kao rezervnu opciju
+- Prvo pokušati s najbolje rangiranom prihvatljivom vezom
+- Ako provjera njene kvote ili dostupnosti ne uspije → pokušati sa sljedećim konfiguriranim pružaocem
+- Ako pružalac bez ključa nije dostupan → nastaviti kroz preostala odredišta
+- Ako nijedna prihvatljiva veza ne uspije → vratiti grešku; krediti pri registraciji mogu se koristiti samo dok su važeći i dostupni
 
-**Rezultat**: šira pokrivenost besplatnim nivoima sa automatskim prebacivanjem na rezervnu opciju — nije garancija neograničenog kapaciteta.
+**Rezultat**: šira pokrivenost besplatnim nivoima uz automatsko prebacivanje na rezervnu opciju — bez garancije neograničenog kapaciteta.
 
 ---
 
-## Kako povezati besplatne provajdere
+## Kako povezati besplatne pružaoce usluga
 
-### Korak 1: Otvorite kontrolnu tablu
+### Korak 1: Otvorite kontrolnu ploču
 
-Idite na `http://localhost:20128` u vašem pretraživaču.
+Idite na `http://localhost:20128` u svom pregledniku.
 
-### Korak 2: Idite na Provajdere
+### Korak 2: Idite na pružaoce usluga
 
-Kliknite na **Providers** u bočnoj traci.
+Kliknite na **Pružaoci usluga** na bočnoj traci.
 
-### Korak 3: Kliknite na Dodaj provajdera
+### Korak 3: Kliknite na Dodaj pružaoca usluga
 
-Kliknite na dugme **+ Add Provider**.
+Kliknite na dugme **+ Dodaj pružaoca usluga**.
 
-### Korak 4: Odaberite besplatnog provajdera
+### Korak 4: Odaberite besplatnog pružaoca usluga
 
-Pregledajte katalog i provjerite trenutne `hasFree`, auth, kvotu, privatnost i ToS metapodatke svakog provajdera. Kartica provajdera i [Free Tiers Reference](../reference/FREE_TIERS.md) razlikuju ponavljajuće skupove, neograničen pristup/pristup bez ključa, kredite za registraciju, ukinute unose i izvore višeg rizika.
+Pregledajte katalog i provjerite trenutne metapodatke svakog pružaoca usluga za `hasFree`, autentifikaciju, kvotu, privatnost
+i uslove korištenja. Kartica pružaoca usluga i
+[Pregled besplatnih paketa](../reference/FREE_TIERS.md) razlikuju periodično obnovljive resurse,
+neograničeni pristup/pristup bez ključa, početne kredite, ukinute stavke i izvore višeg rizika.
 
 ### Korak 5: Kliknite na Poveži
 
-Za `NOAUTH` provajdera, nisu potrebni nikakvi akreditivi. OAuth i provajderi sa API ključem moraju biti povezani kroz dokumentovani proces naloga.
+Za pružaoca usluga tipa `NOAUTH`, OmniRoute ne traži pristupne podatke za vanjsku uslugu. To ne garantuje da vanjska usluga prihvata klijente trećih strana ili da ima raspoloživ kapacitet. Pružaoci usluga koji koriste OAuth i API ključ moraju se povezati putem njihovog dokumentovanog postupka za korisnički račun. Vaš klijent i dalje koristi OmniRoute API ključ prikazan u odjeljku **Kontrolna ploča → Krajnje tačke** kada je autentifikacija usmjerivača omogućena.
 
 ### Korak 6: Ponovite
 
-Povežite nekoliko provajdera čiji uslovi i model privatnosti odgovaraju vašem slučaju upotrebe.
+Povežite nekoliko pružalaca usluga čiji uslovi i model privatnosti odgovaraju vašem slučaju korištenja.
 
 ---
 
 ## Ispravno čitanje kataloga
 
-- `NOAUTH` znači da OmniRoute od vas ne traži akreditive provajdera; ne garantuje vrijeme rada (uptime), privatnost ili neograničen kapacitet.
-- `hasFree` je metapodatak za otkrivanje. Može predstavljati ponavljajuću kvotu, pristup bez ključa, kredit za registraciju, program odobrenja ili promociju.
-- `recurring-uncapped` znači da nije bilo dostupno objavljeno ograničenje tokena; ograničenja brzine i konkurentnosti se i dalje primjenjuju.
-- `one-time-initial` se ne ponavlja nakon što se potroši grant za registraciju.
-- `tos: avoid` je upozorenje da pregledate uslove provajdera i rizik naloga prije upotrebe.
-- Unosi označeni kao `discontinued` ostaju kao istorijski dokaz i ne smiju se predstavljati kao trenutno besplatni.
+- `NOAUTH` znači da OmniRoute od vas ne traži pristupne podatke pružatelja usluge; to ne
+  garantuje dostupnost, privatnost niti neograničen kapacitet.
+- `hasFree` je metapodatak za otkrivanje. Može predstavljati periodično obnavljajuću kvotu, pristup bez ključa,
+  kredit za registraciju, program odobrenja ili promociju.
+- `recurring-uncapped` znači da nije bilo dostupno objavljeno ograničenje broja tokena; ograničenja brzine i
+  istovremenih zahtjeva i dalje se primjenjuju.
+- `one-time-initial` se ne obnavlja nakon što se početna pogodnost za registraciju iskoristi.
+- Pružatelji usluga označeni sa `tos: avoid` standardno su isključeni iz automatskog usmjeravanja (`excludeTosAvoid`). Povezivanje računa ne zaobilazi ovaj filter. Svako ručno izuzeće operatera trebalo bi uslijediti nakon pregleda uslova pružatelja usluge i rizika povezanih s računom.
+- Unosi označeni kao `discontinued` ostaju historijski dokaz i ne smiju se predstavljati kao
+  trenutno besplatni.
 
 ---
 
@@ -141,21 +148,18 @@ OmniRoute-ov pipeline za kompresiju može smanjiti kvalifikovane tokene prompta 
 
 Ako uslovi provajdera dozvoljavaju više naloga ili akreditiva, OmniRoute može tretirati svaku konekciju kao posebnog kandidata za rutiranje. Nemojte kreirati dodatne naloge da biste izbjegli kvotu ili politiku pristupa provajdera.
 
-## Matematika besplatnog nivoa
+## Izračun besplatnog nivoa
 
-Katalog uživo, sa dedupliciranim skupovima, trenutno izvještava:
+Aktuelni katalog, s uklonjenim duplikatima zajedničkih kvota, trenutno prikazuje:
 
-| Metrika                                                             |                             Trenutna revidirana vrijednost | Tumačenje                                                                                                                                                   |
-| ------------------------------------------------------------------- | ---------------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Periodična kvantifikovana dodjela                                   |                                 **~1.62B tokena/mjesečno** | Zajednički skupovi računati jednom; isključuje provajdere bez ograničenja iz zbira                                                                          |
-| Prvi mjesec sa dodjelama pri registraciji                           |                                          **~2.22B tokena** | Periodični zbir plus jednokratni i periodični krediti                                                                                                       |
-| Revidirani inventar besplatnih modela                               | **35 ključeva periodičnih skupova / 482 unosa u katalogu** | 475 aktivnih + 7 ukinutih; razlikuje se od kataloga sa 357 provajdera                                                                                       |
-| Predstavljeni periodični/bezključni 'besplatno zauvijek' provajderi |                                                     **53** | Jedinstveni provajderi kroz periodične dnevne/mjesečne/kreditne/neograničene i bezključne tipove kataloga, redovi sa ograničenjima podobnosti su isključeni |
-| Unosi u katalogu provajdera označeni sa `hasFree`                   |                                              **152 / 357** | Širi metapodaci provajdera; nemaju svi kvantifikovanu periodičnu kvotu                                                                                      |
+| Metrika                               | Trenutna provjerena vrijednost | Tumačenje                                                                             |
+| ------------------------------------- | -----------------------------: | ------------------------------------------------------------------------------------- |
+| Ponavljajuća kvantificirana kvota     |       **~1.62B tokena/mjesec** | Zajedničke kvote računaju se jednom; iz zbroja su isključeni pružaoci bez ograničenja |
+| Prvi mjesec s kvotama za registraciju |              **~2.22B tokena** | Ponavljajući ukupni iznos plus jednokratni i ponavljajući krediti                     |
 
-Ove vrijednosti se računaju iz `open-sse/config/freeModelCatalog.ts`; pogledajte
-[Referencu besplatnih nivoa](../reference/FREE_TIERS.md) za deduplikaciju skupova, ToS oznake,
-ukinute unose i metodologiju kredita pri registraciji.
+Ovo su procjene za cijeli katalog, raspoređene na zasebne račune koji ispunjavaju uslove, a ne kvota koju pruža OmniRoute niti predviđanje za novu instalaciju. Kapacitet koji možete koristiti zavisi od pružalaca koje povežete i njihovih trenutnih uslova. Vrijednosti se izračunavaju iz `open-sse/config/freeModelCatalog.ts`; pogledajte
+[Referentni pregled besplatnih nivoa](../reference/FREE_TIERS.md) za uklanjanje duplikata zajedničkih kvota, oznake uslova korištenja,
+ukinute stavke i metodologiju kredita za registraciju.
 
 ---
 

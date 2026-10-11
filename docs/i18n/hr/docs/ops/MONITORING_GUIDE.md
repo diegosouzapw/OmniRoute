@@ -101,18 +101,18 @@ Za svaku kombinaciju:
 
 ## API za provjeru stanja
 
-OmniRoute izlaže **dvije** HTTP površine za provjeru stanja. Nisu međusobno zamjenjive za orkestratore.
+OmniRoute izlaže **dvije** HTTP krajnje točke za provjeru stanja. One nisu međusobno zamjenjive za orkestratore.
 
-| Putanja                      | Svrha                                                                     | Opterećenje                              | Upotreba                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
-| `GET /healthz`               | Živost/spremnost životnog ciklusa (`ok` / `starting` / `stopping`)        | Zanemarivo (samo oznaka faze)            | Kubernetes **spremnost**; blaga provjera **živosti** ako morate koristiti HTTP |
-| `GET /api/monitoring/health` | Detaljan sažetak sustava i pružatelja (DB, heap, broj stavki kataloga, …) | Veliko (sinkroni rad s DB-om / nadzorom) | Nadzorne ploče, detaljne blackbox provjere, ugrađeni Dockerov healthcheck      |
+| Putanja                      | Svrha                                                                     | Opterećenje                           | Upotreba                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- |
+| `GET /healthz`               | Živost/spremnost životnog ciklusa (`ok` / `starting` / `stopping`)        | Zanemarivo (samo oznaka faze)         | Kubernetes **readiness**; blagi **liveness** ako morate upotrebljavati HTTP |
+| `GET /api/monitoring/health` | Detaljan sažetak sustava i pružatelja (DB, heap, broj stavki kataloga, …) | Veliko (sinkroni DB/nadzorni poslovi) | Nadzorne ploče, dubinske blackbox provjere, ugrađeni Dockerov healthcheck   |
 
-> **Napomena:** Matrice stanja pružatelja, problemi autopilota, nadzornici kvota, stanje tokena i detalji latencije izvan `/api/monitoring/health` dostupni su putem **MCP alata** `observability_snapshot` ili stranica **nadzorne ploče** — za njih ne postoje zasebne REST rute.
+> **Napomena:** Matrice stanja pružatelja, problemi autopilota, monitori kvota, stanje tokena i pojedinosti o latenciji koje nadilaze `/api/monitoring/health` dostupni su putem **MCP alata** `observability_snapshot` ili stranica **nadzorne ploče** — za njih ne postoje zasebne REST rute.
 
-Obje se rute izvršavaju na **istoj Node petlji događaja** kao i obrada zahtjeva. Putanja koja intenzivno koristi CPU (velik kataloški posao za `GET /v1/models`, kompresija dugog konteksta / brojanje tokena) može odgoditi **sve** HTTP obrađivače, uključujući `/healthz`. Zauzeta petlja događaja ≠ mrtav proces. Prednost dajte otklanjanju uzroka opterećenja; podešavanje provjera samo smanjuje broj lažnih prekida procesa.
+Obje rute izvode se u **istoj Node petlji događaja** kao i obrada zahtjeva. CPU-intenzivna putanja (obrada velikog kataloga `GET /v1/models`, kompresija dugog konteksta / brojanje tokena) može odgoditi **sve** HTTP obrađivače, uključujući `/healthz`. Zauzeta petlja događaja ≠ mrtav proces. Poželjno je ukloniti uzrok opterećenja; podešavanje provjera samo smanjuje broj lažnih prekida procesa.
 
-### Jednostavna provjera za orkestrator
+### Lagana provjera za orkestrator
 
 ```bash
 GET /healthz
@@ -120,8 +120,8 @@ GET /healthz
 ```
 
 - **200** + tijelo `ok` kada je faza životnog ciklusa poslužitelja spremna
-- **503** + `starting` / `stopping` tijekom pokretanja ili isključivanja
-- Implementacija: `src/app/healthz/route.ts` (bez provjere DB-a)
+- **503** + `starting` / `stopping` tijekom pokretanja ili gašenja
+- Implementacija: `src/app/healthz/route.ts` (bez DB pinga)
 
 ### Stanje sustava (detaljno)
 
@@ -153,39 +153,38 @@ Odgovor:
 }
 ```
 
-#### `credentialHealth`: predmemorija provjera u odnosu na SQLite `test_status`
+#### `credentialHealth`: predmemorija provjera nasuprot SQLite `test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` je **mjerač predmemorije provjera u memoriji**, a ne izravni ispis vrijednosti `provider_connections.test_status`. Nakon #12532 putanja zahtjeva čita samo `getCachedCredentialHealthSummary()`; pozadinske provjere osvježavaju predmemoriju izvan petlje događaja.
+`GET /api/monitoring/health` → `credentialHealth` jest **mjerač predmemorije provjera u memoriji**, a ne aktualni ispis vrijednosti `provider_connections.test_status`. Nakon #12532 putanja zahtjeva čita samo `getCachedCredentialHealthSummary()`; pozadinske provjere osvježavaju predmemoriju izvan petlje događaja.
 
 | Sloj                         | Gdje                                                                  | Što znači                                                                                                                                                                                                                 |
 | ---------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mjerač predmemorije provjera | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Posljednji rezultati provjere stanja vjerodajnica koji se još uvijek čuvaju u memoriji procesa. `source` je uvijek `probe-cache`.                                                                                         |
+| Mjerač predmemorije provjera | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Posljednji rezultati provjere stanja vjerodajnica koji se još čuvaju u memoriji procesa. `source` je uvijek `probe-cache`.                                                                                                |
 | Pojedinosti neuspjele veze   | `credentialHealth.failedConnections`                                  | Prisutno **samo kada je `failed > 0`**. Ograničen popis redaka predmemorije sa `status=error` (`connectionId`, `status`, pročišćeni `lastError` / `lastErrorType`). `failedOmitted` se postavlja kada je popis ograničen. |
-| Trajno stanje u SQLiteu      | `credentialHealth.staleDbNonOkCount`                                  | Broj redaka **aktivnih** (`is_active=1`) veza čiji je pohranjeni `test_status` poznata vrijednost koja nije ispravna (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                   |
+| Trajno SQLite stanje         | `credentialHealth.staleDbNonOkCount`                                  | Broj redaka **aktivnih** (`is_active=1`) veza čiji je pohranjeni `test_status` poznata neispravna vrijednost (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                           |
 
 Ta se dva sloja namjerno mogu razlikovati:
 
-- Mjerač `failed=0` dok je `staleDbNonOkCount>0` — SQLite još uvijek ima trajni
+- Mjerač `failed=0` dok je `staleDbNonOkCount>0` — SQLite još uvijek sadrži trajni
   `test_status` (primjerice `expired` ili `credits_exhausted`) koji najnovija
-  snimka predmemorije provjera ne računa kao `status=error`.
+  snimka predmemorije provjera ne ubraja kao `status=error`.
 - Mjerač `failed>0` dok SQLite izgleda ispravno — nedavna provjera nije uspjela i
-  pohranjena je u predmemoriju; redak u DB-u nije ažuriran ili je naknadno očišćen.
+  nalazi se u predmemoriji; DB redak nije ažuriran ili je naknadno očišćen.
 
-Pri prikupljanju podataka s ove krajnje točke nemojte upozoravati samo na temelju
-`provider_connections.test_status`. Koristite `failed` + `failedConnections` za
-trenutačne neuspjehe provjera, a `staleDbNonOkCount` kada vam je potreban broj
-pohranjenih trajnih statusa.
+Pri dohvaćanju podataka s ove krajnje točke nemojte stvarati upozorenje isključivo na temelju `provider_connections.test_status`.
+Upotrebljavajte `failed` + `failedConnections` za aktualne neuspjehe provjera, a
+`staleDbNonOkCount` kada vam je potreban broj trajno pohranjenih neispravnih stanja.
 
 ### Preporuke za Kubernetes provjere
 
-OmniRoute je **jedan Node proces** (jedna petlja događaja). Standardni Dockerov `HEALTHCHECK` cilja jednostavnu rutu `/healthz`. `/api/monitoring/health` je **prezahtjevan** za intervale kubelet provjere živosti.
+OmniRoute je **jedan Node proces** (jedna petlja događaja). Standardni Docker `HEALTHCHECK` cilja laganu krajnju točku `/healthz`. `/api/monitoring/health` je **prezahtjevan** za kubelet intervale provjere živosti.
 
-| Provjera                     | Preporučeni cilj                                                                    | Napomene                                                                                                                                                                                                                                                                                                                                                                                     |
-| ---------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pokretanje**               | HTTP `GET /healthz` s dugim `failureThreshold` (ili velikim `startPeriod`)          | Hladno pokretanje + SQLite migracija mogu trajati dulje od nekoliko sekundi                                                                                                                                                                                                                                                                                                                  |
-| **Spremnost**                | HTTP `GET /healthz`                                                                 | Stanje životnog ciklusa `ok` / `starting` / `stopping` (200 naspram 503). I dalje oscilira ako je petlja blokirana CPU-om. **Odgovor 200 nakon više sekundi nije znak ispravnog stanja** (#10303) — znači da je petlja događaja bila zagušena prije nego što se izvršio rukovatelj od 3 bajta                                                                                                |
-| **Aktivnost**                | HTTP `GET /livez` **ili TCP** na glavnom priključku usluge (`PORT`, zadano `20128`) | `/livez` provjerava samo je li proces aktivan (uvijek vraća 200 ako se rukovatelj izvrši). I dalje dijeli petlju događaja — zauzeto ≠ mrtvo i ne otkriva zagušenje petlje događaja (#10303) ništa bolje od TCP-a. Dajte prednost **TCP-u** ako HTTP provjere isteknu pod opterećenjem kataloga/kompresije; ni u kojem slučaju **nemojte** prekinuti pod zbog kratkih zastoja petlje događaja |
-| **Dubinska provjera stanja** | `GET /api/monitoring/health` iz vanjskog sustava za provjeru                        | Nije namijenjeno za kubelet `livenessProbe` / učestali `readinessProbe`                                                                                                                                                                                                                                                                                                                      |
+| Provjera              | Preporučeni cilj                                                               | Napomene                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pokretanje**        | HTTP `GET /healthz` s dugim `failureThreshold` (ili velikim `startPeriod`)     | Hladno pokretanje + migracija SQLitea mogu trajati dulje od nekoliko sekundi                                                                                                                                                                                                                                                                                                                          |
+| **Spremnost**         | HTTP `GET /healthz`                                                            | Životni ciklus `ok` / `starting` / `stopping` (200 naspram 503). I dalje oscilira ako je petlja blokirana CPU-om. **Odgovor 200 nakon više sekundi nije znak ispravnog stanja** (#10303) — znači da je petlja događaja bila zakrčena prije nego što se izvršio obrađivač od 3 bajta                                                                                                                   |
+| **Živost**            | HTTP `GET /livez` **ili TCP** na glavnom portu usluge (`PORT`, zadano `20128`) | `/livez` provjerava samo je li proces živ (uvijek vraća 200 ako se obrađivač izvrši). I dalje dijeli petlju događaja — zauzeto ≠ mrtvo i ne otkriva izgladnjivanje petlje događaja (#10303) ništa bolje od TCP-a. Dajte prednost **TCP-u** ako HTTP provjerama istekne vrijeme pod opterećenjem kataloga/kompresije; ni u jednom slučaju **nemojte** ugasiti pod zbog kratkih zastoja petlje događaja |
+| **Dubinska provjera** | `GET /api/monitoring/health` iz vanjskog sustava za provjeru                   | Nije namijenjeno za kubelet `livenessProbe` / učestali `readinessProbe`                                                                                                                                                                                                                                                                                                                               |
 
 Primjer strukture (prilagodite pragove svojem hladnom pokretanju i opterećenju kompresije):
 
@@ -213,27 +212,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Tijekom zastoja petlje događaja HTTP /livez i dalje može isteći. TCP je
+  # Tijekom zastoja petlje događaja i za HTTP /livez može isteći vrijeme. TCP je
   # konzervativna alternativa:
   # tcpSocket:
   #   port: http
 ```
 
-**Nemojte** usmjeravati kubelet provjeru **aktivnosti** na `/api/monitoring/health`. Ta putanja obavlja stvarne operacije nad bazom podataka i nadzorom te će pod opterećenjem davati lažno pozitivne rezultate.
+**Nemojte** usmjeriti kubeletovu provjeru **živosti** na `/api/monitoring/health`. Ta putanja obavlja stvaran posao s bazom podataka/nadzorom i pod opterećenjem će dati lažno pozitivan rezultat.
 
-Povezano: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (provjere dok je petlja događaja zauzeta), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (izračun cijena kataloga monopolizira resurse), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (brojanje tokena za kompresiju monopolizira resurse).
+Povezano: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (provjere dok je petlja događaja zauzeta), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (izračun cijena kataloga zauzima resurse), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (brojanje tokena za kompresiju zauzima resurse).
 
-### Neobavezne operacije na putanji zahtjeva (memorija, vještine, osvježavanje tokena)
+### systemd nadzornik (zamrznuta petlja događaja)
 
-Izdvajanje memorije, umetanje vještina i osvježavanje OAuth tokena dijele **glavnu Node petlju događaja** s `/healthz`. To su značajke koje se uključuju i isključuju putem nadzorne ploče (`memoryEnabled`, `skillsEnabled`), a ne skup radnih procesa. Pogledajte [Okruženje — opterećenje petlje događaja](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Na računalu sa systemdom OmniRoute obavještava upravitelj usluge kada je spreman i nastavlja mu slati signale, pa se poslužitelj čija je petlja događaja zaglavljena prekida i ponovno pokreće umjesto da ostane aktivan i ne reagira. Signali dolaze iz vlastite petlje događaja poslužitelja: kada se ona blokira, signali prestaju, a systemd ponovno pokreće uslugu nakon što protekne `WatchdogSec` bez ijednog signala.
 
-### Stanje pružatelja usluga
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) već zapisuje korisničku jedinicu s ovom postavkom. Jedinica koju sami napišete (zadano `Type=simple`) nema nadzornik, stoga dodajte ove retke u njezin odjeljak `[Service]`:
 
-> **Nema REST krajnje točke.** Podaci o stanju pružatelja usluga dostupni su putem MCP alata `observability_snapshot` ili stranice `/dashboard/providers` na nadzornoj ploči.
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
 
-### Pojedinosti o pružatelju usluga
+Generirana jedinica postavlja `Restart=on-failure`, pa dodajte i taj redak — bez njega nadzornik samo prekida zaglavljenu uslugu umjesto da je ponovno pokrene.
 
-> **Nema REST krajnje točke.** Pojedinosti za svakog pružatelja usluga dostupne su putem stranice `/dashboard/providers` na nadzornoj ploči.
+- `Type=notify`: usluga se smatra „pokrenutom” kada poslužitelj pošalje `READY=1`, a ne kada proces stvori podređeni proces. `TimeoutStartSec` ograničava trajanje sporog pokretanja.
+- `NotifyAccess=all`: signale šalje proces poslužitelja, koji je podređeni proces nadzornika `omniroute serve`.
+- `WatchdogSec`: signali se šalju svakih 60 sekundi, stoga upotrijebite **120 ili više**. Manje vrijednosti ponovno bi pokrenule ispravan poslužitelj.
+- Pokrenite `omniroute serve` u prvom planu. `--daemon` odvaja poslužitelj od cgroupa jedinice i postupak obavještavanja nikada se ne dovršava.
+
+Nakon ponovnog pokretanja provjerite je li aktivan:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` prikazuje konfiguriranu odgodu, a `WatchdogTimestamp` pomiče se naprijed svake minute. Ponovno pokretanje koje je uzrokovao nadzornik bilježi se kao `Result=watchdog`. Kako biste isključili signale, a zadržali jedinicu u postojećem stanju, postavite `OMNIROUTE_DISABLE_SD_NOTIFY=1`; bez `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows) ništa se ne šalje.
+
+Nadzornik provjerava samo nastavlja li se petlja događaja izvršavati. Poslužitelj koji je spor, ali se i dalje izvršava, neće se ponovno pokrenuti.
+
+### Neobavezni rad na putanji zahtjeva (memorija, vještine, osvježavanje tokena)
+
+Ekstrakcija memorije, umetanje vještina i osvježavanje OAuth tokena dijele **glavnu Node petlju događaja** s `/healthz`. To su značajke koje se uključuju i isključuju putem nadzorne ploče (`memoryEnabled`, `skillsEnabled`), a ne skup radnih procesa. Pogledajte [Okruženje — opterećenje petlje događaja](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+
+### Stanje pružatelja usluge
+
+> **Nema REST krajnje točke.** Podaci o stanju pružatelja usluge dostupni su putem MCP alata `observability_snapshot` ili stranice `/dashboard/providers` na nadzornoj ploči.
+
+### Pojedinosti o pružatelju usluge
+
+> **Nema REST krajnje točke.** Pojedinosti za pojedinačne pružatelje usluge dostupne su putem stranice `/dashboard/providers` na nadzornoj ploči.
 
 ---
 

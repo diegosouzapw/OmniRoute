@@ -33,26 +33,16 @@ dess anslutningar matchas inte av denna avveckling.
 Tunneln behövs endast för verktygsturer. Varje angiven rutt, inklusive `pro`, kan använda samma
 turknutna lokala verktygsfunktion när tunneln och connectorn är konfigurerade.
 
-## Konfiguration via kontrollpanelen
+## Konfiguration av instrumentpanelen
 
-1. Öppna providern **ChatGPT Web (Codex)** och lägg till en anslutning.
-2. Klistra in det fullständiga ChatGPT Cookie-huvudet, tunnel-ID:t, runtime-nyckeln och den anpassade connectorns
-   namn. Nya konfigurationer med verktygsstöd måste använda en nyskapad connector med det exakta namnet
-   `OmniRoute Codex v2`, där Authentication är inställt på None och Permissions på Allow all
-   actions.
-3. Kör anslutningskontrollen. OmniRoute öppnar en webbläsarbaserad Temporary Chat och identifierar
-   om Sol och Pro är tillgängliga för kontot.
-4. Spara anslutningen. OmniRoute ersätter den inklistrade cookien med det verifierade
-   Playwright-lagringstillståndet och lagrar det tillsammans med runtime-nyckeln via den krypterade
-   autentiseringsuppgiftsabstraktionen.
+1. Öppna leverantören **ChatGPT Web (Codex)** och lägg till en anslutning.
+2. Klistra in hela Cookie-headern för ChatGPT, tunnel-ID:t, runtime-nyckeln och det anpassade connector-namnet. Nya konfigurationer med verktygsstöd måste använda en nyskapad connector med det exakta namnet `OmniRoute Codex v2`, där Authentication är inställt på None och Permissions är inställt på Allow all actions.
+3. Kör anslutningskontrollen. OmniRoute öppnar en webbläsarbaserad tillfällig chatt och identifierar om Sol och Pro är tillgängliga för kontot.
+4. Spara anslutningen. OmniRoute ersätter den inklistrade cookie-informationen med det verifierade Playwright-lagringstillståndet och lagrar det tillsammans med runtime-nyckeln via den krypterade abstraktionen för autentiseringsuppgifter.
 
-Den råa cookien behålls inte efter att anslutningen har sparats. När sessionen löper ut öppnar du
-anslutningen, klistrar in ett nytt fullständigt Cookie-huvud och kör kontrollen igen. Doctor-statusen
-i redigeringsdialogrutan rapporterar separat om webbläsare, lagringstillstånd, inloggning, Temporary Chat, tunnel,
-connector och verktygets rundtur.
+Den obearbetade cookie-informationen sparas inte efter en lyckad lagring. När sessionen löper ut öppnar du anslutningen, klistrar in en ny fullständig Cookie-header och kör kontrollen igen. Doctor-statusen i redigeringsdialogrutan rapporterar webbläsare, lagringstillstånd, inloggning, tillfällig chatt, tunnel, connector och verktygets tur och retur separat. Information om hur du automatiserar cookie-uppdateringar när sessioner roteras finns i det kompletterande verktyget i [Tillägg för synkronisering av webbläsarsessioner](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Checka aldrig in en riktig cookie, runtime-nyckel, ett lagringstillstånd eller en kapacitetstoken. Test- och
-> dokumentationsvärden måste alltid vara platshållare.
+> Checka aldrig in en riktig cookie, runtime-nyckel, ett lagringstillstånd eller en capability-token. Värden för tester och dokumentation måste alltid vara platshållare.
 
 ## Modeller och kombinationer
 

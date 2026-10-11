@@ -281,25 +281,42 @@ codex -p chat     # cx/gpt-5.5, nenhum esforço definido (padrão do servidor)
 Se você executar o OmniRoute em um VPS, poderá gerar automaticamente arquivos de perfil a partir do catálogo de modelos ativo:
 
 ```bash
-# Em um VPS (usa o OmniRoute local na porta 20128)
+# A partir de um VPS (usa o OmniRoute local na porta 20128)
 omniroute setup-codex
 
-# Em qualquer máquina — aponte para o seu VPS
+# A partir de qualquer máquina — aponte para seu VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Visualize sem gravar arquivos
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Gere apenas os perfis do GLM e do Kimi
+# Gere apenas os perfis GLM e Kimi
 omniroute setup-codex --only glm,kimi
 
 # Grave em um diretório personalizado
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-O comando busca `/v1/models`, usa perfis ajustados para modelos conhecidos, recorre aos metadados do catálogo para outros modelos de texto compatíveis e grava `~/.codex/<name>.config.toml` para cada um. É idempotente — pode ser executado novamente com segurança.
+O comando consulta `/v1/models`, usa perfis ajustados para modelos conhecidos, recorre aos metadados do catálogo para outros modelos de texto compatíveis e grava `~/.codex/<name>.config.toml` para cada um. É idempotente — pode ser executado novamente com segurança.
 
-O OmniRoute também pode **sincronizar automaticamente** esses mesmos arquivos de perfil depois que uma descoberta/importação bem-sucedida de modelos do provedor altera o catálogo ativo. Esse recurso é **opcional e fica desativado por padrão**: ative-o no **painel CLI Code** ("CLI profile auto-sync" → Codex) ou defina `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ele também respeita `CLI_ALLOW_CONFIG_WRITES`, ativado por padrão). Quando habilitado, ele grava apenas arquivos de perfil `~/.codex/*.config.toml` separados; nunca altera o `~/.codex/config.toml` ativo/padrão, as configurações do Codex-lb, a autenticação ou a seleção do provedor.
+Se o `config.toml` base não tiver uma definição de `model_providers.omniroute`, a execução
+explícita de `setup-codex` incluirá essa definição em cada sobreposição gerada, usando o endpoint
+local ou remoto selecionado. O arquivo base permanece inalterado. Uma definição de provedor
+existente é herdada, incluindo seu endpoint e suas configurações de autenticação. Um TOML base
+inválido interrompe a geração antes que os perfis sejam gravados.
+
+Quando você fornece `--api-key` ou `OMNIROUTE_API_KEY`, um provedor recém-definido faz referência a
+`env_key = "OMNIROUTE_API_KEY"`; a chave em si nunca é salva nem exibida na
+visualização. Defina essa variável no ambiente em que você iniciar o Codex. Sem uma
+chave fornecida, a nova definição não exige chave, para uma instância do OmniRoute
+configurada para aceitar solicitações não autenticadas.
+
+A sincronização automática opcional do catálogo descrita abaixo preserva as definições de provedor já
+presentes em uma sobreposição, mas não inicializa novas configurações de provedor; configure primeiro o provedor
+por meio da configuração explícita ou do painel. As configurações de provedor existentes são omitidas
+das visualizações de execução simulada porque podem conter credenciais gerenciadas pelo operador.
+
+O OmniRoute também pode **sincronizar automaticamente** esses mesmos arquivos de perfil depois que uma descoberta/importação bem-sucedida de modelos do provedor alterar o catálogo ativo. Esse recurso é **opcional e fica desativado por padrão**: ative-o no **painel CLI Code** ("Sincronização automática de perfis da CLI" → Codex) ou defina `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ele também respeita `CLI_ALLOW_CONFIG_WRITES`, ativado por padrão). Quando habilitado, ele grava apenas arquivos de perfil `~/.codex/*.config.toml` separados; nunca altera o `~/.codex/config.toml` ativo/padrão, as configurações do Codex-lb, a autenticação ou a seleção do provedor.
 
 ---
 

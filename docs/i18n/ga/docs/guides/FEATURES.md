@@ -310,14 +310,14 @@ Tháinig **comhaireamh comharthaí hibrideach** isteach freisin i v3.6.6: nuair 
 
 ---
 
-## 🛡️ Ceantain Sábháilte & Taobhchoimeád SSRF _(v3.6.6+)_
+## 🛡️ Aisghabháil Shábháilte Amach & Cosaint SSRF _(v3.6.6+)_
 
-Téann gach bailíochtú soláthraí agus glaonna aimsithe tsamhail anois trí dhá shraith taobhchoimeád taistil amach:
+Téann gach glao bailíochtaithe soláthraí agus aimsithe samhla trí chosaint amach dhá shraith anois:
 
-1. **Taobhchoimeád URL** (`src/shared/network/outboundUrlGuard.ts`) — Coscann raonta IP príobháideach/aghnaithe/leabharnais sula n-osclaítear an soicéad.
-2. **Filleadh sábháilte** (`src/shared/network/safeOutboundFetch.ts`) — Cuireann sé an taobhchoimeád URL i bhfeidhm, normalaíonn sé amanna agus déanann sé iarracht ar earráidí sealadach le maolú easpónantúil.
+1. **Cosaint URL** (`src/shared/network/outboundUrlGuard.ts`) — Seiceálann sí óstainm nó litríocht IP na sprice mar atá scríofa ar dtús; sa mhód poiblí amháin, réitíonn an fillteán aisghabhála sábháilte an t-ainm freisin agus diúltaíonn sé do fhreagraí príobháideacha. De réir réamhshocraithe, blocálann sí críochphointí meiteashonraí néil — 169.254.0.0/16 ar fad chomh maith leis na hóstainmneacha meiteashonraí aitheanta; blocálann `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` óstaigh phríobháideacha agus lúb-aisiompaithe freisin; díchumasaíonn `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (nó an seanathróg `OUTBOUND_SSRF_GUARD_ENABLED=false`) na seiceálacha. Tugtar tús áite do luach a shábháiltear ó lasc brataí ar an deais thar a athróg, agus seachnaíonn soláthraithe áitiúla ionsuite an chosaint le linn bailíochtú eochrach. Féach `docs/reference/ENVIRONMENT.md`.
+2. **Fillteán aisghabhála sábháilte** (`src/shared/network/safeOutboundFetch.ts`) — Cuireann sé an chosaint URL i bhfeidhm, normalaithe sé teorainneacha ama, agus déanann sé iarracht eile ar earráidí neamhbhuana le cúlú easpónantúil.
 
-Taispeántar sáruithe taobhchoimeád mar HTTP 422 (`URL_GUARD_BLOCKED`) agus scríobhtar iad isteach i bhfíle iniúchta comhréire trí `providerAudit.ts`.
+Taispeántar sáruithe cosanta mar `URL_GUARD_BLOCKED` — HTTP 503 trí `getSafeOutboundFetchErrorStatus` (400 ar an mbealach aimsithe samhla) — agus scríobhtar fíorbhlocálacha SSRF le linn bailíochtaithe sa loga iniúchta mar theagmhais `provider.validation.ssrf_blocked`.
 
 ---
 

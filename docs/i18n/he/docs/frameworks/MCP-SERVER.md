@@ -288,100 +288,113 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 
 ---
 
-## אימות והיקפים
+## אימות והרשאות
 
-כלי MCP קורא מחרוזות היקף מהמתקשר. בדיקה זו היא אחד משלושה מרחבי שמות בלתי תלויים. מעבר מצ'קר אחד אינו מעבר מהאחרים.
-הכללים הם [שלושה מרחבי שמות של היקפים](#three-scope-namespaces).
-קטלוג הכלים הוא [היקפי כלי MCP](#mcp-tool-scopes).
+קריאות לכלי MCP קוראות מחרוזות הרשאה מהגורם הקורא. בדיקה זו היא אחד משלושה
+מרחבי שמות עצמאיים. מעבר של בודק אחד אינו נחשב למעבר של האחרים.
+הכללים מפורטים ב-[שלושה מרחבי שמות של הרשאות](#three-scope-namespaces).
+קטלוג הכלים נמצא ב-[הרשאות כלי MCP](#mcp-tool-scopes).
 
-### שלושה מרחבי שמות של היקפים
+### שלושה מרחבי שמות של הרשאות
 
-`manage` על מפתח API, `read:compression` על כלי MCP, ו-`read` על אסימון גישה `oma_live_…` הם שלושה אישורים שונים. מתקשרים השולחים אסימון גישה `read` לנתיב ניהול משנה מקבלים HTTP 403 `Access token scope 'read' is insufficient; 'write' required.`
-דרגה זו היא `scopeSatisfies`. היא אינה מתייעצת עם טבלת MCP, והמתאם של MCP אינו מתייעץ איתה.
+`manage` במפתח API,‏ `read:compression` בכלי MCP ו-`read` באסימון גישה
+`oma_live_…` הם שלוש הרשאות שונות. גורמים קוראים ששולחים אסימון גישה עם `read`
+לנתיב ניהול שמשנה נתונים מקבלים HTTP 403:
+`Access token scope 'read' is insufficient; 'write' required.`
+דירוג זה הוא `scopeSatisfies`. הוא אינו בודק את טבלת MCP, ומתאם MCP אינו
+בודק אותו.
 
-| מרחב שמות       | אישור                                                    | בודק             | מעבר מאפשר                               |
-| :-------------- | :------------------------------------------------------- | :--------------- | :--------------------------------------- |
-| ניהול מפתח API  | `api_keys.scopes`                                        | `hasManageScope` | REST ניהול עבור מפתח Bearer זה           |
-| מפתח API תוספתי | אותו מערך, מחרוזת מדויקת אחת                             | העוזר הנקוב מטה  | רק יכולת זו                              |
-| היקפי כלי MCP   | אותו מערך, אחרת MCP `_meta`, אחרת `OMNIROUTE_MCP_SCOPES` | `scopeMatches`   | כלי זה, ברגע שהאכיפה מופעלת              |
-| אסימון גישה     | `oma_live_…`                                             | `scopeSatisfies` | נתיב הניהול ששיטתו ונתיבו דורשים דרגה זו |
+| מרחב שמות              | פרטי הזדהות                                                 | בודק                       | מה מאפשר מעבר                                  |
+| :--------------------- | :---------------------------------------------------------- | :------------------------- | :--------------------------------------------- |
+| ניהול מפתחות API       | `api_keys.scopes`                                           | `hasManageScope`           | ממשק REST לניהול עבור מפתח Bearer זה           |
+| הרשאה מצטברת למפתח API | אותו מערך, מחרוזת מדויקת אחת                                | פונקציית העזר המצוינת להלן | רק יכולת יחידה זו                              |
+| הרשאות כלי MCP         | אותו מערך, אחרת `_meta` של MCP, אחרת `OMNIROUTE_MCP_SCOPES` | `scopeMatches`             | כלי זה, לאחר שהאכיפה מופעלת                    |
+| אסימון גישה            | `oma_live_…`                                                | `scopeSatisfies`           | נתיב הניהול שהמתודה והנתיב שלו דורשים דירוג זה |
 
-הטבעת כל אישור מכוסה ב-
+הנפקת כל אחד מפרטי ההזדהות מתוארת ב-
 [אימות ניהול](../guides/MANAGEMENT-AUTH.md).
 
-#### היקפי מפתח API
+#### הרשאות מפתח API
 
-מערך `api_keys.scopes` אחד מזין שתי עבודות. הן משתמשות בפונקציות שונות.
+מערך `api_keys.scopes` יחיד משמש לשתי משימות. הן משתמשות בפונקציות שונות.
 
-**REST ניהול.** `manage` ו-`admin` הם החברים ב-
+**REST לניהול.** `manage` ו-`admin` הם האיברים של
 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
-`hasManageScope` הוא מה שמאשר נתיבי ניהול עבור מפתח זה. `admin` מסוגל לניהול
-בנתיבים אלה. המילה `admin` כאן אינה דרגת אסימון הגישה והיא אינה מתרחבת
-להיקפי כלי MCP.
+`hasManageScope` היא שמאשרת גישה לנתיבי ניהול עבור מפתח זה. `admin` מאפשר
+יכולות ניהול בנתיבים אלה. המילה `admin` כאן אינה דירוג אסימון הגישה, והיא
+אינה מתרחבת להרשאות של כלי MCP.
 
-**מחרוזות תוספתיות.** כל אחת מהן היא בדיקת חברות מדויקת, וכל אחת נשארת
-מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`.
+**מחרוזות מצטברות.** כל אחת מהן נבדקת באמצעות בדיקת חברות מדויקת, וכל אחת
+נשארת מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`.
 
-| היקף                           | מעבר מאפשר                                                                                                                                                 |
-| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp:connect`                  | החיתוך הלא-לופבק `/api/mcp/` LOCAL_ONLY בלבד (`hasMcpConnectOrManageScope`). מפתח עם `manage` או `admin` עדיין עובר את החיתוך הזה.                         |
-| `self:usage`                   | `GET /api/v1/me/status` עבור מפתח זה (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` מוסיף היקף זה ביצירה (`normalizeSelfServiceScopesForCreate`). |
-| `self:account-quota`           | מכסות חשבון במעלה הזרם בתוך מטען הסטטוס הזה (`src/lib/usage/apiKeySelfService.ts`). נתיב הסטטוס עדיין דורש `self:usage`.                                   |
-| `policy:bypass-provider-quota` | קריאות ההיסק של מפתח זה מדלגות על מדיניות מכסת הספק (`hasProviderQuotaBypassScope` ב-`src/sse/handlers/chat.ts`).                                          |
+| הרשאה                          | מה מאפשר מעבר                                                                                                                                                    |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | רק החריגה של LOCAL_ONLY עבור `/api/mcp/` שאינו loopback (`hasMcpConnectOrManageScope`). מפתח עם `manage` או `admin` עדיין עובר חריגה זו.                         |
+| `self:usage`                   | `GET /api/v1/me/status` עבור מפתח זה (`src/app/api/v1/me/status/route.ts`).‏ `POST /api/keys` מוסיף הרשאה זו בעת היצירה (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | מכסות חשבון במעלה הזרם בתוך מטען הסטטוס (`src/lib/usage/apiKeySelfService.ts`). נתיב הסטטוס עדיין דורש `self:usage`.                                             |
+| `policy:bypass-provider-quota` | קריאות ההסקה של מפתח זה מדלגות על מדיניות מכסת הספק (`hasProviderQuotaBypassScope` בתוך `src/sse/handlers/chat.ts`).                                             |
 
 #### התאמה
 
-הקטלוג הוא הטבלה תחת [היקפי כלי MCP](#mcp-tool-scopes). אין להתייחס ל-`MCP_SCOPE_LIST` ב-`src/shared/constants/mcpScopes.ts` כאל קטלוג זה:
-הוא תת-הקבוצה המקלידה המקורית. כלים מאוחרים יותר מצהירים על היקפים נוספים לידו
-(`read:notion`, `read:skills`, `read:local-corpus`, ושאר הטבלה).
+הקטלוג הוא הטבלה תחת [הרשאות כלי MCP](#mcp-tool-scopes). אין להתייחס אל
+`MCP_SCOPE_LIST` בתוך `src/shared/constants/mcpScopes.ts` כאל קטלוג זה:
+זוהי תת-הקבוצה המקורית בעלת הטיפוסים. כלים שנוספו מאוחר יותר מצהירים לצידה על
+הרשאות נוספות (`read:notion`,‏ `read:skills`,‏ `read:local-corpus` ושאר
+הטבלה).
 
-`evaluateToolScopes` ב-`open-sse/mcp-server/scopeEnforcement.ts` מאפשר קריאה
-כאשר כל היקף נדרש תואם להיקף מוענק כלשהו:
+`evaluateToolScopes` בתוך `open-sse/mcp-server/scopeEnforcement.ts` מאפשרת
+קריאה כאשר כל הרשאה נדרשת תואמת להרשאה כלשהי שהוענקה:
 
-- `*` תואם לכל היקף נדרש.
-- היקף מוענק שמסתיים ב-`*` תואם להיקף נדרש שמתחיל
-  עם הקידומת שלפני הכוכבית. `read:*` תואם ל-`read:compression`.
-- כל היקף מוענק אחר תואם רק למחרוזת הנדרשת הזהה.
+- `*` תואמת לכל הרשאה נדרשת.
+- הרשאה שהוענקה ומסתיימת ב-`*` תואמת להרשאה נדרשת שמתחילה בקידומת שלפני
+  הכוכבית. `read:*` תואמת ל-`read:compression`.
+- כל הרשאה אחרת שהוענקה תואמת רק למחרוזת הנדרשת הזהה לה.
 
-מפתח שהיקפיו הם `["manage"]` נכשל ב-`scopeMatches` עבור `read:compression`.
-אותה קריאה נכשלת עבור `admin`, `mcp:connect`, `read`, ו-`write` כאשר אלו
-הן המחרוזות המוענקות היחידות. אין היררכיה בין היקפי כלי MCP
-מעבר לכוכבית הסופית `*`.
+מפתח שההרשאות שלו הן `["manage"]` נכשל ב-`scopeMatches` עבור
+`read:compression`. אותה קריאה נכשלת עבור `admin`,‏ `mcp:connect`,‏ `read`
+ו-`write` כאשר אלו המחרוזות היחידות שהוענקו. אין היררכיה בין הרשאות כלי MCP
+מעבר ל-`*` שבסוף.
 
-האכיפה כבויה אלא אם `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ברירת מחדל
-`false`). כשהיא כבויה, `evaluateToolScopes` מאפשר את הקריאה ומדלג על
-הקטלוג. כשהיא מופעלת, HTTP משתמש ב-`api_keys.scopes` של מפתח ה-Bearer כ-
-`authInfo` (ראה [קישור היקף HTTP לכל מפתח](#per-key-http-scope-binding-7895)).
-כאשר אין היקפי מפתח נפתרים, הקבוצה המוענקת עוברת ל-MCP `_meta`, ואז
-ל-`OMNIROUTE_MCP_SCOPES`.
+האכיפה כבויה אלא אם `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ברירת המחדל היא
+`false`). כל עוד היא כבויה, `evaluateToolScopes` מאפשרת את הקריאה ומדלגת על
+הקטלוג. כאשר היא מופעלת, HTTP משתמש ב-`api_keys.scopes` של מפתח ה-Bearer
+בתור `authInfo` (ראו [קישור הרשאות HTTP לפי מפתח](#per-key-http-scope-binding-7895)).
+כאשר לא נמצאות הרשאות למפתח, קבוצת ההרשאות שהוענקו עוברת כברירת מחדל אל
+`_meta` של MCP, ולאחר מכן אל `OMNIROUTE_MCP_SCOPES`.
 
-#### היקפי אסימון גישה
+#### הרשאות אסימון גישה
 
-אסימוני `oma_live_…` (`src/lib/accessTokens/scopes.ts`) נושאים `read`, `write`,
-או `admin`. `scopeSatisfies` היא דרגה: `admin` מכסה `write` ו-`read`, ו-
-`write` מכסה `read`. היקפים לא ידועים אינם מכסים דבר.
+אסימוני `oma_live_…` (`src/lib/accessTokens/scopes.ts`) נושאים `read`,‏
+`write` או `admin`.‏ `scopeSatisfies` הוא דירוג: `admin` מכסה את `write`
+ואת `read`, ו-`write` מכסה את `read`. הרשאות לא מוכרות אינן מכסות דבר.
 
-`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) משווה
-דרגה זו עם `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) משווה דירוג
+זה מול `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
-- `GET`, `HEAD`, ו-`OPTIONS` דורשים `read`.
-- כל שיטה אחרת דורשת `write`.
-- נתיבים ב-`ADMIN_SCOPE_PREFIXES` דורשים `admin` עבור כל שיטה. `/api/mcp`
-  נמצא ברשימה זו, כך שאסימון גישה `write` עדיין אינו יכול לקרוא לממשק ה-HTTP של MCP.
-- נתיבים ב-`ADMIN_MUTATION_PREFIXES` דורשים `admin` רק עבור שינויים.
+- `GET`,‏ `HEAD` ו-`OPTIONS` דורשות `read`.
+- כל מתודה אחרת דורשת `write`.
+- נתיבים בתוך `ADMIN_SCOPE_PREFIXES` דורשים `admin` עבור כל מתודה. `/api/mcp`
+  נמצא ברשימה זו, ולכן אסימון גישה עם `write` עדיין אינו יכול לקרוא לממשק
+  HTTP של MCP.
+- נתיבים בתוך `ADMIN_MUTATION_PREFIXES` דורשים `admin` רק עבור פעולות שינוי.
 
-`PATCH /api/keys/{id}` הוא שינוי (mutation) ואינו נמצא ברשימות הניהול הללו, ולכן אסימון `read` מקבל 403
+`PATCH /api/keys/{id}` היא פעולת שינוי ואינה נמצאת ברשימות הניהול האלה, ולכן
+טוקן `read` מקבל 403:
 `Access token scope 'read' is insufficient; 'write' required.`
-אסימון גישה מסוג `write` או `admin` מספק גישה לנתיב זה. JWT של לוח מחוונים, אסימון machine-id של loopback CLI, ומפתח API עם `manage` או `admin` נוקטים בנתיבים אחרים ואינם מצטמצמים על ידי דרגה זו.
+טוקן גישה מסוג `write` או `admin` עומד בדרישות הנתיב הזה. JWT של לוח הבקרה, טוקן
+ה-machine-id של CLI דרך loopback, ומפתח API עם `manage` או `admin` עוברים
+בענפים אחרים ואינם מוגבלים לפי דירוג זה.
 
-אסימון גישה שעובר את `scopeSatisfies` עבור `/api/mcp` פינה רק את שער הניהול. קריאות כלים עדיין מריצות את `scopeMatches` מול היקפי מפתח API. דרגת אסימון הגישה אינה קלט ל-`scopeMatches`.
+טוקן גישה שעובר את `scopeSatisfies` עבור `/api/mcp` עבר רק את שער
+הניהול. קריאות לכלים עדיין מריצות את `scopeMatches` מול ההרשאות של מפתח ה-API.
+הדירוג של טוקן הגישה אינו קלט של `scopeMatches`.
 
-### היקפי כלי MCP
+### הרשאות כלי MCP
 
-אכיפת היקף מרוכזת ב-`open-sse/mcp-server/scopeEnforcement.ts`.
-כל כלי דורש היקפים ספציפיים:
+אכיפת ההרשאות מרוכזת ב-`open-sse/mcp-server/scopeEnforcement.ts`.
+כל כלי דורש הרשאות מסוימות:
 
-| היקף                  | כלים                                                                                                                                                                        |
+| תחום הרשאה            | כלים                                                                                                                                                                        |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                           |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                   |
@@ -417,31 +430,65 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `write:obsidian`      | 9 כלי כתיבה — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                           |
 
-סקופים כלליים (Wildcard scopes) נתמכים: `read:*` מעניק את כל סקופי הקריאה, `*` מעניק גישה מלאה.
+יש תמיכה בטווחי תווים כלליים: `read:*` מעניק את כל טווחי הקריאה, ו-`*` מעניק גישה מלאה.
 
-### `mcp:connect` — יכולת ניתוב צרה (#7895)
+### `mcp:connect` — יכולת מצומצמת לנתיב (#7895)
 
-הגעה לטרנספורט ה-HTTP/SSE MCP (`/api/mcp/*`) מחוץ ל-loopback דורשת את החרגת LOCAL_ONLY של `/api/mcp/` (ראו `docs/security/ROUTE_GUARD_TIERS.md`). היסטורית, החרגה זו קיבלה רק מפתח API עם סקופ `manage`/`admin` מלא — רחב מדי עבור קורא שצריך רק לתקשר עם MCP. `src/shared/constants/managementScopes.ts` מייצא כעת את `MCP_CONNECT_SCOPE = "mcp:connect"`: סקופ צר ומוסף (באותו תקדים כמו `SELF_USAGE_SCOPE`) שמאשר רק את עקיפת `/api/mcp/` ב-`src/server/authz/policies/management.ts` — הוא אינו מעניק גישה אחרת לניתוב ניהול ונשמר בכוונה מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`. מפתח שמחזיק ב-`manage`/`admin` עדיין עובר את ההחרגה ללא שינוי; `mcp:connect` הוא חלופה עם הרשאות נמוכות יותר עבור קוראים מרוחקים המשתמשים ב-MCP בלבד, נבדק באמצעות `hasMcpConnectOrManageScope()`.
+גישה לתעבורת HTTP/SSE של MCP (`/api/mcp/*`) מכתובת שאינה loopback מחייבת את
+החרגת LOCAL_ONLY עבור `/api/mcp/` (ראו `docs/security/ROUTE_GUARD_TIERS.md`). בעבר,
+החרגה זו קיבלה רק מפתח API בעל טווח `manage`/`admin` מלא — הרשאה רחבה מדי עבור
+לקוח שרק צריך לתקשר עם MCP. הקובץ `src/shared/constants/managementScopes.ts` מייצא כעת
+את `MCP_CONNECT_SCOPE = "mcp:connect"`: טווח מצומצם ומתווסף (בהתאם לתקדים של
+`SELF_USAGE_SCOPE`) שמאשר אך ורק את עקיפת `/api/mcp/` בתוך
+`src/server/authz/policies/management.ts` — הוא אינו מעניק גישה לשום נתיב ניהול אחר
+ונשמר במכוון מחוץ ל-`MANAGEMENT_API_KEY_SCOPES`. מפתח שמחזיק ב-`manage`/`admin`
+עדיין עובר את ההחרגה ללא שינוי; `mcp:connect` הוא חלופה בעלת הרשאות מצומצמות יותר עבור
+לקוחות MCP מרוחקים בלבד, הנבדקת באמצעות `hasMcpConnectOrManageScope()`.
 
-### קישור סקופ HTTP לכל מפתח (#7895)
+### שיוך טווח HTTP לכל מפתח (#7895)
 
-מעל HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` מפענח כעת את ה-`api_keys.scopes` האמיתיים של הקורא באמצעות `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ומעביר אותם ל-`transport.handleRequest(req, { authInfo })` של MCP SDK, כך ש-`extra.authInfo.scopes` המגיעים לכל קריאת כלי משקפים את הסקופים של מפתח ה-Bearer עצמו. הפונקציה `resolveCallerScopeContext()` ב-`scopeEnforcement.ts` כבר נתנה עדיפות ל-`authInfo` על פני ה-`_meta` וה-`OMNIROUTE_MCP_SCOPES` כגיבוי סביבתי — זה רק מאכלס את המקור הראשון, בעל העדיפות הגבוהה ביותר, שלא הוזן בעבר דרך HTTP. כאשר מפתח API אינו מפוענח (אין כותרת, מפתח לא חוקי), `authInfo` נשאר `undefined` והפענוח עובר לשרשרת ה-`meta`/env הקיימת ללא שינוי. זה לא משנה את ברירת המחדל של `OMNIROUTE_MCP_ENFORCE_SCOPES` — האכיפה עדיין צריכה להיות מופעלת במפורש; שינוי זה רק גורם לנתיב לכל מפתח לקבל עדיפות ברגע שהוא מופעל. ל-stdio אין זהות לכל קורא (ראו `mcpCallerIdentity.ts`) והוא אינו מושפע — הוא נשאר על שרשרת הגיבוי של `_meta`/env.
+בתקשורת HTTP/SSE, הקובץ `open-sse/mcp-server/httpTransport.ts` פותר כעת את
+`api_keys.scopes` האמיתיים של הלקוח באמצעות `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+ומעביר אותם ל-`transport.handleRequest(req, { authInfo })` של SDK ה-MCP, כך שהערך
+`extra.authInfo.scopes` שמגיע לכל קריאת כלי משקף את הטווחים של מפתח ה-Bearer עצמו.
+הפונקציה `resolveCallerScopeContext()` שב-`scopeEnforcement.ts` כבר נתנה עדיפות ל-`authInfo` על פני
+חלופת `_meta` ומשתנה הסביבה `OMNIROUTE_MCP_SCOPES` — שינוי זה רק מאכלס את המקור הראשון,
+בעל העדיפות הגבוהה ביותר, שבעבר לא הוזן דרך HTTP. כאשר לא נמצא מפתח API מתאים
+(אין כותרת או שהמפתח אינו תקין), `authInfo` נשאר `undefined` והפתרון ממשיך לשרשרת
+`meta`/משתני הסביבה הקיימת ללא שינוי. ל-stdio אין זהות נפרדת לכל לקוח (ראו
+`mcpCallerIdentity.ts`), ולכן הוא אינו מושפע — הוא נשאר עם שרשרת החלופות `_meta`/משתני הסביבה.
+
+**האכיפה מופעלת בכפייה עבור לקוחות HTTP/SSE בעלי טווח מצומצם, ללא תלות
+ב-`OMNIROUTE_MCP_ENFORCE_SCOPES`.** ברירת המחדל `false` של `OMNIROUTE_MCP_ENFORCE_SCOPES` בטוחה רק
+עבור תהליך העבודה המקומי/stdio של מפעיל יחיד, שבו אין זהות נפרדת לכל לקוח שניתן להחיל עליה טווח.
+הפונקציה `open-sse/mcp-server/server.ts::withScopeEnforcement()` מפעילה ללא תנאי אכיפת טווחים
+לכל כלי (`shouldForceScopeEnforcement()` בתוך `scopeEnforcement.ts`)
+בכל פעם שבה `resolveCallerScopeContext()` פתרה
+`source === "authInfo"` (כלומר, כותרת HTTP Authorization אמיתית לכל מפתח, ב-HTTP/SSE בלבד) וגם
+אותו מפתח אינו מחזיק בטווח `manage`/`admin` מלא. הדבר סוגר את הפרצה שבה מפתח שמחזיק אך ורק
+בטווח העקיפה המצומצם `mcp:connect` — המתועד לעיל כמאשר רק את
+החרגת LOCAL_ONLY עבור `/api/mcp/` — היה יכול אחרת להפעיל כל כלי MCP לאחר שמפעיל
+הפעיל גישת MCP מרוחקת/שאינה loopback, פשוט משום ש-`OMNIROUTE_MCP_ENFORCE_SCOPES` מגיע
+עם ערך ברירת מחדל `false`. מפתח `manage`/`admin` מלא דרך HTTP, וכן כל לקוח stdio/מקומי, ממשיכים
+בהתנהגות הקיימת המותנית ב-`OMNIROUTE_MCP_ENFORCE_SCOPES`, ללא שינוי.
+
+---
 
 ## משתני סביבה
 
-| משתנה                                   | ברירת מחדל                       | מטרה                                                                                                |
-| :-------------------------------------- | :------------------------------- | :-------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`         | כתובת ה-URL הבסיסית שבה משתמש שרת ה-MCP בעת קריאה לממשקי API פנימיים של OmniRoute                   |
-| `OMNIROUTE_API_KEY`                     | (ריק)                            | מפתח API שמועבר בתור `Authorization: Bearer` לקריאות API פנימיות                                    |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (רק `"true"` מפעיל אותו) | כאשר האפשרות מופעלת, הרשאות חסרות מונעות קריאות לכלים ומתעדות `scope_denied:<reason>` ביומן הביקורת |
-| `OMNIROUTE_MCP_SCOPES`                  | (ריק)                            | רשימת הרשאות מופרדת בפסיקים שנחשבות ל"זמינות" כברירת מחדל (משמשת כאשר הקורא אינו מספק הרשאות משלו)  |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (לא מוגדר = מופעל)               | כאשר מוגדר לערך `0/false/off/no`, משבית את דחיסת תיאורי MCP בזמן הרישום                             |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (לא מוגדר = מופעל)               | כינוי חלופי לאותו מתג שמופיע לעיל                                                                   |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                          | מגבלת הזמן לביטול קריאות ניהול פנימיות (תקינות, עמידות, שילובים, מכסה, שימוש)                       |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                          | מגבלת הזמן לביטול שלבים הממתינים לספק (`route_request`, `web_search`, `web_fetch`)                  |
-| `MCP_TOOL_DENY`                         | (לא מוגדר = ללא סינון)           | שמות כלים מופרדים בפסיקים שיושמטו מ-`tools/list` (צמצום מספר הכלים — ראו להלן)                      |
-| `MCP_TOOL_ALLOW`                        | (לא מוגדר = ללא סינון)           | שמות כלים מופרדים בפסיקים שיישמרו באופן בלעדי (מצב רשימת היתרים — ראו להלן)                         |
-| `DATA_DIR`                              | `~/.omniroute`                   | קובץ אות החיים נכתב אל `${DATA_DIR}/runtime/mcp-heartbeat.json`                                     |
+| משתנה                                   | ברירת מחדל                      | מטרה                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| :-------------------------------------- | :------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`        | כתובת ה-URL הבסיסית שבה שרת ה-MCP משתמש בעת קריאה לממשקי ה-API הפנימיים של OmniRoute                                                                                                                                                                                                                                                                                                                                                                            |
+| `OMNIROUTE_API_KEY`                     | (ריק)                           | מפתח API שמועבר בתור `Authorization: Bearer` לקריאות API פנימיות                                                                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (רק `"true"` מפעיל זאת) | כאשר האפשרות מופעלת, היעדר היקפים גורם לדחיית קריאות לכלים ולרישום `scope_denied:<reason>` ביומן הביקורת. האכיפה נכפית גם ללא קשר לדגל זה עבור כל קורא HTTP/SSE שמזוהה מכותרת Authorization ייעודית למפתח (`source === "authInfo"`) ושאין לו היקף `manage`/`admin` מלא — לדוגמה, מפתח שמחזיק רק בהיקף המעקף המצומצם `mcp:connect` — ולכן ברירת מחדל זו בטוחה רק עבור תהליך מקומי/stdio המופעל בידי מפעיל יחיד, ולעולם לא עבור גישה מרוחקת שאינה מכתובת loopback |
+| `OMNIROUTE_MCP_SCOPES`                  | (ריק)                           | רשימת היקפים מופרדת בפסיקים שנחשבים "זמינים" כברירת מחדל (משמשת כאשר הקורא אינו מספק היקפים משלו)                                                                                                                                                                                                                                                                                                                                                               |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (לא מוגדר = מופעל)              | כאשר מוגדר ל-`0/false/off/no`, משבית את דחיסת התיאורים של MCP בזמן הרישום                                                                                                                                                                                                                                                                                                                                                                                       |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (לא מוגדר = מופעל)              | כינוי חלופי לאותו מתג שלעיל                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                         | תקציב הזמן עד לביטול עבור קריאות ניהול פנימיות (תקינות, עמידות, שילובים, מכסה, שימוש)                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                         | תקציב הזמן עד לביטול עבור שלבים שממתינים לספק (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                      |
+| `MCP_TOOL_DENY`                         | (לא מוגדר = ללא מסנן)           | שמות כלים מופרדים בפסיקים שיש להשמיט מ-`tools/list` (הפחתת מספר הכלים — ראו להלן)                                                                                                                                                                                                                                                                                                                                                                               |
+| `MCP_TOOL_ALLOW`                        | (לא מוגדר = ללא סינון)          | שמות כלים מופרדים בפסיקים שיש להשאיר באופן בלעדי (מצב רשימת הרשאה — ראו להלן)                                                                                                                                                                                                                                                                                                                                                                                   |
+| `DATA_DIR`                              | `~/.omniroute`                  | קובץ פעימת הלב נכתב אל `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ---
 

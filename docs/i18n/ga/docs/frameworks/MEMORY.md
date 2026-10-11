@@ -169,33 +169,33 @@ Stórálann an tábla `memory_vec_meta` (aistriú `083_memory_vec.sql`):
 Tá naoi réimse leabaithe agus veicteora ar fáil in `MemorySettingsExtended` in
 `src/shared/schemas/memory.ts`, agus déantar iad a bhuanú trí `src/lib/db/settings.ts`:
 
-| Réimse                   | Cineál                                             | Réamhshocrú | Cur síos                                                             |
-| ------------------------ | -------------------------------------------------- | ----------- | -------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | An fhoinse leabaithe atá le húsáid                                   |
-| `embeddingProviderModel` | `string \| null`                                   | `null`      | Soláthraí/samhail i bhformáid `provider/model`                       |
-| `customBaseUrl`          | `string \| null`                                   | `null`      | Bun-URL críochphointe comhoiriúnach le OpenAI, don chuimhne amháin   |
-| `customModelId`          | `string \| null`                                   | `null`      | Aitheantas na samhla a sheoltar chuig an gcríochphointe saincheaptha |
-| `transformersEnabled`    | `boolean`                                          | `false`     | Rogha chun Transformers.js a úsáid (MiniLM, ~400MB)                  |
-| `staticEnabled`          | `boolean`                                          | `false`     | Rogha chun samhail áitiúil statach potion-base-8M a úsáid            |
-| `rerankEnabled`          | `boolean`                                          | `false`     | Cumasaigh céim athrangaithe (cuireann sé +200-500ms/req leis)        |
-| `rerankProviderModel`    | `string \| null`                                   | `null`      | Soláthraí/samhail athrangaithe i bhformáid `provider/model`          |
+| Réimse                   | Cineál                                             | Réamhshocrú | Cur síos                                                                              |
+| ------------------------ | -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Cén fhoinse leabaithe atá le húsáid                                                   |
+| `embeddingProviderModel` | `string \| null`                                   | `null`      | Soláthraí/samhail san fhormáid `provider/model`                                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`      | Bun-URL críochphointe atá comhoiriúnach le OpenAI agus atá le húsáid ag Memory amháin |
+| `customModelId`          | `string \| null`                                   | `null`      | Aitheantas na samhla a sheoltar chuig an gcríochphointe saincheaptha                  |
+| `transformersEnabled`    | `boolean`                                          | `false`     | Rogha chun Transformers.js a úsáid (MiniLM, ~400MB)                                   |
+| `staticEnabled`          | `boolean`                                          | `false`     | Rogha chun an tsamhail áitiúil statach potion-base-8M a úsáid                         |
+| `rerankEnabled`          | `boolean`                                          | `false`     | Cumasaigh an chéim athrangaithe (cuireann sé +200-500ms/iarratas leis)                |
+| `rerankProviderModel`    | `string \| null`                                   | `null`      | Soláthraí/samhail athrangaithe san fhormáid `provider/model`                          |
 
-Déantar `rerankProviderModel` a réiteach le `POST /v1/rerank` (a ghlaoitear thar loopback), mar sin glacann sé le haon rud a nglacann an bealach sin leis: samhail athrangaithe néil roghnaithe (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nó nód soláthraí atá comhoiriúnach le OpenAI mar `<node-prefix>/<model>` (m.sh. `skilled-mini/bge-reranker-v2-m3` do bhosca TEI/Infinity). Bíonn nóid loopback incháilithe i gcónaí; i gcás nód ar óstach eile (LAN, Tailscale), teastaíonn an bhratach ghné `RERANK_REMOTE_PROVIDER_NODES` freisin agus ní mór dó polasaí URL amach an tsoláthraí a chomhlíonadh — féach [Bratacha Gné](../reference/FEATURE_FLAGS.md). Liostaíonn roghnóir an deais soláthraithe roghnaithe chomh maith le nóid áitiúla; is féidir aon teaghrán bailí `provider/model` a shocrú go díreach trí `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | An t-inneall veicteora atá le húsáid |
+Réitíonn `POST /v1/rerank` `rerankProviderModel` (glaoitear air trí loopback), mar sin glacann sé le haon rud a nglacann an bealach sin leis: samhail athrangaithe néil coimeádaithe (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nó nód soláthraí atá comhoiriúnach le OpenAI mar `<node-prefix>/<model>` (m.sh. `skilled-mini/bge-reranker-v2-m3` do bhosca TEI/Infinity). Tá nóid loopback, agus óstainmneacha atá liostaithe in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (m.sh. ainm seirbhíse Docker/Compose), incháilithe i gcónaí; éilíonn nód ar óstríomhaire eile (LAN, Tailscale) an bhratach ghné `RERANK_REMOTE_PROVIDER_NODES` freisin agus ní mór dó polasaí URL amach an tsoláthraí a chomhlíonadh — féach [Bratacha Gné](../reference/FEATURE_FLAGS.md). Liostaíonn roghnóir an deais soláthraithe coimeádaithe chomh maith le nóid áitiúla; is féidir aon teaghrán bailí `provider/model` a shocrú go díreach trí `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Cén t-inneall veicteora atá le húsáid |
 
 Nochtar iad seo trí `GET /PUT /api/settings/memory` (scéimre `MemorySettingsExtendedSchema`).
 
 Maidir leis an bhfoinse `remote`, glacann Memory leis na socruithe roghnacha `customBaseUrl` agus
-`customModelId` freisin. Le chéile, roghnaíonn siad críochphointe `/embeddings`
-atá comhoiriúnach le OpenAI agus samhail gan an chlárlann leabaithe dhomhanda a athrú. Déantar an críochphointe a
+`customModelId` freisin. Le chéile, roghnaíonn siad críochphointe `/embeddings` atá comhoiriúnach le OpenAI
+agus samhail gan an chlárlann leabaithe dhomhanda a athrú. Déantar an críochphointe a
 normalú sula n-úsáidtear é agus seiceálann polasaí URL amach an tsoláthraí é: tá HTTP(S)
 riachtanach, diúltaítear do dhintiúir leabaithe agus do theaghráin iarratais, agus fanann
 seoltaí meiteashonraí néil blocáilte. Caomhnaíonn luachanna folmha an soláthraí clárlainne roghnaithe. Déantar earráidí
 a chuirtear ar ais chuig an deais a shláintiú agus ní logáiltear dintiúir críochphointe riamh.
 
-> **LE DÉANAMH (D20):** Níl an scóip `global` (cuimhní a chomhroinnt thar gach eochair API)
-> curtha i bhfeidhm san eisiúint seo. Teastaíonn athruithe scéimre agus conair aisghabhála
-> dhomhanda uaithi. Rianaigh ar leithligh í.
+> **TODO (D20):** Níl scóip `global` (cuimhní a chomhroinnt ar fud na n-eochracha API uile)
+> curtha i bhfeidhm san eisiúint seo. Éilíonn sé athruithe ar an scéimre agus conair aisghabhála
+> dhomhanda. Coinnigh súil air ar leithligh.
 
 ## Sraitheanna Stórála
 
@@ -913,38 +913,36 @@ Chun é a fhágáil múchta, níl le déanamh ach `autoSummarize` a choinneáil 
 > **Foinse na fírinne:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Tástálacha:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Tugann patrún soláthraí MemoryBackend **sraith astarraingthe innill deiridh inphlugáilte** isteach os cionn an innill cuimhne atá ann cheana. In ionad a bheith ceangailte le feidhmiú stórála amháin, tacaíonn an córas cuimhne anois le hinnill deiridh iomadúla (SQLite, Obsidian, Notion, innill deiridh shaincheaptha HTTP) agus le ródú príomhúil/cúltaca inchumraithe.
+Tugann patrún soláthraí MemoryBackend **ciseal astarraingthe inneall deiridh inphlugáilte** isteach os cionn an innill chuimhne atá ann cheana. In ionad a bheith ceangailte le cur chun feidhme stórála aonair, tacaíonn an córas cuimhne anois le hinnill deiridh iomadúla (SQLite, Obsidian, Notion, innill deiridh shaincheaptha HTTP) agus le ródú príomhúil/cúltaca inchumraithe.
 
 ### Ailtireacht
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    Bealaí API                            │
-│            (src/app/api/memory/route.ts)                 │
+│                    Bealaí API                             │
+│            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────┐
-│                   MemoryManager                          │
-│          Ceolfhoirneoir aonáis (manager.ts)              │
+│                   MemoryManager                           │
+│       Ceolfhoireann aonréadach (manager.ts)               │
 │                                                          │
-│  Príomhúil ──► Inneall Deiridh A  (m.sh. SQLite)         │
-│  Cúltaca   ──► Inneall Deiridh B  (m.sh. Obsidian)       │
-│                Inneall Deiridh C  (m.sh. Notion trí      │
-│                GenericBackend)                           │
+│  Príomhúil ──► Inneall A  (m.sh. SQLite)                 │
+│  Cúltaca   ──► Inneall B  (m.sh. Obsidian)               │
+│               Inneall C  (m.sh. Notion trí GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ Inneall    │ │ Inneall    │ │ Inneall          │
-│ Deiridh    │ │ Deiridh    │ │ GenericMemory    │
-│ SQLite     │ │ Obsidian   │ │ (HTTP)            │
+│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
+│ Inneall    │ │ Inneall    │ │ Inneall (HTTP)  │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Croíchomhéadan (`backend.ts`)
+#### Croí-Chomhéadan (`backend.ts`)
 
-Ní mór do gach inneall deiridh an comhéadan `MemoryBackend` a chur i bhfeidhm:
+Ní mór do gach inneall deiridh an comhéadan `MemoryBackend` a chur chun feidhme:
 
 ```typescript
 interface MemoryBackend {
@@ -972,27 +970,27 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Ceolfhoirneoir aonáis a dhéanann na nithe seo a leanas:
+Ceolfhoireann aonréadach a dhéanann na nithe seo a leanas:
 
-- **Cláraíonn** sé innill deiridh trí `register(backend)` — glaoitear air ag an tosú ó `index.ts`
-- **Cumraíonn** sé an príomhinneall + cúltaca trí `configure(primary, fallbacks)`
-- **Ródálann** sé CRUD/cuardach chuig an bpríomhinneall, le slabhra cúltaca ar theip
+- **Cláraíonn** sé innill deiridh trí `register(backend)` — glaoite ag am tosaithe ó `index.ts`
+- **Cumraíonn** sé an príomhinneall + na hinnill chúltaca trí `configure(primary, fallbacks)`
+- **Ródaíonn** sé CRUD/cuardach chuig an bpríomhinneall, le slabhra cúltaca i gcás teipe
 - Déanann sé **seiceálacha sláinte** ar gach inneall deiridh go tréimhsiúil
 
 **Iompar cúltaca:**
 
-| Oibríocht | Príomhúil                               | Cúltacaí                            |
-| --------- | --------------------------------------- | ----------------------------------- |
-| `create`  | ✅ Príomhúil amháin                     | ❌                                  |
-| `get`     | ✅ Bain triail as an bpríomhúil ar dtús | ✅ Cúltaca más null é               |
-| `update`  | ✅ Príomhúil amháin                     | ✅ Sioncrónú gan fanacht le freagra |
-| `delete`  | ✅ Príomhúil amháin                     | ✅ Sioncrónú gan fanacht le freagra |
-| `list`    | ✅ Príomhúil amháin                     | ❌                                  |
-| `search`  | ✅ Príomhúil ar dtús                    | ✅ Cúltaca ar earráid               |
+| Oibríocht | Príomhúil                 | Innill chúltaca                     |
+| --------- | ------------------------- | ----------------------------------- |
+| `create`  | ✅ Príomhúil amháin       | ❌                                  |
+| `get`     | ✅ Bain triail as ar dtús | ✅ Cúltaca más null                 |
+| `update`  | ✅ Príomhúil amháin       | ✅ Sioncronú gan fanacht le freagra |
+| `delete`  | ✅ Príomhúil amháin       | ✅ Sioncronú gan fanacht le freagra |
+| `list`    | ✅ Príomhúil amháin       | ❌                                  |
+| `search`  | ✅ Príomhúil ar dtús      | ✅ Cúltaca i gcás earráide          |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Nascóir cineálach HTTP a chuireann aon REST API in oiriúint ina MemoryBackend. Úsáideach do:
+Nascóir cineálach HTTP a chuireann aon API REST in oiriúint mar MemoryBackend. Úsáideach do:
 
 - **Notion** — ceangail trí Notion API
 - **Obsidian** — ceangail trí Obsidian Local REST API
@@ -1002,8 +1000,8 @@ Nascóir cineálach HTTP a chuireann aon REST API in oiriúint ina MemoryBackend
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Bun-URL API an inneall
-  apiKey?: string;           // Ceadchomhartha Bearer le haghaidh fíordheimhnithe
+  baseUrl: string;           // Bun-URL API an innill deiridh
+  apiKey?: string;           // Comhartha iompróra le haghaidh fíordheimhnithe
   headers?: Record<string, string>;  // Ceanntásca saincheaptha HTTP
   timeout?: number;          // Teorainn ama iarratais (réamhshocrú: 30000ms)
   backendType?: string;      // Le haghaidh logála
@@ -1024,25 +1022,25 @@ interface GenericBackendConfig {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Mapálacha ainmneacha paraiméadar conairí
+  // Mapálacha ainmneacha paraiméadar conaire
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-Tá **innill aitheanta** réamhchumraithe in `KNOWN_BACKENDS`:
+Tá **innill deiridh aitheanta** réamhchumraithe in `KNOWN_BACKENDS`:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend dírithe ar localhost:27123
 createKnownBackend("notion"); // → GenericMemoryBackend dírithe ar api.notion.com/v1
 ```
 
-#### Innill ionsuite
+#### Innill Deiridh Ionsuite
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-An t-inneall príomhúil réamhshocraithe. Timfhilleann sé an stór cuimhne reatha atá bunaithe ar SQLite agus `src/lib/memory/store.ts` á úsáid aige. Cláraítear go huathoibríoch é ag am tosaithe.
+An príomhinneall deiridh réamhshocraithe. Cumhdaíonn sé an stór cuimhne SQLite atá ann cheana trí `src/lib/memory/store.ts` a úsáid. Cláraítear go huathoibríoch é ag am tosaithe.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1051,39 +1049,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Timfhilleann sé an comhtháthú reatha Obsidian (`src/lib/memory/obsidianBackend.ts`). Nascann sé le cruinneachán Obsidian trí Obsidian Local REST API.
+Cumhdaíonn sé an comhtháthú Obsidian atá ann cheana (`src/lib/memory/obsidianBackend.ts`). Ceanglaíonn sé le cruinneachán Obsidian trí Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Cuibheoir d'oibrí áitiúil [claude-mem](https://github.com/thedotmack/claude-mem) — an
+breiseán cuimhne Claude Code / Codex / Cursor a ghabhann seisiúin chódaithe mar "bhreathnuithe".
+Agus é cláraithe, is féidir leis na bealaí REST `/api/memory` agus cuardach cuimhne A2A léamh ón
+stór céanna a líonann crúcaí claude-mem agus scríobh chuige.
+
+Ní cheanglaíonn an t-oibrí ach le loopback, rud a dhiúltaíonn cosaint SSRF `GenericMemoryBackend` dó d'aon ghnó.
+Ní mhaolaíonn an cuibheoir seo an chosaint sin: tá an t-óstach códaithe go docht mar `127.0.0.1` agus ní ghlacann an scéimre
+cumraíochta (`ClaudeMemBackendConfigSchema`, `.strict()`) ach le:
+
+| Eochair     | Cineál   | Réamhshocrú | Nótaí                                                                                                                     |
+| ----------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | uimhir   | —           | Riachtanach, 1024–65535. Port oibrí claude-mem óna chomhad socruithe (réamhshocrú `37700 + uid % 100`).                   |
+| `project`   | teaghrán | —           | Tionscadal claude-mem le húsáid. Gan socrú → mapálann gach eochair API OmniRoute chuig a tionscadal féin (an `apiKeyId`). |
+| `timeoutMs` | uimhir   | `5000`      | Teorainn ama in aghaidh na hiarrata, 100–30000.                                                                           |
+
+Cumasaigh é trí `PUT /api/settings/memory` agus atosaigh OmniRoute (cláraítear innealláin
+aon uair amháin, in `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Úsáid `"primaryBackend": "claude-mem"` ina ionad sin chun é a dhéanamh mar an stór don REST API. Logáiltear cumraíocht
+neamhbhailí (`claude-mem.backend.invalid_config`) agus scipeáiltear í, ionas go bhfanann SQLite mar an príomhinneall.
+
+Mapáil agus teorainneacha:
+
+- Is iad `claude-mem:<observationId>` na haitheantais; déanann `get`/`delete` neamhaird ar aitheantais inneallán eile gan
+  glao líonra.
+- `create` → `POST /api/memory/save`; iompraítear réimsí OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) in `metadata.omniroute` de chuid claude-mem agus déantar turas fillte orthu tráth léite.
+- `search` → `GET /api/search?format=json&type=observations`, bearrtha go `maxTokens`
+  (carachtair / 4). `list` → críochphointe breathnuithe uimhrithe an oibrí (`total` is íosteorainn é — tugann an t-oibrí
+  `hasMore` ar ais, ní comhaireamh).
+- Mapálann breathnuithe a gabhadh le crúca `discovery` → `factual`, `decision` → `procedural`, agus
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Gan nuashonruithe** (tugann `update()` `false` ar ais; tá breathnuithe do-athraithe) agus **gan TTL**
+  (déantar neamhaird de `expiresAt`). Déanann claude-mem sábhálacha comhionanna a dhídhúbailt in ionad uaschur de réir `key`.
+- Léann instealladh leide (`retrieval.ts`) agus na huirlisí MCP `omniroute_memory_*` SQLite
+  go díreach fós — ní théann siad trí `memoryManager`, mar sin ní sholáthraíonn an t-inneall seo sonraí dóibh.
+
+**Glaonna LLM claude-mem féin a ródú trí OmniRoute.** Comhbhrúnn claude-mem breathnuithe
+le LLM (réamhshocrú: Claude Agent SDK). Is féidir a sholáthraí `openai-compatible` a dhíriú ar
+OmniRoute ina ionad sin, agus leas a bhaint as cúltaca teaglama agus rianú costas. In `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<eochair API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<samhail nó teaglama OmniRoute>"
+}
+```
 
 ### Socruithe
 
-Stóráiltear socruithe inneall cuimhne i dtábla socruithe na haipe agus bainistítear iad trí `src/lib/memory/settings.ts`:
+Stóráiltear socruithe an innill chuimhne i dtábla socruithe na haipe agus bainistítear iad trí `src/lib/memory/settings.ts`:
 
-| Socrú                | Eochair Timpeallachta/Cumraíochta | Réamhshocrú | Cur síos                             |
-| -------------------- | --------------------------------- | ----------- | ------------------------------------ |
-| Inneall príomhúil    | `memoryPrimaryBackend`            | `"sqlite"`  | ID an innill phríomhúil              |
-| Innill chúltaca      | `memoryFallbackBackends`          | `[]`        | IDanna ordaithe na n-inneall cúltaca |
-| Cumraíochtaí inneall | `memoryBackendConfigs`            | `{}`        | Sáruithe cumraíochta de réir innill  |
+| Socrú                | Eochair Timpeallachta/Cumraíochta | Réamhshocrú | Cur síos                                  |
+| -------------------- | --------------------------------- | ----------- | ----------------------------------------- |
+| Príomhinneall        | `memoryPrimaryBackend`            | `"sqlite"`  | Aitheantas an phríomhinnill               |
+| Innill chúltaca      | `memoryFallbackBackends`          | `[]`        | Aitheantais inneall cúltaca in ord        |
+| Cumraíochtaí inneall | `memoryBackendConfigs`            | `{}`        | Sáruithe cumraíochta in aghaidh an innill |
 
-Normalaítear na socruithe trí `normalizeMemorySettings()` agus cuirtear i dtaisce iad ag `getMemorySettings()`.
+Normalaítear socruithe trí `normalizeMemorySettings()` agus cuirtear i dtaisce iad ag `getMemorySettings()`.
 
 ### Sreabhadh Túsaithe
 
 ```
-Bústrapáil na haipe
-  → Iompórtálacha index.ts (fo-iarmhairt): cláraítear SQLiteBackend
-  → Glaoitear initMemoryBackends() ó shaolré na haipe:
-      1. Lódáil socruithe (getMemorySettings)
-      2. Cumraigh an t-inneall príomhúil + na hinnill chúltaca
+Tosú na haipe
+  → iompórtálacha index.ts (fo-éifeacht): cláraíonn SQLiteBackend
+  → glaoitear initMemoryBackends() ó shaolré na haipe:
+      1. Luchtaigh socruithe (getMemorySettings)
+      1b. Cláraigh innill roghnacha atá i láthair in backendConfigs (claude-mem)
+      2. Cumraigh príomhinneall + cúltaca
       3. Tosaigh gach inneall (seiceáil sláinte)
       4. Réidh le haghaidh iarratas
 ```
 
 ### Inneall Nua a Chur Leis
 
-1. **Cuir comhéadan `MemoryBackend` i bhfeidhm** in `src/lib/memory/<name>Backend.ts`
+1. **Cuir comhéadain `MemoryBackend` i bhfeidhm** in `src/lib/memory/<name>Backend.ts`
 2. **Easpórtáil** ó `src/lib/memory/index.ts`
 3. **Cláraigh** le `memoryManager.register(yourBackend)` ag am tosaithe
-4. **Cumraigh** trí shocruithe: socraigh `memoryPrimaryBackend` mar ID d'innill
-5. **Déan tástáil** agus `src/lib/memory/__tests__/generic-backend.test.ts` á úsáid mar thagairt
+4. **Cumraigh** trí shocruithe: socraigh `memoryPrimaryBackend` chuig aitheantas d'innill
+5. **Tástáil** le `src/lib/memory/__tests__/generic-backend.test.ts` mar thagairt
 
 #### Sampla: Inneall Brain
 
@@ -1111,18 +1169,18 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Aschur a bhfuiltear ag súil leis: **35 tástáil, iad uile ag pasáil**, lena gcumhdaítear:
+Aschur ionchais: **35 tástáil, gach ceann acu ag pasáil**, lena gcumhdaítear:
 
 - Cruthaitheoir (2)
 - Seiceáil sláinte (4) — rath, teip 500, earráid líonra, aga folaigh
 - Túsú (2) — rath, teip
 - Cruthú (2) — críochphointe réamhshocraithe, críochphointe saincheaptha
-- Fáil (4) — rath, 404 → null, caitheamh earráide nach 404 í, paraiméadair chonairí shaincheaptha
+- Faigh (4) — rath, 404 → null, eisceacht nach 404 í, paraiméadair chosáin shaincheaptha
 - Nuashonrú (2) — rath, 404 → false
 - Scriosadh (2) — rath, 404 → false
 - Liostú (2) — paraiméadair iarratais, ainmneacha paraiméadar saincheaptha
 - Cuardach (3) — paraiméadair iarratais, críochphointe saincheaptha, srathú roghanna
-- Ceanntásca fíordheimhnithe (2) — ceadchomhartha Bearer, ceanntásca saincheaptha
+- Ceanntásca fíordheimhnithe (2) — comhartha Bearer, ceanntásca saincheaptha
 - Monarcha (1)
 
 #### Seiceáil cineáil
@@ -1131,4 +1189,4 @@ Aschur a bhfuiltear ag súil leis: **35 tástáil, iad uile ag pasáil**, lena g
 npm run typecheck:core
 ```
 
-A bhfuiltear ag súil leis: **0 earráid**.
+Ionchas: **0 earráid**.

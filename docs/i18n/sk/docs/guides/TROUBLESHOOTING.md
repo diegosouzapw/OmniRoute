@@ -4,30 +4,30 @@
 
 ---
 
-> **Pre používateľov**: Hľadáte rýchle riešenia? Pozrite si [Stručnú referenčnú príručku](#quick-reference) nižšie.
+> **Pre používateľov**: Hľadáte rýchle riešenia? Pozrite si [Rýchlu referenčnú príručku](#quick-reference) nižšie.
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Jazyky:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/TROUBLESHOOTING.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/TROUBLESHOOTING.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/TROUBLESHOOTING.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/TROUBLESHOOTING.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/TROUBLESHOOTING.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/TROUBLESHOOTING.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/TROUBLESHOOTING.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/TROUBLESHOOTING.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/TROUBLESHOOTING.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/TROUBLESHOOTING.md)
 
-Bežné problémy a ich riešenia pre OmniRoute.
+Bežné problémy a riešenia pre OmniRoute.
 
 ---
 
-## Rýchly prehľad
+## Stručný prehľad
 
-**Ste v OmniRoute noví?** Začnite tu — tieto riešenia vyriešia 90 % problémov:
+**Používate OmniRoute prvýkrát?** Začnite tu — tieto riešenia vyriešia 90 % problémov:
 
-| Zobrazuje sa mi               | Čo to znamená                                         | Čo treba urobiť                                                                                                |
-| ----------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| "Can't connect"               | OmniRoute nie je spustený                             | Spustite `omniroute` alebo `docker restart omniroute`                                                          |
-| "Invalid API key"             | Váš kľúč je nesprávny alebo jeho platnosť vypršala    | Znova skopírujte kľúč z webovej lokality poskytovateľa                                                         |
-| "Rate limit exceeded"         | Odosielate príliš veľa požiadaviek                    | Počkajte 1 minútu alebo použite `model: "auto"` na automatické prepnutie                                       |
-| "Quota exceeded"              | Vyčerpali ste svoju bezplatnú/platenú kvótu           | Pripojte ďalších poskytovateľov alebo použite bezplatných poskytovateľov (Kiro, Pollinations)                  |
-| "Slow responses"              | Poskytovateľ je vyťažený alebo príliš vzdialený       | Použite `model: "auto/fast"` alebo pripojte rýchlejšieho poskytovateľa (Groq, Cerebras)                        |
-| "Wrong provider used"         | `auto` vybral iného poskytovateľa                     | To je normálne! `auto` vyberá najlepšieho. Konkrétneho poskytovateľa vynútite pomocou `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"             | Poskytovateľ je nedostupný                            | Počkajte a skúste to znova alebo použite `model: "auto"` na prepnutie poskytovateľa                            |
-| "401 Unauthorized"            | Vaše prihlasovacie údaje sú nesprávne                 | Skontrolujte svoj API kľúč alebo sa znova overte pomocou OAuth                                                 |
-| "omniroute is not recognized" | V premennej Windows PATH chýbajú globálne moduly node | Pridajte svoj globálny prefix npm do premennej Windows PATH. Zistíte ho pomocou `npm config get prefix`.       |
-| "429 Too Many Requests"       | Bola prekročená frekvencia požiadaviek                | Počkajte 1 minútu alebo pripojte ďalších poskytovateľov                                                        |
+| Zobrazuje sa mi toto               | Čo to znamená                                                 | Čo robiť                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| „Nedá sa pripojiť“                 | OmniRoute nie je spustený                                     | Spustite `omniroute` alebo `docker restart omniroute`                                                          |
+| „Neplatný kľúč API“                | Váš kľúč je nesprávny alebo jeho platnosť vypršala            | Znova skopírujte kľúč z webovej stránky poskytovateľa                                                          |
+| „Prekročený limit požiadaviek“     | Odosielate príliš veľa požiadaviek                            | Počkajte 1 minútu alebo použite `model: "auto"` na automatické záložné prepnutie                               |
+| „Prekročená kvóta“                 | Vyčerpali ste bezplatnú alebo platenú kvótu                   | Pripojte ďalších poskytovateľov alebo použite bezplatných poskytovateľov (Kiro, Pollinations)                  |
+| „Pomalé odpovede“                  | Poskytovateľ je vyťažený alebo ďaleko                         | Použite `model: "auto/fast"` alebo pripojte rýchlejšieho poskytovateľa (Groq, Cerebras)                        |
+| „Použil sa nesprávny poskytovateľ“ | `auto` vybral iného poskytovateľa                             | To je normálne! `auto` vyberá najlepšieho. Konkrétneho poskytovateľa vynútite pomocou `model: "openai/gpt-4o"` |
+| „502 Bad Gateway“                  | Poskytovateľ je nedostupný                                    | Počkajte a skúste to znova alebo použite `model: "auto"` na prepnutie poskytovateľa                            |
+| „401 Unauthorized“                 | Vaše prihlasovacie údaje sú nesprávne                         | Skontrolujte svoj kľúč API alebo sa znova autentifikujte pomocou OAuth                                         |
+| „omniroute sa nerozpoznal“         | V premennej PATH systému Windows chýbajú globálne moduly node | Pridajte globálny prefix npm do premennej PATH systému Windows. Zistíte ho pomocou `npm config get prefix`.    |
+| „429 Too Many Requests“            | Bola uplatnená limitácia požiadaviek                          | Počkajte 1 minútu alebo pripojte ďalších poskytovateľov                                                        |
 
 **Stále máte problém?** Pozrite si [podrobné riešenie problémov](#detailed-troubleshooting) nižšie alebo sa opýtajte na [Discorde](https://discord.gg/U47eFqAXCn).
 
@@ -37,56 +37,105 @@ Bežné problémy a ich riešenia pre OmniRoute.
 
 ---
 
-### Obmedzovanie frekvencie požiadaviek u bezplatných poskytovateľov (429 / 400 / 401)
+### Obmedzovanie počtu požiadaviek u bezplatných poskytovateľov (429 / 400 / 401)
 
-**Príznak**: Pri používaní `model: "auto"` s bezplatnými poskytovateľmi alebo poskytovateľmi bez overenia (opencode, auggie atď.) sa namiesto odpovedí občas zobrazí `HTTP 429`, `400` alebo `401`. Pri zopakovaní rovnakej požiadavky o chvíľu neskôr požiadavky uspejú, ale automatizácia (úlohy cron, agenti, skripty) zlyhá už pri prvej chybe.
+**Príznak**: Pri používaní `model: "auto"` s bezplatnými poskytovateľmi alebo poskytovateľmi bez autentifikácie (opencode, auggie atď.) sa namiesto odpovedí občas zobrazí `HTTP 429`, `400` alebo `401`. Po zopakovaní rovnakej požiadavky o chvíľu neskôr požiadavka uspeje, ale automatizácia (úlohy cron, agenti, skripty) sa preruší už pri prvom zlyhaní.
 
-**Hlavná príčina**: Súbežne sa vyskytujú tri nezávislé režimy zlyhania:
+**Hlavná príčina**: Súčasne sa prejavujú tri nezávislé režimy zlyhania:
 
-1. **Obmedzenie frekvencie poskytovateľom (`429`)**: Bezplatné úrovne môžu vynucovať kvótu pre časové okno. Nárazová dávka paralelných volaní ju vyčerpá, takže ďalšia požiadavka je odmietnutá, kým sa okno neobnoví.
-2. **Nefunkčný model v režime passthrough (`400`/`401`)**: Fondy `auto/*` môžu obsahovať modely passthrough od `opencode`, ktoré sú zaregistrované v katalógu, ale nemajú platné prihlasovacie údaje (napr. `oc/north-mini-code-free` → `401`). Automatický smerovač jeden z nich vyskúša, zlyhá a chyba sa rozšíri ďalej skôr, než sa aktivuje záložný mechanizmus.
-3. **Zosilnenie súbežnosťou (`429` pri zaťažení)**: Keď viacero relácií agentov alebo úloh cron pristupuje k `auto` súčasne, súhrnná frekvencia požiadaviek prekročí hodnotu tolerovanú bezplatnými poskytovateľmi, takže legitímne volania sú označené ako zneužitie.
+1. **Limit požiadaviek poskytovateľa (`429`)**: Bezplatné úrovne môžu vynucovať kvótu pre konkrétne časové okno. Nárazové odoslanie paralelných volaní ju vyčerpá, takže ďalšia požiadavka bude odmietnutá, kým sa časové okno neobnoví.
+2. **Nefunkčný model v režime passthrough (`400`/`401`)**: Fondy `auto/*` môžu zahŕňať modely passthrough zo služby `opencode`, ktoré sú zaregistrované v katalógu, ale nemajú platné prihlasovacie údaje (napr. `oc/north-mini-code-free` → `401`). Automatický smerovač jeden z nich vyskúša, zlyhá a chyba sa prenesie ďalej skôr, než sa aktivuje záložné prepnutie.
+3. **Zosilnenie súbežnosťou (`429` pri zaťažení)**: Keď viacero relácií agentov alebo úloh cron pristupuje k `auto` naraz, súhrnná frekvencia požiadaviek prekročí mieru tolerovanú bezplatnými poskytovateľmi, takže legitímne volania sú označené ako zneužívajúce.
 
-**Overená oprava (hlásená komunitou, 2026-08-10)**: Upravte tri premenné prostredia tak, aby rotácia, súbežnosť a záložný mechanizmus absorbovali nestabilitu bezplatných úrovní namiesto toho, aby na nej zlyhali:
+**Overená oprava (hlásená komunitou, 2026-08-10)**: upravte tri premenné prostredia tak, aby rotácia, súbežnosť a záložné prepnutie absorbovali nestabilitu bezplatnej úrovne namiesto toho, aby na nej zlyhali:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # pri 400/401 prejde na iný model/poskytovateľa (preskočí nefunkčné modely passthrough)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicitný limit prijímania náročných požiadaviek (predvolene nenastavený: bez limitu počtu požiadaviek, pozrite poznámku nižšie)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # zvýši ohraničené čakanie nad predvolenú hodnotu RATE_LIMIT_MAX_WAIT_MS pre pomalé upstreamy
+export OMNIROUTE_ROTATE_ON_400=true           # pri 400/401 prejdite na iný model alebo poskytovateľa (preskočí nefunkčné modely passthrough)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicitný strop prijímania náročných požiadaviek (predvolene nenastavený: bez limitu počtu požiadaviek, pozrite poznámku nižšie)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # predĺžte ohraničené čakanie nad predvolenú hodnotu RATE_LIMIT_MAX_WAIT_MS pre pomalé upstream služby
 ```
 
-Nastavte ich v prostredí procesu OmniRoute (démon, napr. prostredníctvom súboru plist pre LaunchAgent alebo pomocou `systemctl edit`) a potom OmniRoute reštartujte. Príznak rotácie má zo všetkých nastavení najväčší účinok: zmení úplné zlyhanie na transparentné opakovanie požiadavky u funkčného poskytovateľa vo fonde.
+Nastavte ich v prostredí procesu OmniRoute (v démonovi, napr. prostredníctvom plist súboru LaunchAgent alebo `systemctl edit`) a potom OmniRoute reštartujte. Príznak rotácie je jediným najúčinnejším ovládacím prvkom: mení definitívne zlyhanie na transparentné opakovanie požiadavky voči funkčnému poskytovateľovi vo fonde.
 
-**Poznámka**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` obmedzuje počet náročných požiadaviek — požiadaviek s dlhým kontextom — spustených súčasne; toto obmedzenie je vstupnou bránou, nie obmedzovačom frekvencie poskytovateľa. **Aktualizácia pre vetvenie chýb #503:** Táto premenná už nie je predvolene nastavená (teraz sa uplatní iba vtedy, keď je explicitne nakonfigurovaná, ako je uvedené vyššie) — prijímanie náročných požiadaviek je namiesto toho riadené automaticky odvodeným bajtovým rozpočtom (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ktorý sa škáluje podľa skutočného pamäťového limitu hostiteľa. Nové nasadenie by preto malo zaznamenať omnoho menej odmietnutí `503 chat_admission_busy` bez toho, aby bolo potrebné túto premennú nastavovať; jej explicitné nastavenie uvedené vyššie však naďalej funguje presne podľa dokumentácie. Explicitné prepísania bajtového rozpočtu sú ohraničené na 8 MiB až 2 GiB. Chyba `413 body_exceeds_budget` nie je prechodná: zvýšte tento bajtový rozpočet, znížte `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` alebo zvýšte pamäťový limit procesu. Odľahčenie `inflight_bytes_budget` znamená dočasné súperenie o prostriedky a požiadavku možno naďalej opakovať. Obmedzovanie frekvencie pre jednotlivých poskytovateľov (`open-sse/services/rateLimitManager.ts`) sa riadi samostatne premennými `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` a `RATE_LIMIT_AUTO_ENABLE` — pozrite `.env.example`.
+**Poznámka**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` obmedzuje počet súčasne spustených náročných požiadaviek — požiadaviek s dlhým kontextom; toto obmedzenie je vstupnou bránou, nie obmedzovačom počtu požiadaviek poskytovateľa. **Aktualizácia #503-fanout:** táto premenná už predvolene nie je nastavená (teraz sa uplatní len vtedy, keď je explicitne nakonfigurovaná, ako vyššie) — prijímanie náročných požiadaviek je namiesto toho riadené automaticky odvodeným bajtovým rozpočtom (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ktorý sa škáluje podľa skutočného pamäťového limitu hostiteľa. Nové nasadenie by preto malo bez akéhokoľvek nastavenia tejto premennej zaznamenávať oveľa menej odmietnutí `503 chat_admission_busy`; jej explicitné nastavenie tu naďalej funguje presne podľa dokumentácie. Explicitne nastavené bajtové rozpočty sú obmedzené na rozsah 8 MiB–2 GiB. Chyba `413 body_exceeds_budget` nie je dočasná: zvýšte tento bajtový rozpočet, znížte `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` alebo zvýšte pamäťový limit procesu. Odmietnutie `inflight_bytes_budget` je dočasné súperenie o zdroje a požiadavku možno naďalej zopakovať. Obmedzovanie počtu požiadaviek pre jednotlivých poskytovateľov (`open-sse/services/rateLimitManager.ts`) je riadené samostatne premennými `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` a `RATE_LIMIT_AUTO_ENABLE` — pozrite si `.env.example`.
 
-**Ako overiť, že oprava funguje**: Spustite svojho agenta alebo úlohu cron dvakrát rýchlo po sebe a skontrolujte, či obe spustenia uspejú. Pred opravou druhé spustenie zvyčajne vráti `429`/`401`. Po oprave sa zlyhania (ak sa vyskytnú) transparentne zopakujú a volanie sa dokončí. Môžete tiež použiť `curl /monitoring/health` a sledovať pole `rateLimitedUntil` v pripojeniach poskytovateľov a hodnotu `circuitBreakers.providerBreakers[].state` pre dotknutých poskytovateľov — stav je jeden z `CLOSED`, `DEGRADED`, `OPEN` alebo `HALF_OPEN` (pozrite `src/shared/utils/circuitBreaker.ts`) a poskytovateľ, ktorý naďalej zlyháva, prejde cez stavy `CLOSED → DEGRADED → OPEN`, kým okno obnovenia nepovolí skúšobnú požiadavku (`HALF_OPEN`).
+**Ako overiť, že oprava funguje**: spustite svojho agenta/cron dvakrát rýchlo po sebe a overte, že obe spustenia uspejú. Pred opravou druhé spustenie zvyčajne vyvolalo chybu `429`/`401`. Po oprave sa zlyhania (ak sa vyskytnú) transparentne opakujú a volanie sa dokončí. Môžete tiež spustiť `curl /monitoring/health` a sledovať pole `rateLimitedUntil` pri pripojeniach k poskytovateľom a `circuitBreakers.providerBreakers[].state` pre dotknutých poskytovateľov — stav je jeden z `CLOSED`, `DEGRADED`, `OPEN` alebo `HALF_OPEN` (pozrite si `src/shared/utils/circuitBreaker.ts`) a poskytovateľ, ktorý opakovane zlyháva, prejde stavmi `CLOSED → DEGRADED → OPEN`, kým okno obnovenia nepovolí skúšobnú požiadavku (`HALF_OPEN`).
 
-**Ak sa naďalej zobrazuje 429**: Aktívny účet daného poskytovateľa skutočne vyčerpal svoju _kvótu_ (nejde iba o frekvenčný limit). Pridajte druhý účet rovnakého poskytovateľa v ovládacom paneli OmniRoute → Poskytovatelia → Účty alebo pridajte iného bezplatného poskytovateľa (napr. `routeway`, `auggie`). Rotácia pomáha iba pri prechodnom obmedzení frekvencie alebo chybách 400/401; úplné vyčerpanie kvóty vyžaduje druhé prihlasovacie údaje alebo iného poskytovateľa.
+**Ak sa stále zobrazuje 429**: aktívny účet daného poskytovateľa skutočne vyčerpal svoju _kvótu_ (nejde iba o obmedzenie frekvencie požiadaviek). Pridajte druhý účet rovnakého poskytovateľa na ovládacom paneli OmniRoute → Providers → Accounts alebo pridajte iného bezplatného poskytovateľa (napr. `routeway`, `auggie`). Rotácia pomáha iba pri dočasnom obmedzení frekvencie požiadaviek alebo chybách 400/401; úplné vyčerpanie kvóty vyžaduje druhé prihlasovacie poverenie alebo iného poskytovateľa.
 
-**Ak sa pri modeloch s podporou obrazu (`auto/vision`, `bazaarlink/*`) zobrazuje 403**: Pripojený účet nemá platený program zahŕňajúci podporu obrazu alebo má kľúč API nedostatočné oprávnenia. V ovládacom paneli poskytovateľa overte, či rozsah kľúča zahŕňa obrazové alebo multimodálne funkcie, prípadne pripojte účet s platenou úrovňou a ponechajte ho ako cieľ pre požiadavky s obrazom.
+**Ak sa pri modeloch na spracovanie obrazu (`auto/vision`, `bazaarlink/*`) zobrazuje 403**: pripojený účet nemá platený plán, ktorý zahŕňa spracovanie obrazu, alebo API kľúč nemá dostatočné oprávnenia. Na ovládacom paneli poskytovateľa overte, že rozsah oprávnení kľúča zahŕňa spracovanie obrazu/multimodálne funkcie, alebo pripojte účet s plateným programom a ponechajte ho ako cieľ pre spracovanie obrazu.
 
 ---
 
 ## Upozornenia pri npm install (ERESOLVE / peer / deprecated)
 
-Pri spustení `npm install -g omniroute` sa môže zobraziť množstvo upozornení, ako napríklad `npm warn ERESOLVE`, oznámenia o partnerských závislostiach a správy `deprecated`. **Tieto upozornenia sú očakávané a neškodné.** Inštalácia bola úspešná, ak sa vo výstupe zobrazí `added <N> packages`.
+Keď spustíte `npm install -g omniroute`, môže sa zobraziť množstvo upozornení, napríklad `npm warn ERESOLVE`, upozornenia na partnerské závislosti a správy `deprecated`. **Tieto upozornenia sú očakávané a neškodné.** Inštalácia bola úspešná, ak sa vo výstupe zobrazí `added <N> packages`.
 
-Ak chcete potlačiť upozornenia týkajúce sa riešenia partnerských závislostí, použite podporovaný spôsob inštalácie OmniRoute:
+Ak chcete potlačiť upozornenia na riešenie partnerských závislostí, použite podporovaný spôsob inštalácie OmniRoute:
 
 ```bash
 npm install -g omniroute --legacy-peer-deps
 ```
 
-`--legacy-peer-deps` potlačí iba upozornenia `ERESOLVE` a oznámenia o partnerských závislostiach. Oznámenia o zastaraných balíkoch zostanú viditeľné, pretože pochádzajú z tranzitívnych balíkov tretích strán; neznamenajú, že inštalácia zlyhala.
+`--legacy-peer-deps` potlačí iba upozornenia `ERESOLVE` a upozornenia na partnerské závislosti. Upozornenia na zastarané balíky zostanú viditeľné, pretože pochádzajú z tranzitívnych balíkov tretích strán; neznamenajú, že inštalácia zlyhala.
 
 Upozornenia pochádzajú zo zastaraných rozsahov partnerských závislostí v balíkoch tretích strán, ktoré OmniRoute nemá pod kontrolou:
 
-1. **`marked-terminal` vyžaduje `marked >=1 <16`, našla sa verzia `marked@18`** — v praxi funguje správne; rozsah partnerskej závislosti v nadradenom projekte je iba zastaraný.
+1. **`marked-terminal` vyžaduje `marked >=1 <16`, nájdený bol `marked@18`** — v praxi funguje bez problémov; nadradený rozsah partnerskej závislosti je iba zastaraný.
 2. **`deprecated prebuild-install@7.1.3`** — tranzitívny pomocný nástroj na získavanie natívnych binárnych súborov. Nepoužíva sa
-   na inštaláciu pripnutého transportného rozhrania `wreq-js` a neznamená, že nastavenie transportu
-   poskytovateľa webových súborov cookie zlyhalo.
+   na inštaláciu pripnutej transportnej väzby `wreq-js` a neznamená, že nastavenie transportu poskytovateľa webových súborov cookie
+   zlyhalo.
 
-**Nie je potrebná žiadna akcia** — upozornenia nemožno úplne potlačiť bez vytvorenia forkov nadradených balíkov.
+**Nie je potrebná žiadna akcia** — upozornenia nemožno úplne potlačiť bez vytvorenia vlastných vetiev nadradených balíkov.
+
+---
+
+## Upozornenie na zablokované inštalačné skripty npm (globálna inštalácia)
+
+<a name="npm-install-scripts-blocked-warning-global-install"></a>
+
+Pri spustení `npm install -g omniroute` novšie verzie npm (v11+ a v12+) predvolene blokujú skripty životného cyklu balíkov a zobrazujú upozornenie na inštalačné skripty:
+
+```
+npm warn install-scripts 7 balíkov malo zablokované inštalačné skripty, pretože nie sú zahrnuté v allowScripts:
+  omniroute@<version> (postinstall: node scripts/build/postinstall.mjs)
+  keytar, @parcel/watcher, @swc/core, protobufjs, esbuild, onnxruntime-node
+```
+
+### Možno toto upozornenie ignorovať?
+
+**Čiastočne, ale spúšťanie bez skriptov sa neodporúča.** OmniRoute obsahuje bezpečné náhradné riešenia: ak nemožno načítať natívne väzby `better-sqlite3` zo samostatného balíka, aplikácia postupne použije alternatívne ovládače, napríklad `node:sqlite` alebo `sql.js` (pozrite si časť [Výber behového prostredia SQLite](../ops/SQLITE_RUNTIME.md)). Server sa aj tak spustí, ale používanie náhradných riešení WASM, ako je `sql.js`, deaktivuje režim WAL (Write-Ahead Logging) databázy SQLite a zvyšuje režijné náklady na pamäť a synchronizáciu s diskom.
+
+### Ktoré skripty sú skutočne potrebné?
+
+Nie všetky zablokované skripty sú nevyhnutné na spustenie OmniRoute:
+
+- **Nevyhnutné (`omniroute`, `better-sqlite3`):** OmniRoute sa spúšťa zo samostatného balíka aplikácie Next.js (`dist/`). Počas inštalácie npm stiahne alebo skompiluje natívny ovládač SQLite špecifický pre hostiteľský systém v adresári najvyššej úrovne `node_modules/better-sqlite3/`. Skript `postinstall` OmniRoute (`scripts/build/postinstall.mjs`) potom overí a skopíruje tieto binárne súbory špecifické pre hostiteľský systém do `dist/node_modules/`, aby k nim mal samostatný server prístup. Ak je skript postinstall balíka `omniroute` zablokovaný, tento krok kopírovania sa preskočí.
+- **Voliteľné/tranzitívne (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** Ide o pomocné nástroje na zostavenie, nástroje na sledovanie zmien alebo pomôcky pre systémovú kľúčenku. Ich povolenie zabráni upozorneniam pri zostavení, nie sú však potrebné pre základné funkcie smerovania.
+- **Vylúčené (`onnxruntime-node`):** Voliteľná závislosť pre lokálne AI embeddings, ktorá **nie je** potrebná na spustenie OmniRoute. Jej skript postinstall stiahne zo služby NuGet približne 300 MB komponentov CUDA; nezahŕňajte ju do zoznamu povolených položiek, pokiaľ výslovne nechcete používať lokálnu akceleráciu ONNX na podporovanom hardvéri.
+
+### Odporúčaná oprava
+
+Ak chcete počas globálnej inštalácie povoliť požadované inštalačné skripty a potlačiť upozornenia, zadajte `--allow-scripts` pre OmniRoute a jeho natívne závislosti:
+
+```bash
+npm install -g omniroute --allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild
+```
+
+Prípadne to môžete natrvalo nakonfigurovať pre všetky globálne inštalácie vo svojom používateľskom účte:
+
+```bash
+npm config set allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+npm install -g omniroute
+```
+
+### Overenie inštalácie
+
+Po inštalácii spustite vstavaný diagnostický nástroj, aby ste sa uistili, že natívne väzby a behové prostredie fungujú správne:
+
+```bash
+omniroute doctor
+```
 
 ---
 
@@ -94,8 +143,8 @@ Upozornenia pochádzajú zo zastaraných rozsahov partnerských závislostí v b
 
 Ak požiadavka Gemini Web vráti stav `503` so správou, že Playwright Chromium
 nie je nainštalovaný, balík npm je prítomný, ale chýba binárny súbor prehliadača.
-Playwright zámerne oddeľuje sťahovanie prehliadačov od inštalácie balíkov npm,
-takže táto odpoveď je očakávaná, kým sa prehliadač nenainštaluje.
+Playwright zámerne uchováva sťahovanie prehliadačov oddelene od inštalácie
+balíka npm, takže táto odpoveď je očakávaná, kým sa prehliadač nenainštaluje.
 
 Pri globálnej inštalácii npm nainštalujte Chromium z adresára balíka OmniRoute,
 aby vyrovnávacia pamäť prehliadača patrila k rovnakej inštalácii Playwright:
@@ -114,99 +163,102 @@ neobsahuje.
 
 ## Rýchle riešenia
 
-| Problém                                                    | Riešenie                                                                                                                                                                                            |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prvé prihlásenie nefunguje                                 | Nastavte `INITIAL_PASSWORD` v `.env` (bez pevne zakódovanej predvolenej hodnoty)                                                                                                                    |
-| Ovládací panel sa otvára na nesprávnom porte               | Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                               |
-| Na disk sa nezapisujú žiadne protokoly                     | Nastavte `APP_LOG_TO_FILE=true` a overte, či je povolené zachytávanie protokolov volaní                                                                                                             |
-| EACCES: prístup odmietnutý                                 | Nastavte `DATA_DIR=/path/to/writable/dir`, čím prepíšete `~/.omniroute`                                                                                                                             |
-| Stratégia smerovania sa neukladá                           | Aktualizujte na najnovšie vydanie v3.x (oprava schémy Zod pre ukladanie nastavení bola vydaná v skorších verziách)                                                                                  |
-| Zlyhanie prihlásenia / prázdna stránka                     | Skontrolujte verziu Node.js — pozrite si nižšie časť [Kompatibilita s Node.js](#nodejs-compatibility)                                                                                               |
-| `dlopen` / `slice is not valid mach-o file` (macOS)        | Spustite `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — pozrite si nižšie časť [Opätovné zostavenie natívneho modulu v systéme macOS](#macos-native-module-rebuild) |
-| Proxy: „fetch failed“                                      | Uistite sa, že konfigurácia proxy je nastavená na správnej úrovni — pozrite si nižšie časť [Problémy s proxy](#proxy-issues)                                                                        |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Väzba portu Docker môže smerovať na IPv6. Použite `-p 127.0.0.1:20128:20128`, čím vynútite IPv4, alebo vykonajte test pomocou `curl -4`. Pozrite si nižšie časť [Docker IPv6](#docker-ipv6)         |
-| Antivírus umiestni `README.md` do karantény                | Falošne pozitívny nález — pozrite si nižšie časť [Falošne pozitívne nálezy antivírusu](#antivirus-false-positives)                                                                                  |
-| Kaspersky označí desktopovú aplikáciu za trójskeho koňa    | Falošne pozitívny nález založený na správaní nepodpísaného inštalátora — pozrite si nižšie časť [Falošne pozitívne nálezy antivírusu](#antivirus-false-positives)                                   |
+| Problém                                                     | Riešenie                                                                                                                                                                                                    |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prvé prihlásenie nefunguje                                  | Nastavte `INITIAL_PASSWORD` v súbore `.env` (bez predvolenej hodnoty napevno zadanej v kóde)                                                                                                                |
+| Ovládací panel sa otvára na nesprávnom porte                | Nastavte `PORT=20128` a `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                                                       |
+| Na disk sa nezapisujú žiadne protokoly                      | Nastavte `APP_LOG_TO_FILE=true` a overte, či je povolené zaznamenávanie protokolov volaní                                                                                                                   |
+| EACCES: prístup zamietnutý                                  | Nastavením `DATA_DIR=/path/to/writable/dir` prepíšte `~/.omniroute`                                                                                                                                         |
+| Stratégia smerovania sa neukladá                            | Aktualizujte na najnovšie vydanie v3.x (oprava schémy Zod pre zachovanie nastavení bola dodaná v skorších verziách)                                                                                         |
+| Zlyhanie prihlásenia / prázdna stránka                      | Skontrolujte verziu Node.js — pozrite si nižšie uvedenú časť [Kompatibilita s Node.js](#nodejs-compatibility)                                                                                               |
+| `dlopen` / `slice is not valid mach-o file` (macOS)         | Spustite `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — pozrite si nižšie uvedenú časť [Opätovné zostavenie natívneho modulu v systéme macOS](#macos-native-module-rebuild) |
+| Proxy hlási „fetch failed“                                  | Uistite sa, že je konfigurácia proxy nastavená na správnej úrovni — pozrite si nižšie uvedenú časť [Problémy s proxy](#proxy-issues)                                                                        |
+| Docker: `curl: (56) Recv failure: Connection reset by peer` | Väzba portu Docker môže smerovať na IPv6. Použite `-p 127.0.0.1:20128:20128` na vynútenie IPv4 alebo otestujte pomocou `curl -4`. Pozrite si nižšie uvedenú časť [Docker a IPv6](#docker-ipv6)              |
+| Antivírus umiestni `README.md` do karantény                 | Falošne pozitívny nález — pozrite si nižšie uvedenú časť [Falošne pozitívne nálezy antivírusu](#antivirus-false-positives)                                                                                  |
+| Kaspersky označí desktopovú aplikáciu za trójskeho koňa     | Falošne pozitívny nález založený na správaní nepodpísaného inštalátora — pozrite si nižšie uvedenú časť [Falošne pozitívne nálezy antivírusu](#antivirus-false-positives)                                   |
 
 ---
 
-## Falošné pozitívne detekcie antivírusu
+## Falošné poplachy antivírusov
 
 <a name="antivirus-false-positives"></a>
 
-### Avast/AVG umiestňuje `README.md` do karantény s detekciou `MD:HttpRequest-inf[Susp]`
+### Avast/AVG umiestňuje `README.md` do karantény s hlásením `MD:HttpRequest-inf[Susp]`
 
-**Ide o falošne pozitívnu detekciu. Nič nie je infikované a nie je potrebné vykonať žiadne kroky.**
+**Ide o falošný poplach. Nič nie je infikované a nie je potrebný žiadny zásah.**
 
-Avast a AVG používajú heuristiku, ktorá označuje textové súbory alebo súbory Markdown obsahujúce veľa
-odkazov pripomínajúcich HTTP požiadavky. Súbor `README.md` projektu OmniRoute je súčasťou npm balíka (je
+Avast a AVG používajú heuristiku, ktorá označuje textové súbory a súbory Markdown obsahujúce veľa
+odkazov pripomínajúcich HTTP požiadavky. Súbor `README.md` projektu OmniRoute je súčasťou balíka npm (je
 uvedený v `package.json` → `files`), takže pri globálnej inštalácii sa uloží do
 `node_modules/omniroute/README.md` — a obsahuje približne 15 príkladov
-`http://localhost:20128/...` (koncové body MCP HTTP/SSE, adresu URL A2A `.well-known` a ukážky
-príkazov `curl`). Takáto hustota odkazov stačí na spustenie heuristiky.
+`http://localhost:20128/...` (koncové body MCP HTTP/SSE, adresu URL A2A `.well-known`
+a ukážky príkazov `curl`). Táto hustota odkazov stačí na aktivovanie heuristiky.
 
-Ak sa to začalo diať len nedávno: charakter súboru sa nezmenil. V README sa rozšírila
-tabuľka koncových bodov (boli pridané MCP HTTP + SSE + A2A) a pribudli ďalšie príklady
-príkazov `curl`, čím súbor prekročil prah detekcie.
+Ak sa to začalo diať až nedávno: typ súboru ani jeho povaha sa nezmenili. V súbore README
+sa rozšírila tabuľka koncových bodov (boli pridané MCP HTTP + SSE + A2A) a pribudli ďalšie
+príklady `curl`, čím súbor prekročil prahovú hodnotu.
 
-Súbor je neaktívna dokumentácia bez akéhokoľvek spustiteľného obsahu. Môžete ho bezpečne obnoviť
-z karantény.
+Súbor je neaktívna dokumentácia bez akéhokoľvek spustiteľného obsahu. Môžete ho bezpečne
+obnoviť z karantény.
 
-**Čo treba urobiť:**
+**Čo robiť:**
 
 1. **Zastavte upozornenia** — pridajte inštalačný adresár medzi výnimky antivírusu
-   (Avast: Nastavenia → Výnimky), pričom pridajte cestu ku globálnemu adresáru `node_modules`
-   a/alebo dátový adresár OmniRoute (`~/.omniroute/`).
-2. **Nahláste falošne pozitívnu detekciu** — <https://www.avast.com/false-positive-file-form.php>,
-   pričom priložte súbor `README.md` z karantény. Toto riešenie pomôže všetkým, pretože ide
+   (Avast: Nastavenia → Výnimky), pričom pridajte cestu ku globálnemu adresáru
+   `node_modules` a/alebo dátový adresár OmniRoute (`~/.omniroute/`).
+2. **Nahláste falošný poplach** — <https://www.avast.com/false-positive-file-form.php>
+   a priložte súbor `README.md` z karantény. Toto riešenie pomôže všetkým, pretože ide
    o neprimeranú reakciu heuristiky dodávateľa na textový súbor.
 
-**Prečo to „neopravíme“ na našej strane:** všetky príklady používajú `http://localhost` a
-localhost nemožno používať cez `https` bez komplikácií so samopodpísaným certifikátom. Komolenie dokumentácie
-s cieľom obísť heuristiku jedného dodávateľa by poškodilo každého čitateľa len preto, aby sa vyhovelo chybe skenera.
+**Prečo to „neopravujeme“ na našej strane:** všetky príklady používajú `http://localhost`
+a localhost nemôže používať `https` bez komplikácií so samopodpísanými certifikátmi.
+Znehodnotenie dokumentácie s cieľom obísť heuristiku jedného dodávateľa by uškodilo všetkým
+čitateľom len preto, aby sa vyhovelo chybe skenera.
 
 ### Kaspersky označuje desktopovú aplikáciu ako `PDM:Trojan.Win32.Generic`
 
-**Ide o falošne pozitívnu detekciu behaviorálnej heuristiky. Nič nie je infikované.** Predpona
-`PDM:` v produktoch Kaspersky znamená, že verdikt pochádza z modulu Proactive Defense Module (System Watcher),
-ktorý posudzuje, čo inštalátor _robí_, namiesto toho, aby ho porovnával so známym malvérom. Keď
-sa detekcia spustí, Kaspersky „vráti späť“ celú inštaláciu — odstráni súbory, ktoré už
-zapísal — takže aplikácia je následne poškodená alebo chýba.
+**Ide o falošný poplach behaviorálnej heuristiky. Nič nie je infikované.** Predpona
+`PDM:` produktu Kaspersky znamená, že verdikt pochádza z modulu Proactive Defense Module
+(System Watcher), ktorý posudzuje, čo inštalátor _robí_, namiesto porovnávania so známym
+malvérom. Keď sa aktivuje, Kaspersky „vráti späť“ celú inštaláciu — odstráni súbory, ktoré
+už zapísal — takže aplikácia zostane poškodená alebo bude chýbať.
 
-Súbory, ktoré označuje, sú štandardnými súčasťami deklarovaných závislostí s otvoreným zdrojovým kódom,
-ktoré sú pribalené k desktopovej aplikácii, napríklad:
+Označené súbory sú štandardnými súčasťami deklarovaných open-source závislostí pribalených
+k desktopovej aplikácii, napríklad:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` a
   `workerProcessEntry.js` — [Playwright](https://playwright.dev), knižnica na automatizáciu
-  prehliadača používaná na prihlasovanie k poskytovateľom v aplikácii a čet využívajúci prehliadač.
+  prehliadača používaná na prihlasovanie k poskytovateľom v aplikácii a chat využívajúci
+  prehliadač.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — pripnutá natívna väzba `wreq-js` používaná na HTTP požiadavky s odtlačkom prehliadača pri poskytovateľoch
-  využívajúcich webové súbory cookie (`<arch>` je `x64` alebo `arm64`).
+  — pripnutá natívna väzba `wreq-js` používaná na HTTP komunikáciu s odtlačkom prehliadača
+  pri poskytovateľoch používajúcich webové súbory cookie (`<arch>` je `x64` alebo `arm64`).
 
-**Prečo sa detekcia spustí:** inštalátor pre Windows **zatiaľ nie je podpísaný kódom**, takže nepodpísaný inštalátor
-NSIS nemá žiadnu reputáciu a behaviorálne heuristiky pracujú s maximálnou agresivitou. V kombinácii
-s pribalenou natívnou knižnicou DLL a stovkami súborov `.js` zapisovaných do
-`%LOCALAPPDATA%\Programs\OmniRoute` (vrátane adresárov balíkov s príponou obsahujúcou hash zo
-samostatného zostavenia Next.js) to stačí na spustenie heuristiky. Podpisovanie kódu sa plánuje;
-dovtedy sa to môže opakovať pri každom novom vydaní.
+**Prečo sa aktivuje:** inštalátor pre Windows **zatiaľ nie je podpísaný kódom**, takže
+nepodpísaný inštalátor NSIS nemá žiadnu reputáciu a behaviorálne heuristiky pracujú
+s maximálnou agresivitou. V kombinácii s pribalenou natívnou knižnicou DLL a stovkami
+súborov `.js` zapisovaných do `%LOCALAPPDATA%\Programs\OmniRoute` (vrátane adresárov
+balíkov s príponami hashov zo samostatného zostavenia Next.js) to stačí na aktivovanie
+heuristiky. Podpisovanie kódu je naplánované; dovtedy sa tento problém môže opakovať
+pri nových vydaniach.
 
-**Čo treba urobiť:**
+**Čo robiť:**
 
-1. **Najskôr overte stiahnutý súbor** (tým vylúčite manipuláciu so súborom). Každé vydanie obsahuje
-   `latest.yml`, ktorého pole `sha512` (base64) pokrýva inštalátor
-   `OmniRoute.Setup.<version>.exe`. V prostredí PowerShell spustite v priečinku obsahujúcom inštalátor:
+1. **Najskôr overte stiahnutý súbor** (tým vylúčite, že bol pozmenený). Každé vydanie
+   zverejňuje súbor `latest.yml`, ktorého pole `sha512` (base64) sa vzťahuje na inštalátor
+   `OmniRoute.Setup.<version>.exe`. V PowerShelli spustite v priečinku obsahujúcom inštalátor:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
    [Convert]::ToBase64String($b)
    ```
-   Výstup sa musí zhodovať s hodnotou `latest.yml` → `sha512`. Ak sa nezhoduje, odstráňte súbor a
-   znova ho stiahnite iba zo [stránky vydaní na GitHube](https://github.com/diegosouzapw/OmniRoute/releases).
-2. **Obnovte súbory a pridajte výnimku** — obnovte položky odstránené pri vrátení inštalácie z karantény a pridajte výnimku
-   pre `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Nastavenia → Hrozby a výnimky),
-   potom aplikáciu znova nainštalujte.
-3. **Nahláste falošne pozitívnu detekciu** — <https://opentip.kaspersky.com/>. Hlásenia falošne pozitívnych
-   detekcií od používateľov skutočne urýchľujú pridanie do zoznamu povolených položiek.
+   Výstup sa musí zhodovať s hodnotou `latest.yml` → `sha512`. Ak sa nezhoduje, súbor
+   odstráňte a znova ho stiahnite výhradne zo [stránky vydaní na GitHube](https://github.com/diegosouzapw/OmniRoute/releases).
+2. **Obnovte + pridajte výnimku** — obnovte z karantény položky odstránené pri vrátení zmien
+   a pridajte výnimku pre `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Nastavenia →
+   Hrozby a výnimky), potom aplikáciu znova nainštalujte.
+3. **Nahláste falošný poplach** — <https://opentip.kaspersky.com/>. Hlásenia falošných
+   poplachov od používateľov skutočne urýchľujú pridanie do zoznamu povolených položiek.
 
 ---
 
@@ -216,28 +268,28 @@ dovtedy sa to môže opakovať pri každom novom vydaní.
 
 ### Prihlasovacia stránka zlyhá alebo zobrazí chybu „Module self-registration“
 
-**Príčina:** Používate verziu Node.js mimo schváleného bezpečného rozsahu behového prostredia OmniRoute. Najčastejšie ide o používanie staršej opravnej verzie Node 22 alebo 24, ktorá nespĺňa minimálnu úroveň bezpečnostných opráv vyžadovanú službou OmniRoute.
+**Príčina:** Používate verziu Node.js mimo schváleného bezpečného rozsahu runtime prostredia OmniRoute. Najčastejšie ide o používanie staršej opravnej verzie Node 22 alebo 24, ktorá nespĺňa minimálnu úroveň bezpečnostných opráv požadovanú službou OmniRoute.
 
 **Príznaky:**
 
 - Prihlasovacia stránka zobrazí prázdnu obrazovku alebo chybu servera
 - Konzola zobrazí `Error: Module did not self-register` alebo podobné chyby natívnych väzieb
-- Ak je behového prostredie mimo podporovaných bezpečnostných pravidiel, na prihlasovacej stránke sa zobrazí **oranžový výstražný banner** s vašou verziou Node
+- Ak je runtime prostredie mimo podporovaných bezpečnostných pravidiel, prihlasovacia stránka zobrazí **oranžový výstražný banner** s vašou verziou Node
 
 **Riešenie:**
 
-1. Nainštalujte podporované vydanie Node.js LTS (odporúčané: Node.js 24.x):
+1. Nainštalujte podporované vydanie Node.js LTS (odporúča sa Node.js 24.x):
    ```bash
    nvm install 24
    nvm use 24
    ```
-2. Overte svoju verziu: `node --version` by malo v rámci línie 24.x LTS zobraziť `v24.0.0` alebo novšiu verziu
+2. Overte svoju verziu: `node --version` by mal vo vetve 24.x LTS zobraziť `v24.0.0` alebo novšiu verziu
 3. Preinštalujte OmniRoute: `npm install -g omniroute`
-4. Reštartujte aplikáciu: `omniroute`
+4. Reštartujte: `omniroute`
 
 > **Podporované bezpečné verzie:** `>=22.22.2 <23` alebo `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) a Node.js 26 sú plne podporované.
 
-### npm v11+: balík `better-sqlite3` nie je nainštalovaný (Cannot find module)
+### npm v11+: `better-sqlite3` nie je nainštalovaný (Cannot find module)
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
@@ -253,12 +305,12 @@ a vyžaduje natívnu kompiláciu (`node-gyp rebuild`), npm ho bez upozornenia pr
 
 **Riešenie:**
 
-1. Povoľte inštalačné skripty a vykonajte opätovnú inštaláciu:
+1. Povoľte inštalačné skripty a vykonajte preinštalovanie:
    ```bash
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Alebo manuálne nainštalujte vopred zostavený balík:
+2. Alebo nainštalujte predkompilovaný balík manuálne:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
@@ -271,11 +323,11 @@ a vyžaduje natívnu kompiláciu (`node-gyp rebuild`), npm ho bez upozornenia pr
 
 <a name="macos-native-module-rebuild"></a>
 
-**Príčina:** Po globálnom spustení `npm install -g omniroute` mohol byť natívny binárny súbor `better-sqlite3` v balíku skompilovaný pre inú architektúru alebo ABI Node.js, než aké sa používa lokálne. Je to bežné v systéme macOS (na platformách Apple Silicon aj Intel), keď vopred zostavený binárny súbor nezodpovedá vášmu prostrediu.
+**Príčina:** Po globálnom spustení `npm install -g omniroute` mohol byť natívny binárny súbor `better-sqlite3` v balíku skompilovaný pre inú architektúru alebo ABI Node.js, než aké sa používa lokálne. K tomu bežne dochádza v systéme macOS (na Apple Silicon aj Intel), keď predkompilovaný binárny súbor nezodpovedá vášmu prostrediu.
 
 **Príznaky:**
 
-- Server ihneď po spustení zlyhá s chybou `dlopen`
+- Server pri spustení okamžite zlyhá s chybou `dlopen`
 - Chyba obsahuje `slice is not valid mach-o file`
 - Úplný príklad:
 
@@ -283,7 +335,7 @@ a vyžaduje natívnu kompiláciu (`node-gyp rebuild`), npm ho bez upozornenia pr
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Riešenie — zostavte modul znova pre svoje lokálne prostredie (prechod na staršiu verziu Node.js nie je potrebný):**
+**Riešenie — znovu zostavte modul pre svoje lokálne prostredie (prechod na staršiu verziu Node.js nie je potrebný):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -291,7 +343,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Poznámka:** Týmto sa natívna väzba znova skompiluje pre vašu lokálnu verziu Node.js a architektúru procesora, čím sa vyrieši nezhoda binárnych súborov. Oficiálne podporovaný rozsah behového prostredia je **`>=22.22.2 <23` alebo `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` v `src/shared/utils/nodeRuntimeSupport.ts`, zosúladený s poľom `engines` v súbore `package.json`). Node.js 24.x LTS (Krypton) a Node.js 26 sú plne podporované s `better-sqlite3` v12.x.
+> **Poznámka:** Týmto sa natívna väzba znova skompiluje pre vašu lokálnu verziu Node.js a architektúru CPU, čím sa odstráni nezhoda binárnych súborov. Oficiálne podporovaný rozsah runtime prostredia je **`>=22.22.2 <23` alebo `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` v `src/shared/utils/nodeRuntimeSupport.ts`, zosúladený s poľom `engines` v `package.json`). Node.js 24.x LTS (Krypton) a Node.js 26 sú plne podporované s `better-sqlite3` v12.x.
 
 ---
 
@@ -303,25 +355,25 @@ omniroute
 
 **Príčina:** Koncový bod na overenie API kľúča (`POST /api/providers/validate`) predtým obchádzal konfiguráciu proxy, čo spôsobovalo zlyhania v prostrediach vyžadujúcich smerovanie cez proxy.
 
-**Oprava (v3.5.5+):** Tento problém je teraz opravený. Overenie poskytovateľa je smerované cez `runWithProxyContext`, pričom sa automaticky rešpektujú nastavenia proxy na úrovni poskytovateľa aj globálne nastavenia proxy.
+**Oprava (v3.5.5+):** Tento problém je už opravený. Overenie poskytovateľa sa smeruje cez `runWithProxyContext`, pričom automaticky rešpektuje nastavenia proxy na úrovni poskytovateľa aj globálne nastavenia proxy.
 
-### Kontrola stavu tokenu zlyhá s hlásením „fetch failed“
+### Kontrola platnosti tokenu zlyhá s hlásením „fetch failed“
 
-**Príčina:** Obnovovanie tokenov OAuth na pozadí neurčovalo konfiguráciu proxy pre jednotlivé pripojenia.
+**Príčina:** Obnovenie OAuth tokenu na pozadí neurčovalo konfiguráciu proxy samostatne pre každé pripojenie.
 
-**Oprava (v3.5.5+):** Plánovač kontroly stavu tokenov teraz pred pokusom o obnovenie určuje konfiguráciu proxy pre každé pripojenie. Aktualizujte na v3.5.5+.
+**Oprava (v3.5.5+):** Plánovač kontroly platnosti tokenov teraz pred pokusom o obnovenie určí konfiguráciu proxy pre každé pripojenie. Aktualizujte na v3.5.5+.
 
 ### Proxy SOCKS5 vracia „invalid onRequestStart method“
 
-**Príčina:** V Node.js 22 nie je dispatcher undici@8 kompatibilný so vstavanou implementáciou `fetch()` v Node.
+**Príčina:** V Node.js 22 nie je dispečer undici@8 kompatibilný so vstavanou implementáciou `fetch()` v Node.js.
 
-**Oprava (v3.5.5+):** Keď je aktívny proxy dispatcher, OmniRoute teraz používa vlastnú funkciu `fetch()` z undici, čím zabezpečuje konzistentné správanie. Aktualizujte na v3.5.5+.
+**Oprava (v3.5.5+):** Keď je aktívny dispečer proxy, OmniRoute teraz používa vlastnú funkciu `fetch()` z undici, čím zabezpečuje konzistentné správanie. Aktualizujte na v3.5.5+.
 
 ### Proxy MITM vo WSL: desktopové aplikácie na hostiteľskom systéme Windows nie sú zachytávané
 
-**Príčina:** Proxy MITM a jej certifikát CA sa nainštalujú do prostredia, v ktorom je spustený OmniRoute. Vo WSL je týmto prostredím hosťovský systém Linux, zatiaľ čo desktopové aplikácie AI (Kiro, Trae, Copilot, Zed, …) sú spustené na hostiteľskom systéme Windows. Hostiteľské aplikácie nedôverujú úložisku certifikátov hosťovského systému a nesmerujú komunikáciu cez systémovú proxy hosťovského systému, takže zachytávanie desktopových aplikácií sa v takomto prípade neaktivuje.
+**Príčina:** Proxy MITM a jej certifikát CA sa inštalujú do prostredia, v ktorom je spustený OmniRoute. Vo WSL je týmto prostredím hosťovský systém Linux, zatiaľ čo desktopové AI aplikácie (Kiro, Trae, Copilot, Zed, …) sú spustené na hostiteľskom systéme Windows. Hostiteľské aplikácie nedôverujú úložisku certifikátov hosťovského systému a nesmerujú komunikáciu cez systémový proxy hosťovského systému, takže zachytávanie desktopových aplikácií sa v tomto prípade neaktivuje.
 
-**Odporúčanie:** Spustite OmniRoute natívne v rovnakom operačnom systéme ako desktopové aplikácie, ktoré chcete zachytávať (Windows pre aplikácie systému Windows; obdobne pre macOS/Linux). Zachovanie OmniRoute vo WSL pri súčasnom zacielení na hostiteľské aplikácie vyžaduje manuálne nastaviť dôveryhodnosť vygenerovaného certifikátu CA na hostiteľskom systéme Windows a nasmerovať sieťové/proxy nastavenia každej hostiteľskej aplikácie na koncový bod proxy vo WSL — ide o nepodporované a nestabilné nastavenie.
+**Odporúčanie:** Spúšťajte OmniRoute natívne v rovnakom operačnom systéme ako desktopové aplikácie, ktoré chcete zachytávať (Windows pre aplikácie systému Windows; obdobne macOS/Linux). Ak ponecháte OmniRoute vo WSL a chcete zachytávať hostiteľské aplikácie, musíte manuálne nastaviť dôveryhodnosť vygenerovaného certifikátu CA na hostiteľskom systéme Windows a nasmerovať nastavenia siete/proxy každej hostiteľskej aplikácie na koncový bod proxy vo WSL — ide o nepodporované a nestabilné riešenie.
 
 ---
 
@@ -337,21 +389,21 @@ omniroute
 2. Použite kombináciu so záložnými úrovňami
 3. Prepnite na lacnejšiu/bezplatnú úroveň
 
-### Obmedzenie rýchlosti
+### Obmedzovanie frekvencie požiadaviek
 
 **Príčina:** Kvóta predplatného bola vyčerpaná.
 
 **Oprava:**
 
-- Pridajte záložnú možnosť: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
-- Použite GLM/MiniMax ako lacnú zálohu
+- Pridajte záložné možnosti: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
+- Použite GLM/MiniMax ako lacnú záložnú možnosť
 
-### Platnosť tokenu OAuth vypršala
+### Platnosť OAuth tokenu vypršala
 
 OmniRoute automaticky obnovuje tokeny. Ak problémy pretrvávajú:
 
 1. Ovládací panel → Poskytovateľ → Znovu pripojiť
-2. Odstráňte pripojenie poskytovateľa a znova ho pridajte
+2. Odstráňte pripojenie k poskytovateľovi a znova ho pridajte
 
 ### Viacero účtov Kiro: druhý účet zneplatní prvý
 
@@ -360,18 +412,18 @@ Keď dva účty zdieľajú rovnakého registrovaného klienta (pripojenia import
 obnovenie tokenu jedného účtu zneplatní obnovovací token druhého účtu.
 
 **Oprava (v3.8.0+):** Znova importujte dotknuté pripojenia.
-Od verzie v3.8.0 si každé nové pripojenie Kiro vytvorené prostredníctvom možnosti **Importovať token**,
-**Sociálne prihlásenie cez Google/GitHub** alebo **Automatický import** automaticky zaregistruje vlastného
+Od verzie v3.8.0 si každé nové pripojenie Kiro vytvorené cez **Importovať token**,
+**prihlásenie cez Google/GitHub** alebo **Automatický import** automaticky zaregistruje vlastného
 vyhradeného klienta OIDC. Pripojenie je preto úplne izolované a obnovenie jedného
-účtu nemá žiadny vplyv na iný účet.
+účtu nemá žiadny vplyv na ostatné účty.
 
-Pripojenia importované _pred_ v3.8.0 nemajú registráciu klienta pre jednotlivé pripojenia.
+Pripojenia importované _pred_ v3.8.0 nemajú registráciu klienta špecifickú pre dané pripojenie.
 Tieto pripojenia naďalej používajú zdieľaný koncový bod na obnovenie sociálneho overenia.
 Ak chcete dosiahnuť izoláciu, odstráňte staré pripojenie cez Ovládací panel → Poskytovatelia a znova ho pridajte
-pomocou ktoréhokoľvek z troch spôsobov importu.
+pomocou ktoréhokoľvek z troch postupov importu.
 
 Úplné podrobnosti a podrobné pokyny na pridanie dvoch účtov Kiro vedľa seba
-nájdete v dokumente [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
+nájdete v súbore [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 
@@ -379,23 +431,23 @@ nájdete v dokumente [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ### Chyby synchronizácie s cloudom
 
-1. Overte, či `BASE_URL` smeruje na vašu spustenú inštanciu (napr. `http://localhost:20128`)
-2. Overte, či `CLOUD_URL` smeruje na váš cloudový koncový bod (napr. `https://omniroute.dev`)
+1. Overte, či `BASE_URL` odkazuje na vašu spustenú inštanciu (napr. `http://localhost:20128`)
+2. Overte, či `CLOUD_URL` odkazuje na váš cloudový koncový bod (napr. `https://omniroute.dev`)
 3. Udržiavajte hodnoty `NEXT_PUBLIC_*` zosúladené s hodnotami na strane servera
 
-### Cloud s `stream=false` vracia 500
+### Cloud pri `stream=false` vracia 500
 
 **Príznak:** `Unexpected token 'd'...` na cloudovom koncovom bode pri volaniach bez streamovania.
 
 **Príčina:** Nadradená služba vracia dáta SSE, zatiaľ čo klient očakáva JSON.
 
-**Dočasné riešenie:** Pri priamych volaniach cloudu použite `stream=true`. Lokálne runtime prostredie obsahuje záložný prevod SSE→JSON.
+**Náhradné riešenie:** Pri priamych volaniach do cloudu použite `stream=true`. Lokálne runtime prostredie obsahuje záložný prevod SSE→JSON.
 
-### Cloud hlási pripojenie, ale zobrazí „Invalid API key“
+### Cloud hlási pripojenie, ale zobrazuje „Invalid API key“
 
-1. Vytvorte nový kľúč v lokálnom dashboarde (`/api/keys`)
-2. Spustite synchronizáciu s cloudom: Enable Cloud → Sync Now
-3. Staré alebo nesynchronizované kľúče môžu v cloude stále vracať `401`
+1. Vytvorte nový kľúč v lokálnom ovládacom paneli (`/api/keys`)
+2. Spustite synchronizáciu s cloudom: Povoliť cloud → Synchronizovať teraz
+3. Staré alebo nesynchronizované kľúče môžu v cloude naďalej vracať `401`
 
 ---
 
@@ -405,28 +457,28 @@ nájdete v dokumente [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 <a name="docker-ipv6"></a>
 
-**Príznaky:** `curl http://localhost:20128/v1/models` vráti `curl: (56) Recv failure: Connection reset by peer`. Dashboard a neautentifikované koncové body fungujú, ale autentifikované koncové body zlyhávajú — vyzerá to ako problém s autentifikáciou, ale nie je.
+**Príznaky:** `curl http://localhost:20128/v1/models` vráti `curl: (56) Recv failure: Connection reset by peer`. Ovládací panel a koncové body bez autentifikácie fungujú, ale autentifikované koncové body zlyhávajú — vyzerá to ako problém s autentifikáciou, no nie je to tak.
 
-**Príčina:** `docker run -p 20128:20128` publikuje na `0.0.0.0` (IPv4) aj `::` (IPv6), ale proces v kontajneri počúva iba na IPv4. Na hostiteľoch, kde sa `localhost` najskôr preloží na `::1`, pripojenie smeruje na publikovaný port IPv6, za ktorým nie je žiadny počúvajúci proces → pripojenie sa resetuje.
+**Príčina:** `docker run -p 20128:20128` publikuje port na `0.0.0.0` (IPv4) aj `::` (IPv6), ale proces v kontajneri počúva iba na IPv4. Na hostiteľoch, kde sa `localhost` najprv preloží na `::1`, sa pripojenie presmeruje na publikovaný port IPv6, za ktorým nič nepočúva → pripojenie sa resetuje.
 
-**Riešenie:**
+**Oprava:**
 
-1. **Rýchla diagnostika:** Spustite `curl -4 http://localhost:20128/v1/models`. Ak to s `-4` funguje, ale bez neho zlyhá, máte nezhodu vo väzbe IPv6.
-2. **Trvalé riešenie:** Vynúťte väzbu na IPv4 použitím `-p 127.0.0.1:20128:20128` v príkaze `docker run`:
+1. **Rýchla diagnostika:** Spustite `curl -4 http://localhost:20128/v1/models`. Ak príkaz s `-4` funguje, ale bez neho zlyhá, ide o nesúlad väzby IPv6.
+2. **Trvalá oprava:** Explicitne nastavte väzbu na IPv4 použitím `-p 127.0.0.1:20128:20128` v príkaze `docker run`:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
    ```
-   Týmto vynútite väzbu na IPv4 a zároveň zabránite sprístupneniu proxy na všetkých rozhraniach hostiteľa.
+   Tým sa vynúti väzba IPv4 a zároveň sa zabráni sprístupneniu proxy na všetkých rozhraniach hostiteľa.
 
 ---
 
 ### Nástroj CLI sa zobrazuje ako nenainštalovaný
 
 1. Skontrolujte polia runtime prostredia: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Pre prenosný režim: použite cieľ obrazu `runner-cli` (s pribalenými nástrojmi CLI)
-3. Pre režim pripojenia z hostiteľa: nastavte `CLI_EXTRA_PATHS` a pripojte adresár binárnych súborov hostiteľa iba na čítanie
-4. Ak `installed=true` a `runnable=false`: binárny súbor bol nájdený, ale kontrola stavu zlyhala
+2. Pre prenosný režim použite cieľ obrazu `runner-cli` (obsahuje nástroje CLI)
+3. Pre režim pripojenia hostiteľa nastavte `CLI_EXTRA_PATHS` a pripojte adresár binárnych súborov hostiteľa iba na čítanie
+4. Ak je `installed=true` a `runnable=false`: binárny súbor bol nájdený, ale kontrola stavu zlyhala
 
 ### Rýchle overenie runtime prostredia
 
@@ -442,10 +494,10 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Vysoké náklady
 
-1. Skontrolujte štatistiky používania v Dashboard → Usage
-2. Prepnite primárny model na GLM/MiniMax
-3. Na nekritické úlohy použite bezplatnú úroveň (Qoder, Kiro)
-4. Nastavte rozpočty nákladov pre jednotlivé kľúče API: Dashboard → API Keys → Budget
+1. Skontrolujte štatistiky používania v časti Ovládací panel → Používanie
+2. Zmeňte primárny model na GLM/MiniMax
+3. Pre nekritické úlohy použite bezplatnú úroveň (Qoder, Kiro)
+4. Nastavte rozpočty nákladov pre jednotlivé kľúče API: Ovládací panel → Kľúče API → Rozpočet
 
 ---
 
@@ -454,14 +506,15 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 ### Povolenie súborov denníka
 
 Nastavte `APP_LOG_TO_FILE=true` v súbore `.env`. Denníky aplikácie sa zapisujú do adresára `logs/`.
-Artefakty požiadaviek sa ukladajú do `${DATA_DIR}/call_logs/`, keď je v nastaveniach povolený proces zaznamenávania volaní.
-Keď je povolené zachytávanie v procese, nastavte `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, aby sa vynechali
-dáta fragmentov streamu, alebo upravte `CALL_LOG_PIPELINE_MAX_SIZE_KB`, ak chcete zmeniť limit veľkosti artefaktov v kB.
+Artefakty požiadaviek sa ukladajú do `${DATA_DIR}/call_logs/`, keď je v nastaveniach
+povolený kanál denníka volaní.
+Keď je povolené zachytávanie kanála, nastavte `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false`, aby sa vynechali
+dáta častí streamu, alebo upravte `CALL_LOG_PIPELINE_MAX_SIZE_KB`, ak chcete zmeniť limit veľkosti artefaktov v KB.
 
 ### Kontrola stavu poskytovateľa
 
 ```bash
-# Dashboard stavu
+# Ovládací panel stavu
 http://localhost:20128/dashboard/health
 
 # Kontrola stavu API
@@ -472,35 +525,35 @@ curl http://localhost:20128/api/monitoring/health
 
 - Hlavný stav: `${DATA_DIR}/storage.sqlite` (poskytovatelia, kombinácie, aliasy, kľúče, nastavenia)
 - Používanie: tabuľky SQLite v `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + voliteľne `${DATA_DIR}/call_logs/`
-- Denníky aplikácie: `<repo>/logs/...` (keď `APP_LOG_TO_FILE=true`)
-- Artefakty denníka volaní: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, keď je povolený proces zaznamenávania volaní
+- Denníky aplikácie: `<repo>/logs/...` (keď je `APP_LOG_TO_FILE=true`)
+- Artefakty denníka volaní: `${DATA_DIR}/call_logs/YYYY-MM-DD/...`, keď je povolený kanál denníka volaní
 
-Akcia **Clean history** na stránke Request Logs vymaže `call_logs`, staršie
+Akcia **Vyčistiť históriu** na stránke Denníky požiadaviek vymaže `call_logs`, staršie
 `request_detail_logs` a lokálny adresár artefaktov `${DATA_DIR}/call_logs/`.
 
 ---
 
-## Problémy s ističom
+## Problémy s ističom obvodu
 
-### Poskytovateľ uviazol v stave OPEN
+### Poskytovateľ zostal v stave OPEN
 
-Keď je istič poskytovateľa v stave OPEN, požiadavky sú blokované až do uplynutia času obnovenia.
+Keď je istič obvodu poskytovateľa v stave OPEN, požiadavky sú blokované až do uplynutia doby čakania.
 
 **Riešenie:**
 
 1. Prejdite na **Dashboard → Settings → Resilience**
-2. Skontrolujte kartu ističa pre dotknutého poskytovateľa
-3. Kliknutím na **Reset All** vymažte všetky ističe alebo počkajte na uplynutie času obnovenia
-4. Pred resetovaním overte, či je poskytovateľ skutočne dostupný
+2. Skontrolujte kartu ističa obvodu pre dotknutého poskytovateľa
+3. Kliknutím na **Reset All** vynulujte všetky ističe alebo počkajte, kým uplynie doba čakania
+4. Pred vynulovaním overte, či je poskytovateľ skutočne dostupný
 
-### Poskytovateľ opakovane aktivuje istič
+### Poskytovateľ opakovane aktivuje istič obvodu
 
 Ak poskytovateľ opakovane prechádza do stavu OPEN:
 
 1. Skontrolujte vzorec zlyhaní v časti **Dashboard → Health → Provider Health**
 2. Prejdite na **Settings → Resilience → Provider Profiles** a zvýšte prah zlyhaní
-3. Skontrolujte, či poskytovateľ nezmenil limity API alebo nevyžaduje opätovné overenie
-4. Skontrolujte telemetriu latencie — vysoká latencia môže spôsobovať zlyhania v dôsledku prekročenia časového limitu
+3. Skontrolujte, či poskytovateľ nezmenil limity API alebo nevyžaduje opätovné overenie totožnosti
+4. Skontrolujte telemetriu latencie — vysoká latencia môže spôsobovať zlyhania v dôsledku vypršania časového limitu
 
 ---
 
@@ -508,59 +561,59 @@ Ak poskytovateľ opakovane prechádza do stavu OPEN:
 
 ### Chyba „Unsupported model“
 
-- Použite ID modelu, ktorého prvý segment zodpovedá poskytovateľovi, pre ktorého máte prihlasovacie údaje (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Samostatné `deepgram/nova-3` vyžaduje natívny kľúč Deepgram.
+- Použite ID modelu, ktorého prvý segment predstavuje poskytovateľa, pre ktorého máte prihlasovacie údaje (`openai/whisper-1`, `openrouter/deepgram/nova-3`). Samostatné `deepgram/nova-3` vyžaduje natívny kľúč Deepgram.
 - Overte, či je poskytovateľ pripojený v časti **Dashboard → Providers**
 
 ### Prepis je prázdny alebo zlyhá
 
 - Skontrolujte podporované zvukové formáty: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
 - Overte, či je veľkosť súboru v rámci limitov poskytovateľa (zvyčajne < 25MB)
-- Na karte poskytovateľa skontrolujte platnosť kľúča API
+- Skontrolujte platnosť kľúča API poskytovateľa na karte poskytovateľa
 
 ---
 
 ## Ladenie prekladača
 
-Na ladenie problémov s prevodom formátov použite **Dashboard → Translator**:
+Na ladenie problémov s prekladom formátov použite **Dashboard → Translator**:
 
-| Režim            | Kedy ho použiť                                                                                                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Playground**   | Porovnajte vstupné a výstupné formáty vedľa seba — vložte zlyhávajúcu požiadavku a pozrite sa, ako sa prevedie |
-| **Chat Tester**  | Odosielajte živé správy a kontrolujte kompletný obsah požiadavky a odpovede vrátane hlavičiek                  |
-| **Test Bench**   | Spustite dávkové testy naprieč kombináciami formátov a zistite, ktoré prevody nefungujú                        |
-| **Live Monitor** | Sledujte tok požiadaviek v reálnom čase a zachyťte občasné problémy s prevodom                                 |
+| Režim            | Kedy ho použiť                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Playground**   | Porovnajte vstupné a výstupné formáty vedľa seba — vložte zlyhávajúcu požiadavku a pozrite sa, ako sa preloží |
+| **Chat Tester**  | Odosielajte živé správy a kontrolujte úplné dátové časti požiadaviek a odpovedí vrátane hlavičiek             |
+| **Test Bench**   | Spustite dávkové testy s rôznymi kombináciami formátov a zistite, ktoré preklady nefungujú                    |
+| **Live Monitor** | Sledujte tok požiadaviek v reálnom čase a zachyťte občasné problémy s prekladom                               |
 
 ### Bežné problémy s formátmi
 
-- **Značky uvažovania sa nezobrazujú** — Skontrolujte, či cieľový poskytovateľ podporuje uvažovanie, a nastavenie rozpočtu na uvažovanie
-- **Volania nástrojov sa strácajú** — Niektoré prevody formátov môžu odstrániť nepodporované polia; overte to v režime Playground
-- **Chýba systémová výzva** — Claude a Gemini spracúvajú systémové výzvy odlišne; skontrolujte výstup prevodu
-- **SDK vracia nespracovaný reťazec namiesto objektu** — Vyriešené vo v1.x; sanitizátor odpovedí odstraňuje neštandardné polia (`x_groq`, `usage_breakdown` atď.), ktoré spôsobujú zlyhania validácie Pydantic v OpenAI SDK. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
-- **GLM/ERNIE odmieta rolu `system`** — Vyriešené vo v1.x; normalizátor rolí automaticky zlučuje systémové správy s používateľskými správami pre nekompatibilné modely. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
-- **Rola `developer` nebola rozpoznaná** — Vyriešené vo v1.x; pre poskytovateľov iných než OpenAI sa automaticky konvertuje na `system`. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
-- **`json_schema` nefunguje s Gemini** — Vyriešené vo v1.x; `response_format` sa teraz konvertuje na `responseMimeType` + `responseSchema` Gemini. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
+- **Značky premýšľania sa nezobrazujú** — Skontrolujte, či cieľový poskytovateľ podporuje premýšľanie a nastavenie rozpočtu na premýšľanie
+- **Volania nástrojov sa strácajú** — Niektoré preklady formátov môžu odstrániť nepodporované polia; overte to v režime Playground
+- **Chýba systémová výzva** — Claude a Gemini spracúvajú systémové výzvy odlišne; skontrolujte výstup prekladu
+- **SDK vracia nespracovaný reťazec namiesto objektu** — Vyriešené vo v1.x; nástroj na čistenie odpovedí odstraňuje neštandardné polia (`x_groq`, `usage_breakdown` atď.), ktoré spôsobujú zlyhania validácie Pydantic v OpenAI SDK. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
+- **GLM/ERNIE odmieta rolu `system`** — Vyriešené vo v1.x; normalizátor rolí automaticky zlučuje systémové správy so správami používateľa pre nekompatibilné modely. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
+- **Rola `developer` nie je rozpoznaná** — Vyriešené vo v1.x; pre poskytovateľov iných než OpenAI sa automaticky konvertuje na `system`. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
+- **`json_schema` nefunguje s Gemini** — Vyriešené vo v1.x; `response_format` sa teraz konvertuje na `responseMimeType` + `responseSchema` pre Gemini. Ak sa tento problém stále vyskytuje vo v3.x+, nahláste ho.
 
 ---
 
 ## Nastavenia odolnosti
 
-### Automatické obmedzenie rýchlosti sa nespúšťa
+### Automatické obmedzenie frekvencie sa nespúšťa
 
-- Automatické obmedzenie rýchlosti sa vzťahuje iba na poskytovateľov s API kľúčom (nie na OAuth/predplatné)
-- Overte, či je v časti **Nastavenia → Odolnosť → Profily poskytovateľov** povolené automatické obmedzenie rýchlosti
+- Automatické obmedzenie frekvencie sa vzťahuje iba na poskytovateľov používajúcich kľúče API (nie OAuth/predplatné)
+- Overte, či je v časti **Nastavenia → Odolnosť → Profily poskytovateľov** povolené automatické obmedzenie frekvencie
 - Skontrolujte, či poskytovateľ vracia stavové kódy `429` alebo hlavičky `Retry-After`
 
 ### Ladenie exponenciálneho odstupu
 
 Profily poskytovateľov podporujú tieto nastavenia:
 
-- **Základné oneskorenie** — Počiatočný čas čakania po prvom zlyhaní (predvolene: 1s)
-- **Maximálne oneskorenie** — Horný limit času čakania (predvolene: 30s)
-- **Násobiteľ** — O koľko sa má zvýšiť oneskorenie pri každom po sebe nasledujúcom zlyhaní (predvolene: 2x)
+- **Základné oneskorenie** — Počiatočný čas čakania po prvom zlyhaní (predvolené: 1s)
+- **Maximálne oneskorenie** — Horný limit času čakania (predvolené: 30s)
+- **Násobiteľ** — Miera zvýšenia oneskorenia pri každom po sebe nasledujúcom zlyhaní (predvolené: 2x)
 
-### Ochrana pred náporom súbežných požiadaviek
+### Ochrana pred efektom thundering herd
 
-Keď veľa súbežných požiadaviek zasiahne poskytovateľa s obmedzenou rýchlosťou, OmniRoute používa mutex + automatické obmedzenie rýchlosti na serializáciu požiadaviek a zabránenie kaskádovým zlyhaniam. Pre poskytovateľov s API kľúčom je to automatické.
+Keď veľa súbežných požiadaviek zasiahne poskytovateľa s obmedzenou frekvenciou, OmniRoute používa mutex + automatické obmedzenie frekvencie na serializáciu požiadaviek a zabránenie kaskádovým zlyhaniam. Pre poskytovateľov používajúcich kľúče API je to automatické.
 
 ### Požiadavky chatu zlyhávajú s 503 / chat_admission_busy
 
@@ -569,12 +622,13 @@ Keď veľa súbežných požiadaviek zasiahne poskytovateľa s obmedzenou rýchl
 - Koncový bod dokončení chatu vracia opakovateľnú odpoveď `503`, ktorej kód chyby je
   `chat_admission_busy`.
 - Odpoveď obsahuje `Retry-After`. Od verzie #12135 je hodnota odvodená od pozorovaného
-  vyťaženia — použije sa vyššia hodnota z intervalu `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, ktorý už požiadavka
-  prečakala, a času, počas ktorého sú držané aktuálne náročné rezervácie — zaokrúhlená nahor na celé
-  sekundy a obmedzená maximálne na 60. Pri nečinnej bráne sa zachovávajú historické minimá: 2 sekundy pri
-  ceste založenej na bajtoch, 1 sekunda pri ceste založenej na štruktúre (ktorá obsahuje aj
+  vyťaženia — použije sa vyššia z hodnôt: časové okno `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, ktoré už požiadavka
+  čakala, a čas, počas ktorého sú držané aktuálne náročné prenájmy — zaokrúhlená nahor na celé
+  sekundy a obmedzená na 60. Pri nečinnom regulátore sa zachovávajú historické minimá: 2 sekundy na
+  ceste založenej na bajtoch, 1 sekunda na ceste založenej na štruktúre (ktorá tiež obsahuje
   `reason: "structure_limit"`).
-- Môže sa to stať, kým sa ešte spracúva iný náročný chat alebo dlhotrvajúca streamovaná odpoveď.
+- Môže sa to stať, kým sa stále spracúva iný náročný chat alebo dlhotrvajúca streamovaná
+  odpoveď.
 
 Telo odpovede založenej na bajtoch je:
 
@@ -591,30 +645,30 @@ Telo odpovede založenej na bajtoch je:
 Odpoveď založená na štruktúre používa rovnaký typ a kód so správou
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 a `reason: "structure_limit"`.
-Pri predvolených prahových hodnotách je požiadavka štrukturálne náročná, keď obsahuje aspoň `200` správ,
-aspoň `64` nástrojov alebo aspoň `32,000` odhadovaných tokenov, prípadne keď ohraničený odhad štruktúry
+Pri predvolených prahových hodnotách je požiadavka štrukturálne náročná, ak má aspoň `200` správ,
+aspoň `64` nástrojov alebo aspoň `32,000` odhadovaných tokenov, prípadne ak ohraničený odhad štruktúry
 vyčerpá svoje limity `10,000` navštívených uzlov alebo hĺbku `12`.
 
-**Príčina:** Ide o zámerné znižovanie záťaže v rámci OmniRoute, nie o zlyhanie nadradeného poskytovateľa.
-Každý proces používa lokálny ochranný mechanizmus procesu na rezervovanie obmedzenej kapacity pre náročné požiadavky pred uchovaním
-a spracovaním veľkého tela požiadavky. Rezervácia pre náročnú požiadavku zostáva aktívna počas celej životnosti odpovede SSE.
+**Príčina:** Ide o zámerné odľahčenie záťaže v rámci OmniRoute, nie o zlyhanie upstreamového poskytovateľa.
+Každý proces používa lokálny ochranný mechanizmus na rezervovanie obmedzenej kapacity pre náročné požiadavky ešte pred uchovaním
+a analýzou veľkého tela požiadavky. Prenájom pre náročnú požiadavku zostáva aktívny počas celej životnosti odpovede SSE.
 
-**#503-fanout:** pred touto opravou ochranný mechanizmus obmedzoval súbežnosť pevným POČTOM požiadaviek
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, predvolene `1`) bez ohľadu na pamäť hostiteľa, takže paralelné
-rozvetvenie kódovacích agentov (viacero podagentov/CLI, telá bežne > 256 KB) znížilo efektívnu
-súbežnosť na približne 1 a pri úplne bežnej záťaži viedlo k chybám 503. Ochranný mechanizmus sa teraz ladí
-automaticky: riadi ho automaticky odvodený BAJTOVÝ rozpočet príjmu (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dimenzovaný podľa
-skutočného pamäťového limitu procesu a zohľadňuje aj aktuálny signál tlaku na zdroje — takže
-znižuje záťaž iba vtedy, keď je hostiteľ skutočne pod tlakom na pamäť, nie iba preto, že naraz
-prišlo viacero náročných požiadaviek. Starý limit počtu (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) sa
-stále dodržiava, ale iba ak ho výslovne nastavíte.
+**#503-fanout:** pred touto opravou ochranný mechanizmus obmedzoval súbežnosť na pevný POČET požiadaviek
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, predvolené `1`) bez ohľadu na pamäť hostiteľa, takže vetvenie
+kódovacích agentov (viacero podagentov/CLI, telá bežne > 256 KB) kleslo na efektívnu
+súbežnosť približne 1 a pri úplne normálnom zaťažení vracalo chyby 503. Ochranný mechanizmus sa teraz prispôsobuje automaticky: riadi ho
+automaticky odvodený BAJTOVÝ rozpočet prijímania (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) určený podľa
+skutočného pamäťového limitu procesu a zároveň zohľadňuje aktuálny signál tlaku na zdroje — takže
+odmieta požiadavky iba vtedy, keď je hostiteľ skutočne pod tlakom na pamäť, nie iba preto, že naraz
+prišla viac než jedna náročná požiadavka. Starý limit počtu (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) sa
+stále rešpektuje, ale iba ak ho explicitne nastavíte.
 
-Keď je kapacita vyťažená, náročná požiadavka najprv čaká až
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (predvolene `RATE_LIMIT_MAX_WAIT_MS`; `0` čakanie vypne) na uvoľnenie miesta
-pred vrátením opakovateľnej odpovede `503`. Ohraničené čakanie existuje preto, aby klienti typu agent
-(OpenCode, Claude Code, Cursor), ktorí súbežne rozvetvujú náročné čiastkové požiadavky, serializovali nápor
-namiesto vyčerpania celého rozpočtu opakovaných pokusov okamžitými odmietnutiami a zlyhania uprostred úlohy.
-Aktuálne vyťaženie rezervácií pre náročné požiadavky, vypočítaný bajtový rozpočet a aktuálna závažnosť tlaku sú
+Keď je kapacita vyťažená, náročná požiadavka najprv čaká najviac
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (predvolená hodnota je `RATE_LIMIT_MAX_WAIT_MS`; `0` čakanie vypne), kým sa neuvoľní miesto,
+a až potom vráti opakovateľnú odpoveď `503`. Ohraničené čakanie existuje preto, aby klienti typu agent
+(OpenCode, Claude Code, Cursor), ktorí súbežne vetvia náročné podpožiadavky, serializovali nárazovú záťaž
+namiesto vyčerpania celého rozpočtu opakovaných pokusov na okamžité odmietnutia a zlyhania uprostred úlohy.
+Aktuálne vyťaženie prenájmov pre náročné požiadavky, výsledný bajtový rozpočet a aktuálna závažnosť tlaku sú
 dostupné na `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — skontrolujte ich pred zmenou akejkoľvek premennej prostredia.
 Nastavenia → Odolnosť → Front požiadaviek → Súbežné požiadavky toto neovláda; dané nastavenie
@@ -622,35 +676,35 @@ riadi samostatný mechanizmus frontu požiadaviek poskytovateľa.
 
 **Oprava:**
 
-1. Najprv požiadavku zopakujte. Klienti by mali rešpektovať `Retry-After` a použiť odstup namiesto okamžitého
+1. Najprv požiadavku zopakujte. Klienti by mali rešpektovať `Retry-After` a používať odstup namiesto okamžitého
    opakovania požiadavky.
 2. Pred ladením čohokoľvek skontrolujte `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` a dostatočne vysoká hodnota `maxInflightBytes` znamenajú, že automaticky odvodený rozpočet už funguje
-   správne; hodnota `pressureSeverity` `high`/`critical` znamená, že hostiteľ má skutočne málo pamäte —
-   to nemožno opraviť premennou prostredia pre prijímanie požiadaviek, je potrebná väčšia RAM alebo menšia pracovná záťaž.
+false` a veľkorysá hodnota `maxInflightBytes` znamenajú, že automaticky odvodený rozpočet už funguje
+   správne; hodnota `pressureSeverity` nastavená na `high`/`critical` znamená, že hostiteľ má skutočne nedostatok pamäte —
+   to nemožno vyriešiť premennou prostredia pre prijímanie požiadaviek, ale vyžaduje si to viac RAM alebo menšiu pracovnú záťaž.
 3. Iba ak `/api/monitoring/health` ukazuje, že automaticky odvodený rozpočet je pre
-   vášho hostiteľa skutočne príliš malý (čo je zriedkavé — už sa škáluje od kontajnera až po fyzický server), prepíšte ho priamo pomocou
+   vášho hostiteľa skutočne príliš malý (čo je zriedkavé — už sa škáluje od kontajnerov až po fyzické servery), prepíšte ho priamo pomocou
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` namiesto návratu k staršiemu limitu počtu požiadaviek.
 
-Autoritatívne nastavenia prijímania požiadaviek nájdete v [referencii premenných prostredia](../reference/ENVIRONMENT.md#4-security--authentication).
+Autoritatívne nastavenia prijímania požiadaviek nájdete v [referenčnej príručke premenných prostredia](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 
 ## Voliteľná taxonómia zlyhaní RAG / LLM (16 problémov)
 
-Niektorí používatelia OmniRoute umiestňujú bránu pred RAG alebo agentové systémy. V takýchto konfiguráciách sa často objavuje zvláštny jav: OmniRoute vyzerá byť v poriadku (poskytovatelia sú dostupní, smerovacie profily fungujú, žiadne upozornenia na obmedzenie frekvencie požiadaviek), no konečná odpoveď je napriek tomu nesprávna.
+Niektorí používatelia OmniRoute umiestňujú bránu pred RAG alebo agentové systémy. V takýchto konfiguráciách sa bežne objavuje zvláštny jav: OmniRoute vyzerá v poriadku (poskytovatelia sú dostupní, profily smerovania sú správne, žiadne upozornenia na obmedzenie frekvencie požiadaviek), ale výsledná odpoveď je napriek tomu nesprávna.
 
-V praxi tieto incidenty zvyčajne pochádzajú z nadväzujúceho RAG pipeline, nie zo samotnej brány.
+V praxi tieto incidenty zvyčajne pochádzajú z nadväzujúceho RAG kanála spracovania, nie zo samotnej brány.
 
 Ak chcete používať spoločnú terminológiu na opis týchto zlyhaní, môžete použiť WFGY ProblemMap, externý textový zdroj s licenciou MIT, ktorý definuje šestnásť opakujúcich sa vzorov zlyhaní RAG / LLM. Na vysokej úrovni zahŕňa:
 
-- odklon pri vyhľadávaní a narušené hranice kontextu
+- odchýlky pri vyhľadávaní a narušené hranice kontextu
 - prázdne alebo zastarané indexy a vektorové úložiská
-- nesúlad embeddingov a sémantiky
-- problémy so zostavovaním promptov a kontextovým oknom
-- kolaps logiky a príliš sebavedomé odpovede
+- nesúlad medzi embeddingmi a sémantikou
+- problémy so zostavením promptu a kontextovým oknom
+- zlyhania logiky a prehnane sebavedomé odpovede
 - zlyhania dlhých reťazcov a koordinácie agentov
-- odklon pamäte a rolí medzi viacerými agentmi
+- odchýlky pamäte a rolí vo viacagentových systémoch
 - problémy s poradím nasadenia a inicializácie
 
 Myšlienka je jednoduchá:
@@ -659,123 +713,123 @@ Myšlienka je jednoduchá:
    - úlohu a požiadavku používateľa
    - trasu alebo kombináciu poskytovateľov v OmniRoute
    - akýkoľvek RAG kontext použitý v nadväzujúcom spracovaní (vyhľadané dokumenty, volania nástrojov atď.)
-2. Priraďte incident k jednému alebo dvom číslam vo WFGY ProblemMap (`No.1` … `No.16`).
-3. Uložte číslo vo svojom dashboarde, prevádzkovej príručke alebo systéme na sledovanie incidentov vedľa protokolov OmniRoute.
-4. Pomocou príslušnej stránky WFGY rozhodnite, či potrebujete zmeniť svoj RAG systém, vyhľadávací mechanizmus alebo stratégiu smerovania.
+2. Priraďte incident k jednému alebo dvom číslam WFGY ProblemMap (`No.1` … `No.16`).
+3. Uložte číslo do vlastného ovládacieho panela, prevádzkovej príručky alebo systému na sledovanie incidentov vedľa protokolov OmniRoute.
+4. Pomocou príslušnej stránky WFGY rozhodnite, či potrebujete zmeniť svoj RAG systém, retriever alebo stratégiu smerovania.
 
 Úplný text a konkrétne postupy nájdete tu (licencia MIT, iba text):
 
 [README WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Ak za OmniRoute neprevádzkujete RAG alebo agentové pipeline, môžete túto časť ignorovať.
+Ak za OmniRoute neprevádzkujete RAG ani agentové kanály spracovania, môžete túto časť ignorovať.
 
 ---
 
-## Známe problémy vo v3.8.0
+## Známe problémy vo verzii v3.8.0
 
-Problémy špecifické pre vydanie v3.8.0 a ich aktuálne náhradné riešenia. Ak bude oprava zahrnutá v neskoršej opravnej verzii, príslušná položka sa aktualizuje alebo odstráni.
+Problémy špecifické pre vydanie v3.8.0 a ich aktuálne dočasné riešenia. Ak bude oprava zahrnutá v neskoršej opravnej verzii, položka sa aktualizuje alebo odstráni.
 
 ### Zlyhania autentifikácie Devin CLI
 
 **Príznaky:**
 
-- „Devin CLI sa nenašlo“ alebo „autentifikácia zlyhala“ pri spúšťaní nástrojov založených na Devin
-- Kontrola prostredia CLI hlási `installed=false`
+- „Devin CLI sa nenašlo“ alebo „autentifikácia zlyhala“ pri spúšťaní nástrojov využívajúcich Devin
+- Kontrola behového prostredia CLI hlási `installed=false`
 
 **Príčiny:**
 
 - `CLI_DEVIN_BIN` odkazuje na cestu, ktorá neexistuje
-- Devin CLI nie je na hostiteľovi nainštalované
+- Devin CLI nie je nainštalované na hostiteľovi
 
 **Oprava:**
 
 1. Nainštalujte Devin CLI pre svoju platformu
-2. Nastavte `CLI_DEVIN_BIN=/usr/local/bin/devin` (alebo skutočnú cestu) v `.env`
-3. Reštartujte OmniRoute a zopakujte test cez **Dashboard → Nástroje CLI**
+2. Nastavte `CLI_DEVIN_BIN=/usr/local/bin/devin` (alebo skutočnú cestu) v súbore `.env`
+3. Reštartujte OmniRoute a znova vykonajte test cez **Ovládací panel → Nástroje CLI**
 
-### Model zostal zablokovaný v režime ochladzovania (manuálne obnovenie)
+### Zaseknuté dočasné vyradenie modelu (manuálne obnovenie)
 
 **Príznaky:**
 
-- Model zostáva uvedený v režime ochladzovania aj po uplynutí času platnosti
-- Požiadavky pri kombinovanom smerovaní model stále preskakujú, hoci časová značka je už v minulosti
+- Model zostáva uvedený ako dočasne vyradený aj po uplynutí času platnosti
+- Kombinované smerovanie naďalej vynecháva model napriek tomu, že časová značka je v minulosti
 
 **Manuálne obnovenie:**
 
-- **Dashboard:** **Nastavenia → Ochladzovanie modelov** → na príslušnej karte kliknite na **Znova povoliť**
-- **API:** `DELETE /api/resilience/model-cooldowns` s hlavičkami autentifikácie správy
+- **Ovládací panel:** **Nastavenia → Dočasné vyradenia modelov** → na príslušnej karte kliknite na **Znova povoliť**
+- **API:** `DELETE /api/resilience/model-cooldowns` s hlavičkami autentifikácie pre správu
 
-### Pripojenie poskytovateľa Command Code zlyhá s chybou 403
+### Pripojenie k poskytovateľovi Command Code zlyháva s chybou 403
 
 **Príznaky:**
 
 - Chyba 403 pri testovaní pripojenia k poskytovateľovi Command Code
-- Po novom pridaní sa na karte poskytovateľa zobrazuje „neautorizované“
+- Karta poskytovateľa po novom pridaní zobrazuje stav „neautorizované“
 
-**Príčina:** Tok OAuth sa nedokončil (spätné volanie nebolo prijaté alebo token nebol uložený).
+**Príčina:** Tok OAuth nebol dokončený (spätné volanie nebolo prijaté alebo token nebol trvalo uložený).
 
 **Oprava:**
 
-- Spustením `omniroute providers` z CLI znova aktivujte tok OAuth alebo
-- Znova spustite OAuth cez **Dashboard → Poskytovatelia → Command Code → Znova pripojiť**
+- Spustením `omniroute providers` z CLI znova vyvolajte tok OAuth alebo
+- Znova spustite OAuth cez **Ovládací panel → Poskytovatelia → Command Code → Znova pripojiť**
 
-### ModelScope vracia agresívne ochladzovanie pri chybe 429
+### ModelScope vracia agresívne dočasné vyradenia pri chybe 429
 
 **Príznaky:**
 
-- Veľmi krátke alebo okamžité ochladzovanie ModelScope po malej dávke požiadaviek
-- Kombinované smerovanie preskočí ModelScope skôr, než sa očakáva
+- Veľmi krátke alebo okamžité dočasné vyradenia služby ModelScope po malej sérii požiadaviek
+- Kombinované smerovanie vynecháva ModelScope skôr, než sa očakáva
 
-**Príčina:** ModelScope odosiela hlavičky `Retry-After` špecifické pre poskytovateľa. v3.8.0 obsahuje špecializované spracovanie týchto hlavičiek, takže staršie verzie ich nesprávne interpretujú ako všeobecné indikátory obmedzenia frekvencie požiadaviek.
+**Príčina:** ModelScope posiela hlavičky `Retry-After` špecifické pre poskytovateľa. Verzia v3.8.0 obsahuje osobitné spracovanie týchto hlavičiek, takže staršie verzie ich nesprávne interpretujú ako všeobecné signály obmedzenia frekvencie požiadaviek.
 
 **Oprava:**
 
-- Uistite sa, že používate v3.8.0 alebo novšiu verziu
-- Skontrolujte, či je prepínač `useUpstream429BreakerHints` povolený v časti **Nastavenia → Odolnosť**
+- Uistite sa, že používate verziu v3.8.0 alebo novšiu
+- Overte, že je prepínač `useUpstream429BreakerHints` povolený v časti **Nastavenia → Odolnosť**
 
 ### Chýbajúca premenná OMNIROUTE_WS_BRIDGE_SECRET v produkčnom prostredí
 
 **Príznaky:**
 
-- Chyba 401 pri každej požiadavke na WebSocket most Codex/Responses pri spustení na vzdialenom produkčnom hostiteľovi
-- Nadviazanie spojenia s WebSocket mostom sa ukončí ihneď po pripojení
+- Chyba 401 pri každej požiadavke mosta WebSocket pre Codex/Responses pri prevádzke na vzdialenom produkčnom hostiteľovi
+- Nadviazanie spojenia s mostom WebSocket sa ukončí okamžite po pripojení
 
 **Príčina:** V produkčnom prostredí chýba premenná prostredia `OMNIROUTE_WS_BRIDGE_SECRET`.
 
 **Oprava:**
 
-1. Vygenerujte náhodný tajný kľúč: `openssl rand -hex 32`
+1. Vygenerujte náhodný tajný reťazec: `openssl rand -hex 32`
 2. Nastavte `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` v prostredí produkčného servera (a v každom klientovi, ktorý komunikuje s mostom)
 3. Reštartujte OmniRoute
 
-### Responses API: režim na pozadí degradovaný na synchrónny
+### Responses API: režim na pozadí obmedzený na synchrónny režim
 
 **Príznaky:**
 
-- Zaznamenané upozornenie: `background mode degraded to synchronous`
-- Požiadavka s `background: true` vráti normálnu synchrónnu odpoveď namiesto identifikátora úlohy na pozadí
+- Zaznamená sa upozornenie: `background mode degraded to synchronous`
+- Požiadavka s `background: true` vráti bežnú synchrónnu odpoveď namiesto identifikátora úlohy na pozadí
 
-**Príčina:** v3.8.0 zámerne degraduje `background: true` v Responses API na synchrónne vykonávanie a zároveň vygeneruje upozornenie. Úplné asynchrónne vykonávanie na pozadí je plánované do budúcnosti.
+**Príčina:** Verzia v3.8.0 zámerne spracúva `background: true` v Responses API synchrónne a zároveň vydáva upozornenie. Plne asynchrónne vykonávanie na pozadí bude dodané v budúcnosti.
 
 **Oprava:**
 
 - Upravte klienta tak, aby volanie vykonával bez `background`, alebo
-- Počkajte na neskoršie vydanie, ktoré bude obsahovať úplný asynchrónny režim na pozadí (sledujte zoznam zmien)
+- Počkajte na neskoršie vydanie s plne asynchrónnym režimom na pozadí (sledujte denník zmien)
 
 ---
 
 ## Pomalé spustenie / časový limit pripravenosti
 
-Ak CLI zobrazí `⚠ Server did not respond within 60s`, ale server v skutočnosti
+Ak CLI vypíše `⚠ Server did not respond within 60s`, ale server v skutočnosti
 funguje, limit sondy pripravenosti je pre vaše prostredie príliš krátky.
 
-Bežne sa to stáva v systéme Windows (antivírus, sledovanie súborového systému) alebo v kontajneroch
-s náročnými úlohami pri spustení.
+Bežne sa to stáva v systéme Windows (antivírus, nástroje sledujúce zmeny v súborovom systéme) alebo v kontajneroch
+s vysokým zaťažením pri spúšťaní.
 
-**Riešenie — zvýšte časový limit:**
+**Riešenie — zvýšte limit:**
 
 ```bash
-# Prostredníctvom premennej prostredia (platí aj pri ďalších spusteniach):
+# Prostredníctvom premennej prostredia (zachová sa medzi spusteniami):
 export OMNIROUTE_READY_TIMEOUT_MS=180000   # 3 minúty
 omniroute serve
 
@@ -784,9 +838,9 @@ omniroute serve --ready-timeout 180000
 ```
 
 Predvolená hodnota je 60 000 ms (60 s). Upozornenie má iba informatívny charakter; server
-pokračuje v spúšťaní na pozadí a po dokončení spustenia bude dostupný.
+pokračuje v spúšťaní na pozadí a po dokončení spúšťania bude dostupný.
 
-Úplné podrobnosti o `OMNIROUTE_READY_TIMEOUT_MS` nájdete v súbore
+Úplné podrobnosti o `OMNIROUTE_READY_TIMEOUT_MS` nájdete v dokumente
 [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md).
 
 ---
@@ -794,7 +848,7 @@ pokračuje v spúšťaní na pozadí a po dokončení spustenia bude dostupný.
 ## Stále máte problémy?
 
 - **Problémy na GitHube**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architektúra**: Interné podrobnosti nájdete v súbore [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
-- **Referenčná dokumentácia API**: Všetky koncové body nájdete v súbore [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md)
-- **Panel stavu**: Aktuálny stav systému nájdete v časti **Dashboard → Health**
-- **Prekladač**: Na ladenie problémov s formátom použite **Dashboard → Translator**
+- **Architektúra**: Interné podrobnosti nájdete v dokumente [`docs/architecture/ARCHITECTURE.md`](../architecture/ARCHITECTURE.md)
+- **Referenčná príručka API**: Všetky koncové body nájdete v dokumente [`docs/reference/API_REFERENCE.md`](../reference/API_REFERENCE.md)
+- **Panel stavu**: Aktuálny stav systému skontrolujte v časti **Dashboard → Health**
+- **Prekladač**: Na ladenie problémov s formátom použite časť **Dashboard → Translator**

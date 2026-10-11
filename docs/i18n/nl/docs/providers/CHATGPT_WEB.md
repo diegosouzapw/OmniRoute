@@ -33,23 +33,14 @@ de bijbehorende verbindingen vallen niet onder deze uitfasering.
 De tunnel is alleen nodig voor beurten met tools. Elke vermelde route, waaronder `pro`, kan dezelfde
 aan de beurt gebonden lokale toolfunctionaliteit gebruiken wanneer de tunnel en connector zijn geconfigureerd.
 
-## Configuratie via het dashboard
+## Dashboard instellen
 
 1. Open de provider **ChatGPT Web (Codex)** en voeg een verbinding toe.
-2. Plak de volledige ChatGPT Cookie-header, tunnel-ID, runtimesleutel en naam van de aangepaste connector.
-   Nieuwe configuraties met toolondersteuning moeten een nieuw aangemaakte connector gebruiken met exact de naam
-   `OmniRoute Codex v2`, waarbij Authentication is ingesteld op None en Permissions op Allow all
-   actions.
-3. Voer de verbindingscontrole uit. OmniRoute opent een browsergestuurde Temporary Chat en detecteert
-   of Sol en Pro beschikbaar zijn voor het account.
-4. Sla de verbinding op. OmniRoute vervangt de geplakte cookie door de geverifieerde
-   Playwright-opslagstatus en slaat deze samen met de runtimesleutel op via de versleutelde
-   abstractie voor aanmeldgegevens.
+2. Plak de volledige ChatGPT Cookie-header, tunnel-ID, runtimesleutel en naam van de aangepaste connector. Nieuwe configuraties met toolondersteuning moeten een nieuw aangemaakte connector gebruiken met exact de naam `OmniRoute Codex v2`, waarbij Authentication is ingesteld op None en Permissions op Allow all actions.
+3. Voer de verbindingscontrole uit. OmniRoute opent een browsergebaseerde Temporary Chat en detecteert of Sol en Pro beschikbaar zijn voor het account.
+4. Sla de verbinding op. OmniRoute vervangt de geplakte cookie door de geverifieerde Playwright-opslagstatus en slaat deze samen met de runtimesleutel op via de versleutelde abstractie voor referentiegegevens.
 
-De onbewerkte cookie wordt na succesvol opslaan niet bewaard. Wanneer de sessie verloopt, opent u
-de verbinding, plakt u een nieuwe volledige Cookie-header en voert u de controle opnieuw uit. De doctor-status
-in het bewerkingsvenster rapporteert afzonderlijk over de browser, opslagstatus, aanmelding, Temporary Chat, tunnel,
-connector en volledige toolinteractie.
+De onbewerkte cookie wordt na succesvol opslaan niet bewaard. Wanneer de sessie verloopt, opent u de verbinding, plakt u een nieuwe volledige Cookie-header en voert u de controle opnieuw uit. De doctor-status in het bewerkingsvenster rapporteert afzonderlijk over de browser, opslagstatus, aanmelding, Temporary Chat, tunnel, connector en volledige toolcyclus. Zie voor het automatiseren van cookie-updates wanneer sessies worden gewisseld het bijbehorende hulpprogramma in [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 > Commit nooit een echte cookie, runtimesleutel, opslagstatus of capability-token. Waarden voor tests en
 > documentatie moeten altijd tijdelijke aanduidingen zijn.
@@ -131,7 +122,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Regressiecontroles voor de uitfasering bevinden zich in:
+Regressiebeveiligingen voor de uitfasering bevinden zich in:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

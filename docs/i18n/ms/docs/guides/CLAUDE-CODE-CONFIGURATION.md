@@ -125,12 +125,12 @@ diuji unit) yang dipaparkan oleh `ClaudeGatewayOnboardingBlock`.
 
 ## Profil (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **tidak mempunyai fail profil natif** (tidak seperti `~/.codex/<name>.config.toml` milik Codex).
-Mekanisme idiomatik ialah `CLAUDE_CONFIG_DIR` — direktori konfigurasi yang berasingan bagi setiap
+Claude Code **tidak mempunyai fail profil asli** (tidak seperti `~/.codex/<name>.config.toml` milik Codex).
+Mekanisme yang lazim digunakan ialah `CLAUDE_CONFIG_DIR` — direktori konfigurasi berasingan bagi setiap
 profil, masing-masing dengan `settings.json`, kelayakan, sejarah dan cache tersendiri.
 
-`omniroute setup-claude` mendapatkan katalog `/v1/models` langsung dan menulis satu
-profil bagi setiap model pada `~/.claude/profiles/<name>/settings.json`, menggunakan semula
+`omniroute setup-claude` mendapatkan katalog `/v1/models` semasa dan menulis satu
+profil bagi setiap model di `~/.claude/profiles/<name>/settings.json`, menggunakan semula
 **nama yang sama seperti `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -153,13 +153,13 @@ profil bagi setiap model pada `~/.claude/profiles/<name>/settings.json`, menggun
 > konteks aktif), atau eksport sendiri `ANTHROPIC_AUTH_TOKEN` dan jalankan
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Penyegerakan automatik selepas penemuan model (pilihan ikut serta).** OmniRoute boleh menjana semula fail
+**Penyegerakan automatik selepas penemuan model (ikut serta).** OmniRoute boleh menjana semula fail
 `~/.claude/profiles/<name>/settings.json` yang sama secara automatik apabila penyegerakan model penyedia
-mengubah katalog langsung — maka model baharu/yang dinamakan semula mendapat profil tanpa perlu menjalankan semula
-perintah tersebut. Ciri ini **dimatikan secara lalai**: togolkannya daripada **papan pemuka Kod CLI** ("Penyegerakan automatik
+mengubah katalog semasa — supaya model baharu atau yang dinamakan semula mendapat profil tanpa perlu menjalankan semula
+perintah tersebut. Ia **dimatikan secara lalai**: aktifkan daripada **papan pemuka CLI Code** ("Penyegerakan automatik
 profil CLI" → Claude Code), atau tetapkan `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (ia turut mematuhi
-`CLI_ALLOW_CONFIG_WRITES`, yang dihidupkan secara lalai). Apabila didayakan, ia hanya menulis fail profil; ia tidak pernah
-mengubah konfigurasi Claude aktif/lalai, pengesahan, atau `~/.claude/settings.json` anda.
+`CLI_ALLOW_CONFIG_WRITES`, yang diaktifkan secara lalai). Apabila diaktifkan, ia hanya menulis fail profil; ia tidak pernah
+mengubah konfigurasi Claude aktif/lalai, pengesahan atau `~/.claude/settings.json` anda.
 
 ### Menjana + menggunakan profil
 
@@ -170,8 +170,12 @@ omniroute setup-claude
 # VPS jauh (menerapkan URL VPS ke dalam setiap profil)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# Hanya penyedia tertentu
+# Hanya beberapa penyedia
 omniroute setup-claude --only glm,kimi
+
+# Turut menulis profil untuk penyedia CLI setempat (zcode, auggie, devin-cli-agentic,
+# codex-app-server) yang tidak dikesan pada hos ini (dilangkau secara lalai untuk sasaran setempat)
+omniroute setup-claude --include-local
 
 # Pratonton tanpa menulis
 omniroute setup-claude --dry-run

@@ -43,19 +43,9 @@ vnesti JWT ali geslo.
 
 ## Privzeta sol (naključna za vsako namestitev)
 
-Kadar `OMNIROUTE_CLI_SALT` ni nastavljen, je sol naključni 64-mestni
-šestnajstiški niz, ustvarjen enkrat in trajno shranjen v
-`<DATA_DIR>/cli-token-salt.json` (način `0600`) — in ne v repozitorij vključeni
-literal `omniroute-cli-auth-v1`. Tako `getActiveSalt()` v
-`src/lib/machineToken.ts` kot njegova zrcalna implementacija v
-`bin/cli/utils/cliToken.mjs` bereta isto datoteko, zato strežnik in vsak klic CLI
-v tej namestitvi uporabljata isto vrednost; v repozitorij vključeni literal se
-uporabi le kot skrajna rezerva, kadar še ni mogoče določiti trajno shranjene soli
-ali soli iz okolja (na primer pri sveži namestitvi samo za CLI, preden je bil
-strežnik sploh kdaj zagnan). S tem je odpravljena šibkost stare privzete fiksne
-literalne vrednosti: `/etc/machine-id` je pogosto berljiv vsem uporabnikom, zato
-bi lahko sicer kateri koli lokalni uporabnik izpeljal isti žeton za vsako
-namestitev, v kateri `OMNIROUTE_CLI_SALT` ni bil nikoli nastavljen.
+Če `OMNIROUTE_CLI_SALT` ni nastavljen, je sol naključni 64-mestni šestnajstiški niz, ki se ustvari enkrat in shrani v `<DATA_DIR>/cli-token-salt.json` (način `0600`) — ne pa različica literala `omniroute-cli-auth-v1`, vključena v repozitorij. Tako `getActiveSalt()` v `src/lib/machineToken.ts` kot njegova zrcalna izvedba v `bin/cli/utils/cliToken.mjs` bereta isto datoteko, zato strežnik in vsak priklic CLI-ja v tej namestitvi uporabljata isto vrednost; literal, vključen v repozitorij, se uporabi le kot skrajna nadomestna možnost, kadar še ni mogoče pridobiti shranjene soli ali soli iz okolja (na primer pri sveži namestitvi samo CLI-ja, preden se je strežnik sploh kdaj zagnal). To odpravlja šibkost starega privzetega nespremenljivega literala: `/etc/machine-id` je običajno berljiv vsem, zato bi lahko sicer kateri koli lokalni uporabnik izpeljal isti žeton za vsako namestitev, v kateri `OMNIROUTE_CLI_SALT` nikoli ni bil nastavljen.
+
+Če soli ni mogoče prebrati ali ustvariti, tako strežnik kot CLI pred uporabo te nadomestne možnosti zaradi združljivosti izdata eno opozorilo na proces. Opozorilo ne vsebuje soli, žetona, poti datotečnega sistema ali neobdelane napake. Obnovite dostop do `DATA_DIR` ali nastavite `OMNIROUTE_CLI_SALT`, nato pa znova zaženite prizadeti proces. Opozorilo naredi napako vidno; javne nadomestne soli ne naredi zasebne in ne onemogoči preverjanja pristnosti CLI-ja. Obstoječe veljavne shranjene soli in izrecne preglasitve prek okolja ohranijo svoje prejšnje vrednosti žetonov.
 
 ## Rotacija soli
 

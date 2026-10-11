@@ -40,25 +40,24 @@ l-konnettur ikunu kkonfigurati.
 
 ## Konfigurazzjoni tad-dashboard
 
-1. Iftaħ il-provider **ChatGPT Web (Codex)** u żid konnessjoni.
-2. Waħħal il-header Cookie sħiħ ta’ ChatGPT, l-ID tat-tunnel, ir-runtime key u l-isem
-   tal-konnettur personalizzat. Konfigurazzjonijiet ġodda li jappoġġaw l-għodod iridu
-   jużaw konnettur maħluq mill-ġdid bl-isem eżatt `OmniRoute Codex v2`, b’Authentication
-   issettjat għal None u Permissions issettjat għal Allow all actions.
-3. Ħaddem il-verifika tal-konnessjoni. OmniRoute jiftaħ Temporary Chat appoġġata
-   mill-browser u jidentifika jekk Sol u Pro humiex disponibbli għall-kont.
-4. Issejvja l-konnessjoni. OmniRoute jissostitwixxi l-cookie mwaħħla bl-istat tal-ħażna
-   vverifikat ta’ Playwright u jaħżnu mar-runtime key permezz tal-astrazzjoni
-   kriptata tal-kredenzjali.
+1. Iftaħ il-fornitur **ChatGPT Web (Codex)** u żid konnessjoni.
+2. Waħħal il-header sħiħ tal-Cookie ta’ ChatGPT, l-ID tat-tunnel, ir-runtime key, u l-isem tal-konnettur personalizzat. Konfigurazzjonijiet ġodda li jappoġġjaw l-għodod iridu jużaw konnettur li jkun għadu kif inħoloq bl-isem eżatt
+   `OmniRoute Codex v2`, b’Authentication issettjat għal None u Permissions issettjat għal Allow all
+   actions.
+3. Ħaddem il-verifika tal-konnessjoni. OmniRoute jiftaħ Temporary Chat appoġġjat minn browser u jidentifika
+   jekk Sol u Pro humiex disponibbli għall-kont.
+4. Issejvja l-konnessjoni. OmniRoute jissostitwixxi l-cookie mwaħħal bl-istat tal-ħażna
+   verifikat ta’ Playwright u jaħżnu mar-runtime key permezz tal-astrazzjoni kriptata
+   tal-kredenzjali.
 
-Il-cookie mhux ipproċessata ma tinżammx wara ssejvjar b’suċċess. Meta tiskadi
-s-sessjoni, iftaħ il-konnessjoni, waħħal header Cookie sħiħ u ġdid, u erġa’ ħaddem
-il-verifika. L-istatus tad-doctor fid-djalogu tal-editjar jirrapporta separatament dwar
-il-browser, l-istat tal-ħażna, id-dħul fil-kont, Temporary Chat, it-tunnel, il-konnettur
-u r-round-trip tal-għodod.
+Il-cookie mhux ipproċessat ma jinżammx wara ssejvjar b’suċċess. Meta tiskadi s-sessjoni, iftaħ
+il-konnessjoni, waħħal header sħiħ u ġdid tal-Cookie, u erġa’ ħaddem il-verifika. L-istatus tad-doctor
+fid-djalogu tal-editjar jirrapporta separatament dwar il-browser, l-istat tal-ħażna, id-dħul fil-kont, Temporary Chat, it-tunnel,
+il-konnettur, u ċ-ċiklu sħiħ tal-għodda. Biex tawtomatizza l-aġġornamenti tal-cookie meta jinbidlu s-sessjonijiet,
+ara l-għodda anċillari fi [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Qatt tikkommetti cookie reali, runtime key, stat tal-ħażna jew token tal-kapaċità.
-> Il-valuri tat-testijiet u tad-dokumentazzjoni għandhom dejjem ikunu placeholders.
+> Qatt tikkommetti cookie reali, runtime key, stat tal-ħażna, jew token tal-kapaċità. Il-valuri tat-testijiet u
+> tad-dokumentazzjoni għandhom dejjem ikunu placeholders.
 
 ## Mudelli u combos
 
@@ -129,7 +128,7 @@ fallback HTTP/SSE qabel ma jikkonnettja upstream. It-trasferiment imbagħad jgħ
 
 ## Verifika
 
-Ħaddem il-kontrolli tal-provider mingħajr ma tinvoka l-provider irtirat:
+Ħaddem il-kontrolli tal-fornitur mingħajr ma tinvoka l-fornitur irtirat:
 
 ```bash
 node --import tsx/esm --test \\
@@ -138,7 +137,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Il-gwardji ta' rigressjoni għall-irtirar jinsabu fi:
+Il-protezzjonijiet kontra r-rigressjoni tal-irtirar jinsabu f':
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

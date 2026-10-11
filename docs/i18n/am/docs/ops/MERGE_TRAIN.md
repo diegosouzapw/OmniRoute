@@ -4,68 +4,86 @@
 
 ---
 
-ከv3.8.49 (የጥራት/ፍጥነት ዕቅዱ WS3.2/WS3.4) ጀምሮ፣ የተገመገሙ PRዎችን ወደ
-`release/vX.Y.Z` ለማዋሃድ ነባሪው መንገድ **Mergify merge queue** (`.mergify.yml`) ነው፤
-ከዚህ በታች የተመዘገበው **በእጅ የሚከናወን merge-train** ተተኪ አማራጭ ነው — በክስተቶች፣
-በልቀት እገዳዎች ወቅት፣ ወይም የMergify Open Source ዕቅድ ቢቀየር የሚያገለግል።
+v3.8.49 (የquality/velocity ዕቅድ WS3.2/WS3.4) ጀምሮ፣ የተገመገሙ PRs ወደ
+`release/vX.Y.Z` የሚዋሃዱበት ነባሪ መንገድ **Mergify merge queue** (`.mergify.yml`) ነው፤
+ከታች የተመዘገበው **manual merge-train** የመጠባበቂያ አማራጭ ነው — በክስተቶች፣
+በrelease freezes ወቅት፣ ወይም የMergify Open Source ዕቅድ ከተቀየረ ጥቅም ላይ ይውላል።
 
 ## ነባሪ መንገድ፦ የMergify ወረፋ
 
-1. PRው በዘመቻዎቹ ተገምግሞ/አረንጓዴ ሆኖ፣ በባለቤቱ የቅድመ-ውህደት ⭐
-   በር ይፀድቃል (ሪፖርቱ + የእያንዳንዱ ንጥል ውሳኔ — `/merge-prs` ደረጃ 0.75ን ይመልከቱ)።
-2. ባለቤቱ (ወይም በባለቤቱ ውሳኔ መሠረት የሚሠራው ክፍለ-ጊዜ) **`queue`**
-   መለያውን ያክላል። መለያው ራሱ የውህደት ፈቃድ ነው፤ Mergify የሚያደርገው እሱን ማስፈጸም ብቻ ነው።
-3. Mergify በወረፋ ላይ ካሉ PRዎች እስከ 10 ድረስ በቡድን ያደራጃል፣ ቡድኑን በፈጣን በሮች ይፈትሻል፣
-   ከዚያም ያዋህዳል (squash)። ቀይ የሆነ ቡድን **በራስ-ሰር በሁለት ይከፈላል** — ችግር ያለበት PR
-   በ~log2(N) ዳግም ማረጋገጫዎች ተለይቶ ከወረፋው ይወጣል፤ የተቀሩት ይቀጥላሉ።
-4. ከውህደት በኋላ፣ ቀጣይነት ያለው release-green workflow በpush ጊዜ አዲሱን tip ያረጋግጣል
-   እና ጥምረቱ የኋሊት መቀነስ ካስከተለ የአመጣጥ ጉዳይ ይከፍታል (በራስ-ሰር ፈጽሞ አይመልስም)።
+1. PRው በዘመቻዎቹ ይገመገማል/አረንጓዴ ሁኔታ ያገኛል፣ እንዲሁም በባለቤቱ ቅድመ-ውህደት ⭐
+   መግቢያ መቆጣጠሪያ ይፀድቃል (ሪፖርቱ + የእያንዳንዱ ንጥል ውሳኔ — `/merge-prs` ደረጃ 0.75ን ይመልከቱ)።
+2. ባለቤቱ (ወይም በባለቤቱ ውሳኔ መሠረት የሚሠራው ክፍለ ጊዜ) የ**`queue`**
+   መለያን ይተገብራል። መለያው ራሱ የውህደት ፈቃድ ነው፤ Mergify የሚያደርገው መፈጸም ብቻ ነው።
+3. Mergify ወረፋ የገቡ PRዎችን በፈጣን መግቢያ መቆጣጠሪያዎቹ መሠረት **በተከታታይ** (አንድ በአንድ)
+   ያረጋግጣል እና ያዋህዳል (squash)። በቡድን ማስኬድ + ራስ-ሰር ሁለትዮሽ ክፍፍል የሚከፈልበት የMergify ደረጃ ነው
+   (በነፃው ዕቅድ ላይ "Cannot use Merge Queue batch"፣ #7220)፣ ስለዚህ `.mergify.yml` ምንም
+   `batch_size` አያስቀምጥም፤ በቡድን ማስኬድ ከታች ያለው በእጅ የሚከናወን merge-train ኃላፊነት ሆኖ ይቆያል። ከ`checks_timeout` (240 ደቂቃ = የተለካው
+   `quality.yml` p95 2×) በኋላም ምርመራዎቹ በመጠባበቅ ላይ ያሉበት PR ወረፋውን እንዳያቆም ከወረፋው ይወገዳል።
+4. ከውህደት በኋላ፣ ቀጣይነት ያለው release-green የሥራ ፍሰት በpush ጊዜ አዲሱን tip
+   ያረጋግጣል፣ እና ጥምረቱ ወደ ኋላ ከተመለሰ የአስተዋጽኦ ጉዳይ ይከፍታል (በራስ-ሰር ፈጽሞ አይመልስም)።
 
-የደህንነት ገደቦች (`CLAUDE.md` ጥብቅ ደንቦች #21/#22ን ያንጸባርቃሉ)፦
+የደኅንነት ገደቦች (`CLAUDE.md` ጥብቅ ደንቦች #21/#22ን የሚያንጸባርቁ)፦
 
-- **የልቀት እገዳ ክፍት ነው** → የታገደውን branch ዒላማ ላደረጉ PRዎች መለያ አትጨምሩ፤ መጀመሪያ ወደ
-  ንቁው `release/vX+1` ዳግም ዒላማ አድርጉ።
-- **የሌላ ክፍለ-ጊዜ በሂደት ላይ ያለ PR** → ፈጽሞ መለያ አትጨምሩበት፤ የራሱን ሥራ ወረፋ የሚያስገባው
-  ባለቤት ክፍለ-ጊዜው ብቻ ነው።
-- የሙከራ-ብቻ ልዩነቶች እና `hotfix` መለያ ያላቸው PRዎች አስቀድመው የተቀነሰ CI ያስኬዳሉ
-  (`RELEASE_CHECKLIST.md` → Hotfix Fast-Laneን ይመልከቱ)፤ የወረፋው ሁኔታዎች በትክክል የተከናወነውን
-  ማንኛውንም የፍተሻ ስብስብ ይቀበላሉ (`#check-failure=0` + `#check-pending=0`)።
+- **የልቀት እገዳ ክፍት ነው** → የታገደውን branch ዒላማ ላደረጉ PRዎች መለያ አትስጡ፤ መጀመሪያ ወደ
+  ንቁው `release/vX+1` እንደገና ዒላማ አድርጉ።
+- **በሌላ ክፍለ ጊዜ ሂደት ላይ ያለ PR** → ፈጽሞ መለያ አትስጡት፤ የራሱን ሥራ ወረፋ የሚያስገባው
+  ባለቤት ክፍለ ጊዜው ብቻ ነው።
+- የሙከራ-ብቻ ልዩነቶች እና `hotfix` መለያ ያላቸው PRዎች አስቀድመው የተቀነሰ CI ያስኬዳሉ (
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Laneን ይመልከቱ)፤ የወረፋው ሁኔታዎች በተጨባጭ የተካሄደውን
+  የምርመራ ስብስብ ይቀበላሉ (`#check-failure=0` + `#check-pending=0`)።
 
-## ተተኪ አማራጭ፦ በእጅ የሚከናወነው merge-train
+## የመጠባበቂያ አማራጭ፦ manual merge-train
 
-ወረፋው በማይገኝበት ጊዜ ይጠቀሙበታል። ይህ በv3.8.47 ዑደት ወቅት በአንድ ቀን 33 PRዎችን
-ያጠናቀቀውን አሠራር ደንብ ያደርገዋል፦
+queueው በማይገኝበት ጊዜ ይጠቀሙበታል። ይህ በv3.8.47 ዙር ወቅት 33 PRsን
+በአንድ ቀን ያጠናቀቀውን አሠራር በመደበኛ ደንብ ይደነግጋል፦
 
-1. **ቡድኑን አሰባስቡ** (~10–30 የተገመገሙ+የፀደቁ PRዎች)። የ`linked:` ግጭቶችን
-   (ተመሳሳይ `tap.testFiles`፣ ተመሳሳይ የCHANGELOG ክፍሎች) ይፈትሹ እና እነዚያን በቅደም ተከተል ያስኬዱ።
-2. **አንድ ጊዜ ብቻ ያረጋግጡ**፦ ከrelease tip በተነሳ በተነጠለ worktree ውስጥ ሁሉንም የቡድኑን
-   heads በአካባቢው ያዋህዱ፣ ከዚያም ከልቀቱ ጋር እኩል የሆነውን ስብስብ ያስኪዱ
-   (`npm run check:release-green`፣ ከልቀት በፊት `--with-build`ን ይጨምሩ)።
-   `scripts/release/merge-train.sh <base> <PR#>…` ደረጃዎች 1–2ን በራስ-ሰር ያከናውናል (የሚጋጩ
-   PRዎች ይወጣሉ፣ trainው ይቀጥላል)። ሙሉ ሁነታው `npm run test:unit`ን ያስኬዳል — ለ
-   box የተስተካከለው runner (`--test-concurrency=20`) እንጂ፣ ዋናውን ደረጃ በ16-core box
-   ላይ በ~25% እንዲሠራ ያደረጉትን ሁለት ተከታታይ 4-core CI shards አይደለም (በ
-   2026-07-18 ተስተካክሏል)። `--fast` (በቀን ውስጥ የmega-train ማጠናቀቂያዎች፣ በባለቤቱ የፀደቀ
-   2026-07-18) እያንዳንዱን static gate + vitest ይጠብቃል፣ ነገር ግን በተሳፈሩት PRዎች
-   የተቀየሩትን node:test ፋይሎች ብቻ ያስኬዳል፤ ሙሉው ስብስብ በተከማቸው tip ላይ
-   ቢያንስ በቀን አንድ ጊዜ መካሄድ አለበት (`--fast` የሌለው አንድ train)።
-3. **አረንጓዴ** → PRዎቹን በቅደም ተከተል ያዋህዱ (ከእያንዳንዱ በፊት `state,headRefOid`ን ዳግም በመፈተሽ —
-   headው የተንቀሳቀሰ PR ወደ ግምገማ ይመለሳል)። የእያንዳንዱ ውህደት የተጣራ ልዩነት
-   የPRው የራሱ ለውጥ መሆኑን ያረጋግጡ (በራስ-ሰር የተፈቱ መመለሻዎች አይኑሩ፦ ከወሰን ውጭ የሆኑ
-   ስረዛዎችን ለማግኘት `git diff --stat`ን ይመርምሩ)።
-4. **ቀይ** → አንድ በአንድ ዳግም ከማረጋገጥ ይልቅ ቡድኑን በግማሽ ይክፈሉ (እያንዳንዱን ግማሽ ያረጋግጡ)፤
-   ችግር ያለበትን PR ከማስረጃው ጋር ወደ ግምገማ ወረፋው ይመልሱ።
-5. **ፈጽሞ አታድርጉ**፦ በእገዳ ወቅት ወደ ታገደው branch ማዋሃድ፤ `git stash`ን የትኛውም ቦታ መጠቀም፤
-   ቀይ ሁኔታ ይጠፋል በሚል ተስፋ CIን በጅምላ ዳግም ማስኬድ (ደንቡ፦ ቀይ ሁኔታ መረጃ ነው)።
+1. **batchውን ያዘጋጁ** (~10–30 የተገመገሙ+የፀደቁ PRs)። የ`linked:` ግጭቶችን
+   (ተመሳሳይ `tap.testFiles`፣ ተመሳሳይ CHANGELOG hunks) ይፈትሹ እና እነዚያን በተከታታይ ያስኬዱ።
+2. **አንድ ጊዜ ብቻ ያረጋግጡ**፦ ከrelease tip የተነሳ በተለየ worktree ውስጥ ሁሉንም የbatch
+   heads በአካባቢው ያዋህዱ፣ ከዚያም ከrelease ጋር አቻ የሆነውን suite ያስኪዱ
+   (`npm run check:release-green`፣ ከrelease በፊት `--with-build`ን ያክሉ)።
+   `scripts/release/merge-train.sh <base> <PR#>…` steps 1–2ን በራስ-ሰር ያከናውናል (የሚጋጩ
+   PRs ይወጣሉ፣ trainው ይቀጥላል)። Full mode `npm run test:unit`ን ያስኬዳል —
+   box-tuned runner (`--test-concurrency=20`)ን፣ **በቅደም ተከተል የሚሄዱትን ሁለት የ4-core CI
+   shards ሳይሆን**፤ እነዚህ shards በ16-core box ላይ ዋናውን phase ወደ ~25% ብቻ እንዲጠቀም አድርገው ነበር
+   (2026-07-18 ተስተካክሏል)። `--fast` (በቀኑ ውስጥ የmega-train ማጠናቀቂያዎች፣ በባለቤቱ የፀደቀ
+   2026-07-18) ሁሉንም static gate + vitest ያቆያል፣ ነገር ግን በተሳፈሩት PRs
+   የተቀየሩትን node:test ፋይሎች ብቻ ያስኬዳል፤ FULL suite አሁንም ቢያንስ በቀን አንድ ጊዜ
+   በተከማቸው tip ላይ መሄድ አለበት (`--fast` የሌለው አንድ train)።
+3. **አረንጓዴ** → PRsን በቅደም ተከተል ያዋህዱ (ከእያንዳንዱ በፊት `state,headRefOid`ን እንደገና በመፈተሽ —
+   headው የተንቀሳቀሰ PR እንደገና ወደ review ይገባል)። የእያንዳንዱ merge net diff
+   የPRው የራሱ ለውጥ መሆኑን ያረጋግጡ (auto-resolve reverts አይፈቀዱም፦ ከወሰን ውጭ የሆኑ
+   deletions እንዳሉ `git diff --stat`ን audit ያድርጉ)።
+4. **ቀይ** → አንድ በአንድ እንደገና ከማረጋገጥ ይልቅ batchውን በግማሽ እየከፈሉ ይመርምሩ
+   (እያንዳንዱን ግማሽ ያረጋግጡ)፤ ችግሩን የፈጠረውን PR ከማስረጃው ጋር ወደ review queue ይመልሱ።
+5. **ፈጽሞ አታድርጉ**፦ freeze በሚኖርበት ጊዜ ወደ frozen branch merge ማድረግ፤ በማንኛውም ቦታ
+   `git stash` ማድረግ፤ ቀዩ ይጠፋል በሚል ተስፋ CIን በጅምላ እንደገና ማስኬድ (ደንቡ፦ ቀይ መረጃ ነው)።
 
-## ደረጃ አከፋፈል (ወረፋው በፈጣን በሮች ብቻ ለምን ደህንነቱ እንደተጠበቀ)
+## ደረጃ ክፍፍል (queueው በfast-gates ብቻ ለምን ደህንነቱ እንደተጠበቀ)
 
-- **በእያንዳንዱ PR** (quality.yml ፈጣን በሮች)፦ በTIA ተጽዕኖ ያገኙ ሙከራዎች + ሙሉ unit 4-shard +
-  vitest + lint bag + typecheck + የdocs/changelog ታማኝነት።
-- **በእያንዳንዱ ቡድን/tip** (ቀጣይነት ያለው release-green)፦ ወደrelease branch በሚደረግ እያንዳንዱ push ላይ
-  `--quick` HARD gates፤ ሙሉ `--with-build --full-ci` ፍተሻዎች በቀን 3×።
-- **በእያንዳንዱ ልቀት** (በrelease PR ላይ ci.yml)፦ E2E ×9ን፣
-  package-artifact + tarball boot-smokeን፣ coverage/ratchetsን ጨምሮ ሙሉው matrix።
+- **በእያንዳንዱ PR** (quality.yml fast-gates)፦ TIA-impacted tests + full unit 4-shard +
+  vitest + lint bag + typecheck + docs/changelog integrity።
+- **በእያንዳንዱ batch/tip** (continuous release-green)፦ `--quick` HARD gates ወደ
+  release branch በሚደረግ እያንዳንዱ push ላይ፤ full `--with-build --full-ci` sweeps 3×/ቀን።
+- **በእያንዳንዱ release** (ci.yml በrelease PR ላይ)፦ E2E ×9ን ጨምሮ ሙሉው matrix፣
+  package-artifact + tarball boot-smoke፣ coverage/ratchets።
 
-ምንም ነገር ከቀድሞው ባነሰ ደረጃ አይረጋገጥም — ከባዱ የፍተሻ ወሰን ከበፊቱ በእያንዳንዱ PR ፋንታ
-በእያንዳንዱ ቡድን/tip ይሠራል፤ O(N) የዙር-ጉዞዎችን የሚያስወግደውም ይህ ነው።
+ምንም ነገር ከቀድሞው ያነሰ አይረጋገጥም — ከባዱ surface ከእንግዲህ በእያንዳንዱ PR
+ፋንታ በእያንዳንዱ batch/tip ይሄዳል፤ ይህም O(N) round-tripsን ያስወግዳል።
+
+## ለ`merge-train.sh` የfresh-checkout ቅድመ ሁኔታዎች
+
+የተበላሸ install በፍጹም እንደ ቀይ train እንዳይመስል፣ scriptው በroot checkout ላይ
+(ማንኛውም የworktree ሥራ ከመጀመሩ በፊት) ችግር ሲገኝ ወዲያውኑ የሚቆም **preflight** ያስኬዳል፦
+
+1. `npm ci`፣ ከዚያ npm የሚያግደውን `bun` postinstall ያስኪዱ፦
+   `(cd node_modules/bun && node install.js)` — ካልሆነ `check:provider-consistency`
+   እና `check:known-symbols` (ሁለቱም `bun scripts/…`) በtrainውም ሆነ በbaseው ላይ
+   የviolation መስመር ሳይኖር fail ያደርጋሉ።
+2. የተረፈ `node_modules/node_modules` መኖር የለበትም (የተደገመ dependency tree፤ React ሁለት ጊዜ
+   ይጫናል እና UI vitest suites ወዲያውኑ fail ያደርጋሉ)።
+3. `node_modules/.bin/tsc` መኖር እና executable መሆን አለበት (ከፊል install ይህን አያካትትም)።
+
+trainው blocking የሆነውን `npm run check:cycles:ratchet` ያስኬዳል፤ ብቻውን `npm run check:cycles`
+አማካሪ ነው (SCCsን ይዘረዝራል፣ እና ጤናማ base ላይ እንኳን non-zero በሆነ ኮድ ይወጣል)።

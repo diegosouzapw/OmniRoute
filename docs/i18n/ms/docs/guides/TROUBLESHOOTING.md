@@ -6,7 +6,7 @@
 
 > **Untuk Pengguna**: Mencari penyelesaian pantas? Lihat [Rujukan Pantas](#quick-reference) di bawah.
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇪🇹 [am](../../../am/docs/guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇧🇦 [bs](../../../bs/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ha](../../../ha/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇦🇲 [hy](../../../hy/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [ig](../../../ig/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇬🇪 [ka](../../../ka/docs/guides/TROUBLESHOOTING.md) · 🇰🇭 [km](../../../km/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [kn](../../../kn/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ml](../../../ml/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇲🇲 [my](../../../my/docs/guides/TROUBLESHOOTING.md) · 🇳🇵 [ne](../../../ne/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [or](../../../or/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [pa](../../../pa/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../../pl/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇱🇰 [si](../../../si/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇺🇿 [uz](../../../uz/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇳🇬 [yo](../../../yo/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
+🌐 **Bahasa:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/TROUBLESHOOTING.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/TROUBLESHOOTING.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Hausa](../i18n/ha/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/TROUBLESHOOTING.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Igbo](../i18n/ig/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇬🇪 [ქართული](../i18n/ka/docs/guides/TROUBLESHOOTING.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/TROUBLESHOOTING.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/TROUBLESHOOTING.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/guides/TROUBLESHOOTING.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇱🇰 [සිංහල](../i18n/si/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/TROUBLESHOOTING.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/TROUBLESHOOTING.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Masalah lazim dan penyelesaian untuk OmniRoute.
 
@@ -14,22 +14,22 @@ Masalah lazim dan penyelesaian untuk OmniRoute.
 
 ## Rujukan Pantas
 
-**Baru menggunakan OmniRoute?** Mulakan di sini — ini menyelesaikan 90% masalah:
+**Baharu menggunakan OmniRoute?** Mulakan di sini — ini menyelesaikan 90% masalah:
 
-| Saya melihat ini                | Maksudnya                                        | Tindakan yang perlu dilakukan                                                                           |
-| ------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| "Tidak dapat menyambung"        | OmniRoute tidak berjalan                         | Jalankan `omniroute` atau `docker restart omniroute`                                                    |
-| "Kunci API tidak sah"           | Kunci anda salah atau telah tamat tempoh         | Salin semula kunci daripada laman web penyedia                                                          |
-| "Had kadar telah dilampaui"     | Anda menghantar terlalu banyak permintaan        | Tunggu 1 minit, atau gunakan `model: "auto"` untuk sandaran automatik                                   |
-| "Kuota telah dilampaui"         | Anda telah menghabiskan kuota percuma/berbayar   | Sambungkan lebih banyak penyedia, atau gunakan penyedia percuma (Kiro, Pollinations)                    |
-| "Respons lambat"                | Penyedia sedang sibuk atau berada jauh           | Gunakan `model: "auto/fast"` atau sambungkan penyedia yang lebih pantas (Groq, Cerebras)                |
-| "Penyedia yang salah digunakan" | `auto` memilih penyedia lain                     | Itu perkara biasa! `auto` memilih yang terbaik. Paksa penyedia tertentu dengan `model: "openai/gpt-4o"` |
-| "502 Bad Gateway"               | Penyedia tidak beroperasi                        | Tunggu dan cuba semula, atau gunakan `model: "auto"` untuk bertukar penyedia                            |
-| "401 Unauthorized"              | Bukti kelayakan anda salah                       | Semak kunci API anda atau sahkan semula dengan OAuth                                                    |
-| "omniroute is not recognized"   | PATH Windows tidak mengandungi modul node global | Tambahkan awalan global npm anda kepada PATH Windows. Carinya dengan `npm config get prefix`.           |
-| "429 Too Many Requests"         | Dikenakan had kadar                              | Tunggu 1 minit, atau sambungkan lebih banyak penyedia                                                   |
+| Saya melihat ini                | Maksudnya                                           | Tindakan yang perlu dilakukan                                                                                          |
+| ------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| "Tidak dapat menyambung"        | OmniRoute tidak berjalan                            | Jalankan `omniroute` atau `docker restart omniroute`                                                                   |
+| "Kunci API tidak sah"           | Kunci anda salah atau telah tamat tempoh            | Salin semula kunci daripada laman web penyedia                                                                         |
+| "Had kadar telah dilampaui"     | Anda menghantar terlalu banyak permintaan           | Tunggu 1 minit, atau gunakan `model: "auto"` untuk sandaran automatik                                                  |
+| "Kuota telah dilampaui"         | Anda telah menggunakan semua kuota percuma/berbayar | Sambungkan lebih banyak penyedia, atau gunakan penyedia percuma (Kiro, Pollinations)                                   |
+| "Respons perlahan"              | Penyedia sibuk atau berada jauh                     | Gunakan `model: "auto/fast"` atau sambungkan penyedia yang lebih pantas (Groq, Cerebras)                               |
+| "Penyedia yang salah digunakan" | `auto` memilih penyedia lain                        | Itu perkara biasa! `auto` memilih penyedia terbaik. Paksa penggunaan penyedia tertentu dengan `model: "openai/gpt-4o"` |
+| "502 Gerbang Tidak Sah"         | Penyedia tidak beroperasi                           | Tunggu dan cuba lagi, atau gunakan `model: "auto"` untuk menukar penyedia                                              |
+| "401 Tidak Dibenarkan"          | Bukti kelayakan anda salah                          | Semak kunci API anda atau sahkan semula dengan OAuth                                                                   |
+| "omniroute tidak dikenali"      | PATH Windows tidak mengandungi modul node global    | Tambahkan awalan global npm anda pada PATH Windows. Dapatkannya dengan `npm config get prefix`.                        |
+| "429 Terlalu Banyak Permintaan" | Dikenakan had kadar                                 | Tunggu 1 minit, atau sambungkan lebih banyak penyedia                                                                  |
 
-**Masih buntu?** Lihat [penyelesaian masalah terperinci](#detailed-troubleshooting) di bawah, atau tanya di [Discord](https://discord.gg/U47eFqAXCn).
+**Masih menghadapi masalah?** Lihat [penyelesaian masalah terperinci](#detailed-troubleshooting) di bawah, atau tanya di [Discord](https://discord.gg/U47eFqAXCn).
 
 ---
 
@@ -39,66 +39,115 @@ Masalah lazim dan penyelesaian untuk OmniRoute.
 
 ### Pengehadan Kadar pada Penyedia Percuma (429 / 400 / 401)
 
-**Gejala**: Apabila menggunakan `model: "auto"` dengan penyedia percuma/tanpa pengesahan (opencode, auggie, dll.), anda sekali-sekala menerima `HTTP 429`, `400`, atau `401` dan bukannya jawapan. Permintaan berjaya apabila gesaan yang sama dicuba semula beberapa ketika kemudian, tetapi automasi (tugas cron, ejen, skrip) gagal pada kegagalan pertama.
+**Gejala**: Apabila menggunakan `model: "auto"` dengan penyedia percuma/tanpa pengesahan (opencode, auggie dan sebagainya), anda kadangkala menerima `HTTP 429`, `400`, atau `401` dan bukannya jawapan. Permintaan berjaya apabila gesaan yang sama dicuba semula beberapa ketika kemudian, tetapi automasi (tugas cron, ejen, skrip) terhenti pada kegagalan pertama.
 
-**Punca utama**: Tiga mod kegagalan bebas bertindan:
+**Punca utama**: Tiga mod kegagalan berasingan berlaku serentak:
 
-1. **Had kadar penyedia (`429`)**: Peringkat percuma boleh mengenakan kuota bagi setiap tetingkap. Ledakan panggilan selari menghabiskan kuota tersebut, lalu permintaan seterusnya ditolak sehingga tetingkap ditetapkan semula.
-2. **Model rosak dalam laluan terus (`400`/`401`)**: Kumpulan `auto/*` boleh merangkumi model laluan terus daripada `opencode` yang didaftarkan dalam katalog tetapi tidak mempunyai kelayakan aktif (contohnya `oc/north-mini-code-free` → `401`). Penghala automatik mencuba salah satu daripadanya, gagal, dan ralat disebarkan sebelum mekanisme sandaran sempat berfungsi.
-3. **Penguatan konkurensi (`429` semasa beban tinggi)**: Apabila berbilang sesi ejen/cron mengakses `auto` serentak, kadar permintaan agregat melebihi kadar yang boleh diterima oleh penyedia percuma, lalu panggilan yang sah ditandai sebagai penyalahgunaan.
+1. **Had kadar penyedia (`429`)**: Peringkat percuma boleh menguatkuasakan kuota bagi setiap tetingkap masa. Ledakan panggilan selari menghabiskan kuota tersebut, lalu permintaan seterusnya ditolak sehingga tetingkap itu ditetapkan semula.
+2. **Model rosak dalam laluan terus (`400`/`401`)**: Kumpulan `auto/*` boleh merangkumi model laluan terus daripada `opencode` yang didaftarkan dalam katalog tetapi tidak mempunyai bukti kelayakan aktif (contohnya `oc/north-mini-code-free` → `401`). Penghala automatik mencuba salah satu daripadanya, gagal, dan ralat itu disebarkan sebelum sandaran sempat diaktifkan.
+3. **Penggandaan keserentakan (`429` ketika beban tinggi)**: Apabila berbilang sesi ejen/cron mengakses `auto` serentak, kadar permintaan keseluruhan melebihi kadar yang boleh diterima oleh penyedia percuma, lalu panggilan yang sah ditandai sebagai bersifat menyalah guna.
 
-**Pembaikan yang disahkan (dilaporkan oleh komuniti, 2026-08-10)**: tala tiga pemboleh ubah persekitaran supaya putaran, konkurensi, dan mekanisme sandaran menyerap turun naik peringkat percuma dan bukannya gagal kerananya:
+**Penyelesaian yang disahkan (dilaporkan oleh komuniti, 2026-08-10)**: laraskan tiga pemboleh ubah persekitaran supaya penggiliran, keserentakan dan sandaran menyerap turun naik peringkat percuma dan bukannya gagal kerananya:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # beralih kepada model/penyedia lain apabila berlaku 400/401 (melangkau model laluan terus yang rosak)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # had kemasukan eksplisit bagi beban berat (tidak ditetapkan secara lalai: tiada had kiraan permintaan, lihat nota di bawah)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # tingkatkan tempoh menunggu terhad melepasi nilai lalai RATE_LIMIT_MAX_WAIT_MS untuk huluan yang perlahan
+export OMNIROUTE_ROTATE_ON_400=true           # beralih kepada model/penyedia lain apabila menerima 400/401 (melangkau model laluan terus yang rosak)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # had kemasukan eksplisit untuk beban berat (tidak ditetapkan secara lalai: tiada had bilangan permintaan, lihat nota di bawah)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # tingkatkan tempoh menunggu terhad melepasi nilai lalai RATE_LIMIT_MAX_WAIT_MS untuk penyedia huluan yang perlahan
 ```
 
-Tetapkan pemboleh ubah ini dalam persekitaran proses OmniRoute (daemon tersebut, contohnya melalui plist LaunchAgent atau `systemctl edit`), kemudian mulakan semula OmniRoute. Bendera putaran ialah tuil tunggal yang memberikan impak paling tinggi: ia menukar kegagalan keras kepada percubaan semula yang telus melalui penyedia sihat dalam kumpulan.
+Tetapkan pemboleh ubah ini dalam persekitaran proses OmniRoute (demon, contohnya melalui plist LaunchAgent atau `systemctl edit`), kemudian mulakan semula OmniRoute. Bendera penggiliran ialah tetapan tunggal yang memberikan impak terbesar: ia menukar kegagalan mutlak menjadi percubaan semula secara telus menggunakan penyedia yang sihat dalam kumpulan.
 
-**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` mengehadkan bilangan permintaan beban berat — konteks panjang — yang berjalan serentak; had ini ialah get kemasukan, bukannya pengehad kadar penyedia. **Kemas kini #503-fanout:** pemboleh ubah ini tidak lagi ditetapkan secara lalai (kini ia hanya berkuat kuasa apabila dikonfigurasikan secara eksplisit, seperti di atas) — sebaliknya, kemasukan beban berat dikawal oleh belanjawan bait yang diterbitkan secara automatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) yang menskalakan dirinya berdasarkan had memori sebenar hos, maka penggunaan baharu sepatutnya mengalami jauh lebih sedikit penolakan `503 chat_admission_busy` tanpa perlu menetapkan pemboleh ubah ini sama sekali; menetapkannya secara eksplisit di sini masih berfungsi tepat seperti yang didokumentasikan. Penggantian belanjawan bait secara eksplisit dihadkan kepada 8 MiB–2 GiB. `413 body_exceeds_budget` bukan bersifat sementara: tingkatkan belanjawan bait tersebut, kurangkan `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, atau tingkatkan had memori proses. Pelepasan `inflight_bytes_budget` ialah pertikaian sementara dan masih boleh dicuba semula. Pengehadan kadar bagi setiap penyedia (`open-sse/services/rateLimitManager.ts`) dikawal secara berasingan oleh `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, dan `RATE_LIMIT_AUTO_ENABLE` — lihat `.env.example`.
+**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` mengehadkan bilangan permintaan beban berat — konteks panjang — yang dijalankan serentak; had ini ialah gerbang kemasukan, bukannya pengehad kadar penyedia. **Kemas kini #503-fanout:** pemboleh ubah ini tidak lagi ditetapkan secara lalai (kini ia hanya berkuat kuasa apabila dikonfigurasikan secara eksplisit seperti di atas) — sebaliknya, kemasukan beban berat dikawal oleh belanjawan bait terbitan automatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) yang melaraskan dirinya berdasarkan had memori sebenar hos. Oleh itu, penggunaan baharu sepatutnya mengalami jauh lebih sedikit penolakan `503 chat_admission_busy` tanpa perlu menetapkan pemboleh ubah ini; menetapkannya secara eksplisit di sini masih berfungsi tepat seperti yang didokumenkan. Penggantian belanjawan bait secara eksplisit dihadkan kepada 8 MiB–2 GiB. `413 body_exceeds_budget` bukan keadaan sementara: tingkatkan belanjawan bait tersebut, kurangkan `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, atau tingkatkan had memori proses. Pelepasan `inflight_bytes_budget` ialah persaingan sumber sementara dan masih boleh dicuba semula. Pengehadan kadar bagi setiap penyedia (`open-sse/services/rateLimitManager.ts`) dikawal secara berasingan oleh `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, dan `RATE_LIMIT_AUTO_ENABLE` — lihat `.env.example`.
 
-**Cara mengesahkan ia berfungsi**: jalankan ejen/cron anda dua kali berturut-turut dalam tempoh singkat dan pastikan kedua-duanya berjaya. Sebelum pembaikan, pelaksanaan kedua biasanya menghasilkan `429`/`401`. Selepas pembaikan, kegagalan (jika ada) dicuba semula secara telus dan panggilan diselesaikan. Anda juga boleh menjalankan `curl /monitoring/health` dan memerhatikan medan `rateLimitedUntil` pada sambungan penyedia serta `circuitBreakers.providerBreakers[].state` untuk penyedia yang terjejas — keadaannya ialah salah satu daripada `CLOSED`, `DEGRADED`, `OPEN`, atau `HALF_OPEN` (lihat `src/shared/utils/circuitBreaker.ts`), dan penyedia yang terus gagal akan bertukar daripada `CLOSED → DEGRADED → OPEN` sebelum tetingkap penetapan semula membenarkan prob melaluinya (`HALF_OPEN`).
+**Cara mengesahkan ia berfungsi**: jalankan ejen/cron anda dua kali berturut-turut dalam tempoh singkat dan pastikan kedua-duanya berjaya. Sebelum pembaikan, pelaksanaan kedua biasanya menghasilkan ralat `429`/`401`. Selepas pembaikan, kegagalan (jika ada) akan dicuba semula secara telus dan panggilan akan selesai. Anda juga boleh menjalankan `curl /monitoring/health` dan memantau medan `rateLimitedUntil` pada sambungan penyedia serta `circuitBreakers.providerBreakers[].state` untuk penyedia yang terjejas — keadaannya ialah salah satu daripada `CLOSED`, `DEGRADED`, `OPEN`, atau `HALF_OPEN` (lihat `src/shared/utils/circuitBreaker.ts`), dan penyedia yang terus gagal akan bertukar daripada `CLOSED → DEGRADED → OPEN` sebelum tetingkap tetapan semula membenarkan satu percubaan pemeriksaan (`HALF_OPEN`).
 
-**Jika anda masih melihat 429**: akaun aktif bagi penyedia tersebut benar-benar telah menghabiskan _kuotanya_ (bukan sekadar kadar). Tambahkan akaun kedua bagi penyedia yang sama dalam papan pemuka OmniRoute → Providers → Accounts, atau sertakan penyedia percuma lain (contohnya `routeway`, `auggie`). Putaran hanya membantu dengan kadar/400/401 sementara; kehabisan kuota mutlak memerlukan kelayakan kedua atau penyedia lain.
+**Jika anda masih melihat 429**: akaun aktif untuk penyedia tersebut benar-benar telah kehabisan _kuota_ (bukan sekadar had kadar). Tambahkan akaun kedua untuk penyedia yang sama dalam papan pemuka OmniRoute → Providers → Accounts, atau gabungkan penyedia percuma lain (contohnya `routeway`, `auggie`). Penggiliran hanya membantu menangani ralat kadar/400/401 sementara; kehabisan kuota sepenuhnya memerlukan kelayakan kedua atau penyedia lain.
 
-**Jika anda melihat 403 pada model penglihatan (`auto/vision`, `bazaarlink/*`)**: akaun yang disambungkan tidak mempunyai pelan berbayar yang merangkumi penglihatan, atau kunci API tidak mempunyai keizinan yang mencukupi. Sahkan dalam papan pemuka penyedia bahawa skop kunci merangkumi penglihatan/multimodal, atau sambungkan akaun peringkat berbayar dan kekalkannya sebagai sasaran penglihatan.
+**Jika anda melihat 403 pada model penglihatan (`auto/vision`, `bazaarlink/*`)**: akaun yang disambungkan tidak mempunyai pelan berbayar yang merangkumi penglihatan, atau kunci API tidak mempunyai kebenaran yang mencukupi. Sahkan dalam papan pemuka penyedia bahawa skop kunci merangkumi penglihatan/multimodal, atau sambungkan akaun peringkat berbayar dan kekalkannya sebagai sasaran penglihatan.
 
 ---
 
 ## Amaran npm install (ERESOLVE / peer / deprecated)
 
-Apabila anda menjalankan `npm install -g omniroute`, anda mungkin melihat banyak amaran seperti `npm warn ERESOLVE`, notis kebergantungan rakan setara dan mesej `deprecated`. **Ini dijangka dan tidak mendatangkan masalah.** Pemasangan anda berjaya jika anda melihat `added <N> packages` dalam output.
+Apabila anda menjalankan `npm install -g omniroute`, anda mungkin melihat banyak amaran seperti `npm warn ERESOLVE`, notis kebergantungan setara, dan mesej `deprecated`. **Semua ini dijangka dan tidak memudaratkan.** Pemasangan anda berjaya jika anda melihat `added <N> packages` dalam output.
 
-Untuk menyekat amaran penyelesaian kebergantungan rakan setara, gunakan bentuk pemasangan yang disokong oleh OmniRoute:
+Untuk menyekat amaran penyelesaian kebergantungan setara, gunakan kaedah pemasangan yang disokong oleh OmniRoute:
 
 ```bash
 npm install -g omniroute --legacy-peer-deps
 ```
 
-`--legacy-peer-deps` hanya menyekat `ERESOLVE` dan notis kebergantungan rakan setara. Notis penamatan sokongan kekal kelihatan kerana notis tersebut berasal daripada pakej pihak ketiga transitif; notis tersebut tidak menunjukkan bahawa pemasangan gagal.
+`--legacy-peer-deps` hanya menyekat `ERESOLVE` dan notis kebergantungan setara. Notis penyahgunaan kekal kelihatan kerana ia berasal daripada pakej pihak ketiga transitif; notis tersebut tidak menunjukkan bahawa pemasangan gagal.
 
-Amaran tersebut berpunca daripada julat kebergantungan rakan setara yang lapuk dalam pakej pihak ketiga yang tidak dikawal oleh OmniRoute:
+Amaran tersebut berpunca daripada julat kebergantungan setara yang lapuk dalam pakej pihak ketiga yang tidak dikawal oleh OmniRoute:
 
-1. **`marked-terminal` memerlukan `marked >=1 <16`, tetapi `marked@18` ditemui** — berfungsi dengan baik dalam penggunaan sebenar; julat rakan setara huluan itu sekadar lapuk.
-2. **`deprecated prebuild-install@7.1.3`** — pembantu pengambilan binari natif transitif. Ia tidak
-   digunakan untuk memasang pengikatan pengangkutan `wreq-js` yang ditetapkan versinya dan tidak menunjukkan bahawa persediaan pengangkutan penyedia kuki web
-   gagal.
+1. **`marked-terminal` memerlukan `marked >=1 <16`, tetapi `marked@18` ditemui** — ia berfungsi dengan baik dalam penggunaan sebenar; julat setara huluan itu cuma lapuk.
+2. **`deprecated prebuild-install@7.1.3`** — pembantu transitif untuk mendapatkan binari natif. Ia tidak
+   digunakan untuk memasang pengikatan pengangkutan `wreq-js` yang ditetapkan versinya dan tidak menunjukkan bahawa persediaan pengangkutan
+   penyedia kuki web gagal.
 
 **Tiada tindakan diperlukan** — amaran tersebut tidak boleh disenyapkan sepenuhnya tanpa mencabang pakej huluan.
+
+---
+
+## Amaran Skrip Pemasangan npm Disekat (pemasangan global)
+
+<a name="npm-install-scripts-blocked-warning-global-install"></a>
+
+Apabila menjalankan `npm install -g omniroute`, versi npm yang lebih baharu (v11+ dan v12+) menyekat skrip kitar hayat pakej secara lalai dan memaparkan amaran skrip pemasangan:
+
+```
+npm warn install-scripts 7 packages had install scripts blocked because they are not covered by allowScripts:
+  omniroute@<version> (postinstall: node scripts/build/postinstall.mjs)
+  keytar, @parcel/watcher, @swc/core, protobufjs, esbuild, onnxruntime-node
+```
+
+### Bolehkah amaran ini diabaikan?
+
+**Sebahagiannya, tetapi menjalankan pemasangan tanpa skrip tidak disyorkan.** OmniRoute menyediakan mekanisme sandaran yang lancar: jika pengikatan natif `better-sqlite3` tidak dapat dimuatkan daripada berkas kendiri, aplikasi akan beralih kepada pemacu alternatif seperti `node:sqlite` atau `sql.js` (lihat [Penyelesaian Masa Jalan SQLite](../ops/SQLITE_RUNTIME.md)). Pelayan masih akan bermula, tetapi penggunaan mekanisme sandaran WASM seperti `sql.js` akan menyahdayakan mod WAL (Write-Ahead Logging) SQLite serta meningkatkan penggunaan memori dan overhed penyegerakan cakera.
+
+### Skrip manakah yang benar-benar diperlukan?
+
+Bukan semua skrip yang disekat penting untuk menjalankan OmniRoute:
+
+- **Penting (`omniroute`, `better-sqlite3`):** OmniRoute dijalankan daripada berkas aplikasi kendiri Next.js (`dist/`). Semasa pemasangan, npm memuat turun atau mengkompil pemacu SQLite natif khusus hos dalam `node_modules/better-sqlite3/` peringkat teratas. Skrip `postinstall` OmniRoute (`scripts/build/postinstall.mjs`) kemudiannya mengesahkan dan menyalin binari khusus hos ini ke dalam `dist/node_modules/` supaya pelayan kendiri boleh mengaksesnya. Jika skrip postinstall `omniroute` disekat, langkah penyalinan ini dilangkau.
+- **Pilihan/transitif (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** Ini ialah pembantu binaan, alat pemantau, atau utiliti rantai kunci sistem. Membenarkannya akan mengelakkan amaran binaan, tetapi ia tidak diperlukan untuk fungsi penghalaan teras.
+- **Dikecualikan (`onnxruntime-node`):** Kebergantungan pilihan untuk pembenaman AI setempat dan **tidak** diperlukan untuk menjalankan OmniRoute. Skrip postinstallnya memuat turun kira-kira 300MB aset CUDA daripada NuGet; jangan sertakannya dalam senarai dibenarkan melainkan anda secara khusus mahu menggunakan pecutan ONNX setempat pada perkakasan yang disokong.
+
+### Penyelesaian yang disyorkan
+
+Untuk membenarkan skrip pemasangan yang diperlukan semasa pemasangan global dan menyenyapkan amaran, berikan `--allow-scripts` untuk OmniRoute dan kebergantungan natifnya:
+
+```bash
+npm install -g omniroute --allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild
+```
+
+Sebagai alternatif, untuk mengkonfigurasi tetapan ini secara kekal bagi semua pemasangan global dalam akaun pengguna anda:
+
+```bash
+npm config set allow-scripts=omniroute,better-sqlite3,keytar,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+npm install -g omniroute
+```
+
+### Sahkan pemasangan anda
+
+Selepas pemasangan, jalankan alat diagnostik terbina dalam untuk memastikan pengikatan natif dan persekitaran masa jalan berada dalam keadaan baik:
+
+```bash
+omniroute doctor
+```
 
 ---
 
 ## Gemini Web dan Playwright Chromium
 
 Jika permintaan Gemini Web mengembalikan `503` dengan mesej bahawa Playwright Chromium
-tidak dipasang, pakej npm tersedia tetapi binari pelayar tiada.
+tidak dipasang, pakej npm tersedia tetapi perduaan pelayar tiada.
 Playwright sengaja mengasingkan muat turun pelayar daripada pemasangan pakej
 npm, jadi respons ini dijangka sehingga pelayar dipasang.
 
 Untuk pemasangan npm global, pasang Chromium daripada direktori pakej
-OmniRoute supaya cache pelayar tergolong dalam pemasangan Playwright yang sama:
+OmniRoute supaya cache pelayar dimiliki oleh pemasangan Playwright yang sama:
 
 ```bash
 cd "$(npm root -g)/omniroute"
@@ -106,9 +155,9 @@ npx playwright install chromium
 ```
 
 Mulakan semula OmniRoute selepas pemasangan, kemudian cuba semula permintaan Gemini Web. Jika anda
-menjalankan OmniRoute daripada imej Docker, gunakan imej `-web` (atau sasaran binaan `runner-web`),
-yang merangkumi Chromium dan kebergantungannya; imej asas
-tidak merangkuminya.
+menjalankan OmniRoute daripada imej Docker, gunakan imej `-web` (atau sasaran binaan
+`runner-web`), yang merangkumi Chromium dan kebergantungannya; imej asas tidak
+merangkuminya.
 
 ---
 
@@ -116,17 +165,17 @@ tidak merangkuminya.
 
 | Masalah                                                    | Penyelesaian                                                                                                                                                                       |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Log masuk kali pertama tidak berfungsi                     | Tetapkan `INITIAL_PASSWORD` dalam `.env` (tiada nilai lalai berkod keras)                                                                                                          |
+| Log masuk pertama tidak berfungsi                          | Tetapkan `INITIAL_PASSWORD` dalam `.env` (tiada nilai lalai berkod keras)                                                                                                          |
 | Papan pemuka dibuka pada port yang salah                   | Tetapkan `PORT=20128` dan `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                                            |
-| Tiada log ditulis pada cakera                              | Tetapkan `APP_LOG_TO_FILE=true` dan sahkan penangkapan log panggilan didayakan                                                                                                     |
-| EACCES: kebenaran ditolak                                  | Tetapkan `DATA_DIR=/path/to/writable/dir` untuk menggantikan `~/.omniroute`                                                                                                        |
+| Tiada log ditulis ke cakera                                | Tetapkan `APP_LOG_TO_FILE=true` dan sahkan bahawa tangkapan log panggilan didayakan                                                                                                |
+| EACCES: kebenaran dinafikan                                | Tetapkan `DATA_DIR=/path/to/writable/dir` untuk menggantikan `~/.omniroute`                                                                                                        |
 | Strategi penghalaan tidak disimpan                         | Kemas kini kepada keluaran v3.x terkini (pembaikan skema Zod untuk pengekalan tetapan telah disertakan dalam versi terdahulu)                                                      |
-| Ranap semasa log masuk / halaman kosong                    | Semak versi Node.js — lihat [Keserasian Node.js](#nodejs-compatibility) di bawah                                                                                                   |
+| Log masuk ranap / halaman kosong                           | Semak versi Node.js — lihat [Keserasian Node.js](#nodejs-compatibility) di bawah                                                                                                   |
 | `dlopen` / `slice is not valid mach-o file` (macOS)        | Jalankan `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — lihat [pembinaan semula modul natif macOS](#macos-native-module-rebuild) di bawah          |
-| Proksi "fetch failed"                                      | Pastikan konfigurasi proksi ditetapkan pada tahap yang betul — lihat [Masalah Proksi](#proxy-issues) di bawah                                                                      |
-| Docker `curl: (56) Recv failure: Connection reset by peer` | Pengikatan port Docker anda mungkin menghala ke IPv6. Gunakan `-p 127.0.0.1:20128:20128` untuk memaksa IPv4, atau uji dengan `curl -4`. Lihat [IPv6 Docker](#docker-ipv6) di bawah |
+| Proksi "fetch failed"                                      | Pastikan konfigurasi proksi ditetapkan pada aras yang betul — lihat [Isu Proksi](#proxy-issues) di bawah                                                                           |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Pengikatan port Docker anda mungkin menggunakan IPv6. Gunakan `-p 127.0.0.1:20128:20128` untuk memaksa IPv4, atau uji dengan `curl -4`. Lihat [IPv6 Docker](#docker-ipv6) di bawah |
 | Antivirus mengkuarantin `README.md`                        | Positif palsu — lihat [Positif palsu antivirus](#antivirus-false-positives) di bawah                                                                                               |
-| Kaspersky menandai aplikasi Desktop sebagai Trojan         | Positif palsu berdasarkan tingkah laku pada pemasang yang tidak ditandatangani — lihat [Positif palsu antivirus](#antivirus-false-positives) di bawah                              |
+| Kaspersky menandai aplikasi Desktop sebagai Trojan         | Positif palsu tingkah laku pada pemasang yang tidak ditandatangani — lihat [Positif palsu antivirus](#antivirus-false-positives) di bawah                                          |
 
 ---
 
@@ -140,16 +189,16 @@ tidak merangkuminya.
 
 Avast dan AVG menjalankan heuristik yang menandai fail teks biasa/Markdown yang mengandungi banyak
 pautan yang kelihatan seperti permintaan HTTP. `README.md` OmniRoute disertakan dalam pakej npm (ia
-disenaraikan dalam `package.json` → `files`), jadi ia ditempatkan di `node_modules/omniroute/README.md` semasa
+disenaraikan dalam `package.json` → `files`), maka ia ditempatkan di `node_modules/omniroute/README.md` semasa
 pemasangan global — dan ia mengandungi kira-kira 15 contoh `http://localhost:20128/...` (titik akhir
-HTTP/SSE MCP, URL `.well-known` A2A dan coretan `curl`). Kepadatan pautan tersebut
+HTTP/SSE MCP, URL `.well-known` A2A dan petikan `curl`). Kepadatan pautan tersebut
 mencukupi untuk mencetuskan heuristik itu.
 
-Jika perkara ini baru sahaja bermula: sifat fail tersebut tidak berubah. README telah diperluas dengan
-jadual titik akhirnya (MCP HTTP + SSE + A2A telah ditambahkan) dan lebih banyak contoh `curl`, yang menyebabkan
-ia melepasi ambang.
+Jika perkara ini baru berlaku kebelakangan ini: jenis fail tersebut tidak berubah. README telah menambah
+jadual titik akhirnya (MCP HTTP + SSE + A2A telah ditambahkan) dan lebih banyak contoh `curl`, yang menyebabkannya
+melepasi ambang.
 
-Fail tersebut hanyalah dokumentasi tidak aktif tanpa sebarang kandungan boleh laku. Anda boleh memulihkannya
+Fail tersebut ialah dokumentasi pasif tanpa sebarang kandungan boleh laku. Anda boleh memulihkannya
 daripada kuarantin dengan selamat.
 
 **Tindakan yang perlu diambil:**
@@ -157,11 +206,11 @@ daripada kuarantin dengan selamat.
 1. **Hentikan pemberitahuan** — kecualikan direktori pemasangan dalam antivirus anda
    (Avast: Settings → Exceptions), dengan menambahkan laluan `node_modules` global anda dan/atau
    direktori data OmniRoute (`~/.omniroute/`).
-2. **Laporkan positif palsu tersebut** — <https://www.avast.com/false-positive-file-form.php>,
-   dengan melampirkan `README.md` yang dikuarantin. Inilah penyelesaian yang membantu semua orang kerana
-   heuristik vendor bertindak keterlaluan terhadap fail teks.
+2. **Laporkan positif palsu** — <https://www.avast.com/false-positive-file-form.php>,
+   dengan melampirkan `README.md` yang dikuarantin. Inilah pembaikan yang membantu semua orang kerana
+   heuristik vendor tersebut bertindak secara berlebihan terhadap fail teks.
 
-**Sebab kami tidak "membetulkan" perkara ini di pihak kami:** semua contoh menggunakan `http://localhost`, dan
+**Mengapa kami tidak "membetulkan" perkara ini di pihak kami:** semua contoh menggunakan `http://localhost`, dan
 localhost tidak boleh menggunakan `https` tanpa kerumitan sijil ditandatangani sendiri. Mengubah suai dokumentasi untuk
 mengelakkan heuristik satu vendor akan menyusahkan setiap pembaca semata-mata untuk memenuhi kehendak pepijat pengimbas.
 
@@ -170,43 +219,43 @@ mengelakkan heuristik satu vendor akan menyusahkan setiap pembaca semata-mata un
 **Ini ialah positif palsu daripada heuristik tingkah laku. Tiada apa-apa yang dijangkiti.** Awalan
 `PDM:` Kaspersky bermaksud keputusan tersebut datang daripada Proactive Defense Module (System Watcher),
 yang menilai perkara yang _dilakukan_ oleh pemasang dan bukannya memadankannya dengan perisian hasad yang diketahui. Apabila
-ia dicetuskan, Kaspersky "mengundurkan" keseluruhan pemasangan — memadamkan fail yang telah
-ditulis — lalu menyebabkan aplikasi rosak atau hilang.
+ia dicetuskan, Kaspersky "mengembalikan" keseluruhan pemasangan — dengan memadamkan fail yang telah
+ditulis — maka aplikasi akhirnya rosak atau hilang.
 
 Fail yang ditandainya ialah komponen standard bagi kebergantungan sumber terbuka yang diisytiharkan dan disertakan bersama
 aplikasi desktop, contohnya:
 
 - `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` dan
-  `workerProcessEntry.js` — [Playwright](https://playwright.dev), pustaka automasi pelayar
-  yang digunakan untuk log masuk penyedia dalam aplikasi dan sembang berasaskan pelayar.
+  `workerProcessEntry.js` — [Playwright](https://playwright.dev), pustaka automasi
+  pelayar yang digunakan untuk log masuk penyedia dalam aplikasi dan sembang berasaskan pelayar.
 - `resources/app/.build/next/node_modules/@wreq-js/binding-win32-<arch>-msvc-<hash>/wreq-js.win32-<arch>-msvc.node`
-  — pengikatan natif `wreq-js` yang ditetapkan versinya dan digunakan untuk HTTP bercap jari pelayar pada penyedia
-  kuki web (`<arch>` ialah `x64` atau `arm64`).
+  — pengikatan natif `wreq-js` yang versinya ditetapkan, digunakan untuk HTTP dengan cap jari pelayar pada penyedia
+  berasaskan kuki web (`<arch>` ialah `x64` atau `arm64`).
 
-**Sebab ia dicetuskan:** pemasang Windows **belum ditandatangani dengan kod**, jadi pemasang NSIS
-yang tidak ditandatangani tidak mempunyai sebarang reputasi dan heuristik tingkah laku dijalankan pada tahap keagresifan maksimum. Apabila digabungkan
+**Mengapa ia dicetuskan:** pemasang Windows **belum ditandatangani dengan kod**, maka pemasang NSIS
+yang tidak ditandatangani tidak mempunyai reputasi dan heuristik tingkah laku berjalan dengan tahap keagresifan maksimum. Apabila digabungkan
 dengan DLL natif yang disertakan dan ratusan fail `.js` yang ditulis di bawah
-`%LOCALAPPDATA%\Programs\OmniRoute` (termasuk direktori pakej dengan akhiran hash daripada binaan
-kendiri Next.js), keadaan tersebut mencukupi untuk mencetuskan heuristik. Penandatanganan kod sedang dirancang;
-sehingga ia dilaksanakan, keluaran baharu mungkin mengalami perkara ini semula.
+`%LOCALAPPDATA%\Programs\OmniRoute` (termasuk direktori pakej dengan akhiran cincangan daripada binaan
+kendiri Next.js), hal ini mencukupi untuk mencetuskan heuristik tersebut. Penandatanganan kod telah dirancang;
+sehingga ia dilaksanakan, keluaran baharu mungkin mengulangi perkara ini.
 
 **Tindakan yang perlu diambil:**
 
-1. **Sahkan muat turun anda terlebih dahulu** (untuk memastikan fail tidak diusik). Setiap keluaran menerbitkan
-   `latest.yml`, yang medan `sha512`-nya (base64) merangkumi pemasang
-   `OmniRoute.Setup.<version>.exe`. Dalam PowerShell, dari folder yang mengandungi pemasang:
+1. **Sahkan muat turun anda terlebih dahulu** (untuk menolak kemungkinan fail telah diusik). Setiap keluaran menerbitkan
+   `latest.yml`, yang medan `sha512`-nya (base64) merangkumi pemasang `OmniRoute.Setup.<version>.exe`.
+   Dalam PowerShell, dari folder yang mengandungi pemasang:
    ```powershell
    $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
      [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
    [Convert]::ToBase64String($b)
    ```
-   Output mesti sepadan dengan `latest.yml` → `sha512`. Jika tidak, padamkan fail tersebut dan
+   Output mesti sepadan dengan `latest.yml` → `sha512`. Jika tidak sepadan, padamkan fail tersebut dan
    muat turun semula hanya daripada [halaman keluaran GitHub](https://github.com/diegosouzapw/OmniRoute/releases).
-2. **Pulihkan + kecualikan** — pulihkan item yang diundurkan daripada kuarantin dan tambahkan pengecualian
+2. **Pulihkan + kecualikan** — pulihkan item yang dikembalikan daripada kuarantin dan tambahkan pengecualian
    untuk `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Settings → Threats and Exclusions),
    kemudian pasang semula.
-3. **Laporkan positif palsu tersebut** — <https://opentip.kaspersky.com/>. Laporan positif palsu
-   yang dihantar oleh pengguna benar-benar mempercepatkan proses penyenaraian dibenarkan.
+3. **Laporkan positif palsu** — <https://opentip.kaspersky.com/>. Laporan positif palsu
+   yang dihantar oleh pengguna benar-benar mempercepat proses penyenaraian dibenarkan.
 
 ---
 
@@ -216,13 +265,13 @@ sehingga ia dilaksanakan, keluaran baharu mungkin mengalami perkara ini semula.
 
 ### Halaman log masuk ranap atau memaparkan ralat "Module self-registration"
 
-**Punca:** Anda menjalankan versi Node.js di luar paras minimum masa jalan selamat yang diluluskan oleh OmniRoute. Kes yang paling lazim ialah menjalankan tahap tampalan Node 22 atau 24 yang lebih lama dan berada di bawah paras keselamatan bertampal yang diperlukan oleh OmniRoute.
+**Punca:** Anda menjalankan versi Node.js di luar tahap minimum persekitaran masa jalan selamat yang diluluskan oleh OmniRoute. Kes yang paling lazim ialah menjalankan tahap tampalan Node 22 atau 24 yang lebih lama dan berada di bawah tahap minimum keselamatan bertampal yang diperlukan oleh OmniRoute.
 
 **Gejala:**
 
 - Halaman log masuk memaparkan skrin kosong atau ralat pelayan
 - Konsol memaparkan `Error: Module did not self-register` atau ralat pengikatan natif yang serupa
-- Halaman log masuk memaparkan **sepanduk amaran berwarna jingga** dengan versi Node anda jika masa jalan berada di luar dasar keselamatan yang disokong
+- Halaman log masuk memaparkan **sepanduk amaran berwarna jingga** berserta versi Node anda jika persekitaran masa jalan berada di luar dasar selamat yang disokong
 
 **Penyelesaian:**
 
@@ -231,7 +280,7 @@ sehingga ia dilaksanakan, keluaran baharu mungkin mengalami perkara ini semula.
    nvm install 24
    nvm use 24
    ```
-2. Sahkan versi anda: `node --version` sepatutnya memaparkan `v24.0.0` atau lebih baharu pada siri LTS 24.x
+2. Sahkan versi anda: `node --version` sepatutnya memaparkan `v24.0.0` atau lebih baharu dalam siri 24.x LTS
 3. Pasang semula OmniRoute: `npm install -g omniroute`
 4. Mulakan semula: `omniroute`
 
@@ -241,13 +290,13 @@ sehingga ia dilaksanakan, keluaran baharu mungkin mengalami perkara ini semula.
 
 <a name="npm-v11-better-sqlite3-not-installed-cannot-find-module"></a>
 
-**Punca:** npm v11 (disertakan bersama Node.js 24+) menyekat skrip pemasangan untuk kebergantungan
+**Punca:** npm v11 (disertakan dengan Node.js 24+) menyekat skrip pemasangan untuk kebergantungan
 pilihan secara lalai. Oleh sebab `better-sqlite3` disenaraikan dalam `optionalDependencies`
 dan memerlukan pengkompilan natif (`node-gyp rebuild`), npm melangkaunya secara senyap.
 
 **Gejala:**
 
-- Pelayan ranap semasa dimulakan dengan `Cannot find module 'better-sqlite3'`
+- Pelayan ranap semasa permulaan dengan `Cannot find module 'better-sqlite3'`
 - `ls node_modules/better-sqlite3` memaparkan "No such file or directory"
 - `npm ls better-sqlite3` memaparkan `(empty)`
 
@@ -258,24 +307,24 @@ dan memerlukan pengkompilan natif (`node-gyp rebuild`), npm melangkaunya secara 
    npm approve-scripts better-sqlite3
    npm install
    ```
-2. Atau pasang binaan siap bina secara manual:
+2. Atau pasang binaan siap secara manual:
    ```bash
    npm pack better-sqlite3@13.0.1
    tar -xzf better-sqlite3-*.tgz -C node_modules
    mv node_modules/package node_modules/better-sqlite3
    rm better-sqlite3-*.tgz
    ```
-3. Sahkan ia berfungsi: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
+3. Sahkan bahawa ia berfungsi: `node -e "require('better-sqlite3')(':memory:').close(); console.log('OK')"`
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
 <a name="macos-native-module-rebuild"></a>
 
-**Punca:** Selepas `npm install -g omniroute` global, binari natif `better-sqlite3` dalam pakej mungkin telah dikompil untuk seni bina atau ABI Node.js yang berbeza daripada yang dijalankan secara setempat. Perkara ini lazim berlaku pada macOS (Apple Silicon dan Intel) apabila binari siap bina tidak sepadan dengan persekitaran anda.
+**Punca:** Selepas `npm install -g omniroute` global, perduaan natif `better-sqlite3` di dalam pakej mungkin telah dikompil untuk seni bina atau ABI Node.js yang berbeza daripada yang sedang dijalankan secara setempat. Perkara ini lazim berlaku pada macOS (Apple Silicon dan Intel) apabila perduaan siap bina tidak sepadan dengan persekitaran anda.
 
 **Gejala:**
 
-- Pelayan gagal serta-merta semasa dimulakan dengan ralat `dlopen`
+- Pelayan gagal serta-merta semasa permulaan dengan ralat `dlopen`
 - Ralat mengandungi `slice is not valid mach-o file`
 - Contoh penuh:
 
@@ -283,7 +332,7 @@ dan memerlukan pengkompilan natif (`node-gyp rebuild`), npm melangkaunya secara 
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Penyelesaian — bina semula untuk persekitaran setempat anda (tidak perlu menurunkan taraf Node.js):**
+**Penyelesaian — bina semula untuk persekitaran setempat anda (penurunan taraf Node.js tidak diperlukan):**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -291,7 +340,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Nota:** Ini mengkompil semula pengikatan natif berdasarkan versi Node.js dan seni bina CPU setempat anda, sekali gus menyelesaikan ketidakpadanan binari. Julat masa jalan yang disokong secara rasmi ialah **`>=22.22.2 <23` atau `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` dalam `src/shared/utils/nodeRuntimeSupport.ts`, diselaraskan dengan medan `engines` dalam `package.json`). Node.js 24.x LTS (Krypton) dan Node.js 26 disokong sepenuhnya dengan `better-sqlite3` v12.x.
+> **Nota:** Langkah ini mengkompil semula pengikatan natif berdasarkan versi Node.js dan seni bina CPU setempat anda, sekali gus menyelesaikan ketidakpadanan perduaan. Julat persekitaran masa jalan yang disokong secara rasmi ialah **`>=22.22.2 <23` atau `>=24.0.0 <27`** (`SUPPORTED_NODE_RANGE` dalam `src/shared/utils/nodeRuntimeSupport.ts`, diselaraskan dengan medan `engines` dalam `package.json`). Node.js 24.x LTS (Krypton) dan Node.js 26 disokong sepenuhnya dengan `better-sqlite3` v12.x.
 
 ---
 
@@ -303,25 +352,25 @@ omniroute
 
 **Punca:** Titik akhir pengesahan kunci API (`POST /api/providers/validate`) sebelum ini memintas konfigurasi proksi, menyebabkan kegagalan dalam persekitaran yang memerlukan penghalaan proksi.
 
-**Pembetulan (v3.5.5+):** Isu ini kini telah dibetulkan. Pengesahan penyedia dihalakan melalui `runWithProxyContext`, dengan tetapan proksi peringkat penyedia dan global dipatuhi secara automatik.
+**Pembaikan (v3.5.5+):** Isu ini kini telah dibaiki. Pengesahan penyedia dihalakan melalui `runWithProxyContext`, dengan menghormati tetapan proksi peringkat penyedia dan global secara automatik.
 
 ### Pemeriksaan kesihatan token gagal dengan "fetch failed"
 
-**Punca:** Muat semula token OAuth di latar belakang tidak menyelesaikan konfigurasi proksi bagi setiap sambungan.
+**Punca:** Penyegaran token OAuth di latar belakang tidak menyelesaikan konfigurasi proksi bagi setiap sambungan.
 
-**Pembetulan (v3.5.5+):** Penjadual pemeriksaan kesihatan token kini menyelesaikan konfigurasi proksi bagi setiap sambungan sebelum cuba memuat semula. Kemas kini kepada v3.5.5+.
+**Pembaikan (v3.5.5+):** Penjadual pemeriksaan kesihatan token kini menyelesaikan konfigurasi proksi bagi setiap sambungan sebelum cuba menyegarkan token. Kemas kini kepada v3.5.5+.
 
 ### Proksi SOCKS5 mengembalikan "invalid onRequestStart method"
 
 **Punca:** Pada Node.js 22, penghantar undici@8 tidak serasi dengan pelaksanaan `fetch()` terbina dalam Node.
 
-**Pembetulan (v3.5.5+):** OmniRoute kini menggunakan fungsi `fetch()` milik undici apabila penghantar proksi aktif, bagi memastikan tingkah laku yang konsisten. Kemas kini kepada v3.5.5+.
+**Pembaikan (v3.5.5+):** OmniRoute kini menggunakan fungsi `fetch()` milik undici apabila penghantar proksi aktif, bagi memastikan tingkah laku yang konsisten. Kemas kini kepada v3.5.5+.
 
-### Proksi MITM dalam WSL: aplikasi desktop pada hos Windows tidak dipintas
+### Proksi MITM di bawah WSL: aplikasi desktop pada hos Windows tidak dipintas
 
-**Punca:** Proksi MITM dan sijil CAnya dipasang ke dalam persekitaran tempat OmniRoute dijalankan. Dalam WSL, persekitaran tersebut ialah tetamu Linux, manakala aplikasi desktop AI (Kiro, Trae, Copilot, Zed, …) dijalankan pada hos Windows. Aplikasi hos tidak mempercayai stor sijil tetamu dan tidak dihalakan melalui proksi sistem tetamu, jadi pemintasan desktop tidak berlaku di sana.
+**Punca:** Proksi MITM dan sijil CAnya dipasang dalam persekitaran tempat OmniRoute dijalankan. Di bawah WSL, persekitaran tersebut ialah tetamu Linux, manakala aplikasi desktop AI (Kiro, Trae, Copilot, Zed, …) dijalankan pada hos Windows. Aplikasi hos tidak mempercayai stor sijil tetamu dan tidak dihalakan melalui proksi sistem tetamu, maka pemintasan desktop tidak berlaku di situ.
 
-**Syor:** Jalankan OmniRoute secara natif pada OS yang sama dengan aplikasi desktop yang ingin anda pintas (Windows untuk aplikasi Windows; begitu juga untuk macOS/Linux). Mengekalkan OmniRoute dalam WSL sambil menyasarkan aplikasi hos memerlukan anda mempercayai sijil CA yang dijana secara manual pada hos Windows dan menghalakan tetapan rangkaian/proksi setiap aplikasi hos ke titik akhir proksi WSL — satu persediaan yang tidak disokong dan rapuh.
+**Cadangan:** Jalankan OmniRoute secara natif pada OS yang sama dengan aplikasi desktop yang ingin anda pintas (Windows untuk aplikasi Windows; begitu juga bagi macOS/Linux). Mengekalkan OmniRoute di dalam WSL sambil menyasarkan aplikasi hos memerlukan anda mempercayai sijil CA yang dijana secara manual pada hos Windows dan menghalakan tetapan rangkaian/proksi setiap aplikasi hos ke titik akhir proksi WSL — suatu persediaan yang tidak disokong dan rapuh.
 
 ---
 
@@ -331,46 +380,46 @@ omniroute
 
 **Punca:** Kuota penyedia telah habis.
 
-**Pembetulan:**
+**Pembaikan:**
 
 1. Semak penjejak kuota pada papan pemuka
 2. Gunakan gabungan dengan peringkat sandaran
-3. Tukar kepada peringkat yang lebih murah/percuma
+3. Beralih kepada peringkat yang lebih murah/percuma
 
 ### Pengehadan Kadar
 
 **Punca:** Kuota langganan telah habis.
 
-**Pembetulan:**
+**Pembaikan:**
 
 - Tambahkan sandaran: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Gunakan GLM/MiniMax sebagai sandaran kos rendah
 
 ### Token OAuth Tamat Tempoh
 
-OmniRoute memuat semula token secara automatik. Jika masalah berterusan:
+OmniRoute menyegarkan token secara automatik. Jika isu berterusan:
 
 1. Papan Pemuka → Penyedia → Sambung Semula
 2. Padam dan tambahkan semula sambungan penyedia
 
 ### Berbilang akaun Kiro: akaun kedua membatalkan akaun pertama
 
-**Punca:** Bahagian belakang Kiro menguatkuasakan satu sesi aktif sahaja bagi setiap pendaftaran klien OIDC.
+**Punca:** Bahagian belakang Kiro menguatkuasakan satu sesi aktif bagi setiap pendaftaran klien OIDC.
 Apabila dua akaun berkongsi klien berdaftar yang sama (sambungan yang diimport sebelum v3.8.0),
-pemuatan semula token satu akaun akan membatalkan token muat semula akaun yang lain.
+penyegaran token satu akaun akan membatalkan token penyegaran akaun yang lain.
 
-**Pembetulan (v3.8.0+):** Import semula sambungan yang terjejas.
-Mulai v3.8.0, setiap sambungan Kiro baharu yang dibuat melalui **Import Token**,
-**log masuk sosial Google/GitHub**, atau **Auto-Import** secara automatik mendaftarkan
-klien OIDC khususnya sendiri. Oleh itu, sambungan tersebut diasingkan sepenuhnya dan pemuatan semula token satu
-akaun tidak memberi kesan kepada mana-mana akaun lain.
+**Pembaikan (v3.8.0+):** Import semula sambungan yang terjejas.
+Bermula dengan v3.8.0, setiap sambungan Kiro baharu yang dibuat melalui **Import Token**,
+**log masuk sosial Google/GitHub**, atau **Auto-Import** akan mendaftarkan klien OIDC khususnya
+sendiri secara automatik. Oleh itu, sambungan tersebut diasingkan sepenuhnya dan penyegaran satu
+akaun tidak menjejaskan mana-mana akaun lain.
 
-Sambungan yang diimport _sebelum_ v3.8.0 tidak mempunyai pendaftaran klien bagi setiap
-sambungan. Sambungan tersebut terus menggunakan titik akhir muat semula pengesahan sosial yang dikongsi.
-Untuk mendapatkan pengasingan, padam sambungan lama daripada Papan Pemuka → Penyedia dan tambahkannya semula
-melalui mana-mana daripada tiga aliran import tersebut.
+Sambungan yang diimport _sebelum_ v3.8.0 tidak mempunyai pendaftaran klien bagi setiap sambungan.
+Sambungan tersebut terus menggunakan titik akhir penyegaran pengesahan sosial yang dikongsi.
+Untuk mendapatkan pengasingan, padam sambungan lama daripada Papan Pemuka → Penyedia dan tambahkannya
+semula melalui mana-mana daripada tiga aliran import tersebut.
 
-Untuk butiran penuh dan arahan langkah demi langkah bagi menambahkan dua akaun Kiro secara bersebelahan,
+Untuk butiran lengkap dan arahan langkah demi langkah bagi menambahkan dua akaun Kiro secara bersebelahan,
 lihat [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
@@ -381,17 +430,17 @@ lihat [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 1. Sahkan `BASE_URL` menghala ke tika anda yang sedang berjalan (cth., `http://localhost:20128`)
 2. Sahkan `CLOUD_URL` menghala ke titik akhir awan anda (cth., `https://omniroute.dev`)
-3. Pastikan nilai `NEXT_PUBLIC_*` selaras dengan nilai di sebelah pelayan
+3. Pastikan nilai `NEXT_PUBLIC_*` selaras dengan nilai sebelah pelayan
 
-### `stream=false` pada Awan Mengembalikan 500
+### `stream=false` Awan Mengembalikan 500
 
-**Gejala:** `Unexpected token 'd'...` pada titik akhir awan untuk panggilan tanpa penstriman.
+**Gejala:** `Unexpected token 'd'...` pada titik akhir awan untuk panggilan bukan penstriman.
 
-**Punca:** Huluan mengembalikan muatan SSE sedangkan klien menjangkakan JSON.
+**Punca:** Huluan mengembalikan muatan SSE manakala klien menjangkakan JSON.
 
 **Penyelesaian sementara:** Gunakan `stream=true` untuk panggilan terus ke awan. Masa jalan tempatan menyertakan mekanisme sandaran SSE→JSON.
 
-### Awan Menyatakan Disambungkan tetapi "Kunci API tidak sah"
+### Awan Menyatakan Bersambung tetapi "Invalid API key"
 
 1. Cipta kunci baharu daripada papan pemuka tempatan (`/api/keys`)
 2. Jalankan penyegerakan awan: Dayakan Awan → Segerakkan Sekarang
@@ -405,14 +454,14 @@ lihat [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 <a name="docker-ipv6"></a>
 
-**Gejala:** `curl http://localhost:20128/v1/models` mengembalikan `curl: (56) Recv failure: Connection reset by peer`. Papan pemuka dan titik akhir tanpa pengesahan berfungsi, tetapi titik akhir yang memerlukan pengesahan gagal — keadaan ini kelihatan seperti masalah pengesahan tetapi sebenarnya bukan.
+**Gejala:** `curl http://localhost:20128/v1/models` mengembalikan `curl: (56) Recv failure: Connection reset by peer`. Papan pemuka dan titik akhir tanpa pengesahan berfungsi, tetapi titik akhir yang disahkan gagal — keadaan ini kelihatan seperti masalah pengesahan tetapi sebenarnya bukan.
 
-**Punca:** `docker run -p 20128:20128` menerbitkan pada kedua-dua `0.0.0.0` (IPv4) dan `::` (IPv6), tetapi proses di dalam bekas hanya mendengar pada IPv4. Pada hos yang `localhost` diselesaikan kepada `::1` terlebih dahulu, sambungan dibuat ke port IPv6 yang diterbitkan tanpa pendengar di belakangnya → sambungan ditetapkan semula.
+**Punca:** `docker run -p 20128:20128` menerbitkan pada kedua-dua `0.0.0.0` (IPv4) dan `::` (IPv6), tetapi proses di dalam bekas hanya mendengar pada IPv4. Pada hos yang `localhost` diselesaikan kepada `::1` terlebih dahulu, sambungan tiba pada port IPv6 yang diterbitkan tanpa pendengar di belakangnya → sambungan ditetapkan semula.
 
 **Pembaikan:**
 
-1. **Diagnosis pantas:** Jalankan `curl -4 http://localhost:20128/v1/models`. Jika ia berfungsi dengan `-4` tetapi gagal tanpanya, anda mengalami ketidakpadanan pengikatan IPv6.
-2. **Pembaikan kekal:** Ikat kepada IPv4 secara jelas dengan menggunakan `-p 127.0.0.1:20128:20128` dalam perintah `docker run` anda:
+1. **Diagnostik pantas:** Jalankan `curl -4 http://localhost:20128/v1/models`. Jika ia berfungsi dengan `-4` tetapi gagal tanpanya, anda mempunyai ketidakpadanan pengikatan IPv6.
+2. **Pembaikan kekal:** Ikat kepada IPv4 secara eksplisit dengan menggunakan `-p 127.0.0.1:20128:20128` dalam perintah `docker run` anda:
    ```bash
    docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
      -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
@@ -421,12 +470,12 @@ lihat [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 
-### Alat CLI Ditunjukkan sebagai Tidak Dipasang
+### Alat CLI Dipaparkan sebagai Tidak Dipasang
 
 1. Semak medan masa jalan: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. Untuk mod mudah alih: gunakan sasaran imej `runner-cli` (CLI disertakan)
-3. Untuk mod pelekap hos: tetapkan `CLI_EXTRA_PATHS` dan lekapkan direktori bin hos sebagai baca sahaja
-4. Jika `installed=true` dan `runnable=false`: binari ditemui tetapi gagal pemeriksaan kesihatan
+2. Untuk mod mudah alih: gunakan sasaran imej `runner-cli` (CLI terbina dalam)
+3. Untuk mod lekapan hos: tetapkan `CLI_EXTRA_PATHS` dan lekapkan direktori bin hos sebagai baca sahaja
+4. Jika `installed=true` dan `runnable=false`: perduaan ditemui tetapi gagal dalam pemeriksaan kesihatan
 
 ### Pengesahan Masa Jalan Pantas
 
@@ -444,7 +493,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 1. Semak statistik penggunaan dalam Papan Pemuka → Penggunaan
 2. Tukar model utama kepada GLM/MiniMax
-3. Gunakan peringkat percuma (Qoder, Kiro) untuk tugasan tidak kritikal
+3. Gunakan peringkat percuma (Qoder, Kiro) untuk tugas yang tidak kritikal
 4. Tetapkan belanjawan kos bagi setiap kunci API: Papan Pemuka → Kunci API → Belanjawan
 
 ---
@@ -456,7 +505,7 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 Tetapkan `APP_LOG_TO_FILE=true` dalam fail `.env` anda. Log aplikasi ditulis di bawah `logs/`.
 Artifak permintaan disimpan di bawah `${DATA_DIR}/call_logs/` apabila talian paip log panggilan
 didayakan dalam tetapan.
-Apabila penangkapan talian paip didayakan, tetapkan `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` untuk mengecualikan
+Apabila tangkapan talian paip didayakan, tetapkan `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` untuk mengecualikan
 muatan cebisan strim, atau laraskan `CALL_LOG_PIPELINE_MAX_SIZE_KB` untuk mengubah had artifak dalam KB.
 
 ### Semak Kesihatan Penyedia
@@ -476,8 +525,8 @@ curl http://localhost:20128/api/monitoring/health
 - Log aplikasi: `<repo>/logs/...` (apabila `APP_LOG_TO_FILE=true`)
 - Artifak log panggilan: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` apabila talian paip log panggilan didayakan
 
-Tindakan **Bersihkan sejarah** pada halaman Log Permintaan mengosongkan `call_logs`,
-`request_detail_logs` legasi, dan direktori artifak `${DATA_DIR}/call_logs/` tempatan.
+Tindakan **Bersihkan sejarah** pada halaman Log Permintaan mengosongkan `call_logs`, `request_detail_logs`
+lama dan direktori artifak `${DATA_DIR}/call_logs/` setempat.
 
 ---
 
@@ -489,57 +538,57 @@ Apabila pemutus litar penyedia berada dalam keadaan OPEN, permintaan akan diseka
 
 **Penyelesaian:**
 
-1. Pergi ke **Dashboard → Settings → Resilience**
+1. Pergi ke **Papan Pemuka → Tetapan → Ketahanan**
 2. Semak kad pemutus litar untuk penyedia yang terjejas
-3. Klik **Reset All** untuk mengosongkan semua pemutus, atau tunggu sehingga tempoh bertenang tamat
-4. Sahkan bahawa penyedia benar-benar tersedia sebelum menetapkan semula
+3. Klik **Tetapkan Semula Semua** untuk mengosongkan semua pemutus atau tunggu sehingga tempoh bertenang tamat
+4. Pastikan penyedia benar-benar tersedia sebelum menetapkan semula
 
 ### Penyedia terus mencetuskan pemutus litar
 
 Jika penyedia berulang kali memasuki keadaan OPEN:
 
-1. Semak **Dashboard → Health → Provider Health** untuk melihat corak kegagalan
-2. Pergi ke **Settings → Resilience → Provider Profiles** dan tingkatkan ambang kegagalan
+1. Semak **Papan Pemuka → Kesihatan → Kesihatan Penyedia** untuk melihat corak kegagalan
+2. Pergi ke **Tetapan → Ketahanan → Profil Penyedia** dan tingkatkan ambang kegagalan
 3. Semak sama ada penyedia telah mengubah had API atau memerlukan pengesahan semula
-4. Semak telemetri kependaman — kependaman tinggi boleh menyebabkan kegagalan berasaskan tamat masa
+4. Semak telemetri kependaman — kependaman tinggi mungkin menyebabkan kegagalan berasaskan tamat masa
 
 ---
 
 ## Isu Transkripsi Audio
 
-### Ralat "Unsupported model"
+### Ralat "Model tidak disokong"
 
-- Gunakan id model yang segmen pertamanya ialah penyedia yang anda mempunyai kelayakan untuknya (`openai/whisper-1`, `openrouter/deepgram/nova-3`). `deepgram/nova-3` sahaja memerlukan kunci Deepgram natif.
-- Sahkan penyedia disambungkan dalam **Dashboard → Providers**
+- Gunakan ID model yang segmen pertamanya ialah penyedia yang anda mempunyai kelayakan untuknya (`openai/whisper-1`, `openrouter/deepgram/nova-3`). `deepgram/nova-3` sahaja memerlukan kunci Deepgram natif.
+- Pastikan penyedia disambungkan dalam **Papan Pemuka → Penyedia**
 
-### Transkripsi kosong atau gagal
+### Transkripsi mengembalikan hasil kosong atau gagal
 
 - Semak format audio yang disokong: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Sahkan saiz fail berada dalam had penyedia (biasanya < 25MB)
+- Pastikan saiz fail berada dalam had penyedia (biasanya < 25MB)
 - Semak kesahan kunci API penyedia dalam kad penyedia
 
 ---
 
 ## Penyahpepijatan Penterjemah
 
-Gunakan **Dashboard → Translator** untuk menyahpepijat isu terjemahan format:
+Gunakan **Papan Pemuka → Penterjemah** untuk menyahpepijat isu terjemahan format:
 
-| Mod              | Masa untuk Digunakan                                                                                                  |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **Playground**   | Bandingkan format input/output secara bersebelahan — tampal permintaan yang gagal untuk melihat cara ia diterjemahkan |
-| **Chat Tester**  | Hantar mesej langsung dan periksa muatan penuh permintaan/respons termasuk pengepala                                  |
-| **Test Bench**   | Jalankan ujian kelompok merentas gabungan format untuk mencari terjemahan yang rosak                                  |
-| **Live Monitor** | Pantau aliran permintaan masa nyata untuk mengesan isu terjemahan yang bersela                                        |
+| Mod                   | Masa untuk Digunakan                                                                                                  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Ruang Uji**         | Bandingkan format input/output secara bersebelahan — tampal permintaan yang gagal untuk melihat cara ia diterjemahkan |
+| **Penguji Sembang**   | Hantar mesej langsung dan periksa muatan penuh permintaan/respons termasuk pengepala                                  |
+| **Bangku Ujian**      | Jalankan ujian kelompok merentas kombinasi format untuk mengenal pasti terjemahan yang rosak                          |
+| **Pemantau Langsung** | Pantau aliran permintaan masa nyata untuk mengesan isu terjemahan yang berlaku sekali-sekala                          |
 
 ### Isu format lazim
 
-- **Tag pemikiran tidak muncul** — Semak sama ada penyedia sasaran menyokong pemikiran dan tetapan belanjawan pemikiran
-- **Panggilan alat digugurkan** — Sesetengah terjemahan format mungkin membuang medan yang tidak disokong; sahkan dalam mod Playground
-- **Prom sistem tiada** — Claude dan Gemini mengendalikan prom sistem secara berbeza; semak output terjemahan
-- **SDK mengembalikan rentetan mentah dan bukannya objek** — Diselesaikan dalam v1.x; pensanitasi respons membuang medan bukan standard (`x_groq`, `usage_breakdown`, dll.) yang menyebabkan kegagalan pengesahan Pydantic SDK OpenAI. Jika anda masih melihat isu ini pada v3.x+, sila laporkan isu.
-- **GLM/ERNIE menolak peranan `system`** — Diselesaikan dalam v1.x; penormal peranan menggabungkan mesej sistem ke dalam mesej pengguna secara automatik untuk model yang tidak serasi. Jika anda masih melihat isu ini pada v3.x+, sila laporkan isu.
-- **Peranan `developer` tidak dikenali** — Diselesaikan dalam v1.x; ditukar secara automatik kepada `system` untuk penyedia bukan OpenAI. Jika anda masih melihat isu ini pada v3.x+, sila laporkan isu.
-- **`json_schema` tidak berfungsi dengan Gemini** — Diselesaikan dalam v1.x; `response_format` kini ditukar kepada `responseMimeType` + `responseSchema` Gemini. Jika anda masih melihat isu ini pada v3.x+, sila laporkan isu.
+- **Tag pemikiran tidak dipaparkan** — Semak sama ada penyedia sasaran menyokong pemikiran dan tetapan belanjawan pemikiran
+- **Panggilan alat hilang** — Sesetengah terjemahan format mungkin membuang medan yang tidak disokong; sahkan dalam mod Ruang Uji
+- **Gesaan sistem tiada** — Claude dan Gemini mengendalikan gesaan sistem secara berbeza; semak output terjemahan
+- **SDK mengembalikan rentetan mentah dan bukannya objek** — Diselesaikan dalam v1.x; penapis respons membuang medan bukan standard (`x_groq`, `usage_breakdown`, dan sebagainya) yang menyebabkan kegagalan pengesahan Pydantic SDK OpenAI. Jika anda masih melihat perkara ini pada v3.x+, sila laporkan isu.
+- **GLM/ERNIE menolak peranan `system`** — Diselesaikan dalam v1.x; penormal peranan menggabungkan mesej sistem secara automatik ke dalam mesej pengguna untuk model yang tidak serasi. Jika anda masih melihat perkara ini pada v3.x+, sila laporkan isu.
+- **Peranan `developer` tidak dikenali** — Diselesaikan dalam v1.x; ditukar secara automatik kepada `system` untuk penyedia bukan OpenAI. Jika anda masih melihat perkara ini pada v3.x+, sila laporkan isu.
+- **`json_schema` tidak berfungsi dengan Gemini** — Diselesaikan dalam v1.x; `response_format` kini ditukar kepada `responseMimeType` + `responseSchema` Gemini. Jika anda masih melihat perkara ini pada v3.x+, sila laporkan isu.
 
 ---
 
@@ -547,21 +596,21 @@ Gunakan **Dashboard → Translator** untuk menyahpepijat isu terjemahan format:
 
 ### Pengehadan kadar automatik tidak dicetuskan
 
-- Pengehadan kadar automatik hanya digunakan untuk penyedia kunci API (bukan OAuth/langganan)
-- Sahkan bahawa **Settings → Resilience → Provider Profiles** telah mendayakan pengehadan kadar automatik
+- Pengehadan kadar automatik hanya terpakai kepada penyedia kunci API (bukan OAuth/langganan)
+- Sahkan bahawa **Tetapan → Ketahanan → Profil Penyedia** telah mendayakan pengehadan kadar automatik
 - Semak sama ada penyedia mengembalikan kod status `429` atau pengepala `Retry-After`
 
-### Menala undur eksponen
+### Melaraskan undur eksponen
 
 Profil penyedia menyokong tetapan berikut:
 
 - **Kelewatan asas** — Tempoh menunggu awal selepas kegagalan pertama (lalai: 1s)
-- **Kelewatan maksimum** — Had tempoh menunggu maksimum (lalai: 30s)
+- **Kelewatan maksimum** — Had maksimum tempoh menunggu (lalai: 30s)
 - **Pengganda** — Kadar peningkatan kelewatan bagi setiap kegagalan berturut-turut (lalai: 2x)
 
 ### Pencegahan thundering herd
 
-Apabila banyak permintaan serentak mencapai penyedia yang dikenakan had kadar, OmniRoute menggunakan mutex + pengehadan kadar automatik untuk memproses permintaan secara bersiri dan mencegah kegagalan berantai. Ini dilakukan secara automatik untuk penyedia kunci API.
+Apabila banyak permintaan serentak mencapai penyedia yang dikenakan had kadar, OmniRoute menggunakan mutex + pengehadan kadar automatik untuk menyusun permintaan secara bersiri dan mengelakkan kegagalan berantai. Ini berlaku secara automatik untuk penyedia kunci API.
 
 ### Permintaan sembang gagal dengan 503 / chat_admission_busy
 
@@ -569,16 +618,16 @@ Apabila banyak permintaan serentak mencapai penyedia yang dikenakan had kadar, O
 
 - Titik akhir pelengkapan sembang mengembalikan respons `503` yang boleh dicuba semula dengan kod ralat
   `chat_admission_busy`.
-- Respons tersebut menyertakan `Retry-After`. Sejak #12135, nilainya diperoleh daripada penggunaan
-  kapasiti yang diperhatikan — nilai yang lebih besar antara tempoh `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` yang telah
-  ditunggu oleh permintaan dan tempoh pajakan berat semasa telah dipegang — dibundarkan ke atas kepada
-  saat penuh dan dihadkan pada 60. Pada get lalai, ia mengekalkan nilai minimum terdahulu: 2 saat pada
+- Respons tersebut menyertakan `Retry-After`. Sejak #12135, nilainya diperoleh daripada kependudukan
+  yang diperhatikan — nilai yang lebih besar antara tetingkap `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` yang telah
+  ditunggu oleh permintaan dengan tempoh pajakan beban berat semasa telah dipegang — dibundarkan naik kepada
+  saat penuh dan dihadkan pada 60. Apabila get melahu, ia mengekalkan nilai minimum terdahulu: 2 saat pada
   laluan berasaskan bait, 1 saat pada laluan berasaskan struktur (yang turut menyertakan
   `reason: "structure_limit"`).
-- Ini boleh berlaku semasa sembang berat lain atau respons penstriman yang berjalan lama masih
+- Ini boleh berlaku semasa sembang beban berat lain atau respons penstriman yang berjalan lama masih
   sedang diproses.
 
-Badan respons berasaskan bait ialah:
+Isi respons berasaskan bait ialah:
 
 ```json
 {
@@ -594,45 +643,45 @@ Respons berasaskan struktur menggunakan jenis dan kod yang sama, dengan mesej
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 dan `reason: "structure_limit"`.
 Pada ambang lalai, sesuatu permintaan dianggap berat dari segi struktur apabila mempunyai sekurang-kurangnya `200` mesej,
-sekurang-kurangnya `64` alat, atau sekurang-kurangnya `32,000` token anggaran, atau apabila penganggaran struktur berhad
-mencapai had `10,000` nod yang dilawati atau kedalaman `12`.
+sekurang-kurangnya `64` alat atau sekurang-kurangnya `32,000` token anggaran, atau apabila anggaran struktur terbatas
+mencapai hadnya sebanyak `10,000` nod yang dilawati atau kedalaman `12`.
 
 **Punca:** Ini ialah pengurangan beban yang disengajakan dalam OmniRoute, bukannya kegagalan penyedia huluan.
-Setiap proses menggunakan pengawal setempat proses untuk menyimpan kapasiti berat yang terhad sebelum mengekalkan
-dan menghuraikan badan permintaan yang besar. Pajakan berat kekal dipegang sepanjang tempoh hayat respons SSE.
+Setiap proses menggunakan pengawal setempat proses untuk menempah kapasiti beban berat yang terhad sebelum menyimpan
+dan menghuraikan isi permintaan yang besar. Pajakan beban berat kekal dipegang sepanjang hayat respons SSE.
 
-**#503-fanout:** sebelum pembaikan ini, pengawal mengehadkan keserentakan pada BILANGAN permintaan tetap
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, lalai `1`) tanpa mengambil kira memori hos, maka fan-out ejen pengekodan
-(berbilang subejen/CLI, badan lazimnya > 256 KB) merosot kepada keserentakan berkesan
-~1 dan menghasilkan 503 di bawah beban yang benar-benar normal. Kini pengawal melakukan penalaan kendiri: ia dikawal
-oleh belanjawan BAIT kemasukan yang diperoleh secara automatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dan ditentukan saiznya berdasarkan
-had memori sebenar proses, serta turut merujuk isyarat tekanan sumber masa nyata — maka ia
-hanya mengurangkan beban apabila hos benar-benar mengalami tekanan memori, bukan sekadar kerana lebih daripada satu
-permintaan berat tiba serentak. Had kiraan lama (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) masih
-dipatuhi, tetapi hanya jika anda menetapkannya secara eksplisit.
+**Pencabangan #503:** sebelum pembetulan ini, pengawal mengehadkan keserentakan pada BILANGAN permintaan tetap
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, lalai `1`) tanpa mengambil kira memori hos, maka pencabangan ejen
+pengekodan (berbilang subejen/CLI, isi lazimnya > 256 KB) merosot kepada keserentakan efektif
+~1 dan menghasilkan 503 di bawah beban yang benar-benar normal. Kini pengawal melakukan pelarasan kendiri: ia dikawal
+oleh bajet BAIT pengingesan yang diperoleh secara automatik (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) dan ditentukan saiznya
+berdasarkan had memori sebenar proses, serta turut merujuk isyarat tekanan sumber masa nyata — maka ia
+hanya mengurangkan beban apabila hos benar-benar mengalami tekanan memori, bukan semata-mata kerana lebih daripada satu
+permintaan berat tiba serentak. Had bilangan lama (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) masih
+dipatuhi, tetapi hanya jika anda menetapkannya secara jelas.
 
-Apabila kapasiti sibuk, permintaan berat mula-mula menunggu sehingga
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (lalai kepada `RATE_LIMIT_MAX_WAIT_MS`; `0` menyahdayakan penantian) agar slot dikosongkan
-sebelum memberikan respons `503` yang boleh dicuba semula. Penantian berhad itu wujud supaya klien gaya ejen
-(OpenCode, Claude Code, Cursor) yang melakukan fan-out subpermintaan berat secara serentak memproses ledakan tersebut secara bersiri
-dan bukannya menghabiskan seluruh belanjawan percubaan semula pada penolakan serta-merta lalu gagal di tengah-tengah tugas.
-Penggunaan pajakan berat semasa, belanjawan bait yang ditentukan dan tahap keterukan tekanan masa nyata
+Apabila kapasiti sibuk, permintaan beban berat terlebih dahulu menunggu sehingga
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (lalai kepada `RATE_LIMIT_MAX_WAIT_MS`; `0` menyahdayakan penantian) untuk kekosongan slot
+sebelum memberikan respons `503` yang boleh dicuba semula. Penantian terbatas ini disediakan supaya klien bergaya ejen
+(OpenCode, Claude Code, Cursor) yang mencabangkan subpermintaan berat secara serentak menyusun lonjakan tersebut secara bersiri
+dan bukannya menghabiskan seluruh bajet percubaan semula mereka akibat penolakan serta-merta lalu gagal di tengah-tengah tugas.
+Kependudukan pajakan beban berat semasa, bajet bait yang ditentukan dan tahap keterukan tekanan masa nyata
 dipaparkan di `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — semak semua ini sebelum mengubah sebarang pemboleh ubah persekitaran.
-Settings → Resilience → Request Queue → Concurrent Requests tidak mengawal perkara ini; tetapan tersebut
+Tetapan → Ketahanan → Baris Gilir Permintaan → Permintaan Serentak tidak mengawal perkara ini; tetapan tersebut
 mengawal mekanisme baris gilir permintaan penyedia yang berasingan.
 
-**Pembaikan:**
+**Penyelesaian:**
 
-1. Cuba semula dahulu. Klien harus mematuhi `Retry-After` dan menggunakan undur dan bukannya mengulangi
-   permintaan dengan serta-merta.
-2. Semak `/api/monitoring/health` → `chatAdmission` sebelum menala apa-apa. `countCapEnabled:
-false` dan `maxInflightBytes` yang besar bermakna belanjawan yang diperoleh secara automatik sudah berfungsi
+1. Cuba semula dahulu. Klien hendaklah mematuhi `Retry-After` dan menggunakan undur, bukannya serta-merta
+   mengulangi permintaan.
+2. Semak `/api/monitoring/health` → `chatAdmission` sebelum melaraskan apa-apa. `countCapEnabled:
+false` dan `maxInflightBytes` yang besar bermakna bajet yang diperoleh secara automatik sudah pun berfungsi
    dengan baik; `pressureSeverity` bernilai `high`/`critical` bermakna hos benar-benar kekurangan memori —
-   perkara itu tidak boleh dibetulkan melalui pemboleh ubah persekitaran kemasukan, sebaliknya memerlukan lebih banyak RAM atau beban kerja yang lebih kecil.
-3. Hanya jika `/api/monitoring/health` menunjukkan belanjawan yang diperoleh secara automatik benar-benar terlalu kecil untuk
-   hos anda (jarang berlaku — ia sudah diskalakan daripada bekas hingga bare-metal), tindihnya secara langsung dengan
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dan bukannya kembali menggunakan had kiraan permintaan legasi.
+   ini tidak boleh diselesaikan dengan pemboleh ubah persekitaran kemasukan, sebaliknya memerlukan lebih banyak RAM atau beban kerja yang lebih kecil.
+3. Hanya jika `/api/monitoring/health` menunjukkan bahawa bajet yang diperoleh secara automatik benar-benar terlalu kecil untuk
+   hos anda (jarang berlaku — ia sudah pun diskalakan daripada bekas hingga perkakasan fizikal), tindihnya secara langsung dengan
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` dan bukannya kembali menggunakan had bilangan permintaan legasi.
 
 Lihat [rujukan pemboleh ubah persekitaran](../reference/ENVIRONMENT.md#4-security--authentication)
 untuk tetapan kemasukan yang berwibawa.
@@ -641,66 +690,66 @@ untuk tetapan kemasukan yang berwibawa.
 
 ## Taksonomi kegagalan RAG / LLM pilihan (16 masalah)
 
-Sesetengah pengguna OmniRoute meletakkan get laluan di hadapan tindanan RAG atau ejen. Dalam persediaan tersebut, corak yang pelik sering kelihatan: OmniRoute nampak sihat (penyedia aktif, profil penghalaan baik, tiada amaran had kadar), tetapi jawapan akhir masih salah.
+Sesetengah pengguna OmniRoute meletakkan get laluan di hadapan tindanan RAG atau ejen. Dalam persediaan tersebut, corak yang aneh sering dilihat: OmniRoute kelihatan sihat (penyedia aktif, profil penghalaan baik, tiada amaran had kadar), tetapi jawapan akhir masih salah.
 
-Dalam praktiknya, insiden ini biasanya berpunca daripada saluran paip RAG hiliran, bukannya daripada get laluan itu sendiri.
+Dalam amalan, insiden ini biasanya berpunca daripada saluran RAG hiliran, bukannya daripada get laluan itu sendiri.
 
-Jika anda mahukan perbendaharaan kata bersama untuk menerangkan kegagalan tersebut, anda boleh menggunakan WFGY ProblemMap, iaitu sumber teks luaran berlesen MIT yang mentakrifkan enam belas corak kegagalan RAG / LLM yang berulang. Pada peringkat umum, ia merangkumi:
+Jika anda mahukan perbendaharaan kata bersama untuk menerangkan kegagalan tersebut, anda boleh menggunakan WFGY ProblemMap, iaitu sumber teks luaran berlesen MIT yang mentakrifkan enam belas corak kegagalan RAG / LLM yang berulang. Secara umum, ia merangkumi:
 
-- penyimpangan pengambilan dan sempadan konteks yang rosak
+- penyimpangan perolehan dan sempadan konteks yang rosak
 - indeks dan stor vektor yang kosong atau lapuk
-- ketidakpadanan antara pembenaman dengan semantik
-- pemasangan gesaan dan isu tetingkap konteks
+- ketidakpadanan pembenaman dengan semantik
+- isu pemasangan prom dan tetingkap konteks
 - keruntuhan logik dan jawapan yang terlalu yakin
 - kegagalan rantaian panjang dan penyelarasan ejen
 - penyimpangan memori dan peranan berbilang ejen
-- masalah susunan penggunaan dan pemulaan
+- masalah turutan penggunaan dan butstrap
 
 Ideanya mudah:
 
 1. Apabila anda menyiasat respons yang buruk, rekodkan:
    - tugas dan permintaan pengguna
-   - laluan atau gabungan penyedia dalam OmniRoute
-   - sebarang konteks RAG yang digunakan di hiliran (dokumen yang diambil, panggilan alat dan sebagainya)
+   - gabungan laluan atau penyedia dalam OmniRoute
+   - sebarang konteks RAG yang digunakan di hiliran (dokumen yang diperoleh, panggilan alat dan sebagainya)
 2. Petakan insiden kepada satu atau dua nombor WFGY ProblemMap (`No.1` … `No.16`).
-3. Simpan nombor tersebut dalam papan pemuka, runbook atau penjejak insiden anda sendiri bersebelahan dengan log OmniRoute.
-4. Gunakan halaman WFGY yang sepadan untuk menentukan sama ada anda perlu mengubah tindanan RAG, pengambil atau strategi penghalaan anda.
+3. Simpan nombor tersebut dalam papan pemuka, buku panduan operasi atau penjejak insiden anda sendiri bersebelahan log OmniRoute.
+4. Gunakan halaman WFGY yang sepadan untuk menentukan sama ada anda perlu mengubah tindanan RAG, pengambil maklumat atau strategi penghalaan anda.
 
-Teks penuh dan resipi khusus tersedia di sini (lesen MIT, teks sahaja):
+Teks penuh dan panduan praktikal tersedia di sini (lesen MIT, teks sahaja):
 
 [README WFGY ProblemMap](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-Anda boleh mengabaikan bahagian ini jika anda tidak menjalankan saluran paip RAG atau ejen di belakang OmniRoute.
+Anda boleh mengabaikan bahagian ini jika anda tidak menjalankan saluran RAG atau ejen di belakang OmniRoute.
 
 ---
 
 ## Isu Diketahui v3.8.0
 
-Isu khusus bagi keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pembaikan disertakan dalam tampalan kemudian, entri tersebut akan dikemas kini atau dialih keluar.
+Isu khusus untuk keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pembaikan disertakan dalam tampalan kemudian, entri tersebut akan dikemas kini atau dialih keluar.
 
 ### Kegagalan pengesahan Devin CLI
 
 **Gejala:**
 
-- "Devin CLI tidak ditemui" atau "pengesahan gagal" apabila menggunakan alat yang disokong oleh Devin
+- "Devin CLI tidak ditemukan" atau "pengesahan gagal" apabila menggunakan alat yang disokong Devin
 - Semakan masa jalan CLI melaporkan `installed=false`
 
 **Punca:**
 
-- `CLI_DEVIN_BIN` menunjuk kepada laluan yang tidak wujud
+- `CLI_DEVIN_BIN` menghala ke laluan yang tidak wujud
 - Devin CLI tidak dipasang pada hos
 
-**Pembaikan:**
+**Penyelesaian:**
 
 1. Pasang Devin CLI untuk platform anda
 2. Tetapkan `CLI_DEVIN_BIN=/usr/local/bin/devin` (atau laluan sebenar) dalam `.env`
-3. Mulakan semula OmniRoute dan uji semula daripada **Papan Pemuka → Alat CLI**
+3. Mulakan semula OmniRoute dan uji semula melalui **Papan Pemuka → Alat CLI**
 
 ### Tempoh bertenang model tersekat (tetapan semula manual)
 
 **Gejala:**
 
-- Model kekal disenaraikan sebagai dalam tempoh bertenang walaupun selepas masa tamat telah berlalu
+- Model kekal disenaraikan sebagai dalam tempoh bertenang walaupun masa tamat tempoh telah berlalu
 - Permintaan masih melangkau model dalam penghalaan gabungan walaupun cap masa berada pada masa lalu
 
 **Tetapan semula manual:**
@@ -712,31 +761,31 @@ Isu khusus bagi keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pemba
 
 **Gejala:**
 
-- 403 ketika menguji sambungan penyedia Command Code
+- 403 apabila menguji sambungan penyedia Command Code
 - Kad penyedia memaparkan "tidak dibenarkan" selepas baru ditambahkan
 
-**Punca:** Aliran OAuth tidak selesai (panggil balik tidak diterima atau token tidak disimpan).
+**Punca:** Aliran OAuth tidak selesai (panggil balik tidak diterima atau token tidak dikekalkan).
 
-**Pembaikan:**
+**Penyelesaian:**
 
-- Jalankan `omniroute providers` daripada CLI untuk mencetuskan semula aliran OAuth, atau
-- Jalankan semula OAuth daripada **Papan Pemuka → Penyedia → Command Code → Sambung semula**
+- Jalankan `omniroute providers` melalui CLI untuk mencetuskan semula aliran OAuth, atau
+- Jalankan semula OAuth melalui **Papan Pemuka → Penyedia → Command Code → Sambung semula**
 
 ### ModelScope mengembalikan tempoh bertenang 429 yang agresif
 
 **Gejala:**
 
-- Tempoh bertenang yang sangat singkat atau serta-merta pada ModelScope selepas sejumlah kecil permintaan berturut-turut
+- Tempoh bertenang yang sangat singkat atau serta-merta pada ModelScope selepas lonjakan kecil permintaan
 - Penghalaan gabungan melangkau ModelScope lebih awal daripada yang dijangkakan
 
-**Punca:** ModelScope menghasilkan pengepala `Retry-After` khusus penyedia. v3.8.0 menyediakan pengendalian khusus untuk pengepala tersebut, jadi versi terdahulu tersalah tafsir pengepala itu sebagai petunjuk had kadar generik.
+**Punca:** ModelScope mengeluarkan pengepala `Retry-After` khusus penyedia. v3.8.0 menyediakan pengendalian khusus untuk pengepala tersebut, maka versi lebih lama menyalahtafsirkannya sebagai petunjuk had kadar generik.
 
-**Pembaikan:**
+**Penyelesaian:**
 
-- Pastikan anda menggunakan v3.8.0 atau versi lebih baharu
-- Sahkan bahawa togol `useUpstream429BreakerHints` didayakan di bawah **Tetapan → Kedayaan Tahan**
+- Pastikan anda menggunakan v3.8.0 atau lebih baharu
+- Sahkan togol `useUpstream429BreakerHints` didayakan di bawah **Tetapan → Ketahanan**
 
-### OMNIROUTE_WS_BRIDGE_SECRET tiada dalam persekitaran pengeluaran
+### OMNIROUTE_WS_BRIDGE_SECRET tiada dalam pengeluaran
 
 **Gejala:**
 
@@ -745,7 +794,7 @@ Isu khusus bagi keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pemba
 
 **Punca:** Pemboleh ubah persekitaran `OMNIROUTE_WS_BRIDGE_SECRET` tiada daripada persekitaran pengeluaran.
 
-**Pembaikan:**
+**Penyelesaian:**
 
 1. Jana rahsia rawak: `openssl rand -hex 32`
 2. Tetapkan `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` dalam persekitaran pelayan pengeluaran (dan mana-mana klien yang berkomunikasi dengan jambatan)
@@ -758,9 +807,9 @@ Isu khusus bagi keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pemba
 - Amaran direkodkan: `background mode degraded to synchronous`
 - Permintaan `background: true` mengembalikan respons segerak biasa dan bukannya pemegang tugas latar belakang
 
-**Punca:** v3.8.0 sengaja menurunkan `background: true` pada Responses API kepada pelaksanaan segerak sambil mengeluarkan amaran. Pelaksanaan latar belakang tak segerak sepenuhnya ialah hasil serahan pada masa hadapan.
+**Punca:** v3.8.0 sengaja menurunkan `background: true` pada Responses API kepada pelaksanaan segerak sambil mengeluarkan amaran. Pelaksanaan latar belakang tak segerak sepenuhnya merupakan hasil kerja masa hadapan.
 
-**Pembaikan:**
+**Penyelesaian:**
 
 - Laraskan klien supaya membuat panggilan tanpa `background`, atau
 - Tunggu keluaran kemudian yang menyediakan mod latar belakang tak segerak sepenuhnya (ikuti log perubahan)
@@ -770,12 +819,12 @@ Isu khusus bagi keluaran v3.8.0 dan penyelesaian sementara semasanya. Jika pemba
 ## Permulaan Perlahan / Tamat Masa Kesediaan
 
 Jika CLI memaparkan `⚠ Server did not respond within 60s` tetapi pelayan
-sebenarnya berfungsi, tempoh semakan kesediaan terlalu singkat untuk persekitaran anda.
+sebenarnya berfungsi, peruntukan prob kesediaan terlalu singkat untuk persekitaran anda.
 
-Perkara ini lazim berlaku pada Windows (antivirus, pemantau sistem fail) atau bekas
+Hal ini lazim berlaku pada Windows (antivirus, pemantau sistem fail) atau bekas
 dengan beban kerja permulaan yang berat.
 
-**Penyelesaian — tingkatkan tempoh:**
+**Penyelesaian — tingkatkan peruntukan:**
 
 ```bash
 # Melalui pemboleh ubah persekitaran (kekal merentas permulaan):
@@ -787,10 +836,10 @@ omniroute serve --ready-timeout 180000
 ```
 
 Nilai lalai ialah 60 000 ms (60 s). Amaran ini hanya bersifat makluman; pelayan
-akan terus dimulakan di latar belakang dan boleh dicapai sebaik sahaja proses permulaan selesai.
+terus dimulakan di latar belakang dan akan dapat dicapai setelah proses but selesai.
 
 Lihat [`docs/reference/ENVIRONMENT.md`](../reference/ENVIRONMENT.md) untuk butiran
-lengkap tentang `OMNIROUTE_READY_TIMEOUT_MS`.
+penuh tentang `OMNIROUTE_READY_TIMEOUT_MS`.
 
 ---
 

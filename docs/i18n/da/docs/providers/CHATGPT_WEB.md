@@ -34,26 +34,16 @@ dens forbindelser matches ikke af denne udfasning.
 Tunnelen er kun nødvendig til interaktioner med værktøjer. Alle angivne ruter, herunder `pro`, kan bruge den
 samme interaktionsbundne lokale værktøjsfunktionalitet, når tunnelen og connectoren er konfigureret.
 
-## Opsætning i kontrolpanelet
+## Opsætning af dashboard
 
 1. Åbn udbyderen **ChatGPT Web (Codex)**, og tilføj en forbindelse.
-2. Indsæt den komplette ChatGPT Cookie-header, tunnel-id'et, runtime-nøglen og navnet på den brugerdefinerede connector.
-   Nye opsætninger med værktøjsunderstøttelse skal bruge en nyoprettet connector med navnet præcis
-   `OmniRoute Codex v2`, hvor Authentication er indstillet til None, og Permissions er indstillet til Allow all
-   actions.
-3. Kør forbindelseskontrollen. OmniRoute åbner en browserbaseret Temporary Chat og registrerer,
-   om Sol og Pro er tilgængelige for kontoen.
-4. Gem forbindelsen. OmniRoute erstatter den indsatte cookie med den verificerede
-   Playwright-lagringstilstand og gemmer den sammen med runtime-nøglen via den krypterede
-   legitimationsabstraktion.
+2. Indsæt den fulde ChatGPT Cookie-header, tunnel-id'et, runtime-nøglen og navnet på den brugerdefinerede connector. Nye opsætninger med værktøjsfunktionalitet skal bruge en nyoprettet connector med det præcise navn `OmniRoute Codex v2`, hvor Authentication er indstillet til None, og Permissions er indstillet til Allow all actions.
+3. Kør forbindelseskontrollen. OmniRoute åbner en browserbaseret Temporary Chat og registrerer, om Sol og Pro er tilgængelige for kontoen.
+4. Gem forbindelsen. OmniRoute erstatter den indsatte cookie med den verificerede Playwright-lagertilstand og gemmer den sammen med runtime-nøglen via den krypterede abstraktion til legitimationsoplysninger.
 
-Den rå cookie bevares ikke efter en vellykket lagring. Når sessionen udløber, skal du åbne
-forbindelsen, indsætte en ny komplet Cookie-header og køre kontrollen igen. Doctor-statussen
-i redigeringsdialogen rapporterer separat om browser, lagringstilstand, login, Temporary Chat, tunnel,
-connector og værktøjets round-trip.
+Den rå cookie bevares ikke efter en vellykket lagring. Når sessionen udløber, skal du åbne forbindelsen, indsætte en ny fuld Cookie-header og køre kontrollen igen. Doctor-statussen i redigeringsdialogen rapporterer browser, lagertilstand, login, Temporary Chat, tunnel, connector og værktøjets round-trip separat. Se det tilhørende værktøj i [Browser Session Sync-udvidelsen](../guides/SESSION-SYNC-EXTENSION.md) for at automatisere cookie-opdateringer, når sessioner roteres.
 
-> Commit aldrig en ægte cookie, runtime-nøgle, lagringstilstand eller capability-token. Test- og
-> dokumentationsværdier skal altid være pladsholdere.
+> Commit aldrig en rigtig cookie, runtime-nøgle, lagertilstand eller capability-token. Test- og dokumentationsværdier skal altid være pladsholdere.
 
 ## Modeller og kombinationer
 
@@ -130,7 +120,7 @@ HTTP/SSE-reserveløsningen, før der oprettes forbindelse til upstream. Overfør
 
 ## Verifikation
 
-Kør udbyderkontrollerne uden at aktivere den udfasede udbyder:
+Kør provider-kontrollerne uden at aktivere den udfasede provider:
 
 ```bash
 node --import tsx/esm --test \\

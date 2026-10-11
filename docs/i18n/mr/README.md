@@ -13,23 +13,25 @@
 
 # 🚀 OmniRoute — मोफत AI गेटवे
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिंग कधीही थांबू नका. प्रत्येक AI साधन → 358 प्रदाते — 150+ मोफत — एकाच एंडपॉइंटद्वारे. Claude Code, Codex, Cursor, Cline, Copilot आणि Antigravity मोफत Claude / GPT / Gemini मध्ये ऑटो-फॉल बॅकसह. RTK + Caveman स्टॅक्ड कॉम्प्रेशन 15–95% टोकन्स वाचवते (~89% सरासरी) — कधीही मर्यादा गाठू नका. 358 AI प्रदाते · 150+ मोफत टायर्स · ~1.62B मोफत टोकन्स/महिना · 19 राउटिंग स्ट्रॅटेजीज · सुरू करण्यासाठी $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिंग कधीही थांबवू नका. प्रत्येक AI साधन → 372 प्रदाते — 150+ मोफत — एका एंडपॉइंटद्वारे. Claude Code, Codex, Cursor, Cline, Copilot आणि Antigravity यांना स्वयंचलित फॉलबॅकसह मोफत Claude / GPT / Gemini शी जोडा. RTK + Caveman स्टॅक्ड कॉम्प्रेशनमुळे 15–95% टोकनची बचत होते (सरासरी ~89%) — मर्यादा कधीही गाठू नका. 372 AI प्रदाते · 150+ मोफत स्तर · दरमहा ~1.62B मोफत टोकन · 19 रूटिंग धोरणे · सुरुवातीचा खर्च $0."/>
 
 </div>
 
 <div align="center">
 
-## 💰 ~1.62B मोफत टोकन्स / महिना
+## 💰 तृतीय-पक्ष विनामूल्य स्तरांमधून दरमहा ~1.62B टोकन्स
 
 </div>
 
-> मोफत टियर्स हाताने एकत्रित करणे त्रासदायक आहे — डझनभर SDKs, डझनभर दरमर्यादा आणि प्रत्यक्षात तुमच्याकडे किती उपलब्ध आहे याची कोणतीही कल्पना नाही. OmniRoute **35 आवर्ती पूल कीजमधील 489 मोफत-टियर नोंदींची** सूची तयार करते आणि **प्रकाशित सकारात्मक मासिक बजेट असलेले 17 पूल तसेच प्रत्येक मॉडेलसाठी असलेल्या पाच Groq मर्यादा** यांवरून टोकनचा मुख्य आकडा मोजते; सामायिक पूलनुसार डुप्लिकेट नोंदी काढून टाकल्या जातात. केवळ प्रादेशिक ओळख पडताळणीनंतर उपलब्ध होणारे कोटे (सध्या: ModelScope) स्वतंत्रपणे दाखवले जातात, प्रादेशिक ओळख पडताळणीमागे +~6M उपलब्ध आहेत आणि ते मुख्य आकड्यात कधीही जोडले जात नाहीत. हा परिणाम डॅशबोर्डवर (`/dashboard/free-tiers`) नेहमी दिसत राहतो.
-
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute मोफत-टियर बजेट कार्ड: दरमहा सातत्याने ~1.62B मोफत टोकन्स, साइनअप क्रेडिट्ससह पहिल्या महिन्यात ~2.22B पर्यंत, एका एंडपॉइंटमागे सूचीबद्ध केलेल्या 489 मोफत-टियर नोंदींचा समावेश करणाऱ्या 35 दस्तऐवजीकृत आवर्ती पूल कीजमधून. प्रामाणिक, पूल-डुप्लिकेट काढलेले गणित — प्रत्येक सामायिक पूल फक्त एकदाच मोजला जातो; यात प्रकाशित सकारात्मक मासिक टोकन बजेट असलेले 17 आवर्ती पूल तसेच प्रत्येक मॉडेलसाठी असलेल्या पाच Groq मर्यादांचा समावेश आहे; अटींशी संबंधित जोखीम सूचीमध्ये 13 प्रदात्यांना टाळण्याची खूण दिली आहे, त्यामुळे निर्णय तुम्ही घेऊ शकता. बजेट बारमध्ये Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (प्रत्येक मॉडेलसाठी पाच मर्यादा) आणि लहान पूल समाविष्ट आहेत; तसेच पहिल्या महिन्याचे साइनअप क्रेडिट्स आणि कायमस्वरूपी मोफत, टोकन-मर्यादा नसलेले प्रदाते स्वतंत्रपणे दाखवले आहेत, जेणेकरून ते मुख्य आकडा कृत्रिमरीत्या वाढवणार नाहीत. /dashboard/free-tiers वर वापरलेले/शिल्लक यांची थेट माहिती."/>
-
-> थेट `/dashboard/free-tiers` पृष्ठाचा अॅनिमेटेड सारांश. संपूर्ण कार्यपद्धती (पूल डुप्लिकेट काढणे, क्रेडिट टियर्स, प्रदात्यांच्या अटी): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> **तुमची स्वतःची प्रदाता खाती वापरा.** हा स्वतंत्रपणे पात्र असलेल्या तृतीय-पक्ष विनामूल्य स्तरांचा अंदाजित एकत्रित आकडा आहे, OmniRoute कडून मिळणारे टोकन अनुदान नाही. नोंदणी करा, आवश्यक असल्यास क्रेडेन्शियल्स मिळवा आणि तुम्ही वापरू शकत असलेले प्रदाते कनेक्ट करा; प्रत्येक प्रदाता स्वतःच्या मर्यादा, उपलब्धता आणि अटी नियंत्रित करतो.
 >
-> <sub>या आकड्यांचे थेट सूचीशी पडताळून दर दोन आठवड्यांनी पुन्हा ऑडिट केले जाते आणि ते **दोन्ही दिशांनी बदलतात** — एखादा प्रदाता मोफत टियर बंद करतो तेव्हा आकडा कमी होतो; नवीन टियर उपलब्ध झाल्यास तो वाढतो. सूची प्रत्यक्षात जे मोजते तेच आम्ही प्रकाशित करतो, वरच्या दिशेने पूर्णांक केलेली सर्वोत्तम संभाव्य स्थिती कधीही प्रकाशित करत नाही.</sub>
+> विनामूल्य स्तर स्वतः एकत्र करणे त्रासदायक आहे — डझनभर SDKs, डझनभर दरमर्यादा आणि तुमच्याकडे प्रत्यक्षात किती उपलब्ध आहे याची काहीच कल्पना नसते. OmniRoute **35 आवर्ती पूल कीजमधील 489 विनामूल्य-स्तर नोंदींची** सूची तयार करते आणि सामायिक पूलनुसार डुप्लिकेट नोंदी काढून, **प्रकाशित सकारात्मक मासिक बजेट असलेले 17 पूल आणि प्रत्येक मॉडेलसाठी असलेल्या पाच Groq मर्यादांमधून** मुख्य टोकन आकडा मोजते. ज्या कोटा केवळ प्रादेशिक ओळख पडताळणीनंतर उपलब्ध होतात (सध्या: ModelScope), ते स्वतंत्रपणे दाखवले जातात—प्रादेशिक ओळख पडताळणीमागे +~6M—आणि मुख्य आकड्यात कधीही जोडले जात नाहीत. हा परिणाम डॅशबोर्डवर (`/dashboard/free-tiers`) कायम दृश्यमान असतो.
+
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute विनामूल्य-स्तर बजेट कार्ड: दरमहा स्थिरपणे ~1.62B विनामूल्य टोकन्स, नोंदणी क्रेडिट्ससह पहिल्या महिन्यात ~2.22B पर्यंत; एका एंडपॉइंटमागे 489 सूचीबद्ध विनामूल्य-स्तर नोंदी समाविष्ट करणाऱ्या 35 दस्तऐवजीकृत आवर्ती पूल कीजमधून. प्रामाणिक, पूल-डुप्लिकेट काढलेले गणित — प्रत्येक सामायिक पूल फक्त एकदाच मोजला जातो, ज्यात प्रकाशित सकारात्मक मासिक टोकन बजेट असलेले 17 आवर्ती पूल आणि प्रत्येक मॉडेलसाठी असलेल्या पाच Groq मर्यादा समाविष्ट आहेत; अटी-संबंधित जोखीम सूचीमध्ये 13 प्रदात्यांना टाळण्यायोग्य म्हणून चिन्हांकित केले आहे, जेणेकरून निर्णय तुम्ही घेऊ शकता. बजेट बारमध्ये Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (प्रत्येक मॉडेलसाठी पाच मर्यादा) आणि लहान पूल यांचा समावेश आहे; तसेच पहिल्या महिन्यातील नोंदणी क्रेडिट्स आणि कायमस्वरूपी विनामूल्य, टोकन-मर्यादा नसलेले प्रदाते स्वतंत्रपणे दाखवले जातात, जेणेकरून ते मुख्य आकडा कधीही कृत्रिमरीत्या वाढवणार नाहीत. /dashboard/free-tiers वर वापरलेले/उर्वरित प्रमाण थेट पाहा."/>
+
+> थेट `/dashboard/free-tiers` पृष्ठाचा अॅनिमेटेड सारांश. संपूर्ण कार्यपद्धती (पूल डुप्लिकेट काढणे, क्रेडिट स्तर, प्रदात्यांच्या अटी): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+>
+> <sub>या आकड्यांचे थेट सूचीशी पडताळून दर दोन आठवड्यांनी पुन्हा लेखापरीक्षण केले जाते आणि ते **दोन्ही दिशांनी बदलतात** — एखादा प्रदाता विनामूल्य स्तर बंद केल्यास आकडा कमी होतो; नवीन स्तर आल्यास तो वाढतो. आम्ही सूचीने प्रत्यक्षात मोजलेला आकडाच प्रकाशित करतो, वरच्या दिशेने पूर्णांक केलेली सर्वोत्तम संभाव्य स्थिती कधीही नाही.</sub>
 
 <br/>
 
@@ -37,7 +39,7 @@
 
 <h3>
 
-⭐ OMNIROUTE मुळे तुमचे पैसे वाचले आणि काम सोपे झाले असेल, तर रेपोला स्टार द्या.
+⭐ OMNIROUTE ने तुमचे पैसे वाचवण्यास आणि तुमचे काम सोपे करण्यास मदत केली असल्यास रेपोला स्टार द्या.
 
 </h3>
 
@@ -48,10 +50,10 @@
 
 ### 💬 समुदायात सामील व्हा
 
-**👋 देखभालकर्त्याला फॉलो करा — नवीन प्रदाते, रिलीझेस आणि टिप्स सर्वप्रथम मिळवा:**
+**👋 देखभालकर्त्याला फॉलो करा — नवीन प्रदाते, प्रकाशने आणि टिपा सर्वप्रथम मिळवा:**
 
-[![LinkedIn वर Diego यांना फॉलो करा](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
-[![GitHub वर @diegosouzapw यांना फॉलो करा](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
+[![LinkedIn वर Diego ला फॉलो करा](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
+[![GitHub वर @diegosouzapw ला फॉलो करा](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
 
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/U47eFqAXCn)
 [![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
@@ -59,7 +61,7 @@
 [![WhatsApp ब्राझील](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
 [![वेबसाइट](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
-**प्रश्न, प्रदात्यांबद्दल टिप्स, रोडमॅप आणि सहाय्य → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 जागतिक](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 ब्राझील](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [पोर्टल](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
+**प्रश्न, प्रदात्यांविषयी टिपा, रोडमॅप आणि सहाय्य → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 जागतिक](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 ब्राझील](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [पोर्टल](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
 
 <br/>
 
@@ -67,16 +69,18 @@
 
 <div align="center">
 
-|                           | v3.8.49 |        **v3.8.50**         |   `v3.8.51+`    |
-| ------------------------- | :-----: | :------------------------: | :-------------: |
-| 🌐 प्रदाते                |   290   |          **357**           | आणखी प्रतीक्षेत |
-| 🧠 अद्वितीय चॅट मॉडेल IDs |  1185   |          **1312**          |        —        |
-| 🖼️ मोडॅलिटी ब्रिज         |    —    | 🆕 व्हिजन + ऑडिओ + व्हिडिओ |        —        |
-| 📡 रडार मोफत कॅटलॉग       |    —    |        🆕 स्वैच्छिक        |        —        |
-| ⚖️ कोटा-जागरूक शेड्युलिंग |    —    |       🆕 Quota-Share       |        —        |
-| 📊 कोटा टेलिमेट्री        |    —    |           🆕 थेट           |        —        |
+|                           |          v3.8.50           | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------- | :------------------------: | :---------: | :-------------------: |
+| 🌐 प्रदाते                |            352             |   **358**   |          372          |
+| 🧠 अद्वितीय चॅट मॉडेल IDs |            1320            |  **1374**   |         1443          |
+| 🖼️ मोडॅलिटी ब्रिज         | 🆕 व्हिजन + ऑडिओ + व्हिडिओ |      ✓      |           ✓           |
+| 📡 Radar मोफत कॅटलॉग      |       🆕 निवड-आधारित       |      ✓      |           ✓           |
+| ⚖️ कोटा-जागरूक शेड्युलिंग |       🆕 Quota-Share       |      ✓      |           ✓           |
+| 📊 कोटा टेलिमेट्री        |           🆕 थेट           |      ✓      |           ✓           |
+| 🧰 हेडलेस मोड             |             —              |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS रेल पायाभूत सुविधा |             —              |      —      |   🆕 रिलीज चॅनेल्स    |
 
-**→ [रोडमॅप](ROADMAP.md) — `v3.9.0 LTS` कडे वेगाने वाटचाल**
+**→ [मार्गदर्शिका](ROADMAP.md) — `v3.9.0 LTS`कडे रेल्वेने वाटचाल**
 
 </div>
 
@@ -88,21 +92,21 @@
 ![NPM मासिक](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![परवाना: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Docker पुल्स](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Docker डाउनलोड्स](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron डाउनलोड्स](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
     <td align="right"><b>🚀 प्रारंभ</b></td>
-    <td align="center"><a href="#-quick-start">🚀 झटपट प्रारंभ</a></td>
+    <td align="center"><a href="#-quick-start">🚀 जलद प्रारंभ</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 स्थापना</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 शून्य-कॉन्फिग</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 शून्य-कॉन्फिगरेशन</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 जाणून घ्या</b></td>
     <td align="center"><a href="#-the-promise">💥 आश्वासन</a></td>
-    <td align="center"><a href="#-why-omniroute">🤔 OmniRoute का</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 वेगळेपण काय</a></td>
+    <td align="center"><a href="#-why-omniroute">🤔 OmniRoute का?</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 वेगळेपण काय आहे?</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ वैशिष्ट्ये</b></td>
@@ -119,12 +123,12 @@
   <tr>
     <td align="right"><b>👀 पाहा</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 प्रत्यक्ष वापरात</a></td>
-    <td align="center"><a href="#-whats-new">✨ नवीन काय आहे</a></td>
+    <td align="center"><a href="#-whats-new">✨ नवीन काय आहे?</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 सुसंगत CLIs</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💚 पाठिंबा</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 पाठिंबा / देणगी</a></td>
+    <td align="right"><b>💚 सहाय्य</b></td>
+    <td align="center"><a href="#-support-omniroute">💚 सहाय्य / देणगी</a></td>
     <td align="center"><a href="#-community--help">💬 समुदाय</a></td>
     <td align="center"><a href="#-sponsors">💖 प्रायोजक</a></td>
   </tr>
@@ -139,9 +143,9 @@
 </div>
 
 <div align="center">
-  <b>🌐 66 भाषांमध्ये</b>
+  <b>🌐 67 भाषांमध्ये</b>
   <br/><br/>
-  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
+  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="इंग्रजी (en)" title="इंग्रजी (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
@@ -207,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -214,32 +219,33 @@
 
 <div align="center">
 
-## 🆓 स्थापित करताच लगेच काम करते — कोणत्याही कीजशिवाय, कोणत्याही कॉन्फिगशिवाय
+## 🆓 इंस्टॉल करा, प्रदाता कनेक्ट करा आणि नंतर एका एंडपॉइंटद्वारे रूट करा
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="स्थापित करताच लगेच काम करते — शून्य कॉन्फिग. तीन पायऱ्या: 1. स्थापित करा — npm i -g omniroute, सर्व्हर localhost:20128 वर बूट होतो. 2. तुमचे टूल http://localhost:20128/v1 कडे निर्देशित करा — कोणतेही OpenAI-सुसंगत टूल (Claude Code, Cursor, Cline). 3. ते उत्तर देते — त्वरित उत्तरासाठी auto मॉडेलला कॉल करा, कोणत्याही API कीशिवाय, साइनअपशिवाय, कोणत्याही कॉन्फिगरेशनशिवाय. कीलेस प्रदाता OpenCode Free हे auto कॉम्बोमध्ये आधीच जोडलेले आहे, त्यामुळे नवीन इन्स्टॉल बॉक्समधूनच प्रतिसाद देते."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="तीन पायऱ्या: OmniRoute इंस्टॉल करून सुरू करा, तुमचे स्वतःचे खाते किंवा API key वापरून पात्र प्रदाता कनेक्ट करा आणि नंतर OmniRoute API key व auto मॉडेल वापरून तुमचे साधन localhost:20128/v1 कडे निर्देशित करा. रूटिंग उपलब्ध पात्र कनेक्शन्स आणि प्रदात्याच्या मर्यादांवर अवलंबून असते."/>
 
 ```bash
-# नवीन इन्स्टॉल, शून्य क्रेडेन्शियल्स — `auto` आधीच कार्य करते:
+# प्रदाता कनेक्ट केल्यानंतर, Dashboard → Endpoints मधून तुमची OmniRoute key कॉपी करा:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>विशिष्ट मोफत बॅकएंडला प्राधान्य देता? `oc/…` (OpenCode Free) ला थेट कॉल करा. नंतर `auto` वर अपग्रेड करा आणि OmniRoute ला निवडू द्या.</sub>
+<sub>`auto` साठी पात्र रूट आवश्यक आहे. नवीन इंस्टॉलेशनमध्ये पात्र keyless लक्ष्ये नसू शकतात आणि keyless प्रदाता तृतीय-पक्ष क्लायंट नाकारू शकतो. OpenCode Free आणि Kiro यांसह `tos: avoid` म्हणून चिन्हांकित केलेले प्रदाते डीफॉल्टनुसार स्वयंचलित रूटिंगमधून वगळले जातात; खाते कनेक्ट केल्याने ते सेटिंग अधिलिखित होत नाही. प्रदाता निवडण्यापूर्वी [मोफत स्तर मार्गदर्शक](docs/getting-started/FREE-TIERS-GUIDE.md) पाहा.</sub>
 
-<sub>📦 **Python, Node.js, PHP, आणि cURL** साठी कॉपी-पेस्ट क्विकस्टार्ट स्क्रिप्ट्स → [`examples/quickstart/`]</sub>
+<sub>📦 **Python, Node.js, PHP आणि cURL** साठी कॉपी-पेस्ट करता येणाऱ्या क्विकस्टार्ट स्क्रिप्ट्स → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 वचन
+# 💥 आश्वासन
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="वचन — एक एंडपॉइंट आणि 358 प्रदाते. दुसरे निरोगी लक्ष्य उपलब्ध असताना स्वयंचलित फॉलबॅक राउटिंग चालू ठेवते. सहा आधारस्तंभ: 358 प्रदात्यांमध्ये लवचिक फॉलबॅक · पात्र वर्कलोडवर 95% पर्यंत टोकन बचत · 150+ मोफत टियर्स आणि 54 आवर्ती/कीलेस कायमस्वरूपी मोफत प्रदात्यांसह $0 पासून सुरुवात करा · एका कॉन्फिगद्वारे 36 CLI/एजंट इंटिग्रेशन्स · /v1 वर OpenAI, Claude, Gemini आणि Responses API सुसंगतता · उत्पादन नियंत्रणे ज्यात सर्किट ब्रेकर्स, TLS स्टील्थ, MCP 110 टूल्स, A2A, मेमरी, गार्डरेल्स, इव्हॅल्स आणि 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समध्ये 39,000+ स्टॅटिक चाचणी घोषणांचा समावेश आहे."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="आश्वासन — एक एंडपॉइंट आणि 372 प्रदाते. दुसरे निरोगी लक्ष्य उपलब्ध असेपर्यंत स्वयंचलित फॉलबॅक रूटिंग सुरू ठेवते. सहा आधारस्तंभ: 372 प्रदात्यांमध्ये लवचिक फॉलबॅक · पात्र वर्कलोडवर टोकनची 95% पर्यंत बचत · 150+ मोफत स्तर आणि 54 आवर्ती/keyless कायम-मोफत प्रदात्यांसह $0 मध्ये सुरुवात · एका कॉन्फिगद्वारे 36 CLI/एजंट एकत्रीकरणे · /v1 वर OpenAI, Claude, Gemini आणि Responses API सुसंगतता · circuit breakers, TLS stealth, MCP ची 110 साधने, A2A, मेमरी, guardrails, evals आणि 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समधील 39,000+ स्थिर चाचणी घोषणांसह उत्पादन नियंत्रणे."/>
 
 <br/>
 <br/>
@@ -250,11 +256,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute का — 10 डॅशबोर्ड्स, निष्क्रिय API कीज आणि अनपेक्षित बिलांची कसरत थांबवा. दहा दैनंदिन समस्या विरुद्ध उपाय: वापरले नसताना कोटा कालबाह्य होणे → सबस्क्रिप्शनचा जास्तीत जास्त वापर करा; कोडिंग करताना रेट लिमिट्स → 4-स्तरीय ऑटो-फॉल बॅक (सबस्क्रिप्शन → API → स्वस्त → मोफत); टूल आउटपुट टोकन वापरणे → RTK + केव्हमन कॉम्प्रेशन (15–95%); महागडे APIs → खर्च-अनुकूलित राउटिंग; प्रत्येक टूलची स्वतःची सेटअप → एक एंडपॉइंट, एक डॅशबोर्ड; AI ब्लॉक झाले → 3-स्तरीय प्रॉक्सी + TLS स्टील्थ; निष्क्रिय कीज → 3-स्तरीय लवचिकता (सर्किट ब्रेकर्स, की कूलडाउन, मॉडेल लॉकआउट); टीम एक सबस्क्रिप्शन शेअर करत आहे → योग्य-हिस्सा कोटासह की पूल्स; इतरांच्या क्लाउडद्वारे प्रॉम्प्ट्स → AES-256-GCM एन्क्रिप्टेड कीजसह लोकल-फर्स्ट; खर्चाची दृश्यमानता नाही → थेट विश्लेषण (वापर, कोटा, बचत, p95 लेटन्सी)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRoute का — 10 डॅशबोर्ड, निष्क्रिय API keys आणि अनपेक्षित बिलांचा ताळमेळ सांभाळणे थांबवा. दैनंदिन दहा समस्या आणि त्यांवरील उपाय: न वापरलेला कोटा कालबाह्य होणे → सदस्यत्वांचा पुरेपूर वापर करा; कोडिंगच्या मध्यात दरमर्यादा लागू होणे → 4-स्तरीय स्वयंचलित फॉलबॅक (Subscription → API → Cheap → Free); साधनांचे आउटपुट टोकन खर्च करणे → RTK + Caveman कॉम्प्रेशन (15–95%); महागडे APIs → खर्च-अनुकूलित रूटिंग; प्रत्येक साधनासाठी स्वतंत्र सेटअप → एक एंडपॉइंट, एक डॅशबोर्ड; AI अवरोधित होणे → 3-स्तरीय प्रॉक्सी + TLS stealth; निष्क्रिय keys → 3-स्तरीय लवचिकता (circuit breakers, key cooldown, model lockout); एक सदस्यत्व सामायिक करणारी टीम → न्याय्य-वाटप कोट्यासह key pools; प्रॉम्प्ट्स दुसऱ्याच्या क्लाउडमधून जाणे → AES-256-GCM एन्क्रिप्टेड keys सह local-first; खर्चाची दृश्यमानता नसणे → थेट विश्लेषण (वापर, कोटा, बचत, p95 विलंब)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute विनंती प्रवाह: तुमचा IDE किंवा CLI (Claude Code, Cursor, Cline…) एका स्थानिक एंडपॉइंटला (http://localhost:20128/v1) कॉल करतो; OmniRoute स्मार्ट राउटर (RTK + केव्हमन कॉम्प्रेशन, 19 राउटिंग स्ट्रॅटेजीज, सर्किट ब्रेकर्स, TLS स्टील्थ, MCP, A2A, गार्डरेल्स) 4 प्रदाता टियर्समध्ये फॉलबॅक करू शकतो, जोपर्यंत एक पात्र निरोगी लक्ष्य शिल्लक राहते — टियर 1 सबस्क्रिप्शन, टियर 2 API की, टियर 3 स्वस्त आणि टियर 4 मोफत."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute विनंती प्रवाह: तुमचा IDE किंवा CLI (Claude Code, Cursor, Cline…) एका स्थानिक एंडपॉइंटला (http://localhost:20128/v1) कॉल करतो; पात्र निरोगी लक्ष्य उपलब्ध असेपर्यंत OmniRoute Smart Router (RTK + Caveman कॉम्प्रेशन, 19 रूटिंग धोरणे, circuit breakers, TLS stealth, MCP, A2A, guardrails) प्रदात्यांच्या 4 स्तरांमध्ये फॉलबॅक करू शकतो — स्तर 1 Subscription, स्तर 2 API Key, स्तर 3 Cheap आणि स्तर 4 Free."/>
 
 </div>
 
@@ -488,13 +494,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute ला काय वेगळे करते
+## 🏆 OmniRoute ला वेगळेपण देणाऱ्या गोष्टी
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ला काय वेगळे करते — 13 क्षमतांमध्ये 9router, OpenRouter, CLIProxyAPI आणि LiteLLM च्या तुलनेत एक जुना वैशिष्ट्य स्नॅपशॉट. OmniRoute: 358 प्रदाते, 150+ विनामूल्य स्तर अंगभूत, 19 राउटिंग रणनीती, 12-इंजिन टोकन कॉम्प्रेशन, 110 साधनांसह अंगभूत MCP सर्व्हर, A2A एजंट प्रोटोकॉल, सततची मेमरी, गार्डरेल्स, क्लाउड एजंट्स, TLS फिंगरप्रिंट स्टील्थ, डेस्कटॉप/टर्मक्स/PWA आणि 42 i18n UI लोकेशन्स. OmniRoute MIT-परवानाकृत आहे आणि स्व-होस्ट करण्यायोग्य आहे. स्पर्धकांच्या क्षमता आणि संख्या बदलू शकतात; जोडलेली कार्यपद्धती पहा."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ला वेगळेपण देणाऱ्या गोष्टी — 13 क्षमतांमध्ये 9router, OpenRouter, CLIProxyAPI आणि LiteLLM यांच्या तुलनेतील दिनांकित वैशिष्ट्यांचा आढावा. OmniRoute: 372 प्रदाते, अंगभूत 150+ मोफत स्तर, 19 राउटिंग धोरणे, 12-इंजिन टोकन कॉम्प्रेशन, 110 साधनांसह अंगभूत MCP सर्व्हर, A2A एजंट प्रोटोकॉल, कायमस्वरूपी मेमरी, सुरक्षात्मक मर्यादा, क्लाउड एजंट्स, TLS फिंगरप्रिंट गोपनीयता, Desktop/Termux/PWA आणि 42 i18n UI लोकेल्स. OmniRoute हे MIT-परवानाकृत असून स्व-होस्ट करता येते. स्पर्धकांच्या क्षमता आणि संख्या बदलू शकतात; लिंक केलेली कार्यपद्धती पाहा."/>
 
-<sub>📊 9router, OpenRouter, CLIProxyAPI आणि LiteLLM च्या तुलनेत संपूर्ण कार्यपद्धती आणि प्रति-वैशिष्ट्य तपशील → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 संपूर्ण कार्यपद्धती आणि 9router, OpenRouter, CLIProxyAPI व LiteLLM यांच्या तुलनेतील प्रत्येक वैशिष्ट्याचा तपशील → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -665,15 +671,15 @@ omniroute configure codex          # हेही उपलब्ध: claude ope
 
 <div align="center">
 
-## 🌐 372 AI प्रदाते — 154 कॅटलॉगमध्ये मोफत म्हणून चिन्हांकित
+## 🌐 372 AI प्रदाते — 154 कॅटलॉगमध्ये विनामूल्य म्हणून चिन्हांकित
 
 </div>
 
-> कॅनॉनिकल चॅट, मीडिया, शोध, स्थानिक, क्लाउड-एजंट आणि सिस्टम संग्रहांमध्ये **357 नोंदणीकृत प्रदाते** आहेत, ज्यांपैकी **152 प्रदात्यांकडे `hasFree: true` डिस्कव्हरी मेटाडेटा आहे**. चॅट मॉडेल रजिस्ट्रीमध्ये **229 प्रदाते / 2,554 स्वतंत्र प्रदाता-मॉडेल जोड्या / 1,283 रॉ मॉडेल IDs** समाविष्ट आहेत; स्वतंत्र मोफत-बजेट कॅटलॉगमध्ये **प्रति-मॉडेल 491 पंक्ती**, **35 आवर्ती पूल्स** आणि **54 आवर्ती/कीविरहित कायमस्वरूपी मोफत प्रदाते** आहेत. हे निर्देशांक हेतुपुरस्सर वेगवेगळे आहेत; व्याख्या आणि पूल-डीडुप्लिकेट केलेली गणना [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md) आणि [मोफत स्तर](docs/reference/FREE_TIERS.md) यांमध्ये उपलब्ध आहे.
+> **372 नोंदणीकृत प्रदाते** — प्रमाणित चॅट, मीडिया, शोध, स्थानिक, क्लाउड-एजंट आणि सिस्टम संग्रहांमध्ये; यांपैकी **154 प्रदात्यांकडे `hasFree: true` शोध मेटाडेटा आहे**. चॅट मॉडेल रजिस्ट्रीमध्ये **237 प्रदाते / 3,009 स्वतंत्र प्रदाता-मॉडेल जोड्या / 1,443 मूळ मॉडेल IDs** समाविष्ट आहेत; स्वतंत्र विनामूल्य-बजेट कॅटलॉगमध्ये **प्रति-मॉडेल 491 नोंदी**, **35 आवर्ती पूल** आणि **54 आवर्ती/की-विरहित कायमस्वरूपी विनामूल्य प्रदाते** आहेत. रचनेनुसार यांचे भाजक वेगवेगळे आहेत; व्याख्या आणि पूल-डिडुप्लिकेट केलेली गणना [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md) आणि [विनामूल्य स्तर](docs/reference/FREE_TIERS.md) येथे उपलब्ध आहेत.
 
 <div align="center">
 
-### 🏢 प्रत्येक प्रमुख लॅब — एकाच एंडपॉइंटद्वारे
+### 🏢 प्रत्येक प्रमुख लॅब — एका एंडपॉइंटद्वारे
 
 <table>
   <tr>
@@ -702,32 +708,32 @@ omniroute configure codex          # हेही उपलब्ध: claude ope
   </tr>
 </table>
 
-<sub>…आणि आणखी 330+ — प्रत्येक आयकॉन डॅशबोर्डच्या प्रदाता कॅटलॉगमधून थेट रिझॉल्व्ह होतो. 📖 [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…आणि आणखी 330+ — प्रत्येक आयकॉन डॅशबोर्डच्या प्रदाता कॅटलॉगमधून थेट उपलब्ध होतो. 📖 [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 कायमस्वरूपी मोफत — $0, कार्डची आवश्यकता नाही
+### 🆓 कायमस्वरूपी विनामूल्य — $0, कार्डची आवश्यकता नाही
 
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>टोकन मर्यादा नाही</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ऑटो-राउटर, Tencent Hy3<br/>कायमचे मोफत</sub></td>
-    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>कायमचे मोफत</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>मोफत स्तर</sub></td>
-    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>कायमचे मोफत</sub></td>
-    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>कायमचे मोफत</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>स्वयंचलित राउटर, Tencent Hy3<br/>कायम विनामूल्य</sub></td>
+    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>कायम विनामूल्य</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>विनामूल्य स्तर</sub></td>
+    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>कायम विनामूल्य</sub></td>
+    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>कायम विनामूल्य</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>अमर्यादित मोफत</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>अमर्यादित विनामूल्य</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>की आवश्यक नाही</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ मॉडेल्स<br/>10K न्यूरॉन्स/दिवस</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM मोफत</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>1M टोकन्स/दिवस</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ मॉडेल्स<br/>दररोज 10K न्यूरॉन्स</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM विनामूल्य</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>एकदाच $5 क्रेडिट; कार्ड आवश्यक</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free मॉडेल्स<br/>+$10 → अधिक RPM</sub></td>
   </tr>
 </table>
 
-📖 संपूर्ण मशीन-वाचनीय सूची → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 संपूर्ण मशीन-वाचनीय कॅटलॉग → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>
@@ -906,9 +912,9 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 ### 📖 हे कसे कार्य करते — पाइपलाइन, आर्किटेक्चर आणि बचतीचे गणित
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute कॉम्प्रेशन पाइपलाइन: उदाहरणादाखल 10,000-टोकनची क्लायंट विनंती 12 संयोजनीय इंजिनांमधून जाते — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra आणि OmniGlyph — आणि दस्तऐवजीकरणातील स्टॅक केलेल्या उदाहरणात सुमारे 1,080 टोकन्ससह प्रदात्यापर्यंत पोहोचू शकते. संरचित सामग्रीचे संरक्षण जतन-सुरक्षा आणि प्रत्येक टप्प्यावरील अचूकता गेट्सद्वारे केले जाते; स्पष्टपणे निवडलेले हानीकारक किंवा प्रायोगिक मोड पात्र सामग्रीचे रूपांतर करू शकतात."/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute कॉम्प्रेशन पाइपलाइन: उदाहरणादाखल 10,000-टोकनची क्लायंट विनंती 12 एकत्र वापरता येणाऱ्या इंजिनांमधून जाते — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra आणि OmniGlyph — आणि दस्तऐवजीकरण केलेल्या स्टॅक्ड उदाहरणात ती सुमारे 1,080 टोकन्समध्ये प्रदात्यापर्यंत पोहोचू शकते. संरचित सामग्रीचे संरक्षण प्रिझर्वेशन गार्ड्स आणि प्रत्येक टप्प्यावरील फिडेलिटी गेट्सद्वारे केले जाते; स्पष्टपणे निवडलेले लॉसी किंवा प्रायोगिक मोड पात्र सामग्रीचे रूपांतर करू शकतात."/>
 
-डीफॉल्ट स्टॅक केलेले संयोजन `RTK → Caveman` चालवते. दोन्ही एकाच टूल/कॉन्टेक्स्ट पेलोडवर कार्य करतात तेव्हा बचत चक्रवाढ पद्धतीने वाढते:
+डीफॉल्ट स्टॅक्ड कॉम्बो `RTK → Caveman` चालवतो. दोन्ही जेव्हा एकाच टूल/कॉन्टेक्स्ट पेलोडवर काम करतात, तेव्हा बचत चक्रवाढ पद्धतीने वाढते:
 
 ```txt
 combined = 1 − (1 − RTK) × (1 − Caveman_input)
@@ -916,74 +922,74 @@ average  = 1 − (1 − 0.80) × (1 − 0.46) = 89.2%
 range    = 78.4 – 94.6%
 ```
 
-कोड ब्लॉक्स, URLs, JSON आणि संरचित डेटा जतन इंजिनद्वारे **नेहमी संरक्षित** केले जातात.
+कोड ब्लॉक्स, URLs, JSON आणि संरचित डेटा यांचे प्रिझर्वेशन इंजिनद्वारे **नेहमी संरक्षण केले जाते**.
 
-> **थोड्या टोकन्समध्ये काम होत असताना अनेक टोकन्स का वापरायचे?** प्रत्येक विनंती OmniRoute च्या कॉम्प्रेशन पाइपलाइनमधून **पारदर्शकपणे** जाते — क्लायंटमध्ये कोणतेही बदल आवश्यक नाहीत. आता हा **12 संयोजनीय इंजिनांचा स्टॅक** आहे, जो क्रमाने चालतो आणि प्रत्येक राउटिंग संयोजनानुसार घटक एकत्रित करतो — [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), आणि [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR) यांच्या कल्पनांवर आधारित.
+> **कमी टोकन्समध्ये काम होत असेल, तर अधिक टोकन्स का वापरायचे?** प्रत्येक विनंती OmniRoute च्या कॉम्प्रेशन पाइपलाइनमधून **पारदर्शकपणे** जाते — क्लायंटमध्ये कोणतेही बदल आवश्यक नाहीत. आता हा **क्रमाने चालणाऱ्या आणि प्रत्येक राउटिंग कॉम्बोनुसार विविध प्रकारे एकत्र वापरता येणाऱ्या 12 इंजिनांचा स्टॅक** आहे — जो [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), आणि [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR) यांच्या कल्पनांवर आधारित आहे.
 
-### 🧱 12-इंजिनांचा स्टॅक
+### 🧱 12 इंजिनांचा स्टॅक
 
-इंजिने पाइपलाइनच्या क्रमाने चालतात; प्रत्येक इंजिन स्वतंत्रपणे सुरू-बंद करता येते आणि प्रत्येक संयोजनासाठी कॉन्फिगर करता येते:
+इंजिने पाइपलाइनच्या क्रमाने चालतात; प्रत्येक इंजिन स्वतंत्रपणे सुरू किंवा बंद करता येते आणि प्रत्येक कॉम्बोसाठी कॉन्फिगर करता येते:
 
 <table>
   <tr><th align="center">#</th><th align="left">इंजिन</th><th align="left">ते काय करते</th></tr>
-  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">वेगवेगळ्या संवाद-फेऱ्यांमध्ये पुनरावृत्त झालेली सामग्री वगळते (सामग्री-पत्ताधारित, संवाद-फेऱ्यांदरम्यान)</td></tr>
-  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">मोठे ब्लॉक्स पुनर्प्राप्ती चिन्हांमागे संग्रहित करते आणि मागणीनुसार आणते</td></tr>
-  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">व्हाइटस्पेस + प्रतिमा-URL छाटणी (कमी विलंबाचा आधारभूत पर्याय)</td></tr>
-  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">टूलच्या निकालांचे हुशार फिल्टरिंग, डीडुप्लिकेशन आणि ट्रंकेशन (कमांड-जागरूक)</td></tr>
-  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">शेल/पॅच/शोध/बिल्ड आउटपुटसाठी प्रथम हानीरहित JSON + मर्यादित निदानात्मक कॉम्प्रेशन (Responses API)</td></tr>
-  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">समाविष्ट केलेल्या <b>GCF</b> कोडेकद्वारे JSON अॅरेचे हानीरहित सारणीबद्ध संक्षिप्तीकरण (~30%)</td></tr>
-  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">शेवटच्या वापरकर्ता क्वेरीच्या संदर्भात निष्कर्षणाधारित वाक्य गुणांकन</td></tr>
-  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">नियमाधारित गद्य कॉम्प्रेशन (आउटपुटवर ~65–75%)</td></tr>
-  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">सारांश निर्मिती + जुन्या संवाद-फेऱ्यांचे प्रगत कालबाह्यीकरण</td></tr>
-  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">MobileBERT ONNX द्वारे ML अर्थाधारित छाटणी — कोड-सुरक्षित, असिंक्रोनस</td></tr>
-  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">पर्यायी लघु-मॉडेल (SLM) स्तरासह ह्युरिस्टिक टोकन छाटणी</td></tr>
-  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">थेट Anthropic जोडणीवर मोजलेल्या Claude Fable 5 साठी प्रायोगिक कॉन्टेक्स्ट-अॅज-इमेज एन्कोडिंग; प्रदात्याकडून पावत्या मिळेपर्यंत GPT 5.6 ट्रान्सफॉर्मर्स अपयशाच्या स्थितीत बंद राहतात. चार कॉम्प्रेशन प्रोफाइल्स (डीफॉल्ट आक्रमक, संतुलित, कोडिंग-सुरक्षित, पासथ्रू) (सर्वाधिक आक्रमक; स्वतंत्रपणे निवडावे लागते)</td></tr>
+  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">संवादाच्या विविध फेऱ्यांमध्ये पुनरावृत्त होणारी सामग्री वगळते (कंटेंट-अॅड्रेस्ड, क्रॉस-टर्न)</td></tr>
+  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">मोठे ब्लॉक्स पुनर्प्राप्ती मार्कर्सच्या मागे संग्रहित करते आणि मागणीनुसार आणते</td></tr>
+  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">व्हाइटस्पेस + इमेज-URL ट्रिमिंग (कमी विलंब असलेली आधाररेषा)</td></tr>
+  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">टूलच्या परिणामांचे बुद्धिमान फिल्टरिंग, डिडुप्लिकेशन आणि ट्रंकेशन (कमांडची जाणीव ठेवून)</td></tr>
+  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">शेल/पॅच/शोध/बिल्ड आउटपुटसाठी प्रथम लॉसलेस JSON + मर्यादित डायग्नोस्टिक कॉम्प्रेशन (Responses API)</td></tr>
+  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">व्हेंडर केलेल्या <b>GCF</b> कोडेकद्वारे JSON अॅरेचे लॉसलेस सारणीबद्ध कॉम्पॅक्शन (~30%)</td></tr>
+  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">शेवटच्या वापरकर्ता क्वेरीच्या तुलनेत वाक्यांना एक्स्ट्रॅक्टिव्ह गुणांकन देते</td></tr>
+  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">नियम-आधारित गद्य कॉम्प्रेशन (आउटपुटवर ~65–75%)</td></tr>
+  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">जुन्या संवाद फेऱ्यांचे सारांशीकरण + क्रमिक एजिंग</td></tr>
+  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">MobileBERT ONNX द्वारे ML सिमॅंटिक प्रूनिंग — कोड-सुरक्षित, असिंक्रोनस</td></tr>
+  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">पर्यायी स्मॉल-मॉडेल (SLM) टियरसह ह्युरिस्टिक टोकन प्रूनिंग</td></tr>
+  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">थेट Anthropic कनेक्शनवर मोजलेल्या Claude Fable 5 साठी प्रायोगिक कॉन्टेक्स्ट-अॅज-इमेज एन्कोडिंग; प्रदात्याकडून पावत्या मिळेपर्यंत GPT 5.6 ट्रान्सफॉर्मर्स फेल-क्लोज्ड राहतात. चार कॉम्प्रेशन प्रोफाइल्स (डीफॉल्ट आक्रमक, संतुलित, कोडिंग-सुरक्षित, पासथ्रू) (सर्वाधिक आक्रमक; निवडून सक्षम करावे लागते)</td></tr>
 </table>
 
-कोड ब्लॉक्स, URLs आणि संरचित डेटा बाइट-स्तरावर अचूकपणे **नेहमी जतन केले जातात**. **एका क्लिकमधील प्रीसेट्स** इंजिने एकत्रित करतात:
+कोड ब्लॉक्स, URLs आणि संरचित डेटा बाइट-परफेक्ट स्वरूपात **नेहमी जतन केले जातात**. **वन-क्लिक प्रीसेट्स** इंजिनांना एकत्रित करतात:
 
 <table>
   <tr><th align="left">मोड</th><th align="left">बचत</th><th align="left">यासाठी सर्वोत्तम</th></tr>
-  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">नेहमी सुरू ठेवण्यासाठी सुरक्षित डीफॉल्ट</td></tr>
+  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">नेहमी सुरू ठेवता येणारा सुरक्षित डीफॉल्ट</td></tr>
   <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">दैनंदिन कोडिंग</td></tr>
-  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">टूल्सचा मोठ्या प्रमाणात वापर करणारी दीर्घ सत्रे</td></tr>
+  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">टूल्सचा मोठ्या प्रमाणावर वापर करणारी दीर्घ सत्रे</td></tr>
   <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">कमाल बचत</td></tr>
   <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">शेल/चाचणी/बिल्ड/git आउटपुट</td></tr>
   <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">मिश्र प्रॉम्प्ट्स + टूल लॉग्स</td></tr>
 </table>
 
-**प्रत्यक्ष उदाहरण — Standard मोड:**
+**वास्तविक उदाहरण — Standard मोड:**
 
-> **आधी (69 टोकन्स):** _"तुमचा React कॉम्पोनंट पुन्हा रेंडर होण्याचे संभाव्य कारण म्हणजे तुम्ही प्रत्येक रेंडर सायकलमध्ये नवीन ऑब्जेक्ट रेफरन्स तयार करत आहात. जेव्हा तुम्ही इनलाइन ऑब्जेक्ट prop म्हणून देता, तेव्हा React ची शॅलो तुलना प्रत्येक वेळी त्याला वेगळा ऑब्जेक्ट मानते, ज्यामुळे पुन्हा रेंडर होते. ऑब्जेक्ट मेमोइझ करण्यासाठी useMemo वापरण्याची मी शिफारस करेन."_
+> **आधी (69 टोकन्स):** _"तुमचा React कॉम्पोनंट पुन्हा रेंडर होण्याचे संभाव्य कारण म्हणजे तुम्ही प्रत्येक रेंडर सायकलमध्ये नवीन ऑब्जेक्ट रेफरन्स तयार करत आहात. तुम्ही इनलाइन ऑब्जेक्ट prop म्हणून पास करता तेव्हा, React च्या शॅलो कम्पॅरिझनला तो प्रत्येक वेळी वेगळा ऑब्जेक्ट दिसतो, ज्यामुळे पुन्हा रेंडर होते. ऑब्जेक्ट मेमोइझ करण्यासाठी useMemo वापरण्याची मी शिफारस करेन."_
 >
 > **नंतर (19 टोकन्स):** _"प्रत्येक रेंडरमध्ये नवीन ऑब्जेक्ट रेफरन्स. इनलाइन ऑब्जेक्ट prop = नवीन रेफरन्स = पुन्हा रेंडर. useMemo मध्ये गुंडाळा."_
 >
-> **तेच उत्तर. 72% कमी टोकन्स. अचूकतेची अजिबात हानी नाही.** ✅
+> **तेच उत्तर. 72% कमी टोकन्स. अचूकतेत शून्य घट.** ✅
 
 **PT-BR उदाहरण — [Troglodita](https://github.com/leninejunior/troglodita) मोड:**
 
-> **आधी (42 टोकन):** _"समस्या अशी आहे की प्रत्येक रेंडरिंग चक्रात नवीन ऑब्जेक्ट संदर्भ तयार होत असल्यामुळे घटक पुन्हा रेंडर होत आहे. मी useMemo वापरण्याची शिफारस करेन."_
+> **आधी (42 टोकन):** _"समस्या अशी आहे की प्रत्येक रेंडरिंग चक्रात नवीन ऑब्जेक्ट संदर्भ तयार होत असल्यामुळे कॉम्पोनंट पुन्हा रेंडर होत आहे. मी useMemo वापरण्याची शिफारस करेन."_
 >
-> **नंतर (12 टोकन):** _"पुन्हा रेंडर: प्रत्येक चक्रात नवीन संदर्भ (इनलाइन ऑब्जेक्ट पुन्हा तयार). `useMemo` वापरा."_
+> **नंतर (12 टोकन):** _"पुनर्रेंडर: प्रत्येक चक्रात नवीन ref (इनलाइन ऑब्जेक्ट पुन्हा तयार). `useMemo` वापरा."_
 >
-> **तेच उत्तर. ~70% कमी टोकन. तांत्रिक अचूकता अबाधित.** ✅
+> **समान उत्तर. ~70% कमी टोकन. तांत्रिक अचूकता अबाधित.** ✅
 
 <br/>
 
-### 🎚️ इंजिनांच्या पलीकडे — आउटपुट शैली, अनुकूलनीय डायल आणि प्रत्येक विनंतीनुसार नियंत्रण
+### 🎚️ इंजिनांच्या पलीकडे — आउटपुट शैली, अनुकूलनीय डायल आणि प्रत्येक विनंतीसाठी नियंत्रण
 
-वरील 12 इंजिने आत जाणारा मजकूर संक्षिप्त करतात. आणखी तीन स्तर **कसे**, **केव्हा**, आणि **काय बाहेर येते** हे ठरवतात:
+वरील 12 इंजिने आत जाणारा मजकूर लहान करतात. आणखी तीन स्तर **कसे**, **केव्हा**, आणि काय **बाहेर येते** हे ठरवतात:
 
-- **🪄 आउटपुट शैली** _(आउटपुट-अक्ष नियंत्रण)_ — निर्धारक, कॅश-सुरक्षित प्रतिसाद-आकारणी सूचना अंतर्भूत करतात; एकत्र वापरता येतात, प्रत्येकाची तीव्रता `lite` / `full` / `ultra` असते. शैली जोडण्यासाठी रजिस्ट्रीमध्ये केवळ एका ओळीची नोंद पुरेशी आहे:
-  - **संक्षिप्त गद्य** — अनावश्यक मजकूर / उपपदे / संदिग्धता काढा; तांत्रिक आशय अचूक ठेवा.
-  - **कमी कोड** — "आळशी वरिष्ठ विकसक" YAGNI: सर्वात छोटा कार्यरत बदल, न मागितलेली पूर्वरचना नाही.
-  - **पोनीटेल (आळशी वरिष्ठ विकसक)** — YAGNI पायरी चढा, मूळ कारण दुरुस्त करा, सर्वात छोटा कार्यरत फरक ठेवा.
-  - **मला ADHD आहे (कृती-प्रथम)** — पुढील कृती सर्वप्रथम, क्रमांकित पायऱ्या, एक ठोस पुढील पाऊल, प्रस्तावना नाही.
-  - **संक्षिप्त CJK (文言)** — अभिजात-चिनी अतिसंक्षिप्त शैली (`zh` स्थानिकेसाठी मर्यादित).
-- **🎯 अनुकूलनीय संदर्भ-बजेट** _(डायल)_ — एकाच चालू/बंद टोकन मर्यादेऐवजी, **मॉडेलच्या संदर्भ विंडोमध्ये बसण्यासाठी** आवश्यक तेवढ्याच प्रमाणात सर्वात स्वस्त, कमीतकमी माहिती गमावणारी इंजिने सक्रिय करा. धोरण: `reserve-output` (डीफॉल्ट, मॉडेल-जागरूक) · `percentage` · `absolute`. मोड: `floor` (बसण्याची हमी) · `replace-autotrigger` (तुमची स्पष्ट निवड प्राधान्याने लागू) · `off` (जुनी मर्यादा).
-- **🎛️ संक्षेपण कुठे ठरवले जाते** _(प्राधान्यक्रम, उच्च → निम्न)_ — प्रत्येक विनंतीचा `x-omniroute-compression` हेडर › राउटिंग-कॉम्बो ओव्हरराइड › सक्रिय नामित प्रोफाइल › अनुकूलनीय / स्वयं-ट्रिगर › पॅनेल डीफॉल्ट › बंद. लागू केलेली योजना `X-OmniRoute-Compression: <mode>; source=<source>` प्रतिसाद हेडरमध्ये परत दर्शवली जाते.
+- **🪄 आउटपुट शैली** _(आउटपुट-अक्ष नियंत्रण)_ — निर्धारक, कॅश-सुरक्षित प्रतिसाद-आकारणी सूचना समाविष्ट करतात; एकत्र वापरता येतात आणि प्रत्येकासाठी `lite` / `full` / `ultra` तीव्रता उपलब्ध आहे. शैली जोडण्यासाठी रजिस्ट्रीमध्ये फक्त एक ओळ जोडावी लागते:
+  - **संक्षिप्त गद्य** — अनावश्यक मजकूर / उपपदे / संदिग्ध भाषा काढून टाका; तांत्रिक आशय तंतोतंत ठेवा.
+  - **कमी कोड** — "आळशी वरिष्ठ विकसक" YAGNI: सर्वात लहान कार्यरत बदल, न मागितलेली पूर्वरचना नाही.
+  - **Ponytail (आळशी वरिष्ठ विकसक)** — YAGNI शिडी चढा, मूळ कारण दुरुस्त करा, सर्वात लहान कार्यरत diff.
+  - **मला ADHD आहे (कृती-प्रथम)** — पुढील कृती आधी, क्रमांकित पायऱ्या, एक ठोस पुढील पाऊल, प्रस्तावना नाही.
+  - **संक्षिप्त CJK (文言)** — अभिजात-चिनी अतिसंक्षिप्त शैली (`zh` लोकॅलपुरती मर्यादित).
+- **🎯 अनुकूलनीय संदर्भ-बजेट** _(डायल)_ — एकाच चालू/बंद टोकन मर्यादेऐवजी, **मॉडेलच्या संदर्भ विंडोमध्ये बसण्यासाठी** आवश्यक तितकीच सर्वात स्वस्त आणि कमीतकमी माहिती गमावणारी इंजिने क्रमशः वापरा. धोरण: `reserve-output` (डीफॉल्ट, मॉडेल-जागरूक) · `percentage` · `absolute`. मोड: `floor` (बसण्याची हमी) · `replace-autotrigger` (तुमच्या स्पष्ट निवडीला प्राधान्य) · `off` (जुनी मर्यादा).
+- **🎛️ संक्षेपण कुठे ठरवले जाते** _(प्राधान्यक्रम, उच्च → निम्न)_ — प्रत्येक विनंतीचा `x-omniroute-compression` हेडर › राउटिंग-कॉम्बो ओव्हरराइड › सक्रिय नामांकित प्रोफाइल › अनुकूलनीय / स्वयं-ट्रिगर › पॅनेल डीफॉल्ट › बंद. लागू केलेली योजना प्रतिसादाच्या `X-OmniRoute-Compression: <mode>; source=<source>` हेडरमध्ये परत दिसते.
 
-टोकन मर्यादेनुसार स्वयं-ट्रिगर करा, अनुकूलनीय डायल चालू करा, नामित प्रोफाइल निश्चित करा, प्रत्येक विनंतीसाठी एकदाच सेट करा किंवा प्रत्येक राउटिंग कॉम्बोसाठी पाइपलाइन नेमा — कार्यभाराला जे योग्य असेल ते वापरा. बदल लागू करण्यापूर्वी, निवड-वैकल्पिक ऑफलाइन **मूल्यांकन हार्नेस** (`npm run eval:compression`) निश्चित कॉर्पसवर अचूकता विरुद्ध बचत यांचे गुणांकन करते.
+टोकन मर्यादेनुसार स्वयं-ट्रिगर करा, अनुकूलनीय डायल चालू करा, नामांकित प्रोफाइल निश्चित करा, प्रत्येक विनंतीसाठी एकदाच लागू होणारे सेटिंग ठेवा किंवा प्रत्येक राउटिंग कॉम्बोसाठी पाइपलाइन नियुक्त करा — कार्यभाराला जे योग्य असेल ते निवडा. बदल लागू करण्यापूर्वी, ऑप्ट-इन ऑफलाइन **मूल्यांकन साधन** (`npm run eval:compression`) निश्चित कॉर्पसवर अचूकता विरुद्ध बचत मोजते.
 
 📖 [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
 
@@ -991,7 +997,7 @@ range    = 78.4 – 94.6%
 
 <div align="center">
 
-# ⚡ झटपट सुरुवात
+# ⚡ द्रुत प्रारंभ
 
 </div>
 
@@ -1003,30 +1009,48 @@ omniroute
 ```
 
 > 💡 `npm warn ERESOLVE` किंवा peer-dep इशारे दिसत आहेत? [ते निरुपद्रवी आहेत](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> **npm 11 किंवा त्यानंतरची आवृत्ती वापरत आहात?** परवानगी दिलेली नसल्यास npm पॅकेज जीवनचक्र स्क्रिप्ट्स रोखू शकते. OmniRoute ची `postinstall` (`node scripts/build/postinstall.mjs`) स्क्रिप्ट त्याच्या नेटिव्ह रनटाइम फाइल्स तयार करण्यासाठी आवश्यक आहे. जागतिक स्तरावर स्थापित करताना npm च्या इशाऱ्यात नमूद केलेल्या पॅकेजना परवानगी द्या. OmniRoute 3.8.51 ने नोंदवलेल्या पॅकेज संचासाठी:
+>
+> ```bash
+> npm install -g --allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild omniroute
+> ```
+>
+> भविष्यातील जागतिक इंस्टॉलेशन्ससाठी ही अनुमतीसूची पुन्हा वापरण्यासाठी, ती एकदा कॉन्फिगर करा आणि नंतर नेहमीप्रमाणे स्थापित करा:
+>
+> ```bash
+> npm config set allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+> npm install -g omniroute
+> ```
+>
+> आवृत्त्यांदरम्यान अवलंबित्वांची यादी बदलू शकते; npm ने वेगळी यादी नोंदवल्यास, त्या इशाऱ्यातील पॅकेज नावे वापरा. एखाद्या पॅकेजला परवानगी दिल्याने त्याच्या इंस्टॉल स्क्रिप्ट्स चालवता येतात.
+> **Gemini Web किंवा दुसरा वेब-कुकी प्रदाता वापरत आहात?** npm पॅकेजमध्ये
+> Playwright समाविष्ट आहे, पण त्याची Chromium बायनरी नाही. पहिली वेब-प्रदाता विनंती करण्यापूर्वी
+> [Playwright Chromium सेटअप](docs/guides/TROUBLESHOOTING.md#gemini-web-and-playwright-chromium)
+> नोंद पहा.
 
-डॅशबोर्ड `http://localhost:20128` येथे · API `http://localhost:20128/v1` येथे.
+`http://localhost:20128` येथे डॅशबोर्ड · `http://localhost:20128/v1` येथे API.
 
-**2) मोफत प्रदाता जोडा (नोंदणीची गरज नाही)**
+**2) स्वतःचे खाते वापरून पात्र प्रदात्याशी कनेक्ट करा**
 
-डॅशबोर्ड → **प्रदाते** → **Kiro AI** (मोफत Claude, प्रत्येक खात्यासाठी ~50 क्रेडिट्स/महिना) किंवा **OpenCode Free** (प्रमाणीकरण नाही) जोडा → पूर्ण.
+डॅशबोर्ड → **प्रदाते** → ज्याच्या सध्याच्या अटी आणि कोटा तुमच्या वापरासाठी योग्य आहेत असा प्रदाता निवडा → त्याची API की जोडा किंवा त्याची खाते प्रक्रिया पूर्ण करा. विनामूल्य स्तरांसाठी नोंदणी, मंजुरी किंवा पेमेंट पद्धत आवश्यक असू शकते. [विनामूल्य स्तर मार्गदर्शक](docs/getting-started/FREE-TIERS-GUIDE.md) पहा; कीशिवाय उपलब्धता हमीशीर नाही आणि `tos: avoid` म्हणून चिन्हांकित प्रदाते डीफॉल्टनुसार `auto` मधून वगळले जातात.
 
 **3) तुमचे कोडिंग साधन निर्देशित करा**
 
 ```txt
-मूळ URL:  http://localhost:20128/v1
-API की:   [डॅशबोर्ड → एंडपॉइंट्समधून कॉपी करा]
-मॉडेल:    auto            (शून्य-कॉन्फिगरेशन स्मार्ट राउटिंग — किंवा कोणताही प्रदाता/मॉडेल)
+मूळ URL: http://localhost:20128/v1
+API की:  [डॅशबोर्ड → एंडपॉइंट्समधून कॉपी करा]
+मॉडेल:   auto            (पात्र कनेक्शन्समध्ये राउट करते — किंवा प्रदाता/मॉडेल निवडा)
 ```
 
-**4) ते कार्यरत असल्याची खात्री करा**
+**4) ते कार्यरत असल्याची पडताळणी करा**
 
 ```bash
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-तुम्हाला जोडलेल्या मॉडेल्सची सूची दिसली पाहिजे. 🎉 इतकेच — कोडिंग सुरू करा; OmniRoute तुमच्यासाठी आपोआप राउटिंग करेल आणि गरज पडल्यास पर्यायी पर्याय वापरेल.
+तुमच्या कनेक्ट केलेल्या मॉडेल्सची यादी दिसली पाहिजे. 🎉 इतकेच — कोडिंग सुरू करा; OmniRoute तुमच्यासाठी स्वयं-राउटिंग आणि फॉलबॅक हाताळते.
 
-तुमचा क्लायंट सानुकूल हेडर पाठवू शकत नसल्यास, OmniRoute टोकनयुक्त सुसंगतता उपनावेही उपलब्ध करून देते:
+तुमचा क्लायंट सानुकूल हेडर्स पाठवू शकत नसल्यास, OmniRoute टोकनयुक्त सुसंगतता उपनावेही उपलब्ध करून देते:
 
 ```txt
 OpenAI कॅटलॉग:   http://localhost:20128/vscode/YOUR_KEY/
@@ -1037,7 +1061,7 @@ Ollama चॅट:       http://localhost:20128/vscode/YOUR_KEY/api/chat
 Ollama टॅग्स:     http://localhost:20128/vscode/YOUR_KEY/api/tags
 ```
 
-केवळ `Authorization: Bearer ...` जोडू न शकणाऱ्या क्लायंटसाठीच हे वापरा. हेडर प्रमाणीकरण हा अजूनही प्राधान्याचा मोड आहे.
+केवळ `Authorization: Bearer ...` जोडू न शकणाऱ्या क्लायंटसाठीच हे वापरा. हेडर प्रमाणीकरण हीच प्राधान्याची पद्धत आहे.
 
 <br/>
 
@@ -1265,19 +1289,19 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 देखील �
   <tr><td nowrap><b>रनटाइम</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <code>src/</code> आणि <code>open-sse/</code> मध्ये सर्वत्र <b>100% TypeScript</b> (v2.0 पासून कोअरमध्ये एकही <code>any</code> नाही)</td></tr>
   <tr><td nowrap><b>फ्रेमवर्क</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिंग) + LowDB (JSON लेगसी) — 137 डोमेन मॉड्यूल्स, 202 मायग्रेशन्स</td></tr>
+  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिंग) + LowDB (JSON लेगसी) — 137 डोमेन मॉड्यूल, 202 मायग्रेशन</td></tr>
   <tr><td nowrap><b>मेमरी</b></td><td>SQLite FTS5 पूर्ण-मजकूर + int8-क्वांटाइझ्ड व्हेक्टर एम्बेडिंग्ज, टाइप्ड डिके</td></tr>
-  <tr><td nowrap><b>स्कीमा</b></td><td>Zod 4 — MCP टूल I/O प्रमाणीकरण + API करार</td></tr>
-  <tr><td nowrap><b>प्रोटोकॉल्स</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>स्कीमा</b></td><td>Zod 4 — MCP साधन I/O प्रमाणीकरण + API करार</td></tr>
+  <tr><td nowrap><b>प्रोटोकॉल</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>स्ट्रीमिंग</b></td><td>Server-Sent Events (SSE) + WebSocket ब्रिज (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>कॉम्प्रेशन</b></td><td>12-इंजिन पाइपलाइन — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>प्रमाणीकरण आणि सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API कीज + MCP स्कोप्ड प्रमाणीकरण · संग्रहित स्थितीत AES-256-GCM एन्क्रिप्शन · DOMPurify</td></tr>
-  <tr><td nowrap><b>स्टेल्थ</b></td><td>wreq-js — JA3 / JA4 TLS फिंगरप्रिंट प्रतिरूपण, 3-स्तरीय प्रॉक्सी</td></tr>
-  <tr><td nowrap><b>लवचिकता</b></td><td>सर्किट ब्रेकर, एक्स्पोनेन्शियल बॅकऑफ, अँटी-थंडरिंग-हर्ड, ऑटो-कॉम्बो स्व-उपचार</td></tr>
-  <tr><td nowrap><b>लॉगिंग</b></td><td>pino — विनंती संदर्भासह संरचित JSON लॉग्स</td></tr>
-  <tr><td nowrap><b>चाचणी</b></td><td>Node.js टेस्ट रनर + Vitest — 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समध्ये <b>39,000+ स्थिर चाचणी घोषणापत्रे</b> (युनिट, इंटिग्रेशन, E2E, सुरक्षा, इकोसिस्टम)</td></tr>
-  <tr><td nowrap><b>प्लॅटफॉर्म्स</b></td><td>डेस्कटॉप (Electron) · Android (Termux) · PWA (कोणताही ब्राउझर)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — रिलीजच्या वेळी स्वयंचलित npm प्रकाशन + Docker Hub</td></tr>
+  <tr><td nowrap><b>संपीडन</b></td><td>12-इंजिन पाइपलाइन — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>प्रमाणीकरण आणि सुरक्षा</b></td><td>OAuth 2.0 (PKCE) + JWT + API कीज + MCP व्याप्तीबद्ध प्रमाणीकरण · संग्रहित स्थितीत AES-256-GCM · DOMPurify</td></tr>
+  <tr><td nowrap><b>गुप्तता</b></td><td>wreq-js — JA3 / JA4 TLS फिंगरप्रिंट अनुकरण, 3-स्तरीय प्रॉक्सी</td></tr>
+  <tr><td nowrap><b>लवचिकता</b></td><td>सर्किट ब्रेकर, एक्स्पोनेन्शियल बॅकऑफ, अँटी-थंडरिंग-हर्ड, ऑटो-कॉम्बो स्व-दुरुस्ती</td></tr>
+  <tr><td nowrap><b>लॉगिंग</b></td><td>pino — विनंती संदर्भासह संरचित JSON लॉग्ज</td></tr>
+  <tr><td nowrap><b>चाचणी</b></td><td>Node.js चाचणी रनर + Vitest — 5,100+ ट्रॅक केलेल्या चाचणी फाइल्समध्ये <b>39,000+ स्थिर चाचणी घोषणा</b> (युनिट, इंटिग्रेशन, E2E, सुरक्षा, परिसंस्था)</td></tr>
+  <tr><td nowrap><b>प्लॅटफॉर्म</b></td><td>डेस्कटॉप (Electron) · Android (Termux) · PWA (कोणताही ब्राउझर)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — रिलीजवेळी स्वयंचलित npm प्रकाशन + Docker Hub</td></tr>
   <tr><td nowrap><b>दुवे</b></td><td><a href="https://omniroute.online">वेबसाइट</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

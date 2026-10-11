@@ -5,12 +5,10 @@
 ---
 
 > **Ẹ̀yà:** v3.8.44
-> **Ìgbà ìmúdójúìwọ̀n tó kẹ́yìn:** 2026-09-09
-> **Àwọn olùkà:** Àwọn onímọ̀ ẹ̀rọ tó ń ṣàfikún, tọ́jú, tàbí ṣàtúnṣe àṣìṣe nínú àwọn iṣẹ́ tí a fi sínú ètò (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Ìgbà ìmúdójúìwọ̀n tó kẹ́yìn:** 2026-09-16
+> **Àwọn olùkà:** Àwọn onímọ̀-ẹ̀rọ tó ń ṣàfikún, tọ́jú, tàbí ṣàtúnṣe àṣìṣe àwọn iṣẹ́ tó wà nínú ètò (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
-Àwọn iṣẹ́ tí a fi sínú ètò jẹ́ àwọn irinṣẹ́ sidecar fún process tí a fi sórí ẹ̀rọ agbègbè, tí OmniRoute ń fi sílẹ̀, ń ṣàkóso, tí ó sì
-ń mú wà gẹ́gẹ́ bí àwọn ibi àfojúsùn routing alákọ́kọ́. Ní ìyàtọ̀ sí àwọn provider ìta (tí a ń dé ọ̀dọ̀ wọn lórí íńtánẹ́ẹ̀tì
-nípasẹ̀ àwọn API key), àwọn iṣẹ́ tí a fi sínú ètò ń ṣiṣẹ́ lórí ẹ̀rọ kan náà pẹ̀lú OmniRoute, wọ́n sì ń bá ara wọn sọ̀rọ̀ nípasẹ̀ loopback.
+Àwọn iṣẹ́ tó wà nínú ètò jẹ́ àwọn irinṣẹ́ sidecar tó ń ṣiṣẹ́ gẹ́gẹ́ bí process, tí a fi sórí ẹ̀rọ náà fúnra rẹ̀, tí OmniRoute sì ń fi sórí ẹ̀rọ, ń ṣàbójútó, tí ó sì ń mú kí wọ́n ṣeé lò gẹ́gẹ́ bí àwọn ibi-afẹ́ ìdarí ọ̀nà àkọ́kọ́. Yàtọ̀ sí àwọn olùpèsè òde (tí a máa ń dé ọ̀dọ̀ wọn lórí íńtánẹ́ẹ̀tì nípasẹ̀ àwọn API keys), àwọn iṣẹ́ tó wà nínú ètò ń ṣiṣẹ́ lórí ẹ̀rọ kan náà pẹ̀lú OmniRoute, wọ́n sì ń bá ara wọn sọ̀rọ̀ nípasẹ̀ loopback.
 
 ---
 
@@ -27,48 +25,49 @@ nípasẹ̀ àwọn API key), àwọn iṣẹ́ tí a fi sínú ètò ń ṣiṣ
 
 ---
 
-## 1. Àkópọ̀
+## 1. Àkótán
 
-### Kí nìdí tí a fi ń lo àwọn iṣẹ́ tí a ṣàfikún sínú rẹ̀?
+### Kí nìdí tí a fi ń lo àwọn iṣẹ́ tí a fi sínú ètò?
 
-A ṣàfikún iṣẹ́ mẹ́fà sínú rẹ̀:
+Àwọn iṣẹ́ méje ni a fi sínú ètò:
 
-| Iṣẹ́             | Pàkójì npm                         | Pọ́ọ̀tì àiyípadà | Ète                                                                                                                                                                                           |
-| --------------- | ---------------------------------- | :------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                          |     20130      | Olùdarí AI tí OmniRoute lè lò gẹ́gẹ́ bí olùpèsè abẹ́. Àwọn àwòṣe ni a ṣí sílẹ̀ gẹ́gẹ́ bí `9router/{sub}/{model}`                                                                                    |
-| **CLIProxyAPI** | Bínárì ìtújáde GitHub (`cliproxy`) |      8317      | Adápítà aṣojú agbègbè fún àwọn ìṣàn ìfàṣẹsí Anthropic CLI. Ó ń pèsè ìdarí àfirọ́pò nígbà tí àwọn àmì OAuth bá parí                                                                             |
-| **Mux**         | `mux` (`mux server` aláìní UI)     |      8322      | Daemon agbègbè fún ìṣètò àwọn agent (coder/mux). Ìgbésí-ayé rẹ̀ nìkan ni a ń ṣàkóso — kì í ṣe ibi-afẹ́ ìdarí (kò sí fífi LLM gba aṣojú kọjá).                                                   |
-| **Bifrost**     | `@maximhq/bifrost`                 |      8080      | Ẹ̀yìn relay ẹnu-ọ̀nà AI tí a kọ ní Go. Nígbà tí ó bá ń ṣiṣẹ́, ipa-ọ̀nà relay (`/v1/relay/`) yóò yàn án láìfọwọ́ṣe                                                                                  |
-| **Dario**       | `@askalf/dario`                    |      3456      | Aṣojú ìforúkọsílẹ̀ Claude — àfirọ́pò/ààbò-ìkùnà sí CLIProxyAPI fún ìrìn-àjò tó ní ìrísí Claude-Code; kọ́kọ́rọ́ tí a fi sínú rẹ̀ di `DARIO_ADMIN_TOKEN` tó ń ṣàkóso pẹ̀tẹ́lẹ̀ ìdarí OAuth `/admin/*` rẹ̀ |
-| **open-wa**     | `@open-wa/wa-automate`             |      8323      | Ìmúlò aládàáṣiṣẹ́ WhatsApp Web (Chromium aláìní UI nípasẹ̀ Puppeteer). Ìgbésí-ayé rẹ̀ nìkan ni a ń ṣàkóso — kì í ṣe ibi-afẹ́ ìdarí.                                                               |
+| Iṣẹ́             | Package npm                        | Port àìyípadà | Ète                                                                                                                                                                                                                                                                                                                                            |
+| --------------- | ---------------------------------- | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                          |     20130     | Olùdarí AI tí OmniRoute lè lò gẹ́gẹ́ bí olùpèsè abẹ́lé. Àwọn model ni a fi hàn gẹ́gẹ́ bí `9router/{sub}/{model}`                                                                                                                                                                                                                                    |
+| **CLIProxyAPI** | Binary ìtújáde GitHub (`cliproxy`) |     8317      | Adapter proxy agbègbè fún àwọn ìṣàn ìfàṣẹsí Anthropic CLI. Ó ń pèsè ìdarí àfẹ́yìntì nígbà tí àwọn token OAuth bá parí                                                                                                                                                                                                                           |
+| **Mux**         | `mux` (`mux server` aláìní UI)     |     8322      | Daemon agbègbè fún ìṣètò àwọn agent (coder/mux). Ìgbésí-ayé rẹ̀ nìkan ni a ń ṣàkóso — kì í ṣe ibi-àfojúsùn ìdarí (kò sí proxy LLM).                                                                                                                                                                                                             |
+| **Bifrost**     | `@maximhq/bifrost`                 |     8080      | Backend relay ẹnu-ọ̀nà AI Go. Nígbà tí ó bá ń ṣiṣẹ́, ipa-ọ̀nà relay (`/v1/relay/`) yóò yàn án fúnra rẹ̀                                                                                                                                                                                                                                            |
+| **Dario**       | `@askalf/dario`                    |     3456      | Proxy subscription Claude — àṣàyàn mìíràn/àfẹ́yìntì sí CLIProxyAPI fún traffic tó ní ìrísí Claude-Code; key tí a fi sínú rẹ̀ di `DARIO_ADMIN_TOKEN`, tí ó ń dáàbò bo pẹ̀tẹ́lẹ̀ ìṣàkóso OAuth `/admin/*` rẹ̀                                                                                                                                          |
+| **open-wa**     | `@open-wa/wa-automate`             |     8323      | Àdáṣiṣẹ́ WhatsApp Web (Chromium aláìní UI nípasẹ̀ Puppeteer). Ìgbésí-ayé rẹ̀ nìkan ni a ń ṣàkóso — kì í ṣe ibi-àfojúsùn ìdarí.                                                                                                                                                                                                                    |
+| **LLMLingua**   | `@atjsh/llmlingua-2`               |     20135     | Sidecar fún fífún prompt pọ̀ — model ONNX LLMLingua-2 gidi (port JS/TS ti algorithm Microsoft). `open-sse/services/compression/engines/llmlingua/index.ts` ń fi `/compress` ránṣẹ́ sí i lórí HTTP, ó sì ń padà sí backend worker-thread inú process nígbà tí sidecar kò bá ṣiṣẹ́. Ìgbésí-ayé rẹ̀ nìkan ni a ń ṣàkóso — kì í ṣe ibi-àfojúsùn ìdarí. |
 
-Gbogbo iṣẹ́ mẹ́fà náà ń tẹ̀lé àwòṣe àbójútó kan náà:
+Gbogbo àwọn méje náà ń tẹ̀lé àwòṣe àbójútó kan náà:
 
-- OmniRoute ń fi wọ́n sí abẹ́ `DATA_DIR/services/{name}/` (ní àdádó kúrò ní `package.json` ti OmniRoute fúnra rẹ̀)
-- OmniRoute ń dá wọn sílẹ̀, ó sì ń ṣọ́ wọn gẹ́gẹ́ bí àwọn ìlànà ọmọ
-- OmniRoute ń fi kọ́kọ́rọ́ API ìgbà-díẹ̀ sínú àyíká ìṣiṣẹ́ ọmọ náà, ó sì ń yí i padà láìdá iṣẹ́ dúró (níbi tí ó bá yẹ)
-- Gbogbo àwọn ipa-ọ̀nà ìṣàkóso (`/api/services/*`) jẹ́ **LOCAL_ONLY** — a lè wọ̀ wọ́n láti loopback nìkan (òfin líle #17)
+- OmniRoute ń fi wọ́n sí abẹ́ `DATA_DIR/services/{name}/` (tí a yà sọ́tọ̀ kúrò nínú `package.json` ti OmniRoute fúnra rẹ̀)
+- OmniRoute ń dá wọn sílẹ̀, ó sì ń ṣàbójútó wọn gẹ́gẹ́ bí child processes
+- OmniRoute ń fi API key ìgbà díẹ̀ sínú environment ti child, ó sì ń yí i padà láìdá iṣẹ́ dúró (níbi tí ó bá wúlò)
+- Gbogbo àwọn ipa-ọ̀nà ìṣàkóso (`/api/services/*`) jẹ́ **LOCAL_ONLY** — loopback nìkan ni wọ́n ti lè wọ̀ wọ́n (òfin líle #17)
 
-### Àwọn ìpinnu pàtàkì (láti inú ètò àpẹrẹ)
+### Àwọn ìpinnu pàtàkì (láti inú ètò àpẹẹrẹ)
 
-| Ìpinnu                                | Iye                                                                                       |
-| ------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Ìwọlé dashboard sí UI abínibí 9Router | Aṣojú àyípadà ní `/dashboard/providers/services/9router/embed/*`                          |
-| Ọ̀nà ìṣàgbékalẹ̀                        | `npm install {package}` nípasẹ̀ `execFile` (kò sí ìfisí iye shell)                         |
-| Ìpo lílò                              | A forúkọsílẹ̀ olùpèsè gẹ́gẹ́ bí `9router/{sub}/{model}` nínú ẹ́ńjìnnì ìdarí                   |
-| Ìṣàkóso kọ́kọ́rọ́ API                    | OmniRoute ń ṣẹ̀dá rẹ̀, ń paroko rẹ̀ ní ibi ìpamọ́ (AES-256-GCM), ó sì ń fi sínú rẹ̀ nípasẹ̀ env |
-| Ibi dashboard                         | `/dashboard/providers/services` (àwọn táàbù mẹ́ta)                                         |
-| Ìbẹ̀rẹ̀ aládàáṣiṣẹ́                      | Àṣàyàn títàn/pípa fún iṣẹ́ kọ̀ọ̀kan, OFF ni àiyípadà rẹ̀                                      |
+| Ìpinnu                                | Iye                                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------------------- |
+| Ìwọlé dashboard sí UI abinibi 9Router | Reverse proxy ní `/dashboard/providers/services/9router/embed/*`                   |
+| Ọ̀nà ìfikún                            | `npm install {package}` nípasẹ̀ `execFile` (kò sí shell interpolation)              |
+| Ìlànà lílò                            | A forúkọsílẹ̀ olùpèsè gẹ́gẹ́ bí `9router/{sub}/{model}` nínú routing engine           |
+| Ìṣàkóso API key                       | OmniRoute ń ṣẹ̀dá rẹ̀, ó ń encrypt rẹ̀ níbi ìpamọ́ (AES-256-GCM), ó sì ń fi í sínú env |
+| Ibi tí dashboard wà                   | `/dashboard/providers/services` (tabs mẹ́ta)                                        |
+| Ìbẹ̀rẹ̀ aládàáṣiṣẹ́                      | Toggle fún iṣẹ́ kọ̀ọ̀kan, OFF ni àìyípadà                                             |
 
 ---
 
-## 2. Àwòrán-ẹ̀rọ — àwọn ìpele 4
+## 2. Àwòrán-ẹ̀rọ — àwọn ipele 4
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Ìpele 1 — UI                                                      │
+│  Ipele 1 — UI                                                      │
 │  /dashboard/providers/services  (àwọn táàbù: CLIProxyAPI | 9Router | Mux)│
-│  Àwọn àkọsílẹ̀ lẹ́sẹ̀kẹsẹ (SSE), Bẹ̀rẹ̀/Dáwọ́/Dà-bẹ̀rẹ̀/Ṣàfikún, Àwọn ààtò, Fi sórí ẹrọ│
+│  Àwọn àkọsílẹ̀ lọ́wọ́lọ́wọ́ (SSE), Bẹ̀rẹ̀/Dá dúró/Tún bẹ̀rẹ̀/Ṣe ìmúdójúìwọ̀n, Àwọn ààtò, Fi sí ẹrọ│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
 │    ├── page.tsx               Shell + ìdarí táàbù nípasẹ̀ ?tab=    │
@@ -79,7 +78,7 @@ Gbogbo iṣẹ́ mẹ́fà náà ń tẹ̀lé àwòṣe àbójútó kan náà:
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP (Next.js fetch)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Ìpele 2 — API (LOCAL_ONLY — loopback nìkan)                       │
+│  Ipele 2 — API (LOCAL_ONLY — loopback nìkan)                       │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -88,73 +87,74 @@ Gbogbo iṣẹ́ mẹ́fà náà ń tẹ̀lé àwòṣe àbójútó kan náà:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (aṣojú HTTP + WebSocket ìyípadà → 9Router upstream)             │
+│    (aṣojú HTTP + WebSocket àyídá → 9Router upstream)               │
 │                                                                    │
 │  Ẹnu-ọ̀nà: LOCAL_ONLY_API_PREFIXES ní "/api/services/" àti         │
-│        "/dashboard/providers/services/*/embed/"                    │
+│        "/dashboard/providers/services/*/embed/" nínú               │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ àwọn ìpè inú-process
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Ìpele 3 — ServiceSupervisor (src/lib/services/)                   │
+│  Ipele 3 — ServiceSupervisor (src/lib/services/)                   │
 │                                                                    │
 │  ServiceSupervisor.ts   Alábòójútó gbogbogbò (child_process.spawn) │
-│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
+│    ├── fífi-sí-ẹrọ: execFile('npm', ['install', pkg, '--prefix'])   │
+│    ├── ìbẹ̀rẹ̀:     spawn(node, [entrypoint], {env, cwd})           │
 │    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── port:       20130 fún 9Router (ó ṣeé ṣàtúnṣe)               │
-│    ├── logs:       stdio búfà òrùka 5 MB → àwọn ìṣẹ̀lẹ̀ SSE        │
-│    ├── health:     HTTP GET /health ní gbogbo 2–5 s, ìmúpadàbọ̀ ọ̀lẹ│
-│    └── lifecycle:  SIGTERM 15 s → SIGKILL                          │
+│    ├── port:       20130 fún 9Router (a lè ṣètò rẹ̀)               │
+│    ├── àkọsílẹ̀:   stdio ring buffer 5 MB → àwọn ìṣẹ̀lẹ̀ SSE       │
+│    ├── ìlera:      HTTP GET /health ní gbogbo 2–5 s, ìmúpadàbọ̀ ọ̀lẹ│
+│    └── ìgbésí-ayé: SIGTERM 15 s → SIGKILL                          │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       Ń ṣàgbékalẹ̀ gbogbo SERVICES[] ní ìbẹ̀rẹ̀ process│
+│  bootstrap.ts       Ó bẹ̀rẹ̀ gbogbo SERVICES[] ní ìbẹ̀rẹ̀ process │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       GET /v1/models lẹ́ẹ̀kọ̀ọ̀kan → tábìlì service_models│
-│  ringBuffer.ts      Búfà àkọsílẹ̀ alákòókò (5 MB fún iṣẹ́ kọ̀ọ̀kan)│
-│  healthCheck.ts     Ìṣàyẹ̀wò ìlera HTTP pẹ̀lú polling              │
+│  ringBuffer.ts      Àpò àkọsílẹ̀ aláyíká (5 MB fún iṣẹ́ kọ̀ọ̀kan)  │
+│  healthCheck.ts     Ìwádìí ìlera HTTP nípasẹ̀ polling              │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
-│                      (àwọn adápítà ìfi-sórí-ẹrọ)                   │
+│                      (àwọn adapter olùfìmọ́-ẹrọ)                   │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP tó bá OpenAI mu (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Ìpele 4 — Olùpèsè / Ìdarí-ọ̀nà                                   │
+│  Ipele 4 — Olùpèsè / Ìdarí-ọ̀nà                                   │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
 │    Ó tún ń wá port àti API key fún ìbéèrè kọ̀ọ̀kan (kò sí caching).│
-│    Ó yọ ìṣáájú "9router/" kúrò ní model id kí ó tó ṣe proxying.    │
+│    Ó yọ prefix "9router/" kúrò ní model id kí proxying tó bẹ̀rẹ̀.  │
 │    Ó dá 503 service_not_running padà bí supervisor kò bá wà ní "running".│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    Àkọsílẹ̀ fún "9router": isEmbeddedService: true                 │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    Àwọn model ni a tọ́jú gẹ́gẹ́ bí "9router/{sub}/{model}" (pẹ̀lú ìṣáájú).│
-│    modelSync.ts ń mú wọn bára mu ní gbogbo ìṣẹ́jú 5.               │
+│    A tọ́jú àwọn model gẹ́gẹ́ bí "9router/{sub}/{model}" (pẹ̀lú prefix).│
+│    modelSync.ts ń mú wọn dọ́gba ní gbogbo ìṣẹ́jú 5.                │
 │                                                                    │
-│  Mux ni a ń ṣàkóso lifecycle rẹ̀ NÌKAN (Àwọn Ìpele 1-3) — daemon   │
-│  ìṣètò-agent ni, kì í ṣe aṣojú LLM, nítorí náà kò ní àkọsílẹ̀      │
-│  executor/provider ní Ìpele 4, kò sì jẹ́ ibi àfojúsùn ìdarí-ọ̀nà láéláé.│
+│  Ìgbésí-ayé Mux NÌKAN ni a ń ṣàkóso (Àwọn Ipele 1-3) — daemon      │
+│  ìṣètò-àwọn-agent ni, kì í ṣe proxy LLM, nítorí náà kò ní àkọsílẹ̀ │
+│  executor/provider Ipele 4, kò sì lè jẹ́ ibi-afẹ́ ìdarí-ọ̀nà.      │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Àwọn fáìlì orísun pàtàkì
 
-| Fáìlì                                       | Ipa                                                    |
-| ------------------------------------------- | ------------------------------------------------------ |
-| `src/lib/services/ServiceSupervisor.ts`     | Kíláàsì àkọ́kọ́: ìgbésí-ayé, ìtìpa, ìlera, búfà òrùka    |
-| `src/lib/services/bootstrap.ts`             | Ìforúkọsílẹ̀ ní ìpele ìlànà àti ìbẹ̀rẹ̀ aládàáṣiṣẹ́        |
-| `src/lib/services/registry.ts`              | Máàpù ẹyọkan `tool → supervisor`                       |
-| `src/lib/services/apiKey.ts`                | Ṣíṣẹ̀dá kọ́kọ́rọ́, ìparoko AES-256-GCM nígbà ìfipamọ́       |
-| `src/lib/services/modelSync.ts`             | Ìmúdọ́gba àwòṣe lẹ́ẹ̀kọ̀ọ̀kan (ìṣẹ́jú 5) + nígbà ìbéèrè      |
-| `src/lib/services/ringBuffer.ts`            | Búfà àkọsílẹ̀ aláyíká 5 MB pẹ̀lú ìforúkọsílẹ̀ SSE         |
-| `src/lib/services/healthCheck.ts`           | Ìṣàyẹ̀wò ìlera HTTP (àárín àsìkò tí a lè ṣètò)          |
-| `src/lib/services/installers/ninerouter.ts` | Fífi sori ẹrọ/ìmúdójúìwọ̀n/yíyọkúrò npm fún 9Router     |
-| `src/lib/services/installers/cliproxy.ts`   | Fífi sori ẹrọ/ìmúdójúìwọ̀n/yíyọkúrò npm fún CLIProxyAPI |
-| `src/lib/services/installers/mux.ts`        | Fífi sori ẹrọ/ìmúdójúìwọ̀n/yíyọkúrò npm fún Mux         |
-| `src/lib/services/installers/openwa.ts`     | Fífi sori ẹrọ/ìmúdójúìwọ̀n/yíyọkúrò npm fún open-wa     |
-| `src/app/api/services/9router/_lib.ts`      | Olùrànlọ́wọ́ `getOrInitSupervisor()`                     |
-| `src/app/api/services/[name]/logs/route.ts` | Ojú-ọ̀nà ìparí àkọsílẹ̀ SSE tí a pín                     |
-| `open-sse/executors/ninerouter.ts`          | Olùmúṣẹ́ olùpèsè (Ìpele 4)                              |
+| Fáìlì                                       | Ipa                                                   |
+| ------------------------------------------- | ----------------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | Kíláàsì pàtàkì: ìgbésí-ayé, títìpa, ìlera, búfà òrùka |
+| `src/lib/services/bootstrap.ts`             | Ìforúkọsílẹ̀ ní ìpele iṣẹ́ àti ìbẹ̀rẹ̀ aládàáṣe           |
+| `src/lib/services/registry.ts`              | Máàpù singleton `tool → supervisor`                   |
+| `src/lib/services/apiKey.ts`                | Ṣíṣẹ̀dá kọ́kọ́rọ́, ìfipamọ́ AES-256-GCM nígbà ìsinmi       |
+| `src/lib/services/modelSync.ts`             | Ìṣiṣẹ́pọ̀ àwòṣe lẹ́ẹ̀kọ̀ọ̀kan (ìṣẹ́jú 5) + nígbà ìbéèrè      |
+| `src/lib/services/ringBuffer.ts`            | Búfà àkọsílẹ̀ aláyíká 5 MB pẹ̀lú ìforúkọsílẹ̀ SSE        |
+| `src/lib/services/healthCheck.ts`           | Àyẹ̀wò ìlera HTTP (àárín àsìkò tí a lè ṣètò)           |
+| `src/lib/services/installers/ninerouter.ts` | npm fi sori ẹrọ/ṣe ìmúdójúìwọ̀n/yọ 9Router kúrò        |
+| `src/lib/services/installers/cliproxy.ts`   | npm fi sori ẹrọ/ṣe ìmúdójúìwọ̀n/yọ CLIProxyAPI kúrò    |
+| `src/lib/services/installers/mux.ts`        | npm fi sori ẹrọ/ṣe ìmúdójúìwọ̀n/yọ Mux kúrò            |
+| `src/lib/services/installers/openwa.ts`     | npm fi sori ẹrọ/ṣe ìmúdójúìwọ̀n/yọ open-wa kúrò        |
+| `src/lib/services/installers/llmlingua.ts`  | npm fi sori ẹrọ/ṣe ìmúdójúìwọ̀n/yọ LLMLingua kúrò      |
+| `src/app/api/services/9router/_lib.ts`      | Olùrànlọ́wọ́ `getOrInitSupervisor()`                    |
+| `src/app/api/services/[name]/logs/route.ts` | Ojú-ọ̀nà ìparí àkọsílẹ̀ SSE tí a pín                    |
+| `open-sse/executors/ninerouter.ts`          | Olùṣiṣẹ́ olùpèsè (Ìpele 4)                             |
 
 ---
 
@@ -217,8 +217,8 @@ Gbogbo àwọn ipa-ọ̀nà lábẹ́ `/api/services/` jẹ́ **LOCAL_ONLY** (lo
 
 #### `POST /api/services/9router/install`
 
-Fi 9Router sori ẹrọ láti npm. Èyí máa ṣẹ̀dá `DATA_DIR/services/9router/` pẹ̀lú
-`package.json` àti `node_modules/` tirẹ̀. Kò ní fa ìtakora pẹ̀lú àwọn dependency OmniRoute fúnra rẹ̀.
+Fi 9Router sori ẹrọ láti npm. Èyí ṣẹ̀dá `DATA_DIR/services/9router/` pẹ̀lú
+`package.json` àti `node_modules/` tirẹ̀. Kò ní tako àwọn dependency ti OmniRoute fúnra rẹ̀.
 
 **Ara ìbéèrè** (gbogbo rẹ̀ jẹ́ àṣàyàn):
 
@@ -226,28 +226,28 @@ Fi 9Router sori ẹrọ láti npm. Èyí máa ṣẹ̀dá `DATA_DIR/services/9ro
 { "version": "latest" }
 ```
 
-| Field     | Irú      | Àìyípadà   | Àpèjúwe                                  |
-| --------- | -------- | ---------- | ---------------------------------------- |
-| `version` | `string` | `"latest"` | àmì version npm tàbí semver láti fi sori |
+| Field     | Irú      | Àìyípadà   | Àpèjúwe                                      |
+| --------- | -------- | ---------- | -------------------------------------------- |
+| `version` | `string` | `"latest"` | Tag version npm tàbí semver láti fi sori ẹrọ |
 
 **Àwọn ìdáhùn:**
 
-| Ipò   | Àpèjúwe                                                |
-| ----- | ------------------------------------------------------ |
-| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }` |
-| `400` | Ara ìbéèrè tí kò tọ́ (ìkùnà ìjẹ́rìísí Zod)               |
-| `409` | Ìfisórí ẹrọ ń lọ lọ́wọ́ (lock wà ní dídìmú)              |
-| `500` | npm install kùnà — wo `message` fún àṣìṣe tó ṣe kedere |
+| Ipò   | Àpèjúwe                                                    |
+| ----- | ---------------------------------------------------------- |
+| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`     |
+| `400` | Ara ìbéèrè kò tọ́ (ìkùnà ìfọwọ́sí Zod)                       |
+| `409` | Ìfisorí ẹrọ ń lọ lọ́wọ́ (lock wà ní dídìmú)                  |
+| `500` | Ìfisorí ẹrọ npm kùnà — wo `message` fún àṣìṣe tó ṣe kedere |
 
-**Àwọn àkíyèsí:** Ó ń lo `execFile('npm', [...])` — kò sí shell, kò sí interpolation (òfin líle #13).
+**Àwọn àkíyèsí:** Ó ń lo `execFile('npm', [...])` — kò lo shell, kò sì sí interpolation (òfin líle #13).
 Àwọn àṣìṣe EACCES ni a ń fi hàn gẹ́gẹ́ bí àwọn ìfiránṣẹ́ tó ṣe kedere.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Bẹ̀rẹ̀ 9Router. Ó máa forúkọsílẹ̀ supervisor bí kò bá tíì forúkọsílẹ̀, lẹ́yìn náà ó máa pe
-`supervisor.start()`. Ó jẹ́ idempotent tí ó bá ti ń ṣiṣẹ́ tẹ́lẹ̀.
+Bẹ̀rẹ̀ 9Router. Ó forúkọ supervisor sílẹ̀ tí kò bá tíì forúkọ sílẹ̀, lẹ́yìn náà ó pe
+`supervisor.start()`. Ó jẹ́ idempotent nígbà tó bá ti ń ṣiṣẹ́ tẹ́lẹ̀.
 
 **Ara ìbéèrè:** kò sí
 
@@ -255,7 +255,7 @@ Bẹ̀rẹ̀ 9Router. Ó máa forúkọsílẹ̀ supervisor bí kò bá tíì fo
 
 | Ipò   | Àpèjúwe                                              |
 | ----- | ---------------------------------------------------- |
-| `200` | object `ServiceStatus` (wo schema ní ìsàlẹ̀)          |
+| `200` | Object `ServiceStatus` (wo schema ní ìsàlẹ̀)          |
 | `409` | A kò fi 9Router sori ẹrọ (`status: "not_installed"`) |
 | `503` | Ìbẹ̀rẹ̀ kùnà (àṣìṣe process — wo `lastError`)          |
 
@@ -277,8 +277,8 @@ Bẹ̀rẹ̀ 9Router. Ó máa forúkọsílẹ̀ supervisor bí kò bá tíì fo
 
 #### `POST /api/services/9router/stop`
 
-Dá 9Router dúró lọ́nà tó bójú mu. Ó fi SIGTERM ránṣẹ́, ó dúró fún 15 s, lẹ́yìn náà ó fi SIGKILL ránṣẹ́ bí ó bá ṣì wà láàyè.
-Ó jẹ́ idempotent tí ó bá ti dá dúró tẹ́lẹ̀.
+Dá 9Router dúró lọ́nà tó bófin mu. Ó fi SIGTERM ránṣẹ́, ó dúró fún 15 s, lẹ́yìn náà
+ó fi SIGKILL ránṣẹ́ bí process náà bá ṣì wà láàyè. Ó jẹ́ idempotent nígbà tó bá ti dúró tẹ́lẹ̀.
 
 **Ara ìbéèrè:** kò sí
 
@@ -293,7 +293,7 @@ Dá 9Router dúró lọ́nà tó bójú mu. Ó fi SIGTERM ránṣẹ́, ó dúr�
 
 #### `POST /api/services/9router/restart`
 
-Ó dọ́gba pẹ̀lú `stop()` tí `start()` sì tẹ̀lé e lábẹ́ lock iṣẹ́ náà.
+Ó dọ́gba pẹ̀lú `stop()` lẹ́yìn náà `start()` lábẹ́ lock iṣẹ́ náà.
 
 **Ara ìbéèrè:** kò sí
 
@@ -303,9 +303,9 @@ Dá 9Router dúró lọ́nà tó bójú mu. Ó fi SIGTERM ránṣẹ́, ó dúr�
 
 #### `POST /api/services/9router/update`
 
-Ó ṣe àfikún 9Router sí version npm tuntun. Bí iṣẹ́ náà bá ń ṣiṣẹ́, a ó kọ́kọ́ dá a dúró,
-a ó ṣiṣẹ́ npm install (láti fi version tuntun sori ibùdó kan náà), lẹ́yìn náà a ó
-tún iṣẹ́ náà bẹ̀rẹ̀.
+Ó ṣe ìmúdójúìwọ̀n 9Router sí version npm tuntun. Bí service náà bá ń ṣiṣẹ́, a ó kọ́kọ́ dá a
+dúró, a ó ṣiṣẹ́ ìfisorí ẹrọ npm (nípa fífi version tuntun sori ẹrọ ní ibi kan náà), lẹ́yìn náà
+a ó tún service náà bẹ̀rẹ̀.
 
 **Ara ìbéèrè** (gbogbo rẹ̀ jẹ́ àṣàyàn):
 
@@ -318,16 +318,16 @@ tún iṣẹ́ náà bẹ̀rẹ̀.
 | Ipò   | Àpèjúwe                                                         |
 | ----- | --------------------------------------------------------------- |
 | `200` | `{ ok: true, previousVersion: "...", installedVersion: "..." }` |
-| `400` | Ara tí kò tọ́                                                    |
-| `500` | npm update kùnà                                                 |
+| `400` | Ara kò tọ́                                                       |
+| `500` | Ìmúdójúìwọ̀n npm kùnà                                            |
 
 ---
 
 #### `POST /api/services/9router/rotate-key`
 
-Ó ṣẹ̀dá kọ́kọ́rọ́ API tuntun fún 9Router, ó encrypt rẹ̀ ní ibi ìpamọ́, ó sì tún iṣẹ́ náà
-bẹ̀rẹ̀ (bí ó bá ń ṣiṣẹ́) kí ó lè gba kọ́kọ́rọ́ tuntun láti environment rẹ̀. Kọ́kọ́rọ́ àtijọ́
-di aláìṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀.
+Ó ṣẹ̀dá API key tuntun fún 9Router, ó encrypt rẹ̀ níbi ìpamọ́, ó sì tún service náà
+bẹ̀rẹ̀ (bí ó bá ń ṣiṣẹ́) kí ó lè gba key tuntun láti environment rẹ̀. Key àtijọ́
+yóò di aláìṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀.
 
 **Ara ìbéèrè:** kò sí
 
@@ -336,16 +336,16 @@ di aláìṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀.
 | Ipò   | Àpèjúwe                                    |
 | ----- | ------------------------------------------ |
 | `200` | `{ keyRotated: true, restarted: boolean }` |
-| `500` | Ìyípadà kọ́kọ́rọ́ kùnà                        |
+| `500` | Ìyípadà key kùnà                           |
 
-**Ààbò:** A kì í dá kọ́kọ́rọ́ tuntun náà padà nínú ìdáhùn (kò sí ìtújáde credential).
-A tọ́jú rẹ̀ ní encrypted (AES-256-GCM) sínú table `version_manager`.
+**Ààbò:** A kì í dá key tuntun padà nínú ìdáhùn (kò sí jíjí credential jáde).
+A tọ́jú rẹ̀ ní ìrísí encrypted (AES-256-GCM) nínú table `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Ó dá ipò live + DB tí a dapọ̀ padà, pẹ̀lú metadata version àti àwòtẹ́lẹ̀ kọ́kọ́rọ́ API.
+Ó dá àkójọpọ̀ ipò live + DB padà, pẹ̀lú metadata version àti àwòrán ṣókí API key.
 
 **Àwọn ìdáhùn:**
 
@@ -378,8 +378,8 @@ A tọ́jú rẹ̀ ní encrypted (AES-256-GCM) sínú table `version_manager`.
 
 #### `POST /api/services/9router/auto-start`
 
-Yí àsíá auto-start padà. Nígbà tí `enabled: true`, iṣẹ́ náà máa bẹ̀rẹ̀ fúnra rẹ̀
-nígbà tí OmniRoute bá tún boot (bí a bá ti fi iṣẹ́ náà sori ẹrọ).
+Tan tàbí pa àmì auto-start. Nígbà tí `enabled: true`, service náà yóò bẹ̀rẹ̀ fúnra rẹ̀
+nígbà míràn tí OmniRoute bá boot (bí a bá ti fi service náà sori ẹrọ).
 
 **Ara ìbéèrè:**
 
@@ -392,7 +392,7 @@ nígbà tí OmniRoute bá tún boot (bí a bá ti fi iṣẹ́ náà sori ẹr�
 | Ipò   | Àpèjúwe               |
 | ----- | --------------------- |
 | `200` | `{ autoStart: true }` |
-| `400` | Ara tí kò tọ́          |
+| `400` | Ara kò tọ́             |
 
 ---
 
@@ -402,16 +402,16 @@ Sisan SSE ti àwọn log live láti ring buffer stdout/stderr ti 9Router.
 
 **Àwọn parameter query:**
 
-| Param    | Irú       | Àìyípadà | Àpèjúwe                                                         |
-| -------- | --------- | -------- | --------------------------------------------------------------- |
-| `tail`   | `integer` | 200      | Iye àwọn ìlà ìtàn láti kọ́kọ́ fi ránṣẹ́ (ó pọ̀jù 1000)              |
-| `filter` | `string`  | kò sí    | Àlẹ̀ substring tí kò ka kékeré-nlá sí (kò sí regex — ReDoS-safe) |
+| Param    | Irú       | Àìyípadà | Àpèjúwe                                                                 |
+| -------- | --------- | -------- | ----------------------------------------------------------------------- |
+| `tail`   | `integer` | 200      | Iye àwọn ìlà ìtàn láti kọ́kọ́ fi ránṣẹ́ (ó pọ̀jù 1000)                      |
+| `filter` | `string`  | kò sí    | Àlẹ̀ substring tí kò ka kékeré/nlá sí (kò sí regex — ó bójú mu sí ReDoS) |
 
 **Àwọn event SSE:**
 
 | Event       | Data        | Àpèjúwe                   |
 | ----------- | ----------- | ------------------------- |
-| `snapshot`  | `LogLine[]` | Ìparí ìtàn àkọ́kọ́          |
+| `snapshot`  | `LogLine[]` | Tail ìtàn àkọ́kọ́           |
 | `log`       | `LogLine`   | Ìlà log live              |
 | `heartbeat` | `{}`        | Keep-alive ní gbogbo 15 s |
 
@@ -427,145 +427,179 @@ Sisan SSE ti àwọn log live láti ring buffer stdout/stderr ti 9Router.
 
 **Àwọn ìdáhùn:**
 
-| Ipò   | Àpèjúwe                                          |
-| ----- | ------------------------------------------------ |
-| `200` | `text/event-stream`                              |
-| `400` | Párámítà `filter` ti gùn jù (> àwọn àmì-ọ̀rọ̀ 200) |
-| `404` | A kò rí iṣẹ́ náà (a kò forúkọ supervisor sílẹ̀)    |
+| Ipò   | Àpèjúwe                                    |
+| ----- | ------------------------------------------ |
+| `200` | `text/event-stream`                        |
+| `400` | Párámítà `filter` gùn jù (> àwọn àmì 200)  |
+| `404` | A kò rí iṣẹ́ náà (supervisor kò forúkọsílẹ̀) |
 
 ---
 
 ### 4.2 Àwọn endpoint CLIProxyAPI (ọ̀nà 10)
 
-CLIProxyAPI ní ìrísí endpoint kan náà pẹ̀lú 9Router láìka `rotate-key` sí, pẹ̀lú
+CLIProxyAPI ní ìrísí endpoint kan náà bí 9Router láìsí `rotate-key`, pẹ̀lú
 `accounts`, `provider-expose` àti `auto-restart-adopted`. Ní báyìí, ó ń gba
-kọ́kọ́rọ́ API data-plane àkànṣe tí a fi sínú rẹ̀ nígbà spawn (`needsApiKey: true` nínú
-`bootstrap.ts`, tí a ń lò fún ìbámuṣiṣẹ́pọ̀ model); `status` ní àwọn field díẹ̀ síi.
+kọ́kọ́rọ́ API data-plane àkànṣe tí a fi sínú rẹ̀ nígbà ìpilẹ̀ṣẹ̀ (`needsApiKey: true` nínú
+`bootstrap.ts`, tí a ń lò fún ìṣàmúdọ́gba model); `status` ní àwọn field díẹ̀ sí i.
 
-| Method | Path                                | Àpèjúwe                                  |
-| ------ | ----------------------------------- | ---------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | Fi CLIProxyAPI sílẹ̀ láti npm             |
-| `POST` | `/api/services/cliproxy/start`      | Bẹ̀rẹ̀ CLIProxyAPI                         |
-| `POST` | `/api/services/cliproxy/stop`       | Dá CLIProxyAPI dúró                      |
-| `POST` | `/api/services/cliproxy/restart`    | Tún CLIProxyAPI bẹ̀rẹ̀                     |
-| `POST` | `/api/services/cliproxy/update`     | Ṣe àfikún sí version tuntun              |
-| `GET`  | `/api/services/cliproxy/status`     | Ipò lọ́wọ́lọ́wọ́ + DB (kò ní `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́             |
+| Ọ̀nà    | Path                                | Àpèjúwe                                |
+| ------ | ----------------------------------- | -------------------------------------- |
+| `POST` | `/api/services/cliproxy/install`    | Fi CLIProxyAPI sori ẹrọ láti npm       |
+| `POST` | `/api/services/cliproxy/start`      | Bẹ̀rẹ̀ CLIProxyAPI                       |
+| `POST` | `/api/services/cliproxy/stop`       | Dá CLIProxyAPI dúró                    |
+| `POST` | `/api/services/cliproxy/restart`    | Tún CLIProxyAPI bẹ̀rẹ̀                   |
+| `POST` | `/api/services/cliproxy/update`     | Ṣe àfikún sí ẹ̀yà tuntun                |
+| `GET`  | `/api/services/cliproxy/status`     | Ipò aláàyè + DB (láìsí `apiKeyMasked`) |
+| `POST` | `/api/services/cliproxy/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣe             |
 
-Endpoint `GET /api/services/{name}/logs` tí wọ́n ń lò pọ̀ (wo §4.1) ń ṣiṣẹ́ fún gbogbo
-iṣẹ́ mẹ́rẹ̀ẹ̀rin nípa lílo dynamic segment `[name]`.
+Endpoint alájọṣe `GET /api/services/{name}/logs` (wo §4.1) ń ṣiṣẹ́ fún gbogbo
+iṣẹ́ mẹ́rẹ̀ẹ̀rin nípa lílo apá aláyípadà `[name]`.
 
 ---
 
 ### 4.3 Àwọn endpoint Mux (ọ̀nà 8)
 
-Mux ní ìrísí endpoint kan náà pẹ̀lú CLIProxyAPI — kò sí ọ̀nà `rotate-key` lórí ojú API
-(token bearer náà ni a ń ṣẹ̀dá ní ọ̀nà kan náà bí ti 9Router nípasẹ̀
-`getOrCreateApiKey("mux")`, a sì ń fi í sínú rẹ̀ nípasẹ̀ env var `MUX_SERVER_AUTH_TOKEN`, ṣùgbọ́n
-kò tíì sí endpoint àkànṣe fún yíyí i padà). A ń ṣàkóso Mux fún lifecycle nìkan: kò dà bí
-9Router, kò ní Layer 4 executor, a kì í sì forúkọ rẹ̀ sílẹ̀ gẹ́gẹ́ bí routing provider.
+Mux ní ìrísí endpoint kan náà bí CLIProxyAPI — kò sí ọ̀nà `rotate-key` lórí ojú API
+(token bearer náà ni a ń ṣẹ̀dá lọ́nà kan náà bí ti 9Router nípasẹ̀
+`getOrCreateApiKey("mux")`, a sì fi í sínú env var `MUX_SERVER_AUTH_TOKEN`, ṣùgbọ́n
+kò tíì sí endpoint àkànṣe fún yíyí rẹ̀ padà). Ìṣàkóso ìgbésí-ayé nìkan ni a ń ṣe fún Mux:
+yàtọ̀ sí 9Router, kò ní olùṣiṣẹ́ Layer 4, a kò sì forúkọsílẹ̀ rẹ̀ gẹ́gẹ́ bí olùpèsè ìdarí ọ̀nà.
 
-| Method | Path                           | Àpèjúwe                            |
-| ------ | ------------------------------ | ---------------------------------- |
-| `POST` | `/api/services/mux/install`    | Fi Mux sílẹ̀ láti npm (`npm i mux`) |
-| `POST` | `/api/services/mux/start`      | Bẹ̀rẹ̀ Mux (`mux server`)            |
-| `POST` | `/api/services/mux/stop`       | Dá Mux dúró                        |
-| `POST` | `/api/services/mux/restart`    | Tún Mux bẹ̀rẹ̀                       |
-| `POST` | `/api/services/mux/update`     | Ṣe àfikún sí version npm tuntun    |
-| `GET`  | `/api/services/mux/status`     | Ipò lọ́wọ́lọ́wọ́ + DB                  |
-| `POST` | `/api/services/mux/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́       |
+| Ọ̀nà    | Path                           | Àpèjúwe                                |
+| ------ | ------------------------------ | -------------------------------------- |
+| `POST` | `/api/services/mux/install`    | Fi Mux sori ẹrọ láti npm (`npm i mux`) |
+| `POST` | `/api/services/mux/start`      | Bẹ̀rẹ̀ Mux (`mux server`)                |
+| `POST` | `/api/services/mux/stop`       | Dá Mux dúró                            |
+| `POST` | `/api/services/mux/restart`    | Tún Mux bẹ̀rẹ̀                           |
+| `POST` | `/api/services/mux/update`     | Ṣe àfikún sí ẹ̀yà npm tuntun            |
+| `GET`  | `/api/services/mux/status`     | Ipò aláàyè + DB                        |
+| `POST` | `/api/services/mux/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣe             |
 
 ---
 
 ### 4.4 Àwọn endpoint Bifrost (ọ̀nà 8)
 
-Bifrost jẹ́ backend relay AI-gateway Go kan (`@maximhq/bifrost`). Ó ń lo
-ìrísí endpoint kan náà pẹ̀lú CLIProxyAPI (kò ní `rotate-key` — Bifrost fúnra rẹ̀
-ló ń ṣàkóso àwọn kọ́kọ́rọ́ provider rẹ̀ nínú `config.json` lábẹ́ `-app-dir`).
+Bifrost jẹ́ backend relay ẹnubodè AI tí a kọ ní Go (`@maximhq/bifrost`). Ó ń lo
+ìrísí endpoint kan náà bí CLIProxyAPI (kò sí `rotate-key` — Bifrost ń ṣàkóso àwọn kọ́kọ́rọ́
+olùpèsè tirẹ̀ nínú `config.json` lábẹ́ `-app-dir` rẹ̀).
 
-| Method | Path                               | Àpèjúwe                                                         |
-| ------ | ---------------------------------- | --------------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Fi Bifrost sílẹ̀ láti npm (`@maximhq/bifrost`)                   |
-| `POST` | `/api/services/bifrost/start`      | Bẹ̀rẹ̀ Bifrost lórí port 8080 (àiyipada)                          |
-| `POST` | `/api/services/bifrost/stop`       | Dá Bifrost dúró                                                 |
-| `POST` | `/api/services/bifrost/restart`    | Tún Bifrost bẹ̀rẹ̀                                                |
-| `POST` | `/api/services/bifrost/update`     | Ṣe àfikún sí version tuntun                                     |
-| `GET`  | `/api/services/bifrost/status`     | Ipò lọ́wọ́lọ́wọ́ + DB                                               |
-| `POST` | `/api/services/bifrost/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́                                    |
-| `GET`  | `/api/services/bifrost/logs`       | Ìparí log SSE (nípasẹ̀ dynamic route `[name]/logs` tí a ń lò pọ̀) |
+| Ọ̀nà    | Path                               | Àpèjúwe                                                          |
+| ------ | ---------------------------------- | ---------------------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Fi Bifrost sori ẹrọ láti npm (`@maximhq/bifrost`)                |
+| `POST` | `/api/services/bifrost/start`      | Bẹ̀rẹ̀ Bifrost lórí port 8080 (àìyípadà)                           |
+| `POST` | `/api/services/bifrost/stop`       | Dá Bifrost dúró                                                  |
+| `POST` | `/api/services/bifrost/restart`    | Tún Bifrost bẹ̀rẹ̀                                                 |
+| `POST` | `/api/services/bifrost/update`     | Ṣe àfikún sí ẹ̀yà tuntun                                          |
+| `GET`  | `/api/services/bifrost/status`     | Ipò aláàyè + DB                                                  |
+| `POST` | `/api/services/bifrost/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣe                                       |
+| `GET`  | `/api/services/bifrost/logs`       | Ìtẹ̀lé ìparí log SSE (nípasẹ̀ ọ̀nà aláyípadà `[name]/logs` alájọṣe) |
 
-**Ìsopọ̀ routing:** Nígbà tí a kò bá ṣètò `BIFROST_BASE_URL` tí instance Bifrost
-tí supervisor ń ṣàkóso sì ń ṣiṣẹ́, `getBifrostRoutingConfig()` (nínú `routingBackend.ts`) máa ń
-lo `http://127.0.0.1:{port}` láìfọwọ́ṣe gẹ́gẹ́ bí URL ìpìlẹ̀ relay. Env
-`BIFROST_BASE_URL` tí a ṣètò ní tààrà máa ń ní ààyò ní gbogbo ìgbà.
+**Ìsopọ̀ ìdarí ọ̀nà:** Nígbà tí a kò bá ṣètò `BIFROST_BASE_URL` tí instance Bifrost
+tí a ń ṣàbójútó sì ń ṣiṣẹ́, `getBifrostRoutingConfig()` (nínú `routingBackend.ts`) yóò lo
+`http://127.0.0.1:{port}` gẹ́gẹ́ bí URL ìpìlẹ̀ relay láìfọwọ́sí. Env `BIFROST_BASE_URL`
+tí a ṣètò ní kedere máa ń ní ààyè àkọ́kọ́ ní gbogbo ìgbà.
 
 ---
 
 ### 4.5 Àwọn endpoint Dario (ọ̀nà 12)
 
-Ìrísí lifecycle kan náà bí ti àwọn iṣẹ́ yòókù (`install`, `start`, `stop`, `restart`,
-`update`, `status`, `auto-start`, `auto-restart-adopted`) pẹ̀lú control plane OAuth
-tí token ń dáàbò bò lábẹ́ `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+Ó ní ìrísí ìgbésí-ayé kan náà bí àwọn iṣẹ́ yòókù (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`), pẹ̀lú control plane OAuth
+tí token ń dáàbò bo lábẹ́ `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (gbogbo wọn wà lẹ́yìn `DARIO_ADMIN_TOKEN`).
 
 ### 4.6 Àwọn endpoint open-wa (ọ̀nà 7)
 
-open-wa (`@open-wa/wa-automate`) ń darí instance Chromium headless kan (nípasẹ̀
-Puppeteer) láti mú WhatsApp Web ṣiṣẹ́ láìfọwọ́ṣe. Ó ń lo ìrísí endpoint kan náà pẹ̀lú Mux (kò tíì sí
-ọ̀nà `rotate-key`). A ń ṣàkóso rẹ̀ fún lifecycle nìkan — kì í ṣe routing target,
-kò sì ní Layer 4 executor/provider entry.
+open-wa (`@open-wa/wa-automate`) ń darí instance Chromium tí kò ní ojú-ìwòran (nípasẹ̀
+Puppeteer) láti mú iṣẹ́ WhatsApp Web ṣiṣẹ́ láìfọwọ́sí. Ó ń lo ìrísí endpoint kan náà bí Mux (kò tíì sí
+ọ̀nà `rotate-key`). Ìṣàkóso ìgbésí-ayé nìkan ni a ń ṣe fún un — kì í ṣe ibi-afẹ́ ìdarí ọ̀nà,
+kò sì ní olùṣiṣẹ́ Layer 4 tàbí àkọsílẹ̀ olùpèsè.
 
-| Ọ̀nà    | Ipa-ọ̀nà                           | Àpèjúwe                                                               |
-| ------ | --------------------------------- | --------------------------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | Fi open-wa sílẹ̀ láti npm (`@open-wa/wa-automate`)                     |
-| `POST` | `/api/services/openwa/start`      | Bẹ̀rẹ̀ open-wa lórí port 8323 (àìyípadà)                                |
-| `POST` | `/api/services/openwa/stop`       | Dá open-wa dúró                                                       |
-| `POST` | `/api/services/openwa/restart`    | Tún open-wa bẹ̀rẹ̀                                                      |
-| `POST` | `/api/services/openwa/update`     | Ṣe ìmúdójúìwọ̀n sí ẹ̀yà tuntun                                          |
-| `GET`  | `/api/services/openwa/status`     | Ìpo lọ́wọ́lọ́wọ́ + DB                                                     |
-| `POST` | `/api/services/openwa/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́                                          |
-| `GET`  | `/api/services/openwa/logs`       | Ìparí àkọsílẹ̀ SSE (nípasẹ̀ ipa-ọ̀nà aláyípadà `[name]/logs` tí a ń pín) |
+| Ọ̀nà    | Ojú-ọ̀nà                           | Àpèjúwe                                                         |
+| ------ | --------------------------------- | --------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Fi open-wa láti npm (`@open-wa/wa-automate`) sílẹ̀               |
+| `POST` | `/api/services/openwa/start`      | Bẹ̀rẹ̀ open-wa lórí port 8323 (àìyípadà)                          |
+| `POST` | `/api/services/openwa/stop`       | Dá open-wa dúró                                                 |
+| `POST` | `/api/services/openwa/restart`    | Tun open-wa bẹ̀rẹ̀                                                |
+| `POST` | `/api/services/openwa/update`     | Ṣe ìmúdójúìwọ̀n sí ẹ̀yà tuntun                                    |
+| `GET`  | `/api/services/openwa/status`     | Ipò lọ́wọ́lọ́wọ́ + DB                                               |
+| `POST` | `/api/services/openwa/auto-start` | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́                                    |
+| `GET`  | `/api/services/openwa/logs`       | Ìparí àkọsílẹ̀ SSE (nípasẹ̀ dynamic route `[name]/logs` tí a pín) |
 
-**Kọ́kọ́rọ́ API:** a fi í sínú gẹ́gẹ́ bí `WA_KEY` — ìṣàtúnṣe env gbogbogbòò ti open-wa
-tí ó ní ìpele ìbẹ̀rẹ̀ `WA_*` máa ń so ó mọ́ àṣàyàn CLI `--key`/`-k`
-(`dist/cli/setup.js::envArgs()`, tí a ti jẹ́rìí rẹ̀ pẹ̀lú package 4.76.0
-tí a fi sílẹ̀). A máa fi `ow_` sí iwájú rẹ̀ nígbà tí `generateServiceApiKey()` bá ṣẹ̀dá rẹ̀. open-wa
-máa ń ka kọ́kọ́rọ́ náà padà láti inú àkọlé HTTP `key`/`api_key` (kì í ṣe `Authorization:
-Bearer`); a yọ `/api-docs*` kúrò nínú àyẹ̀wò náà ní pàtó
+**Kọ́kọ́rọ́ API:** a fi í sínú gẹ́gẹ́ bí `WA_KEY` — ìkọ̀wé àyíká gbogbogbò open-wa tí a fi ìpele `WA_*` sí iwájú
+ń ṣe àwòrán rẹ̀ sí aṣàyàn CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, tí a fìdí rẹ̀ múlẹ̀ pẹ̀lú package 4.76.0
+tí a fi sílẹ̀). A fi `ow_` sí iwájú nígbà tí `generateServiceApiKey()` bá ṣẹ̀dá rẹ̀. open-wa
+ń ka kọ́kọ́rọ́ náà padà láti inú àkọlé HTTP `key`/`api_key` (kì í ṣe `Authorization:
+Bearer`); a yọ `/api-docs*` kúrò ní pàtó nínú àyẹ̀wò náà
 (`setupAuthenticationLayer` nínú `dist/cli/server.js`), nítorí náà ìwádìí ìlera
 kò nílò àkọlé ìfàṣẹsí.
 
-**Ìsopọ̀:** open-wa kì í ṣe ti WhatsApp lọ́nà òṣìṣẹ́, kò sì ní ìbáṣepọ̀ pẹ̀lú WhatsApp —
-nọ́mbà tí a so mọ́ ọn lè wà nínú ewu pé WhatsApp yóò fòfin dè é nítorí ìṣàwárí aládàáṣiṣẹ́ tirẹ̀.
-Ní ìbẹ̀rẹ̀ àkọ́kọ́, a máa tẹ kóòdù QR ìsopọ̀ jáde sí stdout, a sì máa fi hàn nípasẹ̀
-pánẹ́ẹ̀lì Àwọn Àkọsílẹ̀ tó wà tẹ́lẹ̀/ṣíṣàn SSE — kò tíì sí endpoint àwòrán QR àkànṣe
+**Ìsopọ̀:** open-wa kì í ṣe ti WhatsApp ní ìlànà, kò sì ní àjọṣepọ̀ pẹ̀lú rẹ̀ —
+nọ́mbà tí a so pọ̀ wà nínú ewu ìfòfindè láti ọwọ́ ètò ìṣàwárí aládàáṣiṣẹ́ ti WhatsApp fúnra rẹ̀.
+Ní ìbẹ̀rẹ̀ àkọ́kọ́, a tẹ kóòdù QR ìsopọ̀ jáde sí stdout, a sì mú un hàn nípasẹ̀
+pánẹ́ẹ̀lì Àwọn Àkọsílẹ̀/ṣísàn SSE tó wà tẹ́lẹ̀ — kò tíì sí endpoint àwòrán QR pàtó
 nínú ìsopọ̀ yìí.
 
 ---
 
-### 4.7 Aṣojú ìyípadà (ìfisí dashboard 9Router)
+### 4.7 Àwọn endpoint LLMLingua (ọ̀nà 8)
 
-Dashboard náà fi UI wẹ́ẹ̀bù 9Router sínú iframe nípasẹ̀ aṣojú ìyípadà abẹ́nú
+LLMLingua jẹ́ sidecar ìfúnpọ̀ prompt tó yí `@atjsh/llmlingua-2` ká (model
+ìṣètò-ọ̀nà token ONNX gidi, tí a ń gbà láti Hugging Face ní ìpè
+`/compress` àkọ́kọ́). Ó ń lo ìrísí endpoint kan náà bí Bifrost (kò sí kọ́kọ́rọ́ API —
+`needsApiKey: false`, kò fọwọ́ kan ìwé-ẹ̀rí rárá).
+
+| Ọ̀nà    | Ojú-ọ̀nà                                        | Àpèjúwe                                                                     |
+| ------ | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | Fi `@atjsh/llmlingua-2` + àwọn peer sílẹ̀ pẹ̀lú npm, kọ script server sidecar |
+| `POST` | `/api/services/llmlingua/start`                | Bẹ̀rẹ̀ sidecar lórí port 20135 (àìyípadà)                                     |
+| `POST` | `/api/services/llmlingua/stop`                 | Dá sidecar dúró                                                             |
+| `POST` | `/api/services/llmlingua/restart`              | Tun sidecar bẹ̀rẹ̀                                                            |
+| `POST` | `/api/services/llmlingua/update`               | Ṣe ìmúdójúìwọ̀n sí ẹ̀yà package tuntun                                        |
+| `GET`  | `/api/services/llmlingua/status`               | Ipò lọ́wọ́lọ́wọ́ + DB                                                           |
+| `POST` | `/api/services/llmlingua/auto-start`           | Tan tàbí pa ìbẹ̀rẹ̀ aládàáṣiṣẹ́                                                |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Tan tàbí pa ìtún-bẹ̀rẹ̀ aládàáṣiṣẹ́ fún instance tí a gbà wọlé (tó ti wà tẹ́lẹ̀) |
+| `GET`  | `/api/services/llmlingua/logs`                 | Ìparí àkọsílẹ̀ SSE (nípasẹ̀ dynamic route `[name]/logs` tí a pín)             |
+
+**Àdéhùn sidecar:** script server náà ń ṣí `GET /health` síta (lẹ́sẹ̀kẹsẹ̀ — kò
+dúró de model náà) àti `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). Model náà ń kojọpọ̀ ní ọ̀lẹ ní ìpè
+`/compress` àkọ́kọ́.
+
+**Ìso ìfúnpọ̀:** `httpSidecarBackend` inú `open-sse/services/compression/engines/llmlingua/index.ts`
+ń pe `LLMLINGUA_BASE_URL` (àìyípadà
+`http://127.0.0.1:20135`), ó sì ń gba èsì sidecar náà kìkì nígbà tí ó bá
+kúrú ju ohun àkọ́wọlé lọ ní pàtó; ìkùnà èyíkéyìí (kò ṣiṣẹ́, àsìkò tán, èsì
+tí kò ṣe ohunkóhun) yóò padà sí backend worker-thread inú-process (`./worker.ts`).
+
+---
+
+### 4.8 Proxy ìdàkejì (fífì dashboard 9Router sínú)
+
+Dashboard náà ń fi UI wẹ́ẹ̀bù 9Router sínú iframe nípasẹ̀ proxy ìdàkejì abẹ́nú
 ní:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 ```
 
-Aṣojú yìí:
+Proxy yìí:
 
-- Máa ń darí ìbéèrè náà sí `http://127.0.0.1:{port}/{path}` (loopback nìkan)
-- Máa ń yọ àwọn àkọlé `cookie` àti `authorization` tó wọlé kúrò (kò sí jíjò ìgbà OmniRoute)
-- Máa ń fi `Authorization: Bearer {apiKey}` sínú rẹ̀ fún ìfàṣẹsí 9Router
-- Máa ń yọ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` kúrò nínú ìdáhùn
-- Máa ń tún àwọn ìdáhùn HTML kọ láti fi `<base href>` sínú wọn àti láti mú àwọn ipa-ọ̀nà pípé wà ní ìlànà kan (`/foo` → `/dashboard/.../embed/foo`)
+- Ń fi ìbéèrè náà ránṣẹ́ sí `http://127.0.0.1:{port}/{path}` (loopback nìkan)
+- Ń yọ àwọn àkọlé `cookie` àti `authorization` tó wọlé kúrò (kò sí jíjó session OmniRoute jáde)
+- Ń fi `Authorization: Bearer {apiKey}` sínú fún ìfàṣẹsí 9Router
+- Ń yọ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` kúrò nínú èsì
+- Ń tún àwọn èsì HTML kọ láti fi `<base href>` sínú àti láti mú àwọn path pípé dọ́gba (`/foo` → `/dashboard/.../embed/foo`)
 
-Àwọn ìgbésókè WebSocket fún dashboard tí a fi sínú náà ni server alábàáṣiṣẹ́ kan ń bójú tó lórí
-port àkànṣe kan (wo `src/lib/services/embedWsProxy.ts`).
+Àwọn ìgbéga WebSocket fún dashboard tí a fi sínú ni server alábàákẹ́gbẹ́ kan ń bójú tó lórí
+port pàtó (wo `src/lib/services/embedWsProxy.ts`).
 
-**Ààbò:** A pín àwọn ipa-ọ̀nà aṣojú ìfisí náà sí abẹ́ `LOCAL_ONLY_API_PREFIXES`,
-loopback nìkan sì ni ó lè dé ọ̀dọ̀ wọn. Olùkọlù kan tó bá gba JWT nípasẹ̀
-túnẹ́ẹ̀lì Cloudflare/Ngrok kò lè lo aṣojú láti wọ inú àwọn iṣẹ́ tí a fi sínú.
+**Ààbò:** A pín àwọn route proxy fífì-sínú sí abẹ́ `LOCAL_ONLY_API_PREFIXES`,
+a sì lè dé ọ̀dọ̀ wọn láti loopback nìkan. Olùkọlù tó gba JWT nípasẹ̀
+túnẹ́lì Cloudflare/Ngrok kò lè lo proxy láti wọ àwọn iṣẹ́ tí a fi sínú.
+
+---
 
 ## 5. Ààbò
 

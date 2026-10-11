@@ -10,20 +10,20 @@ _છેલ્લે અપડેટ કરાયું: 2026-06-28_
 
 ## કાર્યકારી સારાંશ
 
-OmniRoute એ Next.js પર બનાવાયેલ સ્થાનિક AI રૂટિંગ ગેટવે અને ડેશબોર્ડ છે.
-તે એક જ OpenAI-સુસંગત એન્ડપોઇન્ટ (`/v1/*`) પ્રદાન કરે છે અને અનુવાદ, ફૉલબૅક, ટોકન રિફ્રેશ તથા વપરાશ ટ્રેકિંગ સાથે ટ્રાફિકને અનેક અપસ્ટ્રીમ પ્રદાતાઓમાં રૂટ કરે છે.
+OmniRoute એ Next.js પર બનાવવામાં આવેલ સ્થાનિક AI રાઉટિંગ ગેટવે અને ડૅશબોર્ડ છે.
+તે એકમાત્ર OpenAI-સુસંગત એન્ડપોઇન્ટ (`/v1/*`) પ્રદાન કરે છે અને અનુવાદ, ફૉલબૅક, ટોકન રિફ્રેશ તથા વપરાશ ટ્રૅકિંગ સાથે બહુવિધ અપસ્ટ્રીમ પ્રદાતાઓમાં ટ્રાફિક રૂટ કરે છે.
 
 મુખ્ય ક્ષમતાઓ:
 
-- CLI/ટૂલ્સ માટે OpenAI-સુસંગત API સપાટી (355 પ્રદાતાઓ, 108 એક્ઝિક્યુટર્સ)
-- પ્રદાતા ફોર્મેટ્સ વચ્ચે વિનંતી/પ્રતિસાદનું રૂપાંતરણ
-- મોડેલ કોમ્બો ફૉલબૅક (મલ્ટિ-મોડેલ ક્રમ)
-- `compositeTiers` દ્વારા રનટાઇમ ક્રમ સાથે સંરચિત કોમ્બો પગલાં (`provider + model + connection`)
-- એકાઉન્ટ-સ્તરીય ફૉલબૅક (દરેક પ્રદાતા માટે બહુવિધ એકાઉન્ટ)
-- મુખ્ય ચેટ પાથમાં ક્વોટા પૂર્વ-ચકાસણી અને ક્વોટા-સજાગ P2C એકાઉન્ટ પસંદગી
-- OAuth + API-key પ્રદાતા કનેક્શન વ્યવસ્થાપન (22 OAuth પ્રદાતા મોડ્યુલ)
+- CLI/ટૂલ્સ માટે OpenAI-સુસંગત API સપાટી (372 પ્રદાતાઓ, 148 એક્ઝિક્યુટર્સ)
+- પ્રદાતાનાં ફોર્મેટ્સ વચ્ચે વિનંતી/પ્રતિસાદનો અનુવાદ
+- મોડેલ કૉમ્બો ફૉલબૅક (મલ્ટિ-મોડેલ ક્રમ)
+- `compositeTiers` દ્વારા રનટાઇમ ક્રમ સાથે સંરચિત કૉમ્બો સ્ટેપ્સ (`provider + model + connection`)
+- એકાઉન્ટ-સ્તરનું ફૉલબૅક (પ્રતિ પ્રદાતા બહુવિધ એકાઉન્ટ્સ)
+- મુખ્ય ચૅટ પાથમાં ક્વોટા પ્રીફ્લાઇટ અને ક્વોટા-અવેર P2C એકાઉન્ટ પસંદગી
+- OAuth + API-કી પ્રદાતા કનેક્શન વ્યવસ્થાપન (27 OAuth પ્રદાતા મોડ્યુલ્સ)
 - `/v1/embeddings` દ્વારા એમ્બેડિંગ જનરેશન (18 પ્રદાતાઓ)
-- `/v1/images/generations` દ્વારા ઇમેજ જનરેશન (10+ પ્રદાતાઓ, 20+ મોડેલો)
+- `/v1/images/generations` દ્વારા ઇમેજ જનરેશન (10+ પ્રદાતાઓ, 20+ મોડેલ્સ)
 - `/v1/audio/transcriptions` દ્વારા ઑડિયો ટ્રાન્સક્રિપ્શન (18 પ્રદાતાઓ)
 - `/v1/audio/speech` દ્વારા ટેક્સ્ટ-ટુ-સ્પીચ (24 બિલ્ટ-ઇન પ્રદાતાઓ)
 - `/v1/videos/generations` દ્વારા વિડિયો જનરેશન (ComfyUI + SD WebUI)
@@ -31,56 +31,56 @@ OmniRoute એ Next.js પર બનાવાયેલ સ્થાનિક AI �
 - `/v1/search` દ્વારા વેબ શોધ (20 પ્રદાતાઓ)
 - `/v1/moderations` દ્વારા મોડરેશન
 - `/v1/rerank` દ્વારા પુનઃક્રમનિર્ધારણ
-- રીઝનિંગ મોડેલો માટે થિંક ટૅગ પાર્સિંગ (`<think>...</think>`)
-- કડક OpenAI SDK સુસંગતતા માટે પ્રતિસાદ શુદ્ધીકરણ
-- ક્રોસ-પ્રદાતા સુસંગતતા માટે ભૂમિકા સામાન્યીકરણ (developer→system, system→user)
+- રીઝનિંગ મોડેલ્સ માટે Think ટૅગ પાર્સિંગ (``)
+- કડક OpenAI SDK સુસંગતતા માટે પ્રતિસાદ સૅનિટાઇઝેશન
+- ક્રોસ-પ્રોવાઇડર સુસંગતતા માટે રોલ નોર્મલાઇઝેશન (developer→system, system→user)
 - સંરચિત આઉટપુટ રૂપાંતરણ (json_schema → Gemini responseSchema)
-- પ્રદાતાઓ, કીઓ, ઉપનામો, કોમ્બો, સેટિંગ્સ અને કિંમતો માટે સ્થાનિક સાતત્યપૂર્ણ સંગ્રહ (122 DB મોડ્યુલ)
-- વપરાશ/ખર્ચ ટ્રેકિંગ અને વિનંતી લૉગિંગ
-- મલ્ટિ-ડિવાઇસ/સ્ટેટ સિંક માટે વૈકલ્પિક ક્લાઉડ સિંક
-- API ઍક્સેસ નિયંત્રણ માટે IP મંજૂરીસૂચિ/અવરોધસૂચિ
-- થિંકિંગ બજેટ વ્યવસ્થાપન (પાસથ્રૂ/ઑટો/કસ્ટમ/અનુકૂલનશીલ)
-- વૈશ્વિક સિસ્ટમ પ્રોમ્પ્ટ ઇન્જેક્શન
-- સેશન ટ્રેકિંગ અને ફિંગરપ્રિન્ટિંગ
+- પ્રદાતાઓ, કીઓ, ઉપનામો, કૉમ્બો, સેટિંગ્સ અને પ્રાઇસિંગ માટે સ્થાનિક પર્સિસ્ટન્સ (122 DB મોડ્યુલ્સ)
+- વપરાશ/ખર્ચ ટ્રૅકિંગ અને વિનંતી લૉગિંગ
+- બહુવિધ ડિવાઇસ/સ્ટેટ સિંક માટે વૈકલ્પિક ક્લાઉડ સિંક
+- API ઍક્સેસ નિયંત્રણ માટે IP અલાઉલિસ્ટ/બ્લૉકલિસ્ટ
+- થિંકિંગ બજેટ વ્યવસ્થાપન (passthrough/auto/custom/adaptive)
+- ગ્લોબલ સિસ્ટમ પ્રોમ્પ્ટ ઇન્જેક્શન
+- સેશન ટ્રૅકિંગ અને ફિંગરપ્રિન્ટિંગ
 - પ્રદાતા-વિશિષ્ટ પ્રોફાઇલ્સ સાથે પ્રતિ-એકાઉન્ટ ઉન્નત રેટ લિમિટિંગ
-- પ્રદાતા સ્થિતિસ્થાપકતા માટે સર્કિટ બ્રેકર પેટર્ન
+- પ્રદાતાની સ્થિતિસ્થાપકતા માટે સર્કિટ બ્રેકર પૅટર્ન
 - મ્યુટેક્સ લૉકિંગ સાથે ઍન્ટિ-થન્ડરિંગ હર્ડ સુરક્ષા
 - સિગ્નેચર-આધારિત વિનંતી ડિડુપ્લિકેશન કૅશ
 - ડોમેન સ્તર: ખર્ચ નિયમો, ફૉલબૅક નીતિ, લૉકઆઉટ નીતિ
-- કૉન્ટેક્સ્ટ રિલે: એકાઉન્ટ રોટેશન સાતત્ય માટે સેશન હેન્ડઑફ સારાંશો
-- ડોમેન સ્ટેટ સાતત્યપૂર્ણ સંગ્રહ (ફૉલબૅક, બજેટ, લૉકઆઉટ અને સર્કિટ બ્રેકર્સ માટે SQLite રાઇટ-થ્રૂ કૅશ)
-- કેન્દ્રીકૃત વિનંતી મૂલ્યાંકન માટે નીતિ એન્જિન (લૉકઆઉટ → બજેટ → ફૉલબૅક)
-- p50/p95/p99 લેટન્સી એકત્રીકરણ સાથે વિનંતી ટેલિમેટ્રી
-- `combo_execution_key` / `combo_step_id` દ્વારા કોમ્બો ટાર્ગેટ ટેલિમેટ્રી અને ઐતિહાસિક કોમ્બો ટાર્ગેટ હેલ્થ
-- એન્ડ-ટુ-એન્ડ ટ્રેસિંગ માટે કોરિલેશન ID (X-Request-Id)
-- પ્રતિ API key ઑપ્ટ-આઉટ સાથે અનુપાલન ઑડિટ લૉગિંગ
-- LLM ગુણવત્તા ખાતરી માટે મૂલ્યાંકન ફ્રેમવર્ક
-- રિયલ-ટાઇમ પ્રદાતા સર્કિટ બ્રેકર સ્થિતિ સાથે હેલ્થ ડેશબોર્ડ
-- 3 ટ્રાન્સપોર્ટ (stdio/SSE/Streamable HTTP) સાથે MCP Server (110 ટૂલ્સ)
+- Context Relay: એકાઉન્ટ રોટેશનની સાતત્યતા માટે સેશન હૅન્ડઑફ સારાંશો
+- ડોમેન સ્ટેટ પર્સિસ્ટન્સ (ફૉલબૅક્સ, બજેટ્સ, લૉકઆઉટ્સ અને સર્કિટ બ્રેકર્સ માટે SQLite રાઇટ-થ્રૂ કૅશ)
+- કેન્દ્રિય વિનંતી મૂલ્યાંકન માટે પૉલિસી એન્જિન (લૉકઆઉટ → બજેટ → ફૉલબૅક)
+- p50/p95/p99 લેટન્સી ઍગ્રીગેશન સાથે વિનંતી ટેલિમેટ્રી
+- `combo_execution_key` / `combo_step_id` દ્વારા કૉમ્બો ટાર્ગેટ ટેલિમેટ્રી અને ઐતિહાસિક કૉમ્બો ટાર્ગેટ હેલ્થ
+- એન્ડ-ટુ-એન્ડ ટ્રેસિંગ માટે Correlation ID (X-Request-Id)
+- પ્રતિ API કી ઑપ્ટ-આઉટ સાથે કમ્પ્લાયન્સ ઑડિટ લૉગિંગ
+- LLM ગુણવત્તા ખાતરી માટે Eval ફ્રેમવર્ક
+- રિયલ-ટાઇમ પ્રદાતા સર્કિટ બ્રેકર સ્થિતિ સાથે હેલ્થ ડૅશબોર્ડ
+- 3 ટ્રાન્સપોર્ટ્સ (stdio/SSE/Streamable HTTP) સાથે MCP Server (110 ટૂલ્સ)
 - કૌશલ્યો અને ટાસ્ક લાઇફસાઇકલ સાથે A2A Server (JSON-RPC 2.0 + SSE)
-- મેમરી સિસ્ટમ (એક્સટ્રેક્શન, ઇન્જેક્શન, રિટ્રીવલ, સારાંશીકરણ)
-- કૌશલ્ય સિસ્ટમ (રજિસ્ટ્રી, એક્ઝિક્યુટર, સૅન્ડબૉક્સ, બિલ્ટ-ઇન કૌશલ્યો)
-- સર્ટિફિકેટ વ્યવસ્થાપન અને DNS હેન્ડલિંગ સાથે MITM પ્રોક્સી
+- મેમરી સિસ્ટમ (નિષ્કર્ષણ, ઇન્જેક્શન, પુનઃપ્રાપ્તિ, સારાંશીકરણ)
+- સ્કિલ્સ સિસ્ટમ (રજિસ્ટ્રી, એક્ઝિક્યુટર, સૅન્ડબૉક્સ, બિલ્ટ-ઇન સ્કિલ્સ)
+- સર્ટિફિકેટ વ્યવસ્થાપન અને DNS હૅન્ડલિંગ સાથે MITM પ્રૉક્સી
 - પ્રોમ્પ્ટ ઇન્જેક્શન ગાર્ડ મિડલવેર
-- Caveman, RTK, સ્ટૅક્ડ પાઇપલાઇન્સ, કમ્પ્રેશન કોમ્બો, ભાષા પૅક્સ અને ઍનલિટિક્સ સાથે પ્રોમ્પ્ટ કમ્પ્રેશન પાઇપલાઇન
+- Caveman, RTK, સ્ટૅક્ડ પાઇપલાઇન્સ, કમ્પ્રેશન કૉમ્બો, લેંગ્વેજ પૅક્સ અને ઍનાલિટિક્સ સાથે પ્રોમ્પ્ટ કમ્પ્રેશન પાઇપલાઇન
 - ACP (Agent Communication Protocol) રજિસ્ટ્રી
-- મોડ્યુલર OAuth પ્રદાતાઓ (`src/lib/oauth/providers/` હેઠળ 22 વ્યક્તિગત મોડ્યુલ)
-- અનઇન્સ્ટૉલ/સંપૂર્ણ-અનઇન્સ્ટૉલ સ્ક્રિપ્ટ્સ
-- OAuth પર્યાવરણ સમારકામ ક્રિયા
+- મોડ્યુલર OAuth પ્રદાતાઓ (`src/lib/oauth/providers/` હેઠળ 22 વ્યક્તિગત મોડ્યુલ્સ)
+- અનઇન્સ્ટૉલ/ફુલ-અનઇન્સ્ટૉલ સ્ક્રિપ્ટ્સ
+- OAuth એન્વાયરમેન્ટ રિપેર ઍક્શન
 - OpenAI-સુસંગત WS ક્લાયન્ટ્સ માટે WebSocket બ્રિજ (`/v1/ws`)
 - સિંક ટોકન વ્યવસ્થાપન (જારી/રદ કરવું, ETag-વર્ઝનવાળું કૉન્ફિગ બંડલ ડાઉનલોડ)
-- GLM Thinking (`glmt`) પ્રથમ-વર્ગનું પ્રદાતા પ્રીસેટ
-- હાઇબ્રિડ ટોકન ગણતરી (અંદાજિત ફૉલબૅક સાથે પ્રદાતા-પક્ષીય `/messages/count_tokens`)
-- મોડેલ ઉપનામ ઑટો-સીડિંગ (સ્ટાર્ટઅપ સમયે 30+ ક્રોસ-પ્રોક્સી ડાયલેક્ટ સામાન્યીકરણ)
-- SSRF ગાર્ડ, ખાનગી URL અવરોધન અને કૉન્ફિગર કરી શકાય તેવા પુનઃપ્રયાસ સાથે સુરક્ષિત આઉટબાઉન્ડ ફેચ
-- કૉન્ફિગર કરી શકાય તેવા `requestRetry` અને `maxRetryIntervalSec` સાથે કૂલડાઉન-સજાગ ચેટ પુનઃપ્રયાસો
-- સ્ટાર્ટઅપ સમયે Zod સાથે રનટાઇમ પર્યાવરણ માન્યીકરણ
-- પેજિનેશન, પ્રદાતા CRUD ઇવેન્ટ્સ અને SSRF-અવરોધિત માન્યીકરણ લૉગિંગ સાથે અનુપાલન ઑડિટ v2
+- GLM Thinking (`glmt`) પ્રથમ-વર્ગનો પ્રદાતા પ્રીસેટ
+- હાઇબ્રિડ ટોકન ગણતરી (અંદાજિત ફૉલબૅક સાથે પ્રદાતા-બાજુનું `/messages/count_tokens`)
+- મોડેલ ઉપનામ ઑટો-સીડીંગ (સ્ટાર્ટઅપ સમયે 30+ ક્રોસ-પ્રૉક્સી ડાયલેક્ટ નોર્મલાઇઝેશન્સ)
+- SSRF ગાર્ડ, ખાનગી URL બ્લૉકિંગ અને કૉન્ફિગર કરી શકાય તેવા રિટ્રાય સાથે સુરક્ષિત આઉટબાઉન્ડ ફેચ
+- કૉન્ફિગર કરી શકાય તેવા `requestRetry` અને `maxRetryIntervalSec` સાથે કૂલડાઉન-અવેર ચૅટ રિટ્રાય
+- સ્ટાર્ટઅપ સમયે Zod સાથે રનટાઇમ એન્વાયરમેન્ટ વૅલિડેશન
+- પેજિનેશન, પ્રદાતા CRUD ઇવેન્ટ્સ અને SSRF-બ્લૉક્ડ વૅલિડેશન લૉગિંગ સાથે કમ્પ્લાયન્સ ઑડિટ v2
 
 પ્રાથમિક રનટાઇમ મોડેલ:
 
-- `src/app/api/*` હેઠળના Next.js ઍપ રૂટ્સ ડેશબોર્ડ API અને સુસંગતતા API બંને અમલમાં મૂકે છે
-- `src/sse/*` + `open-sse/*` માં રહેલું શેર કરેલ SSE/રૂટિંગ કોર પ્રદાતા એક્ઝિક્યુશન, રૂપાંતરણ, સ્ટ્રીમિંગ, ફૉલબૅક અને વપરાશ સંભાળે છે
+- `src/app/api/*` હેઠળના Next.js ઍપ રૂટ્સ ડૅશબોર્ડ API અને સુસંગતતા API બંને અમલમાં મૂકે છે
+- `src/sse/*` + `open-sse/*` માં આવેલું શેર કરેલું SSE/રાઉટિંગ કોર પ્રદાતા એક્ઝિક્યુશન, અનુવાદ, સ્ટ્રીમિંગ, ફૉલબૅક અને વપરાશ સંભાળે છે
 
 ## સંદર્ભ આકૃતિઓ
 
@@ -260,69 +260,70 @@ flowchart LR
 
 ## 2) SSE + અનુવાદ કોર
 
-મુખ્ય ફ્લો મોડ્યુલો:
+મુખ્ય પ્રવાહ મોડ્યુલો:
 
-- એન્ટ્રી: `src/sse/handlers/chat.ts`
+- પ્રવેશબિંદુ: `src/sse/handlers/chat.ts`
 - કોર ઓર્કેસ્ટ્રેશન: `open-sse/handlers/chatCore.ts`
-- પ્રોવાઇડર એક્ઝિક્યુશન એડેપ્ટર્સ: `open-sse/executors/*`
-- ફોર્મેટ ડિટેક્શન/પ્રોવાઇડર કન્ફિગરેશન: `open-sse/services/provider.ts`
+- પ્રોવાઇડર એક્ઝિક્યુશન ઍડેપ્ટર્સ: `open-sse/executors/*`
+- ફોર્મેટ શોધ/પ્રોવાઇડર કૉન્ફિગરેશન: `open-sse/services/provider.ts`
 - મોડેલ પાર્સ/રિઝોલ્વ: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- એકાઉન્ટ ફૉલબૅક લોજિક: `open-sse/services/accountFallback.ts`
+- એકાઉન્ટ ફૉલબૅક લૉજિક: `open-sse/services/accountFallback.ts`
 - અનુવાદ રજિસ્ટ્રી: `open-sse/translator/index.ts`
-- સ્ટ્રીમ ટ્રાન્સફોર્મેશન્સ: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- ઉપયોગ એક્સટ્રેક્શન/નોર્મલાઇઝેશન: `open-sse/utils/usageTracking.ts`
-- થિંક ટૅગ પાર્સર: `open-sse/utils/thinkTagParser.ts`
+- સ્ટ્રીમ રૂપાંતરણો: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- ઉપયોગ નિષ્કર્ષણ/સામાન્યીકરણ: `open-sse/utils/usageTracking.ts`
+- Think ટૅગ પાર્સર: `open-sse/utils/thinkTagParser.ts`
 - એમ્બેડિંગ હૅન્ડલર: `open-sse/handlers/embeddings.ts`
 - એમ્બેડિંગ પ્રોવાઇડર રજિસ્ટ્રી: `open-sse/config/embeddingRegistry.ts`
 - ઇમેજ જનરેશન હૅન્ડલર: `open-sse/handlers/imageGeneration.ts`
 - ઇમેજ પ્રોવાઇડર રજિસ્ટ્રી: `open-sse/config/imageRegistry.ts`
-- રિસ્પોન્સ સેનિટાઇઝેશન: `open-sse/handlers/responseSanitizer.ts`
-- રોલ નોર્મલાઇઝેશન: `open-sse/services/roleNormalizer.ts`
+- પ્રતિસાદ શુદ્ધીકરણ: `open-sse/handlers/responseSanitizer.ts`
+- ભૂમિકા સામાન્યીકરણ: `open-sse/services/roleNormalizer.ts`
 
-સર્વિસિસ (બિઝનેસ લોજિક):
+સેવાઓ (બિઝનેસ લૉજિક):
 
 - એકાઉન્ટ પસંદગી/સ્કોરિંગ: `open-sse/services/accountSelector.ts`
 - કૉન્ટેક્સ્ટ લાઇફસાઇકલ મેનેજમેન્ટ: `open-sse/services/contextManager.ts`
 - IP ફિલ્ટર અમલીકરણ: `open-sse/services/ipFilter.ts`
 - સેશન ટ્રૅકિંગ: `open-sse/services/sessionManager.ts`
 - રિક્વેસ્ટ ડિડુપ્લિકેશન: `open-sse/services/signatureCache.ts`
-- સિસ્ટમ પ્રોમ્પ્ટ ઇન્જેક્શન: `open-sse/services/systemPrompt.ts`
+- સિસ્ટમ પ્રૉમ્પ્ટ ઇન્જેક્શન: `open-sse/services/systemPrompt.ts`
 - થિંકિંગ બજેટ મેનેજમેન્ટ: `open-sse/services/thinkingBudget.ts`
-- વાઇલ્ડકાર્ડ મોડેલ રાઉટિંગ: `open-sse/services/wildcardRouter.ts`
+- વાઇલ્ડકાર્ડ મોડેલ રૂટિંગ: `open-sse/services/wildcardRouter.ts`
 - રેટ લિમિટ મેનેજમેન્ટ: `open-sse/services/rateLimitManager.ts`
 - સર્કિટ બ્રેકર: `src/shared/utils/circuitBreaker.ts`
 - કૉન્ટેક્સ્ટ હૅન્ડઑફ: `open-sse/services/contextHandoff.ts` — કૉન્ટેક્સ્ટ-રિલે વ્યૂહરચના માટે હૅન્ડઑફ સારાંશ જનરેશન અને ઇન્જેક્શન
 - કમ્પ્રેશન: `open-sse/services/compression/*` — પ્રોવાઇડર અનુવાદ પહેલાં સક્રિય કમ્પ્રેશન;
-  તેમાં Caveman નિયમો, RTK ફિલ્ટર્સ, સ્ટૅક્ડ પાઇપલાઇન્સ, કમ્પ્રેશન કૉમ્બોઝ, આંકડાઓ અને વૅલિડેશન સામેલ છે
-- Codex ક્વોટા ફેચર: `open-sse/services/codexQuotaFetcher.ts` — કૉન્ટેક્સ્ટ-રિલે હૅન્ડઑફના નિર્ણયો માટે Codex ક્વોટા મેળવે છે
-- કૂલડાઉન-અવેર રિટ્રાય: `src/sse/services/cooldownAwareRetry.ts` — કન્ફિગર કરી શકાય તેવા `requestRetry` / `maxRetryIntervalSec` સાથે પ્રતિ-મોડેલ કૂલડાઉન રિટ્રાય
-- સુરક્ષિત આઉટબાઉન્ડ ફેચ: `src/shared/network/safeOutboundFetch.ts` — SSRF ગાર્ડ, ખાનગી URL બ્લૉકિંગ, રિટ્રાય અને ટાઇમઆઉટ સાથે સુરક્ષિત પ્રોવાઇડર/મોડેલ ફેચ
-- આઉટબાઉન્ડ URL ગાર્ડ: `src/shared/network/outboundUrlGuard.ts` — ખાનગી/localhost CIDR રેન્જ સામે પ્રોવાઇડર URLs ને વૅલિડેટ કરે છે
+  તેમાં Caveman નિયમો, RTK ફિલ્ટર્સ, સ્ટૅક્ડ પાઇપલાઇન્સ, કમ્પ્રેશન કૉમ્બોઝ, આંકડા અને માન્યતા સામેલ છે
+- Codex ક્વોટા ફેચર: `open-sse/services/codexQuotaFetcher.ts` — કૉન્ટેક્સ્ટ-રિલે હૅન્ડઑફ નિર્ણયો માટે Codex ક્વોટા મેળવે છે
+- કૂલડાઉન-અવેર રિટ્રાય: `src/sse/services/cooldownAwareRetry.ts` — કૉન્ફિગર કરી શકાય તેવા `requestRetry` / `maxRetryIntervalSec` સાથે પ્રતિ-મોડેલ કૂલડાઉન રિટ્રાય
+- સુરક્ષિત આઉટબાઉન્ડ ફેચ: `src/shared/network/safeOutboundFetch.ts` — SSRF ગાર્ડ, ખાનગી-URL બ્લૉકિંગ, રિટ્રાય અને ટાઇમઆઉટ સાથે સુરક્ષિત પ્રોવાઇડર/મોડેલ ફેચ
+- આઉટબાઉન્ડ URL ગાર્ડ: `src/shared/network/outboundUrlGuard.ts` — પ્રોવાઇડર URLs પર હોસ્ટ ચકાસણીઓ; `src/shared/network/outboundUrlGuardPolicy.ts`, `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` અને તેમના ડૅશબોર્ડ ટૉગલ્સમાંથી મોડ પસંદ કરે છે (`docs/reference/ENVIRONMENT.md` જુઓ)
 - પ્રોવાઇડર રિક્વેસ્ટ ડિફૉલ્ટ્સ: `open-sse/services/providerRequestDefaults.ts` — પ્રોવાઇડર-સ્તરના `maxTokens`, `temperature`, `thinkingBudgetTokens` ડિફૉલ્ટ્સ
-- GLM પ્રોવાઇડર કૉન્સ્ટન્ટ્સ: `open-sse/config/glmProvider.ts` — શેર કરેલા GLM મોડેલ્સ, ક્વોટા URLs, GLMT ટાઇમઆઉટ/ડિફૉલ્ટ્સ
+- GLM પ્રોવાઇડર કૉન્સ્ટન્ટ્સ: `open-sse/config/glmProvider.ts` — શેર કરેલા GLM મોડેલો, ક્વોટા URLs, GLMT ટાઇમઆઉટ/ડિફૉલ્ટ્સ
 - Antigravity અપસ્ટ્રીમ: `open-sse/config/antigravityUpstream.ts` — બેઝ URL અને ડિસ્કવરી પાથ કૉન્સ્ટન્ટ્સ
 - Codex ક્લાયન્ટ કૉન્સ્ટન્ટ્સ: `open-sse/config/codexClient.ts` — વર્ઝનવાળા યુઝર-એજન્ટ અને ક્લાયન્ટ-વર્ઝન મૂલ્યો
-- મોડેલ એલિયસ સીડ: `src/lib/modelAliasSeed.ts` — સ્ટાર્ટઅપ વખતે 30+ ક્રોસ-પ્રૉક્સી ડાયલેક્ટ એલિયસ સીડ કરે છે
+- મોડેલ એલિયાસ સીડ: `src/lib/modelAliasSeed.ts` — સ્ટાર્ટઅપ વખતે 30+ ક્રૉસ-પ્રૉક્સી ડાયલેક્ટ એલિયાસ સીડ કરે છે
 
 ડોમેન લેયર મોડ્યુલો:
 
-- ખર્ચના નિયમો/બજેટ્સ: `src/domain/costRules.ts`
-- ફૉલબૅક નીતિ: `src/domain/fallbackPolicy.ts`
+- ખર્ચ નિયમો/બજેટ્સ: `src/domain/costRules.ts`
+- ફૉલબૅક પૉલિસી: `src/domain/fallbackPolicy.ts`
 - કૉમ્બો રિઝોલ્વર: `src/domain/comboResolver.ts`
-- લૉકઆઉટ નીતિ: `src/domain/lockoutPolicy.ts`
-- નીતિ એન્જિન: `src/domain/policyEngine.ts` — કેન્દ્રીકૃત લૉકઆઉટ → બજેટ → ફૉલબૅક મૂલ્યાંકન
+- લૉકઆઉટ પૉલિસી: `src/domain/lockoutPolicy.ts`
+- પૉલિસી એન્જિન: `src/domain/policyEngine.ts` — કેન્દ્રીકૃત લૉકઆઉટ → બજેટ → ફૉલબૅક મૂલ્યાંકન
 - એરર કોડ્સ કૅટલૉગ: `src/shared/constants/errorCodes.ts`
 - રિક્વેસ્ટ ID: `src/shared/utils/requestId.ts`
 - ફેચ ટાઇમઆઉટ: `src/shared/utils/fetchTimeout.ts`
 - રિક્વેસ્ટ ટેલિમેટ્રી: `src/shared/utils/requestTelemetry.ts`
-- કમ્પ્લાયન્સ/ઑડિટ: `src/lib/compliance/index.ts`
+- અનુપાલન/ઑડિટ: `src/lib/compliance/index.ts`
 - ઇવૅલ રનર: `src/lib/evals/evalRunner.ts`
 - ડોમેન સ્ટેટ પર્સિસ્ટન્સ: `src/lib/db/domainState.ts` — ફૉલબૅક ચેઇન્સ, બજેટ્સ, ખર્ચ ઇતિહાસ, લૉકઆઉટ સ્ટેટ અને સર્કિટ બ્રેકર્સ માટે SQLite CRUD
 
-OAuth પ્રોવાઇડર મોડ્યુલો (`src/lib/oauth/providers/` હેઠળ 22 અલગ ફાઇલો):
+OAuth પ્રોવાઇડર મોડ્યુલો (`src/lib/oauth/providers/` હેઠળ 27 અલગ ફાઇલો):
 
 - રજિસ્ટ્રી ઇન્ડેક્સ: `src/lib/oauth/providers/index.ts`
-- વ્યક્તિગત પ્રોવાઇડર્સ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- વ્યક્તિગત પ્રોવાઇડર્સ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- શેર કરેલા હેલ્પર્સ: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl ડિવાઇસ ફ્લો), `museCodeDeviceResponse.ts`
 - પાતળું રૅપર: `src/lib/oauth/providers.ts` — વ્યક્તિગત મોડ્યુલોમાંથી ફરીથી એક્સપોર્ટ કરે છે
 
 ## 5) એમ્બેડેડ સેવાઓ (v3.8.4)
@@ -551,51 +552,51 @@ FSM ટ્રાન્ઝિશન્સ Auto Comboના સ્કોરિં�
 - સમયાંતરે ચાલતું કાર્ય: `src/shared/services/modelSyncScheduler.ts`
 - કંટ્રોલ રૂટ: `src/app/api/sync/cloud/route.ts`
 
-## વિનંતીનું જીવનચક્ર (`/v1/chat/completions`)
+## વિનંતી જીવનચક્ર (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK ક્લાયન્ટ
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as મોડેલ રિઝોલ્વર
+    participant Auth as ઓળખપત્ર પસંદગીકાર
+    participant Exec as પ્રદાતા એક્ઝિક્યુટર
+    participant Prov as અપસ્ટ્રીમ પ્રદાતા
+    participant Stream as સ્ટ્રીમ અનુવાદક
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: મોડેલ અથવા કોમ્બોનું પાર્સિંગ/રિઝોલ્વિંગ
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt કોમ્બો મોડેલ
+        Chat->>Chat: કોમ્બો મોડેલો પર પુનરાવર્તન (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: સક્રિય એકાઉન્ટ + ટોકન્સ/api કી
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: સ્રોત ફોર્મેટ શોધવું
+    Core->>Core: વિનંતીનું લક્ષ્ય ફોર્મેટમાં રૂપાંતર કરવું
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: અપસ્ટ્રીમ API કૉલ
+    Prov-->>Exec: SSE/JSON પ્રતિસાદ
+    Exec-->>Core: પ્રતિસાદ + મેટાડેટા
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: અપડેટ કરેલા ટોકન્સ
+        Core->>Exec: વિનંતીનો ફરી પ્રયાસ કરવો
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: સ્ટ્રીમનું ક્લાયન્ટ ફોર્મેટમાં રૂપાંતર/સામાન્યીકરણ
+    Stream-->>Client: SSE ચંક્સ / JSON પ્રતિસાદ
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: વપરાશ કાઢવો + ઇતિહાસ/લૉગ સંગ્રહિત કરવો
 ```
 
 ## કોમ્બો + એકાઉન્ટ ફૉલબૅક પ્રવાહ

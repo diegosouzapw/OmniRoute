@@ -41,19 +41,11 @@ adgangskode ved hver kørsel.
 | **Ingen omgåelse af `always`-beskyttelse** | `isAlwaysProtectedPath()` evalueres før kontrollen af CLI-tokenet. `/api/shutdown` og `/api/settings/database` kræver altid JWT.                                                                                                     |
 | **Kan ikke eksporteres**                   | Tokenet skrives aldrig til disken eller logges.                                                                                                                                                                                      |
 
-## Standardsalt (tilfældigt pr. installation)
+## Standardsalt (tilfældig pr. installation)
 
-Når `OMNIROUTE_CLI_SALT` ikke er angivet, er saltet en tilfældig hex-streng på 64 tegn,
-som genereres én gang og gemmes i `<DATA_DIR>/cli-token-salt.json` (tilstand `0600`) —
-ikke den literal, der er checket ind, `omniroute-cli-auth-v1`. Både `getActiveSalt()` i
-`src/lib/machineToken.ts` og dens tilsvarende implementering i `bin/cli/utils/cliToken.mjs` læser den
-samme fil, så serveren og hver CLI-kørsel i denne installation ender med at bruge den
-samme værdi. Den indcheckede literal bruges kun som en sidste reserve, når der endnu ikke
-kan etableres et gemt salt eller et salt fra miljøet (for eksempel i en ny installation, der kun
-indeholder CLI'en, før serveren nogensinde er blevet kørt). Dette lukker en svaghed ved den gamle faste
-standardliteral: `/etc/machine-id` kan almindeligvis læses af alle, så enhver lokal bruger kunne
-ellers aflede det samme token for hver installation, hvor
-`OMNIROUTE_CLI_SALT` aldrig blev angivet.
+Når `OMNIROUTE_CLI_SALT` ikke er angivet, er saltet en tilfældig hexadecimal streng på 64 tegn, der genereres én gang og gemmes i `<DATA_DIR>/cli-token-salt.json` (tilstand `0600`) — ikke den indcheckede literal `omniroute-cli-auth-v1`. Både `getActiveSalt()` i `src/lib/machineToken.ts` og dens tilsvarende implementering i `bin/cli/utils/cliToken.mjs` læser den samme fil, så serveren og hver CLI-kørsel i denne installation ender med den samme værdi. Den indcheckede literal bruges kun som en sidste reserve, når der endnu ikke kan fastlægges et gemt salt eller et salt fra miljøet (f.eks. ved en ny installation, der kun omfatter CLI'en, før serveren nogensinde er blevet kørt). Dette lukker en svaghed ved den gamle, faste standardliteral: `/etc/machine-id` er ofte læsbar for alle, så enhver lokal bruger ville ellers kunne udlede det samme token for hver installation, hvor `OMNIROUTE_CLI_SALT` aldrig blev angivet.
+
+Hvis saltet ikke kan læses eller oprettes, udsender både serveren og CLI'en én advarsel pr. proces, før denne kompatibilitetsreserve anvendes. Advarslen indeholder hverken salt, token, filsystemsti eller rå fejl. Genopret adgangen til `DATA_DIR`, eller angiv `OMNIROUTE_CLI_SALT`, og genstart derefter den berørte proces. Advarslen gør fejlen synlig; den gør ikke det offentlige reservesalt privat og deaktiverer heller ikke CLI-godkendelse. Eksisterende gyldige gemte salte og eksplicitte miljøtilsidesættelser bevarer deres tidligere tokenværdier.
 
 ## Rotation af salt
 

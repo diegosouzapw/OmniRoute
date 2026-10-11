@@ -36,23 +36,23 @@ uwezo uleule wa zana ya ndani unaofungamanishwa na zamu wakati tunnel na kiungan
 ## Usanidi wa dashibodi
 
 1. Fungua mtoa huduma wa **ChatGPT Web (Codex)** na uongeze muunganisho.
-2. Bandika kichwa kamili cha ChatGPT Cookie, kitambulisho cha tunnel, runtime key, na jina la kiunganishi maalum.
-   Usanidi mpya wenye uwezo wa zana lazima utumie kiunganishi kipya kilichoundwa chenye jina kamili
+2. Bandika kichwa kamili cha ChatGPT Cookie, kitambulisho cha handaki, ufunguo wa wakati wa utekelezaji na jina maalum la kiunganishi. Misanidi mipya yenye uwezo wa kutumia zana lazima itumie kiunganishi kipya kilichoundwa chenye jina kamili
    `OmniRoute Codex v2`, huku Authentication ikiwekwa kuwa None na Permissions ikiwekwa kuwa Allow all
    actions.
-3. Endesha ukaguzi wa muunganisho. OmniRoute hufungua Temporary Chat inayotegemea kivinjari na hutambua
-   kama Sol na Pro zinapatikana kwa akaunti hiyo.
-4. Hifadhi muunganisho. OmniRoute hubadilisha cookie iliyobandikwa na hali ya hifadhi ya
-   Playwright iliyothibitishwa na kuihifadhi pamoja na runtime key kupitia safu ya
-   vitambulisho iliyosimbwa kwa njia fiche.
+3. Tekeleza ukaguzi wa muunganisho. OmniRoute hufungua Temporary Chat inayotumia kivinjari na kubaini
+   ikiwa Sol na Pro zinapatikana kwa akaunti hiyo.
+4. Hifadhi muunganisho. OmniRoute hubadilisha kidakuzi kilichobandikwa na hali ya hifadhi ya
+   Playwright iliyothibitishwa na kuihifadhi pamoja na ufunguo wa wakati wa utekelezaji kupitia
+   safu iliyosimbwa ya uondoaji wa maelezo ya utambulisho.
 
-Cookie ghafi haihifadhiwi baada ya uhifadhi uliofanikiwa. Kipindi kinapoisha, fungua
-muunganisho, bandika kichwa kipya kamili cha Cookie, na uendeshe tena ukaguzi. Hali ya doctor
-katika kidirisha cha kuhariri huripoti kivinjari, hali ya hifadhi, kuingia katika akaunti, Temporary Chat, tunnel,
-kiunganishi, na mzunguko kamili wa zana kila kimoja kivyake.
+Kidakuzi ghafi hakihifadhiwi baada ya kuhifadhi kwa mafanikio. Kipindi kinapoisha, fungua
+muunganisho, bandika kichwa kipya kamili cha Cookie, kisha utekeleze ukaguzi tena. Hali ya doctor
+katika kidirisha cha kuhariri huripoti kivinjari, hali ya hifadhi, kuingia katika akaunti, Temporary Chat, handaki,
+kiunganishi na mzunguko kamili wa zana kila kimoja kivyake. Ili kuendesha masasisho ya vidakuzi kiotomatiki vipindi vinapobadilishwa,
+angalia zana inayotumika sambamba katika [Kiendelezi cha Usawazishaji wa Kipindi cha Kivinjari](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Kamwe usiweke cookie halisi, runtime key, hali ya hifadhi, au tokeni ya uwezo kwenye commit. Thamani za majaribio na
-> nyaraka lazima daima ziwe vishikilia nafasi.
+> Kamwe usiwasilishe kidakuzi halisi, ufunguo wa wakati wa utekelezaji, hali ya hifadhi au tokeni ya uwezo. Thamani za majaribio na
+> nyaraka lazima ziwe vishikilia nafasi kila wakati.
 
 ## Modeli na michanganyiko
 
@@ -122,7 +122,7 @@ njia mbadala ya HTTP/SSE kabla ya kuunganisha upstream. Kisha uhamishaji hupitia
 
 ## Uthibitishaji
 
-Endesha vidhibiti vya provider bila kutumia provider iliyostaafishwa:
+Tekeleza vidhibiti vya mtoa huduma bila kumwita mtoa huduma aliyestaafishwa:
 
 ```bash
 node --import tsx/esm --test \\
@@ -131,7 +131,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Vilinda dhidi ya regression baada ya kustaafishwa vinapatikana katika:
+Vizuizi vya marejeo ili kuzuia kurudi kwa hitilafu baada ya kustaafishwa vinapatikana katika:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

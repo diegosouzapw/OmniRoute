@@ -173,18 +173,17 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 Waɗannan masu bayar da sabis suna ba da **damar amfani kyauta** ba tare da katin kiredit ba:
 
-| Mai Bayar da Sabis | Adadin Kyauta         | Samfura                                  | Yadda Ake Haɗawa         |
-| ------------------ | --------------------- | ---------------------------------------- | ------------------------ |
-| **Kiro AI**        | kiredit 50/wata       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ba a buƙatar tantancewa  |
-| **OpenCode Free**  | Mara iyaka            | GPT-4o, Claude, Gemini                   | Ba a buƙatar tantancewa  |
-| **Pollinations**   | Ba a buƙatar maɓalli  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ba a buƙatar tantancewa  |
-| **LongCat**        | 10M sau ɗaya          | LongCat-2.0                              | Maɓallin API + KYC       |
-| **Cloudflare AI**  | neuron 10K/rana       | samfura 50+                              | Ba a buƙatar tantancewa  |
-| **NVIDIA NIM**     | ~40 RPM               | samfura 129                              | Ana buƙatar maɓallin API |
-| **Cerebras**       | kiredit $5 na rajista | GLM 4.7, GPT-OSS 120B                    | Maɓallin API + kati      |
-| **Qoder**          | Mara iyaka            | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Ba a buƙatar tantancewa  |
+| Mai Bayar da Sabis | Ƙayyadadden Amfani Kyauta | Samfura                                  | Yadda Ake Haɗawa         |
+| ------------------ | ------------------------- | ---------------------------------------- | ------------------------ |
+| **Kiro AI**        | kiredit 50/wata           | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ba a buƙatar tantancewa  |
+| **OpenCode Free**  | Mara iyaka                | GPT-4o, Claude, Gemini                   | Ba a buƙatar tantancewa  |
+| **Pollinations**   | Ba a buƙatar maɓalli      | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ba a buƙatar tantancewa  |
+| **LongCat**        | 10M sau ɗaya              | LongCat-2.0                              | Maɓallin API + KYC       |
+| **Cloudflare AI**  | neuron 10K/rana           | samfura 50+                              | Ba a buƙatar tantancewa  |
+| **NVIDIA NIM**     | ~40 RPM                   | samfura 129                              | Ana buƙatar maɓallin API |
+| **Cerebras**       | kiredit na rajista na $5  | GLM 4.7, GPT-OSS 120B                    | Maɓallin API + kati      |
 
-**Shawara**: Haɗa masu bayar da sabis kyauta da yawa domin samun **AI kyauta mara iyaka** tare da komawa ga wani ta atomatik idan ɗaya ya gaza!
+**Shawara**: Haɗa masu bayar da sabis kyauta da yawa don samun **AI kyauta mara iyaka** tare da sauyawa ta atomatik idan ɗaya ya gaza!
 
 ---
 
@@ -258,7 +257,7 @@ Sannan yi amfani da `model: "auto"` kuma OmniRoute zai zaɓi mafi dacewa ta atom
 
 ---
 
-## Saitin Musamman na Mai Bayarwa
+## Saitin da ya Keɓanta da Mai Bayarwa
 
 ### OpenAI
 
@@ -283,6 +282,46 @@ Sannan yi amfani da `model: "auto"` kuma OmniRoute zai zaɓi mafi dacewa ta atom
 1. Sami maɓallin API: https://platform.deepseek.com/
 2. A cikin OmniRoute: Masu Bayarwa → Ƙara Mai Bayarwa → DeepSeek
 3. Liƙa maɓallin API → Haɗa
+
+### Qoder: zaɓi hanyar jigilar bayanan shaida
+
+Qoder yana buƙatar bayanan shaida. Hanyoyinsa biyu na jigilar bayanan suna da iyawa daban-daban; sunan samfuri
+kawai ba ya bayyana abin da wata haɗi ta musamman za ta iya yi.
+
+| Bayanan shaida                                    | Hanyar jigilar OmniRoute                              | Kiran kayan aiki na mai kira                                   | Watsawa kai tsaye                                                            |
+| ------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| PAT da ya fara da `pt-`                           | Tsarin `qodercli` na gida a kan uwar-garken OmniRoute | Ba ya goyon baya                                               | Ana tara shi: ana fitar da SSE ne kawai bayan CLI ya dawo da cikakkiyar amsa |
+| Alamar samun dama wadda ba PAT ba ko maɓallin API | Mashigar HTTP mai dacewa da OpenAI ta DashScope       | Ana miƙa shi kai tsaye, bisa sharadin samfuri/maɓallin na sama | Hanyar HTTP/SSE ta sama                                                      |
+
+Don PAT, girka Qoder CLI a kan uwar-garke ko kwantena ɗaya da OmniRoute. Dole ne a iya gano fayil ɗin aiwatarwa
+a matsayin `qodercli`, ko a saita `CLI_QODER_BIN` zuwa hanyar fayil ɗin aiwatarwarsa. CLI da aka
+girka a kan uwar-garken Docker kawai ba ya kasancewa kai tsaye a cikin kwantenar. Rashin
+fayilolin aiwatarwa yana haifar da bayyanannen kuskure da ke jagorantar ka zuwa girkawa ko saitin hanya.
+
+Hanyar tattaunawar PAT tana da iyakar lokacin tsari na daƙiƙa 45. Tana mayar da tattaunawar zuwa
+umurni guda sannan ta kira CLI a yanayin bugawa mara watsawa kai tsaye. Neman `stream: true` yana canja
+kundin amsa zuwa SSE; ba ya samar da isar da token daga sama a hankali-a-hankali.
+Tabbatar da CLI/jerin samfura yana amfani da wata iyakar lokaci ta daƙiƙa 20 daban. Waɗannan su ne tsoffin ƙimomin
+lambar yanzu, ba saitunan dashboard da za a iya daidaitawa ba.
+
+Yi amfani da haɗin PAT don tattaunawa ta yau da kullum. Buƙatun wakili masu ɗauke da `tools` ko tsoffin `functions`
+suna cire asusun PAT yayin zaɓin bayanan shaida, har da maƙasudan haɗin da aka kafe. Tarin
+Qoder mai gauraya har yanzu zai iya zaɓar asusunsa na HTTP. Kiran kai tsaye zuwa mai aiwatar da PAT shima yana kasa
+a bayyane kafin ƙaddamar da CLI maimakon yin watsi da bayanin kayan aiki a ɓoye. Wannan
+ƙuntatawar ta shafi kayan aikin da mai kiran API ya bayar, ba kowane kayan aikin ciki da Qoder
+CLI zai iya amfani da shi da kansa ba. Maɓallin HTTP ba ya tabbatar da cewa kowane samfuri yana goyon bayan kayan aiki; har yanzu
+ana amfani da binciken iyawar samfuri na yau da kullum.
+
+OAuth na burauza yana samuwa ne kawai idan mai gudanarwa ya saita dukkan saituna biyar:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, da `QODER_OAUTH_CLIENT_SECRET`. Tsohuwar ƙimarsu babu komai; ya kamata
+girkawar da ba a saita ba ta yi amfani da shigo da bayanan shaida da ake goyon baya maimakon ɗauka
+cewa hanyar shiga ta burauza a shirye take.
+
+Nassoshin aiwatarwa: [Mai aiwatar da Qoder](../../open-sse/executors/qoder.ts),
+[Lokacin gudanarwar CLI](../../open-sse/services/qoderCli.ts), da
+[Saitin OAuth](../../src/lib/oauth/constants/oauth.ts). Watsawar PAT a hankali-a-hankali
+da iyakar lokaci mai daidaituwa ƙarin ingantawa ne daban; wannan halayyar ba ta yi alkawarinsu ba.
 
 ### Groq
 

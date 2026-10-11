@@ -5,67 +5,89 @@
 ---
 
 Desde v3.8.49 (WS3.2/WS3.4 del plan de calidad/velocidad), la ruta de fusión predeterminada para
-los PR revisados en `release/vX.Y.Z` es la **cola de fusión de Mergify** (`.mergify.yml`);
-el **tren de fusiones manual** documentado a continuación es la ALTERNATIVA: se utiliza durante incidentes,
-congelaciones de versiones o si el plan Open Source de Mergify cambia alguna vez.
+los PR revisados hacia `release/vX.Y.Z` es la **cola de fusión de Mergify** (`.mergify.yml`);
+el **tren de fusiones manual** documentado a continuación es la ALTERNATIVA, utilizada durante incidentes,
+congelaciones de versiones o si el plan Open Source de Mergify llegara a cambiar.
 
 ## Ruta predeterminada: la cola de Mergify
 
-1. El PR es revisado/validado por las campañas y aprobado por la puerta ⭐ previa a la
-   fusión del propietario (el informe + la decisión por elemento; consulta el paso 0.75 de `/merge-prs`).
-2. El propietario (o la sesión que actúa según la decisión del propietario) aplica la etiqueta **`queue`**.
-   La etiqueta ES la aprobación de la fusión; Mergify solo la ejecuta.
-3. Mergify agrupa hasta 10 PR en cola, valida el lote con las comprobaciones rápidas
-   y los fusiona (squash). Un lote en rojo se **divide automáticamente**: el PR infractor
-   se aísla en ~log2(N) revalidaciones y se retira de la cola; el resto continúa.
-4. Después de la fusión, el flujo de trabajo continuo de validación de la versión valida el nuevo extremo al hacer push
-   y abre una incidencia de atribución si la combinación ha provocado una regresión (nunca revierte automáticamente).
+1. La PR es revisada/validada por las campañas y aprobada por la puerta ⭐ previa a la fusión
+   del propietario (el informe + la decisión por elemento; consulta el Paso 0.75 de `/merge-prs`).
+2. El propietario (o la sesión que actúa conforme a la decisión del propietario) aplica la
+   etiqueta **`queue`**. La etiqueta ES la aprobación de la fusión; Mergify solo la ejecuta.
+3. Mergify valida las PR en cola **en serie** (una a la vez) mediante las comprobaciones rápidas
+   y las fusiona (squash). El procesamiento por lotes + la bisección automática requieren un nivel
+   de pago de Mergify ("Cannot use Merge Queue batch" en el plan gratuito, #7220), por lo que
+   `.mergify.yml` no establece ningún `batch_size`; el procesamiento por lotes sigue siendo tarea
+   del tren de fusiones manual descrito a continuación. Una PR cuyas comprobaciones sigan pendientes
+   después de `checks_timeout` (240 min = 2× el p95 medido de `quality.yml`) se retira de la cola
+   en lugar de bloquearla.
+4. Después de la fusión, el flujo de trabajo continuo de validación de la versión comprueba el
+   nuevo extremo tras el push y abre una incidencia de atribución si la combinación ha introducido
+   una regresión (nunca realiza una reversión automática).
 
-Medidas de protección (reflejan las reglas estrictas n.º 21/n.º 22 de `CLAUDE.md`):
+Medidas de protección (reflejan las Reglas estrictas #21/#22 de `CLAUDE.md`):
 
-- **Congelación de versión activa** → NO etiquetes PR dirigidos a la rama congelada; redirígelos primero a
-  la rama `release/vX+1` activa.
-- **PR en curso de otra sesión** → nunca lo etiquetes; únicamente la sesión propietaria pone en cola
+- **Congelación de la versión activa** → NO etiquetes las PR dirigidas a la rama congelada;
+  redirígelas primero a la rama `release/vX+1` activa.
+- **PR en curso de otra sesión** → nunca la etiquetes; solo la sesión propietaria pone en cola
   su propio trabajo.
-- Los diffs exclusivamente de pruebas y los PR con la etiqueta `hotfix` ya ejecutan una CI reducida (consulta
-  `RELEASE_CHECKLIST.md` → Vía rápida para hotfixes); las condiciones de la cola aceptan cualquier
-  conjunto de comprobaciones que se haya ejecutado realmente (`#check-failure=0` + `#check-pending=0`).
+- Las diferencias que solo afectan a pruebas y las PR con la etiqueta `hotfix` ya ejecutan una
+  CI reducida (consulta `RELEASE_CHECKLIST.md` → Vía rápida para hotfixes); las condiciones de
+  la cola aceptan cualquier conjunto de comprobaciones que se haya ejecutado realmente
+  (`#check-failure=0` + `#check-pending=0`).
 
 ## Alternativa: el tren de fusiones manual
 
 Se utiliza cuando la cola no está disponible. Esto formaliza la práctica que procesó 33 PR
-en un día durante el ciclo v3.8.47:
+en un día durante el ciclo de v3.8.47:
 
-1. **Prepara el lote** (~10–30 PR revisados+aprobados). Comprueba las colisiones de `linked:`
-   (mismos `tap.testFiles`, mismos fragmentos de CHANGELOG) y serialízalas.
-2. **Valida UNA SOLA VEZ**: en un worktree aislado a partir del extremo de la rama de versión, fusiona localmente todas las
-   cabeceras del lote y, a continuación, ejecuta la suite equivalente a la de versión
+1. **Prepara el lote** (~10–30 PR revisados y aprobados). Comprueba si hay colisiones `linked:`
+   (mismos `tap.testFiles`, mismos fragmentos del CHANGELOG) y serialízalos.
+2. **Valida UNA SOLA VEZ**: en un worktree aislado basado en el extremo de la rama de versión, fusiona localmente todas las
+   cabeceras del lote y, después, ejecuta la suite equivalente a la de la versión
    (`npm run check:release-green`; añade `--with-build` antes de una versión).
-   `scripts/release/merge-train.sh <base> <PR#>…` automatiza los pasos 1–2 (los PR
-   con conflictos se expulsan y el tren continúa). El modo completo ejecuta `npm run test:unit`: el
+   `scripts/release/merge-train.sh <base> <PR#>…` automatiza los pasos 1–2 (los PR con
+   conflictos se expulsan y el tren continúa). El modo completo ejecuta `npm run test:unit`: el
    ejecutor ajustado para la máquina (`--test-concurrency=20`), **no** los dos shards secuenciales de CI
-   de 4 núcleos, que hacían que la fase dominante utilizara solo ~25 % de una máquina de 16 núcleos (corregido el
-   2026-07-18). `--fast` (procesamiento de megatrenes durante el día, aprobado por el propietario el 2026-07-18)
-   mantiene todas las comprobaciones estáticas + vitest, pero ejecuta únicamente los archivos de node:test modificados por los
+   de 4 núcleos, que hacían que la fase dominante utilizara aproximadamente el 25 % de una máquina de 16 núcleos (corregido
+   el 2026-07-18). `--fast` (para procesar megatrenes durante el día, aprobado por el propietario el 2026-07-18)
+   conserva todas las comprobaciones estáticas + vitest, pero solo ejecuta los archivos de node:test modificados por los
    PR incorporados; la suite COMPLETA debe seguir ejecutándose al menos una vez al día sobre el
    extremo acumulado (un tren sin `--fast`).
-3. **Verde** → fusiona los PR en secuencia (volviendo a comprobar `state,headRefOid` antes de cada uno;
-   un PR cuya cabecera haya cambiado vuelve a revisión). Demuestra que el diff neto de cada fusión es el
+3. **Verde** → fusiona los PR en secuencia (volviendo a comprobar `state,headRefOid` antes de cada uno:
+   un PR cuya cabecera haya cambiado vuelve a revisión). Demuestra que el diff neto de cada fusión corresponde al
    cambio propio del PR (sin reversiones por resolución automática: audita `git diff --stat` para detectar
-   eliminaciones fuera del alcance).
-4. **Rojo** → divide el lote en mitades (valida cada mitad) en lugar de volver a validar
+   eliminaciones fuera de alcance).
+4. **Rojo** → bisecciona el lote por mitades (valida cada mitad) en lugar de revalidar
    uno por uno; devuelve el PR infractor a la cola de revisión junto con las pruebas.
-5. **Nunca**: fusiones durante una congelación en la rama congelada; uses `git stash` en ningún lugar;
-   vuelvas a ejecutar la CI de forma indiscriminada esperando que un rojo desaparezca (regla: un rojo aporta información).
+5. **Nunca**: fusiones durante una congelación en la rama congelada; `git stash` en ningún sitio;
+   reejecuciones indiscriminadas de la CI con la esperanza de que desaparezca un rojo (regla: un rojo aporta información).
 
-## Niveles (por qué la cola es segura solo con comprobaciones rápidas)
+## Niveles (por qué la cola es segura solo con las comprobaciones rápidas)
 
-- **Por PR** (comprobaciones rápidas de quality.yml): pruebas afectadas por TIA + unidad completa en 4 shards +
-  vitest + conjunto de lint + comprobación de tipos + integridad de documentación/changelog.
-- **Por lote/extremo** (validación continua de la versión): comprobaciones ESTRICTAS `--quick` en cada push a
-  la rama de versión; barridos completos `--with-build --full-ci` 3 veces/día.
+- **Por PR** (comprobaciones rápidas de quality.yml): pruebas afectadas según TIA + unidad completa en 4 shards +
+  vitest + conjunto de comprobaciones de lint + comprobación de tipos + integridad de documentación/CHANGELOG.
+- **Por lote/extremo** (validación continua de versiones): comprobaciones OBLIGATORIAS `--quick` en cada push a
+  la rama de versión; barridos completos con `--with-build --full-ci` 3 veces al día.
 - **Por versión** (ci.yml en el PR de la versión): la matriz completa, incluidos E2E ×9,
   artefacto de paquete + prueba rápida de arranque del tarball, cobertura/umbrales progresivos.
 
-Nada se valida menos que antes: la parte pesada simplemente se ejecuta por lote/extremo
-en lugar de por PR, que es lo que elimina los recorridos de ida y vuelta O(N).
+No se valida nada menos que antes: la superficie pesada simplemente se ejecuta por lote/extremo
+en lugar de por PR, lo que elimina los viajes de ida y vuelta O(N).
+
+## Requisitos previos de un checkout nuevo para `merge-train.sh`
+
+El script ejecuta una **comprobación previa** con fallo inmediato en el checkout raíz (antes de cualquier operación
+con el worktree), de modo que una instalación defectuosa nunca pueda hacerse pasar por un tren en rojo:
+
+1. Ejecuta `npm ci` y, después, el postinstall de `bun` que npm bloquea:
+   `(cd node_modules/bun && node install.js)`; de lo contrario, `check:provider-consistency`
+   y `check:known-symbols` (ambos `bun scripts/…`) fallan tanto en el tren COMO en la base
+   sin ninguna línea de infracción.
+2. No debe haber ningún `node_modules/node_modules` residual (un árbol de dependencias duplicado; React se carga dos veces
+   y las suites de vitest de la interfaz fallan de inmediato).
+3. `node_modules/.bin/tsc` debe estar presente y ser ejecutable (una instalación parcial no lo incluye).
+
+El tren ejecuta el comando bloqueante `npm run check:cycles:ratchet`; `npm run check:cycles`
+por sí solo es informativo (enumera los SCC y termina con un código distinto de cero incluso sobre una base correcta).

@@ -4,30 +4,30 @@
 
 ---
 
-Izmantojiet šo ceļvedi, lai izvilkšanas pieprasījumam izvēlētos mazāko uzticamo izstrādes ciklu. Tas
-neaizstāj tālāk norādītos konkrēto jomu arhitektūras un drošības dokumentus; tas sasaista katru biežāk
-sastopamo izmaiņu veidu ar tā līgumiem, mērķētajām pārbaudēm un CI pārklājumu.
+Izmantojiet šo ceļvedi, lai izvēlētos mazāko uzticamo izstrādes ciklu izmaiņu pieprasījumam. Tas
+neaizstāj tālāk norādītos konkrēto jomu arhitektūras un drošības dokumentus; tas sasaista katru izplatīto
+izmaiņu veidu ar tā līgumiem, mērķētajām pārbaudēm un CI pārklājumu.
 
-## Ceļš, ko veic visas izmaiņas
+## Ceļš, ko veic katra izmaiņa
 
-1. **Pirms rediģēšanas izvēlieties bāzi.** Atrodiet augstāko aktīvo `release/v*` zaru un izveidojiet zaru no
-   tā jaunākā komita. Kā mērķi izvēlieties šo zaru, nevis `main`. Ja ir spēkā laidiena iesaldēšana, neizvēlieties iesaldēto
-   zaru kā mērķi; izmantojiet nākamo aktīvo ciklu, kas aprakstīts
-   [Zarošanas un laidienu modelī](BRANCHING_MODEL.md).
-2. **Nosauciet līgumus.** Identificējiet katru katalogu, shēmu, ģenerēto artefaktu, publisko API vai lietotāja
-   saskarni, ko ietekmē izmaiņas. Tālāk esošajā tabulā ir norādīts minimālais sākuma komplekts.
-3. **Uzrakstiet vai atjauniniet mērķētos testus.** Ražošanas koda izmaiņām mapēs `src/`, `open-sse/`, `electron/` vai
-   `bin/` ir nepieciešams automatizēts tests tajā pašā PR. Palaidiet mazāko testu failu kopu, kas pierāda
+1. **Pirms rediģēšanas izvēlieties bāzes zaru.** Atrodiet jaunāko aktīvo `release/v*` zaru un izveidojiet zaru no
+   tā galotnes. Kā mērķi norādiet šo zaru, nevis `main`. Ja ir aktīva laidiena iesaldēšana, nenorādiet iesaldēto
+   zaru kā mērķi; izmantojiet nākamo aktīvo ciklu, kas aprakstīts dokumentā
+   [Zarošanas un laidienu modelis](BRANCHING_MODEL.md).
+2. **Nosauciet līgumus.** Nosakiet katru katalogu, shēmu, ģenerēto artefaktu, publisko API vai lietotāja
+   saskarni, ko izmaiņa ietekmē. Tālāk esošajā tabulā ir norādīts minimālais sākuma kopums.
+3. **Rakstiet vai atjauniniet mērķētos testus.** Produkcijas koda izmaiņām direktorijās `src/`, `open-sse/`, `electron/` vai
+   `bin/` tajā pašā PR ir nepieciešams automatizēts tests. Palaidiet mazāko testu failu kopumu, kas pierāda
    darbību, un pēc tam norādītās mērķētās pārbaudes.
-4. **Ļaujiet CI izpildīt plašo matricu.** Pilnie vienībtestu segmenti, Vitest, pārklājuma sliekšņa pārbaude un
-   ražošanas būvējums tiek izpildīti PR ietvaros. Plašu testu kopu lokāli palaidiet tikai tad, ja mērķētas pārbaudes kļūme norāda uz
-   plašāku ietekmi vai ja izmaiņas aptver vairākas apakšsistēmas.
-5. **Pirms pārskatīšanas saskaņojiet izmaiņas.** Iegūstiet aktīvo bāzi, pārbaudiet tās jaunos komitus un savu atšķirību pret
-   to, pēc tam pārnesiet komitus uz jauno bāzi vai sapludiniet bāzi atbilstoši līdzautoru darbplūsmai. Atrisiniet ģenerēto failu
-   un katalogu konfliktus to avotā, ģenerējiet tos no jauna, atkārtoti izpildiet mērķēto ciklu un pārliecinieties, ka
-   PR mērķis joprojām ir aktīvais laidiena zars.
-6. **Reģistrējiet pierādījumus.** PR veidnē uzskaitiet izpildītās komandas, visus pievienotos vai mainītos testu failus,
-   migrācijas vai funkciju karogus un visas vēl neizpildītās pārbaudes, kas veicamas tikai CI.
+4. **Ļaujiet CI izpildīt plašo matricu.** PR ietvaros tiek izpildītas pilnās vienībtestu daļas, Vitest, pārklājuma sliekšņa pārbaude un
+   produkcijas būvējums. Plašu testu komplektu lokāli palaidiet tikai tad, ja mērķētas pārbaudes kļūme norāda uz
+   plašāku ietekmi vai ja izmaiņa aptver vairākas apakšsistēmas.
+5. **Pirms pārskatīšanas veiciet saskaņošanu.** Iegūstiet aktīvo bāzes zaru, pārbaudiet tā jaunos komitus un savu izmaiņu kopu attiecībā pret
+   to, pēc tam pārstatiet zaru uz jaunās bāzes vai sapludiniet bāzes zaru atbilstoši līdzdalībnieku darbplūsmai. Ģenerēto failu
+   un katalogu konfliktus atrisiniet to avotā, ģenerējiet tos no jauna, atkārtoti izpildiet mērķēto ciklu un apstipriniet, ka
+   PR joprojām ir vērsts uz aktīvo laidiena zaru.
+6. **Fiksējiet pierādījumus.** PR veidnē uzskaitiet izpildītās komandas, katru pievienoto vai mainīto testa failu,
+   migrācijas vai funkciju karogus un visas tikai CI veicamās validācijas, kas vēl nav pabeigtas.
 
 ## Ieteicamie ceļi pēc izmaiņu veida
 
@@ -38,14 +38,14 @@ jūsu mainīto darbību.
 
 **Līgumi**
 
-- Nodrošinātāja definīcija mapē `src/shared/constants/providers/` un tās kompozīcija failā
+- Nodrošinātāja definīcija direktorijā `src/shared/constants/providers/` un tās kompozīcija failā
   `src/shared/constants/providers.ts`.
 - Modeļi un iespējas failā `open-sse/config/providerRegistry.ts` vai tā atdalītajos reģistra failos.
 - Izpildītāja/tulkotāja atlase, OAuth vai API atslēgas konfigurācija, informācijas paneļa resursi un ģenerētā
   nodrošinātāja atsauce, ja piemērojams.
-- Publiskajiem akreditācijas datiem jāizmanto `resolvePublicCred()`; kļūdu atbildēm jāizmanto koplietojamie sanitizēto
-  kļūdu palīgrīki. Skatiet `docs/security/PUBLIC_CREDS.md` (git; netiek kompilēts mapē `/docs`) un
-  [Kļūdu sanitizēšanu](../security/ERROR_SANITIZATION.md).
+- Publiskajiem akreditācijas datiem jāizmanto `resolvePublicCred()`; kļūdu atbildēm jāizmanto kopīgotie sanitizēto
+  kļūdu palīgrīki. Skatiet `docs/security/PUBLIC_CREDS.md` (git; netiek kompilēts direktorijā `/docs`) un
+  [Kļūdu sanitizēšana](../security/ERROR_SANITIZATION.md).
 
 **Mērķētais cikls**
 
@@ -54,20 +54,20 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # kad mainās katalogs; komitējiet ģenerētās atšķirības
+npm run gen:provider-reference   # kad mainās katalogs; komitējiet ģenerēto izmaiņu kopu
 npm run lint
 ```
 
 Pārbaudiet arī katru ietekmēto pieprasījumu saimi: tērzēšanu, Responses, attēlus, iegulumus, audio vai video.
-Pārskatiet ģenerētā kataloga un etalona atšķirības kā līguma izmaiņas; nepieņemiet tās akli.
+Pārskatiet ģenerēto katalogu un etalona izmaiņas kā līgumu izmaiņas; nepieņemiet tās akli.
 
 ### Maršrutēšana
 
 **Līgumi**
 
 - Publiskās stratēģiju vērtības un UI metadati failā `src/shared/constants/routingStrategies.ts`.
-- Nosūtīšana un secība failā `open-sse/services/combo.ts` un mapē `open-sse/services/combo/`.
-- Combo shēmas, saglabāšana, noturības stāvoklis, modeļu iespējas un API/UI vadīklas.
+- Nosūtīšana un secība failā `open-sse/services/combo.ts` un direktorijā `open-sse/services/combo/`.
+- Combo shēmas, persistēšana, noturības stāvoklis, modeļu iespējas un API/UI vadīklas.
 - [Auto-Combo dzinis](../routing/AUTO-COMBO.md) un noturības dokumentācija, ja mainās darbība.
 
 **Mērķētais cikls**
@@ -79,16 +79,16 @@ npm run check:known-symbols      # stratēģijas reģistrācijas izmaiņas
 npm run lint
 ```
 
-Lokāli izmantojiet determinētus testus ar imitētu augšupējo sistēmu. Aktīvajiem Combo ātrajiem testiem ir nepieciešami akreditācijas dati, un tie ir
-manuāli; tie neaizstāj CI.
+Lokāli izmantojiet deterministiskus testus ar imitētu augšupējo sistēmu. Aktīvas Combo dūmu pārbaudes prasa akreditācijas datus un ir
+manuālas, nevis CI aizstājēji.
 
 ### UI / UX
 
 **Līgumi**
 
-- Next.js maršruta/lapas un koplietojamo komponentu robežas mapēs `src/app/` un
+- Next.js maršruta/lapas un kopīgoto komponentu robežas direktorijās `src/app/` un
   `src/shared/components/`.
-- API atbilžu formas, ielādes/tukšie/kļūdu stāvokļi, tastatūras un ekrāna lasītāja darbība,
+- API atbilžu formas, ielādes/tukšie/kļūdu stāvokļi, tastatūras un ekrānlasītāja darbība,
   adaptīvais izkārtojums, motīvi un lokalizāciju paplašināšana.
 - Angļu valodas UI avota virknes failā `src/i18n/messages/en.json`; neiekodējiet jaunu lietotājam redzamu tekstu tieši kodā.
 
@@ -102,16 +102,16 @@ npm run lint
 ```
 
 Mijiedarbības vai vizuālu izmaiņu gadījumā palaidiet lietotni un pārbaudiet gan šaurus, gan platus skata laukumus. CI izpilda
-ražošanas būvējumu un plašākas testu kopas; vizuālajai darbībai joprojām nepieciešams izmaiņām atbilstošs mērķēts komponenta tests, Playwright
-tests vai dokumentēta manuāla pārbaude.
+produkcijas būvējumu un plašākus testu komplektus; vizuālajai darbībai joprojām nepieciešams mērķēts komponenta tests, Playwright tests
+vai dokumentēta manuāla pārbaude, kas atbilst izmaiņai.
 
 ### i18n
 
 **Līgumi**
 
 - `src/i18n/messages/en.json` ir UI avots; `config/i18n.json` ir lokalizāciju avots.
-- CLI katalogi atrodas atsevišķi mapē `bin/cli/locales/`.
-- Saglabājiet ICU vietturus un tagus pilnīgi nemainītus. Netulkojiet produktu/nodrošinātāju/modeļu nosaukumus,
+- CLI katalogi atrodas atsevišķi direktorijā `bin/cli/locales/`.
+- Precīzi saglabājiet ICU vietturus un tagus. Netulkojiet produktu/nodrošinātāju/modeļu nosaukumus,
   protokolu un galveņu nosaukumus, komandas, koda/JSON identifikatorus, URL, vides mainīgos vai
   aizsargātus terminus, piemēram, `OmniRoute`, `OAuth`, `MCP` un `A2A`. Pašreizējais avota saraksts ir
   `scripts/i18n/glossary/protected-terms.json`.
@@ -127,41 +127,41 @@ npm run check:cli-i18n          # kad mainās CLI virknes/katalogi
 npm run lint
 ```
 
-Šie ir norādījumi esošajai sistēmai, nevis aicinājums paplašināt tās rīkus vai atslēgu modeli.
-Kamēr tiek izstrādāta aizstājošā sistēma, saglabājiet i18n ielāpus precīzi mērķētus. Nepalaidiet tulkošanas
-komandas, kas izsauc ārējos pakalpojumus, ja vien uzdevums skaidri nepieprasa ģenerētus tulkojumus un
-neesat pārskatījis iegūtās atšķirības.
+Šīs ir vadlīnijas esošajai sistēmai, nevis aicinājums paplašināt tās rīkus vai atslēgu modeli.
+Kamēr tiek projektēta aizstājošā sistēma, veiciet i18n labojumus precīzi un minimāli. Nepalaidiet tulkošanas
+komandas, kas izsauc ārējus pakalpojumus, ja vien uzdevums nepārprotami nepieprasa ģenerētus tulkojumus un
+neesat pārskatījis iegūto izmaiņu kopu.
 
 ### CLI
 
 **Līgumi**
 
-- Publiskās komandas un karodziņi mapē `bin/cli/`, ģenerētās API komandas, izejas kodi, stdout/stderr un
+- Publiskās komandas un karodziņi direktorijā `bin/cli/`, ģenerētās API komandas, izejas kodi, stdout/stderr un
   JSON izvades struktūras, konfigurācijas/vides darbība un pakotnē iekļautie faili.
-- CLI lietotājam redzamajām virknēm jāizmanto CLI i18n slānis, un `en`/`pt-BR` katalogiem jābūt savstarpēji saskaņotiem.
-- Saglabājiet Node kā atbalstīto izpildlaiku un publicētā binārā faila līgumu.
+- CLI lietotājam paredzētajām virknēm jāizmanto CLI i18n slānis, un `en`/`pt-BR` katalogiem jābūt savstarpēji saskaņotiem.
+- Saglabājiet Node kā atbalstīto izpildlaika vidi un publicētā binārā faila līgumu.
 
 **Fokusētais cikls**
 
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # ģenerētās/sakomplektētās CLI izmaiņas
+npm run build:cli             # ģenerētās/komplektētās CLI izmaiņas
 npm run check:pack-policy     # pakotnes publiskās virsmas izmaiņas
 npm run lint
 ```
 
-Izmantojiet precīzu komandu pagaidu datu direktorijā, ja darbība ir atkarīga no parsēšanas, failiem vai izejas
+Izmantojiet precīzo komandu pagaidu datu direktorijā, ja darbība ir atkarīga no parsēšanas, failiem vai izejas
 statusa. CI veic plašākas pakotnes artefaktu un ekosistēmas pārbaudes.
 
 ### Datubāze
 
 **Līgumi**
 
-- Domēna moduļi atrodas mapē `src/lib/db/`; importējiet konkrētus moduļus tieši (vecais `localDb.ts` atkārtotās eksportēšanas slānis tika noņemts).
-- Numurētas, idempotentas SQL migrācijas mapē `src/lib/db/migrations/`, transakciju drošība, jaunināšanas
-  darbība, indeksi un visi izsaucēji, kurus ietekmē shēma.
-- Maršruti un apstrādātāji nekad neizpilda neapstrādātu SQL tieši.
+- Domēna moduļi atrodas direktorijā `src/lib/db/`; importējiet konkrētus moduļus tieši (vecais `localDb.ts` atkārtotās eksportēšanas slānis ir noņemts).
+- Numurētas, idempotentas SQL migrācijas direktorijā `src/lib/db/migrations/`, transakciju drošība, jaunināšanas
+  darbība, indeksi un ikviens izsaucējs, ko ietekmē shēma.
+- Maršruti un apstrādātāji nekad tieši neizpilda neapstrādātu SQL.
 
 **Fokusētais cikls**
 
@@ -173,16 +173,16 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-Pievienojot migrāciju, testējiet gan ar jaunu datubāzi, gan jaunināšanu no iepriekšējās shēmas. Datubāzes testiem
-tīrīšanas laikā jāaizver deskriptori un jāizsauc `resetDbInstance()`. Izpildiet `npm run test:bun:db` tikai tad, ja
-mainās labāko iespējamo rezultātu nenodrošinošais Bun adaptera ceļš; Node joprojām ir autoritatīvais izpildlaiks.
+Pievienojot migrāciju, testējiet gan jaunu datubāzi, gan jaunināšanu no iepriekšējās shēmas. Datubāzes testiem
+tīrīšanas laikā jāaizver turi un jāizsauc `resetDbInstance()`. Izpildiet `npm run test:bun:db` tikai tad, ja
+mainās eksperimentālais Bun adaptera ceļš; Node joprojām ir autoritatīvā vide.
 
 ### Būvēšana / izvietošana
 
 **Līgumi**
 
-- Saknes un darbvietu manifesti/bloķēšanas fails, `scripts/build/`, Next.js autonomā komplektācija, `dist/`
-  pakotnes saturs, Electron platformu metadati, CI darbplūsmas un izvietošanas kontrolatzīmes.
+- Saknes un darbvietu manifesti/bloķēšanas fails, `scripts/build/`, Next.js savrupā komplektācija, `dist/`
+  pakotnes saturs, Electron platformas metadati, CI darbplūsmas un izvietošanas kontrolatzīmes.
 - Atbalstītajiem Node versiju diapazoniem un atļauto Bun lietojumu sarakstam failā `CLAUDE.md` jāpaliek neskartiem.
 - Būvējuma artefakti netiek iekļauti versiju kontrolē; ir spēkā atkarību, licenču, darbplūsmu un pakotņu politikas.
 
@@ -196,34 +196,75 @@ npm run check:pack-policy      # publicētās pakotnes virsmas izmaiņas
 npm run lint
 ```
 
-Izmantojiet `npm run build` lokāli tikai tad, ja izmaiņas ietekmē kompilēšanu, autonomo komplektāciju, resursus
+Izmantojiet `npm run build` lokāli tikai tad, ja izmaiņas ietekmē kompilēšanu, savrupo komplektāciju, resursus
 vai izpildlaika komplektēšanu. Izmantojiet `npm run build:release` tikai laidiena/izvietošanas validācijai. CI būvējums ir
 galīgais starpplatformu signāls; platformai specifiskām Electron izmaiņām nepieciešams atbilstošs fokusētais būvējums
 vai ātrās pārbaudes apliecinājums.
 
+## Lokālais kandidāta cikls
+
+Avota testi nevar pierādīt, ka pakotnes artefakts tiek veiksmīgi palaists: pakotnes failu sarakstu, apcirpto atkarību
+un vietējo bināro failu problēmas atklājas tikai tad, kad tarball fails ir instalēts un palaists. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) ir RFC #8084 plūsmas „izveidot vienreiz / validēt / paaugstināt” lokālā daļa:
+tā izveido vienu kandidātu, validē tieši šo artefaktu, paaugstina to, pārdēvējot direktorijus,
+un atritina izmaiņas, ja paaugstinātās vietas darbspējas pārbaude neizdodas.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # izdrukāt plānu, neko nemainīt
+npm run dev:candidate -- run                   # izveidot + validēt + paaugstināt, automātiski atritināt
+npm run dev:candidate -- build                 # npm pack + instalēt mapē _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # palaist brīvā portā, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # samainīt vietām current un previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # atkārtoti izmantot citur (CI) izveidotu tarball failu
+```
+
+- **Izveidojiet vienreiz.** `build` iepako pašreizējo koku (tam nepieciešams `dist/server.js`, tādēļ vispirms palaidiet
+  `npm run build:release`) vai kopē `--from-tarball`, pēc tam instalē tarball failu izolētā npm prefiksā,
+  jo tarball failā nav `node_modules`. ID ir saīsinātais `HEAD` SHA
+  (`-dirty`, ja kokā ir lokālas izmaiņas) vai `tgz-<sha256>` tarball failam. Tīrs ID, kuram būvējums
+  jau pastāv, tiek izmantots atkārtoti, nevis izveidots no jauna; lai to izveidotu atkārtoti, norādiet `--force`.
+- **Validējiet pakotni, nevis avotu.** `validate` palaiž instalēto CLI
+  (`serve --port <free port>`) ar jaunu `DATA_DIR=<candidate>/data`, fiktīviem noslēpumiem un no
+  vides noņemtām operatora `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` un `INITIAL_PASSWORD`
+  vērtībām, lai pārbaudītu jaunas instalācijas bezatslēgas atgriezeniskās cilpas konfigurāciju. Tas gaida,
+  līdz `GET /api/health` atgriež 200, pieprasa, lai `GET /v1/models` atgrieztu 200, aptur procesu grupu
+  un ieraksta rezultātu failā `validation.json` kopā ar tarball faila jaucējvērtību.
+- **Paaugstiniet to pašu artefaktu.** `promote` noraida kandidātu, kuram nav sekmīgas validācijas
+  ar tā pašreizējo tarball faila jaucējvērtību. Noklusējuma aktīvā vieta ir `_artifacts/candidate/current`;
+  `--target <dir>` atlasa citu direktoriju tajā pašā failu sistēmā, un tā iepriekšējā vieta ir
+  `<dir>.previous`. Katra pārdēvēšana ir atomāra, un kļūme procesa vidū atceļ jau veiktās pārdēvēšanas.
+- **Atritiniet.** `run` vēlreiz validē paaugstināto vietu un samaina `current` un `previous` atpakaļ,
+  ja šī pārbaude neizdodas. Kandidāts, kas neiztur pirmo validāciju, nekad netiek paaugstināts.
+
+Viss tiek ierakstīts git ignorētajā `_artifacts/candidate/`; esoša OmniRoute instalācija un tās datu
+direktorijs nekad netiek mainīti. Paaugstinātais CLI atrodas
+`_artifacts/candidate/current/prefix/bin/omniroute`; kad to izmantojat, palaidiet to ar savu `DATA_DIR`.
+Izejas kodi: `0` — sekmīga izpilde, `1` — validācijas vai paaugstināšanas kļūme, `2` — lietojuma kļūda vai trūkstošs būvējums.
+
 ## Lokālais cikls salīdzinājumā ar CI
 
-| Lokāli izpildiet katram ielāpam                                                              | CI nodrošina plašu pārbaudes tvērumu                                              |
-| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Iepriekš minētie tiešās darbības testi un kategoriju vārtejas                                | Sadalīts pilnais vienībtestu komplekts un secīgie testi                           |
-| `npm run lint`                                                                               | Vitest testu komplekti un pārklājuma/kvalitātes sliekšņu kontrole                 |
-| Tipu pārbaude vai būvēšana tikai tad, ja to pieprasa ietekmētais kontrakts                   | Produkcijas būvējuma, drošības, dokumentācijas, atkarību un PR politikas vārtejas |
-| Manuālas mijiedarbības/aktīvās pārbaudes tikai tad, ja automatizācija nevar pierādīt darbību | Darbplūsmā konfigurētās starpuzdevumu integrācijas un platformu pārbaudes         |
+| Palaist lokāli katram ielāpam                                                                | CI nodrošina plaša mēroga signālu                                                  |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Iepriekš minētie tiešās darbības testi un kategoriju pārbaudes                               | Sadalīts pilnais vienību testu komplekts un secīgie testi                          |
+| `npm run lint`                                                                               | Vitest testu komplekti un pārklājuma/kvalitātes sliekšņu paaugstināšana            |
+| Tipu pārbaude vai būvēšana tikai tad, ja to prasa ietekmētais līgums                         | Produkcijas būvējuma, drošības, dokumentācijas, atkarību un PR politikas pārbaudes |
+| Manuālas mijiedarbības/aktīvās pārbaudes tikai tad, ja automatizācija nevar pierādīt darbību | Darbplūsmā konfigurētās starpuzdevumu integrācijas un platformu pārbaudes          |
 
-Sekmīgs fokusētais cikls ir pierādījums par mainīto kontraktu, nevis apliecinājums, ka nesaistītās CI pārbaudes
-būs sekmīgas. Vienlaikus nelieciet katram lokālam labojumam gaidīt pilno repozitorija matricu.
+Sekmīgs fokusētais cikls ir pierādījums par mainīto līgumu, nevis apliecinājums, ka nesaistītās CI pārbaudes
+būs sekmīgas. Vienlaikus nelieciet katram lokālajam labojumam gaidīt pilno repozitorija matricu.
 
 ## Saskaņošanas kontrolsaraksts
 
 Pirms pārskatīšanas pieprasīšanas:
 
 - Pārliecinieties, ka PR bāze joprojām ir augstākais aktīvais `release/v*` zars.
-- Iegūstiet šo bāzi un pārskatiet izmaiņas, kas tajā iekļautas kopš jūsu zara izveides.
-- Pārskatiet `git diff <active-base>...HEAD`, lai atrastu nejaušas vai ģenerētas nevajadzīgas izmaiņas.
+- Iegūstiet šo bāzi un pārskatiet komitus, kas tajā nonākuši kopš jūsu zara izveides.
+- Pārskatiet `git diff <active-base>...HEAD`, lai atrastu nejaušas vai ģenerētas izmaiņas.
 - Atrisiniet katalogu un ģenerēto dokumentu konfliktus, atjauninot avotu un atkārtoti ģenerējot izvadi.
-- Pēc saskaņošanas atkārtoti izpildiet katru PR aprakstā norādīto fokusēto testu/vārteju.
-- Nekad nevājiniet apgalvojumus un neizlaidiet obligātos testus tikai tādēļ, lai pielāgotos pārvietotai bāzei.
+- Pēc saskaņošanas atkārtoti palaidiet katru PR aprakstā norādīto fokusēto testu/pārbaudi.
+- Nekad nemīkstiniet apgalvojumus un neizlaidiet obligātos testus tikai tādēļ, lai pielāgotos pārvietotai bāzei.
 
-Informāciju par laidiena iesaldēšanas un mērķa zara maiņas noteikumiem skatiet dokumentā
-[Zarošanas un laidienu modelis](BRANCHING_MODEL.md). Pilnu CI pārbaužu sarakstu skatiet dokumentā
-[Kvalitātes vārteju atsauce](../architecture/QUALITY_GATES.md).
+Informāciju par laidiena iesaldēšanas un mērķa maiņas noteikumiem skatiet
+[Zarošanas un laidienu modelī](BRANCHING_MODEL.md). Pilnu CI uzskaitījumu skatiet
+[Kvalitātes pārbaužu atsaucē](../architecture/QUALITY_GATES.md).

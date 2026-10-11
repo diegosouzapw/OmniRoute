@@ -166,35 +166,35 @@ Jadual `memory_vec_meta` (migrasi `083_memory_vec.sql`) menyimpan:
 ## Sambungan tetapan
 
 Sembilan medan pembenaman dan vektor tersedia dalam `MemorySettingsExtended` di
-`src/shared/schemas/memory.ts`, dan disimpan melalui `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts`, dan dikekalkan melalui `src/lib/db/settings.ts`:
 
 | Medan                    | Jenis                                              | Lalai    | Penerangan                                                                   |
 | ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Sumber pembenaman yang akan digunakan                                        |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Sumber pembenaman yang hendak digunakan                                      |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Penyedia/model dalam format `provider/model`                                 |
 | `customBaseUrl`          | `string \| null`                                   | `null`   | URL asas titik akhir serasi OpenAI khusus Memori                             |
 | `customModelId`          | `string \| null`                                   | `null`   | ID model yang dihantar ke titik akhir tersuai                                |
 | `transformersEnabled`    | `boolean`                                          | `false`  | Pilihan ikut serta untuk Transformers.js (MiniLM, ~400MB)                    |
 | `staticEnabled`          | `boolean`                                          | `false`  | Pilihan ikut serta untuk model setempat statik potion-base-8M                |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Dayakan langkah penyusunan semula kedudukan (menambah +200-500ms/permintaan) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Penyedia/model penyusunan semula kedudukan dalam format `provider/model`     |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Dayakan langkah pengaturan semula kedudukan (menambah +200-500ms/permintaan) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Penyedia/model pengaturan semula kedudukan dalam format `provider/model`     |
 
-`rerankProviderModel` diselesaikan oleh `POST /v1/rerank` (dipanggil melalui gelung balik), maka ia menerima apa-apa yang diterima oleh laluan tersebut: model penyusunan semula kedudukan awan yang dipilih susun (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) atau nod penyedia serasi OpenAI sebagai `<node-prefix>/<model>` (contohnya `skilled-mini/bge-reranker-v2-m3` untuk kotak TEI/Infinity). Nod gelung balik sentiasa layak; nod pada hos lain (LAN, Tailscale) turut memerlukan bendera ciri `RERANK_REMOTE_PROVIDER_NODES` dan mesti melepasi dasar URL keluar penyedia — lihat [Bendera Ciri](../reference/FEATURE_FLAGS.md). Pemilih papan pemuka menyenaraikan penyedia yang dipilih susun serta nod setempat; sebarang rentetan `provider/model` yang sah boleh ditetapkan secara langsung melalui `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Bahagian belakang vektor yang akan digunakan |
+`rerankProviderModel` diselesaikan oleh `POST /v1/rerank` (dipanggil melalui gelung balik), jadi ia menerima apa-apa yang diterima oleh laluan tersebut: model pengaturan semula kedudukan awan yang dipilih susun (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) atau nod penyedia serasi OpenAI sebagai `<node-prefix>/<model>` (contohnya `skilled-mini/bge-reranker-v2-m3` untuk kotak TEI/Infinity). Nod gelung balik dan nama hos yang disenaraikan dalam `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (contohnya nama perkhidmatan Docker/Compose) sentiasa layak; nod pada hos lain (LAN, Tailscale) turut memerlukan bendera ciri `RERANK_REMOTE_PROVIDER_NODES` dan mesti melepasi dasar URL keluar penyedia — lihat [Bendera Ciri](../reference/FEATURE_FLAGS.md). Pemilih papan pemuka menyenaraikan penyedia yang dipilih susun serta nod setempat; sebarang rentetan `provider/model` yang sah boleh ditetapkan secara langsung melalui `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Bahagian belakang vektor yang hendak digunakan |
 
 Tetapan ini didedahkan melalui `GET /PUT /api/settings/memory` (skema `MemorySettingsExtendedSchema`).
 
-Bagi sumber `remote`, Memori turut menerima tetapan pilihan `customBaseUrl` dan
-`customModelId`. Kedua-duanya memilih titik akhir `/embeddings` dan model yang serasi
-dengan OpenAI tanpa mengubah daftaran pembenaman global. Titik akhir dinormalkan
-sebelum digunakan dan diperiksa oleh dasar URL keluar penyedia: HTTP(S) diperlukan,
-bukti kelayakan terbenam dan rentetan pertanyaan ditolak, manakala alamat metadata
-awan kekal disekat. Nilai kosong mengekalkan penyedia daftaran yang dipilih. Ralat yang
-dikembalikan kepada papan pemuka disanitasi dan bukti kelayakan titik akhir tidak
-pernah dilog.
+Untuk sumber `remote`, Memori turut menerima tetapan pilihan `customBaseUrl` dan
+`customModelId`. Bersama-sama, tetapan ini memilih titik akhir `/embeddings` serasi
+OpenAI dan model tanpa mengubah pendaftaran pembenaman global. Titik akhir itu
+dinormalkan sebelum digunakan dan diperiksa oleh dasar URL keluar penyedia: HTTP(S)
+diperlukan, bukti kelayakan terbenam dan rentetan pertanyaan ditolak, dan alamat
+metadata awan kekal disekat. Nilai kosong mengekalkan penyedia pendaftaran yang dipilih.
+Ralat yang dikembalikan kepada papan pemuka disanitasi dan bukti kelayakan titik akhir
+tidak pernah dilog.
 
-> **TODO (D20):** Skop `global` (perkongsian memori merentas semua kunci API) belum
-> dilaksanakan dalam keluaran ini. Ia memerlukan perubahan skema dan laluan pemerolehan
+> **TODO (D20):** Skop `global` (perkongsian memori merentas semua kunci API) tidak
+> dilaksanakan dalam keluaran ini. Ia memerlukan perubahan skema dan laluan perolehan
 > global. Jejaki secara berasingan.
 
 ## Lapisan Storan
@@ -903,10 +903,10 @@ Untuk membiarkannya dimatikan, hanya kekalkan `autoSummarize` pada nilai lalainy
 
 ## Corak Penyedia MemoryBackend
 
-> **Sumber rujukan utama:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Sumber kebenaran:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Ujian:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Corak penyedia MemoryBackend memperkenalkan **lapisan abstraksi bahagian belakang boleh pasang** di atas enjin memori sedia ada. Daripada terikat kepada satu pelaksanaan storan, sistem memori kini menyokong berbilang bahagian belakang (SQLite, Obsidian, Notion, bahagian belakang HTTP tersuai) dengan penghalaan utama/sandaran yang boleh dikonfigurasikan.
+Corak penyedia MemoryBackend memperkenalkan **lapisan pengabstrakan bahagian belakang boleh pasang** di atas enjin memori sedia ada. Daripada terikat kepada satu pelaksanaan storan, sistem memori kini menyokong berbilang bahagian belakang (SQLite, Obsidian, Notion, bahagian belakang HTTP tersuai) dengan penghalaan utama/sandaran yang boleh dikonfigurasikan.
 
 ### Seni Bina
 
@@ -918,12 +918,12 @@ Corak penyedia MemoryBackend memperkenalkan **lapisan abstraksi bahagian belakan
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│          Pengatur tunggal (manager.ts)                    │
+│        Pengatur tunggal (manager.ts)                      │
 │                                                          │
-│  Utama ────► Bahagian Belakang A (cth. SQLite)           │
-│  Sandaran ─► Bahagian Belakang B (cth. Obsidian)         │
-│              Bahagian Belakang C (cth. Notion melalui     │
-│              GenericBackend)                             │
+│  Utama ─────► Bahagian Belakang A  (cth. SQLite)          │
+│  Sandaran ──► Bahagian Belakang B  (cth. Obsidian)        │
+│               Bahagian Belakang C  (cth. Notion melalui   │
+│               GenericBackend)                            │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -957,7 +957,7 @@ interface MemoryBackend {
   // Kesihatan
   health(): Promise<HealthCheckResult>;
 
-  // Kitar hayat (pilihan)
+  // Kitaran hayat (pilihan)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -969,39 +969,39 @@ Pengatur tunggal yang:
 
 - **Mendaftarkan** bahagian belakang melalui `register(backend)` — dipanggil semasa permulaan daripada `index.ts`
 - **Mengkonfigurasikan** bahagian belakang utama + sandaran melalui `configure(primary, fallbacks)`
-- **Menghalakan** operasi CRUD/carian kepada bahagian belakang utama, dengan rantaian sandaran apabila berlaku kegagalan
+- **Menghalakan** CRUD/carian kepada bahagian belakang utama, dengan rantaian sandaran apabila berlaku kegagalan
 - **Memeriksa kesihatan** semua bahagian belakang secara berkala
 
 **Tingkah laku sandaran:**
 
-| Operasi  | Utama                | Sandaran                       |
-| -------- | -------------------- | ------------------------------ |
-| `create` | ✅ Utama sahaja      | ❌                             |
-| `get`    | ✅ Cuba utama dahulu | ✅ Sandaran jika null          |
-| `update` | ✅ Utama sahaja      | ✅ Penyegerakan tanpa menunggu |
-| `delete` | ✅ Utama sahaja      | ✅ Penyegerakan tanpa menunggu |
-| `list`   | ✅ Utama sahaja      | ❌                             |
-| `search` | ✅ Utama dahulu      | ✅ Sandaran apabila ralat      |
+| Operasi  | Utama                         | Sandaran                               |
+| -------- | ----------------------------- | -------------------------------------- |
+| `create` | ✅ Utama sahaja               | ❌                                     |
+| `get`    | ✅ Cuba utama terlebih dahulu | ✅ Gunakan sandaran jika null          |
+| `update` | ✅ Utama sahaja               | ✅ Penyegerakan tanpa menunggu hasil   |
+| `delete` | ✅ Utama sahaja               | ✅ Penyegerakan tanpa menunggu hasil   |
+| `list`   | ✅ Utama sahaja               | ❌                                     |
+| `search` | ✅ Utama terlebih dahulu      | ✅ Gunakan sandaran jika berlaku ralat |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Penyambung HTTP generik yang menyesuaikan sebarang REST API menjadi MemoryBackend. Berguna untuk:
+Penyambung HTTP generik yang menyesuaikan mana-mana REST API menjadi MemoryBackend. Berguna untuk:
 
-- **Notion** — sambungkan melalui Notion API
-- **Obsidian** — sambungkan melalui Obsidian Local REST API
-- **Bahagian belakang tersuai** — sebarang perkhidmatan yang menyediakan API memori RESTful
+- **Notion** — sambung melalui Notion API
+- **Obsidian** — sambung melalui Obsidian Local REST API
+- **Bahagian belakang tersuai** — mana-mana perkhidmatan yang menyediakan API memori RESTful
 
 **Konfigurasi:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // URL asas API bahagian belakang
-  apiKey?: string;           // Token Bearer untuk pengesahan
+  apiKey?: string;           // Token pembawa untuk pengesahan
   headers?: Record<string, string>;  // Pengepala HTTP tersuai
   timeout?: number;          // Tamat masa permintaan (lalai: 30000ms)
   backendType?: string;      // Untuk pengelogan
 
-  // Penggantian titik akhir (lalai menggunakan konvensyen REST)
+  // Penggantian titik akhir (nilai lalai menggunakan konvensyen REST)
   endpoints?: {
     search?: string;   // lalai: "/memories/search"
     create?: string;   // lalai: "/memories"
@@ -1024,18 +1024,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**Bahagian belakang yang diketahui** diprakonfigurasi dalam `KNOWN_BACKENDS`:
+**Bahagian belakang yang diketahui** diprakonfigurasikan dalam `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend yang menghala ke localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend yang menghala ke api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend dihalakan ke localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend dihalakan ke api.notion.com/v1
 ```
 
 #### Bahagian Belakang Terbina Dalam
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Bahagian belakang utama lalai. Membungkus stor memori berasaskan SQLite sedia ada menggunakan `src/lib/memory/store.ts`. Didaftarkan secara automatik semasa but.
+Bahagian belakang utama lalai. Membalut stor memori berasaskan SQLite sedia ada menggunakan `src/lib/memory/store.ts`. Didaftarkan secara automatik semasa permulaan.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1044,16 +1044,75 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Membungkus integrasi Obsidian sedia ada (`src/lib/memory/obsidianBackend.ts`). Bersambung kepada bilik kebal Obsidian melalui API REST Tempatan Obsidian.
+Membalut integrasi Obsidian sedia ada (`src/lib/memory/obsidianBackend.ts`). Bersambung kepada bilik kebal Obsidian melalui Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Penyesuai untuk pekerja [claude-mem](https://github.com/thedotmack/claude-mem) setempat — pemalam
+memori Claude Code / Codex / Cursor yang merakam sesi pengekodan sebagai "pemerhatian".
+Apabila didaftarkan, laluan REST `/api/memory` dan carian memori A2A boleh membaca dan menulis
+stor yang sama yang diisi oleh cangkuk claude-mem.
+
+Pekerja tersebut hanya mengikat kepada gelung balik, yang sengaja ditolak oleh perlindungan SSRF
+`GenericMemoryBackend`. Penyesuai ini tidak melonggarkan perlindungan tersebut: hos dikodkan keras
+kepada `127.0.0.1` dan skema konfigurasi (`ClaudeMemBackendConfigSchema`, `.strict()`) hanya menerima:
+
+| Kunci       | Jenis  | Lalai  | Catatan                                                                                                                           |
+| ----------- | ------ | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —      | Wajib, 1024–65535. Port pekerja claude-mem daripada fail tetapannya (lalai `37700 + uid % 100`).                                  |
+| `project`   | string | —      | Projek claude-mem untuk digunakan. Tidak ditetapkan → setiap kunci API OmniRoute dipetakan kepada projeknya sendiri (`apiKeyId`). |
+| `timeoutMs` | number | `5000` | Tamat masa bagi setiap permintaan, 100–30000.                                                                                     |
+
+Dayakannya melalui `PUT /api/settings/memory` dan mulakan semula OmniRoute (bahagian belakang didaftarkan
+sekali sahaja, dalam `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Sebaliknya, gunakan `"primaryBackend": "claude-mem"` untuk menjadikannya stor bagi REST API. Konfigurasi
+yang tidak sah dilog (`claude-mem.backend.invalid_config`) dan dilangkau, maka SQLite kekal sebagai bahagian belakang utama.
+
+Pemetaan dan had:
+
+- ID menggunakan format `claude-mem:<observationId>`; `get`/`delete` mengabaikan ID bahagian belakang lain tanpa
+  membuat panggilan rangkaian.
+- `create` → `POST /api/memory/save`; medan OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) disertakan dalam `metadata.omniroute` claude-mem dan dikekalkan melalui kitaran baca.
+- `search` → `GET /api/search?format=json&type=observations`, dipangkas kepada `maxTokens`
+  (aksara / 4). `list` → titik akhir pemerhatian berhalaman milik pekerja (`total` ialah had bawah — pekerja
+  mengembalikan `hasMore`, bukannya kiraan).
+- Pemerhatian yang ditangkap oleh cangkuk memetakan `discovery` → `factual`, `decision` → `procedural`, dan
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Tiada kemas kini** (`update()` mengembalikan `false`; pemerhatian tidak boleh diubah) dan **tiada TTL**
+  (`expiresAt` diabaikan). claude-mem menyahduplikasi simpanan yang serupa dan bukannya melakukan upsert berdasarkan `key`.
+- Suntikan gesaan (`retrieval.ts`) dan alat MCP `omniroute_memory_*` masih membaca SQLite
+  secara langsung — alat tersebut tidak melalui `memoryManager`, maka bahagian belakang ini tidak membekalkan data kepadanya.
+
+**Menghalakan panggilan LLM claude-mem sendiri melalui OmniRoute.** claude-mem memampatkan pemerhatian
+dengan LLM (lalai: Claude Agent SDK). Penyedia `openai-compatible` boleh dihalakan kepada
+OmniRoute untuk menggunakan fallback kombo dan penjejakan kos. Dalam `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<kunci API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<model atau kombo OmniRoute>"
+}
+```
 
 ### Tetapan
 
 Tetapan bahagian belakang memori disimpan dalam jadual tetapan aplikasi dan diurus melalui `src/lib/memory/settings.ts`:
 
-| Tetapan                       | Kekunci Env/Konfigurasi  | Lalai      | Penerangan                                       |
+| Tetapan                       | Kunci Env/Konfigurasi    | Lalai      | Perihalan                                        |
 | ----------------------------- | ------------------------ | ---------- | ------------------------------------------------ |
 | Bahagian belakang utama       | `memoryPrimaryBackend`   | `"sqlite"` | ID bahagian belakang utama                       |
-| Bahagian belakang sandaran    | `memoryFallbackBackends` | `[]`       | ID bahagian belakang sandaran tersusun           |
+| Bahagian belakang fallback    | `memoryFallbackBackends` | `[]`       | ID bahagian belakang fallback berurutan          |
 | Konfigurasi bahagian belakang | `memoryBackendConfigs`   | `{}`       | Penggantian konfigurasi setiap bahagian belakang |
 
 Tetapan dinormalkan melalui `normalizeMemorySettings()` dan dicache pada `getMemorySettings()`.
@@ -1061,22 +1120,23 @@ Tetapan dinormalkan melalui `normalizeMemorySettings()` dan dicache pada `getMem
 ### Aliran Pengawalan
 
 ```
-But aplikasi
+Pemulaan aplikasi
   → import index.ts (kesan sampingan): mendaftarkan SQLiteBackend
   → initMemoryBackends() dipanggil daripada kitaran hayat aplikasi:
       1. Muatkan tetapan (getMemorySettings)
-      2. Konfigurasikan bahagian belakang utama + sandaran
-      3. Awalkan semua bahagian belakang (semakan kesihatan)
-      4. Sedia untuk permintaan
+      1b. Daftarkan bahagian belakang ikut serta yang terdapat dalam backendConfigs (claude-mem)
+      2. Konfigurasikan bahagian belakang utama + fallback
+      3. Awalkan semua bahagian belakang (pemeriksaan kesihatan)
+      4. Sedia untuk menerima permintaan
 ```
 
 ### Menambah Bahagian Belakang Baharu
 
 1. **Laksanakan antara muka `MemoryBackend`** dalam `src/lib/memory/<name>Backend.ts`
 2. **Eksport** daripada `src/lib/memory/index.ts`
-3. **Daftarkan** dengan `memoryManager.register(yourBackend)` semasa but
+3. **Daftar** dengan `memoryManager.register(yourBackend)` semasa pemulaan
 4. **Konfigurasikan** melalui tetapan: tetapkan `memoryPrimaryBackend` kepada ID bahagian belakang anda
-5. **Uji** dengan `src/lib/memory/__tests__/generic-backend.test.ts` sebagai rujukan
+5. **Uji** dengan menggunakan `src/lib/memory/__tests__/generic-backend.test.ts` sebagai rujukan
 
 #### Contoh: Bahagian Belakang Brain
 
@@ -1104,17 +1164,17 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Output yang dijangkakan: **35 ujian, semuanya lulus** merangkumi:
+Output yang dijangka: **35 ujian, semuanya lulus** yang merangkumi:
 
 - Pembina (2)
-- Semakan kesihatan (4) — berjaya, kegagalan 500, ralat rangkaian, kependaman
+- Pemeriksaan kesihatan (4) — berjaya, kegagalan 500, ralat rangkaian, kependaman
 - Pengawalan (2) — berjaya, gagal
 - Cipta (2) — titik akhir lalai, titik akhir tersuai
 - Dapatkan (4) — berjaya, 404 → null, bukan 404 melontarkan ralat, parameter laluan tersuai
 - Kemas kini (2) — berjaya, 404 → false
 - Padam (2) — berjaya, 404 → false
 - Senarai (2) — parameter pertanyaan, nama parameter tersuai
-- Carian (3) — parameter pertanyaan, titik akhir tersuai, penserialan pilihan
+- Carian (3) — parameter pertanyaan, titik akhir tersuai, penyerasian pilihan
 - Pengepala pengesahan (2) — token Bearer, pengepala tersuai
 - Kilang (1)
 
@@ -1124,4 +1184,4 @@ Output yang dijangkakan: **35 ujian, semuanya lulus** merangkumi:
 npm run typecheck:core
 ```
 
-Dijangkakan: **0 ralat**.
+Dijangka: **0 ralat**.

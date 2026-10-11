@@ -4,104 +4,154 @@
 
 ---
 
-Žiniatinklio slapukų teikėjai leidžia „OmniRoute“ naudotis DI paslauga per esamą naršyklės seansą, o ne naudojant API raktą. Jie naudingi, kai jau turite prieigą prie paslaugos per jos svetainę ir norite, kad „OmniRoute“ naudotų tą patį autentifikuotą seansą.
+Žiniatinklio slapukų teikėjai leidžia „OmniRoute“ naudoti DI paslaugą per esamą naršyklės seansą, o ne API raktą. Jie naudingi, kai jau turite prieigą prie paslaugos per jos svetainę ir norite, kad „OmniRoute“ naudotų tą patį autentifikuotą seansą.
 
-Kitaip nei API raktų teikėjai, žiniatinklio slapukų teikėjai autentifikavimui naudoja prisijungimo duomenis, kuriuos jūsų naršyklė siunčia svetainei.
+Kitaip nei API raktų teikėjai, žiniatinklio slapukų teikėjai autentifikuoja naudodami kredencialus, kuriuos jūsų naršyklė siunčia svetainei.
 
 ---
 
 # Prieš pradedant
 
-> **Svarbu:** prisijungimo duomenis visada kopijuokite iš **vykdomos tinklo užklausos**, o **ne** iš naršyklės slapukų saugyklos.
+> **Svarbu:** Visada kopijuokite kredencialus iš **aktyvios tinklo užklausos**, **ne** iš naršyklės slapukų saugyklos.
 
-Daugelis autentifikavimo problemų kyla dėl to, kad slapukai nukopijuojami iš netinkamos vietos.
+Daug autentifikavimo problemų kyla dėl slapukų kopijavimo iš netinkamos vietos.
 
 ## Nekopijuokite iš slapukų saugyklos
 
-Daugumoje naršyklių saugomus slapukus galima pasiekti per:
+Dauguma naršyklių saugomus slapukus rodo čia:
 
 ```
-Kūrėjo įrankiai
-→ Programa (arba Saugykla)
-→ Slapukai
+DevTools
+→ Application (arba Storage)
+→ Cookies
 ```
 
 Nors šie slapukai atrodo tinkami, jie gali būti:
 
 - pasenę
 - neišsamūs
-- be slapukų, siunčiamų tik autentifikuotose užklausose
+- be slapukų, siunčiamų tik su autentifikuotomis užklausomis
 
-Naudojant šias reikšmes autentifikavimas gali nepavykti, net jei jos atrodo tinkamos.
+Naudojant šias reikšmes gali įvykti autentifikavimo klaidų, net jei jos atrodo galiojančios.
 
-## Kopijuokite iš vykdomos užklausos
+## Kopijuokite iš aktyvios užklausos
 
 Vietoje to naudokite sėkmingos užklausos slapukus:
 
 ```
-Kūrėjo įrankiai
-→ Tinklas
+DevTools
+→ Network
 → Atnaujinkite puslapį
-→ Atidarykite pokalbio užklausą
-→ Užklausos antraštės
+→ Atidarykite pokalbio ar dialogo užklausą
+→ Request Headers
 → Cookie
 ```
 
-Užklausos antraštėje `Cookie` pateikiama tiksli autentifikavimo informacija, kurią jūsų naršyklė sėkmingai panaudojo.
+Užklausos `Cookie` antraštėje pateikiama tiksli autentifikavimo informacija, kurią jūsų naršyklė sėkmingai panaudojo.
 
 Daugumai žiniatinklio slapukų teikėjų būtent šią reikšmę reikia įklijuoti į „OmniRoute“.
 
 ---
 
-# Bendrasis konfigūravimas
+# Bendroji sąranka
 
-Daugumos žiniatinklio slapukų teikėjų konfigūravimo procesas yra toks pats.
+Daugumos žiniatinklio slapukų teikėjų sąrankos procesas yra toks pats.
 
 1. Prisijunkite prie teikėjo svetainės.
 2. Atidarykite naršyklės kūrėjo įrankius.
-3. Atidarykite skirtuką **Tinklas**.
+3. Atidarykite skirtuką **Network**.
 4. Atnaujinkite puslapį.
-5. Atidarykite autentifikuotą pokalbio užklausą.
-6. Nukopijuokite reikiamus autentifikavimo duomenis.
+5. Atidarykite autentifikuotą pokalbio ar dialogo užklausą.
+6. Nukopijuokite reikiamus autentifikavimo kredencialus.
 7. Atidarykite „OmniRoute“.
-8. Eikite į **Teikėjai → Pridėti teikėją**.
+8. Eikite į **Providers → Add Provider**.
 9. Pasirinkite savo žiniatinklio slapukų teikėją.
-10. Įklijuokite prisijungimo duomenis.
-11. Spustelėkite **Tikrinti ryšį**.
+10. Įklijuokite kredencialus.
+11. Spustelėkite **Test Connection**.
 12. Išsaugokite teikėją.
 
-Konkretūs reikiami prisijungimo duomenys priklauso nuo teikėjo.
+Tikslūs reikalingi kredencialai priklauso nuo teikėjo.
 
 ---
 
-# Teikėjų prisijungimo duomenų formatai
+# Teikėjų kredencialų formatai
 
-Skirtingose svetainėse autentifikavimo duomenys saugomi skirtingai. Kai kurioms reikia tik slapukų, o kitoms gali reikėti papildomų antraščių ar prieigos raktų.
+Skirtingos svetainės autentifikavimo informaciją saugo skirtingai. Kai kurioms reikia tik slapukų, o kitoms gali reikėti papildomų antraščių ar prieigos raktų.
 
-| Teikėjas                        | Prisijungimo duomenų formatas    | Teikėjo vadovas                  |
-| ------------------------------- | -------------------------------- | -------------------------------- |
-| Claude Web                      | Visa užklausos antraštė „Cookie“ | `docs/providers/CLAUDE_WEB.md`   |
-| ChatGPT Web (Codex)             | Visa antraštė „Cookie“           | `docs/providers/CHATGPT_WEB.md`  |
-| Gemini Web                      | _(patikrinti)_                   |                                  |
-| Copilot Web                     | _(patikrinti)_                   | `docs/providers/COPILOT-M365.md` |
-| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath    | `docs/providers/COPILOT-M365.md` |
-| Grok Web                        | _(patikrinti)_                   |                                  |
-| ...                             | ...                              | ...                              |
+| Teikėjas                        | Kredencialų formatas           | Teikėjo vadovas                  |
+| ------------------------------- | ------------------------------ | -------------------------------- |
+| Claude Web                      | Visa Cookie užklausos antraštė | `docs/providers/CLAUDE_WEB.md`   |
+| ChatGPT Web (Codex)             | Visa Cookie antraštė           | `docs/providers/CHATGPT_WEB.md`  |
+| Gemini Web                      | _(patikrinti)_                 |                                  |
+| Copilot Web                     | _(patikrinti)_                 | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath  | `docs/providers/COPILOT-M365.md` |
+| Grok Web                        | _(patikrinti)_                 |                                  |
+| ...                             | ...                            | ...                              |
 
 > Atnaujinkite šią lentelę, kai pridedami nauji žiniatinklio slapukų teikėjai arba pasikeičia esamų teikėjų autentifikavimo reikalavimai.
 
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) yra nemokama pokalbių platforma naudotojams, kurioje nereikia registruotis — seansas anonimiškai sukuriamas pirmojo apsilankymo metu ir išsaugomas naudojant tris slapukus: `uid`, `si_usr_id` ir `si_ses_id`. OmniRoute perduoda tą patį `/api/dispatch` galinį tašką per vieną modelio ID (`notrack-c`, alternatyvus pavadinimas `ntw`).
+
+### Prisijungimo veiksmai
+
+1. Naršyklėje atidarykite [notrack.ai](https://notrack.ai) ir leiskite nustatyti anoniminio seanso slapuką.
+2. Atidarykite **DevTools → Network**, atnaujinkite puslapį ir spustelėkite bet kurią `/api` užklausą.
+3. Skiltyje **Request Headers** nukopijuokite visą `Cookie` antraštės reikšmę.
+4. OmniRoute eikite į **Providers → Add Provider → NoTrack Web (Free)**.
+5. Įklijuokite slapukų eilutę į lauką `apiKey` ir spustelėkite **Save**.
+
+OmniRoute iš įklijuotos eilutės išskiria `uid`, `si_usr_id` ir `si_ses_id` bei iš naujo sukuria švarią `Cookie` antraštę, kurioje yra tik šios poros, taip pat `nt_session` (`ntk_…` prieigos raktas, nustatomas prisijungusioms paskyroms), jei jis yra. Jei kurios nors iš šių trijų reikšmių trūksta, neapdorota įklijuota eilutė persiunčiama nepakeista, kad operatoriai galėtų išbandyti alternatyvias struktūras.
+
+### Modelių ID
+
+| Modelio ID  | Rodomas pavadinimas | Pastabos                                                           |
+| ----------- | ------------------- | ------------------------------------------------------------------ |
+| `notrack-c` | NoTrack C           | Numatytasis — pirminio serverio persiuntimo modelis `C`.           |
+| `C`         | NoTrack C           | Alternatyvus `notrack-c` pavadinimas (pirminis persiuntimo kodas). |
+| `notrack`   | NoTrack C           | Alternatyvus `notrack-c` pavadinimas.                              |
+| `ntw`       | NoTrack C           | Trumpas alternatyvus `notrack-c` pavadinimas.                      |
+
+Visi keturi modelių ID susiejami su tuo pačiu pirminio serverio persiuntimo modeliu (`C`).
+
+### Užklausos parinktys
+
+Vykdyklė užklausos turinyje priima šiuos pasirinktinius laukus:
+
+| Turinio laukas        | Numatytoji reikšmė | Paskirtis                                                                              |
+| --------------------- | ------------------ | -------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`            | Persiuntimo režimas (laisvos formos eilutė; pirminis serveris priima `usual`, …)       |
+| `notrack_max_turns`   | `6`                | Vidinių etapų, kuriuos pirminis serveris gali atlikti prieš atsakydamas, skaičius.     |
+| `notrack_chat_id`     | `null`             | Tęsti esamą pirminio serverio pokalbį (praleiskite, jei norite pradėti naują pokalbį). |
+| `notrack_attachments` | `[]`               | Tiesiogiai perduodamas pirminio serverio priedų aprašų masyvas.                        |
+| `notrack_regenerate`  | `false`            | Nustatykite `true`, kad būtų paprašyta iš naujo sugeneruoti ankstesnio etapo atsakymą. |
+
+### Galimybės
+
+- **Srautiniai ir nesrautiniai** pokalbių užbaigimai.
+- **Įrankių iškvietimas** — užklausoje nustatykite `tools: [...]`; vykdyklė serializuoja juos į įrankių iškvietimo apvalkalo sutartį ir modelio atsakymus vėl paverčia OpenAI `tool_calls`.
+- **`response_format`** — palaikomi `json_object` ir `json_schema`. Vykdyklė iš modelio atsakymo išskiria pirmąjį JSON objektą, paverčia jį eilute ir tada grąžina.
+- **Samprotavimo užuomina** — vykdyklė išleidžia `reasoning` pokytį, kai pirminis serveris siunčia `thinking` įvykį.
+
+### Apribojimai
+
+- Pirminis serveris taiko anoniminio naudojimo kvotas — jas viršijus vykdyklė pateikia 429 būseną su aiškiu pranešimu.
+- Visi modelių ID susiejami su tuo pačiu pirminio serverio persiuntimo modeliu; atskirai perjungti modelių negalima.
+- Vykdyklė nekviečia pirminio serverio `/api/chats` galinio taško, todėl pokalbių istorija ir seansai nėra tvarkomi automatiškai. Norėdami tęsti esamą pirminio serverio pokalbį, naudokite `notrack_chat_id`.
+
 ---
 
-# Ką žiniatinklio slapukų teikėjai gali ir ko negali atlikti
+# Ką žiniatinklio slapukų teikėjai gali ir ko negali
 
 Žiniatinklio slapukų teikėjai pakartotinai naudoja svetainės pokalbių sąsają. Jie **nesuteikia** tokių pačių galimybių kaip oficialios API.
 
 ## Palaikoma
 
-- Autentifikavimas naudojant esamą naršyklės seansą
-- Prieiga prie jūsų paskyroje pasiekiamų modelių
-- Pokalbių atsakymų srautinis perdavimas
-- API raktas nereikalingas
+- Autentifikuotis naudojant esamą naršyklės seansą
+- Pasiekti per jūsų paskyrą prieinamus modelius
+- Gauti pokalbio atsakymus srautiniu būdu
+- API rakto nereikia
 
 ## Nepalaikoma
 
@@ -113,17 +163,17 @@ Skirtingose svetainėse autentifikavimo duomenys saugomi skirtingai. Kai kurioms
 
 Tai yra numatyta elgsena ir **nėra** klaida.
 
-Jei reikia vykdyti įrankius, automatiškai redaguoti failus ar naudoti kitas agentų darbo eigas, vietoje žiniatinklio slapukų teikėjo naudokite **API rakto teikėją**.
+Jei jums reikia vykdyti įrankius, automatiškai redaguoti failus ar naudoti kitas agentines darbo eigas, vietoje žiniatinklio slapukų teikėjo naudokite **API rakto teikėją**.
 
 ---
 
-# Patikros apribojimas
+# Tikrinimo apribojimas
 
-Sėkmingas **Ryšio tikrinimas** arba slapukų patikra tik patvirtina, kad pateikti prisijungimo duomenys atrodo esantys numatyto formato.
+Sėkmingas **Test Connection** arba slapukų patikrinimas tik patvirtina, kad pateikti prisijungimo duomenys, panašu, yra numatyto formato.
 
-Kol nebus išspręsta problema #7857, sėkminga patikra **negarantuoja**, kad teikėjas bus sėkmingai autentifikuotas.
+Kol nebus išspręsta problema #7857, sėkmingas patikrinimas **negarantuoja**, kad teikėjui pavyks sėkmingai autentifikuotis.
 
-Jei autentifikavimas vis tiek nepavyksta, patikrinkite, ar prisijungimo duomenis nukopijavote iš vykdomos tinklo užklausos, o ne iš naršyklės slapukų saugyklos.
+Jei autentifikavimas vis tiek nepavyksta, patikrinkite, ar prisijungimo duomenis nukopijavote iš aktyvios tinklo užklausos, o ne iš naršyklės slapukų saugyklos.
 
 ---
 
@@ -134,39 +184,39 @@ Jei autentifikavimas vis tiek nepavyksta, patikrinkite, ar prisijungimo duomenis
 Patikrinkite, ar prisijungimo duomenys buvo nukopijuoti iš:
 
 ```
-Tinklas
-→ Užklausos antraštės
+Network
+→ Request Headers
 → Cookie
 ```
 
 o **ne** iš:
 
 ```
-Programa
-→ Slapukai
+Application
+→ Cookies
 ```
 
 ---
 
 ## Slapukas veikia naršyklėje, bet neveikia „OmniRoute“
 
-Kai kurie teikėjai įtraukia slapukus, siunčiamus tik autentifikuotų užklausų metu.
+Kai kurie teikėjai įtraukia slapukus, kurie siunčiami tik autentifikuotų užklausų metu.
 
 Sėkmingai atidarę pokalbį, dar kartą nukopijuokite prisijungimo duomenis iš naujos tinklo užklausos.
 
 ---
 
-## Seanso galiojimas baigėsi
+## Seansas baigėsi
 
-Žiniatinklio slapukų teikėjai naudoja esamą naršyklės seansą.
+Žiniatinklio slapukų teikėjai naudoja jūsų esamą naršyklės seansą.
 
-Jei naršyklės seanso galiojimas baigiasi arba atsijungiate, turite nukopijuoti naują prisijungimo duomenų rinkinį.
+Jei naršyklės seansas baigiasi arba atsijungiate, turite nukopijuoti naują prisijungimo duomenų rinkinį. Norėdami automatizuoti palaikomų žiniatinklio teikėjų slapukų atnaujinimą, žr. papildomą įrankį [Naršyklės seanso sinchronizavimo plėtinys](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-## Ryšio patikra sėkminga, bet užklausos nepavyksta
+## Ryšio testas sėkmingas, bet užklausos nepavyksta
 
-Kol nebus išspręsta problema #7857, sėkminga patikra negarantuoja, kad autentifikavimo užklausa bus sėkminga.
+Kol nebus išspręsta problema #7857, sėkmingas patikrinimas negarantuoja, kad autentifikavimo užklausa bus sėkminga.
 
 Prieš tęsdami trikčių šalinimą, dar kartą nukopijuokite prisijungimo duomenis iš naujos autentifikuotos užklausos.
 
@@ -174,18 +224,18 @@ Prieš tęsdami trikčių šalinimą, dar kartą nukopijuokite prisijungimo duom
 
 # Teikėjo pavyzdys
 
-Išsamų konkretaus teikėjo konfigūravimo vadovą rasite čia:
+Išsamias konkrečiam teikėjui skirtas instrukcijas rasite čia:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-„Claude Web“ vadove demonstruojamas visas žiniatinklio slapukų teikėjo konfigūravimo procesas ir jis naudojamas kaip etaloninis įgyvendinimas.
+„Claude Web“ vadove pateikiamas visas žiniatinklio slapukų teikėjo sąrankos procesas ir jis naudojamas kaip etaloninis įgyvendinimas.
 
 ---
 
 # Geriausios praktikos
 
 - Kopijuokite prisijungimo duomenis iš naujos autentifikuotos užklausos.
-- Nenaudokite senų slapukų pakartotinai.
-- Naudodami žiniatinklio slapukų teikėjus palaikykite aktyvų naršyklės seansą.
+- Venkite pakartotinai naudoti senus slapukus.
+- Naudodami žiniatinklio slapukų teikėjus, palaikykite aktyvų naršyklės seansą.
 - Nukopijuotus slapukus laikykite neskelbtinais prisijungimo duomenimis.
-- Kai reikia iškviesti funkcijas ar naudoti agentų darbo eigas, naudokite API raktų teikėjus.
+- Kai reikia iškviesti funkcijas ar naudoti agentines darbo eigas, rinkitės API rakto teikėjus.

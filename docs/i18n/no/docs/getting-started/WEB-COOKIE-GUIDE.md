@@ -4,15 +4,15 @@
 
 ---
 
-Web Cookie-leverandører lar OmniRoute bruke en KI-tjeneste via den eksisterende nettleserøkten din i stedet for en API-nøkkel. De er nyttige når du allerede har tilgang til en tjeneste via nettstedet og vil at OmniRoute skal bruke den samme autentiserte økten.
+Web Cookie-leverandører lar OmniRoute bruke en KI-tjeneste gjennom den eksisterende nettleserøkten din i stedet for en API-nøkkel. De er nyttige når du allerede har tilgang til en tjeneste via nettstedet og vil at OmniRoute skal bruke den samme autentiserte økten.
 
-I motsetning til leverandører som bruker API-nøkler, autentiserer Web Cookie-leverandører ved hjelp av legitimasjonen som nettleseren din sender til nettstedet.
+I motsetning til leverandører som bruker API-nøkler, autentiserer Web Cookie-leverandører ved hjelp av påloggingsopplysningene nettleseren din sender til nettstedet.
 
 ---
 
 # Før du begynner
 
-> **Viktig:** Kopier alltid legitimasjon fra en **aktiv nettverksforespørsel**, **ikke** fra nettleserens informasjonskapsellager.
+> **Viktig:** Kopier alltid påloggingsopplysninger fra en **aktiv nettverksforespørsel**, **ikke** fra nettleserens informasjonskapsellager.
 
 Mange autentiseringsproblemer skyldes at informasjonskapsler kopieres fra feil sted.
 
@@ -32,7 +32,7 @@ Selv om disse informasjonskapslene ser riktige ut, kan de være:
 - ufullstendige
 - uten informasjonskapsler som bare sendes ved autentiserte forespørsler
 
-Bruk av disse verdiene kan føre til autentiseringsfeil selv om de ser gyldige ut.
+Bruk av disse verdiene kan føre til autentiseringsfeil, selv om de ser gyldige ut.
 
 ## Kopier fra en aktiv forespørsel
 
@@ -47,7 +47,7 @@ DevTools
 → Cookie
 ```
 
-Forespørselshodet `Cookie` inneholder nøyaktig den autentiseringsinformasjonen som nettleseren din brukte.
+Forespørselshodet `Cookie` inneholder den nøyaktige autentiseringsinformasjonen som nettleseren din brukte.
 
 For de fleste Web Cookie-leverandører er dette verdien som skal limes inn i OmniRoute.
 
@@ -58,52 +58,102 @@ For de fleste Web Cookie-leverandører er dette verdien som skal limes inn i Omn
 Oppsettsprosessen er den samme for de fleste Web Cookie-leverandører.
 
 1. Logg på leverandørens nettsted.
-2. Åpne utviklerverktøyene i nettleseren.
+2. Åpne nettleserens utviklerverktøy.
 3. Åpne fanen **Network**.
 4. Oppdater siden.
 5. Åpne en autentisert chat- eller samtaleforespørsel.
-6. Kopier den nødvendige autentiseringslegitimasjonen.
+6. Kopier de nødvendige autentiseringsopplysningene.
 7. Åpne OmniRoute.
 8. Gå til **Providers → Add Provider**.
 9. Velg Web Cookie-leverandøren din.
-10. Lim inn legitimasjonen.
+10. Lim inn påloggingsopplysningene.
 11. Klikk på **Test Connection**.
 12. Lagre leverandøren.
 
-Hvilken legitimasjon som kreves, avhenger av leverandøren.
+Hvilke påloggingsopplysninger som kreves, avhenger av leverandøren.
 
 ---
 
-# Formater for leverandørlegitimasjon
+# Formater for leverandørpåloggingsopplysninger
 
-Ulike nettsteder lagrer autentisering på forskjellige måter. Noen krever bare informasjonskapsler, mens andre kan kreve ytterligere hoder eller tokener.
+Ulike nettsteder lagrer autentiseringsinformasjon på forskjellige måter. Noen krever bare informasjonskapsler, mens andre kan kreve flere hoder eller tokener.
 
-| Leverandør                      | Legitimasjonsformat                 | Leverandørveiledning             |
+| Leverandør                      | Format for påloggingsopplysninger   | Leverandørveiledning             |
 | ------------------------------- | ----------------------------------- | -------------------------------- |
 | Claude Web                      | Fullstendig Cookie-forespørselshode | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Fullstendig Cookie-hode             | `docs/providers/CHATGPT_WEB.md`  |
-| Gemini Web                      | _(verifiser)_                       |                                  |
-| Copilot Web                     | _(verifiser)_                       | `docs/providers/COPILOT-M365.md` |
+| Gemini Web                      | _(må bekreftes)_                    |                                  |
+| Copilot Web                     | _(må bekreftes)_                    | `docs/providers/COPILOT-M365.md` |
 | Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath       | `docs/providers/COPILOT-M365.md` |
-| Grok Web                        | _(verifiser)_                       |                                  |
+| Grok Web                        | _(må bekreftes)_                    |                                  |
 | ...                             | ...                                 | ...                              |
 
 > Oppdater denne tabellen etter hvert som nye Web Cookie-leverandører legges til, eller eksisterende leverandører endrer autentiseringskravene sine.
 
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) er en gratis chatteplattform for forbrukere som ikke krever registrering — økten opprettes anonymt ved første besøk og opprettholdes via tre informasjonskapsler: `uid`, `si_usr_id` og `si_ses_id`. OmniRoute videresender det samme `/api/dispatch`-endepunktet via én enkelt modell-ID (`notrack-c`, alias `ntw`).
+
+### Fremgangsmåte for tilkobling
+
+1. Åpne [notrack.ai](https://notrack.ai) i nettleseren din, og la den anonyme informasjonskapselen for økten bli angitt.
+2. Åpne **Utviklerverktøy → Nettverk**, oppdater siden, og klikk på en vilkårlig `/api`-forespørsel.
+3. Under **Forespørselshoder** kopierer du hele verdien til `Cookie`-hodet.
+4. I OmniRoute går du til **Leverandører → Legg til leverandør → NoTrack Web (gratis)**.
+5. Lim inn informasjonskapselstrengen i `apiKey`-feltet, og klikk på **Lagre**.
+
+OmniRoute trekker ut `uid`, `si_usr_id` og `si_ses_id` fra den innlimte strengen og bygger et rent `Cookie`-hode med bare disse parene — i tillegg til `nt_session` (`ntk_…`-tokenet som angis for innloggede kontoer) når det finnes. Hvis én eller flere av de tre mangler, videresendes den rå, innlimte strengen uendret, slik at operatører kan eksperimentere med alternative formater.
+
+### Modell-ID-er
+
+| Modell-ID   | Visningsnavn | Merknader                                           |
+| ----------- | ------------ | --------------------------------------------------- |
+| `notrack-c` | NoTrack C    | Standard — oppstrøms dispatch-modell `C`.           |
+| `C`         | NoTrack C    | Alias for `notrack-c` (rå oppstrøms dispatch-kode). |
+| `notrack`   | NoTrack C    | Alias for `notrack-c`.                              |
+| `ntw`       | NoTrack C    | Kort alias for `notrack-c`.                         |
+
+Alle de fire modell-ID-ene tilordnes den samme oppstrøms dispatch-modellen (`C`).
+
+### Forespørselsalternativer
+
+Eksekvereren godtar disse valgfrie feltene i forespørselskroppen:
+
+| Felt i forespørselskroppen | Standard | Formål                                                                |
+| -------------------------- | -------- | --------------------------------------------------------------------- |
+| `notrack_mode`             | `usual`  | Dispatch-modus (fritekststreng; oppstrømstjenesten godtar `usual`, …) |
+| `notrack_max_turns`        | `6`      | Antall interne runder oppstrømstjenesten kan bruke før den svarer.    |
+| `notrack_chat_id`          | `null`   | Fortsett en eksisterende oppstrømschat (utelat for en ny chat).       |
+| `notrack_attachments`      | `[]`     | Videreføringsmatrise med oppstrøms vedleggsbeskrivelser.              |
+| `notrack_regenerate`       | `false`  | Sett til `true` for å be om et regenerert svar på forrige runde.      |
+
+### Funksjoner
+
+- **Strømmende og ikke-strømmende** chatfullføringer.
+- **Verktøykall** — angi `tools: [...]` i forespørselen. Eksekvereren serialiserer dem til en konvoluttkontrakt for verktøykall og analyserer modellens svar tilbake til OpenAI `tool_calls`.
+- **`response_format`** — `json_object` og `json_schema` støttes. Eksekvereren trekker ut det første JSON-objektet fra modellens svar og konverterer det til en streng før det returneres.
+- **Resonneringshint** — eksekvereren sender en `reasoning`-delta når oppstrømstjenesten sender en `thinking`-hendelse.
+
+### Begrensninger
+
+- Oppstrømstjenesten håndhever brukskvoter for anonyme brukere — når disse overskrides, returnerer eksekvereren en 429-feil med en brukervennlig melding.
+- Alle modell-ID-er peker til den samme oppstrøms dispatch-modellen. Det finnes ingen modellspesifikk veksling.
+- Eksekvereren kaller ikke oppstrømstjenestens `/api/chats`-endepunkt, så chatlogg/økter administreres ikke automatisk. Bruk `notrack_chat_id` for å fortsette en eksisterende oppstrømschat.
+
 ---
 
-# Hva Web Cookie-leverandører kan og ikke kan gjøre
+# Hva leverandører basert på nettinformasjonskapsler kan og ikke kan gjøre
 
-Web Cookie-leverandører gjenbruker chatgrensesnittet på et nettsted. De tilbyr **ikke** de samme funksjonene som offisielle API-er.
+Leverandører basert på nettinformasjonskapsler gjenbruker et nettsteds chattegrensesnitt. De tilbyr **ikke** de samme funksjonene som offisielle API-er.
 
-## Støttes
+## Støttet
 
-- Autentisering ved hjelp av den eksisterende nettleserøkten din
+- Autentisering med den eksisterende nettleserøkten din
 - Tilgang til modeller som er tilgjengelige via kontoen din
 - Strømming av chatsvar
 - Ingen API-nøkkel kreves
 
-## Støttes ikke
+## Ikke støttet
 
 - Funksjonskall
 - Verktøykall
@@ -111,19 +161,19 @@ Web Cookie-leverandører gjenbruker chatgrensesnittet på et nettsted. De tilbyr
 - Agentbaserte IDE-arbeidsflyter
 - Funksjoner som bare er tilgjengelige via API
 
-Dette er forventet atferd og er **ikke** en feil.
+Dette er forventet oppførsel og er **ikke** en feil.
 
-Hvis du trenger verktøykjøring, automatisk filredigering eller andre agentbaserte arbeidsflyter, bør du bruke en **API-nøkkelleverandør** i stedet for en Web Cookie-leverandør.
+Hvis du trenger kjøring av verktøy, automatisk filredigering eller andre agentbaserte arbeidsflyter, bruker du en **API-nøkkelleverandør** i stedet for en Web Cookie-leverandør.
 
 ---
 
 # Forbehold om validering
 
-En vellykket **Test Connection** eller validering av informasjonskapsler bekrefter bare at den oppgitte legitimasjonen ser ut til å ha forventet format.
+En vellykket **Test Connection** eller validering av informasjonskapsler bekrefter bare at den angitte påloggingsinformasjonen ser ut til å være i forventet format.
 
-Inntil Issue #7857 er løst, vil en vellykket validering **ikke garantere** at leverandøren kan autentisere.
+Inntil Issue #7857 er løst, er en vellykket validering **ingen garanti** for at leverandøren kan autentisere.
 
-Hvis autentiseringen fortsatt mislykkes, må du kontrollere at du kopierte legitimasjonen fra en aktiv nettverksforespørsel og ikke fra nettleserens informasjonskapsellager.
+Hvis autentiseringen fortsatt mislykkes, må du kontrollere at du kopierte påloggingsinformasjonen fra en aktiv nettverksforespørsel og ikke fra nettleserens lagring av informasjonskapsler.
 
 ---
 
@@ -131,7 +181,7 @@ Hvis autentiseringen fortsatt mislykkes, må du kontrollere at du kopierte legit
 
 ## Autentisering mislykkes
 
-Kontroller at legitimasjonen ble kopiert fra:
+Kontroller at påloggingsinformasjonen ble kopiert fra:
 
 ```
 Network
@@ -152,7 +202,7 @@ Application
 
 Noen leverandører inkluderer informasjonskapsler som bare sendes under autentiserte forespørsler.
 
-Kopier legitimasjonen på nytt fra en fersk nettverksforespørsel etter at du har åpnet en samtale.
+Kopier påloggingsinformasjonen på nytt fra en fersk nettverksforespørsel etter at du har åpnet en samtale.
 
 ---
 
@@ -160,32 +210,32 @@ Kopier legitimasjonen på nytt fra en fersk nettverksforespørsel etter at du ha
 
 Web Cookie-leverandører bruker den eksisterende nettleserøkten din.
 
-Hvis nettleserøkten utløper eller du logger av, må du kopiere et nytt sett med legitimasjon.
+Hvis nettleserøkten utløper eller du logger av, må du kopiere et nytt sett med påloggingsinformasjon. Hvis du vil automatisere fornyelse av informasjonskapsler for støttede nettleverandører, kan du se tilleggsverktøyet [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-## Test Connection lykkes, men forespørsler mislykkes
+## Test Connection består, men forespørsler mislykkes
 
-Inntil Issue #7857 er løst, garanterer ikke bestått validering at autentiseringsforespørselen vil lykkes.
+Inntil Issue #7857 er løst, er bestått validering ingen garanti for at autentiseringsforespørselen vil lykkes.
 
-Kopier legitimasjonen på nytt fra en fersk autentisert forespørsel før du fortsetter feilsøkingen.
+Kopier påloggingsinformasjonen på nytt fra en fersk autentisert forespørsel før du fortsetter feilsøkingen.
 
 ---
 
-# Eksempel på leverandør
+# Leverandøreksempel
 
-Du finner en fullstendig leverandørspesifikk gjennomgang her:
+Du finner en komplett leverandørspesifikk veiledning her:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Claude Web-veiledningen viser hele oppsettsprosessen for en Web Cookie-leverandør og fungerer som referanseimplementasjon.
+Claude Web-veiledningen viser hele konfigurasjonsprosessen for en Web Cookie-leverandør og fungerer som referanseimplementasjon.
 
 ---
 
 # Anbefalte fremgangsmåter
 
-- Kopier legitimasjon fra en fersk autentisert forespørsel.
+- Kopier påloggingsinformasjon fra en fersk autentisert forespørsel.
 - Unngå å gjenbruke gamle informasjonskapsler.
 - Hold nettleserøkten aktiv mens du bruker Web Cookie-leverandører.
-- Behandle kopierte informasjonskapsler som sensitiv legitimasjon.
+- Behandle kopierte informasjonskapsler som sensitiv påloggingsinformasjon.
 - Bruk API-nøkkelleverandører når du trenger funksjonskall eller agentbaserte arbeidsflyter.

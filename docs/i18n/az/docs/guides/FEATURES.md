@@ -315,14 +315,14 @@ Konfiqurasiya paketi `src/lib/sync/bundle.ts` tərəfindən yaradılır. İstehl
 
 ---
 
-## 🛡️ Təhlükəsiz Xarici Sorğular və SSRF Qoruması _(v3.6.6+)_
+## 🛡️ Təhlükəsiz xarici sorğular və SSRF qoruması _(v3.6.6+)_
 
-Bütün provayder doğrulama və model aşkarlama çağırışları artıq ikiqat xarici bağlantı qorumasından keçir:
+Bütün provayder doğrulama və model aşkarlama çağırışları indi ikiqat xarici sorğu qorumasından keçir:
 
-1. **URL qoruması** (`src/shared/network/outboundUrlGuard.ts`) — Soket açılmazdan əvvəl özəl, geridöngə və lokal bağlantı IP diapazonlarını bloklayır.
-2. **Təhlükəsiz fetch örtüyü** (`src/shared/network/safeOutboundFetch.ts`) — URL qorumasını tətbiq edir, vaxt aşımlarını normallaşdırır və keçici xətalar zamanı eksponensial gecikmə ilə yenidən cəhd edir.
+1. **URL qoruması** (`src/shared/network/outboundUrlGuard.ts`) — Əvvəlcə hədəfin hostname-ini və ya IP literalını yazıldığı formada yoxlayır; yalnız ictimai şəbəkə rejimində təhlükəsiz sorğu örtüyü həmçinin adı rezolv edir və özəl ünvanlara uyğun gələn nəticələri rədd edir. Defolt olaraq bulud metadata son nöqtələrini — bütün 169.254.0.0/16 diapazonunu və məlum metadata hostname-lərini bloklayır; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` özəl və loopback hostlarını da bloklayır; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (və ya köhnə `OUTBOUND_SSRF_GUARD_ENABLED=false`) yoxlamaları söndürür. Bayrağın idarəetmə panelindəki keçid vasitəsilə yadda saxlanılmış dəyər onun dəyişənindən daha yüksək prioritetə malikdir və daxili lokal provayderlər açar doğrulaması zamanı qorumanı ötür. Baxın: `docs/reference/ENVIRONMENT.md`.
+2. **Təhlükəsiz sorğu örtüyü** (`src/shared/network/safeOutboundFetch.ts`) — URL qorumasını tətbiq edir, taymautları normallaşdırır və müvəqqəti xətalar baş verdikdə eksponensial gecikmə ilə yenidən cəhd edir.
 
-Qoruma qaydalarının pozulması HTTP 422 (`URL_GUARD_BLOCKED`) kimi göstərilir və `providerAudit.ts` vasitəsilə uyğunluq audit jurnalına yazılır.
+Qoruma pozuntuları `URL_GUARD_BLOCKED` kimi təqdim olunur — `getSafeOutboundFetchErrorStatus` vasitəsilə HTTP 503 (model aşkarlama marşrutunda 400) — və doğrulama zamanı baş verən real SSRF bloklamaları audit jurnalına `provider.validation.ssrf_blocked` hadisələri kimi yazılır.
 
 ---
 

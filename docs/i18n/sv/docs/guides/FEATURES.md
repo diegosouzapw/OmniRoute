@@ -316,14 +316,14 @@ Konfigurationspaketet skapas av `src/lib/sync/bundle.ts`. Konsumenter jämför s
 
 ---
 
-## 🛡️ Säkra utgående hämtningar och SSRF-skydd _(v3.6.6+)_
+## 🛡️ Säkra utgående anrop och SSRF-skydd _(v3.6.6+)_
 
 Alla anrop för leverantörsvalidering och modellidentifiering går nu genom ett utgående skydd i två lager:
 
-1. **URL-skydd** (`src/shared/network/outboundUrlGuard.ts`) — Blockerar privata, lokala och länklokala IP-intervall innan anslutningen öppnas.
-2. **Säker fetch-wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Tillämpar URL-skyddet, normaliserar timeoutvärden och försöker igen vid tillfälliga fel med exponentiell väntetid.
+1. **URL-skydd** (`src/shared/network/outboundUrlGuard.ts`) — Kontrollerar först målets värdnamn eller IP-literal exakt som det har angetts. I läget för enbart publika adresser slår wrappern för säkra anrop även upp namnet och avvisar privata adresser. Som standard blockeras slutpunkter för molnmetadata — hela 169.254.0.0/16 samt de kända värdnamnen för metadata. `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blockerar även privata värdar och loopback-värdar. `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (eller det äldre alternativet `OUTBOUND_SSRF_GUARD_ENABLED=false`) stänger av kontrollerna. Ett värde som sparats via en flaggas växlingsknapp på instrumentpanelen har företräde framför dess variabel, och inbyggda lokala leverantörer kringgår skyddet under nyckelvalideringen. Se `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper för säkra anrop** (`src/shared/network/safeOutboundFetch.ts`) — Tillämpar URL-skyddet, normaliserar tidsgränser och försöker igen vid tillfälliga fel med exponentiell fördröjning.
 
-Överträdelser av skyddsreglerna rapporteras som HTTP 422 (`URL_GUARD_BLOCKED`) och skrivs till granskningsloggen för regelefterlevnad via `providerAudit.ts`.
+Överträdelser av skyddet visas som `URL_GUARD_BLOCKED` — HTTP 503 via `getSafeOutboundFetchErrorStatus` (400 på rutten för modellidentifiering) — och faktiska SSRF-blockeringar under validering skrivs till granskningsloggen som `provider.validation.ssrf_blocked`-händelser.
 
 ---
 

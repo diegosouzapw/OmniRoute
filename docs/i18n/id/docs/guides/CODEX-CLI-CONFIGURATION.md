@@ -293,9 +293,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Perintah ini mengambil `/v1/models`, menggunakan profil yang telah disesuaikan untuk model yang dikenal, menggunakan metadata katalog sebagai cadangan untuk model teks kompatibel lainnya, dan menulis `~/.codex/<name>.config.toml` untuk masing-masing model. Bersifat idempoten — aman untuk dijalankan ulang.
+Perintah tersebut mengambil `/v1/models`, menggunakan profil yang telah disesuaikan untuk model yang dikenali, menggunakan metadata katalog sebagai alternatif untuk model teks lain yang kompatibel, dan menulis `~/.codex/<name>.config.toml` untuk setiap model. Bersifat idempoten — aman untuk dijalankan kembali.
 
-OmniRoute juga dapat **menyinkronkan secara otomatis** file profil yang sama setelah penemuan/impor model penyedia yang berhasil mengubah katalog aktif. Fitur ini **harus diaktifkan secara eksplisit dan dinonaktifkan secara default**: aktifkan dari **dasbor CLI Code** ("Sinkronisasi otomatis profil CLI" → Codex), atau tetapkan `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (fitur ini juga mematuhi `CLI_ALLOW_CONFIG_WRITES`, yang aktif secara default). Saat diaktifkan, fitur ini hanya menulis file profil `~/.codex/*.config.toml` yang terpisah; fitur ini tidak pernah mengubah `~/.codex/config.toml` aktif/default, pengaturan Codex-lb, autentikasi, atau pemilihan penyedia.
+Jika `config.toml` dasar tidak memiliki definisi `model_providers.omniroute`, pemanggilan eksplisit
+`setup-codex` akan menyertakan definisi tersebut dalam setiap overlay yang dibuat, menggunakan endpoint
+lokal atau jarak jauh yang dipilih. File dasar tidak akan diubah. Definisi penyedia yang sudah ada
+akan diwarisi, termasuk endpoint dan pengaturan autentikasinya. TOML dasar yang tidak valid
+akan menghentikan pembuatan sebelum profil ditulis.
+
+Saat Anda memberikan `--api-key` atau `OMNIROUTE_API_KEY`, penyedia yang baru didefinisikan akan merujuk ke
+`env_key = "OMNIROUTE_API_KEY"`; kunci itu sendiri tidak pernah disimpan atau ditampilkan dalam
+pratinjau. Tetapkan variabel tersebut di lingkungan tempat Anda menjalankan Codex. Tanpa
+kunci yang diberikan, definisi baru tidak memiliki persyaratan kunci, untuk instans OmniRoute
+yang dikonfigurasi agar menerima permintaan tanpa autentikasi.
+
+Sinkronisasi otomatis katalog yang bersifat opsional dan dijelaskan di bawah ini mempertahankan definisi penyedia yang sudah
+ada dalam overlay, tetapi tidak melakukan bootstrap terhadap pengaturan penyedia baru; konfigurasikan penyedia
+terlebih dahulu melalui penyiapan eksplisit atau dasbor. Pengaturan penyedia yang sudah ada tidak disertakan
+dalam pratinjau dry-run karena mungkin berisi kredensial yang dikelola oleh operator.
+
+OmniRoute juga dapat **menyinkronkan secara otomatis** file profil yang sama ini setelah proses penemuan/impor model penyedia berhasil mengubah katalog aktif. Fitur ini **bersifat opsional dan dinonaktifkan secara default**: aktifkan dari **dasbor CLI Code** ("Sinkronisasi otomatis profil CLI" → Codex), atau tetapkan `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (fitur ini juga mematuhi `CLI_ALLOW_CONFIG_WRITES`, yang aktif secara default). Saat diaktifkan, fitur ini hanya menulis file profil `~/.codex/*.config.toml` yang terpisah; fitur ini tidak pernah mengubah `~/.codex/config.toml` aktif/default, pengaturan Codex-lb, autentikasi, atau pemilihan penyedia.
 
 ---
 

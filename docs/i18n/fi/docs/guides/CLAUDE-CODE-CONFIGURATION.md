@@ -126,8 +126,8 @@ yksikkötestattu muodostin), jonka renderöi `ClaudeGatewayOnboardingBlock`.
 ## Profiilit (`CLAUDE_CONFIG_DIR`)
 
 Claude Codessa **ei ole natiiveja profiilitiedostoja** (toisin kuin Codexin `~/.codex/<name>.config.toml`).
-Vakiintunut mekanismi on `CLAUDE_CONFIG_DIR` — erillinen määrityshakemisto kullekin
-profiilille, joista jokaisella on oma `settings.json`-tiedostonsa, tunnistetietonsa, historiansa ja välimuistinsa.
+Suositeltu mekanismi on `CLAUDE_CONFIG_DIR` — erillinen määrityshakemisto kullekin
+profiilille, joista jokaisella on omat `settings.json`-tiedostonsa, tunnistetietonsa, historiansa ja välimuistinsa.
 
 `omniroute setup-claude` hakee ajantasaisen `/v1/models`-luettelon ja kirjoittaa yhden
 profiilin mallia kohden polkuun `~/.claude/profiles/<name>/settings.json` käyttäen
@@ -148,18 +148,18 @@ profiilin mallia kohden polkuun `~/.claude/profiles/<name>/settings.json` käytt
 }
 ```
 
-> **Todennustunnusta ei koskaan kirjoiteta profiiliin.** Käynnistä komennolla
+> **Todennustunnistetta ei koskaan kirjoiteta profiiliin.** Käynnistä komennolla
 > `omniroute launch --profile <name>` (se lisää `ANTHROPIC_AUTH_TOKEN`-arvon aktiivisesta
-> kontekstista) tai vie `ANTHROPIC_AUTH_TOKEN` itse ja suorita
+> kontekstista), tai vie `ANTHROPIC_AUTH_TOKEN` itse ja suorita
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
 **Automaattinen synkronointi mallien löytämisen jälkeen (valinnainen).** OmniRoute voi luoda nämä samat
 `~/.claude/profiles/<name>/settings.json`-tiedostot automaattisesti uudelleen aina, kun palveluntarjoajan mallien
 synkronointi muuttaa ajantasaista luetteloa — näin uudet tai uudelleennimetyt mallit saavat profiilit ilman komennon
-suorittamista uudelleen. Se on **oletusarvoisesti pois käytöstä**: ota se käyttöön **CLI Code -hallintapaneelista** ("CLI-profiilien
+suorittamista uudelleen. Se on **oletusarvoisesti pois käytöstä**: ota se käyttöön **CLI Code -koontinäytöstä** ("CLI-profiilien
 automaattinen synkronointi" → Claude Code) tai aseta `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (se huomioi myös
-muuttujan `CLI_ALLOW_CONFIG_WRITES`, joka on oletusarvoisesti käytössä). Kun toiminto on käytössä, se kirjoittaa vain profiilitiedostoja; se ei koskaan
-muuta aktiivista Claude-oletusmääritystäsi, todennustasi tai tiedostoa `~/.claude/settings.json`.
+`CLI_ALLOW_CONFIG_WRITES`-asetuksen, joka on oletusarvoisesti käytössä). Kun toiminto on käytössä, se kirjoittaa vain profiilitiedostoja; se ei koskaan
+muuta aktiivista Claude-oletusmääritystäsi, todennusta tai tiedostoa `~/.claude/settings.json`.
 
 ### Profiilien luominen ja käyttäminen
 
@@ -167,13 +167,17 @@ muuta aktiivista Claude-oletusmääritystäsi, todennustasi tai tiedostoa `~/.cl
 # Paikallinen OmniRoute
 omniroute setup-claude
 
-# VPS-etäpalvelin (sisällyttää VPS:n URL-osoitteen jokaiseen profiiliin)
+# Etä-VPS (sisällyttää VPS:n URL-osoitteen jokaiseen profiiliin)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Vain tietyt palveluntarjoajat
 omniroute setup-claude --only glm,kimi
 
-# Esikatselu kirjoittamatta
+# Kirjoita profiilit myös paikallisille CLI-palveluntarjoajille (zcode, auggie, devin-cli-agentic,
+# codex-app-server), joita ei havaittu tällä koneella (ohitetaan oletusarvoisesti paikalliselle kohteelle)
+omniroute setup-claude --include-local
+
+# Esikatsele kirjoittamatta
 omniroute setup-claude --dry-run
 
 # Käynnistä profiili

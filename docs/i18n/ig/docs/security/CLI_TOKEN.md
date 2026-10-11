@@ -40,19 +40,11 @@ okwuntughe mgbe ọ bụla a kpọrọ iwu.
 | **Enweghị ụzọ ịgafe nchedo `always`** | A na-enyocha `isAlwaysProtectedPath()` tupu nyocha token CLI. `/api/shutdown` na `/api/settings/database` na-achọ JWT mgbe niile.                                                                                                     |
 | **A pụghị ibupụ ya**                  | A naghị ede token ahụ na diski ma ọ bụ tinye ya na ndekọ.                                                                                                                                                                             |
 
-## Salt ndabara (nke a na-emepụta na-enweghị usoro maka nrụnye ọ bụla)
+## Salt ndabara (nke a na-ahọrọ na-enweghị usoro n’oge nrụnye ọ bụla)
 
-Mgbe edoghị `OMNIROUTE_CLI_SALT`, salt ahụ bụ eriri hex mkpụrụedemede 64
-a na-emepụta otu ugboro na-enweghị usoro ma chekwaa na `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
-ọ bụghị literal `omniroute-cli-auth-v1` echekwara n'ime repository. Ma `getActiveSalt()` dị na
-`src/lib/machineToken.ts` na oyiri ya dị na `bin/cli/utils/cliToken.mjs` na-agụ otu
-faịlụ ahụ, ya mere sava na oku CLI ọ bụla na nrụnye a na-eji otu
-uru ahụ; a na-eji literal dị na repository naanị dịka nhọrọ ikpeazụ mgbe enweghị
-salt echekwara ma ọ bụ nke env a pụrụ ịmepụta n'oge ahụ (dịka ọmụmaatụ, nrụnye ọhụrụ
-nwere naanị CLI tupu sava ahụ agba ọsọ ọbụna otu ugboro). Nke a na-emechi adịghị ike dị na literal
-ndabara ochie nke anaghị agbanwe agbanwe: `/etc/machine-id` na-abụkarị faịlụ onye ọ bụla nwere ike ịgụ, ya mere onye ọrụ mpaghara ọ bụla
-gaara enwe ike ịmepụta otu token ahụ maka nrụnye ọ bụla na-edobeghị
-`OMNIROUTE_CLI_SALT`.
+Mgbe edoghị `OMNIROUTE_CLI_SALT`, salt ahụ bụ eriri hex nwere mkpụrụedemede 64 nke a na-ahọrọ na-enweghị usoro, nke a na-emepụta naanị otu ugboro ma chekwaa na `<DATA_DIR>/cli-token-salt.json` (ọnọdụ `0600`) — ọ bụghị literal `omniroute-cli-auth-v1` nke dị na repository. Ma `getActiveSalt()` dị na `src/lib/machineToken.ts` na ụdị ya kwekọrọ dị na `bin/cli/utils/cliToken.mjs` na-agụ otu faịlụ ahụ, ya mere sava na oku CLI ọ bụla na nrụnye a na-eji otu uru ahụ; a na-eji literal dị na repository naanị dịka nhọrọ ndabere ikpeazụ mgbe enweghị ike ịchọta salt echekwara ma ọ bụ nke env (dịka ọmụmaatụ, nrụnye ọhụrụ nwere naanị CLI tupu sava ahụ amalite ịrụ ọrụ). Nke a na-emechi adịghị ike dị na literal ndabara ochie a na-adịghị agbanwe agbanwe: `/etc/machine-id` na-abụkarị nke onye ọ bụla nwere ike ịgụ, ya mere onye ọrụ mpaghara ọ bụla nwere ike ịmepụta otu token ahụ maka nrụnye ọ bụla nke na-edobeghị `OMNIROUTE_CLI_SALT`.
+
+Ọ bụrụ na enweghị ike ịgụ ma ọ bụ mepụta salt ahụ, ma sava ma CLI na-ewepụta otu ịdọ aka ná ntị maka process ọ bụla tupu ha ejiri nhọrọ ndabere ndakọrịta ahụ. Ịdọ aka ná ntị ahụ enweghị salt, token, ụzọ filesystem, ma ọ bụ raw error. Weghachite ohere ịnweta `DATA_DIR` ma ọ bụ tọọ `OMNIROUTE_CLI_SALT`, wee malitegharịa process emetụtara. Ịdọ aka ná ntị ahụ na-eme ka ọdịda ahụ pụta ìhè; ọ naghị eme ka salt ndabere ọha bụrụ nke nzuzo ma ọ bụ gbanyụọ nyocha njirimara CLI. Salt ndị echekwara nke ka dị irè na ntọala environment ndị akọwapụtara kpọmkwem ga-ejigide uru token ha gara aga.
 
 ## Mgbanwe salt
 

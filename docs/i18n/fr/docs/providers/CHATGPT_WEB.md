@@ -33,26 +33,16 @@ ses connexions ne sont pas concernés par ce retrait.
 Le tunnel n’est nécessaire que pour les tours utilisant des outils. Chaque route répertoriée, y compris `pro`, peut utiliser la
 même capacité d’outil locale liée au tour lorsque le tunnel et le connecteur sont configurés.
 
-## Configuration dans le tableau de bord
+## Configuration du tableau de bord
 
 1. Ouvrez le fournisseur **ChatGPT Web (Codex)** et ajoutez une connexion.
-2. Collez l’en-tête Cookie ChatGPT complet, l’identifiant du tunnel, la clé d’exécution et le nom du connecteur
-   personnalisé. Les nouvelles configurations prenant en charge les outils doivent utiliser un connecteur nouvellement créé, nommé exactement
-   `OmniRoute Codex v2`, avec Authentication défini sur None et Permissions défini sur Allow all
-   actions.
-3. Exécutez la vérification de la connexion. OmniRoute ouvre une conversation temporaire soutenue par un navigateur et détecte
-   si Sol et Pro sont disponibles pour le compte.
-4. Enregistrez la connexion. OmniRoute remplace le cookie collé par l’état de stockage Playwright
-   vérifié et le stocke avec la clé d’exécution via l’abstraction chiffrée
-   des identifiants.
+2. Collez l’en-tête Cookie complet de ChatGPT, l’identifiant du tunnel, la clé d’exécution et le nom personnalisé du connecteur. Les nouvelles configurations prenant en charge les outils doivent utiliser un connecteur nouvellement créé nommé exactement `OmniRoute Codex v2`, avec Authentication défini sur None et Permissions défini sur Allow all actions.
+3. Exécutez la vérification de la connexion. OmniRoute ouvre une conversation temporaire reposant sur un navigateur et détecte si Sol et Pro sont disponibles pour le compte.
+4. Enregistrez la connexion. OmniRoute remplace le cookie collé par l’état de stockage Playwright vérifié et le stocke avec la clé d’exécution au moyen de l’abstraction chiffrée des identifiants.
 
-Le cookie brut n’est pas conservé après un enregistrement réussi. Lorsque la session expire, ouvrez
-la connexion, collez un nouvel en-tête Cookie complet et relancez la vérification. L’état du diagnostic
-dans la boîte de dialogue de modification indique séparément l’état du navigateur, de l’état de stockage, de la connexion au compte, de la conversation temporaire, du tunnel,
-du connecteur et de l’aller-retour de l’outil.
+Le cookie brut n’est pas conservé après un enregistrement réussi. Lorsque la session expire, ouvrez la connexion, collez un nouvel en-tête Cookie complet et relancez la vérification. L’état du diagnostic dans la boîte de dialogue de modification indique séparément l’état du navigateur, de l’état de stockage, de la connexion au compte, de la conversation temporaire, du tunnel, du connecteur et de l’aller-retour de l’outil. Pour automatiser les mises à jour des cookies lors du renouvellement des sessions, consultez l’outil complémentaire dans [Extension de synchronisation des sessions du navigateur](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Ne validez jamais dans le dépôt un cookie, une clé d’exécution, un état de stockage ou un jeton de capacité réel. Les valeurs de test et de
-> documentation doivent toujours être des espaces réservés.
+> Ne validez jamais dans le dépôt un cookie réel, une clé d’exécution, un état de stockage ou un jeton de capacité. Les valeurs utilisées dans les tests et la documentation doivent toujours être des valeurs fictives.
 
 ## Modèles et combinaisons
 
@@ -129,7 +119,7 @@ solution de repli HTTP/SSE avant de se connecter au service en amont. Le transfe
 
 ## Vérification
 
-Exécutez les contrôles du fournisseur sans invoquer le fournisseur retiré :
+Exécutez les contrôles du fournisseur sans appeler le fournisseur retiré :
 
 ```bash
 node --import tsx/esm --test \\

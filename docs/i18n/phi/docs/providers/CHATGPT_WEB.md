@@ -33,26 +33,16 @@ ang mga koneksyon nito.
 Kailangan lamang ang tunnel para sa mga turn na gumagamit ng tool. Magagamit ng bawat nakalistang route, kabilang ang `pro`, ang
 parehong lokal na tool capability na nakatali sa turn kapag naka-configure ang tunnel at connector.
 
-## Pag-setup sa dashboard
+## Pag-set up ng dashboard
 
 1. Buksan ang provider na **ChatGPT Web (Codex)** at magdagdag ng koneksyon.
-2. I-paste ang kumpletong ChatGPT Cookie header, tunnel ID, runtime key, at pangalan ng custom connector.
-   Dapat gumamit ang mga bagong setup na may kakayahang gumamit ng tool ng bagong gawang connector na eksaktong pinangalanang
-   `OmniRoute Codex v2`, na nakatakda ang Authentication sa None at ang Permissions sa Allow all
-   actions.
-3. Patakbuhin ang pagsusuri sa koneksyon. Nagbubukas ang OmniRoute ng browser-backed na Temporary Chat at tinutukoy
-   kung available sa account ang Sol at Pro.
-4. I-save ang koneksyon. Pinapalitan ng OmniRoute ang naka-paste na cookie ng na-verify na
-   Playwright storage state at iniimbak ito kasama ng runtime key sa pamamagitan ng encrypted
-   credential abstraction.
+2. I-paste ang buong ChatGPT Cookie header, tunnel ID, runtime key, at pangalan ng custom connector. Ang mga bagong setup na may kakayahang gumamit ng mga tool ay dapat gumamit ng bagong likhang connector na eksaktong pinangalanang `OmniRoute Codex v2`, na nakatakda ang Authentication sa None at ang Permissions sa Allow all actions.
+3. Patakbuhin ang pagsusuri sa koneksyon. Magbubukas ang OmniRoute ng Temporary Chat na sinusuportahan ng browser at tutukuyin kung available ang Sol at Pro para sa account.
+4. I-save ang koneksyon. Papalitan ng OmniRoute ang na-paste na cookie ng napatunayang Playwright storage state at ise-save ito kasama ng runtime key sa pamamagitan ng naka-encrypt na abstraction ng kredensyal.
 
-Hindi pinananatili ang raw cookie pagkatapos ng matagumpay na pag-save. Kapag nag-expire ang session, buksan
-ang koneksyon, mag-paste ng bagong kumpletong Cookie header, at patakbuhing muli ang pagsusuri. Hiwalay na iniuulat ng doctor status
-sa dialog ng pag-edit ang browser, storage state, pag-sign in, Temporary Chat, tunnel,
-connector, at tool round-trip.
+Hindi pananatilihin ang raw cookie pagkatapos ng matagumpay na pag-save. Kapag nag-expire ang session, buksan ang koneksyon, mag-paste ng bagong buong Cookie header, at muling patakbuhin ang pagsusuri. Hiwalay na iniuulat ng doctor status sa dialog ng pag-edit ang browser, storage state, pag-sign in, Temporary Chat, tunnel, connector, at tool round-trip. Upang i-automate ang mga update sa cookie kapag nagpapalit ang mga session, tingnan ang kasamang tool sa [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Huwag kailanman mag-commit ng totoong cookie, runtime key, storage state, o capability token. Ang mga value para sa test at
-> dokumentasyon ay dapat palaging mga placeholder.
+> Huwag kailanman mag-commit ng tunay na cookie, runtime key, storage state, o capability token. Ang mga value para sa pagsubok at dokumentasyon ay dapat palaging mga placeholder.
 
 ## Mga model at combo
 
@@ -138,7 +128,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Matatagpuan ang mga retirement regression guard sa:
+Matatagpuan ang mga pananggalang laban sa regression ng pagtigil sa:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

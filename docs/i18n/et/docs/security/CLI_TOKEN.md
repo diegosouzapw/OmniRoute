@@ -41,20 +41,11 @@ parooli sisestama.
 | **`always`-kaitse möödaviik puudub** | `isAlwaysProtectedPath()` käivitatakse enne CLI loa kontrolli. `/api/shutdown` ja `/api/settings/database` nõuavad alati JWT-d.                                                                                                      |
 | **Mitteeksporditav**                 | Luba ei kirjutata kunagi kettale ega logita.                                                                                                                                                                                         |
 
-## Vaikimisi sool (juhuslik iga installi puhul)
+## Vaikimisi sool (iga installi puhul juhuslik)
 
-Kui `OMNIROUTE_CLI_SALT` pole määratud, on sool juhuslik 64-märgiline
-kuueteistkümnendsüsteemi string, mis genereeritakse üks kord ja salvestatakse faili
-`<DATA_DIR>/cli-token-salt.json` (režiim `0600`) — mitte lähtekoodis sisalduv
-literiaal `omniroute-cli-auth-v1`. Nii `getActiveSalt()` failis
-`src/lib/machineToken.ts` kui ka selle vaste failis `bin/cli/utils/cliToken.mjs` loevad
-sama faili, mistõttu server ja iga selle installi CLI käivitus jõuavad sama
-väärtuseni; lähtekoodis sisalduvat literaali kasutatakse ainult viimase abinõuna, kui
-salvestatud või keskkonnast pärit soola pole veel võimalik määrata (näiteks värske, ainult
-CLI-d sisaldava installi puhul enne serveri esmakordset käivitamist). See kõrvaldab vana
-fikseeritud vaikeliteraali nõrkuse: `/etc/machine-id` on tavaliselt kõigile kasutajatele
-loetav, mistõttu saaks iga kohalik kasutaja muidu tuletada sama loa kõigi installide jaoks,
-milles `OMNIROUTE_CLI_SALT` pole kunagi määratud.
+Kui `OMNIROUTE_CLI_SALT` pole määratud, on sool juhuslik 64-märgiline kuueteistkümnendsüsteemi string, mis genereeritakse üks kord ja salvestatakse püsivalt faili `<DATA_DIR>/cli-token-salt.json` (režiim `0600`) — see ei ole koodihoidlasse lisatud literaal `omniroute-cli-auth-v1`. Nii funktsioon `getActiveSalt()` failis `src/lib/machineToken.ts` kui ka selle vaste failis `bin/cli/utils/cliToken.mjs` loevad sama faili, mistõttu kasutavad server ja selle installi iga CLI-käivitus sama väärtust; koodihoidlasse lisatud literaali kasutatakse viimase abinõuna ainult siis, kui püsivalt salvestatud või keskkonnamuutuja kaudu määratud soola pole veel võimalik kasutada (näiteks värske, ainult CLI-d sisaldava installi korral enne serveri esmakordset käivitamist). See kõrvaldab vana fikseeritud vaikeliteraali nõrkuse: `/etc/machine-id` on sageli kõigile kasutajatele loetav, mistõttu saaks iga kohalik kasutaja muidu tuletada sama tõendi iga installi jaoks, milles pole kunagi muutujat `OMNIROUTE_CLI_SALT` määratud.
+
+Kui soola ei saa lugeda ega luua, väljastavad nii server kui ka CLI enne selle ühilduvuse tagamiseks mõeldud varuvariandi kasutamist ühe hoiatuse protsessi kohta. Hoiatus ei sisalda soola, tõendit, failisüsteemi teed ega töötlemata veateadet. Taastage juurdepääs kataloogile `DATA_DIR` või määrake `OMNIROUTE_CLI_SALT` ja seejärel taaskäivitage mõjutatud protsess. Hoiatus muudab tõrke nähtavaks; see ei muuda avalikku varusoola privaatseks ega keela CLI autentimist. Olemasolevad kehtivad püsivalt salvestatud soolad ja sõnaselged keskkonnamuutuja alistused säilitavad oma varasemad tõendiväärtused.
 
 ## Soola rotatsioon
 

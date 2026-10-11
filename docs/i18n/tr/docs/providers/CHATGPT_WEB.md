@@ -21,17 +21,27 @@
 
 Tünel yalnızca araç turları için gereklidir. `pro` dahil olmak üzere listelenen her rota, tünel ve bağlayıcı yapılandırıldığında aynı tura bağlı yerel araç yeteneğini kullanabilir.
 
-## Pano kurulumu
+## Gösterge paneli kurulumu
 
 1. **ChatGPT Web (Codex)** sağlayıcısını açın ve bir bağlantı ekleyin.
-2. Tam ChatGPT Cookie üstbilgisini, tünel kimliğini, çalışma zamanı anahtarını ve özel bağlayıcı adını yapıştırın. Araç kullanabilen yeni kurulumlar, tam olarak `OmniRoute Codex v2` olarak adlandırılan yeni oluşturulmuş bir bağlayıcı kullanmalı; Authentication değeri None, Permissions değeri ise Allow all actions olarak ayarlanmalıdır.
-3. Bağlantı kontrolünü çalıştırın. OmniRoute, tarayıcı destekli bir Temporary Chat açar ve hesap için Sol ile Pro'nun kullanılabilir olup olmadığını algılar.
-4. Bağlantıyı kaydedin. OmniRoute, yapıştırılan cookie'yi doğrulanmış Playwright depolama durumuyla değiştirir ve şifrelenmiş kimlik bilgisi soyutlaması aracılığıyla çalışma zamanı anahtarıyla birlikte saklar.
+2. Tam ChatGPT Cookie üstbilgisini, tünel kimliğini, çalışma zamanı anahtarını ve özel bağlayıcı
+   adını yapıştırın. Araç özellikli yeni kurulumlarda, adı tam olarak
+   `OmniRoute Codex v2` olan yeni oluşturulmuş bir bağlayıcı kullanılmalı; Authentication değeri None,
+   Permissions değeri ise Allow all actions olarak ayarlanmalıdır.
+3. Bağlantı denetimini çalıştırın. OmniRoute, tarayıcı destekli bir Temporary Chat açar ve
+   hesapta Sol ile Pro'nun kullanılabilir olup olmadığını algılar.
+4. Bağlantıyı kaydedin. OmniRoute, yapıştırılan çerezi doğrulanmış
+   Playwright depolama durumuyla değiştirir ve şifrelenmiş
+   kimlik bilgisi soyutlaması aracılığıyla çalışma zamanı anahtarıyla birlikte saklar.
 
-Başarılı bir kaydetme işleminden sonra ham cookie tutulmaz. Oturumun süresi dolduğunda bağlantıyı açın, yeni bir tam Cookie üstbilgisi yapıştırın ve kontrolü yeniden çalıştırın. Düzenleme iletişim kutusundaki doctor durumu; tarayıcı, depolama durumu, oturum açma, Temporary Chat, tünel, bağlayıcı ve araç gidiş-dönüş durumlarını ayrı ayrı bildirir.
+Başarılı bir kaydetme işleminden sonra ham çerez saklanmaz. Oturumun süresi dolduğunda
+bağlantıyı açın, yeni ve eksiksiz bir Cookie üstbilgisi yapıştırın ve denetimi yeniden çalıştırın. Düzenleme iletişim kutusundaki
+doctor durumu; tarayıcı, depolama durumu, oturum açma, Temporary Chat, tünel,
+bağlayıcı ve araç gidiş dönüşünü ayrı ayrı raporlar. Oturumlar yenilendiğinde çerez güncellemelerini otomatikleştirmek için
+[Tarayıcı Oturumu Eşitleme Uzantısı](../guides/SESSION-SYNC-EXTENSION.md) içindeki yardımcı araca bakın.
 
-> Gerçek bir cookie'yi, çalışma zamanı anahtarını, depolama durumunu veya yetenek belirtecini asla commit etmeyin. Test ve
-> dokümantasyon değerleri her zaman yer tutucu olmalıdır.
+> Gerçek bir çerezi, çalışma zamanı anahtarını, depolama durumunu veya yetenek belirtecini asla işlemeyin.
+> Test ve dokümantasyon değerleri her zaman yer tutucu olmalıdır.
 
 ## Modeller ve kombinasyonlar
 
@@ -79,7 +89,7 @@ Bir kombinasyon ChatGPT Web (Codex) içerdiğinde, Responses WebSocket köprüs�
 
 ## Doğrulama
 
-Kullanımdan kaldırılan sağlayıcıyı çağırmadan sağlayıcı denetimlerini çalıştırın:
+Kullanımdan kaldırılan sağlayıcıyı çağırmadan sağlayıcı kontrollerini çalıştırın:
 
 ```bash
 node --import tsx/esm --test \\
@@ -88,7 +98,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Kullanımdan kaldırma regresyon korumaları şuralarda bulunur:
+Kullanımdan kaldırmaya yönelik regresyon korumaları şu dosyalarda bulunur:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

@@ -177,27 +177,27 @@ L-għodod kollha li jidhru f’`/dashboard/cli-code`. Dawk b’`baseUrlSupport: 
 | antigravity  | Antigravity             | Google              | none           | mitm           | false        |
 | hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | CLI Personalizzat       | —                   | full           | custom-builder | false        |
+| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-L-għodod b’`baseUrlSupport: "partial"` juru tikketta "⚠ URL bażi parzjali" fil-kard tad-dashboard.
+L-għodod b’`baseUrlSupport: "partial"` juru tikketta "⚠ URL Bażi parzjali" fil-kard tad-dashboard.
 ---
 
 ## 2. Katalgu tal-Aġenti CLI (10 għodod)
 
 Aġenti awtonomi li jidhru f’`/dashboard/cli-agents`:
 
-| id           | name             | vendor                   | baseUrlSupport | acpSpawnable |
-| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
-| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
-| openclaw     | OpenClaw         | OSS (P. Steinberger)     | full           | true         |
-| goose        | Goose            | Block / Linux Foundation | full           | true         |
-| interpreter  | Open Interpreter | OSS                      | full           | true         |
-| warp         | Warp AI          | Warp Inc.                | partial        | true         |
-| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
-| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | full           | false        |
-| 5dive        | 5dive            | OSS (5dive-ai)           | full           | false        |
+| id           | isem             | fornitur                 | appoġġ għal baseUrl | jista’ jitnieda b’ACP |
+| ------------ | ---------------- | ------------------------ | ------------------- | --------------------- |
+| hermes-agent | Hermes Agent     | Nous Research            | sħiħ                | le                    |
+| openclaw     | OpenClaw         | OSS (P. Steinberger)     | sħiħ                | iva                   |
+| goose        | Goose            | Block / Linux Foundation | sħiħ                | iva                   |
+| interpreter  | Open Interpreter | OSS                      | sħiħ                | iva                   |
+| warp         | Warp AI          | Warp Inc.                | parzjali            | iva                   |
+| agent-deck   | Agent Deck       | asheshgoplani (OSS)      | sħiħ                | le                    |
+| omp          | Oh My Pi         | OSS                      | sħiħ                | iva                   |
+| letta        | Letta CLI        | Letta                    | sħiħ                | le                    |
+| prime-agent  | Prime Agent      | Prime Intellect (OSS)    | sħiħ                | le                    |
+| 5dive        | 5dive            | OSS (5dive-ai)           | sħiħ                | le                    |
 
 ---
 
@@ -612,13 +612,13 @@ Il-binarju `omniroute` jipprovdi kmandi għaċ-ċiklu tal-ħajja tas-server, il-
 
 ```bash
 omniroute                              # Ibda s-server (port predefinit 20128)
-omniroute setup                        # Assistent interattiv tal-konfigurazzjoni
-omniroute doctor                       # Iċċekkja l-konfigurazzjoni, id-DB, il-ports u r-runtime
+omniroute setup                        # Gwida interattiva għall-konfigurazzjoni
+omniroute doctor                       # Iċċekkja l-konfigurazzjoni, id-DB, il-ports u l-ambjent ta’ eżekuzzjoni
 omniroute providers list               # Konnessjonijiet tal-fornituri kkonfigurati
 omniroute providers test-all           # Ittestja kull konnessjoni attiva
 omniroute reset-password               # Irrisettja l-password tal-amministratur
-omniroute logs                         # Xandar kontinwament il-logs tat-talbiet
-omniroute health                       # Stat dettaljat (breakers, cache, memorja)
+omniroute logs                         # Ittrasmetti r-reġistri tat-talbiet
+omniroute health                       # Stat tas-saħħa dettaljat (breakers, cache, memorja)
 omniroute --version                    # Uri l-verżjoni
 omniroute --help                       # Uri l-kmandi kollha
 ```
@@ -626,7 +626,7 @@ omniroute --help                       # Uri l-kmandi kollha
 ### Konfigurazzjoni u Inizjalizzazzjoni
 
 ```bash
-omniroute setup                        # Assistent interattiv tal-konfigurazzjoni
+omniroute setup                        # Gwida interattiva għall-konfigurazzjoni
 omniroute setup --non-interactive      # Modalità CI/awtomatizzazzjoni (taqra varjabbli tal-ambjent + flags)
 omniroute setup --password '<value>'   # Issettja l-password tal-amministratur direttament
 omniroute setup --add-provider \
@@ -640,23 +640,23 @@ Varjabbli tal-ambjent rikonoxxuti għall-konfigurazzjoni mhux interattiva:
 | Var                 | Għan                                                                              |
 | ------------------- | --------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Ċavetta API tal-fornitur (marbuta ma’ `--api-key` permezz ta’ Commander `.env()`) |
-| `DATA_DIR`          | Ibdel id-direttorju tad-data ta’ OmniRoute                                        |
+| `DATA_DIR`          | Issostitwixxi d-direttorju tad-data ta’ OmniRoute                                 |
 
-L-inputs l-oħra kollha mhux interattivi jiġu mgħoddija bħala flags, mhux bħala varjabbli tal-ambjent:
+L-inputs mhux interattivi l-oħra kollha jiġu mgħoddija bħala flags, mhux bħala varjabbli tal-ambjent:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (ara l-għażliet ta’ `omniroute setup` hawn fuq).
 
 ### Dijanjostika
 
 ```bash
-omniroute doctor                       # Iċċekkja l-konfigurazzjoni, id-DB, il-ports, ir-runtime, il-memorja u l-istat operattiv
+omniroute doctor                       # Iċċekkja l-konfigurazzjoni, id-DB, il-ports, l-ambjent ta’ eżekuzzjoni, il-memorja u l-istat operattiv
 omniroute doctor --json                # JSON li jista’ jinqara minn magna
-omniroute doctor --no-liveness         # Aqbeż is-sonda tal-istat HTTP
-omniroute doctor --host 0.0.0.0        # Ibdel il-host tal-kontroll tal-istat operattiv
-omniroute doctor --liveness-url <url>  # Ibdel il-URL sħiħ tal-endpoint tal-istat
+omniroute doctor --no-liveness         # Aqbeż is-sonda tas-saħħa HTTP
+omniroute doctor --host 0.0.0.0        # Issostitwixxi l-host tal-istat operattiv
+omniroute doctor --liveness-url <url>  # Issostitwixxi l-URL sħiħ tal-endpoint tas-saħħa
 ```
 
-Il-kmand doctor iwettaq dawn il-kontrolli: `Config`, `Database`, `Storage/encryption`,
+Id-doctor iwettaq dawn il-kontrolli: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
 `Memory`, u `Server liveness`. Joħroġ b’kodiċi mhux żero jekk xi kontroll ikun `fail`.
 
@@ -681,66 +681,77 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` jużaw l-API bħala l-metodu primarju u għalhekk jaħdmu mal-kuntest
-lokali jew remot attiv. Għall-input tal-kredenzjali għandhom jintużaw
+`providers add/import/auth/edit/remove` huma bbażati primarjament fuq l-API u għalhekk jaħdmu mal-kuntest lokali jew remot attiv. L-input tal-kredenzjali għandu juża
 `--credential-stdin` jew `--credential-env`; `--dry-run --json` jirrapporta biss
 il-preżenza/forma b’informazzjoni sensittiva moħbija. `providers available` jaqra l-katalgu ta’ OmniRoute;
-`providers list/test/test-all/validate` iżommu l-imġiba lokali tagħhom ta’ SQLite u
+`providers list/test/test-all/validate` iżommu l-imġiba SQLite lokali tagħhom u
 ma jeħtiġux li s-server ikun qed jaħdem.
+
+Għal node personalizzat kompatibbli ma’ OpenAI jew Anthropic, ehmeż il-kredenzjali mal-ID
+tan-node rritornat minn `omniroute nodes add`, billi tuża `omniroute keys add "$NODE_ID" --stdin`.
+Dan jeħtieġ server li jkun qed jaħdem u awtentikazzjoni ta’ ġestjoni għall-kuntest attiv.
+Is-CLI juża `POST /api/providers`, li jivvalida n-node u jikkopja s-settings tal-endpoint tiegħu
+fil-konnessjoni. Node nieqes, falliment fl-awtorizzazzjoni, jew server mhux disponibbli
+jirritorna żball mingħajr ma joħloq kredenzjali alternattiva lokali.
+
+`nodes add --base-url` jistabbilixxi l-endpoint tan-node; dan huwa distint mill-indirizz tas-server
+f’`OMNIROUTE_BASE_URL`. Għal fajls OpenAPI, uża
+`omniroute openapi dump --format json --out ./openapi.json`; l-għażla globali `--output`
+tagħżel l-ifformattjar tal-wiri tas-CLI, mhux isem ta’ fajl tad-destinazzjoni.
 
 ### Irkupru u Risettjar
 
 ```bash
 omniroute reset-password                # Irrisettja l-password tal-amministratur (ukoll: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Uri twissija + dry-run għar-risettjar tal-kredenzjali kriptati
-omniroute reset-encrypted-columns --force  # Verament issettja l-kredenzjali kriptati għal null f’SQLite
+omniroute reset-encrypted-columns       # Uri twissija + prova mingħajr tibdil għar-risettjar tal-kredenzjali ċċifrati
+omniroute reset-encrypted-columns --force  # Verament issettja l-kredenzjali ċċifrati għal null f’SQLite
 ```
 
-### Esportazzjoni tal-Kredenzjali (⚠ ittrattahom b’attenzjoni)
+### Esportazzjoni tal-Kredenzjali (⚠ immaniġġja b’attenzjoni)
 
 ```bash
-omniroute auth export                                 # Uri twissija + pass ta’ konferma — ebda aċċess għad-DB
-omniroute auth export --force                          # Esporta l-kredenzjali DEKRIPTATI tal-konnessjonijiet KOLLHA lejn stdout bħala JSON
-omniroute auth export --force --id <id>                 # Esporta biss il-konnessjoni li taqbel
+omniroute auth export                                 # Uri twissija + pass ta’ konferma — mingħajr aċċess għad-DB
+omniroute auth export --force                          # Esporta l-kredenzjali DEĊIFRATI tal-konnessjonijiet KOLLHA lejn stdout bħala JSON
+omniroute auth export --force --id <id>                 # Esporta biss il-konnessjoni korrispondenti
 omniroute auth export --force --format env               # Oħroġ linji OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Ikteb f’fajl (jinħoloq bil-permessi 0600)
+omniroute auth export --force --out creds.json           # Ikteb f’fajl (maħluq b’permessi 0600)
 ```
 
-`auth export` huwa **lokali biss** (qari dirett minn SQLite, ebda rotta HTTP) u intenzjonalment jistampa/jikteb
-il-valuri **f’test sempliċi** ta’ `apiKey`/`accessToken`/`refreshToken`/`idToken` — din hija l-funzjonalità, mhux
-bug. Ma jinqara xejn mid-database, u ma jiġi ddekriptat xejn, mingħajr `--force`. Banner ta’
-twissija dejjem jiġi stampat fuq stderr qabel ma jinħareġ kwalunkwe test sempliċi. Jeħtieġ li `STORAGE_ENCRYPTION_KEY`
-tkun issettjata. Field li ma jkunx jista’ jiġi ddekriptat (ċavetta antika, ciphertext korrott) jiġi rrappurtat bħala
-`<field>DecryptFailed: true` minflok ma titwaqqaf l-esportazzjoni kollha jew jiġi żvelat l-iżball sottostanti.
+`auth export` jaħdem **lokalment biss** (qari dirett minn SQLite, mingħajr rotta HTTP) u apposta jistampa/jikteb
+il-valuri `apiKey`/`accessToken`/`refreshToken`/`idToken` bħala **test ċar** — din hija l-funzjonalità, mhux
+bug. Xejn ma jinqara mid-database, u xejn ma jiġi deċifrat, mingħajr `--force`. Banner ta’ twissija fuq stderr
+dejjem jiġi stampat qabel ma jinħareġ kwalunkwe test ċar. Jeħtieġ li `STORAGE_ENCRYPTION_KEY`
+tkun issettjata. Qasam li ma jirnexxilux jiġi deċifrat (ċavetta skaduta, test iċċifrat korrott) jiġi rrappurtat bħala
+`<field>DecryptFailed: true` minflok ma titwaqqaf l-esportazzjoni kollha jew jinkixef l-iżball sottostanti.
 
 ### Subkmandi oħra
 
-Dawn jassumu li server OmniRoute ikun qed jaħdem, sakemm ma jiġix indikat mod ieħor:
+Dawn jassumu li hemm server OmniRoute qed jaħdem, sakemm ma jkunx indikat mod ieħor:
 
 ```bash
 omniroute status                       # Status komprensiv waqt it-tħaddim
-omniroute logs                         # Ixxandar ir-reġistri tat-talbiet (--json, --search, --follow)
+omniroute logs                         # Ittrasmetti r-reġistri tat-talbiet kontinwament (--json, --search, --follow)
 omniroute config list                  # Uri l-għodod CLI kkonfigurati
 
-omniroute provider list                # Elenka l-fornituri disponibbli (psewdonimu ta’ providers list)
+omniroute provider list                # Elenka l-fornituri disponibbli (alias ta’ providers list)
 omniroute provider add                 # Irreġistra lil OmniRoute bħala fornitur fuq għodda
 omniroute keys add | list | remove     # Immaniġġja ċ-ċwievet API
 omniroute models [provider]            # Elenka l-mudelli (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Oħloq snapshot tal-konfigurazzjoni u tad-DB
+omniroute backup                       # Oħloq snapshot tal-konfigurazzjoni + DB
 omniroute restore                      # Irrestawra minn snapshot preċedenti
 
-omniroute health                       # Informazzjoni dettaljata dwar is-saħħa (breakers, cache, memorja)
+omniroute health                       # Saħħa dettaljata (breakers, cache, memorja)
 omniroute quota                        # Użu tal-kwota tal-fornitur
 omniroute cache                        # Status tal-cache
-omniroute cache clear                  # Ħassar il-cache semantika u dik tal-firem
+omniroute cache clear                  # Ħassar il-caches semantiċi + tal-firem
 
-omniroute mcp status | restart         # Status / ristartjar tas-server MCP
+omniroute mcp status | restart         # Status / startjar mill-ġdid tas-server MCP
 omniroute a2a status | card            # Status tas-server A2A / kard tal-aġent
 
 omniroute tunnel list | create | stop  # Immaniġġja t-tunnels (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Spezzjona / issettja l-varjabbli tal-ambjent (temporanjament)
+omniroute env show | get <k> | set <k> <v>  # Spezzjona / issettja varjabbli tal-ambjent (temporanjament)
 
 omniroute test                         # Test rapidu tal-konnettività tal-fornitur
 omniroute update                       # Iċċekkja għal aġġornamenti
@@ -751,8 +762,8 @@ omniroute completion                   # Iġġenera l-awtokompletament tax-shell
 
 | Flag                | Deskrizzjoni                                                       |
 | ------------------- | ------------------------------------------------------------------ |
-| `--no-open`         | Tiftaħx il-browser awtomatikament mal-bidu                         |
-| `--port <n>`        | Ibdel il-port tal-API (predefinit 20128)                           |
+| `--no-open`         | Tiftaħx il-browser awtomatikament mal-istartjar                    |
+| `--port <n>`        | Ibdel il-port tal-API (default 20128)                              |
 | `--mcp`             | Ħaddem bħala server MCP permezz ta’ stdio (għall-IDEs)             |
 | `--non-interactive` | Modalità CI (mingħajr prompts; taqra mill-ambjent/flags)           |
 | `--json`            | Output JSON li jista’ jinqara minn magna (doctor, providers, eċċ.) |

@@ -6,30 +6,32 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="داشبورد OmniRoute" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — دروازه هوش مصنوعی رایگان
+# 🚀 OmniRoute — درگاه رایگان هوش مصنوعی
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — هرگز کدنویسی را متوقف نکنید. هر ابزار هوش مصنوعی ← ۳۵۸ ارائهدهنده — ۱۵۰+ رایگان — از طریق یک نقطه پایانی. Claude Code, Codex, Cursor, Cline, Copilot و Antigravity به Claude / GPT / Gemini رایگان با بازگشت خودکار. فشردهسازی پشتهای RTK + Caveman ۱۵ تا ۹۵ درصد توکنها را ذخیره میکند (میانگین ~۸۹%) — هرگز به محدودیتها نمیرسید. ۳۵۸ ارائهدهنده هوش مصنوعی · ۱۵۰+ سطح رایگان · ~۱.۶۲ میلیارد توکن رایگان در ماه · ۱۹ استراتژی مسیریابی · $۰ برای شروع."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — هرگز کدنویسی را متوقف نکنید. هر ابزار هوش مصنوعی ← 372 ارائهدهنده — بیش از 150 مورد رایگان — از طریق یک نقطه پایانی. Claude Code، Codex، Cursor، Cline، Copilot و Antigravity را با قابلیت جایگزینی خودکار به Claude / GPT / Gemini رایگان متصل کنید. فشردهسازی ترکیبی RTK + Caveman بین 15 تا 95٪ در مصرف توکن صرفهجویی میکند (میانگین حدود 89٪) — دیگر هرگز به محدودیتها برخورد نکنید. 372 ارائهدهنده هوش مصنوعی · بیش از 150 سطح رایگان · حدود 1.62 میلیارد توکن رایگان در ماه · 19 راهبرد مسیریابی · شروع با هزینه 0 دلار."/>
 
 </div>
 
 <div align="center">
 
-## 💰 ~1.62B توکن رایگان / ماه
+## 💰 ~1.62B توکن در ماه از سطحهای رایگان ارائهدهندگان شخص ثالث
 
 </div>
 
-> رویهمگذاشتن دستی پلنهای رایگان دردسرساز است — دهها SDK، دهها محدودیت نرخ و بدون اینکه بدانید واقعاً چه مقدار در اختیار دارید. OmniRoute تعداد **489 ورودی پلن رایگان را در 35 کلید استخر تکرارشونده** فهرست میکند و رقم توکن شاخص را از **17 استخری که بودجه ماهانه مثبت و منتشرشده دارند، بهعلاوه پنج سقف Groq برای هر مدل** محاسبه میکند؛ در این محاسبه، استخرهای مشترک تکراری حذف میشوند. سهمیههایی که تنها پس از تأیید هویت منطقهای فعال میشوند (در حال حاضر: ModelScope)، جداگانه نمایش داده میشوند؛ +~6M پشت تأیید هویت منطقهای قرار دارد و هرگز در رقم شاخص جمع زده نمیشود. نتیجه در داشبورد (`/dashboard/free-tiers`) قابل مشاهده باقی میماند.
-
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="کارت بودجه پلن رایگان OmniRoute: حدود 1.62B توکن رایگان ثابت در ماه، تا حدود 2.22B در ماه نخست با اعتبارهای ثبتنام، از 35 کلید استخر تکرارشونده مستند که 489 ورودی پلن رایگان فهرستشده را پشت یک نقطه پایانی پوشش میدهند. محاسبهای شفاف با حذف تکرار استخرها — هر استخر مشترک فقط یک بار شمرده میشود، از جمله 17 استخر تکرارشونده با بودجه ماهانه مثبت و منتشرشده برای توکن، بهعلاوه پنج سقف Groq برای هر مدل؛ 13 ارائهدهنده در فهرست ریسک شرایط استفاده با برچسب اجتناب مشخص شدهاند تا خودتان تصمیم بگیرید. نوار بودجه شامل Mistral 1B، Nara 210M، LLM7 150M، xKiro 150M، Groq 30M (پنج سقف برای هر مدل) و استخرهای کوچکتر است؛ همچنین اعتبارهای ثبتنام ماه نخست و ارائهدهندگان همیشگی رایگانِ بدون سقف توکن، جداگانه نمایش داده میشوند تا هرگز رقم شاخص را بهطور مصنوعی افزایش ندهند. میزان مصرفشده/باقیمانده زنده در /dashboard/free-tiers."/>
-
-> خلاصه متحرک صفحه زنده `/dashboard/free-tiers`. روششناسی کامل (حذف تکرار استخرها، سطوح اعتبار، شرایط ارائهدهندگان): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> **از حسابهای ارائهدهندگان خودتان استفاده کنید.** این مقدار، برآوردی تجمیعی از سطحهای رایگان شخص ثالث است که بهطور جداگانه واجد شرایط هستند، نه سهمیهای از توکن که OmniRoute ارائه کند. ثبتنام کنید، در صورت نیاز اطلاعات احراز هویت را دریافت کنید و ارائهدهندگانی را که میتوانید استفاده کنید متصل نمایید؛ هر ارائهدهنده محدودیتها، دسترسپذیری و شرایط خود را کنترل میکند.
 >
-> <sub>این ارقام هر دو هفته یکبار بر اساس فهرست زنده مجدداً ممیزی میشوند و **در هر دو جهت تغییر میکنند** — اگر ارائهدهندهای پلن رایگان خود را پایان دهد، عدد کاهش مییابد؛ اگر پلن جدیدی اضافه شود، افزایش پیدا میکند. ما همان چیزی را منتشر میکنیم که فهرست واقعاً محاسبه میکند، نه بهترین حالتِ رو به بالا گردشده.</sub>
+> تجمیع دستی سطحهای رایگان دشوار است — دهها SDK، دهها محدودیت نرخ و بدون هیچ تصوری از اینکه واقعاً چه مقدار در اختیار دارید. OmniRoute تعداد **489 ورودی سطح رایگان در 35 کلید استخر تکرارشونده** را فهرست میکند و رقم اصلی توکن را از **17 استخر دارای بودجه ماهانه مثبت و منتشرشده، بهعلاوه پنج سقف Groq برای هر مدل** محاسبه میکند؛ استخرهای مشترک نیز رفع تکرار میشوند. سهمیههایی که تنها پس از بررسی هویت منطقهای فعال میشوند (در حال حاضر: ModelScope)، جداگانه نمایش داده میشوند؛ +~6M پشت تأیید هویت منطقهای قرار دارد و هرگز به رقم اصلی افزوده نمیشود. نتیجه در داشبورد (`/dashboard/free-tiers`) قابل مشاهده باقی میماند.
+
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="کارت بودجه سطح رایگان OmniRoute: حدود ~1.62B توکن رایگان پایدار در ماه، تا حدود ~2.22B در ماه نخست با اعتبارهای ثبتنام، از 35 کلید استخر تکرارشونده مستند که 489 ورودی سطح رایگان فهرستشده را پشت یک نقطه پایانی پوشش میدهند. محاسبهای صادقانه با رفع تکرار استخرها — هر استخر مشترک فقط یکبار شمارش میشود، شامل 17 استخر تکرارشونده با بودجه ماهانه مثبت و منتشرشده برای توکن، بهعلاوه پنج سقف Groq برای هر مدل؛ 13 ارائهدهنده در فهرست ریسک شرایط با برچسب اجتناب مشخص شدهاند تا خودتان تصمیم بگیرید. نوار بودجه شامل Mistral 1B، Nara 210M، LLM7 150M، xKiro 150M، Groq 30M (پنج سقف برای هر مدل) و استخرهای کوچکتر است؛ اعتبارهای ثبتنام ماه نخست و ارائهدهندگان دائماً رایگان بدون سقف توکن نیز جداگانه نمایش داده میشوند تا هرگز رقم اصلی را بیش از واقع نشان ندهند. میزان مصرفشده/باقیمانده زنده در /dashboard/free-tiers."/>
+
+> خلاصه متحرک صفحه زنده `/dashboard/free-tiers`. روششناسی کامل (رفع تکرار استخرها، سطوح اعتبار، شرایط ارائهدهندگان): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+>
+> <sub>این ارقام هر دو هفته یکبار با فهرست زنده دوباره ممیزی میشوند و **در هر دو جهت تغییر میکنند** — اگر ارائهدهندهای سطح رایگان خود را پایان دهد، عدد کاهش مییابد؛ اگر مورد جدیدی اضافه شود، افزایش پیدا میکند. ما چیزی را منتشر میکنیم که فهرست واقعاً محاسبه میکند، نه یک سناریوی خوشبینانه که رو به بالا گرد شده باشد.</sub>
 
 <br/>
 
@@ -37,7 +39,7 @@
 
 <h3>
 
-⭐ اگر OMNIROUTE به شما کمک کرده است در هزینه صرفهجویی کنید و کارتان را آسانتر انجام دهید، به مخزن ستاره بدهید.
+⭐ اگر OMNIROUTE به شما کمک کرده است در هزینهها صرفهجویی کنید و کارتان را آسانتر انجام دهید، به مخزن ستاره بدهید.
 
 </h3>
 
@@ -48,7 +50,7 @@
 
 ### 💬 به جامعه بپیوندید
 
-**👋 نگهدارنده پروژه را دنبال کنید — زودتر از همه از ارائهدهندگان جدید، نسخهها و نکتهها باخبر شوید:**
+**👋 نگهدارنده پروژه را دنبال کنید — زودتر از دیگران از ارائهدهندگان جدید، انتشارها و نکات باخبر شوید:**
 
 [![Diego را در LinkedIn دنبال کنید](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
 [![@diegosouzapw را در GitHub دنبال کنید](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
@@ -59,24 +61,26 @@
 [![WhatsApp برزیل](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
 [![وبسایت](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
-**پرسشها، نکتههای مربوط به ارائهدهندگان، نقشه راه و پشتیبانی ← [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 جهانی](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 برزیل](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [پورتال](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
+**پرسشها، نکات ارائهدهندگان، نقشه راه و پشتیبانی ← [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 جهانی](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 برزیل](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [پرتال](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
 
 <br/>
 
-## 📈 دروازه همچنان در حال رشد است
+## 📈 دروازه همچنان در حال گسترش است
 
 <div align="center">
 
-|                               | v3.8.49 |      **v3.8.50**       |        `v3.8.51+`        |
-| ----------------------------- | :-----: | :--------------------: | :----------------------: |
-| 🌐 ارائهدهندگان               |   290   |        **357**         | موارد بیشتری در صف هستند |
-| 🧠 شناسههای منحصربهفرد مدل چت |  1185   |        **1312**        |            —             |
-| 🖼️ پل چندرسانهای              |    —    | 🆕 تصویر + صدا + ویدئو |            —             |
-| 📡 کاتالوگ رایگان Radar       |    —    |   🆕 با انتخاب کاربر   |            —             |
-| ⚖️ زمانبندی آگاه از سهمیه     |    —    |     🆕 Quota-Share     |            —             |
-| 📊 پایش سهمیه                 |    —    |        🆕 زنده         |            —             |
+|                               |         v3.8.50         | **v3.8.51** |      `v3.8.52+`       |
+| ----------------------------- | :---------------------: | :---------: | :-------------------: |
+| 🌐 ارائهدهندگان               |           352           |   **358**   |          372          |
+| 🧠 شناسههای منحصربهفرد مدل چت |          1320           |  **1374**   |         1443          |
+| 🖼️ پل چندرسانهای              | 🆕 بینایی + صوت + ویدئو |      ✓      |           ✓           |
+| 📡 کاتالوگ رایگان Radar       |   🆕 نیازمند فعالسازی   |      ✓      |           ✓           |
+| ⚖️ زمانبندی آگاه از سهمیه     |     🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 تلهمتری سهمیه              |         🆕 زنده         |      ✓      |           ✓           |
+| 🧰 حالت بدون رابط گرافیکی     |            —            |      —      | 🆕 `serve --headless` |
+| 🛤️ زیرساخت مسیر LTS           |            —            |      —      |  🆕 کانالهای انتشار   |
 
-**→ [نقشه راه](ROADMAP.md) — در مسیر رسیدن به `v3.9.0 LTS`**
+**→ [نقشه راه](ROADMAP.md) — حرکت روی ریل بهسوی `v3.9.0 LTS`**
 
 </div>
 
@@ -124,8 +128,8 @@
   </tr>
   <tr>
     <td align="right"><b>💚 حمایت</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 حمایت / کمک مالی</a></td>
-    <td align="center"><a href="#-community--help">💬 انجمن</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 حمایت / اهدا</a></td>
+    <td align="center"><a href="#-community--help">💬 جامعه کاربری</a></td>
     <td align="center"><a href="#-sponsors">💖 حامیان مالی</a></td>
   </tr>
   <tr>
@@ -139,74 +143,75 @@
 </div>
 
 <div align="center">
-  <b>🌐 به ۶۶ زبان</b>
+  <b>🌐 به 67 زبان</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="انگلیسی (en)" title="انگلیسی (en)"></a>
-  <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="پرتغالی — برزیل (pt-BR)" title="پرتغالی — برزیل (pt-BR)"></a>
-  <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="پرتغالی (pt)" title="پرتغالی (pt)"></a>
-  <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="اسپانیایی (es)" title="اسپانیایی (es)"></a>
-  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="فرانسوی (fr)" title="فرانسوی (fr)"></a>
-  <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="ایتالیایی (it)" title="ایتالیایی (it)"></a>
-  <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="آلمانی (de)" title="آلمانی (de)"></a>
-  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="هلندی (nl)" title="هلندی (nl)"></a>
-  <a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="30" alt="روسی (ru)" title="روسی (ru)"></a>
-  <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="اوکراینی (uk-UA)" title="اوکراینی (uk-UA)"></a>
-  <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="لهستانی (pl)" title="لهستانی (pl)"></a>
-  <a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="30" alt="چکی (cs)" title="چکی (cs)"></a>
-  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="اسلواکی (sk)" title="اسلواکی (sk)"></a>
-  <a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="30" alt="رومانیایی (ro)" title="رومانیایی (ro)"></a>
-  <a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="30" alt="مجاری (hu)" title="مجاری (hu)"></a>
-  <a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="30" alt="بلغاری (bg)" title="بلغاری (bg)"></a>
-  <a href="docs/i18n/da/README.md"><img src="docs/assets/flags/dk.svg" width="30" alt="دانمارکی (da)" title="دانمارکی (da)"></a>
-  <a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="30" alt="فنلاندی (fi)" title="فنلاندی (fi)"></a>
-  <a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="30" alt="نروژی (no)" title="نروژی (no)"></a>
-  <a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="30" alt="سوئدی (sv)" title="سوئدی (sv)"></a>
-  <a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="30" alt="چینی — سادهشده (zh-CN)" title="چینی — سادهشده (zh-CN)"></a>
-  <a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="30" alt="چینی — سنتی (zh-TW)" title="چینی — سنتی (zh-TW)"></a>
-  <a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="30" alt="ژاپنی (ja)" title="ژاپنی (ja)"></a>
-  <a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="30" alt="کرهای (ko)" title="کرهای (ko)"></a>
-  <a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="30" alt="تایلندی (th)" title="تایلندی (th)"></a>
-  <a href="docs/i18n/vi/README.md"><img src="docs/assets/flags/vn.svg" width="30" alt="ویتنامی (vi)" title="ویتنامی (vi)"></a>
-  <a href="docs/i18n/id/README.md"><img src="docs/assets/flags/id.svg" width="30" alt="اندونزیایی (id)" title="اندونزیایی (id)"></a>
-  <a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="30" alt="مالایی (ms)" title="مالایی (ms)"></a>
-  <a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="30" alt="فیلیپینی (phi)" title="فیلیپینی (phi)"></a>
-  <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="هندی (hi)" title="هندی (hi)"></a>
-  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="گجراتی (gu)" title="گجراتی (gu)"></a>
-  <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="مراتی (mr)" title="مراتی (mr)"></a>
-  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="تامیلی (ta)" title="تامیلی (ta)"></a>
-  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="تلوگویی (te)" title="تلوگویی (te)"></a>
-  <a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="30" alt="بنگالی (bn)" title="بنگالی (bn)"></a>
+  <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
+  <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
+  <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
+  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="Français (fr)" title="Français (fr)"></a>
+  <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="Italiano (it)" title="Italiano (it)"></a>
+  <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="Deutsch (de)" title="Deutsch (de)"></a>
+  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="Nederlands (nl)" title="Nederlands (nl)"></a>
+  <a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="30" alt="Русский (ru)" title="Русский (ru)"></a>
+  <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="Українська (uk-UA)" title="Українська (uk-UA)"></a>
+  <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="Polski (pl)" title="Polski (pl)"></a>
+  <a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="30" alt="Čeština (cs)" title="Čeština (cs)"></a>
+  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="Slovenčina (sk)" title="Slovenčina (sk)"></a>
+  <a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="30" alt="Română (ro)" title="Română (ro)"></a>
+  <a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="30" alt="Magyar (hu)" title="Magyar (hu)"></a>
+  <a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="30" alt="Български (bg)" title="Български (bg)"></a>
+  <a href="docs/i18n/da/README.md"><img src="docs/assets/flags/dk.svg" width="30" alt="Dansk (da)" title="Dansk (da)"></a>
+  <a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="30" alt="Suomi (fi)" title="Suomi (fi)"></a>
+  <a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="30" alt="Norsk (no)" title="Norsk (no)"></a>
+  <a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="30" alt="Svenska (sv)" title="Svenska (sv)"></a>
+  <a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="30" alt="中文 — 简体 (zh-CN)" title="中文 — 简体 (zh-CN)"></a>
+  <a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="30" alt="中文 — 繁體 (zh-TW)" title="中文 — 繁體 (zh-TW)"></a>
+  <a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="30" alt="日本語 (ja)" title="日本語 (ja)"></a>
+  <a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="30" alt="한국어 (ko)" title="한국어 (ko)"></a>
+  <a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="30" alt="ไทย (th)" title="ไทย (th)"></a>
+  <a href="docs/i18n/vi/README.md"><img src="docs/assets/flags/vn.svg" width="30" alt="Tiếng Việt (vi)" title="Tiếng Việt (vi)"></a>
+  <a href="docs/i18n/id/README.md"><img src="docs/assets/flags/id.svg" width="30" alt="Bahasa Indonesia (id)" title="Bahasa Indonesia (id)"></a>
+  <a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="30" alt="Bahasa Melayu (ms)" title="Bahasa Melayu (ms)"></a>
+  <a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="30" alt="Filipino (phi)" title="Filipino (phi)"></a>
+  <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="हिन्दी (hi)" title="हिन्दी (hi)"></a>
+  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ગુજરાતી (gu)" title="ગુજરાતી (gu)"></a>
+  <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="मराठी (mr)" title="मराठी (mr)"></a>
+  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="தமிழ் (ta)" title="தமிழ் (ta)"></a>
+  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="తెలుగు (te)" title="తెలుగు (te)"></a>
+  <a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="30" alt="বাংলা (bn)" title="বাংলা (bn)"></a>
   <a href="docs/i18n/ur/README.md"><img src="docs/assets/flags/pk.svg" width="30" alt="اردو (ur)" title="اردو (ur)"></a>
   <a href="docs/i18n/fa/README.md"><img src="docs/assets/flags/ir.svg" width="30" alt="فارسی (fa)" title="فارسی (fa)"></a>
-  <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="عربی (ar)" title="عربی (ar)"></a>
-  <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="عبری (he)" title="عبری (he)"></a>
-  <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="ترکی (tr)" title="ترکی (tr)"></a>
-  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="آذربایجانی (az)" title="آذربایجانی (az)"></a>
-  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="سواحیلی (sw)" title="سواحیلی (sw)"></a>
-  <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="یونانی (el)" title="یونانی (el)"></a>
-  <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="کرواتی (hr)" title="کرواتی (hr)"></a>
-  <a href="docs/i18n/sr/README.md"><img src="docs/assets/flags/rs.svg" width="30" alt="صربی (sr)" title="صربی (sr)"></a>
-  <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="لیتوانیایی (lt)" title="لیتوانیایی (lt)"></a>
-  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="استونیایی (et)" title="استونیایی (et)"></a>
-  <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="لتونیایی (lv)" title="لتونیایی (lv)"></a>
-  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="اسلوونیایی (sl)" title="اسلوونیایی (sl)"></a>
-  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="مالتی (mt)" title="مالتی (mt)"></a>
-  <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="ایرلندی (ga)" title="ایرلندی (ga)"></a>
-  <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="کانادایی (kn)" title="کانادایی (kn)"></a>
-  <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="مالایالم (ml)" title="مالایالم (ml)"></a>
-  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="اودیایی (or)" title="اودیایی (or)"></a>
-  <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="پنجابی (pa)" title="پنجابی (pa)"></a>
-  <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="نپالی (ne)" title="نپالی (ne)"></a>
-  <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="سینهالی (si)" title="سینهالی (si)"></a>
-  <a href="docs/i18n/my/README.md"><img src="docs/assets/flags/mm.svg" width="30" alt="برمهای (my)" title="برمهای (my)"></a>
-  <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="خمری (km)" title="خمری (km)"></a>
-  <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="هوسایی (ha)" title="هوسایی (ha)"></a>
-  <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="یوروبایی (yo)" title="یوروبایی (yo)"></a>
-  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ایگبویی (ig)" title="ایگبویی (ig)"></a>
-  <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="امهری (am)" title="امهری (am)"></a>
-  <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="ازبکی (uz)" title="ازبکی (uz)"></a>
-  <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="گرجی (ka)" title="گرجی (ka)"></a>
-  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="ارمنی (hy)" title="ارمنی (hy)"></a>
+  <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="العربية (ar)" title="العربية (ar)"></a>
+  <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="עברית (he)" title="עברית (he)"></a>
+  <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="Türkçe (tr)" title="Türkçe (tr)"></a>
+  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="Azərbaycan (az)" title="Azərbaycan (az)"></a>
+  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="Kiswahili (sw)" title="Kiswahili (sw)"></a>
+  <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="Ελληνικά (el)" title="Ελληνικά (el)"></a>
+  <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="Hrvatski (hr)" title="Hrvatski (hr)"></a>
+  <a href="docs/i18n/sr/README.md"><img src="docs/assets/flags/rs.svg" width="30" alt="Српски (sr)" title="Српски (sr)"></a>
+  <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="Lietuvių (lt)" title="Lietuvių (lt)"></a>
+  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="Eesti (et)" title="Eesti (et)"></a>
+  <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="Latviešu (lv)" title="Latviešu (lv)"></a>
+  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="Slovenščina (sl)" title="Slovenščina (sl)"></a>
+  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="Malti (mt)" title="Malti (mt)"></a>
+  <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="Gaeilge (ga)" title="Gaeilge (ga)"></a>
+  <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ಕನ್ನಡ (kn)" title="ಕನ್ನಡ (kn)"></a>
+  <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="മലയാളം (ml)" title="മലയാളം (ml)"></a>
+  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ଓଡ଼ିଆ (or)" title="ଓଡ଼ିଆ (or)"></a>
+  <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ਪੰਜਾਬੀ (pa)" title="ਪੰਜਾਬੀ (pa)"></a>
+  <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="नेपाली (ne)" title="नेपाली (ne)"></a>
+  <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="සිංහල (si)" title="සිංහල (si)"></a>
+  <a href="docs/i18n/my/README.md"><img src="docs/assets/flags/mm.svg" width="30" alt="မြန်မာ (my)" title="မြန်မာ (my)"></a>
+  <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="ខ្មែរ (km)" title="ខ្មែរ (km)"></a>
+  <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Hausa (ha)" title="Hausa (ha)"></a>
+  <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Yorùbá (yo)" title="Yorùbá (yo)"></a>
+  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Igbo (ig)" title="Igbo (ig)"></a>
+  <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="አማርኛ (am)" title="አማርኛ (am)"></a>
+  <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
+  <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
+  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -214,32 +219,33 @@
 
 <div align="center">
 
-## 🆓 به محض نصب کار میکند — بدون نیاز به کلید، بدون تنظیمات
+## 🆓 نصب کنید، یک ارائهدهنده را متصل کنید، سپس از طریق یک نقطه پایانی مسیریابی کنید
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="به محض نصب کار میکند — بدون نیاز به تنظیمات. سه مرحله: ۱. نصب — npm i -g omniroute، سرور روی localhost:20128 راهاندازی میشود. ۲. ابزار خود را به http://localhost:20128/v1 هدایت کنید — هر ابزار سازگار با OpenAI (مانند Claude Code, Cursor, Cline). ۳. پاسخ میدهد — مدل auto را برای پاسخ فوری فراخوانی کنید، بدون کلید API، بدون ثبتنام، بدون تنظیمات. ارائهدهنده بدون کلید OpenCode Free از پیش در ترکیب auto سیمکشی شده است، بنابراین یک نصب تازه بلافاصله پاسخ میدهد."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="سه مرحله: OmniRoute را نصب و اجرا کنید، یک ارائهدهنده واجد شرایط را با حساب یا کلید API خود متصل کنید، سپس ابزار خود را با استفاده از یک کلید API متعلق به OmniRoute و مدل auto به localhost:20128/v1 متصل کنید. مسیریابی به اتصالهای واجد شرایط موجود و محدودیتهای ارائهدهنده بستگی دارد."/>
 
 ```bash
-# نصب تازه، بدون اعتبارنامه — `auto` از قبل کار میکند:
+# پس از اتصال یک ارائهدهنده، کلید OmniRoute خود را از Dashboard → Endpoints کپی کنید:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>یک بکاند رایگان خاص را ترجیح میدهید؟ مستقیماً `oc/…` (OpenCode Free) را فراخوانی کنید. سپس به `auto` ارتقا دهید و اجازه دهید OmniRoute انتخاب کند.</sub>
+<sub>`auto` به یک مسیر واجد شرایط نیاز دارد. ممکن است یک نصب تازه هیچ مقصد بدون کلید واجد شرایطی نداشته باشد و یک ارائهدهنده بدون کلید نیز ممکن است کلاینتهای شخص ثالث را رد کند. ارائهدهندگانی که با `tos: avoid` مشخص شدهاند، از جمله OpenCode Free و Kiro، بهطور پیشفرض از مسیریابی خودکار کنار گذاشته میشوند؛ اتصال یک حساب این تنظیم را نادیده نمیگیرد. پیش از انتخاب ارائهدهنده، [راهنمای سطوح رایگان](docs/getting-started/FREE-TIERS-GUIDE.md) را ببینید.</sub>
 
-<sub>📦 اسکریپتهای شروع سریع را برای **پایتون، Node.js، PHP و cURL** کپی-پیست کنید → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 اسکریپتهای شروع سریع آماده کپی و جایگذاری برای **Python، Node.js، PHP و cURL** ← [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 وعده
+# 💥 وعده ما
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="وعده — یک نقطه پایانی و ۳۵۸ ارائهدهنده. بازگشت خودکار (fallback) مسیریابی را تا زمانی که یک هدف سالم دیگر در دسترس باشد، حفظ میکند. شش ستون: بازگشتپذیری انعطافپذیر در میان ۳۵۸ ارائهدهنده · تا ۹۵٪ صرفهجویی در توکن برای بارهای کاری واجد شرایط · شروع با ۰ دلار با بیش از ۱۵۰ سطح رایگان و ۵۴ ارائهدهنده رایگان دائمی/بدون کلید · ۳۶ یکپارچهسازی CLI/عامل از طریق یک پیکربندی · سازگاری با OpenAI، Claude، Gemini و Responses API در /v1 · کنترلهای تولید شامل قطعکنندههای مدار، پنهانسازی TLS، ابزارهای MCP 110، A2A، حافظه، گاردریلها، ارزیابیها و بیش از ۳۹,۰۰۰ اعلان تست استاتیک در بیش از ۵,۱۰۰ فایل تست ردیابی شده."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="وعده ما — یک نقطه پایانی و 372 ارائهدهنده. تا زمانی که مقصد سالم دیگری در دسترس باشد، بازگشت خودکار مسیریابی را ادامه میدهد. شش ستون: بازگشت مقاوم میان 372 ارائهدهنده · تا 95٪ صرفهجویی در توکن برای بارهای کاری واجد شرایط · شروع با هزینه $0 به کمک بیش از 150 سطح رایگان و 54 ارائهدهنده رایگان همیشگیِ دورهای/بدون کلید · 36 یکپارچهسازی CLI/عامل از طریق یک پیکربندی · سازگاری با OpenAI، Claude، Gemini و Responses API در /v1 · کنترلهای محیط عملیاتی شامل قطعکنندههای مدار، پنهانسازی TLS، تعداد 110 ابزار MCP،‏ A2A، حافظه، حفاظها، ارزیابیها و بیش از 39,000 اعلان آزمون ایستا در بیش از 5,100 فایل آزمون رهگیریشده."/>
 
 <br/>
 <br/>
@@ -250,11 +256,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="چرا OmniRoute — دست از سر و کله زدن با ۱۰ داشبورد، کلیدهای API از کار افتاده و صورتحسابهای غیرمنتظره بردارید. ده مشکل روزمره در مقابل راهحلها: سهمیه منقضی شده استفاده نشده → به حداکثر رساندن اشتراکها؛ محدودیتهای نرخ در حین کدنویسی → بازگشت خودکار ۴ لایه (اشتراک → API → ارزان → رایگان)؛ خروجیهای ابزار که توکنها را میسوزانند → فشردهسازی RTK + Caveman (۱۵-۹۵٪)؛ APIهای گرانقیمت → مسیریابی بهینه شده از نظر هزینه؛ هر ابزار تنظیمات خاص خود را دارد → یک نقطه پایانی، یک داشبورد؛ AI مسدود شده → پروکسی ۳ سطحی + پنهانسازی TLS؛ کلیدهای از کار افتاده → انعطافپذیری ۳ لایه (قطعکنندههای مدار، خنکسازی کلید، قفل مدل)؛ اشتراکگذاری یک اشتراک توسط تیم → مجموعههای کلید با سهمیههای عادلانه؛ پرامپتها از طریق ابر شخص دیگری → اولویت محلی با کلیدهای رمزگذاری شده AES-256-GCM؛ عدم مشاهده هزینهها → تجزیه و تحلیل زنده (استفاده، سهمیه، صرفهجویی، تأخیر p95)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="چرا OmniRoute — از دستوپنجه نرم کردن با 10 داشبورد، کلیدهای API ازکارافتاده و صورتحسابهای غافلگیرکننده دست بردارید. ده مشکل روزمره در برابر راهحلها: انقضای سهمیه بدون استفاده ← استفاده حداکثری از اشتراکها؛ محدودیت نرخ هنگام کدنویسی ← بازگشت خودکار 4 سطحی (اشتراک ← API ← ارزان ← رایگان)؛ مصرف توکن توسط خروجی ابزارها ← فشردهسازی RTK + Caveman‏ (15–95٪)؛ APIهای گران ← مسیریابی بهینهشده از نظر هزینه؛ راهاندازی جداگانه برای هر ابزار ← یک نقطه پایانی، یک داشبورد؛ مسدود شدن هوش مصنوعی ← پراکسی 3 سطحی + پنهانسازی TLS؛ کلیدهای ازکارافتاده ← تابآوری 3 لایهای (قطعکنندههای مدار، دوره انتظار کلید، قفل مدل)؛ استفاده مشترک تیم از یک اشتراک ← مخزن کلید با سهمیههای منصفانه؛ عبور درخواستها از فضای ابری دیگران ← رویکرد محلیمحور با کلیدهای رمزگذاریشده AES-256-GCM؛ نبود دید نسبت به هزینهها ← تحلیل زنده (مصرف، سهمیه، صرفهجویی، تأخیر p95)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="جریان درخواست OmniRoute: IDE یا CLI شما (Claude Code, Cursor, Cline…) یک نقطه پایانی محلی (http://localhost:20128/v1) را فراخوانی میکند؛ روتر هوشمند OmniRoute (فشردهسازی RTK + Caveman، ۱۹ استراتژی مسیریابی، قطعکنندههای مدار، پنهانسازی TLS، MCP، A2A، گاردریلها) میتواند در میان ۴ سطح ارائهدهنده بازگشت کند تا زمانی که یک هدف سالم واجد شرایط باقی بماند — سطح ۱ اشتراک، سطح ۲ کلید API، سطح ۳ ارزان و سطح ۴ رایگان."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="جریان درخواست OmniRoute: محیط توسعه یا CLI شما (Claude Code، Cursor، Cline و…) یک نقطه پایانی محلی واحد (http://localhost:20128/v1) را فراخوانی میکند؛ مسیریاب هوشمند OmniRoute‏ (فشردهسازی RTK + Caveman،‏ 19 راهبرد مسیریابی، قطعکنندههای مدار، پنهانسازی TLS،‏ MCP،‏ A2A و حفاظها) میتواند تا زمانی که یک مقصد سالم و واجد شرایط باقی مانده باشد، میان 4 سطح ارائهدهندگان بازگشت انجام دهد — سطح 1 اشتراک، سطح 2 کلید API، سطح 3 ارزان و سطح 4 رایگان."/>
 
 </div>
 
@@ -492,9 +498,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="چه چیزی OmniRoute را متمایز میکند — یک نمای کلی از ویژگیهای قدیمی در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM در ۱۳ قابلیت. OmniRoute: ۳۵۸ ارائهدهنده، بیش از ۱۵۰ ردیف رایگان داخلی، ۱۹ استراتژی مسیریابی، فشردهسازی توکن با ۱۲ موتور، سرور MCP داخلی با ۱۱۰ ابزار، پروتکل عامل A2A، حافظه پایدار، گاردریلها، عوامل ابری، پنهانکاری اثر انگشت TLS، دسکتاپ/Termux/PWA و ۴۲ زبان رابط کاربری بینالمللی. OmniRoute دارای مجوز MIT است و قابلیت میزبانی شخصی دارد. قابلیتها و تعداد رقبا ممکن است تغییر کند؛ به متدولوژی پیوند داده شده مراجعه کنید."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="آنچه OmniRoute را متمایز میکند — تصویری زمانمند از مقایسهٔ ویژگیها با 9router، OpenRouter، CLIProxyAPI و LiteLLM در 13 قابلیت. OmniRoute: 372 ارائهدهنده، بیش از 150 سطح رایگان داخلی، 19 راهبرد مسیریابی، فشردهسازی توکن با 12 موتور، سرور داخلی MCP با 110 ابزار، پروتکل عامل A2A، حافظهٔ پایدار، محدودیتهای ایمنی، عاملهای ابری، پنهانسازی اثرانگشت TLS، Desktop/Termux/PWA و رابط کاربری با 42 زبان بومیسازیشده. OmniRoute دارای مجوز MIT است و میتوان آن را بهصورت خودمیزبان اجرا کرد. قابلیتها و تعداد موارد رقبا ممکن است تغییر کند؛ روششناسی پیوندشده را ببینید."/>
 
-<sub>📊 متدولوژی کامل و جزئیات هر ویژگی در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 روششناسی کامل و جزئیات هر ویژگی در مقایسه با 9router، OpenRouter، CLIProxyAPI و LiteLLM ← [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -665,15 +671,15 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 372 ارائهدهندهٔ هوش مصنوعی — 154 مورد با برچسب رایگان در کاتالوگ
+## 🌐 372 ارائهدهنده هوش مصنوعی — 154 مورد در کاتالوگ بهعنوان رایگان علامتگذاری شدهاند
 
 </div>
 
-> **357 ارائهدهندهٔ ثبتشده** در مجموعههای مرجع چت، رسانه، جستوجو، محلی، عامل ابری و سیستم، شامل **152 مورد دارای فرادادهٔ اکتشافی `hasFree: true`**. رجیستری مدلهای چت شامل **229 ارائهدهنده / 2,554 جفت متمایز ارائهدهنده-مدل / 1,283 شناسهٔ خام مدل** است؛ کاتالوگ جداگانهٔ بودجهٔ رایگان نیز **491 ردیف بهازای هر مدل**، **35 مخزن دورهای** و **54 ارائهدهندهٔ رایگان همیشگیِ دورهای/بدون کلید** دارد. این مخرجها آگاهانه متفاوتاند؛ تعریفها و محاسباتی که مخزنهای تکراری از آنها حذف شدهاند، در [مرجع ارائهدهندگان](docs/reference/PROVIDER_REFERENCE.md) و [سطوح رایگان](docs/reference/FREE_TIERS.md) آمدهاند.
+> **372 ارائهدهنده ثبتشده** در مجموعههای مرجع چت، رسانه، جستوجو، محلی، عامل ابری و سیستم وجود دارد که از میان آنها **154 مورد دارای فراداده اکتشافی `hasFree: true` هستند**. رجیستری مدلهای چت شامل **237 ارائهدهنده / 3,009 جفت متمایز ارائهدهنده-مدل / 1,443 شناسه خام مدل** است؛ کاتالوگ جداگانه بودجه رایگان نیز دارای **491 ردیف بهازای هر مدل**، **35 مخزن دورهای** و **54 ارائهدهنده دورهای/بدون کلید با استفاده رایگان همیشگی** است. این مخرجها عمداً متفاوتاند؛ تعاریف و محاسبات با حذف موارد تکراری مخزن در [مرجع ارائهدهندگان](docs/reference/PROVIDER_REFERENCE.md) و [سطوح رایگان](docs/reference/FREE_TIERS.md) ارائه شدهاند.
 
 <div align="center">
 
-### 🏢 همهٔ آزمایشگاههای بزرگ — از طریق یک نقطهٔ پایانی
+### 🏢 تمام آزمایشگاههای بزرگ — از طریق یک نقطه پایانی
 
 <table>
   <tr>
@@ -702,11 +708,11 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
   </tr>
 </table>
 
-<sub>…و بیش از 330 مورد دیگر — همهٔ آیکونها بهصورت زنده از کاتالوگ ارائهدهندگان داشبورد بارگیری میشوند. 📖 [مرجع ارائهدهندگان](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…و بیش از 330 مورد دیگر — همه نمادها بهصورت زنده از کاتالوگ ارائهدهندگان داشبورد بارگیری میشوند. 📖 [مرجع ارائهدهندگان](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 رایگان برای همیشه — $0، بدون نیاز به کارت بانکی
+### 🆓 برای همیشه رایگان — $0، بدون نیاز به کارت
 
 <table>
   <tr>
@@ -722,12 +728,12 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>بدون نیاز به کلید</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>بیش از 50 مدل<br/>10K نورون در روز</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>حدود 40 RPM رایگان</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7، GPT-OSS<br/>1M توکن در روز</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>اعتبار یکباره $5؛ نیازمند کارت</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>مدلهای :free<br/>+$10 ← RPM بالاتر</sub></td>
   </tr>
 </table>
 
-📖 فهرست کاملِ قابلخواندن توسط ماشین ← [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 فهرست کامل و قابلخواندن توسط ماشین ← [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>
@@ -900,15 +906,15 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 <div align="center">
 
-## 🗜️ صرفهجویی خودکار ۱۵ تا ۹۵٪ در توکنها
+## 🗜️ صرفهجویی خودکار ۱۵ تا ۹۵ درصدی در توکنها
 
 </div>
 
 ### 📖 نحوه کار — خط لوله، معماری و محاسبات صرفهجویی
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="خط لوله فشردهسازی OmniRoute: یک درخواست نمونه ۱۰٬۰۰۰ توکنی از سمت کلاینت از میان ۱۲ موتور ترکیبپذیر — Session-Dedup، CCR، Lite، RTK، Responses Tool Output، Headroom، Relevance، Caveman، Aggressive، LLMLingua-2، Ultra و OmniGlyph — عبور میکند و در نمونه پشتهای مستندشده میتواند با حدود ۱٬۰۸۰ توکن به ارائهدهنده برسد. محتوای ساختاریافته با محافظهای نگهداشت و دروازههای صحتسنجی هر مرحله محافظت میشود؛ حالتهای صریحاً اتلافی یا آزمایشی ممکن است محتوای واجد شرایط را تغییر دهند."/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="خط لوله فشردهسازی OmniRoute: یک درخواست نمونه ۱۰٬۰۰۰ توکنی از سمت کلاینت از ۱۲ موتور ترکیبپذیر عبور میکند — Session-Dedup، CCR، Lite، RTK، Responses Tool Output، Headroom، Relevance، Caveman، Aggressive، LLMLingua-2، Ultra و OmniGlyph — و در نمونه انباشته مستندشده میتواند با حدود ۱٬۰۸۰ توکن به ارائهدهنده برسد. محتوای ساختاریافته با محافظهای حفظ محتوا و دروازههای وفاداری در هر مرحله محافظت میشود؛ حالتهای صریحاً اتلافی یا آزمایشی ممکن است محتوای واجد شرایط را تغییر دهند."/>
 
-ترکیب پشتهای پیشفرض، `RTK → Caveman` را اجرا میکند. وقتی هر دو روی یک محموله ابزار/زمینه یکسان اعمال شوند، صرفهجوییها بهصورت مرکب محاسبه میشوند:
+ترکیب انباشته پیشفرض، `RTK → Caveman` را اجرا میکند. وقتی هر دو روی یک محتوای ابزار/زمینه اعمال شوند، صرفهجوییها بهصورت مرکب محاسبه میشوند:
 
 ```txt
 combined = 1 − (1 − RTK) × (1 − Caveman_input)
@@ -916,74 +922,74 @@ average  = 1 − (1 − 0.80) × (1 − 0.46) = 89.2%
 range    = 78.4 – 94.6%
 ```
 
-بلوکهای کد، URLها، JSON و دادههای ساختاریافته **همیشه توسط موتور نگهداشت محافظت میشوند**.
+بلوکهای کد، URLها، JSON و دادههای ساختاریافته توسط موتور حفظ محتوا **همیشه محافظت میشوند**.
 
-> **وقتی چند توکن کار را راه میاندازند، چرا از توکنهای زیاد استفاده کنیم؟** هر درخواست بهصورت **شفاف** از خط لوله فشردهسازی OmniRoute عبور میکند — بدون نیاز به تغییر در کلاینت. اکنون این خط لوله **پشتهای از ۱۲ موتور ترکیبپذیر** است که بهترتیب اجرا میشوند و برای هر ترکیب مسیریابی قابل ترکیب و تطبیق هستند — با تکیه بر ایدههایی از [RTK](https://github.com/rtk-ai/rtk)، [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ بیش از 90K)، [LLMLingua-2](https://github.com/microsoft/LLMLingua) و [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **وقتی چند توکن کار را راه میاندازند، چرا از توکنهای زیادی استفاده کنیم؟** هر درخواست بهشکل **شفاف** از خط لوله فشردهسازی OmniRoute عبور میکند — بدون نیاز به تغییر در کلاینت. اکنون این خط لوله **پشتهای از ۱۲ موتور ترکیبپذیر** است که بهترتیب اجرا میشوند و برای هر ترکیب مسیریابی قابل ترکیب و تطبیق هستند — با تکیه بر ایدههایی از [RTK](https://github.com/rtk-ai/rtk)، [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ بیش از 90K)، [LLMLingua-2](https://github.com/microsoft/LLMLingua) و [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
 ### 🧱 پشته ۱۲ موتوره
 
-موتورها بهترتیب خط لوله اجرا میشوند؛ هرکدام را میتوان بهطور مستقل فعال یا غیرفعال کرد و برای هر ترکیب پیکربندی نمود:
+موتورها بهترتیب خط لوله اجرا میشوند؛ هرکدام را میتوان بهطور مستقل برای هر ترکیب فعال یا غیرفعال و پیکربندی کرد:
 
 <table>
   <tr><th align="center">#</th><th align="left">موتور</th><th align="left">کارکرد</th></tr>
-  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">محتوای تکرارشده در نوبتهای مختلف را حذف میکند (محتوامحور، بیننوبتی)</td></tr>
-  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">بلوکهای بزرگ را پشت نشانگرهای بازیابی بایگانی میکند تا در صورت نیاز واکشی شوند</td></tr>
-  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">حذف فضای خالی + کوتاهسازی URL تصاویر (خط مبنای سبک از نظر تأخیر)</td></tr>
-  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">فیلتر هوشمند نتایج ابزار، حذف موارد تکراری و کوتاهسازی (آگاه از فرمان)</td></tr>
-  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">JSON با اولویت حفظ بدون اتلاف + فشردهسازی تشخیصی محدود برای خروجیهای پوسته/وصله/جستوجو/ساخت (Responses API)</td></tr>
-  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">فشردهسازی جدولی و بدون اتلاف آرایههای JSON (حدود ۳۰٪) با استفاده از کدک داخلیشده <b>GCF</b></td></tr>
-  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">امتیازدهی استخراجی به جملهها بر اساس آخرین پرسش کاربر</td></tr>
-  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">فشردهسازی قاعدهمحور نثر (حدود ۶۵ تا ۷۵٪ در خروجی)</td></tr>
-  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">خلاصهسازی + پیرسازی تدریجی نوبتهای قدیمی</td></tr>
-  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">هرس معنایی مبتنی بر یادگیری ماشین با MobileBERT ONNX — ایمن برای کد، ناهمگام</td></tr>
-  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">هرس ابتکاری توکنها با یک سطح اختیاری مدل کوچک (SLM)</td></tr>
-  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">رمزگذاری آزمایشی زمینه بهصورت تصویر برای Claude Fable 5 اندازهگیریشده روی اتصال مستقیم Anthropic؛ تبدیلکنندههای GPT 5.6 تا زمان دریافت رسیدهای ارائهدهنده، همچنان در حالت fail-closed باقی میمانند. چهار پروفایل فشردهسازی (پیشفرض تهاجمی، متعادل، ایمن برای کدنویسی، عبور مستقیم) (تهاجمیترین؛ نیازمند فعالسازی دستی)</td></tr>
+  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">محتوای تکرارشده میان نوبتها را حذف میکند (محتوامحور، بیننوبتی)</td></tr>
+  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">بلوکهای بزرگ را پشت نشانگرهای بازیابی بایگانی میکند تا در صورت نیاز دریافت شوند</td></tr>
+  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">حذف فضای خالی اضافی و کوتاهسازی URL تصاویر (خط مبنای سبک از نظر تأخیر)</td></tr>
+  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">فیلتر هوشمند نتایج ابزار، حذف موارد تکراری و کوتاهسازی (با آگاهی از فرمان)</td></tr>
+  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">فشردهسازی JSON با اولویت حفظ بدون اتلاف، بههمراه فشردهسازی تشخیصی محدود برای خروجیهای پوسته/وصله/جستوجو/ساخت (Responses API)</td></tr>
+  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">فشردهسازی جدولی بدون اتلاف آرایههای JSON (حدود ۳۰٪) از طریق کُدک داخلی <b>GCF</b></td></tr>
+  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">امتیازدهی استخراجی جملهها نسبت به آخرین پرسش کاربر</td></tr>
+  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">فشردهسازی متن مبتنی بر قواعد (حدود ۶۵ تا ۷۵٪ در خروجی)</td></tr>
+  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">خلاصهسازی و کهنهسازی تدریجی نوبتهای قدیمی</td></tr>
+  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">هرس معنایی مبتنی بر یادگیری ماشین از طریق MobileBERT ONNX — ایمن برای کد و ناهمگام</td></tr>
+  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">هرس اکتشافی توکنها با یک لایه اختیاری مدل کوچک (SLM)</td></tr>
+  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">رمزگذاری آزمایشی زمینه بهصورت تصویر برای Claude Fable 5 اندازهگیریشده روی اتصال مستقیم Anthropic؛ مبدلهای GPT 5.6 تا زمان دریافت رسیدهای ارائهدهنده در حالت بسته در برابر خطا باقی میمانند. چهار نمایه فشردهسازی (پیشفرض تهاجمی، متعادل، ایمن برای کدنویسی و عبور بدون تغییر) (تهاجمیترین؛ با فعالسازی اختیاری)</td></tr>
 </table>
 
-بلوکهای کد، URLها و دادههای ساختاریافته **همیشه** با دقت بایتبهبایت حفظ میشوند. **پیشتنظیمهای تککلیکی** موتورها را با هم ترکیب میکنند:
+بلوکهای کد، URLها و دادههای ساختاریافته **همیشه** بهصورت بایتبهبایت و بدون تغییر حفظ میشوند. **تنظیمات آماده تککلیکی** موتورها را با هم ترکیب میکنند:
 
 <table>
-  <tr><th align="left">حالت</th><th align="left">صرفهجویی</th><th align="left">مناسب برای</th></tr>
-  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~۱۵٪</td><td align="left">حالت پیشفرض ایمن و همیشهفعال</td></tr>
+  <tr><th align="left">حالت</th><th align="left">صرفهجویی</th><th align="left">بهترین کاربرد</th></tr>
+  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~۱۵٪</td><td align="left">پیشفرض ایمن و همیشهفعال</td></tr>
   <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~۳۰٪</td><td align="left">کدنویسی روزمره</td></tr>
-  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~۵۰٪</td><td align="left">جلسات طولانی با استفاده زیاد از ابزارها</td></tr>
+  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~۵۰٪</td><td align="left">نشستهای طولانی با استفاده زیاد از ابزارها</td></tr>
   <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~۷۵٪</td><td align="left">حداکثر صرفهجویی</td></tr>
   <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>۶۰–۹۰٪</td><td align="left">خروجی پوسته/آزمایش/ساخت/git</td></tr>
-  <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>۷۸–۹۵٪</b></td><td align="left">پرامپتهای ترکیبی + گزارشهای ابزار</td></tr>
+  <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>۷۸–۹۵٪</b></td><td align="left">پرامپتهای ترکیبی و گزارشهای ابزار</td></tr>
 </table>
 
 **نمونه واقعی — حالت Standard:**
 
-> **پیش از فشردهسازی (۶۹ توکن):** _«دلیل رندر مجدد کامپوننت React شما احتمالاً این است که در هر چرخه رندر، یک ارجاع شیء جدید ایجاد میکنید. وقتی یک شیء درونخطی را بهعنوان prop ارسال میکنید، مقایسه سطحی React هر بار آن را یک شیء متفاوت تشخیص میدهد و این باعث رندر مجدد میشود. توصیه میکنم برای بهخاطرسپاری شیء از useMemo استفاده کنید.»_
+> **قبل (۶۹ توکن):** _"دلیل رندر مجدد کامپوننت React شما احتمالاً این است که در هر چرخه رندر، یک ارجاع شیء جدید ایجاد میکنید. وقتی یک شیء درونخطی را بهعنوان prop ارسال میکنید، مقایسه سطحی React هر بار آن را شیئی متفاوت تشخیص میدهد و این موضوع باعث رندر مجدد میشود. توصیه میکنم برای ذخیرهسازی شیء از useMemo استفاده کنید."_
 >
-> **پس از فشردهسازی (۱۹ توکن):** _«در هر رندر یک ارجاع شیء جدید. prop شیء درونخطی = ارجاع جدید = رندر مجدد. آن را در useMemo قرار دهید.»_
+> **بعد (۱۹ توکن):** _"در هر رندر، ارجاع شیء جدید. prop شیء درونخطی = ارجاع جدید = رندر مجدد. آن را در useMemo قرار دهید."_
 >
-> **همان پاسخ. ۷۲٪ توکن کمتر. بدون افت دقت.** ✅
+> **همان پاسخ. ۷۲٪ توکن کمتر. بدون هیچ افت دقتی.** ✅
 
 **نمونه PT-BR — حالت [Troglodita](https://github.com/leninejunior/troglodita):**
 
-> **قبل (42 توکن):** _«مشکل این است که کامپوننت دوباره رندر میشود، چون در هر چرخهٔ رندر یک ارجاع جدید به شیء ایجاد میشود. پیشنهاد میکنم از useMemo استفاده کنید.»_
+> **قبل (42 توکن):** _"مشکل این است که کامپوننت دوباره رندر میشود، چون در هر چرخهٔ رندر یک ارجاع جدید به شیء ایجاد میشود. پیشنهاد میکنم از useMemo استفاده کنید."_
 >
-> **بعد (12 توکن):** _«رندر مجدد: ارجاع جدید در هر چرخه (بازسازی شیء درونخطی). استفاده از `useMemo`.»_
+> **بعد (12 توکن):** _"رندر مجدد: ارجاع جدید در هر چرخه (بازسازی شیء درونخطی). استفاده از `useMemo`."_
 >
 > **همان پاسخ. حدود 70٪ توکن کمتر. دقت فنی دستنخورده.** ✅
 
 <br/>
 
-### 🎚️ فراتر از موتورهای پردازش — سبکهای خروجی، تنظیمگر تطبیقی و کنترل در سطح هر درخواست
+### 🎚️ فراتر از موتورها — سبکهای خروجی، تنظیمگر تطبیقی و کنترل در سطح هر درخواست
 
-12 موتور بالا آنچه را **وارد میشود** فشرده میکنند. سه لایهٔ دیگر تعیین میکنند خروجی **چگونه**، **چه زمانی** و به چه شکلی **ارائه شود**:
+۱۲ موتور بالا حجم آنچه را **وارد میشود** کاهش میدهند. سه لایهٔ دیگر تعیین میکنند خروجی **چگونه**، **چه زمانی** و به چه شکلی **خارج شود**:
 
-- **🪄 سبکهای خروجی** _(هدایت در محور خروجی)_ — دستورالعملهای قطعی و سازگار با کش را برای شکلدهی پاسخ تزریق میکنند؛ قابل ترکیباند و هرکدام شدت `lite` / `full` / `ultra` دارند. افزودن یک سبک فقط به یک ورودی تکخطی در رجیستری نیاز دارد:
+- **🪄 سبکهای خروجی** _(هدایت در محور خروجی)_ — دستورالعملهای قطعی و سازگار با کش را برای شکلدهی پاسخ تزریق میکند؛ قابلترکیب هستند و هرکدام شدت `lite` / `full` / `ultra` دارند. افزودن یک سبک تنها به یک ورودی تکخطی در رجیستری نیاز دارد:
   - **نثر موجز** — حذف حشو، حروف تعریف و تردیدگویی؛ حفظ دقیق محتوای فنی.
-  - **کد کمتر** — رویکرد YAGNI یک «توسعهدهندهٔ ارشد کمزحمت»: کوچکترین تغییر عملی، بدون زیرساختهای درخواستنشده.
-  - **Ponytail (توسعهدهندهٔ ارشد کمزحمت)** — حرکت در نردبان YAGNI، رفع علت ریشهای و ارائهٔ کوچکترین تفاوت عملی.
-  - **من ADHD دارم (اول اقدام)** — شروع با اقدام بعدی، مراحل شمارهگذاریشده، یک گام بعدی مشخص و بدون مقدمه.
+  - **کد کمتر** — رویکرد YAGNI یک «توسعهدهندهٔ ارشد کمکار»: کوچکترین تغییر عملی، بدون زیرساختسازیِ درخواستنشده.
+  - **Ponytail (توسعهدهندهٔ ارشد کمکار)** — پیمودن نردبان YAGNI، رفع علت ریشهای و ارائهٔ کوچکترین diff عملی.
+  - **من ADHD دارم (اقداممحور)** — شروع با اقدام بعدی، مراحل شمارهگذاریشده، یک گام بعدی مشخص و بدون مقدمه.
   - **CJK موجز (文言)** — سبک فوقموجز چینی کلاسیک (محدود به locale برابر با `zh`).
-- **🎯 بودجهٔ تطبیقی کانتکست** _(تنظیمگر)_ — بهجای یک آستانهٔ روشن/خاموش برای توکنها، ارزانترین موتورهایی را که کمترین اتلاف را دارند فقط تا حد لازم فعال میکند تا محتوا **در پنجرهٔ کانتکست مدل جا شود**. سیاست: `reserve-output` (پیشفرض و آگاه از مدل) · `percentage` · `absolute`. حالت: `floor` (تضمین جا شدن) · `replace-autotrigger` (انتخاب صریح شما اولویت دارد) · `off` (آستانهٔ قدیمی).
-- **🎛️ محل تصمیمگیری برای فشردهسازی** _(اولویت، از بالا به پایین)_ — هدر `x-omniroute-compression` در سطح درخواست › بازنویسی ترکیب مسیریابی › پروفایل نامگذاریشدهٔ فعال › تطبیقی / راهاندازی خودکار › پیشفرض پنل › خاموش. طرح اعمالشده در هدر پاسخ `X-OmniRoute-Compression: <mode>; source=<source>` بازتاب داده میشود.
+- **🎯 بودجهٔ تطبیقی context** _(تنظیمگر)_ — بهجای یک آستانهٔ روشن/خاموش برای توکن، ارزانترین موتورهایی را که کمترین اتلاف را دارند فقط تا حد لازم فعال میکند تا محتوا **در پنجرهٔ context مدل جا شود**. سیاست: `reserve-output` (پیشفرض، آگاه از مدل) · `percentage` · `absolute`. حالت: `floor` (تضمین جا شدن) · `replace-autotrigger` (انتخاب صریح شما اولویت دارد) · `off` (آستانهٔ قدیمی).
+- **🎛️ محل تصمیمگیری دربارهٔ فشردهسازی** _(ترتیب تقدم، از زیاد به کم)_ — هدر `x-omniroute-compression` در سطح هر درخواست › بازنویسی ترکیب مسیریابی › پروفایل نامگذاریشدهٔ فعال › تطبیقی / فعالسازی خودکار › پیشفرض پنل › خاموش. طرح اعمالشده در هدر پاسخ `X-OmniRoute-Compression: <mode>; source=<source>` بازگردانده میشود.
 
-راهاندازی خودکار بر اساس آستانهٔ توکن، فعالکردن تنظیمگر تطبیقی، ثابتکردن یک پروفایل نامگذاریشده، تنظیم یکباره برای هر درخواست یا اختصاص یک پایپلاین به هر ترکیب مسیریابی — هرکدام را که با بار کاری سازگار است انتخاب کنید. یک **چارچوب ارزیابی** آفلاین و اختیاری (`npm run eval:compression`) پیش از انتشار تغییر، میزان وفاداری در برابر صرفهجویی را روی یک مجموعهدادهٔ ثابت امتیازدهی میکند.
+فعالسازی خودکار براساس آستانهٔ توکن، روشنکردن تنظیمگر تطبیقی، ثابتکردن یک پروفایل نامگذاریشده، تنظیم موردی برای هر درخواست یا تخصیص یک pipeline به هر ترکیب مسیریابی — هرکدام که با بار کاری سازگارتر است. یک **ابزار ارزیابی** آفلاین و اختیاری (`npm run eval:compression`) پیش از انتشار تغییر، وفاداری را در برابر میزان صرفهجویی روی یک مجموعهدادهٔ ثابت امتیازدهی میکند.
 
 📖 [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
 
@@ -1002,42 +1008,60 @@ npm install -g omniroute
 omniroute
 ```
 
-> 💡 پیام `npm warn ERESOLVE` یا هشدارهای وابستگی همتا میبینید؟ [بیضرر هستند](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> 💡 پیام `npm warn ERESOLVE` یا هشدارهای peer-dep را میبینید؟ [بیضرر هستند](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> **از npm 11 یا جدیدتر استفاده میکنید؟** ممکن است npm اسکریپتهای چرخهٔ عمر package را مسدود کند، مگر اینکه مجاز شده باشند. اجرای `postinstall` مربوط به OmniRoute (`node scripts/build/postinstall.mjs`) برای آمادهسازی فایلهای runtime بومی آن ضروری است. هنگام نصب سراسری، packageهای نامبردهشده در هشدار npm را مجاز کنید. برای مجموعهٔ package گزارششده توسط OmniRoute 3.8.51:
+>
+> ```bash
+> npm install -g --allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild omniroute
+> ```
+>
+> برای استفادهٔ مجدد از این فهرست مجاز در نصبهای سراسری آینده، آن را یکبار پیکربندی کنید و سپس بهصورت عادی نصب کنید:
+>
+> ```bash
+> npm config set allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+> npm install -g omniroute
+> ```
+>
+> فهرست وابستگیها ممکن است بین نسخهها تغییر کند؛ اگر npm فهرست متفاوتی گزارش داد، از نام packageهای همان هشدار استفاده کنید. مجازکردن یک package به اسکریپتهای نصب آن اجازهٔ اجرا میدهد.
+> **از Gemini Web یا ارائهدهندهٔ دیگری مبتنی بر cookie وب استفاده میکنید؟** package مربوط به npm شامل
+> Playwright است، اما باینری Chromium آن را شامل نمیشود. پیش از ارسال نخستین درخواست به ارائهدهندهٔ وب، یادداشت
+> [راهاندازی Chromium برای Playwright](docs/guides/TROUBLESHOOTING.md#gemini-web-and-playwright-chromium)
+> را ببینید.
 
 داشبورد در `http://localhost:20128` · API در `http://localhost:20128/v1`.
 
-**2) اتصال یک ارائهدهندهٔ رایگان (بدون ثبتنام)**
+**2) یک ارائهدهندهٔ واجد شرایط را با حساب خود متصل کنید**
 
-داشبورد ← **ارائهدهندگان** ← اتصال **Kiro AI** (Claude رایگان، حدود 50 اعتبار در ماه برای هر حساب) یا **OpenCode Free** (بدون احراز هویت) ← تمام.
+داشبورد ← **ارائهدهندگان** ← ارائهدهندهای را انتخاب کنید که شرایط و سهمیهٔ فعلی آن با مورد استفادهٔ شما سازگار است ← کلید API آن را اضافه کنید یا فرایند حسابش را تکمیل کنید. طرحهای رایگان ممکن است به ثبتنام، تأیید یا روش پرداخت نیاز داشته باشند. [راهنمای طرحهای رایگان](docs/getting-started/FREE-TIERS-GUIDE.md) را بررسی کنید؛ دسترسی بدون کلید تضمین نمیشود و ارائهدهندگانی که با `tos: avoid` علامتگذاری شدهاند، بهطور پیشفرض از `auto` کنار گذاشته میشوند.
 
-**3) هدایت ابزار کدنویسی**
+**3) ابزار کدنویسی خود را تنظیم کنید**
 
 ```txt
 نشانی پایه: http://localhost:20128/v1
-کلید API:   [از داشبورد ← نقاط پایانی کپی کنید]
-مدل:        auto            (مسیریابی هوشمند بدون پیکربندی — یا هر ارائهدهنده/مدل)
+کلید API:  [از داشبورد ← نقاط پایانی کپی کنید]
+مدل:    auto            (مسیریابی میان اتصالهای واجد شرایط — یا ارائهدهنده/مدل را انتخاب کنید)
 ```
 
-**4) اطمینان از عملکرد صحیح**
+**4) از کارکرد آن مطمئن شوید**
 
 ```bash
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-باید مدلهای متصلشدهٔ خود را در فهرست ببینید. 🎉 همین است — کدنویسی را شروع کنید؛ OmniRoute بهصورت خودکار درخواستها را مسیریابی میکند و در صورت نیاز به گزینهٔ جایگزین میرود.
+باید مدلهای متصلشدهٔ خود را در فهرست ببینید. 🎉 تمام شد — کدنویسی را شروع کنید؛ OmniRoute بهصورت خودکار برایتان مسیریابی میکند و در صورت نیاز به گزینهٔ جایگزین میرود.
 
 اگر کلاینت شما نمیتواند هدرهای سفارشی ارسال کند، OmniRoute نامهای مستعار سازگاریِ توکندار را نیز ارائه میدهد:
 
 ```txt
-کاتالوگ OpenAI:    http://localhost:20128/vscode/YOUR_KEY/
+کاتالوگ OpenAI:   http://localhost:20128/vscode/YOUR_KEY/
 مدلهای OpenAI:    http://localhost:20128/vscode/YOUR_KEY/models
-گفتوگوی OpenAI:   http://localhost:20128/vscode/YOUR_KEY/chat/completions
-پاسخهای OpenAI:   http://localhost:20128/vscode/YOUR_KEY/responses
-گفتوگوی Ollama:   http://localhost:20128/vscode/YOUR_KEY/api/chat
-برچسبهای Ollama:  http://localhost:20128/vscode/YOUR_KEY/api/tags
+گفتوگوی OpenAI:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
+پاسخهای OpenAI: http://localhost:20128/vscode/YOUR_KEY/responses
+گفتوگوی Ollama:      http://localhost:20128/vscode/YOUR_KEY/api/chat
+برچسبهای Ollama:      http://localhost:20128/vscode/YOUR_KEY/api/tags
 ```
 
-از این موارد فقط برای کلاینتهایی استفاده کنید که نمیتوانند `Authorization: Bearer ...` را پیوست کنند. احراز هویت با هدر همچنان روش ترجیحی است.
+این موارد را فقط برای کلاینتهایی استفاده کنید که نمیتوانند `Authorization: Bearer ...` را پیوست کنند. احراز هویت با هدر همچنان روش ترجیحی است.
 
 <br/>
 
@@ -1263,21 +1287,21 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 نیز از آن 
 <table>
   <tr><th align="left">لایه</th><th align="left">فناوری</th></tr>
   <tr><td nowrap><b>محیط اجرا</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>زبان</b></td><td>TypeScript 6.0 — <b>۱۰۰٪ TypeScript</b> در سراسر <code>src/</code> و <code>open-sse/</code> (از v2.0 تاکنون، بدون حتی یک <code>any</code> در هسته)</td></tr>
-  <tr><td nowrap><b>فریمورک</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>پایگاه داده</b></td><td>better-sqlite3 (SQLite، ثبت رخداد WAL) + LowDB (میراثی مبتنی بر JSON) — ۱۳۷ ماژول دامنه، ۲۰۲ مهاجرت</td></tr>
-  <tr><td nowrap><b>حافظه</b></td><td>جستوجوی تماممتن SQLite FTS5 + تعبیههای برداری کوانتیزهشده با int8، زوال نوعدار</td></tr>
+  <tr><td nowrap><b>زبان</b></td><td>TypeScript 6.0 — <b>صددرصد TypeScript</b> در سراسر <code>src/</code> و <code>open-sse/</code> (از v2.0 تاکنون بدون هیچ <code>any</code> در هسته)</td></tr>
+  <tr><td nowrap><b>چارچوب</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>پایگاه داده</b></td><td>better-sqlite3 (SQLite، ثبت وقایع WAL) + LowDB (JSON قدیمی) — 137 ماژول دامنه، 202 مهاجرت</td></tr>
+  <tr><td nowrap><b>حافظه</b></td><td>جستوجوی تماممتن SQLite FTS5 + تعبیههای برداری کوانتیزهشده int8، زوال نوعدار</td></tr>
   <tr><td nowrap><b>شِماها</b></td><td>Zod 4 — اعتبارسنجی ورودی/خروجی ابزار MCP + قراردادهای API</td></tr>
   <tr><td nowrap><b>پروتکلها</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>استریم</b></td><td>رویدادهای ارسالشده از سرور (SSE) + پل WebSocket (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>فشردهسازی</b></td><td>خط لوله ۱۲ موتوره — RTK، Caveman، LLMLingua-2 (MobileBERT ONNX)، GCF، OmniGlyph</td></tr>
-  <tr><td nowrap><b>احراز هویت و امنیت</b></td><td>OAuth 2.0 (PKCE) + JWT + کلیدهای API + احراز هویت محدودهبندیشده MCP · رمزنگاری AES-256-GCM برای دادههای ذخیرهشده · DOMPurify</td></tr>
-  <tr><td nowrap><b>اختفا</b></td><td>wreq-js — جعل اثر انگشت TLS از نوع JA3 / JA4، پراکسی سهسطحی</td></tr>
-  <tr><td nowrap><b>تابآوری</b></td><td>قطعکننده مدار، عقبنشینی نمایی، جلوگیری از ازدحام همزمان، خودترمیمی خودکار ترکیبها</td></tr>
-  <tr><td nowrap><b>گزارشگیری</b></td><td>pino — گزارشهای ساختاریافته JSON همراه با زمینه درخواست</td></tr>
-  <tr><td nowrap><b>آزمایش</b></td><td>اجراکننده آزمون Node.js + Vitest — <b>بیش از ۳۹٬۰۰۰ اعلان آزمون ایستا</b> در بیش از ۵٬۱۰۰ فایل آزمون رهگیریشده (واحد، یکپارچهسازی، سرتاسری، امنیت، اکوسیستم)</td></tr>
+  <tr><td nowrap><b>جریاندهی</b></td><td>رویدادهای ارسالشده از سرور (SSE) + پل WebSocket (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>فشردهسازی</b></td><td>خط لوله 12 موتوره — RTK، Caveman، LLMLingua-2 (MobileBERT ONNX)، GCF، OmniGlyph</td></tr>
+  <tr><td nowrap><b>احراز هویت وamp; امنیت</b></td><td>OAuth 2.0 (PKCE) + JWT + کلیدهای API + احراز هویت محدودهدار MCP · AES-256-GCM برای دادههای ذخیرهشده · DOMPurify</td></tr>
+  <tr><td nowrap><b>پنهانکاری</b></td><td>wreq-js — جعل اثر انگشت JA3 / JA4 TLS، پراکسی سهسطحی</td></tr>
+  <tr><td nowrap><b>تابآوری</b></td><td>مدارشکن، عقبنشینی نمایی، مقابله با ازدحام ناگهانی درخواستها، خودترمیمی خودکار ترکیبها</td></tr>
+  <tr><td nowrap><b>ثبت رویداد</b></td><td>pino — گزارشهای ساختاریافته JSON همراه با زمینه درخواست</td></tr>
+  <tr><td nowrap><b>آزمایش</b></td><td>اجراکننده آزمون Node.js + Vitest — <b>بیش از 39,000 اعلان آزمون ایستا</b> در بیش از 5,100 فایل آزمون رهگیریشده (واحد، یکپارچهسازی، E2E، امنیت، اکوسیستم)</td></tr>
   <tr><td nowrap><b>پلتفرمها</b></td><td>دسکتاپ (Electron) · Android (Termux) · PWA (هر مرورگری)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — انتشار خودکار در npm و Docker Hub هنگام انتشار نسخه</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — انتشار خودکار در npm + Docker Hub هنگام انتشار نسخه</td></tr>
   <tr><td nowrap><b>پیوندها</b></td><td><a href="https://omniroute.online">وبسایت</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

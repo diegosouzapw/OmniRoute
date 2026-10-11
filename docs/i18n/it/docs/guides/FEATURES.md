@@ -316,14 +316,14 @@ Con la v3.6.6 arriva anche il **conteggio ibrido dei token**: quando un provider
 
 ---
 
-## 🛡️ Recupero sicuro in uscita e protezione SSRF _(v3.6.6+)_
+## 🛡️ Fetch in uscita sicuro e protezione SSRF _(v3.6.6+)_
 
-Tutte le chiamate di convalida dei provider e di individuazione dei modelli passano ora attraverso una protezione in uscita a due livelli:
+Tutte le chiamate di convalida dei provider e di rilevamento dei modelli passano ora attraverso una protezione in uscita a due livelli:
 
-1. **Protezione URL** (`src/shared/network/outboundUrlGuard.ts`) — Blocca gli intervalli di indirizzi IP privati, di loopback e link-local prima dell'apertura del socket.
-2. **Wrapper per il recupero sicuro** (`src/shared/network/safeOutboundFetch.ts`) — Applica la protezione URL, normalizza i timeout e ritenta gli errori transitori con backoff esponenziale.
+1. **Protezione URL** (`src/shared/network/outboundUrlGuard.ts`) — Controlla innanzitutto il nome host o l'indirizzo IP letterale della destinazione così come è scritto; in modalità solo pubblica, il wrapper di fetch sicuro risolve anche il nome e rifiuta gli indirizzi privati risultanti. Per impostazione predefinita, blocca gli endpoint dei metadati cloud, ossia l'intero intervallo 169.254.0.0/16 più i nomi host noti dei metadati; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blocca anche gli host privati e di loopback; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (o la variabile legacy `OUTBOUND_SSRF_GUARD_ENABLED=false`) disattiva i controlli. Un valore salvato tramite l'interruttore di un flag nella dashboard ha la precedenza sulla relativa variabile, mentre i provider locali integrati ignorano la protezione durante la convalida della chiave. Consulta `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper di fetch sicuro** (`src/shared/network/safeOutboundFetch.ts`) — Applica la protezione URL, normalizza i timeout e riprova in caso di errori transitori con backoff esponenziale.
 
-Le violazioni della protezione vengono segnalate come HTTP 422 (`URL_GUARD_BLOCKED`) e registrate nel log di audit della conformità tramite `providerAudit.ts`.
+Le violazioni della protezione vengono segnalate come `URL_GUARD_BLOCKED` — HTTP 503 tramite `getSafeOutboundFetchErrorStatus` (400 sulla route di rilevamento dei modelli) — e i blocchi SSRF effettivi durante la convalida vengono registrati nel log di audit come eventi `provider.validation.ssrf_blocked`.
 
 ---
 

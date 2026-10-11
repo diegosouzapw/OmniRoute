@@ -6,66 +6,93 @@
 
 Od verzie v3.8.49 (WS3.2/WS3.4 plánu kvality/rýchlosti) je predvolenou cestou zlučovania
 skontrolovaných PR do `release/vX.Y.Z` **front zlučovania Mergify** (`.mergify.yml`);
-nižšie zdokumentovaný **manuálny zlučovací vlak** je ZÁLOŽNÝ POSTUP — používa sa počas incidentov,
-zmrazení vydania alebo v prípade, že sa niekedy zmení plán Mergify Open Source.
+nižšie zdokumentovaný **manuálny merge-train** je ZÁLOŽNÝ POSTUP — používa sa počas incidentov,
+zmrazení vydania alebo ak sa niekedy zmení plán Mergify Open Source.
 
 ## Predvolená cesta: front Mergify
 
-1. PR je skontrolovaný, kampane sú úspešné a PR je schválený kontrolnou bránou ⭐
-   vlastníka pred zlúčením (správa + rozhodnutie pre každú položku — pozrite krok 0.75 v `/merge-prs`).
-2. Vlastník (alebo relácia konajúca na základe rozhodnutia vlastníka) pridá označenie **`queue`**.
-   Toto označenie JE schválením zlúčenia; Mergify ho iba vykoná.
-3. Mergify zoskupí najviac 10 PR zaradených do frontu, overí dávku pomocou rýchlych kontrolných brán
-   a zlúči ju (squash). Neúspešná dávka sa **automaticky rozdelí binárnym vyhľadávaním** — problematický PR
-   sa izoluje približne za log2(N) opätovných overení a odstráni sa z frontu; ostatné pokračujú.
-4. Po zlúčení priebežný pracovný postup na kontrolu stavu vydania overí nový vrchol pri pushnutí
-   a otvorí problém s určením príčiny, ak kombinácia spôsobila regresiu (nikdy ju automaticky nevráti).
+1. PR je skontrolovaný/schválený kampaňami a schválený vlastníkovou kontrolnou bránou ⭐
+   pred zlúčením (report + rozhodnutie pre každú položku — pozrite `/merge-prs`, krok 0.75).
+2. Vlastník (alebo relácia konajúca na základe rozhodnutia vlastníka) priradí označenie
+   **`queue`**. Toto označenie JE schválením zlúčenia; Mergify ho iba vykoná.
+3. Mergify overuje PR zaradené do frontu **sériovo** (po jednom) podľa rýchlych kontrolných
+   brán a zlučuje ich (squash). Dávkové spracovanie + automatická bisekcia sú súčasťou
+   platenej úrovne Mergify („Cannot use Merge Queue batch“ v bezplatnom pláne, #7220),
+   preto `.mergify.yml` nenastavuje žiadne `batch_size`; dávkové spracovanie zostáva úlohou
+   nižšie uvedeného manuálneho zlučovacieho vlaku. PR, ktorého kontroly stále čakajú po
+   uplynutí `checks_timeout` (240 min = 2× namerané p95 pre `quality.yml`), sa odstráni
+   z frontu namiesto toho, aby front zablokoval.
+4. Po zlúčení priebežný pracovný postup overovania vydania pri odoslaní zmien overí nový
+   vrchol vetvy a otvorí problém s určením pôvodu, ak kombinácia spôsobila regresiu
+   (nikdy nevykoná automatický revert).
 
 Ochranné pravidlá (zodpovedajú tvrdým pravidlám č. 21/22 v `CLAUDE.md`):
 
-- **Aktívne zmrazenie vydania** → NEPRIDÁVAJTE označenia PR smerujúcim do zmrazenej vetvy;
-  najprv zmeňte ich cieľ na aktívnu vetvu `release/vX+1`.
-- **Rozpracovaný PR inej relácie** → nikdy ho neoznačujte; iba vlastnícka relácia zaraďuje
-  svoju vlastnú prácu do frontu.
-- Rozdiely týkajúce sa iba testov a PR s označením `hotfix` už spúšťajú obmedzené CI (pozrite
-  `RELEASE_CHECKLIST.md` → Rýchla cesta opráv); podmienky frontu akceptujú akúkoľvek
-  množinu kontrol, ktorá sa skutočne spustila (`#check-failure=0` + `#check-pending=0`).
+- **Aktívne zmrazenie vydania** → NEPRIRAĎUJTE označenie PR smerujúcim do zmrazenej vetvy;
+  najprv ich presmerujte do aktívnej vetvy `release/vX+1`.
+- **Rozpracovaný PR inej relácie** → nikdy mu nepriraďujte označenie; iba vlastnícka relácia
+  zaraďuje svoju vlastnú prácu do frontu.
+- Rozdiely obsahujúce iba testy a PR s označením `hotfix` už používajú obmedzené CI (pozrite
+  `RELEASE_CHECKLIST.md` → Rýchla cesta pre opravy hotfix); podmienky frontu akceptujú
+  ľubovoľnú sadu kontrol, ktorá sa skutočne spustila (`#check-failure=0` + `#check-pending=0`).
 
-## Záložný postup: manuálny zlučovací vlak
+## Záložný postup: manuálny merge-train
 
 Používa sa, keď front nie je dostupný. Formalizuje postup, ktorý počas cyklu v3.8.47
-spracoval 33 PR za jeden deň:
+spracoval 33 PR za jediný deň:
 
-1. **Zostavte dávku** (~10–30 skontrolovaných a schválených PR). Skontrolujte kolízie `linked:`
-   (rovnaké `tap.testFiles`, rovnaké časti CHANGELOG) a spracujte ich sériovo.
-2. **Overte RAZ**: v izolovanom pracovnom strome vytvorenom z vrcholu vetvy vydania lokálne zlúčte všetky
-   vrcholy dávky a potom spustite sadu ekvivalentnú vydaniu
-   (`npm run check:release-green`, pred vydaním pridajte `--with-build`).
+1. **Zostavte dávku** (~10–30 skontrolovaných a schválených PR). Skontrolujte kolízie
+   `linked:` (rovnaké `tap.testFiles`, rovnaké úseky CHANGELOG) a spracujte ich sériovo.
+2. **Overte RAZ**: v izolovanom worktree vytvorenom z vrcholu vydávacej vetvy lokálne
+   zlúčte všetky hlavy dávky a potom spustite sadu ekvivalentnú vydaniu
+   (`npm run check:release-green`; pred vydaním pridajte `--with-build`).
    `scripts/release/merge-train.sh <base> <PR#>…` automatizuje kroky 1–2 (konfliktné
    PR sa vyradia a vlak pokračuje). Úplný režim spúšťa `npm run test:unit` — spúšťač
-   vyladený pre daný stroj (`--test-concurrency=20`), **nie** dva sekvenčné 4-jadrové fragmenty CI,
-   ktoré spôsobili, že dominantná fáza využívala približne 25 % 16-jadrového stroja (opravené
-   2026-07-18). `--fast` (vnútrodenné spracovanie megavlakov, schválené vlastníkom 2026-07-18)
-   zachováva každú statickú kontrolnú bránu + vitest, ale spúšťa iba súbory node:test zmenené
-   PR zaradenými do vlaku; ÚPLNÁ sada sa stále musí spustiť aspoň raz denne na
-   kumulovanom vrchole (jeden vlak bez `--fast`).
-3. **Úspech** → zlúčte PR v poradí (pred každým znova skontrolujte `state,headRefOid` —
-   PR, ktorého vrchol sa zmenil, sa vracia na kontrolu). Overte, že výsledný rozdiel každého zlúčenia
-   predstavuje vlastnú zmenu daného PR (žiadne automatické riešenie konfliktov vracajúce zmeny: skontrolujte
-   `git diff --stat`, či neobsahuje odstránenia mimo rozsahu).
-4. **Neúspech** → rozdeľte dávku binárnym vyhľadávaním na polovice (overte každú polovicu) namiesto
-   opätovného overovania po jednom; vráťte problematický PR spolu s dôkazmi späť do frontu na kontrolu.
-5. **Nikdy**: počas zmrazenia nezlučujte do zmrazenej vetvy; nikde nepoužívajte `git stash`;
-   neopakujte bez rozmyslu CI v nádeji, že neúspech zmizne (pravidlo: neúspech je informácia).
+   optimalizovaný pre daný stroj (`--test-concurrency=20`), **nie** dva sekvenčné
+   4-jadrové CI shardy, ktoré dominantnú fázu obmedzovali približne na 25 % výkonu
+   16-jadrového stroja (opravené 2026-07-18). `--fast` (vnútrodenné spracovanie
+   veľkých merge-trainov, schválené vlastníkom 2026-07-18) zachováva každú statickú
+   kontrolnú bránu + vitest, ale spúšťa iba súbory node:test zmenené zaradenými PR;
+   ÚPLNÁ sada sa stále musí spustiť aspoň raz denne nad nahromadeným vrcholom
+   (jeden vlak bez `--fast`).
+3. **Úspešné** → zlúčte PR postupne (pred každým znova skontrolujte `state,headRefOid` —
+   PR, ktorého hlava sa zmenila, sa vracia na kontrolu). Preukážte, že výsledný rozdiel
+   každého zlúčenia predstavuje vlastnú zmenu daného PR (žiadne reverty pri automatickom
+   riešení konfliktov: skontrolujte `git diff --stat`, či neobsahuje odstránenia mimo rozsahu).
+4. **Neúspešné** → rozdeľte dávku na polovice (a overte každú polovicu) namiesto
+   opakovaného overovania po jednom; problematický PR vráťte spolu s dôkazmi do frontu
+   na kontrolu.
+5. **Nikdy**: nezlučujte počas zmrazenia do zmrazenej vetvy; nikde nepoužívajte
+   `git stash`; nespúšťajte opakovane celé CI v nádeji, že neúspech zmizne
+   (pravidlo: neúspech je informácia).
 
 ## Úrovne (prečo je front bezpečný iba s rýchlymi kontrolnými bránami)
 
-- **Pre každý PR** (rýchle kontrolné brány quality.yml): testy ovplyvnené podľa TIA + úplné jednotkové testy
-  v 4 fragmentoch + vitest + sada lint kontrol + typecheck + integrita dokumentácie/CHANGELOG.
-- **Pre každú dávku/vrchol** (priebežná kontrola stavu vydania): TVRDÉ kontrolné brány `--quick` pri každom pushnutí do
-  vetvy vydania; úplné kontroly `--with-build --full-ci` 3× denne.
-- **Pre každé vydanie** (ci.yml na PR vydania): úplná matica vrátane E2E ×9,
-  package-artifact + základný test spustenia z tarballu, coverage/ratchets.
+- **Pre každý PR** (rýchle kontrolné brány quality.yml): testy ovplyvnené podľa TIA +
+  úplné jednotkové testy v 4 shardoch + vitest + sada lint kontrol + typecheck +
+  integrita dokumentácie/changelogu.
+- **Pre každú dávku/vrchol** (priebežné overovanie vydania): TVRDÉ kontrolné brány
+  `--quick` pri každom odoslaní zmien do vydávacej vetvy; úplné priechody
+  `--with-build --full-ci` 3× denne.
+- **Pre každé vydanie** (ci.yml na vydávacom PR): úplná matica vrátane E2E ×9,
+  package-artifact + overenie spustenia z tarballu, coverage/ratchets.
 
-Nič sa neoveruje menej než predtým — náročné kontroly sa iba spúšťajú pre každú dávku/vrchol
-namiesto každého PR, čím sa odstraňujú opakované cykly O(N).
+Nič sa neoveruje menej než predtým — náročná časť sa iba spúšťa pre každú dávku/vrchol
+namiesto každého PR, čím sa odstraňujú O(N) spiatočné cykly.
+
+## Predpoklady čistého checkoutu pre `merge-train.sh`
+
+Skript spúšťa na koreňovom checkoute **predbežnú kontrolu**, ktorá pri prvom zlyhaní
+skončí (pred akoukoľvek prácou s worktree), takže poškodená inštalácia sa nikdy nemôže
+javiť ako neúspešný vlak:
+
+1. `npm ci`, potom spustite postinstall pre `bun`, ktorý npm blokuje:
+   `(cd node_modules/bun && node install.js)` — inak `check:provider-consistency`
+   a `check:known-symbols` (oba používajú `bun scripts/…`) zlyhajú vo vlaku AJ na
+   základnej vetve bez riadka s porušením.
+2. Žiadny nadbytočný `node_modules/node_modules` (duplicitný strom závislostí; React
+   sa načíta dvakrát a UI sady vitest okamžite zlyhajú).
+3. `node_modules/.bin/tsc` musí byť prítomný a spustiteľný (pri čiastočnej inštalácii chýba).
+
+Vlak spúšťa blokujúci `npm run check:cycles:ratchet`; samotný `npm run check:cycles`
+je iba informatívny (vypíše SCC a skončí s nenulovým kódom aj na zdravej základnej vetve).

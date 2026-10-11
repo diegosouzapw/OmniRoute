@@ -116,9 +116,13 @@ Claude టూల్ కార్డ్ (**Dashboard → CLI Code**) ఈ ఇన�
 
 ## ప్రొఫైల్లు (`CLAUDE_CONFIG_DIR`)
 
-Claude Codeలో **స్థానిక ప్రొఫైల్ ఫైల్లు లేవు** (Codex యొక్క `~/.codex/<name>.config.toml`లా కాకుండా). సాధారణంగా ఉపయోగించే విధానం `CLAUDE_CONFIG_DIR` — ప్రతి ప్రొఫైల్కు ప్రత్యేక కాన్ఫిగరేషన్ డైరెక్టరీ, ప్రతి దానిలో దాని స్వంత `settings.json`, క్రెడెన్షియల్లు, హిస్టరీ మరియు క్యాష్ ఉంటాయి.
+Claude Codeలో **స్థానిక ప్రొఫైల్ ఫైళ్లు లేవు** (Codexలోని `~/.codex/<name>.config.toml` మాదిరిగా).
+సాధారణంగా ఉపయోగించే విధానం `CLAUDE_CONFIG_DIR` — ప్రతి ప్రొఫైల్కు ఒక ప్రత్యేక కాన్ఫిగరేషన్ డైరెక్టరీ,
+ప్రతిదానిలో దాని స్వంత `settings.json`, ఆధారాలు, చరిత్ర మరియు కాష్ ఉంటాయి.
 
-`omniroute setup-claude` ప్రత్యక్ష `/v1/models` కాటలాగ్ను పొందుతుంది మరియు ప్రతి మోడల్కు ఒక ప్రొఫైల్ను `~/.claude/profiles/<name>/settings.json` వద్ద రాస్తుంది, **`setup-codex`లో ఉన్న అదే పేర్లను** (`glm52`, `kimi-k27`, `deepseek-pro`, …) మళ్లీ ఉపయోగిస్తుంది:
+`omniroute setup-claude` ప్రత్యక్ష `/v1/models` కేటలాగ్ను పొందుతుంది మరియు ప్రతి మోడల్కు
+`~/.claude/profiles/<name>/settings.json` వద్ద ఒక ప్రొఫైల్ను వ్రాస్తుంది, అలాగే
+**`setup-codex`లో ఉన్న అవే పేర్లను** (`glm52`, `kimi-k27`, `deepseek-pro`, …) తిరిగి ఉపయోగిస్తుంది:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -135,9 +139,19 @@ Claude Codeలో **స్థానిక ప్రొఫైల్ ఫైల్�
 }
 ```
 
-> **ఆథ్ టోకెన్ ఎప్పుడూ ప్రొఫైల్లో రాయబడదు.** `omniroute launch --profile <name>`తో ప్రారంభించండి (ఇది సక్రియ కాంటెక్స్ట్ నుండి `ANTHROPIC_AUTH_TOKEN`ని ఇంజెక్ట్ చేస్తుంది), లేదా మీరే `ANTHROPIC_AUTH_TOKEN`ని ఎక్స్పోర్ట్ చేసి `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`ని అమలు చేయండి.
+> **ప్రామాణీకరణ టోకెన్ను ప్రొఫైల్లో ఎప్పుడూ వ్రాయరు.** `omniroute launch --profile <name>`తో
+> ప్రారంభించండి (ఇది సక్రియ కాంటెక్స్ట్ నుండి `ANTHROPIC_AUTH_TOKEN`ను చొప్పిస్తుంది), లేదా మీరే
+> `ANTHROPIC_AUTH_TOKEN`ను ఎక్స్పోర్ట్ చేసి
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`ను అమలు చేయండి.
 
-**మోడల్ డిస్కవరీ తర్వాత ఆటో-సింక్ (ఎంచుకుంటే మాత్రమే).** ప్రొవైడర్ మోడల్ సింక్ ప్రత్యక్ష కాటలాగ్ను మార్చినప్పుడల్లా OmniRoute ఇదే `~/.claude/profiles/<name>/settings.json` ఫైల్లను స్వయంచాలకంగా మళ్లీ రూపొందించగలదు — తద్వారా కమాండ్ను మళ్లీ అమలు చేయకుండానే కొత్త/పేరు మార్చబడిన మోడల్లకు ప్రొఫైల్లు లభిస్తాయి. ఇది **డిఫాల్ట్గా ఆఫ్లో ఉంటుంది**: **CLI Code డ్యాష్బోర్డ్** నుండి దీన్ని టాగుల్ చేయండి ("CLI profile auto-sync" → Claude Code), లేదా `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`ని సెట్ చేయండి (ఇది డిఫాల్ట్గా ఆన్లో ఉండే `CLI_ALLOW_CONFIG_WRITES`ను కూడా గౌరవిస్తుంది). ప్రారంభించినప్పుడు ఇది ప్రొఫైల్ ఫైల్లను మాత్రమే రాస్తుంది; మీ సక్రియ/డిఫాల్ట్ Claude కాన్ఫిగరేషన్ను, ఆథ్ను లేదా `~/.claude/settings.json`ను ఎప్పుడూ మార్చదు.
+**మోడల్ డిస్కవరీ తర్వాత స్వయంచాలక సమకాలీకరణ (ఎంచుకుంటే మాత్రమే).** ప్రొవైడర్ మోడల్
+సమకాలీకరణ వల్ల ప్రత్యక్ష కేటలాగ్ మారినప్పుడల్లా OmniRoute ఇవే
+`~/.claude/profiles/<name>/settings.json` ఫైళ్లను స్వయంచాలకంగా మళ్లీ రూపొందించగలదు — తద్వారా కమాండ్ను
+మళ్లీ అమలు చేయకుండానే కొత్త/పేరు మార్చిన మోడల్లకు ప్రొఫైల్లు లభిస్తాయి. ఇది **డిఫాల్ట్గా ఆఫ్లో ఉంటుంది**:
+**CLI Code డాష్బోర్డ్** నుండి దీన్ని టాగుల్ చేయండి ("CLI profile auto-sync" → Claude Code), లేదా
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`ను సెట్ చేయండి (ఇది డిఫాల్ట్గా ఆన్లో ఉండే
+`CLI_ALLOW_CONFIG_WRITES`ను కూడా గౌరవిస్తుంది). ప్రారంభించినప్పుడు ఇది ప్రొఫైల్ ఫైళ్లను మాత్రమే వ్రాస్తుంది;
+ఇది మీ సక్రియ/డిఫాల్ట్ Claude కాన్ఫిగరేషన్ను, ప్రామాణీకరణను లేదా `~/.claude/settings.json`ను ఎప్పుడూ మార్చదు.
 
 ### ప్రొఫైల్లను రూపొందించడం + ఉపయోగించడం
 
@@ -151,10 +165,14 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # కొన్ని ప్రొవైడర్లు మాత్రమే
 omniroute setup-claude --only glm,kimi
 
-# రాయకుండా ప్రివ్యూ
+# ఈ హోస్ట్లో గుర్తించబడని local-CLI ప్రొవైడర్లకు (zcode, auggie, devin-cli-agentic,
+# codex-app-server) కూడా ప్రొఫైల్లను వ్రాయండి (స్థానిక లక్ష్యానికి డిఫాల్ట్గా దాటవేయబడతాయి)
+omniroute setup-claude --include-local
+
+# వ్రాయకుండా ప్రివ్యూ చేయండి
 omniroute setup-claude --dry-run
 
-# ప్రొఫైల్ను ప్రారంభించండి
+# ఒక ప్రొఫైల్ను ప్రారంభించండి
 omniroute launch --profile kimi-k27
 ```
 

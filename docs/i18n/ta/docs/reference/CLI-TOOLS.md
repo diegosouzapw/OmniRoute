@@ -554,54 +554,54 @@ kiro-cli status
 **Kiro IDE** டெஸ்க்டாப் செயலிக்கு, OmniRoute மூலம் வெளியிடப்பட்ட MITM முடிவுகளைப் பயன்படுத்தவும்
 `/dashboard/cli-tools → Kiro` இல்.
 
-## 10. உள்புற OmniRoute CLI
+## 10. உள் OmniRoute CLI
 
-`omniroute` பைனரி, சேவையக வாழ்க்கைச்சுழற்சி, அமைத்தல், கண்டறிதல் மற்றும் வழங்குநர் மேலாண்மைக்கான கட்டளைகளை வழங்குகிறது. நுழைவுப் புள்ளி: `bin/omniroute.mjs`.
+`omniroute` பைனரி, சேவையக வாழ்க்கைச் சுழற்சி, அமைப்பு, பிழையறிதல் மற்றும் வழங்குநர் மேலாண்மைக்கான கட்டளைகளை வழங்குகிறது. நுழைவுப் புள்ளி: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # சேவையகத்தைத் தொடங்கு (இயல்புநிலை போர்ட் 20128)
-omniroute setup                        # ஊடாடும் அமைவு வழிகாட்டி
-omniroute doctor                       # உள்ளமைவு, DB, போர்ட்கள், இயக்கச்சூழல் ஆகியவற்றைச் சரிபார்
-omniroute providers list               # உள்ளமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
-omniroute providers test-all           # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதி
-omniroute reset-password               # நிர்வாகி கடவுச்சொல்லை மீட்டமை
-omniroute logs                         # கோரிக்கை பதிவுகளைத் தொடரோட்டமாகக் காட்டு
-omniroute health                       # விரிவான ஆரோக்கிய நிலை (breakers, தற்காலிகச் சேமிப்பு, நினைவகம்)
-omniroute --version                    # பதிப்பை அச்சிடு
-omniroute --help                       # அனைத்து கட்டளைகளையும் காட்டு
+omniroute                              # சேவையகத்தைத் தொடங்கவும் (இயல்புநிலை போர்ட் 20128)
+omniroute setup                        # ஊடாடும் அமைப்பு வழிகாட்டி
+omniroute doctor                       # கட்டமைப்பு, DB, போர்ட்கள், இயக்கச்சூழல் ஆகியவற்றைச் சரிபார்க்கவும்
+omniroute providers list               # கட்டமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
+omniroute providers test-all           # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதிக்கவும்
+omniroute reset-password               # நிர்வாகி கடவுச்சொல்லை மீட்டமைக்கவும்
+omniroute logs                         # கோரிக்கை பதிவுகளைத் தொடரோட்டமாகக் காட்டவும்
+omniroute health                       # விரிவான ஆரோக்கிய நிலை (பிரேக்கர்கள், தற்காலிக சேமிப்பு, நினைவகம்)
+omniroute --version                    # பதிப்பை அச்சிடவும்
+omniroute --help                       # அனைத்து கட்டளைகளையும் காட்டவும்
 ```
 
-### அமைவு & துவக்கமயமாக்கல்
+### அமைத்தல் & தொடக்கநிலைப்படுத்தல்
 
 ```bash
-omniroute setup                        # ஊடாடும் அமைவு வழிகாட்டி
-omniroute setup --non-interactive      # CI/தானியக்கப் பயன்முறை (சூழல் மாறிகள் + கொடிகளைப் படிக்கும்)
-omniroute setup --password '<value>'   # நிர்வாகி கடவுச்சொல்லை நேரடியாக அமை
+omniroute setup                        # ஊடாடும் அமைப்பு வழிகாட்டி
+omniroute setup --non-interactive      # CI/தானியக்க முறை (சூழல் மாறிகள் + கொடிகளைப் படிக்கும்)
+omniroute setup --password '<value>'   # நிர்வாகி கடவுச்சொல்லை நேரடியாக அமைக்கவும்
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ஒரே முறையில் ஒரு வழங்குநரைச் சேர்த்துச் சோதி
+  --test-provider                      # ஒரே செயல்பாட்டில் வழங்குநரைச் சேர்த்துச் சோதிக்கவும்
 ```
 
-ஊடாடாத அமைவிற்காக அங்கீகரிக்கப்படும் சூழல் மாறிகள்:
+ஊடாடாத அமைப்பிற்காக அங்கீகரிக்கப்படும் சூழல் மாறிகள்:
 
 | மாறி                | நோக்கம்                                                                         |
 | ------------------- | ------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | வழங்குநர் API விசை (Commander `.env()` வழியாக `--api-key` உடன் பிணைக்கப்பட்டது) |
-| `DATA_DIR`          | OmniRoute தரவுக் கோப்பகத்தை மேலெழுது                                            |
+| `DATA_DIR`          | OmniRoute தரவு கோப்பகத்தை மேலெழுதவும்                                           |
 
-மற்ற அனைத்து ஊடாடாத உள்ளீடுகளும் சூழல் மாறிகளாக அல்லாமல் கொடிகளாக அனுப்பப்படுகின்றன:
+மற்ற அனைத்து ஊடாடாத உள்ளீடுகளும் சூழல் மாறிகளாக அல்லாமல், கொடிகளாக அனுப்பப்படுகின்றன:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(மேலே உள்ள `omniroute setup` விருப்பங்களைப் பார்க்கவும்).
+(மேலேயுள்ள `omniroute setup` விருப்பங்களைப் பார்க்கவும்).
 
-### கண்டறிதல்
+### பிழையறிதல்
 
 ```bash
-omniroute doctor                       # உள்ளமைவு, DB, போர்ட்கள், இயக்கச்சூழல், நினைவகம், செயல்பாட்டு நிலை ஆகியவற்றைச் சரிபார்
-omniroute doctor --json                # இயந்திரம் வாசிக்கக்கூடிய JSON
-omniroute doctor --no-liveness         # HTTP ஆரோக்கியச் சோதனையைத் தவிர்
-omniroute doctor --host 0.0.0.0        # செயல்பாட்டு நிலை ஹோஸ்டை மேலெழுது
-omniroute doctor --liveness-url <url>  # முழுமையான ஆரோக்கிய முனைப்புள்ளி URL-ஐ மேலெழுது
+omniroute doctor                       # கட்டமைப்பு, DB, போர்ட்கள், இயக்கச்சூழல், நினைவகம், செயல்நிலை ஆகியவற்றைச் சரிபார்க்கவும்
+omniroute doctor --json                # இயந்திரம் படிக்கக்கூடிய JSON
+omniroute doctor --no-liveness         # HTTP ஆரோக்கிய நிலைச் சோதனையைத் தவிர்க்கவும்
+omniroute doctor --host 0.0.0.0        # செயல்நிலை ஹோஸ்ட்டை மேலெழுதவும்
+omniroute doctor --liveness-url <url>  # முழு ஆரோக்கிய நிலை முனைப்புள்ளி URL-ஐ மேலெழுதவும்
 ```
 
 doctor பின்வரும் சோதனைகளை இயக்குகிறது: `Config`, `Database`, `Storage/encryption`,
@@ -612,101 +612,112 @@ doctor பின்வரும் சோதனைகளை இயக்கு�
 
 ```bash
 omniroute providers available                       # OmniRoute வழங்குநர் பட்டியல்
-omniroute providers available --search openai       # id/பெயர்/மாற்றுப்பெயர்/வகை அடிப்படையில் பட்டியலை வடிகட்டு
-omniroute providers available --category api-key    # வகை அடிப்படையில் வடிகட்டு (api-key, oauth, free, ...)
-omniroute providers available --json                # இயந்திரம் வாசிக்கக்கூடிய JSON
+omniroute providers available --search openai       # id/name/alias/category அடிப்படையில் பட்டியலை வடிகட்டவும்
+omniroute providers available --category api-key    # வகையின்படி வடிகட்டவும் (api-key, oauth, free, ...)
+omniroute providers available --json                # இயந்திரம் படிக்கக்கூடிய JSON
 
-omniroute providers list                            # உள்ளமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
+omniroute providers list                            # கட்டமைக்கப்பட்ட வழங்குநர் இணைப்புகள்
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # உள்ளமைக்கப்பட்ட ஓர் இணைப்பைச் சோதி
-omniroute providers test-all                        # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதி
-omniroute providers validate                        # உள்ளூர்-மட்டும் கட்டமைப்புச் சரிபார்ப்பு
+omniroute providers test <id|name>                  # கட்டமைக்கப்பட்ட ஓர் இணைப்பைச் சோதிக்கவும்
+omniroute providers test-all                        # செயலில் உள்ள ஒவ்வொரு இணைப்பையும் சோதிக்கவும்
+omniroute providers validate                        # உள்ளூர் மட்டுமான கட்டமைப்பு சரிபார்ப்பு
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # ஏற்கனவே உள்ள OAuth செயல்முறை
+omniroute providers auth <provider>                 # ஏற்கெனவே உள்ள OAuth செயல்முறை
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` API-முதன்மையானவை; எனவே அவை செயலில் உள்ள
-உள்ளூர் அல்லது தொலைநிலைச் சூழலுடன் செயல்படுகின்றன. நற்சான்று உள்ளீட்டிற்கு
+உள்ளூர் அல்லது தொலைநிலைச் சூழலில் செயல்படும். நற்சான்று உள்ளீட்டிற்கு
 `--credential-stdin` அல்லது `--credential-env` பயன்படுத்தப்பட வேண்டும்; `--dry-run --json`
 மறைக்கப்பட்ட இருப்பு/வடிவத்தை மட்டுமே அறிக்கையிடும். `providers available`, OmniRoute பட்டியலைப்
-படிக்கிறது; `providers list/test/test-all/validate` அவற்றின் உள்ளூர் SQLite நடத்தையைத்
-தக்கவைத்துக் கொள்வதுடன், சேவையகம் இயங்கிக் கொண்டிருக்க வேண்டிய அவசியமும் இல்லை.
+படிக்கிறது; `providers list/test/test-all/validate` அவற்றின் உள்ளூர் SQLite செயல்பாட்டைத்
+தக்கவைத்துக்கொள்வதுடன், சேவையகம் இயங்கிக்கொண்டிருக்க வேண்டிய அவசியமும் இல்லை.
+
+தனிப்பயன் OpenAI-இணக்கமான அல்லது Anthropic-இணக்கமான முனைக்கு, `omniroute nodes add`
+வழங்கிய முனை ID-யுடன் நற்சான்றுகளை இணைக்க, `omniroute keys add "$NODE_ID" --stdin`-ஐப் பயன்படுத்தவும்.
+இதற்கு இயங்கிக்கொண்டிருக்கும் சேவையகமும், செயலில் உள்ள சூழலுக்கான மேலாண்மை அங்கீகாரமும் தேவை.
+CLI, `POST /api/providers`-ஐப் பயன்படுத்துகிறது; இது முனையைச் சரிபார்த்து, அதன் முனைப்புள்ளி
+அமைப்புகளை இணைப்பிற்குள் நகலெடுக்கிறது. முனை இல்லாமை, அங்கீகாரத் தோல்வி அல்லது கிடைக்காத
+சேவையகம் ஆகியவை உள்ளூர் மாற்று நற்சான்றை உருவாக்காமல் பிழையை வழங்கும்.
+
+`nodes add --base-url`, முனையின் முனைப்புள்ளியை அமைக்கிறது; இது `OMNIROUTE_BASE_URL`-இல்
+உள்ள சேவையக முகவரியிலிருந்து வேறுபட்டது. OpenAPI கோப்புகளுக்கு,
+`omniroute openapi dump --format json --out ./openapi.json`-ஐப் பயன்படுத்தவும்; பொதுவான `--output`,
+இலக்குக் கோப்புப் பெயரை அல்லாமல் CLI காட்சி வடிவமைப்பைத் தேர்ந்தெடுக்கிறது.
 
 ### மீட்பு & மீட்டமைப்பு
 
 ```bash
-omniroute reset-password                # நிர்வாகி கடவுச்சொல்லை மீட்டமை (இதுவும்: omniroute-reset-password)
-omniroute reset-encrypted-columns       # மறைகுறியாக்கப்பட்ட நற்சான்றுகளை மீட்டமைப்பதற்கான எச்சரிக்கை + ஒத்திகையைக் காட்டு
-omniroute reset-encrypted-columns --force  # SQLite-இல் மறைகுறியாக்கப்பட்ட நற்சான்றுகளை உண்மையில் null ஆக்கு
+omniroute reset-password                # நிர்வாகி கடவுச்சொல்லை மீட்டமைக்கவும் (மேலும்: omniroute-reset-password)
+omniroute reset-encrypted-columns       # மறைகுறியாக்கப்பட்ட நற்சான்று மீட்டமைப்பிற்கான எச்சரிக்கை + உலர் இயக்கத்தைக் காட்டவும்
+omniroute reset-encrypted-columns --force  # SQLite-இல் மறைகுறியாக்கப்பட்ட நற்சான்றுகளை உண்மையில் null ஆக்கவும்
 ```
 
 ### நற்சான்று ஏற்றுமதி (⚠ கவனமாகக் கையாளவும்)
 
 ```bash
-omniroute auth export                                 # எச்சரிக்கை + உறுதிப்படுத்தல் தடுப்பைக் காட்டு — DB அணுகல் இல்லை
-omniroute auth export --force                          # அனைத்து இணைப்புகளின் மறைகுறிநீக்கப்பட்ட நற்சான்றுகளையும் JSON ஆக stdout-க்கு ஏற்றுமதி செய்
-omniroute auth export --force --id <id>                 # பொருந்தும் இணைப்பை மட்டும் ஏற்றுமதி செய்
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> வரிகளை வெளியிடு
-omniroute auth export --force --out creds.json           # ஒரு கோப்பில் எழுது (0600 அனுமதிகளுடன் உருவாக்கப்படும்)
+omniroute auth export                                 # எச்சரிக்கை + உறுதிப்படுத்தல் கட்டுப்பாட்டைக் காட்டவும் — DB அணுகல் இல்லை
+omniroute auth export --force                          # அனைத்து இணைப்புகளின் மறைவிலக்கப்பட்ட நற்சான்றுகளையும் JSON ஆக stdout-க்கு ஏற்றுமதி செய்யவும்
+omniroute auth export --force --id <id>                 # பொருந்தும் இணைப்பை மட்டும் ஏற்றுமதி செய்யவும்
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> வரிகளை வெளியிடவும்
+omniroute auth export --force --out creds.json           # ஒரு கோப்பில் எழுதவும் (0600 அனுமதிகளுடன் உருவாக்கப்படும்)
 ```
 
-`auth export` என்பது **உள்ளூர்-மட்டும்** செயல்பாடு (நேரடி SQLite வாசிப்பு, HTTP வழித்தடம் இல்லை); மேலும் இது வேண்டுமென்றே
-**எளிய உரையாக** `apiKey`/`accessToken`/`refreshToken`/`idToken` மதிப்புகளை அச்சிடுகிறது/எழுதுகிறது — இது ஒரு
-அம்சமே தவிர, பிழை அல்ல. `--force` இல்லாமல் தரவுத்தளத்திலிருந்து எதுவும் படிக்கப்படாது; எதுவும் மறைகுறிநீக்கம்
-செய்யப்படாது. எந்த எளிய உரையும் வெளியிடப்படுவதற்கு முன்பு, stderr-இல் எப்போதும் ஓர் எச்சரிக்கைப் பட்டை
-அச்சிடப்படும். `STORAGE_ENCRYPTION_KEY` அமைக்கப்பட்டிருக்க வேண்டும். மறைகுறிநீக்கம் செய்யத் தவறும் ஒரு புலம்
-(பழைய விசை, சிதைந்த மறைக்குறியீட்டு உரை), முழு ஏற்றுமதியையும் நிறுத்துவதற்கோ அடிப்படைப் பிழையைக் கசியவிடுவதற்கோ பதிலாக
-`<field>DecryptFailed: true` என அறிக்கையிடப்படும்.
+`auth export` என்பது **உள்ளூரில் மட்டும்** செயல்படுவது (நேரடி SQLite வாசிப்பு, HTTP route இல்லை); மேலும் இது
+**எளிய உரை வடிவிலான** `apiKey`/`accessToken`/`refreshToken`/`idToken` மதிப்புகளை வேண்டுமென்றே அச்சிடுகிறது/எழுதுகிறது — இது ஒரு அம்சம்,
+பிழை அல்ல. `--force` இல்லாமல் தரவுத்தளத்திலிருந்து எதுவும் வாசிக்கப்படாது, மேலும் எதுவும் மறைகுறிநீக்கம் செய்யப்படாது. எளிய உரை
+வெளியிடப்படுவதற்கு முன்பு stderr எச்சரிக்கை பதாகை எப்போதும் அச்சிடப்படும். `STORAGE_ENCRYPTION_KEY`
+அமைக்கப்பட்டிருக்க வேண்டும். மறைகுறிநீக்கம் செய்ய முடியாத ஒரு புலம் (பழைய key, சிதைந்த ciphertext), முழு export செயலையும்
+நிறுத்துவதற்கோ அடிப்படைப் பிழையை வெளிப்படுத்துவதற்கோ பதிலாக, `<field>DecryptFailed: true` எனப் பதிவிடப்படும்.
 
 ### பிற துணைக் கட்டளைகள்
 
-வேறுவிதமாகக் குறிப்பிடப்படாத வரை, இவை இயங்கிக் கொண்டிருக்கும் OmniRoute சேவையகம் இருப்பதாகக் கருதுகின்றன:
+வேறுவிதமாகக் குறிப்பிடப்படாத வரை, இவை இயங்கிக்கொண்டிருக்கும் OmniRoute server ஒன்றை எதிர்பார்க்கின்றன:
 
 ```bash
 omniroute status                       # விரிவான இயக்கநேர நிலை
-omniroute logs                         # கோரிக்கைப் பதிவுகளை நேரலையாகக் காட்டு (--json, --search, --follow)
+omniroute logs                         # கோரிக்கை பதிவுகளைத் தொடர்ச்சியாகக் காட்டு (--json, --search, --follow)
 omniroute config list                  # உள்ளமைக்கப்பட்ட CLI கருவிகளைக் காட்டு
 
-omniroute provider list                # கிடைக்கக்கூடிய வழங்குநர்களைப் பட்டியலிடு (providers list என்பதன் மாற்றுப்பெயர்)
-omniroute provider add                 # ஒரு கருவியில் OmniRoute-ஐ வழங்குநராகப் பதிவுசெய்
-omniroute keys add | list | remove     # API விசைகளை நிர்வகி
-omniroute models [provider]            # மாதிரிகளைப் பட்டியலிடு (--json, --search)
+omniroute provider list                # கிடைக்கக்கூடிய providers-ஐப் பட்டியலிடு (providers list என்பதன் மாற்றுப்பெயர்)
+omniroute provider add                 # ஒரு கருவியில் OmniRoute-ஐ provider ஆகப் பதிவுசெய்
+omniroute keys add | list | remove     # API keys-ஐ நிர்வகி
+omniroute models [provider]            # models-ஐப் பட்டியலிடு (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # உள்ளமைவு + DB-இன் தருணநிலை நகலை உருவாக்கு
-omniroute restore                      # முந்தைய தருணநிலை நகலிலிருந்து மீட்டமை
+omniroute backup                       # config + DB snapshot-ஐ உருவாக்கு
+omniroute restore                      # முந்தைய snapshot-இலிருந்து மீட்டமை
 
-omniroute health                       # விரிவான ஆரோக்கிய நிலை (சுற்றுத்தடுப்பிகள், தற்காலிகச் சேமிப்பு, நினைவகம்)
-omniroute quota                        # வழங்குநர் ஒதுக்கீட்டுப் பயன்பாடு
-omniroute cache                        # தற்காலிகச் சேமிப்பு நிலை
-omniroute cache clear                  # பொருள்சார் + கையொப்பத் தற்காலிகச் சேமிப்புகளை அழி
+omniroute health                       # விரிவான ஆரோக்கிய நிலை (breakers, cache, memory)
+omniroute quota                        # provider quota பயன்பாடு
+omniroute cache                        # cache நிலை
+omniroute cache clear                  # semantic + signature caches-ஐ அழி
 
-omniroute mcp status | restart         # MCP சேவையக நிலை / மறுதொடக்கம்
-omniroute a2a status | card            # A2A சேவையக நிலை / முகவர் அட்டை
+omniroute mcp status | restart         # MCP server நிலை / மறுதொடக்கம்
+omniroute a2a status | card            # A2A server நிலை / agent card
 
-omniroute tunnel list | create | stop  # சுரங்கங்களை நிர்வகி (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # சூழல் மாறிகளை ஆய்வுசெய் / அமை (தற்காலிகமானது)
+omniroute tunnel list | create | stop  # tunnels-ஐ நிர்வகி (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # env vars-ஐப் பார்வையிடு / அமை (தற்காலிகம்)
 
-omniroute test                         # வழங்குநர் இணைப்பிற்கான அடிப்படைச் சோதனை
+omniroute test                         # provider இணைப்புக்கான அடிப்படைச் சோதனை
 omniroute update                       # புதுப்பிப்புகளைச் சரிபார்
-omniroute completion                   # ஷெல் தான்நிறைவை உருவாக்கு
+omniroute completion                   # shell completion-ஐ உருவாக்கு
 ```
 
-### பொதுவான கொடிகள்
+### பொதுவான flags
 
-| கொடி                | விளக்கம்                                                                |
-| ------------------- | ----------------------------------------------------------------------- |
-| `--no-open`         | தொடக்கத்தின்போது உலாவியைத் தானாகத் திறக்க வேண்டாம்                      |
-| `--port <n>`        | API போர்ட்டை மேலெழுது (இயல்புநிலை 20128)                                |
-| `--mcp`             | stdio வழியாக MCP சேவையகமாக இயக்கு (IDE-களுக்காக)                        |
-| `--non-interactive` | CI பயன்முறை (தூண்டல்கள் இல்லை; சூழல் மாறிகள்/கொடிகளிலிருந்து படிக்கும்) |
-| `--json`            | இயந்திரம் வாசிக்கக்கூடிய JSON வெளியீடு (doctor, providers போன்றவை)      |
-| `--help`, `-h`      | கட்டளைக்குரிய உதவியைக் காட்டு                                           |
-| `--version`, `-v`   | நிறுவப்பட்ட பதிப்பை அச்சிடு                                             |
+| Flag                | விளக்கம்                                                           |
+| ------------------- | ------------------------------------------------------------------ |
+| `--no-open`         | தொடங்கும்போது உலாவியைத் தானாகத் திறக்க வேண்டாம்                    |
+| `--port <n>`        | API port-ஐ மாற்றியமை (இயல்புநிலை 20128)                            |
+| `--mcp`             | stdio வழியாக MCP server ஆக இயக்கு (IDE-களுக்காக)                   |
+| `--non-interactive` | CI முறை (தூண்டல்கள் இல்லை; env/flags-இலிருந்து வாசிக்கும்)         |
+| `--json`            | இயந்திரம் வாசிக்கக்கூடிய JSON வெளியீடு (doctor, providers போன்றவை) |
+| `--help`, `-h`      | கட்டளைக்குரிய உதவியைக் காட்டு                                      |
+| `--version`, `-v`   | நிறுவப்பட்டுள்ள பதிப்பை அச்சிடு                                    |
 
 ---
 

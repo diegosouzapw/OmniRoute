@@ -5,67 +5,86 @@
 ---
 
 Depuis la v3.8.49 (WS3.2/WS3.4 du plan qualité/vélocité), le chemin de fusion par défaut des
-PR relues vers `release/vX.Y.Z` est la **file de fusion Mergify** (`.mergify.yml`) ;
+PR examinées vers `release/vX.Y.Z` est la **file de fusion Mergify** (`.mergify.yml`) ;
 le **train de fusion manuel** décrit ci-dessous est la SOLUTION DE REPLI — utilisée pendant les incidents,
-les gels de version ou si l’offre Open Source de Mergify venait à changer.
+les gels de version, ou si jamais l’offre Open Source de Mergify venait à changer.
 
-## Chemin par défaut : la file Mergify
+## Chemin par défaut : la file d’attente Mergify
 
-1. La PR est relue/validée par les campagnes et approuvée par le point de contrôle ⭐
-   préalable à la fusion du propriétaire (le rapport + la décision pour chaque élément — voir l’étape 0.75 de `/merge-prs`).
+1. La PR est examinée/validée par les campagnes et approuvée par le garde-fou ⭐
+   de pré-fusion du propriétaire (le rapport + la décision pour chaque élément — voir l’étape 0.75 de `/merge-prs`).
 2. Le propriétaire (ou la session agissant conformément à la décision du propriétaire) applique le label **`queue`**.
-   Ce label CONSTITUE l’approbation de fusion ; Mergify ne fait que l’exécuter.
-3. Mergify regroupe jusqu’à 10 PR en attente, valide le lot par rapport aux contrôles rapides,
-   puis les fusionne (squash). Un lot en échec est **divisé automatiquement par dichotomie** — la PR fautive
-   est isolée en environ log2(N) revalidations et retirée de la file ; les autres poursuivent leur traitement.
-4. Après la fusion, le workflow continu de validation de la version vérifie le nouveau sommet lors du push
-   et ouvre une issue d’attribution si la combinaison a introduit une régression (jamais de réversion automatique).
+   Ce label CONSTITUE l’approbation de la fusion ; Mergify ne fait que l’exécuter.
+3. Mergify valide les PR en file d’attente **séquentiellement** (une à la fois) par rapport aux garde-fous rapides
+   et les fusionne (squash). Le traitement par lots + la bissection automatique nécessitent une offre Mergify payante
+   (« Cannot use Merge Queue batch » avec l’offre gratuite, #7220) ; `.mergify.yml` ne définit donc aucun
+   `batch_size` ; le traitement par lots reste du ressort du train de fusion manuel ci-dessous. Une PR dont
+   les vérifications sont toujours en attente après `checks_timeout` (240 min = 2× le p95 mesuré de
+   `quality.yml`) est retirée de la file d’attente au lieu de la bloquer.
+4. Après la fusion, le workflow continu de validation de release vérifie la nouvelle pointe lors du push
+   et ouvre une issue d’attribution si la combinaison introduit une régression (aucun retour en arrière automatique).
 
-Garde-fous (reprennent les règles strictes nº 21/22 de `CLAUDE.md`) :
+Garde-fous (reprennent les règles strictes #21/#22 de `CLAUDE.md`) :
 
-- **Gel de version en cours** → ne PAS appliquer de label aux PR ciblant la branche gelée ; les recibler d’abord vers
+- **Gel de release en cours** → n’appliquez PAS de label aux PR ciblant la branche gelée ; reciblez-les d’abord vers
   la branche `release/vX+1` active.
-- **PR en cours appartenant à une autre session** → ne jamais lui appliquer de label ; seule la session propriétaire
-  place son propre travail dans la file.
-- Les diffs concernant uniquement les tests et les PR portant le label `hotfix` exécutent déjà une CI réduite (voir
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane) ; les conditions de la file acceptent l’ensemble de contrôles réellement
-  exécuté (`#check-failure=0` + `#check-pending=0`).
+- **PR en cours d’une autre session** → ne lui appliquez jamais de label ; seule la session propriétaire place
+  son propre travail dans la file d’attente.
+- Les diffs portant uniquement sur les tests et les PR portant le label `hotfix` exécutent déjà une CI réduite (voir
+  `RELEASE_CHECKLIST.md` → Voie rapide des correctifs) ; les conditions de la file d’attente acceptent tout
+  ensemble de vérifications effectivement exécuté (`#check-failure=0` + `#check-pending=0`).
 
 ## Solution de repli : le train de fusion manuel
 
-Utilisée lorsque la file est indisponible. Elle formalise la pratique qui a permis de traiter 33 PR
+Utilisée lorsque la file n’est pas disponible. Cette procédure formalise la pratique qui a permis de traiter 33 PR
 en une journée pendant le cycle v3.8.47 :
 
-1. **Constituer le lot** (environ 10 à 30 PR relues et approuvées). Rechercher les collisions `linked:`
-   (mêmes `tap.testFiles`, mêmes sections du CHANGELOG) et traiter celles-ci séquentiellement.
-2. **Valider UNE SEULE FOIS** : dans un worktree isolé créé à partir du sommet de la branche de version, fusionner localement toutes les
-   têtes du lot, puis exécuter la suite équivalente à celle de la version
-   (`npm run check:release-green`, en ajoutant `--with-build` avant une publication).
-   `scripts/release/merge-train.sh <base> <PR#>…` automatise les étapes 1–2 (les
-   PR en conflit sont éjectées et le train continue). Le mode complet exécute `npm run test:unit` — le
-   lanceur optimisé pour la machine (`--test-concurrency=20`), **et non** les deux fragments CI séquentiels à 4 cœurs,
-   qui faisaient tourner la phase dominante à environ 25 % de la capacité d’une machine à 16 cœurs (corrigé
-   le 2026-07-18). `--fast` (traitement massif intra-journalier du train, approuvé par le propriétaire le 2026-07-18)
+1. **Constituez le lot** (environ 10 à 30 PR examinées et approuvées). Recherchez les collisions `linked:`
+   (mêmes `tap.testFiles`, mêmes sections du CHANGELOG) et traitez-les en série.
+2. **Validez UNE SEULE FOIS** : dans un worktree isolé créé à partir de la pointe de la branche de version, fusionnez localement toutes les
+   têtes du lot, puis exécutez la suite équivalente à celle de la version
+   (`npm run check:release-green`, ajoutez `--with-build` avant une publication).
+   `scripts/release/merge-train.sh <base> <PR#>…` automatise les étapes 1 et 2 (les
+   PR en conflit sont éjectées, le train continue). Le mode complet exécute `npm run test:unit` — le
+   lanceur optimisé pour la machine (`--test-concurrency=20`), **et non** les deux fragments CI séquentiels
+   à 4 cœurs, qui maintenaient la phase dominante à environ 25 % d’utilisation d’une machine à 16 cœurs (corrigé
+   le 2026-07-18). `--fast` (traitement de méga-trains au cours d’une même journée, approuvé par le propriétaire le 2026-07-18)
    conserve tous les contrôles statiques + vitest, mais n’exécute que les fichiers node:test modifiés par les
-   PR embarquées ; la suite COMPLÈTE doit néanmoins être exécutée au moins une fois par jour sur le
-   sommet accumulé (un train sans `--fast`).
-3. **Succès** → fusionner les PR dans l’ordre (en revérifiant `state,headRefOid` avant chacune —
-   une PR dont la tête a changé repasse en revue). Prouver que le diff net de chaque fusion correspond aux
-   propres modifications de la PR (aucune réversion par résolution automatique : contrôler `git diff --stat` pour détecter
-   les suppressions hors périmètre).
-4. **Échec** → diviser le lot en deux par dichotomie (valider chaque moitié) au lieu de revalider
-   les PR une par une ; renvoyer la PR fautive dans la file de revue avec les éléments probants.
-5. **Jamais** : fusionner dans la branche gelée pendant un gel ; utiliser `git stash` où que ce soit ;
-   relancer systématiquement la CI en espérant qu’un échec disparaisse (règle : un échec est une information).
+   PR embarquées ; la suite COMPLÈTE doit néanmoins être exécutée au moins une fois par jour sur la
+   pointe cumulée (un train sans `--fast`).
+3. **Succès** → fusionnez les PR dans l’ordre (en revérifiant `state,headRefOid` avant chacune —
+   une PR dont la tête a changé doit être réexaminée). Vérifiez que le diff net de chaque fusion correspond
+   aux propres modifications de la PR (aucune réversion par résolution automatique : contrôlez `git diff --stat`
+   pour détecter les suppressions hors périmètre).
+4. **Échec** → divisez le lot par moitiés (validez chaque moitié) au lieu de revalider
+   chaque PR individuellement ; replacez la PR fautive dans la file d’examen, accompagnée des éléments probants.
+5. **Jamais** : effectuer une fusion vers la branche gelée pendant un gel ; utiliser `git stash` où que ce soit ;
+   relancer aveuglément la CI dans l’espoir qu’un échec disparaisse (règle : un échec est une information).
 
 ## Niveaux (pourquoi la file est sûre avec uniquement les contrôles rapides)
 
 - **Par PR** (contrôles rapides de quality.yml) : tests affectés selon la TIA + suite unitaire complète en 4 fragments +
-  vitest + ensemble des vérifications lint + vérification des types + intégrité de la documentation/du changelog.
-- **Par lot/sommet** (validation continue de la version) : contrôles STRICTS `--quick` à chaque push vers
-  la branche de version ; campagnes complètes `--with-build --full-ci` 3 fois par jour.
+  vitest + ensemble de contrôles lint + vérification des types + intégrité de la documentation/du changelog.
+- **Par lot/pointe** (validation continue de la version) : contrôles STRICTS `--quick` à chaque push vers
+  la branche de version ; balayages complets `--with-build --full-ci` 3 fois par jour.
 - **Par version** (ci.yml sur la PR de version) : matrice complète, notamment E2E ×9,
-  artefact du package + test de démarrage minimal du tarball, couverture/seuils progressifs.
+  artefact de package + test de démarrage sommaire de l’archive tar, couverture/seuils progressifs.
 
-Rien n’est moins validé qu’auparavant — les traitements lourds s’exécutent simplement par lot/sommet
+Rien n’est moins validé qu’auparavant — les contrôles lourds s’exécutent simplement par lot/pointe
 plutôt que par PR, ce qui supprime les allers-retours en O(N).
+
+## Prérequis pour `merge-train.sh` sur un checkout neuf
+
+Le script exécute un **contrôle préalable** à arrêt immédiat en cas d’échec sur le checkout racine (avant toute opération
+sur un worktree), afin qu’une installation défectueuse ne puisse jamais se faire passer pour un train en échec :
+
+1. Exécutez `npm ci`, puis le script postinstall de `bun` bloqué par npm :
+   `(cd node_modules/bun && node install.js)` — sinon `check:provider-consistency`
+   et `check:known-symbols` (tous deux via `bun scripts/…`) échouent sur le train ET sur la base,
+   sans ligne indiquant une violation.
+2. Aucun `node_modules/node_modules` parasite (un arbre de dépendances dupliqué ; React est chargé deux fois
+   et les suites vitest de l’interface utilisateur échouent immédiatement).
+3. `node_modules/.bin/tsc` doit être présent et exécutable (il manque dans une installation partielle).
+
+Le train exécute la commande bloquante `npm run check:cycles:ratchet` ; la commande simple `npm run check:cycles`
+est informative (elle répertorie les SCC et renvoie un code différent de zéro même sur une base saine).

@@ -557,9 +557,9 @@ kiro-cli status
 
 ---
 
-## 10. Вътрешен CLI на OmniRoute
+## 10. Вътрешен OmniRoute CLI
 
-Изпълнимият файл `omniroute` предоставя команди за управление на жизнения цикъл на сървъра, настройване, диагностика и управление на доставчици. Входна точка: `bin/omniroute.mjs`.
+Двоичният файл `omniroute` предоставя команди за жизнения цикъл на сървъра, настройване, диагностика и управление на доставчици. Входна точка: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Стартиране на сървъра (порт по подразбиране 20128)
@@ -568,7 +568,7 @@ omniroute doctor                       # Проверка на конфигур�
 omniroute providers list               # Конфигурирани връзки към доставчици
 omniroute providers test-all           # Тестване на всяка активна връзка
 omniroute reset-password               # Нулиране на администраторската парола
-omniroute logs                         # Поточно извеждане на регистрационните файлове за заявките
+omniroute logs                         # Поточно извеждане на журналите със заявки
 omniroute health                       # Подробно състояние (прекъсвачи, кеш, памет)
 omniroute --version                    # Извеждане на версията
 omniroute --help                       # Показване на всички команди
@@ -591,9 +591,9 @@ omniroute setup --add-provider \
 | Променлива          | Предназначение                                                         |
 | ------------------- | ---------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | API ключ на доставчика (свързан с `--api-key` чрез Commander `.env()`) |
-| `DATA_DIR`          | Замества директорията за данни на OmniRoute                            |
+| `DATA_DIR`          | Замества директорията с данни на OmniRoute                             |
 
-Всички останали неинтерактивни входни данни се предават като флагове, а не като променливи на средата:
+Всички останали неинтерактивни входни стойности се подават като флагове, а не като променливи на средата:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (вижте опциите за `omniroute setup` по-горе).
 
@@ -601,15 +601,15 @@ omniroute setup --add-provider \
 
 ```bash
 omniroute doctor                       # Проверка на конфигурацията, БД, портовете, средата за изпълнение, паметта и работоспособността
-omniroute doctor --json                # Машинночетим JSON
+omniroute doctor --json                # Машинно четим JSON
 omniroute doctor --no-liveness         # Пропускане на HTTP проверката за работоспособност
 omniroute doctor --host 0.0.0.0        # Замяна на хоста за проверка на работоспособността
-omniroute doctor --liveness-url <url>  # Замяна с пълен URL на крайната точка за проверка на състоянието
+omniroute doctor --liveness-url <url>  # Замяна на пълния URL на крайната точка за състоянието
 ```
 
-Командата doctor изпълнява следните проверки: `Config`, `Database`, `Storage/encryption`,
+Диагностиката изпълнява следните проверки: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` и `Server liveness`. Тя завършва с ненулев код, ако някоя проверка е `fail`.
+`Memory` и `Server liveness`. Процесът завършва с ненулев код, ако някоя проверка е `fail`.
 
 ### Управление на доставчици
 
@@ -617,7 +617,7 @@ omniroute doctor --liveness-url <url>  # Замяна с пълен URL на к�
 omniroute providers available                       # Каталог с доставчици на OmniRoute
 omniroute providers available --search openai       # Филтриране на каталога по идентификатор/име/псевдоним/категория
 omniroute providers available --category api-key    # Филтриране по категория (api-key, oauth, free, ...)
-omniroute providers available --json                # Машинночетим JSON
+omniroute providers available --json                # Машинно четим JSON
 
 omniroute providers list                            # Конфигурирани връзки към доставчици
 omniroute providers list --json
@@ -632,73 +632,85 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` използват предимно API и следователно работят с
+`providers add/import/auth/edit/remove` използват предимно API и следователно работят спрямо
 активния локален или отдалечен контекст. Данните за удостоверяване трябва да се подават чрез
 `--credential-stdin` или `--credential-env`; `--dry-run --json` отчита само
 редактирано наличие/структура. `providers available` чете каталога на OmniRoute;
 `providers list/test/test-all/validate` запазват локалното си поведение със SQLite и
 не изискват сървърът да работи.
 
+За персонализиран възел, съвместим с OpenAI или Anthropic, свържете данните за удостоверяване с
+идентификатора на възела, върнат от `omniroute nodes add`, чрез `omniroute keys add "$NODE_ID" --stdin`.
+Това изисква работещ сървър и удостоверяване за управление за активния контекст.
+CLI използва `POST /api/providers`, което проверява възела и копира настройките на неговата крайна точка
+във връзката. Липсващ възел, неуспешно упълномощаване или недостъпен
+сървър връща грешка, без да създава резервни локални данни за удостоверяване.
+
+`nodes add --base-url` задава крайната точка на възела; тя се различава от адреса на сървъра
+в `OMNIROUTE_BASE_URL`. За OpenAPI файлове използвайте
+`omniroute openapi dump --format json --out ./openapi.json`; глобалният `--output`
+избира форматирането за показване от CLI, а не име на целеви файл.
+
 ### Възстановяване и нулиране
 
 ```bash
 omniroute reset-password                # Нулиране на администраторската парола (също: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Показване на предупреждение + пробно изпълнение за нулиране на шифровани идентификационни данни
-omniroute reset-encrypted-columns --force  # Действително задаване на NULL за шифрованите идентификационни данни в SQLite
+omniroute reset-encrypted-columns       # Показване на предупреждение + пробно изпълнение за нулиране на шифрованите данни за удостоверяване
+omniroute reset-encrypted-columns --force  # Действително задаване на NULL за шифрованите данни за удостоверяване в SQLite
 ```
 
-### Експортиране на идентификационни данни (⚠ боравете внимателно)
+### Експортиране на данни за удостоверяване (⚠ боравете внимателно)
 
 ```bash
 omniroute auth export                                 # Показване на предупреждение + изискване за потвърждение — без достъп до БД
-omniroute auth export --force                          # Експортиране на ДЕШИФРОВАНИТЕ идентификационни данни за ВСИЧКИ връзки към stdout като JSON
+omniroute auth export --force                          # Експортиране на ДЕШИФРОВАНИТЕ данни за удостоверяване на ВСИЧКИ връзки към stdout като JSON
 omniroute auth export --force --id <id>                 # Експортиране само на съответстващата връзка
 omniroute auth export --force --format env               # Извеждане на редове OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Запис във файл (създаден с разрешения 0600)
+omniroute auth export --force --out creds.json           # Запис във файл (създаден с права 0600)
 ```
 
-`auth export` работи **само локално** (директно четене от SQLite, без HTTP маршрут) и умишлено извежда/записва
+`auth export` е **само локална** операция (директно четене от SQLite, без HTTP маршрут) и умишлено извежда/записва
 стойностите на `apiKey`/`accessToken`/`refreshToken`/`idToken` като **обикновен текст** — това е функционалност, а не
-грешка. Без `--force` нищо не се чете от базата данни и нищо не се дешифрова. Преди извеждането
-на какъвто и да е обикновен текст в stderr винаги се показва предупредителен банер. Изисква зададена
-променлива `STORAGE_ENCRYPTION_KEY`. Поле, чието дешифриране е неуспешно (остарял ключ, повреден шифротекст), се отчита като
-`<field>DecryptFailed: true`, вместо да се прекратява целият процес на експортиране или да се разкрива основната грешка.
+грешка. Без `--force` нищо не се чете от базата данни и нищо не се дешифрира. Преди извеждането на какъвто и да е обикновен текст
+винаги се отпечатва предупредителен банер в stderr. Изисква да бъде зададена променливата `STORAGE_ENCRYPTION_KEY`.
+Поле, чието дешифриране е неуспешно (неактуален ключ, повреден шифрован текст), се отчита като
+`<field>DecryptFailed: true`, вместо да се прекратява целият експорт или да се разкрива първопричината за грешката.
 
 ### Други подкоманди
 
-Те предполагат, че работи OmniRoute сървър, освен ако не е посочено друго:
+Следните команди предполагат, че работи OmniRoute сървър, освен ако не е посочено друго:
 
 ```bash
-omniroute status                       # Изчерпателно състояние по време на изпълнение
-omniroute logs                         # Поточно показване на журналите на заявките (--json, --search, --follow)
+omniroute status                       # Подробно състояние по време на изпълнение
+omniroute logs                         # Поточно показване на журналите със заявки (--json, --search, --follow)
 omniroute config list                  # Показване на конфигурираните CLI инструменти
 
-omniroute provider list                # Списък с наличните доставчици (псевдоним на providers list)
+omniroute provider list                # Изброяване на наличните доставчици (псевдоним на providers list)
 omniroute provider add                 # Регистриране на OmniRoute като доставчик в инструмент
 omniroute keys add | list | remove     # Управление на API ключове
-omniroute models [provider]            # Списък с модели (--json, --search)
+omniroute models [provider]            # Изброяване на моделите (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Моментно копие на конфигурацията и БД
+omniroute backup                       # Създаване на моментно копие на конфигурацията и БД
 omniroute restore                      # Възстановяване от предишно моментно копие
 
 omniroute health                       # Подробно състояние (прекъсвачи, кеш, памет)
 omniroute quota                        # Използване на квотата на доставчика
 omniroute cache                        # Състояние на кеша
-omniroute cache clear                  # Изчистване на семантичния кеш и кеша за подписи
+omniroute cache clear                  # Изчистване на семантичния кеш и кеша за сигнатури
 
-omniroute mcp status | restart         # Състояние / рестартиране на MCP сървъра
-omniroute a2a status | card            # Състояние на A2A сървъра / карта на агента
+omniroute mcp status | restart         # Състояние/рестартиране на MCP сървъра
+omniroute a2a status | card            # Състояние на A2A сървъра/карта на агента
 
 omniroute tunnel list | create | stop  # Управление на тунели (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Преглед / задаване на променливи на средата (временно)
+omniroute env show | get <k> | set <k> <v>  # Преглед/задаване на променливи на средата (временно)
 
-omniroute test                         # Бърз тест за свързаност с доставчика
+omniroute test                         # Бърз тест на свързаността с доставчика
 omniroute update                       # Проверка за актуализации
 omniroute completion                   # Генериране на автоматично допълване за обвивката
 ```
 
-### Често използвани флагове
+### Общи флагове
 
 | Флаг                | Описание                                             |
 | ------------------- | ---------------------------------------------------- |
@@ -708,7 +720,7 @@ omniroute completion                   # Генериране на автома�
 | `--non-interactive` | CI режим (без подкани; чете от средата/флаговете)    |
 | `--json`            | Машинночетим JSON изход (doctor, providers и др.)    |
 | `--help`, `-h`      | Показване на помощ за конкретната команда            |
-| `--version`, `-v`   | Извеждане на инсталираната версия                    |
+| `--version`, `-v`   | Отпечатване на инсталираната версия                  |
 
 ---
 

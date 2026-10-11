@@ -568,72 +568,72 @@ kiro-cli status
 
 ## 10. အတွင်းပိုင်း OmniRoute CLI
 
-`omniroute` binary သည် ဆာဗာ lifecycle၊ စတင်ပြင်ဆင်ခြင်း၊ ရောဂါရှာဖွေခြင်းနှင့် provider စီမံခန့်ခွဲခြင်းအတွက် command များကို ပံ့ပိုးပေးသည်။ Entry point: `bin/omniroute.mjs`။
+`omniroute` binary သည် server lifecycle၊ setup၊ diagnostics နှင့် provider management တို့အတွက် command များကို ပံ့ပိုးပေးသည်။ Entry point: `bin/omniroute.mjs`။
 
 ```bash
-omniroute                              # ဆာဗာကို စတင်ရန် (မူလ port 20128)
-omniroute setup                        # အပြန်အလှန်တုံ့ပြန်နိုင်သော setup wizard
-omniroute doctor                       # config၊ DB၊ port များနှင့် runtime ကို စစ်ဆေးရန်
-omniroute providers list               # ပြင်ဆင်ထားသော provider ချိတ်ဆက်မှုများ
-omniroute providers test-all           # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ရန်
-omniroute reset-password               # admin password ကို ပြန်လည်သတ်မှတ်ရန်
-omniroute logs                         # request log များကို တိုက်ရိုက်ကြည့်ရှုရန်
+omniroute                              # Server ကို စတင်ရန် (ပုံသေ port 20128)
+omniroute setup                        # အပြန်အလှန်တုံ့ပြန်မှုရှိသော setup wizard
+omniroute doctor                       # Config၊ DB၊ port များနှင့် runtime ကို စစ်ဆေးရန်
+omniroute providers list               # ပြင်ဆင်သတ်မှတ်ထားသော provider connection များ
+omniroute providers test-all           # အသုံးပြုနေသော connection အားလုံးကို စမ်းသပ်ရန်
+omniroute reset-password               # Admin password ကို ပြန်လည်သတ်မှတ်ရန်
+omniroute logs                         # Request log များကို တိုက်ရိုက်ကြည့်ရှုရန်
 omniroute health                       # အသေးစိတ် health အခြေအနေ (breaker များ၊ cache၊ memory)
-omniroute --version                    # version ကို ဖော်ပြရန်
-omniroute --help                       # command အားလုံးကို ပြသရန်
+omniroute --version                    # Version ကို ပြသရန်
+omniroute --help                       # Command အားလုံးကို ပြသရန်
 ```
 
-### စတင်ပြင်ဆင်ခြင်းနှင့် ကနဦးသတ်မှတ်ခြင်း
+### Setup နှင့် စတင်ပြင်ဆင်ခြင်း
 
 ```bash
-omniroute setup                        # အပြန်အလှန်တုံ့ပြန်နိုင်သော setup wizard
-omniroute setup --non-interactive      # CI/အလိုအလျောက်လုပ်ဆောင်မှု mode (env var များနှင့် flag များကို ဖတ်သည်)
-omniroute setup --password '<value>'   # admin password ကို တိုက်ရိုက်သတ်မှတ်ရန်
+omniroute setup                        # အပြန်အလှန်တုံ့ပြန်မှုရှိသော setup wizard
+omniroute setup --non-interactive      # CI/automation mode (env var များနှင့် flag များကို ဖတ်သည်)
+omniroute setup --password '<value>'   # Admin password ကို တိုက်ရိုက်သတ်မှတ်ရန်
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # provider တစ်ခုကို တစ်ကြိမ်တည်းဖြင့် ထည့်သွင်းပြီး စမ်းသပ်ရန်
+  --test-provider                      # Provider တစ်ခုကို တစ်ကြိမ်တည်းဖြင့် ထည့်ပြီး စမ်းသပ်ရန်
 ```
 
 အပြန်အလှန်တုံ့ပြန်မှုမရှိသော setup အတွက် အသိအမှတ်ပြုထားသည့် environment variable များမှာ-
 
-| Var                 | ရည်ရွယ်ချက်                                                                      |
+| Variable            | ရည်ရွယ်ချက်                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Provider API key (Commander `.env()` မှတစ်ဆင့် `--api-key` နှင့် ချိတ်ဆက်ထားသည်) |
 | `DATA_DIR`          | OmniRoute data directory ကို အစားထိုးသတ်မှတ်ရန်                                  |
 
-အခြား အပြန်အလှန်တုံ့ပြန်မှုမရှိသော input အားလုံးကို environment variable များအဖြစ် မဟုတ်ဘဲ flag များအဖြစ် ပေးပို့သည်-
-`--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(အထက်ရှိ `omniroute setup` option များကို ကြည့်ပါ)။
+အခြား အပြန်အလှန်တုံ့ပြန်မှုမရှိသော input အားလုံးကို environment variable များအဖြစ်မဟုတ်ဘဲ flag များအဖြစ် ပေးပို့ရသည်-
+`--password`၊ `--provider`၊ `--provider-name`၊ `--provider-base-url`၊ `--default-model`
+(အထက်ပါ `omniroute setup` option များကို ကြည့်ပါ)။
 
-### ရောဂါရှာဖွေခြင်း
+### ရောဂါရှာဖွေစစ်ဆေးခြင်း
 
 ```bash
-omniroute doctor                       # config၊ DB၊ port များ၊ runtime၊ memory နှင့် liveness ကို စစ်ဆေးရန်
-omniroute doctor --json                # စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON
+omniroute doctor                       # Config၊ DB၊ port များ၊ runtime၊ memory နှင့် liveness ကို စစ်ဆေးရန်
+omniroute doctor --json                # စက်ဖြင့် ဖတ်ရှုနိုင်သော JSON
 omniroute doctor --no-liveness         # HTTP health probe ကို ကျော်ရန်
-omniroute doctor --host 0.0.0.0        # liveness host ကို အစားထိုးသတ်မှတ်ရန်
-omniroute doctor --liveness-url <url>  # health endpoint URL အပြည့်အစုံကို အစားထိုးသတ်မှတ်ရန်
+omniroute doctor --host 0.0.0.0        # Liveness host ကို အစားထိုးသတ်မှတ်ရန်
+omniroute doctor --liveness-url <url>  # Health endpoint URL အပြည့်အစုံကို အစားထိုးသတ်မှတ်ရန်
 ```
 
-doctor သည် အောက်ပါစစ်ဆေးမှုများကို လုပ်ဆောင်သည်- `Config`၊ `Database`၊ `Storage/encryption`၊
+Doctor သည် အောက်ပါစစ်ဆေးမှုများကို လုပ်ဆောင်သည်- `Config`၊ `Database`၊ `Storage/encryption`၊
 `Port availability`၊ `Node runtime`၊ `Native binary` (better-sqlite3)၊
-`Memory` နှင့် `Server liveness`။ စစ်ဆေးမှုတစ်ခုခုသည် `fail` ဖြစ်ပါက non-zero ဖြင့် ပိတ်သွားမည်။
+`Memory` နှင့် `Server liveness`။ စစ်ဆေးမှုတစ်ခုခုက `fail` ဖြစ်ပါက non-zero ဖြင့် ထွက်သည်။
 
-### Provider စီမံခန့်ခွဲခြင်း
+### Provider စီမံခန့်ခွဲမှု
 
 ```bash
 omniroute providers available                       # OmniRoute provider catalog
-omniroute providers available --search openai       # catalog ကို id/name/alias/category အလိုက် စစ်ထုတ်ရန်
-omniroute providers available --category api-key    # category အလိုက် စစ်ထုတ်ရန် (api-key, oauth, free, ...)
-omniroute providers available --json                # စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON
+omniroute providers available --search openai       # Catalog ကို id/name/alias/category ဖြင့် စစ်ထုတ်ရန်
+omniroute providers available --category api-key    # Category ဖြင့် စစ်ထုတ်ရန် (api-key, oauth, free, ...)
+omniroute providers available --json                # စက်ဖြင့် ဖတ်ရှုနိုင်သော JSON
 
-omniroute providers list                            # ပြင်ဆင်ထားသော provider ချိတ်ဆက်မှုများ
+omniroute providers list                            # ပြင်ဆင်သတ်မှတ်ထားသော provider connection များ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ပြင်ဆင်ထားသော ချိတ်ဆက်မှုတစ်ခုကို စမ်းသပ်ရန်
-omniroute providers test-all                        # အသုံးပြုနေသော ချိတ်ဆက်မှုတိုင်းကို စမ်းသပ်ရန်
-omniroute providers validate                        # local အတွင်း၌သာ ဖွဲ့စည်းပုံမှန်ကန်မှုကို စစ်ဆေးရန်
+omniroute providers test <id|name>                  # ပြင်ဆင်သတ်မှတ်ထားသော connection တစ်ခုကို စမ်းသပ်ရန်
+omniroute providers test-all                        # အသုံးပြုနေသော connection အားလုံးကို စမ်းသပ်ရန်
+omniroute providers validate                        # Local-only ဖွဲ့စည်းပုံဆိုင်ရာ အတည်ပြုစစ်ဆေးမှု
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # ရှိပြီးသား OAuth flow
@@ -641,84 +641,95 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` များသည် API-first ဖြစ်သောကြောင့်
-အသုံးပြုနေသည့် local သို့မဟုတ် remote context နှင့် အလုပ်လုပ်သည်။ Credential input အတွက်
+`providers add/import/auth/edit/remove` သည် API-first ဖြစ်သောကြောင့် လက်ရှိအသုံးပြုနေသည့်
+local သို့မဟုတ် remote context ဖြင့် အလုပ်လုပ်သည်။ Credential input အတွက်
 `--credential-stdin` သို့မဟုတ် `--credential-env` ကို အသုံးပြုသင့်သည်။ `--dry-run --json` သည်
-ဖုံးကွယ်ထားသော တည်ရှိမှု/ပုံသဏ္ဌာန်ကိုသာ အစီရင်ခံသည်။ `providers available` သည် OmniRoute catalog ကို ဖတ်သည်။
+ဖုံးကွယ်ထားသော တည်ရှိမှု/ဖွဲ့စည်းပုံကိုသာ အစီရင်ခံသည်။ `providers available` သည် OmniRoute catalog ကို ဖတ်သည်။
 `providers list/test/test-all/validate` သည် ၎င်းတို့၏ local SQLite လုပ်ဆောင်ပုံကို ဆက်လက်ထိန်းသိမ်းထားပြီး
-ဆာဗာ လည်ပတ်နေရန် မလိုအပ်ပါ။
+server လည်ပတ်နေရန် မလိုအပ်ပါ။
 
-### ပြန်လည်ရယူခြင်းနှင့် ပြန်လည်သတ်မှတ်ခြင်း
+စိတ်ကြိုက် OpenAI-compatible သို့မဟုတ် Anthropic-compatible node တစ်ခုအတွက် `omniroute nodes add` မှ
+ပြန်ပေးသည့် node ID သို့ credential များကို `omniroute keys add "$NODE_ID" --stdin` ဖြင့် ချိတ်ဆက်ပါ။
+၎င်းအတွက် server လည်ပတ်နေခြင်းနှင့် လက်ရှိအသုံးပြုနေသည့် context အတွက် management authentication ရှိရန် လိုအပ်သည်။
+CLI သည် node ကို အတည်ပြုစစ်ဆေးပြီး ၎င်း၏ endpoint setting များကို connection ထဲသို့ ကူးယူပေးသည့်
+`POST /api/providers` ကို အသုံးပြုသည်။ Node မရှိခြင်း၊ authorization မအောင်မြင်ခြင်း သို့မဟုတ် server
+အသုံးမပြုနိုင်ခြင်းတို့ ဖြစ်ပါက local fallback credential မဖန်တီးဘဲ error တစ်ခု ပြန်ပေးသည်။
+
+`nodes add --base-url` သည် node endpoint ကို သတ်မှတ်သည်။ ၎င်းသည် `OMNIROUTE_BASE_URL` ရှိ
+server address နှင့် သီးခြားဖြစ်သည်။ OpenAPI file များအတွက်
+`omniroute openapi dump --format json --out ./openapi.json` ကို အသုံးပြုပါ။ Global `--output` သည်
+destination filename မဟုတ်ဘဲ CLI display formatting ကို ရွေးချယ်ပေးသည်။
+
+### ပြန်လည်ရယူခြင်းနှင့် Reset ပြုလုပ်ခြင်း
 
 ```bash
-omniroute reset-password                # admin password ကို ပြန်လည်သတ်မှတ်ရန် (ထို့အပြင်- omniroute-reset-password)
-omniroute reset-encrypted-columns       # encrypted credential reset အတွက် သတိပေးချက်နှင့် dry-run ကို ပြသရန်
-omniroute reset-encrypted-columns --force  # SQLite ရှိ encrypted credential များကို အမှန်တကယ် null ပြုလုပ်ရန်
+omniroute reset-password                # Admin password ကို ပြန်လည်သတ်မှတ်ရန် (အခြားအမည်- omniroute-reset-password)
+omniroute reset-encrypted-columns       # Encrypted credential reset အတွက် သတိပေးချက်နှင့် dry-run ကို ပြသရန်
+omniroute reset-encrypted-columns --force  # SQLite ရှိ encrypted credential များကို အမှန်တကယ် null လုပ်ရန်
 ```
 
-### Credential ထုတ်ယူခြင်း (⚠ သတိဖြင့် ကိုင်တွယ်ပါ)
+### Credential ထုတ်ယူခြင်း (⚠ ဂရုတစိုက် ကိုင်တွယ်ပါ)
 
 ```bash
-omniroute auth export                                 # သတိပေးချက်နှင့် အတည်ပြုမှုအဆင့်ကို ပြသရန် — DB ကို အသုံးမပြုပါ
-omniroute auth export --force                          # ချိတ်ဆက်မှုအားလုံး၏ DECRYPTED credential များကို JSON အဖြစ် stdout သို့ ထုတ်ရန်
-omniroute auth export --force --id <id>                 # ကိုက်ညီသော ချိတ်ဆက်မှုကိုသာ ထုတ်ရန်
+omniroute auth export                                 # သတိပေးချက်နှင့် အတည်ပြုချက်အဆင့်ကို ပြသရန် — DB ကို ဝင်ရောက်အသုံးမပြုပါ
+omniroute auth export --force                          # Connection အားလုံး၏ DECRYPT လုပ်ထားသော credential များကို JSON အဖြစ် stdout သို့ ထုတ်ရန်
+omniroute auth export --force --id <id>                 # ကိုက်ညီသည့် connection ကိုသာ ထုတ်ရန်
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> စာကြောင်းများကို ထုတ်ရန်
-omniroute auth export --force --out creds.json           # ဖိုင်တစ်ခုသို့ ရေးရန် (0600 permission များဖြင့် ဖန်တီးသည်)
+omniroute auth export --force --out creds.json           # File တစ်ခုသို့ ရေးရန် (0600 permission ဖြင့် ဖန်တီးသည်)
 ```
 
-`auth export` သည် **local-only** ဖြစ်ပြီး (SQLite ကို တိုက်ရိုက်ဖတ်ကာ HTTP route မသုံးပါ) ရည်ရွယ်ချက်ရှိရှိ
-**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` တန်ဖိုးများကို ပရင့်ထုတ်/ရေးသားသည် — ၎င်းသည်
-bug မဟုတ်ဘဲ feature ဖြစ်သည်။ `--force` မပါဘဲ database မှ မည်သည့်အရာကိုမျှ မဖတ်သကဲ့သို့ မည်သည့်အရာကိုမျှ
-decrypt မလုပ်ပါ။ plaintext တစ်ခုခု မထုတ်မီ stderr သို့ သတိပေး banner ကို အမြဲပရင့်ထုတ်သည်။
-`STORAGE_ENCRYPTION_KEY` ကို သတ်မှတ်ထားရန် လိုအပ်သည်။ decrypt မလုပ်နိုင်သော field တစ်ခု (key အဟောင်း၊ ပျက်စီးနေသော ciphertext) ကို
-export တစ်ခုလုံး ရပ်တန့်ခြင်း သို့မဟုတ် မူလ error ကို ဖော်ထုတ်ခြင်းမပြုဘဲ
-`<field>DecryptFailed: true` အဖြစ် အစီရင်ခံသည်။
+`auth export` သည် **စက်တွင်း၌သာ** အလုပ်လုပ်သည် (HTTP route မသုံးဘဲ SQLite မှ တိုက်ရိုက်ဖတ်သည်)။ ထို့ပြင်
+**ကုဒ်ဝှက်မထားသော** `apiKey`/`accessToken`/`refreshToken`/`idToken` တန်ဖိုးများကို ရည်ရွယ်ချက်ရှိရှိ ပရင့်ထုတ်/ရေးသားသည် — ၎င်းသည်
+ချို့ယွင်းချက်မဟုတ်ဘဲ လုပ်ဆောင်ချက်တစ်ခုဖြစ်သည်။ `--force` မပါဘဲ ဒေတာဘေ့စ်မှ မည်သည့်အရာကိုမျှ ဖတ်မည်မဟုတ်သလို မည်သည့်အရာကိုမျှ ကုဒ်ဖြည်မည်မဟုတ်ပါ။ ကုဒ်ဝှက်မထားသော တန်ဖိုးတစ်ခုခုကို ထုတ်မပေးမီ stderr
+သတိပေးချက်ဘန်နာကို အမြဲတမ်း ပရင့်ထုတ်သည်။ `STORAGE_ENCRYPTION_KEY` ကို
+သတ်မှတ်ထားရန် လိုအပ်သည်။ ကုဒ်ဖြည်ရန် မအောင်မြင်သော field တစ်ခု (ဟောင်းနွမ်းနေသော key၊ ပျက်စီးနေသော ciphertext) ကို export တစ်ခုလုံး ရပ်ဆိုင်းခြင်း သို့မဟုတ် နောက်ခံ error ကို ဖော်ထုတ်ခြင်းမပြုဘဲ
+`<field>DecryptFailed: true` ဟု အစီရင်ခံသည်။
 
 ### အခြား subcommand များ
 
-အခြားနည်းဖြင့် မှတ်သားထားခြင်းမရှိပါက ၎င်းတို့သည် OmniRoute ဆာဗာ လည်ပတ်နေသည်ဟု ယူဆသည်-
+အခြားနည်းဖြင့် မှတ်ချက်ပေးထားခြင်းမရှိပါက ၎င်းတို့သည် လည်ပတ်နေသော OmniRoute server တစ်ခုရှိသည်ဟု ယူဆသည်-
 
 ```bash
-omniroute status                       # လက်ရှိလုပ်ဆောင်နေမှု အခြေအနေအပြည့်အစုံ
-omniroute logs                         # တောင်းဆိုမှုမှတ်တမ်းများကို တိုက်ရိုက်ကြည့်ရှုရန် (--json, --search, --follow)
-omniroute config list                  # စီစဉ်သတ်မှတ်ထားသော CLI ကိရိယာများကို ပြသရန်
+omniroute status                       # လည်ပတ်မှုအခြေအနေ အပြည့်အစုံ
+omniroute logs                         # တောင်းဆိုမှုမှတ်တမ်းများကို ဆက်တိုက်ပြသရန် (--json, --search, --follow)
+omniroute config list                  # ပြင်ဆင်သတ်မှတ်ထားသော CLI ကိရိယာများကို ပြသရန်
 
-omniroute provider list                # အသုံးပြုနိုင်သော ပံ့ပိုးသူများကို စာရင်းပြုရန် (providers list ၏ အမည်ကွဲ)
-omniroute provider add                 # OmniRoute ကို ကိရိယာတစ်ခုတွင် ပံ့ပိုးသူအဖြစ် မှတ်ပုံတင်ရန်
-omniroute keys add | list | remove     # API ကီးများကို စီမံရန်
-omniroute models [provider]            # မော်ဒယ်များကို စာရင်းပြုရန် (--json, --search)
+omniroute provider list                # ရရှိနိုင်သော provider များကို စာရင်းပြုစုရန် (providers list ၏ alias)
+omniroute provider add                 # OmniRoute ကို ကိရိယာတစ်ခုတွင် provider အဖြစ် မှတ်ပုံတင်ရန်
+omniroute keys add | list | remove     # API key များကို စီမံရန်
+omniroute models [provider]            # model များကို စာရင်းပြုစုရန် (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # စီစဉ်သတ်မှတ်ချက်နှင့် DB ကို လက်ရှိအခြေအနေ မိတ္တူပြုလုပ်ရန်
-omniroute restore                      # ယခင်အခြေအနေမိတ္တူမှ ပြန်လည်ရယူရန်
+omniroute backup                       # config + DB ၏ snapshot ဖန်တီးရန်
+omniroute restore                      # ယခင် snapshot တစ်ခုမှ ပြန်လည်ရယူရန်
 
-omniroute health                       # အသေးစိတ်စနစ်အခြေအနေ (ဖြတ်တောက်ကိရိယာများ၊ ကက်ရှ်၊ မှတ်ဉာဏ်)
-omniroute quota                        # ပံ့ပိုးသူ၏ သုံးစွဲခွင့်ပမာဏ အသုံးပြုမှု
-omniroute cache                        # ကက်ရှ်အခြေအနေ
-omniroute cache clear                  # အဓိပ္ပာယ်ဆိုင်ရာနှင့် signature ကက်ရှ်များကို ရှင်းလင်းရန်
+omniroute health                       # အသေးစိတ် ကျန်းမာရေးအခြေအနေ (breaker များ၊ cache၊ memory)
+omniroute quota                        # Provider quota အသုံးပြုမှု
+omniroute cache                        # Cache အခြေအနေ
+omniroute cache clear                  # semantic + signature cache များကို ရှင်းလင်းရန်
 
-omniroute mcp status | restart         # MCP ဆာဗာအခြေအနေ / ပြန်လည်စတင်ရန်
-omniroute a2a status | card            # A2A ဆာဗာအခြေအနေ / အေးဂျင့်ကတ်
+omniroute mcp status | restart         # MCP server အခြေအနေ / ပြန်လည်စတင်ရန်
+omniroute a2a status | card            # A2A server အခြေအနေ / agent card
 
 omniroute tunnel list | create | stop  # tunnel များကို စီမံရန် (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # ပတ်ဝန်းကျင်ကိန်းရှင်များကို စစ်ဆေးရန် / သတ်မှတ်ရန် (ယာယီ)
+omniroute env show | get <k> | set <k> <v>  # env var များကို စစ်ဆေးရန် / သတ်မှတ်ရန် (ယာယီ)
 
-omniroute test                         # ပံ့ပိုးသူချိတ်ဆက်မှု အခြေခံစမ်းသပ်ချက်
-omniroute update                       # အပ်ဒိတ်များကို စစ်ဆေးရန်
-omniroute completion                   # shell အလိုအလျောက်ဖြည့်စွက်မှုကို ဖန်တီးရန်
+omniroute test                         # Provider ချိတ်ဆက်နိုင်မှု အခြေခံစမ်းသပ်ချက်
+omniroute update                       # အပ်ဒိတ်များ ရှိမရှိ စစ်ဆေးရန်
+omniroute completion                   # shell completion ထုတ်လုပ်ရန်
 ```
 
 ### အသုံးများသော flag များ
 
-| Flag                | ဖော်ပြချက်                                                     |
-| ------------------- | -------------------------------------------------------------- |
-| `--no-open`         | စတင်ချိန်တွင် ဘရောက်ဇာကို အလိုအလျောက် မဖွင့်ရန်                |
-| `--port <n>`        | API port ကို အစားထိုးသတ်မှတ်ရန် (မူလတန်ဖိုး 20128)             |
-| `--mcp`             | stdio မှတစ်ဆင့် MCP ဆာဗာအဖြစ် လုပ်ဆောင်ရန် (IDE များအတွက်)     |
-| `--non-interactive` | CI မုဒ် (မေးမြန်းချက်များမရှိဘဲ env/flag များမှ ဖတ်ယူသည်)      |
-| `--json`            | စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON အထွက် (doctor, providers စသည်တို့) |
-| `--help`, `-h`      | သက်ဆိုင်ရာ command အတွက် အကူအညီကို ပြသရန်                      |
-| `--version`, `-v`   | ထည့်သွင်းထားသော ဗားရှင်းကို ဖော်ပြရန်                          |
+| Flag                | ဖော်ပြချက်                                                  |
+| ------------------- | ----------------------------------------------------------- |
+| `--no-open`         | စတင်ချိန်တွင် browser ကို အလိုအလျောက် မဖွင့်ရန်             |
+| `--port <n>`        | API port ကို အစားထိုးသတ်မှတ်ရန် (မူလတန်ဖိုး 20128)          |
+| `--mcp`             | stdio မှတစ်ဆင့် MCP server အဖြစ် လည်ပတ်ရန် (IDE များအတွက်)  |
+| `--non-interactive` | CI mode (မေးမြန်းချက်များမရှိ၊ env/flag များမှ ဖတ်သည်)      |
+| `--json`            | စက်ဖြင့်ဖတ်ရှုနိုင်သော JSON output (doctor, providers စသည်) |
+| `--help`, `-h`      | command အလိုက် သီးခြားအကူအညီကို ပြသရန်                      |
+| `--version`, `-v`   | ထည့်သွင်းထားသော version ကို ပရင့်ထုတ်ရန်                    |
 
 ---
 

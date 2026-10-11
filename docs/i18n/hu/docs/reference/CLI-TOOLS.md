@@ -558,12 +558,12 @@ a `/dashboard/cli-tools → Kiro` alatt.
 
 ## 10. Belső OmniRoute CLI
 
-Az `omniroute` bináris parancsokat biztosít a szerver életciklusának kezeléséhez, a beállításhoz, a diagnosztikához és a szolgáltatók kezeléséhez. Belépési pont: `bin/omniroute.mjs`.
+Az `omniroute` bináris parancsokat biztosít a kiszolgáló életciklusának kezeléséhez, a beállításhoz, a diagnosztikához és a szolgáltatók kezeléséhez. Belépési pont: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Szerver indítása (alapértelmezett port: 20128)
+omniroute                              # Kiszolgáló indítása (alapértelmezett port: 20128)
 omniroute setup                        # Interaktív beállítási varázsló
-omniroute doctor                       # Konfiguráció, DB, portok és futtatókörnyezet ellenőrzése
+omniroute doctor                       # Konfiguráció, adatbázis, portok és futtatókörnyezet ellenőrzése
 omniroute providers list               # Konfigurált szolgáltatói kapcsolatok
 omniroute providers test-all           # Minden aktív kapcsolat tesztelése
 omniroute reset-password               # Az adminisztrátori jelszó visszaállítása
@@ -582,39 +582,39 @@ omniroute setup --password '<value>'   # Az adminisztrátori jelszó közvetlen 
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Szolgáltató hozzáadása és tesztelése egy lépésben
+  --test-provider                      # Szolgáltató hozzáadása és tesztelése egyetlen lépésben
 ```
 
-A nem interaktív beállítás során felismert környezeti változók:
+A nem interaktív beállítás által felismert környezeti változók:
 
-| Változó             | Rendeltetés                                                              |
-| ------------------- | ------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | Szolgáltatói API-kulcs (a Commander `.env()` révén a `--api-key` értéke) |
-| `DATA_DIR`          | Az OmniRoute adatkönyvtárának felülbírálása                              |
+| Változó             | Rendeltetés                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_API_KEY` | Szolgáltatói API-kulcs (a Commander `.env()` segítségével a `--api-key` kapcsolóhoz kötve) |
+| `DATA_DIR`          | Az OmniRoute adatkönyvtárának felülbírálása                                                |
 
-Minden egyéb nem interaktív bemenet kapcsolóként, nem pedig környezeti változóként adandó át:
+Minden más nem interaktív bemenet kapcsolóként, nem pedig környezeti változóként adandó át:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (lásd fent az `omniroute setup` beállításait).
 
 ### Diagnosztika
 
 ```bash
-omniroute doctor                       # Konfiguráció, DB, portok, futtatókörnyezet, memória és elérhetőség ellenőrzése
+omniroute doctor                       # Konfiguráció, adatbázis, portok, futtatókörnyezet, memória és működőképesség ellenőrzése
 omniroute doctor --json                # Géppel olvasható JSON
-omniroute doctor --no-liveness         # A HTTP-s állapotpróba kihagyása
-omniroute doctor --host 0.0.0.0        # Az elérhetőségi vizsgálat gazdagépének felülbírálása
-omniroute doctor --liveness-url <url>  # Az állapotvégpont teljes URL-jének felülbírálása
+omniroute doctor --no-liveness         # A HTTP-állapotvizsgálat kihagyása
+omniroute doctor --host 0.0.0.0        # A működőképesség-vizsgálat gazdagépének felülbírálása
+omniroute doctor --liveness-url <url>  # Az állapot-végpont teljes URL-jének felülbírálása
 ```
 
 A doctor a következő ellenőrzéseket futtatja: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` és `Server liveness`. Nem nulla kilépési kóddal fejeződik be, ha bármely ellenőrzés eredménye `fail`.
+`Memory` és `Server liveness`. Nem nulla kilépési kóddal áll le, ha bármely ellenőrzés eredménye `fail`.
 
 ### Szolgáltatók kezelése
 
 ```bash
 omniroute providers available                       # OmniRoute szolgáltatói katalógus
-omniroute providers available --search openai       # Katalógus szűrése azonosító/név/álnév/kategória alapján
+omniroute providers available --search openai       # A katalógus szűrése azonosító/név/álnév/kategória szerint
 omniroute providers available --category api-key    # Szűrés kategória szerint (api-key, oauth, free, ...)
 omniroute providers available --json                # Géppel olvasható JSON
 
@@ -623,7 +623,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Egy konfigurált kapcsolat tesztelése
 omniroute providers test-all                        # Minden aktív kapcsolat tesztelése
-omniroute providers validate                        # Csak helyi strukturális ellenőrzés
+omniroute providers validate                        # Kizárólag helyi strukturális ellenőrzés
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Meglévő OAuth-folyamat
@@ -631,38 +631,56 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-A `providers add/import/auth/edit/remove` elsősorban API-alapú, ezért az aktív helyi vagy távoli környezettel működik. A hitelesítési adatok beviteléhez a `--credential-stdin` vagy a `--credential-env` használata ajánlott; a `--dry-run --json` csak maszkolt jelenléti-/struktúra-információkat jelent. A `providers available` az OmniRoute katalógusát olvassa; a `providers list/test/test-all/validate` megőrzi a helyi SQLite-alapú működését, és nem igényli a szerver futását.
+A `providers add/import/auth/edit/remove` elsősorban az API-t használja, ezért
+az aktív helyi vagy távoli környezetben működik. A hitelesítő adatokat a
+`--credential-stdin` vagy a `--credential-env` használatával kell megadni; a `--dry-run --json`
+csak kitakart jelenléti és szerkezeti információkat jelent.
+A `providers available` az OmniRoute katalógusát olvassa;
+a `providers list/test/test-all/validate` megtartja helyi SQLite-működését, és
+nem igényli a kiszolgáló futását.
+
+Egyéni, OpenAI-kompatibilis vagy Anthropic-kompatibilis csomópont esetén társítsa a hitelesítő adatokat
+az `omniroute nodes add` által visszaadott csomópont-azonosítóhoz az `omniroute keys add "$NODE_ID" --stdin` használatával.
+Ehhez futó kiszolgáló és felügyeleti hitelesítés szükséges az aktív környezetben.
+A CLI a `POST /api/providers` végpontot használja, amely ellenőrzi a csomópontot, és annak végpontbeállításait
+átmásolja a kapcsolatba. Hiányzó csomópont, sikertelen engedélyezés vagy nem elérhető
+kiszolgáló esetén hiba történik helyi tartalék hitelesítő adat létrehozása nélkül.
+
+A `nodes add --base-url` a csomópont végpontját állítja be; ez nem azonos az
+`OMNIROUTE_BASE_URL` változóban megadott kiszolgálócímmel. OpenAPI-fájlok esetén használja az
+`omniroute openapi dump --format json --out ./openapi.json` parancsot; a globális `--output`
+a CLI megjelenítési formátumát választja ki, nem a célfájl nevét.
 
 ### Helyreállítás és visszaállítás
 
 ```bash
 omniroute reset-password                # Az adminisztrátori jelszó visszaállítása (más néven: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Figyelmeztetés és próbaüzem megjelenítése a titkosított hitelesítési adatok visszaállításához
-omniroute reset-encrypted-columns --force  # A titkosított hitelesítési adatok tényleges nullázása az SQLite-ban
+omniroute reset-encrypted-columns       # Figyelmeztetés és próbaüzem megjelenítése a titkosított hitelesítő adatok visszaállításához
+omniroute reset-encrypted-columns --force  # A titkosított hitelesítő adatok tényleges nullázása az SQLite-ban
 ```
 
-### Hitelesítési adatok exportálása (⚠ körültekintően kezelendő)
+### Hitelesítő adatok exportálása (⚠ körültekintően kezelendő)
 
 ```bash
-omniroute auth export                                 # Figyelmeztetés és megerősítési lépés megjelenítése — nincs DB-hozzáférés
-omniroute auth export --force                          # Az ÖSSZES kapcsolat VISSZAFEJTETT hitelesítési adatainak exportálása JSON-ként a szabványos kimenetre
+omniroute auth export                                 # Figyelmeztetés és megerősítési lépés megjelenítése — adatbázis-hozzáférés nélkül
+omniroute auth export --force                          # Az ÖSSZES kapcsolat VISSZAFEJTETT hitelesítő adatainak exportálása a szabványos kimenetre JSON-ként
 omniroute auth export --force --id <id>                 # Csak az egyező kapcsolat exportálása
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> sorok kibocsátása
-omniroute auth export --force --out creds.json           # Fájlba írás (0600 jogosultságokkal létrehozva)
+omniroute auth export --force --out creds.json           # Írás fájlba (0600 jogosultságokkal létrehozva)
 ```
 
-Az `auth export` **csak helyileg** működik (közvetlen SQLite-olvasás, HTTP-útvonal nélkül), és szándékosan **egyszerű szöveges** `apiKey`/`accessToken`/`refreshToken`/`idToken` értékeket jelenít meg vagy ír ki — ez funkció, nem hiba. A `--force` nélkül a rendszer semmit sem olvas az adatbázisból, és semmit sem fejt vissza. A rendszer mindig figyelmeztető szöveget ír a stderr kimenetre, mielőtt bármilyen egyszerű szöveges adatot kibocsátana. Ehhez a `STORAGE_ENCRYPTION_KEY` beállítása szükséges. Ha egy mező visszafejtése sikertelen (elavult kulcs vagy sérült titkosított szöveg), azt a rendszer `<field>DecryptFailed: true` formában jelenti ahelyett, hogy megszakítaná a teljes exportálást vagy kiszivárogtatná a mögöttes hibát.
+Az `auth export` **kizárólag helyileg** működik (közvetlenül olvassa az SQLite-adatbázist, HTTP-útvonal nélkül), és szándékosan jeleníti meg vagy írja ki **egyszerű szövegként** az `apiKey`/`accessToken`/`refreshToken`/`idToken` értékeket — ez funkció, nem hiba. A `--force` megadása nélkül semmi nem kerül beolvasásra az adatbázisból, és semmi nem kerül visszafejtésre. Mielőtt bármilyen egyszerű szöveges érték megjelenne, a standard hibakimeneten mindig megjelenik egy figyelmeztető szalag. Ehhez be kell állítani a `STORAGE_ENCRYPTION_KEY` környezeti változót. Ha egy mező visszafejtése sikertelen (elavult kulcs vagy sérült titkosított szöveg miatt), azt a rendszer `<field>DecryptFailed: true` értékkel jelzi ahelyett, hogy megszakítaná a teljes exportálást vagy felfedné a mögöttes hibát.
 
 ### Egyéb alparancsok
 
-Ezek futó OmniRoute szervert feltételeznek, hacsak nincs másképp jelezve:
+Ezek futó OmniRoute-kiszolgálót feltételeznek, hacsak nincs másképp jelezve:
 
 ```bash
 omniroute status                       # Átfogó futásidejű állapot
 omniroute logs                         # Kérésnaplók folyamatos megjelenítése (--json, --search, --follow)
-omniroute config list                  # Beállított CLI-eszközök megjelenítése
+omniroute config list                  # Konfigurált CLI-eszközök megjelenítése
 
-omniroute provider list                # Elérhető szolgáltatók listázása (a providers list aliasa)
+omniroute provider list                # Elérhető szolgáltatók listázása (a providers list álneve)
 omniroute provider add                 # Az OmniRoute regisztrálása szolgáltatóként egy eszközön
 omniroute keys add | list | remove     # API-kulcsok kezelése
 omniroute models [provider]            # Modellek listázása (--json, --search)
@@ -684,7 +702,7 @@ omniroute env show | get <k> | set <k> <v>  # Környezeti változók megtekinté
 
 omniroute test                         # Szolgáltatói kapcsolat gyors ellenőrzése
 omniroute update                       # Frissítések keresése
-omniroute completion                   # Parancsértelmező-kiegészítés generálása
+omniroute completion                   # Parancsértelmező-kiegészítés létrehozása
 ```
 
 ### Gyakori kapcsolók
@@ -692,8 +710,8 @@ omniroute completion                   # Parancsértelmező-kiegészítés gener
 | Kapcsoló            | Leírás                                                   |
 | ------------------- | -------------------------------------------------------- |
 | `--no-open`         | Indításkor ne nyissa meg automatikusan a böngészőt       |
-| `--port <n>`        | Az API-port felülírása (alapértelmezett: 20128)          |
-| `--mcp`             | Futtatás MCP-kiszolgálóként stdio felett (IDE-k számára) |
+| `--port <n>`        | Az API-port felülbírálása (alapértelmezés: 20128)        |
+| `--mcp`             | Futtatás MCP-kiszolgálóként stdio kapcsolaton (IDE-khez) |
 | `--non-interactive` | CI-mód (nincsenek kérdések; env/kapcsolók használata)    |
 | `--json`            | Géppel olvasható JSON-kimenet (doctor, providers stb.)   |
 | `--help`, `-h`      | Parancsspecifikus súgó megjelenítése                     |

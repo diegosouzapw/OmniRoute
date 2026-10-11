@@ -605,17 +605,17 @@ tại `/dashboard/cli-tools → Kiro`.
 
 ## 10. CLI OmniRoute nội bộ
 
-Tệp nhị phân `omniroute` cung cấp các lệnh để quản lý vòng đời máy chủ, thiết lập, chẩn đoán và quản lý nhà cung cấp. Điểm vào: `bin/omniroute.mjs`.
+Tệp nhị phân `omniroute` cung cấp các lệnh để quản lý vòng đời máy chủ, thiết lập, chẩn đoán và quản lý nhà cung cấp. Điểm đầu vào: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Khởi động máy chủ (cổng mặc định 20128)
 omniroute setup                        # Trình hướng dẫn thiết lập tương tác
 omniroute doctor                       # Kiểm tra cấu hình, DB, cổng và môi trường chạy
-omniroute providers list               # Các kết nối nhà cung cấp đã cấu hình
+omniroute providers list               # Các kết nối nhà cung cấp đã được cấu hình
 omniroute providers test-all           # Kiểm tra mọi kết nối đang hoạt động
 omniroute reset-password               # Đặt lại mật khẩu quản trị viên
-omniroute logs                         # Truyền trực tiếp nhật ký yêu cầu
-omniroute health                       # Tình trạng chi tiết (bộ ngắt mạch, bộ nhớ đệm, bộ nhớ)
+omniroute logs                         # Phát trực tiếp nhật ký yêu cầu
+omniroute health                       # Trạng thái chi tiết (bộ ngắt mạch, bộ nhớ đệm, bộ nhớ)
 omniroute --version                    # In phiên bản
 omniroute --help                       # Hiển thị tất cả lệnh
 ```
@@ -632,7 +632,7 @@ omniroute setup --add-provider \
   --test-provider                      # Thêm và kiểm tra nhà cung cấp trong một lần
 ```
 
-Các biến môi trường được nhận dạng cho quá trình thiết lập không tương tác:
+Các biến môi trường được nhận diện cho quá trình thiết lập không tương tác:
 
 | Biến                | Mục đích                                                                             |
 | ------------------- | ------------------------------------------------------------------------------------ |
@@ -646,16 +646,16 @@ Tất cả đầu vào không tương tác khác được truyền dưới dạn
 ### Chẩn đoán
 
 ```bash
-omniroute doctor                       # Kiểm tra cấu hình, DB, cổng, môi trường chạy, bộ nhớ và trạng thái hoạt động
-omniroute doctor --json                # JSON có thể đọc bằng máy
-omniroute doctor --no-liveness         # Bỏ qua phép thăm dò tình trạng HTTP
-omniroute doctor --host 0.0.0.0        # Ghi đè máy chủ dùng để kiểm tra trạng thái hoạt động
-omniroute doctor --liveness-url <url>  # Ghi đè URL đầy đủ của điểm cuối tình trạng
+omniroute doctor                       # Kiểm tra cấu hình, DB, cổng, môi trường chạy, bộ nhớ và khả năng hoạt động
+omniroute doctor --json                # JSON có thể được máy đọc
+omniroute doctor --no-liveness         # Bỏ qua bước thăm dò tình trạng HTTP
+omniroute doctor --host 0.0.0.0        # Ghi đè máy chủ dùng để kiểm tra khả năng hoạt động
+omniroute doctor --liveness-url <url>  # Ghi đè URL đầy đủ của điểm cuối kiểm tra tình trạng
 ```
 
-Lệnh doctor chạy các kiểm tra sau: `Config`, `Database`, `Storage/encryption`,
+Lệnh doctor thực hiện các kiểm tra sau: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` và `Server liveness`. Lệnh thoát với mã khác không nếu bất kỳ kiểm tra nào có trạng thái `fail`.
+`Memory` và `Server liveness`. Lệnh thoát với mã khác 0 nếu có bất kỳ kiểm tra nào là `fail`.
 
 ### Quản lý nhà cung cấp
 
@@ -663,14 +663,14 @@ Lệnh doctor chạy các kiểm tra sau: `Config`, `Database`, `Storage/encrypt
 omniroute providers available                       # Danh mục nhà cung cấp OmniRoute
 omniroute providers available --search openai       # Lọc danh mục theo id/tên/bí danh/danh mục
 omniroute providers available --category api-key    # Lọc theo danh mục (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON có thể đọc bằng máy
+omniroute providers available --json                # JSON có thể được máy đọc
 
-omniroute providers list                            # Các kết nối nhà cung cấp đã cấu hình
+omniroute providers list                            # Các kết nối nhà cung cấp đã được cấu hình
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Kiểm tra một kết nối đã cấu hình
+omniroute providers test <id|name>                  # Kiểm tra một kết nối đã được cấu hình
 omniroute providers test-all                        # Kiểm tra mọi kết nối đang hoạt động
-omniroute providers validate                        # Chỉ xác thực cấu trúc cục bộ
+omniroute providers validate                        # Xác thực cấu trúc chỉ ở cục bộ
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Luồng OAuth hiện có
@@ -679,44 +679,56 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` ưu tiên API và do đó hoạt động với
-ngữ cảnh cục bộ hoặc từ xa đang hoạt động. Thông tin xác thực nên được nhập bằng
+ngữ cảnh cục bộ hoặc từ xa đang hoạt động. Đầu vào thông tin xác thực nên sử dụng
 `--credential-stdin` hoặc `--credential-env`; `--dry-run --json` chỉ báo cáo
-sự hiện diện/hình dạng đã được che giấu. `providers available` đọc danh mục OmniRoute;
-`providers list/test/test-all/validate` giữ nguyên hành vi SQLite cục bộ và
-không yêu cầu máy chủ phải đang chạy.
+sự hiện diện/hình dạng đã được che thông tin nhạy cảm. `providers available` đọc danh mục OmniRoute;
+`providers list/test/test-all/validate` duy trì hành vi SQLite cục bộ và
+không yêu cầu máy chủ đang chạy.
+
+Đối với một nút tùy chỉnh tương thích với OpenAI hoặc Anthropic, hãy gắn thông tin xác thực vào
+ID nút do `omniroute nodes add` trả về bằng cách sử dụng `omniroute keys add "$NODE_ID" --stdin`.
+Thao tác này yêu cầu máy chủ đang chạy và xác thực quản lý cho ngữ cảnh đang hoạt động.
+CLI sử dụng `POST /api/providers`, API này xác thực nút và sao chép các thiết lập điểm cuối
+của nút vào kết nối. Nếu thiếu nút, xác thực không thành công hoặc máy chủ không khả dụng,
+lệnh sẽ trả về lỗi mà không tạo thông tin xác thực dự phòng cục bộ.
+
+`nodes add --base-url` thiết lập điểm cuối của nút; giá trị này khác với địa chỉ máy chủ
+trong `OMNIROUTE_BASE_URL`. Đối với các tệp OpenAPI, hãy sử dụng
+`omniroute openapi dump --format json --out ./openapi.json`; tùy chọn toàn cục `--output`
+chọn định dạng hiển thị của CLI, không phải tên tệp đích.
 
 ### Khôi phục & Đặt lại
 
 ```bash
 omniroute reset-password                # Đặt lại mật khẩu quản trị viên (cũng có thể dùng: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Hiển thị cảnh báo + chạy thử thao tác đặt lại thông tin xác thực đã mã hóa
-omniroute reset-encrypted-columns --force  # Thực sự đặt thông tin xác thực đã mã hóa thành null trong SQLite
+omniroute reset-encrypted-columns       # Hiển thị cảnh báo + chạy thử thao tác đặt lại thông tin xác thực được mã hóa
+omniroute reset-encrypted-columns --force  # Thực sự đặt thông tin xác thực được mã hóa thành null trong SQLite
 ```
 
 ### Xuất thông tin xác thực (⚠ xử lý cẩn thận)
 
 ```bash
-omniroute auth export                                 # Hiển thị cảnh báo + yêu cầu xác nhận — không truy cập DB
+omniroute auth export                                 # Hiển thị cảnh báo + bước xác nhận — không truy cập DB
 omniroute auth export --force                          # Xuất thông tin xác thực ĐÃ GIẢI MÃ của TẤT CẢ kết nối ra stdout dưới dạng JSON
 omniroute auth export --force --id <id>                 # Chỉ xuất kết nối khớp
 omniroute auth export --force --format env               # Xuất các dòng OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Ghi vào tệp (được tạo với quyền 0600)
 ```
 
-`auth export` **chỉ hoạt động cục bộ** (đọc trực tiếp SQLite, không có tuyến HTTP) và có chủ đích in/ghi
+`auth export` **chỉ hoạt động cục bộ** (đọc trực tiếp SQLite, không có tuyến HTTP) và cố ý in/ghi
 các giá trị `apiKey`/`accessToken`/`refreshToken`/`idToken` ở dạng **văn bản thuần túy** — đây là tính năng, không phải
-lỗi. Không có dữ liệu nào được đọc từ cơ sở dữ liệu và không có dữ liệu nào được giải mã nếu thiếu `--force`. Biểu ngữ
-cảnh báo luôn được in ra stderr trước khi bất kỳ văn bản thuần túy nào được xuất. Yêu cầu phải đặt `STORAGE_ENCRYPTION_KEY`.
-Trường không thể giải mã (khóa cũ, bản mã hỏng) được báo cáo dưới dạng
-`<field>DecryptFailed: true` thay vì hủy toàn bộ quá trình xuất hoặc làm rò rỉ lỗi gốc.
+lỗi. Không có dữ liệu nào được đọc từ cơ sở dữ liệu và không có dữ liệu nào được giải mã nếu thiếu `--force`. Một biểu ngữ
+cảnh báo luôn được in ra stderr trước khi bất kỳ văn bản thuần túy nào được xuất. Yêu cầu phải đặt
+`STORAGE_ENCRYPTION_KEY`. Trường không giải mã được (khóa cũ, bản mã bị hỏng) sẽ được báo cáo dưới dạng
+`<field>DecryptFailed: true` thay vì hủy toàn bộ quá trình xuất hoặc làm lộ lỗi bên dưới.
 
 ### Các lệnh con khác
 
 Các lệnh này giả định máy chủ OmniRoute đang chạy, trừ khi có ghi chú khác:
 
 ```bash
-omniroute status                       # Trạng thái runtime toàn diện
-omniroute logs                         # Phát trực tiếp nhật ký yêu cầu (--json, --search, --follow)
+omniroute status                       # Trạng thái thời gian chạy toàn diện
+omniroute logs                         # Truyền trực tiếp nhật ký yêu cầu (--json, --search, --follow)
 omniroute config list                  # Hiển thị các công cụ CLI đã cấu hình
 
 omniroute provider list                # Liệt kê các nhà cung cấp khả dụng (bí danh của providers list)
@@ -725,8 +737,8 @@ omniroute keys add | list | remove     # Quản lý khóa API
 omniroute models [provider]            # Liệt kê các mô hình (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Tạo bản chụp nhanh cấu hình + DB
-omniroute restore                      # Khôi phục từ bản chụp nhanh trước đó
+omniroute backup                       # Tạo ảnh chụp nhanh cấu hình + DB
+omniroute restore                      # Khôi phục từ ảnh chụp nhanh trước đó
 
 omniroute health                       # Thông tin sức khỏe chi tiết (bộ ngắt mạch, bộ nhớ đệm, bộ nhớ)
 omniroute quota                        # Mức sử dụng hạn ngạch của nhà cung cấp
@@ -734,27 +746,27 @@ omniroute cache                        # Trạng thái bộ nhớ đệm
 omniroute cache clear                  # Xóa bộ nhớ đệm ngữ nghĩa + chữ ký
 
 omniroute mcp status | restart         # Trạng thái / khởi động lại máy chủ MCP
-omniroute a2a status | card            # Trạng thái máy chủ A2A / thẻ tác tử
+omniroute a2a status | card            # Trạng thái máy chủ A2A / thẻ tác nhân
 
 omniroute tunnel list | create | stop  # Quản lý đường hầm (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Kiểm tra / thiết lập biến môi trường (tạm thời)
+omniroute env show | get <k> | set <k> <v>  # Kiểm tra / đặt biến môi trường (tạm thời)
 
-omniroute test                         # Kiểm tra nhanh kết nối với nhà cung cấp
+omniroute test                         # Kiểm tra nhanh khả năng kết nối của nhà cung cấp
 omniroute update                       # Kiểm tra bản cập nhật
-omniroute completion                   # Tạo tập lệnh hoàn thành lệnh cho shell
+omniroute completion                   # Tạo tính năng tự động hoàn thành cho shell
 ```
 
 ### Các cờ thường dùng
 
-| Cờ                  | Mô tả                                                   |
-| ------------------- | ------------------------------------------------------- |
-| `--no-open`         | Không tự động mở trình duyệt khi khởi động              |
-| `--port <n>`        | Ghi đè cổng API (mặc định là 20128)                     |
-| `--mcp`             | Chạy dưới dạng máy chủ MCP qua stdio (dành cho IDE)     |
-| `--non-interactive` | Chế độ CI (không có lời nhắc; đọc từ môi trường/cờ)     |
-| `--json`            | Đầu ra JSON mà máy có thể đọc (doctor, providers, v.v.) |
-| `--help`, `-h`      | Hiển thị trợ giúp dành riêng cho lệnh                   |
-| `--version`, `-v`   | In phiên bản đã cài đặt                                 |
+| Cờ                  | Mô tả                                                     |
+| ------------------- | --------------------------------------------------------- |
+| `--no-open`         | Không tự động mở trình duyệt khi khởi động                |
+| `--port <n>`        | Ghi đè cổng API (mặc định 20128)                          |
+| `--mcp`             | Chạy dưới dạng máy chủ MCP qua stdio (dành cho IDE)       |
+| `--non-interactive` | Chế độ CI (không có lời nhắc; đọc từ env/cờ)              |
+| `--json`            | Đầu ra JSON có thể đọc bằng máy (doctor, providers, v.v.) |
+| `--help`, `-h`      | Hiển thị trợ giúp dành riêng cho lệnh                     |
+| `--version`, `-v`   | In phiên bản đã cài đặt                                   |
 
 ---
 

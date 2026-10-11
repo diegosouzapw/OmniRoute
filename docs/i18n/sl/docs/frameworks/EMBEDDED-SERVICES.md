@@ -5,12 +5,12 @@
 ---
 
 > **Različica:** v3.8.44
-> **Nazadnje posodobljeno:** 2026-09-09
-> **Ciljno občinstvo:** Inženirji, ki dodajajo, vzdržujejo ali odpravljajo napake v vdelanih storitvah (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Nazadnje posodobljeno:** 2026-09-16
+> **Ciljno občinstvo:** Inženirji, ki dodajajo, vzdržujejo ali odpravljajo napake v vdelanih storitvah (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
 Vdelane storitve so lokalno nameščena spremljevalna procesna orodja, ki jih OmniRoute namesti, nadzoruje in
 izpostavi kot polnopravne cilje usmerjanja. Za razliko od zunanjih ponudnikov (do katerih se dostopa prek interneta
-s ključi API) se vdelane storitve izvajajo na istem računalniku kot OmniRoute in komunicirajo prek vmesnika povratne zanke.
+s ključi API) se vdelane storitve izvajajo na istem računalniku kot OmniRoute in komunicirajo prek vmesnika loopback.
 
 ---
 
@@ -29,36 +29,37 @@ s ključi API) se vdelane storitve izvajajo na istem računalniku kot OmniRoute 
 
 ## 1. Pregled
 
-### Zakaj vdelane storitve?
+### Zakaj vgrajene storitve?
 
-Vdelanih je šest storitev:
+Vgrajenih je sedem storitev:
 
-| Storitev        | Paket npm                                      | Privzeta vrata | Namen                                                                                                                                                                                                                                |
-| --------------- | ---------------------------------------------- | :------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                                      |     20130      | Usmerjevalnik umetne inteligence, ki ga lahko OmniRoute uporablja kot podponudnika. Modeli so izpostavljeni kot `9router/{sub}/{model}`                                                                                              |
-| **CLIProxyAPI** | Binarna datoteka iz izdaje GitHub (`cliproxy`) |      8317      | Lokalni posredniški vmesnik za tokove preverjanja pristnosti CLI Anthropic. Zagotavlja nadomestno usmerjanje, ko žetoni OAuth potečejo                                                                                               |
-| **Mux**         | `mux` (brezglavi `mux server`)                 |      8322      | Lokalni demon za orkestracijo agentov (coder/mux). Upravlja se samo njegov življenjski cikel — ni cilj usmerjanja (brez posredovanja zahtev LLM).                                                                                    |
-| **Bifrost**     | `@maximhq/bifrost`                             |      8080      | Zaledje posredovalnega prehoda za umetno inteligenco v jeziku Go. Ko se izvaja, ga posredovalna pot (`/v1/relay/`) samodejno izbere                                                                                                  |
-| **Dario**       | `@askalf/dario`                                |      3456      | Posrednik za naročnino Claude — alternativa oziroma nadomestna možnost za CLIProxyAPI pri prometu v obliki Claude Code; vstavljeni ključ postane `DARIO_ADMIN_TOKEN`, ki omejuje dostop do njegove nadzorne ravnine OAuth `/admin/*` |
-| **open-wa**     | `@open-wa/wa-automate`                         |      8323      | Avtomatizacija WhatsApp Web (brezglavi Chromium prek Puppeteer). Upravlja se samo njen življenjski cikel — ni cilj usmerjanja.                                                                                                       |
+| Storitev        | Paket npm                                      | Privzeta vrata | Namen                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------- | ---------------------------------------------- | :------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **9Router**     | `9router`                                      |     20130      | Usmerjevalnik UI, ki ga lahko OmniRoute uporablja kot podponudnika. Modeli so izpostavljeni kot `9router/{sub}/{model}`                                                                                                                                                                                                                                                              |
+| **CLIProxyAPI** | Binarna datoteka iz izdaje GitHub (`cliproxy`) |      8317      | Lokalni posredniški prilagodilnik za poteke overjanja Anthropic CLI. Zagotavlja nadomestno usmerjanje, ko žetoni OAuth potečejo                                                                                                                                                                                                                                                      |
+| **Mux**         | `mux` (brezglavi `mux server`)                 |      8322      | Lokalni demon za orkestracijo agentov (coder/mux). Upravlja se samo njegov življenjski cikel — ni cilj usmerjanja (brez posredovanja LLM).                                                                                                                                                                                                                                           |
+| **Bifrost**     | `@maximhq/bifrost`                             |      8080      | Zaledni rele prehoda UI v jeziku Go. Ko se izvaja, ga relejna pot (`/v1/relay/`) samodejno izbere                                                                                                                                                                                                                                                                                    |
+| **Dario**       | `@askalf/dario`                                |      3456      | Posredniški strežnik za naročnino Claude — alternativa oziroma nadomestna možnost za CLIProxyAPI pri prometu v obliki Claude Code; vstavljeni ključ postane `DARIO_ADMIN_TOKEN`, ki omejuje njegovo nadzorno ravnino OAuth `/admin/*`                                                                                                                                                |
+| **open-wa**     | `@open-wa/wa-automate`                         |      8323      | Avtomatizacija WhatsApp Web (brezglavi Chromium prek Puppeteerja). Upravlja se samo njegov življenjski cikel — ni cilj usmerjanja.                                                                                                                                                                                                                                                   |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                           |     20135      | Spremljevalna storitev za stiskanje pozivov — pravi model LLMLingua-2 ONNX (prenos Microsoftovega algoritma v JS/TS). `open-sse/services/compression/engines/llmlingua/index.ts` mu prek HTTP posreduje zahteve `/compress`, ob nedelovanju spremljevalne storitve pa uporabi zaledje delovnih niti znotraj procesa. Upravlja se samo njegov življenjski cikel — ni cilj usmerjanja. |
 
-Vseh šest uporablja isti nadzorni model:
+Vseh sedem uporablja isti nadzorni model:
 
 - OmniRoute jih namesti v `DATA_DIR/services/{name}/` (ločeno od lastne datoteke `package.json` sistema OmniRoute)
 - OmniRoute jih zažene kot podrejene procese in jih nadzoruje
-- OmniRoute v okolje podrejenega procesa vstavi kratkotrajni ključ API in ga zamenjuje brez prekinitve delovanja (kjer je to mogoče)
-- Vse upravljavske poti (`/api/services/*`) so **LOCAL_ONLY** — dostopne samo prek povratne zanke (strogo pravilo št. 17)
+- OmniRoute vstavi začasni ključ API v okolje podrejenega procesa in ga zamenjuje brez izpada (kjer je to primerno)
+- Vse upravljavske poti (`/api/services/*`) so **LOCAL_ONLY** — dostopne samo prek vmesnika povratne zanke (strogo pravilo št. 17)
 
 ### Ključne odločitve (iz načrta zasnove)
 
-| Odločitev                                                          | Vrednost                                                                      |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Dostop nadzorne plošče do izvornega uporabniškega vmesnika 9Router | Povratni posrednik na `/dashboard/providers/services/9router/embed/*`         |
-| Mehanizem namestitve                                               | `npm install {package}` prek `execFile` (brez interpolacije ukazne lupine)    |
-| Način uporabe                                                      | Ponudnik je v mehanizmu usmerjanja registriran kot `9router/{sub}/{model}`    |
-| Upravljanje ključev API                                            | OmniRoute jih ustvari, šifrira pri hrambi (AES-256-GCM) in vstavi prek okolja |
-| Lokacija nadzorne plošče                                           | `/dashboard/providers/services` (trije zavihki)                               |
-| Samodejni zagon                                                    | Preklop za vsako storitev posebej, privzeto IZKLOPLJENO                       |
+| Odločitev                                                          | Vrednost                                                                         |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Dostop nadzorne plošče do izvornega uporabniškega vmesnika 9Router | Povratni posredniški strežnik na `/dashboard/providers/services/9router/embed/*` |
+| Mehanizem namestitve                                               | `npm install {package}` prek `execFile` (brez interpolacije ukazne lupine)       |
+| Način uporabe                                                      | Ponudnik je v mehanizmu usmerjanja registriran kot `9router/{sub}/{model}`       |
+| Upravljanje ključa API                                             | OmniRoute ga ustvari, šifrira v mirovanju (AES-256-GCM) in vstavi prek okolja    |
+| Lokacija nadzorne plošče                                           | `/dashboard/providers/services` (trije zavihki)                                  |
+| Samodejni zagon                                                    | Preklop za vsako storitev posebej, privzeto IZKLOPLJENO                          |
 
 ---
 
@@ -88,10 +89,10 @@ Vseh šest uporablja isti nadzorni model:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (povratni posrednik HTTP + WebSocket → nadrejeni 9Router)       │
+│    (obratni posredniški strežnik HTTP + WebSocket → zaledje 9Router)│
 │                                                                    │
-│  Pregrada: LOCAL_ONLY_API_PREFIXES vključuje "/api/services/" in   │
-│            "/dashboard/providers/services/*/embed/"                │
+│  Varovalo: LOCAL_ONLY_API_PREFIXES vključuje "/api/services/" in   │
+│        "/dashboard/providers/services/*/embed/"                    │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ klici znotraj procesa
 ┌──────────────────────▼─────────────────────────────────────────────┐
@@ -100,10 +101,10 @@ Vseh šest uporablja isti nadzorni model:
 │  ServiceSupervisor.ts   Splošni nadzornik (child_process.spawn)    │
 │    ├── namestitev: execFile('npm', ['install', pkg, '--prefix'])    │
 │    ├── zagon:      spawn(node, [entrypoint], {env, cwd})           │
-│    ├── ključ API:  crypto.randomBytes(32) → okolje NINEROUTER_API_KEY│
+│    ├── ključ API:  crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
 │    ├── vrata:      20130 za 9Router (nastavljivo)                  │
 │    ├── dnevniki:   krožni medpomnilnik stdio velikosti 5 MB → dogodki SSE│
-│    ├── zdravje:    HTTP GET /health vsakih 2–5 s, odložena obnovitev│
+│    ├── zdravje:    HTTP GET /health vsakih 2–5 s, lena obnovitev   │
 │    └── življenjski cikel: SIGTERM 15 s → SIGKILL                   │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
@@ -111,7 +112,7 @@ Vseh šest uporablja isti nadzorni model:
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       Periodični GET /v1/models → tabela service_models│
 │  ringBuffer.ts      Krožni medpomnilnik dnevnika (5 MB na storitev)│
-│  healthCheck.ts     Ponavljajoče preverjanje zdravja prek HTTP      │
+│  healthCheck.ts     Redno preverjanje zdravja prek HTTP             │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (prilagojevalniki namestitvenih programov)    │
 └──────────────────────┬─────────────────────────────────────────────┘
@@ -132,29 +133,30 @@ Vseh šest uporablja isti nadzorni model:
 │    modelSync.ts jih sinhronizira vsakih 5 min.                     │
 │                                                                    │
 │  Mux ima upravljan SAMO življenjski cikel (plasti 1–3) — je demon  │
-│  za orkestracijo agentov, ne posrednik LLM, zato nima izvajalnika  │
-│  ali vnosa ponudnika v plasti 4 in nikoli ni cilj usmerjanja.      │
+│  za orkestracijo agentov, ne posredniški strežnik LLM, zato nima   │
+│  izvajalnika/vnosa ponudnika v plasti 4 in nikoli ni cilj usmerjanja.│
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Ključne izvorne datoteke
 
-| Datoteka                                    | Vloga                                                                    |
-| ------------------------------------------- | ------------------------------------------------------------------------ |
-| `src/lib/services/ServiceSupervisor.ts`     | Osrednji razred: življenjski cikel, zaklep, zdravje, krožni medpomnilnik |
-| `src/lib/services/bootstrap.ts`             | Registracija na ravni procesa in samodejni zagon                         |
-| `src/lib/services/registry.ts`              | Enkratni primerek zemljevida `orodje → nadzornik`                        |
-| `src/lib/services/apiKey.ts`                | Ustvarjanje ključev, šifriranje AES-256-GCM pri shranjevanju             |
-| `src/lib/services/modelSync.ts`             | Periodična sinhronizacija modelov (5 min) + na zahtevo                   |
-| `src/lib/services/ringBuffer.ts`            | 5 MB krožni medpomnilnik dnevnika z naročnino SSE                        |
-| `src/lib/services/healthCheck.ts`           | Preverjanje zdravja prek HTTP-ja (nastavljiv interval)                   |
-| `src/lib/services/installers/ninerouter.ts` | Namestitev/posodobitev/odstranitev 9Router prek npm                      |
-| `src/lib/services/installers/cliproxy.ts`   | Namestitev/posodobitev/odstranitev CLIProxyAPI prek npm                  |
-| `src/lib/services/installers/mux.ts`        | Namestitev/posodobitev/odstranitev Mux prek npm                          |
-| `src/lib/services/installers/openwa.ts`     | Namestitev/posodobitev/odstranitev open-wa prek npm                      |
-| `src/app/api/services/9router/_lib.ts`      | Pomožna funkcija `getOrInitSupervisor()`                                 |
-| `src/app/api/services/[name]/logs/route.ts` | Skupna končna točka SSE za dnevnike                                      |
-| `open-sse/executors/ninerouter.ts`          | Izvajalnik ponudnika (plast 4)                                           |
+| Datoteka                                    | Vloga                                                                   |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | Osrednji razred: življenjski cikel, zaklep, stanje, krožni medpomnilnik |
+| `src/lib/services/bootstrap.ts`             | Registracija na ravni procesa in samodejni zagon                        |
+| `src/lib/services/registry.ts`              | Zemljevid singleton `tool → supervisor`                                 |
+| `src/lib/services/apiKey.ts`                | Ustvarjanje ključev, šifriranje AES-256-GCM pri shranjevanju            |
+| `src/lib/services/modelSync.ts`             | Periodična sinhronizacija modelov (5 min) + na zahtevo                  |
+| `src/lib/services/ringBuffer.ts`            | Krožni medpomnilnik dnevnika velikosti 5 MB z naročnino SSE             |
+| `src/lib/services/healthCheck.ts`           | Preverjanje stanja prek HTTP (nastavljiv interval)                      |
+| `src/lib/services/installers/ninerouter.ts` | Namestitev/posodobitev/odstranitev 9Router prek npm                     |
+| `src/lib/services/installers/cliproxy.ts`   | Namestitev/posodobitev/odstranitev CLIProxyAPI prek npm                 |
+| `src/lib/services/installers/mux.ts`        | Namestitev/posodobitev/odstranitev Mux prek npm                         |
+| `src/lib/services/installers/openwa.ts`     | Namestitev/posodobitev/odstranitev open-wa prek npm                     |
+| `src/lib/services/installers/llmlingua.ts`  | Namestitev/posodobitev/odstranitev LLMLingua prek npm                   |
+| `src/app/api/services/9router/_lib.ts`      | Pomožna funkcija `getOrInitSupervisor()`                                |
+| `src/app/api/services/[name]/logs/route.ts` | Skupna končna točka SSE za dnevnike                                     |
+| `open-sse/executors/ninerouter.ts`          | Izvajalnik ponudnika (4. plast)                                         |
 
 ---
 
@@ -210,7 +212,7 @@ tekmovalne pogoje, ko se na primer samodejni zagon in gumb v uporabniškem vmesn
 
 ## 4. Referenca API-ja
 
-Vse poti pod `/api/services/` so **LOCAL_ONLY** (samo povratna zanka, strogo pravilo #17).
+Vse poti pod `/api/services/` so **LOCAL_ONLY** (samo povratna zanka, strogo pravilo št. 17).
 Zahteve, ki ne izvirajo iz povratne zanke, prejmejo `403 LOCAL_ONLY` ne glede na žeton za preverjanje pristnosti.
 
 ### 4.1 Končne točke 9Router (11 poti)
@@ -218,9 +220,9 @@ Zahteve, ki ne izvirajo iz povratne zanke, prejmejo `403 LOCAL_ONLY` ne glede na
 #### `POST /api/services/9router/install`
 
 Namesti 9Router iz npm. Ustvari `DATA_DIR/services/9router/` z lastnima
-`package.json` in `node_modules/`. Ne povzroča sporov z lastnimi odvisnostmi OmniRoute.
+`package.json` in `node_modules/`. Ne povzroča navzkrižja z lastnimi odvisnostmi OmniRoute.
 
-**Telo zahteve** (vse neobvezno):
+**Telo zahteve** (vsa polja so neobvezna):
 
 ```json
 { "version": "latest" }
@@ -236,18 +238,18 @@ Namesti 9Router iz npm. Ustvari `DATA_DIR/services/9router/` z lastnima
 | ------ | ------------------------------------------------------------ |
 | `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`       |
 | `400`  | Neveljavno telo zahteve (neuspešno preverjanje Zod)          |
-| `409`  | Namestitev že poteka (zaklep je zaseden)                     |
+| `409`  | Namestitev že poteka (zaklep je zadržan)                     |
 | `500`  | Namestitev npm ni uspela — prijazno sporočilo je v `message` |
 
-**Opombe:** Uporablja `execFile('npm', [...])` — brez lupine in brez interpolacije (strogo pravilo #13).
-Napake EACCES so prikazane kot uporabniku prijazna sporočila.
+**Opombe:** Uporablja `execFile('npm', [...])` — brez lupine in brez interpolacije (strogo pravilo št. 13).
+Napake EACCES so prikazane kot prijazna sporočila.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Zažene 9Router. Registrira nadzornika, če ta še ni registriran, nato pokliče
-`supervisor.start()`. Če se storitev že izvaja, je operacija idempotentna.
+Zažene 9Router. Če nadzornik še ni registriran, ga registrira, nato pa pokliče
+`supervisor.start()`. Če storitev že teče, je operacija idempotentna.
 
 **Telo zahteve:** brez
 
@@ -277,37 +279,37 @@ Zažene 9Router. Registrira nadzornika, če ta še ni registriran, nato pokliče
 
 #### `POST /api/services/9router/stop`
 
-Nadzorovano ustavi 9Router. Pošlje SIGTERM, počaka 15 s in nato pošlje SIGKILL, če se proces še vedno izvaja.
-Če je storitev že ustavljena, je operacija idempotentna.
+Nadzorovano zaustavi 9Router. Pošlje SIGTERM, počaka 15 s in nato pošlje SIGKILL, če proces še vedno teče.
+Če je storitev že zaustavljena, je operacija idempotentna.
 
 **Telo zahteve:** brez
 
 **Odgovori:**
 
-| Stanje | Opis                                  |
-| ------ | ------------------------------------- |
-| `200`  | `ServiceStatus` (state: "stopped")    |
-| `503`  | Ustavitev je nepričakovano spodletela |
+| Stanje | Opis                                    |
+| ------ | --------------------------------------- |
+| `200`  | `ServiceStatus` (stanje: "stopped")     |
+| `503`  | Zaustavitev je nepričakovano spodletela |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-Enakovredno `stop()` in nato `start()` znotraj zaklepa operacije.
+Enakovredno klicu `stop()`, ki mu sledi `start()` pod zaklepom operacije.
 
 **Telo zahteve:** brez
 
-**Odgovori:** enako kot pri `start` (vrne končni `ServiceStatus`).
+**Odgovori:** enaki kot pri `start` (vrne končni `ServiceStatus`).
 
 ---
 
 #### `POST /api/services/9router/update`
 
-Posodobi 9Router na novejšo različico npm. Če se storitev izvaja, se najprej ustavi,
-nato se izvede namestitev npm (novejša različica se namesti na isto mesto), zatem pa
-se storitev znova zažene.
+Posodobi 9Router na novejšo različico npm. Če storitev teče, se najprej
+zaustavi, nato se izvede namestitev npm (novejša različica se namesti na istem mestu),
+zatem pa se storitev znova zažene.
 
-**Telo zahteve** (vse neobvezno):
+**Telo zahteve** (vsa polja so neobvezna):
 
 ```json
 { "version": "latest" }
@@ -325,8 +327,8 @@ se storitev znova zažene.
 
 #### `POST /api/services/9router/rotate-key`
 
-Ustvari nov ključ API za 9Router, ga šifrira pri hrambi in znova zažene storitev
-(če se izvaja), da ta prevzame novi ključ iz svojega okolja. Stari ključ je
+Ustvari nov ključ API za 9Router, ga šifrira v mirovanju in znova zažene storitev
+(če ta teče), da storitev prevzame nov ključ iz svojega okolja. Stari ključ je
 takoj razveljavljen.
 
 **Telo zahteve:** brez
@@ -336,7 +338,7 @@ takoj razveljavljen.
 | Stanje | Opis                                       |
 | ------ | ------------------------------------------ |
 | `200`  | `{ keyRotated: true, restarted: boolean }` |
-| `500`  | Zamenjava ključa ni uspela                 |
+| `500`  | Menjava ključa ni uspela                   |
 
 **Varnost:** Novi ključ ni nikoli vrnjen v odgovoru (brez razkritja poverilnic).
 Šifrirano (AES-256-GCM) je shranjen v tabeli `version_manager`.
@@ -345,7 +347,7 @@ takoj razveljavljen.
 
 #### `GET /api/services/9router/status`
 
-Vrne združeno trenutno stanje in stanje iz zbirke podatkov, vključno z metapodatki o različici ter predogledom ključa API.
+Vrne združeno trenutno stanje in stanje iz podatkovne zbirke, vključno z metapodatki različice in predogledom ključa API.
 
 **Odgovori:**
 
@@ -378,7 +380,7 @@ Vrne združeno trenutno stanje in stanje iz zbirke podatkov, vključno z metapod
 
 #### `POST /api/services/9router/auto-start`
 
-Preklopi zastavico za samodejni zagon. Ko je `enabled: true`, se storitev samodejno
+Preklopi zastavico samodejnega zagona. Ko je `enabled: true`, se storitev samodejno
 zažene ob naslednjem zagonu OmniRoute (če je storitev nameščena).
 
 **Telo zahteve:**
@@ -398,22 +400,22 @@ zažene ob naslednjem zagonu OmniRoute (če je storitev nameščena).
 
 #### `GET /api/services/9router/logs`
 
-Tok SSE dnevnikov v živo iz krožnega medpomnilnika stdout/stderr storitve 9Router.
+Tok SSE dnevniških zapisov v živo iz krožnega medpomnilnika stdout/stderr storitve 9Router.
 
 **Parametri poizvedbe:**
 
-| Parameter | Vrsta     | Privzeto | Opis                                                                                     |
-| --------- | --------- | -------- | ---------------------------------------------------------------------------------------- |
-| `tail`    | `integer` | 200      | Število zgodovinskih vrstic, ki se pošljejo najprej (največ 1000)                        |
-| `filter`  | `string`  | brez     | Filter podniza, neobčutljiv na velikost črk (brez regularnih izrazov — varen pred ReDoS) |
+| Parameter | Vrsta     | Privzeto | Opis                                                                        |
+| --------- | --------- | -------- | --------------------------------------------------------------------------- |
+| `tail`    | `integer` | 200      | Število preteklih vrstic, ki se pošljejo najprej (največ 1000)              |
+| `filter`  | `string`  | brez     | Filter podniza, neobčutljiv na velikost črk (brez regex — varen pred ReDoS) |
 
 **Dogodki SSE:**
 
-| Dogodek     | Podatki     | Opis                             |
-| ----------- | ----------- | -------------------------------- |
-| `snapshot`  | `LogLine[]` | Začetni zgodovinski rep dnevnika |
-| `log`       | `LogLine`   | Vrstica dnevnika v živo          |
-| `heartbeat` | `{}`        | Ohranjanje povezave vsakih 15 s  |
+| Dogodek     | Podatki     | Opis                                   |
+| ----------- | ----------- | -------------------------------------- |
+| `snapshot`  | `LogLine[]` | Začetni izbor zadnjih preteklih vrstic |
+| `log`       | `LogLine`   | Dnevniška vrstica v živo               |
+| `heartbeat` | `{}`        | Ohranjanje povezave vsakih 15 s        |
 
 **Shema LogLine:**
 
@@ -438,9 +440,9 @@ Tok SSE dnevnikov v živo iz krožnega medpomnilnika stdout/stderr storitve 9Rou
 ### 4.2 Končne točke CLIProxyAPI (10 poti)
 
 CLIProxyAPI ima enako obliko končnih točk kot 9Router, vendar brez `rotate-key` ter z
-`accounts`, `provider-expose` in `auto-restart-adopted`. Zdaj prejme namenski
-ključ API za podatkovno ravnino, vstavljen ob zagonu (`needsApiKey: true` v
-`bootstrap.ts`, uporablja se za sinhronizacijo modelov); `status` vsebuje manj polj.
+`accounts`, `provider-expose` in `auto-restart-adopted`. Zdaj prejme namenski ključ API
+za podatkovno ravnino, ki se vstavi ob zagonu (`needsApiKey: true` v
+`bootstrap.ts`, uporablja se za sinhronizacijo modelov); `status` vključuje manj polj.
 
 | Metoda | Pot                                 | Opis                                            |
 | ------ | ----------------------------------- | ----------------------------------------------- |
@@ -459,11 +461,11 @@ Skupna končna točka `GET /api/services/{name}/logs` (glejte §4.1) deluje za v
 
 ### 4.3 Končne točke Mux (8 poti)
 
-Mux ima enako obliko končnih točk kot CLIProxyAPI — na površini API-ja ni poti
-`rotate-key` (žeton bearer se ustvari na enak način kot pri 9Routerju prek
-`getOrCreateApiKey("mux")` in vstavi prek okoljske spremenljivke
-`MUX_SERVER_AUTH_TOKEN`, vendar namenska končna točka za rotacijo še ne obstaja).
-Za Mux se upravlja samo življenjski cikel: za razliko od 9Routerja nima izvajalnika 4. plasti in ni nikoli registriran kot ponudnik usmerjanja.
+Mux ima enako obliko končnih točk kot CLIProxyAPI — v vmesniku API ni poti
+`rotate-key` (žeton bearer se ustvari enako kot pri 9Router prek
+`getOrCreateApiKey("mux")` in se vstavi prek spremenljivke okolja `MUX_SERVER_AUTH_TOKEN`, vendar
+namenska končna točka za rotacijo še ne obstaja). Mux se upravlja samo v okviru življenjskega cikla:
+za razliko od 9Router nima izvajalnika plasti 4 in ni nikoli registriran kot ponudnik usmerjanja.
 
 | Metoda | Pot                            | Opis                              |
 | ------ | ------------------------------ | --------------------------------- |
@@ -479,76 +481,107 @@ Za Mux se upravlja samo življenjski cikel: za razliko od 9Routerja nima izvajal
 
 ### 4.4 Končne točke Bifrost (8 poti)
 
-Bifrost je posredniško zaledje prehoda za UI, napisano v Go
-(`@maximhq/bifrost`). Uporablja enako obliko končnih točk kot CLIProxyAPI
-(brez `rotate-key` — Bifrost upravlja lastne ključe ponudnikov v `config.json`
-znotraj svojega `-app-dir`).
+Bifrost je posredniško zaledje prehoda za UI, napisano v jeziku Go (`@maximhq/bifrost`). Uporablja enako
+obliko končnih točk kot CLIProxyAPI (brez `rotate-key` — Bifrost upravlja lastne ključe
+ponudnikov v `config.json` pod svojim `-app-dir`).
 
-| Metoda | Pot                                | Opis                                                                |
-| ------ | ---------------------------------- | ------------------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Namesti Bifrost iz npm (`@maximhq/bifrost`)                         |
-| `POST` | `/api/services/bifrost/start`      | Zažene Bifrost na vratih 8080 (privzeto)                            |
-| `POST` | `/api/services/bifrost/stop`       | Ustavi Bifrost                                                      |
-| `POST` | `/api/services/bifrost/restart`    | Znova zažene Bifrost                                                |
-| `POST` | `/api/services/bifrost/update`     | Posodobi na novejšo različico                                       |
-| `GET`  | `/api/services/bifrost/status`     | Stanje v živo + stanje DB                                           |
-| `POST` | `/api/services/bifrost/auto-start` | Preklopi samodejni zagon                                            |
-| `GET`  | `/api/services/bifrost/logs`       | Spremljanje dnevnika SSE (prek skupne dinamične poti `[name]/logs`) |
+| Metoda | Pot                                | Opis                                                        |
+| ------ | ---------------------------------- | ----------------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | Namesti Bifrost iz npm (`@maximhq/bifrost`)                 |
+| `POST` | `/api/services/bifrost/start`      | Zažene Bifrost na vratih 8080 (privzeto)                    |
+| `POST` | `/api/services/bifrost/stop`       | Ustavi Bifrost                                              |
+| `POST` | `/api/services/bifrost/restart`    | Znova zažene Bifrost                                        |
+| `POST` | `/api/services/bifrost/update`     | Posodobi na novejšo različico                               |
+| `GET`  | `/api/services/bifrost/status`     | Stanje v živo + stanje DB                                   |
+| `POST` | `/api/services/bifrost/auto-start` | Preklopi samodejni zagon                                    |
+| `GET`  | `/api/services/bifrost/logs`       | Rep dnevnika SSE (prek skupne dinamične poti `[name]/logs`) |
 
-**Povezava usmerjanja:** Ko `BIFROST_BASE_URL` ni nastavljen in se nadzorovani
-primerek Bifrost izvaja, `getBifrostRoutingConfig()` (v `routingBackend.ts`)
-samodejno uporabi `http://127.0.0.1:{port}` kot osnovni URL posrednika. Izrecno
-nastavljena okoljska spremenljivka `BIFROST_BASE_URL` ima vedno prednost.
+**Povezovanje usmerjanja:** Ko `BIFROST_BASE_URL` ni nastavljen in se nadzorovani primerek Bifrost
+izvaja, `getBifrostRoutingConfig()` (v `routingBackend.ts`) samodejno
+uporabi `http://127.0.0.1:{port}` kot osnovni URL posrednika. Izrecno nastavljena spremenljivka okolja
+`BIFROST_BASE_URL` ima vedno prednost.
 
 ---
 
 ### 4.5 Končne točke Dario (12 poti)
 
-Enaka oblika življenjskega cikla kot pri drugih storitvah (`install`, `start`, `stop`,
-`restart`, `update`, `status`, `auto-start`, `auto-restart-adopted`) ter nadzorna
-ravnina OAuth, zaščitena z žetonom, pod `admin/`: `admin/accounts`,
-`admin/import-from-omniroute`, `admin/login-start`, `admin/login-complete`
-(vse zaščitene z `DARIO_ADMIN_TOKEN`).
+Enaka oblika življenjskega cikla kot pri drugih storitvah (`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`) ter nadzorna ravnina OAuth,
+zaščitena z žetonom, pod `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+`admin/login-start`, `admin/login-complete` (vse so zaščitene z `DARIO_ADMIN_TOKEN`).
 
 ### 4.6 Končne točke open-wa (7 poti)
 
-open-wa (`@open-wa/wa-automate`) upravlja brezglavi primerek Chromiuma (prek
-Puppeteerja) za avtomatizacijo WhatsApp Web. Uporablja enako obliko končnih točk
-kot Mux (pot `rotate-key` še ne obstaja). Upravlja se samo njegov življenjski
-cikel — ni cilj usmerjanja in nima izvajalnika 4. plasti oziroma vnosa ponudnika.
+open-wa (`@open-wa/wa-automate`) upravlja primerek Chromium brez grafičnega vmesnika (prek
+Puppeteer) za avtomatizacijo WhatsApp Web. Uporablja enako obliko končnih točk kot Mux (za zdaj brez
+poti `rotate-key`). Upravlja se samo v okviru življenjskega cikla — ni cilj usmerjanja
+in nima izvajalnika plasti 4 oziroma vnosa ponudnika.
 
-| Metoda | Pot                               | Opis                                                                |
-| ------ | --------------------------------- | ------------------------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | Namesti open-wa iz npm (`@open-wa/wa-automate`)                     |
-| `POST` | `/api/services/openwa/start`      | Zažene open-wa na vratih 8323 (privzeto)                            |
-| `POST` | `/api/services/openwa/stop`       | Ustavi open-wa                                                      |
-| `POST` | `/api/services/openwa/restart`    | Znova zažene open-wa                                                |
-| `POST` | `/api/services/openwa/update`     | Posodobi na novejšo različico                                       |
-| `GET`  | `/api/services/openwa/status`     | Stanje v živo + stanje zbirke podatkov                              |
-| `POST` | `/api/services/openwa/auto-start` | Vklopi ali izklopi samodejni zagon                                  |
-| `GET`  | `/api/services/openwa/logs`       | Spremljanje dnevnika SSE (prek skupne dinamične poti `[name]/logs`) |
+| Metoda | Pot                               | Opis                                                           |
+| ------ | --------------------------------- | -------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Namesti open-wa iz npm (`@open-wa/wa-automate`)                |
+| `POST` | `/api/services/openwa/start`      | Zažene open-wa na vratih 8323 (privzeto)                       |
+| `POST` | `/api/services/openwa/stop`       | Ustavi open-wa                                                 |
+| `POST` | `/api/services/openwa/restart`    | Znova zažene open-wa                                           |
+| `POST` | `/api/services/openwa/update`     | Posodobi na novejšo različico                                  |
+| `GET`  | `/api/services/openwa/status`     | Stanje v živo + stanje zbirke podatkov                         |
+| `POST` | `/api/services/openwa/auto-start` | Preklopi samodejni zagon                                       |
+| `GET`  | `/api/services/openwa/logs`       | Pretok dnevnika SSE (prek skupne dinamične poti `[name]/logs`) |
 
-**Ključ API:** vstavljen kot `WA_KEY` — splošna preglasitev open-wa s predpono
-okoljske spremenljivke `WA_*` ga preslika na možnost CLI `--key`/`-k`
-(`dist/cli/setup.js::envArgs()`, preverjeno glede na nameščeni paket različice 4.76.0).
-Ob ustvarjanju s `generateServiceApiKey()` dobi predpono `ow_`. open-wa
+**Ključ API:** vstavljen kot `WA_KEY` — splošna preglasitev open-wa z okoljskimi
+spremenljivkami s predpono `WA_*` ga preslika v možnost CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, preverjeno glede na nameščeni paket različice
+4.76.0). Ob ustvarjanju s `generateServiceApiKey()` dobi predpono `ow_`. open-wa
 prebere ključ iz glave HTTP `key`/`api_key` (ne `Authorization:
 Bearer`); `/api-docs*` je izrecno izvzet iz preverjanja
-(`setupAuthenticationLayer` v `dist/cli/server.js`), zato sonda zdravja
+(`setupAuthenticationLayer` v `dist/cli/server.js`), zato sonda stanja
 ne potrebuje glave za preverjanje pristnosti.
 
 **Seznanjanje:** open-wa je neuraden in ni povezan z družbo WhatsApp —
-za povezano številko obstaja tveganje prepovedi zaradi WhatsAppovega lastnega zaznavanja avtomatizacije.
-Ob prvem zagonu se koda QR za seznanjanje izpiše v standardni izhod in prikaže prek
-obstoječe plošče Dnevniki/toka SSE — ta integracija še nima namenske končne točke
-za sliko QR.
+pri povezani številki obstaja tveganje prepovedi zaradi WhatsAppovega lastnega zaznavanja avtomatizacije.
+Ob prvem zagonu se koda QR za seznanjanje izpiše na standardni izhod in prikaže
+prek obstoječe plošče Dnevniki/pretoka SSE — v tej integraciji še ni namenske
+končne točke za sliko QR.
 
 ---
 
-### 4.7 Obratni posredniški strežnik (vdelava nadzorne plošče 9Router)
+### 4.7 Končne točke LLMLingua (8 poti)
 
-Nadzorna plošča vdela spletni uporabniški vmesnik 9Router v element iframe prek notranjega obratnega
-posredniškega strežnika na naslovu:
+LLMLingua je spremljevalna storitev za stiskanje pozivov, ki ovija
+`@atjsh/llmlingua-2` (pravi model ONNX za klasifikacijo žetonov, ki se ob prvem
+klicu `/compress` prenese s Hugging Face). Uporablja enako obliko končnih točk
+kot Bifrost (brez ključa API — `needsApiKey: false`, nikoli ne obdeluje poverilnic).
+
+| Metoda | Pot                                            | Opis                                                                                                    |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | Prek npm namesti `@atjsh/llmlingua-2` in odvisnosti ter zapiše strežniški skript spremljevalne storitve |
+| `POST` | `/api/services/llmlingua/start`                | Zažene spremljevalno storitev na vratih 20135 (privzeto)                                                |
+| `POST` | `/api/services/llmlingua/stop`                 | Ustavi spremljevalno storitev                                                                           |
+| `POST` | `/api/services/llmlingua/restart`              | Znova zažene spremljevalno storitev                                                                     |
+| `POST` | `/api/services/llmlingua/update`               | Posodobi na novejšo različico paketa                                                                    |
+| `GET`  | `/api/services/llmlingua/status`               | Stanje v živo + stanje zbirke podatkov                                                                  |
+| `POST` | `/api/services/llmlingua/auto-start`           | Preklopi samodejni zagon                                                                                |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Preklopi samodejni ponovni zagon prevzetega (že obstoječega) primerka                                   |
+| `GET`  | `/api/services/llmlingua/logs`                 | Pretok dnevnika SSE (prek skupne dinamične poti `[name]/logs`)                                          |
+
+**Pogodba spremljevalne storitve:** strežniški skript izpostavlja `GET /health`
+(takojšen — ne čaka na model) in `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). Model se leno naloži ob prvem klicu
+`/compress`.
+
+**Povezava stiskanja:** `httpSidecarBackend` v
+`open-sse/services/compression/engines/llmlingua/index.ts` kliče
+`LLMLINGUA_BASE_URL` (privzeto `http://127.0.0.1:20135`) in sprejme odgovor
+spremljevalne storitve samo, če je strogo krajši od vhoda; ob kakršni koli
+napaki (storitev ne deluje, časovna omejitev, odgovor brez sprememb) se uporabi
+nadomestna zaledna izvedba z delovno nitjo znotraj procesa (`./worker.ts`).
+
+---
+
+### 4.8 Obratni posredniški strežnik (vdelana nadzorna plošča 9Router)
+
+Nadzorna plošča vdela spletni uporabniški vmesnik 9Router v iframe prek notranjega
+obratnega posredniškega strežnika na naslovu:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -557,17 +590,18 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 Ta posredniški strežnik:
 
 - Posreduje zahtevo na `http://127.0.0.1:{port}/{path}` (samo povratna zanka)
-- Odstrani dohodni glavi `cookie` in `authorization` (brez uhajanja seje OmniRoute)
+- Odstrani vhodni glavi `cookie` in `authorization` (brez razkritja seje OmniRoute)
 - Vstavi `Authorization: Bearer {apiKey}` za preverjanje pristnosti 9Router
 - Iz odgovora odstrani `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*`
-- Preoblikuje odgovore HTML, da vstavi `<base href>` in normalizira absolutne poti (`/foo` → `/dashboard/.../embed/foo`)
+- Prepiše odgovore HTML tako, da vstavi `<base href>` in normalizira absolutne poti (`/foo` → `/dashboard/.../embed/foo`)
 
 Nadgradnje WebSocket za vdelano nadzorno ploščo obravnava spremljevalni strežnik na
 namenskih vratih (glejte `src/lib/services/embedWsProxy.ts`).
 
-**Varnost:** Poti vdelanega posredniškega strežnika so razvrščene pod `LOCAL_ONLY_API_PREFIXES`
-in so dosegljive samo iz povratne zanke. Napadalec, ki pridobi JWT prek
-predora Cloudflare/Ngrok, ne more dostopati do vdelanih storitev prek posredniškega strežnika.
+**Varnost:** poti vdelanega posredniškega strežnika so razvrščene pod
+`LOCAL_ONLY_API_PREFIXES` in so dosegljive samo iz povratne zanke. Napadalec, ki
+pridobi JWT prek tunela Cloudflare/Ngrok, ne more posredovati zahtev v vdelane
+storitve.
 
 ---
 

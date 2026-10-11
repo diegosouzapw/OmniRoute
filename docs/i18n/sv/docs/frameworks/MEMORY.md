@@ -164,36 +164,35 @@ Tabellen `memory_vec_meta` (migrering `083_memory_vec.sql`) lagrar:
 ## Inställningstillägg
 
 Nio inbäddnings- och vektorfält finns tillgängliga i `MemorySettingsExtended` i
-`src/shared/schemas/memory.ts` och lagras via `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts` och sparas via `src/lib/db/settings.ts`:
 
 | Fält                     | Typ                                                | Standardvärde | Beskrivning                                                  |
 | ------------------------ | -------------------------------------------------- | ------------- | ------------------------------------------------------------ |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Vilken inbäddningskälla som ska användas                     |
 | `embeddingProviderModel` | `string \| null`                                   | `null`        | Leverantör/modell i formatet `provider/model`                |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | OpenAI-kompatibel bas-URL för slutpunkt, endast för minne    |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | Bas-URL för en OpenAI-kompatibel slutpunkt endast för Memory |
 | `customModelId`          | `string \| null`                                   | `null`        | Modell-ID som skickas till den anpassade slutpunkten         |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivt val för Transformers.js (MiniLM, ~400 MB)             |
-| `staticEnabled`          | `boolean`                                          | `false`       | Aktivt val för den lokala statiska modellen potion-base-8M   |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Aktivera Transformers.js (MiniLM, ~400 MB)                   |
+| `staticEnabled`          | `boolean`                                          | `false`       | Aktivera den lokala statiska modellen potion-base-8M         |
 | `rerankEnabled`          | `boolean`                                          | `false`       | Aktivera omrankningssteget (lägger till +200–500 ms/begäran) |
 | `rerankProviderModel`    | `string \| null`                                   | `null`        | Omrankningsleverantör/modell i formatet `provider/model`     |
 
-`rerankProviderModel` matchas av `POST /v1/rerank` (anropas via loopback), så det accepterar allt som den rutten accepterar: en utvald molnbaserad omrankningsmodell (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel leverantörsnod som `<node-prefix>/<model>` (t.ex. `skilled-mini/bge-reranker-v2-m3` för en TEI/Infinity-instans). Loopback-noder är alltid tillåtna. En nod på en annan värd (LAN, Tailscale) kräver dessutom funktionsflaggan `RERANK_REMOTE_PROVIDER_NODES` och måste godkännas av policyn för utgående URL:er från leverantörer – se [Funktionsflaggor](../reference/FEATURE_FLAGS.md). Instrumentpanelens väljare listar utvalda leverantörer samt lokala noder. Alla giltiga `provider/model`-strängar kan anges direkt via `PUT /api/settings/memory`.
+`rerankProviderModel` matchas av `POST /v1/rerank` (anropas via loopback) och accepterar därför allt som den rutten accepterar: en utvald molnbaserad omrankningsmodell (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel leverantörsnod som `<node-prefix>/<model>` (t.ex. `skilled-mini/bge-reranker-v2-m3` för en TEI-/Infinity-instans). Loopback-noder och värdnamn som anges i `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (t.ex. namnet på en Docker-/Compose-tjänst) är alltid tillåtna. En nod på en annan värd (LAN, Tailscale) kräver dessutom funktionsflaggan `RERANK_REMOTE_PROVIDER_NODES` och måste godkännas av policyn för utgående URL:er från leverantörer – se [Funktionsflaggor](../reference/FEATURE_FLAGS.md). Väljaren på kontrollpanelen visar utvalda leverantörer samt lokala noder. Alla giltiga `provider/model`-strängar kan anges direkt via `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Vilken vektorbackend som ska användas |
 
 Dessa exponeras via `GET /PUT /api/settings/memory` (schemat `MemorySettingsExtendedSchema`).
 
 För källan `remote` accepterar Memory även de valfria inställningarna `customBaseUrl` och
 `customModelId`. Tillsammans väljer de en OpenAI-kompatibel `/embeddings`-slutpunkt
-och modell utan att ändra det globala inbäddningsregistret. Slutpunkten normaliseras
-före användning och kontrolleras av policyn för utgående URL:er från leverantörer:
-HTTP(S) krävs, inbäddade autentiseringsuppgifter och frågesträngar avvisas och
-molnmetadataadresser förblir blockerade. Tomma värden bevarar den valda
-registerleverantören. Fel som returneras till instrumentpanelen saneras och
-slutpunktens autentiseringsuppgifter loggas aldrig.
+och modell utan att ändra det globala inbäddningsregistret. Slutpunkten
+normaliseras före användning och kontrolleras av policyn för utgående URL:er från leverantörer:
+HTTP(S) krävs, inbäddade autentiseringsuppgifter och frågesträngar avvisas och adresser
+för molnmetadata förblir blockerade. Tomma värden bevarar den valda registerleverantören. Fel
+som returneras till kontrollpanelen rensas från känslig information och autentiseringsuppgifter för slutpunkten loggas aldrig.
 
 > **TODO (D20):** Omfånget `global` (delning av minnen mellan alla API-nycklar) är inte
-> implementerat i den här versionen. Det kräver schemaändringar och en global
-> hämtningsväg. Spåra detta separat.
+> implementerat i den här versionen. Det kräver schemaändringar och en global sökväg
+> för hämtning. Hantera detta separat.
 
 ## Lagringslager
 
@@ -903,7 +902,7 @@ För att låta den vara avstängd behåller du helt enkelt standardvärdet (`fal
 > **Sanningskälla:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Tester:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Providermönstret för MemoryBackend introducerar ett **utbytbart abstraktionslager för backend** ovanpå den befintliga minnesmotorn. I stället för att vara bundet till en enda lagringsimplementation stöder minnessystemet nu flera backend-system (SQLite, Obsidian, Notion och anpassade HTTP-backend-system) med konfigurerbar routning till primärt system och reservsystem.
+Providermönstret för MemoryBackend introducerar ett **utbytbart abstraktionslager för backends** ovanpå den befintliga minnesmotorn. I stället för att vara bundet till en enda lagringsimplementation stöder minnessystemet nu flera backends (SQLite, Obsidian, Notion, anpassade HTTP-backends) med konfigurerbar routning för primär backend och reservbackends.
 
 ### Arkitektur
 
@@ -915,11 +914,11 @@ Providermönstret för MemoryBackend introducerar ett **utbytbart abstraktionsla
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│        Singleton-orkestrerare (manager.ts)                │
+│          Singleton-orkestrerare (manager.ts)              │
 │                                                          │
 │  Primär ───► Backend A  (t.ex. SQLite)                   │
 │  Reserv ───► Backend B  (t.ex. Obsidian)                 │
-│             Backend C  (t.ex. Notion via GenericBackend)  │
+│              Backend C  (t.ex. Notion via GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -960,23 +959,23 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Singleton-orkestrerare som:
+En singleton-orkestrerare som:
 
-- **Registrerar** backend-system via `register(backend)` — anropas vid start från `index.ts`
-- **Konfigurerar** primärt system och reservsystem via `configure(primary, fallbacks)`
-- **Routar** CRUD/sökning till det primära systemet, med en reservkedja vid fel
-- **Hälsokontrollerar** alla backend-system regelbundet
+- **Registrerar** backends via `register(backend)` — anropas vid uppstart från `index.ts`
+- **Konfigurerar** primär backend och reservbackends via `configure(primary, fallbacks)`
+- **Routar** CRUD-operationer och sökningar till den primära backenden, med en reservkedja vid fel
+- **Hälsokontrollerar** regelbundet alla backends
 
 **Reservbeteende:**
 
-| Åtgärd   | Primärt system           | Reservsystem                       |
-| -------- | ------------------------ | ---------------------------------- |
-| `create` | ✅ Endast primärt system | ❌                                 |
-| `get`    | ✅ Prova primärt först   | ✅ Reserv om resultatet är null    |
-| `update` | ✅ Endast primärt system | ✅ Synkronisering utan att invänta |
-| `delete` | ✅ Endast primärt system | ✅ Synkronisering utan att invänta |
-| `list`   | ✅ Endast primärt system | ❌                                 |
-| `search` | ✅ Primärt system först  | ✅ Reserv vid fel                  |
+| Åtgärd   | Primär                | Reservbackends                  |
+| -------- | --------------------- | ------------------------------- |
+| `create` | ✅ Endast primär      | ❌                              |
+| `get`    | ✅ Prova primär först | ✅ Reserv om resultatet är null |
+| `update` | ✅ Endast primär      | ✅ Asynkron synkronisering      |
+| `delete` | ✅ Endast primär      | ✅ Asynkron synkronisering      |
+| `list`   | ✅ Endast primär      | ❌                              |
+| `search` | ✅ Primär först       | ✅ Reserv vid fel               |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -984,16 +983,16 @@ En generell HTTP-anslutning som anpassar valfritt REST-API till en MemoryBackend
 
 - **Notion** — anslut via Notion API
 - **Obsidian** — anslut via Obsidian Local REST API
-- **Anpassade backend-system** — valfri tjänst som exponerar ett RESTful minnes-API
+- **Anpassade backends** — valfri tjänst som exponerar ett RESTful-API för minnen
 
 **Konfiguration:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Bas-URL för backend-API:t
+  baseUrl: string;           // Bas-URL för backendens API
   apiKey?: string;           // Bearer-token för autentisering
   headers?: Record<string, string>;  // Anpassade HTTP-rubriker
-  timeout?: number;          // Tidsgräns för begäran (standard: 30000ms)
+  timeout?: number;          // Timeout för begäran (standard: 30000ms)
   backendType?: string;      // För loggning
 
   // Åsidosättningar av slutpunkter (standardvärden följer REST-konventioner)
@@ -1022,15 +1021,15 @@ interface GenericBackendConfig {
 **Kända backends** är förkonfigurerade i `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend som pekar på localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend som pekar på api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend riktad mot localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend riktad mot api.notion.com/v1
 ```
 
 #### Inbyggda backends
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Den primära backend som används som standard. Kapslar in det befintliga SQLite-baserade minneslagret med hjälp av `src/lib/memory/store.ts`. Registreras automatiskt vid start.
+Den primära standardbackenden. Omsluter det befintliga SQLite-baserade minneslagret med hjälp av `src/lib/memory/store.ts`. Registreras automatiskt vid uppstart.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1039,38 +1038,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Kapslar in den befintliga Obsidian-integrationen (`src/lib/memory/obsidianBackend.ts`). Ansluter till ett Obsidian-valv via Obsidian Local REST API.
+Omsluter den befintliga Obsidian-integrationen (`src/lib/memory/obsidianBackend.ts`). Ansluter till ett Obsidian-valv via Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapter för en lokal [claude-mem](https://github.com/thedotmack/claude-mem)-worker — minnespluginen för
+Claude Code / Codex / Cursor som registrerar kodningssessioner som ”observationer”.
+När den är registrerad kan REST-rutterna för `/api/memory` och A2A-minnessökningen läsa från och skriva till
+samma lager som fylls av claude-mems hooks.
+
+Workern binder endast till loopback, vilket SSRF-skyddet i `GenericMemoryBackend` avsiktligt avvisar.
+Den här adaptern försvagar inte det skyddet: värden är hårdkodad till `127.0.0.1` och konfigurationsschemat
+(`ClaudeMemBackendConfigSchema`, `.strict()`) accepterar endast:
+
+| Nyckel      | Typ    | Standard | Anmärkningar                                                                                                                 |
+| ----------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —        | Obligatorisk, 1024–65535. claude-mem-workerns port från dess inställningsfil (standard: `37700 + uid % 100`).                |
+| `project`   | string | —        | claude-mem-projektet som ska användas. Om ej angivet → varje OmniRoute-API-nyckel mappas till ett eget projekt (`apiKeyId`). |
+| `timeoutMs` | number | `5000`   | Tidsgräns per begäran, 100–30000.                                                                                            |
+
+Aktivera den via `PUT /api/settings/memory` och starta om OmniRoute (backend-system registreras
+en gång, i `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Använd i stället `"primaryBackend": "claude-mem"` för att göra den till lagringsplats för REST-API:t. En ogiltig
+konfiguration loggas (`claude-mem.backend.invalid_config`) och hoppas över, så SQLite förblir primär.
+
+Mappning och begränsningar:
+
+- ID:n är `claude-mem:<observationId>`; `get`/`delete` ignorerar ID:n från andra backend-system utan något
+  nätverksanrop.
+- `create` → `POST /api/memory/save`; OmniRoute-fälten (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) skickas i claude-mems `metadata.omniroute` och följer med tillbaka vid läsning.
+- `search` → `GET /api/search?format=json&type=observations`, beskuret till `maxTokens`
+  (tecken / 4). `list` → workerns paginerade observations-endpoint (`total` är en undre gräns — workern
+  returnerar `hasMore`, inte ett antal).
+- Observationer som samlas in av hooks mappar `discovery` → `factual`, `decision` → `procedural` och
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Inga uppdateringar** (`update()` returnerar `false`; observationer är oföränderliga) och **ingen TTL**
+  (`expiresAt` ignoreras). claude-mem deduplicerar identiska sparningar i stället för att göra upsert utifrån `key`.
+- Promptinjektion (`retrieval.ts`) och MCP-verktygen `omniroute_memory_*` läser fortfarande SQLite
+  direkt — de går inte via `memoryManager`, så detta backend-system förser dem inte med data.
+
+**Dirigera claude-mems egna LLM-anrop genom OmniRoute.** claude-mem komprimerar observationer
+med en LLM (standard: Claude Agent SDK). Dess `openai-compatible`-leverantör kan i stället peka på
+OmniRoute och därmed använda kombinationsfallback och kostnadsspårning. I `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute-API-nyckel>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute-modell eller kombination>"
+}
+```
 
 ### Inställningar
 
-Inställningar för minnesbackends lagras i tabellen för appinställningar och hanteras via `src/lib/memory/settings.ts`:
+Inställningar för backend-system för minne lagras i appens inställningstabell och hanteras via `src/lib/memory/settings.ts`:
 
-| Inställning            | Miljö-/konfigurationsnyckel | Standard   | Beskrivning                               |
-| ---------------------- | --------------------------- | ---------- | ----------------------------------------- |
-| Primär backend         | `memoryPrimaryBackend`      | `"sqlite"` | ID för den primära backenden              |
-| Reservbackends         | `memoryFallbackBackends`    | `[]`       | Ordnad lista med reservbackend-ID:n       |
-| Backendkonfigurationer | `memoryBackendConfigs`      | `{}`       | Konfigurationsåsidosättningar per backend |
+| Inställning                 | Miljö-/konfigurationsnyckel | Standard   | Beskrivning                                      |
+| --------------------------- | --------------------------- | ---------- | ------------------------------------------------ |
+| Primärt backend-system      | `memoryPrimaryBackend`      | `"sqlite"` | ID för det primära backend-systemet              |
+| Backend-system för fallback | `memoryFallbackBackends`    | `[]`       | Ordnade ID:n för fallback-backend-system         |
+| Backend-konfigurationer     | `memoryBackendConfigs`      | `{}`       | Konfigurationsåsidosättningar per backend-system |
 
 Inställningarna normaliseras via `normalizeMemorySettings()` och cachelagras i `getMemorySettings()`.
 
 ### Initieringsflöde
 
 ```
-Appstart
-  → index.ts-importer (sidoeffekt): registrerar SQLiteBackend
+Appens bootstrap
+  → index.ts importeras (sidoeffekt): registrerar SQLiteBackend
   → initMemoryBackends() anropas från appens livscykel:
       1. Läs in inställningar (getMemorySettings)
-      2. Konfigurera primär backend + reservbackends
-      3. Initiera alla backends (hälsokontroll)
+      1b. Registrera frivilliga backend-system som finns i backendConfigs (claude-mem)
+      2. Konfigurera primärt backend-system + fallback
+      3. Initiera alla backend-system (hälsokontroll)
       4. Redo för begäranden
 ```
 
-### Lägga till en ny backend
+### Lägga till ett nytt backend-system
 
 1. **Implementera gränssnittet `MemoryBackend`** i `src/lib/memory/<name>Backend.ts`
 2. **Exportera** från `src/lib/memory/index.ts`
 3. **Registrera** med `memoryManager.register(yourBackend)` vid start
-4. **Konfigurera** via inställningarna: ange ditt backend-ID för `memoryPrimaryBackend`
+4. **Konfigurera** via inställningarna: ange ditt backend-ID som `memoryPrimaryBackend`
 5. **Testa** med `src/lib/memory/__tests__/generic-backend.test.ts` som referens
 
 #### Exempel: Brain-backend
@@ -1099,19 +1158,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Förväntat resultat: **35 tester, alla godkända**, som omfattar:
+Förväntat resultat: **35 tester, alla godkända** som omfattar:
 
 - Konstruktor (2)
 - Hälsokontroll (4) — lyckat resultat, fel 500, nätverksfel, latens
 - Initiering (2) — lyckat resultat, fel
-- Skapa (2) — standardslutpunkt, anpassad slutpunkt
-- Hämta (4) — lyckat resultat, 404 → null, andra fel än 404 utlöser undantag, anpassade sökvägsparametrar
-- Uppdatera (2) — lyckat resultat, 404 → false
-- Ta bort (2) — lyckat resultat, 404 → false
-- Lista (2) — frågeparametrar, anpassade parameternamn
-- Sökning (3) — frågeparametrar, anpassad slutpunkt, serialisering av alternativ
-- Autentiseringsrubriker (2) — Bearer-token, anpassade rubriker
-- Fabriksfunktion (1)
+- Skapande (2) — standard-endpoint, anpassad endpoint
+- Hämtning (4) — lyckat resultat, 404 → null, annat än 404 genererar undantag, anpassade sökvägsparametrar
+- Uppdatering (2) — lyckat resultat, 404 → false
+- Borttagning (2) — lyckat resultat, 404 → false
+- Listning (2) — frågeparametrar, anpassade parameternamn
+- Sökning (3) — frågeparametrar, anpassad endpoint, serialisering av alternativ
+- Autentiseringshuvuden (2) — Bearer-token, anpassade huvuden
+- Fabrik (1)
 
 #### Typkontroll
 

@@ -560,16 +560,16 @@ kiro-cli status
 
 ## 10. 內部 OmniRoute CLI
 
-`omniroute` 二進位檔提供用於伺服器生命週期、設定、診斷與提供者管理的命令。進入點：`bin/omniroute.mjs`。
+`omniroute` 二進位檔提供伺服器生命週期、設定、診斷及提供者管理相關命令。進入點：`bin/omniroute.mjs`。
 
 ```bash
 omniroute                              # 啟動伺服器（預設連接埠 20128）
 omniroute setup                        # 互動式設定精靈
-omniroute doctor                       # 檢查設定、資料庫、連接埠及執行階段
+omniroute doctor                       # 檢查設定、資料庫、連接埠、執行階段
 omniroute providers list               # 已設定的提供者連線
 omniroute providers test-all           # 測試每個作用中的連線
 omniroute reset-password               # 重設管理員密碼
-omniroute logs                         # 串流顯示請求記錄
+omniroute logs                         # 串流顯示請求日誌
 omniroute health                       # 詳細健康狀態（斷路器、快取、記憶體）
 omniroute --version                    # 顯示版本
 omniroute --help                       # 顯示所有命令
@@ -584,7 +584,7 @@ omniroute setup --password '<value>'   # 直接設定管理員密碼
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # 一次完成新增及測試提供者
+  --test-provider                      # 一次完成新增與測試提供者
 ```
 
 非互動式設定可辨識的環境變數：
@@ -594,30 +594,30 @@ omniroute setup --add-provider \
 | `OMNIROUTE_API_KEY` | 提供者 API 金鑰（透過 Commander `.env()` 繫結至 `--api-key`） |
 | `DATA_DIR`          | 覆寫 OmniRoute 資料目錄                                       |
 
-所有其他非互動式輸入皆以旗標傳入，而非環境變數：
+其他所有非互動式輸入皆以旗標傳遞，而非環境變數：
 `--password`、`--provider`、`--provider-name`、`--provider-base-url`、`--default-model`
 （請參閱上方的 `omniroute setup` 選項）。
 
 ### 診斷
 
 ```bash
-omniroute doctor                       # 檢查設定、資料庫、連接埠、執行階段、記憶體及存活狀態
+omniroute doctor                       # 檢查設定、資料庫、連接埠、執行階段、記憶體、存活狀態
 omniroute doctor --json                # 機器可讀的 JSON
 omniroute doctor --no-liveness         # 略過 HTTP 健康狀態探測
 omniroute doctor --host 0.0.0.0        # 覆寫存活狀態主機
-omniroute doctor --liveness-url <url>  # 覆寫完整的健康狀態端點 URL
+omniroute doctor --liveness-url <url>  # 覆寫完整健康狀態端點 URL
 ```
 
-doctor 會執行以下檢查：`Config`、`Database`、`Storage/encryption`、
-`Port availability`、`Node runtime`、`Native binary`（better-sqlite3）、
-`Memory` 及 `Server liveness`。若任何檢查結果為 `fail`，其退出碼將為非零值。
+doctor 會執行下列檢查：`設定`、`資料庫`、`儲存空間／加密`、
+`連接埠可用性`、`Node 執行階段`、`原生二進位檔`（better-sqlite3）、
+`記憶體`及`伺服器存活狀態`。如果任何檢查為 `fail`，便會以非零狀態碼結束。
 
 ### 提供者管理
 
 ```bash
 omniroute providers available                       # OmniRoute 提供者目錄
 omniroute providers available --search openai       # 依 id／名稱／別名／類別篩選目錄
-omniroute providers available --category api-key    # 依類別篩選（api-key、oauth、free……）
+omniroute providers available --category api-key    # 依類別篩選（api-key、oauth、free，……）
 omniroute providers available --json                # 機器可讀的 JSON
 
 omniroute providers list                            # 已設定的提供者連線
@@ -625,7 +625,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # 測試一個已設定的連線
 omniroute providers test-all                        # 測試每個作用中的連線
-omniroute providers validate                        # 僅限本機的結構驗證
+omniroute providers validate                        # 僅在本機進行結構驗證
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # 現有的 OAuth 流程
@@ -633,18 +633,30 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` 採 API 優先方式，因此可針對
-作用中的本機或遠端內容執行。憑證輸入應使用
-`--credential-stdin` 或 `--credential-env`；`--dry-run --json` 僅回報
-經遮蔽的存在狀態／結構。`providers available` 會讀取 OmniRoute 目錄；
-`providers list/test/test-all/validate` 則保留其本機 SQLite 行為，且
-不需要伺服器處於執行狀態。
+`providers add/import/auth/edit/remove` 以 API 為優先，因此會針對
+作用中的本機或遠端上下文運作。憑證輸入應使用
+`--credential-stdin` 或 `--credential-env`；`--dry-run --json` 僅會回報
+經遮蔽處理的存在狀態／形態。`providers available` 會讀取 OmniRoute 目錄；
+`providers list/test/test-all/validate` 會保留其本機 SQLite 行為，且
+不要求伺服器處於執行狀態。
+
+若是自訂的 OpenAI 相容或 Anthropic 相容節點，請使用 `omniroute nodes add`
+傳回的節點 ID，透過 `omniroute keys add "$NODE_ID" --stdin` 將憑證附加至該節點。
+這需要執行中的伺服器，以及作用中上下文的管理驗證。
+CLI 使用 `POST /api/providers`，此端點會驗證節點，並將其端點
+設定複製至連線。若節點不存在、授權失敗或伺服器無法使用，
+則會傳回錯誤，而不會建立本機備援憑證。
+
+`nodes add --base-url` 會設定節點端點；此端點不同於
+`OMNIROUTE_BASE_URL` 中的伺服器位址。若要處理 OpenAPI 檔案，請使用
+`omniroute openapi dump --format json --out ./openapi.json`；全域 `--output`
+用於選取 CLI 顯示格式，而非指定目的地檔名。
 
 ### 復原與重設
 
 ```bash
 omniroute reset-password                # 重設管理員密碼（亦可使用：omniroute-reset-password）
-omniroute reset-encrypted-columns       # 顯示警告並對加密憑證重設進行演練
+omniroute reset-encrypted-columns       # 顯示警告並試執行加密憑證重設
 omniroute reset-encrypted-columns --force  # 實際將 SQLite 中的加密憑證設為 null
 ```
 
@@ -652,22 +664,22 @@ omniroute reset-encrypted-columns --force  # 實際將 SQLite 中的加密憑證
 
 ```bash
 omniroute auth export                                 # 顯示警告與確認關卡——不存取資料庫
-omniroute auth export --force                          # 以 JSON 將所有連線已解密的憑證匯出至 stdout
+omniroute auth export --force                          # 將所有連線解密後的憑證以 JSON 匯出至標準輸出
 omniroute auth export --force --id <id>                 # 僅匯出相符的連線
 omniroute auth export --force --format env               # 輸出 OMNIROUTE_<PROVIDER>_<FIELD>=<value> 格式的行
 omniroute auth export --force --out creds.json           # 寫入檔案（以 0600 權限建立）
 ```
 
-`auth export` **僅限本機**（直接讀取 SQLite，不使用 HTTP 路由），並刻意顯示／寫入
-**明文** `apiKey`／`accessToken`／`refreshToken`／`idToken` 值——這是功能，而非
-錯誤。未使用 `--force` 時，不會從資料庫讀取任何內容，也不會解密任何內容。在輸出
-任何明文之前，stderr 一律會顯示警告橫幅。必須設定 `STORAGE_ENCRYPTION_KEY`。
-若某個欄位無法解密（過期金鑰、損毀的密文），則會回報為
-`<field>DecryptFailed: true`，而不會中止整個匯出或洩漏底層錯誤。
+`auth export` **僅限本機執行**（直接讀取 SQLite，不使用 HTTP 路由），並且會刻意列印／寫入
+**明文** `apiKey`/`accessToken`/`refreshToken`/`idToken` 值——這是功能，而不是
+錯誤。若未指定 `--force`，則不會從資料庫讀取任何內容，也不會解密任何內容。在輸出任何明文之前，一律會先將
+警告橫幅列印至 stderr。必須設定 `STORAGE_ENCRYPTION_KEY`。
+若欄位解密失敗（金鑰過期、密文損毀），將回報為
+`<field>DecryptFailed: true`，而不會中止整個匯出作業或洩漏底層錯誤。
 
 ### 其他子命令
 
-除非另有註明，否則這些命令均假設 OmniRoute 伺服器正在執行：
+除非另有註明，否則這些命令皆假設 OmniRoute 伺服器正在執行：
 
 ```bash
 omniroute status                       # 完整的執行階段狀態
@@ -683,33 +695,33 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # 建立設定與資料庫的快照
 omniroute restore                      # 從先前的快照還原
 
-omniroute health                       # 詳細的健康狀態（斷路器、快取、記憶體）
-omniroute quota                        # 提供者配額使用情況
+omniroute health                       # 詳細健康狀態（斷路器、快取、記憶體）
+omniroute quota                        # 提供者配額使用量
 omniroute cache                        # 快取狀態
 omniroute cache clear                  # 清除語意與簽章快取
 
 omniroute mcp status | restart         # MCP 伺服器狀態／重新啟動
-omniroute a2a status | card            # A2A 伺服器狀態／代理程式資訊卡
+omniroute a2a status | card            # A2A 伺服器狀態／代理程式卡片
 
 omniroute tunnel list | create | stop  # 管理通道（cloudflare/tailscale/ngrok）
-omniroute env show | get <k> | set <k> <v>  # 檢查／設定環境變數（暫時）
+omniroute env show | get <k> | set <k> <v>  # 檢視／設定環境變數（暫時）
 
-omniroute test                         # 提供者連線能力的冒煙測試
+omniroute test                         # 提供者連線能力冒煙測試
 omniroute update                       # 檢查更新
 omniroute completion                   # 產生 shell 自動補全
 ```
 
 ### 常用旗標
 
-| 旗標                | 說明                                            |
-| ------------------- | ----------------------------------------------- |
-| `--no-open`         | 啟動時不要自動開啟瀏覽器                        |
-| `--port <n>`        | 覆寫 API 連接埠（預設為 20128）                 |
-| `--mcp`             | 透過 stdio 以 MCP 伺服器模式執行（供 IDE 使用） |
-| `--non-interactive` | CI 模式（不顯示提示；從環境變數／旗標讀取）     |
-| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等）    |
-| `--help`, `-h`      | 顯示命令專屬說明                                |
-| `--version`, `-v`   | 顯示已安裝的版本                                |
+| 旗標                | 說明                                          |
+| ------------------- | --------------------------------------------- |
+| `--no-open`         | 啟動時不要自動開啟瀏覽器                      |
+| `--port <n>`        | 覆寫 API 連接埠（預設為 20128）               |
+| `--mcp`             | 透過 stdio 作為 MCP 伺服器執行（供 IDE 使用） |
+| `--non-interactive` | CI 模式（不顯示提示；從環境變數／旗標讀取）   |
+| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等）  |
+| `--help`, `-h`      | 顯示特定命令的說明                            |
+| `--version`, `-v`   | 列印已安裝的版本                              |
 
 ---
 

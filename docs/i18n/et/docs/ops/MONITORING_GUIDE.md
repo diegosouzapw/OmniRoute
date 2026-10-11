@@ -101,29 +101,29 @@ Iga kombinatsiooni kohta:
 
 ## Tervisekontrolli API
 
-OmniRoute pakub **kahte** HTTP-põhist tervisekontrolli liidest. Need ei ole orkestreerijate jaoks omavahel asendatavad.
+OmniRoute pakub **kahte** HTTP-tervisekontrolli liidest. Need ei ole orkestreerijate jaoks omavahel asendatavad.
 
-| Tee                          | Otstarve                                                                    | Koormus                        | Kasutus                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
-| `GET /healthz`               | Elutsükli elusus/valmisolek (`ok` / `starting` / `stopping`)                | Tühine (ainult faasilipp)      | Kubernetese **valmisolek**; vajaduse korral leebe **elususkontroll** HTTP kaudu    |
-| `GET /api/monitoring/health` | Süsteemi ja pakkujate põhjalik kokkuvõte (DB, kuhi, kataloogi loendurid, …) | Suur (sünkroonne DB-/seiretöö) | Juhtpaneelid, põhjalikud välised kontrollid, Dockeri sisseehitatud tervisekontroll |
+| Tee                          | Eesmärk                                                                      | Koormus                                 | Kasutusotstarve                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
+| `GET /healthz`               | Elutsükli elusolek/valmisolek (`ok` / `starting` / `stopping`)               | Tühine (ainult faasilipp)               | Kubernetese **valmisolek**; vajaduse korral leebe HTTP-**elusolekukontroll** |
+| `GET /api/monitoring/health` | Süsteemi ja pakkujate süvaülevaade (andmebaas, kuhi, kataloogi loendurid, …) | Raske (sünkroonne andmebaasi-/seiretöö) | Töölauad, blackbox-süvakontrollid, Dockeri sisseehitatud tervisekontroll     |
 
-> **Märkus:** Pakkujate tervisemaatriksid, autopiloodi probleemid, kvoodimonitorid, lubade tervis ja latentsuse üksikasjad, mida `/api/monitoring/health` ei hõlma, on saadaval **MCP tööriista** `observability_snapshot` või **juhtpaneeli** lehtede kaudu — nende jaoks pole eraldi REST-marsruute.
+> **Märkus:** Pakkujate tervisemaatriksid, autopiloodi probleemid, kvoodimonitorid, tõendite tervis ja latentsuse üksikasjad, mis ulatuvad kaugemale kui `/api/monitoring/health`, on saadaval **MCP tööriista** `observability_snapshot` või **töölaua** lehtede kaudu — nende jaoks pole eraldi REST-marsruute.
 
-Mõlemad marsruudid töötavad päringute töötlemisega **samas Node’i sündmusetsüklis**. Protsessorimahukas toiming (mahuka `GET /v1/models` kataloogi töötlemine, pika konteksti tihendamine / lubade loendamine) võib viivitada **kõigi** HTTP-töötlejate tööd, sealhulgas `/healthz`. Hõivatud sündmusetsükkel ≠ surnud protsess. Eelistage koormuse põhjustaja parandamist; sondi häälestamine vähendab ainult ekslikke protsesside lõpetamisi.
+Mõlemad marsruudid töötavad päringutöötlusega **samas Node'i sündmusetsüklis**. CPU-d koormav tegevus (suure `GET /v1/models` kataloogi töötlemine, pika konteksti tihendamine / tõendite loendamine) võib viivitada **kõigi** HTTP-töötlejate tööd, sealhulgas `/healthz`. Hõivatud sündmusetsükkel ≠ surnud protsess. Eelistage koormuse põhjustaja parandamist; kontrollpäringute häälestamine ainult vähendab ekslikke lõpetamisi.
 
-### Kerge orkestreerija sond
+### Kerge orkestreerija kontrollpäring
 
 ```bash
 GET /healthz
 # või HEAD /healthz
 ```
 
-- **200** + vastusekeha `ok`, kui serveri elutsükli faas on valmis
+- **200** + keha `ok`, kui serveri elutsükli faas on valmis
 - **503** + `starting` / `stopping` käivitamise või seiskamise ajal
-- Teostus: `src/app/healthz/route.ts` (DB-pingi ei tehta)
+- Teostus: `src/app/healthz/route.ts` (andmebaasi ping puudub)
 
-### Süsteemi tervis (põhjalik)
+### Süsteemi tervis (süvakontroll)
 
 ```bash
 GET /api/monitoring/health
@@ -153,44 +153,43 @@ Vastus:
 }
 ```
 
-#### `credentialHealth`: sondi vahemälu vs SQLite’i `test_status`
+#### `credentialHealth`: kontrollpäringute vahemälu vs SQLite'i `test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` on **mälusisese sondi vahemälu
-näidik**, mitte `provider_connections.test_status` reaalajas väljavõte. Pärast #12532
-loeb päringutee ainult funktsiooni `getCachedCredentialHealthSummary()`; taustsondid
+`GET /api/monitoring/health` → `credentialHealth` on **mälusisese kontrollpäringute vahemälu
+mõõdik**, mitte `provider_connections.test_status` reaalajas väljavõte. Pärast muudatust #12532
+loeb päringutee ainult funktsiooni `getCachedCredentialHealthSummary()`; taustal töötavad kontrollpäringud
 värskendavad vahemälu väljaspool sündmusetsüklit.
 
-| Kiht                         | Asukoht                                                               | Tähendus                                                                                                                                                                                                                   |
-| ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sondi vahemälu näidik        | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Viimased mandaadi tervisesondi tulemused, mida hoitakse endiselt protsessi mälus. `source` on alati `probe-cache`.                                                                                                         |
-| Nurjunud ühenduse üksikasjad | `credentialHealth.failedConnections`                                  | Esineb **ainult siis, kui `failed > 0`**. Piiratud loend vahemäluridadest, millel on `status=error` (`connectionId`, `status`, puhastatud `lastError` / `lastErrorType`). `failedOmitted` määratakse, kui loendit piirati. |
-| SQLite’i püsiolek            | `credentialHealth.staleDbNonOkCount`                                  | **Aktiivsete** (`is_active=1`) ühenduseridade arv, mille salvestatud `test_status` on teadaolev mitte-OK olek (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                           |
+| Kiht                              | Asukoht                                                               | Tähendus                                                                                                                                                                                                                   |
+| --------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kontrollpäringute vahemälu mõõdik | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Viimased protsessi mälus endiselt hoitavad tõendite tervisekontrolli tulemused. `source` on alati `probe-cache`.                                                                                                           |
+| Ebaõnnestunud ühenduse üksikasjad | `credentialHealth.failedConnections`                                  | Esineb **ainult siis, kui `failed > 0`**. Piiratud loend vahemäluridadest, millel on `status=error` (`connectionId`, `status`, puhastatud `lastError` / `lastErrorType`). `failedOmitted` määratakse, kui loendit kärbiti. |
+| SQLite'i püsiv olek               | `credentialHealth.staleDbNonOkCount`                                  | **Aktiivsete** (`is_active=1`) ühenduseridade arv, mille salvestatud `test_status` on teadaolev mitte-OK olek (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                           |
 
-Need kaks kihti võivad sihilikult erineda:
+Need kaks kihti võivad kavandatult erineda:
 
-- Näidik `failed=0`, kuid `staleDbNonOkCount>0` — SQLite’is on endiselt püsiv
-  `test_status` (näiteks `expired` või `credits_exhausted`), mida uusim
-  sondi vahemälu hetktõmmis olekuna `status=error` ei arvesta.
-- Näidik `failed>0`, kuid SQLite paistab korras olevat — hiljutine sond nurjus ja
-  tulemus on vahemälus; DB-rida pole värskendatud või see puhastati hiljem.
+- Mõõdik `failed=0`, kuid `staleDbNonOkCount>0` — SQLite'is on endiselt püsiv
+  `test_status` (näiteks `expired` või `credits_exhausted`), mida viimane
+  kontrollpäringute vahemälu hetktõmmis ei loenda olekuna `status=error`.
+- Mõõdik `failed>0`, kuid SQLite näib terve — hiljutine kontrollpäring ebaõnnestus ja on
+  vahemällu salvestatud; andmebaasirida pole värskendatud või see puhastati hiljem.
 
-Selle lõpp-punkti seireandmete kogumisel ärge looge häiret ainult
-`provider_connections.test_status` põhjal. Kasutage reaalajas sonditõrgete jaoks
-välju `failed` + `failedConnections` ning salvestatud püsiolekute arvu jaoks
-välja `staleDbNonOkCount`.
+Ärge käivitage selle lõpp-punkti kogumisel häiret üksnes `provider_connections.test_status`
+põhjal. Kasutage reaalajas kontrollpäringute tõrgete jaoks välju `failed` + `failedConnections` ning
+`staleDbNonOkCount`, kui vajate salvestatud püsivate olekute arvu.
 
-### Kubernetese sondide soovitused
+### Kubernetese kontrollpäringute soovitused
 
-OmniRoute on **üks Node’i protsess** (üks sündmusetsükkel). Dockeri standardne `HEALTHCHECK` kasutab kerget `/healthz` lõpp-punkti. `/api/monitoring/health` on kubeleti elususkontrolli intervallide jaoks **liiga koormav**.
+OmniRoute on **üks Node'i protsess** (üks sündmusetsükkel). Dockeri vaikimisi `HEALTHCHECK` kasutab kerget lõpp-punkti `/healthz`. `/api/monitoring/health` on kubeleti elusolekukontrolli intervallide jaoks **liiga raske**.
 
-| Kontrollsond              | Soovitatav sihtmärk                                                           | Märkused                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Käivitamine**           | HTTP `GET /healthz` pika `failureThreshold`-iga (või suure `startPeriod`-iga) | Külmkäivitus + SQLite'i migratsioon võib võtta üle mõne sekundi                                                                                                                                                                                                                                                                                                                         |
-| **Valmisolek**            | HTTP `GET /healthz`                                                           | Elutsükli olek `ok` / `starting` / `stopping` (200 või 503). Kõigub endiselt, kui tsükkel on CPU tõttu blokeeritud. **Mitme sekundi pärast saabuv 200 ei tähenda, et süsteem on töökorras** (#10303) — see tähendab, et sündmusetsükkel oli enne 3-baidise töötleja käivitumist ressurssidest ilma jäetud                                                                               |
-| **Elusolek**              | HTTP `GET /livez` **või TCP** põhiteenuse pordil (`PORT`, vaikimisi `20128`)  | `/livez` kontrollib ainult protsessi elusolekut (alati 200, kui töötleja käivitub). See jagab endiselt sündmusetsüklit — hõivatud ≠ surnud — ega tuvasta sündmusetsükli ressurssidest ilmajätmist (#10303) paremini kui TCP. Eelista **TCP-d**, kui HTTP-sondid aeguvad kataloogi-/tihenduskoormuse all; kummalgi juhul **ära** lõpeta pod'i lühikeste sündmusetsükli seiskumiste tõttu |
-| **Sügav tervisekontroll** | `GET /api/monitoring/health` välisest kontrollijast                           | Ei sobi kubelet'i `livenessProbe`-i ega lühikese intervalliga `readinessProbe`-i jaoks                                                                                                                                                                                                                                                                                                  |
+| Kontroll                     | Soovitatav sihtmärk                                                           | Märkused                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Käivitamine**              | HTTP `GET /healthz` pika `failureThreshold`-iga (või suure `startPeriod`-iga) | Külmkäivitus + SQLite'i migratsioon võivad võtta kauem kui mõne sekundi                                                                                                                                                                                                                                                                                                               |
+| **Valmisolek**               | HTTP `GET /healthz`                                                           | Elutsükli olek `ok` / `starting` / `stopping` (200 vs 503). Kõigub endiselt, kui tsükkel on CPU tõttu blokeeritud. **Mitme sekundi pärast saadud 200 ei tähenda korrasolekut** (#10303) — see tähendab, et sündmusetsükkel oli üle koormatud enne, kui 3-baidine töötleja käivitati                                                                                                   |
+| **Elusolek**                 | HTTP `GET /livez` **või TCP** põhiteenuse pordil (`PORT`, vaikimisi `20128`)  | `/livez` kontrollib ainult protsessi elusolekut (alati 200, kui töötleja käivitub). See jagab siiski sama sündmusetsüklit — hõivatud ≠ surnud ning see ei tuvasta sündmusetsükli ülekoormust (#10303) TCP-st paremini. Eelista **TCP-d**, kui HTTP-kontrollid kataloogi-/tihenduskoormuse all aeguvad; kummalgi juhul **ära** lõpeta pod'i lühikeste sündmusetsükli seiskumiste tõttu |
+| **Põhjalik tervisekontroll** | `GET /api/monitoring/health` välisest kontrollijast                           | Ei sobi kubelet'i `livenessProbe`-iks ega tihedaks `readinessProbe`-iks                                                                                                                                                                                                                                                                                                               |
 
-Näidiskonfiguratsioon (kohanda lävesid vastavalt külmkäivituse ja tihendamise koormusele):
+Näidiskuju (kohanda lävendeid vastavalt külmkäivituse ja tihendamise koormusele):
 
 ```yaml
 ports:
@@ -216,7 +215,7 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Sündmusetsükli seiskumise korral võib ka HTTP /livez aeguda. TCP on
+  # Sündmusetsükli seiskumisel võib ka HTTP /livez aeguda. TCP on
   # konservatiivne alternatiiv:
   # tcpSocket:
   #   port: http
@@ -224,19 +223,50 @@ livenessProbe:
 
 **Ära** suuna kubelet'i **elusolekukontrolli** aadressile `/api/monitoring/health`. See tee teeb tegelikku andmebaasi-/seiretööd ja annab koormuse all valepositiivseid tulemusi.
 
-Seotud: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sondid ajal, mil sündmusetsükkel on hõivatud), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (kataloogihindade ressursiõgard), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (tihendamise sõneloenduse ressursiõgard).
+Seotud: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (kontrollid ajal, mil sündmusetsükkel on hõivatud), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (kataloogi hinnastamise ressursiõgard), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (tihendamise sõneloenduse ressursiõgard).
+
+### systemd valvekoer (hangunud sündmusetsükkel)
+
+systemd hostis teatab OmniRoute teenusehaldurile, millal see on valmis, ja saadab jätkuvalt impulsse, et hangunud sündmusetsükliga server lõpetataks ning taaskäivitataks, selle asemel et see töötavana, kuid vaikivana alles jääks. Impulsse saadetakse serveri enda sündmusetsüklist: selle blokeerumisel impulsid peatuvad ning systemd taaskäivitab teenuse, kui `WatchdogSec` möödub ühtegi impulssi saamata.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) kirjutab juba seda sisaldava kasutajaüksuse. Ise kirjutatud üksusel (vaikimisi `Type=simple`) valvekoera pole, seega lisa selle jaotisse `[Service]` järgmised read:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Genereeritud üksus määrab `Restart=on-failure`, seega lisa ka see rida — ilma selleta lõpetab valvekoer hangunud teenuse, kuid ei taaskäivita seda.
+
+- `Type=notify`: teenus on „käivitatud”, kui server saadab `READY=1`, mitte protsessi hargnemisel. `TimeoutStartSec` piirab aeglast käivitumist.
+- `NotifyAccess=all`: impulsse saadab serveriprotsess, mis on `omniroute serve` järelevaataja alamprotsess.
+- `WatchdogSec`: impulsse saadetakse iga 60 sekundi järel, seega kasuta väärtust **120 või rohkem**. Väiksemad väärtused taaskäivitaksid korras serveri.
+- Käivita `omniroute serve` esiplaanil. `--daemon` lahutab serveri üksuse cgroup'ist ning teavituse käepigistus ei jõua kunagi lõpule.
+
+Kontrolli pärast taaskäivitamist, et see oleks aktiivne:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` näitab seadistatud viivitust ning `WatchdogTimestamp` liigub iga minuti järel edasi. Valvekoera põhjustatud taaskäivitus salvestatakse kujul `Result=watchdog`. Impulsside väljalülitamiseks ilma üksust muutmata määra `OMNIROUTE_DISABLE_SD_NOTIFY=1`; ilma `NOTIFY_SOCKET`-ita (terminal, Docker, Electron, Windows) ei saadeta midagi.
+
+Valvekoer kontrollib ainult seda, et sündmusetsükkel töötaks edasi. Aeglast, kuid endiselt töötava sündmusetsükliga serverit ei taaskäivitata.
 
 ### Valikuline päringutee töö (mälu, oskused, loa värskendamine)
 
-Mälu eraldamine, oskuste sisestamine ja OAuthi loa värskendamine jagavad `/healthz`-iga **Node'i põhisündmusetsüklit**. Need on töölaual sisse- ja väljalülitatavad funktsioonid (`memoryEnabled`, `skillsEnabled`), mitte töötlejate kogum. Vaata [Keskkond — sündmusetsükli kulu](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Mälu ekstraktimine, oskuste sisestamine ja OAuthi loa värskendamine jagavad `/healthz`-iga **Node'i peamist sündmusetsüklit**. Need on juhtpaneelilt sisse- ja väljalülitatavad funktsioonid (`memoryEnabled`, `skillsEnabled`), mitte töötlejate kogum. Vt [Keskkond — sündmusetsükli kulu](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Teenusepakkuja seisund
 
-> **REST-lõpp-punkt puudub.** Teenusepakkuja seisundiandmed on saadaval MCP-tööriista `observability_snapshot` või töölaua lehe `/dashboard/providers` kaudu.
+> **REST-lõpp-punkti pole.** Teenusepakkujate seisundiandmed on saadaval MCP-tööriista `observability_snapshot` või juhtpaneeli lehe `/dashboard/providers` kaudu.
 
 ### Teenusepakkuja üksikasjad
 
-> **REST-lõpp-punkt puudub.** Iga teenusepakkuja üksikasjad on saadaval töölaua lehe `/dashboard/providers` kaudu.
+> **REST-lõpp-punkti pole.** Teenusepakkuja üksikasjad on saadaval juhtpaneeli lehe `/dashboard/providers` kaudu.
 
 ---
 

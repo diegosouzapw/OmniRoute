@@ -272,30 +272,47 @@ codex -p chat     # cx/gpt-5.5, ebda sforz issettjat (valur predefinit tas-serve
 
 ---
 
-## Ġenerazzjoni awtomatika ta' profili b'`omniroute setup-codex`
+## Ġenerazzjoni awtomatika ta’ profili b’`omniroute setup-codex`
 
-Jekk tħaddem OmniRoute fuq VPS, tista' tiġġenera awtomatikament fajls tal-profili mill-katalgu tal-mudelli attiv:
+Jekk tħaddem OmniRoute fuq VPS, tista’ tiġġenera awtomatikament fajls tal-profili mill-katalgu attiv tal-mudelli:
 
 ```bash
-# Minn VPS (juża OmniRoute lokali fuq il-port 20128)
+# Minn VPS (juża l-OmniRoute lokali fuq il-port 20128)
 omniroute setup-codex
 
 # Minn kwalunkwe magna — ipponta lejn il-VPS tiegħek
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Ara previżjoni mingħajr ma tikteb fajls
+# Uri previżjoni mingħajr ma tikteb fajls
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # Iġġenera biss il-profili GLM u Kimi
 omniroute setup-codex --only glm,kimi
 
-# Ikteb f'direttorju personalizzat
+# Ikteb f’direttorju personalizzat
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Il-kmand iġib `/v1/models`, juża profili rfinuti għal mudelli magħrufa, jirrikorri għall-metadata tal-katalgu għal mudelli oħra tat-test kompatibbli, u jikteb `~/.codex/<name>.config.toml` għal kull wieħed. Huwa idempotenti — tista' terġa' tħaddmu mingħajr periklu.
+Il-kmand jikseb `/v1/models`, juża profili rfinuti għal mudelli magħrufa, jirrikorri għall-metadata tal-katalgu għal mudelli oħra kompatibbli mat-test, u jikteb `~/.codex/<name>.config.toml` għal kull wieħed. Huwa idempotenti — tista’ tħaddmu mill-ġdid mingħajr periklu.
 
-OmniRoute jista' wkoll **jissinkronizza awtomatikament** dawn l-istess fajls tal-profili wara li sejba/importazzjoni b'suċċess tal-mudelli ta' fornitur tibdel il-katalgu attiv. Din il-karatteristika trid **tiġi attivata espliċitament u hija mitfija b'mod awtomatiku**: aqleb l-għażla mid-**dashboard CLI Code** ("CLI profile auto-sync" → Codex), jew issettja `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (jirrispetta wkoll `CLI_ALLOW_CONFIG_WRITES`, li huwa mixgħul b'mod awtomatiku). Meta tkun attivata, tikteb biss fajls separati tal-profili `~/.codex/*.config.toml`; qatt ma tibdel il-`~/.codex/config.toml` attiv/predefinit, is-settings ta' Codex-lb, l-awtentikazzjoni, jew l-għażla tal-fornitur.
+Jekk il-`config.toml` bażi ma jkollux definizzjoni `model_providers.omniroute`, l-użu espliċitu ta’
+`setup-codex` jinkludi dik id-definizzjoni f’kull overlay iġġenerat, billi juża l-endpoint
+lokali jew remot magħżul. Il-fajl bażi jibqa’ l-istess. Definizzjoni eżistenti tal-fornitur
+tintiret, inklużi l-endpoint u s-settings tal-awtentikazzjoni tagħha. TOML bażi invalidu
+jwaqqaf il-ġenerazzjoni qabel ma jinkitbu l-profili.
+
+Meta tipprovdi `--api-key` jew `OMNIROUTE_API_KEY`, fornitur definit ġdid jirreferi għal
+`env_key = "OMNIROUTE_API_KEY"`; iċ-ċavetta nnifisha qatt ma tiġi ssejvjata jew stampata fil-
+previżjoni. Issettja dik il-varjabbli fl-ambjent minn fejn tħaddem Codex. Mingħajr ċavetta
+pprovduta, id-definizzjoni l-ġdida ma jkollhiex rekwiżit ta’ ċavetta, għal istanza ta’ OmniRoute
+kkonfigurata biex taċċetta talbiet mhux awtentikati.
+
+Is-sinkronizzazzjoni awtomatika fakultattiva tal-katalgu deskritta hawn taħt iżżomm id-definizzjonijiet tal-fornituri li diġà
+jinsabu f’overlay iżda ma toħloqx settings ġodda tal-fornitur; l-ewwel ikkonfigura l-fornitur
+permezz ta’ setup espliċitu jew mid-dashboard. Is-settings eżistenti tal-fornitur jitħallew barra
+mill-previżjonijiet dry-run għax jista’ jkun fihom kredenzjali ġestiti mill-operatur.
+
+OmniRoute jista’ wkoll **jissinkronizza awtomatikament** dawn l-istess fajls tal-profili wara li skoperta/importazzjoni b’suċċess ta’ mudelli tal-fornitur tibdel il-katalgu attiv. Din hija **fakultattiva u diżattivata b’mod awtomatiku**: attivaha mid-**dashboard ta’ CLI Code** ("Sinkronizzazzjoni awtomatika tal-profili CLI" → Codex), jew issettja `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (jirrispetta wkoll `CLI_ALLOW_CONFIG_WRITES`, attiv b’mod awtomatiku). Meta tkun attivata, tikteb biss fajls separati tal-profili `~/.codex/*.config.toml`; qatt ma tibdel il-`~/.codex/config.toml` attiv/predefinit, is-settings ta’ Codex-lb, l-awtentikazzjoni, jew l-għażla tal-fornitur.
 
 ---
 
@@ -392,7 +409,7 @@ region  = "us-east-1"
 
 ---
 
-## Diversi servers
+## Servers multipli
 
 ```toml
 [model_providers.omniroute-main]

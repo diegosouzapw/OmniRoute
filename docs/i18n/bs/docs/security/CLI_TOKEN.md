@@ -41,22 +41,11 @@ pozivu navodi JWT ili lozinku.
 | **Nema zaobilaženja zaštite `always`** | `isAlwaysProtectedPath()` se izvršava prije provjere CLI tokena. `/api/shutdown` i `/api/settings/database` uvijek zahtijevaju JWT.                                                                                                                      |
 | **Nije moguće izvesti**                | Token se nikada ne zapisuje na disk niti evidentira u zapisnicima.                                                                                                                                                                                       |
 
-## Zadana vrijednost soli (nasumična za svaku instalaciju)
+## Zadana salt vrijednost (nasumična po instalaciji)
 
-Kada `OMNIROUTE_CLI_SALT` nije postavljen, vrijednost soli je nasumični
-heksadecimalni niz od 64 znaka koji se generira jednom i trajno pohranjuje u
-`<DATA_DIR>/cli-token-salt.json` (način rada `0600`) — a ne doslovna vrijednost
-`omniroute-cli-auth-v1` uključena u repozitorij. I `getActiveSalt()` u
-`src/lib/machineToken.ts` i njegova odgovarajuća implementacija u
-`bin/cli/utils/cliToken.mjs` čitaju istu datoteku, tako da server i svako
-pokretanje CLI-ja u ovoj instalaciji koriste istu vrijednost; doslovna vrijednost
-uključena u repozitorij koristi se samo kao krajnja rezervna opcija kada još nije
-moguće uspostaviti trajno pohranjenu vrijednost soli ili onu iz okruženja
-(na primjer, kod nove instalacije samo s CLI-jem prije prvog pokretanja servera).
-Ovo otklanja slabost stare fiksne zadane doslovne vrijednosti: `/etc/machine-id`
-je obično čitljiv svim korisnicima, pa bi u suprotnom svaki lokalni korisnik mogao
-izvesti isti token za svaku instalaciju u kojoj `OMNIROUTE_CLI_SALT` nikada nije
-postavljen.
+Kada `OMNIROUTE_CLI_SALT` nije postavljen, salt vrijednost je nasumični heksadecimalni niz od 64 znaka koji se generiše jednom i trajno pohranjuje u `<DATA_DIR>/cli-token-salt.json` (režim `0600`) — umjesto doslovne vrijednosti `omniroute-cli-auth-v1` koja se nalazi u repozitoriju. I `getActiveSalt()` u `src/lib/machineToken.ts` i njegova preslikana implementacija u `bin/cli/utils/cliToken.mjs` čitaju istu datoteku, tako da server i svako CLI pokretanje u ovoj instalaciji koriste istu vrijednost; doslovna vrijednost iz repozitorija koristi se samo kao krajnja rezervna opcija kada još nije moguće uspostaviti trajno pohranjenu salt vrijednost ili onu iz okruženja (naprimjer, kod nove instalacije koja sadrži samo CLI, prije nego što je server ikada pokrenut). Time se otklanja slabost stare fiksne zadane doslovne vrijednosti: `/etc/machine-id` je obično dostupan za čitanje svim korisnicima, pa bi u suprotnom svaki lokalni korisnik mogao izvesti isti token za svaku instalaciju u kojoj `OMNIROUTE_CLI_SALT` nikada nije postavljen.
+
+Ako salt vrijednost nije moguće pročitati ili kreirati, i server i CLI emituju jedno upozorenje po procesu prije korištenja te kompatibilne rezervne vrijednosti. Upozorenje ne sadrži salt vrijednost, token, putanju datotečnog sistema niti izvornu grešku. Vratite pristup direktoriju `DATA_DIR` ili postavite `OMNIROUTE_CLI_SALT`, a zatim ponovo pokrenite pogođeni proces. Upozorenje čini problem vidljivim; ono ne pretvara javnu rezervnu salt vrijednost u privatnu niti onemogućava CLI autentifikaciju. Postojeće važeće trajno pohranjene salt vrijednosti i eksplicitna nadjačavanja putem okruženja zadržavaju svoje prethodne vrijednosti tokena.
 
 ## Rotacija salta
 

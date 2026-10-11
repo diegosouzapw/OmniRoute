@@ -170,21 +170,21 @@ La table `memory_vec_meta` (migration `083_memory_vec.sql`) stocke :
 
 ## Extension des paramètres
 
-Neuf champs d’intégration et de vecteurs sont disponibles dans `MemorySettingsExtended`, dans
+Neuf champs d’intégration et de vecteurs sont disponibles dans `MemorySettingsExtended` dans
 `src/shared/schemas/memory.ts`, et sont persistés via `src/lib/db/settings.ts` :
 
-| Champ                    | Type                                               | Valeur par défaut | Description                                                    |
-| ------------------------ | -------------------------------------------------- | ----------------- | -------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Source d’intégration à utiliser                                |
-| `embeddingProviderModel` | `string \| null`                                   | `null`            | Fournisseur/modèle au format `provider/model`                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`            | URL de base d’un endpoint compatible OpenAI réservé à Memory   |
-| `customModelId`          | `string \| null`                                   | `null`            | ID du modèle envoyé à l’endpoint personnalisé                  |
-| `transformersEnabled`    | `boolean`                                          | `false`           | Activation facultative de Transformers.js (MiniLM, ~400 Mo)    |
-| `staticEnabled`          | `boolean`                                          | `false`           | Activation facultative du modèle local statique potion-base-8M |
-| `rerankEnabled`          | `boolean`                                          | `false`           | Activer l’étape de reclassement (ajoute 200 à 500 ms/requête)  |
-| `rerankProviderModel`    | `string \| null`                                   | `null`            | Fournisseur/modèle de reclassement au format `provider/model`  |
+| Champ                    | Type                                               | Valeur par défaut | Description                                                         |
+| ------------------------ | -------------------------------------------------- | ----------------- | ------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`          | Source d’intégration à utiliser                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`            | Fournisseur/modèle au format `provider/model`                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`            | URL de base d’un endpoint compatible OpenAI, pour Memory uniquement |
+| `customModelId`          | `string \| null`                                   | `null`            | ID du modèle envoyé à l’endpoint personnalisé                       |
+| `transformersEnabled`    | `boolean`                                          | `false`           | Activation explicite de Transformers.js (MiniLM, ~400MB)            |
+| `staticEnabled`          | `boolean`                                          | `false`           | Activation explicite du modèle local statique potion-base-8M        |
+| `rerankEnabled`          | `boolean`                                          | `false`           | Activer l’étape de reclassement (ajoute +200-500ms/requête)         |
+| `rerankProviderModel`    | `string \| null`                                   | `null`            | Fournisseur/modèle de reclassement au format `provider/model`       |
 
-`rerankProviderModel` est résolu par `POST /v1/rerank` (appelé via l’interface de bouclage) ; il accepte donc tout ce que cette route accepte : un modèle cloud de reclassement sélectionné (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ou un nœud fournisseur compatible OpenAI sous la forme `<node-prefix>/<model>` (par exemple `skilled-mini/bge-reranker-v2-m3` pour une machine TEI/Infinity). Les nœuds de bouclage sont toujours admissibles ; un nœud situé sur un autre hôte (LAN, Tailscale) nécessite en outre l’indicateur de fonctionnalité `RERANK_REMOTE_PROVIDER_NODES` et doit respecter la politique des URL sortantes des fournisseurs — voir [Indicateurs de fonctionnalité](../reference/FEATURE_FLAGS.md). Le sélecteur du tableau de bord répertorie les fournisseurs sélectionnés ainsi que les nœuds locaux ; toute chaîne `provider/model` valide peut être définie directement via `PUT /api/settings/memory`.
+`rerankProviderModel` est résolu par `POST /v1/rerank` (appelé via l’interface de bouclage) ; il accepte donc tout ce que cette route accepte : un modèle cloud de reclassement sélectionné (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ou un nœud fournisseur compatible OpenAI sous la forme `<node-prefix>/<model>` (par exemple `skilled-mini/bge-reranker-v2-m3` pour une instance TEI/Infinity). Les nœuds de bouclage et les noms d’hôte répertoriés dans `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (par exemple le nom d’un service Docker/Compose) sont toujours admissibles ; un nœud situé sur un autre hôte (LAN, Tailscale) nécessite en outre le feature flag `RERANK_REMOTE_PROVIDER_NODES` et doit respecter la politique d’URL sortante du fournisseur — voir [Feature Flags](../reference/FEATURE_FLAGS.md). Le sélecteur du tableau de bord répertorie les fournisseurs sélectionnés ainsi que les nœuds locaux ; toute chaîne `provider/model` valide peut être définie directement via `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vectoriel à utiliser |
 
 Ces paramètres sont exposés via `GET /PUT /api/settings/memory` (schéma `MemorySettingsExtendedSchema`).
@@ -192,13 +192,13 @@ Ces paramètres sont exposés via `GET /PUT /api/settings/memory` (schéma `Memo
 Pour la source `remote`, Memory accepte également les paramètres facultatifs `customBaseUrl` et
 `customModelId`. Ensemble, ils sélectionnent un endpoint `/embeddings` compatible OpenAI
 et un modèle sans modifier le registre global des intégrations. L’endpoint est
-normalisé avant utilisation et vérifié par la politique des URL sortantes des fournisseurs : HTTP(S) est
-requis, les identifiants intégrés et les chaînes de requête sont rejetés, et les adresses
-des services de métadonnées cloud restent bloquées. Les valeurs vides conservent le fournisseur sélectionné dans le registre. Les erreurs
-renvoyées au tableau de bord sont nettoyées et les identifiants de l’endpoint ne sont jamais consignés.
+normalisé avant utilisation et contrôlé par la politique d’URL sortante du fournisseur : HTTP(S) est
+requis, les identifiants intégrés et les chaînes de requête sont rejetés, et les
+adresses de métadonnées cloud restent bloquées. Les valeurs vides conservent le fournisseur sélectionné dans le registre. Les erreurs
+renvoyées au tableau de bord sont expurgées et les identifiants de l’endpoint ne sont jamais journalisés.
 
-> **À FAIRE (D20) :** La portée `global` (partage des mémoires entre toutes les clés d’API) n’est pas
-> implémentée dans cette version. Elle nécessite des modifications du schéma ainsi qu’un chemin de récupération
+> **TODO (D20) :** La portée `global` (partage des souvenirs entre toutes les clés API) n’est pas
+> implémentée dans cette version. Elle nécessite des modifications du schéma et un chemin de récupération
 > global. À suivre séparément.
 
 ## Couches de stockage
@@ -912,13 +912,13 @@ Pour la laisser désactivée, conservez simplement la valeur par défaut de `aut
 > **Source de référence :** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Tests :** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Le modèle de fournisseur MemoryBackend introduit une **couche d’abstraction de backend extensible** au-dessus du moteur de mémoire existant. Au lieu d’être lié à une seule implémentation de stockage, le système de mémoire prend désormais en charge plusieurs backends (SQLite, Obsidian, Notion, backends HTTP personnalisés) avec un routage configurable entre le backend principal et les backends de secours.
+Le modèle de fournisseur MemoryBackend introduit une **couche d’abstraction de backend enfichable** au-dessus du moteur de mémoire existant. Au lieu d’être lié à une seule implémentation de stockage, le système de mémoire prend désormais en charge plusieurs backends (SQLite, Obsidian, Notion, backends HTTP personnalisés) avec un routage principal/de secours configurable.
 
 ### Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    Routes API                             │
+│                    Routes d’API                           │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
@@ -926,9 +926,9 @@ Le modèle de fournisseur MemoryBackend introduit une **couche d’abstraction d
 │                   MemoryManager                           │
 │       Orchestrateur singleton (manager.ts)                │
 │                                                          │
-│  Principal ─► Backend A  (p. ex. SQLite)                 │
-│  Secours ───► Backend B  (p. ex. Obsidian)               │
-│               Backend C  (p. ex. Notion via GenericBackend)│
+│  Principal ──► Backend A  (p. ex. SQLite)                │
+│  Secours   ──► Backend B  (p. ex. Obsidian)              │
+│                Backend C  (p. ex. Notion via GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -958,7 +958,7 @@ interface MemoryBackend {
   // Recherche
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // État
+  // État de santé
   health(): Promise<HealthCheckResult>;
 
   // Cycle de vie (facultatif)
@@ -973,19 +973,19 @@ Orchestrateur singleton qui :
 
 - **Enregistre** les backends via `register(backend)` — appelé au démarrage depuis `index.ts`
 - **Configure** le backend principal et les backends de secours via `configure(primary, fallbacks)`
-- **Achemine** les opérations CRUD et les recherches vers le backend principal, avec une chaîne de secours en cas d’échec
-- **Vérifie l’état** de tous les backends périodiquement
+- **Achemine** les opérations CRUD et de recherche vers le backend principal, avec une chaîne de secours en cas d’échec
+- **Vérifie l’état de santé** de tous les backends périodiquement
 
 **Comportement de secours :**
 
 | Opération | Principal                       | Backends de secours                         |
 | --------- | ------------------------------- | ------------------------------------------- |
 | `create`  | ✅ Principal uniquement         | ❌                                          |
-| `get`     | ✅ Essayer d’abord le principal | ✅ Secours si la valeur est nulle           |
+| `get`     | ✅ Essayer d’abord le principal | ✅ Secours si le résultat est null          |
 | `update`  | ✅ Principal uniquement         | ✅ Synchronisation sans attente de résultat |
 | `delete`  | ✅ Principal uniquement         | ✅ Synchronisation sans attente de résultat |
 | `list`    | ✅ Principal uniquement         | ❌                                          |
-| `search`  | ✅ Principal d’abord            | ✅ Secours en cas d’erreur                  |
+| `search`  | ✅ Principal en premier         | ✅ Secours en cas d’erreur                  |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -993,7 +993,7 @@ Un connecteur HTTP générique qui adapte n’importe quelle API REST en MemoryB
 
 - **Notion** — connexion via l’API Notion
 - **Obsidian** — connexion via l’API REST locale d’Obsidian
-- **Backends personnalisés** — tout service exposant une API RESTful de mémoire
+- **Backends personnalisés** — tout service qui expose une API RESTful de mémoire
 
 **Configuration :**
 
@@ -1039,7 +1039,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend pointant vers api.noti
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Le backend principal par défaut. Encapsule le stockage de mémoire SQLite existant à l’aide de `src/lib/memory/store.ts`. Il est automatiquement enregistré au démarrage.
+Le backend principal par défaut. Il encapsule le stockage de mémoire existant basé sur SQLite à l’aide de `src/lib/memory/store.ts`. Il est automatiquement enregistré au démarrage.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1050,15 +1050,74 @@ memoryManager.register(sqliteBackend);
 
 Encapsule l’intégration Obsidian existante (`src/lib/memory/obsidianBackend.ts`). Se connecte à un coffre Obsidian via l’API REST locale d’Obsidian.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adaptateur pour un worker [claude-mem](https://github.com/thedotmack/claude-mem) local — le
+plugin de mémoire pour Claude Code / Codex / Cursor qui capture les sessions de programmation sous forme d’« observations ».
+Une fois celui-ci enregistré, les routes REST `/api/memory` et la recherche de mémoire A2A peuvent lire et écrire
+dans le même stockage que celui alimenté par les hooks de claude-mem.
+
+Le worker écoute uniquement sur l’interface de bouclage, que la protection SSRF de `GenericMemoryBackend` rejette volontairement.
+Cet adaptateur n’assouplit pas cette protection : l’hôte est codé en dur sur `127.0.0.1` et le schéma de
+configuration (`ClaudeMemBackendConfigSchema`, `.strict()`) accepte uniquement :
+
+| Clé         | Type   | Valeur par défaut | Remarques                                                                                                                  |
+| ----------- | ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —                 | Obligatoire, 1024–65535. Port du worker claude-mem défini dans son fichier de paramètres (par défaut `37700 + uid % 100`). |
+| `project`   | string | —                 | Projet claude-mem à utiliser. Si non défini → chaque clé d’API OmniRoute correspond à son propre projet (`apiKeyId`).      |
+| `timeoutMs` | number | `5000`            | Délai d’expiration par requête, 100–30000.                                                                                 |
+
+Activez-le via `PUT /api/settings/memory`, puis redémarrez OmniRoute (les backends ne sont enregistrés
+qu’une seule fois, dans `initMemoryBackends()`) :
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Utilisez plutôt `"primaryBackend": "claude-mem"` pour en faire le stockage de l’API REST. Une
+configuration non valide est journalisée (`claude-mem.backend.invalid_config`) et ignorée, de sorte que SQLite reste le backend principal.
+
+Mappage et limites :
+
+- Les identifiants sont au format `claude-mem:<observationId>` ; `get`/`delete` ignorent les identifiants
+  d’autres backends sans effectuer d’appel réseau.
+- `create` → `POST /api/memory/save` ; les champs OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) sont stockés dans `metadata.omniroute` de claude-mem et restaurés à l’identique lors de la lecture.
+- `search` → `GET /api/search?format=json&type=observations`, tronqué à `maxTokens`
+  (nombre de caractères / 4). `list` → point de terminaison paginé des observations du worker (`total` est une borne inférieure — le worker
+  renvoie `hasMore`, pas un nombre).
+- Les observations capturées par les hooks associent `discovery` → `factual`, `decision` → `procedural`, et
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Aucune mise à jour** (`update()` renvoie `false` ; les observations sont immuables) et **aucune durée de vie (TTL)**
+  (`expiresAt` est ignoré). claude-mem déduplique les enregistrements identiques au lieu d’effectuer un upsert selon `key`.
+- L’injection dans les prompts (`retrieval.ts`) et les outils MCP `omniroute_memory_*` continuent de lire directement
+  depuis SQLite — ils ne passent pas par `memoryManager`, ce backend ne les alimente donc pas.
+
+**Routage des propres appels LLM de claude-mem via OmniRoute.** claude-mem compresse les observations
+avec un LLM (par défaut : le SDK Claude Agent). Son fournisseur `openai-compatible` peut à la place pointer vers
+OmniRoute afin de bénéficier du repli combiné et du suivi des coûts. Dans `~/.claude-mem/settings.json` :
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<clé d’API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<modèle ou combinaison OmniRoute>"
+}
+```
+
 ### Paramètres
 
 Les paramètres des backends de mémoire sont stockés dans la table des paramètres de l’application et gérés via `src/lib/memory/settings.ts` :
 
-| Paramètre                   | Clé d’environnement/configuration | Valeur par défaut | Description                                |
-| --------------------------- | --------------------------------- | ----------------- | ------------------------------------------ |
-| Backend principal           | `memoryPrimaryBackend`            | `"sqlite"`        | ID du backend principal                    |
-| Backends de repli           | `memoryFallbackBackends`          | `[]`              | ID ordonnés des backends de repli          |
-| Configurations des backends | `memoryBackendConfigs`            | `{}`              | Remplacements de configuration par backend |
+| Paramètre                   | Clé d’environnement/configuration | Valeur par défaut | Description                                 |
+| --------------------------- | --------------------------------- | ----------------- | ------------------------------------------- |
+| Backend principal           | `memoryPrimaryBackend`            | `"sqlite"`        | Identifiant du backend principal            |
+| Backends de repli           | `memoryFallbackBackends`          | `[]`              | Identifiants ordonnés des backends de repli |
+| Configurations des backends | `memoryBackendConfigs`            | `{}`              | Remplacements de configuration par backend  |
 
 Les paramètres sont normalisés via `normalizeMemorySettings()` et mis en cache dans `getMemorySettings()`.
 
@@ -1066,21 +1125,22 @@ Les paramètres sont normalisés via `normalizeMemorySettings()` et mis en cache
 
 ```
 Amorçage de l’application
-  → Importations de index.ts (effet secondaire) : enregistre SQLiteBackend
+  → importations dans index.ts (effet secondaire) : enregistre SQLiteBackend
   → initMemoryBackends() appelé depuis le cycle de vie de l’application :
       1. Charger les paramètres (getMemorySettings)
-      2. Configurer le backend principal et les backends de repli
-      3. Initialiser tous les backends (vérification de l’état)
+      1b. Enregistrer les backends optionnels présents dans backendConfigs (claude-mem)
+      2. Configurer le backend principal et ceux de repli
+      3. Initialiser tous les backends (vérification d’intégrité)
       4. Prêt à traiter les requêtes
 ```
 
 ### Ajout d’un nouveau backend
 
-1. **Implémenter l’interface `MemoryBackend`** dans `src/lib/memory/<name>Backend.ts`
-2. **Exporter** depuis `src/lib/memory/index.ts`
-3. **Enregistrer** avec `memoryManager.register(yourBackend)` au démarrage
-4. **Configurer** via les paramètres : définir `memoryPrimaryBackend` sur l’ID de votre backend
-5. **Tester** en prenant `src/lib/memory/__tests__/generic-backend.test.ts` comme référence
+1. **Implémentez l’interface `MemoryBackend`** dans `src/lib/memory/<name>Backend.ts`
+2. **Exportez-le** depuis `src/lib/memory/index.ts`
+3. **Enregistrez-le** avec `memoryManager.register(yourBackend)` au démarrage
+4. **Configurez-le** via les paramètres : définissez `memoryPrimaryBackend` sur l’identifiant de votre backend
+5. **Testez-le** en utilisant `src/lib/memory/__tests__/generic-backend.test.ts` comme référence
 
 #### Exemple : backend Brain
 
@@ -1111,10 +1171,10 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 Résultat attendu : **35 tests, tous réussis**, couvrant :
 
 - Constructeur (2)
-- Vérification de l’état (4) — réussite, échec 500, erreur réseau, latence
+- Vérification d’intégrité (4) — réussite, échec 500, erreur réseau, latence
 - Initialisation (2) — réussite, échec
 - Création (2) — point de terminaison par défaut, point de terminaison personnalisé
-- Récupération (4) — réussite, 404 → null, exception pour un code autre que 404, paramètres de chemin personnalisés
+- Lecture (4) — réussite, 404 → null, exception pour les erreurs autres que 404, paramètres de chemin personnalisés
 - Mise à jour (2) — réussite, 404 → false
 - Suppression (2) — réussite, 404 → false
 - Liste (2) — paramètres de requête, noms de paramètres personnalisés

@@ -32,25 +32,28 @@ onun bağlantıları bu istifadədən çıxarma əməliyyatına uyğun gəlmir.
 Tunel yalnız alət sorğu dövrləri üçün lazımdır. `pro` daxil olmaqla sadalanan bütün marşrutlar,
 tunel və konnektor konfiqurasiya edildikdə sorğu dövrünə bağlı eyni yerli alət imkanından istifadə edə bilər.
 
-## İdarə panelində quraşdırma
+## İdarəetmə panelinin quraşdırılması
 
 1. **ChatGPT Web (Codex)** provayderini açın və bağlantı əlavə edin.
-2. Tam ChatGPT Cookie başlığını, tunel ID-sini, icra mühiti açarını və fərdi konnektorun
-   adını daxil edin. Alət imkanına malik yeni quraşdırmalar adı dəqiq şəkildə
-   `OmniRoute Codex v2` olan yeni yaradılmış konnektordan istifadə etməli, Authentication
+2. Tam ChatGPT Cookie başlığını, tunel ID-sini, icra mühiti açarını və fərdi konnektor
+   adını daxil edin. Alətlərdən istifadə edə bilən yeni quraşdırmalarda adı dəqiq şəkildə
+   `OmniRoute Codex v2` olan yeni yaradılmış konnektordan istifadə edilməli, Authentication
    None, Permissions isə Allow all actions olaraq təyin edilməlidir.
-3. Bağlantı yoxlamasını başladın. OmniRoute brauzer dəstəkli Temporary Chat açır və hesab
+3. Bağlantı yoxlamasını işə salın. OmniRoute brauzer əsaslı Temporary Chat açır və hesab
    üçün Sol və Pro-nun əlçatan olub-olmadığını müəyyən edir.
-4. Bağlantını saxlayın. OmniRoute daxil edilmiş kukini yoxlanmış Playwright saxlama
-   vəziyyəti ilə əvəz edir və onu şifrələnmiş etimadnamə abstraksiyası vasitəsilə icra mühiti açarı ilə saxlayır.
+4. Bağlantını yadda saxlayın. OmniRoute daxil edilmiş kukini təsdiqlənmiş Playwright
+   saxlama vəziyyəti ilə əvəz edir və onu şifrələnmiş etimadnamə abstraksiyası vasitəsilə
+   icra mühiti açarı ilə birlikdə saxlayır.
 
-Uğurlu saxlamadan sonra ilkin kuki qorunub saxlanılmır. Sessiyanın müddəti bitdikdə
-bağlantını açın, yeni tam Cookie başlığı daxil edin və yoxlamanı yenidən başladın. Redaktə
-dialoqundakı diaqnostika statusu brauzer, saxlama vəziyyəti, giriş, Temporary Chat, tunel,
-konnektor və alətin tam sorğu-cavab dövrü barədə ayrıca məlumat verir.
+Uğurlu yadda saxlama əməliyyatından sonra ilkin kuki saxlanılmır. Sessiyanın müddəti bitdikdə
+bağlantını açın, yeni tam Cookie başlığını daxil edin və yoxlamanı yenidən başladın. Redaktə
+dialoqundakı diaqnostika statusu brauzer, saxlama vəziyyəti, hesaba giriş, Temporary Chat,
+tunel, konnektor və alət üzrə gediş-gəliş nəticələrini ayrıca göstərir. Sessiyalar yeniləndikdə
+kuki yeniləmələrini avtomatlaşdırmaq üçün [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md)
+bölməsindəki köməkçi alətə baxın.
 
-> Heç vaxt real kukini, icra mühiti açarını, saxlama vəziyyətini və ya imkan tokenini kommit etməyin. Test və
-> sənədləşdirmə dəyərləri həmişə yer tutucular olmalıdır.
+> Heç vaxt həqiqi kukini, icra mühiti açarını, saxlama vəziyyətini və ya imkan tokenini
+> repozitoriyaya əlavə etməyin. Test və sənədləşdirmə dəyərləri həmişə yer tutucular olmalıdır.
 
 ## Modellər və kombinasiyalar
 
@@ -106,7 +109,7 @@ Kombinasiyaya ChatGPT Web (Codex) daxil olduqda, Responses WebSocket körpüsü 
 
 ## Yoxlama
 
-İstifadədən çıxarılmış provayderi çağırmadan provayder idarəetmələrini işə salın:
+İstifadədən çıxarılmış provayderi çağırmadan provayder yoxlamalarını işə salın:
 
 ```bash
 node --import tsx/esm --test \\
@@ -115,7 +118,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-İstifadədən çıxarma ilə bağlı reqressiya qoruyucuları aşağıdakı fayllardadır:
+İstifadədən çıxarılma üzrə reqressiya qoruyucuları aşağıdakı fayllardadır:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

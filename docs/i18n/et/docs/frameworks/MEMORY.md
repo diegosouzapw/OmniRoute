@@ -166,33 +166,32 @@ Tabel `memory_vec_meta` (migratsioon `083_memory_vec.sql`) talletab:
 
 ## Seadete laiendus
 
-Üheksa põimendus- ja vektorvälja on saadaval liideses `MemorySettingsExtended` failis
-`src/shared/schemas/memory.ts` ning need salvestatakse faili `src/lib/db/settings.ts` kaudu:
+Üheksa manustamis- ja vektorvälja on saadaval failis
+`src/shared/schemas/memory.ts` asuvas `MemorySettingsExtended`-is ning need säilitatakse faili `src/lib/db/settings.ts` kaudu:
 
-| Väli                     | Tüüp                                               | Vaikeväärtus | Kirjeldus                                                         |
-| ------------------------ | -------------------------------------------------- | ------------ | ----------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Kasutatav põimendusallikas                                        |
-| `embeddingProviderModel` | `string \| null`                                   | `null`       | Pakkuja/mudel vormingus `provider/model`                          |
-| `customBaseUrl`          | `string \| null`                                   | `null`       | Ainult Memory jaoks mõeldud OpenAI-ga ühilduva otspunkti baas-URL |
-| `customModelId`          | `string \| null`                                   | `null`       | Kohandatud otspunktile saadetav mudeli ID                         |
-| `transformersEnabled`    | `boolean`                                          | `false`      | Transformers.js-i kasutamise lubamine (MiniLM, ~400MB)            |
-| `staticEnabled`          | `boolean`                                          | `false`      | Staatilise kohaliku mudeli potion-base-8M kasutamise lubamine     |
-| `rerankEnabled`          | `boolean`                                          | `false`      | Ümberjärjestamise etapi lubamine (lisab +200-500ms/päring)        |
-| `rerankProviderModel`    | `string \| null`                                   | `null`       | Ümberjärjestamise pakkuja/mudel vormingus `provider/model`        |
+| Väli                     | Tüüp                                               | Vaikeväärtus | Kirjeldus                                                       |
+| ------------------------ | -------------------------------------------------- | ------------ | --------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`     | Kasutatav manustamisallikas                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`       | Pakkuja/mudel vormingus `provider/model`                        |
+| `customBaseUrl`          | `string \| null`                                   | `null`       | Ainult mälu jaoks mõeldud OpenAI-ga ühilduva otspunkti baas-URL |
+| `customModelId`          | `string \| null`                                   | `null`       | Kohandatud otspunktile saadetav mudeli ID                       |
+| `transformersEnabled`    | `boolean`                                          | `false`      | Transformers.js-i lubamine (MiniLM, ~400MB)                     |
+| `staticEnabled`          | `boolean`                                          | `false`      | Staatilise kohaliku potion-base-8M mudeli lubamine              |
+| `rerankEnabled`          | `boolean`                                          | `false`      | Ümberjärjestamise etapi lubamine (lisab +200-500ms/päring)      |
+| `rerankProviderModel`    | `string \| null`                                   | `null`       | Ümberjärjestamise pakkuja/mudel vormingus `provider/model`      |
 
-`rerankProviderModel` lahendatakse marsruudi `POST /v1/rerank` kaudu (kutsutakse loopback-liidese kaudu), seega aktsepteerib see kõike, mida vastav marsruut aktsepteerib: kureeritud pilvepõhist ümberjärjestusmudelit (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) või OpenAI-ga ühilduva pakkuja sõlme kujul `<node-prefix>/<model>` (nt `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serveri puhul). Loopback-sõlmed on alati sobilikud; teises hostis (LAN, Tailscale) asuv sõlm nõuab lisaks funktsioonilippu `RERANK_REMOTE_PROVIDER_NODES` ja peab vastama pakkuja väljaminevate URL-ide poliitikale — vt [Funktsioonilipud](../reference/FEATURE_FLAGS.md). Töölaua valik kuvab kureeritud pakkujad ja kohalikud sõlmed; mis tahes kehtiva `provider/model` stringi saab määrata otse marsruudi `PUT /api/settings/memory` kaudu.
+`rerankProviderModel` lahendatakse `POST /v1/rerank` kaudu (kutsutakse tagasisideahela kaudu), seega aktsepteerib see kõike, mida vastav marsruut aktsepteerib: kureeritud pilvepõhist ümberjärjestamise mudelit (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) või OpenAI-ga ühilduvat pakkujasõlme kujul `<node-prefix>/<model>` (nt `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serveri jaoks). Tagasisideahela sõlmed ja muutujas `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` loetletud hostinimed (nt Docker/Compose'i teenuse nimi) on alati sobilikud; teises hostis (LAN, Tailscale) asuv sõlm nõuab lisaks funktsioonilippu `RERANK_REMOTE_PROVIDER_NODES` ja peab vastama pakkuja väljamineva URL-i poliitikale — vt [Funktsioonilipud](../reference/FEATURE_FLAGS.md). Juhtpaneeli valikuloendis kuvatakse kureeritud pakkujad ja kohalikud sõlmed; mis tahes kehtiva `provider/model` stringi saab määrata otse päringuga `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Kasutatav vektorsalvestuse taustsüsteem |
 
-Need väljad on kättesaadavad marsruudi `GET /PUT /api/settings/memory` kaudu (skeem `MemorySettingsExtendedSchema`).
+Need on saadaval `GET /PUT /api/settings/memory` kaudu (skeem `MemorySettingsExtendedSchema`).
 
 Allika `remote` puhul aktsepteerib Memory ka valikulisi seadeid `customBaseUrl` ja
 `customModelId`. Koos valivad need OpenAI-ga ühilduva `/embeddings`-otspunkti ja
-mudeli ilma globaalset põimendusregistrit muutmata. Otspunkt normaliseeritakse enne
-kasutamist ja seda kontrollitakse pakkuja väljaminevate URL-ide poliitika alusel: nõutav
-on HTTP(S), manustatud autentimisandmed ja päringustringid lükatakse tagasi ning
-pilvkeskkonna metaandmete aadressid jäävad blokeerituks. Tühjad väärtused säilitavad
-valitud registripakkuja. Töölauale tagastatavad vead puhastatakse ja otspunkti
-autentimisandmeid ei logita kunagi.
+mudeli ilma globaalset manustamisregistrit muutmata. Otspunkt normaliseeritakse enne
+kasutamist ja seda kontrollitakse pakkuja väljamineva URL-i poliitika alusel: nõutud on
+HTTP(S), põimitud autentimisandmed ja päringustringid lükatakse tagasi ning pilve
+metaandmete aadressid jäävad blokeerituks. Tühjad väärtused säilitavad valitud registripakkuja.
+Juhtpaneelile tagastatavad vead puhastatakse ja otspunkti autentimisandmeid ei logita kunagi.
 
 > **TODO (D20):** Ulatus `global` (mälestuste jagamine kõigi API-võtmete vahel) ei ole
 > selles versioonis rakendatud. See nõuab skeemimuudatusi ja globaalset otsinguteed.
@@ -911,12 +910,12 @@ Selle väljalülitatuna hoidmiseks jäta `autoSummarize` lihtsalt vaikeväärtus
 
 ---
 
-## MemoryBackendi pakkujamuster
+## MemoryBackendi pakkuja muster
 
 > **Tõeallikas:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testid:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackendi pakkujamuster lisab olemasolevale mälumootorile **vahetatava taustsüsteemi abstraktsioonikihi**. Ühe salvestusimplementatsiooniga seotuse asemel toetab mälusüsteem nüüd mitut taustsüsteemi (SQLite, Obsidian, Notion, kohandatud HTTP-taustsüsteemid) koos seadistatava esmase/varu marsruutimisega.
+MemoryBackendi pakkuja muster lisab olemasolevale mälumootorile **vahetatava taustsüsteemi abstraktsioonikihi**. Selle asemel, et olla seotud ühe salvestuslahendusega, toetab mälusüsteem nüüd mitut taustsüsteemi (SQLite, Obsidian, Notion, kohandatud HTTP-taustsüsteemid), millel on seadistatav primaarne/varu marsruutimine.
 
 ### Arhitektuur
 
@@ -928,32 +927,31 @@ MemoryBackendi pakkujamuster lisab olemasolevale mälumootorile **vahetatava tau
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│         Singleton-orkestreerija (manager.ts)              │
+│           Üksikeksemplarist orkestreerija (manager.ts)    │
 │                                                          │
-│  Esmane ───► Taustsüsteem A  (nt SQLite)                 │
-│  Varu ─────► Taustsüsteem B  (nt Obsidian)               │
-│              Taustsüsteem C  (nt Notion GenericBackendi  │
-│                               kaudu)                     │
+│  Primaarne ──► Taustsüsteem A  (nt SQLite)               │
+│  Varu      ──► Taustsüsteem B  (nt Obsidian)             │
+│                Taustsüsteem C  (nt Notion GenericBackendi kaudu) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite'i   │ │ Obsidiani  │ │ GenericMemory    │
-│ taustsüst. │ │ taustsüst. │ │ Backend (HTTP)   │
+│ taustsüsteem│ │ taustsüsteem│ │ Backend (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
 #### Põhiliides (`backend.ts`)
 
-Iga taustsüsteem peab implementeerima liidese `MemoryBackend`:
+Iga taustsüsteem peab rakendama liidest `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // CRUD
+  // CRUD-toimingud
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -974,43 +972,43 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Singleton-orkestreerija, mis:
+Üksikeksemplarist orkestreerija, mis:
 
-- **registreerib** taustsüsteemid meetodiga `register(backend)` — seda kutsutakse käivitamisel failist `index.ts`;
-- **seadistab** esmase ja varutaustsüsteemid meetodiga `configure(primary, fallbacks)`;
-- **marsruudib** CRUD-toimingud ja otsingu esmasele taustsüsteemile ning kasutab tõrke korral varuahelat;
-- **kontrollib** regulaarselt kõigi taustsüsteemide seisundit.
+- **Registreerib** taustsüsteemid meetodi `register(backend)` kaudu — seda kutsutakse käivitamisel failist `index.ts`
+- **Seadistab** primaarse ja varusüsteemid meetodi `configure(primary, fallbacks)` kaudu
+- **Marsruudib** CRUD-toimingud ja otsingu primaarsesse süsteemi ning kasutab tõrke korral varusüsteemide ahelat
+- **Kontrollib perioodiliselt kõigi taustsüsteemide seisundit**
 
-**Varusüsteemi käitumine:**
+**Varusüsteemide käitumine:**
 
-| Toiming  | Esmane                  | Varusüsteemid                                    |
-| -------- | ----------------------- | ------------------------------------------------ |
-| `create` | ✅ Ainult esmane        | ❌                                               |
-| `get`    | ✅ Proovi esmalt esmast | ✅ Kasuta varusüsteemi, kui tulemus on null      |
-| `update` | ✅ Ainult esmane        | ✅ Asünkroonne „käivita ja unusta“ sünkroonimine |
-| `delete` | ✅ Ainult esmane        | ✅ Asünkroonne „käivita ja unusta“ sünkroonimine |
-| `list`   | ✅ Ainult esmane        | ❌                                               |
-| `search` | ✅ Esmalt esmane        | ✅ Tõrke korral kasuta varusüsteemi              |
+| Toiming  | Primaarne                   | Varusüsteemid                       |
+| -------- | --------------------------- | ----------------------------------- |
+| `create` | ✅ Ainult primaarne         | ❌                                  |
+| `get`    | ✅ Proovi esmalt primaarset | ✅ Kasuta varu, kui tulemus on null |
+| `update` | ✅ Ainult primaarne         | ✅ Käivita sünkroonimine ja jätka   |
+| `delete` | ✅ Ainult primaarne         | ✅ Käivita sünkroonimine ja jätka   |
+| `list`   | ✅ Ainult primaarne         | ❌                                  |
+| `search` | ✅ Esmalt primaarne         | ✅ Tõrke korral kasuta varu         |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Üldine HTTP-konnektor, mis kohandab mis tahes REST API MemoryBackendiks. Kasulik järgmiste jaoks:
+Üldine HTTP-konnektor, mis kohandab mis tahes REST API MemoryBackendiks. See on kasulik järgmiste jaoks:
 
-- **Notion** — ühendamine Notion API kaudu;
-- **Obsidian** — ühendamine Obsidian Local REST API kaudu;
-- **Kohandatud taustsüsteemid** — mis tahes teenus, mis pakub RESTful-mälu-API-t.
+- **Notion** — ühendamine Notion API kaudu
+- **Obsidian** — ühendamine Obsidian Local REST API kaudu
+- **Kohandatud taustsüsteemid** — mis tahes teenus, mis pakub REST-põhist mälu-API-t
 
 **Konfiguratsioon:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // Taustsüsteemi API baas-URL
-  apiKey?: string;           // Bearer-tõend autentimiseks
+  apiKey?: string;           // Bearer-luba autentimiseks
   headers?: Record<string, string>;  // Kohandatud HTTP-päised
   timeout?: number;          // Päringu ajalõpp (vaikimisi: 30000ms)
   backendType?: string;      // Logimiseks
 
-  // Lõpp-punktide ülekirjutused (vaikeväärtused järgivad REST-i tavasid)
+  // Lõpp-punktide asendused (vaikeväärtused kasutavad REST-i tavasid)
   endpoints?: {
     search?: string;   // vaikimisi: "/memories/search"
     create?: string;   // vaikimisi: "/memories"
@@ -1033,7 +1031,7 @@ interface GenericBackendConfig {
 }
 ```
 
-**Tuntud taustsüsteemid** on `KNOWN_BACKENDS`-is eelkonfigureeritud:
+**Tuntud taustsüsteemid** on muutujas `KNOWN_BACKENDS` eelseadistatud:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend, mis osutab aadressile localhost:27123
@@ -1044,7 +1042,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend, mis osutab aadressile
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Vaikimisi kasutatav peamine taustsüsteem. Mähib olemasoleva SQLite-põhise mälusalvesti, kasutades faili `src/lib/memory/store.ts`. Registreeritakse käivitamisel automaatselt.
+Vaikimisi primaarne taustsüsteem. Ümbritseb olemasolevat SQLite'il põhinevat mäluhoidlat, kasutades faili `src/lib/memory/store.ts`. Registreeritakse käivitamisel automaatselt.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1053,39 +1051,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Mähib olemasoleva Obsidiani integratsiooni (`src/lib/memory/obsidianBackend.ts`). Ühendub Obsidiani hoidla Obsidian Local REST API kaudu.
+Ümbritseb olemasolevat Obsidiani integratsiooni (`src/lib/memory/obsidianBackend.ts`). Ühendub Obsidiani hoidla ehk vault'iga Obsidian Local REST API kaudu.
 
-### Sätted
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
 
-Mälu taustsüsteemi sätted salvestatakse rakenduse sätete tabelisse ja neid hallatakse faili `src/lib/memory/settings.ts` kaudu:
+Adapter kohaliku [claude-mem](https://github.com/thedotmack/claude-mem) tööprotsessi jaoks — see on
+Claude Code'i / Codexi / Cursori mälupistikprogramm, mis talletab programmeerimisseansse „vaatlustena”.
+Kui see on registreeritud, saavad `/api/memory` REST-marsruudid ja A2A mäluotsing lugeda ning kirjutada
+samasse hoidlasse, mida täidavad claude-memi haagid.
 
-| Säte                              | Keskkonna-/konfiguratsioonivõti | Vaikeväärtus | Kirjeldus                                           |
-| --------------------------------- | ------------------------------- | ------------ | --------------------------------------------------- |
-| Peamine taustsüsteem              | `memoryPrimaryBackend`          | `"sqlite"`   | Peamise taustsüsteemi ID                            |
-| Varutaustsüsteemid                | `memoryFallbackBackends`        | `[]`         | Järjestatud varutaustsüsteemide ID-d                |
-| Taustsüsteemide konfiguratsioonid | `memoryBackendConfigs`          | `{}`         | Taustsüsteemipõhised konfiguratsiooni ülekirjutused |
+Tööprotsess seob end ainult loopback-liidesega, mille `GenericMemoryBackend`i SSRF-kaitse teadlikult tagasi lükkab.
+See adapter ei leevenda seda kaitset: host on püsiväärtusena `127.0.0.1` ning konfiguratsiooniskeem
+(`ClaudeMemBackendConfigSchema`, `.strict()`) aktsepteerib ainult järgmist:
 
-Sätted normaliseeritakse funktsiooniga `normalizeMemorySettings()` ja puhverdatakse funktsioonis `getMemorySettings()`.
+| Võti        | Tüüp   | Vaikeväärtus | Märkused                                                                                                         |
+| ----------- | ------ | ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —            | Kohustuslik, 1024–65535. claude-mem tööprotsessi port selle seadistuste failist (vaikimisi `37700 + uid % 100`). |
+| `project`   | string | —            | Kasutatav claude-mem projekt. Määramata → iga OmniRoute API-võti vastendatakse oma projektile (`apiKeyId`).      |
+| `timeoutMs` | number | `5000`       | Päringupõhine ajalõpp, 100–30000.                                                                                |
 
-### Lähtestamisvoog
+Lubage see päringuga `PUT /api/settings/memory` ja taaskäivitage OmniRoute (taustsüsteemid registreeritakse
+üks kord funktsioonis `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Selle REST API salvestussüsteemiks määramiseks kasutage hoopis `"primaryBackend": "claude-mem"`. Sobimatu
+konfiguratsioon logitakse (`claude-mem.backend.invalid_config`) ja jäetakse vahele, seega jääb SQLite peamiseks.
+
+Vastendamine ja piirangud:
+
+- ID-d on kujul `claude-mem:<observationId>`; `get`/`delete` eiravad teiste taustsüsteemide ID-sid ilma
+  võrgupäringuta.
+- `create` → `POST /api/memory/save`; OmniRoute'i väljad (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) edastatakse claude-memi väljal `metadata.omniroute` ja taastatakse lugemisel.
+- `search` → `GET /api/search?format=json&type=observations`, kärbituna väärtuseni `maxTokens`
+  (tähemärgid / 4). `list` → tööprotsessi lehekülgedeks jaotatud vaatluste lõpp-punkt (`total` on alampiir — tööprotsess
+  tagastab arvu asemel `hasMore`).
+- Hook'idega jäädvustatud vaatlused vastendatakse järgmiselt: `discovery` → `factual`, `decision` → `procedural` ning
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Värskendamist ei ole** (`update()` tagastab `false`; vaatlused on muutmatud) ja **TTL puudub**
+  (`expiresAt` eiratakse). claude-mem eemaldab identsete salvestuste duplikaadid, selle asemel et teha `key` alusel upsert.
+- Viiba sisestamine (`retrieval.ts`) ja `omniroute_memory_*` MCP-tööriistad loevad endiselt SQLite'i
+  otse — need ei kasuta `memoryManager`-i, seega ei varusta see taustsüsteem neid andmetega.
+
+**claude-memi enda LLM-kutsete marsruutimine OmniRoute'i kaudu.** claude-mem tihendab vaatlusi
+LLM-iga (vaikimisi Claude Agent SDK). Selle `openai-compatible` pakkuja saab suunata
+hoopis OmniRoute'i, kasutades kombineeritud tõrkesiiret ja kulude jälgimist. Failis `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute'i API-võti>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute'i mudel või kombinatsioon>"
+}
+```
+
+### Seadistused
+
+Mälu taustsüsteemi seadistused talletatakse rakenduse seadistuste tabelis ja neid hallatakse faili `src/lib/memory/settings.ts` kaudu:
+
+| Seadistus                   | Keskkonna-/konfiguratsioonivõti | Vaikeväärtus | Kirjeldus                                  |
+| --------------------------- | ------------------------------- | ------------ | ------------------------------------------ |
+| Peamine taustsüsteem        | `memoryPrimaryBackend`          | `"sqlite"`   | Peamise taustsüsteemi ID                   |
+| Varutaustsüsteemid          | `memoryFallbackBackends`        | `[]`         | Järjestatud varutaustsüsteemide ID-d       |
+| Taustsüsteemide seadistused | `memoryBackendConfigs`          | `{}`         | Taustsüsteemipõhised seadistuste alistused |
+
+Seadistused normaliseeritakse funktsiooniga `normalizeMemorySettings()` ja puhverdatakse funktsioonis `getMemorySettings()`.
+
+### Lähtestusvoog
 
 ```
-Rakenduse alglaadimine
+Rakenduse käivitamine
   → index.ts impordid (kõrvalmõjuna): registreerib SQLiteBackend-i
   → initMemoryBackends() kutsutakse rakenduse elutsüklist:
-      1. Sätete laadimine (getMemorySettings)
-      2. Peamise ja varutaustsüsteemide konfigureerimine
-      3. Kõigi taustsüsteemide lähtestamine (tervisekontroll)
-      4. Päringute vastuvõtmiseks valmis
+      1. Laadi seadistused (getMemorySettings)
+      1b. Registreeri backendConfigs-is olevad valikulised taustsüsteemid (claude-mem)
+      2. Konfigureeri peamine + varusüsteemid
+      3. Lähtesta kõik taustsüsteemid (tervisekontroll)
+      4. Päringuteks valmis
 ```
 
 ### Uue taustsüsteemi lisamine
 
-1. **Rakendage liides `MemoryBackend`** failis `src/lib/memory/<name>Backend.ts`
+1. **Implementeerige `MemoryBackend`-i** liides failis `src/lib/memory/<name>Backend.ts`
 2. **Eksportige** failist `src/lib/memory/index.ts`
 3. **Registreerige** käivitamisel käsuga `memoryManager.register(yourBackend)`
-4. **Konfigureerige** sätete kaudu: määrake `memoryPrimaryBackend` väärtuseks oma taustsüsteemi ID
-5. **Testige**, kasutades viitena faili `src/lib/memory/__tests__/generic-backend.test.ts`
+4. **Konfigureerige** seadistuste kaudu: määrake `memoryPrimaryBackend` väärtuseks oma taustsüsteemi ID
+5. **Testige**, kasutades võrdlusena faili `src/lib/memory/__tests__/generic-backend.test.ts`
 
 #### Näide: Braini taustsüsteem
 
@@ -1107,24 +1165,24 @@ memoryManager.register(brainBackend);
 
 ### Kontrollimine
 
-#### Üksustestid
+#### Ühiktestid
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Oodatav väljund: **35 testi, kõik edukad**, mis hõlmavad järgmist:
+Oodatav väljund: **35 testi, kõik edukad**, hõlmates järgmist:
 
 - Konstruktor (2)
 - Tervisekontroll (4) — õnnestumine, tõrge 500, võrgutõrge, latentsus
 - Lähtestamine (2) — õnnestumine, tõrge
 - Loomine (2) — vaikimisi lõpp-punkt, kohandatud lõpp-punkt
-- Hankimine (4) — õnnestumine, 404 → null, muu kui 404 korral erind, kohandatud teekonnaparameetrid
-- Uuendamine (2) — õnnestumine, 404 → false
+- Hankimine (4) — õnnestumine, 404 → null, muu kui 404 korral erand, kohandatud teekonnaparameetrid
+- Värskendamine (2) — õnnestumine, 404 → false
 - Kustutamine (2) — õnnestumine, 404 → false
-- Loetlemine (2) — päringuparameetrid, kohandatud parameetrinimed
+- Loend (2) — päringuparameetrid, kohandatud parameetrinimed
 - Otsing (3) — päringuparameetrid, kohandatud lõpp-punkt, suvandite serialiseerimine
-- Autentimispäised (2) — Bearer-tõend, kohandatud päised
+- Autentimispäised (2) — Bearer-märgend, kohandatud päised
 - Tehas (1)
 
 #### Tüübikontroll

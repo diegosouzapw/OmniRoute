@@ -21,17 +21,27 @@ Avvalgi umumiy provayder IDʼlari — `chatgpt-web` va `cgpt-web` — endi yetka
 
 Tunnel faqat vositali almashinuvlar uchun kerak. Roʻyxatdagi har bir marshrut, jumladan `pro`, tunnel va konnektor sozlanganida almashinuvga bogʻlangan bir xil mahalliy vosita imkoniyatidan foydalanishi mumkin.
 
-## Boshqaruv panelida sozlash
+## Boshqaruv panelini sozlash
 
 1. **ChatGPT Web (Codex)** provayderini oching va ulanish qoʻshing.
-2. Toʻliq ChatGPT Cookie sarlavhasi, tunnel IDʼsi, runtime kaliti va maxsus konnektor nomini kiriting. Vositalardan foydalanish imkoniyatiga ega yangi sozlamalar aynan `OmniRoute Codex v2` deb nomlangan yangi yaratilgan konnektordan foydalanishi kerak; Authentication qiymatini None, Permissions qiymatini esa Allow all actions qilib belgilang.
-3. Ulanish tekshiruvini ishga tushiring. OmniRoute brauzer orqali ishlaydigan Temporary Chat oynasini ochadi va akkaunt uchun Sol hamda Pro mavjudligini aniqlaydi.
-4. Ulanishni saqlang. OmniRoute kiritilgan cookieʼni tekshirilgan Playwright saqlash holati bilan almashtiradi va uni runtime kaliti bilan birga shifrlangan hisob maʼlumotlari abstraksiyasi orqali saqlaydi.
+2. Toʻliq ChatGPT Cookie sarlavhasi, tunnel IDsi, runtime kaliti va maxsus konnektor
+   nomini kiriting. Vositalarni qoʻllab-quvvatlaydigan yangi sozlamalarda aynan
+   `OmniRoute Codex v2` nomi bilan yangi yaratilgan konnektordan foydalanish, Authentication qiymatini None va Permissions qiymatini Allow all
+   actions qilib belgilash kerak.
+3. Ulanish tekshiruvini ishga tushiring. OmniRoute brauzer asosidagi Temporary Chat oynasini ochadi va
+   hisob uchun Sol hamda Pro mavjudligini aniqlaydi.
+4. Ulanishni saqlang. OmniRoute kiritilgan cookieni tasdiqlangan
+   Playwright saqlash holati bilan almashtiradi va uni shifrlangan
+   hisob maʼlumotlari abstraksiyasi orqali runtime kaliti bilan birga saqlaydi.
 
-Muvaffaqiyatli saqlashdan keyin xom cookie saqlab qolinmaydi. Sessiya muddati tugaganda, ulanishni oching, yangi toʻliq Cookie sarlavhasini kiriting va tekshiruvni qayta ishga tushiring. Tahrirlash dialogidagi diagnostika holati brauzer, saqlash holati, tizimga kirish, Temporary Chat, tunnel, konnektor va vosita bilan ikki tomonlama almashinuv natijalarini alohida koʻrsatadi.
+Muvaffaqiyatli saqlangandan keyin dastlabki cookie saqlab qolinmaydi. Seans muddati tugaganda,
+ulanishni oching, yangi toʻliq Cookie sarlavhasini kiriting va tekshiruvni qayta ishga tushiring. Tahrirlash dialogidagi doctor holati
+brauzer, saqlash holati, tizimga kirish, Temporary Chat, tunnel,
+konnektor va vositaning toʻliq ishlash jarayoni haqida alohida hisobot beradi. Seanslar almashganda cookie yangilanishlarini avtomatlashtirish uchun
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) dagi yordamchi vositaga qarang.
 
-> Haqiqiy cookie, runtime kaliti, saqlash holati yoki imkoniyat tokenini hech qachon kommit qilmang. Sinov va
-> hujjatlardagi qiymatlar har doim toʻldiruvchi qiymatlar boʻlishi kerak.
+> Haqiqiy cookie, runtime kaliti, saqlash holati yoki imkoniyat tokenini hech qachon repozitoriyga commit qilmang. Sinov va
+> hujjatlardagi qiymatlar har doim oʻrinbosar qiymatlar boʻlishi kerak.
 
 ## Modellar va kombinatsiyalar
 
@@ -78,7 +88,7 @@ Kombinatsiya ChatGPT Web (Codex)ni oʻz ichiga olganda, Responses WebSocket koʻ
 
 ## Tekshirish
 
-Isteʼfoga chiqarilgan provayderni chaqirmasdan provayder boshqaruvlarini ishga tushiring:
+Ishdan chiqarilgan provayderni chaqirmasdan provayder tekshiruvlarini ishga tushiring:
 
 ```bash
 node --import tsx/esm --test \\
@@ -87,7 +97,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Isteʼfoga chiqarish regressiyasidan himoya vositalari quyidagi fayllarda joylashgan:
+Ishdan chiqarish regressiyasiga qarshi himoya testlari quyidagi fayllarda joylashgan:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

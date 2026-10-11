@@ -685,51 +685,51 @@ Atau gunakan Papan Pemuka: **Penyedia → [Penyedia] → Model Tersuai**.
 Nota:
 
 - Penyedia yang serasi dengan OpenRouter dan OpenAI/Anthropic diuruskan melalui **Model Tersedia** sahaja. Penambahan manual, import dan penyegerakan automatik semuanya dimasukkan ke dalam senarai model tersedia yang sama, jadi tiada bahagian Model Tersuai yang berasingan untuk penyedia tersebut.
-- Bahagian **Model Tersuai** ditujukan untuk penyedia yang tidak menyediakan import model tersedia yang terurus.
+- Bahagian **Model Tersuai** ditujukan untuk penyedia yang tidak menyediakan import model tersedia terurus.
 
 ### Penyedia Tersuai yang Serasi dengan OpenAI
 
-Mana-mana get laluan yang menggunakan API OpenAI (proksi hos kendiri, vLLM, pengagregat pihak ketiga)
+Sebarang get laluan yang menggunakan API OpenAI (proksi dihoskan sendiri, vLLM, pengagregat pihak ketiga)
 boleh ditambahkan sebagai nod penyedianya sendiri:
 
-1. **Penyedia → Tambah Serasi OpenAI**.
+1. **Penyedia → Tambah Serasi dengan OpenAI**.
 2. **Nama**: label paparan untuk nod tersebut.
 3. **Awalan**: nama penghalaan. Klien memanggil model sebagai `<prefix>/<model>`, jadi nod dengan
-   awalan `mygw` menyediakan `mygw/gpt-4o-mini`. Diperlukan; tiada sekatan aksara.
-4. **Jenis API**: keluarga titik akhir yang disediakan oleh get laluan (Penyempurnaan Sembang, Respons,
-   Pembenaman, audio, imej).
+   awalan `mygw` menyediakan `mygw/gpt-4o-mini`. Wajib; tiada sekatan aksara.
+4. **Jenis API**: keluarga titik akhir yang disediakan oleh get laluan (Chat Completions, Responses,
+   Embeddings, audio, imej).
 5. **URL Asas**: akar API, sehingga dan termasuk `/v1` (contohnya
    `https://gateway.example.com/v1`), bukan laluan penuh `/chat/completions`. Get laluan dengan
    laluan bukan standard menetapkannya di bawah **Tetapan Lanjutan** (laluan sembang, laluan model).
 6. Medan **Kunci API (untuk Semakan)** hanya menguji sambungan. Selepas mencipta nod,
    bukanya dan gunakan **Tambah Sambungan** untuk menyimpan kunci yang akan digunakan oleh permintaan.
 
-Nod tersebut menerima ID dalaman dalam bentuk `openai-compatible-<apiType>-<uuid>`; anda tidak perlu
+Nod tersebut mendapat ID dalaman dalam bentuk `openai-compatible-<apiType>-<uuid>`; anda tidak perlu
 menaipnya, kerana awalan ialah nama awam.
 
-#### Awalan terpelihara
+#### Awalan simpanan
 
-Awalan tidak boleh menjadi ID atau alias penyedia terbina dalam (contohnya `openai`, `cf`), mahupun
+Awalan tidak boleh merupakan ID atau alias penyedia terbina dalam (contohnya `openai`, `cf`), mahupun
 ID penyedia yang telah ditamatkan. Penyelesai model menyemak ID dan alias terbina dalam sebelum
 nod tersuai, jadi nod yang menggunakan salah satu awalan tersebut tidak akan menerima trafik:
-`<prefix>/model` sebaliknya akan pergi kepada penyedia terbina dalam, atau gagal secara tertutup jika penyedia itu
-telah ditamatkan. Penciptaan atau penyuntingan nod dengan awalan sedemikian akan ditolak dengan:
+`<prefix>/model` sebaliknya akan dihantar kepada penyedia terbina dalam, atau gagal secara tertutup jika penyedia itu
+telah ditamatkan. Penciptaan atau pengeditan nod dengan awalan sedemikian akan ditolak dengan:
 
 ```text
-prefix: "<prefix>" ialah awalan penyedia terpelihara — pilih awalan lain (ID/alias terpelihara tidak boleh digunakan untuk nod tersuai kerana permintaan seperti <prefix>/model dihalakan kepada penyedia terbina dalam atau gagal secara tertutup apabila ditamatkan)
+prefix: "<prefix>" ialah awalan penyedia simpanan — pilih awalan lain (ID/alias simpanan tidak boleh digunakan untuk nod tersuai kerana permintaan seperti <prefix>/model dihalakan kepada penyedia terbina dalam atau gagal secara tertutup apabila ditamatkan)
 ```
 
 Pilih awalan yang berbeza (`mygw`, `acme-proxy`). Jika permintaan kepada nod tersuai gagal dengan
-ralat yang menyatakan penyedia terbina dalam atau bukti kelayakannya, semak sama ada awalan nod itu
-terpelihara: nod yang disimpan sebelum peraturan ini diwujudkan masih disimpan, tetapi awalannya menghala ke
-penyedia terbina dalam. Sunting nod tersebut dan berikan awalan baharu.
+ralat yang menamakan penyedia terbina dalam atau kelayakannya, semak sama ada awalan nod tersebut
+adalah awalan simpanan: nod yang disimpan sebelum peraturan ini diperkenalkan masih tersimpan, tetapi awalannya dihalakan kepada
+penyedia terbina dalam. Edit nod tersebut dan berikan awalan baharu.
 
 ### Merantaikan Rakan OmniRoute
 
-Get laluan OmniRoute lain boleh ditambahkan sebagai penyedia **Tersuai yang serasi dengan OpenAI**. Gunakan
+Get laluan OmniRoute yang lain boleh ditambahkan sebagai penyedia **Tersuai yang serasi dengan OpenAI**. Gunakan
 URL asas `/v1` rakan tersebut dan kunci API khusus dengan keistimewaan minimum yang dikeluarkan oleh rakan itu.
 
-Untuk rantaian timbal balik atau berbilang lompatan, dayakan pelindung gelung ikut serta pada setiap get laluan:
+Untuk rantaian timbal balik atau berbilang lompatan, dayakan perlindungan gelung ikut serta pada setiap get laluan:
 
 ```bash
 # gateway-a
@@ -745,13 +745,13 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Hanya permintaan yang dihantar kepada URL rakan yang disenaraikan secara jelas dalam senarai dibenarkan akan menerima
-pengepala `X-OmniRoute-Peer-Trace`. Get laluan menolak ID tika yang berulang atau bajet lompatan
-yang telah habis dengan HTTP `508 Loop Detected`; penyedia huluan biasa tidak menerima metadata rakan.
+Hanya permintaan yang dihantar kepada URL rakan yang dibenarkan secara jelas akan menerima pengepala
+`X-OmniRoute-Peer-Trace`. Get laluan menolak ID tika yang berulang atau bajet lompatan yang
+telah habis dengan HTTP `508 Loop Detected`; penyedia huluan biasa tidak menerima metadata rakan.
 
-Perantaian rakan bukan replikasi pangkalan data atau failover hos. Setiap get laluan mengekalkan
-keadaan SQLite, cache, pembilang kadar dan sesi yang berasingan. Gunakan proksi songsang dengan semakan kesihatan atau
-failover klien untuk ketersediaan aktif/pasif atau aktif/aktif, dan jangan sekali-kali lekapkan satu pangkalan data SQLite
+Perantaian rakan bukanlah replikasi pangkalan data atau failover hos. Setiap get laluan mengekalkan
+keadaan SQLite, cache, pembilang kadar dan sesi yang bebas. Gunakan proksi songsang dengan semakan kesihatan atau failover
+klien untuk ketersediaan aktif/pasif atau aktif/aktif, dan jangan sekali-kali lekapkan satu pangkalan data SQLite
 pada berbilang tika OmniRoute yang sedang berjalan.
 
 ### Laluan Penyedia Khusus
@@ -782,7 +782,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Keutamaan:** Khusus kunci → Khusus gabungan → Khusus penyedia → Global → Persekitaran.
+**Keutamaan:** Khusus kunci → Khusus kombo → Khusus penyedia → Global → Persekitaran.
 
 ### API Katalog Model
 
@@ -790,31 +790,31 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 curl http://localhost:20128/api/models/catalog
 ```
 
-Mengembalikan model yang dikumpulkan mengikut penyedia berserta jenis (`chat`, `embedding`, `image`).
+Mengembalikan model yang dikumpulkan mengikut penyedia dengan jenis (`chat`, `embedding`, `image`).
 
 ### Penyegerakan Awan
 
-- Segerakkan penyedia, gabungan dan tetapan merentas peranti
+- Segerakkan penyedia, kombo dan tetapan merentas peranti
 - Penyegerakan latar belakang automatik dengan tamat masa + gagal pantas
 - Utamakan `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` sebelah pelayan dalam pengeluaran
 
 ### Terowong Pantas Cloudflare
 
 - Tersedia dalam **Papan Pemuka → Titik Akhir** untuk Docker dan penggunaan hos kendiri yang lain
-- Mencipta URL `https://*.trycloudflare.com` sementara yang memajukan trafik ke titik akhir serasi OpenAI `/v1` semasa anda
+- Mencipta URL `https://*.trycloudflare.com` sementara yang memajukan permintaan ke titik akhir `/v1` serasi OpenAI semasa anda
 - Pengaktifan pertama memasang `cloudflared` hanya apabila diperlukan; mula semula berikutnya menggunakan semula binari terurus yang sama
 - Quick Tunnel tidak dipulihkan secara automatik selepas OmniRoute atau bekas dimulakan semula; aktifkannya semula daripada papan pemuka apabila diperlukan
-- URL terowong bersifat sementara dan berubah setiap kali anda menghentikan/memulakan terowong
-- Quick Tunnel terurus menggunakan pengangkutan HTTP/2 secara lalai untuk mengelakkan amaran bising berkaitan penimbal UDP QUIC dalam bekas yang mempunyai kekangan sumber
+- URL terowong adalah sementara dan berubah setiap kali anda menghentikan/memulakan terowong
+- Quick Tunnel terurus menggunakan pengangkutan HTTP/2 secara lalai untuk mengelakkan amaran hingar penimbal UDP QUIC dalam bekas yang mempunyai kekangan sumber
 - Tetapkan `CLOUDFLARED_PROTOCOL=quic` atau `auto` jika anda mahu mengatasi pilihan pengangkutan terurus
 - Tetapkan `CLOUDFLARED_BIN` jika anda lebih suka menggunakan binari `cloudflared` yang telah dipasang berbanding muat turun terurus
 - Panel Cloudflare Quick Tunnel, Tailscale Funnel dan ngrok Tunnel boleh ditunjukkan atau disembunyikan dalam **Tetapan → Penampilan**. Menyembunyikan panel tidak menghentikan terowong yang sedang berjalan.
 
-### Kecerdasan Get Laluan LLM (Fasa 9)
+### Kecerdasan Gerbang LLM (Fasa 9)
 
 - **Cache Semantik** — Meng-cache respons bukan penstriman dengan temperature=0 secara automatik (pintas dengan `X-OmniRoute-No-Cache: true`)
-- **Keidempotensian Permintaan** — Menyahduplikasi permintaan dalam tempoh 5s melalui pengepala `Idempotency-Key` atau `X-Request-Id`
-- **Penjejakan Kemajuan** — Peristiwa SSE `event: progress` yang boleh diaktifkan melalui pengepala `X-OmniRoute-Progress: true`
+- **Idempotensi Permintaan** — Menyahduplikasi permintaan dalam tempoh 5 saat melalui pengepala `Idempotency-Key` atau `X-Request-Id`
+- **Penjejakan Kemajuan** — Acara SSE `event: progress` pilihan melalui pengepala `X-OmniRoute-Progress: true`
 
 ---
 
@@ -825,9 +825,9 @@ Akses melalui **Papan Pemuka → Penterjemah**. Nyahpepijat dan gambarkan cara O
 | Mod                   | Tujuan                                                                                             |
 | --------------------- | -------------------------------------------------------------------------------------------------- |
 | **Ruang Uji**         | Pilih format sumber/sasaran, tampal permintaan dan lihat output yang diterjemahkan serta-merta     |
-| **Penguji Sembang**   | Hantar mesej sembang langsung melalui proksi dan periksa keseluruhan kitaran permintaan/respons    |
+| **Penguji Sembang**   | Hantar mesej sembang langsung melalui proksi dan periksa kitaran permintaan/respons sepenuhnya     |
 | **Bangku Ujian**      | Jalankan ujian kelompok merentasi berbilang gabungan format untuk mengesahkan ketepatan terjemahan |
-| **Pemantau Langsung** | Saksikan terjemahan masa nyata semasa permintaan mengalir melalui proksi                           |
+| **Pemantau Langsung** | Lihat terjemahan masa nyata semasa permintaan mengalir melalui proksi                              |
 
 **Kes penggunaan:**
 
@@ -839,31 +839,31 @@ Akses melalui **Papan Pemuka → Penterjemah**. Nyahpepijat dan gambarkan cara O
 
 ### Strategi Penghalaan
 
-Konfigurasikan melalui **Papan Pemuka → Tetapan → Penghalaan**. Papan pemuka memaparkan enam strategi yang paling kerap digunakan; gabungan dan penghala automatik menyokong set yang lebih luas secara dalaman.
+Konfigurasikan melalui **Papan Pemuka → Tetapan → Penghalaan**. Papan pemuka menyediakan enam strategi yang paling kerap digunakan; gabungan dan penghala automatik menyokong set yang lebih luas secara dalaman.
 
 **Strategi yang kelihatan pada papan pemuka (penghalaan peringkat akaun):**
 
-| Strategi                    | Penerangan                                                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Isi Dahulu**              | Menggunakan akaun mengikut susunan keutamaan — akaun utama mengendalikan semua permintaan sehingga tidak tersedia               |
-| **Giliran Bergilir**        | Bergilir melalui semua akaun dengan had lekit yang boleh dikonfigurasikan (lalai: 3 panggilan bagi setiap akaun)                |
-| **P2C (Kuasa Dua Pilihan)** | Memilih 2 akaun secara rawak dan menghala ke akaun yang lebih sihat — mengimbangkan beban dengan mengambil kira tahap kesihatan |
-| **Rawak**                   | Memilih akaun secara rawak untuk setiap permintaan menggunakan rombakan Fisher-Yates                                            |
-| **Paling Kurang Digunakan** | Menghala ke akaun dengan cap masa `lastUsedAt` paling lama, lalu mengagihkan trafik secara sekata                               |
-| **Dioptimumkan untuk Kos**  | Menghala ke akaun dengan nilai keutamaan terendah, mengoptimumkan untuk penyedia berkos paling rendah                           |
+| Strategi                    | Penerangan                                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Isi Dahulu**              | Menggunakan akaun mengikut keutamaan — akaun utama mengendalikan semua permintaan sehingga tidak tersedia                     |
+| **Giliran Bergilir**        | Mengitar semua akaun dengan had lekit yang boleh dikonfigurasikan (lalai: 3 panggilan bagi setiap akaun)                      |
+| **P2C (Kuasa Dua Pilihan)** | Memilih 2 akaun secara rawak dan menghala ke akaun yang lebih sihat — mengimbangi beban dengan mengambil kira tahap kesihatan |
+| **Rawak**                   | Memilih akaun secara rawak untuk setiap permintaan menggunakan rombakan Fisher-Yates                                          |
+| **Paling Kurang Digunakan** | Menghala ke akaun dengan cap masa `lastUsedAt` paling lama, lalu mengagihkan trafik secara sekata                             |
+| **Dioptimumkan untuk Kos**  | Menghala ke akaun dengan nilai keutamaan terendah, lalu mengoptimumkan penggunaan penyedia berkos paling rendah               |
 
 **Strategi gabungan dan automatik lanjutan** (boleh dikonfigurasikan bagi setiap gabungan atau melalui awalan `auto/*` — lihat [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
 
 - `priority` — susunan ketat, tidak pernah menggunakan giliran bergilir
 - `weighted` — pembahagian trafik berkadar berdasarkan pemberat setiap model
-- `fill-first` — menggunakan model pertama sehingga had dicapai
+- `fill-first` — gunakan model pertama sehingga had dicapai
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Kuasa Dua Pilihan)
 - `least-used` dan `cost-optimized`
-- `auto` — dipacu skor merentasi semua calon
-- `lkgp` (Penyedia Baik Terakhir yang Diketahui) — mengekalkan penyedia terakhir yang berjaya, kemudian beralih kepada peraturan sandaran
+- `auto` — berdasarkan skor merentasi semua calon
+- `lkgp` (Penyedia Terakhir yang Diketahui Baik) — mengekalkan penyedia terakhir yang berjaya, kemudian beralih kepada peraturan sandaran
 - `context-optimized` — memilih model dengan tetingkap konteks bebas terbesar
-- `context-relay` — merantaikan model berkonteks panjang untuk pusingan susulan
+- `context-relay` — merantaikan model berkonteks panjang untuk giliran susulan
 
 #### Pengepala Sesi Lekit Luaran
 
@@ -873,7 +873,7 @@ Untuk perkaitan sesi luaran (contohnya, ejen Claude Code/Codex di belakang proks
 X-Session-Id: your-session-key
 ```
 
-OmniRoute turut menerima `x_session_id` dan mengembalikan kunci sesi berkuat kuasa dalam `X-OmniRoute-Session-Id`.
+OmniRoute juga menerima `x_session_id` dan mengembalikan kunci sesi berkuat kuasa dalam `X-OmniRoute-Session-Id`.
 
 Jika anda menggunakan Nginx dan menghantar pengepala dalam bentuk garis bawah, dayakan:
 
@@ -894,7 +894,7 @@ Kad bebas menyokong `*` (sebarang aksara) dan `?` (satu aksara).
 
 #### Rantaian Sandaran
 
-Takrifkan rantaian sandaran global yang digunakan untuk semua permintaan:
+Takrifkan rantaian sandaran global yang digunakan merentasi semua permintaan:
 
 ```
 Rantaian: production-fallback
@@ -905,25 +905,85 @@ Rantaian: production-fallback
 
 ---
 
-### Ketahanan & Pemutus Litar
+### Gabungan Penyedia & Corak Penghalaan Lazim
 
-Konfigurasikan melalui **Papan Pemuka → Tetapan → Ketahanan**.
+Berikut ialah contoh corak untuk menggabungkan berbilang penyedia dan menghala antara penyedia tersebut dalam OmniRoute:
 
-OmniRoute melaksanakan ketahanan pada peringkat penyedia dengan lima komponen:
+#### 1. Gabungan Ejen Pengekodan: Penaakulan Canggih dengan Sandaran Kos/Kelajuan
 
-1. **Baris Gilir & Penjarakan Permintaan** — Pembentukan permintaan pada peringkat sistem:
-   - **Permintaan Seminit (RPM)** — Permintaan maksimum seminit bagi setiap akaun
+Sesuai untuk ejen pengekodan (OpenCode, Claude Code, Cursor, Cline). Pada mulanya menghala ke model penaakulan termaju, kemudian beralih kepada model pengekodan pantas apabila kuota habis atau ralat berlaku.
+
+- **Papan Pemuka**: Gabungan → Gabungan Baharu → Nama: `agent-coding` → Strategi: `Priority`
+- **Model**:
+  1. `claude/claude-sonnet-4-6` (Ejen pengekodan utama)
+  2. `openai/gpt-4o` (Sandaran sekunder berkapasiti tinggi)
+  3. `deepseek/deepseek-v4-flash` (Sandaran berkecekapan tinggi dan menjimatkan kos)
+
+```bash
+# Contoh melalui API
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "agent-coding",
+    "strategy": "priority",
+    "models": [
+      { "model": "claude/claude-sonnet-4-6" },
+      { "model": "openai/gpt-4o" },
+      { "model": "deepseek/deepseek-v4-flash" }
+    ]
+  }'
+```
+
+#### 2. Kombo Failover Automatik Peringkat Percuma
+
+Merantaikan berbilang penyedia peringkat percuma dan tanpa kunci untuk memaksimumkan masa operasi tanpa kos API.
+
+- **Strategi**: `Least Used` atau `Round Robin` (mengagihkan beban merentasi kuota)
+- **Model**:
+  1. `groq/llama-3.3-70b-versatile`
+  2. `gemini/gemini-2.5-flash`
+  3. `cerebras/gpt-oss-120b`
+
+```bash
+# Contoh melalui CLI
+omniroute combo create free-stack \
+  --models "groq/llama-3.3-70b-versatile,gemini/gemini-2.5-flash,cerebras/gpt-oss-120b" \
+  --strategy round-robin
+```
+
+#### 3. Talian Paip Multimodal / Penglihatan & Teks
+
+Menggandingkan model penglihatan khusus dengan penjanaan teks berkelajuan tinggi untuk aliran kerja yang melibatkan pemahaman imej dan penjanaan kod.
+
+- **Corak**: Kombo `Priority` yang menyenaraikan model berkeupayaan penglihatan terlebih dahulu dan model teks/kod berdaya pemprosesan tinggi pada kedudukan terakhir.
+- **Model**:
+  1. `gemini/gemini-2.5-pro` (Pemahaman imej/multimodal yang kukuh)
+  2. `openai/gpt-4o` (Penggunaan penglihatan dan alat yang seimbang)
+  3. `deepseek/deepseek-v4-flash` (Penjanaan teks/kod)
+
+---
+
+### Daya Tahan & Pemutus Litar
+
+Konfigurasikan melalui **Papan Pemuka → Tetapan → Daya Tahan**.
+
+OmniRoute melaksanakan daya tahan pada peringkat penyedia dengan lima komponen:
+
+1. **Baris Gilir & Pengaturan Kadar Permintaan** — Pembentukan permintaan pada peringkat sistem:
+   - **Permintaan Seminit (RPM)** — Bilangan maksimum permintaan seminit bagi setiap akaun
    - **Masa Minimum Antara Permintaan** — Jeda minimum dalam milisaat antara permintaan
-   - **Permintaan Serentak Maksimum** — Permintaan serentak maksimum bagi setiap akaun
-2. **Tempoh Bertenang Sambungan** — Konfigurasi mengikut jenis pengesahan untuk satu sambungan selepas kegagalan yang boleh dicuba semula:
+   - **Permintaan Serentak Maksimum** — Bilangan maksimum permintaan serentak bagi setiap akaun
+
+2. **Tempoh Bertenang Sambungan** — Konfigurasi bagi setiap jenis pengesahan untuk satu sambungan selepas kegagalan yang boleh dicuba semula:
    - **Tempoh Bertenang Asas** — Tempoh bertenang lalai untuk kegagalan huluan yang boleh dicuba semula
-   - **Gunakan Petunjuk Cuba Semula Huluan** — Mematuhi petunjuk berwibawa `Retry-After` atau penetapan semula apabila diberikan
+   - **Gunakan Petunjuk Cuba Semula Huluan** — Mematuhi petunjuk `Retry-After` atau tetapan semula berwibawa apabila diberikan
    - **Langkah Undur Maksimum** — Tahap undur eksponen maksimum untuk kegagalan berulang
 
-3. **Pemutus Litar Penyedia** — Menjejaki kegagalan penyedia dari hujung ke hujung, menandai penyedia sebagai merosot pada ambang amaran yang dikonfigurasikan dan membuka pemutus apabila ambang kegagalan yang dikonfigurasikan dicapai:
-   - **Ambang Kemerosotan** — Bilangan kegagalan penyedia berturut-turut sebelum memasuki `DEGRADED`
-   - **Ambang Kegagalan** — Bilangan kegagalan penyedia berturut-turut sebelum memasuki `OPEN`
-   - **Tamat Masa Penetapan Semula** — Tempoh masa sebelum penyedia diuji semula
+3. **Pemutus Litar Penyedia** — Menjejaki kegagalan penyedia dari hujung ke hujung, menandai penyedia sebagai terjejas apabila ambang amaran yang dikonfigurasikan dicapai dan membuka pemutus apabila ambang kegagalan yang dikonfigurasikan dicapai:
+   - **Ambang Kemerosotan** — Kegagalan penyedia berturut-turut sebelum memasuki `DEGRADED`
+   - **Ambang Kegagalan** — Kegagalan penyedia berturut-turut sebelum memasuki `OPEN`
+   - **Tamat Masa Tetapan Semula** — Tempoh masa sebelum penyedia diuji semula
    - **CLOSED** (Sihat) — Permintaan mengalir seperti biasa
    - **DEGRADED** — Permintaan masih mengalir sementara peningkatan kegagalan dijejaki
    - **OPEN** — Penyedia disekat buat sementara waktu selepas kegagalan berulang
@@ -931,13 +991,13 @@ OmniRoute melaksanakan ketahanan pada peringkat penyedia dengan lima komponen:
 
    Had kadar `429` yang terhad kepada sambungan kekal dalam **Tempoh Bertenang Sambungan** dan tidak dikira dalam pemutus penyedia.
 
-   Keadaan masa jalan pemutus penyedia ditunjukkan pada **Papan Pemuka → Kesihatan** sahaja.
+   Keadaan masa jalan pemutus penyedia hanya dipaparkan pada **Papan Pemuka → Kesihatan**.
 
-4. **Tunggu Tempoh Bertenang** — Jika setiap sambungan calon sedang melalui tempoh bertenang, OmniRoute boleh menunggu sehingga tempoh bertenang yang paling awal tamat dan mencuba semula permintaan klien yang sama secara automatik.
+4. **Tunggu Tempoh Bertenang** — Jika setiap sambungan calon sedang dalam tempoh bertenang, OmniRoute boleh menunggu tempoh bertenang yang paling awal tamat dan mencuba semula permintaan klien yang sama secara automatik.
 
 5. **Pengesanan Automatik Had Kadar** — Apabila penyedia huluan mengembalikan tempoh menunggu yang jelas, petunjuk tersebut mengatasi tempoh bertenang sambungan setempat apabila tetapan ini didayakan.
 
-**Petua Profesional:** Gunakan halaman **Kesihatan** untuk memeriksa dan menetapkan semula pemutus penyedia aktif selepas gangguan. Halaman Ketahanan hanya mengubah konfigurasi.
+**Petua Profesional:** Gunakan halaman **Kesihatan** untuk memeriksa dan menetapkan semula pemutus penyedia aktif selepas gangguan. Halaman Daya Tahan hanya mengubah konfigurasi.
 
 ---
 
@@ -948,7 +1008,7 @@ Urus sandaran pangkalan data dalam **Papan Pemuka → Tetapan → Sistem & Stora
 | Tindakan                    | Penerangan                                                                                                                                                   |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Eksport Pangkalan Data**  | Memuat turun pangkalan data SQLite semasa sebagai fail `.sqlite`                                                                                             |
-| **Eksport Semua (.tar.gz)** | Memuat turun arkib sandaran penuh yang merangkumi: pangkalan data, tetapan, kombo, sambungan penyedia (tanpa kelayakan), metadata kunci API                  |
+| **Eksport Semua (.tar.gz)** | Memuat turun arkib sandaran penuh yang merangkumi: pangkalan data, tetapan, kombo, sambungan penyedia (tanpa bukti kelayakan), metadata kunci API            |
 | **Import Pangkalan Data**   | Memuat naik fail `.sqlite` untuk menggantikan pangkalan data semasa. Sandaran praimport dicipta secara automatik melainkan `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
@@ -963,7 +1023,7 @@ curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Pengesahan Import:** Fail yang diimport disahkan dari segi integriti (semakan pragma SQLite), jadual yang diperlukan (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) dan saiz (maksimum 100MB).
+**Pengesahan Import:** Fail yang diimport disahkan untuk integriti (semakan pragma SQLite), jadual yang diperlukan (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) dan saiz (maksimum 100MB).
 
 **Kes Penggunaan:**
 
@@ -977,43 +1037,43 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 Halaman tetapan disusun dalam **7 tab** untuk navigasi yang mudah:
 
-| Tab             | Kandungan                                                                                                                                                                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Umum**        | Alat storan sistem, tingkah laku lalai, keterlihatan terowong titik akhir                                                                                                         |
-| **Penampilan**  | Kawalan tema (cerah/gelap/sistem), keterlihatan bar sisi, togol panel untuk kad terowong Cloudflare/Tailscale/ngrok                                                               |
-| **AI**          | Belanjawan pemikiran (laluan terus / buang secara automatik / tersuai / adaptif — lihat [THINKING_BUDGET.md](./THINKING_BUDGET.md)), gesaan sistem global, statistik cache gesaan |
-| **Keselamatan** | Tetapan Log Masuk/Kata Laluan, Kawalan Akses IP, pengesahan API untuk `/models`, Penyekatan Penyedia, perlindungan suntikan gesaan                                                |
-| **Penghalaan**  | Strategi penghalaan global (Isi Dahulu / Giliran Bergilir / P2C / Rawak / Paling Kurang Digunakan / Dioptimumkan Kos), alias model kad bebas, rantaian sandaran, lalai kombo      |
-| **Ketahanan**   | Baris gilir permintaan, tempoh bertenang sambungan, konfigurasi pemutus penyedia dan tingkah laku tunggu-tempoh-bertenang                                                         |
-| **Lanjutan**    | Konfigurasi proksi global (HTTP/SOCKS5), penggantian proksi bagi setiap penyedia                                                                                                  |
+| Tab             | Kandungan                                                                                                                                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Umum**        | Alat storan sistem, tingkah laku lalai, keterlihatan terowong Endpoint                                                                                                       |
+| **Penampilan**  | Kawalan tema (cerah/gelap/sistem), keterlihatan bar sisi, togol panel untuk kad terowong Cloudflare/Tailscale/ngrok                                                          |
+| **AI**          | Bajet pemikiran (laluan terus / buang automatik / tersuai / adaptif — lihat [THINKING_BUDGET.md](./THINKING_BUDGET.md)), gesaan sistem global, statistik cache gesaan        |
+| **Keselamatan** | Tetapan Log Masuk/Kata Laluan, Kawalan Akses IP, pengesahan API untuk `/models`, Penyekatan Penyedia, perlindungan suntikan gesaan                                           |
+| **Penghalaan**  | Strategi penghalaan global (Isi Dahulu / Giliran Bergilir / P2C / Rawak / Paling Kurang Digunakan / Dioptimumkan Kos), alias model kad bebas, rantaian sandaran, lalai kombo |
+| **Daya Tahan**  | Baris gilir permintaan, tempoh bertenang sambungan, konfigurasi pemutus penyedia dan tingkah laku tunggu tempoh bertenang                                                    |
+| **Lanjutan**    | Konfigurasi proksi global (HTTP/SOCKS5), penggantian proksi bagi setiap penyedia                                                                                             |
 
 Umum tidak lagi menduplikasi nota pengelogan dan cache baca sahaja. Tetapan pengekalan dan
-pengoptimuman pangkalan data dikekalkan melalui `/api/settings/database`; pengosongan cache secara manual menggunakan
+pengoptimuman pangkalan data disimpan melalui `/api/settings/database`; pengosongan cache secara manual menggunakan
 `DELETE /api/cache`. Had baris log permintaan dan proksi dikawal oleh
 `CALL_LOGS_TABLE_MAX_ROWS` dan `PROXY_LOGS_TABLE_MAX_ROWS`.
 
 ---
 
-### Pengurusan Kos & Belanjawan
+### Pengurusan Kos & Bajet
 
 Akses melalui **Papan Pemuka → Kos**.
 
-| Tab            | Tujuan                                                                                                              |
-| -------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Belanjawan** | Tetapkan had perbelanjaan bagi setiap kunci API dengan belanjawan harian/mingguan/bulanan dan penjejakan masa nyata |
-| **Harga**      | Lihat dan edit entri harga model — kos bagi setiap 1K token input/output untuk setiap penyedia                      |
+| Tab       | Tujuan                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| **Bajet** | Tetapkan had perbelanjaan bagi setiap kunci API dengan bajet harian/mingguan/bulanan dan penjejakan masa nyata |
+| **Harga** | Lihat dan edit entri harga model — kos bagi setiap 1K token input/output untuk setiap penyedia                 |
 
 ```bash
-# API: Tetapkan belanjawan
+# API: Tetapkan bajet
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Dapatkan status belanjawan semasa
+# API: Dapatkan status bajet semasa
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Penjejakan Kos:** Setiap permintaan merekodkan penggunaan token dan mengira kos menggunakan jadual harga. Lihat pecahan dalam **Dashboard → Usage** mengikut penyedia, model dan kunci API.
+**Penjejakan Kos:** Setiap permintaan merekodkan penggunaan token dan mengira kos menggunakan jadual harga. Lihat pecahan dalam **Papan Pemuka → Penggunaan** mengikut penyedia, model dan kunci API.
 
 ---
 
@@ -1033,7 +1093,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` ialah laluan asli Deepgram dan memerlukan kunci API Deepgram.
+`deepgram/nova-3` ialah laluan Deepgram natif dan memerlukan kunci API Deepgram.
 Jika hanya OpenRouter dikonfigurasikan, gunakan `openrouter/deepgram/nova-3`.
 
 Penyedia **Pertuturan-ke-Teks (transkripsi)**:
@@ -1069,50 +1129,50 @@ Format audio yang disokong untuk transkripsi: `mp3`, `wav`, `m4a`, `flac`, `ogg`
 
 ### Strategi Pengimbangan Kombo
 
-Konfigurasikan pengimbangan bagi setiap kombo dalam **Dashboard → Combos → Create/Edit → Strategy**.
+Konfigurasikan pengimbangan bagi setiap kombo dalam **Papan Pemuka → Kombo → Cipta/Edit → Strategi**.
 
-| Strategi           | Penerangan                                                                                            |
-| ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **Round-Robin**    | Menggilirkan model secara berurutan                                                                   |
-| **Priority**       | Sentiasa mencuba model pertama; beralih hanya jika berlaku ralat                                      |
-| **Random**         | Memilih model secara rawak daripada kombo bagi setiap permintaan                                      |
-| **Weighted**       | Menghalakan secara berkadar berdasarkan pemberat yang ditetapkan bagi setiap model                    |
-| **Least-Used**     | Menghalakan kepada model dengan bilangan permintaan terkini paling sedikit (menggunakan metrik kombo) |
-| **Cost-Optimized** | Menghalakan kepada model tersedia yang paling murah (menggunakan jadual harga)                        |
+| Strategi                    | Penerangan                                                                                   |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| **Giliran Bergilir**        | Berputar melalui model secara berurutan                                                      |
+| **Keutamaan**               | Sentiasa mencuba model pertama; beralih kepada sandaran hanya apabila berlaku ralat          |
+| **Rawak**                   | Memilih model secara rawak daripada kombo untuk setiap permintaan                            |
+| **Berwajaran**              | Menghalakan secara berkadar berdasarkan wajaran yang ditetapkan bagi setiap model            |
+| **Paling Kurang Digunakan** | Menghalakan kepada model dengan permintaan terkini paling sedikit (menggunakan metrik kombo) |
+| **Dioptimumkan Kos**        | Menghalakan kepada model tersedia yang paling murah (menggunakan jadual harga)               |
 
-Tetapan lalai kombo global boleh ditetapkan dalam **Dashboard → Settings → Routing → Combo Defaults**.
-Tamat masa sasaran kombo mewarisi tamat masa permintaan semasa secara lalai. Gunakan **Target timeout
-(seconds)** pada tetapan lalai kombo atau kombo individu hanya apabila had yang lebih pendek bagi setiap sasaran perlu
-mencetuskan peralihan yang lebih pantas.
+Lalai kombo global boleh ditetapkan dalam **Papan Pemuka → Tetapan → Penghalaan → Lalai Kombo**.
+Tamat masa sasaran kombo mewarisi tamat masa permintaan semasa secara lalai. Gunakan **Tamat masa sasaran
+(saat)** pada lalai kombo atau kombo individu hanya apabila had bagi setiap sasaran yang lebih singkat perlu
+mencetuskan sandaran dengan lebih pantas.
 
-Pengoptimuman kombo latensi sifar adalah secara ikut serta. Biarkan **Zero-latency optimizations** dinyahdayakan untuk
-menghalang ciri latensi ini daripada memperlumbakan sasaran peralihan, melangkau sasaran berdasarkan sejarah
-TTFT, atau memampatkan permintaan peralihan; mendayakannya membolehkan lindung nilai yang dikonfigurasikan, langkauan TTFT
-ramalan dan pemampatan peralihan proaktif untuk menukar kesetiaan penghalaan/permintaan dengan latensi hujung
+Pengoptimuman kombo kependaman sifar perlu didayakan secara pilihan. Biarkan **Pengoptimuman kependaman sifar** dilumpuhkan untuk
+menghalang ciri kependaman ini daripada berlumba dengan sasaran sandaran, melangkau sasaran berdasarkan sejarah
+TTFT atau memampatkan permintaan sandaran; mendayakannya membolehkan pelindungan nilai yang dikonfigurasikan, pelangkauan TTFT
+ramalan dan pemampatan sandaran proaktif untuk mengorbankan ketepatan penghalaan/permintaan demi kependaman hujung
 yang lebih rendah.
 
-Nyahdayakan **Reasoning token buffer** apabila penyedia huluan memerlukan had
+Nyahdayakan **Penimbal token penaakulan** apabila penyedia huluan memerlukan had
 `max_tokens` / `maxOutputTokens` yang ketat. Apabila didayakan, penghalaan kombo hanya menambahkan ruang tambahan model penaakulan
-untuk model yang mempunyai had output diketahui dan membiarkan had token klien tidak berubah apabila nilai penimbal
-yang selamat akan melebihi had tersebut. Jika had klien sudah melebihi had yang diketahui,
+untuk model dengan had output yang diketahui dan membiarkan had token klien tidak berubah apabila
+nilai penimbal yang selamat akan melebihi had tersebut. Jika had klien sudah melebihi had yang diketahui,
 OmniRoute mengehadkannya kepada had tersebut sebelum menghantar permintaan huluan.
 
 ---
 
 ### Papan Pemuka Kesihatan
 
-Akses melalui **Dashboard → Health**. Gambaran keseluruhan kesihatan sistem masa nyata dengan 6 kad:
+Akses melalui **Papan Pemuka → Kesihatan**. Gambaran keseluruhan kesihatan sistem masa nyata dengan 6 kad:
 
-| Kad                   | Perkara yang Ditunjukkan                                              |
-| --------------------- | --------------------------------------------------------------------- |
-| **System Status**     | Masa operasi, versi, penggunaan memori, direktori data                |
-| **Provider Health**   | Keadaan masa jalan pemutus litar penyedia global                      |
-| **Rate Limits**       | Tempoh bertenang sambungan aktif bagi setiap akaun berserta baki masa |
-| **Active Lockouts**   | Sekatan aktif khusus model dan pengecualian sementara                 |
-| **Signature Cache**   | Statistik cache penyahduplikasian (kunci aktif, kadar padanan)        |
-| **Latency Telemetry** | Pengagregatan latensi p50/p95/p99 bagi setiap penyedia                |
+| Kad                      | Perkara yang Ditunjukkan                                              |
+| ------------------------ | --------------------------------------------------------------------- |
+| **Status Sistem**        | Masa operasi, versi, penggunaan memori, direktori data                |
+| **Kesihatan Penyedia**   | Keadaan masa jalan pemutus litar penyedia global                      |
+| **Had Kadar**            | Tempoh bertenang sambungan aktif bagi setiap akaun berserta baki masa |
+| **Sekatan Aktif**        | Sekatan aktif mengikut skop model dan pengecualian sementara          |
+| **Cache Tandatangan**    | Statistik cache penyahduplikasian (kunci aktif, kadar hit)            |
+| **Telemetri Kependaman** | Pengagregatan kependaman p50/p95/p99 bagi setiap penyedia             |
 
-**Petua Profesional:** Halaman Health dimuat semula secara automatik setiap 10 saat. Gunakan kad pemutus litar untuk mengenal pasti penyedia yang sedang mengalami masalah.
+**Petua Pro:** Halaman Kesihatan disegar semula secara automatik setiap 10 saat. Gunakan kad pemutus litar untuk mengenal pasti penyedia yang sedang mengalami masalah.
 
 ---
 

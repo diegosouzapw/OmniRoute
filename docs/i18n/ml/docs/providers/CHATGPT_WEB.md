@@ -21,17 +21,26 @@ Migration `168_retire_chatgpt_web.sql`, പൊരുത്തപ്പെടു�
 
 ടൂൾ ടേണുകൾക്കായി മാത്രമാണ് tunnel ആവശ്യമായത്. tunnel-ഉം connector-ഉം കോൺഫിഗർ ചെയ്തിരിക്കുമ്പോൾ, `pro` ഉൾപ്പെടെ പട്ടികപ്പെടുത്തിയിരിക്കുന്ന എല്ലാ route-കൾക്കും അതേ turn-bound പ്രാദേശിക ടൂൾ ശേഷി ഉപയോഗിക്കാനാകും.
 
-## Dashboard സജ്ജീകരണം
+## ഡാഷ്ബോർഡ് സജ്ജീകരണം
 
 1. **ChatGPT Web (Codex)** പ്രൊവൈഡർ തുറന്ന് ഒരു കണക്ഷൻ ചേർക്കുക.
-2. പൂർണ്ണ ChatGPT Cookie header, tunnel ID, runtime key, custom connector-ന്റെ പേര് എന്നിവ ഒട്ടിക്കുക. പുതിയ ടൂൾ-ശേഷിയുള്ള സജ്ജീകരണങ്ങൾ, കൃത്യമായി `OmniRoute Codex v2` എന്ന് പേരിട്ട പുതുതായി സൃഷ്ടിച്ച connector ഉപയോഗിക്കണം; അതിൽ Authentication എന്നത് None ആയും Permissions എന്നത് Allow all actions ആയും സജ്ജീകരിച്ചിരിക്കണം.
-3. കണക്ഷൻ പരിശോധന പ്രവർത്തിപ്പിക്കുക. OmniRoute, ബ്രൗസർ പിന്തുണയുള്ള Temporary Chat തുറന്ന് അക്കൗണ്ടിന് Sol, Pro എന്നിവ ലഭ്യമാണോ എന്ന് കണ്ടെത്തുന്നു.
-4. കണക്ഷൻ സംരക്ഷിക്കുക. OmniRoute, ഒട്ടിച്ച cookie-യെ സ്ഥിരീകരിച്ച Playwright storage state ഉപയോഗിച്ച് മാറ്റിസ്ഥാപിക്കുകയും encrypted credential abstraction വഴി runtime key-നൊപ്പം അത് സംഭരിക്കുകയും ചെയ്യുന്നു.
+2. പൂർണ്ണമായ ChatGPT Cookie ഹെഡർ, tunnel ID, runtime key, custom connector
+   നാമം എന്നിവ ഒട്ടിക്കുക. പുതിയ tool-capable സജ്ജീകരണങ്ങളിൽ കൃത്യമായി
+   `OmniRoute Codex v2` എന്ന് പേരിട്ട പുതുതായി സൃഷ്ടിച്ച connector ഉപയോഗിക്കണം; Authentication എന്നത് None ആയും Permissions എന്നത് Allow all
+   actions ആയും സജ്ജീകരിക്കണം.
+3. കണക്ഷൻ പരിശോധന പ്രവർത്തിപ്പിക്കുക. OmniRoute ബ്രൗസർ പിന്തുണയുള്ള ഒരു Temporary Chat തുറന്ന്
+   അക്കൗണ്ടിൽ Sol, Pro എന്നിവ ലഭ്യമാണോയെന്ന് കണ്ടെത്തുന്നു.
+4. കണക്ഷൻ സംരക്ഷിക്കുക. OmniRoute ഒട്ടിച്ച cookie-ന് പകരം പരിശോധിച്ചുറപ്പിച്ച
+   Playwright storage state സ്ഥാപിക്കുകയും encrypted credential abstraction വഴി runtime key-യോടൊപ്പം അത് സംഭരിക്കുകയും ചെയ്യുന്നു.
 
-വിജയകരമായി സംരക്ഷിച്ചതിന് ശേഷം അസംസ്കൃത cookie നിലനിർത്തില്ല. സെഷൻ കാലഹരണപ്പെടുമ്പോൾ, കണക്ഷൻ തുറന്ന് പുതിയ പൂർണ്ണ Cookie header ഒട്ടിക്കുകയും പരിശോധന വീണ്ടും പ്രവർത്തിപ്പിക്കുകയും ചെയ്യുക. എഡിറ്റ് ഡയലോഗിലെ doctor status, browser, storage state, sign-in, Temporary Chat, tunnel, connector, tool round-trip എന്നിവയുടെ നില പ്രത്യേകം റിപ്പോർട്ട് ചെയ്യുന്നു.
+വിജയകരമായി സംരക്ഷിച്ചതിനുശേഷം അസംസ്കൃത cookie നിലനിർത്തില്ല. സെഷൻ കാലഹരണപ്പെടുമ്പോൾ,
+കണക്ഷൻ തുറന്ന് പുതിയ പൂർണ്ണ Cookie ഹെഡർ ഒട്ടിച്ച് പരിശോധന വീണ്ടും പ്രവർത്തിപ്പിക്കുക. എഡിറ്റ് ഡയലോഗിലെ doctor status,
+ബ്രൗസർ, storage state, sign-in, Temporary Chat, tunnel,
+connector, tool round-trip എന്നിവയുടെ നില വെവ്വേറെ റിപ്പോർട്ട് ചെയ്യുന്നു. സെഷനുകൾ മാറുമ്പോൾ cookie അപ്ഡേറ്റുകൾ ഓട്ടോമേറ്റ് ചെയ്യാൻ,
+[ബ്രൗസർ സെഷൻ സിങ്ക് എക്സ്റ്റൻഷൻ](../guides/SESSION-SYNC-EXTENSION.md) എന്ന അനുബന്ധ ടൂൾ കാണുക.
 
-> യഥാർഥ cookie, runtime key, storage state, capability token എന്നിവ ഒരിക്കലും commit ചെയ്യരുത്. പരിശോധനയിലും
-> ഡോക്യുമെന്റേഷനിലും ഉപയോഗിക്കുന്ന മൂല്യങ്ങൾ എല്ലായ്പ്പോഴും placeholder-കൾ ആയിരിക്കണം.
+> യഥാർഥ cookie, runtime key, storage state, അല്ലെങ്കിൽ capability token ഒരിക്കലും commit ചെയ്യരുത്. ടെസ്റ്റ്,
+> ഡോക്യുമെന്റേഷൻ മൂല്യങ്ങൾ എല്ലായ്പ്പോഴും placeholders ആയിരിക്കണം.
 
 ## മോഡലുകളും combo-കളും
 
@@ -97,7 +106,7 @@ HTTP/SSE ഫാൾബാക്ക് അഭ്യർത്ഥിക്കുന�
 
 ## പരിശോധന
 
-നിർത്തലാക്കിയ പ്രൊവൈഡറെ പ്രവർത്തിപ്പിക്കാതെ പ്രൊവൈഡർ നിയന്ത്രണങ്ങൾ പ്രവർത്തിപ്പിക്കുക:
+നിർത്തലാക്കിയ provider-നെ വിളിക്കാതെ provider നിയന്ത്രണങ്ങൾ പ്രവർത്തിപ്പിക്കുക:
 
 ```bash
 node --import tsx/esm --test \\
@@ -106,7 +115,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-നിർത്തലാക്കലുമായി ബന്ധപ്പെട്ട റിഗ്രഷൻ ഗാർഡുകൾ ഇവിടെയുണ്ട്:
+നിർത്തലാക്കൽ regression guards ഇവിടെയാണ്:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

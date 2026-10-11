@@ -8,79 +8,79 @@
 
 _Ìgbà ìkẹyìn tí a ṣe àfikún: 2026-06-28_
 
-## Àkótán Aláṣẹ
+## Àkótán Àṣẹ́ṣẹ́
 
-OmniRoute jẹ́ ẹnubodè ìdarí AI agbègbè àti pátákó ìṣàkóso tí a kọ́ lórí Next.js.
-Ó pèsè endpoint kan ṣoṣo tó bá OpenAI mu (`/v1/*`), ó sì ń darí ìrìnnà kọjá ọ̀pọ̀ olùpèsè upstream pẹ̀lú ìtumọ̀, fallback, ìsọdọ̀tun token, àti ìtọ́pinpin lílò.
+OmniRoute jẹ́ ẹnubodè ìdarí AI àdúgbò àti pánẹ́ẹ̀lì ìṣàkóso tí a kọ́ lórí Next.js.
+Ó pèsè ojú-ọ̀nà ìwọlé kan ṣoṣo tó bá OpenAI mu (`/v1/*`), ó sì ń darí ìṣàn iṣẹ́ kọjá ọ̀pọ̀ olùpèsè ìpele-òkè pẹ̀lú ìtumọ̀, ìpadàsẹ́yìn, ìmúdójúìwọ̀n token, àti àtẹ̀lé lílò.
 
 Àwọn agbára pàtàkì:
 
-- Ojú API tó bá OpenAI mu fún CLI/àwọn irinṣẹ́ (olùpèsè 355, executors 108)
-- Ìtumọ̀ request/response láàárín àwọn fọ́ọ̀mù olùpèsè
-- Fallback àkójọpọ̀ awoṣe (ìtẹ̀lé ọ̀pọ̀ awoṣe)
-- Àwọn ìgbésẹ̀ àkójọpọ̀ tó ní ìṣètò (`provider + model + connection`) pẹ̀lú ìtòlẹ́sẹẹsẹ ní àsìkò ìṣiṣẹ́ nípasẹ̀ `compositeTiers`
-- Fallback ní ìpele account (ọ̀pọ̀ account fún olùpèsè kọ̀ọ̀kan)
-- Àyẹ̀wò quota ṣáájú àti yíyan account P2C tó mọ quota nínú ipa ọ̀nà ìjíròrò àkọ́kọ́
-- Ìṣàkóso ìsopọ̀ olùpèsè OAuth + API-key (àwọn module olùpèsè OAuth 22)
+- Ojú API tó bá OpenAI mu fún CLI/àwọn irinṣẹ́ (olùpèsè 372, olùṣiṣẹ́ 148)
+- Ìtumọ̀ ìbéèrè/ìdáhùn láàárín àwọn ìṣètò olùpèsè
+- Ìpadàsẹ́yìn àkójọpọ̀ awoṣe (ọ̀wọ̀ọ̀wọ́ ọ̀pọ̀ awoṣe)
+- Àwọn ìgbésẹ̀ àkójọpọ̀ tí a ṣètò (`provider + model + connection`) pẹ̀lú títò lẹ́sẹẹsẹ ní àsìkò ìṣiṣẹ́ nípasẹ̀ `compositeTiers`
+- Ìpadàsẹ́yìn ní ìpele àkọọ́lẹ̀ (ọ̀pọ̀ àkọọ́lẹ̀ fún olùpèsè kọ̀ọ̀kan)
+- Àyẹ̀wò ìpín ṣáájú àti yíyan àkọọ́lẹ̀ P2C tó mọ ìpín nínú ipa ìfọ̀rọ̀wérọ̀ pàtàkì
+- Ìṣàkóso àsopọ̀ olùpèsè OAuth + kọ́kọ́rọ́ API (àwọn módùlù olùpèsè OAuth 27)
 - Ṣíṣẹ̀dá embedding nípasẹ̀ `/v1/embeddings` (olùpèsè 18)
 - Ṣíṣẹ̀dá àwòrán nípasẹ̀ `/v1/images/generations` (olùpèsè 10+, awoṣe 20+)
-- Ìkọ̀wé ohun sílẹ̀ nípasẹ̀ `/v1/audio/transcriptions` (olùpèsè 18)
-- Yíyí ọ̀rọ̀ padà sí ohùn nípasẹ̀ `/v1/audio/speech` (olùpèsè tí a kọ́ sínú rẹ̀ 24)
+- Ìkọ̀wé-ohùn-sí-ọ̀rọ̀ nípasẹ̀ `/v1/audio/transcriptions` (olùpèsè 18)
+- Ọ̀rọ̀-sí-ohùn nípasẹ̀ `/v1/audio/speech` (olùpèsè àbínibí 24)
 - Ṣíṣẹ̀dá fídíò nípasẹ̀ `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Ṣíṣẹ̀dá orin nípasẹ̀ `/v1/music/generations` (ComfyUI)
 - Ìṣàwárí wẹ́ẹ̀bù nípasẹ̀ `/v1/search` (olùpèsè 20)
-- Àyẹ̀wò ìbámu àkóónú nípasẹ̀ `/v1/moderations`
-- Àtúntò ipò àbájáde nípasẹ̀ `/v1/rerank`
-- Ṣíṣe ìtúpalẹ̀ àmì Think (`<think>...</think>`) fún àwọn awoṣe ìrònú
-- Ìwẹ̀nùmọ́ response fún ìbámu pípé pẹ̀lú OpenAI SDK
-- Ìṣọ̀kan àwọn role (developer→system, system→user) fún ìbámu láàárín àwọn olùpèsè
-- Ìyípadà àbájáde tó ní ìṣètò (json_schema → Gemini responseSchema)
-- Ìfipamọ́ agbègbè fún àwọn olùpèsè, keys, aliases, combos, settings, pricing (àwọn module DB 122)
-- Ìtọ́pinpin lílò/ìnáwó àti fífi àwọn request sí àkọsílẹ̀
-- Sync cloud àṣàyàn fún sync ọ̀pọ̀ ẹ̀rọ/ipò
-- Allowlist/blocklist IP fún ìṣàkóso ààyè sí API
-- Ìṣàkóso ìwọ̀n ìrònú (passthrough/auto/custom/adaptive)
-- Ìfikún system prompt àgbáyé
-- Ìtọ́pinpin session àti fingerprinting
-- Ìdínà oṣùwọ̀n tó lágbára sí i fún account kọ̀ọ̀kan pẹ̀lú àwọn profile tó jẹ́ ti olùpèsè pàtó
-- Àpẹrẹ circuit breaker fún ìfaradà olùpèsè
-- Ààbò lòdì sí thundering herd pẹ̀lú títì mutex
-- Cache ìyọkúrò request àdáàkọ tó dá lórí signature
-- Ìpele domain: àwọn òfin ìnáwó, ìlànà fallback, ìlànà lockout
-- Context Relay: àwọn àkótán fífi session lé ẹlòmíràn lọ́wọ́ fún ìtẹ̀síwájú nígbà yíyí account
-- Ìfipamọ́ ipò domain (cache write-through SQLite fún fallbacks, budgets, lockouts, circuit breakers)
-- Engine ìlànà fún ìṣàyẹ̀wò request láti ibùdó kan (lockout → budget → fallback)
-- Telemetry request pẹ̀lú àkójọpọ̀ latency p50/p95/p99
-- Telemetry ibi-afẹ́ combo àti ìlera ibi-afẹ́ combo látijọ́ nípasẹ̀ `combo_execution_key` / `combo_step_id`
-- Correlation ID (X-Request-Id) fún ìtọ́pasẹ̀ láti ìbẹ̀rẹ̀ dé òpin
-- Fífi audit ìbámu sí àkọsílẹ̀ pẹ̀lú àṣàyàn láti jáde fún API key kọ̀ọ̀kan
-- Framework eval fún ìmúdájú dídára LLM
-- Pátákó ìlera pẹ̀lú ipò circuit breaker olùpèsè ní àsìkò gidi
-- MCP Server (irinṣẹ́ 110) pẹ̀lú transports 3 (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE) pẹ̀lú àwọn ọgbọ́n àti ìgbésí-ayé task
-- Ètò memory (ìyọ̀jáde, ìfikún, ìgbàpadà, ṣíṣe àkótán)
-- Ètò skills (registry, executor, sandbox, àwọn ọgbọ́n tí a kọ́ sínú rẹ̀)
-- Proxy MITM pẹ̀lú ìṣàkóso certificate àti ìtọ́jú DNS
-- Middleware ààbò lòdì sí prompt injection
-- Pipeline fún fífi prompt pọ̀ sí kékeré pẹ̀lú Caveman, RTK, àwọn pipeline tí a tò léra, àwọn combo compression, language packs, àti analytics
-- Registry ACP (Agent Communication Protocol)
-- Àwọn olùpèsè OAuth tó jẹ́ modular (module kọ̀ọ̀kan 22 lábẹ́ `src/lib/oauth/providers/`)
-- Àwọn script uninstall/full-uninstall
-- Ìgbésẹ̀ àtúnṣe àyíká OAuth
-- Afárá WebSocket fún àwọn client WS tó bá OpenAI mu (`/v1/ws`)
-- Ìṣàkóso token sync (ìfúnni/ìfagilé, ìgbàsílẹ̀ config bundle tó ní version ETag)
-- Preset olùpèsè GLM Thinking (`glmt`) gẹ́gẹ́ bí apá pàtàkì
-- Kíkà token alápapọ̀ (ní ẹ̀gbẹ́ olùpèsè `/messages/count_tokens` pẹ̀lú estimation fallback)
-- Ìgbìn model alias láìfọwọ́ṣe (30+ àtúnṣe dialect láàárín proxy ní ìbẹ̀rẹ̀)
-- Fetch jáde tó ní ààbò pẹ̀lú guard SSRF, dídènà URL aládani, àti retry tí a lè ṣètò
-- Retry ìjíròrò tó mọ cooldown pẹ̀lú `requestRetry` àti `maxRetryIntervalSec` tí a lè ṣètò
-- Ìfọwọ́sí àyíká runtime pẹ̀lú Zod ní ìbẹ̀rẹ̀
-- Audit ìbámu v2 pẹ̀lú pagination, àwọn ìṣẹ̀lẹ̀ CRUD olùpèsè, àti fífi ìfọwọ́sí tí SSRF dènà sí àkọsílẹ̀
+- Ìṣàyẹ̀wò àkóónú nípasẹ̀ `/v1/moderations`
+- Àtúntò ipò nípasẹ̀ `/v1/rerank`
+- Ìtúpalẹ̀ àmì ìrònú (``) fún àwọn awoṣe ìfòyemọ̀
+- Ìsọdimímọ́ ìdáhùn fún ìbámu pípé pẹ̀lú OpenAI SDK
+- Ìṣọ̀kan ipa (developer→system, system→user) fún ìbámu kọjá àwọn olùpèsè
+- Ìyípadà àbájáde tí a ṣètò (json_schema → Gemini responseSchema)
+- Ìfipamọ́ àdúgbò fún àwọn olùpèsè, kọ́kọ́rọ́, orúkọ-àfirọ́pò, àkójọpọ̀, ètò, àti ìdíyelé (módùlù DB 122)
+- Àtẹ̀lé lílò/ìnáwó àti fífi ìbéèrè sí àkọsílẹ̀
+- Ìmúṣiṣẹ́pọ̀ àwọsánmà àṣàyàn fún ìmúṣiṣẹ́pọ̀ ọ̀pọ̀ ẹ̀rọ/ipò
+- Àkójọ IP tí a fàyè gbà/àkójọ tí a dènà fún ìṣàkóso ìwọlé API
+- Ìṣàkóso ìpín ìrònú (fífi kọjá/àdáṣe/aṣàṣàyàn/ìbámu)
+- Ìfiṣàlàyé system àgbáyé sínú ìbéèrè
+- Àtẹ̀lé ìgbà iṣẹ́ àti ṣíṣe àmì ìdánimọ̀
+- Ìdínwọ̀n ìwọ̀n lílò tó ti múlágbára fún àkọọ́lẹ̀ kọ̀ọ̀kan pẹ̀lú àwọn prófáìlì pàtó sí olùpèsè
+- Àpẹẹrẹ circuit breaker fún ìfaradà olùpèsè
+- Ààbò lòdì sí anti-thundering herd pẹ̀lú mutex locking
+- Káṣì ìyọkúrò àwọn ìbéèrè àdákejì tó dá lórí ìbuwọ́lu
+- Ìpele dóméènì: àwọn òfin ìnáwó, ìlànà ìpadàsẹ́yìn, ìlànà títìpa
+- Context Relay: àwọn àkótán fífi ìgbà iṣẹ́ lé ẹlòmíràn lọ́wọ́ fún ìtẹ̀síwájú nígbà yíyí àkọọ́lẹ̀
+- Ìfipamọ́ ipò dóméènì (káṣì SQLite write-through fún àwọn ìpadàsẹ́yìn, àwọn ìpín, àwọn ìtìpa, àti àwọn circuit breaker)
+- Ẹ̀rọ ìlànà fún àyẹ̀wò ìbéèrè àárín gbùngbùn (ìtìpa → ìpín → ìpadàsẹ́yìn)
+- Telemetry ìbéèrè pẹ̀lú àkójọpọ̀ àkókò ìdádúró p50/p95/p99
+- Telemetry ibi-afẹ́ àkójọpọ̀ àti ìlera ìtàn ibi-afẹ́ àkójọpọ̀ nípasẹ̀ `combo_execution_key` / `combo_step_id`
+- ID ìbáṣepọ̀ (X-Request-Id) fún àtẹ̀lé láti ìbẹ̀rẹ̀ dé òpin
+- Fífi àyẹ̀wò ìbámu sí àkọsílẹ̀ pẹ̀lú àṣàyàn láti jáde fún kọ́kọ́rọ́ API kọ̀ọ̀kan
+- Ètò ìṣàyẹ̀wò fún ìmúdájú dídára LLM
+- Pánẹ́ẹ̀lì ìlera pẹ̀lú ipò circuit breaker olùpèsè ní àsìkò gidi
+- MCP Server (irinṣẹ́ 110) pẹ̀lú ọ̀nà ìgbéga 3 (stdio/SSE/Streamable HTTP)
+- A2A Server (JSON-RPC 2.0 + SSE) pẹ̀lú àwọn ọgbọ́n àti ìyípo ìgbésí-ayé iṣẹ́
+- Ètò ìrántí (ìmújáde, ìfisínú, ìmúpadàbọ̀, ṣíṣe àkótán)
+- Ètò àwọn ọgbọ́n (ìforúkọsílẹ̀, olùṣiṣẹ́, sandbox, àwọn ọgbọ́n àbínibí)
+- Aṣojú MITM pẹ̀lú ìṣàkóso ìwé-ẹ̀rí àti ìmúlò DNS
+- Middleware olùṣọ́ lòdì sí fífi àṣẹ sínú prompt
+- Ọ̀nà ṣíṣe prompt kúrú pẹ̀lú Caveman, RTK, àwọn ọ̀nà tí a tò léra, àwọn àkójọpọ̀ ìkómọ́ra, àkójọpọ̀ èdè, àti ìtúpalẹ̀
+- Ìforúkọsílẹ̀ ACP (Agent Communication Protocol)
+- Àwọn olùpèsè OAuth onímódùlù (módùlù kọ̀ọ̀kan 22 lábẹ́ `src/lib/oauth/providers/`)
+- Àwọn script ìyọkúrò/ìyọkúrò pátápátá
+- Ìṣe àtúnṣe àyíká OAuth
+- Afárá WebSocket fún àwọn oníbàárà WS tó bá OpenAI mu (`/v1/ws`)
+- Ìṣàkóso token ìmúṣiṣẹ́pọ̀ (fífúnni/fagilé, gbígba àkójọpọ̀ ìṣètò tó ní ẹ̀yà ETag)
+- GLM Thinking (`glmt`) gẹ́gẹ́ bí àtòjọ olùpèsè ìpele-kínní
+- Ìkà token àdàpọ̀ (ní ẹ̀gbẹ́ olùpèsè `/messages/count_tokens` pẹ̀lú ìṣírò bí ìpadàsẹ́yìn)
+- Ìfúnrúgbìn orúkọ-àfirọ́pò awoṣe láìfọwọ́ṣe (ìṣọ̀kan dialect aṣojú agbelebu 30+ ní ìbẹ̀rẹ̀)
+- Ìgbàjáde fetch tó ní ààbò pẹ̀lú olùṣọ́ SSRF, dídènà URL àdáni, àti àtúnṣe ìgbìyànjú tí a lè ṣètò
+- Àwọn àtúnṣe ìgbìyànjú ìfọ̀rọ̀wérọ̀ tó mọ cooldown pẹ̀lú `requestRetry` àti `maxRetryIntervalSec` tí a lè ṣètò
+- Ìmúdájú àyíká àsìkò ìṣiṣẹ́ pẹ̀lú Zod ní ìbẹ̀rẹ̀
+- Àyẹ̀wò ìbámu v2 pẹ̀lú pípín ojú-ewé, àwọn ìṣẹ̀lẹ̀ CRUD olùpèsè, àti fífi ìmúdájú tí SSRF dènà sí àkọsílẹ̀
 
-Awoṣe runtime àkọ́kọ́:
+Àwoṣe àsìkò ìṣiṣẹ́ pàtàkì:
 
-- Àwọn route app Next.js lábẹ́ `src/app/api/*` ń ṣe àwọn API pátákó ìṣàkóso àti àwọn API ìbámu
-- Kókó SSE/ìdarí àjọpín nínú `src/sse/*` + `open-sse/*` ń bójú tó ìṣiṣẹ́ olùpèsè, ìtumọ̀, streaming, fallback, àti lílò
+- Àwọn ipa ọ̀nà app Next.js lábẹ́ `src/app/api/*` ń ṣe àwọn API pánẹ́ẹ̀lì àti àwọn API ìbámu
+- Kókó SSE/ìdarí tí a pín ní `src/sse/*` + `open-sse/*` ń bójú tó ìṣiṣẹ́ olùpèsè, ìtumọ̀, ìṣànwọ́, ìpadàsẹ́yìn, àti lílò
 
 ## Àwọn Àwòrán Ìtọ́kasí
 
@@ -156,30 +156,30 @@ Awoṣe runtime àkọ́kọ́:
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[Àwọn Oníbàárà Olùgbéejáde]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[Àwọn oníbàárà àdáni tó bá OpenAI mu]
+        BROWSER[Pátákó Ìṣàkóso Ẹ̀rọ Aṣàwákiri]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[Ìlànà Agbègbè OmniRoute]
+        API[API Ìbámu V1\n/v1/*]
+        DASH[Pátákó Ìṣàkóso + API Ìṣàkóso\n/api/*]
+        CORE[SSE + Kókó Ìtumọ̀\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(àwọn tábìlì lílò + àwọn ohun ìṣẹ̀lẹ̀ àkọsílẹ̀)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[Àwọn Olùpèsè Orísun Òkè]
+        P1[Àwọn Olùpèsè OAuth\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[Àwọn Olùpèsè Kọ́kọ́rọ́ API\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[Àwọn Node Tó Bámu\nTó bá OpenAI mu / Tó bá Anthropic mu]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[Amúdọ́gba Cloud Àṣàyàn]
+        CLOUD[Ojú-òpó Amúdọ́gba Cloud\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -260,70 +260,71 @@ flowchart LR
 
 ## 2) SSE + Kókó Ìtumọ̀
 
-Àwọn módùlù ìṣàn pàtàkì:
+Àwọn módùlù ìṣàn àkọ́kọ́:
 
 - Ibi ìwọlé: `src/sse/handlers/chat.ts`
-- Ìṣètò iṣẹ́ kókó: `open-sse/handlers/chatCore.ts`
-- Àwọn adápítà ìmúṣẹ́ olùpèsè: `open-sse/executors/*`
-- Ìṣàwárí fọ́ọ̀mù/àtúnṣe olùpèsè: `open-sse/services/provider.ts`
+- Ìṣètò kókó: `open-sse/handlers/chatCore.ts`
+- Àwọn ohun èlò ìmúṣẹ olùpèsè: `open-sse/executors/*`
+- Ìṣàwárí fọ́ọ̀mù/ètò olùpèsè: `open-sse/services/provider.ts`
 - Ìtúpalẹ̀/ìyanjú àwòṣe: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Ìlànà ìpadà-sẹ́yìn àkọọ́lẹ̀: `open-sse/services/accountFallback.ts`
-- Àkọsílẹ̀ ìtumọ̀: `open-sse/translator/index.ts`
+- Ìlànà ìyípadà sí àkọọ́lẹ̀ mìíràn: `open-sse/services/accountFallback.ts`
+- Ìforúkọsílẹ̀ ìtumọ̀: `open-sse/translator/index.ts`
 - Àwọn ìyípadà ìṣàn: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Yíyọ/ṣíṣe ìlò di ọ̀nà kan náà: `open-sse/utils/usageTracking.ts`
+- Ìyọjáde/ìṣọ̀kan lílò: `open-sse/utils/usageTracking.ts`
 - Olùtúpalẹ̀ táàgì ìrònú: `open-sse/utils/thinkTagParser.ts`
-- Olùṣàkóso embedding: `open-sse/handlers/embeddings.ts`
-- Àkọsílẹ̀ olùpèsè embedding: `open-sse/config/embeddingRegistry.ts`
+- Olùṣàkóso ìfisínú: `open-sse/handlers/embeddings.ts`
+- Ìforúkọsílẹ̀ olùpèsè ìfisínú: `open-sse/config/embeddingRegistry.ts`
 - Olùṣàkóso ìṣẹ̀dá àwòrán: `open-sse/handlers/imageGeneration.ts`
-- Àkọsílẹ̀ olùpèsè àwòrán: `open-sse/config/imageRegistry.ts`
-- Ìmọ́tótó èsì: `open-sse/handlers/responseSanitizer.ts`
-- Ṣíṣe ipa di ọ̀nà kan náà: `open-sse/services/roleNormalizer.ts`
+- Ìforúkọsílẹ̀ olùpèsè àwòrán: `open-sse/config/imageRegistry.ts`
+- Ìmọ́tótó ìdáhùn: `open-sse/handlers/responseSanitizer.ts`
+- Ìṣọ̀kan ipa: `open-sse/services/roleNormalizer.ts`
 
-Àwọn iṣẹ́ (ìlànà iṣẹ́-ajé):
+Àwọn iṣẹ́ (ìlànà iṣẹ́-òwò):
 
-- Yíyan/fífún àkọọ́lẹ̀ ní àmì: `open-sse/services/accountSelector.ts`
-- Ìṣàkóso àyíká ìgbésí-ayé ọ̀rọ̀-àyíká: `open-sse/services/contextManager.ts`
-- Ìmúṣẹ́ àlẹ̀mọ́ IP: `open-sse/services/ipFilter.ts`
-- Títọpa sáà: `open-sse/services/sessionManager.ts`
-- Yíyọ àwọn ìbéèrè àdáwòkọ: `open-sse/services/signatureCache.ts`
-- Fífi ìtọ́ni ètò sínú: `open-sse/services/systemPrompt.ts`
-- Ìṣàkóso ìnáwó ìrònú: `open-sse/services/thinkingBudget.ts`
-- Ìdarí àwòṣe wildcard: `open-sse/services/wildcardRouter.ts`
-- Ìṣàkóso òpin ìwọ̀n: `open-sse/services/rateLimitManager.ts`
-- Olùdáwọ́lé àyíká: `src/shared/utils/circuitBreaker.ts`
-- Ìfàrọ́wọ́lé ọ̀rọ̀-àyíká: `open-sse/services/contextHandoff.ts` — ìṣẹ̀dá àti fífi àkótán ìfàrọ́wọ́lé sínú fún ìlànà context-relay
-- Ìfúnpọ̀: `open-sse/services/compression/*` — ìfúnpọ̀ aláṣekára ṣáájú ìtumọ̀ olùpèsè;
-  ó ní àwọn òfin Caveman, àwọn àlẹ̀mọ́ RTK, àwọn pipeline tí a tò lé ara wọn, àwọn àkójọpọ̀ ìfúnpọ̀, àwọn ìṣirò, àti ìfọwọ́sí
-- Olùgbé ìpín Codex wá: `open-sse/services/codexQuotaFetcher.ts` — ń gba ìpín Codex fún àwọn ìpinnu ìfàrọ́wọ́lé context-relay
-- Àtúnṣe ìgbìyànjú tó mọ cooldown: `src/sse/services/cooldownAwareRetry.ts` — àwọn àtúnṣe ìgbìyànjú cooldown fún àwòṣe kọ̀ọ̀kan pẹ̀lú `requestRetry` / `maxRetryIntervalSec` tí a lè ṣètò
-- Fetch àbájáde tó ní ààbò: `src/shared/network/safeOutboundFetch.ts` — fetch olùpèsè/àwòṣe tó ní ààbò pẹ̀lú ìdènà SSRF, dídènà URL àdáni, àtúnṣe ìgbìyànjú, àti àkókò-opin
-- Olùṣọ́ URL àbájáde: `src/shared/network/outboundUrlGuard.ts` — ń fọwọ́sí àwọn URL olùpèsè ní ìbámu pẹ̀lú àwọn ìwọ̀n CIDR àdáni/localhost
-- Àwọn iye àìyípadà ìbéèrè olùpèsè: `open-sse/services/providerRequestDefaults.ts` — àwọn iye àìyípadà `maxTokens`, `temperature`, `thinkingBudgetTokens` ní ìpele olùpèsè
-- Àwọn iye ibakan olùpèsè GLM: `open-sse/config/glmProvider.ts` — àwọn àwòṣe GLM tí a pín, àwọn URL ìpín, àkókò-opin/àwọn iye àìyípadà GLMT
-- Orísun òkè Antigravity: `open-sse/config/antigravityUpstream.ts` — URL ìpìlẹ̀ àti àwọn iye ibakan ojú-ọ̀nà ìṣàwárí
-- Àwọn iye ibakan oníbàárà Codex: `open-sse/config/codexClient.ts` — àwọn iye user-agent tó ní ẹ̀yà àti client-version
-- Irúgbìn orúkọ-àfirọ́ àwòṣe: `src/lib/modelAliasSeed.ts` — ń gbin àwọn orúkọ-àfirọ́ èdè-àgbègbè cross-proxy tó lé ní 30 nígbà ìbẹ̀rẹ̀
+- Yíyan/ìṣírò àmì àkọọ́lẹ̀: `open-sse/services/accountSelector.ts`
+- Ìṣàkóso ìgbésí-ayé ọ̀rọ̀-àyíká: `open-sse/services/contextManager.ts`
+- Ìfipámú àlẹ́mọ́ IP: `open-sse/services/ipFilter.ts`
+- Ìtọ́pa sáẹ́ṣọ̀nù: `open-sse/services/sessionManager.ts`
+- Yíyọ àwọn ìbéèrè àdáwòkọ kúrò: `open-sse/services/signatureCache.ts`
+- Ìfibọ̀ àṣẹ ètò: `open-sse/services/systemPrompt.ts`
+- Ìṣàkóso ìpín ìrònú: `open-sse/services/thinkingBudget.ts`
+- Ìdarí àwòṣe àmì-àgbáyé: `open-sse/services/wildcardRouter.ts`
+- Ìṣàkóso ààlà ìwọ̀n: `open-sse/services/rateLimitManager.ts`
+- Olùdádúró sákítì: `src/shared/utils/circuitBreaker.ts`
+- Fífi ọ̀rọ̀-àyíká lé lọ́wọ́: `open-sse/services/contextHandoff.ts` — ìṣẹ̀dá àti ìfibọ̀ àkótán fífi-lé-lọ́wọ́ fún ọgbọ́n context-relay
+- Ìfúnpọ̀: `open-sse/services/compression/*` — ìfúnpọ̀ ṣáájú ìtumọ̀ olùpèsè;
+  ó ní àwọn òfin Caveman, àwọn àlẹ́mọ́ RTK, àwọn ìlànà tí a tò lé ara wọn, àwọn àkójọpọ̀ ìfúnpọ̀, àwọn ìṣirò, àti ìfọwọ́sí
+- Olùgbà ìpín Codex: `open-sse/services/codexQuotaFetcher.ts` — ń gba ìpín Codex fún àwọn ìpinnu fífi-lé-lọ́wọ́ context-relay
+- Ìgbìyànjú-pada tó mọ nípa àkókò ìtutù: `src/sse/services/cooldownAwareRetry.ts` — àwọn ìgbìyànjú-pada àkókò ìtutù fún àwòṣe kọ̀ọ̀kan pẹ̀lú `requestRetry` / `maxRetryIntervalSec` tí a lè ṣètò
+- Ìgbàjáde ààbò síta: `src/shared/network/safeOutboundFetch.ts` — ìgbàjáde olùpèsè/àwòṣe tí a dáàbò bò pẹ̀lú ààbò SSRF, dídènà URL aládàáni, ìgbìyànjú-pada, àti àkókò-ipari
+- Ààbò URL àbájáde: `src/shared/network/outboundUrlGuard.ts` — àwọn àyẹ̀wò olùgbàlejò lórí àwọn URL olùpèsè; `src/shared/network/outboundUrlGuardPolicy.ts` ń yan ipò láti inú `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, àti àwọn ìyípadà wọn lórí pánẹ́ẹ̀lì ìṣàkóso (wo `docs/reference/ENVIRONMENT.md`)
+- Àwọn iye àkọ́kọ́ ìbéèrè olùpèsè: `open-sse/services/providerRequestDefaults.ts` — àwọn iye àkọ́kọ́ ipele-olùpèsè `maxTokens`, `temperature`, `thinkingBudgetTokens`
+- Àwọn iye àìyípadà olùpèsè GLM: `open-sse/config/glmProvider.ts` — àwọn àwòṣe GLM tí a pín, àwọn URL ìpín, àkókò-ipari/àwọn iye àkọ́kọ́ GLMT
+- Orísun òkè Antigravity: `open-sse/config/antigravityUpstream.ts` — URL ìpìlẹ̀ àti àwọn iye àìyípadà ipa-ọ̀nà ìṣàwárí
+- Àwọn iye àìyípadà oníbàárà Codex: `open-sse/config/codexClient.ts` — àwọn iye aṣojú-olùlò àti ẹ̀yà-oníbàárà tí a fi ẹ̀yà mọ́
+- Ìpilẹ̀ orúkọ-àpèjẹ àwòṣe: `src/lib/modelAliasSeed.ts` — ń dá àwọn orúkọ-àpèjẹ èdè àgbélébùú-prọ́ọ̀ksì 30+ sílẹ̀ nígbà ìbẹ̀rẹ̀
 
-Àwọn módùlù ìpele ibùdó:
+Àwọn módùlù ipele àgbègbè iṣẹ́:
 
-- Àwọn òfin/ìnáwó iye owó: `src/domain/costRules.ts`
-- Ìlànà ìpadà-sẹ́yìn: `src/domain/fallbackPolicy.ts`
+- Àwọn òfin iye owó/ìpín: `src/domain/costRules.ts`
+- Ìlànà ìyípadà sí omi-in: `src/domain/fallbackPolicy.ts`
 - Olùyanjú àkójọpọ̀: `src/domain/comboResolver.ts`
 - Ìlànà ìdènà: `src/domain/lockoutPolicy.ts`
-- Ẹ́ńjìnnì ìlànà: `src/domain/policyEngine.ts` — àyẹ̀wò àárín gbùngbùn ti ìdènà → ìnáwó → ìpadà-sẹ́yìn
+- Ẹ́ńjìnnì ìlànà: `src/domain/policyEngine.ts` — àyẹ̀wò àárín gbùngbùn fún ìdènà → ìpín → ìyípadà sí omi-in
 - Àkójọ àwọn kóòdù àṣìṣe: `src/shared/constants/errorCodes.ts`
 - ID ìbéèrè: `src/shared/utils/requestId.ts`
-- Àkókò-opin fetch: `src/shared/utils/fetchTimeout.ts`
-- Tẹlémẹ́tírì ìbéèrè: `src/shared/utils/requestTelemetry.ts`
+- Àkókò-ipari ìgbàjáde: `src/shared/utils/fetchTimeout.ts`
+- Tẹlimẹ́tírì ìbéèrè: `src/shared/utils/requestTelemetry.ts`
 - Ìbámu/àyẹ̀wò: `src/lib/compliance/index.ts`
-- Olùṣiṣẹ́ eval: `src/lib/evals/evalRunner.ts`
-- Ìtọ́jú ipò ibùdó: `src/lib/db/domainState.ts` — SQLite CRUD fún àwọn ẹ̀wọ̀n ìpadà-sẹ́yìn, àwọn ìnáwó, ìtàn iye owó, ipò ìdènà, àti àwọn olùdáwọ́lé àyíká
+- Olùṣiṣẹ́ àyẹ̀wò: `src/lib/evals/evalRunner.ts`
+- Ìtọ́jú ipò àgbègbè iṣẹ́: `src/lib/db/domainState.ts` — SQLite CRUD fún àwọn ẹ̀wọ̀n ìyípadà sí omi-in, àwọn ìpín, ìtàn iye owó, ipò ìdènà, àti àwọn olùdádúró sákítì
 
-Àwọn módùlù olùpèsè OAuth (àwọn fáìlì ọ̀tọ̀ọ̀tọ̀ 22 lábẹ́ `src/lib/oauth/providers/`):
+Àwọn módùlù olùpèsè OAuth (fáìlì kọ̀ọ̀kan 27 lábẹ́ `src/lib/oauth/providers/`):
 
-- Atọ́ka àkọsílẹ̀: `src/lib/oauth/providers/index.ts`
-- Àwọn olùpèsè kọ̀ọ̀kan: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- Wrapper kékeré: `src/lib/oauth/providers.ts` — ń tún export láti àwọn módùlù kọ̀ọ̀kan ṣe
+- Àtòjọ ìforúkọsílẹ̀: `src/lib/oauth/providers/index.ts`
+- Àwọn olùpèsè kọ̀ọ̀kan: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Àwọn olùrànlọ́wọ́ tí a pín: `codebuddyDeviceAuth.ts` (ìṣàn ẹ̀rọ CodeBuddy CN/intl), `museCodeDeviceResponse.ts`
+- Àpò ìbora kékeré: `src/lib/oauth/providers.ts` — ń tún àwọn ohun tí a kó jáde láti inú àwọn módùlù kọ̀ọ̀kan kó jáde
 
 ## 5) Àwọn Iṣẹ́ Tí A Fi Sínú Ètò (v3.8.4)
 
@@ -550,51 +551,51 @@ DB Ipò Domain (SQLite):
 - Iṣẹ́ àkókò-dé-àkókò: `src/shared/services/modelSyncScheduler.ts`
 - Route ìṣàkóso: `src/app/api/sync/cloud/route.ts`
 
-## Ìṣàn Ìbéèrè (`/v1/chat/completions`)
+## Ìgbésí-ayé Ìbéèrè (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as Oníbàárà CLI/SDK
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as Olùyànjú Mọ́dẹ́lì
+    participant Auth as Olùyan Ẹ̀rí Ìdánimọ̀
+    participant Exec as Olùṣiṣẹ́ Olùpèsè
+    participant Prov as Olùpèsè Òkè
+    participant Stream as Olùtumọ̀ Ìṣàn
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: túpalẹ̀/yànjú mọ́dẹ́lì tàbí combo
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt Mọ́dẹ́lì combo
+        Chat->>Chat: ṣe àtúnsọ lórí àwọn mọ́dẹ́lì combo (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: àkọọ́lẹ̀ tó ń ṣiṣẹ́ + àwọn token/api key
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: ṣàwárí fọ́ọ̀mù orísun
+    Core->>Core: túmọ̀ ìbéèrè sí fọ́ọ̀mù ibi-àfojúsùn
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: ìpè API sí olùpèsè òkè
+    Prov-->>Exec: ìdáhùn SSE/JSON
+    Exec-->>Core: ìdáhùn + metadata
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: àwọn token tí a ti ṣe àfikún
+        Core->>Exec: tún ìbéèrè gbìyànjú
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: túmọ̀/ṣe ìṣàn déédéé sí fọ́ọ̀mù oníbàárà
+    Stream-->>Client: àwọn ẹ̀ka SSE / ìdáhùn JSON
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: yọ ìlò jáde + tọ́jú ìtàn/log
 ```
 
 ## Ìṣàn Àkójọpọ̀ + Àṣàyàn Àfẹ́yìntì Àkọọ́lẹ̀
@@ -803,25 +804,25 @@ erDiagram
 - àwọn àkójọ payload ìpè tí a ṣètò: `${DATA_DIR}/call_logs/`
 - àwọn sáà ìṣàwárí-àṣìṣe olùtumọ̀/ìbéèrè àṣàyàn: `<repo>/logs/...`
 
-## Ìṣètò Ìmúṣiṣẹ́
+## Topọ́lọ́jì Ìmúṣiṣẹ́
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[Ẹ̀rọ Olùgbéejáde]
+        CLI[Àwọn Irinṣẹ́ CLI]
+        Browser[Aṣàwákiri Dasibodu]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[Àyíká Ìṣiṣẹ́ OmniRoute]
+        Next[Sáfà Next.js\nPORT=20128]
+        Core[Ojú-ìpìlẹ̀ SSE + Àwọn Olùṣiṣẹ́]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(àwọn tábìlì ìlò + àwọn àpẹẹrẹ àkọsílẹ̀)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[Àwọn Iṣẹ́ Ìta]
+        Providers[Àwọn Olùpèsè AI]
+        SyncCloud[Iṣẹ́ Ìmúdọ́gba Àwọsánmà]
     end
 
     CLI --> Next

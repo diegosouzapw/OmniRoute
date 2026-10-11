@@ -69,7 +69,7 @@ Biện pháp bảo vệ chống hồi quy: `tests/unit/provider-cooldown-window-
 
 ## 2. Thời gian chờ kết nối
 
-**Phạm vi:** một kết nối/tài khoản/khóa của nhà cung cấp.
+**Phạm vi:** một kết nối/tài khoản/khóa riêng lẻ của nhà cung cấp.
 
 **Mục đích:** bỏ qua một khóa lỗi trong khi các kết nối khác của cùng nhà cung cấp vẫn tiếp tục phục vụ.
 
@@ -77,112 +77,133 @@ Biện pháp bảo vệ chống hồi quy: `tests/unit/provider-cooldown-window-
 
 - Đánh dấu không khả dụng: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Lựa chọn: `getProviderCredentials*` trong cùng tệp
-- Tính thời gian chờ: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Tính toán thời gian chờ: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Cài đặt: `src/lib/resilience/settings.ts`
 
 **Các trường cho mỗi kết nối:**
 
-- `rateLimitedUntil` — dấu thời gian cho đến khi thời gian chờ kết thúc
+- `rateLimitedUntil` — dấu thời gian cho đến khi hết thời gian chờ
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — bộ đếm thời gian chờ tăng dần theo cấp số nhân
+- `backoffLevel` — bộ đếm thời gian chờ tăng theo cấp số nhân
 
 **Thời gian chờ mặc định:**
 
-- Mức cơ sở cho OAuth: 5 giây
-- Mức cơ sở cho khóa API: 3 giây
-- 429 đối với khóa API: ưu tiên các tiêu đề `Retry-After`/đặt lại từ thượng nguồn/văn bản thời điểm đặt lại có thể phân tích
+- Mức cơ sở OAuth: 5 giây
+- Mức cơ sở khóa API: 3 giây
+- Khóa API gặp lỗi 429: ưu tiên `Retry-After` từ thượng nguồn/các header đặt lại/văn bản đặt lại có thể phân tích
 - Thời gian chờ tăng dần: `baseCooldownMs * 2 ** failureIndex`
 
-**Cơ chế bảo vệ chống hiệu ứng đám đông:** ngăn các lỗi đồng thời kéo dài thời gian chờ quá mức hoặc tăng `backoffLevel` hai lần.
+**Cơ chế chống hiệu ứng bầy đàn:** ngăn các lỗi đồng thời kéo dài thời gian chờ quá mức hoặc tăng `backoffLevel` hai lần.
 
-Các khung nhị phân `reasoningContentEvent` của Kiro có chữ ký không rỗng duy trì hoạt động suy luận qua bộ thực thi dưới dạng delta `reasoning_content` rỗng. Chữ ký không được chuyển tiếp. Siêu dữ liệu, khung chưa hoàn chỉnh và chữ ký rỗng không đặt lại thời gian chờ nội dung; giới hạn thời gian độc lập của luồng đang hoạt động và thao tác hủy từ máy khách vẫn có hiệu lực. (`open-sse/executors/kiro/reasoning.ts`).
+**Tình trạng đình trệ nội dung luồng không khiến tài khoản bước vào thời gian chờ.** Khi cơ chế giám sát đình trệ nội dung
+(`open-sse/utils/streamHandler.ts`) từ bỏ một luồng không gửi đầu ra mô hình trong
+thời gian quy định, `markAccountUnavailable()` ghi lại lỗi trên kết nối nhưng không đặt
+thời gian chờ: tình trạng đình trệ thuộc về yêu cầu đó, thường là một lượt suy luận dài chưa
+có đầu ra. Người vận hành có thể bật lại bằng `resilienceSettings.streamStallCooldown.enabled`
+(mặc định là `false`).
 
-**Trạng thái kết thúc (KHÔNG phải thời gian chờ):**
+**Các khung suy luận khởi động lại ngân sách đình trệ nội dung.** Một mô hình suy luận có thể suy nghĩ trong
+nhiều phút trước token hiển thị đầu tiên: Claude truyền phát các khung `thinking_delta` có
+văn bản suy nghĩ có thể trống, còn Responses API truyền phát lần lượt từng mục suy luận.
+`isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) nhận diện
+các khung này và cơ chế giám sát sẽ khởi động lại ngân sách của nó cho mỗi khung thay vì hủy
+lượt. Chúng vẫn không phải là đầu ra của mô hình, vì vậy một lượt kết thúc chỉ với nội dung suy luận vẫn
+được báo cáo là trống, còn một lượt ngừng suy luận và chỉ gửi tín hiệu duy trì kết nối vẫn kích hoạt
+cơ chế giám sát.
 
-- `banned` — được đặt khi phát hiện từ khóa cấm/tài khoản bị cấm (xem [BAN_DETECTION](../security/BAN_DETECTION.md)), và sau ba lần liên tiếp thượng nguồn từ chối từng yêu cầu (`request_rejected`, ví dụ: Anthropic OAuth 403 "Yêu cầu không được phép" — `open-sse/services/requestRejectedStreak.ts`); một lần từ chối đơn lẻ chỉ đưa kết nối vào thời gian chờ
-- `expired` (chuyển sang trạng thái kết thúc sau số lần thử lại giới hạn — `EXPIRED_RETRY_MAX = 3` với thời gian chờ tăng dần theo cấp số nhân — để các lỗi OAuth tạm thời có thể tự phục hồi trước khi tài khoản bị vô hiệu hóa vĩnh viễn)
+Các khung nhị phân `reasoningContentEvent` của Kiro có chữ ký không trống sẽ duy trì
+hoạt động suy luận này xuyên suốt bộ thực thi dưới dạng một delta `reasoning_content` trống. Chữ ký
+không được chuyển tiếp. Siêu dữ liệu, các khung không hoàn chỉnh và chữ ký trống không khởi động lại
+ngân sách nội dung; thời gian chờ độc lập của luồng đang hoạt động và thao tác hủy từ máy khách vẫn
+được áp dụng (`open-sse/executors/kiro/reasoning.ts`).
+
+**Các trạng thái kết thúc (KHÔNG phải thời gian chờ):**
+
+- `banned` — được đặt khi phát hiện từ khóa bị cấm/tài khoản bị cấm (xem [BAN_DETECTION](../security/BAN_DETECTION.md)), và khi có ba lần từ chối liên tiếp theo từng yêu cầu từ thượng nguồn (`request_rejected`, ví dụ: OAuth Anthropic trả về 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); một lần từ chối đơn lẻ chỉ đưa kết nối vào thời gian chờ
+- `expired` (chuyển sang trạng thái kết thúc sau số lần thử lại hữu hạn — `EXPIRED_RETRY_MAX = 3` với thời gian chờ tăng theo cấp số nhân — để các lỗi OAuth tạm thời có thể tự khắc phục trước khi tài khoản bị vô hiệu hóa vĩnh viễn)
 - `credits_exhausted`
 
-Các trạng thái này tồn tại cho đến khi thông tin xác thực thay đổi hoặc người vận hành đặt lại chúng. Không ghi đè trạng thái kết thúc bằng trạng thái thời gian chờ tạm thời.
+Các trạng thái này tồn tại cho đến khi thông tin xác thực thay đổi hoặc người vận hành đặt lại chúng. Không ghi đè các trạng thái kết thúc bằng trạng thái thời gian chờ tạm thời.
 
-**Phục hồi lười:** khi `rateLimitedUntil` đã qua, kết nối sẽ lại đủ điều kiện. Khi sử dụng thành công, `clearAccountError()` sẽ xóa tất cả các trường lỗi.
+**Khôi phục trì hoãn:** khi `rateLimitedUntil` đã qua, kết nối sẽ lại đủ điều kiện. Sau khi sử dụng thành công, `clearAccountError()` sẽ xóa tất cả các trường lỗi.
 
-### Ngưỡng sử dụng Claude OAuth: luồng ưu tiên thấp hơn + đặt lại giới hạn phiên
+### Giới hạn mức sử dụng OAuth Claude: luồng ưu tiên thấp hơn + đặt lại giới hạn phiên
 
-**Phạm vi:** một kết nối đăng ký Claude (OAuth). Cả hai tính năng đều phải được **bật riêng cho từng
+**Phạm vi:** một kết nối gói đăng ký Claude (OAuth). Cả hai tính năng đều phải được **bật riêng cho từng
 kết nối** (Chỉnh sửa kết nối → phần Claude → `lowPriorityMode` / `autoLimitReset` trong
-`providerSpecificData`, cả hai mặc định tắt) và mô phỏng các lệnh `/low-priority` và
+`providerSpecificData`, cả hai mặc định đều tắt) và mô phỏng các lệnh `/low-priority` và
 `/limit-reset` của Claude Code (giao thức truyền được ghi nhận từ Claude Code 2.1.263).
 
 **Triển khai:**
 
 - Máy trạng thái + phân loại phản hồi: `open-sse/services/claudeLowPriority.ts`
-- Máy khách kiểm tra trạng thái/yêu cầu đặt lại: `open-sse/services/claudeLimitReset.ts`
-- Hook của trình thực thi (chèn tiêu đề + thử lại với cùng tài khoản): `open-sse/executors/base.ts::execute()`
-- Lưu trạng thái bật riêng: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+- Máy khách trạng thái/yêu cầu đặt lại: `open-sse/services/claudeLimitReset.ts`
+- Hook bộ thực thi (chèn header + thử lại với cùng tài khoản): `open-sse/executors/base.ts::execute()`
+- Lưu trạng thái bật tính năng: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-**Điều kiện kích hoạt:** ngưỡng sử dụng 5 giờ — một phản hồi `429` có các tiêu đề chứa
+**Điều kiện kích hoạt:** giới hạn sử dụng 5 giờ — một phản hồi `429` có các header chứa
 `anthropic-ratelimit-unified-status: rejected` và, khi tài khoản đủ điều kiện,
-`anthropic-ratelimit-unified-slow-offer: treatment`. Không có gì được gửi trước phản hồi 429 đầu tiên
-tại ngưỡng đó; phản hồi 429 theo đợt không có các tiêu đề hợp nhất sẽ đi qua luồng thời gian chờ thông thường.
+`anthropic-ratelimit-unified-slow-offer: treatment`. Không có gì được gửi trước phản hồi
+429 do chạm giới hạn đầu tiên đó; phản hồi 429 đột biến không có các header hợp nhất sẽ đi qua
+luồng xử lý thời gian chờ thông thường.
 
 **Luồng ưu tiên thấp hơn** (`lowPriorityMode`):
 
-- Khi nhận phản hồi 429 tại ngưỡng, trình thực thi chấp nhận đề nghị và ngay lập tức thử lại với **cùng**
-  tài khoản bằng `anthropic-usage-limit: slow`; luồng này tiếp tục hoạt động cho đến thời điểm
-  `anthropic-ratelimit-unified-reset` đã công bố (+60 giây gia hạn), và mọi yêu cầu trong khoảng thời gian đó đều mang
-  tiêu đề này. Phản hồi 429 bị chặn không bao giờ đến `handleChatCore`, vì vậy kết nối
-  **không** bị đưa vào thời gian chờ và không bị chuyển sang kết nối khác.
-- `anthropic-ratelimit-unified-slow-status` trong các phản hồi sau đó: `active` / `not_needed`
-  duy trì luồng; `slot_busy` (429) hoặc `529` sẽ chờ theo
-  `anthropic-ratelimit-unified-slow-retry-after` của máy chủ (mặc định 20 giây, giới hạn 5–600 giây, độ dao động ±30%)
-  rồi thử lại, với giới hạn bởi `anthropic-ratelimit-unified-slow-max-wait` (mặc định 20 phút, giới hạn
-  1 phút–6 giờ) — sau thời gian đó, luồng kết thúc và khoảng nghỉ 10 phút sẽ ngăn việc chấp nhận lại. Thời gian
-  chờ còn được giới hạn thêm bởi thời gian còn lại trong thời gian chờ bắt đầu thượng nguồn của chính yêu cầu
-  (`resolveFetchStartTimeout`, mặc định 10 phút), trừ đi khoảng đệm 5 giây: nếu không có giới hạn này,
-  thời gian chờ tối đa mặc định 20 phút sẽ dài hơn vòng đời yêu cầu và thao tác chờ sẽ bị hủy
-  giữa chừng, làm phát sinh `TimeoutError` thay vì kết thúc `max_wait` một cách nhẹ nhàng + khoảng nghỉ.
+- Khi gặp ngưỡng 429, executor chấp nhận đề nghị và ngay lập tức thử lại với **cùng**
+  tài khoản bằng `anthropic-usage-limit: slow`; lane vẫn hoạt động cho đến thời điểm
+  `anthropic-ratelimit-unified-reset` được thông báo (+60 giây gia hạn) và mọi yêu cầu trong khoảng thời gian đó đều mang
+  header này. Phản hồi 429 bị chặn không bao giờ đến `handleChatCore`, vì vậy kết nối
+  **không** bị đưa vào trạng thái cooldown và không bị xoay vòng sang kết nối khác.
+- `anthropic-ratelimit-unified-slow-status` trên các phản hồi sau đó: `active` / `not_needed`
+  duy trì lane; `slot_busy` (429) hoặc `529` sẽ chờ theo
+  `anthropic-ratelimit-unified-slow-retry-after` của máy chủ (mặc định 20 giây, giới hạn 5–600 giây, jitter ±30%)
+  rồi thử lại, bị giới hạn bởi `anthropic-ratelimit-unified-slow-max-wait` (mặc định 20 phút, giới hạn
+  1 phút–6 giờ) — quá thời điểm đó, lane kết thúc và thời gian tạm ngưng 10 phút sẽ ngăn việc chấp nhận lại. Thời gian
+  chờ còn được giới hạn thêm bởi thời gian còn lại trong timeout bắt đầu upstream của chính yêu cầu
+  (`resolveFetchStartTimeout`, mặc định 10 phút) trừ đi khoảng đệm 5 giây: nếu không có giới hạn này,
+  thời gian chờ tối đa mặc định 20 phút sẽ kéo dài quá vòng đời yêu cầu và thao tác sleep sẽ bị hủy
+  giữa chừng, làm xuất hiện `TimeoutError` thay vì kết thúc `max_wait` một cách êm thấm kèm thời gian tạm ngưng.
 - `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, việc chuyển sang cửa sổ 5 giờ mới, hoặc
-  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (kết thúc luồng dưới dạng
-  `extra_usage` với bất kỳ trạng thái nào, vì mức sử dụng vượt hạn mức có trả phí hiện đã bao phủ ngưỡng này) sẽ kết thúc luồng;
-  sau đó phản hồi được chuyển đến luồng thời gian chờ thông thường. `budget_exhausted` được ghi nhớ cho đến
-  thời điểm đặt lại ngân sách đã công bố (≤ 8 ngày).
-- Việc kiểm tra ngưỡng diễn ra sau các lần thử lại trong cùng một lượt do lỗi 400 của chính trình thực thi kích hoạt (chỉnh sửa
-  ngữ cảnh, giới hạn thinking/effort, tự động học tham số), vì vậy phản hồi 429 tại ngưỡng chỉ xuất hiện trong
-  một trong những lần thử lại đó vẫn bị chặn thay vì đi đến luồng thời gian chờ.
-- Trạng thái được lưu trong bộ nhớ theo từng kết nối (khởi động lại sẽ khiến hệ thống phải nhận thêm một phản hồi 429 tại ngưỡng để chấp nhận lại).
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (kết thúc lane dưới dạng
+  `extra_usage` với bất kỳ trạng thái nào, vì phần sử dụng vượt mức có trả phí giờ đã bao phủ ngưỡng) sẽ kết thúc lane;
+  phản hồi sau đó đi vào luồng cooldown thông thường. `budget_exhausted` được ghi nhớ cho đến
+  thời điểm đặt lại ngân sách đã thông báo (≤ 8 ngày).
+- Việc kiểm tra ngưỡng diễn ra sau các lần thử lại nội bộ trong cùng một lần thực thi do lỗi 400 của chính executor (chỉnh sửa
+  ngữ cảnh, giới hạn thinking/effort, tự động học tham số), vì vậy phản hồi 429 do chạm ngưỡng chỉ xuất hiện trong
+  một trong các lần thử lại đó vẫn bị chặn thay vì đi vào luồng cooldown.
+- Trạng thái được lưu trong bộ nhớ theo từng kết nối (việc khởi động lại sẽ tốn thêm một phản hồi 429 do chạm ngưỡng để chấp nhận lại).
 
-**Đặt lại giới hạn phiên** (`autoLimitReset`, được thử trước luồng khi cả hai đều bật):
+**Đặt lại giới hạn phiên** (`autoLimitReset`, được thử trước lane khi cả hai đều bật):
 
 - `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → khối `juniper_tide`;
   khi `arm: "reset"` và `available: true`,
   `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` với
-  `{ "program": "juniper_tide" }` (UUID của tổ chức lấy từ
-  `providerSpecificData.organizationUUID`, có phương án dự phòng khởi tạo).
-- `result: reset|not_limited` → yêu cầu được thử lại ở tốc độ tối đa (không có tiêu đề chế độ chậm).
+  `{ "program": "juniper_tide" }` (UUID tổ chức lấy từ
+  `providerSpecificData.organizationUUID`, dự phòng từ bootstrap).
+- `result: reset|not_limited` → yêu cầu được thử lại ở tốc độ tối đa (không có header slow).
   `already_used` / `not_offered` ghi nhớ `next_available_at` (mặc định một tuần); mọi
-  lỗi đều kích hoạt thời gian chờ tăng dần 15 phút. Việc đặt lại được thực hiện mỗi tuần một lần và vẫn được tính vào
+  lỗi đều backoff 15 phút. Việc đặt lại chỉ diễn ra một lần mỗi tuần và vẫn được tính vào
   giới hạn hằng tuần.
 
-Các kiểm tra chống hồi quy: `tests/unit/claude-low-priority-mode.test.ts`,
+Các biện pháp bảo vệ khỏi hồi quy: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Tính liên kết phiên (#7274)
 
-**Phạm vi:** một phiên máy khách (tiêu đề `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) được ghim vào một kết nối, cho **bất kỳ** nhà cung cấp nào.
+**Phạm vi:** một phiên client (header `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) được ghim vào một kết nối, áp dụng cho **mọi** provider.
 
-**Mục đích:** giữ một agent nhiều lượt (Claude Code, aider, agent tùy chỉnh) trên cùng một tài khoản giữa các yêu cầu, giúp giảm tình trạng mất ngữ cảnh do chuyển tài khoản và các lỗi 429 cold-start lặp lại trên những nhà cung cấp có trạng thái phiên theo từng tài khoản.
+**Mục đích:** giữ một agent nhiều lượt (Claude Code, aider, các agent tùy chỉnh) trên cùng một tài khoản xuyên suốt các yêu cầu, giảm mất ngữ cảnh giữa các tài khoản và các lỗi 429 do khởi động nguội lặp lại trên những provider có trạng thái phiên theo từng tài khoản.
 
 **Triển khai:**
 
 - Phân giải TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Lựa chọn/tạo ghim: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Trích xuất header (dùng chung, cho mọi nhà cung cấp): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Chọn/tạo ghim: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Trích xuất header (chung, mọi provider): `src/sse/services/auth.ts::extractSessionAffinityKey()`
 - Bảng ghim được lưu bền vững: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Cài đặt: `sessionAffinityTtlMs` (TTL toàn cục tính bằng ms, `0` sẽ vô hiệu hóa) — `src/lib/db/settings.ts`. Được đổi tên từ `codexSessionAffinityTtlMs` vốn chỉ dành cho Codex thông qua migration `124_generic_session_affinity_ttl.sql`; migration này chuyển mọi TTL Codex đã cấu hình trước đó thành giá trị mặc định mới.
+- Cài đặt: `sessionAffinityTtlMs` (TTL toàn cục tính bằng ms, `0` để tắt) — `src/lib/db/settings.ts`. Được đổi tên từ `codexSessionAffinityTtlMs` chỉ dành cho Codex bằng migration `124_generic_session_affinity_ttl.sql`, migration này chuyển mọi TTL Codex đã cấu hình trước đó thành giá trị mặc định mới.
 
-Trước #7274, `resolveSessionAffinityTtlMs()` luôn thoát sớm với giá trị `0` cho mọi nhà cung cấp ngoại trừ `codex`, vì vậy cài đặt TTL (và các header phiên) không có tác dụng ở bất kỳ nơi nào khác, dù cơ chế ghim và việc trích xuất header đã không phụ thuộc vào nhà cung cấp. Bản sửa lỗi đã loại bỏ nhánh thoát sớm đó; TTL hiện được áp dụng đồng nhất cho mọi nhà cung cấp sau khi được đặt toàn cục thành giá trị lớn hơn `0`.
+Trước #7274, `resolveSessionAffinityTtlMs()` luôn dừng sớm và trả về `0` cho mọi provider ngoại trừ `codex`, vì vậy cài đặt TTL (và các header phiên) không có hiệu lực ở bất kỳ nơi nào khác, dù cơ chế ghim và việc trích xuất header vốn đã không phụ thuộc vào provider. Bản sửa lỗi đã loại bỏ lệnh trả về sớm đó; giờ đây TTL được áp dụng đồng nhất cho mọi provider sau khi được đặt toàn cục lớn hơn `0`.
 
 Ba header liên kết phiên không bao giờ được chuyển tiếp lên upstream — các executor tự xây dựng header upstream từ đầu thay vì chuyển tiếp header của client, vì vậy chúng chỉ đóng vai trò là ID tương quan nội bộ.
 
@@ -190,19 +211,35 @@ Ba header liên kết phiên không bao giờ được chuyển tiếp lên upst
 
 **Phạm vi:** một HTTP client/phiên được quản lý đang hoạt động sở hữu một kết nối OmniRoute đủ điều kiện.
 
-**Mục đích:** cung cấp quyền sở hữu kết nối độc quyền và bền vững cho các client cần một rào chắn định tuyến nghiêm ngặt giữa các yêu cầu. Cơ chế này khác với liên kết phiên, vốn chỉ là một ưu tiên mềm nhằm duy trì tính liên tục: một lease độc quyền lưu bền vững trạng thái vòng đời trong SQLite, thực thi tính duy nhất toàn cục của chủ sở hữu đang hoạt động và kết nối đang hoạt động, đồng thời từ chối generation cũ trước khi chuyển yêu cầu đến nhà cung cấp.
+**Mục đích:** cung cấp quyền sở hữu kết nối độc quyền, bền vững cho những client cần một hàng rào định tuyến nghiêm ngặt
+xuyên suốt các yêu cầu. Cơ chế này khác với tính liên kết phiên, vốn là một ưu tiên mềm nhằm duy trì tính liên tục:
+một lease độc quyền lưu bền vững trạng thái vòng đời trong SQLite, thực thi tính duy nhất toàn cục của chủ sở hữu đang hoạt động và
+kết nối đang hoạt động, đồng thời từ chối một thế hệ lỗi thời trước khi gửi đến provider.
 
-Tính năng này được bật riêng cho từng API key. Một key được quản lý phải có scope `lease:exclusive` và danh sách `allowedConnections` không rỗng được chỉ định rõ ràng. Bất kỳ HTTP client nào cũng có thể sử dụng endpoint vòng đời; không yêu cầu tên client, user-agent, nhà cung cấp, phương thức OAuth hoặc model. Lease sở hữu một kết nối chứ không phải một model, vì vậy việc thay đổi model vẫn giữ nguyên liên kết miễn là kết nối vẫn đủ điều kiện theo cách thông thường. Các quy tắc thông thường về model, quota, tình trạng hoạt động, cooldown và allowlist vẫn có hiệu lực cao nhất và có thể chuyển cùng một generation sang một kết nối đủ điều kiện khác đang rảnh.
+Tính năng này phải được bật riêng cho từng API key. Một key được quản lý phải có scope `lease:exclusive` và một
+danh sách `allowedConnections` tường minh, không rỗng. Bất kỳ HTTP client nào cũng có thể sử dụng endpoint vòng đời; không
+yêu cầu tên client, user-agent, provider, phương thức OAuth hoặc model. Lease sở hữu một kết nối,
+không phải một model, vì vậy việc thay đổi model vẫn giữ nguyên liên kết miễn là kết nối vẫn đủ điều kiện
+theo cách thông thường. Các quy tắc thông thường về model, quota, tình trạng, cooldown và danh sách cho phép vẫn có tính quyết định và có thể
+chuyển cùng một thế hệ sang một kết nối khả dụng, đủ điều kiện khác.
 
-Vòng đời sử dụng `POST /api/v1/session-leases` với các action JSON `acquire`, `renew` và `release`. Các yêu cầu suy luận được quản lý cung cấp giá trị không trong suốt `X-OmniRoute-Lease-Owner` và giá trị chính xác `X-OmniRoute-Lease-Generation`. Owner sử dụng tiền tố `vlo_`, theo sau là 43 ký tự base64url; chỉ hash SHA-256 của giá trị này được lưu trữ. Mỗi rào chắn điều phối cuối cùng cũng liên kết ID của API key đã xác thực với ID của kết nối đang hoạt động. Các header điều khiển lease bị loại bỏ khỏi log, snapshot yêu cầu được lưu giữ và header của executor upstream.
+Vòng đời sử dụng `POST /api/v1/session-leases` với các hành động JSON `acquire`, `renew` và `release`.
+Các yêu cầu suy luận được quản lý cung cấp giá trị bất minh `X-OmniRoute-Lease-Owner` và giá trị chính xác
+`X-OmniRoute-Lease-Generation`. Chủ sở hữu sử dụng tiền tố `vlo_` theo sau bởi 43 ký tự base64url; chỉ
+hàm băm SHA-256 của giá trị này được lưu trữ. Mỗi hàng rào điều phối cuối cùng cũng liên kết ID khóa API đã xác thực và
+ID kết nối đang hoạt động. Các header điều khiển lease bị loại bỏ khỏi nhật ký, ảnh chụp nhanh yêu cầu được lưu giữ và
+các header của trình thực thi thượng nguồn.
 
-Nếu cơ chế định tuyến thông thường có các ứng viên được quản lý đủ điều kiện nhưng mọi ứng viên đang rảnh đều bị một lease đang hoạt động của chủ sở hữu khác chiếm giữ, OmniRoute sẽ trả về HTTP `429`, mã `lease-capacity-unavailable`, trạng thái chờ dung lượng và `Retry-After` có giới hạn được tính từ thời điểm hết hạn liên quan sớm nhất. Trường hợp thông thường không có kết nối đủ điều kiện không phải là tranh chấp lease và vẫn giữ nguyên ngữ nghĩa lỗi định tuyến hiện có.
+Nếu quá trình định tuyến thông thường có các ứng viên được quản lý đủ điều kiện nhưng mọi ứng viên đang rảnh đều bị chiếm dụng bởi một
+lease đang hoạt động của chủ sở hữu khác, OmniRoute trả về HTTP `429`, mã lease-capacity-unavailable, trạng thái
+waiting-for-capacity và giá trị `Retry-After` có giới hạn được suy ra từ thời điểm hết hạn liên quan sớm nhất.
+Trường hợp thông thường không có ứng viên đủ điều kiện không phải là tranh chấp lease và vẫn giữ nguyên ngữ nghĩa lỗi định tuyến hiện có.
 
 Các cơ chế liên quan vẫn tách biệt:
 
-- Mức chiếm dụng phiên OAuth là cơ chế phân phối mềm cục bộ theo tiến trình dành cho các tài khoản OAuth.
-- Semaphore tài khoản cấp quyền thực hiện yêu cầu đồng thời và kết thúc khi yêu cầu hoàn tất.
-- Lease kết nối phiên được quản lý độc quyền là quyền sở hữu vòng đời bền vững với rào chắn generation.
+- Mức chiếm dụng phiên OAuth là cơ chế phân phối mềm cục bộ trong tiến trình dành cho các tài khoản OAuth.
+- Semaphore tài khoản cấp giấy phép đồng thời cho yêu cầu và kết thúc khi yêu cầu hoàn tất.
+- Lease phiên được quản lý độc quyền là quyền sở hữu vòng đời bền vững với hàng rào thế hệ.
 
 ---
 
@@ -210,59 +247,77 @@ Các cơ chế liên quan vẫn tách biệt:
 
 **Phạm vi:** bộ ba nhà cung cấp + kết nối + mô hình.
 
-**Phạm vi khóa theo trạng thái:** trạng thái lỗi quyết định khóa sẽ được ghi vào khóa nào
-(`resolveLockoutScope()` trong `open-sse/services/accountFallback/exactModelLock.ts`):
+**Phạm vi khóa theo trạng thái:** trạng thái lỗi quyết định khóa sẽ được ghi
+vào khóa nào (`resolveLockoutScope()` trong `open-sse/services/accountFallback/exactModelLock.ts`):
 
 - `429` / `403` / `402` — tín hiệu về hạn ngạch hoặc quyền sử dụng — khóa **nhóm hạn ngạch**:
   đối với codex là toàn bộ phạm vi `codex` / `spark` (mọi mô hình `gpt-5*` của
   kết nối), còn đối với các nhà cung cấp khác là `getQuotaScopedModelForProvider()`.
-- `404` khóa mô hình cụ thể (`getModelLockKey()` thu hẹp phạm vi `not_found`).
-- Bất kỳ trạng thái nào khác — lỗi truyền tải/máy chủ `5xx` và lỗi `502` do chính
+- `404` khóa trực tiếp mô hình (`getModelLockKey()` thu hẹp `not_found`).
+- Bất kỳ trạng thái nào khác — lỗi truyền tải/máy chủ `5xx` và mã `502` do chính
   OmniRoute tổng hợp từ quá trình xác thực chất lượng — chỉ khóa **chính xác**
-  bộ ba nhà cung cấp/kết nối/mô hình. Một luồng lỗi trên một mô hình không phải là
-  bằng chứng về hạn ngạch của tài khoản; trước khi có quy tắc này, một phản hồi
-  rỗng từ `codex/gpt-5.6-luna` sẽ loại bỏ mọi mô hình `gpt-5*` của kết nối đó khỏi
-  quá trình định tuyến trong 2–30 phút (tăng dần), dù hạn ngạch của kết nối vẫn còn nguyên.
-- Tùy chọn `scope` do bên gọi chỉ định rõ ràng luôn được ưu tiên (Antigravity truyền `"exact"`).
+  bộ ba nhà cung cấp/kết nối/mô hình. Luồng lỗi trên một mô hình không phải là bằng chứng
+  về hạn ngạch của tài khoản; trước khi có quy tắc này, một phản hồi rỗng trên
+  `codex/gpt-5.6-luna` sẽ loại bỏ mọi mô hình `gpt-5*` của kết nối đó khỏi
+  hoạt động định tuyến trong 2–30 phút (tăng dần), trong khi hạn ngạch của nó không bị ảnh hưởng.
+- Tùy chọn `scope` được bên gọi chỉ định rõ ràng luôn được ưu tiên (Antigravity truyền `"exact"`).
 
-**Mục đích:** tránh vô hiệu hóa toàn bộ kết nối khi chỉ có một mô hình không khả dụng hoặc bị giới hạn hạn ngạch.
+**Mục đích:** tránh vô hiệu hóa toàn bộ kết nối khi chỉ một mô hình không khả dụng hoặc bị giới hạn hạn ngạch.
 
 **Ví dụ:**
 
-- Các nhà cung cấp hạn ngạch theo từng mô hình trả về 429
-- Các nhà cung cấp cục bộ trả về 404 cho một mô hình bị thiếu
-- Lỗi quyền đối với chế độ/mô hình cụ thể của nhà cung cấp (ví dụ: các chế độ Grok)
+- Các nhà cung cấp có hạn ngạch theo từng mô hình trả về 429
+- Các nhà cung cấp cục bộ trả về 404 khi thiếu một mô hình
+- Lỗi quyền dành riêng cho chế độ/mô hình của nhà cung cấp (ví dụ: các chế độ Grok)
 
 **Triển khai:** `open-sse/services/accountFallback.ts` — `lockModel()`, `clearModelLock()`, `getAllModelLockouts()`.
 
 ### Bảng điều khiển thời gian chờ của mô hình (v3.8.0)
 
-Giao diện người dùng: Cài đặt → Thời gian chờ của mô hình (`src/app/(dashboard)/dashboard/settings/components/ModelCooldownsCard.tsx`)
+Giao diện: Cài đặt → Thời gian chờ của mô hình (`src/app/(dashboard)/dashboard/settings/components/ModelCooldownsCard.tsx`)
 
 Liệt kê các khóa đang hoạt động với: nhà cung cấp, kết nối, mô hình, lý do, expiresAt. Người vận hành có thể bật lại mô hình theo cách thủ công từ thẻ này.
 
-**REST API:**
+**API REST:**
 
 - `GET /api/resilience/model-cooldowns` — liệt kê các khóa đang hoạt động
-- `DELETE /api/resilience/model-cooldowns` — bật lại theo cách thủ công. Nội dung: `{provider, connection, model}`. Xác thực: quản trị.
+- `DELETE /api/resilience/model-cooldowns` — bật lại theo cách thủ công. Nội dung: `{provider, connection, model}`. Xác thực: quản lý.
 
-### Giao diện cài đặt khóa + khôi phục bằng cơ chế suy giảm khi thành công (v3.8.23)
+### Trình quản lý thời gian chờ
 
-Khóa mô hình đã chuyển từ hành vi được mã hóa cứng và luôn bật thành một
-tính năng hoàn toàn có thể cấu hình, được bật theo lựa chọn, với thẻ cài đặt
-riêng và cơ chế khôi phục tự phục hồi.
+Giao diện: Giám sát → Trình quản lý thời gian chờ (`src/app/(dashboard)/dashboard/resilience/cooldowns/`).
+
+Một trang dành cho mọi kết nối bị loại khỏi hoạt động định tuyến vì lý do tạm thời, thay vì
+phải mở từng trang nhà cung cấp. Trang này liệt kê thời gian chờ của kết nối, các khóa mô hình và trạng thái
+kết thúc; xóa chúng theo từng kết nối, theo lựa chọn hoặc cho tất cả kết nối của một nhà cung cấp;
+đồng thời chỉnh sửa các quy tắc thời gian chờ được tinh chỉnh nhiều nhất: `streamStallCooldown.enabled` và thời gian chờ
+cơ sở `connectionCooldown` cùng số bước lùi tối đa của OAuth / khóa API (được lưu thông qua
+`PATCH /api/resilience`). Các trạng thái kết thúc (`banned`, `expired`, `credits_exhausted`) được
+liệt kê nhưng không bao giờ bị xóa tại đây.
+
+**API REST** (`src/lib/resilience/cooldownManager.ts`, xác thực: quản lý):
+
+- `GET /api/resilience/cooldowns[?provider=]` — các kết nối cùng trạng thái, thời gian chờ còn lại,
+  cấp độ lùi, loại lỗi gần nhất và các khóa mô hình (không có thông tin xác thực)
+- `POST /api/resilience/cooldowns` — nội dung `{connectionIds: string[]}` hoặc
+  `{all: true, provider?}`; trả về `{cleared, unchanged, skippedTerminal, lockoutsCleared}`
+
+### Giao diện cài đặt khóa + phục hồi bằng cơ chế suy giảm khi thành công (v3.8.23)
+
+Khóa mô hình đã chuyển từ hành vi mã hóa cứng luôn bật thành một tính năng
+tùy chọn có thể cấu hình đầy đủ, với thẻ cài đặt riêng và cơ chế phục hồi tự sửa chữa.
 
 **Thẻ cài đặt:** Cài đặt → Khóa mô hình
 (`src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx`).
-Thẻ này **khác biệt** với `ModelCooldownsCard` chỉ đọc ở trên (thẻ đó chỉ
+Thẻ này **khác biệt** với `ModelCooldownsCard` chỉ đọc ở trên (chỉ
 _liệt kê_ các khóa đang hoạt động) — thẻ mới _cấu hình các tham số_. Các giá trị mặc định
 nằm trong `DEFAULT_MODEL_LOCKOUT_SETTINGS`
 (`src/lib/resilience/modelLockoutSettings.ts`):
 
 | Cài đặt                 | Mặc định                         | Ý nghĩa                                                            |
 | ----------------------- | -------------------------------- | ------------------------------------------------------------------ |
-| `enabled`               | `false`                          | Công tắc chính — khóa mô hình **mặc định bị tắt**.                 |
-| `errorCodes`            | `[403, 404, 429, 502, 503, 504]` | Các trạng thái từ thượng nguồn được tính là lỗi ở phạm vi mô hình. |
+| `enabled`               | `false`                          | Công tắc chính — khóa mô hình **tắt theo mặc định**.               |
+| `errorCodes`            | `[403, 404, 429, 502, 503, 504]` | Các trạng thái thượng nguồn được tính là lỗi theo phạm vi mô hình. |
 | `baseCooldownMs`        | `120_000` (120 giây)             | Thời lượng khóa ban đầu cho lỗi đầu tiên.                          |
 | `maxCooldownMs`         | `1_800_000` (30 phút)            | Giới hạn trên của thời gian chờ tăng dần.                          |
 | `maxBackoffSteps`       | `10`                             | Số bước tăng lùi theo cấp số nhân tối đa.                          |
@@ -272,55 +327,107 @@ Các cài đặt được duy trì thông qua kho cài đặt thông thường v
 lược đồ cài đặt khả năng phục hồi; thẻ giới hạn `baseCooldownMs`/`maxCooldownMs`
 (với `maxCooldownMs ≥ baseCooldownMs`) và `maxBackoffSteps`.
 
-**Khôi phục bằng cơ chế suy giảm khi thành công:** việc khôi phục **không** chỉ dựa trên thời điểm bộ hẹn giờ hết hạn. Một
-phản hồi bình thường sẽ giảm dần số lần lỗi của mô hình, để một mô hình đã phục hồi
-giữa khoảng thời gian khóa ngừng tăng mức khóa (và được xóa khóa) trước khi bộ hẹn giờ kết thúc. Khi một
-mục tiêu tổ hợp thành công, `open-sse/services/combo.ts` gọi `decayModelFailureCount()`
+**Phục hồi bằng cơ chế suy giảm khi thành công:** quá trình phục hồi **không** chỉ dựa vào việc bộ hẹn giờ hết hạn. Một phản hồi
+hợp lệ sẽ giảm dần số lần lỗi của mô hình, để mô hình đã phục hồi
+giữa khoảng thời gian này ngừng tăng mức phạt (và được xóa khóa) trước khi bộ hẹn giờ kết thúc. Khi một
+đích kết hợp thành công, `open-sse/services/combo.ts` gọi `decayModelFailureCount()`
 (`open-sse/services/accountFallback.ts`), hàm này **giảm một nửa** giá trị
 `failureCount` đã lưu (`Math.floor(failureCount / 2)`); khi giá trị đạt `0`, mục khóa
 sẽ bị xóa hoàn toàn. Hàm đối ứng `recordModelLockoutFailure()`
 tăng số đếm (và tăng thời gian chờ) khi xảy ra lỗi trong
-khoảng thời gian tăng mức. Cơ chế suy giảm khi thành công này bổ sung cho việc bộ hẹn giờ hết hạn thông thường —
-một trong hai cơ chế đều có thể bật lại mô hình.
+khoảng thời gian tăng mức phạt. Cơ chế suy giảm khi thành công này bổ sung cho việc bộ hẹn giờ hết hạn thông thường —
+cả hai cách đều có thể bật lại một mô hình.
 
 **Trạng thái:** các khóa được lưu **trong bộ nhớ** (các `Map` theo từng tiến trình chứa
-`ModelLockoutEntry`, được định danh bằng `provider:connectionId:model`; các khóa có phạm vi chính xác được định danh bằng
-`provider:connectionId:exact:model`), không được lưu vào
-DB — chúng sẽ mất khi khởi động lại. _Cài đặt_ được lưu bền vững; _trạng thái_ khóa đang hoạt động chỉ là tạm thời.
+`ModelLockoutEntry`, sử dụng khóa `provider:connectionId:model`; các khóa theo phạm vi chính xác sử dụng
+`provider:connectionId:exact:model`), không được lưu bền vững vào
+CSDL — chúng sẽ bị mất khi khởi động lại. _Các cài đặt_ được lưu bền vững; _trạng thái_ khóa
+đang hoạt động chỉ là tạm thời.
 
 ---
 
-## 4. Kiểm soát đồng thời theo quota-share (v3.8.36)
+## 4. Kiểm soát đồng thời khi chia sẻ hạn ngạch (v3.8.36)
 
-Các tài khoản đăng ký (GLM, MiniMax, v.v.) thường chỉ chấp nhận khoảng 1–3 yêu cầu đồng thời; vượt quá giới hạn đó sẽ kích hoạt lỗi 429 và thời gian tạm ngưng. Vấn đề này đặc biệt nghiêm trọng với các tổ hợp **quota-share** (`qtSd/…`), trong đó nhiều khóa API dùng chung một tài khoản thượng nguồn. Ba lớp bảo vệ giúp ngăn tài khoản dùng chung bị quá tải.
+Các tài khoản đăng ký (GLM, MiniMax, v.v.) thường chỉ chấp nhận khoảng 1–3 yêu cầu đồng thời; vượt quá mức này sẽ kích hoạt lỗi 429 và thời gian chờ. Vấn đề này đặc biệt nghiêm trọng với các combo **chia sẻ hạn ngạch** (`qtSd/…`), trong đó nhiều khóa API dùng chung một tài khoản thượng nguồn. Ba lớp bảo vệ giúp ngăn một tài khoản dùng chung bị quá tải.
 
-### Giới hạn đồng thời cho mỗi kết nối (`max_concurrent`)
+### Giới hạn đồng thời trên mỗi kết nối (`max_concurrent`)
 
-Mỗi kết nối nhà cung cấp có thể khai báo một mức trần `max_concurrent`
+Mỗi kết nối nhà cung cấp có thể khai báo một ngưỡng trần `max_concurrent`
 (`provider_connections.max_concurrent`, được thiết lập trong hộp thoại kết nối / API / DB).
-Để trống nếu không muốn giới hạn. Đây là tham số duy nhất điều khiển lớp tuần tự hóa bên dưới — hãy đặt nó bằng mức đồng thời thực tế của tài khoản (ví dụ: GLM ~1, MiniMax ~2).
+Để trống nếu không muốn giới hạn. Đây là tham số duy nhất điều khiển lớp tuần tự hóa
+bên dưới — hãy đặt thành mức đồng thời thực tế của tài khoản (ví dụ: GLM ~1, MiniMax ~2).
 
-### Tuần tự hóa yêu cầu quota-share
+### Giới hạn đồng thời trên mỗi mô hình (`modelConcurrency`)
 
-Khi một lần điều phối quota-share nhắm đến kết nối khai báo `max_concurrent`
-dương, các yêu cầu đồng thời tới **tài khoản** đó được tuần tự hóa thông qua một semaphore theo từng kết nối (khóa `qsconn:<connectionId>`): các yêu cầu vượt quá giới hạn sẽ **chờ trong hàng đợi** thay vì làm quá tải tài khoản. Cơ chế này là **fail-open** — khi hàng đợi bão hòa hoặc hết thời gian chờ, yêu cầu sẽ tiếp tục mà không cần giữ một suất, thay vì từ chối một yêu cầu có thể điều phối. Bật/tắt tại **Settings → Resilience → Quota-share per-connection
-concurrency** (`resilienceSettings.quotaShareConcurrencyLimit.enabled`, mặc định
+Một kết nối cũng có thể khai báo thêm các ngưỡng trần đồng thời chính xác cho từng mô hình
+bên trong ánh xạ `rateLimitOverrides`:
+
+```json
+{
+  "rateLimitOverrides": {
+    "maxConcurrent": 4,
+    "modelConcurrency": { "glm-5": 1, "glm-4.7": 3 }
+  }
+}
+```
+
+Thiết lập trong hộp thoại kết nối (**Ghi đè giới hạn tốc độ → Giới hạn
+đồng thời trên mỗi mô hình**, mỗi dòng một `model=cap`) hoặc qua
+`PATCH /api/providers/[id]` với cùng cấu trúc JSON. Ngữ nghĩa chính:
+
+- **Toàn kết nối so với riêng từng mô hình:** `maxConcurrent` vẫn là ngưỡng trần
+  dùng chung cho toàn bộ kết nối. Khi cả hai cùng áp dụng, cả hai cổng đều được
+  giành quyền truy cập một cách nguyên tử trong cùng một cổng tổng hợp
+  (`global → provider → account → model`); hành vi thực tế tuân theo
+  giới hạn áp dụng nghiêm ngặt hơn.
+- **Khớp chính xác khóa mô hình:** khóa là chuỗi mô hình được truyền đến
+  trình thực thi sau khi hoàn tất phân giải định tuyến — thường là id mô hình thượng nguồn thuần túy
+  (`glm-5`), không phải bí danh `provider/model` phía máy khách (`zai/glm-5` không
+  khớp với `glm-5`). Các giá trị là ngưỡng trần số yêu cầu đồng thời dạng số nguyên dương.
+- **Xếp hàng cục bộ, không tự khám phá:** các yêu cầu vượt mức được xếp hàng cục bộ theo
+  ngữ nghĩa hàng đợi/thời gian chờ hiện có (lỗi tiếp nhận có kiểu `SEMAPHORE_TIMEOUT` /
+  `SEMAPHORE_QUEUE_FULL`). OmniRoute không khám phá hoặc suy luận chính sách thượng nguồn
+  — hệ thống thực thi chính xác các ngưỡng trần do người vận hành cấu hình.
+  Một cổng mô hình bão hòa không bao giờ vô hiệu hóa nhà cung cấp và cũng không
+  tạo ra tình trạng khóa mô hình vĩnh viễn; hành vi 429/thời gian chờ/chuyển dự phòng
+  của thượng nguồn vẫn là cơ chế bảo vệ cuối cùng khi có lỗi.
+- **Phạm vi trên mỗi kết nối, trên mỗi tiến trình:** các giới hạn được áp dụng theo từng kết nối cơ sở dữ liệu
+  và được lưu trong bộ nhớ, vì vậy hai kết nối sử dụng lại cùng một khóa API thượng nguồn
+  sẽ không phối hợp với nhau.
+- **Không cấu hình nghĩa là không thay đổi:** việc bỏ qua ánh xạ (hoặc để trống
+  trường trên bảng điều khiển) sẽ không thêm cổng mô hình. Ví dụ cấu hình không
+  khẳng định bất kỳ giới hạn phổ quát nào của nhà cung cấp:
+
+```text
+glm-5=1
+glm-4.7=3
+```
+
+### Tuần tự hóa yêu cầu chia sẻ hạn ngạch
+
+Khi một lần điều phối chia sẻ hạn ngạch nhắm đến kết nối có khai báo
+`max_concurrent` dương, các yêu cầu đồng thời đến **tài khoản** đó được tuần tự hóa thông qua
+một semaphore cho từng kết nối (khóa `qsconn:<connectionId>`): các yêu cầu vượt mức **chờ trong
+hàng đợi** thay vì làm tài khoản quá tải. Cơ chế này **mở khi lỗi** — hàng đợi bão hòa
+hoặc hết thời gian chờ vẫn tiếp tục mà không cần một suất, thay vì từ chối một yêu cầu
+có thể điều phối. Bật/tắt tại **Cài đặt → Khả năng phục hồi → Đồng thời trên mỗi kết nối
+khi chia sẻ hạn ngạch** (`resilienceSettings.quotaShareConcurrencyLimit.enabled`, mặc định
 bật). Nếu không có giới hạn `max_concurrent`, hành vi không thay đổi.
 
-> Cổng định tuyến quota-share (`selectQuotaShareTarget`, DRR + P2C) bản thân nó
-> cũng là fail-open và chỉ _giảm độ ưu tiên_ của một kết nối đã đạt giới hạn — với
-> nhóm chỉ có một kết nối, nó không thể áp giới hạn cứng, vì vậy semaphore này mới là cơ chế thực sự
-> kiểm soát lưu lượng dồn dập.
+> Bản thân cổng định tuyến chia sẻ hạn ngạch (`selectQuotaShareTarget`, DRR + P2C)
+> hoạt động theo cơ chế mở khi lỗi và chỉ _hạ mức ưu tiên_ của một kết nối đã đạt giới hạn — với
+> nhóm chỉ có một kết nối, cổng này không thể áp đặt giới hạn cứng, vì vậy semaphore này mới là
+> cơ chế thực sự kiềm chế lượng yêu cầu ồ ạt.
 
-### Thử lại có nhận biết thời gian tạm ngưng của tổ hợp
+### Thử lại combo có nhận biết thời gian chờ
 
-Đối với mọi chiến lược tổ hợp (khi được bật), một yêu cầu có khả năng dẫn đến lỗi 429
-do thời gian tạm ngưng tạm thời NGẮN sẽ chờ hết thời gian đó rồi điều phối lại thay vì
+Đối với mọi chiến lược combo (khi được bật), một yêu cầu có thể dẫn đến lỗi 429
+do thời gian chờ tạm thời NGẮN sẽ đợi hết thời gian đó rồi được điều phối lại thay vì
 trả về lỗi 429 — cơ chế này bao phủ các cửa sổ TPM/RPM kiểu Gemini (retry-after khoảng 60 giây)
-trên các tổ hợp nhiều mô hình, ví dụ: cả hai đích của một tổ hợp 2 mô hình đều chạm giới hạn tốc độ
-theo từng mô hình. Được giới hạn bởi `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttempts`,
-`budgetMs`) trong **Settings → Resilience**. Cơ chế này không bao giờ chờ đối với `quota_exhausted`
-(bị khóa cho đến nửa đêm) hoặc các nguyên nhân xác thực/không tìm thấy.
+trên các combo nhiều mô hình, ví dụ: cả hai đích của một combo 2 mô hình đều chạm giới hạn
+tốc độ trên mỗi mô hình. Được giới hạn bởi `comboCooldownWait` (`enabled`, `maxWaitMs`, `maxAttempts`,
+`budgetMs`) trong **Cài đặt → Khả năng phục hồi**. Cơ chế này không bao giờ chờ đối với
+`quota_exhausted` (bị khóa đến nửa đêm) hoặc các lý do xác thực/không tìm thấy.
 
 ---
 

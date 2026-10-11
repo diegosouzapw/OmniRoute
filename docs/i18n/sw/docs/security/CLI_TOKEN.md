@@ -41,19 +41,11 @@ nenosiri kila zinapoendeshwa.
 | **Hakuna njia ya kukwepa ulinzi wa `always`** | `isAlwaysProtectedPath()` hutathminiwa kabla ya ukaguzi wa tokeni ya CLI. `/api/shutdown` na `/api/settings/database` huhitaji JWT kila wakati.                                                                     |
 | **Haiwezi kuhamishwa**                        | Tokeni haiandikwi kamwe kwenye diski wala kurekodiwa kwenye kumbukumbu.                                                                                                                                             |
 
-## Chumvi chaguomsingi (nasibu kwa kila usakinishaji)
+## Salt chaguomsingi (ya nasibu kwa kila usakinishaji)
 
-Wakati `OMNIROUTE_CLI_SALT` haijawekwa, chumvi huwa tungo nasibu ya heksadesimali yenye vibambo 64
-inayozalishwa mara moja na kuhifadhiwa katika `<DATA_DIR>/cli-token-salt.json` (hali `0600`) —
-si thamani halisi `omniroute-cli-auth-v1` iliyohifadhiwa kwenye msimbo. `getActiveSalt()` katika
-`src/lib/machineToken.ts` na nakala yake katika `bin/cli/utils/cliToken.mjs` husoma
-faili lilelile, ili seva na kila uendeshaji wa CLI katika usakinishaji huu zitumie
-thamani ileile; thamani halisi iliyohifadhiwa kwenye msimbo hutumiwa tu kama mbadala wa mwisho wakati hakuna
-chumvi iliyohifadhiwa au ya mazingira inayoweza kupatikana bado (kwa mfano usakinishaji mpya wa CLI pekee
-kabla ya seva kuwahi kuendeshwa). Hii hufunga udhaifu wa thamani ya zamani chaguomsingi isiyobadilika:
-`/etc/machine-id` kwa kawaida inaweza kusomwa na watumiaji wote, kwa hivyo mtumiaji yeyote wa ndani angeweza
-vinginevyo kuzalisha tokeni ileile kwa kila usakinishaji ambao haujawahi kuweka
-`OMNIROUTE_CLI_SALT`.
+Wakati `OMNIROUTE_CLI_SALT` haijawekwa, salt huwa mfuatano wa heksadesimali wa nasibu wenye vibambo 64 unaozalishwa mara moja na kuhifadhiwa kwenye `<DATA_DIR>/cli-token-salt.json` (hali `0600`) — si thamani halisi `omniroute-cli-auth-v1` iliyohifadhiwa kwenye msimbo. `getActiveSalt()` katika `src/lib/machineToken.ts` pamoja na nakala yake katika `bin/cli/utils/cliToken.mjs` husoma faili hiyo hiyo, hivyo seva na kila utekelezaji wa CLI katika usakinishaji huu hutumia thamani hiyo hiyo; thamani halisi iliyohifadhiwa kwenye msimbo hutumiwa tu kama mbadala wa mwisho wakati salt iliyohifadhiwa au ya mazingira bado haiwezi kupatikana (kwa mfano, usakinishaji mpya wa CLI pekee kabla seva haijawahi kuendeshwa). Hii hurekebisha udhaifu wa chaguomsingi la zamani la thamani halisi isiyobadilika: `/etc/machine-id` kwa kawaida inaweza kusomwa na kila mtu, kwa hivyo mtumiaji yeyote wa ndani angeweza kupata tokeni hiyo hiyo kwa kila usakinishaji ambao haujawahi kuweka `OMNIROUTE_CLI_SALT`.
+
+Ikiwa salt haiwezi kusomwa au kuundwa, seva na CLI zote hutoa onyo moja kwa kila mchakato kabla ya kutumia mbadala huo wa uoanifu. Onyo hilo halina salt, tokeni, njia ya mfumo wa faili wala hitilafu ghafi. Rejesha ufikiaji wa `DATA_DIR` au uweke `OMNIROUTE_CLI_SALT`, kisha uanzishe upya mchakato ulioathirika. Onyo hufanya hitilafu ionekane; halifanyi salt mbadala ya umma kuwa ya siri wala kulemaza uthibitishaji wa CLI. Salt halali zilizohifadhiwa tayari na thamani bayana za mazingira zinazobatilisha chaguomsingi huhifadhi thamani zao za awali za tokeni.
 
 ## Ubadilishaji wa salt
 

@@ -42,22 +42,11 @@ norādīt JWT vai paroli.
 | **Nav `always` aizsardzības apiešanas** | `isAlwaysProtectedPath()` tiek izvērtēta pirms CLI pilnvaras pārbaudes. `/api/shutdown` un `/api/settings/database` vienmēr pieprasa JWT.                                                                                                              |
 | **Nav eksportējama**                    | Pilnvara nekad netiek ierakstīta diskā vai žurnālos.                                                                                                                                                                                                   |
 
-## Noklusējuma sāls (nejaušs katrai instalācijai)
+## Noklusējuma sāls (nejauša katrai instalācijai)
 
-Ja `OMNIROUTE_CLI_SALT` nav iestatīts, sāls ir nejauša 64 rakstzīmju heksadecimāla
-virkne, kas tiek ģenerēta vienreiz un saglabāta failā
-`<DATA_DIR>/cli-token-salt.json` (režīms `0600`) — tas nav repozitorijā iekļautais
-literālis `omniroute-cli-auth-v1`. Gan `getActiveSalt()` failā
-`src/lib/machineToken.ts`, gan tā atbilstošā versija failā
-`bin/cli/utils/cliToken.mjs` lasa vienu un to pašu failu, tādēļ serveris un katrs
-CLI izsaukums šajā instalācijā nonāk pie vienas un tās pašas vērtības; repozitorijā
-iekļautais literālis tiek izmantots tikai kā galējais rezerves variants, ja vēl
-nav iespējams iegūt saglabātu vai vides mainīgajā norādītu sāli (piemēram, svaigā
-tikai CLI instalācijā, pirms serveris jebkad ir palaists). Tas novērš agrākā
-fiksētā noklusējuma literāļa vājumu: `/etc/machine-id` bieži ir lasāms visiem
-lietotājiem, tādēļ pretējā gadījumā jebkurš lokālais lietotājs varētu atvasināt
-vienu un to pašu pilnvaru katrai instalācijai, kurā nekad nav iestatīts
-`OMNIROUTE_CLI_SALT`.
+Ja `OMNIROUTE_CLI_SALT` nav iestatīts, sāls ir nejauša 64 rakstzīmju heksadecimāla virkne, kas tiek ģenerēta vienreiz un saglabāta failā `<DATA_DIR>/cli-token-salt.json` (režīms `0600`) — tā nav repozitorijā iekļautā literāļa vērtība `omniroute-cli-auth-v1`. Gan `getActiveSalt()` failā `src/lib/machineToken.ts`, gan tās spoguļrealizācija failā `bin/cli/utils/cliToken.mjs` nolasa to pašu failu, tādēļ serveris un katra CLI izsaukšana šajā instalācijā izmanto vienu un to pašu vērtību; repozitorijā iekļautā literāļa vērtība tiek izmantota tikai kā galējā rezerves iespēja, ja vēl nav iespējams iegūt nedz saglabātu, nedz vides mainīgajā iestatītu sāli (piemēram, jaunā instalācijā, kurā ir tikai CLI un serveris vēl nekad nav ticis palaists). Tas novērš vecā fiksētās literāļa noklusējuma vērtības trūkumu: `/etc/machine-id` parasti ir lasāms visiem lietotājiem, tādēļ pretējā gadījumā jebkurš lokālais lietotājs varētu atvasināt vienu un to pašu pilnvaru katrai instalācijai, kurā nekad nav iestatīts `OMNIROUTE_CLI_SALT`.
+
+Ja sāli nevar nolasīt vai izveidot, gan serveris, gan CLI pirms šīs saderības rezerves vērtības izmantošanas katrā procesā izvada vienu brīdinājumu. Brīdinājumā nav ietverts sāls, pilnvara, failu sistēmas ceļš vai neapstrādāts kļūdas ziņojums. Atjaunojiet piekļuvi `DATA_DIR` vai iestatiet `OMNIROUTE_CLI_SALT`, pēc tam restartējiet skarto procesu. Brīdinājums padara kļūmi redzamu; tas nepadara publisko rezerves sāli privātu un neatspējo CLI autentifikāciju. Esošās derīgās saglabātās sāls vērtības un nepārprotami iestatītās vides mainīgo pārrakstīšanas vērtības saglabā iepriekšējās pilnvaru vērtības.
 
 ## Sāls rotācija
 

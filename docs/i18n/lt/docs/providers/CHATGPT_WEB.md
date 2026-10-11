@@ -34,26 +34,26 @@ neapima Codex teikėjo ir jo ryšių.
 Tunelis reikalingas tik užklausų ciklams su įrankiais. Kiekvienas nurodytas maršrutas, įskaitant `pro`, gali naudoti tą pačią
 su užklausų ciklu susietą vietinio įrankio galimybę, kai tunelis ir konektorius yra sukonfigūruoti.
 
-## Valdymo skydelio konfigūravimas
+## Ataskaitų srities sąranka
 
 1. Atidarykite **ChatGPT Web (Codex)** teikėją ir pridėkite ryšį.
-2. Įklijuokite visą ChatGPT Cookie antraštę, tunelio ID, vykdymo aplinkos raktą ir pasirinktinio konektoriaus
-   pavadinimą. Naujose konfigūracijose su įrankių palaikymu turi būti naudojamas naujai sukurtas konektorius, pavadintas tiksliai
-   `OmniRoute Codex v2`, kurio Authentication nustatyta į None, o Permissions – į Allow all
-   actions.
-3. Paleiskite ryšio patikrą. OmniRoute atidaro naršykle pagrįstą Temporary Chat ir nustato,
-   ar paskyrai prieinami Sol ir Pro.
+2. Įklijuokite visą ChatGPT „Cookie“ antraštę, tunelio ID, vykdymo aplinkos raktą ir pasirinktinės jungties
+   pavadinimą. Naujose įrankius palaikančiose sąrankose turi būti naudojama naujai sukurta jungtis, pavadinta tiksliai
+   `OmniRoute Codex v2`, kurios autentifikavimo parinktis nustatyta į „None“, o leidimų parinktis – į „Allow all
+   actions“.
+3. Paleiskite ryšio patikrą. OmniRoute atidaro naršykle paremtą laikinąjį pokalbį („Temporary Chat“) ir nustato,
+   ar paskyroje pasiekiami Sol ir Pro.
 4. Išsaugokite ryšį. OmniRoute pakeičia įklijuotą slapuką patikrinta
-   Playwright saugyklos būsena ir kartu su vykdymo aplinkos raktu išsaugo ją naudodama šifruotų
-   prisijungimo duomenų abstrakciją.
+   Playwright saugyklos būsena ir per šifruotų prisijungimo duomenų abstrakciją išsaugo ją kartu su vykdymo aplinkos raktu.
 
-Sėkmingai išsaugojus neapdorotas slapukas nesaugomas. Pasibaigus seanso galiojimui, atidarykite
-ryšį, įklijuokite naują visą Cookie antraštę ir dar kartą paleiskite patikrą. Doctor būsena
-redagavimo dialogo lange atskirai pateikia naršyklės, saugyklos būsenos, prisijungimo, Temporary Chat, tunelio,
-konektoriaus ir įrankio viso ciklo patikros rezultatus.
+Sėkmingai išsaugojus, neapdorotas slapukas nėra saugomas. Pasibaigus seansui, atidarykite
+ryšį, įklijuokite naują visą „Cookie“ antraštę ir iš naujo paleiskite patikrą. Redagavimo dialogo lange pateikiama diagnostikos būsena
+atskirai nurodo naršyklės, saugyklos būsenos, prisijungimo, laikinojo pokalbio („Temporary Chat“), tunelio,
+jungties ir įrankio viso ciklo patikros būsenas. Norėdami automatizuoti slapukų atnaujinimą keičiantis seansams,
+žr. papildomą įrankį [Naršyklės seanso sinchronizavimo plėtinys](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Niekada neįtraukite tikro slapuko, vykdymo aplinkos rakto, saugyklos būsenos ar galimybės prieigos rakto į komitą. Testų ir
-> dokumentacijos reikšmės visada turi būti vietos rezervavimo ženklai.
+> Niekada neįtraukite tikro slapuko, vykdymo aplinkos rakto, saugyklos būsenos ar galimybių prieigos rakto į versijų valdymo sistemą. Testuose ir
+> dokumentacijoje visada turi būti naudojamos vietos rezervavimo reikšmės.
 
 ## Modeliai ir deriniai
 
@@ -130,7 +130,7 @@ išorinės sistemos paprašo HTTP/SSE atsarginio varianto. Tada perdavimas vykst
 
 ## Patikra
 
-Paleiskite teikėjo valdiklius nekviesdami nebenaudojamo teikėjo:
+Paleiskite teikėjo valdiklius neiškviesdami nebenaudojamo teikėjo:
 
 ```bash
 node --import tsx/esm --test \\
@@ -139,7 +139,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Nebenaudojimo regresijos apsaugos yra šiuose failuose:
+Regresijos apsaugos, susijusios su naudojimo nutraukimu, yra šiuose failuose:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

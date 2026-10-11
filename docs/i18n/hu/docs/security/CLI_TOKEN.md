@@ -42,23 +42,11 @@ meghíváskor JWT-t vagy jelszót kellene megadnia.
 | **Az `always`-védelem nem kerülhető meg** | Az `isAlwaysProtectedPath()` kiértékelése a CLI-token ellenőrzése előtt történik. Az `/api/shutdown` és az `/api/settings/database` mindig JWT-t igényel.                                                                                                           |
 | **Nem exportálható**                      | A token soha nem kerül lemezre, és nem naplózzák.                                                                                                                                                                                                                   |
 
-## Alapértelmezett só (telepítésenként véletlenszerű)
+## Alapértelmezett salt (telepítésenként véletlenszerű)
 
-Ha az `OMNIROUTE_CLI_SALT` nincs beállítva, a só egy véletlenszerű, 64 karakteres
-hexadecimális karakterlánc, amely egyszer generálódik, majd a
-`<DATA_DIR>/cli-token-salt.json` fájlban marad fenn (`0600` móddal) —
-nem pedig a verziókezelőben tárolt `omniroute-cli-auth-v1` literál. A
-`src/lib/machineToken.ts` fájlban található `getActiveSalt()` és annak
-`bin/cli/utils/cliToken.mjs` fájlbeli megfelelője ugyanazt a fájlt olvassa, így a
-kiszolgáló és ezen a telepítésen minden CLI-meghívás ugyanahhoz az értékhez jut;
-a verziókezelőben tárolt literál csak végső tartalékként használatos, amikor még
-sem tartósan tárolt, sem környezeti változóból származó só nem áll rendelkezésre
-(például egy friss, kizárólag CLI-t tartalmazó telepítésnél, mielőtt a kiszolgáló
-valaha is elindult volna). Ez megszünteti a korábbi rögzített literális
-alapértelmezés egyik gyengeségét: az `/etc/machine-id` általában bárki számára
-olvasható, így egyébként bármely helyi felhasználó előállíthatná ugyanazt a tokent
-minden olyan telepítéshez, amelyen soha nem állították be az
-`OMNIROUTE_CLI_SALT` értékét.
+Ha az `OMNIROUTE_CLI_SALT` nincs beállítva, akkor a salt egy véletlenszerű, 64 karakteres hexadecimális karakterlánc, amely egyszer generálódik, majd a `<DATA_DIR>/cli-token-salt.json` fájlban maradandóan tárolódik (`0600` móddal) — nem pedig a verziókövető rendszerbe bejegyzett `omniroute-cli-auth-v1` literál. A `src/lib/machineToken.ts` fájlban található `getActiveSalt()` és annak `bin/cli/utils/cliToken.mjs` fájlbeli megfelelője ugyanazt a fájlt olvassa, így a kiszolgáló és az adott telepítés minden CLI-meghívása ugyanazt az értéket használja; a verziókövető rendszerbe bejegyzett literál csak végső tartalékértékként használatos, amikor még sem maradandóan tárolt, sem környezeti változóban megadott salt nem áll rendelkezésre (például egy friss, kizárólag CLI-t tartalmazó telepítésnél, mielőtt a kiszolgáló valaha is futott volna). Ez megszünteti a korábbi, rögzített literál alapértelmezésének egyik gyenge pontját: az `/etc/machine-id` általában mindenki számára olvasható, így egyébként bármely helyi felhasználó előállíthatná ugyanazt a tokent minden olyan telepítéshez, amelyen soha nem állították be az `OMNIROUTE_CLI_SALT` értékét.
+
+Ha a salt nem olvasható vagy nem hozható létre, a kiszolgáló és a CLI folyamatonként egy figyelmeztetést ad ki, mielőtt ezt a kompatibilitási tartalékértéket használná. A figyelmeztetés nem tartalmaz saltot, tokent, fájlrendszerbeli elérési utat vagy nyers hibaüzenetet. Állítsa helyre a `DATA_DIR` elérését, vagy állítsa be az `OMNIROUTE_CLI_SALT` értékét, majd indítsa újra az érintett folyamatot. A figyelmeztetés láthatóvá teszi a hibát; nem teszi priváttá a nyilvános tartalék-saltot, és nem tiltja le a CLI-hitelesítést. A már meglévő, érvényes, maradandóan tárolt saltok és a kifejezett környezetiváltozó-felülbírálások megőrzik korábbi tokenértékeiket.
 
 ## Só rotációja
 

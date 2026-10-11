@@ -5,12 +5,12 @@
 ---
 
 > **ဗားရှင်း:** v3.8.44
-> **နောက်ဆုံးအပ်ဒိတ်လုပ်သည့်ရက်:** 2026-09-09
-> **ရည်ရွယ်ထားသူများ:** ထည့်သွင်းထားသော ဝန်ဆောင်မှုများ (9Router, CLIProxyAPI, Mux, Bifrost, open-wa) ကို ထည့်သွင်းခြင်း၊ ထိန်းသိမ်းခြင်း သို့မဟုတ် အမှားရှာဖွေခြင်း ပြုလုပ်သည့် အင်ဂျင်နီယာများ။
+> **နောက်ဆုံး အပ်ဒိတ်လုပ်ထားသည့်ရက်:** 2026-09-16
+> **ရည်ရွယ်ထားသော ပရိသတ်:** ထည့်သွင်းထားသည့် ဝန်ဆောင်မှုများ (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua) ကို ပေါင်းထည့်ခြင်း၊ ထိန်းသိမ်းခြင်း သို့မဟုတ် အမှားရှာဖွေခြင်း ပြုလုပ်သည့် အင်ဂျင်နီယာများ။
 
-ထည့်သွင်းထားသော ဝန်ဆောင်မှုများသည် OmniRoute က ထည့်သွင်းပေးခြင်း၊ ကြီးကြပ်ခြင်းနှင့်
-ပထမတန်းစား လမ်းကြောင်းပစ်မှတ်များအဖြစ် ဖော်ထုတ်ပေးခြင်းတို့ ပြုလုပ်သည့် စက်တွင်းထည့်သွင်းထားသော process sidecar ကိရိယာများ ဖြစ်သည်။ API key များမှတစ်ဆင့် အင်တာနက်ပေါ်တွင်
-ဆက်သွယ်အသုံးပြုရသည့် ပြင်ပ provider များနှင့်မတူဘဲ ထည့်သွင်းထားသော ဝန်ဆောင်မှုများသည် OmniRoute နှင့် စက်တစ်လုံးတည်းပေါ်တွင် လည်ပတ်ပြီး loopback မှတစ်ဆင့် ဆက်သွယ်ကြသည်။
+ထည့်သွင်းထားသည့် ဝန်ဆောင်မှုများသည် OmniRoute က စက်တွင်းတွင် ထည့်သွင်းပေးခြင်း၊ ကြီးကြပ်ပေးခြင်းနှင့်
+ပထမတန်းစား လမ်းကြောင်းပို့မှတ်များအဖြစ် အသုံးပြုနိုင်စေခြင်းတို့ ပြုလုပ်သည့် process sidecar ကိရိယာများ ဖြစ်သည်။ ပြင်ပဝန်ဆောင်မှုပေးသူများ (အင်တာနက်မှတစ်ဆင့်
+API key များကို အသုံးပြု၍ ဆက်သွယ်ရသူများ) နှင့်မတူဘဲ ထည့်သွင်းထားသည့် ဝန်ဆောင်မှုများသည် OmniRoute နှင့် စက်တစ်လုံးတည်းပေါ်တွင် လည်ပတ်ပြီး loopback မှတစ်ဆင့် ဆက်သွယ်ကြသည်။
 
 ---
 
@@ -31,47 +31,48 @@
 
 ### ထည့်သွင်းထားသော ဝန်ဆောင်မှုများကို အဘယ်ကြောင့် အသုံးပြုသနည်း?
 
-ဝန်ဆောင်မှု ခြောက်ခုကို ထည့်သွင်းထားသည်-
+ဝန်ဆောင်မှု ခုနစ်ခုကို ထည့်သွင်းထားသည်-
 
-| ဝန်ဆောင်မှု     | npm package                        | မူလ port | ရည်ရွယ်ချက်                                                                                                                                                                                                                                |
-| --------------- | ---------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                          |  20130   | OmniRoute က sub-provider အဖြစ် အသုံးပြုနိုင်သော AI router ဖြစ်သည်။ Model များကို `9router/{sub}/{model}` အဖြစ် ဖော်ထုတ်ပေးသည်                                                                                                              |
-| **CLIProxyAPI** | GitHub release binary (`cliproxy`) |   8317   | Anthropic CLI auth flow များအတွက် local proxy adapter ဖြစ်သည်။ OAuth token များ သက်တမ်းကုန်ဆုံးသည့်အခါ အရန် routing ကို ပံ့ပိုးပေးသည်                                                                                                      |
-| **Mux**         | `mux` (headless `mux server`)      |   8322   | Local agent-orchestration daemon (coder/mux) ဖြစ်သည်။ Lifecycle ကိုသာ စီမံခန့်ခွဲပေးပြီး routing target မဟုတ်ပါ (LLM proxying မပြုလုပ်ပါ)။                                                                                                 |
-| **Bifrost**     | `@maximhq/bifrost`                 |   8080   | Go AI-gateway relay backend ဖြစ်သည်။ လည်ပတ်နေစဉ် relay route (`/v1/relay/`) က အလိုအလျောက် ရွေးချယ်အသုံးပြုသည်                                                                                                                              |
-| **Dario**       | `@askalf/dario`                    |   3456   | Claude-subscription proxy ဖြစ်ပြီး Claude-Code ပုံစံ traffic အတွက် CLIProxyAPI ၏ အစားထိုး/အရန် ဝန်ဆောင်မှုဖြစ်သည်။ ထည့်သွင်းပေးထားသော key သည် ၎င်း၏ `/admin/*` OAuth control plane ကို ကန့်သတ်ထိန်းချုပ်သည့် `DARIO_ADMIN_TOKEN` ဖြစ်လာသည် |
-| **open-wa**     | `@open-wa/wa-automate`             |   8323   | WhatsApp Web automation (Puppeteer မှတစ်ဆင့် headless Chromium) ဖြစ်သည်။ Lifecycle ကိုသာ စီမံခန့်ခွဲပေးပြီး routing target မဟုတ်ပါ။                                                                                                        |
+| ဝန်ဆောင်မှု     | npm ပက်ကေ့ချ်                      | မူလ port | ရည်ရွယ်ချက်                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------- | ---------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **9Router**     | `9router`                          |  20130   | OmniRoute က လက်အောက်ခံ provider တစ်ခုအဖြစ် အသုံးပြုနိုင်သည့် AI router ဖြစ်သည်။ Model များကို `9router/{sub}/{model}` အဖြစ် ဖော်ထုတ်ပေးသည်                                                                                                                                                                                                                                                                   |
+| **CLIProxyAPI** | GitHub release binary (`cliproxy`) |   8317   | Anthropic CLI auth flow များအတွက် local proxy adapter ဖြစ်သည်။ OAuth token များ သက်တမ်းကုန်ဆုံးသည့်အခါ အရန် routing ကို ပံ့ပိုးပေးသည်                                                                                                                                                                                                                                                                        |
+| **Mux**         | `mux` (headless `mux server`)      |   8322   | Local agent orchestration daemon (coder/mux) ဖြစ်သည်။ Lifecycle ကိုသာ စီမံခန့်ခွဲပြီး routing target မဟုတ်ပါ (LLM proxying မပြုလုပ်ပါ)။                                                                                                                                                                                                                                                                      |
+| **Bifrost**     | `@maximhq/bifrost`                 |   8080   | Go AI-gateway relay backend ဖြစ်သည်။ လည်ပတ်နေချိန်တွင် relay route (`/v1/relay/`) က အလိုအလျောက် ရွေးချယ်အသုံးပြုသည်                                                                                                                                                                                                                                                                                          |
+| **Dario**       | `@askalf/dario`                    |   3456   | Claude subscription proxy ဖြစ်ပြီး Claude-Code ပုံစံ traffic အတွက် CLIProxyAPI ၏ အစားထိုး/အရန်စနစ် ဖြစ်သည်။ ထည့်သွင်းပေးထားသော key သည် `/admin/*` OAuth control plane သို့ ဝင်ရောက်မှုကို ထိန်းချုပ်သည့် `DARIO_ADMIN_TOKEN` ဖြစ်လာသည်                                                                                                                                                                       |
+| **open-wa**     | `@open-wa/wa-automate`             |   8323   | WhatsApp Web automation (Puppeteer မှတစ်ဆင့် headless Chromium) ဖြစ်သည်။ Lifecycle ကိုသာ စီမံခန့်ခွဲပြီး routing target မဟုတ်ပါ။                                                                                                                                                                                                                                                                             |
+| **LLMLingua**   | `@atjsh/llmlingua-2`               |  20135   | Prompt compression sidecar ဖြစ်ပြီး စစ်မှန်သော LLMLingua-2 ONNX model (Microsoft ၏ algorithm ကို JS/TS သို့ port ပြုလုပ်ထားခြင်း) ကို အသုံးပြုသည်။ `open-sse/services/compression/engines/llmlingua/index.ts` သည် `/compress` ကို HTTP မှတစ်ဆင့် ၎င်းထံ ပေးပို့ပြီး sidecar ရပ်တန့်နေပါက in-process worker-thread backend ကို အရန်အဖြစ် အသုံးပြုသည်။ Lifecycle ကိုသာ စီမံခန့်ခွဲပြီး routing target မဟုတ်ပါ။ |
 
-ဝန်ဆောင်မှု ခြောက်ခုလုံးသည် တူညီသော ကြီးကြပ်စီမံမှုပုံစံကို လိုက်နာသည်-
+ဝန်ဆောင်မှု ခုနစ်ခုစလုံးသည် တူညီသော ကြီးကြပ်စီမံမှုပုံစံကို လိုက်နာသည်-
 
 - OmniRoute သည် ၎င်းတို့ကို `DATA_DIR/services/{name}/` အောက်တွင် ထည့်သွင်းသည် (OmniRoute ၏ ကိုယ်ပိုင် `package.json` နှင့် သီးခြားခွဲထားသည်)
 - OmniRoute သည် ၎င်းတို့ကို child process များအဖြစ် စတင်ပြီး စောင့်ကြည့်သည်
-- OmniRoute သည် ယာယီ API key တစ်ခုကို child process ၏ environment ထဲသို့ ထည့်သွင်းပေးပြီး ဖြစ်နိုင်သည့်နေရာများတွင် downtime မရှိဘဲ key ကို လှည့်လည်ပြောင်းလဲပေးသည်
-- စီမံခန့်ခွဲမှု route အားလုံး (`/api/services/*`) သည် **LOCAL_ONLY** ဖြစ်သည် — loopback မှသာ ဝင်ရောက်အသုံးပြုနိုင်သည် (တင်းကျပ်သော စည်းမျဉ်း #17)
+- OmniRoute သည် ယာယီ API key တစ်ခုကို child process ၏ environment ထဲသို့ ထည့်သွင်းပြီး ဝန်ဆောင်မှုရပ်တန့်ချိန်မရှိဘဲ ၎င်းကို လှည့်လည်ပြောင်းလဲပေးသည် (သက်ဆိုင်သည့်နေရာများတွင်)
+- စီမံခန့်ခွဲမှု route များအားလုံး (`/api/services/*`) သည် **LOCAL_ONLY** ဖြစ်ပြီး loopback မှသာ ဝင်ရောက်အသုံးပြုနိုင်သည် (မဖြစ်မနေလိုက်နာရမည့် စည်းမျဉ်း #17)
 
 ### အဓိက ဆုံးဖြတ်ချက်များ (ဒီဇိုင်းအစီအစဉ်မှ)
 
-| ဆုံးဖြတ်ချက်                                      | တန်ဖိုး                                                                                                   |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Dashboard မှ 9Router native UI သို့ ဝင်ရောက်ခြင်း | `/dashboard/providers/services/9router/embed/*` တွင် reverse proxy ထားရှိခြင်း                            |
-| ထည့်သွင်းမှု နည်းလမ်း                             | `execFile` မှတစ်ဆင့် `npm install {package}` အသုံးပြုခြင်း (shell interpolation မရှိပါ)                   |
-| အသုံးပြုမှုပုံစံ                                  | Routing engine တွင် provider ကို `9router/{sub}/{model}` အဖြစ် မှတ်ပုံတင်ခြင်း                            |
-| API key စီမံခန့်ခွဲမှု                            | OmniRoute က ထုတ်ပေးခြင်း၊ သိမ်းဆည်းထားစဉ် စာဝှက်ခြင်း (AES-256-GCM) နှင့် env မှတစ်ဆင့် ထည့်သွင်းပေးခြင်း |
-| Dashboard တည်နေရာ                                 | `/dashboard/providers/services` (tab သုံးခု)                                                              |
-| အလိုအလျောက် စတင်ခြင်း                             | ဝန်ဆောင်မှုတစ်ခုချင်းစီအလိုက် toggle ပြုလုပ်နိုင်ပြီး မူလအခြေအနေမှာ OFF ဖြစ်သည်                           |
+| ဆုံးဖြတ်ချက်                                      | တန်ဖိုး                                                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Dashboard မှ 9Router ၏ မူရင်း UI သို့ ဝင်ရောက်မှု | `/dashboard/providers/services/9router/embed/*` ရှိ reverse proxy                                 |
+| ထည့်သွင်းမှု ယန္တရား                              | `execFile` မှတစ်ဆင့် `npm install {package}` (shell interpolation မရှိ)                           |
+| အသုံးပြုမှုပုံစံ                                  | Routing engine တွင် `9router/{sub}/{model}` အဖြစ် မှတ်ပုံတင်ထားသော provider                       |
+| API key စီမံခန့်ခွဲမှု                            | OmniRoute က ဖန်တီးပြီး သိမ်းဆည်းထားစဉ် encrypt လုပ်ကာ (AES-256-GCM) env မှတစ်ဆင့် ထည့်သွင်းပေးသည် |
+| Dashboard တည်နေရာ                                 | `/dashboard/providers/services` (tab သုံးခု)                                                      |
+| အလိုအလျောက် စတင်ခြင်း                             | ဝန်ဆောင်မှုတစ်ခုချင်းစီအလိုက် toggle လုပ်နိုင်ပြီး မူလအားဖြင့် OFF ဖြစ်သည်                        |
 
 ---
 
-## 2. ဗိသုကာ — အလွှာ 4 ခု
+## 2. တည်ဆောက်ပုံ — အလွှာ 4 ခု
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │  အလွှာ 1 — UI                                                     │
-│  /dashboard/providers/services  (တဘ်များ: CLIProxyAPI | 9Router | Mux)│
-│  တိုက်ရိုက်မှတ်တမ်းများ (SSE)၊ စတင်/ရပ်တန့်/ပြန်စ/အပ်ဒိတ်၊ ဆက်တင်များ၊ ထည့်သွင်းခြင်း│
+│  /dashboard/providers/services  (တက်ဘ်များ: CLIProxyAPI | 9Router | Mux)│
+│  တိုက်ရိုက်မှတ်တမ်းများ (SSE)၊ စတင်/ရပ်တန့်/ပြန်လည်စတင်/အပ်ဒိတ်၊ ဆက်တင်များ၊ ထည့်သွင်းခြင်း │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Shell + ?tab= အလိုက် တဘ်လမ်းကြောင်းသတ်မှတ်ခြင်း│
+│    ├── page.tsx               Shell + ?tab= အလိုက် တက်ဘ်လမ်းကြောင်းသတ်မှတ်ခြင်း │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -88,73 +89,74 @@
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (ပြောင်းပြန် HTTP + WebSocket ပရောက်စီ → 9Router upstream)      │
+│    (ပြောင်းပြန် HTTP + WebSocket proxy → 9Router upstream)         │
 │                                                                    │
-│  အဝင်ထိန်းချုပ်မှု: LOCAL_ONLY_API_PREFIXES တွင် "/api/services/" နှင့်│
+│  ဝင်ပေါက်ထိန်းချုပ်မှု: LOCAL_ONLY_API_PREFIXES တွင် "/api/services/" နှင့် │
 │        "/dashboard/providers/services/*/embed/" ပါဝင်သည်           │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ process အတွင်းခေါ်ဆိုမှုများ
+                       │ လုပ်ငန်းစဉ်အတွင်း ခေါ်ဆိုမှုများ
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  အလွှာ 3 — ServiceSupervisor (src/lib/services/)                  │
 │                                                                    │
-│  ServiceSupervisor.ts   ယေဘုယျ ကြီးကြပ်စီမံကိရိယာ (child_process.spawn)│
-│    ├── ထည့်သွင်းခြင်း: execFile('npm', ['install', pkg, '--prefix'])│
-│    ├── စတင်ခြင်း:   spawn(node, [entrypoint], {env, cwd})          │
+│  ServiceSupervisor.ts   ယေဘုယျကြီးကြပ်စနစ် (child_process.spawn)  │
+│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
+│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
 │    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
 │    ├── port:       9Router အတွက် 20130 (ပြင်ဆင်သတ်မှတ်နိုင်သည်)     │
-│    ├── မှတ်တမ်းများ: stdio ring buffer 5 MB → SSE ဖြစ်ရပ်များ       │
-│    ├── ကျန်းမာရေး:  2–5 s တိုင်း HTTP GET /health၊ လိုအပ်ချိန်မှ ပြန်လည်ရယူခြင်း│
-│    └── lifecycle:  SIGTERM 15 s → SIGKILL                          │
+│    ├── logs:       stdio စက်ဝိုင်းပုံစံ ကြားခံမှတ်ဉာဏ် 5 MB → SSE ဖြစ်ရပ်များ │
+│    ├── health:     2–5 စက္ကန့်တိုင်း HTTP GET /health၊ လိုအပ်ချိန်မှ ပြန်လည်ရယူခြင်း │
+│    └── lifecycle:  SIGTERM 15 စက္ကန့် → SIGKILL                    │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       process စတင်ချိန်တွင် SERVICES[] အားလုံးကို စတင်တင်ပေးသည်│
+│  bootstrap.ts       လုပ်ငန်းစဉ်စတင်ချိန်တွင် SERVICES[] အားလုံးကို စတင်ပြင်ဆင်သည် │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       အချိန်မှန် GET /v1/models → service_models ဇယား│
-│  ringBuffer.ts      စက်ဝိုင်းပုံ မှတ်တမ်း buffer (ဝန်ဆောင်မှုတစ်ခုလျှင် 5 MB)│
-│  healthCheck.ts     ပုံမှန်စစ်ဆေးသော HTTP ကျန်းမာရေး probe         │
+│  modelSync.ts       အချိန်မှန် GET /v1/models → service_models ဇယား │
+│  ringBuffer.ts      စက်ဝိုင်းပုံစံ မှတ်တမ်းကြားခံမှတ်ဉာဏ် (ဝန်ဆောင်မှုတစ်ခုလျှင် 5 MB) │
+│  healthCheck.ts     အချိန်မှန်စစ်ဆေးသော HTTP ကျန်းမာရေးစမ်းသပ်မှု  │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
-│                      (ထည့်သွင်းရေး adapter များ)                   │
+│                      (ထည့်သွင်းစနစ် အဒက်တာများ)                    │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ OpenAI-compatible HTTP (loopback)
+                       │ OpenAI နှင့် ကိုက်ညီသော HTTP (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  အလွှာ 4 — Provider / လမ်းကြောင်းရွေးချယ်ခြင်း                    │
+│  အလွှာ 4 — ပံ့ပိုးသူ / လမ်းကြောင်းသတ်မှတ်ခြင်း                    │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    တောင်းဆိုမှုတစ်ခုစီအတွက် port နှင့် API key ကို ပြန်လည်ရှာဖွေသည် (cache မလုပ်ပါ)။│
-│    ပရောက်စီမလုပ်မီ model id မှ "9router/" prefix ကို ဖယ်ရှားသည်။   │
-│    supervisor သည် "running" အခြေအနေတွင် မရှိပါက 503 service_not_running ကို ပြန်ပေးသည်။│
+│    တောင်းဆိုမှုတစ်ခုစီအတွက် port နှင့် API key ကို ပြန်လည်ရှာဖွေသည် (ယာယီသိမ်းဆည်းခြင်းမရှိ)။ │
+│    proxy မလုပ်မီ model id မှ "9router/" ရှေ့ဆက်ကို ဖယ်ရှားသည်။     │
+│    ကြီးကြပ်စနစ်က "running" အခြေအနေတွင် မရှိပါက 503 service_not_running ကို ပြန်ပေးသည်။ │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
-│    "9router" အတွက် entry: isEmbeddedService: true                  │
+│    "9router" အတွက် အချက်အလက်: isEmbeddedService: true             │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    Model များကို "9router/{sub}/{model}" (prefix ပါသော) အဖြစ် သိမ်းဆည်းသည်။│
-│    modelSync.ts က 5 min တိုင်း တစ်ပြေးညီဖြစ်အောင် လုပ်သည်။         │
+│    မော်ဒယ်များကို "9router/{sub}/{model}" (ရှေ့ဆက်ပါရှိ) အဖြစ် သိမ်းဆည်းသည်။ │
+│    modelSync.ts က 5 မိနစ်တိုင်း ချိန်ကိုက်သည်။                     │
 │                                                                    │
-│  Mux ကို lifecycle အတွက်သာ စီမံသည် (အလွှာ 1-3) — ၎င်းသည် agent-    │
+│  Mux ကို သက်တမ်းစက်ဝန်းအတွက်သာ စီမံထားသည် (အလွှာ 1-3) — ၎င်းသည် agent-│
 │  orchestration daemon ဖြစ်ပြီး LLM proxy မဟုတ်သောကြောင့် အလွှာ 4  │
-│  executor/provider entry မရှိသည့်အပြင် routing target လည်း မဖြစ်ပါ။│
+│  executor/provider အချက်အလက် မရှိသလို လမ်းကြောင်းပို့ရန် ပစ်မှတ်လည်း ဘယ်တော့မှ မဖြစ်ပါ။ │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### အဓိက source ဖိုင်များ
+### အဓိက ရင်းမြစ်ဖိုင်များ
 
-| ဖိုင်                                       | အခန်းကဏ္ဍ                                                                |
-| ------------------------------------------- | ------------------------------------------------------------------------ |
-| `src/lib/services/ServiceSupervisor.ts`     | ပင်မ class: lifecycle၊ lock၊ health၊ ring buffer                         |
-| `src/lib/services/bootstrap.ts`             | Process အဆင့် မှတ်ပုံတင်ခြင်းနှင့် အလိုအလျောက်စတင်ခြင်း                  |
-| `src/lib/services/registry.ts`              | Singleton map `tool → supervisor`                                        |
-| `src/lib/services/apiKey.ts`                | Key ထုတ်လုပ်ခြင်း၊ သိမ်းဆည်းထားချိန်တွင် AES-256-GCM ဖြင့် ကုဒ်ဝှက်ခြင်း |
-| `src/lib/services/modelSync.ts`             | အချိန်မှန် model sync (5 မိနစ်) + လိုအပ်သလို ဆောင်ရွက်ခြင်း              |
-| `src/lib/services/ringBuffer.ts`            | SSE subscribe ပါဝင်သော 5 MB စက်ဝိုင်းပုံ log buffer                      |
-| `src/lib/services/healthCheck.ts`           | HTTP health probe (ကြားကာလကို ချိန်ညှိနိုင်သည်)                          |
-| `src/lib/services/installers/ninerouter.ts` | 9Router အတွက် npm install/update/uninstall                               |
-| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI အတွက် npm install/update/uninstall                           |
-| `src/lib/services/installers/mux.ts`        | Mux အတွက် npm install/update/uninstall                                   |
-| `src/lib/services/installers/openwa.ts`     | open-wa အတွက် npm install/update/uninstall                               |
-| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` အကူ helper                                       |
-| `src/app/api/services/[name]/logs/route.ts` | မျှဝေသုံးစွဲသည့် SSE logs endpoint                                       |
-| `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                                              |
+| ဖိုင်                                       | အခန်းကဏ္ဍ                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `src/lib/services/ServiceSupervisor.ts`     | အဓိက class: lifecycle၊ lock၊ health၊ ring buffer                   |
+| `src/lib/services/bootstrap.ts`             | Process အဆင့် မှတ်ပုံတင်ခြင်းနှင့် အလိုအလျောက် စတင်ခြင်း           |
+| `src/lib/services/registry.ts`              | Singleton map `tool → supervisor`                                  |
+| `src/lib/services/apiKey.ts`                | Key ထုတ်လုပ်ခြင်း၊ သိမ်းဆည်းထားစဉ် AES-256-GCM ဖြင့် ကုဒ်ဝှက်ခြင်း |
+| `src/lib/services/modelSync.ts`             | ပုံမှန် model sync (၅ မိနစ်) + လိုအပ်သည့်အချိန်တွင် လုပ်ဆောင်ခြင်း |
+| `src/lib/services/ringBuffer.ts`            | SSE subscribe ပါဝင်သည့် 5 MB circular log buffer                   |
+| `src/lib/services/healthCheck.ts`           | HTTP health probe (ကြားကာလကို သတ်မှတ်နိုင်သည်)                     |
+| `src/lib/services/installers/ninerouter.ts` | 9Router အတွက် npm install/update/uninstall                         |
+| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI အတွက် npm install/update/uninstall                     |
+| `src/lib/services/installers/mux.ts`        | Mux အတွက် npm install/update/uninstall                             |
+| `src/lib/services/installers/openwa.ts`     | open-wa အတွက် npm install/update/uninstall                         |
+| `src/lib/services/installers/llmlingua.ts`  | LLMLingua အတွက် npm install/update/uninstall                       |
+| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` အကူ function                               |
+| `src/app/api/services/[name]/logs/route.ts` | မျှဝေသုံးစွဲသည့် SSE logs endpoint                                 |
+| `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                                        |
 
 ---
 
@@ -211,19 +213,19 @@ UI button တစ်ခုတို့ တစ်ပြိုင်နက် အ�
 
 ---
 
-## 4. API ကိုးကားချက်
+## 4. API ရည်ညွှန်းချက်
 
-`/api/services/` အောက်ရှိ route အားလုံးသည် **LOCAL_ONLY** ဖြစ်သည် (loopback အတွက်သာ၊ မဖြစ်မနေလိုက်နာရမည့် စည်းမျဉ်း #17)။
-loopback မဟုတ်သော request များသည် auth token မည်သို့ပင်ဖြစ်စေ `403 LOCAL_ONLY` ကို လက်ခံရရှိမည်ဖြစ်သည်။
+`/api/services/` အောက်ရှိ route အားလုံးသည် **LOCAL_ONLY** ဖြစ်သည် (loopback အတွက်သာ၊ တင်းကျပ်သော စည်းမျဉ်း #17)။
+Loopback မဟုတ်သော request များသည် auth token ရှိသည်ဖြစ်စေ မရှိသည်ဖြစ်စေ `403 LOCAL_ONLY` ကို လက်ခံရရှိမည်ဖြစ်သည်။
 
 ### 4.1 9Router endpoint များ (route 11 ခု)
 
 #### `POST /api/services/9router/install`
 
-npm မှ 9Router ကို ထည့်သွင်းသည်။ ၎င်း၏ကိုယ်ပိုင် `package.json` နှင့်
-`node_modules/` တို့ပါရှိသော `DATA_DIR/services/9router/` ကို ဖန်တီးသည်။ OmniRoute ၏ ကိုယ်ပိုင် dependency များနှင့် မဆန့်ကျင်ပါ။
+npm မှ 9Router ကို ထည့်သွင်းသည်။ ၎င်း၏ ကိုယ်ပိုင် `package.json` နှင့်
+`node_modules/` ပါဝင်သော `DATA_DIR/services/9router/` ကို ဖန်တီးသည်။ OmniRoute ၏ ကိုယ်ပိုင် dependency များနှင့် ပဋိပက္ခမဖြစ်ပါ။
 
-**Request body** (အားလုံး စိတ်ကြိုက်ဖြစ်သည်):
+**Request body** (အားလုံး မဖြစ်မနေမဟုတ်ပါ):
 
 ```json
 { "version": "latest" }
@@ -235,22 +237,22 @@ npm မှ 9Router ကို ထည့်သွင်းသည်။ ၎င်�
 
 **Response များ:**
 
-| Status | Description                                                                 |
-| ------ | --------------------------------------------------------------------------- |
-| `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                      |
-| `400`  | မမှန်ကန်သော request body (Zod validation မအောင်မြင်မှု)                     |
-| `409`  | ထည့်သွင်းနေပြီးဖြစ်သည် (lock ကို ရယူထားသည်)                                 |
-| `500`  | npm install မအောင်မြင်ပါ — နားလည်ရလွယ်သော error အတွက် `message` ကို ကြည့်ပါ |
+| Status | Description                                                                |
+| ------ | -------------------------------------------------------------------------- |
+| `200`  | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                     |
+| `400`  | မမှန်ကန်သော request body (Zod validation မအောင်မြင်ခြင်း)                  |
+| `409`  | ထည့်သွင်းနေပြီးဖြစ်သည် (lock ကို ရယူထားသည်)                                |
+| `500`  | npm install မအောင်မြင်ပါ — နားလည်လွယ်သော error အတွက် `message` ကို ကြည့်ပါ |
 
-**မှတ်ချက်များ:** `execFile('npm', [...])` ကို အသုံးပြုသည် — shell မပါ၊ interpolation မပါ (မဖြစ်မနေလိုက်နာရမည့် စည်းမျဉ်း #13)။
-EACCES error များကို နားလည်ရလွယ်သော message များအဖြစ် ဖော်ပြပေးသည်။
+**မှတ်ချက်များ:** `execFile('npm', [...])` ကို အသုံးပြုသည် — shell နှင့် interpolation မပါဝင်ပါ (တင်းကျပ်သော စည်းမျဉ်း #13)။
+EACCES error များကို နားလည်လွယ်သော message များအဖြစ် ဖော်ပြပေးသည်။
 
 ---
 
 #### `POST /api/services/9router/start`
 
-9Router ကို စတင်သည်။ စာရင်းမသွင်းရသေးပါက supervisor တစ်ခုကို စာရင်းသွင်းပြီးနောက်
-`supervisor.start()` ကို ခေါ်သည်။ လည်ပတ်နေပြီးဖြစ်သည့်အခါ ထပ်ခါတလဲလဲ ခေါ်ဆိုနိုင်ပြီး ရလဒ်မပြောင်းလဲပါ။
+9Router ကို စတင်သည်။ Supervisor ကို register မလုပ်ရသေးပါက register လုပ်ပြီးနောက်
+`supervisor.start()` ကို ခေါ်ဆိုသည်။ လည်ပတ်နေပြီးဖြစ်ပါက ထပ်ခါတလဲလဲ ခေါ်ဆိုသော်လည်း ရလဒ်မပြောင်းလဲပါ။
 
 **Request body:** မရှိပါ
 
@@ -258,7 +260,7 @@ EACCES error များကို နားလည်ရလွယ်သော me
 
 | Status | Description                                                      |
 | ------ | ---------------------------------------------------------------- |
-| `200`  | `ServiceStatus` object (အောက်ရှိ schema ကို ကြည့်ပါ)             |
+| `200`  | `ServiceStatus` object (အောက်ပါ schema ကို ကြည့်ပါ)              |
 | `409`  | 9Router ကို ထည့်သွင်းမထားပါ (`status: "not_installed"`)          |
 | `503`  | စတင်ခြင်း မအောင်မြင်ပါ (process error — `lastError` ကို ကြည့်ပါ) |
 
@@ -280,8 +282,8 @@ EACCES error များကို နားလည်ရလွယ်သော me
 
 #### `POST /api/services/9router/stop`
 
-9Router ကို ပုံမှန်နည်းလမ်းဖြင့် ရပ်တန့်သည်။ SIGTERM ကို ပို့ပြီး 15 s စောင့်ကာ အသက်ဝင်နေသေးပါက SIGKILL ကို ပို့သည်။
-ရပ်တန့်နေပြီးဖြစ်သည့်အခါ ထပ်ခါတလဲလဲ ခေါ်ဆိုနိုင်ပြီး ရလဒ်မပြောင်းလဲပါ။
+9Router ကို မှန်ကန်စွာ ရပ်တန့်သည်။ SIGTERM ပို့ပြီး 15 s စောင့်ကာ အသက်ဝင်နေဆဲဖြစ်ပါက SIGKILL ပို့သည်။
+ရပ်တန့်ထားပြီးဖြစ်ပါက ထပ်ခါတလဲလဲ ခေါ်ဆိုသော်လည်း ရလဒ်မပြောင်းလဲပါ။
 
 **Request body:** မရှိပါ
 
@@ -296,7 +298,7 @@ EACCES error များကို နားလည်ရလွယ်သော me
 
 #### `POST /api/services/9router/restart`
 
-operation lock အောက်တွင် `stop()` ပြီးနောက် `start()` ကို လုပ်ဆောင်ခြင်းနှင့် တူညီသည်။
+Operation lock အောက်တွင် `stop()` လုပ်ပြီးနောက် `start()` လုပ်ခြင်းနှင့် ညီမျှသည်။
 
 **Request body:** မရှိပါ
 
@@ -306,11 +308,11 @@ operation lock အောက်တွင် `stop()` ပြီးနောက် 
 
 #### `POST /api/services/9router/update`
 
-9Router ကို ပိုသစ်သော npm version သို့ အပ်ဒိတ်လုပ်သည်။ service လည်ပတ်နေပါက ဦးစွာ
-ရပ်တန့်ပြီး npm install ကို လုပ်ဆောင်ကာ (ပိုသစ်သော version ကို မူလနေရာတွင် ထည့်သွင်းသည်) ထို့နောက်
-service ကို ပြန်လည်စတင်သည်။
+9Router ကို ပိုသစ်သော npm version သို့ အပ်ဒိတ်လုပ်သည်။ Service လည်ပတ်နေပါက
+ဦးစွာ ရပ်တန့်ပြီး npm install ကို လုပ်ဆောင်ကာ (ပိုသစ်သော version ကို နေရာတစ်ခုတည်းတွင် ထည့်သွင်းခြင်း)
+ထို့နောက် service ကို ပြန်လည်စတင်သည်။
 
-**Request body** (အားလုံး စိတ်ကြိုက်ဖြစ်သည်):
+**Request body** (အားလုံး မဖြစ်မနေမဟုတ်ပါ):
 
 ```json
 { "version": "latest" }
@@ -328,9 +330,9 @@ service ကို ပြန်လည်စတင်သည်။
 
 #### `POST /api/services/9router/rotate-key`
 
-9Router အတွက် API key အသစ်တစ်ခုကို ထုတ်လုပ်ပြီး သိမ်းဆည်းထားချိန်တွင် စာဝှက်ကာ
-လည်ပတ်နေပါက service သည် ၎င်း၏ environment မှ key အသစ်ကို ရယူနိုင်ရန် ပြန်လည်စတင်သည်။ key အဟောင်းကို
-ချက်ချင်း အသုံးပြု၍မရအောင် ပြုလုပ်သည်။
+9Router အတွက် API key အသစ်တစ်ခုကို ထုတ်ပေးပြီး သိမ်းဆည်းထားချိန်တွင် encrypt လုပ်ကာ service သည်
+၎င်း၏ environment မှ key အသစ်ကို ရယူနိုင်ရန် (လည်ပတ်နေပါက) service ကို ပြန်လည်စတင်သည်။ Key အဟောင်းသည်
+ချက်ချင်း အကျုံးမဝင်တော့ပါ။
 
 **Request body:** မရှိပါ
 
@@ -339,23 +341,23 @@ service ကို ပြန်လည်စတင်သည်။
 | Status | Description                                |
 | ------ | ------------------------------------------ |
 | `200`  | `{ keyRotated: true, restarted: boolean }` |
-| `500`  | key လဲလှယ်ခြင်း မအောင်မြင်ပါ               |
+| `500`  | Key လှည့်လည်ပြောင်းလဲခြင်း မအောင်မြင်ပါ    |
 
-**လုံခြုံရေး:** key အသစ်ကို response ထဲတွင် မည်သည့်အခါမျှ ပြန်မပေးပါ (အထောက်အထား ပေါက်ကြားမှုမရှိပါ)။
-၎င်းကို `version_manager` table ထဲတွင် စာဝှက်ထားပြီး (AES-256-GCM) သိမ်းဆည်းသည်။
+**လုံခြုံရေး:** Key အသစ်ကို response ထဲတွင် မည်သည့်အခါမျှ ပြန်မပေးပါ (credential ပေါက်ကြားမှု မရှိပါ)။
+၎င်းကို `version_manager` table ထဲတွင် encrypt လုပ်၍ (AES-256-GCM) သိမ်းဆည်းထားသည်။
 
 ---
 
 #### `GET /api/services/9router/status`
 
-version metadata နှင့် API key အစမ်းကြည့်ရှုမှုအပါအဝင် လက်ရှိအခြေအနေ + DB အခြေအနေ ပေါင်းစပ်ထားသည်ကို ပြန်ပေးသည်။
+Version metadata နှင့် API key အစမ်းမြင်ကွင်းတို့ ပါဝင်သော live + DB status ပေါင်းစပ်ထားမှုကို ပြန်ပေးသည်။
 
 **Response များ:**
 
-| Status | Description                      |
-| ------ | -------------------------------- |
-| `200`  | အောက်ရှိ schema ကို ကြည့်ပါ      |
-| `500`  | အခြေအနေ ဖတ်ရှုခြင်း မအောင်မြင်ပါ |
+| Status | Description                     |
+| ------ | ------------------------------- |
+| `200`  | အောက်ပါ schema ကို ကြည့်ပါ      |
+| `500`  | Status ဖတ်ရှုခြင်း မအောင်မြင်ပါ |
 
 **Response schema:**
 
@@ -381,8 +383,8 @@ version metadata နှင့် API key အစမ်းကြည့်ရှု
 
 #### `POST /api/services/9router/auto-start`
 
-အလိုအလျောက်စတင်ခြင်း flag ကို အဖွင့်/အပိတ် ပြောင်းသည်။ `enabled: true` ဖြစ်သည့်အခါ နောက်တစ်ကြိမ်
-OmniRoute စတင်ချိန်တွင် service ကို ထည့်သွင်းထားပါက အလိုအလျောက် စတင်မည်ဖြစ်သည်။
+အလိုအလျောက်စတင်ခြင်း flag ကို အဖွင့်အပိတ် ပြောင်းသည်။ `enabled: true` ဖြစ်ပါက OmniRoute ကို နောက်တစ်ကြိမ် စတင်ချိန်တွင်
+service ကို ထည့်သွင်းထားလျှင် ၎င်းသည် အလိုအလျောက် စတင်မည်ဖြစ်သည်။
 
 **Request body:**
 
@@ -401,22 +403,22 @@ OmniRoute စတင်ချိန်တွင် service ကို ထည့်
 
 #### `GET /api/services/9router/logs`
 
-9Router ၏ stdout/stderr ring buffer မှ တိုက်ရိုက် log များ၏ SSE stream ဖြစ်သည်။
+9Router ၏ stdout/stderr ring buffer မှ live log များ၏ SSE stream ဖြစ်သည်။
 
 **Query parameter များ:**
 
-| Param    | Type      | Default | Description                                                                    |
-| -------- | --------- | ------- | ------------------------------------------------------------------------------ |
-| `tail`   | `integer` | 200     | အစတွင် ပို့မည့် မှတ်တမ်းဝင် စာကြောင်းအရေအတွက် (အများဆုံး 1000)                 |
-| `filter` | `string`  | မရှိပါ  | စာလုံးအကြီးအသေး မခွဲခြားသော substring filter (regex မပါ — ReDoS မှ လုံခြုံသည်) |
+| Param    | Type      | Default | Description                                                          |
+| -------- | --------- | ------- | -------------------------------------------------------------------- |
+| `tail`   | `integer` | 200     | ဦးစွာ ပို့မည့် ယခင်မှတ်တမ်း line အရေအတွက် (အများဆုံး 1000)           |
+| `filter` | `string`  | မရှိပါ  | စာလုံးအကြီးအသေးမခွဲသော substring filter (regex မဟုတ်ပါ — ReDoS-safe) |
 
 **SSE event များ:**
 
-| Event       | Data        | Description                                    |
-| ----------- | ----------- | ---------------------------------------------- |
-| `snapshot`  | `LogLine[]` | ကနဦး မှတ်တမ်းဝင် tail                          |
-| `log`       | `LogLine`   | တိုက်ရိုက် log စာကြောင်း                       |
-| `heartbeat` | `{}`        | 15 s တိုင်း ချိတ်ဆက်မှုကို ဆက်လက်ထိန်းသိမ်းသည် |
+| Event       | Data        | Description                |
+| ----------- | ----------- | -------------------------- |
+| `snapshot`  | `LogLine[]` | အစပိုင်း ယခင်မှတ်တမ်း tail |
+| `log`       | `LogLine`   | Live log line              |
+| `heartbeat` | `{}`        | 15 s တိုင်း keep-alive     |
 
 **LogLine schema:**
 
@@ -430,78 +432,77 @@ OmniRoute စတင်ချိန်တွင် service ကို ထည့်
 
 **Response များ:**
 
-| အခြေအနေ | ဖော်ပြချက်                                                         |
-| ------- | ------------------------------------------------------------------ |
-| `200`   | `text/event-stream`                                                |
-| `400`   | `filter` ပါရာမီတာ ရှည်လွန်းသည် (> စာလုံး 200)                      |
-| `404`   | ဝန်ဆောင်မှုကို ရှာမတွေ့ပါ (supervisor တွင် မှတ်ပုံတင်ထားခြင်းမရှိ) |
+| အခြေအနေ | ဖော်ပြချက်                                                   |
+| ------- | ------------------------------------------------------------ |
+| `200`   | `text/event-stream`                                          |
+| `400`   | `filter` ပါရာမီတာ ရှည်လွန်းသည် (> စာလုံး 200)                |
+| `404`   | ဝန်ဆောင်မှုကို ရှာမတွေ့ပါ (supervisor တွင် မှတ်ပုံမတင်ထားပါ) |
 
 ---
 
 ### 4.2 CLIProxyAPI အဆုံးမှတ်များ (လမ်းကြောင်း 10 ခု)
 
-CLIProxyAPI တွင် 9Router နှင့် တူညီသော အဆုံးမှတ်ပုံစံရှိသော်လည်း `rotate-key` မပါဝင်ဘဲ
-`accounts`၊ `provider-expose` နှင့် `auto-restart-adopted` တို့ ထပ်မံပါဝင်သည်။ ယခုအခါ
-စတင်ဖန်တီးချိန်တွင် ထည့်သွင်းပေးသော သီးသန့် data-plane API key ကို လက်ခံရရှိသည်
-(`bootstrap.ts` ထဲရှိ `needsApiKey: true`၊ မော်ဒယ်ချိန်ညှိမှုအတွက် အသုံးပြုသည်)၊
-`status` တွင် field အနည်းငယ်သာ ပါဝင်သည်။
+CLIProxyAPI တွင် `rotate-key` မပါဝင်ခြင်းမှလွဲ၍ 9Router နှင့် တူညီသော အဆုံးမှတ်ပုံစံရှိပြီး
+`accounts`၊ `provider-expose` နှင့် `auto-restart-adopted` တို့ ထပ်မံပါဝင်သည်။ ယခုအခါ ၎င်းသည်
+စတင်ဖန်တီးချိန်တွင် ထည့်သွင်းပေးထားသည့် သီးခြား data-plane API key တစ်ခုကို လက်ခံရရှိသည်
+(`bootstrap.ts` ထဲရှိ `needsApiKey: true`၊ model sync အတွက် အသုံးပြုသည်)။ `status` တွင်
+field အရေအတွက် ပိုနည်းသည်။
 
-| နည်းလမ်း | လမ်းကြောင်း                         | ဖော်ပြချက်                                  |
-| -------- | ----------------------------------- | ------------------------------------------- |
-| `POST`   | `/api/services/cliproxy/install`    | CLIProxyAPI ကို npm မှ ထည့်သွင်းရန်         |
-| `POST`   | `/api/services/cliproxy/start`      | CLIProxyAPI ကို စတင်ရန်                     |
-| `POST`   | `/api/services/cliproxy/stop`       | CLIProxyAPI ကို ရပ်တန့်ရန်                  |
-| `POST`   | `/api/services/cliproxy/restart`    | CLIProxyAPI ကို ပြန်လည်စတင်ရန်              |
-| `POST`   | `/api/services/cliproxy/update`     | ဗားရှင်းအသစ်သို့ အပ်ဒိတ်လုပ်ရန်             |
-| `GET`    | `/api/services/cliproxy/status`     | လက်ရှိ + DB အခြေအနေ (`apiKeyMasked` မပါဝင်) |
-| `POST`   | `/api/services/cliproxy/auto-start` | အလိုအလျောက်စတင်မှုကို ဖွင့်/ပိတ်ရန်         |
+| နည်းလမ်း | လမ်းကြောင်း                         | ဖော်ပြချက်                               |
+| -------- | ----------------------------------- | ---------------------------------------- |
+| `POST`   | `/api/services/cliproxy/install`    | npm မှ CLIProxyAPI ကို ထည့်သွင်းရန်      |
+| `POST`   | `/api/services/cliproxy/start`      | CLIProxyAPI ကို စတင်ရန်                  |
+| `POST`   | `/api/services/cliproxy/stop`       | CLIProxyAPI ကို ရပ်တန့်ရန်               |
+| `POST`   | `/api/services/cliproxy/restart`    | CLIProxyAPI ကို ပြန်လည်စတင်ရန်           |
+| `POST`   | `/api/services/cliproxy/update`     | ဗားရှင်းအသစ်သို့ အပ်ဒိတ်လုပ်ရန်          |
+| `GET`    | `/api/services/cliproxy/status`     | လက်ရှိ + DB အခြေအနေ (`apiKeyMasked` မပါ) |
+| `POST`   | `/api/services/cliproxy/auto-start` | အလိုအလျောက်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန်    |
 
 မျှဝေထားသော `GET /api/services/{name}/logs` အဆုံးမှတ်သည် (§4.1 ကို ကြည့်ပါ)
-ဝန်ဆောင်မှုလေးခုလုံးအတွက် `[name]` dynamic segment ကို အသုံးပြု၍ အလုပ်လုပ်သည်။
+`[name]` dynamic segment ကို အသုံးပြုပြီး ဝန်ဆောင်မှု လေးခုစလုံးအတွက် အလုပ်လုပ်သည်။
 
 ---
 
 ### 4.3 Mux အဆုံးမှတ်များ (လမ်းကြောင်း 8 ခု)
 
-Mux တွင် CLIProxyAPI နှင့် တူညီသော အဆုံးမှတ်ပုံစံရှိပြီး API မျက်နှာပြင်တွင်
-`rotate-key` လမ်းကြောင်း မရှိပါ (bearer token ကို 9Router နည်းတူ
-`getOrCreateApiKey("mux")` ဖြင့် ထုတ်ပေးပြီး `MUX_SERVER_AUTH_TOKEN` env var မှတစ်ဆင့်
-ထည့်သွင်းသော်လည်း သီးသန့် rotation အဆုံးမှတ် မရှိသေးပါ)။ Mux ကို lifecycle အရသာ
-စီမံခန့်ခွဲသည်—9Router နှင့် မတူဘဲ ၎င်းတွင် Layer 4 executor မရှိသကဲ့သို့
-routing provider အဖြစ်လည်း မည်သည့်အခါမျှ မှတ်ပုံတင်ခြင်း မပြုပါ။
+Mux တွင် CLIProxyAPI နှင့် တူညီသော အဆုံးမှတ်ပုံစံရှိပြီး API မျက်နှာပြင်တွင် `rotate-key`
+လမ်းကြောင်း မပါဝင်ပါ (bearer token ကို 9Router နည်းတူ
+`getOrCreateApiKey("mux")` မှတစ်ဆင့် ထုတ်ပေးပြီး `MUX_SERVER_AUTH_TOKEN` env var မှတစ်ဆင့်
+ထည့်သွင်းပေးသော်လည်း လက်ရှိတွင် သီးခြား rotation အဆုံးမှတ် မရှိသေးပါ)။ Mux ကို lifecycle
+အတွက်သာ စီမံခန့်ခွဲသည်။ 9Router နှင့်မတူဘဲ ၎င်းတွင် Layer 4 executor မရှိသကဲ့သို့
+routing provider အဖြစ်လည်း မည်သည့်အခါမျှ မှတ်ပုံတင်မထားပါ။
 
 | နည်းလမ်း | လမ်းကြောင်း                    | ဖော်ပြချက်                                |
 | -------- | ------------------------------ | ----------------------------------------- |
-| `POST`   | `/api/services/mux/install`    | Mux ကို npm မှ ထည့်သွင်းရန် (`npm i mux`) |
+| `POST`   | `/api/services/mux/install`    | npm မှ Mux ကို ထည့်သွင်းရန် (`npm i mux`) |
 | `POST`   | `/api/services/mux/start`      | Mux ကို စတင်ရန် (`mux server`)            |
 | `POST`   | `/api/services/mux/stop`       | Mux ကို ရပ်တန့်ရန်                        |
 | `POST`   | `/api/services/mux/restart`    | Mux ကို ပြန်လည်စတင်ရန်                    |
-| `POST`   | `/api/services/mux/update`     | npm ဗားရှင်းအသစ်သို့ အပ်ဒိတ်လုပ်ရန်       |
+| `POST`   | `/api/services/mux/update`     | ပိုသစ်သော npm ဗားရှင်းသို့ အပ်ဒိတ်လုပ်ရန် |
 | `GET`    | `/api/services/mux/status`     | လက်ရှိ + DB အခြေအနေ                       |
-| `POST`   | `/api/services/mux/auto-start` | အလိုအလျောက်စတင်မှုကို ဖွင့်/ပိတ်ရန်       |
+| `POST`   | `/api/services/mux/auto-start` | အလိုအလျောက်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန်     |
 
 ---
 
 ### 4.4 Bifrost အဆုံးမှတ်များ (လမ်းကြောင်း 8 ခု)
 
 Bifrost သည် Go AI-gateway relay backend (`@maximhq/bifrost`) တစ်ခုဖြစ်သည်။ ၎င်းသည်
-CLIProxyAPI နှင့် တူညီသော အဆုံးမှတ်ပုံစံကို အသုံးပြုသည် (`rotate-key` မပါဝင်ပါ—Bifrost
-သည် ၎င်း၏ ကိုယ်ပိုင် provider key များကို `-app-dir` အောက်ရှိ `config.json` တွင်
-စီမံခန့်ခွဲသည်)။
+CLIProxyAPI နှင့် တူညီသော အဆုံးမှတ်ပုံစံကို အသုံးပြုသည် (`rotate-key` မပါဝင်ပါ — Bifrost သည်
+၎င်း၏ `-app-dir` အောက်ရှိ `config.json` တွင် ကိုယ်ပိုင် provider key များကို စီမံခန့်ခွဲသည်)။
 
-| နည်းလမ်း | လမ်းကြောင်း                        | ဖော်ပြချက်                                                       |
-| -------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `POST`   | `/api/services/bifrost/install`    | Bifrost ကို npm မှ ထည့်သွင်းရန် (`@maximhq/bifrost`)             |
-| `POST`   | `/api/services/bifrost/start`      | Bifrost ကို port 8080 တွင် စတင်ရန် (မူလသတ်မှတ်ချက်)              |
-| `POST`   | `/api/services/bifrost/stop`       | Bifrost ကို ရပ်တန့်ရန်                                           |
-| `POST`   | `/api/services/bifrost/restart`    | Bifrost ကို ပြန်လည်စတင်ရန်                                       |
-| `POST`   | `/api/services/bifrost/update`     | ဗားရှင်းအသစ်သို့ အပ်ဒိတ်လုပ်ရန်                                  |
-| `GET`    | `/api/services/bifrost/status`     | လက်ရှိ + DB အခြေအနေ                                              |
-| `POST`   | `/api/services/bifrost/auto-start` | အလိုအလျောက်စတင်မှုကို ဖွင့်/ပိတ်ရန်                              |
-| `GET`    | `/api/services/bifrost/logs`       | SSE log tail (မျှဝေထားသော `[name]/logs` dynamic route မှတစ်ဆင့်) |
+| နည်းလမ်း | လမ်းကြောင်း                        | ဖော်ပြချက်                                                              |
+| -------- | ---------------------------------- | ----------------------------------------------------------------------- |
+| `POST`   | `/api/services/bifrost/install`    | npm မှ Bifrost ကို ထည့်သွင်းရန် (`@maximhq/bifrost`)                    |
+| `POST`   | `/api/services/bifrost/start`      | port 8080 (ပုံသေ) တွင် Bifrost ကို စတင်ရန်                              |
+| `POST`   | `/api/services/bifrost/stop`       | Bifrost ကို ရပ်တန့်ရန်                                                  |
+| `POST`   | `/api/services/bifrost/restart`    | Bifrost ကို ပြန်လည်စတင်ရန်                                              |
+| `POST`   | `/api/services/bifrost/update`     | ပိုသစ်သော ဗားရှင်းသို့ အပ်ဒိတ်လုပ်ရန်                                   |
+| `GET`    | `/api/services/bifrost/status`     | လက်ရှိ + DB အခြေအနေ                                                     |
+| `POST`   | `/api/services/bifrost/auto-start` | အလိုအလျောက်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန်                                   |
+| `GET`    | `/api/services/bifrost/logs`       | SSE log အဆုံးပိုင်း (`[name]/logs` မျှဝေထားသော dynamic route မှတစ်ဆင့်) |
 
 **Routing ချိတ်ဆက်မှု:** `BIFROST_BASE_URL` ကို မသတ်မှတ်ထားဘဲ ကြီးကြပ်စီမံထားသော Bifrost
-instance လည်ပတ်နေပါက `getBifrostRoutingConfig()` (`routingBackend.ts` ထဲရှိ) သည်
+instance လည်ပတ်နေချိန်တွင် `getBifrostRoutingConfig()` (`routingBackend.ts` ထဲရှိ) သည်
 `http://127.0.0.1:{port}` ကို relay base URL အဖြစ် အလိုအလျောက် အသုံးပြုသည်။ အတိအလင်း
 သတ်မှတ်ထားသော `BIFROST_BASE_URL` env သည် အမြဲတမ်း ဦးစားပေးခံရသည်။
 
@@ -511,16 +512,16 @@ instance လည်ပတ်နေပါက `getBifrostRoutingConfig()` (`routing
 
 အခြားဝန်ဆောင်မှုများနှင့် တူညီသော lifecycle ပုံစံ (`install`၊ `start`၊ `stop`၊ `restart`၊
 `update`၊ `status`၊ `auto-start`၊ `auto-restart-adopted`) အပြင် `admin/` အောက်တွင်
-token ဖြင့် ကန့်သတ်ထားသော OAuth control plane တစ်ခုလည်း ပါဝင်သည်—`admin/accounts`၊
+token ဖြင့် ကန့်သတ်ထားသော OAuth control plane တစ်ခုလည်း ပါဝင်သည်- `admin/accounts`၊
 `admin/import-from-omniroute`၊ `admin/login-start`၊ `admin/login-complete`
 (အားလုံးကို `DARIO_ADMIN_TOKEN` ဖြင့် ကာကွယ်ထားသည်)။
 
 ### 4.6 open-wa အဆုံးမှတ်များ (လမ်းကြောင်း 7 ခု)
 
-open-wa (`@open-wa/wa-automate`) သည် WhatsApp Web ကို အလိုအလျောက်လုပ်ဆောင်ရန်
+open-wa (`@open-wa/wa-automate`) သည် WhatsApp Web ကို အလိုအလျောက် လုပ်ဆောင်ရန်
 Puppeteer မှတစ်ဆင့် headless Chromium instance တစ်ခုကို မောင်းနှင်သည်။ ၎င်းသည် Mux နှင့်
 တူညီသော အဆုံးမှတ်ပုံစံကို အသုံးပြုသည် (`rotate-key` လမ်းကြောင်း မရှိသေးပါ)။ ၎င်းကို
-lifecycle အရသာ စီမံခန့်ခွဲပြီး routing target မဟုတ်သကဲ့သို့ Layer 4 executor/provider
+lifecycle အတွက်သာ စီမံခန့်ခွဲပြီး routing ပစ်မှတ်မဟုတ်သကဲ့သို့ Layer 4 executor/provider
 entry လည်း မရှိပါ။
 
 | နည်းလမ်း | လမ်းကြောင်း                       | ဖော်ပြချက်                                                       |
@@ -530,31 +531,64 @@ entry လည်း မရှိပါ။
 | `POST`   | `/api/services/openwa/stop`       | open-wa ကို ရပ်တန့်ရန်                                           |
 | `POST`   | `/api/services/openwa/restart`    | open-wa ကို ပြန်လည်စတင်ရန်                                       |
 | `POST`   | `/api/services/openwa/update`     | ပိုသစ်သော version သို့ အပ်ဒိတ်လုပ်ရန်                            |
-| `GET`    | `/api/services/openwa/status`     | လက်ရှိအခြေအနေ + DB အခြေအနေ                                       |
-| `POST`   | `/api/services/openwa/auto-start` | အလိုအလျောက်စတင်မှုကို ဖွင့်/ပိတ်ရန်                              |
-| `GET`    | `/api/services/openwa/logs`       | SSE log tail (`[name]/logs` မျှဝေထားသော dynamic route မှတစ်ဆင့်) |
+| `GET`    | `/api/services/openwa/status`     | Live + DB အခြေအနေ                                                |
+| `POST`   | `/api/services/openwa/auto-start` | အလိုအလျောက်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန်                            |
+| `GET`    | `/api/services/openwa/logs`       | SSE log tail (မျှဝေထားသော `[name]/logs` dynamic route မှတစ်ဆင့်) |
 
 **API key:** `WA_KEY` အဖြစ် ထည့်သွင်းပေးသည် — open-wa ၏ ယေဘုယျ `WA_*` prefix
 ပါသော env override သည် ၎င်းကို `--key`/`-k` CLI option နှင့် ချိတ်ဆက်ပေးသည်
 (`dist/cli/setup.js::envArgs()`၊ ထည့်သွင်းထားသော 4.76.0
-package နှင့် တိုက်ဆိုင်စစ်ဆေးပြီး)။ `generateServiceApiKey()` ဖြင့် ဖန်တီးသည့်အခါ `ow_` prefix
-ထည့်ပေးသည်။ open-wa သည် key ကို `key`/`api_key` HTTP header မှ ပြန်လည်ဖတ်ယူသည်
-(`Authorization: Bearer` မဟုတ်ပါ)။ `/api-docs*` ကို စစ်ဆေးမှုမှ အတိအလင်း ကင်းလွတ်ခွင့်ပေးထားသောကြောင့်
+package နှင့် တိုက်ဆိုင်စစ်ဆေးပြီးဖြစ်သည်)။ `generateServiceApiKey()` က ထုတ်ပေးသောအခါ
+`ow_` prefix ထည့်သည်။ open-wa သည် key ကို `key`/`api_key` HTTP header မှ
+ပြန်လည်ဖတ်ယူသည် (`Authorization:
+Bearer` မဟုတ်ပါ)။ `/api-docs*` ကို စစ်ဆေးမှုမှ အတိအလင်း ကင်းလွတ်ခွင့်ပေးထားသောကြောင့်
 (`dist/cli/server.js` ရှိ `setupAuthenticationLayer`) health probe အတွက်
 auth header မလိုအပ်ပါ။
 
 **တွဲချိတ်ခြင်း:** open-wa သည် တရားဝင်မဟုတ်သည့်အပြင် WhatsApp နှင့်လည်း ဆက်နွှယ်မှုမရှိပါ —
-ချိတ်ဆက်ထားသော နံပါတ်သည် WhatsApp ၏ ကိုယ်ပိုင် အလိုအလျောက်စနစ် ရှာဖွေဖော်ထုတ်မှုကြောင့် ပိတ်ပင်ခံရနိုင်ခြေရှိသည်။
-ပထမဆုံး စတင်ချိန်တွင် တွဲချိတ်ရန် QR code ကို stdout သို့ ရိုက်ထုတ်ပြီး
-ရှိပြီးသား Logs panel/SSE stream မှတစ်ဆင့် ဖော်ပြပေးသည် — ဤ integration တွင်
+ချိတ်ဆက်ထားသော နံပါတ်သည် WhatsApp ကိုယ်တိုင်၏ automation detection ကြောင့် ပိတ်ပင်ခံရနိုင်ခြေရှိသည်။
+ပထမဆုံး စတင်ချိန်တွင် တွဲချိတ်ရန် QR code ကို stdout သို့ ထုတ်ပြပြီး
+ရှိပြီးသား Logs panel/SSE stream မှတစ်ဆင့် ပြသပေးသည် — ယခု integration တွင်
 သီးသန့် QR-image endpoint မရှိသေးပါ။
 
 ---
 
-### 4.7 Reverse proxy (9Router dashboard ထည့်သွင်းဖော်ပြမှု)
+### 4.7 LLMLingua endpoint များ (route 8 ခု)
 
-dashboard သည် အောက်ပါနေရာရှိ internal reverse
-proxy မှတစ်ဆင့် 9Router web UI ကို iframe အတွင်း ထည့်သွင်းဖော်ပြသည်-
+LLMLingua သည် `@atjsh/llmlingua-2` ကို လွှမ်းခြုံထားသော prompt-compression sidecar တစ်ခုဖြစ်သည် (တကယ့်
+ONNX token-classification model ဖြစ်ပြီး ပထမဆုံး
+`/compress` ခေါ်ဆိုချိန်တွင် Hugging Face မှ ဒေါင်းလုဒ်လုပ်သည်)။ ၎င်းသည် Bifrost နှင့် တူညီသော endpoint ပုံစံကို အသုံးပြုသည် (API key မရှိပါ —
+`needsApiKey: false`၊ ၎င်းသည် credential များကို မည်သည့်အခါမျှ ကိုင်တွယ်ခြင်းမရှိပါ)။
+
+| နည်းလမ်း | လမ်းကြောင်း                                    | ဖော်ပြချက်                                                                                          |
+| -------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `POST`   | `/api/services/llmlingua/install`              | `@atjsh/llmlingua-2` + peer များကို npm ဖြင့် ထည့်သွင်းပြီး sidecar server script ကို ရေးသားရန်     |
+| `POST`   | `/api/services/llmlingua/start`                | port 20135 (မူလသတ်မှတ်ချက်) တွင် sidecar ကို စတင်ရန်                                                |
+| `POST`   | `/api/services/llmlingua/stop`                 | sidecar ကို ရပ်တန့်ရန်                                                                              |
+| `POST`   | `/api/services/llmlingua/restart`              | sidecar ကို ပြန်လည်စတင်ရန်                                                                          |
+| `POST`   | `/api/services/llmlingua/update`               | ပိုသစ်သော package version သို့ အပ်ဒိတ်လုပ်ရန်                                                       |
+| `GET`    | `/api/services/llmlingua/status`               | Live + DB အခြေအနေ                                                                                   |
+| `POST`   | `/api/services/llmlingua/auto-start`           | အလိုအလျောက်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန်                                                               |
+| `POST`   | `/api/services/llmlingua/auto-restart-adopted` | လက်ခံအသုံးပြုထားသော (ယခင်ကတည်းက ရှိပြီးသား) instance ၏ အလိုအလျောက်ပြန်လည်စတင်ခြင်းကို ဖွင့်/ပိတ်ရန် |
+| `GET`    | `/api/services/llmlingua/logs`                 | SSE log tail (မျှဝေထားသော `[name]/logs` dynamic route မှတစ်ဆင့်)                                    |
+
+**Sidecar သဘောတူညီချက်:** server script သည် `GET /health` (ချက်ချင်းတုံ့ပြန်သည် — model ကို
+စောင့်ဆိုင်းခြင်းမရှိပါ) နှင့် `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`) ကို ဖော်ထုတ်ပေးသည်။ ပထမဆုံး
+`/compress` ခေါ်ဆိုချိန်တွင်မှ model ကို lazy ပုံစံဖြင့် load လုပ်သည်။
+
+**Compression ချိတ်ဆက်မှု:** `open-sse/services/compression/engines/llmlingua/index.ts` ၏
+`httpSidecarBackend` သည် `LLMLINGUA_BASE_URL` (မူလသတ်မှတ်ချက်
+`http://127.0.0.1:20135`) ကို ခေါ်ဆိုပြီး sidecar ၏ response သည် input ထက်
+တိတိကျကျ ပိုတိုမှသာ လက်ခံသည်။ ချို့ယွင်းမှုတစ်စုံတစ်ရာ (မလည်ပတ်နေခြင်း၊ timeout ဖြစ်ခြင်း၊ ပြောင်းလဲမှုမရှိသော
+response) ဖြစ်ပါက in-process worker-thread backend (`./worker.ts`) ကို fallback လုပ်သည်။
+
+---
+
+### 4.8 Reverse proxy (9Router dashboard ထည့်သွင်းပြသမှု)
+
+dashboard သည် အောက်ပါ internal reverse
+proxy မှတစ်ဆင့် iframe တစ်ခုအတွင်း 9Router web UI ကို ထည့်သွင်းပြသသည်-
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -566,14 +600,14 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 - ဝင်လာသော `cookie` နှင့် `authorization` header များကို ဖယ်ရှားသည် (OmniRoute session ပေါက်ကြားမှုမရှိစေရန်)
 - 9Router authentication အတွက် `Authorization: Bearer {apiKey}` ကို ထည့်သွင်းသည်
 - response မှ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` တို့ကို ဖယ်ရှားသည်
-- `<base href>` ကို ထည့်သွင်းရန်နှင့် absolute path များကို ပုံမှန်ဖြစ်အောင် (`/foo` → `/dashboard/.../embed/foo`) HTML response များအား ပြန်လည်ရေးသားသည်
+- `<base href>` ထည့်သွင်းရန်နှင့် absolute path များကို စံညှိရန် HTML response များကို ပြန်လည်ရေးသားသည် (`/foo` → `/dashboard/.../embed/foo`)
 
-ထည့်သွင်းဖော်ပြထားသော dashboard အတွက် WebSocket upgrade များကို
-သီးသန့် port ပေါ်ရှိ companion server က ကိုင်တွယ်သည် (`src/lib/services/embedWsProxy.ts` ကို ကြည့်ပါ)။
+ထည့်သွင်းပြသထားသော dashboard အတွက် WebSocket upgrade များကို သီးသန့်
+port ပေါ်ရှိ တွဲဖက် server တစ်ခုက ကိုင်တွယ်သည် (`src/lib/services/embedWsProxy.ts` ကို ကြည့်ပါ)။
 
-**လုံခြုံရေး:** Embed proxy route များကို `LOCAL_ONLY_API_PREFIXES`
-အောက်တွင် အမျိုးအစားသတ်မှတ်ထားပြီး loopback မှသာ ဝင်ရောက်နိုင်သည်။
-Cloudflare/Ngrok tunnel မှတစ်ဆင့် JWT ရရှိသွားသော တိုက်ခိုက်သူသည် ထည့်သွင်းဖော်ပြထားသော service များအတွင်းသို့ proxy လုပ်၍ မရနိုင်ပါ။
+**လုံခြုံရေး:** embed proxy route များကို `LOCAL_ONLY_API_PREFIXES`
+အောက်တွင် အမျိုးအစားခွဲထားပြီး loopback မှသာ ဝင်ရောက်နိုင်သည်။ Cloudflare/Ngrok tunnel မှတစ်ဆင့်
+JWT ရရှိထားသော တိုက်ခိုက်သူတစ်ဦးသည် ထည့်သွင်းထားသော service များထဲသို့ proxy လုပ်၍ မဝင်ရောက်နိုင်ပါ။
 
 ---
 

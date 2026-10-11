@@ -163,39 +163,39 @@ Bảng `memory_vec_meta` (migration `083_memory_vec.sql`) lưu trữ:
 - `last_reset_at` — dấu thời gian của lần đặt lại toàn bộ gần nhất.
 - `vec_loaded` — cờ 0/1 cho biết sqlite-vec đã được tải thành công hay chưa.
 
-## Tiện ích mở rộng cài đặt
+## Phần mở rộng cài đặt
 
-Có chín trường embedding và vector trong `MemorySettingsExtended` tại
+Có chín trường nhúng và vector trong `MemorySettingsExtended` tại
 `src/shared/schemas/memory.ts`, được lưu trữ thông qua `src/lib/db/settings.ts`:
 
 | Trường                   | Kiểu                                               | Mặc định | Mô tả                                                             |
 | ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Nguồn embedding sẽ sử dụng                                        |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Nguồn nhúng sẽ sử dụng                                            |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Nhà cung cấp/mô hình theo định dạng `provider/model`              |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL cơ sở của endpoint tương thích OpenAI chỉ dành cho Memory     |
-| `customModelId`          | `string \| null`                                   | `null`   | ID mô hình được gửi đến endpoint tùy chỉnh                        |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Tùy chọn bật Transformers.js (MiniLM, ~400MB)                     |
-| `staticEnabled`          | `boolean`                                          | `false`  | Tùy chọn bật mô hình cục bộ tĩnh potion-base-8M                   |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL cơ sở của điểm cuối tương thích OpenAI chỉ dành cho Memory    |
+| `customModelId`          | `string \| null`                                   | `null`   | ID mô hình được gửi đến điểm cuối tùy chỉnh                       |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Chủ động bật Transformers.js (MiniLM, ~400MB)                     |
+| `staticEnabled`          | `boolean`                                          | `false`  | Chủ động bật mô hình cục bộ tĩnh potion-base-8M                   |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Bật bước xếp hạng lại (tăng thêm +200-500ms/yêu cầu)              |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Nhà cung cấp/mô hình xếp hạng lại theo định dạng `provider/model` |
 
-`rerankProviderModel` được phân giải bởi `POST /v1/rerank` (được gọi qua loopback), vì vậy nó chấp nhận mọi giá trị mà route đó chấp nhận: một mô hình xếp hạng lại trên đám mây đã được tuyển chọn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) hoặc một nút nhà cung cấp tương thích OpenAI dưới dạng `<node-prefix>/<model>` (ví dụ: `skilled-mini/bge-reranker-v2-m3` cho một máy TEI/Infinity). Các nút loopback luôn đủ điều kiện; một nút trên máy chủ khác (LAN, Tailscale) còn yêu cầu cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` và phải đáp ứng chính sách URL gửi ra ngoài của nhà cung cấp — xem [Cờ tính năng](../reference/FEATURE_FLAGS.md). Bộ chọn trên bảng điều khiển liệt kê các nhà cung cấp đã được tuyển chọn cùng với các nút cục bộ; mọi chuỗi `provider/model` hợp lệ đều có thể được thiết lập trực tiếp thông qua `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vector sẽ sử dụng |
+`rerankProviderModel` được phân giải bởi `POST /v1/rerank` (được gọi qua loopback), vì vậy trường này chấp nhận mọi giá trị mà tuyến đó chấp nhận: một mô hình xếp hạng lại đám mây được tuyển chọn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) hoặc một nút nhà cung cấp tương thích OpenAI dưới dạng `<node-prefix>/<model>` (ví dụ: `skilled-mini/bge-reranker-v2-m3` cho một máy chủ TEI/Infinity). Các nút loopback và tên máy chủ được liệt kê trong `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (ví dụ: tên dịch vụ Docker/Compose) luôn đủ điều kiện; một nút trên máy chủ khác (LAN, Tailscale) còn yêu cầu cờ tính năng `RERANK_REMOTE_PROVIDER_NODES` và phải vượt qua chính sách URL gửi đi của nhà cung cấp — xem [Cờ tính năng](../reference/FEATURE_FLAGS.md). Bộ chọn trên bảng điều khiển liệt kê các nhà cung cấp được tuyển chọn cùng với các nút cục bộ; bất kỳ chuỗi `provider/model` hợp lệ nào cũng có thể được thiết lập trực tiếp qua `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Hệ thống lưu trữ vector sẽ sử dụng |
 
-Các trường này được cung cấp thông qua `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+Các trường này được cung cấp qua `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Đối với nguồn `remote`, Memory cũng chấp nhận các cài đặt tùy chọn `customBaseUrl` và
-`customModelId`. Khi kết hợp, chúng chọn một endpoint `/embeddings` tương thích OpenAI
-và mô hình mà không thay đổi registry embedding toàn cục. Endpoint được chuẩn hóa
-trước khi sử dụng và được kiểm tra theo chính sách URL gửi ra ngoài của nhà cung cấp:
-bắt buộc dùng HTTP(S), thông tin xác thực được nhúng và chuỗi truy vấn sẽ bị từ chối,
-còn các địa chỉ metadata đám mây vẫn bị chặn. Các giá trị trống sẽ giữ nguyên nhà cung
-cấp registry đã chọn. Các lỗi trả về bảng điều khiển được làm sạch và thông tin xác
-thực của endpoint không bao giờ được ghi vào nhật ký.
+`customModelId`. Khi kết hợp, chúng chọn một điểm cuối `/embeddings` tương thích OpenAI
+và mô hình mà không thay đổi sổ đăng ký nhúng toàn cục. Điểm cuối được chuẩn hóa trước khi
+sử dụng và được kiểm tra theo chính sách URL gửi đi của nhà cung cấp: bắt buộc phải dùng
+HTTP(S), thông tin xác thực nhúng và chuỗi truy vấn sẽ bị từ chối, đồng thời các địa chỉ
+siêu dữ liệu đám mây vẫn bị chặn. Các giá trị trống sẽ giữ nguyên nhà cung cấp đã chọn
+trong sổ đăng ký. Các lỗi trả về bảng điều khiển được làm sạch và thông tin xác thực của
+điểm cuối không bao giờ được ghi vào nhật ký.
 
-> **TODO (D20):** Phạm vi `global` (chia sẻ các bộ nhớ giữa tất cả khóa API) chưa
+> **TODO (D20):** Phạm vi `global` (chia sẻ bộ nhớ giữa tất cả các khóa API) chưa
 > được triển khai trong bản phát hành này. Tính năng này yêu cầu thay đổi schema và một
-> đường dẫn truy xuất toàn cục. Theo dõi riêng.
+> luồng truy xuất toàn cục. Theo dõi riêng.
 
 ## Các lớp lưu trữ
 
@@ -857,12 +857,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## Mẫu nhà cung cấp MemoryBackend
+## Mẫu Provider MemoryBackend
 
 > **Nguồn chuẩn:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Kiểm thử:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Mẫu nhà cung cấp MemoryBackend đưa vào một **lớp trừu tượng hóa backend có thể cắm thêm** bên trên công cụ ký ức hiện có. Thay vì bị ràng buộc với một phương thức triển khai lưu trữ duy nhất, hệ thống ký ức hiện hỗ trợ nhiều backend (SQLite, Obsidian, Notion, backend HTTP tùy chỉnh) với cơ chế định tuyến chính/dự phòng có thể cấu hình.
+Mẫu provider MemoryBackend giới thiệu một **lớp trừu tượng backend có thể thay thế** trên nền tảng công cụ bộ nhớ hiện có. Thay vì bị ràng buộc với một triển khai lưu trữ duy nhất, hệ thống bộ nhớ hiện hỗ trợ nhiều backend (SQLite, Obsidian, Notion, các backend HTTP tùy chỉnh) với cơ chế định tuyến chính/dự phòng có thể cấu hình.
 
 ### Kiến trúc
 
@@ -874,7 +874,7 @@ Mẫu nhà cung cấp MemoryBackend đưa vào một **lớp trừu tượng hó
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│          Bộ điều phối singleton (manager.ts)              │
+│        Bộ điều phối singleton (manager.ts)                │
 │                                                          │
 │  Chính ─────► Backend A  (ví dụ: SQLite)                 │
 │  Dự phòng ─► Backend B  (ví dụ: Obsidian)                │
@@ -884,14 +884,14 @@ Mẫu nhà cung cấp MemoryBackend đưa vào một **lớp trừu tượng hó
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ Backend    │ │ Backend    │ │ Backend (HTTP)   │
+│ Backend    │ │ Backend    │ │ Backend bộ nhớ   │
+│ SQLite     │ │ Obsidian   │ │ chung (HTTP)     │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
 #### Giao diện cốt lõi (`backend.ts`)
 
-Mỗi backend phải triển khai giao diện `MemoryBackend`:
+Mọi backend đều phải triển khai giao diện `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
@@ -908,10 +908,10 @@ interface MemoryBackend {
   // Tìm kiếm
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Trạng thái
+  // Tình trạng
   health(): Promise<HealthCheckResult>;
 
-  // Vòng đời (tùy chọn)
+  // Vòng đời (không bắt buộc)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -919,23 +919,23 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Bộ điều phối singleton thực hiện:
+Bộ điều phối singleton có chức năng:
 
 - **Đăng ký** các backend qua `register(backend)` — được gọi khi khởi động từ `index.ts`
-- **Cấu hình** backend chính + dự phòng qua `configure(primary, fallbacks)`
-- **Định tuyến** CRUD/tìm kiếm đến backend chính, với chuỗi dự phòng khi xảy ra lỗi
-- **Kiểm tra trạng thái** của tất cả backend theo định kỳ
+- **Cấu hình** backend chính + các backend dự phòng qua `configure(primary, fallbacks)`
+- **Định tuyến** các thao tác CRUD/tìm kiếm đến backend chính, với chuỗi dự phòng khi xảy ra lỗi
+- **Kiểm tra tình trạng** của tất cả backend theo định kỳ
 
-**Hành vi dự phòng:**
+**Cơ chế dự phòng:**
 
-| Thao tác | Chính                      | Dự phòng                     |
+| Thao tác | Backend chính              | Backend dự phòng             |
 | -------- | -------------------------- | ---------------------------- |
 | `create` | ✅ Chỉ backend chính       | ❌                           |
 | `get`    | ✅ Thử backend chính trước | ✅ Dự phòng nếu trả về null  |
 | `update` | ✅ Chỉ backend chính       | ✅ Đồng bộ không chờ kết quả |
 | `delete` | ✅ Chỉ backend chính       | ✅ Đồng bộ không chờ kết quả |
 | `list`   | ✅ Chỉ backend chính       | ❌                           |
-| `search` | ✅ Backend chính trước     | ✅ Dự phòng khi có lỗi       |
+| `search` | ✅ Backend chính trước     | ✅ Dự phòng khi xảy ra lỗi   |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -943,19 +943,19 @@ Một trình kết nối HTTP tổng quát giúp chuyển đổi bất kỳ REST
 
 - **Notion** — kết nối qua Notion API
 - **Obsidian** — kết nối qua Obsidian Local REST API
-- **Backend tùy chỉnh** — bất kỳ dịch vụ nào cung cấp API ký ức theo kiến trúc REST
+- **Backend tùy chỉnh** — bất kỳ dịch vụ nào cung cấp API bộ nhớ RESTful
 
 **Cấu hình:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // URL cơ sở của API backend
-  apiKey?: string;           // Bearer token để xác thực
+  apiKey?: string;           // Bearer token dùng để xác thực
   headers?: Record<string, string>;  // Các HTTP header tùy chỉnh
   timeout?: number;          // Thời gian chờ yêu cầu (mặc định: 30000ms)
-  backendType?: string;      // Dùng để ghi log
+  backendType?: string;      // Dùng cho việc ghi log
 
-  // Ghi đè endpoint (mặc định sử dụng các quy ước REST)
+  // Ghi đè endpoint (giá trị mặc định tuân theo quy ước REST)
   endpoints?: {
     search?: string;   // mặc định: "/memories/search"
     create?: string;   // mặc định: "/memories"
@@ -985,7 +985,7 @@ createKnownBackend("obsidian"); // → GenericMemoryBackend trỏ đến localho
 createKnownBackend("notion"); // → GenericMemoryBackend trỏ đến api.notion.com/v1
 ```
 
-#### Các Backend Tích hợp Sẵn
+#### Các backend tích hợp sẵn
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
@@ -998,39 +998,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Bao bọc tích hợp Obsidian hiện có (`src/lib/memory/obsidianBackend.ts`). Kết nối với một kho Obsidian thông qua Obsidian Local REST API.
+Bao bọc phần tích hợp Obsidian hiện có (`src/lib/memory/obsidianBackend.ts`). Kết nối với một vault Obsidian qua Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapter dành cho một worker [claude-mem](https://github.com/thedotmack/claude-mem) cục bộ — plugin bộ nhớ
+Claude Code / Codex / Cursor ghi lại các phiên lập trình dưới dạng các "quan sát".
+Khi được đăng ký, các tuyến REST `/api/memory` và tính năng tìm kiếm bộ nhớ A2A có thể đọc và ghi
+cùng một kho lưu trữ được các hook của claude-mem điền dữ liệu.
+
+Worker chỉ liên kết với giao diện loopback, điều mà cơ chế bảo vệ SSRF của `GenericMemoryBackend` chủ đích từ chối.
+Adapter này không nới lỏng cơ chế bảo vệ đó: host được mã hóa cứng thành `127.0.0.1` và schema cấu hình
+(`ClaudeMemBackendConfigSchema`, `.strict()`) chỉ chấp nhận:
+
+| Khóa        | Kiểu   | Mặc định | Ghi chú                                                                                                          |
+| ----------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —        | Bắt buộc, 1024–65535. Cổng worker claude-mem từ tệp cài đặt của nó (mặc định `37700 + uid % 100`).               |
+| `project`   | string | —        | Dự án claude-mem cần sử dụng. Nếu không đặt → mỗi khóa API OmniRoute ánh xạ tới dự án riêng của nó (`apiKeyId`). |
+| `timeoutMs` | number | `5000`   | Thời gian chờ cho mỗi yêu cầu, 100–30000.                                                                        |
+
+Bật tính năng này thông qua `PUT /api/settings/memory` và khởi động lại OmniRoute (các backend chỉ được đăng ký
+một lần trong `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Thay vào đó, hãy sử dụng `"primaryBackend": "claude-mem"` để đặt nó làm nơi lưu trữ cho REST API. Cấu hình
+không hợp lệ sẽ được ghi nhật ký (`claude-mem.backend.invalid_config`) và bỏ qua, vì vậy SQLite vẫn là backend chính.
+
+Ánh xạ và giới hạn:
+
+- ID có dạng `claude-mem:<observationId>`; `get`/`delete` bỏ qua ID của các backend khác mà không thực hiện
+  lệnh gọi mạng.
+- `create` → `POST /api/memory/save`; các trường OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) được đặt trong `metadata.omniroute` của claude-mem và được khôi phục khi đọc.
+- `search` → `GET /api/search?format=json&type=observations`, được cắt giảm theo `maxTokens`
+  (số ký tự / 4). `list` → endpoint quan sát được phân trang của worker (`total` là giới hạn dưới — worker
+  trả về `hasMore`, không phải số lượng).
+- Các quan sát được thu thập bằng hook ánh xạ `discovery` → `factual`, `decision` → `procedural`, và
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Không hỗ trợ cập nhật** (`update()` trả về `false`; các quan sát là bất biến) và **không có TTL**
+  (`expiresAt` bị bỏ qua). claude-mem loại bỏ các lần lưu trùng lặp thay vì upsert theo `key`.
+- Cơ chế chèn prompt (`retrieval.ts`) và các công cụ MCP `omniroute_memory_*` vẫn đọc trực tiếp từ SQLite
+  — chúng không đi qua `memoryManager`, vì vậy backend này không cung cấp dữ liệu cho chúng.
+
+**Định tuyến các lệnh gọi LLM của chính claude-mem thông qua OmniRoute.** claude-mem nén các quan sát
+bằng một LLM (mặc định: Claude Agent SDK). Provider `openai-compatible` của nó có thể trỏ tới
+OmniRoute để tận dụng cơ chế dự phòng combo và theo dõi chi phí. Trong `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<khóa API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<mô hình hoặc combo OmniRoute>"
+}
+```
 
 ### Cài đặt
 
-Các cài đặt backend bộ nhớ được lưu trong bảng cài đặt của ứng dụng và được quản lý thông qua `src/lib/memory/settings.ts`:
+Cài đặt backend bộ nhớ được lưu trong bảng cài đặt của ứng dụng và được quản lý thông qua `src/lib/memory/settings.ts`:
 
-| Cài đặt          | Khóa Env/Config          | Mặc định   | Mô tả                               |
-| ---------------- | ------------------------ | ---------- | ----------------------------------- |
-| Backend chính    | `memoryPrimaryBackend`   | `"sqlite"` | ID của backend chính                |
-| Backend dự phòng | `memoryFallbackBackends` | `[]`       | Các ID backend dự phòng theo thứ tự |
-| Cấu hình backend | `memoryBackendConfigs`   | `{}`       | Ghi đè cấu hình cho từng backend    |
+| Cài đặt          | Khóa môi trường/cấu hình | Mặc định   | Mô tả                             |
+| ---------------- | ------------------------ | ---------- | --------------------------------- |
+| Backend chính    | `memoryPrimaryBackend`   | `"sqlite"` | ID của backend chính              |
+| Backend dự phòng | `memoryFallbackBackends` | `[]`       | Các ID backend dự phòng có thứ tự |
+| Cấu hình backend | `memoryBackendConfigs`   | `{}`       | Ghi đè cấu hình cho từng backend  |
 
 Các cài đặt được chuẩn hóa thông qua `normalizeMemorySettings()` và được lưu vào bộ nhớ đệm tại `getMemorySettings()`.
 
-### Luồng Khởi tạo
+### Luồng khởi tạo
 
 ```
 Khởi động ứng dụng
-  → index.ts được import (tác dụng phụ): đăng ký SQLiteBackend
+  → index.ts imports (tác dụng phụ): đăng ký SQLiteBackend
   → initMemoryBackends() được gọi từ vòng đời ứng dụng:
       1. Tải cài đặt (getMemorySettings)
+      1b. Đăng ký các backend tùy chọn có trong backendConfigs (claude-mem)
       2. Cấu hình backend chính + dự phòng
-      3. Khởi tạo tất cả backend (kiểm tra trạng thái)
+      3. Khởi tạo tất cả backend (kiểm tra tình trạng)
       4. Sẵn sàng xử lý yêu cầu
 ```
 
-### Thêm Backend Mới
+### Thêm một backend mới
 
 1. **Triển khai giao diện `MemoryBackend`** trong `src/lib/memory/<name>Backend.ts`
-2. **Export** từ `src/lib/memory/index.ts`
+2. **Xuất** từ `src/lib/memory/index.ts`
 3. **Đăng ký** bằng `memoryManager.register(yourBackend)` khi khởi động
 4. **Cấu hình** thông qua cài đặt: đặt `memoryPrimaryBackend` thành ID backend của bạn
-5. **Kiểm thử** với `src/lib/memory/__tests__/generic-backend.test.ts` làm tài liệu tham khảo
+5. **Kiểm thử** bằng cách tham khảo `src/lib/memory/__tests__/generic-backend.test.ts`
 
 #### Ví dụ: Backend Brain
 
@@ -1061,15 +1121,15 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 Kết quả mong đợi: **35 kiểm thử, tất cả đều thành công**, bao gồm:
 
 - Hàm khởi tạo (2)
-- Kiểm tra trạng thái (4) — thành công, lỗi 500, lỗi mạng, độ trễ
+- Kiểm tra tình trạng (4) — thành công, lỗi 500, lỗi mạng, độ trễ
 - Khởi tạo (2) — thành công, thất bại
 - Tạo (2) — endpoint mặc định, endpoint tùy chỉnh
-- Lấy (4) — thành công, 404 → null, lỗi không phải 404 được ném ra, tham số đường dẫn tùy chỉnh
+- Lấy (4) — thành công, 404 → null, lỗi không phải 404, tham số đường dẫn tùy chỉnh
 - Cập nhật (2) — thành công, 404 → false
 - Xóa (2) — thành công, 404 → false
 - Liệt kê (2) — tham số truy vấn, tên tham số tùy chỉnh
 - Tìm kiếm (3) — tham số truy vấn, endpoint tùy chỉnh, tuần tự hóa tùy chọn
-- Header xác thực (2) — Bearer token, header tùy chỉnh
+- Header xác thực (2) — token Bearer, header tùy chỉnh
 - Factory (1)
 
 #### Kiểm tra kiểu

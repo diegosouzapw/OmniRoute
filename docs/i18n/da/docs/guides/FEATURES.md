@@ -318,12 +318,12 @@ Konfigurationspakken oprettes af `src/lib/sync/bundle.ts`. Klienter sammenligner
 
 ## 🛡️ Sikker udgående hentning og SSRF-beskyttelse _(v3.6.6+)_
 
-Alle kald til udbydervalidering og modelregistrering går nu gennem en udgående beskyttelse i to lag:
+Alle kald til validering af udbydere og registrering af modeller går nu gennem en udgående beskyttelse i to lag:
 
-1. **URL-beskyttelse** (`src/shared/network/outboundUrlGuard.ts`) — Blokerer private IP-områder samt loopback- og link-local-IP-områder, før socketforbindelsen åbnes.
-2. **Wrapper til sikker hentning** (`src/shared/network/safeOutboundFetch.ts`) — Anvender URL-beskyttelsen, normaliserer timeouts og forsøger igen ved midlertidige fejl med eksponentiel ventetid.
+1. **URL-beskyttelse** (`src/shared/network/outboundUrlGuard.ts`) — Kontrollerer først målets værtsnavn eller bogstavelige IP-adresse, som den er skrevet. I tilstanden kun offentlig adgang slår wrapperen til sikker hentning også navnet op og afviser private adresser. Som standard blokerer den cloud-metadataendpoints — hele 169.254.0.0/16 samt de kendte metadataværtsnavne. `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blokerer også private værter og loopback-værter. `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (eller den ældre `OUTBOUND_SSRF_GUARD_ENABLED=false`) slår kontrollerne fra. En værdi, der er gemt via et flags kontakt på kontrolpanelet, har forrang for den tilhørende variabel, og indbyggede lokale udbydere springer beskyttelsen over under nøglevalidering. Se `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper til sikker hentning** (`src/shared/network/safeOutboundFetch.ts`) — Anvender URL-beskyttelsen, normaliserer timeouts og forsøger igen ved midlertidige fejl med eksponentiel forsinkelse.
 
-Overtrædelser af beskyttelsen returneres som HTTP 422 (`URL_GUARD_BLOCKED`) og skrives til compliance-revisionsloggen via `providerAudit.ts`.
+Overtrædelser af beskyttelsen vises som `URL_GUARD_BLOCKED` — HTTP 503 via `getSafeOutboundFetchErrorStatus` (400 på ruten til registrering af modeller) — og reelle SSRF-blokeringer under validering skrives til revisionsloggen som `provider.validation.ssrf_blocked`-hændelser.
 
 ---
 

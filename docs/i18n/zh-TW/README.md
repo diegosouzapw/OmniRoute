@@ -13,23 +13,25 @@
 
 # 🚀 OmniRoute — 免費 AI 閘道
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不停止編碼。每個 AI 工具 → 358 家提供者 — 150+ 免費 — 透過一個端點。將 Claude Code、Codex、Cursor、Cline、Copilot 和 Antigravity 整合到免費的 Claude / GPT / Gemini 中，並具備自動備援功能。RTK + Caveman 堆疊壓縮可節省 15–95% 的代幣（平均約 89%）— 永不觸及限制。358 家 AI 提供者 · 150+ 免費層級 · 每月約 16.2 億免費代幣 · 19 種路由策略 · $0 即可開始。"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不停止編寫程式碼。每款 AI 工具 → 372 個提供者 — 150+ 個免費方案 — 全部透過單一端點。將 Claude Code、Codex、Cursor、Cline、Copilot 與 Antigravity 接入免費的 Claude / GPT / Gemini，並支援自動備援。RTK + Caveman 疊加壓縮可節省 15–95% 的 Token（平均約 89%）— 永不觸及限制。372 個 AI 提供者 · 150+ 個免費方案 · 每月約 1.62B 個免費 Token · 19 種路由策略 · $0 即可開始。"/>
 
 </div>
 
 <div align="center">
 
-## 💰 每月約 1.62B 個免費 Token
+## 💰 透過第三方免費方案每月約可使用 1.62B Token
 
 </div>
 
-> 手動疊加免費方案非常痛苦——數十個 SDK、數十種速率限制，而且完全不知道自己實際擁有多少額度。OmniRoute 收錄了 **489 個免費方案項目，涵蓋 35 個週期性資源池鍵**，並根據**具有已公開正數每月預算的 17 個資源池，加上五個 Groq 單模型上限**計算 Token 總額，同時依共用資源池去除重複計算。只有在完成區域身分驗證後才開放的配額（目前為 ModelScope）會分開顯示，即通過區域身分驗證後可額外獲得約 6M，且絕不計入總額。結果會持續顯示在儀表板上（`/dashboard/free-tiers`）。
-
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute 免費方案預算卡：每月穩定提供約 1.62B 個免費 Token，若包含註冊點數，首月最高可達約 2.22B；透過單一端點提供 35 個有記錄的週期性資源池鍵，涵蓋 489 個已收錄的免費方案項目。誠實的資源池去重計算——每個共用資源池僅計算一次，包括具有已公開正數每月 Token 預算的 17 個週期性資源池，以及五個 Groq 單模型上限；條款風險目錄中有 13 個提供者被標記為避免使用，由您自行決定。預算長條包含 Mistral 1B、Nara 210M、LLM7 150M、xKiro 150M、Groq 30M（五個單模型上限）及較小型資源池；此外，首月註冊點數與永久免費且無 Token 上限的提供者會分開顯示，因此絕不會誇大總額。可在 /dashboard/free-tiers 查看即時已用量／剩餘量。"/>
-
-> 即時 `/dashboard/free-tiers` 頁面的動畫摘要。完整方法（資源池去重、點數層級、提供者條款）：**[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**。
+> **使用您自己的提供者帳戶。** 這是分別符合資格的第三方免費方案之預估總量，並非 OmniRoute 提供的 Token 額度。請註冊帳戶、在需要時取得憑證，並連接您可以使用的提供者；每個提供者均自行管理其限制、可用性與條款。
 >
-> <sub>我們每兩週都會根據即時目錄重新稽核這些數字，而且數字**可能上升，也可能下降**——某個提供者終止免費方案，數字就會下降；新增免費方案，數字就會上升。我們公布的是目錄實際計算出的結果，而不是向上取整的最佳情況。</sub>
+> 手動疊加免費方案相當麻煩——數十個 SDK、數十種速率限制，而且完全不知道自己實際擁有多少額度。OmniRoute 收錄了 **35 個週期性額度池鍵中的 489 個免費方案項目**，並根據**具有公開正數月度預算的 17 個額度池，加上五個 Groq 單模型上限**計算 Token 標示總量，同時依共用額度池進行去重。只有在通過地區身分驗證後才能使用的配額（目前為 ModelScope）會分開顯示，在地區身分驗證後可額外獲得約 6M，且絕不計入標示總量。結果會持續顯示於儀表板（`/dashboard/free-tiers`）。
+
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute 免費方案預算卡：每月穩定提供約 1.62B 個免費 Token，若計入註冊贈送額度，首月最高可達約 2.22B；35 個有文件記載的週期性額度池鍵，涵蓋透過單一端點使用的 489 個已收錄免費方案項目。誠實採用額度池去重計算——每個共用額度池僅計算一次，其中包括 17 個具有公開正數月度 Token 預算的週期性額度池，以及五個 Groq 單模型上限；條款風險目錄中有 13 家提供者被標記為應避免使用，最終由您自行決定。預算列包括 Mistral 1B、Nara 210M、LLM7 150M、xKiro 150M、Groq 30M（五個單模型上限）及其他較小額度池；首月註冊贈送額度與永久免費且無 Token 上限的提供者則分開顯示，絕不虛增標示總量。可在 /dashboard/free-tiers 即時查看已用與剩餘額度。"/>
+
+> 即時 `/dashboard/free-tiers` 頁面的動畫摘要。完整方法（額度池去重、贈送額度層級、提供者條款）：**[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**。
+>
+> <sub>我們每兩週都會根據即時目錄重新稽核這些數據，而且數字**可能上升，也可能下降**——提供者終止免費方案時，數字就會下降；新增免費方案時，數字則會上升。我們公布的是目錄實際計算出的結果，絕不採用向上取整的最佳情況。</sub>
 
 <br/>
 
@@ -37,21 +39,21 @@
 
 <h3>
 
-⭐ 如果 OMNIROUTE 幫助您節省費用並讓工作更輕鬆，請為儲存庫加星。
+⭐ 如果 OMNIROUTE 幫您節省了費用並讓工作更輕鬆，請為此儲存庫加上星號。
 
 </h3>
 
-[![星星數](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+[![星號](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-[![Star History 排名](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
+[![星號歷史排名](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
 [![olud.ai](https://olud.ai/badge.php?tool=diegosouzapw-omniroute)](https://olud.ai/project/diegosouzapw-omniroute.html)
 
 ### 💬 加入社群
 
-**👋 追蹤維護者——第一時間取得新提供者、版本發布與技巧：**
+**👋 關注維護者——搶先獲得新提供者、版本發布與技巧資訊：**
 
-[![在 LinkedIn 上追蹤 Diego](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
-[![在 GitHub 上追蹤 @diegosouzapw](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
+[![在 LinkedIn 上關注 Diego](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
+[![在 GitHub 上關注 @diegosouzapw](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
 
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/U47eFqAXCn)
 [![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
@@ -59,24 +61,26 @@
 [![WhatsApp 巴西社群](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
 [![網站](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
-**問題、提供者資訊、路線圖與支援 → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 全球](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 巴西](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [入口網站](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
+**問題、提供者資訊、開發藍圖與支援 → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 全球社群](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 巴西社群](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [入口網站](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
 
 <br/>
 
-## 📈 Gateway 持續成長
+## 📈 閘道持續成長
 
 <div align="center">
 
-|                        | v3.8.49 |      **v3.8.50**      |   `v3.8.51+`   |
-| ---------------------- | :-----: | :-------------------: | :------------: |
-| 🌐 提供者              |   290   |        **357**        | 更多已排入佇列 |
-| 🧠 不重複的聊天模型 ID |  1185   |       **1312**        |       —        |
-| 🖼️ 模態橋接            |    —    | 🆕 視覺 + 音訊 + 影片 |       —        |
-| 📡 Radar 免費目錄      |    —    |      🆕 選擇加入      |       —        |
-| ⚖️ 配額感知排程        |    —    |    🆕 Quota-Share     |       —        |
-| 📊 配額遙測            |    —    |        🆕 即時        |       —        |
+|                        |        v3.8.50        | **v3.8.51** |      `v3.8.52+`       |
+| ---------------------- | :-------------------: | :---------: | :-------------------: |
+| 🌐 提供者              |          352          |   **358**   |          372          |
+| 🧠 不重複的聊天模型 ID |         1320          |  **1374**   |         1443          |
+| 🖼️ 模態橋接            | 🆕 視覺 + 音訊 + 影片 |      ✓      |           ✓           |
+| 📡 Radar 免費目錄      |     🆕 選擇性加入     |      ✓      |           ✓           |
+| ⚖️ 配額感知排程        |    🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 配額遙測            |      🆕 即時資料      |      ✓      |           ✓           |
+| 🧰 無頭模式            |           —           |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS 軌道基礎架構    |           —           |      —      |      🆕 發布通道      |
 
-**→ [路線圖](ROADMAP.md) — 沿軌邁向 `v3.9.0 LTS`**
+**→ [路線圖](ROADMAP.md) — 沿著軌道邁向 `v3.9.0 LTS`**
 
 </div>
 
@@ -99,7 +103,7 @@
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 零設定</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💡 瞭解</b></td>
+    <td align="right"><b>💡 瞭解更多</b></td>
     <td align="center"><a href="#-the-promise">💥 承諾</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 為何選擇 OmniRoute</a></td>
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 獨特之處</a></td>
@@ -117,7 +121,7 @@
     <td align="center"><a href="#-private--local-first">🔒 隱私</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 實際展示</b></td>
+    <td align="right"><b>👀 查看展示</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 實際運作</a></td>
     <td align="center"><a href="#-whats-new">✨ 最新內容</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 相容的 CLI</a></td>
@@ -139,74 +143,75 @@
 </div>
 
 <div align="center">
-  <b>🌐 支援 66 種語言</b>
+  <b>🌐 提供 67 種語言</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="英文 (en)" title="英文 (en)"></a>
-  <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="葡萄牙文 — 巴西 (pt-BR)" title="葡萄牙文 — 巴西 (pt-BR)"></a>
-  <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="葡萄牙文 (pt)" title="葡萄牙文 (pt)"></a>
-  <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="西班牙文 (es)" title="西班牙文 (es)"></a>
-  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="法文 (fr)" title="法文 (fr)"></a>
-  <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="義大利文 (it)" title="義大利文 (it)"></a>
-  <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="德文 (de)" title="德文 (de)"></a>
-  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="荷蘭文 (nl)" title="荷蘭文 (nl)"></a>
-  <a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="30" alt="俄文 (ru)" title="俄文 (ru)"></a>
-  <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="烏克蘭文 (uk-UA)" title="烏克蘭文 (uk-UA)"></a>
-  <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="波蘭文 (pl)" title="波蘭文 (pl)"></a>
-  <a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="30" alt="捷克文 (cs)" title="捷克文 (cs)"></a>
-  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="斯洛伐克文 (sk)" title="斯洛伐克文 (sk)"></a>
-  <a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="30" alt="羅馬尼亞文 (ro)" title="羅馬尼亞文 (ro)"></a>
-  <a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="30" alt="匈牙利文 (hu)" title="匈牙利文 (hu)"></a>
-  <a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="30" alt="保加利亞文 (bg)" title="保加利亞文 (bg)"></a>
-  <a href="docs/i18n/da/README.md"><img src="docs/assets/flags/dk.svg" width="30" alt="丹麥文 (da)" title="丹麥文 (da)"></a>
-  <a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="30" alt="芬蘭文 (fi)" title="芬蘭文 (fi)"></a>
-  <a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="30" alt="挪威文 (no)" title="挪威文 (no)"></a>
-  <a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="30" alt="瑞典文 (sv)" title="瑞典文 (sv)"></a>
+  <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
+  <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
+  <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
+  <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="Français (fr)" title="Français (fr)"></a>
+  <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="Italiano (it)" title="Italiano (it)"></a>
+  <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="Deutsch (de)" title="Deutsch (de)"></a>
+  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="Nederlands (nl)" title="Nederlands (nl)"></a>
+  <a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="30" alt="Русский (ru)" title="Русский (ru)"></a>
+  <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="Українська (uk-UA)" title="Українська (uk-UA)"></a>
+  <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="Polski (pl)" title="Polski (pl)"></a>
+  <a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="30" alt="Čeština (cs)" title="Čeština (cs)"></a>
+  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="Slovenčina (sk)" title="Slovenčina (sk)"></a>
+  <a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="30" alt="Română (ro)" title="Română (ro)"></a>
+  <a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="30" alt="Magyar (hu)" title="Magyar (hu)"></a>
+  <a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="30" alt="Български (bg)" title="Български (bg)"></a>
+  <a href="docs/i18n/da/README.md"><img src="docs/assets/flags/dk.svg" width="30" alt="Dansk (da)" title="Dansk (da)"></a>
+  <a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="30" alt="Suomi (fi)" title="Suomi (fi)"></a>
+  <a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="30" alt="Norsk (no)" title="Norsk (no)"></a>
+  <a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="30" alt="Svenska (sv)" title="Svenska (sv)"></a>
   <a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="30" alt="中文 — 簡體 (zh-CN)" title="中文 — 簡體 (zh-CN)"></a>
   <a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="30" alt="中文 — 繁體 (zh-TW)" title="中文 — 繁體 (zh-TW)"></a>
-  <a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="30" alt="日文 (ja)" title="日文 (ja)"></a>
-  <a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="30" alt="韓文 (ko)" title="韓文 (ko)"></a>
-  <a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="30" alt="泰文 (th)" title="泰文 (th)"></a>
-  <a href="docs/i18n/vi/README.md"><img src="docs/assets/flags/vn.svg" width="30" alt="越南文 (vi)" title="越南文 (vi)"></a>
-  <a href="docs/i18n/id/README.md"><img src="docs/assets/flags/id.svg" width="30" alt="印尼文 (id)" title="印尼文 (id)"></a>
-  <a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="30" alt="馬來文 (ms)" title="馬來文 (ms)"></a>
-  <a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="30" alt="菲律賓文 (phi)" title="菲律賓文 (phi)"></a>
-  <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="印地文 (hi)" title="印地文 (hi)"></a>
-  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="古吉拉特文 (gu)" title="古吉拉特文 (gu)"></a>
-  <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="馬拉地文 (mr)" title="馬拉地文 (mr)"></a>
-  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="坦米爾文 (ta)" title="坦米爾文 (ta)"></a>
-  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="泰盧固文 (te)" title="泰盧固文 (te)"></a>
-  <a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="30" alt="孟加拉文 (bn)" title="孟加拉文 (bn)"></a>
-  <a href="docs/i18n/ur/README.md"><img src="docs/assets/flags/pk.svg" width="30" alt="烏都文 (ur)" title="烏都文 (ur)"></a>
-  <a href="docs/i18n/fa/README.md"><img src="docs/assets/flags/ir.svg" width="30" alt="波斯文 (fa)" title="波斯文 (fa)"></a>
-  <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="阿拉伯文 (ar)" title="阿拉伯文 (ar)"></a>
-  <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="希伯來文 (he)" title="希伯來文 (he)"></a>
-  <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="土耳其文 (tr)" title="土耳其文 (tr)"></a>
-  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="亞塞拜然文 (az)" title="亞塞拜然文 (az)"></a>
-  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="斯瓦希里文 (sw)" title="斯瓦希里文 (sw)"></a>
-  <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="希臘文 (el)" title="希臘文 (el)"></a>
-  <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="克羅埃西亞文 (hr)" title="克羅埃西亞文 (hr)"></a>
-  <a href="docs/i18n/sr/README.md"><img src="docs/assets/flags/rs.svg" width="30" alt="塞爾維亞文 (sr)" title="塞爾維亞文 (sr)"></a>
-  <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="立陶宛文 (lt)" title="立陶宛文 (lt)"></a>
-  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="愛沙尼亞文 (et)" title="愛沙尼亞文 (et)"></a>
-  <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="拉脫維亞文 (lv)" title="拉脫維亞文 (lv)"></a>
-  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="斯洛維尼亞文 (sl)" title="斯洛維尼亞文 (sl)"></a>
-  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="馬爾他文 (mt)" title="馬爾他文 (mt)"></a>
-  <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="愛爾蘭文 (ga)" title="愛爾蘭文 (ga)"></a>
-  <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="康納達文 (kn)" title="康納達文 (kn)"></a>
-  <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="馬拉雅拉姆文 (ml)" title="馬拉雅拉姆文 (ml)"></a>
-  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="歐迪亞文 (or)" title="歐迪亞文 (or)"></a>
-  <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="旁遮普文 (pa)" title="旁遮普文 (pa)"></a>
-  <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="尼泊爾文 (ne)" title="尼泊爾文 (ne)"></a>
-  <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="僧伽羅文 (si)" title="僧伽羅文 (si)"></a>
-  <a href="docs/i18n/my/README.md"><img src="docs/assets/flags/mm.svg" width="30" alt="緬甸文 (my)" title="緬甸文 (my)"></a>
-  <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="高棉文 (km)" title="高棉文 (km)"></a>
-  <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="豪薩文 (ha)" title="豪薩文 (ha)"></a>
-  <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="約魯巴文 (yo)" title="約魯巴文 (yo)"></a>
-  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="伊博文 (ig)" title="伊博文 (ig)"></a>
-  <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="阿姆哈拉文 (am)" title="阿姆哈拉文 (am)"></a>
-  <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="烏茲別克文 (uz)" title="烏茲別克文 (uz)"></a>
-  <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="喬治亞文 (ka)" title="喬治亞文 (ka)"></a>
-  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="亞美尼亞文 (hy)" title="亞美尼亞文 (hy)"></a>
+  <a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="30" alt="日本語 (ja)" title="日本語 (ja)"></a>
+  <a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="30" alt="한국어 (ko)" title="한국어 (ko)"></a>
+  <a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="30" alt="ไทย (th)" title="ไทย (th)"></a>
+  <a href="docs/i18n/vi/README.md"><img src="docs/assets/flags/vn.svg" width="30" alt="Tiếng Việt (vi)" title="Tiếng Việt (vi)"></a>
+  <a href="docs/i18n/id/README.md"><img src="docs/assets/flags/id.svg" width="30" alt="Bahasa Indonesia (id)" title="Bahasa Indonesia (id)"></a>
+  <a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="30" alt="Bahasa Melayu (ms)" title="Bahasa Melayu (ms)"></a>
+  <a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="30" alt="Filipino (phi)" title="Filipino (phi)"></a>
+  <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="हिन्दी (hi)" title="हिन्दी (hi)"></a>
+  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ગુજરાતી (gu)" title="ગુજરાતી (gu)"></a>
+  <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="मराठी (mr)" title="मराठी (mr)"></a>
+  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="தமிழ் (ta)" title="தமிழ் (ta)"></a>
+  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="తెలుగు (te)" title="తెలుగు (te)"></a>
+  <a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="30" alt="বাংলা (bn)" title="বাংলা (bn)"></a>
+  <a href="docs/i18n/ur/README.md"><img src="docs/assets/flags/pk.svg" width="30" alt="اردو (ur)" title="اردو (ur)"></a>
+  <a href="docs/i18n/fa/README.md"><img src="docs/assets/flags/ir.svg" width="30" alt="فارسی (fa)" title="فارسی (fa)"></a>
+  <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="العربية (ar)" title="العربية (ar)"></a>
+  <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="עברית (he)" title="עברית (he)"></a>
+  <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="Türkçe (tr)" title="Türkçe (tr)"></a>
+  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="Azərbaycan (az)" title="Azərbaycan (az)"></a>
+  <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="Kiswahili (sw)" title="Kiswahili (sw)"></a>
+  <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="Ελληνικά (el)" title="Ελληνικά (el)"></a>
+  <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="Hrvatski (hr)" title="Hrvatski (hr)"></a>
+  <a href="docs/i18n/sr/README.md"><img src="docs/assets/flags/rs.svg" width="30" alt="Српски (sr)" title="Српски (sr)"></a>
+  <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="Lietuvių (lt)" title="Lietuvių (lt)"></a>
+  <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="Eesti (et)" title="Eesti (et)"></a>
+  <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="Latviešu (lv)" title="Latviešu (lv)"></a>
+  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="Slovenščina (sl)" title="Slovenščina (sl)"></a>
+  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="Malti (mt)" title="Malti (mt)"></a>
+  <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="Gaeilge (ga)" title="Gaeilge (ga)"></a>
+  <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ಕನ್ನಡ (kn)" title="ಕನ್ನಡ (kn)"></a>
+  <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="മലയാളം (ml)" title="മലയാളം (ml)"></a>
+  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ଓଡ଼ିଆ (or)" title="ଓଡ଼ିଆ (or)"></a>
+  <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ਪੰਜਾਬੀ (pa)" title="ਪੰਜਾਬੀ (pa)"></a>
+  <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="नेपाली (ne)" title="नेपाली (ne)"></a>
+  <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="සිංහල (si)" title="සිංහල (si)"></a>
+  <a href="docs/i18n/my/README.md"><img src="docs/assets/flags/mm.svg" width="30" alt="မြန်မာ (my)" title="မြန်မာ (my)"></a>
+  <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="ខ្មែរ (km)" title="ខ្មែរ (km)"></a>
+  <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Hausa (ha)" title="Hausa (ha)"></a>
+  <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Yorùbá (yo)" title="Yorùbá (yo)"></a>
+  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="Igbo (ig)" title="Igbo (ig)"></a>
+  <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="አማርኛ (am)" title="አማርኛ (am)"></a>
+  <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
+  <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
+  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -214,47 +219,48 @@
 
 <div align="center">
 
-## 🆓 安裝後立即生效 — 無需金鑰，無需配置
+## 🆓 安裝、連接提供者，然後透過單一端點路由
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="安裝後立即生效 — 零配置。三個步驟：1. 安裝 — npm i -g omniroute，伺服器在 localhost:20128 啟動。2. 將您的工具指向 http://localhost:20128/v1 — 任何與 OpenAI 相容的工具 (Claude Code, Cursor, Cline)。3. 它會回應 — 呼叫模型 auto 即可立即獲得回覆，無需 API 金鑰、無需註冊、無需配置。無金鑰提供者 OpenCode Free 已預先連接到 auto 組合中，因此全新安裝即可立即回應。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="三個步驟：安裝並啟動 OmniRoute、使用您自己的帳戶或 API 金鑰連接符合資格的提供者，然後使用 OmniRoute API 金鑰和 auto 模型，將您的工具指向 localhost:20128/v1。路由取決於可用且符合資格的連線及提供者限制。"/>
 
 ```bash
-# 全新安裝，零憑證 — `auto` 已可運作：
+# 連接提供者後，從 Dashboard → Endpoints 複製您的 OmniRoute 金鑰：
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>偏好特定的免費後端？直接呼叫 `oc/…` (`OpenCode Free`)。然後升級到 `auto`，讓 `OmniRoute` 選擇。</sub>
+<sub>`auto` 需要符合資格的路由。全新安裝可能沒有符合資格的無金鑰目標，而無金鑰提供者也可能拒絕第三方用戶端。標記為 `tos: avoid` 的提供者（包括 OpenCode Free 和 Kiro）預設會被排除在自動路由之外；連接帳戶不會覆寫該設定。選擇提供者之前，請參閱[免費方案指南](docs/getting-started/FREE-TIERS-GUIDE.md)。</sub>
 
-<sub>📦 **Python、Node.js、PHP 和 cURL** 的複製貼上快速入門腳本 → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 適用於 **Python、Node.js、PHP 和 cURL** 的可直接複製貼上快速入門指令碼 → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 承諾
+# 💥 我們的承諾
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="承諾 — 一個端點和 358 個提供者。自動備援確保在有其他健康目標可用時持續路由。六大支柱：跨 358 個提供者的彈性備援 · 在符合條件的工作負載上節省高達 95% 的代幣 · 150 多個免費層級和 54 個定期/無金鑰永久免費提供者，零成本啟動 · 透過一個配置實現 36 個 CLI/代理整合 · 在 /v1 支援 OpenAI、Claude、Gemini 和 Responses API 相容性 · 生產控制，包括斷路器、TLS 隱身、MCP 110 工具、A2A、記憶體、防護欄、評估以及跨 5,100 多個追蹤測試檔案的 39,000 多個靜態測試宣告。"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="我們的承諾 — 單一端點與 372 個提供者。只要仍有其他健康的目標可用，自動容錯移轉便會持續進行路由。六大支柱：涵蓋 372 個提供者的韌性容錯移轉 · 符合資格的工作負載最多可節省 95% 的權杖 · 以 $0 起步，提供 150+ 個免費方案，以及 54 個週期性／無金鑰且永久免費的提供者 · 透過單一設定支援 36 種 CLI／代理程式整合 · 在 /v1 相容於 OpenAI、Claude、Gemini 和 Responses API · 生產環境控制功能，包括斷路器、TLS 隱匿、具備 110 項工具的 MCP、A2A、記憶體、護欄、評估，以及分布於 5,100+ 個受追蹤測試檔案中的 39,000+ 項靜態測試宣告。"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 為何選擇 OmniRoute？
+# 🤔 為什麼選擇 OmniRoute？
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="為何選擇 OmniRoute — 停止應付 10 個儀表板、失效的 API 金鑰和意外帳單。十大日常痛點與解決方案：配額未使用即過期 → 最大化訂閱；編碼中遇到速率限制 → 4 層自動備援（訂閱 → API → 便宜 → 免費）；工具輸出消耗代幣 → RTK + Caveman 壓縮（15–95%）；昂貴的 API → 成本最佳化路由；每個工具都有自己的設定 → 一個端點，一個儀表板；AI 被阻擋 → 3 層代理 + TLS 隱身；失效金鑰 → 3 層彈性（斷路器、金鑰冷卻、模型鎖定）；團隊共享一個訂閱 → 具有公平共享配額的金鑰池；提示透過他人的雲端 → 本地優先，使用 AES-256-GCM 加密金鑰；無支出可見性 → 即時分析（使用量、配額、節省、p95 延遲）。"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="為什麼選擇 OmniRoute — 不必再周旋於 10 個儀表板、失效的 API 金鑰和意外帳單之間。十大日常痛點與解決方式：配額未使用便到期 → 充分利用訂閱；寫程式途中遇到速率限制 → 4 層自動容錯移轉（訂閱 → API → 低價 → 免費）；工具輸出消耗大量權杖 → RTK + Caveman 壓縮（15–95%）；API 費用高昂 → 成本最佳化路由；每個工具都有各自的設定 → 單一端點、單一儀表板；AI 遭封鎖 → 3 級代理伺服器 + TLS 隱匿；金鑰失效 → 3 層韌性機制（斷路器、金鑰冷卻、模型鎖定）；團隊共用單一訂閱 → 具備公平分配配額的金鑰池；提示詞經過他人的雲端 → 本機優先，並使用 AES-256-GCM 加密金鑰；無法掌握支出 → 即時分析（使用量、配額、節省金額、p95 延遲）。"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：您的 IDE 或 CLI (Claude Code, Cursor, Cline…) 呼叫一個本地端點 (http://localhost:20128/v1)；OmniRoute 智慧路由器 (RTK + Caveman 壓縮、19 種路由策略、斷路器、TLS 隱身、MCP、A2A、防護欄) 可以在有合格的健康目標時，在 4 個提供者層級之間進行備援 — Tier 1 Subscription、Tier 2 API Key、Tier 3 Cheap 和 Tier 4 Free。"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：您的 IDE 或 CLI（Claude Code、Cursor、Cline……）呼叫單一本機端點（http://localhost:20128/v1）；只要仍有符合資格且健康的目標，OmniRoute Smart Router（RTK + Caveman 壓縮、19 種路由策略、斷路器、TLS 隱匿、MCP、A2A、護欄）便可在 4 個提供者層級之間進行容錯移轉 — 第 1 層：訂閱、第 2 層：API 金鑰、第 3 層：低價、第 4 層：免費。"/>
 
 </div>
 
@@ -488,13 +494,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute 有何獨特之處
+## 🏆 OmniRoute 的獨特優勢
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特之處 — 一個過時的功能快照，與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 在 13 項功能上的比較。OmniRoute：358 個提供者，內建 150+ 免費層級，19 種路由策略，12 引擎代幣壓縮，內建含 110 種工具的 MCP 伺服器，A2A 代理協定，持久記憶體，護欄，雲端代理，TLS 指紋隱匿，桌面/Termux/PWA 和 42 種國際化使用者介面語言。OmniRoute 是 MIT 授權並可自行託管的。競爭對手的功能和數量可能會有所變動；請參閱連結的方法論。"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特優勢——與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 針對 13 項功能所做的特定時間點功能比較。OmniRoute：支援 372 個提供者、內建 150+ 個免費方案、19 種路由策略、12 引擎權杖壓縮、內建具備 110 項工具的 MCP 伺服器、A2A 代理協定、持久記憶、護欄機制、雲端代理、TLS 指紋隱匿、Desktop/Termux/PWA，以及支援 42 種國際化 UI 語言環境。OmniRoute 採用 MIT 授權，並支援自行託管。競爭產品的功能與數量可能有所變動；請參閱連結中的方法論。"/>
 
-<sub>📊 完整方法論與各功能詳情，對比 9router、OpenRouter、CLIProxyAPI 和 LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 完整方法論及與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 的各項功能詳細比較 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -665,11 +671,11 @@ omniroute configure codex          # 亦支援：claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 372 個 AI 提供者 — 154 個標記為免費
+## 🌐 372 個 AI 提供者 — 154 個標記於目錄中為免費
 
 </div>
 
-> 在標準聊天、媒體、搜尋、本機、雲端代理程式與系統集合中，共有 **357 個已註冊的提供者**，其中 **152 個帶有 `hasFree: true` 探索中繼資料**。聊天模型登錄檔涵蓋 **229 個提供者 / 2,554 組不同的提供者－模型配對 / 1,283 個原始模型 ID**；獨立的免費額度目錄則包含 **491 筆個別模型記錄**、**35 個週期性資源池**，以及 **54 個提供週期性額度或無需金鑰且永久免費的提供者**。這些統計依設計採用不同的分母；定義與資源池去重後的計算方式，請參閱[提供者參考資料](docs/reference/PROVIDER_REFERENCE.md)與[免費方案](docs/reference/FREE_TIERS.md)。
+> **372 個已註冊的提供者**，涵蓋標準的聊天、媒體、搜尋、本機、雲端代理及系統集合，其中 **154 個帶有 `hasFree: true` 探索中繼資料**。聊天模型登錄庫涵蓋 **237 個提供者 / 3,009 個不同的提供者－模型配對 / 1,443 個原始模型 ID**；獨立的免費額度目錄則包含 **491 筆逐模型資料列**、**35 個週期性資源池**，以及 **54 個提供週期性或免金鑰永久免費方案的提供者**。這些資料依設計採用不同的分母；定義及排除重複資源池後的計算方式，請參閱[提供者參考資料](docs/reference/PROVIDER_REFERENCE.md)與[免費方案](docs/reference/FREE_TIERS.md)。
 
 <div align="center">
 
@@ -702,11 +708,11 @@ omniroute configure codex          # 亦支援：claude opencode qwen aider goos
   </tr>
 </table>
 
-<sub>……以及另外 330 多個提供者 — 每個圖示皆從儀表板的提供者目錄即時解析。📖 [提供者參考資料](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>……以及另外 330 多個提供者 — 每個圖示皆即時取自儀表板的提供者目錄。📖 [提供者參考資料](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 永久免費 — $0，無需信用卡
+### 🆓 永久免費 — $0，無須信用卡
 
 <table>
   <tr>
@@ -718,11 +724,11 @@ omniroute configure codex          # 亦支援：claude opencode qwen aider goos
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>永久免費</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max、Kimi-K2<br/>免費且無限制</sub></td>
-    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT、Llama、Claude<br/>無需金鑰</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max、Kimi-K2<br/>無限量免費</sub></td>
+    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT、Llama、Claude<br/>不需要金鑰</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ 個模型<br/>每天 10K 個神經元</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM、MiniMax<br/>免費約 40 RPM</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7、GPT-OSS<br/>每天 1M tokens</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7、GPT-OSS<br/>一次性 $5 額度；需綁定信用卡</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free 模型<br/>+$10 → 更高的 RPM</sub></td>
   </tr>
 </table>
@@ -905,9 +911,9 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 ### 📖 運作方式 — 管線、架構與節省量計算
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute 壓縮管線：一個示意性的 10,000-token 用戶端請求會通過 12 個可組合引擎 — Session-Dedup、CCR、Lite、RTK、Responses Tool Output、Headroom、Relevance、Caveman、Aggressive、LLMLingua-2、Ultra 與 OmniGlyph — 在文件所述的堆疊範例中，送達提供者時可縮減至約 1,080 個 token。結構化內容受到保留防護與逐步保真閘門的保護；明確啟用的有損或實驗性模式可能會轉換符合條件的內容。"/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute 壓縮管線：一個包含 10,000 個 Token 的用戶端請求會通過 12 個可組合引擎——Session-Dedup、CCR、Lite、RTK、Responses Tool Output、Headroom、Relevance、Caveman、Aggressive、LLMLingua-2、Ultra 與 OmniGlyph——在文件所述的堆疊範例中，到達提供者時可縮減至約 1,080 個 Token。結構化內容受到保留防護機制與逐步保真閘門的保護；明確啟用的有損或實驗模式可能會轉換符合條件的內容。"/>
 
-預設堆疊組合會依序執行 `RTK → Caveman`。當兩者作用於相同的工具／上下文酬載時，節省效果會複合疊加：
+預設的堆疊組合會依序執行 `RTK → Caveman`。當兩者處理相同的工具／上下文酬載時，節省效果會複合疊加：
 
 ```txt
 combined = 1 − (1 − RTK) × (1 − Caveman_input)
@@ -915,74 +921,74 @@ average  = 1 − (1 − 0.80) × (1 − 0.46) = 89.2%
 range    = 78.4 – 94.6%
 ```
 
-程式碼區塊、URL、JSON 與結構化資料均由保留引擎**一律保護**。
+程式碼區塊、URL、JSON 與結構化資料**一律受到**保留引擎的保護。
 
-> **能用少量 token 搞定，何必使用那麼多 token？** 每個請求都會**透明地**通過 OmniRoute 的壓縮管線 — 無須變更用戶端。現在它是由 **12 個可組合引擎構成的堆疊**，會依序執行，並可針對每種路由組合自由搭配 — 建基於 [RTK](https://github.com/rtk-ai/rtk)、[Caveman](https://github.com/JuliusBrussee/caveman)（⭐ 90K+）、[LLMLingua-2](https://github.com/microsoft/LLMLingua) 與 [Troglodita](https://github.com/leninejunior/troglodita)（PT-BR）的理念。
+> **能用少量 Token 完成的事，何必使用大量 Token？** 每個請求都會**透明地**通過 OmniRoute 的壓縮管線——無須變更用戶端。它現在是由 **12 個可組合引擎構成的堆疊**，會依序執行，並可針對每個路由組合自由搭配——其概念建立於 [RTK](https://github.com/rtk-ai/rtk)、[Caveman](https://github.com/JuliusBrussee/caveman)（⭐ 90K+）、[LLMLingua-2](https://github.com/microsoft/LLMLingua) 與 [Troglodita](https://github.com/leninejunior/troglodita)（PT-BR）之上。
 
 ### 🧱 12 引擎堆疊
 
-引擎會按照管線順序執行；每個引擎皆可針對各個組合獨立切換與設定：
+引擎會依管線順序執行；每個引擎都可獨立切換，並可針對各組合進行設定：
 
 <table>
   <tr><th align="center">#</th><th align="left">引擎</th><th align="left">功能</th></tr>
-  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">移除多輪對話中重複的內容（內容定址、跨輪次）</td></tr>
+  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">移除不同對話輪次間重複的內容（內容定址、跨輪次）</td></tr>
   <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">將大型區塊封存於擷取標記之後，並按需取得</td></tr>
-  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">修剪空白字元與圖片 URL（低延遲基準）</td></tr>
-  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">智慧工具結果篩選、去重與截斷（可辨識命令）</td></tr>
-  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">以無損為優先的 JSON，以及針對 shell／修補／搜尋／建置輸出的有界診斷壓縮（Responses API）</td></tr>
-  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">透過內建的 <b>GCF</b> 編解碼器，對 JSON 陣列進行無損表格式壓縮（約 30%）</td></tr>
-  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">根據最後一個使用者查詢，對擷取出的句子進行相關性評分</td></tr>
-  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">基於規則的散文壓縮（輸出約可減少 65–75%）</td></tr>
-  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">摘要處理與舊輪次的漸進式老化</td></tr>
-  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">透過 MobileBERT ONNX 進行 ML 語意剪枝 — 程式碼安全、非同步</td></tr>
-  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">啟發式 token 剪枝，並提供選用的小型模型（SLM）層級</td></tr>
-  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">實驗性的上下文影像編碼，適用於透過 Anthropic 直接線路實測的 Claude Fable 5；GPT 5.6 transformers 在取得提供者回條之前仍維持故障關閉。四種壓縮設定檔（預設積極、平衡、程式碼安全、直接傳遞）（最積極；須主動啟用）</td></tr>
+  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">修剪空白與圖片 URL（低延遲基準）</td></tr>
+  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">智慧篩選工具結果、去除重複內容並截斷（可辨識命令）</td></tr>
+  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">針對 shell／patch／搜尋／建置輸出，進行無損優先的 JSON 壓縮與有界診斷壓縮（Responses API）</td></tr>
+  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">透過內嵌的 <b>GCF</b> 轉碼器，對 JSON 陣列進行無損表格式壓縮（約 30%）</td></tr>
+  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">依據最後一個使用者查詢，對擷取出的句子評分</td></tr>
+  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">基於規則的散文壓縮（輸出約可壓縮 65–75%）</td></tr>
+  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">摘要並逐步老化較舊的對話輪次</td></tr>
+  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">透過 MobileBERT ONNX 進行機器學習語意修剪——程式碼安全、非同步</td></tr>
+  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">啟發式 Token 修剪，並可選用小型模型（SLM）層級</td></tr>
+  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">實驗性的上下文即圖片編碼，適用於經測量的 Claude Fable 5，透過直接 Anthropic 線路傳輸；在收到提供者回執前，GPT 5.6 轉換器仍採失敗關閉機制。四種壓縮設定檔（預設積極、平衡、程式碼安全、直通）（最積極；須選擇啟用）</td></tr>
 </table>
 
-程式碼區塊、URL 與結構化資料均會以位元組完全一致的方式**一律保留**。**一鍵預設**可組合這些引擎：
+程式碼區塊、URL 與結構化資料**一律會以位元組完全一致的方式保留**。**一鍵預設集**可組合這些引擎：
 
 <table>
   <tr><th align="left">模式</th><th align="left">節省量</th><th align="left">最適合</th></tr>
-  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">安全且可持續啟用的預設模式</td></tr>
-  <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">日常程式開發</td></tr>
-  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">大量使用工具的長時間工作階段</td></tr>
+  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">可常駐啟用的安全預設值</td></tr>
+  <tr><td align="left" nowrap>🪨 <b>Standard（Caveman）</b></td><td align="left" nowrap>~30%</td><td align="left">日常程式開發</td></tr>
+  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">長時間且大量使用工具的工作階段</td></tr>
   <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">最大化節省量</td></tr>
   <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">Shell／測試／建置／git 輸出</td></tr>
-  <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">混合提示詞與工具日誌</td></tr>
+  <tr><td align="left" nowrap>🔗 <b>Stacked（RTK → Caveman）</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">混合提示詞與工具日誌</td></tr>
 </table>
 
 **實際範例 — Standard 模式：**
 
-> **之前（69 個 token）：** _「你的 React 元件之所以會重新渲染，很可能是因為你在每次渲染週期中都建立了新的物件參照。當你將行內物件作為 prop 傳遞時，React 的淺層比較每次都會將它視為不同的物件，因而觸發重新渲染。我建議使用 useMemo 記憶化該物件。」_
+> **壓縮前（69 個 Token）：** _「你的 React 元件會重新渲染，可能是因為你在每次渲染週期中都建立了新的物件參照。當你將內嵌物件作為 prop 傳遞時，React 的淺層比較會在每次都將其視為不同的物件，因而觸發重新渲染。我建議使用 useMemo 來記憶化該物件。」_
 >
-> **之後（19 個 token）：** _「每次渲染都產生新物件參照。行內物件 prop = 新參照 = 重新渲染。用 useMemo 包裝。」_
+> **壓縮後（19 個 Token）：** _「每次渲染都有新物件參照。內嵌物件 prop = 新參照 = 重新渲染。使用 useMemo 包裝。」_
 >
 > **答案相同。Token 減少 72%。準確度零損失。** ✅
 
 **PT-BR 範例 — [Troglodita](https://github.com/leninejunior/troglodita) 模式：**
 
-> **之前（42 個 token）：** _「問題在於元件會重新渲染，因為每次渲染週期都會建立新的物件參照。我建議使用 useMemo。」_
+> **之前（42 個 token）：** _「問題在於元件會重新渲染，因為每個渲染週期都會建立新的物件參照。我建議使用 useMemo。」_
 >
 > **之後（12 個 token）：** _「重新渲染：每個週期都有新參照（重新建立行內物件）。使用 `useMemo`。」_
 >
-> **答案相同。token 減少約 70%。技術準確性完整保留。** ✅
+> **相同答案。token 減少約 70%。技術精確度不變。** ✅
 
 <br/>
 
-### 🎚️ 不只是引擎——輸出風格、自適應旋鈕與逐請求控制
+### 🎚️ 不僅是引擎 — 輸出風格、自適應旋鈕與逐請求控制
 
-上述 12 個引擎會縮減**輸入**內容。另有三層機制決定**如何**、**何時**以及最終**輸出**什麼：
+上述 12 個引擎會縮減**輸入**內容。另有三個層面決定**如何**、**何時**以及實際**輸出**的內容：
 
-- **🪄 輸出風格** _（輸出軸向控制）_ — 注入具確定性且快取安全的回應塑形指令；可組合使用，每種皆有 `lite` / `full` / `ultra` 強度。新增風格只需在登錄檔加入一行：
-  - **精簡文字** — 移除贅詞／冠詞／保留語氣；精確保留技術內容。
-  - **減少程式碼** — 「慵懶資深開發者」式 YAGNI：只做最小可行變更，不加入未要求的架構。
-  - **馬尾辮（慵懶資深開發者）** — 逐級套用 YAGNI、修正根本原因，採用最小可行差異。
-  - **我有 ADHD（行動優先）** — 先說下一步行動、步驟編號、一次只給一個具體下一步，不加前言。
-  - **精簡 CJK（文言）** — 古典中文的極簡風格（僅限 `zh` 語系）。
-- **🎯 自適應上下文預算** _（旋鈕）_ — 不再使用單一開／關 token 閾值，而是僅按需要逐步啟用成本最低、資訊損失最少的引擎，直到內容**符合模型的上下文視窗限制**。策略：`reserve-output`（預設，依模型調整）· `percentage` · `absolute`。模式：`floor`（保證可容納）· `replace-autotrigger`（以你的明確選擇為準）· `off`（舊版閾值）。
-- **🎛️ 壓縮決策位置** _（優先順序，由高至低）_ — 每次請求的 `x-omniroute-compression` 標頭 › 路由組合覆寫 › 啟用中的具名設定檔 › 自適應／自動觸發 › 面板預設值 › 關閉。套用的方案會透過 `X-OmniRoute-Compression: <mode>; source=<source>` 回應標頭傳回。
+- **🪄 輸出風格** _（輸出軸向引導）_ — 注入確定性且快取安全的回應塑形指令；可組合使用，每種風格皆有 `lite` / `full` / `ultra` 強度。新增風格只需在登錄檔加入一行：
+  - **精簡文字** — 移除贅詞／冠詞／模糊措辭；完整保留技術實質。
+  - **減少程式碼** — 「懶惰資深開發者」式 YAGNI：只做最小可運作的變更，不加入未要求的基礎架構。
+  - **馬尾（懶惰資深開發者）** — 沿著 YAGNI 階梯向上，修正根本原因，採用最小可運作的差異。
+  - **我有 ADHD（行動優先）** — 先列下一步行動、步驟編號、只給一個具體的下一步，不加前言。
+  - **精簡 CJK（文言）** — 極度精簡的文言文風格（僅限 `zh` 語系）。
+- **🎯 自適應上下文預算** _（旋鈕）_ — 不再只用單一開／關 token 閾值，而是僅在必要範圍內逐步啟用成本最低、資訊損失最少的引擎，以**符合模型的上下文視窗**。策略：`reserve-output`（預設，依模型調整）· `percentage` · `absolute`。模式：`floor`（保證容納）· `replace-autotrigger`（以你的明確選擇為準）· `off`（舊版閾值）。
+- **🎛️ 壓縮決策的位置** _（優先順序，由高至低）_ — 逐請求 `x-omniroute-compression` 標頭 › 路由組合覆寫 › 使用中的具名設定檔 › 自適應／自動觸發 › 面板預設值 › 關閉。套用的方案會在 `X-OmniRoute-Compression: <mode>; source=<source>` 回應標頭中回傳。
 
-你可以依 token 閾值自動觸發、開啟自適應旋鈕、固定使用具名設定檔、為單次請求指定設定，或為每個路由組合指派管線——選擇最適合工作負載的方式。選擇性啟用的離線**評估工具**（`npm run eval:compression`）可在固定語料庫上評估保真度與節省幅度，再決定是否推行變更。
+可依 token 閾值自動觸發、開啟自適應旋鈕、固定使用具名設定檔、為單次請求指定設定，或為每個路由組合指派管線 — 選擇最符合工作負載的方式即可。選擇性啟用的離線**評估工具**（`npm run eval:compression`）可在你正式採用變更前，使用固定語料庫評估保真度與節省量。
 
 📖 [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
 
@@ -994,49 +1000,67 @@ range    = 78.4 – 94.6%
 
 </div>
 
-**1）安裝並執行**
+**1) 安裝並執行**
 
 ```bash
 npm install -g omniroute
 omniroute
 ```
 
-> 💡 看到 `npm warn ERESOLVE` 或 peer-dep 警告？[這些不會造成影響](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated)。
+> 💡 看到 `npm warn ERESOLVE` 或 peer-dep 警告嗎？[這些警告無害](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated)。
+> **使用 npm 11 或更新版本？** 除非明確允許，否則 npm 可能會封鎖套件生命週期指令碼。必須執行 OmniRoute 的 `postinstall`（`node scripts/build/postinstall.mjs`），才能準備其原生執行階段檔案。全域安裝時，請允許 npm 警告中列出的套件。對於 OmniRoute 3.8.51 回報的套件集合：
+>
+> ```bash
+> npm install -g --allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild omniroute
+> ```
+>
+> 若要在未來的全域安裝中重複使用此允許清單，請先設定一次，再照常安裝：
+>
+> ```bash
+> npm config set allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+> npm install -g omniroute
+> ```
+>
+> 相依套件清單可能會隨版本而變；如果 npm 回報不同的清單，請使用該警告中的套件名稱。允許某個套件，即代表允許執行其安裝指令碼。
+> **使用 Gemini Web 或其他以網頁 Cookie 驗證的提供者？** npm 套件包含
+> Playwright，但不包含其 Chromium 二進位檔。首次發出網頁提供者請求前，請參閱
+> [Playwright Chromium 設定](docs/guides/TROUBLESHOOTING.md#gemini-web-and-playwright-chromium)
+> 說明。
 
 儀表板位於 `http://localhost:20128` · API 位於 `http://localhost:20128/v1`。
 
-**2）連接免費提供者（無須註冊）**
+**2) 使用你自己的帳戶連接符合資格的提供者**
 
-儀表板 → **提供者** → 連接 **Kiro AI**（免費 Claude，每個帳戶每月約 50 點額度）或 **OpenCode Free**（無須驗證）→ 完成。
+儀表板 → **提供者** → 選擇目前條款與配額符合你使用情境的提供者 → 新增其 API 金鑰或完成帳戶流程。免費方案可能需要註冊、審核或付款方式。請參閱[免費方案指南](docs/getting-started/FREE-TIERS-GUIDE.md)；不保證一定有無需金鑰的選項，且標記為 `tos: avoid` 的提供者預設不會納入 `auto`。
 
-**3）設定你的程式設計工具**
+**3) 設定你的程式開發工具**
 
 ```txt
 基礎 URL： http://localhost:20128/v1
 API 金鑰： [從儀表板 → 端點複製]
-模型：     auto            （零設定智慧路由，亦可使用任何提供者／模型）
+模型：     auto            （在符合資格的連線之間進行路由，或選擇提供者／模型）
 ```
 
-**4）確認運作正常**
+**4) 驗證是否正常運作**
 
 ```bash
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-你應該會看到已連接的模型清單。🎉 就是這麼簡單——開始撰寫程式碼，OmniRoute 會自動為你選擇路由，並在必要時切換至備援。
+你應該會看到已連接的模型清單。🎉 就這樣 — 開始撰寫程式碼，OmniRoute 會自動為你進行路由與容錯切換。
 
 如果你的用戶端無法傳送自訂標頭，OmniRoute 也提供含 token 的相容性別名：
 
 ```txt
-OpenAI 目錄：    http://localhost:20128/vscode/YOUR_KEY/
-OpenAI 模型：    http://localhost:20128/vscode/YOUR_KEY/models
-OpenAI 聊天：    http://localhost:20128/vscode/YOUR_KEY/chat/completions
-OpenAI 回應：    http://localhost:20128/vscode/YOUR_KEY/responses
-Ollama 聊天：    http://localhost:20128/vscode/YOUR_KEY/api/chat
-Ollama 標籤：    http://localhost:20128/vscode/YOUR_KEY/api/tags
+OpenAI 目錄： http://localhost:20128/vscode/YOUR_KEY/
+OpenAI 模型： http://localhost:20128/vscode/YOUR_KEY/models
+OpenAI 聊天： http://localhost:20128/vscode/YOUR_KEY/chat/completions
+OpenAI 回應： http://localhost:20128/vscode/YOUR_KEY/responses
+Ollama 聊天： http://localhost:20128/vscode/YOUR_KEY/api/chat
+Ollama 標籤： http://localhost:20128/vscode/YOUR_KEY/api/tags
 ```
 
-僅限無法附加 `Authorization: Bearer ...` 的用戶端使用這些別名。使用標頭驗證仍是建議方式。
+這些別名僅供無法附加 `Authorization: Bearer ...` 的用戶端使用。標頭驗證仍是建議的方式。
 
 <br/>
 
@@ -1262,21 +1286,21 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 也會略過
 <table>
   <tr><th align="left">層級</th><th align="left">技術</th></tr>
   <tr><td nowrap><b>執行環境</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>語言</b></td><td>TypeScript 6.0 — 在 <code>src/</code> 與 <code>open-sse/</code> 中使用 <b>100% TypeScript</b>（自 v2.0 起，核心中完全沒有 <code>any</code>）</td></tr>
+  <tr><td nowrap><b>語言</b></td><td>TypeScript 6.0 — 在 <code>src/</code> 與 <code>open-sse/</code> 中使用 <b>100% TypeScript</b>（自 v2.0 起，核心中零 <code>any</code>）</td></tr>
   <tr><td nowrap><b>框架</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
   <tr><td nowrap><b>資料庫</b></td><td>better-sqlite3（SQLite、WAL 日誌模式）+ LowDB（舊版 JSON）— 137 個領域模組、202 次遷移</td></tr>
   <tr><td nowrap><b>記憶體</b></td><td>SQLite FTS5 全文檢索 + int8 量化向量嵌入、類型化衰減</td></tr>
   <tr><td nowrap><b>結構描述</b></td><td>Zod 4 — MCP 工具輸入／輸出驗證 + API 契約</td></tr>
-  <tr><td nowrap><b>通訊協定</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>
+  <tr><td nowrap><b>協定</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>
   <tr><td nowrap><b>串流</b></td><td>伺服器傳送事件（SSE）+ WebSocket 橋接器（<code>/v1/ws</code>）</td></tr>
   <tr><td nowrap><b>壓縮</b></td><td>12 引擎管線 — RTK、Caveman、LLMLingua-2（MobileBERT ONNX）、GCF、OmniGlyph</td></tr>
-  <tr><td nowrap><b>驗證與安全性</b></td><td>OAuth 2.0（PKCE）+ JWT + API 金鑰 + MCP 範圍式驗證 · 靜態資料使用 AES-256-GCM 加密 · DOMPurify</td></tr>
+  <tr><td nowrap><b>驗證與安全性</b></td><td>OAuth 2.0（PKCE）+ JWT + API 金鑰 + MCP 範圍式驗證 · 靜態資料採用 AES-256-GCM 加密 · DOMPurify</td></tr>
   <tr><td nowrap><b>隱匿性</b></td><td>wreq-js — JA3 / JA4 TLS 指紋模擬、3 級代理</td></tr>
-  <tr><td nowrap><b>韌性</b></td><td>斷路器、指數退避、防驚群效應、自動組合自我修復</td></tr>
-  <tr><td nowrap><b>日誌記錄</b></td><td>pino — 包含請求內容的結構化 JSON 日誌</td></tr>
-  <tr><td nowrap><b>測試</b></td><td>Node.js 測試執行器 + Vitest — 在 5,100 多個追蹤中的測試檔案裡，包含 <b>39,000 多個靜態測試宣告</b>（單元、整合、E2E、安全性、生態系統）</td></tr>
+  <tr><td nowrap><b>韌性</b></td><td>斷路器、指數退避、防驚群、自動組合自我修復</td></tr>
+  <tr><td nowrap><b>日誌記錄</b></td><td>pino — 包含請求上下文的結構化 JSON 日誌</td></tr>
+  <tr><td nowrap><b>測試</b></td><td>Node.js 測試執行器 + Vitest — 在 5,100+ 個追蹤中的測試檔案內共有 <b>39,000+ 個靜態測試宣告</b>（單元、整合、E2E、安全性、生態系統）</td></tr>
   <tr><td nowrap><b>平台</b></td><td>桌面版（Electron）· Android（Termux）· PWA（任何瀏覽器）</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — 發布版本時自動發布至 npm + Docker Hub</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — 發佈時自動發佈至 npm + Docker Hub</td></tr>
   <tr><td nowrap><b>連結</b></td><td><a href="https://omniroute.online">網站</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 

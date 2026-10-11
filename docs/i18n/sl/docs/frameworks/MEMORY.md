@@ -166,7 +166,8 @@ Tabela `memory_vec_meta` (migracija `083_memory_vec.sql`) hrani:
 
 ## Razširitev nastavitev
 
-V `MemorySettingsExtended` v datoteki `src/shared/schemas/memory.ts` je na voljo devet polj za vdelave in vektorje, ki se trajno shranjujejo prek `src/lib/db/settings.ts`:
+V `MemorySettingsExtended` v datoteki
+`src/shared/schemas/memory.ts` je na voljo devet polj za vdelave in vektorje, ki se shranjujejo prek `src/lib/db/settings.ts`:
 
 | Polje                    | Vrsta                                              | Privzeto | Opis                                                             |
 | ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------- |
@@ -174,27 +175,27 @@ V `MemorySettingsExtended` v datoteki `src/shared/schemas/memory.ts` je na voljo
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Ponudnik/model v obliki `provider/model`                         |
 | `customBaseUrl`          | `string \| null`                                   | `null`   | Osnovni URL končne točke, združljive z OpenAI, samo za pomnilnik |
 | `customModelId`          | `string \| null`                                   | `null`   | ID modela, poslan končni točki po meri                           |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Izrecna vključitev Transformers.js (MiniLM, ~400 MB)             |
-| `staticEnabled`          | `boolean`                                          | `false`  | Izrecna vključitev lokalnega statičnega modela potion-base-8M    |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Privolitev za Transformers.js (MiniLM, ~400 MB)                  |
+| `staticEnabled`          | `boolean`                                          | `false`  | Privolitev za statični lokalni model potion-base-8M              |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Omogoči korak ponovnega razvrščanja (doda +200–500 ms/zahtevo)   |
 | `rerankProviderModel`    | `string \| null`                                   | `null`   | Ponudnik/model za ponovno razvrščanje v obliki `provider/model`  |
 
-`rerankProviderModel` razreši `POST /v1/rerank` (klican prek povratne zanke), zato sprejema vse, kar sprejema ta pot: izbran model za ponovno razvrščanje v oblaku (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ali vozlišče ponudnika, združljivo z OpenAI, v obliki `<node-prefix>/<model>` (npr. `skilled-mini/bge-reranker-v2-m3` za strežnik TEI/Infinity). Vozlišča povratne zanke so vedno upravičena; vozlišče na drugem gostitelju (LAN, Tailscale) dodatno zahteva funkcijsko zastavico `RERANK_REMOTE_PROVIDER_NODES` in mora prestati pravilnik ponudnika za odhodne URL-je — glejte [Funkcijske zastavice](../reference/FEATURE_FLAGS.md). Izbirnik na nadzorni plošči prikaže izbrane ponudnike in lokalna vozlišča; kateri koli veljaven niz `provider/model` je mogoče nastaviti neposredno prek `PUT /api/settings/memory`.
+`rerankProviderModel` razreši `POST /v1/rerank` (klican prek povratne zanke), zato sprejema vse, kar sprejema ta pot: izbran model za ponovno razvrščanje v oblaku (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ali vozlišče ponudnika, združljivo z OpenAI, v obliki `<node-prefix>/<model>` (npr. `skilled-mini/bge-reranker-v2-m3` za strežnik TEI/Infinity). Vozlišča povratne zanke in imena gostiteljev, navedena v `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (npr. ime storitve Docker/Compose), so vedno primerna; vozlišče na drugem gostitelju (LAN, Tailscale) dodatno zahteva funkcijsko zastavico `RERANK_REMOTE_PROVIDER_NODES` in mora prestati pravilnik za izhodne URL-je ponudnika — glejte [Funkcijske zastavice](../reference/FEATURE_FLAGS.md). Izbirnik na nadzorni plošči prikazuje izbrane ponudnike in lokalna vozlišča; vsak veljaven niz `provider/model` je mogoče nastaviti neposredno prek `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Katero vektorsko zaledje naj se uporabi |
 
-Ta polja so na voljo prek `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
+Ta polja so izpostavljena prek `GET /PUT /api/settings/memory` (shema `MemorySettingsExtendedSchema`).
 
-Za vir `remote` pomnilnik sprejema tudi neobvezni nastavitvi `customBaseUrl` in
+Za vir `remote` pomnilnik sprejema tudi izbirni nastavitvi `customBaseUrl` in
 `customModelId`. Skupaj izbereta končno točko `/embeddings`, združljivo z OpenAI,
-in model, ne da bi spremenila globalni register vdelav. Končna točka se pred uporabo
-normalizira in preveri s pravilnikom ponudnika za odhodne URL-je: zahtevan je HTTP(S),
-vdelane poverilnice in poizvedbeni nizi so zavrnjeni, naslovi metapodatkov v oblaku
-pa ostanejo blokirani. Prazne vrednosti ohranijo izbranega ponudnika iz registra. Napake,
+in model, ne da bi spremenili globalni register vdelav. Končna točka je pred uporabo
+normalizirana in preverjena s pravilnikom za izhodne URL-je ponudnika: zahtevan je
+HTTP(S), vdelane poverilnice in poizvedbeni nizi so zavrnjeni, naslovi metapodatkov
+v oblaku pa ostanejo blokirani. Prazne vrednosti ohranijo izbranega ponudnika iz registra. Napake,
 vrnjene nadzorni plošči, so prečiščene, poverilnice končne točke pa se nikoli ne beležijo.
 
-> **TODO (D20):** Obseg `global` (souporaba spominov med vsemi ključi API) v tej
+> **TODO (D20):** Obseg `global` (souporaba pomnilnikov med vsemi ključi API) v tej
 > izdaji ni implementiran. Zahteva spremembe sheme in globalno pot pridobivanja.
-> Spremljajte ločeno.
+> Obravnavajte ločeno.
 
 ## Plasti shranjevanja
 
@@ -901,15 +902,15 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 ## Vzorec ponudnika MemoryBackend
 
 > **Vir resnice:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
-> **Preizkusi:** `src/lib/memory/__tests__/generic-backend.test.ts`
+> **Testi:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Vzorec ponudnika MemoryBackend uvaja **priključljivo abstrakcijsko plast zaledja** nad obstoječim mehanizmom spomina. Namesto vezanosti na eno samo izvedbo shranjevanja sistem spomina zdaj podpira več zaledij (SQLite, Obsidian, Notion, prilagojena zaledja HTTP) z nastavljivim usmerjanjem na primarno/nadomestno zaledje.
+Vzorec ponudnika MemoryBackend uvaja **priklopljivo abstrakcijsko plast zaledja** nad obstoječim pomnilniškim pogonom. Namesto vezanosti na eno samo implementacijo shrambe pomnilniški sistem zdaj podpira več zaledij (SQLite, Obsidian, Notion, zaledja HTTP po meri) z nastavljivim usmerjanjem na primarno in nadomestna zaledja.
 
 ### Arhitektura
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    Poti API-ja                            │
+│                    API-poti                               │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
@@ -918,19 +919,19 @@ Vzorec ponudnika MemoryBackend uvaja **priključljivo abstrakcijsko plast zaledj
 │       Orkestrator singleton (manager.ts)                  │
 │                                                          │
 │  Primarno ──► Zaledje A  (npr. SQLite)                   │
-│  Nadomestno ► Zaledje B  (npr. Obsidian)                 │
-│               Zaledje C  (npr. Notion prek GenericBackend)│
+│  Nadomestno ─► Zaledje B  (npr. Obsidian)                │
+│                Zaledje C  (npr. Notion prek GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ Zaledje    │ │ Zaledje    │ │ Zaledje (HTTP)   │
+│ Zaledje    │ │ Zaledje    │ │ GenericMemory    │
+│ SQLite     │ │ Obsidian   │ │ Backend (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Jedrni vmesnik (`backend.ts`)
+#### Osrednji vmesnik (`backend.ts`)
 
 Vsako zaledje mora implementirati vmesnik `MemoryBackend`:
 
@@ -962,41 +963,41 @@ interface MemoryBackend {
 
 Orkestrator singleton, ki:
 
-- **Registrira** zaledja prek `register(backend)` — poklicano ob zagonu iz `index.ts`
+- **Registrira** zaledja prek `register(backend)` — ob zagonu se pokliče iz `index.ts`
 - **Nastavi** primarno in nadomestna zaledja prek `configure(primary, fallbacks)`
-- **Usmerja** operacije CRUD/iskanje na primarno zaledje, ob napaki pa po verigi nadomestnih zaledij
+- **Usmerja** operacije CRUD/iskanje v primarno zaledje, ob napaki pa po verigi nadomestnih zaledij
 - **Preverja stanje** vseh zaledij v rednih intervalih
 
 **Obnašanje nadomestnih zaledij:**
 
-| Operacija | Primarno                    | Nadomestna zaledja                 |
-| --------- | --------------------------- | ---------------------------------- |
-| `create`  | ✅ Samo primarno            | ❌                                 |
-| `get`     | ✅ Najprej poskusi primarno | ✅ Nadomestno, če je rezultat null |
-| `update`  | ✅ Samo primarno            | ✅ Sinhronizacija brez čakanja     |
-| `delete`  | ✅ Samo primarno            | ✅ Sinhronizacija brez čakanja     |
-| `list`    | ✅ Samo primarno            | ❌                                 |
-| `search`  | ✅ Najprej primarno         | ✅ Nadomestno ob napaki            |
+| Operacija | Primarno            | Nadomestna zaledja             |
+| --------- | ------------------- | ------------------------------ |
+| `create`  | ✅ Samo primarno    | ❌                             |
+| `get`     | ✅ Najprej primarno | ✅ Nadomestno, če je null      |
+| `update`  | ✅ Samo primarno    | ✅ Sinhronizacija brez čakanja |
+| `delete`  | ✅ Samo primarno    | ✅ Sinhronizacija brez čakanja |
+| `list`    | ✅ Samo primarno    | ❌                             |
+| `search`  | ✅ Najprej primarno | ✅ Nadomestno ob napaki        |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Splošni povezovalnik HTTP, ki kateri koli REST API prilagodi vmesniku MemoryBackend. Uporaben za:
+Splošni priključek HTTP, ki poljuben API REST prilagodi v MemoryBackend. Uporaben za:
 
-- **Notion** — povezava prek Notion API-ja
-- **Obsidian** — povezava prek lokalnega REST API-ja Obsidian
-- **Zaledja po meri** — katera koli storitev, ki ponuja RESTful API za spomin
+- **Notion** — povezava prek API-ja Notion
+- **Obsidian** — povezava prek lokalnega API-ja REST za Obsidian
+- **Zaledja po meri** — katera koli storitev, ki ponuja API RESTful za pomnilnik
 
 **Konfiguracija:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Osnovni URL zalednega API-ja
-  apiKey?: string;           // Žeton Bearer za avtentikacijo
+  baseUrl: string;           // Osnovni URL API-ja zaledja
+  apiKey?: string;           // Žeton Bearer za overjanje
   headers?: Record<string, string>;  // Glave HTTP po meri
   timeout?: number;          // Časovna omejitev zahteve (privzeto: 30000ms)
-  backendType?: string;      // Za beleženje dnevnika
+  backendType?: string;      // Za beleženje
 
-  // Preglasitve končnih točk (privzete vrednosti uporabljajo konvencije REST)
+  // Preglasitve končnih točk (privzete vrednosti upoštevajo konvencije REST)
   endpoints?: {
     search?: string;   // privzeto: "/memories/search"
     create?: string;   // privzeto: "/memories"
@@ -1019,7 +1020,7 @@ interface GenericBackendConfig {
 }
 ```
 
-**Znana zaledja** so vnaprej konfigurirana v `KNOWN_BACKENDS`:
+**Znana zaledja** so vnaprej nastavljena v `KNOWN_BACKENDS`:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend, usmerjen na localhost:27123
@@ -1030,7 +1031,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend, usmerjen na api.notio
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Privzeto primarno zaledje. Ovija obstoječo shrambo pomnilnika, ki temelji na SQLite in uporablja `src/lib/memory/store.ts`. Samodejno se registrira ob zagonu.
+Privzeto primarno zaledje. Ovija obstoječo pomnilniško shrambo, ki temelji na SQLite in uporablja `src/lib/memory/store.ts`. Ob zagonu se samodejno registrira.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1039,17 +1040,76 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Ovija obstoječo integracijo Obsidian (`src/lib/memory/obsidianBackend.ts`). Z uporabo lokalnega API-ja REST za Obsidian se poveže s shrambo Obsidian.
+Ovija obstoječo integracijo z Obsidianom (`src/lib/memory/obsidianBackend.ts`). Z Obsidianovim trezorjem se poveže prek lokalnega API-ja REST za Obsidian.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Prilagojevalnik za lokalnega izvajalca [claude-mem](https://github.com/thedotmack/claude-mem) — pomnilniški vtičnik za
+Claude Code / Codex / Cursor, ki seje programiranja zajema kot »opažanja«.
+Ko je registriran, lahko poti REST `/api/memory` in iskanje po pomnilniku A2A berejo iz iste shrambe ter pišejo vanjo,
+medtem ko jo polnijo kavlji claude-mem.
+
+Izvajalec se veže samo na vmesnik povratne zanke, kar zaščita SSRF v `GenericMemoryBackend` namenoma zavrne.
+Ta prilagojevalnik te zaščite ne oslabi: gostitelj je trdo kodiran na `127.0.0.1`, konfiguracijska
+shema (`ClaudeMemBackendConfigSchema`, `.strict()`) pa sprejema samo:
+
+| Ključ       | Vrsta  | Privzeto | Opombe                                                                                                                        |
+| ----------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —        | Obvezno, 1024–65535. Vrata izvajalnega procesa claude-mem iz njegove datoteke z nastavitvami (privzeto `37700 + uid % 100`).  |
+| `project`   | string | —        | Projekt claude-mem, ki naj se uporabi. Če ni nastavljen, se vsak ključ API-ja OmniRoute preslika v svoj projekt (`apiKeyId`). |
+| `timeoutMs` | number | `5000`   | Časovna omejitev posamezne zahteve, 100–30000.                                                                                |
+
+Omogočite ga prek `PUT /api/settings/memory` in znova zaženite OmniRoute (zaledni sistemi se registrirajo
+enkrat, v `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Namesto tega uporabite `"primaryBackend": "claude-mem"`, da postane shramba za API REST. Neveljavna
+konfiguracija se zabeleži (`claude-mem.backend.invalid_config`) in preskoči, zato SQLite ostane primarni zaledni sistem.
+
+Preslikave in omejitve:
+
+- ID-ji imajo obliko `claude-mem:<observationId>`; `get`/`delete` prezreta ID-je drugih zalednih sistemov brez
+  omrežnega klica.
+- `create` → `POST /api/memory/save`; polja OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) se prenesejo v `metadata.omniroute` sistema claude-mem in se ob branju nespremenjena vrnejo.
+- `search` → `GET /api/search?format=json&type=observations`, omejeno na `maxTokens`
+  (znaki / 4). `list` → končna točka izvajalnega procesa za opažanja s paginacijo (`total` je spodnja meja — izvajalni proces
+  vrne `hasMore`, ne pa števila).
+- Opažanja, zajeta s kavlji, se preslikajo tako: `discovery` → `factual`, `decision` → `procedural` in
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Ni posodobitev** (`update()` vrne `false`; opažanja so nespremenljiva) in **ni TTL-ja**
+  (`expiresAt` se prezre). claude-mem odstrani podvojene enake shranitve, namesto da bi po ključu `key` izvedel vstavljanje ali posodobitev.
+- Vstavljanje v poziv (`retrieval.ts`) in orodja MCP `omniroute_memory_*` še vedno berejo neposredno iz SQLite
+  — ne uporabljajo `memoryManager`, zato jih ta zaledni sistem ne oskrbuje.
+
+**Usmerjanje lastnih klicev LLM sistema claude-mem prek OmniRoute.** claude-mem stisne opažanja
+z LLM-jem (privzeto: Claude Agent SDK). Njegov ponudnik `openai-compatible` je mogoče namesto tega usmeriti v
+OmniRoute, s čimer se uporabita kombinirani nadomestni mehanizem in sledenje stroškom. V `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<ključ API-ja OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<model ali kombinacija OmniRoute>"
+}
+```
 
 ### Nastavitve
 
-Nastavitve zaledja pomnilnika so shranjene v tabeli nastavitev aplikacije in se upravljajo prek `src/lib/memory/settings.ts`:
+Nastavitve zalednega sistema pomnilnika so shranjene v tabeli nastavitev aplikacije in upravljane prek `src/lib/memory/settings.ts`:
 
-| Nastavitev            | Ključ okolja/konfiguracije | Privzeto   | Opis                                           |
-| --------------------- | -------------------------- | ---------- | ---------------------------------------------- |
-| Primarno zaledje      | `memoryPrimaryBackend`     | `"sqlite"` | ID primarnega zaledja                          |
-| Rezervna zaledja      | `memoryFallbackBackends`   | `[]`       | Urejen seznam ID-jev rezervnih zaledij         |
-| Konfiguracije zaledij | `memoryBackendConfigs`     | `{}`       | Preglasitve konfiguracije za posamezno zaledje |
+| Nastavitev                      | Ključ okolja/konfiguracije | Privzeto   | Opis                                   |
+| ------------------------------- | -------------------------- | ---------- | -------------------------------------- |
+| Primarni zaledni sistem         | `memoryPrimaryBackend`     | `"sqlite"` | ID primarnega zalednega sistema        |
+| Nadomestni zaledni sistemi      | `memoryFallbackBackends`   | `[]`       | Urejeni ID-ji nadomestnih sistemov     |
+| Konfiguracije zalednih sistemov | `memoryBackendConfigs`     | `{}`       | Konfiguracijske preglasitve po sistemu |
 
 Nastavitve se normalizirajo prek `normalizeMemorySettings()` in predpomnijo v `getMemorySettings()`.
 
@@ -1057,23 +1117,24 @@ Nastavitve se normalizirajo prek `normalizeMemorySettings()` in predpomnijo v `g
 
 ```
 Zagon aplikacije
-  → uvozi v index.ts (stranski učinek): registrirajo SQLiteBackend
-  → initMemoryBackends() se pokliče iz življenjskega cikla aplikacije:
+  → uvozi index.ts (stranski učinek): registrira SQLiteBackend
+  → initMemoryBackends() je poklican iz življenjskega cikla aplikacije:
       1. Naloži nastavitve (getMemorySettings)
-      2. Konfigurira primarno in rezervna zaledja
-      3. Inicializira vsa zaledja (preverjanje stanja)
+      1b. Registrira izbirne zaledne sisteme, prisotne v backendConfigs (claude-mem)
+      2. Konfigurira primarni in nadomestne sisteme
+      3. Inicializira vse zaledne sisteme (preverjanje stanja)
       4. Pripravljeno za zahteve
 ```
 
-### Dodajanje novega zaledja
+### Dodajanje novega zalednega sistema
 
 1. **Implementirajte vmesnik `MemoryBackend`** v `src/lib/memory/<name>Backend.ts`
 2. **Izvozite** iz `src/lib/memory/index.ts`
 3. **Registrirajte** z `memoryManager.register(yourBackend)` ob zagonu
-4. **Konfigurirajte** prek nastavitev: nastavite `memoryPrimaryBackend` na ID svojega zaledja
-5. **Preizkusite** z uporabo `src/lib/memory/__tests__/generic-backend.test.ts` kot referenco
+4. **Konfigurirajte** prek nastavitev: nastavite `memoryPrimaryBackend` na ID svojega zalednega sistema
+5. **Preizkusite** z `src/lib/memory/__tests__/generic-backend.test.ts` kot referenco
 
-#### Primer: zaledje Brain
+#### Primer: zaledni sistem Brain
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1099,18 +1160,18 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Pričakovani rezultat: **35 testov, vsi uspešni**, ki pokrivajo:
+Pričakovani izpis: **35 testov, vsi uspešni**, ki pokrivajo:
 
 - Konstruktor (2)
 - Preverjanje stanja (4) — uspeh, napaka 500, omrežna napaka, zakasnitev
-- Inicializacija (2) — uspeh, neuspeh
+- Inicializacija (2) — uspeh, napaka
 - Ustvarjanje (2) — privzeta končna točka, končna točka po meri
-- Pridobivanje (4) — uspeh, 404 → null, izjema za kode, ki niso 404, parametri poti po meri
+- Pridobivanje (4) — uspeh, 404 → null, napaka, ki ni 404, parametri poti po meri
 - Posodabljanje (2) — uspeh, 404 → false
 - Brisanje (2) — uspeh, 404 → false
-- Izpis seznama (2) — parametri poizvedbe, imena parametrov po meri
+- Seznam (2) — parametri poizvedbe, imena parametrov po meri
 - Iskanje (3) — parametri poizvedbe, končna točka po meri, serializacija možnosti
-- Glave za avtentikacijo (2) — žeton Bearer, glave po meri
+- Glave za preverjanje pristnosti (2) — žeton Bearer, glave po meri
 - Tovarna (1)
 
 #### Preverjanje tipov

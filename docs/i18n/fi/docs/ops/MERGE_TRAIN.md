@@ -4,68 +4,89 @@
 
 ---
 
-Versiosta v3.8.49 lähtien (laatu-/nopeussuunnitelman WS3.2/WS3.4) arvioitujen PR:ien oletusyhdistämispolku haaraan
-`release/vX.Y.Z` on **Mergifyn yhdistämisjono** (`.mergify.yml`);
-alla dokumentoitu **manuaalinen yhdistämisjuna** on VARAJÄRJESTELY — sitä käytetään häiriötilanteissa,
-julkaisujäädytysten aikana tai jos Mergifyn Open Source -sopimus joskus muuttuu.
+Versiosta v3.8.49 lähtien (laatu-/nopeussuunnitelman WS3.2/WS3.4) katselmoitujen PR:ien oletusyhdistämispolku haaraan `release/vX.Y.Z` on **Mergifyn yhdistämisjono** (`.mergify.yml`);
+alla kuvattu **manuaalinen yhdistämisjuna** on VARAJÄRJESTELY — sitä käytetään häiriötilanteissa,
+julkaisujäädytysten aikana tai jos Mergifyn Open Source -paketti joskus muuttuu.
 
 ## Oletuspolku: Mergify-jono
 
-1. Kampanjat ovat arvioineet PR:n ja antaneet sille vihreän tuloksen, ja omistajan yhdistämistä edeltävä ⭐
-   portti on hyväksynyt sen (raportti + kohdekohtainen päätös — katso `/merge-prs`-prosessin vaihe 0.75).
+1. Kampanjat tarkastavat PR:n ja varmistavat sen vihreän tilan, minkä jälkeen omistajan yhdistämistä edeltävä ⭐
+   portti hyväksyy sen (raportti + kohdekohtainen päätös — katso `/merge-prs`, vaihe 0.75).
 2. Omistaja (tai omistajan päätöksen perusteella toimiva istunto) lisää **`queue`**-tunnisteen.
    Tunniste ON yhdistämishyväksyntä; Mergify vain toteuttaa sen.
-3. Mergify kokoaa enintään 10 jonossa olevaa PR:ää eräksi, validoi erän nopeita portteja vasten
-   ja yhdistää sen (squash). Punainen erä **puolitetaan automaattisesti** — ongelmallinen PR
-   eristetään noin log2(N) uudelleenvalidoinnilla ja poistetaan jonosta; muut jatkavat.
-4. Yhdistämisen jälkeen jatkuva release-green-työnkulku validoi uuden kärjen push-tapahtuman yhteydessä
-   ja avaa kohdistustiketin, jos yhdistelmä aiheutti regression (ei koskaan automaattista palautusta).
+3. Mergify validoi jonossa olevat PR:t **sarjallisesti** (yhden kerrallaan) nopeita portteja
+   vasten ja yhdistää ne (squash). Eräkäsittely ja automaattinen puolitus edellyttävät maksullista
+   Mergify-tasoa ("Cannot use Merge Queue batch" ilmaisversiossa, #7220), joten `.mergify.yml`
+   ei määritä `batch_size`-asetusta; eräkäsittely jää alla olevan manuaalisen yhdistämisjunan
+   tehtäväksi. PR poistetaan jonosta sen sijaan, että se pysäyttäisi jonon, jos sen tarkistukset
+   ovat yhä kesken `checks_timeout`-ajan jälkeen (240 min = 2× tiedoston `quality.yml`
+   mitattu p95).
+4. Yhdistämisen jälkeen jatkuva julkaisun vihreän tilan työnkulku validoi uuden kärjen pushin
+   yhteydessä ja avaa attribuutiongelman, jos yhdistelmä aiheutti regression (ei koskaan
+   automaattista palautusta).
 
-Suojakaiteet (vastaavat tiedoston `CLAUDE.md` tiukkoja sääntöjä #21/#22):
+Suojakaiteet (vastaavat tiedoston `CLAUDE.md` ehdottomia sääntöjä #21/#22):
 
-- **Julkaisujäädytys on käynnissä** → ÄLÄ lisää tunnisteita jäädytettyyn haaraan kohdistuviin PR:iin; kohdista ne
-  ensin uudelleen aktiiviseen `release/vX+1`-haaraan.
-- **Toisen istunnon käsittelyssä oleva PR** → älä koskaan lisää siihen tunnistetta; vain omistava istunto lisää
-  oman työnsä jonoon.
-- Vain testejä sisältävät muutokset ja `hotfix`-tunnisteella merkityt PR:t suorittavat jo supistetun CI:n (katso
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); jonon ehdot hyväksyvät sen tarkistusjoukon, joka
-  tosiasiassa suoritettiin (`#check-failure=0` + `#check-pending=0`).
+- **Julkaisujäädytys on voimassa** → ÄLÄ lisää tunnisteita jäädytettyyn haaraan kohdistuviin
+  PR:iin; kohdista ne ensin uudelleen aktiiviseen `release/vX+1`-haaraan.
+- **Toisen istunnon käsittelyssä oleva PR** → älä koskaan lisää siihen tunnistetta; vain
+  omistava istunto asettaa oman työnsä jonoon.
+- Vain testejä sisältävät muutokset ja `hotfix`-tunnisteella merkityt PR:t suorittavat jo
+  supistetun CI:n (katso `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); jonon ehdot hyväksyvät
+  minkä tahansa tosiasiassa suoritetun tarkistusjoukon (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Varajärjestely: manuaalinen yhdistämisjuna
 
-Käytetään, kun jono ei ole saatavilla. Tämä määrittelee käytännön, jolla v3.8.47-jakson aikana
-käsiteltiin 33 PR:ää yhdessä päivässä:
+Käytetään, kun jono ei ole käytettävissä. Tämä vakiinnuttaa käytännön, jolla käsiteltiin 33 PR:ää
+yhdessä päivässä v3.8.47-jakson aikana:
 
-1. **Kokoa erä** (noin 10–30 arvioitua ja hyväksyttyä PR:ää). Tarkista `linked:`-törmäykset
-   (samat `tap.testFiles`-arvot, samat CHANGELOG-osiot) ja käsittele ne peräkkäin.
-2. **Validoi KERRAN**: yhdistä erän kaikki kärjet paikallisesti erillisessä, julkaisuhaaran kärjestä
-   luodussa worktreessä ja suorita sitten julkaisua vastaava testikokonaisuus
-   (`npm run check:release-green`, lisää `--with-build` ennen julkaisua).
+1. **Kokoa erä** (noin 10–30 katselmoitua ja hyväksyttyä PR:ää). Tarkista `linked:`-ristiriidat
+   (samat `tap.testFiles`-tiedostot, samat CHANGELOG-osiot) ja käsittele ne peräkkäin.
+2. **Validoi KERRAN**: yhdistä eristettyyn, julkaisuhaaran kärjestä luotuun worktreehen kaikki erän
+   kärkiversiot paikallisesti ja suorita sitten julkaisua vastaava testikokonaisuus
+   (`npm run check:release-green`; lisää `--with-build` ennen julkaisua).
    `scripts/release/merge-train.sh <base> <PR#>…` automatisoi vaiheet 1–2 (ristiriitaiset
-   PR:t poistetaan, juna jatkaa). Täysi tila suorittaa komennon `npm run test:unit` — palvelimelle
-   optimoidulla suorittimella (`--test-concurrency=20`), **ei** kahdella peräkkäisellä 4 ytimen CI-
-   osuudella, joiden vuoksi hallitseva vaihe käytti vain noin 25 % 16 ytimen palvelimesta (korjattu
-   2026-07-18). `--fast` (saman päivän suurten junien tyhjennykset, omistajan hyväksymä 2026-07-18)
-   säilyttää kaikki staattiset portit + vitestin, mutta suorittaa vain junaan otettujen PR:ien
-   muuttamat node:test-tiedostot; TÄYSI testikokonaisuus on silti suoritettava vähintään kerran
-   päivässä kertyneelle kärjelle (yksi juna ilman `--fast`-valitsinta).
+   PR:t poistetaan ja juna jatkaa). Täysi tila suorittaa komennon `npm run test:unit` — palvelimelle
+   viritetyn suorittimen (`--test-concurrency=20`), **ei** kahta peräkkäistä 4 ytimen CI-osuutta,
+   joiden vuoksi hallitseva vaihe käytti vain noin 25 % 16 ytimen palvelimesta (korjattu
+   2026-07-18). `--fast` (päivänsisäiset suurten junien purut, omistajan hyväksymä 2026-07-18)
+   säilyttää kaikki staattiset tarkistusportit + vitestin mutta suorittaa vain junaan otettujen
+   PR:ien muuttamat node:test-tiedostot; TÄYSI testikokonaisuus on silti suoritettava vähintään
+   kerran päivässä kertyneelle kärjelle (yksi juna ilman `--fast`-valitsinta).
 3. **Vihreä** → yhdistä PR:t järjestyksessä (tarkista `state,headRefOid` uudelleen ennen jokaista —
-   PR, jonka kärki on muuttunut, palaa arviointiin). Todista, että kunkin yhdistämisen nettomuutos
-   vastaa PR:n omaa muutosta (ei automaattisen ratkaisun aiheuttamia palautuksia: tarkista
-   `git diff --stat` soveltamisalan ulkopuolisten poistojen varalta).
+   PR, jonka kärki on siirtynyt, palaa katselmointiin). Osoita, että kunkin yhdistämisen nettomuutos on
+   PR:n oma muutos (ei automaattisen ristiriidanratkaisun aiheuttamia palautuksia: tarkasta
+   `git diff --stat` laajuuden ulkopuolisten poistojen varalta).
 4. **Punainen** → puolita erä (validoi kumpikin puolikas) sen sijaan, että validoisit PR:t
-   uudelleen yksitellen; palauta ongelmallinen PR todisteineen arviointijonoon.
+   yksitellen uudelleen; palauta ongelmallinen PR todisteineen katselmointijonoon.
 5. **Älä koskaan**: yhdistä jäädytyksen aikana jäädytettyyn haaraan; käytä `git stash`-komentoa missään;
-   käynnistä CI:tä summittaisesti uudelleen siinä toivossa, että punainen tulos katoaa (sääntö: punainen tulos on tietoa).
+   suorita CI:tä summittaisesti uudelleen siinä toivossa, että punainen katoaa (sääntö: punainen on tietoa).
 
-## Tasot (miksi jono on turvallinen pelkillä nopeilla porteilla)
+## Tasot (miksi jono on turvallinen pelkillä nopeilla tarkistusporteilla)
 
-- **PR-kohtaisesti** (quality.yml-nopeat portit): TIA:n vaikutuspiirissä olevat testit + täydet yksikkötestit 4 osassa +
-  vitest + lint-kokonaisuus + tyyppitarkistus + dokumentaation/muutoslokin eheys.
-- **Erä-/kärkikohtaisesti** (jatkuva release-green): `--quick`-tilan PAKOLLISET portit jokaisella push-tapahtumalla
-  julkaisuhaaraan; täydet `--with-build --full-ci`-läpikäynnit 3× päivässä.
+- **PR-kohtaisesti** (quality.yml:n nopeat tarkistusportit): TIA:n vaikutuspiiriin kuuluvat testit + täydet
+  yksikkötestit 4 osassa + vitest + lint-kokonaisuus + tyyppitarkistus + dokumentaation/CHANGELOGin eheys.
+- **Erä-/kärkikohtaisesti** (jatkuva julkaisun vihreys): `--quick`-tilan PAKOLLISET tarkistusportit jokaisella pushilla
+  julkaisuhaaraan; täydet `--with-build --full-ci`-ajot 3× päivässä.
 - **Julkaisukohtaisesti** (ci.yml julkaisu-PR:ssä): täydellinen matriisi, mukaan lukien E2E ×9,
-  pakettiartefakti + tarball-käynnistyksen savutesti sekä kattavuus/ratchet-tarkistukset.
+  pakettiartefakti + tarballin käynnistyksen savutesti, kattavuus/rajoittimet.
 
 Mitään ei validoida aiempaa vähemmän — raskas kokonaisuus vain suoritetaan erä-/kärkikohtaisesti
-PR-kohtaisen suorittamisen sijaan, mikä poistaa O(N)-edestakaiset kierrokset.
+PR-kohtaisen suorittamisen sijaan, mikä poistaa O(N)-edestakaiskierrokset.
+
+## `merge-train.sh`-komentosarjan puhtaan checkoutin edellytykset
+
+Komentosarja suorittaa juuricheckoutissa nopeasti keskeytyvän **ennakkotarkistuksen** (ennen mitään worktree-
+toimintoja), jotta rikkinäinen asennus ei koskaan voi näyttäytyä punaisena junana:
+
+1. Suorita `npm ci` ja sitten `bun`-jälkiasennus, jonka npm estää:
+   `(cd node_modules/bun && node install.js)` — muuten `check:provider-consistency`
+   ja `check:known-symbols` (molemmat `bun scripts/…`) epäonnistuvat SEKÄ junassa ETTÄ pohjassa
+   ilman rikkomusriviä.
+2. Ylimääräistä `node_modules/node_modules`-hakemistoa ei saa olla (päällekkäinen riippuvuuspuu; React latautuu
+   kahdesti ja käyttöliittymän vitest-testikokonaisuudet epäonnistuvat välittömästi).
+3. Tiedoston `node_modules/.bin/tsc` on oltava olemassa ja suoritettavissa (osittaisesta asennuksesta se puuttuu).
+
+Juna suorittaa estävän komennon `npm run check:cycles:ratchet`; pelkkä `npm run check:cycles`
+on neuvoa-antava (se luettelee SCC:t ja päättyy ei-nollakoodilla myös terveen pohjan tapauksessa).

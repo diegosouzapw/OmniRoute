@@ -114,9 +114,13 @@ Claude 工具卡片（**仪表板 → CLI Code**）会在发现别名信息按�
 
 ## 配置文件（`CLAUDE_CONFIG_DIR`）
 
-Claude Code **没有原生配置文件机制**（不同于 Codex 的 `~/.codex/<name>.config.toml`）。惯用机制是 `CLAUDE_CONFIG_DIR`——每个配置文件使用一个独立的配置目录，每个目录都有自己的 `settings.json`、凭据、历史记录和缓存。
+Claude Code **没有原生配置文件机制**（不同于 Codex 的 `~/.codex/<name>.config.toml`）。
+惯用机制是使用 `CLAUDE_CONFIG_DIR`——每个配置文件对应一个独立的配置目录，
+各自拥有自己的 `settings.json`、凭据、历史记录和缓存。
 
-`omniroute setup-claude` 会获取实时 `/v1/models` 目录，并在 `~/.claude/profiles/<name>/settings.json` 中为每个模型写入一个配置文件，复用与 `setup-codex` **相同的名称**（`glm52`、`kimi-k27`、`deepseek-pro`、……）：
+`omniroute setup-claude` 会获取实时的 `/v1/models` 目录，并为每个模型在
+`~/.claude/profiles/<name>/settings.json` 写入一个配置文件，复用与
+**`setup-codex` 相同的名称**（`glm52`、`kimi-k27`、`deepseek-pro`、……）：
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -134,10 +138,17 @@ Claude Code **没有原生配置文件机制**（不同于 Codex 的 `~/.codex/<
 ```
 
 > **身份验证令牌绝不会写入配置文件。** 请使用
-> `omniroute launch --profile <name>` 启动（它会从活动上下文中注入 `ANTHROPIC_AUTH_TOKEN`），或者自行导出 `ANTHROPIC_AUTH_TOKEN`，然后运行
+> `omniroute launch --profile <name>` 启动（它会从当前上下文注入 `ANTHROPIC_AUTH_TOKEN`），
+> 或自行导出 `ANTHROPIC_AUTH_TOKEN`，然后运行
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`。
 
-**模型发现后自动同步（可选）。** 每当提供者模型同步更改实时目录时，OmniRoute 都可以自动重新生成这些相同的 `~/.claude/profiles/<name>/settings.json` 文件——这样新增或重命名的模型无需重新运行命令即可获得配置文件。此功能**默认关闭**：可从 **CLI Code 仪表板**（“CLI 配置文件自动同步”→ Claude Code）切换此功能，或设置 `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`（它还会遵循 `CLI_ALLOW_CONFIG_WRITES`，后者默认启用）。启用后，它只会写入配置文件；绝不会更改你的活动/默认 Claude 配置、身份验证信息或 `~/.claude/settings.json`。
+**模型发现后自动同步（选择启用）。** 每当提供者模型同步导致实时目录发生变化时，
+OmniRoute 都可以自动重新生成这些相同的
+`~/.claude/profiles/<name>/settings.json` 文件，因此新增或重命名的模型无需重新运行该命令
+即可获得配置文件。此功能**默认关闭**：可在 **CLI Code 仪表板**中切换
+（“CLI 配置文件自动同步”→ Claude Code），或设置 `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`
+（它也会遵循 `CLI_ALLOW_CONFIG_WRITES`，该选项默认启用）。启用后，它只会写入配置文件；
+绝不会更改当前或默认的 Claude 配置、身份验证信息或 `~/.claude/settings.json`。
 
 ### 生成和使用配置文件
 
@@ -148,8 +159,12 @@ omniroute setup-claude
 # 远程 VPS（将 VPS URL 写入每个配置文件）
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# 仅部分提供者
+# 仅包含部分提供者
 omniroute setup-claude --only glm,kimi
+
+# 还为此主机上未检测到的本地 CLI 提供者（zcode、auggie、devin-cli-agentic、
+# codex-app-server）写入配置文件（对于本地目标，默认会跳过）
+omniroute setup-claude --include-local
 
 # 预览而不写入
 omniroute setup-claude --dry-run

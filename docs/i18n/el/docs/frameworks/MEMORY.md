@@ -167,35 +167,35 @@ RRF(d) = Σ  1 / (k + rank_i(d))      όπου k = 60 (ρυθμιζόμενο μ
 ## Επέκταση ρυθμίσεων
 
 Εννέα πεδία ενσωματώσεων και διανυσμάτων είναι διαθέσιμα στο `MemorySettingsExtended` στο
-`src/shared/schemas/memory.ts` και διατηρούνται μέσω του `src/lib/db/settings.ts`:
+`src/shared/schemas/memory.ts` και αποθηκεύονται μόνιμα μέσω του `src/lib/db/settings.ts`:
 
 | Πεδίο                    | Τύπος                                              | Προεπιλογή | Περιγραφή                                                               |
 | ------------------------ | -------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Ποια πηγή ενσωματώσεων θα χρησιμοποιείται                               |
 | `embeddingProviderModel` | `string \| null`                                   | `null`     | Πάροχος/μοντέλο σε μορφή `provider/model`                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`     | Βασικό URL τελικού σημείου συμβατού με OpenAI μόνο για τη Μνήμη         |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | Βασικό URL τελικού σημείου συμβατού με OpenAI, μόνο για τη Μνήμη        |
 | `customModelId`          | `string \| null`                                   | `null`     | Αναγνωριστικό μοντέλου που αποστέλλεται στο προσαρμοσμένο τελικό σημείο |
 | `transformersEnabled`    | `boolean`                                          | `false`    | Ρητή ενεργοποίηση του Transformers.js (MiniLM, ~400MB)                  |
 | `staticEnabled`          | `boolean`                                          | `false`    | Ρητή ενεργοποίηση του τοπικού στατικού μοντέλου potion-base-8M          |
 | `rerankEnabled`          | `boolean`                                          | `false`    | Ενεργοποίηση του βήματος ανακατάταξης (προσθέτει +200-500ms/αίτημα)     |
 | `rerankProviderModel`    | `string \| null`                                   | `null`     | Πάροχος/μοντέλο ανακατάταξης σε μορφή `provider/model`                  |
 
-Το `rerankProviderModel` επιλύεται από το `POST /v1/rerank` (καλείται μέσω loopback), επομένως αποδέχεται οτιδήποτε αποδέχεται αυτή η διαδρομή: ένα επιμελημένο μοντέλο ανακατάταξης στο cloud (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ή έναν κόμβο παρόχου συμβατού με OpenAI ως `<node-prefix>/<model>` (π.χ. `skilled-mini/bge-reranker-v2-m3` για ένα σύστημα TEI/Infinity). Οι κόμβοι loopback είναι πάντα επιλέξιμοι· ένας κόμβος σε άλλον κεντρικό υπολογιστή (LAN, Tailscale) απαιτεί επιπλέον τη σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` και πρέπει να πληροί την πολιτική εξερχόμενων URL παρόχου — δείτε τις [Σημαίες δυνατοτήτων](../reference/FEATURE_FLAGS.md). Ο επιλογέας του πίνακα ελέγχου παραθέτει επιμελημένους παρόχους μαζί με τοπικούς κόμβους· οποιαδήποτε έγκυρη συμβολοσειρά `provider/model` μπορεί να οριστεί απευθείας μέσω του `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Ποιο διανυσματικό backend θα χρησιμοποιείται |
+Το `rerankProviderModel` επιλύεται από το `POST /v1/rerank` (το οποίο καλείται μέσω loopback), επομένως δέχεται οτιδήποτε δέχεται αυτή η διαδρομή: ένα επιμελημένο μοντέλο ανακατάταξης στο cloud (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ή έναν κόμβο παρόχου συμβατού με OpenAI ως `<node-prefix>/<model>` (π.χ. `skilled-mini/bge-reranker-v2-m3` για ένα σύστημα TEI/Infinity). Οι κόμβοι loopback και τα ονόματα κεντρικών υπολογιστών που παρατίθενται στο `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (π.χ. το όνομα μιας υπηρεσίας Docker/Compose) είναι πάντα επιλέξιμα· ένας κόμβος σε άλλον κεντρικό υπολογιστή (LAN, Tailscale) απαιτεί επιπλέον τη σημαία δυνατότητας `RERANK_REMOTE_PROVIDER_NODES` και πρέπει να συμμορφώνεται με την πολιτική εξερχόμενων URL του παρόχου — δείτε [Σημαίες δυνατοτήτων](../reference/FEATURE_FLAGS.md). Ο επιλογέας του πίνακα ελέγχου παραθέτει επιμελημένους παρόχους μαζί με τοπικούς κόμβους· οποιαδήποτε έγκυρη συμβολοσειρά `provider/model` μπορεί να οριστεί απευθείας μέσω του `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Ποιο διανυσματικό σύστημα υποστήριξης θα χρησιμοποιείται |
 
-Αυτά διατίθενται μέσω του `GET /PUT /api/settings/memory` (σχήμα `MemorySettingsExtendedSchema`).
+Αυτά εκτίθενται μέσω του `GET /PUT /api/settings/memory` (σχήμα `MemorySettingsExtendedSchema`).
 
-Για την πηγή `remote`, η Μνήμη αποδέχεται επίσης τις προαιρετικές ρυθμίσεις `customBaseUrl` και
+Για την πηγή `remote`, η Μνήμη δέχεται επίσης τις προαιρετικές ρυθμίσεις `customBaseUrl` και
 `customModelId`. Μαζί επιλέγουν ένα τελικό σημείο `/embeddings` συμβατό με OpenAI
 και ένα μοντέλο, χωρίς να αλλάζουν το καθολικό μητρώο ενσωματώσεων. Το τελικό σημείο
-κανονικοποιείται πριν από τη χρήση και ελέγχεται από την πολιτική εξερχόμενων URL παρόχου: απαιτείται
+κανονικοποιείται πριν από τη χρήση και ελέγχεται από την πολιτική εξερχόμενων URL του παρόχου: απαιτείται
 HTTP(S), τα ενσωματωμένα διαπιστευτήρια και οι συμβολοσειρές ερωτήματος απορρίπτονται, ενώ οι διευθύνσεις
 μεταδεδομένων cloud παραμένουν αποκλεισμένες. Οι κενές τιμές διατηρούν τον επιλεγμένο πάροχο μητρώου. Τα σφάλματα
 που επιστρέφονται στον πίνακα ελέγχου εξυγιαίνονται και τα διαπιστευτήρια του τελικού σημείου δεν καταγράφονται ποτέ.
 
-> **TODO (D20):** Το εύρος `global` (κοινή χρήση αναμνήσεων μεταξύ όλων των κλειδιών API) δεν
-> υλοποιείται σε αυτήν την έκδοση. Απαιτεί αλλαγές στο σχήμα και μια καθολική διαδρομή
-> ανάκτησης. Να παρακολουθείται ξεχωριστά.
+> **TODO (D20):** Το πεδίο εφαρμογής `global` (κοινή χρήση μνημών μεταξύ όλων των κλειδιών API) δεν
+> έχει υλοποιηθεί σε αυτήν την έκδοση. Απαιτεί αλλαγές στο σχήμα και μια καθολική διαδρομή
+> ανάκτησης. Παρακολουθήστε το ξεχωριστά.
 
 ## Επίπεδα αποθήκευσης
 
@@ -900,12 +900,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## Πρότυπο Παρόχου MemoryBackend
+## Μοτίβο Παρόχου MemoryBackend
 
-> **Πηγή αναφοράς:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Πηγή αλήθειας:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Δοκιμές:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Το πρότυπο παρόχου MemoryBackend εισάγει ένα **αρθρωτό επίπεδο αφαίρεσης backend** πάνω από την υπάρχουσα μηχανή μνήμης. Αντί να είναι δεσμευμένο σε μία μόνο υλοποίηση αποθήκευσης, το σύστημα μνήμης υποστηρίζει πλέον πολλαπλά backend (SQLite, Obsidian, Notion, προσαρμοσμένα HTTP backend) με παραμετροποιήσιμη δρομολόγηση κύριου/εφεδρικών backend.
+Το μοτίβο παρόχου MemoryBackend εισάγει ένα **προσαρτώμενο επίπεδο αφαίρεσης backend** πάνω από την υπάρχουσα μηχανή μνήμης. Αντί να είναι συνδεδεμένο με μία μόνο υλοποίηση αποθήκευσης, το σύστημα μνήμης υποστηρίζει πλέον πολλαπλά backends (SQLite, Obsidian, Notion, προσαρμοσμένα HTTP backends) με παραμετροποιήσιμη δρομολόγηση κύριου/εφεδρικού backend.
 
 ### Αρχιτεκτονική
 
@@ -917,10 +917,10 @@ curl -X POST http://localhost:20128/api/memory/summarize \
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│       Ενορχηστρωτής Singleton (manager.ts)                │
+│       Ενορχηστρωτής singleton (manager.ts)                │
 │                                                          │
-│  Κύριο ─────► Backend A  (π.χ. SQLite)                   │
-│  Εφεδρικό ──► Backend B  (π.χ. Obsidian)                 │
+│  Κύριο ──────► Backend A  (π.χ. SQLite)                  │
+│  Εφεδρικό ───► Backend B  (π.χ. Obsidian)                │
 │               Backend C  (π.χ. Notion μέσω GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
@@ -932,9 +932,9 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Βασική Διεπαφή (`backend.ts`)
+#### Βασικό Interface (`backend.ts`)
 
-Κάθε backend πρέπει να υλοποιεί τη διεπαφή `MemoryBackend`:
+Κάθε backend πρέπει να υλοποιεί το interface `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
@@ -962,23 +962,23 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Ενορχηστρωτής Singleton που:
+Ενορχηστρωτής singleton που:
 
-- **Καταχωρίζει** backend μέσω του `register(backend)` — καλείται κατά την εκκίνηση από το `index.ts`
-- **Ρυθμίζει** το κύριο και τα εφεδρικά backend μέσω του `configure(primary, fallbacks)`
-- **Δρομολογεί** λειτουργίες CRUD/αναζήτησης προς το κύριο backend, με αλυσίδα εφεδρικών σε περίπτωση αποτυχίας
-- **Ελέγχει την κατάσταση λειτουργίας** όλων των backend περιοδικά
+- **Καταχωρίζει** backends μέσω του `register(backend)` — καλείται κατά την εκκίνηση από το `index.ts`
+- **Διαμορφώνει** το κύριο και τα εφεδρικά backends μέσω του `configure(primary, fallbacks)`
+- **Δρομολογεί** τις λειτουργίες CRUD/αναζήτησης στο κύριο backend, με αλυσίδα εφεδρικών backends σε περίπτωση αποτυχίας
+- **Ελέγχει την κατάσταση λειτουργίας** όλων των backends περιοδικά
 
-**Συμπεριφορά εφεδρικών backend:**
+**Συμπεριφορά εφεδρικών backends:**
 
 | Λειτουργία | Κύριο                     | Εφεδρικά                                 |
 | ---------- | ------------------------- | ---------------------------------------- |
-| `create`   | ✅ Μόνο το κύριο          | ❌                                       |
-| `get`      | ✅ Δοκιμή πρώτα στο κύριο | ✅ Εφεδρικό αν επιστραφεί null           |
-| `update`   | ✅ Μόνο το κύριο          | ✅ Ασύγχρονος συγχρονισμός χωρίς αναμονή |
-| `delete`   | ✅ Μόνο το κύριο          | ✅ Ασύγχρονος συγχρονισμός χωρίς αναμονή |
-| `list`     | ✅ Μόνο το κύριο          | ❌                                       |
-| `search`   | ✅ Πρώτα το κύριο         | ✅ Εφεδρικό σε περίπτωση σφάλματος       |
+| `create`   | ✅ Μόνο στο κύριο         | ❌                                       |
+| `get`      | ✅ Δοκιμή πρώτα στο κύριο | ✅ Εφεδρικό εάν επιστραφεί null          |
+| `update`   | ✅ Μόνο στο κύριο         | ✅ Ασύγχρονος συγχρονισμός χωρίς αναμονή |
+| `delete`   | ✅ Μόνο στο κύριο         | ✅ Ασύγχρονος συγχρονισμός χωρίς αναμονή |
+| `list`     | ✅ Μόνο στο κύριο         | ❌                                       |
+| `search`   | ✅ Πρώτα στο κύριο        | ✅ Εφεδρικό σε περίπτωση σφάλματος       |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -986,13 +986,13 @@ interface MemoryBackend {
 
 - **Notion** — σύνδεση μέσω του Notion API
 - **Obsidian** — σύνδεση μέσω του Obsidian Local REST API
-- **Προσαρμοσμένα backend** — οποιαδήποτε υπηρεσία εκθέτει ένα RESTful API μνήμης
+- **Προσαρμοσμένα backends** — οποιαδήποτε υπηρεσία εκθέτει ένα RESTful API μνήμης
 
-**Ρύθμιση παραμέτρων:**
+**Διαμόρφωση:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Βασικό URL του backend API
+  baseUrl: string;           // Βασικό URL του API του backend
   apiKey?: string;           // Bearer token για έλεγχο ταυτότητας
   headers?: Record<string, string>;  // Προσαρμοσμένες κεφαλίδες HTTP
   timeout?: number;          // Χρονικό όριο αιτήματος (προεπιλογή: 30000ms)
@@ -1021,18 +1021,18 @@ interface GenericBackendConfig {
 }
 ```
 
-Τα **γνωστά backend** είναι προδιαμορφωμένα στο `KNOWN_BACKENDS`:
+Τα **γνωστά backends** είναι προδιαμορφωμένα στο `KNOWN_BACKENDS`:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend που δείχνει στο localhost:27123
 createKnownBackend("notion"); // → GenericMemoryBackend που δείχνει στο api.notion.com/v1
 ```
 
-#### Ενσωματωμένα Backend
+#### Ενσωματωμένα Backends
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Το προεπιλεγμένο κύριο backend. Ενσωματώνει τον υπάρχοντα χώρο αποθήκευσης μνήμης που βασίζεται σε SQLite, χρησιμοποιώντας το `src/lib/memory/store.ts`. Καταχωρίζεται αυτόματα κατά την εκκίνηση.
+Το προεπιλεγμένο κύριο backend. Περιβάλλει το υπάρχον σύστημα αποθήκευσης μνήμης που βασίζεται στο SQLite, χρησιμοποιώντας το `src/lib/memory/store.ts`. Καταχωρίζεται αυτόματα κατά την εκκίνηση.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1041,38 +1041,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Ενσωματώνει την υπάρχουσα διασύνδεση με το Obsidian (`src/lib/memory/obsidianBackend.ts`). Συνδέεται σε ένα θησαυροφυλάκιο Obsidian μέσω του Obsidian Local REST API.
+Περιβάλλει την υπάρχουσα ενσωμάτωση του Obsidian (`src/lib/memory/obsidianBackend.ts`). Συνδέεται με ένα θησαυροφυλάκιο Obsidian μέσω του Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Προσαρμογέας για έναν τοπικό worker του [claude-mem](https://github.com/thedotmack/claude-mem) — το
+πρόσθετο μνήμης για Claude Code / Codex / Cursor που καταγράφει συνεδρίες προγραμματισμού ως «παρατηρήσεις».
+Όταν είναι καταχωρισμένο, οι διαδρομές REST `/api/memory` και η αναζήτηση μνήμης A2A μπορούν να πραγματοποιούν ανάγνωση και εγγραφή
+στο ίδιο σύστημα αποθήκευσης που συμπληρώνουν τα hooks του claude-mem.
+
+Ο worker συνδέεται μόνο στη διεπαφή loopback, την οποία ο μηχανισμός προστασίας SSRF του `GenericMemoryBackend` απορρίπτει σκόπιμα.
+Αυτός ο προσαρμογέας δεν χαλαρώνει αυτή την προστασία: ο host είναι στατικά ορισμένος σε `127.0.0.1` και το schema
+διαμόρφωσης (`ClaudeMemBackendConfigSchema`, `.strict()`) αποδέχεται μόνο:
+
+| Κλειδί      | Τύπος  | Προεπιλογή | Σημειώσεις                                                                                                                                  |
+| ----------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —          | Υποχρεωτικό, 1024–65535. Η θύρα του worker claude-mem από το αρχείο ρυθμίσεών του (προεπιλογή `37700 + uid % 100`).                         |
+| `project`   | string | —          | Το έργο claude-mem που θα χρησιμοποιηθεί. Αν δεν οριστεί → κάθε κλειδί API του OmniRoute αντιστοιχίζεται στο δικό του έργο (το `apiKeyId`). |
+| `timeoutMs` | number | `5000`     | Χρονικό όριο ανά αίτημα, 100–30000.                                                                                                         |
+
+Ενεργοποιήστε το μέσω του `PUT /api/settings/memory` και επανεκκινήστε το OmniRoute (τα backend καταχωρίζονται
+μία φορά, στο `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Χρησιμοποιήστε αντί αυτού το `"primaryBackend": "claude-mem"` για να το ορίσετε ως χώρο αποθήκευσης για το REST API. Μια μη έγκυρη
+διαμόρφωση καταγράφεται (`claude-mem.backend.invalid_config`) και παραλείπεται, ώστε το SQLite να παραμένει κύριο backend.
+
+Αντιστοίχιση και περιορισμοί:
+
+- Τα αναγνωριστικά είναι της μορφής `claude-mem:<observationId>`· τα `get`/`delete` αγνοούν αναγνωριστικά άλλων backend χωρίς
+  κλήση δικτύου.
+- `create` → `POST /api/memory/save`· τα πεδία του OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) μεταφέρονται στο `metadata.omniroute` του claude-mem και επανέρχονται κατά την ανάγνωση.
+- `search` → `GET /api/search?format=json&type=observations`, περικομμένο σύμφωνα με το `maxTokens`
+  (χαρακτήρες / 4). `list` → το σελιδοποιημένο endpoint παρατηρήσεων του worker (το `total` αποτελεί κατώτερο όριο — ο worker
+  επιστρέφει `hasMore`, όχι πλήθος).
+- Οι παρατηρήσεις που καταγράφονται μέσω hook αντιστοιχίζουν το `discovery` → `factual`, το `decision` → `procedural` και τα
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Δεν υποστηρίζονται ενημερώσεις** (το `update()` επιστρέφει `false`· οι παρατηρήσεις είναι αμετάβλητες) και **δεν υποστηρίζεται TTL**
+  (το `expiresAt` αγνοείται). Το claude-mem απομακρύνει διπλότυπες πανομοιότυπες αποθηκεύσεις αντί να εκτελεί upsert βάσει του `key`.
+- Η εισαγωγή προτροπών (`retrieval.ts`) και τα εργαλεία MCP `omniroute_memory_*` εξακολουθούν να διαβάζουν απευθείας από το SQLite
+  — δεν περνούν μέσω του `memoryManager`, επομένως αυτό το backend δεν τα τροφοδοτεί.
+
+**Δρομολόγηση των κλήσεων LLM του ίδιου του claude-mem μέσω του OmniRoute.** Το claude-mem συμπιέζει τις παρατηρήσεις
+με ένα LLM (προεπιλογή: το Claude Agent SDK). Ο πάροχος `openai-compatible` μπορεί να παραπέμπει
+στο OmniRoute, αξιοποιώντας την εναλλακτική δρομολόγηση συνδυασμών και την παρακολούθηση κόστους. Στο `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<κλειδί API του OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<μοντέλο ή συνδυασμός του OmniRoute>"
+}
+```
 
 ### Ρυθμίσεις
 
 Οι ρυθμίσεις των backend μνήμης αποθηκεύονται στον πίνακα ρυθμίσεων της εφαρμογής και διαχειρίζονται μέσω του `src/lib/memory/settings.ts`:
 
-| Ρύθμιση              | Κλειδί Env/Config        | Προεπιλογή | Περιγραφή                           |
-| -------------------- | ------------------------ | ---------- | ----------------------------------- |
-| Κύριο backend        | `memoryPrimaryBackend`   | `"sqlite"` | ID του κύριου backend               |
-| Εφεδρικά backend     | `memoryFallbackBackends` | `[]`       | Ταξινομημένα ID εφεδρικών backend   |
-| Διαμορφώσεις backend | `memoryBackendConfigs`   | `{}`       | Παρακάμψεις διαμόρφωσης ανά backend |
+| Ρύθμιση              | Κλειδί περιβάλλοντος/διαμόρφωσης | Προεπιλογή | Περιγραφή                                       |
+| -------------------- | -------------------------------- | ---------- | ----------------------------------------------- |
+| Κύριο backend        | `memoryPrimaryBackend`           | `"sqlite"` | Αναγνωριστικό του κύριου backend                |
+| Εναλλακτικά backend  | `memoryFallbackBackends`         | `[]`       | Ταξινομημένα αναγνωριστικά εναλλακτικών backend |
+| Διαμορφώσεις backend | `memoryBackendConfigs`           | `{}`       | Παρακάμψεις διαμόρφωσης ανά backend             |
 
-Οι ρυθμίσεις κανονικοποιούνται μέσω του `normalizeMemorySettings()` και αποθηκεύονται προσωρινά κατά την κλήση του `getMemorySettings()`.
+Οι ρυθμίσεις κανονικοποιούνται μέσω του `normalizeMemorySettings()` και αποθηκεύονται προσωρινά στο `getMemorySettings()`.
 
-### Ροή Αρχικοποίησης
+### Ροή αρχικοποίησης
 
 ```
 Εκκίνηση εφαρμογής
-  → Εισαγωγές index.ts (παρενέργεια): καταχωρίζει το SQLiteBackend
-  → Το initMemoryBackends() καλείται από τον κύκλο ζωής της εφαρμογής:
+  → εισαγωγές index.ts (παρενέργεια): καταχωρίζεται το SQLiteBackend
+  → κλήση του initMemoryBackends() από τον κύκλο ζωής της εφαρμογής:
       1. Φόρτωση ρυθμίσεων (getMemorySettings)
-      2. Διαμόρφωση κύριου + εφεδρικών backend
+      1b. Καταχώριση προαιρετικών backend που υπάρχουν στο backendConfigs (claude-mem)
+      2. Διαμόρφωση κύριου + εναλλακτικών backend
       3. Αρχικοποίηση όλων των backend (έλεγχος εύρυθμης λειτουργίας)
       4. Έτοιμο για αιτήματα
 ```
 
-### Προσθήκη Νέου Backend
+### Προσθήκη νέου backend
 
 1. **Υλοποιήστε τη διεπαφή `MemoryBackend`** στο `src/lib/memory/<name>Backend.ts`
 2. **Εξαγάγετέ το** από το `src/lib/memory/index.ts`
 3. **Καταχωρίστε το** με `memoryManager.register(yourBackend)` κατά την εκκίνηση
-4. **Διαμορφώστε το** μέσω των ρυθμίσεων: ορίστε το `memoryPrimaryBackend` στο ID του backend σας
+4. **Διαμορφώστε το** μέσω των ρυθμίσεων: ορίστε το `memoryPrimaryBackend` στο αναγνωριστικό του backend σας
 5. **Δοκιμάστε το** χρησιμοποιώντας το `src/lib/memory/__tests__/generic-backend.test.ts` ως αναφορά
 
 #### Παράδειγμα: Backend Brain
@@ -1095,24 +1155,24 @@ memoryManager.register(brainBackend);
 
 ### Επαλήθευση
 
-#### Μοναδιαίες δοκιμές
+#### Δοκιμές μονάδας
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Αναμενόμενο αποτέλεσμα: **35 δοκιμές, όλες επιτυχείς**, που καλύπτουν:
+Αναμενόμενο αποτέλεσμα: **35 δοκιμές, όλες επιτυχείς**, οι οποίες καλύπτουν:
 
 - Constructor (2)
 - Έλεγχο εύρυθμης λειτουργίας (4) — επιτυχία, αποτυχία 500, σφάλμα δικτύου, καθυστέρηση
-- Αρχικοποίηση (2) — επιτυχία, αποτυχία
-- Δημιουργία (2) — προεπιλεγμένο endpoint, προσαρμοσμένο endpoint
-- Ανάκτηση (4) — επιτυχία, 404 → null, εξαίρεση για κωδικό εκτός 404, προσαρμοσμένες παράμετροι διαδρομής
-- Ενημέρωση (2) — επιτυχία, 404 → false
-- Διαγραφή (2) — επιτυχία, 404 → false
-- Λίστα (2) — παράμετροι ερωτήματος, προσαρμοσμένα ονόματα παραμέτρων
-- Αναζήτηση (3) — παράμετροι ερωτήματος, προσαρμοσμένο endpoint, σειριοποίηση επιλογών
-- Κεφαλίδες ελέγχου ταυτότητας (2) — Bearer token, προσαρμοσμένες κεφαλίδες
+- Initialize (2) — επιτυχία, αποτυχία
+- Create (2) — προεπιλεγμένο endpoint, προσαρμοσμένο endpoint
+- Get (4) — επιτυχία, 404 → null, εξαίρεση για κωδικό διαφορετικό από 404, προσαρμοσμένες παράμετροι διαδρομής
+- Update (2) — επιτυχία, 404 → false
+- Delete (2) — επιτυχία, 404 → false
+- List (2) — παράμετροι ερωτήματος, προσαρμοσμένα ονόματα παραμέτρων
+- Search (3) — παράμετροι ερωτήματος, προσαρμοσμένο endpoint, σειριοποίηση επιλογών
+- Κεφαλίδες ελέγχου ταυτότητας (2) — διακριτικό Bearer, προσαρμοσμένες κεφαλίδες
 - Factory (1)
 
 #### Έλεγχος τύπων
@@ -1121,4 +1181,4 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 npm run typecheck:core
 ```
 
-Αναμενόμενο: **0 σφάλματα**.
+Αναμενόμενο αποτέλεσμα: **0 σφάλματα**.

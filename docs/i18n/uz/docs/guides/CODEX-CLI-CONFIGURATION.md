@@ -279,16 +279,16 @@ codex -p chat     # cx/gpt-5.5, daraja belgilanmagan (server standarti)
 
 ## `omniroute setup-codex` yordamida profillarni avtomatik yaratish
 
-Agar OmniRoute’ni VPS’da ishga tushirsangiz, faol modellar katalogidan profil fayllarini avtomatik yaratishingiz mumkin:
+Agar OmniRoute’ni VPS’da ishga tushirsangiz, amaldagi modellar katalogi asosida profil fayllarini avtomatik yaratishingiz mumkin:
 
 ```bash
-# VPS'dan (20128-portdagi mahalliy OmniRoute'dan foydalanadi)
+# VPS orqali (20128-portdagi mahalliy OmniRoute’dan foydalanadi)
 omniroute setup-codex
 
-# Istalgan qurilmadan — VPS manzilingizni ko'rsating
+# Istalgan kompyuterdan — VPS manzilingizni ko‘rsating
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Fayllarni yozmasdan oldindan ko'rish
+# Fayllarni yozmasdan oldindan ko‘rish
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # Faqat GLM va Kimi profillarini yaratish
@@ -298,9 +298,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Buyruq `/v1/models` ma’lumotlarini oladi, ma’lum modellar uchun moslashtirilgan profillardan foydalanadi, boshqa mos matn modellari uchun katalog metama’lumotlariga tayanadi va har biri uchun `~/.codex/<name>.config.toml` faylini yozadi. Idempotent — qayta ishga tushirish xavfsiz.
+Buyruq `/v1/models` ma’lumotlarini oladi, ma’lum modellar uchun moslashtirilgan profillardan foydalanadi, boshqa mos matnli modellar uchun katalog metama’lumotlariga qaytadi va har biri uchun `~/.codex/<name>.config.toml` faylini yozadi. Idempotent — uni qayta ishga tushirish xavfsiz.
 
-Shuningdek, provayder modellarini muvaffaqiyatli aniqlash/import qilish faol katalogni o‘zgartirgach, OmniRoute ayni profil fayllarini **avtomatik sinxronlashi** mumkin. Bu imkoniyat **ixtiyoriy va birlamchi holatda o‘chirilgan**: uni **CLI Code boshqaruv paneli** orqali yoqing ("CLI profile auto-sync" → Codex) yoki `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` qiymatini o‘rnating (u birlamchi holatda yoqilgan `CLI_ALLOW_CONFIG_WRITES` parametrini ham hisobga oladi). Yoqilganda, u faqat alohida `~/.codex/*.config.toml` profil fayllarini yozadi; faol/standart `~/.codex/config.toml`, Codex-lb sozlamalari, autentifikatsiya yoki provayder tanlovini hech qachon o‘zgartirmaydi.
+Agar asosiy `config.toml` faylida `model_providers.omniroute` ta’rifi bo‘lmasa, aniq ishga tushirilgan
+`setup-codex` tanlangan mahalliy yoki masofaviy yakuniy nuqtadan foydalanib, ushbu ta’rifni har bir yaratilgan
+ustama konfiguratsiyaga kiritadi. Asosiy fayl o‘zgarishsiz qoladi. Mavjud provayder
+ta’rifi, jumladan uning yakuniy nuqtasi va autentifikatsiya sozlamalari meros qilib olinadi. Asosiy
+TOML fayli noto‘g‘ri bo‘lsa, profillar yozilishidan oldin yaratish jarayoni to‘xtatiladi.
+
+`--api-key` yoki `OMNIROUTE_API_KEY` taqdim etilganda, yangi ta’riflangan provayder
+`env_key = "OMNIROUTE_API_KEY"` ga murojaat qiladi; kalitning o‘zi hech qachon saqlanmaydi yoki
+oldindan ko‘rishda chiqarilmaydi. Ushbu o‘zgaruvchini Codex’ni ishga tushiradigan muhitda o‘rnating. Kalit
+taqdim etilmasa, autentifikatsiyasiz so‘rovlarni qabul qilishga sozlangan OmniRoute nusxasi
+uchun yangi ta’rifda kalit talabi bo‘lmaydi.
+
+Quyida tavsiflangan ixtiyoriy katalog avtomatik sinxronlash funksiyasi ustama konfiguratsiyada mavjud
+provayder ta’riflarini saqlab qoladi, ammo yangi provayder sozlamalarini boshlang‘ich tarzda yaratmaydi; avval provayderni
+aniq sozlash buyrug‘i yoki boshqaruv paneli orqali sozlang. Mavjud provayder sozlamalari
+`--dry-run` oldindan ko‘rish natijalarida ko‘rsatilmaydi, chunki ular operator boshqaruvidagi hisob ma’lumotlarini o‘z ichiga olishi mumkin.
+
+OmniRoute, shuningdek, provayder modellarini muvaffaqiyatli aniqlash/import qilish amaldagi katalogni o‘zgartirgandan so‘ng, ayni shu profil fayllarini **avtomatik sinxronlashi** mumkin. Bu funksiya **ixtiyoriy va sukut bo‘yicha o‘chirilgan**: uni **CLI Code boshqaruv paneli** orqali yoqing ("CLI profile auto-sync" → Codex) yoki `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` qiymatini o‘rnating (u sukut bo‘yicha yoqilgan `CLI_ALLOW_CONFIG_WRITES` parametrini ham hisobga oladi). Yoqilganda, u faqat alohida `~/.codex/*.config.toml` profil fayllarini yozadi; u faol/standart `~/.codex/config.toml` faylini, Codex-lb sozlamalarini, autentifikatsiyani yoki provayder tanlovini hech qachon o‘zgartirmaydi.
 
 ---
 

@@ -34,26 +34,17 @@ seine Verbindungen sind von dieser Einstellung nicht betroffen.
 Der Tunnel wird nur für Turns mit Tool-Nutzung benötigt. Jede aufgeführte Route, einschließlich `pro`, kann dieselbe
 an den Turn gebundene lokale Tool-Funktion verwenden, wenn Tunnel und Connector konfiguriert sind.
 
-## Einrichtung im Dashboard
+## Dashboard-Einrichtung
 
-1. Öffnen Sie den Provider **ChatGPT Web (Codex)** und fügen Sie eine Verbindung hinzu.
-2. Fügen Sie den vollständigen ChatGPT-Cookie-Header, die Tunnel-ID, den Laufzeitschlüssel und den Namen des benutzerdefinierten Connectors
-   ein. Neue Setups mit Tool-Unterstützung müssen einen neu erstellten Connector verwenden, der exakt
-   `OmniRoute Codex v2` heißt, wobei die Authentifizierung auf „Keine“ und die Berechtigungen auf „Alle
-   Aktionen zulassen“ eingestellt sein müssen.
-3. Führen Sie die Verbindungsprüfung aus. OmniRoute öffnet einen browsergestützten temporären Chat und erkennt,
-   ob Sol und Pro für das Konto verfügbar sind.
-4. Speichern Sie die Verbindung. OmniRoute ersetzt das eingefügte Cookie durch den verifizierten
-   Playwright-Speicherstatus und speichert diesen zusammen mit dem Laufzeitschlüssel über die verschlüsselte
-   Anmeldedatenabstraktion.
+1. Öffnen Sie den Anbieter **ChatGPT Web (Codex)** und fügen Sie eine Verbindung hinzu.
+2. Fügen Sie den vollständigen ChatGPT-Cookie-Header, die Tunnel-ID, den Runtime-Schlüssel und den benutzerdefinierten Connector-Namen ein. Neue Setups mit Tool-Unterstützung müssen einen neu erstellten Connector mit exakt dem Namen `OmniRoute Codex v2` verwenden, wobei Authentication auf None und Permissions auf Allow all actions gesetzt sein müssen.
+3. Führen Sie die Verbindungsprüfung aus. OmniRoute öffnet einen browsergestützten Temporary Chat und erkennt, ob Sol und Pro für das Konto verfügbar sind.
+4. Speichern Sie die Verbindung. OmniRoute ersetzt das eingefügte Cookie durch den verifizierten Playwright-Speicherstatus und speichert diesen zusammen mit dem Runtime-Schlüssel über die verschlüsselte Abstraktion für Anmeldedaten.
 
-Das Roh-Cookie wird nach erfolgreichem Speichern nicht aufbewahrt. Wenn die Sitzung abläuft, öffnen Sie
-die Verbindung, fügen Sie einen neuen vollständigen Cookie-Header ein und führen Sie die Prüfung erneut aus. Der Doctor-Status
-im Bearbeitungsdialog meldet Browser, Speicherstatus, Anmeldung, temporären Chat, Tunnel,
-Connector und Tool-Roundtrip jeweils separat.
+Das Roh-Cookie wird nach erfolgreichem Speichern nicht aufbewahrt. Wenn die Sitzung abläuft, öffnen Sie die Verbindung, fügen Sie einen neuen vollständigen Cookie-Header ein und führen Sie die Prüfung erneut aus. Der Doctor-Status im Bearbeitungsdialog zeigt den Status von Browser, Speicherstatus, Anmeldung, Temporary Chat, Tunnel, Connector und Tool-Roundtrip jeweils separat an. Informationen zur Automatisierung von Cookie-Aktualisierungen bei Sitzungswechseln finden Sie im begleitenden Tool unter [Erweiterung zur Synchronisierung von Browsersitzungen](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Committen Sie niemals ein echtes Cookie, einen Laufzeitschlüssel, einen Speicherstatus oder ein Capability-Token. Werte für Tests und
-> Dokumentation müssen immer Platzhalter sein.
+> Übertragen Sie niemals ein echtes Cookie, einen Runtime-Schlüssel, einen Speicherstatus oder ein Capability-Token in ein Repository. Werte für Tests und
+> Dokumentation müssen stets Platzhalter sein.
 
 ## Modelle und Kombinationen
 
@@ -130,7 +121,7 @@ Aufbau der Upstream-Verbindung den HTTP/SSE-Fallback an. Die Übertragung erfolg
 
 ## Verifizierung
 
-Führen Sie die Anbieterprüfungen aus, ohne den stillgelegten Anbieter aufzurufen:
+Führen Sie die Provider-Prüfungen aus, ohne den eingestellten Provider aufzurufen:
 
 ```bash
 node --import tsx/esm --test \\
@@ -139,7 +130,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Regressionsschutztests für die Stilllegung befinden sich in:
+Die Regressionsprüfungen für die Einstellung befinden sich in:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

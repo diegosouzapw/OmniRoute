@@ -43,17 +43,9 @@ o parolă la fiecare invocare.
 
 ## Salt implicit (aleatoriu pentru fiecare instalare)
 
-Când `OMNIROUTE_CLI_SALT` nu este setată, saltul este un șir hexazecimal aleatoriu de 64 de caractere,
-generat o singură dată și păstrat în `<DATA_DIR>/cli-token-salt.json` (mod `0600`) —
-nu literalul `omniroute-cli-auth-v1` inclus în codul sursă. Atât `getActiveSalt()` din
-`src/lib/machineToken.ts`, cât și implementarea sa echivalentă din `bin/cli/utils/cliToken.mjs` citesc
-același fișier, astfel încât serverul și fiecare invocare CLI din această instalare ajung la
-aceeași valoare; literalul inclus în codul sursă este utilizat doar ca soluție de ultimă instanță când nu
-poate fi încă stabilit niciun salt persistent sau din mediu (de exemplu, într-o instalare nouă, exclusiv CLI,
-înainte ca serverul să fi fost rulat vreodată). Aceasta elimină o vulnerabilitate a vechii valori literale
-fixe implicite: `/etc/machine-id` poate fi citit în mod obișnuit de toți utilizatorii, astfel încât orice utilizator local ar putea
-altfel să derive același token pentru fiecare instalare care nu a setat niciodată
-`OMNIROUTE_CLI_SALT`.
+Când `OMNIROUTE_CLI_SALT` nu este setată, saltul este un șir hexazecimal aleatoriu de 64 de caractere, generat o singură dată și salvat în `<DATA_DIR>/cli-token-salt.json` (mod `0600`) — nu valoarea literală `omniroute-cli-auth-v1` inclusă în codul sursă. Atât `getActiveSalt()` din `src/lib/machineToken.ts`, cât și implementarea sa echivalentă din `bin/cli/utils/cliToken.mjs` citesc același fișier, astfel încât serverul și fiecare invocare CLI din această instalare ajung să folosească aceeași valoare; valoarea literală inclusă în codul sursă este utilizată doar ca soluție de ultimă instanță atunci când nu poate fi stabilit încă niciun salt salvat sau definit printr-o variabilă de mediu (de exemplu, într-o instalare nouă, exclusiv CLI, înainte ca serverul să fi fost rulat vreodată). Această modificare remediază o vulnerabilitate a vechii valori literale fixe implicite: `/etc/machine-id` poate fi citit în mod obișnuit de orice utilizator, astfel încât, în caz contrar, orice utilizator local ar putea deriva același token pentru fiecare instalare în care `OMNIROUTE_CLI_SALT` nu a fost setată niciodată.
+
+Dacă saltul nu poate fi citit sau creat, atât serverul, cât și CLI-ul emit câte un avertisment per proces înainte de a utiliza acea valoare de rezervă pentru compatibilitate. Avertismentul nu conține saltul, tokenul, calea din sistemul de fișiere sau eroarea brută. Restabiliți accesul la `DATA_DIR` sau setați `OMNIROUTE_CLI_SALT`, apoi reporniți procesul afectat. Avertismentul face problema vizibilă; acesta nu face ca saltul public de rezervă să devină privat și nici nu dezactivează autentificarea CLI. Salturile valide existente și salvate, precum și suprascrierile explicite prin variabile de mediu își păstrează valorile anterioare ale tokenurilor.
 
 ## Rotirea valorii salt
 

@@ -35,26 +35,27 @@ luetteloon. Tämä käytöstäpoisto ei kohdistu Codex-palveluntarjoajaan eikä 
 Tunnelia tarvitaan vain työkaluja käyttäviin vuoroihin. Jokainen lueteltu reitti, mukaan lukien `pro`, voi käyttää
 samaa vuorokohtaista paikallista työkaluominaisuutta, kun tunneli ja yhdistin on määritetty.
 
-## Määritys hallintapaneelissa
+## Koontinäytön määritys
 
 1. Avaa **ChatGPT Web (Codex)** -palveluntarjoaja ja lisää yhteys.
-2. Liitä täydellinen ChatGPT Cookie -otsake, tunnelitunnus, suoritusympäristöavain ja mukautetun yhdistimen
+2. Liitä koko ChatGPT Cookie -otsake, tunnelin tunnus, suoritusympäristön avain ja mukautetun yhdistimen
    nimi. Uusissa työkaluja tukevissa määrityksissä on käytettävä juuri luotua yhdistintä, jonka nimi on täsmälleen
-   `OmniRoute Codex v2`, jonka Authentication-asetus on None ja Permissions-asetus Allow all
+   `OmniRoute Codex v2`, jonka Authentication-asetuksena on None ja Permissions-asetuksena Allow all
    actions.
 3. Suorita yhteyden tarkistus. OmniRoute avaa selainpohjaisen Temporary Chat -keskustelun ja tunnistaa,
-   ovatko Sol ja Pro tilin käytettävissä.
+   ovatko Sol ja Pro käytettävissä tilillä.
 4. Tallenna yhteys. OmniRoute korvaa liitetyn evästeen vahvistetulla
-   Playwright-tallennustilalla ja tallentaa sen suoritusympäristöavaimen kanssa salatun
+   Playwright-tallennustilalla ja tallentaa sen yhdessä suoritusympäristön avaimen kanssa salatun
    tunnistetietoabstraktion kautta.
 
 Raakaevästettä ei säilytetä onnistuneen tallennuksen jälkeen. Kun istunto vanhenee, avaa
 yhteys, liitä uusi täydellinen Cookie-otsake ja suorita tarkistus uudelleen. Muokkausikkunan
-doctor-tila raportoi erikseen selaimen, tallennustilan, kirjautumisen, Temporary Chat -keskustelun, tunnelin,
-yhdistimen ja työkalun edestakaisen toiminnan.
+diagnostiikkatila raportoi selaimen, tallennustilan, sisäänkirjautumisen, Temporary Chat -keskustelun, tunnelin,
+yhdistimen ja työkalun edestakaisen testin erikseen. Jos haluat automatisoida evästeiden päivitykset istuntojen vaihtuessa,
+katso oheistyökalu kohdasta [Selainistunnon synkronointilaajennus](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Älä koskaan commitoi oikeaa evästettä, suoritusympäristöavainta, tallennustilaa tai ominaisuustunnistetta. Testi- ja
-> dokumentaatioarvojen on aina oltava paikkamerkkejä.
+> Älä koskaan sisällytä oikeaa evästettä, suoritusympäristön avainta, tallennustilaa tai ominaisuustunnistetta versionhallintaan. Testien ja
+> dokumentaation arvojen on aina oltava paikkamerkkejä.
 
 ## Mallit ja yhdistelmät
 
@@ -110,7 +111,7 @@ Kun yhdistelmä sisältää ChatGPT Webin (Codex), Responses WebSocket -silta py
 
 ## Varmennus
 
-Suorita palveluntarjoajan hallintatestit kutsumatta käytöstä poistettua palveluntarjoajaa:
+Suorita palveluntarjoajan tarkistukset kutsumatta käytöstä poistettua palveluntarjoajaa:
 
 ```bash
 node --import tsx/esm --test \\

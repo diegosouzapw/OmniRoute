@@ -316,14 +316,14 @@ v3.6.6 taip pat pristatytas **hibridinis prieigos raktų skaičiavimas**: kai su
 
 ---
 
-## 🛡️ Saugios siunčiamosios užklausos ir SSRF apsauga _(v3.6.6+)_
+## 🛡️ Saugus išorinis duomenų gavimas ir SSRF apsauga _(v3.6.6+)_
 
-Visos teikėjų tikrinimo ir modelių aptikimo užklausos dabar vykdomos per dviejų sluoksnių siunčiamųjų užklausų apsaugą:
+Visos teikėjų tikrinimo ir modelių aptikimo užklausos dabar vykdomos per dviejų sluoksnių išorinių užklausų apsaugą:
 
-1. **URL apsauga** (`src/shared/network/outboundUrlGuard.ts`) — Blokuoja privačius, atgalinio ryšio ir vietinio ryšio IP diapazonus prieš atveriant lizdą.
-2. **Saugios užklausos apvalkalas** (`src/shared/network/safeOutboundFetch.ts`) — Taiko URL apsaugą, suvienodina skirtuosius laikus ir, įvykus laikinosioms klaidoms, pakartoja užklausas naudodamas eksponentinį delsos didinimą.
+1. **URL apsauga** (`src/shared/network/outboundUrlGuard.ts`) — Pirmiausia patikrina tikslinio objekto pagrindinio kompiuterio vardą arba IP literalą tokį, koks jis nurodytas; tik viešosios prieigos režimu saugaus duomenų gavimo apgaubas taip pat nustato vardo IP adresą ir atmeta privačius adresus. Pagal numatytuosius nustatymus jis blokuoja debesijos metaduomenų galinius taškus — visą 169.254.0.0/16 diapazoną ir žinomus metaduomenų pagrindinių kompiuterių vardus; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` taip pat blokuoja privačius ir grįžtamojo ryšio pagrindinius kompiuterius; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (arba senesnis `OUTBOUND_SSRF_GUARD_ENABLED=false`) išjungia patikras. Iš vėliavėlės valdymo skydelio perjungiklio išsaugota reikšmė turi pirmenybę prieš jos kintamąjį, o integruotieji vietiniai teikėjai rakto tikrinimo metu apsaugą praleidžia. Žr. `docs/reference/ENVIRONMENT.md`.
+2. **Saugaus duomenų gavimo apgaubas** (`src/shared/network/safeOutboundFetch.ts`) — Taiko URL apsaugą, normalizuoja skirtąjį laiką ir, įvykus laikinosioms klaidoms, kartoja bandymus taikydamas eksponentinį delsos didinimą.
 
-Apsaugos pažeidimai pateikiami kaip HTTP 422 (`URL_GUARD_BLOCKED`) ir per `providerAudit.ts` įrašomi į atitikties audito žurnalą.
+Apsaugos pažeidimai pateikiami kaip `URL_GUARD_BLOCKED` — HTTP 503 per `getSafeOutboundFetchErrorStatus` (400 modelių aptikimo maršrute) — o tikri SSRF blokavimo atvejai tikrinimo metu įrašomi į audito žurnalą kaip `provider.validation.ssrf_blocked` įvykiai.
 
 ---
 

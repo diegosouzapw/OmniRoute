@@ -182,7 +182,6 @@ Penyedia ini menawarkan **akses percuma** tanpa kad kredit:
 | **Cloudflare AI** | 10K neuron/hari        | 50+ model                                | Tiada pengesahan diperlukan |
 | **NVIDIA NIM**    | ~40 RPM                | 129 model                                | Kunci API diperlukan        |
 | **Cerebras**      | Kredit pendaftaran $5  | GLM 4.7, GPT-OSS 120B                    | Kunci API + kad             |
-| **Qoder**         | Tanpa had              | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Tiada pengesahan diperlukan |
 
 **Petua**: Sambungkan berbilang penyedia percuma untuk mendapatkan **AI percuma tanpa had** dengan sandaran automatik!
 
@@ -283,6 +282,46 @@ Kemudian gunakan `model: "auto"` dan OmniRoute akan memilih penyedia terbaik sec
 1. Dapatkan kunci API: https://platform.deepseek.com/
 2. Dalam OmniRoute: Penyedia → Tambah Penyedia → DeepSeek
 3. Tampal kunci API → Sambung
+
+### Qoder: pilih pengangkutan kelayakan
+
+Qoder memerlukan kelayakan. Kedua-dua pengangkutannya mempunyai keupayaan yang berbeza; nama model
+sahaja tidak menentukan perkara yang boleh dilakukan oleh sesuatu sambungan.
+
+| Kelayakan                            | Pengangkutan OmniRoute                        | Panggilan alat oleh pemanggil                 | Penstriman                                                              |
+| ------------------------------------ | --------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------- |
+| PAT yang bermula dengan `pt-`        | Proses `qodercli` setempat pada hos OmniRoute | Tidak disokong                                | Dibuffer: SSE hanya dipancarkan selepas CLI mengembalikan balasan penuh |
+| Token akses bukan PAT atau kunci API | Titik akhir HTTP serasi OpenAI DashScope      | Diteruskan, tertakluk pada model/kunci huluan | Laluan HTTP/SSE huluan                                                  |
+
+Untuk PAT, pasang Qoder CLI pada hos atau bekas yang sama dengan OmniRoute. Fail boleh laku
+mesti boleh ditemukan sebagai `qodercli`, atau tetapkan `CLI_QODER_BIN` kepada laluan fail boleh lakunya. CLI
+yang dipasang hanya pada hos Docker tidak tersedia secara automatik dalam bekas. Fail binari
+yang tiada menghasilkan ralat jelas yang mengarahkan anda kepada pemasangan atau tetapan laluan.
+
+Laluan sembang PAT mempunyai had masa proses selama 45 saat. Ia meratakan perbualan menjadi satu
+gesaan dan memanggil CLI dalam mod cetakan tanpa penstriman. Meminta `stream: true` menukar
+sampul respons kepada SSE; ia tidak menyediakan penghantaran token huluan secara berperingkat.
+Pengesahan CLI/penyenaraian model menggunakan had masa berasingan selama 20 saat. Ini ialah tetapan lalai
+kod semasa, bukan tetapan papan pemuka yang boleh dikonfigurasikan.
+
+Gunakan sambungan PAT untuk sembang biasa. Permintaan ejen yang membawa `tools` atau `functions`
+legasi mengecualikan akaun PAT semasa pemilihan kelayakan, termasuk sasaran gabungan yang disematkan. Kumpulan
+Qoder bercampur masih boleh memilih akaun HTTP-nya. Panggilan terus kepada pelaksana PAT juga gagal
+secara jelas sebelum melancarkan CLI dan bukannya menggugurkan takrif alat secara senyap. Sekatan ini
+melibatkan alat yang dibekalkan oleh pemanggil API, bukan sebarang alat dalaman yang mungkin digunakan sendiri oleh Qoder
+CLI. Kunci HTTP tidak menjamin bahawa setiap model menyokong alat; semakan
+keupayaan model biasa masih terpakai.
+
+OAuth pelayar hanya tersedia apabila pentadbir mengkonfigurasikan kelima-lima tetapan:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, dan `QODER_OAUTH_CLIENT_SECRET`. Nilai lalainya kosong; pemasangan
+yang belum dikonfigurasikan harus menggunakan import kelayakan yang disokong dan bukannya menganggap
+bahawa aliran log masuk pelayar telah tersedia.
+
+Rujukan pelaksanaan: [Pelaksana Qoder](../../open-sse/executors/qoder.ts),
+[Masa jalan CLI](../../open-sse/services/qoderCli.ts), dan
+[Konfigurasi OAuth](../../src/lib/oauth/constants/oauth.ts). Penstriman PAT berperingkat
+dan had masa yang boleh dikonfigurasikan merupakan penambahbaikan berasingan; tingkah laku ini tidak menjanjikannya.
 
 ### Groq
 

@@ -126,12 +126,12 @@ Claude ٹول کارڈ (**ڈیش بورڈ → CLI Code**) اس انسٹینس ک
 ## پروفائلز (`CLAUDE_CONFIG_DIR`)
 
 Claude Code میں **مقامی پروفائل فائلیں موجود نہیں ہیں** (Codex کی `~/.codex/<name>.config.toml` کے برعکس)۔
-روایتی طریقۂ کار `CLAUDE_CONFIG_DIR` ہے — ہر
-پروفائل کے لیے ایک الگ کنفگ ڈائریکٹری، جس میں اس کی اپنی `settings.json`، اسناد، تاریخچہ اور کیش ہوتے ہیں۔
+اس کا روایتی طریقۂ کار `CLAUDE_CONFIG_DIR` ہے — ہر پروفائل کے لیے ایک علیحدہ کنفیگ ڈائریکٹری،
+جس میں اس کی اپنی `settings.json`، اسناد، ہسٹری اور کیش ہوتی ہیں۔
 
-`omniroute setup-claude` فعال `/v1/models` کیٹلاگ حاصل کرتا ہے اور ہر ماڈل کے لیے ایک
-پروفائل `~/.claude/profiles/<name>/settings.json` میں لکھتا ہے، اور
-**وہی نام استعمال کرتا ہے جو `setup-codex` میں ہیں** (`glm52`، `kimi-k27`، `deepseek-pro`، …):
+`omniroute setup-claude` فعال `/v1/models` کیٹلاگ حاصل کرتا ہے اور ہر ماڈل کے لیے
+`~/.claude/profiles/<name>/settings.json` پر ایک پروفائل لکھتا ہے، جس میں
+**`setup-codex` والے ہی نام** (`glm52`، `kimi-k27`، `deepseek-pro`، …) دوبارہ استعمال کیے جاتے ہیں:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -148,18 +148,19 @@ Claude Code میں **مقامی پروفائل فائلیں موجود نہیں 
 }
 ```
 
-> **تصدیقی ٹوکن کبھی پروفائل میں نہیں لکھا جاتا۔** اسے
-> `omniroute launch --profile <name>` کے ساتھ چلائیں (یہ فعال کانٹیکسٹ سے `ANTHROPIC_AUTH_TOKEN`
-> داخل کرتا ہے)، یا خود `ANTHROPIC_AUTH_TOKEN` ایکسپورٹ کریں اور
+> **توثیقی ٹوکن کبھی بھی پروفائل میں نہیں لکھا جاتا۔** اسے
+> `omniroute launch --profile <name>` کے ذریعے چلائیں (یہ فعال کانٹیکسٹ سے `ANTHROPIC_AUTH_TOKEN`
+> شامل کرتا ہے)، یا خود `ANTHROPIC_AUTH_TOKEN` ایکسپورٹ کریں اور
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` چلائیں۔
 
-**ماڈل کی دریافت کے بعد خودکار ہم وقت سازی (اختیاری)۔** جب بھی کسی فراہم کنندہ کے ماڈل کی
-ہم وقت سازی فعال کیٹلاگ کو تبدیل کرے، OmniRoute انہی `~/.claude/profiles/<name>/settings.json`
-فائلوں کو خودکار طور پر دوبارہ بنا سکتا ہے — یوں نئے یا تبدیل شدہ ناموں والے ماڈلز کے لیے کمانڈ دوبارہ چلائے بغیر
-پروفائل بن جاتے ہیں۔ یہ **بطور ڈیفالٹ بند** ہے: اسے **CLI Code ڈیش بورڈ** سے فعال کریں ("CLI profile
-auto-sync" → Claude Code)، یا `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` مقرر کریں (یہ
-`CLI_ALLOW_CONFIG_WRITES` کا بھی احترام کرتا ہے، جو بطور ڈیفالٹ فعال ہے)۔ فعال ہونے پر یہ صرف پروفائل فائلیں لکھتا ہے؛ یہ کبھی
-آپ کی فعال/ڈیفالٹ Claude کنفگ، تصدیق، یا `~/.claude/settings.json` تبدیل نہیں کرتا۔
+**ماڈل کی دریافت کے بعد خودکار ہم وقت سازی (اختیاری)۔** جب بھی کسی فراہم کنندہ کے ماڈلز کی
+ہم وقت سازی فعال کیٹلاگ کو تبدیل کرے، OmniRoute انہی
+`~/.claude/profiles/<name>/settings.json` فائلوں کو خودکار طور پر دوبارہ بنا سکتا ہے — تاکہ نئے یا
+تبدیل شدہ نام والے ماڈلز کو کمانڈ دوبارہ چلائے بغیر پروفائلز مل جائیں۔ یہ **بطور ڈیفالٹ بند** ہے:
+اسے **CLI Code ڈیش بورڈ** ("CLI پروفائل کی خودکار ہم وقت سازی" → Claude Code) سے ٹوگل کریں، یا
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` سیٹ کریں (یہ `CLI_ALLOW_CONFIG_WRITES` کا بھی لحاظ
+رکھتا ہے، جو بطور ڈیفالٹ فعال ہے)۔ فعال ہونے پر یہ صرف پروفائل فائلیں لکھتا ہے؛ یہ کبھی بھی آپ کی
+فعال/ڈیفالٹ Claude کنفیگ، توثیق، یا `~/.claude/settings.json` کو تبدیل نہیں کرتا۔
 
 ### پروفائلز بنانا + استعمال کرنا
 
@@ -173,7 +174,11 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # صرف کچھ فراہم کنندگان
 omniroute setup-claude --only glm,kimi
 
-# لکھے بغیر پیش منظر
+# مقامی CLI فراہم کنندگان (zcode، auggie، devin-cli-agentic،
+# codex-app-server) کے لیے بھی پروفائلز لکھیں جو اس ہوسٹ پر دریافت نہیں ہوئے (مقامی ہدف کے لیے بطور ڈیفالٹ چھوڑ دیے جاتے ہیں)
+omniroute setup-claude --include-local
+
+# لکھے بغیر پیش منظر دیکھیں
 omniroute setup-claude --dry-run
 
 # ایک پروفائل چلائیں

@@ -169,35 +169,35 @@ Tabulā `memory_vec_meta` (migrācija `083_memory_vec.sql`) tiek glabāts:
 
 ## Iestatījumu paplašinājums
 
-Deviņi iegulšanas un vektoru lauki ir pieejami `MemorySettingsExtended` failā
-`src/shared/schemas/memory.ts` un tiek saglabāti, izmantojot `src/lib/db/settings.ts`:
+Saskarnē `MemorySettingsExtended`, kas atrodas
+`src/shared/schemas/memory.ts` un tiek saglabāta, izmantojot `src/lib/db/settings.ts`, ir pieejami deviņi iegulšanas un vektoru lauki:
 
-| Lauks                    | Tips                                               | Noklusējums | Apraksts                                                          |
-| ------------------------ | -------------------------------------------------- | ----------- | ----------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Izmantojamais iegulšanas avots                                    |
-| `embeddingProviderModel` | `string \| null`                                   | `null`      | Nodrošinātājs/modelis formātā `provider/model`                    |
-| `customBaseUrl`          | `string \| null`                                   | `null`      | Tikai atmiņai paredzētā, ar OpenAI saderīgā galapunkta pamata URL |
-| `customModelId`          | `string \| null`                                   | `null`      | Pielāgotajam galapunktam nosūtītais modeļa ID                     |
-| `transformersEnabled`    | `boolean`                                          | `false`     | Transformers.js izvēles iespēja (MiniLM, ~400MB)                  |
-| `staticEnabled`          | `boolean`                                          | `false`     | Statiskā lokālā potion-base-8M modeļa izvēles iespēja             |
-| `rerankEnabled`          | `boolean`                                          | `false`     | Iespējot pārkārtošanas soli (pievieno +200-500ms/pieprasījumam)   |
-| `rerankProviderModel`    | `string \| null`                                   | `null`      | Pārkārtošanas nodrošinātājs/modelis formātā `provider/model`      |
+| Lauks                    | Tips                                               | Noklusējums | Apraksts                                                                   |
+| ------------------------ | -------------------------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`    | Izmantojamais iegulšanas avots                                             |
+| `embeddingProviderModel` | `string \| null`                                   | `null`      | Nodrošinātājs/modelis formātā `provider/model`                             |
+| `customBaseUrl`          | `string \| null`                                   | `null`      | Tikai atmiņai paredzēts ar OpenAI saderīga galapunkta bāzes URL            |
+| `customModelId`          | `string \| null`                                   | `null`      | Pielāgotajam galapunktam nosūtāmais modeļa ID                              |
+| `transformersEnabled`    | `boolean`                                          | `false`     | Transformers.js izvēles iespējošana (MiniLM, ~400MB)                       |
+| `staticEnabled`          | `boolean`                                          | `false`     | Statiskā lokālā modeļa potion-base-8M izvēles iespējošana                  |
+| `rerankEnabled`          | `boolean`                                          | `false`     | Iespējot atkārtotās ranžēšanas darbību (pievieno +200-500ms/pieprasījumam) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`      | Atkārtotās ranžēšanas nodrošinātājs/modelis formātā `provider/model`       |
 
-`rerankProviderModel` tiek atrisināts ar `POST /v1/rerank` (izsaucot atgriezeniskās cilpas savienojumā), tādēļ tas pieņem visu, ko pieņem šis maršruts: atlasītu mākoņa pārkārtošanas modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) vai ar OpenAI saderīgu nodrošinātāja mezglu formātā `<node-prefix>/<model>` (piemēram, `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serverim). Atgriezeniskās cilpas mezgli vienmēr ir pieejami; mezglam citā resursdatorā (LAN, Tailscale) papildus ir nepieciešams `RERANK_REMOTE_PROVIDER_NODES` funkcijas karodziņš, un tam jāatbilst nodrošinātāja izejošo URL politikai — skatiet [Funkciju karodziņi](../reference/FEATURE_FLAGS.md). Informācijas paneļa atlasītājā ir uzskaitīti atlasītie nodrošinātāji un lokālie mezgli; jebkuru derīgu `provider/model` virkni var iestatīt tieši, izmantojot `PUT /api/settings/memory`.
+`rerankProviderModel` tiek atrisināts ar `POST /v1/rerank` (izsaucot atgriezeniskās cilpas saskarni), tāpēc tas pieņem jebko, ko pieņem šis maršruts: atlasītu mākoņpakalpojuma atkārtotās ranžēšanas modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) vai ar OpenAI saderīgu nodrošinātāja mezglu formātā `<node-prefix>/<model>` (piemēram, `skilled-mini/bge-reranker-v2-m3` TEI/Infinity serverim). Atgriezeniskās cilpas mezgli un resursdatoru nosaukumi, kas uzskaitīti `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (piemēram, Docker/Compose pakalpojuma nosaukums), vienmēr ir piemēroti; mezglam citā resursdatorā (LAN, Tailscale) papildus nepieciešams `RERANK_REMOTE_PROVIDER_NODES` funkcijas karodziņš, un tam jāatbilst nodrošinātāja izejošo URL politikai — skatiet sadaļu [Funkciju karodziņi](../reference/FEATURE_FLAGS.md). Informācijas paneļa atlasītājā ir uzskaitīti atlasītie nodrošinātāji un lokālie mezgli; jebkuru derīgu `provider/model` virkni var iestatīt tieši, izmantojot `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Izmantojamā vektoru aizmugursistēma |
 
 Tie ir pieejami, izmantojot `GET /PUT /api/settings/memory` (shēma `MemorySettingsExtendedSchema`).
 
 Avotam `remote` Memory pieņem arī neobligātos iestatījumus `customBaseUrl` un
 `customModelId`. Kopā tie atlasa ar OpenAI saderīgu `/embeddings`
-galapunktu un modeli, nemainot globālo iegulšanas reģistru. Pirms lietošanas galapunkts tiek
-normalizēts un pārbaudīts saskaņā ar nodrošinātāja izejošo URL politiku: ir nepieciešams
-HTTP(S), iegulti akreditācijas dati un vaicājumu virknes tiek noraidītas, un mākoņa metadatu
+galapunktu un modeli, nemainot globālo iegulšanas reģistru. Pirms izmantošanas galapunkts tiek
+normalizēts un pārbaudīts saskaņā ar nodrošinātāja izejošo URL politiku: ir
+nepieciešams HTTP(S), iegulti akreditācijas dati un vaicājumu virknes tiek noraidītas, un mākoņa metadatu
 adreses joprojām ir bloķētas. Tukšas vērtības saglabā atlasīto reģistra nodrošinātāju. Informācijas
 panelim atgrieztās kļūdas tiek attīrītas, un galapunkta akreditācijas dati nekad netiek reģistrēti žurnālā.
 
 > **TODO (D20):** Tvērums `global` (atmiņu kopīgošana starp visām API atslēgām) šajā
-> laidienā nav ieviests. Tam nepieciešamas shēmas izmaiņas un globāls izguves
+> laidienā nav ieviests. Tam ir nepieciešamas shēmas izmaiņas un globāls izgūšanas
 > ceļš. Izsekot atsevišķi.
 
 ## Glabāšanas slāņi
@@ -910,7 +910,7 @@ Lai tā paliktu izslēgta, vienkārši atstājiet `autoSummarize` noklusējuma v
 > **Patiesības avots:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testi:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend nodrošinātāja modelis esošajam atmiņas dzinējam pievieno **maināmu aizmugursistēmas abstrakcijas slāni**. Tā vietā, lai atmiņas sistēma būtu piesaistīta vienai glabāšanas implementācijai, tā tagad atbalsta vairākas aizmugursistēmas (SQLite, Obsidian, Notion, pielāgotas HTTP aizmugursistēmas) ar konfigurējamu primāro/rezerves maršrutēšanu.
+MemoryBackend nodrošinātāja modelis ievieš **spraudņu veidā paplašināmu aizmugursistēmu abstrakcijas slāni** virs esošā atmiņas dzinēja. Tā vietā, lai atmiņas sistēma būtu piesaistīta vienai glabāšanas realizācijai, tā tagad atbalsta vairākas aizmugursistēmas (SQLite, Obsidian, Notion, pielāgotas HTTP aizmugursistēmas) ar konfigurējamu primāro/rezerves maršrutēšanu.
 
 ### Arhitektūra
 
@@ -922,12 +922,12 @@ MemoryBackend nodrošinātāja modelis esošajam atmiņas dzinējam pievieno **m
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│        Vieninstances koordinators (manager.ts)            │
+│        Vieninstanču koordinators (manager.ts)             │
 │                                                          │
 │  Primārā ──► Aizmugursistēma A  (piem., SQLite)          │
-│  Rezerve ──► Aizmugursistēma B  (piem., Obsidian)        │
-│              Aizmugursistēma C  (piem., Notion,          │
-│                                  izmantojot GenericBackend)│
+│  Rezerves ─► Aizmugursistēma B  (piem., Obsidian)        │
+│             Aizmugursistēma C  (piem., Notion, izmantojot│
+│                                GenericBackend)            │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -941,14 +941,14 @@ MemoryBackend nodrošinātāja modelis esošajam atmiņas dzinējam pievieno **m
 
 #### Pamata saskarne (`backend.ts`)
 
-Katrai aizmugursistēmai ir jāimplementē saskarne `MemoryBackend`:
+Katrai aizmugursistēmai ir jārealizē saskarne `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // CRUD
+  // CRUD operācijas
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -969,30 +969,30 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Vieninstances koordinators, kas:
+Vieninstanču koordinators, kas:
 
-- **Reģistrē** aizmugursistēmas, izmantojot `register(backend)` — sāknēšanas laikā tiek izsaukts no `index.ts`
+- **Reģistrē** aizmugursistēmas, izmantojot `register(backend)` — tā tiek izsaukta sāknēšanas laikā no `index.ts`
 - **Konfigurē** primāro un rezerves aizmugursistēmas, izmantojot `configure(primary, fallbacks)`
-- **Maršrutē** CRUD/meklēšanas darbības uz primāro aizmugursistēmu, kļūmes gadījumā izmantojot rezerves ķēdi
+- **Maršrutē** CRUD operācijas/meklēšanu uz primāro aizmugursistēmu, kļūmes gadījumā izmantojot rezerves aizmugursistēmu ķēdi
 - Periodiski veic visu aizmugursistēmu **darbspējas pārbaudes**
 
-**Rezerves darbība:**
+**Rezerves aizmugursistēmu darbība:**
 
-| Darbība  | Primārā                    | Rezerves                              |
-| -------- | -------------------------- | ------------------------------------- |
-| `create` | ✅ Tikai primārā           | ❌                                    |
-| `get`    | ✅ Vispirms mēģina primāro | ✅ Rezerves, ja rezultāts ir null     |
-| `update` | ✅ Tikai primārā           | ✅ Sinhronizācija, negaidot rezultātu |
-| `delete` | ✅ Tikai primārā           | ✅ Sinhronizācija, negaidot rezultātu |
-| `list`   | ✅ Tikai primārā           | ❌                                    |
-| `search` | ✅ Vispirms primārā        | ✅ Rezerves kļūdas gadījumā           |
+| Operācija | Primārā                    | Rezerves                                   |
+| --------- | -------------------------- | ------------------------------------------ |
+| `create`  | ✅ Tikai primārā           | ❌                                         |
+| `get`     | ✅ Vispirms mēģina primāro | ✅ Izmanto rezerves, ja rezultāts ir null  |
+| `update`  | ✅ Tikai primārā           | ✅ Asinhrona sinhronizācija bez gaidīšanas |
+| `delete`  | ✅ Tikai primārā           | ✅ Asinhrona sinhronizācija bez gaidīšanas |
+| `list`    | ✅ Tikai primārā           | ❌                                         |
+| `search`  | ✅ Vispirms primārā        | ✅ Kļūdas gadījumā izmanto rezerves        |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Universāls HTTP savienotājs, kas jebkuru REST API pielāgo par MemoryBackend. Noderīgs šādiem mērķiem:
+Vispārīgs HTTP savienotājs, kas jebkuru REST API pielāgo saskarnei MemoryBackend. Noderīgs šādiem gadījumiem:
 
-- **Notion** — savienošana, izmantojot Notion API
-- **Obsidian** — savienošana, izmantojot Obsidian Local REST API
+- **Notion** — savienojums, izmantojot Notion API
+- **Obsidian** — savienojums, izmantojot Obsidian Local REST API
 - **Pielāgotas aizmugursistēmas** — jebkurš pakalpojums, kas nodrošina RESTful atmiņas API
 
 **Konfigurācija:**
@@ -1002,10 +1002,10 @@ interface GenericBackendConfig {
   baseUrl: string;           // Aizmugursistēmas API bāzes URL
   apiKey?: string;           // Bearer pilnvara autentifikācijai
   headers?: Record<string, string>;  // Pielāgotas HTTP galvenes
-  timeout?: number;          // Pieprasījuma taimauts (noklusējums: 30000ms)
+  timeout?: number;          // Pieprasījuma noildze (noklusējums: 30000ms)
   backendType?: string;      // Žurnalēšanai
 
-  // Galapunktu pārrakstīšana (noklusējumi izmanto REST principus)
+  // Galapunktu pārrakstīšana (noklusējuma vērtības izmanto REST principus)
   endpoints?: {
     search?: string;   // noklusējums: "/memories/search"
     create?: string;   // noklusējums: "/memories"
@@ -1039,7 +1039,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend, kas norāda uz api.no
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Noklusējuma primārā aizmugursistēma. Ietver esošo uz SQLite balstīto atmiņas krātuvi, izmantojot `src/lib/memory/store.ts`. Automātiski reģistrēta palaišanas laikā.
+Noklusējuma primārā aizmugursistēma. Tā ietver esošo SQLite atmiņas krātuvi, izmantojot `src/lib/memory/store.ts`. Sāknēšanas laikā tā tiek reģistrēta automātiski.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1048,7 +1048,61 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Ietver esošo Obsidian integrāciju (`src/lib/memory/obsidianBackend.ts`). Izveido savienojumu ar Obsidian glabātuvi, izmantojot Obsidian Local REST API.
+Ietver esošo Obsidian integrāciju (`src/lib/memory/obsidianBackend.ts`). Izveido savienojumu ar Obsidian krātuvi, izmantojot Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapteris lokālam [claude-mem](https://github.com/thedotmack/claude-mem) darbinātājam — Claude Code / Codex / Cursor atmiņas spraudnim, kas kodēšanas sesijas tver kā “novērojumus”. Kad tas ir reģistrēts, `/api/memory` REST maršruti un A2A atmiņas meklēšana var lasīt un rakstīt tajā pašā krātuvē, kuru aizpilda claude-mem āķi.
+
+Darbinātājs piesaistās tikai atgriezeniskās cilpas saskarnei, ko `GenericMemoryBackend` SSRF aizsardzība apzināti noraida. Šis adapteris šo aizsardzību nemīkstina: resursdators ir fiksēti iestatīts uz `127.0.0.1`, un konfigurācijas shēma (`ClaudeMemBackendConfigSchema`, `.strict()`) pieņem tikai:
+
+| Atslēga     | Tips   | Noklusējums | Piezīmes                                                                                                                         |
+| ----------- | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —           | Obligāts, 1024–65535. claude-mem darbinieka ports no tā iestatījumu faila (noklusējums `37700 + uid % 100`).                     |
+| `project`   | string | —           | Izmantojamais claude-mem projekts. Ja nav iestatīts → katra OmniRoute API atslēga tiek piesaistīta savam projektam (`apiKeyId`). |
+| `timeoutMs` | number | `5000`      | Katra pieprasījuma taimauts, 100–30000.                                                                                          |
+
+Iespējojiet to, izmantojot `PUT /api/settings/memory`, un restartējiet OmniRoute (aizmugursistēmas tiek reģistrētas
+vienreiz funkcijā `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Tā vietā izmantojiet `"primaryBackend": "claude-mem"`, lai padarītu to par REST API krātuvi. Nederīga
+konfigurācija tiek reģistrēta žurnālā (`claude-mem.backend.invalid_config`) un izlaista, tādēļ SQLite paliek primārā aizmugursistēma.
+
+Kartēšana un ierobežojumi:
+
+- ID ir `claude-mem:<observationId>`; `get`/`delete` ignorē citu aizmugursistēmu ID, neveicot
+  tīkla izsaukumu.
+- `create` → `POST /api/memory/save`; OmniRoute lauki (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) tiek pārsūtīti claude-mem laukā `metadata.omniroute` un lasīšanas laikā atjaunoti.
+- `search` → `GET /api/search?format=json&type=observations`, saīsināts atbilstoši `maxTokens`
+  (rakstzīmes / 4). `list` → darbinieka lapotais novērojumu galapunkts (`total` ir apakšējā robeža — darbinieks
+  atgriež `hasMore`, nevis skaitu).
+- Ar āķiem tvertie novērojumi tiek kartēti šādi: `discovery` → `factual`, `decision` → `procedural` un
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Nav atjauninājumu** (`update()` atgriež `false`; novērojumi ir nemainīgi) un **nav TTL**
+  (`expiresAt` tiek ignorēts). claude-mem novērš identisku saglabājumu dublēšanos, nevis veic ievietošanu vai atjaunināšanu pēc `key`.
+- Uzvednes ievadīšana (`retrieval.ts`) un `omniroute_memory_*` MCP rīki joprojām lasa SQLite
+  tieši — tie neizmanto `memoryManager`, tādēļ šī aizmugursistēma tos neapgādā ar datiem.
+
+**claude-mem paša LLM izsaukumu maršrutēšana caur OmniRoute.** claude-mem saspiež novērojumus,
+izmantojot LLM (noklusējums: Claude Agent SDK). Tā `openai-compatible` nodrošinātāju var novirzīt uz
+OmniRoute, tādējādi izmantojot kombināciju atkāpšanās mehānismu un izmaksu uzskaiti. Failā `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API atslēga>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute modelis vai kombinācija>"
+}
+```
 
 ### Iestatījumi
 
@@ -1057,8 +1111,8 @@ Atmiņas aizmugursistēmas iestatījumi tiek glabāti lietotnes iestatījumu tab
 | Iestatījums                    | Vides/konfigurācijas atslēga | Noklusējums | Apraksts                                             |
 | ------------------------------ | ---------------------------- | ----------- | ---------------------------------------------------- |
 | Primārā aizmugursistēma        | `memoryPrimaryBackend`       | `"sqlite"`  | Primārās aizmugursistēmas ID                         |
-| Rezerves aizmugursistēmas      | `memoryFallbackBackends`     | `[]`        | Sakārtoti rezerves aizmugursistēmu ID                |
-| Aizmugursistēmu konfigurācijas | `memoryBackendConfigs`       | `{}`        | Katras aizmugursistēmas konfigurācijas pārrakstīšana |
+| Rezerves aizmugursistēmas      | `memoryFallbackBackends`     | `[]`        | Sakārtots rezerves aizmugursistēmu ID saraksts       |
+| Aizmugursistēmu konfigurācijas | `memoryBackendConfigs`       | `{}`        | Katras aizmugursistēmas konfigurācijas pārrakstījumi |
 
 Iestatījumi tiek normalizēti, izmantojot `normalizeMemorySettings()`, un kešoti funkcijā `getMemorySettings()`.
 
@@ -1066,11 +1120,12 @@ Iestatījumi tiek normalizēti, izmantojot `normalizeMemorySettings()`, un kešo
 
 ```
 Lietotnes sāknēšana
-  → index.ts importēšana (blakusefekts): reģistrē SQLiteBackend
+  → index.ts imports (blakusefekts): reģistrē SQLiteBackend
   → initMemoryBackends() tiek izsaukta no lietotnes dzīves cikla:
-      1. Ielādē iestatījumus (getMemorySettings)
-      2. Konfigurē primāro un rezerves aizmugursistēmas
-      3. Inicializē visas aizmugursistēmas (darbspējas pārbaude)
+      1. Ielādēt iestatījumus (getMemorySettings)
+      1b. Reģistrēt backendConfigs norādītās izvēles aizmugursistēmas (claude-mem)
+      2. Konfigurēt primāro un rezerves aizmugursistēmas
+      3. Inicializēt visas aizmugursistēmas (darbspējas pārbaude)
       4. Gatavs pieprasījumiem
 ```
 
@@ -1078,7 +1133,7 @@ Lietotnes sāknēšana
 
 1. **Implementējiet `MemoryBackend`** saskarni failā `src/lib/memory/<name>Backend.ts`
 2. **Eksportējiet** no `src/lib/memory/index.ts`
-3. **Reģistrējiet** ar `memoryManager.register(yourBackend)` palaišanas laikā
+3. **Reģistrējiet** ar `memoryManager.register(yourBackend)` sāknēšanas laikā
 4. **Konfigurējiet**, izmantojot iestatījumus: iestatiet `memoryPrimaryBackend` uz savas aizmugursistēmas ID
 5. **Testējiet**, izmantojot `src/lib/memory/__tests__/generic-backend.test.ts` kā atsauci
 
@@ -1108,19 +1163,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Sagaidāmais rezultāts: **35 testi, visi sekmīgi**, kas aptver:
+Paredzamais rezultāts: **35 testi, visi sekmīgi**, aptverot:
 
-- Konstruktoru (2)
-- Darbspējas pārbaudi (4) — sekmīgs iznākums, kļūme 500, tīkla kļūda, latentums
-- Inicializāciju (2) — sekmīgs iznākums, kļūme
-- Izveidi (2) — noklusējuma galapunkts, pielāgots galapunkts
-- Iegūšanu (4) — sekmīgs iznākums, 404 → null, kļūdas izmešana statusam, kas nav 404, pielāgoti ceļa parametri
-- Atjaunināšanu (2) — sekmīgs iznākums, 404 → false
-- Dzēšanu (2) — sekmīgs iznākums, 404 → false
-- Uzskaitīšanu (2) — vaicājuma parametri, pielāgoti parametru nosaukumi
-- Meklēšanu (3) — vaicājuma parametri, pielāgots galapunkts, opciju serializācija
+- Konstruktors (2)
+- Darbspējas pārbaude (4) — sekmīga izpilde, kļūme 500, tīkla kļūda, latentums
+- Inicializēšana (2) — sekmīga izpilde, kļūme
+- Izveide (2) — noklusējuma galapunkts, pielāgots galapunkts
+- Iegūšana (4) — sekmīga izpilde, 404 → null, kļūdas izmešana, ja nav 404, pielāgoti ceļa parametri
+- Atjaunināšana (2) — sekmīga izpilde, 404 → false
+- Dzēšana (2) — sekmīga izpilde, 404 → false
+- Uzskaitīšana (2) — vaicājuma parametri, pielāgoti parametru nosaukumi
+- Meklēšana (3) — vaicājuma parametri, pielāgots galapunkts, opciju serializācija
 - Autentifikācijas galvenes (2) — Bearer pilnvara, pielāgotas galvenes
-- Fabriku (1)
+- Fabrika (1)
 
 #### Tipu pārbaude
 
@@ -1128,4 +1183,4 @@ Sagaidāmais rezultāts: **35 testi, visi sekmīgi**, kas aptver:
 npm run typecheck:core
 ```
 
-Sagaidāms: **0 kļūdu**.
+Paredzams: **0 kļūdu**.

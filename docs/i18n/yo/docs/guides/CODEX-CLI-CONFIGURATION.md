@@ -272,30 +272,36 @@ codex -p chat     # cx/gpt-5.5, kò ṣètò ìsapá (àìyípadà server)
 
 ---
 
-## Ṣíṣẹ̀dá àwọn profaili láìfọwọ́ṣe pẹ̀lú `omniroute setup-codex`
+## Ṣíṣẹ̀dá àwọn prófáìlì láìfọwọ́ṣe pẹ̀lú `omniroute setup-codex`
 
-Tí o bá ń ṣiṣẹ́ OmniRoute lórí VPS, o lè ṣẹ̀dá àwọn fáìlì profaili láìfọwọ́ṣe láti inú àkójọ àwọn módẹ́lì tó ń ṣiṣẹ́:
+Tí o bá ń ṣiṣẹ́ OmniRoute lórí VPS, o lè ṣẹ̀dá àwọn fáìlì prófáìlì láìfọwọ́ṣe láti inú àkójọ àwọn model tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́:
 
 ```bash
-# Láti VPS kan (ó ń lo OmniRoute agbègbè lórí port 20128)
+# Láti VPS kan (ó ń lo OmniRoute abẹ́nú lórí port 20128)
 omniroute setup-codex
 
-# Láti ẹ̀rọ èyíkéyìí — tọ́ka sí VPS rẹ
+# Láti ẹ̀rọ èyíkéyìí — darí rẹ̀ sí VPS rẹ
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Ṣàkọ́wò láìkọ fáìlì kankan
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Ṣẹ̀dá àwọn profaili GLM àti Kimi nìkan
+# Ṣẹ̀dá àwọn prófáìlì GLM àti Kimi nìkan
 omniroute setup-codex --only glm,kimi
 
-# Kọ ọ́ sí àkọsílẹ̀ àkànṣe kan
+# Kọ ọ́ sínú àkójọ fáìlì àdáni
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Àṣẹ náà máa ń gba `/v1/models`, ó ń lo àwọn profaili tí a ti ṣètò dáadáa fún àwọn módẹ́lì tí a mọ̀, ó máa ń lo metadata àkójọ gẹ́gẹ́ bí àfidípò fún àwọn módẹ́lì ọ̀rọ̀ míì tó bá mu, ó sì ń kọ `~/.codex/<name>.config.toml` fún ọ̀kọ̀ọ̀kan. Ó jẹ́ aláìyípadà nígbà àtúnsí — ó láìléwu láti tún un ṣiṣẹ́.
+Àṣẹ náà máa ń gba `/v1/models`, ó máa ń lo àwọn prófáìlì tí a ti ṣàtúnṣe fún àwọn model tí a mọ̀, ó máa ń lo metadata àkójọ gẹ́gẹ́ bí àfidípò fún àwọn model ọ̀rọ̀ míì tó bá a mu, ó sì máa ń kọ `~/.codex/<name>.config.toml` fún ọ̀kọ̀ọ̀kan. Ó jẹ́ idempotent — ó láàbò láti tún un ṣiṣẹ́.
 
-OmniRoute tún lè **mú àwọn fáìlì profaili kan náà bára mu láìfọwọ́ṣe** lẹ́yìn tí ìṣàwárí/ìkó wọlé àwọn módẹ́lì olùpèsè bá ṣàṣeyọrí tí ó sì yí àkójọ tó ń ṣiṣẹ́ padà. **O gbọ́dọ̀ yàn án fúnra rẹ, ó sì wà ní pípa ní ìbẹ̀rẹ̀**: tan-an láti **CLI Code dashboard** ("CLI profile auto-sync" → Codex), tàbí ṣètò `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ó tún ń tẹ̀lé `CLI_ALLOW_CONFIG_WRITES`, èyí tó wà ní títàn ní ìbẹ̀rẹ̀). Nígbà tí a bá tan-an, àwọn fáìlì profaili `~/.codex/*.config.toml` ọ̀tọ̀ọ̀tọ̀ nìkan ni ó máa ń kọ; kò ní yí `~/.codex/config.toml` tó ń ṣiṣẹ́/tí a yàn gẹ́gẹ́ bí àkọ́kọ́, àwọn ètò Codex-lb, ìfàṣẹsí, tàbí yíyan olùpèsè padà láé.
+Tí `config.toml` ìpìlẹ̀ kò bá ní ìtumọ̀ `model_providers.omniroute`, `setup-codex` tí a pè ní tààrà máa fi ìtumọ̀ náà sínú overlay kọ̀ọ̀kan tí a ṣẹ̀dá, ní lílo endpoint abẹ́nú tàbí jíjìn tí a yàn. Kì í yí fáìlì ìpìlẹ̀ padà. Ìtumọ̀ provider tó ti wà tẹ́lẹ̀ ni a máa jogún, pẹ̀lú endpoint rẹ̀ àti àwọn ètò ìfàṣẹsí rẹ̀. TOML ìpìlẹ̀ tí kò fẹsẹ̀ múlẹ̀ máa dá iṣẹ́ ìṣẹ̀dá dúró kí a tó kọ àwọn prófáìlì.
+
+Nígbà tí o bá pèsè `--api-key` tàbí `OMNIROUTE_API_KEY`, provider tuntun tí a ṣàlàyé máa tọ́ka sí `env_key = "OMNIROUTE_API_KEY"`; a kì í fi key náà pamọ́ tàbí tẹ̀ ẹ́ jáde nínú àkọ́wò. Ṣètò variable yẹn sínú environment níbi tí o ti ń bẹ̀rẹ̀ Codex. Láìsí key tí a pèsè, ìtumọ̀ tuntun náà kò ní béèrè key, fún instance OmniRoute tí a ti ṣètò láti gba àwọn request tí kò ní ìfàṣẹsí.
+
+Ìbámuṣiṣẹ́pọ̀ àkójọ aládàáṣe tí a yan láti lò, tí a ṣàlàyé ní ìsàlẹ̀, máa ń pa àwọn ìtumọ̀ provider tó ti wà nínú overlay mọ́, ṣùgbọ́n kì í bẹ̀rẹ̀ àwọn ètò provider tuntun; kọ́kọ́ ṣètò provider náà pẹ̀lú ìṣètò tààrà tàbí dashboard. A kì í fi àwọn ètò provider tó ti wà hàn nínú àwọn àkọ́wò dry-run nítorí pé wọ́n lè ní àwọn credential tí olùṣàkóso ń bójú tó.
+
+OmniRoute tún lè **ṣe ìbámuṣiṣẹ́pọ̀ aládàáṣe** fún àwọn fáìlì prófáìlì kan náà lẹ́yìn tí ìṣàwárí/ìgbéwọlé model provider kan bá ṣàṣeyọrí tí ó sì yí àkójọ tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́ padà. Èyí jẹ́ **ohun tí a gbọdọ̀ yàn láti lò, ó sì wà ní pípa ní àtẹ̀yìnwá**: tan-an láti **dashboard CLI Code** ("CLI profile auto-sync" → Codex), tàbí ṣètò `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ó tún ń bọ̀wọ̀ fún `CLI_ALLOW_CONFIG_WRITES`, tí ó wà ní titan ní àtẹ̀yìnwá). Nígbà tí a bá mú un ṣiṣẹ́, àwọn fáìlì prófáìlì `~/.codex/*.config.toml` ọ̀tọ̀ọ̀tọ̀ nìkan ni ó máa ń kọ; kì í yí `~/.codex/config.toml` tó ń ṣiṣẹ́/tí a yàn ní àtẹ̀yìnwá, àwọn ètò Codex-lb, ìfàṣẹsí, tàbí yíyan provider padà láéláé.
 
 ---
 

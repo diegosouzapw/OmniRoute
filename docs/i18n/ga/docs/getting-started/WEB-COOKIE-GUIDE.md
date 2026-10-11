@@ -4,7 +4,7 @@
 
 ---
 
-Ligeann soláthraithe Fianán Gréasáin do OmniRoute seirbhís AI a úsáid trí do sheisiún brabhsálaí reatha seachas trí eochair API. Bíonn siad úsáideach nuair atá rochtain agat cheana féin ar sheirbhís trína suíomh gréasáin agus nuair is mian leat go n-úsáidfeadh OmniRoute an seisiún fíordheimhnithe céanna.
+Ligeann soláthraithe Fianán Gréasáin do OmniRoute seirbhís AI a úsáid trí do sheisiún brabhsálaí reatha in ionad eochair API. Bíonn siad úsáideach nuair atá rochtain agat cheana féin ar sheirbhís trína suíomh gréasáin agus nuair is mian leat go n-úsáidfeadh OmniRoute an seisiún fíordheimhnithe céanna.
 
 Murab ionann agus soláthraithe eochrach API, déanann soláthraithe Fianán Gréasáin fíordheimhniú trí úsáid a bhaint as na dintiúir a sheolann do bhrabhsálaí chuig an suíomh gréasáin.
 
@@ -12,9 +12,9 @@ Murab ionann agus soláthraithe eochrach API, déanann soláthraithe Fianán Gr�
 
 # Sula dTosaíonn Tú
 
-> **Tábhachtach:** Cóipeáil dintiúir i gcónaí ó **iarratas líonra beo**, agus **ná cóipeáil** iad ó stóras fianán do bhrabhsálaí.
+> **Tábhachtach:** Cóipeáil dintiúir ó **iarratas beo líonra** i gcónaí, agus **ná cóipeáil** iad ó stóras fianán do bhrabhsálaí.
 
-Is minic a tharlaíonn fadhbanna fíordheimhnithe mar gheall ar fhianáin a chóipeáil ón áit mhícheart.
+Is minic a tharlaíonn fadhbanna fíordheimhnithe de bharr fianáin a chóipeáil ón áit mhícheart.
 
 ## NÁ cóipeáil ó Stóras Fianán
 
@@ -26,13 +26,13 @@ DevTools
 → Cookies
 ```
 
-Cé go bhféadfadh cuma cheart a bheith ar na fianáin seo, d’fhéadfadh siad a bheith:
+Cé go bhfuil cuma cheart ar na fianáin seo, d’fhéadfadh siad a bheith:
 
 - as dáta
 - neamhiomlán
-- gan fianáin nach seoltar ach le hiarratais fhíordheimhnithe
+- gan fianáin nach seoltar ach ar iarratais fhíordheimhnithe
 
-D’fhéadfadh teipeanna fíordheimhnithe tarlú má úsáideann tú na luachanna seo, fiú má tá cuma bhailí orthu.
+Má úsáidtear na luachanna seo, d’fhéadfadh teipeanna fíordheimhnithe tarlú fiú má dhealraíonn siad a bheith bailí.
 
 ## Cóipeáil ó Iarratas Beo
 
@@ -49,13 +49,13 @@ DevTools
 
 Tá an fhaisnéis fíordheimhnithe bheacht a d’úsáid do bhrabhsálaí go rathúil sa cheanntásc iarratais `Cookie`.
 
-I gcás fhormhór na soláthraithe Fianán Gréasáin, is é seo an luach ba cheart a ghreamú isteach in OmniRoute.
+I gcás fhormhór na soláthraithe Fianán Gréasáin, is é seo an luach ba cheart a ghreamú in OmniRoute.
 
 ---
 
 # Socrú Ginearálta
 
-Tá an próiseas socraithe mar an gcéanna d’fhormhór na soláthraithe Fianán Gréasáin.
+Is ionann an próiseas socraithe d’fhormhór na soláthraithe Fianán Gréasáin.
 
 1. Sínigh isteach ar shuíomh gréasáin an tsoláthraí.
 2. Oscail Uirlisí Forbróra an bhrabhsálaí.
@@ -76,9 +76,9 @@ Braitheann na dintiúir bheachta atá riachtanach ar an soláthraí.
 
 # Formáidí Dintiúr Soláthraithe
 
-Stórálann suíomhanna gréasáin éagsúla fíordheimhniú ar bhealaí éagsúla. Ní theastaíonn ó chuid acu ach fianáin, ach d’fhéadfadh ceanntásca nó comharthaí breise a bheith riachtanach do chuid eile.
+Stórálann suíomhanna gréasáin éagsúla fíordheimhniú ar bhealaí éagsúla. Ní theastaíonn ó chuid acu ach fianáin, agus d’fhéadfadh ceanntásca nó comharthaí breise a bheith ag teastáil ó chuid eile.
 
-| Soláthraí                       | Formáid Dintiúr                   | Treoir don Soláthraí             |
+| Soláthraí                       | Formáid Dintiúr                   | Treoir Soláthraí                 |
 | ------------------------------- | --------------------------------- | -------------------------------- |
 | Claude Web                      | Ceanntásc iomlán iarratais Cookie | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Ceanntásc iomlán Cookie           | `docs/providers/CHATGPT_WEB.md`  |
@@ -90,18 +90,68 @@ Stórálann suíomhanna gréasáin éagsúla fíordheimhniú ar bhealaí éagsú
 
 > Nuashonraigh an tábla seo de réir mar a chuirtear soláthraithe nua Fianán Gréasáin leis nó de réir mar a athraíonn soláthraithe reatha a gcuid riachtanas fíordheimhnithe.
 
+## NoTrack (notrack-web)
+
+Is ardán comhrá saor in aisce do thomhaltóirí é NoTrack ([notrack.ai](https://notrack.ai)) nach dteastaíonn clárú dó — cruthaítear an seisiún gan ainm ar an gcéad chuairt agus coinnítear é trí fhianán: `uid`, `si_usr_id`, agus `si_ses_id`. Cuireann OmniRoute an críochphointe céanna `/api/dispatch` trí sheachfhreastalaí le haitheantas samhla amháin (`notrack-c`, ailias `ntw`).
+
+### Céimeanna chun ceangal
+
+1. Oscail [notrack.ai](https://notrack.ai) i do bhrabhsálaí agus lig d'fhianán an tseisiúin gan ainm a bheith socraithe.
+2. Oscail **Uirlisí Forbróra → Líonra**, athnuaigh an leathanach, agus cliceáil aon iarratas `/api`.
+3. Faoi **Ceanntásca Iarratais**, cóipeáil luach iomlán an cheanntáisc `Cookie`.
+4. In OmniRoute, téigh chuig **Soláthraithe → Cuir Soláthraí Leis → NoTrack Web (Saor in Aisce)**.
+5. Greamaigh teaghrán an fhianáin sa réimse `apiKey` agus roghnaigh **Sábháil**.
+
+Baineann OmniRoute `uid`, `si_usr_id`, agus `si_ses_id` as an teaghrán greamaithe agus atógann sé ceanntásc glan `Cookie` nach bhfuil ann ach na péirí sin — chomh maith le `nt_session` (an comhartha `ntk_…` a shocraítear do chuntais atá logáilte isteach) nuair atá sé i láthair. Má tá ceann ar bith den trí cinn in easnamh, cuirtear an teaghrán amh greamaithe ar aghaidh gan athrú ionas gur féidir le hoibreoirí triail a bhaint as foirmeacha eile.
+
+### Aitheantais samhla
+
+| Aitheantas samhla | Ainm taispeána | Nótaí                                                   |
+| ----------------- | -------------- | ------------------------------------------------------- |
+| `notrack-c`       | NoTrack C      | Réamhshocrú — samhail seolta réamhtheachtach `C`.       |
+| `C`               | NoTrack C      | Ailias do `notrack-c` (amhchód seolta réamhtheachtach). |
+| `notrack`         | NoTrack C      | Ailias do `notrack-c`.                                  |
+| `ntw`             | NoTrack C      | Ailias gairid do `notrack-c`.                           |
+
+Mapáiltear na ceithre aitheantas samhla go léir chuig an tsamhail seolta réamhtheachtach chéanna (`C`).
+
+### Roghanna iarratais
+
+Glacann an riteoir leis na réimsí roghnacha seo i gcorp na hiarrata:
+
+| Réimse coirp          | Réamhshocrú | Cuspóir                                                                                                    |
+| --------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`     | Mód seolta (teaghrán saorfhoirme; glacann an tseirbhís réamhtheachtach le `usual`, …)                      |
+| `notrack_max_turns`   | `6`         | Líon na sealanna inmheánacha is féidir leis an tseirbhís réamhtheachtach a dhéanamh sula bhfreagraíonn sí. |
+| `notrack_chat_id`     | `null`      | Lean comhrá réamhtheachtach atá ann cheana (fág ar lár le haghaidh comhrá nua).                            |
+| `notrack_attachments` | `[]`        | Eagar pas-trí de thuairisceoirí iatán réamhtheachtach.                                                     |
+| `notrack_regenerate`  | `false`     | Socraigh mar `true` chun freagra athghinte a iarraidh don seal roimhe seo.                                 |
+
+### Cumais
+
+- Comhlánuithe comhrá **sruthaithe agus neamhshruthaithe**.
+- **Glaoch uirlisí** — socraigh `tools: [...]` san iarratas; sraithíonn an riteoir iad i gconradh imchlúdaigh glao uirlise agus parsálann sé freagraí na samhla ar ais ina `tool_calls` OpenAI.
+- **`response_format`** — tacaítear le `json_object` agus `json_schema`. Baineann an riteoir an chéad oibiacht JSON as freagra na samhla agus tiontaíonn sé ina teaghrán í sula gcuireann sé ar ais í.
+- **Leid réasúnaíochta** — astaíonn an riteoir deilte `reasoning` nuair a sheolann an tseirbhís réamhtheachtach teagmhas `thinking`.
+
+### Teorainneacha
+
+- Cuireann an tseirbhís réamhtheachtach cuótaí úsáide gan ainm i bhfeidhm — nuair a sháraítear iad, nochtann an riteoir 429 mar aon le teachtaireacht shothuigthe.
+- Réitítear gach aitheantas samhla chuig an tsamhail seolta réamhtheachtach chéanna; níl aon athrú ar leith ann de réir samhla.
+- Ní ghlaonn an riteoir críochphointe `/api/chats` na seirbhíse réamhtheachtaí, mar sin ní bhainistítear stair chomhrá / seisiúin go huathoibríoch. Úsáid `notrack_chat_id` chun leanúint le comhrá réamhtheachtach atá ann cheana.
+
 ---
 
 # Cad is Féidir agus nach Féidir le Soláthraithe Fianán Gréasáin a Dhéanamh
 
-Athúsáideann soláthraithe Fianán Gréasáin comhéadan comhrá suímh gréasáin. **Ní** sholáthraíonn siad na cumais chéanna agus a sholáthraíonn APIanna oifigiúla.
+Athúsáideann soláthraithe Fianán Gréasáin comhéadan comhrá láithreáin gréasáin. **Ní** sholáthraíonn siad na cumais chéanna agus a sholáthraíonn APIanna oifigiúla.
 
 ## Tacaithe
 
-- Fíordheimhniú trí do sheisiún brabhsálaí reatha a úsáid
-- Rochtain ar mhúnlaí atá ar fáil trí do chuntas
+- Fíordheimhniú le do sheisiún brabhsálaí reatha
+- Rochtain ar shamhlacha atá ar fáil trí do chuntas
 - Freagraí comhrá a shruthú
-- Níl eochair API riachtanach
+- Níl eochair API ag teastáil
 
 ## Gan Tacaíocht
 
@@ -109,27 +159,27 @@ Athúsáideann soláthraithe Fianán Gréasáin comhéadan comhrá suímh gréas
 - Glao uirlise
 - Eagarthóireacht uathoibríoch comhad
 - Sreafaí oibre gníomhacha IDE
-- Gnéithe nach bhfuil ar fáil ach trí API
+- Gnéithe API amháin
 
-Is é seo an t-iompar a bhfuiltear ag súil leis agus **ní** fabht é.
+Is iompar ionchais é seo agus **ní** fabht é.
 
-Má theastaíonn uait uirlisí a rith, comhaid a chur in eagar go huathoibríoch, nó sreafaí oibre gníomhairí eile a úsáid, bain úsáid as **soláthraí eochrach API** seachas soláthraí Fianán Gréasáin.
+Má theastaíonn forghníomhú uirlisí, eagarthóireacht uathoibríoch comhad, nó sreafaí oibre gníomhacha eile uait, úsáid **soláthraí eochrach API** in ionad soláthraí Web Cookie.
 
 ---
 
-# Caveat maidir le Bailíochtú
+# Foráil maidir le Bailíochtú
 
-Ní dheimhníonn **Test Connection** rathúil ná bailíochtú rathúil fianán ach go ndealraíonn sé go bhfuil na dintiúir a soláthraíodh san fhormáid a bhfuiltear ag súil léi.
+Ní fhíoraíonn **Test Connection** rathúil ná bailíochtú rathúil fianán ach go ndealraíonn sé go bhfuil na dintiúir a soláthraíodh san fhormáid lena bhfuiltear ag súil.
 
 Go dtí go réiteofar Issue #7857, **ní ráthaíonn** bailíochtú rathúil go n-éireoidh leis an soláthraí fíordheimhniú a dhéanamh.
 
-Má theipeann ar fhíordheimhniú fós, deimhnigh gur chóipeáil tú na dintiúir ó iarratas líonra beo seachas ó stóras fianán an bhrabhsálaí.
+Má theipeann ar an bhfíordheimhniú fós, deimhnigh gur chóipeáil tú na dintiúir ó iarratas beo líonra seachas ó stóras fianán an bhrabhsálaí.
 
 ---
 
 # Fabhtcheartú
 
-## Teipeann ar Fhíordheimhniú
+## Teipeann ar an bhFíordheimhniú
 
 Deimhnigh gur cóipeáladh na dintiúir ó:
 
@@ -150,17 +200,17 @@ Application
 
 ## Oibríonn an Fianán sa Bhrabhsálaí ach Ní Oibríonn sé in OmniRoute
 
-Cuireann roinnt soláthraithe fianáin san áireamh nach seoltar ach le linn iarratas fíordheimhnithe.
+Cuireann roinnt soláthraithe fianáin san áireamh nach seoltar ach le linn iarratais fhíordheimhnithe.
 
-Cóipeáil na dintiúir arís ó iarratas líonra úr tar éis duit comhrá a oscailt go rathúil.
+Athchóipeáil na dintiúir ó iarratas úr líonra tar éis duit comhrá a oscailt go rathúil.
 
 ---
 
 ## Seisiún Imithe in Éag
 
-Úsáideann soláthraithe Fianán Gréasáin do sheisiún brabhsálaí reatha.
+Úsáideann soláthraithe Web Cookie do sheisiún brabhsálaí reatha.
 
-Má théann do sheisiún brabhsálaí in éag nó má shíníonn tú amach, ní mór duit tacar nua dintiúr a chóipeáil.
+Má théann do sheisiún brabhsálaí in éag nó má shíníonn tú amach, ní mór duit tacar nua dintiúr a chóipeáil. Chun athnuachan fianán a uathoibriú do sholáthraithe gréasáin a dtacaítear leo, féach ar an uirlis chompánach [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
@@ -168,7 +218,7 @@ Má théann do sheisiún brabhsálaí in éag nó má shíníonn tú amach, ní 
 
 Go dtí go réiteofar Issue #7857, ní ráthaíonn bailíochtú rathúil go n-éireoidh leis an iarratas fíordheimhnithe.
 
-Cóipeáil do dhintiúir arís ó iarratas úr fíordheimhnithe sula ndéanann tú tuilleadh fabhtcheartaithe.
+Athchóipeáil do dhintiúir ó iarratas úr fíordheimhnithe sula ndéanfaidh tú tuilleadh fabhtcheartaithe.
 
 ---
 
@@ -178,7 +228,7 @@ Le haghaidh treoir iomlán céim ar chéim a bhaineann go sonrach le soláthraí
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Léiríonn treoir Claude Web an próiseas socraithe iomlán do sholáthraí Fianán Gréasáin agus feidhmíonn sí mar an cur chun feidhme tagartha.
+Léiríonn treoir Claude Web an próiseas iomlán socraithe do sholáthraí Web Cookie agus feidhmíonn sí mar an cur chun feidhme tagartha.
 
 ---
 
@@ -186,6 +236,6 @@ Léiríonn treoir Claude Web an próiseas socraithe iomlán do sholáthraí Fian
 
 - Cóipeáil dintiúir ó iarratas úr fíordheimhnithe.
 - Seachain seanfhianáin a athúsáid.
-- Coinnigh do sheisiún brabhsálaí gníomhach agus soláthraithe Fianán Gréasáin á n-úsáid agat.
+- Coinnigh do sheisiún brabhsálaí gníomhach agus soláthraithe Web Cookie á n-úsáid agat.
 - Caith le fianáin chóipeáilte mar dhintiúir íogaire.
-- Úsáid soláthraithe eochrach API nuair a theastaíonn glao feidhme nó sreafaí oibre gníomhairí uait.
+- Úsáid soláthraithe eochrach API nuair a bhíonn glao feidhme nó sreafaí oibre gníomhacha de dhíth ort.

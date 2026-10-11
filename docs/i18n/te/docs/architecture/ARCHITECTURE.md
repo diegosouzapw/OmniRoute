@@ -10,52 +10,52 @@ _చివరిగా నవీకరించబడింది: 2026-06-28_
 
 ## కార్యనిర్వాహక సారాంశం
 
-OmniRoute అనేది Next.jsపై నిర్మించిన స్థానిక AI రూటింగ్ గేట్వే మరియు డాష్బోర్డ్.
+OmniRoute అనేది Next.jsపై నిర్మించిన స్థానిక AI రూటింగ్ గేట్వే మరియు డ్యాష్బోర్డ్.
 ఇది ఒకే OpenAI-అనుకూల ఎండ్పాయింట్ను (`/v1/*`) అందిస్తుంది మరియు అనువాదం, ఫాల్బ్యాక్, టోకెన్ రిఫ్రెష్, వినియోగ ట్రాకింగ్తో అనేక అప్స్ట్రీమ్ ప్రొవైడర్ల మధ్య ట్రాఫిక్ను రూట్ చేస్తుంది.
 
 ప్రధాన సామర్థ్యాలు:
 
-- CLI/సాధనాల కోసం OpenAI-అనుకూల API ఉపరితలం (355 ప్రొవైడర్లు, 108 ఎగ్జిక్యూటర్లు)
+- CLI/సాధనాల కోసం OpenAI-అనుకూల API ఇంటర్ఫేస్ (372 ప్రొవైడర్లు, 148 ఎగ్జిక్యూటర్లు)
 - ప్రొవైడర్ ఫార్మాట్ల మధ్య అభ్యర్థన/ప్రతిస్పందన అనువాదం
 - మోడల్ కాంబో ఫాల్బ్యాక్ (బహుళ-మోడల్ క్రమం)
-- `compositeTiers` ఆధారిత రన్టైమ్ క్రమీకరణతో నిర్మిత కాంబో దశలు (`provider + model + connection`)
-- ఖాతా-స్థాయి ఫాల్బ్యాక్ (ప్రతి ప్రొవైడర్కు బహుళ ఖాతాలు)
-- ప్రధాన చాట్ మార్గంలో కోటా ముందస్తు తనిఖీ మరియు కోటా-అవగాహన గల P2C ఖాతా ఎంపిక
-- OAuth + API-key ప్రొవైడర్ కనెక్షన్ నిర్వహణ (22 OAuth ప్రొవైడర్ మాడ్యూళ్లు)
+- `compositeTiers` ఆధారిత రన్టైమ్ క్రమంతో నిర్మిత కాంబో దశలు (`provider + model + connection`)
+- ఖాతా-స్థాయి ఫాల్బ్యాక్ (ఒక్కో ప్రొవైడర్కు బహుళ ఖాతాలు)
+- ప్రధాన చాట్ మార్గంలో కోటా ముందస్తు తనిఖీ మరియు కోటా-అవగాహనగల P2C ఖాతా ఎంపిక
+- OAuth + API-key ప్రొవైడర్ కనెక్షన్ నిర్వహణ (27 OAuth ప్రొవైడర్ మాడ్యూల్స్)
 - `/v1/embeddings` ద్వారా ఎంబెడ్డింగ్ ఉత్పత్తి (18 ప్రొవైడర్లు)
 - `/v1/images/generations` ద్వారా చిత్ర ఉత్పత్తి (10+ ప్రొవైడర్లు, 20+ మోడళ్లు)
-- `/v1/audio/transcriptions` ద్వారా ఆడియో లిప్యంతరీకరణ (18 ప్రొవైడర్లు)
+- `/v1/audio/transcriptions` ద్వారా ఆడియో ట్రాన్స్క్రిప్షన్ (18 ప్రొవైడర్లు)
 - `/v1/audio/speech` ద్వారా టెక్స్ట్-టు-స్పీచ్ (24 అంతర్నిర్మిత ప్రొవైడర్లు)
 - `/v1/videos/generations` ద్వారా వీడియో ఉత్పత్తి (ComfyUI + SD WebUI)
 - `/v1/music/generations` ద్వారా సంగీత ఉత్పత్తి (ComfyUI)
 - `/v1/search` ద్వారా వెబ్ శోధన (20 ప్రొవైడర్లు)
 - `/v1/moderations` ద్వారా మోడరేషన్లు
 - `/v1/rerank` ద్వారా పునఃర్యాంకింగ్
-- రీజనింగ్ మోడళ్ల కోసం థింక్ ట్యాగ్ పార్సింగ్ (`<think>...</think>`)
+- రీజనింగ్ మోడళ్ల కోసం థింక్ ట్యాగ్ పార్సింగ్ (``)
 - కఠినమైన OpenAI SDK అనుకూలత కోసం ప్రతిస్పందన శుద్ధీకరణ
-- ప్రొవైడర్ల మధ్య అనుకూలత కోసం పాత్ర సాధారణీకరణ (developer→system, system→user)
+- క్రాస్-ప్రొవైడర్ అనుకూలత కోసం పాత్ర సాధారణీకరణ (developer→system, system→user)
 - నిర్మిత అవుట్పుట్ మార్పిడి (json_schema → Gemini responseSchema)
-- ప్రొవైడర్లు, కీలు, అలియాస్లు, కాంబోలు, సెట్టింగ్లు, ధరల కోసం స్థానిక స్థిర నిల్వ (122 DB మాడ్యూళ్లు)
+- ప్రొవైడర్లు, కీలు, అలియాస్లు, కాంబోలు, సెట్టింగ్లు, ధరల కోసం స్థానిక నిల్వ (122 DB మాడ్యూల్స్)
 - వినియోగం/వ్యయ ట్రాకింగ్ మరియు అభ్యర్థన లాగింగ్
 - బహుళ-పరికర/స్థితి సమకాలీకరణ కోసం ఐచ్ఛిక క్లౌడ్ సింక్
 - API యాక్సెస్ నియంత్రణ కోసం IP అనుమతి జాబితా/నిరోధ జాబితా
 - థింకింగ్ బడ్జెట్ నిర్వహణ (పాస్త్రూ/ఆటో/కస్టమ్/అడాప్టివ్)
 - గ్లోబల్ సిస్టమ్ ప్రాంప్ట్ ఇంజెక్షన్
 - సెషన్ ట్రాకింగ్ మరియు ఫింగర్ప్రింటింగ్
-- ప్రొవైడర్-నిర్దిష్ట ప్రొఫైల్లతో ప్రతి ఖాతాకు మెరుగైన రేట్ లిమిటింగ్
+- ప్రొవైడర్-నిర్దిష్ట ప్రొఫైల్లతో ప్రతి ఖాతాకు మెరుగైన రేట్ పరిమితి
 - ప్రొవైడర్ స్థితిస్థాపకత కోసం సర్క్యూట్ బ్రేకర్ నమూనా
 - మ్యూటెక్స్ లాకింగ్తో యాంటీ-థండరింగ్ హెర్డ్ రక్షణ
 - సిగ్నేచర్-ఆధారిత అభ్యర్థన డీడూప్లికేషన్ క్యాష్
 - డొమైన్ లేయర్: వ్యయ నియమాలు, ఫాల్బ్యాక్ విధానం, లాకౌట్ విధానం
-- Context Relay: ఖాతా రొటేషన్ కొనసాగింపు కోసం సెషన్ హ్యాండ్ఆఫ్ సారాంశాలు
-- డొమైన్ స్థితి స్థిర నిల్వ (ఫాల్బ్యాక్లు, బడ్జెట్లు, లాకౌట్లు, సర్క్యూట్ బ్రేకర్ల కోసం SQLite రైట్-త్రూ క్యాష్)
+- Context Relay: ఖాతా రొటేషన్ కొనసాగింపు కోసం సెషన్ హ్యాండాఫ్ సారాంశాలు
+- డొమైన్ స్థితి నిల్వ (ఫాల్బ్యాక్లు, బడ్జెట్లు, లాకౌట్లు, సర్క్యూట్ బ్రేకర్ల కోసం SQLite రైట్-త్రూ క్యాష్)
 - కేంద్రీకృత అభ్యర్థన మూల్యాంకనం కోసం పాలసీ ఇంజిన్ (లాకౌట్ → బడ్జెట్ → ఫాల్బ్యాక్)
-- p50/p95/p99 లేటెన్సీ సమీకరణతో అభ్యర్థన టెలిమెట్రీ
+- p50/p95/p99 లేటెన్సీ అగ్రిగేషన్తో అభ్యర్థన టెలిమెట్రీ
 - `combo_execution_key` / `combo_step_id` ద్వారా కాంబో లక్ష్య టెలిమెట్రీ మరియు చారిత్రక కాంబో లక్ష్య ఆరోగ్యం
 - ఎండ్-టు-ఎండ్ ట్రేసింగ్ కోసం కోరిలేషన్ ID (X-Request-Id)
-- ప్రతి API కీకి ఆప్ట్-అవుట్తో కంప్లయన్స్ ఆడిట్ లాగింగ్
+- ఒక్కో API కీకి నిలిపివేత ఎంపికతో అనుసరణ ఆడిట్ లాగింగ్
 - LLM నాణ్యత హామీ కోసం మూల్యాంకన ఫ్రేమ్వర్క్
-- రియల్-టైమ్ ప్రొవైడర్ సర్క్యూట్ బ్రేకర్ స్థితితో హెల్త్ డాష్బోర్డ్
+- రియల్-టైమ్ ప్రొవైడర్ సర్క్యూట్ బ్రేకర్ స్థితితో ఆరోగ్య డ్యాష్బోర్డ్
 - 3 ట్రాన్స్పోర్ట్లతో (stdio/SSE/Streamable HTTP) MCP Server (110 సాధనాలు)
 - నైపుణ్యాలు మరియు టాస్క్ జీవితచక్రంతో A2A Server (JSON-RPC 2.0 + SSE)
 - మెమరీ సిస్టమ్ (సంగ్రహణ, ఇంజెక్షన్, రిట్రీవల్, సారాంశీకరణ)
@@ -64,23 +64,23 @@ OmniRoute అనేది Next.jsపై నిర్మించిన స్థ
 - ప్రాంప్ట్ ఇంజెక్షన్ గార్డ్ మిడిల్వేర్
 - Caveman, RTK, స్టాక్డ్ పైప్లైన్లు, కంప్రెషన్ కాంబోలు, భాషా ప్యాక్లు మరియు అనలిటిక్స్తో ప్రాంప్ట్ కంప్రెషన్ పైప్లైన్
 - ACP (Agent Communication Protocol) రిజిస్ట్రీ
-- మాడ్యులర్ OAuth ప్రొవైడర్లు (`src/lib/oauth/providers/` కింద 22 ప్రత్యేక మాడ్యూళ్లు)
+- మాడ్యూలర్ OAuth ప్రొవైడర్లు (`src/lib/oauth/providers/` కింద 22 వ్యక్తిగత మాడ్యూల్స్)
 - అన్ఇన్స్టాల్/పూర్తి-అన్ఇన్స్టాల్ స్క్రిప్ట్లు
-- OAuth ఎన్విరాన్మెంట్ మరమ్మతు చర్య
+- OAuth ఎన్విరాన్మెంట్ మరమ్మత్తు చర్య
 - OpenAI-అనుకూల WS క్లయింట్ల కోసం WebSocket బ్రిడ్జ్ (`/v1/ws`)
-- సింక్ టోకెన్ నిర్వహణ (జారీ/ఉపసంహరణ, ETag-వెర్షన్ గల కాన్ఫిగరేషన్ బండిల్ డౌన్లోడ్)
+- సింక్ టోకెన్ నిర్వహణ (జారీ/ఉపసంహరణ, ETag-వెర్షన్గల కాన్ఫిగరేషన్ బండిల్ డౌన్లోడ్)
 - GLM Thinking (`glmt`) ప్రథమ-శ్రేణి ప్రొవైడర్ ప్రీసెట్
 - హైబ్రిడ్ టోకెన్ లెక్కింపు (అంచనా ఫాల్బ్యాక్తో ప్రొవైడర్-వైపు `/messages/count_tokens`)
-- మోడల్ అలియాస్ ఆటో-సీడింగ్ (స్టార్టప్ సమయంలో 30+ క్రాస్-ప్రాక్సీ డయలెక్ట్ సాధారణీకరణలు)
+- మోడల్ అలియాస్ ఆటో-సీడింగ్ (ప్రారంభ సమయంలో 30+ క్రాస్-ప్రాక్సీ డయలెక్ట్ సాధారణీకరణలు)
 - SSRF గార్డ్, ప్రైవేట్ URL నిరోధం మరియు కాన్ఫిగర్ చేయగల రీట్రైతో సురక్షిత అవుట్బౌండ్ ఫెచ్
-- కాన్ఫిగర్ చేయగల `requestRetry` మరియు `maxRetryIntervalSec`తో కూల్డౌన్-అవగాహన గల చాట్ రీట్రైలు
-- స్టార్టప్ సమయంలో Zodతో రన్టైమ్ ఎన్విరాన్మెంట్ ధ్రువీకరణ
-- పేజినేషన్, ప్రొవైడర్ CRUD ఈవెంట్లు మరియు SSRF-నిరోధిత ధ్రువీకరణ లాగింగ్తో కంప్లయన్స్ ఆడిట్ v2
+- కాన్ఫిగర్ చేయగల `requestRetry` మరియు `maxRetryIntervalSec`తో కూల్డౌన్-అవగాహనగల చాట్ రీట్రైలు
+- ప్రారంభ సమయంలో Zodతో రన్టైమ్ ఎన్విరాన్మెంట్ ధ్రువీకరణ
+- పేజినేషన్, ప్రొవైడర్ CRUD ఈవెంట్లు మరియు SSRF-నిరోధిత ధ్రువీకరణ లాగింగ్తో అనుసరణ ఆడిట్ v2
 
 ప్రాథమిక రన్టైమ్ నమూనా:
 
-- `src/app/api/*` కింద ఉన్న Next.js యాప్ రూట్లు డాష్బోర్డ్ APIలు మరియు అనుకూలత APIలు రెండింటినీ అమలు చేస్తాయి
-- `src/sse/*` + `open-sse/*`లోని భాగస్వామ్య SSE/రూటింగ్ కోర్ ప్రొవైడర్ ఎగ్జిక్యూషన్, అనువాదం, స్ట్రీమింగ్, ఫాల్బ్యాక్ మరియు వినియోగాన్ని నిర్వహిస్తుంది
+- `src/app/api/*` కింద ఉన్న Next.js యాప్ రూట్లు డ్యాష్బోర్డ్ APIలు మరియు అనుకూలత APIలు రెండింటినీ అమలు చేస్తాయి
+- `src/sse/*` + `open-sse/*`లోని భాగస్వామ్య SSE/రూటింగ్ కోర్ ప్రొవైడర్ అమలు, అనువాదం, స్ట్రీమింగ్, ఫాల్బ్యాక్ మరియు వినియోగాన్ని నిర్వహిస్తుంది
 
 ## సూచన రేఖాచిత్రాలు
 
@@ -260,18 +260,18 @@ flowchart LR
 
 ## 2) SSE + అనువాద కోర్
 
-ప్రధాన ప్రవాహ మాడ్యూల్స్:
+ప్రధాన ప్రవాహ మాడ్యూల్లు:
 
-- ప్రవేశ స్థానం: `src/sse/handlers/chat.ts`
-- కోర్ ఆర్కెస్ట్రేషన్: `open-sse/handlers/chatCore.ts`
+- ప్రవేశం: `src/sse/handlers/chat.ts`
+- కోర్ సమన్వయం: `open-sse/handlers/chatCore.ts`
 - ప్రొవైడర్ అమలు అడాప్టర్లు: `open-sse/executors/*`
 - ఫార్మాట్ గుర్తింపు/ప్రొవైడర్ కాన్ఫిగరేషన్: `open-sse/services/provider.ts`
-- మోడల్ పార్సింగ్/రిజల్యూషన్: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- మోడల్ పార్స్/రిజాల్వ్: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - ఖాతా ఫాల్బ్యాక్ లాజిక్: `open-sse/services/accountFallback.ts`
 - అనువాద రిజిస్ట్రీ: `open-sse/translator/index.ts`
 - స్ట్రీమ్ రూపాంతరాలు: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
 - వినియోగ సంగ్రహణ/సాధారణీకరణ: `open-sse/utils/usageTracking.ts`
-- Think ట్యాగ్ పార్సర్: `open-sse/utils/thinkTagParser.ts`
+- థింక్ ట్యాగ్ పార్సర్: `open-sse/utils/thinkTagParser.ts`
 - ఎంబెడింగ్ హ్యాండ్లర్: `open-sse/handlers/embeddings.ts`
 - ఎంబెడింగ్ ప్రొవైడర్ రిజిస్ట్రీ: `open-sse/config/embeddingRegistry.ts`
 - ఇమేజ్ జనరేషన్ హ్యాండ్లర్: `open-sse/handlers/imageGeneration.ts`
@@ -279,51 +279,52 @@ flowchart LR
 - ప్రతిస్పందన శుద్ధీకరణ: `open-sse/handlers/responseSanitizer.ts`
 - పాత్ర సాధారణీకరణ: `open-sse/services/roleNormalizer.ts`
 
-సేవలు (వ్యాపార లాజిక్):
+సర్వీసులు (వ్యాపార లాజిక్):
 
 - ఖాతా ఎంపిక/స్కోరింగ్: `open-sse/services/accountSelector.ts`
 - కాంటెక్స్ట్ జీవితచక్ర నిర్వహణ: `open-sse/services/contextManager.ts`
 - IP ఫిల్టర్ అమలు: `open-sse/services/ipFilter.ts`
 - సెషన్ ట్రాకింగ్: `open-sse/services/sessionManager.ts`
-- అభ్యర్థనల డీడూప్లికేషన్: `open-sse/services/signatureCache.ts`
+- అభ్యర్థన డీడూప్లికేషన్: `open-sse/services/signatureCache.ts`
 - సిస్టమ్ ప్రాంప్ట్ ఇంజెక్షన్: `open-sse/services/systemPrompt.ts`
 - థింకింగ్ బడ్జెట్ నిర్వహణ: `open-sse/services/thinkingBudget.ts`
 - వైల్డ్కార్డ్ మోడల్ రూటింగ్: `open-sse/services/wildcardRouter.ts`
 - రేట్ లిమిట్ నిర్వహణ: `open-sse/services/rateLimitManager.ts`
 - సర్క్యూట్ బ్రేకర్: `src/shared/utils/circuitBreaker.ts`
-- కాంటెక్స్ట్ హ్యాండాఫ్: `open-sse/services/contextHandoff.ts` — కాంటెక్స్ట్-రిలే వ్యూహం కోసం హ్యాండాఫ్ సారాంశ ఉత్పత్తి మరియు ఇంజెక్షన్
-- కంప్రెషన్: `open-sse/services/compression/*` — ప్రొవైడర్ అనువాదానికి ముందు ముందస్తు కంప్రెషన్;
+- కాంటెక్స్ట్ హ్యాండాఫ్: `open-sse/services/contextHandoff.ts` — కాంటెక్స్ట్-రిలే వ్యూహం కోసం హ్యాండాఫ్ సారాంశ సృష్టి మరియు ఇంజెక్షన్
+- కంప్రెషన్: `open-sse/services/compression/*` — ప్రొవైడర్ అనువాదానికి ముందు క్రియాశీల కంప్రెషన్;
   Caveman నియమాలు, RTK ఫిల్టర్లు, స్టాక్డ్ పైప్లైన్లు, కంప్రెషన్ కాంబోలు, గణాంకాలు మరియు ధ్రువీకరణను కలిగి ఉంటుంది
 - Codex కోటా ఫెచర్: `open-sse/services/codexQuotaFetcher.ts` — కాంటెక్స్ట్-రిలే హ్యాండాఫ్ నిర్ణయాల కోసం Codex కోటాను పొందుతుంది
 - కూల్డౌన్-అవేర్ రీట్రై: `src/sse/services/cooldownAwareRetry.ts` — కాన్ఫిగర్ చేయగల `requestRetry` / `maxRetryIntervalSec`తో ప్రతి మోడల్కు కూల్డౌన్ రీట్రైలు
-- సురక్షిత అవుట్బౌండ్ ఫెచ్: `src/shared/network/safeOutboundFetch.ts` — SSRF గార్డ్, ప్రైవేట్-URL బ్లాకింగ్, రీట్రై మరియు టైమ్అవుట్తో రక్షిత ప్రొవైడర్/మోడల్ ఫెచ్
-- అవుట్బౌండ్ URL గార్డ్: `src/shared/network/outboundUrlGuard.ts` — ప్రైవేట్/localhost CIDR పరిధులకు వ్యతిరేకంగా ప్రొవైడర్ URLలను ధ్రువీకరిస్తుంది
+- సురక్షిత అవుట్బౌండ్ ఫెచ్: `src/shared/network/safeOutboundFetch.ts` — SSRF రక్షణ, ప్రైవేట్-URL నిరోధం, రీట్రై మరియు టైమ్అవుట్తో సంరక్షిత ప్రొవైడర్/మోడల్ ఫెచ్
+- అవుట్బౌండ్ URL రక్షణ: `src/shared/network/outboundUrlGuard.ts` — ప్రొవైడర్ URLలపై హోస్ట్ తనిఖీలు; `src/shared/network/outboundUrlGuardPolicy.ts`, `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` మరియు వాటి డ్యాష్బోర్డ్ టాగిళ్ల నుంచి మోడ్ను ఎంచుకుంటుంది (`docs/reference/ENVIRONMENT.md` చూడండి)
 - ప్రొవైడర్ అభ్యర్థన డిఫాల్ట్లు: `open-sse/services/providerRequestDefaults.ts` — ప్రొవైడర్-స్థాయి `maxTokens`, `temperature`, `thinkingBudgetTokens` డిఫాల్ట్లు
 - GLM ప్రొవైడర్ స్థిరాంకాలు: `open-sse/config/glmProvider.ts` — భాగస్వామ్య GLM మోడల్లు, కోటా URLలు, GLMT టైమ్అవుట్/డిఫాల్ట్లు
 - Antigravity అప్స్ట్రీమ్: `open-sse/config/antigravityUpstream.ts` — బేస్ URL మరియు డిస్కవరీ పాత్ స్థిరాంకాలు
-- Codex క్లయింట్ స్థిరాంకాలు: `open-sse/config/codexClient.ts` — వెర్షన్ కలిగిన యూజర్-ఏజెంట్ మరియు క్లయింట్-వెర్షన్ విలువలు
-- మోడల్ అలియాస్ సీడ్: `src/lib/modelAliasSeed.ts` — స్టార్టప్ సమయంలో 30+ క్రాస్-ప్రాక్సీ డయలెక్ట్ అలియాస్లను సీడ్ చేస్తుంది
+- Codex క్లయింట్ స్థిరాంకాలు: `open-sse/config/codexClient.ts` — వెర్షన్ చేయబడిన యూజర్-ఏజెంట్ మరియు క్లయింట్-వెర్షన్ విలువలు
+- మోడల్ అలియాస్ సీడ్: `src/lib/modelAliasSeed.ts` — ప్రారంభ సమయంలో 30+ క్రాస్-ప్రాక్సీ డయలెక్ట్ అలియాస్లను సీడ్ చేస్తుంది
 
-డొమైన్ లేయర్ మాడ్యూల్స్:
+డొమైన్ లేయర్ మాడ్యూల్లు:
 
 - ఖర్చు నియమాలు/బడ్జెట్లు: `src/domain/costRules.ts`
-- ఫాల్బ్యాక్ పాలసీ: `src/domain/fallbackPolicy.ts`
+- ఫాల్బ్యాక్ విధానం: `src/domain/fallbackPolicy.ts`
 - కాంబో రిజాల్వర్: `src/domain/comboResolver.ts`
-- లాకౌట్ పాలసీ: `src/domain/lockoutPolicy.ts`
-- పాలసీ ఇంజిన్: `src/domain/policyEngine.ts` — కేంద్రీకృత లాకౌట్ → బడ్జెట్ → ఫాల్బ్యాక్ మూల్యాంకనం
+- లాకౌట్ విధానం: `src/domain/lockoutPolicy.ts`
+- విధాన ఇంజిన్: `src/domain/policyEngine.ts` — కేంద్రీకృత లాకౌట్ → బడ్జెట్ → ఫాల్బ్యాక్ మూల్యాంకనం
 - ఎర్రర్ కోడ్ల కేటలాగ్: `src/shared/constants/errorCodes.ts`
 - అభ్యర్థన ID: `src/shared/utils/requestId.ts`
 - ఫెచ్ టైమ్అవుట్: `src/shared/utils/fetchTimeout.ts`
 - అభ్యర్థన టెలిమెట్రీ: `src/shared/utils/requestTelemetry.ts`
-- కంప్లయన్స్/ఆడిట్: `src/lib/compliance/index.ts`
+- అనుసరణ/ఆడిట్: `src/lib/compliance/index.ts`
 - మూల్యాంకన రన్నర్: `src/lib/evals/evalRunner.ts`
-- డొమైన్ స్థితి పర్సిస్టెన్స్: `src/lib/db/domainState.ts` — ఫాల్బ్యాక్ చైన్లు, బడ్జెట్లు, ఖర్చు చరిత్ర, లాకౌట్ స్థితి, సర్క్యూట్ బ్రేకర్ల కోసం SQLite CRUD
+- డొమైన్ స్థితి నిల్వ: `src/lib/db/domainState.ts` — ఫాల్బ్యాక్ చైన్లు, బడ్జెట్లు, ఖర్చు చరిత్ర, లాకౌట్ స్థితి, సర్క్యూట్ బ్రేకర్ల కోసం SQLite CRUD
 
-OAuth ప్రొవైడర్ మాడ్యూల్స్ (`src/lib/oauth/providers/` కింద 22 వ్యక్తిగత ఫైల్లు):
+OAuth ప్రొవైడర్ మాడ్యూల్లు (`src/lib/oauth/providers/` కింద 27 వ్యక్తిగత ఫైల్లు):
 
 - రిజిస్ట్రీ ఇండెక్స్: `src/lib/oauth/providers/index.ts`
-- వ్యక్తిగత ప్రొవైడర్లు: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- తేలికపాటి ర్యాపర్: `src/lib/oauth/providers.ts` — వ్యక్తిగత మాడ్యూల్స్ నుండి తిరిగి ఎగుమతి చేస్తుంది
+- వ్యక్తిగత ప్రొవైడర్లు: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- భాగస్వామ్య సహాయకాలు: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl పరికర ప్రవాహం), `museCodeDeviceResponse.ts`
+- తేలికపాటి ర్యాపర్: `src/lib/oauth/providers.ts` — వ్యక్తిగత మాడ్యూల్ల నుంచి తిరిగి ఎగుమతి చేస్తుంది
 
 ## 5) ఎంబెడెడ్ సేవలు (v3.8.4)
 
@@ -553,46 +554,46 @@ FSM ట్రాన్సిషన్లు Auto Combo స్కోరింగ�
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK క్లయింట్
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as మోడల్ పరిష్కారకం
+    participant Auth as క్రెడెన్షియల్ ఎంపిక సాధనం
+    participant Exec as ప్రొవైడర్ అమలుకర్త
+    participant Prov as అప్స్ట్రీమ్ ప్రొవైడర్
+    participant Stream as స్ట్రీమ్ అనువాదకం
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: మోడల్ లేదా కాంబోను పార్స్ చేయడం/పరిష్కరించడం
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt కాంబో మోడల్
+        Chat->>Chat: కాంబో మోడళ్లపై పునరావృతం చేయడం (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: సక్రియ ఖాతా + టోకెన్లు/api కీ
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: మూల ఫార్మాట్ను గుర్తించడం
+    Core->>Core: అభ్యర్థనను లక్ష్య ఫార్మాట్కు అనువదించడం
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: అప్స్ట్రీమ్ API కాల్
+    Prov-->>Exec: SSE/JSON ప్రతిస్పందన
+    Exec-->>Core: ప్రతిస్పందన + మెటాడేటా
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: నవీకరించిన టోకెన్లు
+        Core->>Exec: అభ్యర్థనను మళ్లీ ప్రయత్నించడం
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: స్ట్రీమ్ను క్లయింట్ ఫార్మాట్కు అనువదించడం/సాధారణీకరించడం
+    Stream-->>Client: SSE భాగాలు / JSON ప్రతిస్పందన
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: వినియోగాన్ని సంగ్రహించడం + చరిత్ర/లాగ్ను నిల్వచేయడం
 ```
 
 ## కాంబో + ఖాతా ఫాల్బ్యాక్ ప్రవాహం

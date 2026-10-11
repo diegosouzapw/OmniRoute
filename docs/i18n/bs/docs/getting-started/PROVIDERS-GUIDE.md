@@ -165,22 +165,21 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ---
 
-## Najbolji besplatni provajderi
+## Najbolji besplatni pružaoci usluga
 
-Ovi provajderi nude **besplatan pristup** bez kreditne kartice:
+Ovi pružaoci nude **besplatan pristup** bez kreditne kartice:
 
-| Provajder         | Besplatna kvota     | Modeli                                   | Kako se povezati           |
-| ----------------- | ------------------- | ---------------------------------------- | -------------------------- |
-| **Kiro AI**       | 50 kredita/mj       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nije potrebna autorizacija |
-| **OpenCode Free** | Neograničeno        | GPT-4o, Claude, Gemini                   | Nije potrebna autorizacija |
-| **Pollinations**  | Nije potreban ključ | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Nije potrebna autorizacija |
-| **LongCat**       | 10M jednokratno     | LongCat-2.0                              | API ključ + KYC            |
-| **Cloudflare AI** | 10K neurona/dan     | 50+ modela                               | Nije potrebna autorizacija |
-| **NVIDIA NIM**    | ~40 RPM             | 129 modela                               | Potreban API ključ         |
-| **Cerebras**      | $5 kredit za reg    | GLM 4.7, GPT-OSS 120B                    | API ključ + kartica        |
-| **Qoder**         | Neograničeno        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Nije potrebna autorizacija |
+| Pružalac          | Besplatna kvota             | Modeli                                   | Način povezivanja             |
+| ----------------- | --------------------------- | ---------------------------------------- | ----------------------------- |
+| **Kiro AI**       | 50 kredita mjesečno         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikacija nije potrebna |
+| **OpenCode Free** | Neograničeno                | GPT-4o, Claude, Gemini                   | Autentifikacija nije potrebna |
+| **Pollinations**  | Ključ nije potreban         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikacija nije potrebna |
+| **LongCat**       | 10M jednokratno             | LongCat-2.0                              | API ključ + KYC               |
+| **Cloudflare AI** | 10K neurona dnevno          | Više od 50 modela                        | Autentifikacija nije potrebna |
+| **NVIDIA NIM**    | ~40 RPM                     | 129 modela                               | Potreban je API ključ         |
+| **Cerebras**      | $5 kredita pri registraciji | GLM 4.7, GPT-OSS 120B                    | API ključ + kartica           |
 
-**Savjet**: Povežite više besplatnih provajdera za **neograničen besplatan AI** sa automatskom rezervnom opcijom!
+**Savjet**: Povežite više besplatnih pružalaca za **neograničenu besplatnu umjetnu inteligenciju** s automatskim prebacivanjem na rezervnog pružaoca!
 
 ---
 
@@ -254,37 +253,77 @@ Zatim koristite `model: "auto"` i OmniRoute će automatski odabrati najboljeg za
 
 ---
 
-## Podešavanje specifično za provajdera
+## Postavljanje specifično za pružatelja usluga
 
 ### OpenAI
 
-1. Preuzmite API ključ: https://platform.openai.com/api-keys
-2. U OmniRoute: Providers → Add Provider → OpenAI
-3. Zalijepite API ključ → Connect
+1. Nabavite API ključ: https://platform.openai.com/api-keys
+2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluga → OpenAI
+3. Zalijepite API ključ → Poveži
 
 ### Anthropic
 
-1. Preuzmite API ključ: https://console.anthropic.com/
-2. U OmniRoute: Providers → Add Provider → Anthropic
-3. Zalijepite API ključ → Connect
+1. Nabavite API ključ: https://console.anthropic.com/
+2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluga → Anthropic
+3. Zalijepite API ključ → Poveži
 
 ### Google (Gemini)
 
-1. Preuzmite API ključ: https://aistudio.google.com/apikey
-2. U OmniRoute: Providers → Add Provider → Gemini
-3. Zalijepite API ključ → Connect
+1. Nabavite API ključ: https://aistudio.google.com/apikey
+2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluga → Gemini
+3. Zalijepite API ključ → Poveži
 
 ### DeepSeek
 
-1. Preuzmite API ključ: https://platform.deepseek.com/
-2. U OmniRoute: Providers → Add Provider → DeepSeek
-3. Zalijepite API ključ → Connect
+1. Nabavite API ključ: https://platform.deepseek.com/
+2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluga → DeepSeek
+3. Zalijepite API ključ → Poveži
+
+### Qoder: odaberite način prijenosa vjerodajnica
+
+Qoder zahtijeva vjerodajnice. Njegova dva načina prijenosa imaju različite mogućnosti; sam naziv modela
+ne određuje šta određena veza može raditi.
+
+| Vjerodajnica                                | OmniRoute način prijenosa                             | Pozivanje alata od strane pozivaoca               | Streaming                                                       |
+| ------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------- |
+| PAT koji počinje s `pt-`                    | Lokalni `qodercli` proces na OmniRoute hostu          | Nije podržano                                     | Baferovano: SSE se šalje tek nakon što CLI vrati cijeli odgovor |
+| Pristupni token koji nije PAT ili API ključ | DashScope HTTP endpoint kompatibilan s OpenAI API-jem | Prosljeđuje se, zavisno od izvornog modela/ključa | Izvorna HTTP/SSE putanja                                        |
+
+Za PAT instalirajte Qoder CLI na istom hostu ili u istom kontejneru kao OmniRoute. Izvršna datoteka
+mora biti dostupna kao `qodercli` ili postavite `CLI_QODER_BIN` na putanju do izvršne datoteke. CLI
+instaliran samo na Docker hostu nije automatski prisutan u kontejneru. Nedostajuće
+binarne datoteke uzrokuju eksplicitnu grešku koja vas upućuje na instalaciju ili postavljanje putanje.
+
+PAT putanja za chat ima vremensko ograničenje procesa od 45 sekundi. Ona pretvara razgovor u
+jedan prompt i poziva CLI u nestriming načinu ispisa. Zahtjev za `stream: true` mijenja
+format odgovora u SSE; ne pruža inkrementalnu isporuku tokena iz izvornog sistema.
+Validacija CLI-ja/listanje modela koristi zasebno vremensko ograničenje od 20 sekundi. Ovo su trenutne zadane
+vrijednosti u kodu, a ne postavke nadzorne ploče koje se mogu konfigurirati.
+
+Koristite PAT veze za običan chat. Agentski zahtjevi koji sadrže `tools` ili zastarjele `functions`
+isključuju PAT račune tokom odabira vjerodajnica, uključujući unaprijed određene kombinovane ciljeve. Mješoviti
+Qoder skup i dalje može odabrati svoj HTTP račun. Direktni pozivi PAT izvršitelju također eksplicitno ne uspijevaju
+prije pokretanja CLI-ja, umjesto da tiho odbace definicije alata. Ovo
+ograničenje odnosi se na alate koje dostavlja pozivalac API-ja, a ne na interne alate koje Qoder
+CLI može sam koristiti. HTTP ključ ne garantuje da svaki model podržava alate; uobičajene
+provjere mogućnosti modela i dalje se primjenjuju.
+
+OAuth putem preglednika dostupan je samo kada administrator konfiguriše svih pet postavki:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` i `QODER_OAUTH_CLIENT_SECRET`. Zadano su prazne; nekonfigurisana
+instalacija treba koristiti podržani uvoz vjerodajnica umjesto pretpostavke
+da je tok prijave putem preglednika spreman.
+
+Reference implementacije: [Qoder izvršitelj](../../open-sse/executors/qoder.ts),
+[CLI izvršno okruženje](../../open-sse/services/qoderCli.ts) i
+[OAuth konfiguracija](../../src/lib/oauth/constants/oauth.ts). Inkrementalni PAT streaming
+i podesivo vremensko ograničenje zasebna su poboljšanja; ovo ponašanje ih ne obećava.
 
 ### Groq
 
-1. Preuzmite API ključ: https://console.groq.com/
-2. U OmniRoute: Providers → Add Provider → Groq
-3. Zalijepite API ključ → Connect
+1. Nabavite API ključ: https://console.groq.com/
+2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluga → Groq
+3. Zalijepite API ključ → Poveži
 
 ---
 

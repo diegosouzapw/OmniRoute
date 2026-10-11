@@ -274,16 +274,16 @@ codex -p chat     # cx/gpt-5.5, 추론 수준 미설정(서버 기본값)
 
 ## `omniroute setup-codex`로 프로필 자동 생성하기
 
-VPS에서 OmniRoute를 실행하는 경우, 실시간 모델 카탈로그에서 프로필 파일을 자동으로 생성할 수 있습니다:
+VPS에서 OmniRoute를 실행하는 경우, 실시간 모델 카탈로그를 기반으로 프로필 파일을 자동 생성할 수 있습니다.
 
 ```bash
 # VPS에서 실행(포트 20128의 로컬 OmniRoute 사용)
 omniroute setup-codex
 
-# 어느 머신에서든 실행 가능 — VPS 지정
+# 어느 머신에서든 실행 — VPS 주소 지정
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# 파일을 작성하지 않고 미리 보기
+# 파일을 작성하지 않고 미리보기
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # GLM 및 Kimi 프로필만 생성
@@ -293,9 +293,23 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-이 명령은 `/v1/models`를 가져오고, 알려진 모델에는 최적화된 프로필을 사용하며, 그 외 호환되는 텍스트 모델에는 카탈로그 메타데이터를 대체 수단으로 사용한 다음, 각 모델에 대해 `~/.codex/<name>.config.toml`을 작성합니다. 멱등성을 보장하므로 안전하게 다시 실행할 수 있습니다.
+이 명령은 `/v1/models`를 가져와 알려진 모델에는 조정된 프로필을 사용하고, 그 외의 호환 가능한 텍스트 모델에는 카탈로그 메타데이터를 대체 수단으로 사용하며, 각 모델에 대해 `~/.codex/<name>.config.toml`을 작성합니다. 멱등성이 보장되므로 안전하게 다시 실행할 수 있습니다.
 
-OmniRoute는 공급자 모델 검색/가져오기가 성공하여 실시간 카탈로그가 변경된 후 동일한 프로필 파일을 **자동 동기화**할 수도 있습니다. 이 기능은 **옵트인이며 기본적으로 비활성화**되어 있습니다. **CLI Code 대시보드**에서 전환하거나("CLI profile auto-sync" → Codex), `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true`를 설정하세요(`CLI_ALLOW_CONFIG_WRITES`도 따르며, 기본적으로 활성화되어 있습니다). 활성화하면 별도의 `~/.codex/*.config.toml` 프로필 파일만 작성하며, 활성/기본 `~/.codex/config.toml`, Codex-lb 설정, 인증 또는 공급자 선택은 절대 변경하지 않습니다.
+기본 `config.toml`에 `model_providers.omniroute` 정의가 없는 경우, 명시적으로 실행한
+`setup-codex`는 선택한 로컬 또는 원격 엔드포인트를 사용하여 생성되는 각 오버레이에 해당 정의를 포함합니다.
+기본 파일은 변경하지 않습니다. 기존 공급자 정의가 있으면 엔드포인트 및 인증 설정을 포함해 그대로 상속합니다.
+기본 TOML이 유효하지 않으면 프로필을 작성하기 전에 생성이 중단됩니다.
+
+`--api-key` 또는 `OMNIROUTE_API_KEY`를 제공하면 새로 정의되는 공급자는
+`env_key = "OMNIROUTE_API_KEY"`를 참조합니다. 키 자체는 저장되지 않으며 미리보기에도 출력되지 않습니다.
+Codex를 실행하는 환경에서 해당 변수를 설정하십시오. 키를 제공하지 않으면 인증되지 않은 요청을 허용하도록
+구성된 OmniRoute 인스턴스를 위해 새 정의에 키 요구 사항이 포함되지 않습니다.
+
+아래에 설명된 옵트인 카탈로그 자동 동기화는 오버레이에 이미 존재하는 공급자 정의를 유지하지만,
+새 공급자 설정을 자동으로 구성하지는 않습니다. 먼저 명시적 설정 또는 대시보드를 통해 공급자를 구성하십시오.
+기존 공급자 설정에는 운영자가 관리하는 자격 증명이 포함될 수 있으므로 `--dry-run` 미리보기에서는 생략됩니다.
+
+OmniRoute는 공급자 모델 검색/가져오기에 성공하여 실시간 카탈로그가 변경된 후 동일한 프로필 파일을 **자동 동기화**할 수도 있습니다. 이 기능은 **옵트인이며 기본적으로 꺼져 있습니다**. **CLI Code 대시보드**에서 활성화하거나("CLI 프로필 자동 동기화" → Codex) `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true`를 설정하십시오(`CLI_ALLOW_CONFIG_WRITES`도 따르며 기본적으로 활성화되어 있습니다). 활성화하면 별도의 `~/.codex/*.config.toml` 프로필 파일만 작성하며, 활성/기본 `~/.codex/config.toml`, Codex-lb 설정, 인증 또는 공급자 선택은 절대 변경하지 않습니다.
 
 ---
 

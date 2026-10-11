@@ -143,36 +143,36 @@ A `memory_vec_meta` tábla (migráció: `083_memory_vec.sql`) a következőket t
 
 ## Beállítások bővítése
 
-Kilenc beágyazási és vektormező érhető el a `MemorySettingsExtended` típusban, a
-`src/shared/schemas/memory.ts` fájlban, és ezek a `src/lib/db/settings.ts` segítségével maradnak tartósan tárolva:
+Kilenc embedding- és vektormező érhető el a `MemorySettingsExtended` típusban, a
+`src/shared/schemas/memory.ts` fájlban, és a `src/lib/db/settings.ts` segítségével kerülnek tartós tárolásra:
 
-| Mező                     | Típus                                              | Alapérték | Leírás                                                                   |
-| ------------------------ | -------------------------------------------------- | --------- | ------------------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`  | A használandó beágyazási forrás                                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`    | Szolgáltató/modell `provider/model` formátumban                          |
-| `customBaseUrl`          | `string \| null`                                   | `null`    | Kizárólag a memóriához használt, OpenAI-kompatibilis végpont alap-URL-je |
-| `customModelId`          | `string \| null`                                   | `null`    | Az egyéni végpontnak küldött modellazonosító                             |
-| `transformersEnabled`    | `boolean`                                          | `false`   | A Transformers.js használatának engedélyezése (MiniLM, ~400MB)           |
-| `staticEnabled`          | `boolean`                                          | `false`   | A statikus, helyi potion-base-8M modell használatának engedélyezése      |
-| `rerankEnabled`          | `boolean`                                          | `false`   | Az újrarangsorolási lépés engedélyezése (+200-500ms/kérés)               |
-| `rerankProviderModel`    | `string \| null`                                   | `null`    | Újrarangsorolási szolgáltató/modell `provider/model` formátumban         |
+| Mező                     | Típus                                              | Alapértelmezett | Leírás                                                                     |
+| ------------------------ | -------------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | A használandó embeddingforrás                                              |
+| `embeddingProviderModel` | `string \| null`                                   | `null`          | Szolgáltató/modell `provider/model` formátumban                            |
+| `customBaseUrl`          | `string \| null`                                   | `null`          | Kizárólag a Memory által használt, OpenAI-kompatibilis végpont alap-URL-je |
+| `customModelId`          | `string \| null`                                   | `null`          | Az egyéni végpontnak küldött modellazonosító                               |
+| `transformersEnabled`    | `boolean`                                          | `false`         | A Transformers.js opcionális engedélyezése (MiniLM, ~400MB)                |
+| `staticEnabled`          | `boolean`                                          | `false`         | A helyi statikus potion-base-8M modell opcionális engedélyezése            |
+| `rerankEnabled`          | `boolean`                                          | `false`         | Az újrarangsorolási lépés engedélyezése (+200-500ms/kérés többlet)         |
+| `rerankProviderModel`    | `string \| null`                                   | `null`          | Újrarangsorolási szolgáltató/modell `provider/model` formátumban           |
 
-A `rerankProviderModel` feloldását a `POST /v1/rerank` végzi (loopback kapcsolaton keresztül meghívva), ezért bármit elfogad, amit ez az útvonal is: egy válogatott felhőalapú újrarangsorolási modellt (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …), vagy egy OpenAI-kompatibilis szolgáltatói csomópontot `<node-prefix>/<model>` formában (például `skilled-mini/bge-reranker-v2-m3` egy TEI/Infinity gép esetén). A loopback csomópontok mindig használhatók; egy másik gazdagépen lévő csomóponthoz (LAN, Tailscale) ezenfelül szükséges a `RERANK_REMOTE_PROVIDER_NODES` funkciójelző, és meg kell felelnie a szolgáltatói kimenő URL-ekre vonatkozó szabályzatnak — lásd: [Funkciójelzők](../reference/FEATURE_FLAGS.md). Az irányítópult választója a válogatott szolgáltatókat és a helyi csomópontokat sorolja fel; bármely érvényes `provider/model` karakterlánc közvetlenül is beállítható a `PUT /api/settings/memory` használatával.
+A `rerankProviderModel` feloldását a `POST /v1/rerank` végzi (loopback kapcsolaton keresztül meghívva), ezért bármit elfogad, amit ez az útvonal is: egy válogatott felhőalapú újrarangsorolási modellt (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …), vagy egy OpenAI-kompatibilis szolgáltatói csomópontot `<node-prefix>/<model>` formában (például `skilled-mini/bge-reranker-v2-m3` egy TEI/Infinity gép esetén). A loopback csomópontok, valamint az `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` változóban felsorolt állomásnevek (például egy Docker/Compose-szolgáltatás neve) mindig használhatók; egy másik állomáson (LAN, Tailscale) található csomóponthoz ezenfelül szükséges a `RERANK_REMOTE_PROVIDER_NODES` funkciójelző, és meg kell felelnie a szolgáltatók kimenő URL-jeire vonatkozó szabályzatnak — lásd: [Funkciójelzők](../reference/FEATURE_FLAGS.md). Az irányítópult választója a válogatott szolgáltatókat és a helyi csomópontokat sorolja fel; bármely érvényes `provider/model` karakterlánc közvetlenül is beállítható a `PUT /api/settings/memory` segítségével.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | A használandó vektoros háttérrendszer |
 
-Ezek a `GET /PUT /api/settings/memory` útvonalon keresztül érhetők el (`MemorySettingsExtendedSchema` séma).
+Ezek a `GET /PUT /api/settings/memory` végponton keresztül érhetők el (`MemorySettingsExtendedSchema` séma).
 
 A `remote` forrás esetén a Memory az opcionális `customBaseUrl` és
-`customModelId` beállításokat is elfogadja. Ezek együtt egy OpenAI-kompatibilis `/embeddings`
-végpontot és modellt választanak ki a globális beágyazási nyilvántartás módosítása nélkül. A végpont
-használat előtt normalizálásra kerül, és a szolgáltatói kimenő URL-ekre vonatkozó szabályzat ellenőrzi: HTTP(S)
-szükséges, a beágyazott hitelesítési adatok és a lekérdezési karakterláncok nem engedélyezettek, a felhős metaadat-
-címek pedig továbbra is blokkolva maradnak. Az üres értékek megtartják a nyilvántartásban kiválasztott szolgáltatót. Az irányítópultnak
-visszaküldött hibák megtisztításra kerülnek, és a végpont hitelesítési adatai soha nem kerülnek naplózásra.
+`customModelId` beállításokat is elfogadja. Ezek együttesen egy OpenAI-kompatibilis `/embeddings`
+végpontot és modellt választanak ki a globális embeddingjegyzék módosítása nélkül. A végpont
+használat előtt normalizálásra kerül, és a szolgáltatók kimenő URL-jeire vonatkozó szabályzat ellenőrzi: HTTP(S)
+szükséges, a beágyazott hitelesítési adatok és lekérdezési karakterláncok nem engedélyezettek, a felhős metaadat-
+címek pedig továbbra is blokkolva maradnak. Az üres értékek megőrzik a kiválasztott jegyzékbeli szolgáltatót. Az irányítópultnak
+visszaadott hibák megtisztításra kerülnek, és a végpont hitelesítési adatai soha nem kerülnek naplózásra.
 
-> **TODO (D20):** A `global` hatókör (a memóriák megosztása az összes API-kulcs között)
-> ebben a kiadásban nincs megvalósítva. Sémamódosításokat és globális lekérési
-> útvonalat igényel. Külön követendő.
+> **TODO (D20):** A `global` hatókör (az emlékek megosztása az összes API-kulcs között)
+> ebben a kiadásban nincs megvalósítva. Ehhez sémamódosításokra és globális lekérési
+> útvonalra van szükség. Külön követendő.
 
 ## Tárolási rétegek
 
@@ -903,7 +903,7 @@ az alapértelmezett értékén (`false`).
 > **Hiteles forrás:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Tesztek:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-A MemoryBackend szolgáltatói minta egy **cserélhető backend absztrakciós réteget** vezet be a meglévő memóriamotor fölött. Ahelyett, hogy egyetlen tárolási megvalósításhoz lenne kötve, a memóriarendszer mostantól több backendet (SQLite, Obsidian, Notion, egyéni HTTP-backendek) támogat konfigurálható elsődleges/tartalék útválasztással.
+A MemoryBackend szolgáltatói minta egy **cserélhető backendabsztrakciós réteget** vezet be a meglévő memóriamotor fölött. Ahelyett, hogy egyetlen tárolási megvalósításhoz lenne kötve, a memóriarendszer mostantól több backendet támogat (SQLite, Obsidian, Notion, egyéni HTTP-backendek), konfigurálható elsődleges/tartalék útválasztással.
 
 ### Architektúra
 
@@ -915,11 +915,11 @@ A MemoryBackend szolgáltatói minta egy **cserélhető backend absztrakciós r�
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│       Egyke példányos vezérlő (manager.ts)                │
+│       Egyke példányú koordinátor (manager.ts)             │
 │                                                          │
-│  Elsődleges ──► Backend A  (pl. SQLite)                  │
-│  Tartalék    ─► Backend B  (pl. Obsidian)                │
-│                 Backend C  (pl. Notion GenericBackenden   │
+│  Elsődleges ──► A backend  (pl. SQLite)                  │
+│  Tartalék    ──► B backend  (pl. Obsidian)               │
+│                 C backend  (pl. Notion GenericBackenden   │
 │                             keresztül)                    │
 └──────────────────────┬───────────────────────────────────┘
                        │
@@ -931,7 +931,7 @@ A MemoryBackend szolgáltatói minta egy **cserélhető backend absztrakciós r�
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Alapvető interfész (`backend.ts`)
+#### Alapinterfész (`backend.ts`)
 
 Minden backendnek meg kell valósítania a `MemoryBackend` interfészt:
 
@@ -961,51 +961,51 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Egyke példányos vezérlő, amely:
+Egyke példányú koordinátor, amely:
 
-- **Regisztrálja** a backendeket a `register(backend)` segítségével — ezt rendszerindításkor az `index.ts` hívja meg
-- **Konfigurálja** az elsődleges és tartalék backendeket a `configure(primary, fallbacks)` segítségével
-- **Továbbítja** a CRUD-/keresési műveleteket az elsődleges backendnek, hiba esetén pedig végigmegy a tartalékláncon
+- **Regisztrálja** a backendeket a `register(backend)` metódussal — ezt rendszerindításkor az `index.ts` hívja meg
+- **Konfigurálja** az elsődleges és tartalék backendeket a `configure(primary, fallbacks)` metódussal
+- **Útválasztja** a CRUD-műveleteket és a keresést az elsődleges backendhez, hiba esetén pedig végigpróbálja a tartalékláncot
 - **Rendszeresen ellenőrzi** az összes backend állapotát
 
 **Tartalék működés:**
 
-| Művelet  | Elsődleges                         | Tartalékok                           |
-| -------- | ---------------------------------- | ------------------------------------ |
-| `create` | ✅ Csak az elsődleges              | ❌                                   |
-| `get`    | ✅ Először az elsődleges próbálása | ✅ Tartalék, ha az eredmény null     |
-| `update` | ✅ Csak az elsődleges              | ✅ Háttérben indított szinkronizálás |
-| `delete` | ✅ Csak az elsődleges              | ✅ Háttérben indított szinkronizálás |
-| `list`   | ✅ Csak az elsődleges              | ❌                                   |
-| `search` | ✅ Először az elsődleges           | ✅ Hiba esetén tartalék              |
+| Művelet  | Elsődleges                         | Tartalékok                                         |
+| -------- | ---------------------------------- | -------------------------------------------------- |
+| `create` | ✅ Csak az elsődleges              | ❌                                                 |
+| `get`    | ✅ Először az elsődlegest próbálja | ✅ Tartalék, ha az eredmény null                   |
+| `update` | ✅ Csak az elsődleges              | ✅ Aszinkron, eredményvárás nélküli szinkronizálás |
+| `delete` | ✅ Csak az elsődleges              | ✅ Aszinkron, eredményvárás nélküli szinkronizálás |
+| `list`   | ✅ Csak az elsődleges              | ❌                                                 |
+| `search` | ✅ Először az elsődleges           | ✅ Hiba esetén tartalék                            |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Általános HTTP-összekötő, amely bármely REST API-t MemoryBackend formátumúvá alakít. Hasznos a következőkhöz:
+Általános HTTP-csatlakozó, amely bármely REST API-t MemoryBackendként tesz használhatóvá. Használható például a következőkhöz:
 
 - **Notion** — csatlakozás a Notion API-n keresztül
 - **Obsidian** — csatlakozás az Obsidian Local REST API-n keresztül
-- **Egyéni backendek** — bármely REST-alapú memória-API-t biztosító szolgáltatás
+- **Egyéni backendek** — bármely RESTful memória-API-t biztosító szolgáltatás
 
 **Konfiguráció:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // A háttérszolgáltatás API-jának alap-URL-je
+  baseUrl: string;           // A backend API alap-URL-je
   apiKey?: string;           // Bearer token a hitelesítéshez
   headers?: Record<string, string>;  // Egyéni HTTP-fejlécek
-  timeout?: number;          // Kérés időkorlátja (alapértelmezett: 30000ms)
+  timeout?: number;          // Kérés időkorlátja (alapértelmezés: 30000ms)
   backendType?: string;      // Naplózáshoz
 
-  // Végpont-felülírások (az alapértelmezések REST-konvenciókat használnak)
+  // Végpont-felülírások (az alapértelmezések a REST-konvenciókat követik)
   endpoints?: {
-    search?: string;   // alapértelmezett: "/memories/search"
-    create?: string;   // alapértelmezett: "/memories"
-    list?: string;     // alapértelmezett: "/memories"
-    get?: string;      // alapértelmezett: "/memories/{id}"
-    update?: string;   // alapértelmezett: "/memories/{id}"
-    delete?: string;   // alapértelmezett: "/memories/{id}"
-    health?: string;   // alapértelmezett: "/health"
+    search?: string;   // alapértelmezés: "/memories/search"
+    create?: string;   // alapértelmezés: "/memories"
+    list?: string;     // alapértelmezés: "/memories"
+    get?: string;      // alapértelmezés: "/memories/{id}"
+    update?: string;   // alapértelmezés: "/memories/{id}"
+    delete?: string;   // alapértelmezés: "/memories/{id}"
+    health?: string;   // alapértelmezés: "/health"
   };
 
   // Lekérdezési paraméternevek leképezései
@@ -1020,18 +1020,18 @@ interface GenericBackendConfig {
 }
 ```
 
-Az **ismert háttérszolgáltatások** előre konfigurálva vannak a `KNOWN_BACKENDS` objektumban:
+Az **ismert backendek** előre konfigurálva találhatók a `KNOWN_BACKENDS` objektumban:
 
 ```typescript
-createKnownBackend("obsidian"); // → localhost:27123 címre mutató GenericMemoryBackend
-createKnownBackend("notion"); // → api.notion.com/v1 címre mutató GenericMemoryBackend
+createKnownBackend("obsidian"); // → localhost:27123 címre irányított GenericMemoryBackend
+createKnownBackend("notion"); // → api.notion.com/v1 címre irányított GenericMemoryBackend
 ```
 
-#### Beépített háttérszolgáltatások
+#### Beépített backendek
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Az alapértelmezett elsődleges háttérszolgáltatás. A meglévő, SQLite-alapú memóriatárat foglalja egységbe a `src/lib/memory/store.ts` használatával. Rendszerindításkor automatikusan regisztrálódik.
+Az alapértelmezett elsődleges backend. A meglévő, SQLite-alapú memóriatárat csomagolja be a `src/lib/memory/store.ts` használatával. Rendszerindításkor automatikusan regisztrálódik.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1040,17 +1040,76 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-A meglévő Obsidian-integrációt (`src/lib/memory/obsidianBackend.ts`) foglalja egységbe. Egy Obsidian-tárolóhoz csatlakozik az Obsidian Local REST API-n keresztül.
+A meglévő Obsidian-integrációt (`src/lib/memory/obsidianBackend.ts`) csomagolja be. Az Obsidian Local REST API-n keresztül kapcsolódik egy Obsidian-tárolóhoz.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapter egy helyi [claude-mem](https://github.com/thedotmack/claude-mem) feldolgozóhoz — ez a
+Claude Code / Codex / Cursor memóriabővítmény, amely „megfigyelésekként” rögzíti a programozási munkameneteket.
+A regisztrációját követően az `/api/memory` REST-útvonalak és az A2A-memóriakeresés ugyanazt a
+tárat olvashatják és írhatják, amelyet a claude-mem hookjai töltenek fel.
+
+A feldolgozó kizárólag a loopback interfészhez kötődik, amit a `GenericMemoryBackend` SSRF-védelme szándékosan elutasít.
+Ez az adapter nem lazít ezen a védelmen: a gazdagép rögzített értéke `127.0.0.1`, a konfigurációs
+séma (`ClaudeMemBackendConfigSchema`, `.strict()`) pedig csak a következőket fogadja el:
+
+| Kulcs       | Típus  | Alapértelmezett | Megjegyzések                                                                                                                                   |
+| ----------- | ------ | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —               | Kötelező, 1024–65535. A claude-mem feldolgozó portja a beállításfájljából (alapértelmezett: `37700 + uid % 100`).                              |
+| `project`   | string | —               | A használandó claude-mem-projekt. Ha nincs beállítva → minden OmniRoute API-kulcs a saját projektjéhez (az `apiKeyId` értékhez) lesz társítva. |
+| `timeoutMs` | number | `5000`          | Kérésenkénti időkorlát, 100–30000.                                                                                                             |
+
+Engedélyezze a `PUT /api/settings/memory` végponton keresztül, majd indítsa újra az OmniRoute-ot (a háttérrendszerek
+csak egyszer, az `initMemoryBackends()` függvényben lesznek regisztrálva):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Használja helyette a `"primaryBackend": "claude-mem"` beállítást, hogy ez legyen a REST API tárolója. Az érvénytelen
+konfiguráció naplózásra kerül (`claude-mem.backend.invalid_config`), majd kimarad, így az SQLite marad az elsődleges.
+
+Leképezés és korlátozások:
+
+- Az azonosítók formátuma `claude-mem:<observationId>`; a `get`/`delete` hálózati hívás nélkül figyelmen kívül hagyja
+  a többi háttérrendszer azonosítóit.
+- `create` → `POST /api/memory/save`; az OmniRoute mezői (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) a claude-mem `metadata.omniroute` mezőjében utaznak, és beolvasáskor visszaállnak.
+- `search` → `GET /api/search?format=json&type=observations`, a `maxTokens` értékre csonkítva
+  (karakterek / 4). `list` → a feldolgozó lapozott megfigyelési végpontja (a `total` egy alsó korlát — a feldolgozó
+  darabszám helyett `hasMore` értéket ad vissza).
+- A hook által rögzített megfigyelések leképezése: `discovery` → `factual`, `decision` → `procedural`, valamint
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Nincsenek frissítések** (az `update()` visszatérési értéke `false`; a megfigyelések megváltoztathatatlanok), és **nincs TTL**
+  (az `expiresAt` figyelmen kívül marad). A claude-mem a `key` alapján történő felülírás helyett deduplikálja az azonos mentéseket.
+- A promptinjektálás (`retrieval.ts`) és az `omniroute_memory_*` MCP-eszközök továbbra is közvetlenül az SQLite-ból
+  olvasnak — nem a `memoryManager` közvetítésével, ezért ez a háttérrendszer nem szolgáltat nekik adatokat.
+
+**A claude-mem saját LLM-hívásainak átirányítása az OmniRoute-on keresztül.** A claude-mem egy LLM segítségével tömöríti
+a megfigyeléseket (alapértelmezés szerint a Claude Agent SDK-val). Az `openai-compatible` szolgáltatója ehelyett
+az OmniRoute-ra mutathat, így kihasználhatja a kombinált tartalék útválasztást és a költségkövetést. A `~/.claude-mem/settings.json` fájlban:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API-kulcs>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute-modell vagy kombináció>"
+}
+```
 
 ### Beállítások
 
-A memória-háttérszolgáltatások beállításait az alkalmazás beállítástáblája tárolja, kezelésük pedig a `src/lib/memory/settings.ts` segítségével történik:
+A memória-háttérrendszer beállításai az alkalmazás beállítási táblájában tárolódnak, és a `src/lib/memory/settings.ts` kezeli őket:
 
-| Beállítás                        | Környezeti/konfigurációs kulcs | Alapértelmezett | Leírás                                             |
-| -------------------------------- | ------------------------------ | --------------- | -------------------------------------------------- |
-| Elsődleges háttérszolgáltatás    | `memoryPrimaryBackend`         | `"sqlite"`      | Az elsődleges háttérszolgáltatás azonosítója       |
-| Tartalék háttérszolgáltatások    | `memoryFallbackBackends`       | `[]`            | Tartalék háttérszolgáltatás-azonosítók sorrendben  |
-| Háttérszolgáltatás-konfigurációk | `memoryBackendConfigs`         | `{}`            | Háttérszolgáltatásonkénti konfiguráció-felülírások |
+| Beállítás                    | Környezeti/konfigurációs kulcs | Alapértelmezett | Leírás                                             |
+| ---------------------------- | ------------------------------ | --------------- | -------------------------------------------------- |
+| Elsődleges háttérrendszer    | `memoryPrimaryBackend`         | `"sqlite"`      | Az elsődleges háttérrendszer azonosítója           |
+| Tartalék háttérrendszerek    | `memoryFallbackBackends`       | `[]`            | Tartalék háttérrendszerek rendezett azonosítói     |
+| Háttérrendszer-konfigurációk | `memoryBackendConfigs`         | `{}`            | Háttérrendszerenkénti konfigurációs felülbírálások |
 
 A beállításokat a `normalizeMemorySettings()` normalizálja, a `getMemorySettings()` pedig gyorsítótárazza.
 
@@ -1058,23 +1117,24 @@ A beállításokat a `normalizeMemorySettings()` normalizálja, a `getMemorySett
 
 ```
 Az alkalmazás rendszerindítása
-  → index.ts importálása (mellékhatás): regisztrálja a SQLiteBackend háttérszolgáltatást
+  → index.ts importálások (mellékhatás): regisztrálja az SQLiteBackend háttérrendszert
   → az alkalmazás életciklusa meghívja az initMemoryBackends() függvényt:
       1. Beállítások betöltése (getMemorySettings)
-      2. Az elsődleges és a tartalék háttérszolgáltatások konfigurálása
-      3. Az összes háttérszolgáltatás inicializálása (állapotellenőrzés)
+      1b. A backendConfigs alatt szereplő, külön engedélyezendő háttérrendszerek regisztrálása (claude-mem)
+      2. Az elsődleges és tartalék háttérrendszerek konfigurálása
+      3. Minden háttérrendszer inicializálása (állapotellenőrzés)
       4. Készen áll a kérések fogadására
 ```
 
-### Új háttérszolgáltatás hozzáadása
+### Új háttérrendszer hozzáadása
 
-1. **Valósítsa meg a `MemoryBackend` interfészt** a `src/lib/memory/<name>Backend.ts` fájlban
+1. **Valósítsa meg a `MemoryBackend`** interfészt a `src/lib/memory/<name>Backend.ts` fájlban
 2. **Exportálja** a `src/lib/memory/index.ts` fájlból
-3. **Regisztrálja** rendszerindításkor a `memoryManager.register(yourBackend)` használatával
-4. **Konfigurálja** a beállításokon keresztül: állítsa a `memoryPrimaryBackend` értékét a háttérszolgáltatás azonosítójára
-5. **Tesztelje** a `src/lib/memory/__tests__/generic-backend.test.ts` referenciaként való használatával
+3. **Regisztrálja** rendszerindításkor a `memoryManager.register(yourBackend)` hívással
+4. **Konfigurálja** a beállításokon keresztül: állítsa a `memoryPrimaryBackend` értékét a háttérrendszer azonosítójára
+5. **Tesztelje** a `src/lib/memory/__tests__/generic-backend.test.ts` fájlt referenciaként használva
 
-#### Példa: Brain háttérszolgáltatás
+#### Példa: Brain háttérrendszer
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1100,13 +1160,13 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Várt kimenet: **35 teszt, mind sikeres**, amelyek a következőket fedik le:
+Várt kimenet: **35 teszt, mind sikeres**, a következőket lefedve:
 
 - Konstruktor (2)
 - Állapotellenőrzés (4) — siker, 500-as hiba, hálózati hiba, késleltetés
 - Inicializálás (2) — siker, hiba
 - Létrehozás (2) — alapértelmezett végpont, egyéni végpont
-- Lekérés (4) — siker, 404 → null, nem 404-es hiba kiváltása, egyéni útvonalparaméterek
+- Lekérés (4) — siker, 404 → null, nem 404-es kivétel, egyéni útvonalparaméterek
 - Frissítés (2) — siker, 404 → false
 - Törlés (2) — siker, 404 → false
 - Listázás (2) — lekérdezési paraméterek, egyéni paraméternevek
@@ -1120,4 +1180,4 @@ Várt kimenet: **35 teszt, mind sikeres**, amelyek a következőket fedik le:
 npm run typecheck:core
 ```
 
-Elvárt eredmény: **0 hiba**.
+Várt eredmény: **0 hiba**.

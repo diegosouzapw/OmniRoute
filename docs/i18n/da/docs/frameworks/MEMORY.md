@@ -161,39 +161,39 @@ Tabellen `memory_vec_meta` (migrering `083_memory_vec.sql`) gemmer:
 - `last_reset_at` — tidsstempel for seneste fulde nulstilling.
 - `vec_loaded` — 0/1-flag, der angiver, om sqlite-vec blev indlæst korrekt.
 
-## Udvidelse af indstillinger
+## Indstillingsudvidelse
 
-Ni integrerings- og vektorfelter er tilgængelige i `MemorySettingsExtended` i
+Ni indlejrings- og vektorfelter er tilgængelige i `MemorySettingsExtended` i
 `src/shared/schemas/memory.ts` og gemmes via `src/lib/db/settings.ts`:
 
 | Felt                     | Type                                               | Standard | Beskrivelse                                                             |
 | ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Hvilken integreringskilde der skal bruges                               |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Hvilken indlejringskilde der skal bruges                                |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | Udbyder/model i formatet `provider/model`                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Basis-URL til et OpenAI-kompatibelt slutpunkt, som kun bruges af Memory |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Basis-URL til et OpenAI-kompatibelt slutpunkt, der kun bruges af Memory |
 | `customModelId`          | `string \| null`                                   | `null`   | Model-id, der sendes til det brugerdefinerede slutpunkt                 |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Aktivt tilvalg af Transformers.js (MiniLM, ~400MB)                      |
-| `staticEnabled`          | `boolean`                                          | `false`  | Aktivt tilvalg af den lokale statiske potion-base-8M-model              |
-| `rerankEnabled`          | `boolean`                                          | `false`  | Aktivér genrangeringstrinnet (tilføjer +200-500ms/anmodning)            |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Genrangeringsudbyder/model i formatet `provider/model`                  |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Aktivér Transformers.js (MiniLM, ~400 MB)                               |
+| `staticEnabled`          | `boolean`                                          | `false`  | Aktivér den lokale statiske potion-base-8M-model                        |
+| `rerankEnabled`          | `boolean`                                          | `false`  | Aktivér genrangeringstrinnet (tilføjer +200-500 ms/anmodning)           |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Udbyder/model til genrangering i formatet `provider/model`              |
 
-`rerankProviderModel` fortolkes af `POST /v1/rerank` (kaldt via loopback), så det accepterer alt, som denne rute accepterer: en kurateret cloudbaseret genrangeringsmodel (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel udbydernode som `<node-prefix>/<model>` (f.eks. `skilled-mini/bge-reranker-v2-m3` for en TEI/Infinity-maskine). Loopback-noder er altid kvalificerede; en node på en anden vært (LAN, Tailscale) kræver desuden funktionsflaget `RERANK_REMOTE_PROVIDER_NODES` og skal overholde udbyderens politik for udgående URL'er — se [Funktionsflag](../reference/FEATURE_FLAGS.md). Dashboardvælgeren viser kuraterede udbydere samt lokale noder; enhver gyldig `provider/model`-streng kan angives direkte via `PUT /api/settings/memory`.
+`rerankProviderModel` fortolkes af `POST /v1/rerank` (kaldt via loopback), så det accepterer alt, som denne rute accepterer: en kurateret cloudbaseret genrangeringsmodel (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) eller en OpenAI-kompatibel udbydernode som `<node-prefix>/<model>` (f.eks. `skilled-mini/bge-reranker-v2-m3` for en TEI/Infinity-boks). Loopback-noder og værtsnavne angivet i `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (f.eks. navnet på en Docker/Compose-tjeneste) er altid kvalificerede. En node på en anden vært (LAN, Tailscale) kræver desuden funktionsflaget `RERANK_REMOTE_PROVIDER_NODES` og skal overholde politikken for udgående URL'er fra udbydere — se [Funktionsflag](../reference/FEATURE_FLAGS.md). Dashboardets vælger viser kuraterede udbydere samt lokale noder. Enhver gyldig `provider/model`-streng kan angives direkte via `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Hvilken vektorbackend der skal bruges |
 
-Disse eksponeres via `GET /PUT /api/settings/memory` (skemaet `MemorySettingsExtendedSchema`).
+Disse er tilgængelige via `GET /PUT /api/settings/memory` (skemaet `MemorySettingsExtendedSchema`).
 
 For kilden `remote` accepterer Memory også de valgfrie indstillinger `customBaseUrl` og
 `customModelId`. Sammen vælger de et OpenAI-kompatibelt `/embeddings`-slutpunkt og en
-model uden at ændre det globale integreringsregister. Slutpunktet normaliseres før brug
-og kontrolleres af udbyderens politik for udgående URL'er: HTTP(S) er påkrævet,
-indlejrede legitimationsoplysninger og forespørgselsstrenge afvises, og adresser til
-cloudmetadata forbliver blokeret. Tomme værdier bevarer den valgte registerudbyder. Fejl,
-der returneres til dashboardet, renses, og legitimationsoplysninger til slutpunkter
-logføres aldrig.
+model uden at ændre det globale indlejringsregister. Slutpunktet normaliseres før brug og
+kontrolleres i henhold til politikken for udgående URL'er fra udbydere: HTTP(S) er
+påkrævet, indlejrede legitimationsoplysninger og forespørgselsstrenge afvises, og
+cloudmetadataadresser forbliver blokeret. Tomme værdier bevarer den valgte udbyder fra
+registret. Fejl, der returneres til dashboardet, renses, og legitimationsoplysninger til
+slutpunktet logges aldrig.
 
 > **TODO (D20):** Omfanget `global` (deling af hukommelser på tværs af alle API-nøgler) er
 > ikke implementeret i denne version. Det kræver skemaændringer og en global
-> hentningssti. Spor dette separat.
+> hentesti. Spor dette separat.
 
 ## Lagerlag
 
@@ -898,12 +898,12 @@ Hvis den skal forblive deaktiveret, skal du blot beholde standardværdien (`fals
 
 ---
 
-## MemoryBackend-udbydermønster
+## MemoryBackend-provider-mønster
 
-> **Autoritativ kilde:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Primær kilde:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Tests:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend-udbydermønstret introducerer et **udskifteligt abstraktionslag til backends** oven på den eksisterende hukommelsesmotor. I stedet for at være bundet til en enkelt lagerimplementering understøtter hukommelsessystemet nu flere backends (SQLite, Obsidian, Notion og brugerdefinerede HTTP-backends) med konfigurerbar routing til primære backends og reservebackends.
+MemoryBackend-provider-mønsteret introducerer et **udskifteligt abstraktionslag til backends** oven på den eksisterende hukommelsesmotor. I stedet for at være bundet til en enkelt lagerimplementering understøtter hukommelsessystemet nu flere backends (SQLite, Obsidian, Notion og brugerdefinerede HTTP-backends) med konfigurerbar routing til primær backend og fallback-backends.
 
 ### Arkitektur
 
@@ -917,16 +917,16 @@ MemoryBackend-udbydermønstret introducerer et **udskifteligt abstraktionslag ti
 │                   MemoryManager                           │
 │           Singleton-orkestrator (manager.ts)              │
 │                                                          │
-│  Primær ──► Backend A  (f.eks. SQLite)                   │
-│  Reserve ─► Backend B  (f.eks. Obsidian)                 │
+│  Primær ───► Backend A  (f.eks. SQLite)                  │
+│  Fallback ─► Backend B  (f.eks. Obsidian)                │
 │             Backend C  (f.eks. Notion via GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ Backend    │ │ Backend    │ │ Backend (HTTP)   │
+│ SQLite-    │ │ Obsidian-  │ │ GenericMemory-   │
+│ backend    │ │ backend    │ │ backend (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -952,7 +952,7 @@ interface MemoryBackend {
   // Tilstand
   health(): Promise<HealthCheckResult>;
 
-  // Livscyklus (valgfri)
+  // Livscyklus (valgfrit)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -963,20 +963,20 @@ interface MemoryBackend {
 Singleton-orkestrator, der:
 
 - **Registrerer** backends via `register(backend)` — kaldes ved opstart fra `index.ts`
-- **Konfigurerer** primær backend + reservebackends via `configure(primary, fallbacks)`
-- **Router** CRUD-handlinger/søgninger til den primære backend med en kæde af reservebackends ved fejl
-- **Kontrollerer tilstanden** for alle backends regelmæssigt
+- **Konfigurerer** primær backend og fallback-backends via `configure(primary, fallbacks)`
+- **Router** CRUD/søgning til den primære backend med en fallback-kæde ved fejl
+- **Tilstandskontrollerer** alle backends regelmæssigt
 
-**Reserveadfærd:**
+**Fallback-adfærd:**
 
-| Handling | Primær               | Reservebackends                        |
-| -------- | -------------------- | -------------------------------------- |
-| `create` | ✅ Kun primær        | ❌                                     |
-| `get`    | ✅ Prøv primær først | ✅ Reserve, hvis resultatet er null    |
-| `update` | ✅ Kun primær        | ✅ Synkronisering uden at afvente svar |
-| `delete` | ✅ Kun primær        | ✅ Synkronisering uden at afvente svar |
-| `list`   | ✅ Kun primær        | ❌                                     |
-| `search` | ✅ Primær først      | ✅ Reserve ved fejl                    |
+| Handling | Primær               | Fallbacks                            |
+| -------- | -------------------- | ------------------------------------ |
+| `create` | ✅ Kun primær        | ❌                                   |
+| `get`    | ✅ Prøv primær først | ✅ Fallback, hvis resultatet er null |
+| `update` | ✅ Kun primær        | ✅ Synkronisering uden afventning    |
+| `delete` | ✅ Kun primær        | ✅ Synkronisering uden afventning    |
+| `list`   | ✅ Kun primær        | ❌                                   |
+| `search` | ✅ Primær først      | ✅ Fallback ved fejl                 |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -984,16 +984,16 @@ En generisk HTTP-connector, der tilpasser enhver REST-API til en MemoryBackend. 
 
 - **Notion** — opret forbindelse via Notion API
 - **Obsidian** — opret forbindelse via Obsidian Local REST API
-- **Brugerdefinerede backends** — enhver tjeneste, der eksponerer en RESTful hukommelses-API
+- **Brugerdefinerede backends** — enhver tjeneste, der udstiller en RESTful hukommelses-API
 
 **Konfiguration:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Backend-API'ens basis-URL
+  baseUrl: string;           // Basis-URL for backend-API'en
   apiKey?: string;           // Bearer-token til godkendelse
-  headers?: Record<string, string>;  // Tilpassede HTTP-headere
-  timeout?: number;          // Timeout for anmodning (standard: 30000ms)
+  headers?: Record<string, string>;  // Brugerdefinerede HTTP-headere
+  timeout?: number;          // Timeout for anmodninger (standard: 30000ms)
   backendType?: string;      // Til logning
 
   // Tilsidesættelser af endpoints (standardværdier bruger REST-konventioner)
@@ -1030,7 +1030,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend, der peger på api.not
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Den primære standardbackend. Omslutter det eksisterende SQLite-baserede hukommelseslager ved hjælp af `src/lib/memory/store.ts`. Registreres automatisk ved opstart.
+Den primære standard-backend. Omslutter det eksisterende SQLite-baserede hukommelseslager ved hjælp af `src/lib/memory/store.ts`. Registreres automatisk ved opstart.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1039,38 +1039,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Omslutter den eksisterende Obsidian-integration (`src/lib/memory/obsidianBackend.ts`). Opretter forbindelse til en Obsidian-boks via Obsidian Local REST API.
+Omslutter den eksisterende Obsidian-integration (`src/lib/memory/obsidianBackend.ts`). Opretter forbindelse til en Obsidian-vault via Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapter til en lokal [claude-mem](https://github.com/thedotmack/claude-mem)-worker — det
+Claude Code-/Codex-/Cursor-hukommelsesplugin, der registrerer kodningssessioner som "observationer".
+Når den er registreret, kan REST-ruterne `/api/memory` og A2A-hukommelsessøgning læse fra og skrive til
+det samme lager, som udfyldes af claude-mems hooks.
+
+Workeren binder kun til loopback, hvilket `GenericMemoryBackend`s SSRF-beskyttelse bevidst afviser.
+Denne adapter lemper ikke denne beskyttelse: værten er hardkodet til `127.0.0.1`, og konfigurationsskemaet
+(`ClaudeMemBackendConfigSchema`, `.strict()`) accepterer kun:
+
+| Nøgle       | Type   | Standardværdi | Bemærkninger                                                                                                              |
+| ----------- | ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —             | Påkrævet, 1024–65535. claude-mem-workerens port fra dens indstillingsfil (standard: `37700 + uid % 100`).                 |
+| `project`   | string | —             | claude-mem-projektet, der skal bruges. Ikke angivet → hver OmniRoute API-nøgle knyttes til sit eget projekt (`apiKeyId`). |
+| `timeoutMs` | number | `5000`        | Timeout pr. anmodning, 100–30000.                                                                                         |
+
+Aktivér den via `PUT /api/settings/memory`, og genstart OmniRoute (backends registreres
+én gang i `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Brug i stedet `"primaryBackend": "claude-mem"` for at gøre den til lageret for REST API'et. En ugyldig
+konfiguration logges (`claude-mem.backend.invalid_config`) og springes over, så SQLite forbliver primær.
+
+Tilknytning og begrænsninger:
+
+- ID'er er `claude-mem:<observationId>`; `get`/`delete` ignorerer ID'er fra andre backends uden et
+  netværkskald.
+- `create` → `POST /api/memory/save`; OmniRoute-felterne (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) medsendes i claude-mems `metadata.omniroute` og bevares gennem en skrive-/læsecyklus.
+- `search` → `GET /api/search?format=json&type=observations`, beskåret til `maxTokens`
+  (tegn / 4). `list` → workerens paginerede observationsendpoint (`total` er en nedre grænse — workeren
+  returnerer `hasMore`, ikke et antal).
+- Observationer indfanget af hooks tilknytter `discovery` → `factual`, `decision` → `procedural` og
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Ingen opdateringer** (`update()` returnerer `false`; observationer er uforanderlige) og **ingen TTL**
+  (`expiresAt` ignoreres). claude-mem deduplikerer identiske lagringer i stedet for at udføre upsert efter `key`.
+- Prompt-injektion (`retrieval.ts`) og `omniroute_memory_*`-MCP-værktøjerne læser stadig direkte fra SQLite
+  — de går ikke gennem `memoryManager`, så denne backend leverer ikke data til dem.
+
+**Routing af claude-mems egne LLM-kald gennem OmniRoute.** claude-mem komprimerer observationer
+med en LLM (standard: Claude Agent SDK). Dens `openai-compatible`-udbyder kan i stedet pege på
+OmniRoute og dermed benytte combo-fallback og omkostningssporing. I `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API-nøgle>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute-model eller -combo>"
+}
+```
 
 ### Indstillinger
 
 Indstillinger for hukommelsesbackends gemmes i appens indstillingstabel og administreres via `src/lib/memory/settings.ts`:
 
-| Indstilling            | Miljø-/konfigurationsnøgle | Standard   | Beskrivelse                                      |
-| ---------------------- | -------------------------- | ---------- | ------------------------------------------------ |
-| Primær backend         | `memoryPrimaryBackend`     | `"sqlite"` | ID for den primære backend                       |
-| Reservebackends        | `memoryFallbackBackends`   | `[]`       | Prioriteret liste over ID'er for reservebackends |
-| Backendkonfigurationer | `memoryBackendConfigs`     | `{}`       | Konfigurationstilsidesættelser pr. backend       |
+| Indstilling            | Miljø-/konfigurationsnøgle | Standardværdi | Beskrivelse                                |
+| ---------------------- | -------------------------- | ------------- | ------------------------------------------ |
+| Primær backend         | `memoryPrimaryBackend`     | `"sqlite"`    | ID for den primære backend                 |
+| Fallback-backends      | `memoryFallbackBackends`   | `[]`          | Ordnede ID'er for fallback-backends        |
+| Backendkonfigurationer | `memoryBackendConfigs`     | `{}`          | Konfigurationstilsidesættelser pr. backend |
 
-Indstillinger normaliseres via `normalizeMemorySettings()` og cachelagres i `getMemorySettings()`.
+Indstillinger normaliseres via `normalizeMemorySettings()` og caches i `getMemorySettings()`.
 
 ### Initialiseringsforløb
 
 ```
-Opstart af appen
-  → import fra index.ts (sideeffekt): registrerer SQLiteBackend
+App-opstart
+  → import af index.ts (sideeffekt): registrerer SQLiteBackend
   → initMemoryBackends() kaldes fra appens livscyklus:
       1. Indlæs indstillinger (getMemorySettings)
-      2. Konfigurer primær backend + reservebackends
-      3. Initialiser alle backends (tilstandskontrol)
+      1b. Registrér tilvalgte backends, som findes i backendConfigs (claude-mem)
+      2. Konfigurer primær backend + fallback
+      3. Initialiser alle backends (sundhedstjek)
       4. Klar til anmodninger
 ```
 
 ### Tilføjelse af en ny backend
 
-1. **Implementer `MemoryBackend`**-interfacet i `src/lib/memory/<name>Backend.ts`
+1. **Implementér `MemoryBackend`**-grænsefladen i `src/lib/memory/<name>Backend.ts`
 2. **Eksportér** fra `src/lib/memory/index.ts`
-3. **Registrer** med `memoryManager.register(yourBackend)` ved opstart
-4. **Konfigurer** via indstillinger: Angiv `memoryPrimaryBackend` som ID'et for din backend
+3. **Registrér** med `memoryManager.register(yourBackend)` ved opstart
+4. **Konfigurer** via indstillinger: Angiv `memoryPrimaryBackend` til din backends ID
 5. **Test** med `src/lib/memory/__tests__/generic-backend.test.ts` som reference
 
 #### Eksempel: Brain-backend
@@ -1093,25 +1153,25 @@ memoryManager.register(brainBackend);
 
 ### Verifikation
 
-#### Enhedstests
+#### Enhedstest
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Forventet output: **35 tests, alle gennemført** med dækning af:
+Forventet output: **35 test, alle godkendt**, som dækker:
 
 - Konstruktør (2)
-- Tilstandskontrol (4) — gennemført, fejl 500, netværksfejl, svartid
-- Initialisering (2) — gennemført, fejl
-- Oprettelse (2) — standardendpoint, tilpasset endpoint
-- Hentning (4) — gennemført, 404 → null, ikke-404 udløser fejl, tilpassede stiparametre
-- Opdatering (2) — gennemført, 404 → false
-- Sletning (2) — gennemført, 404 → false
-- Visning (2) — forespørgselsparametre, tilpassede parameternavne
-- Søgning (3) — forespørgselsparametre, tilpasset endpoint, serialisering af indstillinger
-- Godkendelsesheadere (2) — Bearer-token, tilpassede headere
-- Fabrik (1)
+- Sundhedstjek (4) — succes, fejl 500, netværksfejl, latenstid
+- Initialisering (2) — succes, fejl
+- Oprettelse (2) — standardendpoint, brugerdefineret endpoint
+- Hentning (4) — succes, 404 → null, ikke-404 udløser en fejl, brugerdefinerede stiparametre
+- Opdatering (2) — succes, 404 → false
+- Sletning (2) — succes, 404 → false
+- Liste (2) — forespørgselsparametre, brugerdefinerede parameternavne
+- Søgning (3) — forespørgselsparametre, brugerdefineret endpoint, serialisering af indstillinger
+- Godkendelsesheadere (2) — Bearer-token, brugerdefinerede headere
+- Factory (1)
 
 #### Typekontrol
 

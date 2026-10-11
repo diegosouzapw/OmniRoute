@@ -4,21 +4,21 @@
 
 ---
 
-Binibigyang-daan ng mga provider ng Web Cookie ang OmniRoute na gumamit ng isang serbisyo ng AI sa pamamagitan ng iyong kasalukuyang session sa browser sa halip na API key. Kapaki-pakinabang ang mga ito kapag mayroon ka nang access sa isang serbisyo sa pamamagitan ng website nito at gusto mong gamitin ng OmniRoute ang parehong authenticated na session.
+Ang mga Web Cookie provider ay nagbibigay-daan sa OmniRoute na gumamit ng isang serbisyong AI sa pamamagitan ng kasalukuyan mong browser session sa halip na API key. Kapaki-pakinabang ang mga ito kapag mayroon ka nang access sa isang serbisyo sa pamamagitan ng website nito at gusto mong gamitin ng OmniRoute ang parehong authenticated session.
 
-Hindi tulad ng mga provider na gumagamit ng API key, nag-a-authenticate ang mga provider ng Web Cookie gamit ang mga credential na ipinapadala ng iyong browser sa website.
+Hindi tulad ng mga API-key provider, gumagamit ang mga Web Cookie provider ng mga credential na ipinapadala ng iyong browser sa website para sa authentication.
 
 ---
 
 # Bago Ka Magsimula
 
-> **Mahalaga:** Palaging kumopya ng mga credential mula sa isang **aktibong network request**, at **hindi** mula sa cookie storage ng iyong browser.
+> **Mahalaga:** Palaging kopyahin ang mga credential mula sa isang **aktibong network request**, **hindi** mula sa cookie storage ng iyong browser.
 
-Maraming problema sa authentication ang sanhi ng pagkopya ng mga cookie mula sa maling lugar.
+Maraming problema sa authentication ang dulot ng pagkopya ng mga cookie mula sa maling lugar.
 
 ## HUWAG kumopya mula sa Cookie Storage
 
-Ipinapakita ng karamihan sa mga browser ang mga nakaimbak na cookie sa pamamagitan ng:
+Ipinapakita ng karamihan ng mga browser ang mga naka-store na cookie sa pamamagitan ng:
 
 ```
 DevTools
@@ -30,11 +30,11 @@ Bagama't mukhang tama ang mga cookie na ito, maaaring ang mga ito ay:
 
 - luma na
 - hindi kumpleto
-- walang mga cookie na ipinapadala lamang sa mga authenticated na request
+- walang mga cookie na ipinapadala lamang sa mga authenticated request
 
-Ang paggamit sa mga halagang ito ay maaaring magdulot ng mga pagkabigo sa authentication kahit na mukhang valid ang mga ito.
+Ang paggamit sa mga value na ito ay maaaring magdulot ng mga pagkabigo sa authentication kahit mukhang valid ang mga ito.
 
-## Kumopya mula sa isang Aktibong Request
+## Kumopya mula sa Isang Aktibong Request
 
 Sa halip, gamitin ang mga cookie mula sa isang matagumpay na request:
 
@@ -47,15 +47,15 @@ DevTools
 → Cookie
 ```
 
-Naglalaman ang `Cookie` request header ng eksaktong impormasyon sa authentication na matagumpay na ginamit ng iyong browser.
+Ang `Cookie` request header ay naglalaman ng eksaktong impormasyon sa authentication na matagumpay na ginamit ng iyong browser.
 
-Para sa karamihan ng mga provider ng Web Cookie, ito ang halagang dapat i-paste sa OmniRoute.
+Para sa karamihan ng mga Web Cookie provider, ito ang value na dapat i-paste sa OmniRoute.
 
 ---
 
 # Pangkalahatang Pag-setup
 
-Magkapareho ang proseso ng pag-setup para sa karamihan ng mga provider ng Web Cookie.
+Pareho ang proseso ng pag-setup para sa karamihan ng mga Web Cookie provider.
 
 1. Mag-sign in sa website ng provider.
 2. Buksan ang Developer Tools ng browser.
@@ -65,7 +65,7 @@ Magkapareho ang proseso ng pag-setup para sa karamihan ng mga provider ng Web Co
 6. Kopyahin ang mga kinakailangang credential sa authentication.
 7. Buksan ang OmniRoute.
 8. Pumunta sa **Providers → Add Provider**.
-9. Piliin ang iyong provider ng Web Cookie.
+9. Piliin ang iyong Web Cookie provider.
 10. I-paste ang mga credential.
 11. I-click ang **Test Connection**.
 12. I-save ang provider.
@@ -76,7 +76,7 @@ Nakadepende sa provider ang eksaktong mga credential na kinakailangan.
 
 # Mga Format ng Credential ng Provider
 
-Magkakaiba ang paraan ng pag-iimbak ng authentication ng iba't ibang website. Cookie lamang ang kinakailangan ng ilan, samantalang maaaring mangailangan ang iba ng mga karagdagang header o token.
+Magkakaiba ang paraan ng pag-store ng authentication ng iba't ibang website. Ang ilan ay nangangailangan lamang ng mga cookie, habang ang iba naman ay maaaring mangailangan ng mga karagdagang header o token.
 
 | Provider                        | Format ng Credential          | Gabay ng Provider                |
 | ------------------------------- | ----------------------------- | -------------------------------- |
@@ -88,48 +88,98 @@ Magkakaiba ang paraan ng pag-iimbak ng authentication ng iba't ibang website. Co
 | Grok Web                        | _(beripikahin)_               |                                  |
 | ...                             | ...                           | ...                              |
 
-> I-update ang talahanayang ito habang nagdaragdag ng mga bagong provider ng Web Cookie o nagbabago ang mga kinakailangan sa authentication ng mga kasalukuyang provider.
+> I-update ang talahanayang ito habang nagdaragdag ng mga bagong Web Cookie provider o nagbabago ang mga kinakailangan sa authentication ng mga kasalukuyang provider.
+
+## NoTrack (notrack-web)
+
+Ang NoTrack ([notrack.ai](https://notrack.ai)) ay isang libreng platform ng chat para sa mga consumer na hindi nangangailangan ng pag-sign up — ginagawa nang anonymous ang session sa unang pagbisita at nananatili ito sa pamamagitan ng tatlong cookie: `uid`, `si_usr_id`, at `si_ses_id`. Ipinoproxy ng OmniRoute ang parehong `/api/dispatch` endpoint sa pamamagitan ng iisang model id (`notrack-c`, alias na `ntw`).
+
+### Mga hakbang sa pagkonekta
+
+1. Buksan ang [notrack.ai](https://notrack.ai) sa iyong browser at hayaang maitakda ang cookie ng anonymous na session.
+2. Buksan ang **DevTools → Network**, i-refresh ang pahina, at i-click ang anumang `/api` request.
+3. Sa **Request Headers**, kopyahin ang buong value ng `Cookie` header.
+4. Sa OmniRoute, pumunta sa **Providers → Add Provider → NoTrack Web (Free)**.
+5. I-paste ang string ng cookie sa `apiKey` field at i-click ang **Save**.
+
+Kinukuha ng OmniRoute ang `uid`, `si_usr_id`, at `si_ses_id` mula sa na-paste na string at muling bumubuo ng malinis na `Cookie` header na naglalaman lamang ng mga pair na iyon — kasama ang `nt_session` (ang `ntk_…` token na itinakda para sa mga naka-log in na account) kapag mayroon. Kung may nawawala sa tatlo, ipapasa nang walang pagbabago ang orihinal na na-paste na string upang makapag-eksperimento ang mga operator sa mga alternatibong format.
+
+### Mga model id
+
+| Model id    | Ipinapakitang pangalan | Mga tala                                                   |
+| ----------- | ---------------------- | ---------------------------------------------------------- |
+| `notrack-c` | NoTrack C              | Default — ang upstream dispatch model na `C`.              |
+| `C`         | NoTrack C              | Alias para sa `notrack-c` (raw na upstream dispatch code). |
+| `notrack`   | NoTrack C              | Alias para sa `notrack-c`.                                 |
+| `ntw`       | NoTrack C              | Maikling alias para sa `notrack-c`.                        |
+
+Ang lahat ng apat na model id ay tumutukoy sa parehong upstream dispatch model (`C`).
+
+### Mga opsyon sa request
+
+Tinatanggap ng executor ang mga sumusunod na opsyonal na field sa request body:
+
+| Field ng body         | Default | Layunin                                                                         |
+| --------------------- | ------- | ------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual` | Dispatch mode (malayang string; tinatanggap ng upstream ang `usual`, …)         |
+| `notrack_max_turns`   | `6`     | Bilang ng mga internal turn na maaaring gawin ng upstream bago sumagot.         |
+| `notrack_chat_id`     | `null`  | Ipagpatuloy ang isang kasalukuyang upstream chat (alisin para sa bagong chat).  |
+| `notrack_attachments` | `[]`    | Pass-through array ng mga upstream attachment descriptor.                       |
+| `notrack_regenerate`  | `false` | Itakda sa `true` upang humiling ng muling nabuong sagot para sa nakaraang turn. |
+
+### Mga kakayahan
+
+- Mga **streaming at non-streaming** na chat completion.
+- **Tool calling** — itakda ang `tools: [...]` sa request; isineseryalisa ng executor ang mga ito sa isang tool-call envelope contract at pina-parse pabalik ang mga tugon ng modelo bilang OpenAI `tool_calls`.
+- **`response_format`** — sinusuportahan ang `json_object` at `json_schema`. Kinukuha ng executor ang unang JSON object mula sa tugon ng modelo at ginagawa itong string bago ibalik.
+- **Reasoning hint** — naglalabas ang executor ng `reasoning` delta kapag nagpapadala ang upstream ng `thinking` event.
+
+### Mga limitasyon
+
+- Nagpapatupad ang upstream ng mga quota sa anonymous na paggamit — kapag nalampasan ang mga ito, nagpapakita ang executor ng 429 na may madaling maunawaang mensahe.
+- Ang lahat ng model id ay tumutukoy sa parehong upstream dispatch model; walang switch para sa bawat modelo.
+- Hindi tinatawag ng executor ang `/api/chats` endpoint ng upstream, kaya hindi awtomatikong pinamamahalaan ang history ng chat / mga session. Gamitin ang `notrack_chat_id` upang ipagpatuloy ang isang kasalukuyang upstream chat.
 
 ---
 
-# Ang Magagawa at Hindi Magagawa ng mga Provider ng Web Cookie
+# Ano ang Magagawa at Hindi Magagawa ng mga Web Cookie Provider
 
-Muling ginagamit ng mga provider ng Web Cookie ang chat interface ng isang website. **Hindi** nila ibinibigay ang parehong mga kakayahan gaya ng mga opisyal na API.
+Muling ginagamit ng mga Web Cookie provider ang chat interface ng isang website. **Hindi** nila ibinibigay ang parehong mga kakayahan gaya ng mga opisyal na API.
 
 ## Sinusuportahan
 
 - Mag-authenticate gamit ang iyong kasalukuyang session sa browser
 - I-access ang mga model na available sa pamamagitan ng iyong account
-- Mag-stream ng mga tugon sa chat
-- Walang kinakailangang API key
+- I-stream ang mga tugon sa chat
+- Hindi kailangan ng API key
 
 ## Hindi Sinusuportahan
 
-- Function calling
-- Tool calling
+- Pagtawag ng function
+- Pagtawag ng tool
 - Awtomatikong pag-edit ng file
 - Mga agentic na workflow sa IDE
 - Mga feature na para lamang sa API
 
-Inaasahang gawi ito at **hindi** isang bug.
+Inaasahan ang ganitong gawi at **hindi** ito isang bug.
 
-Kung kailangan mo ng pagpapatupad ng tool, awtomatikong pag-edit ng file, o iba pang agent workflow, gumamit ng **provider na gumagamit ng API key** sa halip na provider ng Web Cookie.
+Kung kailangan mo ng pagpapatakbo ng tool, awtomatikong pag-edit ng file, o iba pang agent workflow, gumamit ng **provider na may API key** sa halip na Web Cookie provider.
 
 ---
 
 # Paalala sa Validation
 
-Bineberipika lamang ng matagumpay na **Test Connection** o cookie validation na mukhang nasa inaasahang format ang mga ibinigay na credential.
+Ang matagumpay na **Test Connection** o validation ng cookie ay nagpapatunay lamang na mukhang nasa inaasahang format ang ibinigay na mga credential.
 
-Hangga't hindi nareresolba ang Issue #7857, ang matagumpay na validation ay **hindi garantiya** na matagumpay na makakapag-authenticate ang provider.
+Hangga't hindi pa nalulutas ang Issue #7857, ang matagumpay na validation ay **hindi garantiya** na matagumpay na makakapag-authenticate ang provider.
 
-Kung nabibigo pa rin ang authentication, tiyaking kinopya mo ang mga credential mula sa isang aktibong network request sa halip na mula sa cookie storage ng browser.
+Kung nabigo pa rin ang authentication, tiyaking kinopya mo ang mga credential mula sa isang aktibong network request sa halip na mula sa cookie storage ng browser.
 
 ---
 
 # Pag-troubleshoot
 
-## Nabibigo ang Authentication
+## Nabigo ang Authentication
 
 Tiyaking kinopya ang mga credential mula sa:
 
@@ -150,42 +200,42 @@ Application
 
 ## Gumagana ang Cookie sa Browser ngunit Hindi sa OmniRoute
 
-Nagsasama ang ilang provider ng mga cookie na ipinapadala lamang sa panahon ng mga authenticated na request.
+May ilang provider na nagsasama ng mga cookie na ipinapadala lamang sa panahon ng mga authenticated request.
 
-Kopyahin muli ang mga credential mula sa isang bagong network request pagkatapos matagumpay na makapagbukas ng conversation.
+Kopyahin muli ang mga credential mula sa isang bagong network request pagkatapos matagumpay na magbukas ng pag-uusap.
 
 ---
 
 ## Nag-expire ang Session
 
-Ginagamit ng mga provider ng Web Cookie ang iyong kasalukuyang session sa browser.
+Ginagamit ng mga Web Cookie provider ang iyong kasalukuyang session sa browser.
 
-Kung mag-expire ang iyong session sa browser o mag-sign out ka, dapat kang kumopya ng bagong hanay ng mga credential.
+Kung mag-expire ang iyong browser session o mag-sign out ka, kailangan mong kumopya ng bagong set ng mga credential. Upang i-automate ang pag-renew ng cookie para sa mga sinusuportahang web provider, tingnan ang kasamang tool na [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
 ## Pumapasa ang Test Connection ngunit Nabibigo ang mga Request
 
-Hangga't hindi nareresolba ang Issue #7857, ang pagpasa sa validation ay hindi garantiya na magtatagumpay ang authentication request.
+Hangga't hindi pa nalulutas ang Issue #7857, ang pagpasa sa validation ay hindi garantiya na magtatagumpay ang authentication request.
 
-Kopyahin muli ang iyong mga credential mula sa isang bagong authenticated na request bago magpatuloy sa pag-troubleshoot.
+Kopyahin muli ang iyong mga credential mula sa isang bagong authenticated request bago magpatuloy sa pag-troubleshoot.
 
 ---
 
 # Halimbawa ng Provider
 
-Para sa kumpletong walkthrough na partikular sa provider, tingnan ang:
+Para sa kumpletong gabay na partikular sa provider, tingnan ang:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Ipinapakita ng gabay sa Claude Web ang kumpletong proseso ng pag-setup para sa isang provider ng Web Cookie at nagsisilbi itong reference implementation.
+Ipinapakita ng gabay sa Claude Web ang kumpletong proseso ng pag-setup para sa isang Web Cookie provider at nagsisilbi itong reference implementation.
 
 ---
 
-# Mga Pinakamahusay na Kasanayan
+# Pinakamahuhusay na Kasanayan
 
-- Kumopya ng mga credential mula sa isang bagong authenticated na request.
-- Iwasang muling gumamit ng mga lumang cookie.
-- Panatilihing aktibo ang iyong session sa browser habang gumagamit ng mga provider ng Web Cookie.
-- Ituring ang mga kinopyang cookie bilang mga sensitibong credential.
-- Gumamit ng mga provider na gumagamit ng API key kapag kailangan mo ng function calling o mga agent workflow.
+- Kopyahin ang mga credential mula sa isang bagong authenticated request.
+- Iwasang muling gamitin ang mga lumang cookie.
+- Panatilihing aktibo ang iyong browser session habang gumagamit ng mga Web Cookie provider.
+- Ituring ang mga kinopyang cookie bilang sensitibong credential.
+- Gumamit ng mga provider na may API key kapag kailangan mo ng pagtawag ng function o mga agent workflow.

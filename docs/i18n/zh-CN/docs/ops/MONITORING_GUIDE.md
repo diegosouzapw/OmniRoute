@@ -101,16 +101,16 @@ OmniRoute 具有 **3 层监控**：
 
 ## 健康检查 API
 
-OmniRoute 提供**两个** HTTP 健康检查端点。对于编排器而言，它们不能互换使用。
+OmniRoute 提供**两个** HTTP 健康检查接口。对于编排器而言，它们不可互换。
 
 | 路径                         | 用途                                                    | 开销                        | 适用场景                                                             |
 | ---------------------------- | ------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------- |
 | `GET /healthz`               | 生命周期存活/就绪状态（`ok` / `starting` / `stopping`） | 极低（仅检查阶段标志）      | Kubernetes **就绪探针**；如果必须使用 HTTP，可用作宽松的**存活探针** |
-| `GET /api/monitoring/health` | 深度系统及提供者摘要（数据库、堆、目录计数等）          | 较高（同步数据库/监控工作） | 仪表板、黑盒深度检查、Docker 内置健康检查                            |
+| `GET /api/monitoring/health` | 深度系统及提供者摘要（数据库、堆、目录计数等）          | 较高（同步数据库/监控操作） | 仪表板、黑盒深度检查、Docker 内置健康检查                            |
 
-> **注意：** 提供者健康矩阵、自动驾驶问题、配额监控、令牌健康状况，以及 `/api/monitoring/health` 以外的延迟详情，可通过 **MCP 工具** `observability_snapshot` 或**仪表板**页面获取——这些功能没有专用的 REST 路由。
+> **注意：**提供者健康矩阵、自动驾驶问题、配额监控、令牌健康状况，以及 `/api/monitoring/health` 范围之外的延迟详情，可通过 **MCP 工具** `observability_snapshot` 或**仪表板**页面获取——这些信息没有专用的 REST 路由。
 
-两个路由都与请求处理运行在**同一个 Node 事件循环**上。CPU 密集型路径（例如大型 `GET /v1/models` 目录处理、长上下文压缩/令牌计数）可能延迟**所有** HTTP 处理程序，包括 `/healthz`。事件循环繁忙 ≠ 进程已终止。应优先修复造成阻塞的任务；调整探针只能减少误杀。
+这两个路由与请求处理运行在**同一个 Node 事件循环**上。CPU 密集型路径（大型 `GET /v1/models` 目录处理、长上下文压缩/令牌计数）可能会延迟**所有** HTTP 处理程序，包括 `/healthz`。事件循环繁忙 ≠ 进程已停止。应优先修复造成阻塞的任务；调整探针参数只能减少误杀。
 
 ### 轻量级编排器探针
 
@@ -120,10 +120,10 @@ GET /healthz
 ```
 
 - 当服务器生命周期阶段为就绪时，返回 **200** + 响应体 `ok`
-- 在启动或关闭期间，返回 **503** + `starting` / `stopping`
+- 启动或关闭期间返回 **503** + `starting` / `stopping`
 - 实现：`src/app/healthz/route.ts`（不执行数据库 ping）
 
-### 系统健康状态（深度检查）
+### 系统健康状况（深度检查）
 
 ```bash
 GET /api/monitoring/health
@@ -153,43 +153,43 @@ GET /api/monitoring/health
 }
 ```
 
-#### `credentialHealth`：探针缓存与 SQLite `test_status` 的对比
+#### `credentialHealth`：探针缓存与 SQLite `test_status`
 
 `GET /api/monitoring/health` → `credentialHealth` 是**内存中的探针缓存
-指标**，而不是 `provider_connections.test_status` 的实时转储。在 #12532 之后，
-请求路径只读取 `getCachedCredentialHealthSummary()`；后台探针会在事件循环之外
+指标**，而不是 `provider_connections.test_status` 的实时转储。自 #12532 起，
+请求路径仅会读取 `getCachedCredentialHealthSummary()`；后台探针会在事件循环之外
 刷新缓存。
 
-| 层级            | 位置                                                                  | 含义                                                                                                                                                                                   |
-| --------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 探针缓存指标    | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | 进程内存中仍保留的最近一次凭据健康探测结果。`source` 始终为 `probe-cache`。                                                                                                            |
-| 失败连接详情    | `credentialHealth.failedConnections`                                  | **仅当 `failed > 0` 时**存在。包含 `status=error` 的缓存行有界列表（`connectionId`、`status`、经过清理的 `lastError` / `lastErrorType`）。如果列表已被截断，则会设置 `failedOmitted`。 |
-| SQLite 持久状态 | `credentialHealth.staleDbNonOkCount`                                  | **活跃**（`is_active=1`）连接行中，持久化 `test_status` 为已知非正常值（`error`、`expired`、`credits_exhausted`、`banned`、`deactivated`、`unavailable`）的数量。                      |
+| 层级            | 位置                                                                  | 含义                                                                                                                                                                                         |
+| --------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 探针缓存指标    | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | 仍保存在进程内存中的最近一次凭据健康探测结果。`source` 始终为 `probe-cache`。                                                                                                                |
+| 失败连接详情    | `credentialHealth.failedConnections`                                  | **仅当 `failed > 0` 时**存在。包含 `status=error` 的缓存行有界列表（`connectionId`、`status`、经净化的 `lastError` / `lastErrorType`）。当列表因达到上限而被截断时，会设置 `failedOmitted`。 |
+| SQLite 粘滞状态 | `credentialHealth.staleDbNonOkCount`                                  | `test_status` 持久化值为已知非正常状态（`error`、`expired`、`credits_exhausted`、`banned`、`deactivated`、`unavailable`）的**活跃**（`is_active=1`）连接行数量。                             |
 
-这两个层级可能会有意出现不一致：
+这两层可能有意地不一致：
 
-- 指标中 `failed=0`，但 `staleDbNonOkCount>0`——SQLite 中仍保留着持久的
+- 指标 `failed=0`，但 `staleDbNonOkCount>0`——SQLite 中仍保留粘滞的
   `test_status`（例如 `expired` 或 `credits_exhausted`），而最新的
-  探针缓存快照没有将其计入 `status=error`。
-- 指标中 `failed>0`，但 SQLite 看起来正常——最近一次探测失败并已
-  缓存；数据库行尚未更新，或者随后已被清除。
+  探针缓存快照未将其计为 `status=error`。
+- 指标 `failed>0`，但 SQLite 显示健康——最近一次探测失败且结果已
+  缓存；数据库行尚未更新，或之后已被清除。
 
-抓取此端点时，不要仅根据 `provider_connections.test_status` 发出警报。
-使用 `failed` + `failedConnections` 判断实时探测失败；需要持久状态计数时，
-则使用 `staleDbNonOkCount`。
+抓取此端点时，请勿仅依据 `provider_connections.test_status` 发出告警。
+使用 `failed` + `failedConnections` 判断实时探测失败；需要持久化粘滞状态计数时，
+使用 `staleDbNonOkCount`。
 
 ### Kubernetes 探针建议
 
-OmniRoute 是一个**单 Node 进程**（单个事件循环）。默认 Docker `HEALTHCHECK` 以轻量级 `/healthz` 为目标。对于 kubelet 的存活探针间隔而言，`/api/monitoring/health` **开销过高**。
+OmniRoute 是一个**单 Node 进程**（单事件循环）。默认 Docker `HEALTHCHECK` 使用轻量级 `/healthz`。`/api/monitoring/health` 对 kubelet 的存活探针间隔而言**开销过高**。
 
-| 探针             | 推荐目标                                                                       | 备注                                                                                                                                                                                                                                                                             |
-| ---------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **启动**         | HTTP `GET /healthz`，配置较长的 `failureThreshold`（或较大的 `startPeriod`）   | 冷启动 + SQLite 迁移可能需要数秒以上                                                                                                                                                                                                                                             |
-| **就绪**         | HTTP `GET /healthz`                                                            | 生命周期状态为 `ok` / `starting` / `stopping`（200 与 503）。如果事件循环被 CPU 阻塞，状态仍会反复变化。**耗时数秒才返回 200 并不表示健康**（#10303）——这意味着事件循环在运行这个仅返回 3 字节内容的处理程序之前已处于饥饿状态                                                   |
-| **存活**         | HTTP `GET /livez`，**或对主服务端口（`PORT`，默认值为 `20128`）执行 TCP 探测** | `/livez` 仅表示进程存活（只要处理程序能够运行，就始终返回 200）。它仍与主服务共享事件循环——繁忙 ≠ 已死，而且在检测事件循环饥饿（#10303）方面并不比 TCP 更好。如果 HTTP 探针在目录/压缩负载下超时，请优先使用 **TCP**；无论采用哪种方式，都**不要**因短暂的事件循环停顿而终止 pod |
-| **深度健康检查** | 由外部检查器请求 `GET /api/monitoring/health`                                  | 不适用于 kubelet `livenessProbe` / 高频 `readinessProbe`                                                                                                                                                                                                                         |
+| 探针             | 推荐目标                                                                       | 说明                                                                                                                                                                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **启动**         | HTTP `GET /healthz`，并设置较长的 `failureThreshold`（或较大的 `startPeriod`） | 冷启动 + SQLite 迁移可能需要数秒以上                                                                                                                                                                                                                                           |
+| **就绪**         | HTTP `GET /healthz`                                                            | 生命周期状态为 `ok` / `starting` / `stopping`（200 与 503）。如果事件循环被 CPU 阻塞，状态仍会反复变化。**耗时数秒才返回 200 并不代表健康**（#10303）——这意味着事件循环在这个 3 字节处理程序运行之前已经发生饥饿                                                               |
+| **存活**         | HTTP `GET /livez`，**或对主服务端口使用 TCP**（`PORT`，默认为 `20128`）        | `/livez` 仅表示进程存活（只要处理程序能够运行，就始终返回 200）。它仍与其他任务共享事件循环——繁忙 ≠ 死亡，而且它在检测事件循环饥饿（#10303）方面并不比 TCP 更好。如果 HTTP 探针在目录/压缩负载下超时，首选 **TCP**；无论使用哪种方式，都**不要**因为事件循环短暂停顿而终止 pod |
+| **深度健康检查** | 由外部检查器请求 `GET /api/monitoring/health`                                  | 不适用于 kubelet `livenessProbe` / 高频 `readinessProbe`                                                                                                                                                                                                                       |
 
-配置示例（请根据冷启动时间和压缩负载调整阈值）：
+配置示例（请根据冷启动和压缩负载调整阈值）：
 
 ```yaml
 ports:
@@ -215,27 +215,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # 当事件循环停顿时，HTTP /livez 仍可能超时。TCP 是
-  # 更为保守的替代方案：
+  # 当事件循环停滞时，HTTP /livez 仍可能超时。TCP 是更
+  # 保守的替代方案：
   # tcpSocket:
   #   port: http
 ```
 
-**不要**将 kubelet **存活探针**指向 `/api/monitoring/health`。该路径会执行实际的数据库/监控工作，并且在高负载下会产生误报。
+**不要**将 kubelet 的**存活**探针指向 `/api/monitoring/health`。该路径会执行实际的数据库/监控工作，并且在高负载下会产生误报。
 
-相关内容：[#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052)（事件循环繁忙时的探针）、[#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055)（目录定价占用过多资源）、[#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117)（压缩令牌计数占用过多资源）。
+相关问题：[#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052)（事件循环繁忙时的探针）、[#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055)（目录定价占用大量资源）、[#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117)（压缩令牌计数占用大量资源）。
+
+### systemd 看门狗（事件循环冻结）
+
+在 systemd 主机上，OmniRoute 会在就绪时通知服务管理器，并持续向其发送心跳，因此事件循环卡死的服务器会被终止并重启，而不是继续运行却不再响应。心跳由服务器自身的事件循环发送：当事件循环被阻塞时，心跳就会停止；一旦在 `WatchdogSec` 指定的时间内未收到心跳，systemd 就会重启该服务。
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) 已经会写入包含此配置的用户单元。自行编写的单元（默认使用 `Type=simple`）没有看门狗，因此请将以下内容添加到其 `[Service]` 部分：
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+生成的单元设置了 `Restart=on-failure`，因此也请添加这一行——如果没有它，看门狗只会终止卡死的服务，而不会将其重启。
+
+- `Type=notify`：只有当服务器发送 `READY=1` 时，服务才被视为“已启动”，而不是在进程派生时。`TimeoutStartSec` 用于限制缓慢启动的最长时间。
+- `NotifyAccess=all`：心跳由服务器进程发送，而该进程是 `omniroute serve` 监督进程的子进程。
+- `WatchdogSec`：心跳每 60 秒发送一次，因此请使用 **120 或更大的值**。较小的值会导致健康的服务器被重启。
+- 在前台运行 `omniroute serve`。`--daemon` 会使服务器脱离该单元的 cgroup，并导致通知握手永远无法完成。
+
+重启后，检查它是否处于活动状态：
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` 显示配置的延迟，`WatchdogTimestamp` 每分钟都会更新。由看门狗触发的重启会记录为 `Result=watchdog`。如需在保持单元配置不变的情况下关闭心跳，请设置 `OMNIROUTE_DISABLE_SD_NOTIFY=1`；如果没有 `NOTIFY_SOCKET`（终端、Docker、Electron、Windows），则不会发送任何内容。
+
+看门狗只检查事件循环是否持续运行。运行缓慢但仍在推进的服务器不会被重启。
 
 ### 可选的请求路径工作（内存、技能、令牌刷新）
 
-内存提取、技能注入和 OAuth 令牌刷新与 `/healthz` 共享**主 Node 事件循环**。它们是由仪表板开关控制的功能（`memoryEnabled`、`skillsEnabled`），并非工作线程池。请参阅[环境 — 事件循环开销](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)。
+内存提取、技能注入和 OAuth 令牌刷新与 `/healthz` **共享 Node 主事件循环**。它们是由仪表板开关控制的功能（`memoryEnabled`、`skillsEnabled`），而非工作线程池。请参阅[环境 — 事件循环开销](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)。
 
 ### 提供者健康状态
 
-> **没有 REST 端点。**可通过 MCP 工具 `observability_snapshot` 或仪表板的 `/dashboard/providers` 页面获取提供者健康数据。
+> **无 REST 端点。** 提供者健康状态数据可通过 MCP 工具 `observability_snapshot` 或仪表板的 `/dashboard/providers` 页面获取。
 
 ### 提供者详情
 
-> **没有 REST 端点。**可通过仪表板的 `/dashboard/providers` 页面查看各提供者的详细信息。
+> **无 REST 端点。** 各提供者的详细信息可通过仪表板的 `/dashboard/providers` 页面获取。
 
 ---
 

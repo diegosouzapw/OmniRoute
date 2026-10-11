@@ -21,16 +21,26 @@ Migration `168_retire_chatgpt_web.sql` ගැළපෙන සැපයුම්�
 
 Tunnel එක අවශ්ය වන්නේ මෙවලම් වාර සඳහා පමණි. `pro` ඇතුළුව ලැයිස්තුගත කර ඇති සෑම route එකකටම, tunnel එක සහ connector එක වින්යාස කර ඇති විට, එකම වාරයට බැඳුණු දේශීය මෙවලම් හැකියාව භාවිත කළ හැක.
 
-## Dashboard සැකසුම
+## උපකරණ පුවරුව සැකසීම
 
 1. **ChatGPT Web (Codex)** සැපයුම්කරු විවෘත කර සම්බන්ධතාවක් එක් කරන්න.
-2. සම්පූර්ණ ChatGPT Cookie header එක, tunnel ID එක, runtime key එක සහ custom connector නාමය අලවන්න. නව මෙවලම්-හැකියාව සහිත සැකසුම්, නම හරියටම `OmniRoute Codex v2` වන අලුතින් නිර්මාණය කළ connector එකක් භාවිත කළ යුතු අතර, Authentication අගය None ලෙසත් Permissions අගය Allow all actions ලෙසත් සකසා තිබිය යුතුය.
-3. සම්බන්ධතා පරීක්ෂාව ක්රියාත්මක කරන්න. OmniRoute බ්රවුසරයකින් සහාය ලබන Temporary Chat එකක් විවෘත කර, එම ගිණුම සඳහා Sol සහ Pro ලබාගත හැකිදැයි හඳුනාගනී.
-4. සම්බන්ධතාව සුරකින්න. OmniRoute අලවන ලද cookie එක සත්යාපිත Playwright storage state එකෙන් ප්රතිස්ථාපනය කර, encrypted credential abstraction එක හරහා runtime key එක සමඟ එය ගබඩා කරයි.
+2. සම්පූර්ණ ChatGPT Cookie ශීර්ෂකය, tunnel ID, runtime key සහ අභිරුචි connector
+   නාමය අලවන්න. නව tool-හැකියාව සහිත සැකසුම් සඳහා හරියටම
+   `OmniRoute Codex v2` ලෙස නම් කළ අලුතින් සාදන ලද connector එකක් භාවිත කළ යුතු අතර, Authentication සඳහා None ද Permissions සඳහා Allow all
+   actions ද සකසා තිබිය යුතුය.
+3. සම්බන්ධතා පරීක්ෂාව ධාවනය කරන්න. OmniRoute විසින් browser-පාදක Temporary Chat එකක් විවෘත කර ගිණුම සඳහා
+   Sol සහ Pro ලබා ගත හැකිදැයි හඳුනා ගනී.
+4. සම්බන්ධතාව සුරකින්න. OmniRoute විසින් අලවන ලද cookie එක සත්යාපිත
+   Playwright storage state එකෙන් ප්රතිස්ථාපනය කර, සංකේතනය කළ
+   credential abstraction එක හරහා runtime key සමඟ එය ගබඩා කරයි.
 
-සාර්ථකව සුරැකීමෙන් පසු raw cookie එක රඳවා නොගනී. සැසිය කල් ඉකුත් වූ විට, සම්බන්ධතාව විවෘත කර, නව සම්පූර්ණ Cookie header එකක් අලවා, පරීක්ෂාව නැවත ක්රියාත්මක කරන්න. සංස්කරණ සංවාදයේ ඇති doctor තත්ත්වය, බ්රවුසරය, storage state, පුරනය වීම, Temporary Chat, tunnel, connector සහ tool round-trip යන ඒවා වෙන වෙනම වාර්තා කරයි.
+සාර්ථකව සුරැකීමෙන් පසු අමු cookie එක රඳවා නොගනී. session එක කල් ඉකුත් වූ විට,
+සම්බන්ධතාව විවෘත කර නව සම්පූර්ණ Cookie ශීර්ෂකයක් අලවා පරීක්ෂාව නැවත ධාවනය කරන්න. සංස්කරණ සංවාද කොටුවේ ඇති doctor status එක
+browser, storage state, sign-in, Temporary Chat, tunnel,
+connector සහ tool round-trip වෙන වෙනම වාර්තා කරයි. session මාරු වන විට cookie යාවත්කාලීන කිරීම් ස්වයංක්රීය කිරීමට,
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) හි ඇති සහායක tool එක බලන්න.
 
-> සැබෑ cookie එකක්, runtime key එකක්, storage state එකක් හෝ capability token එකක් කිසිවිටෙක commit නොකරන්න. පරීක්ෂණ සහ
+> සැබෑ cookie එකක්, runtime key එකක්, storage state එකක් හෝ capability token එකක් කිසි විටෙක commit නොකරන්න. පරීක්ෂණ සහ
 > ප්රලේඛන අගයන් සැමවිටම placeholders විය යුතුය.
 
 ## Models සහ combos
@@ -98,7 +108,7 @@ HTTP/SSE fallback එක ඉල්ලයි. ඉන්පසු හුවමා�
 
 ## සත්යාපනය
 
-විශ්රාම ගැන්වූ සැපයුම්කරු කැඳවීමෙන් තොරව සැපයුම්කරුගේ පාලන ධාවනය කරන්න:
+විශ්රාම ගැන්වූ provider එක ක්රියාත්මක නොකර provider පාලන ධාවනය කරන්න:
 
 ```bash
 node --import tsx/esm --test \\
@@ -107,7 +117,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-විශ්රාම ගැන්වීමේ regression guards පිහිටා ඇත්තේ:
+විශ්රාම ගැන්වීමේ regression ආරක්ෂක පහත ගොනු තුළ ඇත:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

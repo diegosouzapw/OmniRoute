@@ -23,16 +23,16 @@ Migracija `168_retire_chatgpt_web.sql` označava odgovarajuće konekcije provajd
 
 Tunel je potreban samo za turnove alata. Svaka navedena ruta, uključujući `pro`, može koristiti istu lokalnu mogućnost alata vezanu za turn kada su tunel i konektor konfigurisani.
 
-## Podešavanje kontrolne table
+## Postavljanje kontrolne ploče
 
-1. Otvorite **ChatGPT Web (Codex)** provajder i dodajte konekciju.
-2. Zalijepite puno ChatGPT Cookie zaglavlje, ID tunela, runtime ključ i naziv prilagođenog konektora. Nove postavke sa mogućnošću alata moraju koristiti novo kreirani konektor nazvan tačno `OmniRoute Codex v2`, sa Authentication postavljenim na None i Permissions postavljenim na Allow all actions.
-3. Pokrenite provjeru konekcije. OmniRoute otvara Temporary Chat podržan pretraživačem i detektuje da li su Sol i Pro dostupni za nalog.
-4. Sačuvajte konekciju. OmniRoute zamjenjuje zalijepljeni cookie sa verifikovanim Playwright stanjem skladišta i pohranjuje ga sa runtime ključem kroz apstrakciju šifrovanih akreditiva.
+1. Otvorite pružaoca usluge **ChatGPT Web (Codex)** i dodajte vezu.
+2. Zalijepite kompletno ChatGPT Cookie zaglavlje, ID tunela, runtime ključ i naziv prilagođenog konektora. Nove postavke koje podržavaju alate moraju koristiti novokreirani konektor nazvan tačno `OmniRoute Codex v2`, pri čemu je Authentication postavljen na None, a Permissions na Allow all actions.
+3. Pokrenite provjeru veze. OmniRoute otvara Temporary Chat podržan preglednikom i otkriva jesu li Sol i Pro dostupni za račun.
+4. Sačuvajte vezu. OmniRoute zamjenjuje zalijepljeni kolačić provjerenim Playwright stanjem pohrane i pohranjuje ga s runtime ključem putem apstrakcije šifriranih vjerodajnica.
 
-Sirovi cookie se ne zadržava nakon uspješnog čuvanja. Kada sesija istekne, otvorite konekciju, zalijepite svježe puno Cookie zaglavlje i ponovo pokrenite provjeru. Status doktora u dijalogu za uređivanje izvještava o pretraživaču, stanju skladišta, prijavi, Temporary Chat-u, tunelu, konektoru i povratnom putu alata zasebno.
+Neobrađeni kolačić se ne zadržava nakon uspješnog spremanja. Kada sesija istekne, otvorite vezu, zalijepite novo kompletno Cookie zaglavlje i ponovo pokrenite provjeru. Status provjere u dijalogu za uređivanje zasebno izvještava o pregledniku, stanju pohrane, prijavi, Temporary Chat-u, tunelu, konektoru i povratnom prolazu alata. Za automatizaciju ažuriranja kolačića prilikom rotacije sesija pogledajte prateći alat u odjeljku [Ekstenzija za sinhronizaciju sesije preglednika](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nikada ne commit-ujte pravi cookie, runtime ključ, stanje skladišta ili token mogućnosti. Testne i dokumentacione vrijednosti moraju uvijek biti placeholderi.
+> Nikada nemojte pohraniti stvarni kolačić, runtime ključ, stanje pohrane ili token mogućnosti u repozitorij. Vrijednosti za testiranje i dokumentaciju uvijek moraju biti zamjenske vrijednosti.
 
 ## Modeli i kombinacije
 
@@ -78,7 +78,7 @@ Automatizirana Docker putanja nema prozor vidljiv hostu, ali sam Chrome radi s g
 
 Kada kombinacija sadrži ChatGPT Web (Codex), Responses WebSocket most zahtijeva HTTP/SSE povratnu opciju (fallback) prije povezivanja uzvodno. Prijenos se tada odvija kroz `/v1/responses`.
 
-## Verifikacija
+## Provjera
 
 Pokrenite kontrole pružatelja usluge bez pozivanja povučenog pružatelja:
 

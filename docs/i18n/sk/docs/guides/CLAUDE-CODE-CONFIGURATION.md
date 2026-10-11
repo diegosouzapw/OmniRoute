@@ -128,10 +128,10 @@ tvorca, testovaný jednotkovými testami), ktorý vykresľuje `ClaudeGatewayOnbo
 
 Claude Code **nemá natívne súbory profilov** (na rozdiel od `~/.codex/<name>.config.toml` v Codexe).
 Odporúčaným mechanizmom je `CLAUDE_CONFIG_DIR` — samostatný konfiguračný adresár pre každý
-profil, pričom každý má vlastný súbor `settings.json`, prihlasovacie údaje, históriu a vyrovnávaciu pamäť.
+profil, pričom každý má vlastné nastavenia `settings.json`, prihlasovacie údaje, históriu a vyrovnávaciu pamäť.
 
 `omniroute setup-claude` načíta aktuálny katalóg `/v1/models` a zapíše jeden
-profil pre každý model do `~/.claude/profiles/<name>/settings.json`, pričom použije
+profil pre každý model do `~/.claude/profiles/<name>/settings.json`, pričom znova použije
 **rovnaké názvy ako `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -154,14 +154,13 @@ profil pre každý model do `~/.claude/profiles/<name>/settings.json`, pričom p
 > aktívneho kontextu), prípadne sami exportujte `ANTHROPIC_AUTH_TOKEN` a spustite
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Automatická synchronizácia po zistení modelov (voliteľná).** OmniRoute môže automaticky znova vygenerovať
-rovnaké súbory `~/.claude/profiles/<name>/settings.json` vždy, keď synchronizácia modelov poskytovateľa
-zmení aktuálny katalóg — nové alebo premenované modely tak získajú profily bez opätovného spustenia
-príkazu. Táto funkcia je **predvolene vypnutá**: zapnite ju na **paneli Kód CLI** („Automatická
-synchronizácia profilov CLI“ → Claude Code) alebo nastavte `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`
-(rešpektuje aj `CLI_ALLOW_CONFIG_WRITES`, ktoré je predvolene zapnuté). Keď je táto funkcia zapnutá,
-zapisuje iba súbory profilov; nikdy nemení vašu aktívnu ani predvolenú konfiguráciu Claude,
-autorizáciu ani súbor `~/.claude/settings.json`.
+**Automatická synchronizácia po zisťovaní modelov (voliteľná).** OmniRoute môže automaticky znova generovať tie isté
+súbory `~/.claude/profiles/<name>/settings.json` vždy, keď synchronizácia modelov poskytovateľa
+zmení aktuálny katalóg — nové alebo premenované modely tak získajú profily bez nutnosti opätovne spustiť
+príkaz. Táto možnosť je **predvolene vypnutá**: zapnite ju na **paneli CLI Code** („Automatická
+synchronizácia profilov CLI“ → Claude Code) alebo nastavte `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (zohľadňuje aj
+`CLI_ALLOW_CONFIG_WRITES`, ktoré je predvolene zapnuté). Keď je táto možnosť zapnutá, zapisujú sa iba súbory profilov; nikdy sa
+nemení aktívna/predvolená konfigurácia Claude, autorizácia ani súbor `~/.claude/settings.json`.
 
 ### Generovanie a používanie profilov
 
@@ -169,11 +168,15 @@ autorizáciu ani súbor `~/.claude/settings.json`.
 # Lokálny OmniRoute
 omniroute setup-claude
 
-# Vzdialený VPS (vloží URL VPS do každého profilu)
+# Vzdialený VPS (vloží URL adresu VPS do každého profilu)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Iba niektorí poskytovatelia
 omniroute setup-claude --only glm,kimi
+
+# Zapísať aj profily pre poskytovateľov lokálneho CLI (zcode, auggie, devin-cli-agentic,
+# codex-app-server), ktorí neboli zistení na tomto hostiteľovi (pre lokálny cieľ sa predvolene preskočia)
+omniroute setup-claude --include-local
 
 # Náhľad bez zápisu
 omniroute setup-claude --dry-run

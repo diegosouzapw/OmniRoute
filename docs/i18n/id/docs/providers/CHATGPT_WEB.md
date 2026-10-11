@@ -37,24 +37,14 @@ sama saat tunnel dan konektor dikonfigurasi.
 
 ## Penyiapan dasbor
 
-1. Buka provider **ChatGPT Web (Codex)** dan tambahkan koneksi.
-2. Tempelkan header Cookie ChatGPT lengkap, ID tunnel, runtime key, dan nama konektor
-   khusus. Penyiapan baru yang mendukung alat harus menggunakan konektor yang baru dibuat
-   dan diberi nama persis `OmniRoute Codex v2`, dengan Authentication diatur ke None dan
-   Permissions diatur ke Allow all actions.
-3. Jalankan pemeriksaan koneksi. OmniRoute membuka Temporary Chat berbasis browser dan
-   mendeteksi apakah Sol dan Pro tersedia untuk akun tersebut.
-4. Simpan koneksi. OmniRoute mengganti cookie yang ditempelkan dengan status penyimpanan
-   Playwright yang telah diverifikasi dan menyimpannya bersama runtime key melalui
-   abstraksi kredensial terenkripsi.
+1. Buka penyedia **ChatGPT Web (Codex)** dan tambahkan koneksi.
+2. Tempelkan header Cookie ChatGPT lengkap, ID tunnel, kunci runtime, dan nama konektor khusus. Penyiapan baru yang mendukung alat harus menggunakan konektor yang baru dibuat dengan nama persis `OmniRoute Codex v2`, dengan Authentication diatur ke None dan Permissions diatur ke Allow all actions.
+3. Jalankan pemeriksaan koneksi. OmniRoute membuka Temporary Chat berbasis browser dan mendeteksi apakah Sol dan Pro tersedia untuk akun tersebut.
+4. Simpan koneksi. OmniRoute mengganti cookie yang ditempelkan dengan status penyimpanan Playwright yang telah diverifikasi dan menyimpannya bersama kunci runtime melalui abstraksi kredensial terenkripsi.
 
-Cookie mentah tidak disimpan setelah berhasil disimpan. Saat sesi kedaluwarsa, buka
-koneksi, tempelkan header Cookie lengkap yang baru, lalu jalankan kembali pemeriksaan.
-Status doctor dalam dialog pengeditan melaporkan browser, status penyimpanan, login,
-Temporary Chat, tunnel, konektor, dan perjalanan pulang-pergi alat secara terpisah.
+Cookie mentah tidak disimpan setelah penyimpanan berhasil. Ketika sesi berakhir, buka koneksi, tempelkan header Cookie lengkap yang baru, lalu jalankan kembali pemeriksaan. Status pemeriksaan di dialog edit melaporkan browser, status penyimpanan, proses masuk, Temporary Chat, tunnel, konektor, dan perjalanan pulang-pergi alat secara terpisah. Untuk mengotomatiskan pembaruan cookie saat sesi berganti, lihat alat pendamping di [Ekstensi Sinkronisasi Sesi Browser](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Jangan pernah melakukan commit terhadap cookie asli, runtime key, status penyimpanan,
-> atau token kapabilitas. Nilai pengujian dan dokumentasi harus selalu berupa placeholder.
+> Jangan pernah memasukkan cookie asli, kunci runtime, status penyimpanan, atau token kapabilitas ke dalam commit. Nilai untuk pengujian dan dokumentasi harus selalu berupa placeholder.
 
 ## Model dan combo
 

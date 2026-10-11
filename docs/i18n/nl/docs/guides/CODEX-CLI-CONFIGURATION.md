@@ -285,18 +285,18 @@ codex -p chat     # cx/gpt-5.5, geen inspanning ingesteld (serverstandaard)
 
 ---
 
-## Automatisch profielen genereren met `omniroute setup-codex`
+## Profielen automatisch genereren met `omniroute setup-codex`
 
-Als u OmniRoute op een VPS uitvoert, kunt u automatisch profielbestanden genereren op basis van de actuele modelcatalogus:
+Als je OmniRoute op een VPS uitvoert, kun je automatisch profielbestanden genereren op basis van de actuele modelcatalogus:
 
 ```bash
-# Vanaf een VPS (gebruikt lokale OmniRoute op poort 20128)
+# Vanaf een VPS (gebruikt de lokale OmniRoute op poort 20128)
 omniroute setup-codex
 
-# Vanaf elke machine — verwijs naar uw VPS
+# Vanaf elke machine — verwijs naar je VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Voorbeeld bekijken zonder bestanden te schrijven
+# Voorbeeld weergeven zonder bestanden te schrijven
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # Alleen GLM- en Kimi-profielen genereren
@@ -308,7 +308,13 @@ omniroute setup-codex --codex-home /path/to/.codex
 
 De opdracht haalt `/v1/models` op, gebruikt geoptimaliseerde profielen voor bekende modellen, valt voor andere compatibele tekstmodellen terug op catalogusmetadata en schrijft voor elk model `~/.codex/<name>.config.toml`. Idempotent — kan veilig opnieuw worden uitgevoerd.
 
-OmniRoute kan dezelfde profielbestanden ook **automatisch synchroniseren** nadat een geslaagde detectie/import van providermodellen de actuele catalogus heeft gewijzigd. Dit is **optioneel en standaard uitgeschakeld**: schakel het in via het **CLI Code-dashboard** ("Automatische synchronisatie van CLI-profielen" → Codex), of stel `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` in (ook `CLI_ALLOW_CONFIG_WRITES` wordt gerespecteerd, standaard ingeschakeld). Wanneer deze functie is ingeschakeld, schrijft deze alleen afzonderlijke profielbestanden in `~/.codex/*.config.toml`; de actieve/standaardconfiguratie in `~/.codex/config.toml`, Codex-lb-instellingen, authenticatie of providerselectie worden nooit gewijzigd.
+Als het basisbestand `config.toml` geen definitie voor `model_providers.omniroute` bevat, neemt een expliciete uitvoering van `setup-codex` die definitie op in elke gegenereerde overlay, waarbij het geselecteerde lokale of externe eindpunt wordt gebruikt. Het basisbestand blijft ongewijzigd. Een bestaande providerdefinitie wordt overgenomen, inclusief het eindpunt en de authenticatie-instellingen. Ongeldige TOML in het basisbestand stopt het genereren voordat profielen worden geschreven.
+
+Wanneer je `--api-key` of `OMNIROUTE_API_KEY` opgeeft, verwijst een nieuw gedefinieerde provider naar `env_key = "OMNIROUTE_API_KEY"`; de sleutel zelf wordt nooit opgeslagen of in het voorbeeld weergegeven. Stel deze variabele in binnen de omgeving waarin je Codex start. Zonder een opgegeven sleutel bevat de nieuwe definitie geen sleutelvereiste, voor een OmniRoute-instantie die is geconfigureerd om niet-geverifieerde verzoeken te accepteren.
+
+De hieronder beschreven optionele automatische catalogussynchronisatie behoudt providerdefinities die al in een overlay aanwezig zijn, maar initialiseert geen nieuwe providerinstellingen; configureer de provider eerst via een expliciete installatie of het dashboard. Bestaande providerinstellingen worden niet in `--dry-run`-voorbeelden opgenomen, omdat ze door de beheerder beheerde referenties kunnen bevatten.
+
+OmniRoute kan dezelfde profielbestanden ook **automatisch synchroniseren** nadat een geslaagde detectie of import van providermodellen de actuele catalogus heeft gewijzigd. Dit is **optioneel en standaard uitgeschakeld**: schakel het in via het **CLI Code-dashboard** ("Automatische synchronisatie van CLI-profielen" → Codex), of stel `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` in (ook `CLI_ALLOW_CONFIG_WRITES` wordt gerespecteerd, standaard ingeschakeld). Wanneer deze functie is ingeschakeld, schrijft deze alleen afzonderlijke profielbestanden naar `~/.codex/*.config.toml`; het actieve/standaardbestand `~/.codex/config.toml`, de Codex-lb-instellingen, authenticatie of providerselectie worden nooit gewijzigd.
 
 ---
 

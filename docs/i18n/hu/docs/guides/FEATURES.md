@@ -316,14 +316,14 @@ A **hibrid tokenszámlálás** szintén a v3.6.6 verzióban érkezik: amikor egy
 
 ---
 
-## 🛡️ Biztonságos kimenő lekérés és SSRF-védelem _(v3.6.6+)_
+## 🛡️ Biztonságos kimenő lekérések és SSRF-védelem _(v3.6.6+)_
 
 Mostantól minden szolgáltató-ellenőrzési és modellfelderítési hívás egy kétrétegű kimenő forgalmi védelmen halad át:
 
-1. **URL-védelem** (`src/shared/network/outboundUrlGuard.ts`) — A socket megnyitása előtt blokkolja a privát, visszacsatolási és helyi kapcsolati IP-tartományokat.
-2. **Biztonságos lekérési burkoló** (`src/shared/network/safeOutboundFetch.ts`) — Alkalmazza az URL-védelmet, egységesíti az időtúllépéseket, és exponenciális késleltetéssel újrapróbálkozik átmeneti hibák esetén.
+1. **URL-védelem** (`src/shared/network/outboundUrlGuard.ts`) — Először a cél megadott állomásnevét vagy IP-literálját ellenőrzi; kizárólag nyilvános címeket engedélyező módban a biztonságos lekérési burkoló a nevet is feloldja, és elutasítja a privát címeket. Alapértelmezés szerint blokkolja a felhőalapú metaadat-végpontokat — a teljes 169.254.0.0/16 tartományt, valamint az ismert metaadat-állomásneveket; az `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` a privát és visszacsatolási állomásokat is blokkolja; az `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (vagy a korábbi `OUTBOUND_SSRF_GUARD_ENABLED=false`) kikapcsolja az ellenőrzéseket. Egy jelző irányítópulti kapcsolójával mentett érték elsőbbséget élvez a változójával szemben, a beépített helyi szolgáltatók pedig a kulcsellenőrzés során kihagyják a védelmet. Lásd: `docs/reference/ENVIRONMENT.md`.
+2. **Biztonságos lekérési burkoló** (`src/shared/network/safeOutboundFetch.ts`) — Alkalmazza az URL-védelmet, normalizálja az időkorlátokat, és exponenciális késleltetéssel újrapróbálkozik átmeneti hibák esetén.
 
-A védelem megsértése HTTP 422 (`URL_GUARD_BLOCKED`) hibaként jelenik meg, és a `providerAudit.ts` segítségével bekerül a megfelelőségi auditnaplóba.
+A védelem megsértése `URL_GUARD_BLOCKED` hibaként jelenik meg — HTTP 503 a `getSafeOutboundFetchErrorStatus` használatával (400 a modellfelderítési útvonalon) —, az ellenőrzés során észlelt tényleges SSRF-blokkolásokat pedig `provider.validation.ssrf_blocked` eseményként rögzíti a naplózási rendszer.
 
 ---
 

@@ -4,68 +4,87 @@
 
 ---
 
-Siden v3.8.49 (WS3.2/WS3.4 i kvalitets-/hastighetsplanen) er standardbanen for fletting av
-gjennomgåtte PR-er inn i `release/vX.Y.Z` **Mergify-flettekøen** (`.mergify.yml`);
-det **manuelle flettetoget** som er dokumentert nedenfor, er RESERVELØSNINGEN — brukt under hendelser,
-utgivelsesfrys eller hvis Mergifys Open Source-plan noen gang endres.
+Siden v3.8.49 (WS3.2/WS3.4 i kvalitets-/hastighetsplanen) er standardbanen for
+sammenslåing av gjennomgåtte PR-er til `release/vX.Y.Z` **Mergify-køen for sammenslåing** (`.mergify.yml`);
+det **manuelle sammenslåingstoget** som er dokumentert nedenfor, er RESERVELØSNINGEN — brukt ved hendelser,
+utgivelsesfrys eller dersom Mergifys Open Source-abonnement noen gang endres.
 
-## Standardbane: Mergify-køen
+## Standardflyt: Mergify-køen
 
-1. PR-en gjennomgås/får grønt lys av kampanjene og godkjennes gjennom eierens ⭐-port
-   før fletting (rapporten + avgjørelse per element — se `/merge-prs` trinn 0.75).
-2. Eieren (eller økten som handler på grunnlag av eierens avgjørelse) legger til **`queue`**-
-   etiketten. Etiketten ER flettegodkjenningen; Mergify utfører den bare.
-3. Mergify grupperer opptil 10 PR-er i kø, validerer gruppen mot hurtigportene
-   og fletter dem inn (squash). En rød gruppe **halveres automatisk** — den problematiske PR-en
-   isoleres etter ~log2(N) revalideringer og fjernes fra køen; resten fortsetter.
-4. Etter fletting validerer den kontinuerlige release-green-arbeidsflyten den nye spissen ved push
-   og oppretter en attribusjonssak hvis kombinasjonen førte til en regresjon (aldri automatisk tilbakestilling).
+1. PR-en gjennomgås/godkjennes av kampanjene og godkjennes av eierens ⭐-port før sammenslåing
+   (rapporten + avgjørelsen per element — se `/merge-prs` trinn 0.75).
+2. Eieren (eller økten som handler på grunnlag av eierens avgjørelse) bruker etiketten **`queue`**.
+   Etiketten ER godkjenningen for sammenslåing; Mergify utfører den bare.
+3. Mergify validerer PR-er i køen **sekvensielt** (én om gangen) mot hurtigkontrollene
+   og slår dem sammen (squash). Batching + automatisk biseksjon krever et betalt Mergify-nivå
+   ("Cannot use Merge Queue batch" med gratisabonnementet, #7220), så `.mergify.yml` angir ingen
+   `batch_size`; batching er fortsatt oppgaven til det manuelle sammenslåingstoget nedenfor. En PR
+   der kontrollene fortsatt venter etter `checks_timeout` (240 min = 2× målt p95 for
+   `quality.yml`), tas ut av køen i stedet for å blokkere den.
+4. Etter sammenslåing validerer den kontinuerlige arbeidsflyten for utgivelsesgodkjenning den nye
+   spissen ved push og oppretter en attribusjonssak hvis kombinasjonen har regrediert (aldri
+   automatisk tilbakestilling).
 
-Sikkerhetsmekanismer (gjenspeiler `CLAUDE.md`’s absolutte regler nr. 21/22):
+Sikkerhetsmekanismer (gjenspeiler de ufravikelige reglene #21/#22 i `CLAUDE.md`):
 
-- **Utgivelsesfrys aktiv** → IKKE merk PR-er som er rettet mot den fryste grenen; endre først målet til
-  den aktive `release/vX+1`.
-- **En annen økts pågående PR** → merk den aldri; bare eierøkten setter sitt eget arbeid
-  i kø.
-- Differ som bare inneholder tester, og PR-er med `hotfix`-etiketten kjører allerede redusert CI (se
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); købetingelsene godtar sjekksettet som
-  faktisk ble kjørt (`#check-failure=0` + `#check-pending=0`).
+- **Aktiv utgivelsesfrys** → IKKE merk PR-er som retter seg mot den fryste grenen; endre først
+  mål til den aktive `release/vX+1`.
+- **En annen økts pågående PR** → merk den aldri; bare eierøkten setter sitt eget arbeid i kø.
+- Differanser som bare gjelder tester, og PR-er merket med `hotfix`, kjører allerede redusert CI
+  (se `RELEASE_CHECKLIST.md` → hurtigløp for hurtigrettinger); købetingelsene godtar det
+  kontrollsettet som faktisk ble kjørt (`#check-failure=0` + `#check-pending=0`).
 
-## Reserveløsning: det manuelle flettetoget
+## Reserveløsning: det manuelle sammenslåingstoget
 
 Brukes når køen er utilgjengelig. Dette formaliserer praksisen som behandlet 33 PR-er på
 én dag under v3.8.47-syklusen:
 
-1. **Sett sammen gruppen** (~10–30 gjennomgåtte+godkjente PR-er). Se etter `linked:`-kollisjoner
-   (samme `tap.testFiles`, samme CHANGELOG-bolker) og kjør disse sekvensielt.
-2. **Valider ÉN GANG**: I et isolert worktree basert på utgivelsesspissen flettes alle gruppens
-   head-er lokalt, og kjør deretter testpakken tilsvarende en utgivelse
-   (`npm run check:release-green`, legg til `--with-build` før en utgivelse).
+1. **Sett sammen gruppen** (~10–30 gjennomgåtte og godkjente PR-er). Se etter `linked:`-kollisjoner
+   (samme `tap.testFiles`, samme CHANGELOG-seksjoner), og behandle disse sekvensielt.
+2. **Valider ÉN GANG**: I et isolert worktree basert på utgivelsesspissen slår du sammen alle
+   gruppegrenene lokalt og kjører deretter den utgivelsesekvivalente pakken
+   (`npm run check:release-green`; legg til `--with-build` før en utgivelse).
    `scripts/release/merge-train.sh <base> <PR#>…` automatiserer trinn 1–2 (PR-er med
-   konflikter støtes ut, toget fortsetter). Full modus kjører `npm run test:unit` — den
-   maskintilpassede kjøreren (`--test-concurrency=20`), **ikke** de to sekvensielle CI-delene
+   konflikter kobles fra, og toget fortsetter). Full modus kjører `npm run test:unit` — den
+   maskintilpassede kjøringen (`--test-concurrency=20`), **ikke** de to sekvensielle CI-delene
    med 4 kjerner, som kjørte den dominerende fasen på ~25 % av en maskin med 16 kjerner (rettet
-   2026-07-18). `--fast` (tømming av svært store tog i løpet av dagen, eiergodkjent 2026-07-18)
+   2026-07-18). `--fast` (tømming av svært store tog i løpet av dagen, godkjent av eieren 2026-07-18)
    beholder alle statiske porter + vitest, men kjører bare node:test-filene som er endret av
-   PR-ene om bord; HELE testpakken må fortsatt kjøres minst én gang per dag på den
+   PR-ene om bord; HELE pakken må fortsatt kjøres minst én gang per dag på den
    akkumulerte spissen (ett tog uten `--fast`).
-3. **Grønt** → flett PR-ene i rekkefølge (kontroller `state,headRefOid` på nytt før hver —
-   en PR der head har flyttet seg, går tilbake til gjennomgang). Bevis at nettdiffen fra hver fletting er
-   PR-ens egen endring (ingen automatiske tilbakestillinger ved konfliktløsning: kontroller `git diff --stat` for
+3. **Grønt** → slå sammen PR-ene i rekkefølge (kontroller `state,headRefOid` på nytt før hver —
+   en PR hvis head har flyttet seg, må gjennomgås på nytt). Bevis at nettodiffen for hver sammenslåing er
+   PR-ens egen endring (ingen automatisk konfliktløsing som tilbakefører endringer: kontroller `git diff --stat` for
    slettinger utenfor omfanget).
 4. **Rødt** → halver gruppen (valider hver halvdel) i stedet for å revalidere
-   én etter én; send den problematiske PR-en tilbake til gjennomgangskøen med dokumentasjonen.
-5. **Aldri**: flett inn i den fryste grenen under en utgivelsesfrys; bruk `git stash` noe sted;
-   kjør hele CI på nytt i håp om at en rød status forsvinner (regel: rødt er informasjon).
+   én og én; send den problematiske PR-en tilbake til gjennomgangskøen sammen med dokumentasjonen.
+5. **Aldri**: slå sammen til den fryste grenen under en utgivelsesfrys; bruk `git stash` noe sted;
+   kjør all CI på nytt i håp om at rødt forsvinner (regel: rødt er informasjon).
 
 ## Nivåinndeling (hvorfor køen er trygg med bare hurtigporter)
 
-- **Per PR** (quality.yml-hurtigporter): TIA-berørte tester + full enhetstest med 4 deler +
-  vitest + lint-samling + typecheck + integritetskontroll av dokumentasjon/endringslogg.
-- **Per gruppe/spiss** (kontinuerlig release-green): `--quick`-HARD-porter ved hver push til
+- **Per PR** (hurtigporter i quality.yml): TIA-berørte tester + alle enhetstester i 4 deler +
+  vitest + lint-pakke + typecheck + integritetskontroll av dokumentasjon/endringslogg.
+- **Per gruppe/spiss** (kontinuerlig grønn utgivelse): HARDE `--quick`-porter ved hver push til
   utgivelsesgrenen; fullstendige `--with-build --full-ci`-gjennomkjøringer 3×/dag.
-- **Per utgivelse** (ci.yml på utgivelses-PR-en): den komplette matrisen inkl. E2E ×9,
-  pakkeartefakt + oppstarts-røyktest av tarball, coverage/ratchets.
+- **Per utgivelse** (ci.yml på utgivelses-PR-en): hele matrisen, inkl. E2E ×9,
+  pakkeartifakt + oppstarts-røyktest av tarball, dekning/terskler.
 
-Ingenting valideres mindre enn før — den tunge testflaten kjøres bare per gruppe/spiss
-i stedet for per PR, og det er dette som fjerner O(N)-rundturene.
+Ingenting valideres mindre enn før — den tunge overflaten kjøres bare per gruppe/spiss
+i stedet for per PR, og det er dette som fjerner O(N) tur-retur-kjøringene.
+
+## Forutsetninger for `merge-train.sh` ved en ny utsjekking
+
+Skriptet kjører en **forhåndskontroll** med umiddelbar avbrytelse på rotutsjekkingen (før noe arbeid
+i worktree), slik at en ødelagt installasjon aldri kan fremstå som et rødt tog:
+
+1. `npm ci`, og kjør deretter `bun`-etterinstallasjonen som npm blokkerer:
+   `(cd node_modules/bun && node install.js)` — ellers feiler `check:provider-consistency`
+   og `check:known-symbols` (begge `bun scripts/…`) både på toget OG på basen uten
+   noen linje som angir et regelbrudd.
+2. Ingen uvedkommende `node_modules/node_modules` (et duplisert avhengighetstre; React lastes to ganger,
+   og UI-vitest-pakkene feiler umiddelbart).
+3. `node_modules/.bin/tsc` må finnes og være kjørbar (en ufullstendig installasjon mangler den).
+
+Toget kjører den blokkerende `npm run check:cycles:ratchet`; vanlig `npm run check:cycles`
+er kun veiledende (den viser SCC-ene og avsluttes med en annen status enn null, selv på en frisk base).

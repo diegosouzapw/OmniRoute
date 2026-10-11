@@ -143,38 +143,38 @@ Embedding model ပြောင်းလဲသည့်အခါ (`embedding_sig
 - `last_reset_at` — နောက်ဆုံး အပြည့်အဝ reset လုပ်ခဲ့သည့် timestamp။
 - `vec_loaded` — sqlite-vec အောင်မြင်စွာ load ဖြစ်၊ မဖြစ်ကို ဖော်ပြသည့် 0/1 flag။
 
-## ဆက်တင် တိုးချဲ့မှု
+## ဆက်တင်များ တိုးချဲ့မှု
 
 Embedding နှင့် vector field ကိုးခုကို `src/shared/schemas/memory.ts` ရှိ
-`MemorySettingsExtended` တွင် ရရှိနိုင်ပြီး `src/lib/db/settings.ts` မှတစ်ဆင့် အမြဲတမ်းသိမ်းဆည်းထားသည်-
+`MemorySettingsExtended` တွင် အသုံးပြုနိုင်ပြီး `src/lib/db/settings.ts` မှတစ်ဆင့် အမြဲတမ်းသိမ်းဆည်းထားသည်-
 
-| Field                    | Type                                               | Default  | Description                                                                               |
-| ------------------------ | -------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | အသုံးပြုမည့် embedding ရင်းမြစ်                                                           |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ဖော်မတ်ဖြင့် provider/model                                              |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory အတွက်သာဖြစ်သော OpenAI-compatible endpoint အခြေခံ URL                               |
-| `customModelId`          | `string \| null`                                   | `null`   | စိတ်ကြိုက် endpoint သို့ ပေးပို့မည့် model ID                                             |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js အတွက် အသုံးပြုရန် ရွေးချယ်ခြင်း (MiniLM, ~400MB)                          |
-| `staticEnabled`          | `boolean`                                          | `false`  | static potion-base-8M local model အတွက် အသုံးပြုရန် ရွေးချယ်ခြင်း                         |
-| `rerankEnabled`          | `boolean`                                          | `false`  | ပြန်လည်အဆင့်သတ်မှတ်ခြင်း အဆင့်ကို ဖွင့်ရန် (တောင်းဆိုမှုတစ်ခုလျှင် +200-500ms ထပ်တိုးသည်) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ဖော်မတ်ဖြင့် ပြန်လည်အဆင့်သတ်မှတ်မှု provider/model                       |
+| Field                    | Type                                               | Default  | Description                                                                |
+| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | အသုံးပြုမည့် embedding ရင်းမြစ်                                            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` ပုံစံရှိ provider/model                                   |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | Memory အတွက်သာဖြစ်သည့် OpenAI-compatible endpoint base URL                 |
+| `customModelId`          | `string \| null`                                   | `null`   | စိတ်ကြိုက် endpoint သို့ ပေးပို့မည့် model ID                              |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js (MiniLM, ~400MB) အတွက် ရွေးချယ်ဖွင့်ထားခြင်း               |
+| `staticEnabled`          | `boolean`                                          | `false`  | static potion-base-8M local model အတွက် ရွေးချယ်ဖွင့်ထားခြင်း              |
+| `rerankEnabled`          | `boolean`                                          | `false`  | reranking အဆင့်ကို ဖွင့်ရန် (တောင်းဆိုမှုတစ်ခုလျှင် +200-500ms ထပ်တိုးသည်) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` ပုံစံရှိ rerank provider/model                            |
 
-`rerankProviderModel` ကို `POST /v1/rerank` က ဖြေရှင်းပေးသည် (loopback မှတစ်ဆင့် ခေါ်ယူသည်)။ ထို့ကြောင့် ထို route က လက်ခံသည့် မည်သည့်အရာကိုမဆို လက်ခံသည်- ရွေးချယ်စုစည်းထားသော cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) သို့မဟုတ် `<node-prefix>/<model>` ပုံစံဖြင့် OpenAI-compatible provider node (ဥပမာ TEI/Infinity box အတွက် `skilled-mini/bge-reranker-v2-m3`) ဖြစ်သည်။ Loopback node များကို အမြဲတမ်း အသုံးပြုနိုင်သည်။ အခြား host (LAN, Tailscale) ပေါ်ရှိ node တစ်ခုသည် ထပ်မံ၍ `RERANK_REMOTE_PROVIDER_NODES` feature flag လိုအပ်ပြီး provider outbound URL policy ကိုလည်း အောင်မြင်ရမည် — [Feature Flags](../reference/FEATURE_FLAGS.md) ကို ကြည့်ပါ။ Dashboard selector သည် ရွေးချယ်စုစည်းထားသော provider များနှင့် local node များကို စာရင်းပြုစုဖော်ပြသည်။ မှန်ကန်သော `provider/model` string မည်သည့်ခုကိုမဆို `PUT /api/settings/memory` မှတစ်ဆင့် တိုက်ရိုက်သတ်မှတ်နိုင်သည်။
+`rerankProviderModel` ကို `POST /v1/rerank` (loopback မှတစ်ဆင့် ခေါ်ဆိုသည်) က ဖြေရှင်းပေးသောကြောင့် ထို route က လက်ခံသည့် မည်သည့်အရာကိုမဆို လက်ခံသည်- ရွေးချယ်စီစဉ်ထားသည့် cloud rerank model (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) သို့မဟုတ် `<node-prefix>/<model>` ပုံစံရှိ OpenAI-compatible provider node (ဥပမာ TEI/Infinity box အတွက် `skilled-mini/bge-reranker-v2-m3`) ဖြစ်သည်။ Loopback node များနှင့် `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` တွင် စာရင်းသွင်းထားသည့် hostname များ (ဥပမာ Docker/Compose service အမည်) ကို အမြဲတမ်း အသုံးပြုခွင့်ရှိသည်။ အခြား host တစ်ခု (LAN, Tailscale) ပေါ်ရှိ node တစ်ခုအတွက် `RERANK_REMOTE_PROVIDER_NODES` feature flag ကို ထပ်မံလိုအပ်ပြီး provider outbound URL policy ကိုလည်း ဖြတ်ကျော်ရမည် — [Feature Flags](../reference/FEATURE_FLAGS.md) ကို ကြည့်ပါ။ Dashboard selector တွင် ရွေးချယ်စီစဉ်ထားသည့် provider များနှင့် local node များကို စာရင်းပြုစုထားသည်။ တရားဝင်သည့် မည်သည့် `provider/model` string ကိုမဆို `PUT /api/settings/memory` မှတစ်ဆင့် တိုက်ရိုက်သတ်မှတ်နိုင်သည်။
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | အသုံးပြုမည့် vector backend |
 
-၎င်းတို့ကို `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`) မှတစ်ဆင့် အသုံးပြုနိုင်သည်။
+၎င်းတို့ကို `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`) မှတစ်ဆင့် ဖော်ထုတ်ပေးထားသည်။
 
 `remote` ရင်းမြစ်အတွက် Memory သည် ရွေးချယ်နိုင်သော `customBaseUrl` နှင့်
-`customModelId` ဆက်တင်များကိုလည်း လက်ခံသည်။ ၎င်းတို့ကို တွဲဖက်အသုံးပြုခြင်းဖြင့် global embedding registry ကို မပြောင်းလဲဘဲ OpenAI-compatible `/embeddings`
-endpoint နှင့် model ကို ရွေးချယ်နိုင်သည်။ အသုံးမပြုမီ endpoint ကို
-စံပုံစံဖြစ်အောင် ပြောင်းလဲပြီး provider outbound URL policy ဖြင့် စစ်ဆေးသည်- HTTP(S) ကို
-မဖြစ်မနေလိုအပ်သည်၊ ထည့်သွင်းမြှုပ်နှံထားသော credential များနှင့် query string များကို ပယ်ချပြီး cloud-metadata
-လိပ်စာများကို ဆက်လက်ပိတ်ပင်ထားသည်။ အလွတ်တန်ဖိုးများသည် ရွေးချယ်ထားသော registry provider ကို မပြောင်းလဲဘဲ ထိန်းသိမ်းပေးသည်။ Dashboard သို့
-ပြန်ပေးသည့် error များကို အရေးကြီးအချက်အလက်များ ဖယ်ရှားသန့်စင်ထားပြီး endpoint credential များကို မည်သည့်အခါမျှ log မှတ်တမ်းမတင်ပါ။
+`customModelId` ဆက်တင်များကိုလည်း လက်ခံသည်။ ၎င်းတို့နှစ်ခုကို ပေါင်းစပ်အသုံးပြုခြင်းဖြင့် global embedding registry ကို မပြောင်းလဲဘဲ OpenAI-compatible `/embeddings`
+endpoint နှင့် model ကို ရွေးချယ်နိုင်သည်။ Endpoint ကို အသုံးမပြုမီ
+စံပုံစံဖြစ်အောင် ပြင်ဆင်ပြီး provider outbound URL policy ဖြင့် စစ်ဆေးသည်- HTTP(S) ဖြစ်ရန်
+လိုအပ်ပြီး ထည့်သွင်းမြှုပ်နှံထားသော credential များနှင့် query string များကို ငြင်းပယ်ကာ cloud-metadata
+လိပ်စာများကို ဆက်လက်ပိတ်ဆို့ထားသည်။ တန်ဖိုးအလွတ်များသည် ရွေးချယ်ထားသော registry provider ကို မပြောင်းလဲဘဲ ထိန်းသိမ်းထားသည်။ Dashboard သို့
+ပြန်ပို့သည့် error များကို အရေးကြီးအချက်အလက်များ ဖယ်ရှားထားပြီး endpoint credential များကို မည်သည့်အခါမျှ log မမှတ်တမ်းတင်ပါ။
 
-> **TODO (D20):** Scope `global` (API key အားလုံးတွင် memory များ မျှဝေခြင်း) ကို ဤ release တွင်
-> အကောင်အထည်မဖော်ရသေးပါ။ ၎င်းသည် schema ပြောင်းလဲမှုများနှင့် global retrieval
-> လမ်းကြောင်းတစ်ခု လိုအပ်သည်။ သီးခြားခြေရာခံပါ။
+> **TODO (D20):** API key အားလုံးအကြား memory များ မျှဝေရန်အတွက် `global` scope ကို ဤ release တွင်
+> အကောင်အထည်မဖော်ရသေးပါ။ ၎င်းအတွက် schema ပြောင်းလဲမှုများနှင့် global retrieval
+> path တစ်ခု လိုအပ်သည်။ သီးခြားစီ ခြေရာခံပါ။
 
 ## သိုလှောင်မှု အလွှာများ
 
@@ -859,10 +859,10 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ## MemoryBackend Provider ပုံစံ
 
-> **အမှန်တကယ် ကိုးကားရမည့် အရင်းအမြစ်:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **မူရင်းအမှန်အဖြစ် သတ်မှတ်ထားသည့် ရင်းမြစ်:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **စမ်းသပ်မှုများ:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend provider ပုံစံသည် လက်ရှိ memory engine အပေါ်တွင် **တပ်ဆင်ပြောင်းလဲနိုင်သော backend abstraction layer** တစ်ခုကို မိတ်ဆက်ပေးသည်။ storage implementation တစ်ခုတည်းနှင့် ချည်နှောင်ထားမည့်အစား memory system သည် ယခုအခါ ပြင်ဆင်သတ်မှတ်နိုင်သော primary/fallback routing ဖြင့် backend အများအပြား (SQLite, Obsidian, Notion, စိတ်ကြိုက် HTTP backend များ) ကို ပံ့ပိုးပေးသည်။
+MemoryBackend provider ပုံစံသည် ရှိပြီးသား memory engine ပေါ်တွင် **အစားထိုးတပ်ဆင်နိုင်သော backend abstraction layer** တစ်ခုကို ထည့်သွင်းပေးသည်။ Storage implementation တစ်မျိုးတည်းနှင့် ချိတ်ဆက်ကန့်သတ်ထားမည့်အစား၊ memory system သည် ယခုအခါ ပြင်ဆင်သတ်မှတ်နိုင်သော primary/fallback routing ဖြင့် backend အမျိုးမျိုး (SQLite, Obsidian, Notion၊ စိတ်ကြိုက် HTTP backend များ) ကို ပံ့ပိုးပေးသည်။
 
 ### တည်ဆောက်ပုံ
 
@@ -874,7 +874,7 @@ MemoryBackend provider ပုံစံသည် လက်ရှိ memory engine
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           Singleton စီမံညှိနှိုင်းသူ (manager.ts)          │
+│           Singleton ညှိနှိုင်းစီမံသူ (manager.ts)         │
 │                                                          │
 │  Primary ──► Backend A  (ဥပမာ SQLite)                    │
 │  Fallback ─► Backend B  (ဥပမာ Obsidian)                  │
@@ -891,14 +891,14 @@ MemoryBackend provider ပုံစံသည် လက်ရှိ memory engine
 
 #### အဓိက Interface (`backend.ts`)
 
-backend တိုင်းသည် `MemoryBackend` interface ကို implement လုပ်ရမည်-
+Backend တိုင်းသည် `MemoryBackend` interface ကို implement လုပ်ရမည်-
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // ဖန်တီးခြင်း၊ ဖတ်ရှုခြင်း၊ ပြင်ဆင်ခြင်းနှင့် ဖျက်ခြင်း
+  // ဖန်တီးခြင်း၊ ဖတ်ခြင်း၊ ပြင်ဆင်ခြင်းနှင့် ဖျက်ခြင်း
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -908,10 +908,10 @@ interface MemoryBackend {
   // ရှာဖွေခြင်း
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // စနစ်အခြေအနေ
+  // အခြေအနေ
   health(): Promise<HealthCheckResult>;
 
-  // သက်တမ်းစက်ဝန်း (မဖြစ်မနေ မဟုတ်)
+  // သက်တမ်းစက်ဝန်း (ရွေးချယ်နိုင်)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -919,51 +919,51 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-အောက်ပါတို့ကို လုပ်ဆောင်သည့် Singleton စီမံညှိနှိုင်းသူ-
+အောက်ပါလုပ်ဆောင်ချက်များကို ဆောင်ရွက်သည့် Singleton ညှိနှိုင်းစီမံသူ-
 
-- `register(backend)` မှတစ်ဆင့် backend များကို **စာရင်းသွင်းသည်** — `index.ts` မှ စတင်တက်လာချိန်တွင် ခေါ်ယူသည်
+- `register(backend)` မှတစ်ဆင့် backend များကို **စာရင်းသွင်းသည်** — boot လုပ်ချိန်တွင် `index.ts` မှ ခေါ်ယူသည်
 - `configure(primary, fallbacks)` မှတစ်ဆင့် primary + fallback ကို **ပြင်ဆင်သတ်မှတ်သည်**
-- လုပ်ဆောင်မှု ပျက်ကွက်ပါက fallback chain ကို အသုံးပြု၍ CRUD/search ကို primary ထံ **လမ်းကြောင်းပေးသည်**
-- backend အားလုံး၏ **စနစ်အခြေအနေကို** အချိန်မှန် စစ်ဆေးသည်
+- CRUD/search ကို primary သို့ **လမ်းကြောင်းခွဲပေးပြီး** မအောင်မြင်ပါက fallback chain ကို အသုံးပြုသည်
+- Backend အားလုံးအတွက် **အခြေအနေစစ်ဆေးမှုများ** ကို အချိန်မှန်မှန် ပြုလုပ်သည်
 
 **Fallback လုပ်ဆောင်ပုံ-**
 
-| လုပ်ဆောင်ချက် | Primary                          | Fallback များ                        |
-| ------------- | -------------------------------- | ------------------------------------ |
-| `create`      | ✅ Primary သာ                    | ❌                                   |
-| `get`         | ✅ Primary ကို ဦးစွာ စမ်းသပ်သည်  | ✅ null ဖြစ်ပါက Fallback             |
-| `update`      | ✅ Primary သာ                    | ✅ တုံ့ပြန်မှုမစောင့်ဘဲ sync လုပ်သည် |
-| `delete`      | ✅ Primary သာ                    | ✅ တုံ့ပြန်မှုမစောင့်ဘဲ sync လုပ်သည် |
-| `list`        | ✅ Primary သာ                    | ❌                                   |
-| `search`      | ✅ Primary ကို ဦးစွာ အသုံးပြုသည် | ✅ error ဖြစ်ပါက Fallback            |
+| လုပ်ဆောင်ချက် | Primary                      | Fallback များ                        |
+| ------------- | ---------------------------- | ------------------------------------ |
+| `create`      | ✅ Primary သာလျှင်           | ❌                                   |
+| `get`         | ✅ Primary ကို ဦးစွာ စမ်းသည် | ✅ null ဖြစ်ပါက Fallback             |
+| `update`      | ✅ Primary သာလျှင်           | ✅ တုံ့ပြန်မှုမစောင့်ဘဲ sync လုပ်သည် |
+| `delete`      | ✅ Primary သာလျှင်           | ✅ တုံ့ပြန်မှုမစောင့်ဘဲ sync လုပ်သည် |
+| `list`        | ✅ Primary သာလျှင်           | ❌                                   |
+| `search`      | ✅ Primary ကို ဦးစွာ သုံးသည် | ✅ error ဖြစ်ပါက Fallback            |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-မည်သည့် REST API ကိုမဆို MemoryBackend တစ်ခုအဖြစ် ပြောင်းလဲအသုံးပြုနိုင်စေသော ယေဘုယျ HTTP connector တစ်ခုဖြစ်သည်။ အောက်ပါတို့အတွက် အသုံးဝင်သည်-
+မည်သည့် REST API ကိုမဆို MemoryBackend အဖြစ် လိုက်လျောညီထွေဖြစ်စေသည့် ယေဘုယျ HTTP connector တစ်ခု။ အောက်ပါတို့အတွက် အသုံးဝင်သည်-
 
-- **Notion** — Notion API မှတစ်ဆင့် ချိတ်ဆက်ပါ
-- **Obsidian** — Obsidian Local REST API မှတစ်ဆင့် ချိတ်ဆက်ပါ
-- **စိတ်ကြိုက် backend များ** — RESTful memory API ကို ဖော်ထုတ်ပေးသည့် မည်သည့် service မဆို
+- **Notion** — Notion API မှတစ်ဆင့် ချိတ်ဆက်ရန်
+- **Obsidian** — Obsidian Local REST API မှတစ်ဆင့် ချိတ်ဆက်ရန်
+- **စိတ်ကြိုက် backend များ** — RESTful memory API ကို ဖော်ထုတ်ပေးထားသည့် မည်သည့် service မဆို
 
-**ပြင်ဆင်သတ်မှတ်မှု:**
+**ပြင်ဆင်သတ်မှတ်ချက်-**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // နောက်ခံ API ၏ အခြေခံ URL
-  apiKey?: string;           // အထောက်အထားစိစစ်မှုအတွက် Bearer token
-  headers?: Record<string, string>;  // စိတ်ကြိုက် HTTP headers
-  timeout?: number;          // တောင်းဆိုမှု အချိန်ကုန်ဆုံးကန့်သတ်ချက် (မူလတန်ဖိုး: 30000ms)
-  backendType?: string;      // မှတ်တမ်းတင်ရန်
+  baseUrl: string;           // Backend API ၏ အခြေခံ URL
+  apiKey?: string;           // အထောက်အထားစစ်ဆေးရန် Bearer token
+  headers?: Record<string, string>;  // စိတ်ကြိုက် HTTP header များ
+  timeout?: number;          // Request အချိန်ကုန်ဆုံးကန့်သတ်ချက် (မူလသတ်မှတ်ချက်- 30000ms)
+  backendType?: string;      // Log မှတ်တမ်းတင်ရန်
 
-  // Endpoint အစားထိုးသတ်မှတ်ချက်များ (မူလတန်ဖိုးများသည် REST စံသတ်မှတ်ချက်များကို အသုံးပြုသည်)
+  // Endpoint အစားထိုးသတ်မှတ်ချက်များ (မူလသတ်မှတ်ချက်များသည် REST စံပုံစံများကို အသုံးပြုသည်)
   endpoints?: {
-    search?: string;   // မူလတန်ဖိုး: "/memories/search"
-    create?: string;   // မူလတန်ဖိုး: "/memories"
-    list?: string;     // မူလတန်ဖိုး: "/memories"
-    get?: string;      // မူလတန်ဖိုး: "/memories/{id}"
-    update?: string;   // မူလတန်ဖိုး: "/memories/{id}"
-    delete?: string;   // မူလတန်ဖိုး: "/memories/{id}"
-    health?: string;   // မူလတန်ဖိုး: "/health"
+    search?: string;   // မူလသတ်မှတ်ချက်- "/memories/search"
+    create?: string;   // မူလသတ်မှတ်ချက်- "/memories"
+    list?: string;     // မူလသတ်မှတ်ချက်- "/memories"
+    get?: string;      // မူလသတ်မှတ်ချက်- "/memories/{id}"
+    update?: string;   // မူလသတ်မှတ်ချက်- "/memories/{id}"
+    delete?: string;   // မူလသတ်မှတ်ချက်- "/memories/{id}"
+    health?: string;   // မူလသတ်မှတ်ချက်- "/health"
   };
 
   // Query parameter အမည် ချိတ်ဆက်သတ်မှတ်ချက်များ
@@ -978,18 +978,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**လူသိများသော နောက်ခံစနစ်များ** ကို `KNOWN_BACKENDS` တွင် ကြိုတင်ပြင်ဆင်သတ်မှတ်ထားသည်-
+**သိရှိပြီးသား backend များ** ကို `KNOWN_BACKENDS` တွင် ကြိုတင်ပြင်ဆင်သတ်မှတ်ထားသည်-
 
 ```typescript
-createKnownBackend("obsidian"); // → localhost:27123 ကို ညွှန်ပြထားသော GenericMemoryBackend
-createKnownBackend("notion"); // → api.notion.com/v1 ကို ညွှန်ပြထားသော GenericMemoryBackend
+createKnownBackend("obsidian"); // → localhost:27123 ကို ညွှန်ထားသော GenericMemoryBackend
+createKnownBackend("notion"); // → api.notion.com/v1 ကို ညွှန်ထားသော GenericMemoryBackend
 ```
 
-#### အသင့်ပါဝင်သော နောက်ခံစနစ်များ
+#### Built-in Backend များ
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-မူလ ပင်မနောက်ခံစနစ်ဖြစ်သည်။ `src/lib/memory/store.ts` ကို အသုံးပြု၍ ရှိပြီးသား SQLite အခြေပြု memory store ကို ထုပ်ပိုးထားသည်။ စတင်ချိန်တွင် အလိုအလျောက် မှတ်ပုံတင်ပေးသည်။
+မူလ primary backend ဖြစ်သည်။ `src/lib/memory/store.ts` ကို အသုံးပြုသည့် ရှိပြီးသား SQLite အခြေပြု memory store ကို အုပ်ပိုးပေးထားသည်။ Boot လုပ်ချိန်တွင် အလိုအလျောက် စာရင်းသွင်းသည်။
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -998,41 +998,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-ရှိပြီးသား Obsidian ပေါင်းစည်းမှု (`src/lib/memory/obsidianBackend.ts`) ကို ထုပ်ပိုးထားသည်။ Obsidian Local REST API မှတစ်ဆင့် Obsidian vault တစ်ခုနှင့် ချိတ်ဆက်သည်။
+ရှိပြီးသား Obsidian integration (`src/lib/memory/obsidianBackend.ts`) ကို အုပ်ပိုးပေးထားသည်။ Obsidian Local REST API မှတစ်ဆင့် Obsidian vault တစ်ခုနှင့် ချိတ်ဆက်သည်။
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Coding session များကို "observation" များအဖြစ် ဖမ်းယူသည့် Claude Code / Codex / Cursor memory plugin ဖြစ်သော local [claude-mem](https://github.com/thedotmack/claude-mem) worker အတွက် adapter ဖြစ်သည်။
+၎င်းကို စာရင်းသွင်းထားပါက `/api/memory` REST route များနှင့် A2A memory search တို့သည် claude-mem ၏ hook များက ဖြည့်သွင်းသည့် store တစ်ခုတည်းကို ဖတ်ရှုနိုင်ပြီး ရေးသားနိုင်သည်။
+
+Worker သည် loopback နှင့်သာ ချိတ်ဆက်ထားပြီး `GenericMemoryBackend` ၏ SSRF guard က ၎င်းကို ရည်ရွယ်ချက်ရှိရှိ ငြင်းပယ်သည်။
+ဤ adapter သည် ထို guard ကို ဖြေလျှော့မထားပါ။ Host ကို `127.0.0.1` အဖြစ် တိတိကျကျ သတ်မှတ်ထားပြီး config
+schema (`ClaudeMemBackendConfigSchema`, `.strict()`) သည် အောက်ပါတို့ကိုသာ လက်ခံသည်-
+
+| ကီး         | အမျိုးအစား | မူလတန်ဖိုး | မှတ်ချက်များ                                                                                                                            |
+| ----------- | ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number     | —          | မဖြစ်မနေ လိုအပ်ပြီး 1024–65535 အတွင်း ဖြစ်ရမည်။ ၎င်း၏ ဆက်တင်ဖိုင်မှ claude-mem worker port ဖြစ်သည် (မူလတန်ဖိုး `37700 + uid % 100`)။    |
+| `project`   | string     | —          | အသုံးပြုမည့် claude-mem project။ မသတ်မှတ်ထားပါက → OmniRoute API key တစ်ခုစီသည် ၎င်း၏ ကိုယ်ပိုင် project (`apiKeyId`) နှင့် ချိတ်ဆက်မည်။ |
+| `timeoutMs` | number     | `5000`     | request တစ်ခုစီအတွက် timeout ဖြစ်ပြီး 100–30000 အတွင်း ဖြစ်ရမည်။                                                                        |
+
+၎င်းကို `PUT /api/settings/memory` မှတစ်ဆင့် ဖွင့်ပြီး OmniRoute ကို ပြန်လည်စတင်ပါ (backend များကို
+`initMemoryBackends()` တွင် တစ်ကြိမ်သာ register လုပ်သည်)။
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+REST API အတွက် store အဖြစ် သတ်မှတ်လိုပါက `"primaryBackend": "claude-mem"` ကို အစားထိုးအသုံးပြုပါ။ မမှန်ကန်သော
+config ကို log မှတ်တမ်းတင်ပြီး (`claude-mem.backend.invalid_config`) ကျော်သွားမည်ဖြစ်သောကြောင့် SQLite သည် primary အဖြစ် ဆက်ရှိနေမည်။
+
+ချိတ်ဆက်ပုံနှင့် ကန့်သတ်ချက်များ-
+
+- ID များသည် `claude-mem:<observationId>` ပုံစံဖြစ်သည်။ `get`/`delete` သည် အခြား backend များ၏ ID များကို
+  network call မပြုလုပ်ဘဲ လျစ်လျူရှုသည်။
+- `create` → `POST /api/memory/save`; OmniRoute field များဖြစ်သော (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) ကို claude-mem ၏ `metadata.omniroute` အတွင်း ထည့်သွင်းပို့ဆောင်ပြီး ဖတ်ရှုသည့်အခါ မူလအတိုင်း ပြန်လည်ရရှိသည်။
+- `search` → `GET /api/search?format=json&type=observations` ဖြစ်ပြီး `maxTokens`
+  (chars / 4) အထိ ဖြတ်တောက်ထားသည်။ `list` → worker ၏ စာမျက်နှာခွဲထားသော observations endpoint (`total` သည် အနည်းဆုံးအရေအတွက်ဖြစ်သည် — worker သည်
+  အရေအတွက်အစား `hasMore` ကို ပြန်ပေးသည်)။
+- Hook မှ ဖမ်းယူထားသော observation များကို `discovery` → `factual`, `decision` → `procedural` နှင့်
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` အဖြစ် ချိတ်ဆက်သတ်မှတ်သည်။
+- **Update မရှိပါ** (`update()` သည် `false` ကို ပြန်ပေးသည်၊ observation များကို ပြောင်းလဲ၍မရပါ)၊ ထို့အပြင် **TTL မရှိပါ**
+  (`expiresAt` ကို လျစ်လျူရှုသည်)။ claude-mem သည် `key` ဖြင့် upsert လုပ်မည့်အစား တူညီသော save များကို dedup လုပ်သည်။
+- Prompt injection (`retrieval.ts`) နှင့် `omniroute_memory_*` MCP tool များသည် SQLite ကို
+  တိုက်ရိုက်ဖတ်နေဆဲဖြစ်သည် — ၎င်းတို့သည် `memoryManager` မှတစ်ဆင့် မသွားသောကြောင့် ဤ backend မှ data မပေးနိုင်ပါ။
+
+**claude-mem ၏ ကိုယ်ပိုင် LLM call များကို OmniRoute မှတစ်ဆင့် လမ်းကြောင်းသတ်မှတ်ခြင်း။** claude-mem သည် observation များကို
+LLM ဖြင့် ချုံ့သည် (မူလတန်ဖိုး- Claude Agent SDK)။ ၎င်း၏ `openai-compatible` provider ကို
+OmniRoute သို့ ညွှန်ပြနိုင်ပြီး combo fallback နှင့် ကုန်ကျစရိတ်ခြေရာခံခြင်းကို အသုံးပြုနိုင်သည်။ `~/.claude-mem/settings.json` တွင်-
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
 
 ### ဆက်တင်များ
 
-Memory နောက်ခံစနစ် ဆက်တင်များကို အက်ပ်ဆက်တင်ဇယားတွင် သိမ်းဆည်းထားပြီး `src/lib/memory/settings.ts` မှတစ်ဆင့် စီမံခန့်ခွဲသည်-
+Memory backend ဆက်တင်များကို app settings table တွင် သိမ်းဆည်းပြီး `src/lib/memory/settings.ts` မှတစ်ဆင့် စီမံသည်-
 
-| ဆက်တင်                           | Env/Config Key           | မူလတန်ဖိုး | ဖော်ပြချက်                                                   |
-| -------------------------------- | ------------------------ | ---------- | ------------------------------------------------------------ |
-| ပင်မနောက်ခံစနစ်                  | `memoryPrimaryBackend`   | `"sqlite"` | ပင်မနောက်ခံစနစ်၏ ID                                          |
-| အရန်နောက်ခံစနစ်များ              | `memoryFallbackBackends` | `[]`       | အစဉ်လိုက် စီထားသော အရန်နောက်ခံစနစ် ID များ                   |
-| နောက်ခံစနစ် စီစဉ်သတ်မှတ်ချက်များ | `memoryBackendConfigs`   | `{}`       | နောက်ခံစနစ်တစ်ခုချင်းအလိုက် စီစဉ်သတ်မှတ်ချက် အစားထိုးမှုများ |
+| ဆက်တင်                | Env/Config ကီး           | မူလတန်ဖိုး | ဖော်ပြချက်                                     |
+| --------------------- | ------------------------ | ---------- | ---------------------------------------------- |
+| Primary backend       | `memoryPrimaryBackend`   | `"sqlite"` | Primary backend ၏ ID                           |
+| Fallback backend များ | `memoryFallbackBackends` | `[]`       | အစဉ်လိုက် စီထားသော fallback backend ID များ    |
+| Backend config များ   | `memoryBackendConfigs`   | `{}`       | Backend တစ်ခုချင်းစီအတွက် config override များ |
 
-ဆက်တင်များကို `normalizeMemorySettings()` မှတစ်ဆင့် စံပုံစံဖြစ်အောင် ပြုလုပ်ပြီး `getMemorySettings()` တွင် ယာယီသိမ်းဆည်းထားသည်။
+ဆက်တင်များကို `normalizeMemorySettings()` မှတစ်ဆင့် ပုံမှန်ပုံစံဖြစ်အောင် ပြုလုပ်ပြီး `getMemorySettings()` တွင် cache လုပ်ထားသည်။
 
-### စတင်ပြင်ဆင်ခြင်း လုပ်ငန်းစဉ်
+### စတင်ပြင်ဆင်မှု လုပ်ငန်းစဉ်
 
 ```
-အက်ပ် စတင်ခြင်း
-  → index.ts မှ ထည့်သွင်းမှုများ (ဘေးထွက်အကျိုးသက်ရောက်မှု)- SQLiteBackend ကို မှတ်ပုံတင်သည်
-  → အက်ပ်၏ lifecycle မှ initMemoryBackends() ကို ခေါ်သည်-
-      1. ဆက်တင်များကို ဖွင့်ယူသည် (getMemorySettings)
-      2. ပင်မနှင့် အရန်နောက်ခံစနစ်များကို စီစဉ်သတ်မှတ်သည်
-      3. နောက်ခံစနစ်အားလုံးကို စတင်ပြင်ဆင်သည် (ကျန်းမာရေး စစ်ဆေးမှု)
-      4. တောင်းဆိုမှုများအတွက် အသင့်ဖြစ်ပြီ
+App ကို စတင်တင်သွင်းခြင်း
+  → index.ts က import လုပ်ခြင်း (ဘေးထွက်အကျိုးသက်ရောက်မှု)- SQLiteBackend ကို register လုပ်သည်
+  → app lifecycle မှ initMemoryBackends() ကို ခေါ်သည်-
+      1. ဆက်တင်များကို load လုပ်သည် (getMemorySettings)
+      1b. backendConfigs တွင် ပါရှိသော ရွေးချယ်ဖွင့်ထားသည့် backend များကို register လုပ်သည် (claude-mem)
+      2. primary + fallback ကို configure လုပ်သည်
+      3. backend အားလုံးကို initialize လုပ်သည် (အခြေအနေစစ်ဆေးမှု)
+      4. request များကို လက်ခံရန် အသင့်ဖြစ်ပြီ
 ```
 
-### နောက်ခံစနစ်အသစ် ထည့်သွင်းခြင်း
+### Backend အသစ်တစ်ခု ထည့်ခြင်း
 
-1. `src/lib/memory/<name>Backend.ts` တွင် **`MemoryBackend` interface ကို အကောင်အထည်ဖော်ပါ**
-2. `src/lib/memory/index.ts` မှ **Export လုပ်ပါ**
-3. စတင်ချိန်တွင် `memoryManager.register(yourBackend)` ဖြင့် **မှတ်ပုံတင်ပါ**
-4. ဆက်တင်များမှတစ်ဆင့် **စီစဉ်သတ်မှတ်ပါ**- `memoryPrimaryBackend` ကို သင့်နောက်ခံစနစ် ID အဖြစ် သတ်မှတ်ပါ
-5. `src/lib/memory/__tests__/generic-backend.test.ts` ကို ကိုးကား၍ **စမ်းသပ်ပါ**
+1. `src/lib/memory/<name>Backend.ts` တွင် **`MemoryBackend` ကို implement လုပ်ပါ**
+2. `src/lib/memory/index.ts` မှ **export လုပ်ပါ**
+3. စတင်ချိန်တွင် `memoryManager.register(yourBackend)` ဖြင့် **register လုပ်ပါ**
+4. ဆက်တင်များမှတစ်ဆင့် **configure လုပ်ပါ**- `memoryPrimaryBackend` ကို သင်၏ backend ID အဖြစ် သတ်မှတ်ပါ
+5. `src/lib/memory/__tests__/generic-backend.test.ts` ကို ကိုးကားချက်အဖြစ် အသုံးပြုပြီး **စမ်းသပ်ပါ**
 
-#### ဥပမာ- Brain နောက်ခံစနစ်
+#### ဥပမာ- Brain Backend
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1050,32 +1108,32 @@ const brainBackend = createGenericMemoryBackend("brain", "BK-Brain", {
 memoryManager.register(brainBackend);
 ```
 
-### အတည်ပြုခြင်း
+### အတည်ပြုစစ်ဆေးခြင်း
 
-#### Unit စမ်းသပ်မှုများ
+#### Unit test များ
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-မျှော်မှန်းထားသော အထွက်- အောက်ပါတို့ကို လွှမ်းခြုံသည့် **စမ်းသပ်မှု 35 ခုလုံး အောင်မြင်သည်**-
+မျှော်မှန်းရလဒ်- **test 35 ခုလုံး အောင်မြင်ရမည်**၊ အောက်ပါတို့ ပါဝင်သည်-
 
 - Constructor (2)
-- ကျန်းမာရေး စစ်ဆေးမှု (4) — အောင်မြင်မှု၊ 500 ချို့ယွင်းမှု၊ ကွန်ရက်အမှား၊ latency
-- စတင်ပြင်ဆင်ခြင်း (2) — အောင်မြင်မှု၊ ချို့ယွင်းမှု
-- ဖန်တီးခြင်း (2) — မူလ endpoint၊ စိတ်ကြိုက် endpoint
-- ရယူခြင်း (4) — အောင်မြင်မှု၊ 404 → null၊ 404 မဟုတ်သော အမှားကို ပစ်ခြင်း၊ စိတ်ကြိုက် path params
-- အပ်ဒိတ်လုပ်ခြင်း (2) — အောင်မြင်မှု၊ 404 → false
-- ဖျက်ခြင်း (2) — အောင်မြင်မှု၊ 404 → false
-- စာရင်းပြုစုခြင်း (2) — query params၊ စိတ်ကြိုက် parameter အမည်များ
-- ရှာဖွေခြင်း (3) — query params၊ စိတ်ကြိုက် endpoint၊ options serialization
-- အထောက်အထားစိစစ်မှု headers (2) — Bearer token၊ စိတ်ကြိုက် headers
+- အခြေအနေစစ်ဆေးမှု (4) — အောင်မြင်ခြင်း၊ failure 500၊ network error၊ latency
+- Initialize (2) — အောင်မြင်ခြင်း၊ မအောင်မြင်ခြင်း
+- Create (2) — မူလ endpoint၊ စိတ်ကြိုက် endpoint
+- Get (4) — အောင်မြင်ခြင်း၊ 404 → null၊ non-404 throw၊ စိတ်ကြိုက် path param များ
+- Update (2) — အောင်မြင်ခြင်း၊ 404 → false
+- Delete (2) — အောင်မြင်ခြင်း၊ 404 → false
+- List (2) — query param များ၊ စိတ်ကြိုက် param အမည်များ
+- Search (3) — query param များ၊ စိတ်ကြိုက် endpoint၊ option များကို serialization ပြုလုပ်ခြင်း
+- Auth header များ (2) — Bearer token၊ စိတ်ကြိုက် header များ
 - Factory (1)
 
-#### Type စစ်ဆေးမှု
+#### Type စစ်ဆေးခြင်း
 
 ```bash
 npm run typecheck:core
 ```
 
-မျှော်မှန်းချက်- **အမှား 0 ခု**။
+မျှော်မှန်းရလဒ်- **error 0 ခု**။

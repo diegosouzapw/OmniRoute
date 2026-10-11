@@ -11,55 +11,55 @@ _Senest opdateret: 2026-06-28_
 ## Resumé
 
 OmniRoute er en lokal AI-routinggateway og et dashboard bygget på Next.js.
-Den tilbyder ét enkelt OpenAI-kompatibelt slutpunkt (`/v1/*`) og dirigerer trafik på tværs af flere upstream-udbydere med oversættelse, fallback, tokenfornyelse og brugsregistrering.
+Den leverer et enkelt OpenAI-kompatibelt slutpunkt (`/v1/*`) og dirigerer trafik på tværs af flere upstream-udbydere med oversættelse, fallback, tokenfornyelse og brugsregistrering.
 
 Kernefunktioner:
 
-- OpenAI-kompatibel API-grænseflade til CLI/værktøjer (355 udbydere, 108 eksekveringskomponenter)
+- OpenAI-kompatibel API-grænseflade til CLI/værktøjer (372 udbydere, 148 eksekveringskomponenter)
 - Oversættelse af anmodninger/svar på tværs af udbyderformater
-- Fallback for modelkombinationer (sekvens med flere modeller)
-- Strukturerede kombinationstrin (`provider + model + connection`) med runtime-rækkefølge baseret på `compositeTiers`
+- Fallback med modelkombinationer (sekvens med flere modeller)
+- Strukturerede kombinationstrin (`provider + model + connection`) med kørselstidsrækkefølge baseret på `compositeTiers`
 - Fallback på kontoniveau (flere konti pr. udbyder)
-- Forhåndskontrol af kvoter og kvotebevidst P2C-kontovalg i det primære chatforløb
-- Administration af udbyderforbindelser via OAuth og API-nøgler (22 OAuth-udbydermoduler)
+- Forhåndskontrol af kvoter og kvotebevidst P2C-kontovalg i den primære chatsti
+- Administration af udbyderforbindelser med OAuth + API-nøgle (27 OAuth-udbydermoduler)
 - Generering af embeddings via `/v1/embeddings` (18 udbydere)
 - Billedgenerering via `/v1/images/generations` (10+ udbydere, 20+ modeller)
-- Lydtransskription via `/v1/audio/transcriptions` (18 udbydere)
+- Lydtransskribering via `/v1/audio/transcriptions` (18 udbydere)
 - Tekst-til-tale via `/v1/audio/speech` (24 indbyggede udbydere)
 - Videogenerering via `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Musikgenerering via `/v1/music/generations` (ComfyUI)
 - Websøgning via `/v1/search` (20 udbydere)
 - Moderering via `/v1/moderations`
-- Genrangering via `/v1/rerank`
-- Fortolkning af tænkningstags (`<think>...</think>`) til ræsonneringsmodeller
-- Sanitering af svar med henblik på streng kompatibilitet med OpenAI SDK
-- Rollenormalisering (developer→system, system→user) med henblik på kompatibilitet på tværs af udbydere
+- Omrangering via `/v1/rerank`
+- Fortolkning af tænkningstags (``) til ræsonneringsmodeller
+- Rensning af svar for streng kompatibilitet med OpenAI SDK
+- Rollenormalisering (developer→system, system→user) for kompatibilitet på tværs af udbydere
 - Konvertering af struktureret output (json_schema → Gemini responseSchema)
-- Lokal lagring af udbydere, nøgler, aliasser, kombinationer, indstillinger og priser (122 DB-moduler)
-- Sporing af brug/omkostninger og logning af anmodninger
-- Valgfri cloudsynkronisering til synkronisering af flere enheder/tilstand
+- Lokal persistens for udbydere, nøgler, aliasser, kombinationer, indstillinger og priser (122 DB-moduler)
+- Registrering af forbrug/omkostninger og logning af anmodninger
+- Valgfri cloudsynkronisering til synkronisering af tilstand på tværs af flere enheder
 - IP-tilladelsesliste/blokeringsliste til adgangskontrol for API'et
 - Administration af tænkningsbudget (passthrough/automatisk/brugerdefineret/adaptivt)
 - Global injektion af systemprompt
-- Sessionssporing og fingeraftryksgenerering
+- Sessionssporing og fingerprinting
 - Forbedret hastighedsbegrænsning pr. konto med udbyderspecifikke profiler
-- Circuit breaker-mønster til robusthed over for udbyderfejl
-- Beskyttelse mod thundering herd-problemer med mutex-låsning
-- Signaturbaseret deduplikeringscache for anmodninger
-- Domænelag: omkostningsregler, fallback-politik, lockout-politik
-- Context Relay: oversigter over sessionsoverdragelse for kontinuitet ved kontorotation
-- Lagring af domænetilstand (SQLite-write-through-cache til fallbacks, budgetter, lockouts og circuit breakers)
+- Circuit breaker-mønster for robusthed over for udbyderfejl
+- Beskyttelse mod overbelastning fra samtidige anmodninger med mutex-låsning
+- Signaturbaseret cache til deduplikering af anmodninger
+- Domænelag: omkostningsregler, fallback-politik og lockout-politik
+- Context Relay: overdragelsesresuméer for sessioner for at bevare kontinuitet ved kontorotation
+- Persistens af domænetilstand (SQLite-write-through-cache til fallbacks, budgetter, lockouts og circuit breakers)
 - Politikmotor til centraliseret evaluering af anmodninger (lockout → budget → fallback)
 - Anmodningstelemetri med aggregering af p50/p95/p99-latenstid
 - Telemetri for kombinationsmål og historisk tilstand for kombinationsmål via `combo_execution_key` / `combo_step_id`
 - Korrelations-id (X-Request-Id) til end-to-end-sporing
 - Logning af compliance-revision med mulighed for fravalg pr. API-nøgle
 - Evalueringsframework til kvalitetssikring af LLM'er
-- Tilstandsdashboard med realtidsstatus for udbydernes circuit breakers
-- MCP-server (110 værktøjer) med 3 transportmekanismer (stdio/SSE/Streamable HTTP)
+- Tilstandsdashboard med status i realtid for udbydernes circuit breakers
+- MCP-server (110 værktøjer) med 3 transporter (stdio/SSE/Streamable HTTP)
 - A2A-server (JSON-RPC 2.0 + SSE) med færdigheder og opgavelivscyklus
-- Hukommelsessystem (udtrækning, injektion, hentning, opsummering)
-- Færdighedssystem (register, eksekveringskomponent, sandbox, indbyggede færdigheder)
+- Hukommelsessystem (udtrækning, injektion, hentning og opsummering)
+- Færdighedssystem (register, eksekveringskomponent, sandbox og indbyggede færdigheder)
 - MITM-proxy med certifikatadministration og DNS-håndtering
 - Middleware til beskyttelse mod promptinjektion
 - Pipeline til promptkomprimering med Caveman, RTK, stablede pipelines, komprimeringskombinationer, sprogpakker og analyse
@@ -68,19 +68,19 @@ Kernefunktioner:
 - Scripts til afinstallation/fuldstændig afinstallation
 - Handling til reparation af OAuth-miljøet
 - WebSocket-bro til OpenAI-kompatible WS-klienter (`/v1/ws`)
-- Administration af synkroniseringstokens (udstedelse/tilbagekaldelse, download af ETag-versioneret konfigurationspakke)
+- Administration af synkroniseringstokens (udstedelse/tilbagekaldelse og download af ETag-versionsstyret konfigurationspakke)
 - GLM Thinking (`glmt`) som førsteklasses udbyderforudindstilling
 - Hybrid tokenoptælling (udbyderspecifik `/messages/count_tokens` med estimering som fallback)
-- Automatisk oprettelse af modelaliasser (30+ normaliseringer på tværs af proxy-dialekter ved opstart)
+- Automatisk initialisering af modelaliasser (30+ normaliseringer på tværs af proxy-dialekter ved opstart)
 - Sikker udgående hentning med SSRF-beskyttelse, blokering af private URL'er og konfigurerbare genforsøg
-- Cooldown-bevidste genforsøg for chat med konfigurerbare `requestRetry` og `maxRetryIntervalSec`
-- Validering af runtime-miljøet med Zod ved opstart
-- Compliance-revision v2 med paginering, CRUD-hændelser for udbydere og valideringslogning af SSRF-blokeringer
+- Cooldown-bevidste genforsøg af chat med konfigurerbare `requestRetry` og `maxRetryIntervalSec`
+- Validering af kørselsmiljøet med Zod ved opstart
+- Compliance-revision v2 med paginering, CRUD-hændelser for udbydere og logning af validering ved SSRF-blokering
 
-Primær runtime-model:
+Primær kørselsmodel:
 
 - Next.js-app-ruter under `src/app/api/*` implementerer både dashboard-API'er og kompatibilitets-API'er
-- En fælles SSE-/routingkerne i `src/sse/*` + `open-sse/*` håndterer udbydereksekvering, oversættelse, streaming, fallback og brug
+- En delt SSE-/routingkerne i `src/sse/*` + `open-sse/*` håndterer udbyderkørsel, oversættelse, streaming, fallback og forbrug
 
 ## Referencediagrammer
 
@@ -156,30 +156,30 @@ Hovedsider under `src/app/(dashboard)/dashboard/`:
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[Udviklerklienter]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[Brugerdefinerede OpenAI-kompatible klienter]
+        BROWSER[Browserdashboard]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[OmniRoute lokal proces]
+        API[V1-kompatibilitets-API\n/v1/*]
+        DASH[Dashboard + administrations-API\n/api/*]
+        CORE[SSE + oversættelseskerne\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(forbrugstabeller + logartefakter)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[Opstrømsudbydere]
+        P1[OAuth-udbydere\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[API-nøgleudbydere\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[Kompatible noder\nOpenAI-kompatible / Anthropic-kompatible]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[Valgfri skysynkronisering]
+        CLOUD[Slutpunkt til skysynkronisering\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -260,28 +260,28 @@ Administrationsområder:
 
 ## 2) SSE + oversættelseskerne
 
-Moduler i hovedflowet:
+Moduler i hovedforløbet:
 
 - Indgangspunkt: `src/sse/handlers/chat.ts`
-- Kerneorkestrering: `open-sse/handlers/chatCore.ts`
-- Adaptere til leverandørkørsel: `open-sse/executors/*`
-- Formatregistrering/leverandørkonfiguration: `open-sse/services/provider.ts`
-- Fortolkning/opløsning af model: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- Logik for kontoreserveløsning: `open-sse/services/accountFallback.ts`
+- Central orkestrering: `open-sse/handlers/chatCore.ts`
+- Eksekveringsadaptere til udbydere: `open-sse/executors/*`
+- Formatregistrering/udbyderkonfiguration: `open-sse/services/provider.ts`
+- Fortolkning/opløsning af modeller: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- Logik for reservekonti: `open-sse/services/accountFallback.ts`
 - Oversættelsesregister: `open-sse/translator/index.ts`
 - Streamtransformationer: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Udtrækning/normalisering af forbrug: `open-sse/utils/usageTracking.ts`
+- Udtræk/normalisering af forbrug: `open-sse/utils/usageTracking.ts`
 - Parser til think-tags: `open-sse/utils/thinkTagParser.ts`
 - Handler til embeddings: `open-sse/handlers/embeddings.ts`
-- Register over embedding-leverandører: `open-sse/config/embeddingRegistry.ts`
+- Register over embeddingudbydere: `open-sse/config/embeddingRegistry.ts`
 - Handler til billedgenerering: `open-sse/handlers/imageGeneration.ts`
-- Register over billedleverandører: `open-sse/config/imageRegistry.ts`
+- Register over billedudbydere: `open-sse/config/imageRegistry.ts`
 - Rensning af svar: `open-sse/handlers/responseSanitizer.ts`
 - Rollenormalisering: `open-sse/services/roleNormalizer.ts`
 
 Tjenester (forretningslogik):
 
-- Kontovalg/-scoring: `open-sse/services/accountSelector.ts`
+- Valg/scoring af konti: `open-sse/services/accountSelector.ts`
 - Administration af kontekstens livscyklus: `open-sse/services/contextManager.ts`
 - Håndhævelse af IP-filter: `open-sse/services/ipFilter.ts`
 - Sessionssporing: `open-sse/services/sessionManager.ts`
@@ -291,17 +291,17 @@ Tjenester (forretningslogik):
 - Modelrouting med jokertegn: `open-sse/services/wildcardRouter.ts`
 - Administration af hastighedsbegrænsning: `open-sse/services/rateLimitManager.ts`
 - Kredsløbsafbryder: `src/shared/utils/circuitBreaker.ts`
-- Kontekstoverdragelse: `open-sse/services/contextHandoff.ts` — generering og indsættelse af overdragelsesresume til context-relay-strategien
-- Komprimering: `open-sse/services/compression/*` — proaktiv komprimering før leverandøroversættelse;
+- Kontekstoverdragelse: `open-sse/services/contextHandoff.ts` — generering og indsættelse af overdragelsesresumé til kontekstvideresendelsesstrategien
+- Komprimering: `open-sse/services/compression/*` — proaktiv komprimering før oversættelse til udbyderformat;
   omfatter Caveman-regler, RTK-filtre, stablede pipelines, komprimeringskombinationer, statistik og validering
-- Codex-kvotehenter: `open-sse/services/codexQuotaFetcher.ts` — henter Codex-kvote til beslutninger om context-relay-overdragelse
+- Hentning af Codex-kvote: `open-sse/services/codexQuotaFetcher.ts` — henter Codex-kvote til beslutninger om kontekstoverdragelse
 - Cooldown-bevidst genforsøg: `src/sse/services/cooldownAwareRetry.ts` — modelspecifikke genforsøg efter cooldown med konfigurerbare `requestRetry` / `maxRetryIntervalSec`
-- Sikker udgående hentning: `src/shared/network/safeOutboundFetch.ts` — beskyttet hentning fra leverandør/model med SSRF-beskyttelse, blokering af private URL'er, genforsøg og timeout
-- Beskyttelse af udgående URL'er: `src/shared/network/outboundUrlGuard.ts` — validerer leverandør-URL'er mod private CIDR-områder og localhost-CIDR-områder
-- Standardværdier for leverandøranmodninger: `open-sse/services/providerRequestDefaults.ts` — standardværdier på leverandørniveau for `maxTokens`, `temperature`, `thinkingBudgetTokens`
-- GLM-leverandørkonstanter: `open-sse/config/glmProvider.ts` — delte GLM-modeller, kvote-URL'er, GLMT-timeout/-standardværdier
+- Sikker udgående hentning: `src/shared/network/safeOutboundFetch.ts` — beskyttet hentning fra udbyder/model med SSRF-beskyttelse, blokering af private URL'er, genforsøg og timeout
+- Beskyttelse af udgående URL'er: `src/shared/network/outboundUrlGuard.ts` — værtskontrol af udbyder-URL'er; `src/shared/network/outboundUrlGuardPolicy.ts` vælger tilstanden ud fra `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` og deres kontrolpanelindstillinger (se `docs/reference/ENVIRONMENT.md`)
+- Standardværdier for udbyderanmodninger: `open-sse/services/providerRequestDefaults.ts` — standardværdier på udbyderniveau for `maxTokens`, `temperature`, `thinkingBudgetTokens`
+- GLM-udbyderkonstanter: `open-sse/config/glmProvider.ts` — delte GLM-modeller, kvote-URL'er samt GLMT-timeout og -standardværdier
 - Antigravity-upstream: `open-sse/config/antigravityUpstream.ts` — konstanter for basis-URL og registreringssti
-- Codex-klientkonstanter: `open-sse/config/codexClient.ts` — versionerede værdier for user-agent og klientversion
+- Codex-klientkonstanter: `open-sse/config/codexClient.ts` — versionsbestemte værdier for user-agent og klientversion
 - Startdata til modelaliasser: `src/lib/modelAliasSeed.ts` — opretter 30+ aliasser på tværs af proxy-dialekter ved opstart
 
 Domænelagsmoduler:
@@ -310,19 +310,20 @@ Domænelagsmoduler:
 - Reservepolitik: `src/domain/fallbackPolicy.ts`
 - Kombinationsopløser: `src/domain/comboResolver.ts`
 - Lockout-politik: `src/domain/lockoutPolicy.ts`
-- Politikmotor: `src/domain/policyEngine.ts` — centraliseret evaluering af lockout → budget → reserveløsning
+- Politikmotor: `src/domain/policyEngine.ts` — centraliseret evaluering af lockout → budget → fallback
 - Katalog over fejlkoder: `src/shared/constants/errorCodes.ts`
 - Anmodnings-id: `src/shared/utils/requestId.ts`
-- Hentningstimeout: `src/shared/utils/fetchTimeout.ts`
-- Anmodningstelemetri: `src/shared/utils/requestTelemetry.ts`
+- Timeout for hentning: `src/shared/utils/fetchTimeout.ts`
+- Telemetri for anmodninger: `src/shared/utils/requestTelemetry.ts`
 - Compliance/revision: `src/lib/compliance/index.ts`
-- Eval-kørselsmodul: `src/lib/evals/evalRunner.ts`
-- Lagring af domænetilstand: `src/lib/db/domainState.ts` — SQLite CRUD til reservekæder, budgetter, omkostningshistorik, lockout-tilstand og kredsløbsafbrydere
+- Evalueringskørsel: `src/lib/evals/evalRunner.ts`
+- Lagring af domænetilstand: `src/lib/db/domainState.ts` — SQLite-CRUD til fallback-kæder, budgetter, omkostningshistorik, lockout-tilstand og kredsløbsafbrydere
 
-OAuth-leverandørmoduler (22 individuelle filer under `src/lib/oauth/providers/`):
+OAuth-udbydermoduler (27 individuelle filer under `src/lib/oauth/providers/`):
 
 - Registerindeks: `src/lib/oauth/providers/index.ts`
-- Individuelle leverandører: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Individuelle udbydere: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Delte hjælpefunktioner: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl-enhedsflow), `museCodeDeviceResponse.ts`
 - Tynd wrapper: `src/lib/oauth/providers.ts` — reeksporterer fra individuelle moduler
 
 ## 5) Integrerede tjenester (v3.8.4)
@@ -808,21 +809,21 @@ Fysiske lagerfiler:
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[Udviklervært]
+        CLI[CLI-værktøjer]
+        Browser[Dashboardbrowser]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[OmniRoute-kørselsmiljø]
+        Next[Next.js-server\nPORT=20128]
+        Core[SSE-kerne + eksekveringsenheder]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(forbrugstabeller + logartefakter)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[Eksterne tjenester]
+        Providers[AI-udbydere]
+        SyncCloud[Cloud Sync-tjeneste]
     end
 
     CLI --> Next

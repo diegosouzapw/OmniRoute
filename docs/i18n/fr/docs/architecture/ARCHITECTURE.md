@@ -10,18 +10,18 @@ _Dernière mise à jour : 2026-06-28_
 
 ## Résumé exécutif
 
-OmniRoute est une passerelle locale de routage d’IA avec tableau de bord, développée avec Next.js.
-Elle fournit un point de terminaison unique compatible avec OpenAI (`/v1/*`) et achemine le trafic vers plusieurs fournisseurs en amont, avec traduction, repli, actualisation des jetons et suivi de l’utilisation.
+OmniRoute est une passerelle locale de routage d’IA et un tableau de bord reposant sur Next.js.
+Elle fournit un point de terminaison unique compatible avec OpenAI (`/v1/*`) et achemine le trafic entre plusieurs fournisseurs en amont, avec traduction, repli, actualisation des jetons et suivi de l’utilisation.
 
 Fonctionnalités principales :
 
-- Surface d’API compatible avec OpenAI pour les CLI/outils (355 fournisseurs, 108 exécuteurs)
+- Surface d’API compatible avec OpenAI pour les CLI/outils (372 fournisseurs, 148 exécuteurs)
 - Traduction des requêtes/réponses entre les formats des fournisseurs
-- Repli par combinaison de modèles (séquence multimodèle)
+- Repli par combinaison de modèles (séquence de plusieurs modèles)
 - Étapes de combinaison structurées (`provider + model + connection`) avec ordonnancement à l’exécution selon `compositeTiers`
-- Repli au niveau des comptes (plusieurs comptes par fournisseur)
-- Vérification préalable des quotas et sélection de compte P2C tenant compte des quotas dans le flux de discussion principal
-- Gestion des connexions aux fournisseurs par OAuth et clé API (22 modules de fournisseurs OAuth)
+- Repli au niveau du compte (plusieurs comptes par fournisseur)
+- Vérification préalable des quotas et sélection de compte P2C tenant compte des quotas dans le flux principal de conversation
+- Gestion des connexions aux fournisseurs par OAuth et clé d’API (27 modules de fournisseurs OAuth)
 - Génération d’embeddings via `/v1/embeddings` (18 fournisseurs)
 - Génération d’images via `/v1/images/generations` (plus de 10 fournisseurs, plus de 20 modèles)
 - Transcription audio via `/v1/audio/transcriptions` (18 fournisseurs)
@@ -31,56 +31,56 @@ Fonctionnalités principales :
 - Recherche Web via `/v1/search` (20 fournisseurs)
 - Modération via `/v1/moderations`
 - Reclassement via `/v1/rerank`
-- Analyse des balises de réflexion (`<think>...</think>`) pour les modèles de raisonnement
+- Analyse des balises de réflexion (``) pour les modèles de raisonnement
 - Assainissement des réponses pour une compatibilité stricte avec le SDK OpenAI
 - Normalisation des rôles (developer→system, system→user) pour assurer la compatibilité entre fournisseurs
 - Conversion des sorties structurées (json_schema → Gemini responseSchema)
 - Persistance locale des fournisseurs, clés, alias, combinaisons, paramètres et tarifs (122 modules de base de données)
 - Suivi de l’utilisation et des coûts, ainsi que journalisation des requêtes
-- Synchronisation cloud facultative pour synchroniser l’état entre plusieurs appareils
-- Liste d’autorisation/liste de blocage d’adresses IP pour le contrôle d’accès à l’API
+- Synchronisation cloud facultative pour la synchronisation entre plusieurs appareils et des états
+- Liste d’autorisation/liste de blocage des adresses IP pour le contrôle d’accès à l’API
 - Gestion du budget de réflexion (transmission directe/automatique/personnalisée/adaptative)
-- Injection globale d’invite système
+- Injection globale d’une invite système
 - Suivi et empreinte des sessions
-- Limitation de débit avancée par compte avec des profils propres aux fournisseurs
+- Limitation de débit améliorée par compte avec des profils propres à chaque fournisseur
 - Modèle de disjoncteur pour la résilience des fournisseurs
-- Protection contre les afflux simultanés grâce au verrouillage par mutex
-- Cache de déduplication des requêtes basé sur les signatures
+- Protection contre les afflux simultanés de requêtes avec verrouillage par mutex
+- Cache de déduplication des requêtes fondé sur les signatures
 - Couche de domaine : règles de coût, politique de repli, politique de verrouillage
-- Relais de contexte : résumés de transfert de session pour assurer la continuité lors de la rotation des comptes
-- Persistance de l’état du domaine (cache SQLite avec écriture immédiate pour les replis, budgets, verrouillages et disjoncteurs)
+- Relais de contexte : résumés de transfert de session pour préserver la continuité lors de la rotation des comptes
+- Persistance de l’état du domaine (cache SQLite à écriture immédiate pour les replis, budgets, verrouillages et disjoncteurs)
 - Moteur de politiques pour l’évaluation centralisée des requêtes (verrouillage → budget → repli)
 - Télémétrie des requêtes avec agrégation des latences p50/p95/p99
 - Télémétrie des cibles de combinaison et historique de leur état via `combo_execution_key` / `combo_step_id`
-- Identifiant de corrélation (X-Request-Id) pour le traçage de bout en bout
-- Journalisation d’audit de conformité avec désactivation possible par clé API
+- ID de corrélation (X-Request-Id) pour le traçage de bout en bout
+- Journalisation d’audit de conformité avec possibilité de désactivation par clé d’API
 - Cadre d’évaluation pour l’assurance qualité des LLM
-- Tableau de bord d’état avec statut en temps réel des disjoncteurs des fournisseurs
-- Serveur MCP (110 outils) avec 3 transports (stdio/SSE/HTTP Streamable)
+- Tableau de bord de l’état avec statut en temps réel des disjoncteurs des fournisseurs
+- Serveur MCP (110 outils) avec 3 transports (stdio/SSE/HTTP diffusable)
 - Serveur A2A (JSON-RPC 2.0 + SSE) avec compétences et cycle de vie des tâches
 - Système de mémoire (extraction, injection, récupération, synthèse)
 - Système de compétences (registre, exécuteur, bac à sable, compétences intégrées)
 - Proxy MITM avec gestion des certificats et du DNS
-- Middleware de protection contre l’injection d’invites
-- Pipeline de compression d’invites avec Caveman, RTK, pipelines empilés, combinaisons de compression, packs linguistiques et analyses
+- Intergiciel de protection contre l’injection d’invites
+- Pipeline de compression des invites avec Caveman, RTK, pipelines empilés, combinaisons de compression, packs linguistiques et analyses
 - Registre ACP (Agent Communication Protocol)
 - Fournisseurs OAuth modulaires (22 modules individuels sous `src/lib/oauth/providers/`)
 - Scripts de désinstallation/désinstallation complète
 - Action de réparation de l’environnement OAuth
-- Passerelle WebSocket pour les clients WS compatibles avec OpenAI (`/v1/ws`)
-- Gestion des jetons de synchronisation (émission/révocation, téléchargement d’un lot de configuration versionné par ETag)
-- Préréglage de fournisseur de premier ordre GLM Thinking (`glmt`)
-- Comptage hybride des jetons (`/messages/count_tokens` côté fournisseur avec estimation de secours)
+- Pont WebSocket pour les clients WS compatibles avec OpenAI (`/v1/ws`)
+- Gestion des jetons de synchronisation (émission/révocation, téléchargement d’un paquet de configuration versionné par ETag)
+- Préréglage de fournisseur GLM Thinking (`glmt`) de première classe
+- Comptage hybride des jetons (`/messages/count_tokens` côté fournisseur, avec repli vers une estimation)
 - Initialisation automatique des alias de modèles (plus de 30 normalisations de dialectes interproxys au démarrage)
 - Récupération sortante sécurisée avec protection SSRF, blocage des URL privées et nouvelles tentatives configurables
-- Nouvelles tentatives de discussion tenant compte du délai de récupération, avec `requestRetry` et `maxRetryIntervalSec` configurables
+- Nouvelles tentatives de conversation tenant compte des périodes de temporisation, avec `requestRetry` et `maxRetryIntervalSec` configurables
 - Validation de l’environnement d’exécution avec Zod au démarrage
 - Audit de conformité v2 avec pagination, événements CRUD des fournisseurs et journalisation des validations bloquées par la protection SSRF
 
-Modèle d’exécution principal :
+Modèle principal d’exécution :
 
-- Les routes d’application Next.js sous `src/app/api/*` implémentent à la fois les API du tableau de bord et les API de compatibilité
-- Un cœur partagé de SSE/routage dans `src/sse/*` + `open-sse/*` gère l’exécution des fournisseurs, la traduction, la diffusion en continu, le repli et l’utilisation
+- Les routes de l’application Next.js sous `src/app/api/*` implémentent à la fois les API du tableau de bord et les API de compatibilité
+- Un noyau partagé de SSE/routage dans `src/sse/*` + `open-sse/*` gère l’exécution des fournisseurs, la traduction, la diffusion en continu, le repli et l’utilisation
 
 ## Diagrammes de référence
 
@@ -283,7 +283,7 @@ Services (logique métier) :
 
 - Sélection/notation des comptes : `open-sse/services/accountSelector.ts`
 - Gestion du cycle de vie du contexte : `open-sse/services/contextManager.ts`
-- Application du filtrage IP : `open-sse/services/ipFilter.ts`
+- Application du filtrage des adresses IP : `open-sse/services/ipFilter.ts`
 - Suivi des sessions : `open-sse/services/sessionManager.ts`
 - Déduplication des requêtes : `open-sse/services/signatureCache.ts`
 - Injection de l’invite système : `open-sse/services/systemPrompt.ts`
@@ -292,14 +292,14 @@ Services (logique métier) :
 - Gestion des limites de débit : `open-sse/services/rateLimitManager.ts`
 - Disjoncteur : `src/shared/utils/circuitBreaker.ts`
 - Transfert de contexte : `open-sse/services/contextHandoff.ts` — génération et injection d’un résumé de transfert pour la stratégie de relais de contexte
-- Compression : `open-sse/services/compression/*` — compression proactive avant la traduction destinée au fournisseur ;
-  inclut les règles Caveman, les filtres RTK, les pipelines empilés, les combinaisons de compression, les statistiques et la validation
+- Compression : `open-sse/services/compression/*` — compression proactive avant la traduction du fournisseur ;
+  comprend les règles Caveman, les filtres RTK, les pipelines empilés, les combinaisons de compression, les statistiques et la validation
 - Récupérateur de quota Codex : `open-sse/services/codexQuotaFetcher.ts` — récupère le quota Codex pour les décisions de transfert par relais de contexte
 - Nouvelle tentative tenant compte du délai de récupération : `src/sse/services/cooldownAwareRetry.ts` — nouvelles tentatives par modèle avec délai de récupération et paramètres configurables `requestRetry` / `maxRetryIntervalSec`
-- Récupération sortante sécurisée : `src/shared/network/safeOutboundFetch.ts` — récupération protégée des fournisseurs/modèles avec protection SSRF, blocage des URL privées, nouvelles tentatives et délai d’expiration
-- Protection des URL sortantes : `src/shared/network/outboundUrlGuard.ts` — valide les URL des fournisseurs par rapport aux plages CIDR privées/localhost
+- Récupération sortante sécurisée : `src/shared/network/safeOutboundFetch.ts` — récupération protégée auprès des fournisseurs/modèles avec protection contre les SSRF, blocage des URL privées, nouvelles tentatives et délai d’expiration
+- Protection des URL sortantes : `src/shared/network/outboundUrlGuard.ts` — vérifications des hôtes sur les URL des fournisseurs ; `src/shared/network/outboundUrlGuardPolicy.ts` sélectionne le mode à partir de `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` et de leurs options dans le tableau de bord (voir `docs/reference/ENVIRONMENT.md`)
 - Valeurs par défaut des requêtes aux fournisseurs : `open-sse/services/providerRequestDefaults.ts` — valeurs par défaut de niveau fournisseur pour `maxTokens`, `temperature`, `thinkingBudgetTokens`
-- Constantes du fournisseur GLM : `open-sse/config/glmProvider.ts` — modèles GLM, URL de quota et délai d’expiration/valeurs par défaut GLMT partagés
+- Constantes du fournisseur GLM : `open-sse/config/glmProvider.ts` — modèles GLM partagés, URL de quota, délai d’expiration et valeurs par défaut de GLMT
 - Service en amont Antigravity : `open-sse/config/antigravityUpstream.ts` — constantes de l’URL de base et du chemin de découverte
 - Constantes du client Codex : `open-sse/config/codexClient.ts` — valeurs versionnées de l’agent utilisateur et de la version du client
 - Initialisation des alias de modèles : `src/lib/modelAliasSeed.ts` — initialise plus de 30 alias de dialectes interproxys au démarrage
@@ -310,20 +310,21 @@ Modules de la couche domaine :
 - Politique de repli : `src/domain/fallbackPolicy.ts`
 - Résolveur de combinaisons : `src/domain/comboResolver.ts`
 - Politique de verrouillage : `src/domain/lockoutPolicy.ts`
-- Moteur de politiques : `src/domain/policyEngine.ts` — évaluation centralisée verrouillage → budget → repli
+- Moteur de politiques : `src/domain/policyEngine.ts` — évaluation centralisée du verrouillage → budget → repli
 - Catalogue des codes d’erreur : `src/shared/constants/errorCodes.ts`
 - Identifiant de requête : `src/shared/utils/requestId.ts`
-- Délai d’expiration de la récupération : `src/shared/utils/fetchTimeout.ts`
+- Délai d’expiration de récupération : `src/shared/utils/fetchTimeout.ts`
 - Télémétrie des requêtes : `src/shared/utils/requestTelemetry.ts`
 - Conformité/audit : `src/lib/compliance/index.ts`
 - Exécuteur d’évaluations : `src/lib/evals/evalRunner.ts`
 - Persistance de l’état du domaine : `src/lib/db/domainState.ts` — opérations CRUD SQLite pour les chaînes de repli, les budgets, l’historique des coûts, l’état de verrouillage et les disjoncteurs
 
-Modules des fournisseurs OAuth (22 fichiers individuels sous `src/lib/oauth/providers/`) :
+Modules des fournisseurs OAuth (27 fichiers individuels sous `src/lib/oauth/providers/`) :
 
 - Index du registre : `src/lib/oauth/providers/index.ts`
-- Fournisseurs individuels : `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- Enveloppe légère : `src/lib/oauth/providers.ts` — réexporte depuis les modules individuels
+- Fournisseurs individuels : `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Utilitaires partagés : `codebuddyDeviceAuth.ts` (flux d’appareil CodeBuddy CN/international), `museCodeDeviceResponse.ts`
+- Enveloppe légère : `src/lib/oauth/providers.ts` — réexporte les modules individuels
 
 ## 5) Services intégrés (v3.8.4)
 
@@ -553,51 +554,51 @@ Base de données d’état des domaines (SQLite) :
 - Tâche périodique : `src/shared/services/modelSyncScheduler.ts`
 - Route de contrôle : `src/app/api/sync/cloud/route.ts`
 
-## Cycle de vie d’une requête (`/v1/chat/completions`)
+## Cycle de vie d'une requête (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as Client CLI/SDK
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as Résolveur de modèles
+    participant Auth as Sélecteur d'identifiants
+    participant Exec as Exécuteur du fournisseur
+    participant Prov as Fournisseur en amont
+    participant Stream as Traducteur de flux
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: analyser/résoudre le modèle ou la combinaison
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt Modèle combiné
+        Chat->>Chat: parcourir les modèles de la combinaison (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: compte actif + jetons/clé API
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: détecter le format source
+    Core->>Core: traduire la requête vers le format cible
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: appel à l'API en amont
+    Prov-->>Exec: réponse SSE/JSON
+    Exec-->>Core: réponse + métadonnées
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: jetons mis à jour
+        Core->>Exec: réessayer la requête
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: traduire/normaliser le flux au format du client
+    Stream-->>Client: fragments SSE / réponse JSON
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: extraire l'utilisation + conserver l'historique/le journal
 ```
 
 ## Flux de repli des combos et des comptes
@@ -810,21 +811,21 @@ Fichiers de stockage physiques :
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[Hôte développeur]
+        CLI[Outils CLI]
+        Browser[Navigateur du tableau de bord]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[Environnement d’exécution OmniRoute]
+        Next[Serveur Next.js\nPORT=20128]
+        Core[Noyau SSE + exécuteurs]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(tables d’utilisation + artefacts de journalisation)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[Services externes]
+        Providers[Fournisseurs d’IA]
+        SyncCloud[Service de synchronisation cloud]
     end
 
     CLI --> Next

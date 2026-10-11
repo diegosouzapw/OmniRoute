@@ -36,17 +36,11 @@ OmniRoute CLI 命令會使用透過 `x-omniroute-cli-token` 請求標頭傳送�
 | **無法繞過 `always` 保護** | 會在檢查 CLI 權杖之前評估 `isAlwaysProtectedPath()`。`/api/shutdown` 和 `/api/settings/database` 一律需要 JWT。                           |
 | **不可匯出**               | 權杖絕不會寫入磁碟或記錄至日誌。                                                                                                          |
 
-## 預設 salt（每次安裝隨機產生）
+## 預設鹽值（每次安裝隨機產生）
 
-未設定 `OMNIROUTE_CLI_SALT` 時，salt 會是僅產生一次並持久儲存於
-`<DATA_DIR>/cli-token-salt.json`（模式 `0600`）的隨機 64 字元十六進位字串——
-而不是簽入版本庫的常值 `omniroute-cli-auth-v1`。`src/lib/machineToken.ts`
-中的 `getActiveSalt()` 及其位於 `bin/cli/utils/cliToken.mjs` 的對應實作都會讀取
-同一個檔案，因此伺服器與此安裝中的每次 CLI 呼叫最終都會使用相同的值；只有在尚無法
-建立持久化 salt 或環境變數 salt 時（例如伺服器從未執行過的全新純 CLI 安裝），
-才會使用簽入版本庫的常值作為最後的回退值。這修正了舊有固定常值預設值的弱點：
-`/etc/machine-id` 通常可由全世界讀取，因此，若未設定 `OMNIROUTE_CLI_SALT`，
-任何本機使用者原本都能為每個安裝衍生出相同的權杖。
+未設定 `OMNIROUTE_CLI_SALT` 時，鹽值會是隨機產生的 64 字元十六進位字串，僅產生一次並持久儲存於 `<DATA_DIR>/cli-token-salt.json`（模式 `0600`）中，而非使用簽入版本控制的字面值 `omniroute-cli-auth-v1`。`src/lib/machineToken.ts` 中的 `getActiveSalt()` 與其位於 `bin/cli/utils/cliToken.mjs` 的對應實作都會讀取同一個檔案，因此伺服器與此安裝環境中的每次 CLI 呼叫最終都會使用相同的值；只有在尚無法取得持久儲存或環境變數中的鹽值時（例如僅全新安裝 CLI，且伺服器從未執行過），才會使用簽入版本控制的字面值作為最後手段的備援值。這修正了舊有固定字面預設值的弱點：`/etc/machine-id` 通常可由所有使用者讀取，因此在從未設定 `OMNIROUTE_CLI_SALT` 的每個安裝環境中，任何本機使用者原本都可能推導出相同的權杖。
+
+如果無法讀取或建立鹽值，伺服器與 CLI 都會在每個程序中發出一次警告，然後才使用該相容性備援值。警告不會包含鹽值、權杖、檔案系統路徑或原始錯誤。請恢復對 `DATA_DIR` 的存取權，或設定 `OMNIROUTE_CLI_SALT`，然後重新啟動受影響的程序。此警告會讓失敗情況可見；它不會讓公開的備援鹽值變成私密，也不會停用 CLI 驗證。現有的有效持久儲存鹽值與明確的環境變數覆寫會保留其原有的權杖值。
 
 ## 鹽值輪替
 

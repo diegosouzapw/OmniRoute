@@ -318,12 +318,12 @@ El **recuento híbrido de tokens** también llega en la versión v3.6.6: cuando 
 
 ## 🛡️ Obtención saliente segura y protección contra SSRF _(v3.6.6+)_
 
-Todas las llamadas de validación de proveedores y detección de modelos ahora pasan por una protección saliente de dos capas:
+Todas las llamadas de validación de proveedores y descubrimiento de modelos pasan ahora por una protección saliente de dos capas:
 
-1. **Protección de URL** (`src/shared/network/outboundUrlGuard.ts`) — Bloquea los rangos de IP privados, de bucle invertido y de enlace local antes de abrir el socket.
+1. **Protección de URL** (`src/shared/network/outboundUrlGuard.ts`) — Primero comprueba el nombre de host o la dirección IP literal del destino tal como se ha escrito; en el modo exclusivamente público, el contenedor de obtención segura también resuelve el nombre y rechaza las respuestas privadas. De forma predeterminada, bloquea los endpoints de metadatos en la nube — todo el rango 169.254.0.0/16, además de los nombres de host de metadatos conocidos; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` también bloquea los hosts privados y de bucle invertido; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (o la variable heredada `OUTBOUND_SSRF_GUARD_ENABLED=false`) desactiva las comprobaciones. Un valor guardado mediante el interruptor de una opción en el panel tiene prioridad sobre su variable, y los proveedores locales integrados omiten la protección durante la validación de claves. Consulta `docs/reference/ENVIRONMENT.md`.
 2. **Contenedor de obtención segura** (`src/shared/network/safeOutboundFetch.ts`) — Aplica la protección de URL, normaliza los tiempos de espera y reintenta los errores transitorios con retroceso exponencial.
 
-Las infracciones de la protección se presentan como HTTP 422 (`URL_GUARD_BLOCKED`) y se registran en el registro de auditoría de cumplimiento mediante `providerAudit.ts`.
+Las infracciones de la protección se muestran como `URL_GUARD_BLOCKED` — HTTP 503 mediante `getSafeOutboundFetchErrorStatus` (400 en la ruta de descubrimiento de modelos) — y los bloqueos SSRF reales durante la validación se registran en el registro de auditoría como eventos `provider.validation.ssrf_blocked`.
 
 ---
 

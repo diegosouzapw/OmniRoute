@@ -99,20 +99,20 @@ Pentru fiecare combinație:
 
 ---
 
-## API pentru verificarea stării de sănătate
+## API de verificare a stării
 
-OmniRoute expune **două** suprafețe HTTP pentru verificarea stării de sănătate. Acestea nu sunt interschimbabile pentru orchestratoare.
+OmniRoute expune **două** puncte HTTP pentru verificarea stării. Acestea nu sunt interschimbabile pentru orchestratoare.
 
-| Cale                         | Scop                                                                                          | Cost                                                      | Utilizare                                                                                             |
-| ---------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `GET /healthz`               | Disponibilitate operațională/de pregătire (`ok` / `starting` / `stopping`)                    | Neglijabil (doar indicatorul fazei)                       | **Disponibilitate** Kubernetes; verificare moderată a **funcționării** dacă trebuie să utilizați HTTP |
-| `GET /api/monitoring/health` | Rezumat detaliat al sistemului și furnizorilor (DB, heap, numărul de elemente din catalog, …) | Ridicat (operațiuni sincrone asupra DB / de monitorizare) | Panouri de control, verificări blackbox detaliate, verificarea de sănătate încorporată în Docker      |
+| Cale                         | Scop                                                                                          | Cost                                                 | Utilizare                                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `GET /healthz`               | Disponibilitate/pregătire în ciclul de viață (`ok` / `starting` / `stopping`)                 | Neglijabil (doar indicatorul fazei)                  | **Pregătire** Kubernetes; verificare flexibilă a **disponibilității** dacă trebuie să utilizați HTTP |
+| `GET /api/monitoring/health` | Rezumat detaliat al sistemului și furnizorilor (BD, heap, numărul elementelor din catalog, …) | Ridicat (operațiuni sincrone pentru BD/monitorizare) | Panouri de control, verificări blackbox detaliate, verificarea de stare încorporată în Docker        |
 
-> **Notă:** Matricele privind starea furnizorilor, problemele autopilotului, monitoarele de cote, starea tokenurilor și detaliile despre latență care depășesc `/api/monitoring/health` sunt disponibile prin **instrumentul MCP** `observability_snapshot` sau în paginile **panoului de control** — nu există rute REST dedicate pentru acestea.
+> **Notă:** Matricele de stare ale furnizorilor, problemele autopilotului, monitoarele de cote, starea tokenurilor și detaliile despre latență care depășesc `/api/monitoring/health` sunt disponibile prin **instrumentul MCP** `observability_snapshot` sau în paginile **panoului de control** — nu există rute REST dedicate pentru acestea.
 
-Ambele rute rulează în **aceeași buclă de evenimente Node** ca procesarea cererilor. O cale care solicită intens procesorul (procesarea unui catalog mare prin `GET /v1/models`, compresia contextelor lungi / numărarea tokenurilor) poate întârzia **toate** rutinele de tratare HTTP, inclusiv `/healthz`. Buclă de evenimente ocupată ≠ proces oprit. Este preferabil să remediați cauza consumului excesiv; ajustarea verificărilor doar reduce opririle eronate.
+Ambele rute rulează în **aceeași buclă de evenimente Node** ca procesarea solicitărilor. O cale care solicită intens procesorul (procesarea unui catalog mare prin `GET /v1/models`, comprimarea contextelor lungi/numărarea tokenurilor) poate întârzia **toate** rutinele de gestionare HTTP, inclusiv `/healthz`. Buclă de evenimente ocupată ≠ proces oprit. Este preferabil să remediați cauza suprasolicitării; ajustarea sondelor doar reduce opririle eronate.
 
-### Verificare simplă pentru orchestrator
+### Sondă simplă pentru orchestrator
 
 ```bash
 GET /healthz
@@ -121,7 +121,7 @@ GET /healthz
 
 - **200** + corpul `ok` când faza ciclului de viață al serverului este pregătită
 - **503** + `starting` / `stopping` în timpul pornirii sau opririi
-- Implementare: `src/app/healthz/route.ts` (fără verificarea DB)
+- Implementare: `src/app/healthz/route.ts` (fără interogarea BD)
 
 ### Starea sistemului (detaliată)
 
@@ -153,43 +153,35 @@ Răspuns:
 }
 ```
 
-#### `credentialHealth`: memoria cache a verificărilor vs `test_status` din SQLite
+#### `credentialHealth`: memoria cache a sondelor comparativ cu `test_status` din SQLite
 
-`GET /api/monitoring/health` → `credentialHealth` este **indicatorul din memoria cache
-a verificărilor**, nu o afișare în timp real a `provider_connections.test_status`. După #12532,
-calea cererii citește numai `getCachedCredentialHealthSummary()`; verificările din fundal
-actualizează memoria cache în afara buclei de evenimente.
+`GET /api/monitoring/health` → `credentialHealth` este **indicatorul din memoria cache a sondelor păstrat în memorie**, nu o extragere în timp real a valorilor `provider_connections.test_status`. După #12532, calea solicitării citește exclusiv `getCachedCredentialHealthSummary()`; sondele din fundal actualizează memoria cache în afara buclei de evenimente.
 
-| Strat                                      | Unde                                                                  | Ce înseamnă                                                                                                                                                                                                                          |
-| ------------------------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Indicatorul memoriei cache a verificărilor | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Ultimele rezultate ale verificărilor de sănătate a acreditărilor păstrate încă în memoria procesului. `source` este întotdeauna `probe-cache`.                                                                                       |
-| Detalii despre conexiunile eșuate          | `credentialHealth.failedConnections`                                  | Prezent **numai când `failed > 0`**. Listă limitată de înregistrări din memoria cache cu `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` sanitizate). `failedOmitted` este setat când lista a fost limitată. |
-| Stare persistentă SQLite                   | `credentialHealth.staleDbNonOkCount`                                  | Numărul rândurilor de conexiuni **active** (`is_active=1`) al căror `test_status` persistent are o valoare cunoscută diferită de „ok” (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).             |
+| Strat                                 | Unde                                                                  | Ce înseamnă                                                                                                                                                                                                                               |
+| ------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Indicatorul memoriei cache a sondelor | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Ultimele rezultate ale sondelor de verificare a acreditărilor păstrate încă în memoria procesului. `source` este întotdeauna `probe-cache`.                                                                                               |
+| Detaliile conexiunilor eșuate         | `credentialHealth.failedConnections`                                  | Prezente **numai când `failed > 0`**. Listă limitată de rânduri din memoria cache cu `status=error` (`connectionId`, `status`, valorile igienizate `lastError` / `lastErrorType`). `failedOmitted` este setat când lista a fost limitată. |
+| Starea persistentă SQLite             | `credentialHealth.staleDbNonOkCount`                                  | Numărul rândurilor de conexiune **active** (`is_active=1`) al căror `test_status` persistent este o valoare cunoscută diferită de „ok” (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                 |
 
 Cele două straturi pot diferi în mod intenționat:
 
-- Indicatorul `failed=0` în timp ce `staleDbNonOkCount>0` — SQLite are încă un
-  `test_status` persistent (de exemplu, `expired` sau `credits_exhausted`) pe care cel mai recent
-  instantaneu din memoria cache a verificărilor nu îl numără ca `status=error`.
-- Indicatorul `failed>0` în timp ce SQLite pare sănătos — o verificare recentă a eșuat și este
-  stocată în memoria cache; rândul din DB nu a fost actualizat sau a fost șters ulterior.
+- Indicatorul are `failed=0`, în timp ce `staleDbNonOkCount>0` — SQLite încă păstrează un `test_status` persistent (de exemplu, `expired` sau `credits_exhausted`) pe care cel mai recent instantaneu din memoria cache a sondelor nu îl numără ca `status=error`.
+- Indicatorul are `failed>0`, în timp ce SQLite indică o stare bună — o sondă recentă a eșuat și rezultatul este stocat în memoria cache; rândul din BD nu a fost actualizat sau a fost șters ulterior.
 
-Nu declanșați alerte exclusiv pe baza `provider_connections.test_status` atunci când colectați date de la acest
-endpoint. Utilizați `failed` + `failedConnections` pentru eșecurile actuale ale verificărilor și
-`staleDbNonOkCount` când aveți nevoie de numărul stărilor persistente.
+Nu declanșați alerte exclusiv pe baza `provider_connections.test_status` atunci când colectați date de la acest punct final. Utilizați `failed` + `failedConnections` pentru eșecurile în timp real ale sondelor și `staleDbNonOkCount` când aveți nevoie de numărul stărilor persistente stocate.
 
-### Recomandări pentru verificările Kubernetes
+### Recomandări pentru sondele Kubernetes
 
-OmniRoute este un **singur proces Node** (o singură buclă de evenimente). Configurația Docker standard `HEALTHCHECK` vizează ruta simplă `/healthz`. `/api/monitoring/health` este **prea costisitoare** pentru intervalele verificărilor de funcționare kubelet.
+OmniRoute este un **singur proces Node** (o singură buclă de evenimente). Configurația Docker `HEALTHCHECK` standard vizează ruta simplă `/healthz`. `/api/monitoring/health` este **prea costisitoare** pentru intervalele de verificare a disponibilității folosite de kubelet.
 
-| Sondă                 | Țintă recomandată                                                                        | Note                                                                                                                                                                                                                                                                                                                                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Pornire**           | HTTP `GET /healthz` cu un `failureThreshold` mare (sau un `startPeriod` mare)            | Pornirea la rece + migrarea SQLite pot dura mai mult de câteva secunde                                                                                                                                                                                                                                                                                                                                      |
-| **Disponibilitate**   | HTTP `GET /healthz`                                                                      | Starea ciclului de viață `ok` / `starting` / `stopping` (200 vs 503). Poate oscila în continuare dacă bucla este blocată de CPU. Un răspuns **200 după mai multe secunde nu indică o stare sănătoasă** (#10303) — înseamnă că bucla de evenimente a fost privată de resurse înainte ca handlerul de 3 octeți să ruleze                                                                                      |
-| **Viabilitate**       | HTTP `GET /livez` **sau TCP** pe portul serviciului principal (`PORT`, implicit `20128`) | `/livez` indică doar că procesul este activ (întotdeauna 200 dacă handlerul rulează). Folosește totuși aceeași buclă de evenimente — ocupat ≠ mort și nu detectează privarea de resurse a buclei de evenimente (#10303) mai bine decât TCP. Preferați **TCP** dacă sondele HTTP expiră sub sarcina catalogului/compresiei; în niciun caz **nu** opriți podul pentru blocări scurte ale buclei de evenimente |
-| **Stare aprofundată** | `GET /api/monitoring/health` de la un verificator extern                                 | Nu este destinat pentru `livenessProbe` kubelet / `readinessProbe` cu intervale scurte                                                                                                                                                                                                                                                                                                                      |
+| Sondă                 | Țintă recomandată                                                                           | Note                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pornire**           | HTTP `GET /healthz` cu un `failureThreshold` mare (sau un `startPeriod` mare)               | Pornirea la rece + migrarea SQLite pot dura mai mult de câteva secunde                                                                                                                                                                                                                                                                                                                              |
+| **Disponibilitate**   | HTTP `GET /healthz`                                                                         | Starea ciclului de viață `ok` / `starting` / `stopping` (200 vs 503). Poate oscila în continuare dacă bucla este blocată de CPU. Un răspuns **200 după mai multe secunde nu indică o stare sănătoasă** (#10303) — înseamnă că bucla de evenimente a fost privată de resurse înainte ca handlerul de 3 octeți să ruleze                                                                              |
+| **Viabilitate**       | HTTP `GET /livez` **sau TCP** pe portul principal al serviciului (`PORT`, implicit `20128`) | `/livez` verifică doar dacă procesul este activ (întotdeauna 200 dacă handlerul rulează). Acesta folosește tot bucla de evenimente — ocupat ≠ mort și nu detectează privarea de resurse a buclei de evenimente (#10303) mai bine decât TCP. Preferați **TCP** dacă sondele HTTP expiră sub sarcina catalogului/compresiei; în niciun caz nu opriți podul la blocaje scurte ale buclei de evenimente |
+| **Stare aprofundată** | `GET /api/monitoring/health` dintr-un verificator extern                                    | Nu este destinat pentru `livenessProbe` kubelet / un `readinessProbe` cu intervale scurte                                                                                                                                                                                                                                                                                                           |
 
-Exemplu de structură (ajustați pragurile în funcție de pornirea la rece și sarcina de compresie):
+Exemplu de structură (ajustați pragurile în funcție de pornirea la rece și de sarcina de compresie):
 
 ```yaml
 ports:
@@ -215,27 +207,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # În timpul blocării buclei de evenimente, solicitarea HTTP /livez poate expira.
-  # TCP este alternativa conservatoare:
+  # În timpul blocării buclei de evenimente, HTTP /livez poate expira în continuare. TCP este
+  # alternativa prudentă:
   # tcpSocket:
   #   port: http
 ```
 
-**Nu** direcționați verificarea de **viabilitate** kubelet către `/api/monitoring/health`. Această cale efectuează operațiuni reale asupra bazei de date și de monitorizare și va genera rezultate fals pozitive sub sarcină.
+**Nu** direcționați verificarea de **viabilitate** kubelet către `/api/monitoring/health`. Acea cale efectuează operațiuni reale asupra bazei de date și de monitorizare și va produce rezultate fals pozitive sub sarcină.
 
-Subiecte asociate: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sonde în timp ce bucla de evenimente este ocupată), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (consum excesiv de resurse la calcularea prețurilor catalogului), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (consum excesiv de resurse la numărarea tokenurilor pentru compresie).
+Subiecte asociate: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sonde în timp ce bucla de evenimente este ocupată), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (procesarea intensivă a prețurilor catalogului), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (procesarea intensivă a numărării tokenurilor pentru compresie).
 
-### Operațiuni opționale pe calea solicitării (memorie, abilități, reîmprospătarea tokenurilor)
+### Watchdog systemd (buclă de evenimente blocată)
 
-Extragerea memoriei, injectarea abilităților și reîmprospătarea tokenurilor OAuth folosesc aceeași **buclă principală de evenimente Node** ca `/healthz`. Acestea sunt funcționalități activate sau dezactivate din panoul de control (`memoryEnabled`, `skillsEnabled`), nu un grup de procese worker. Consultați [Mediu — costul buclei de evenimente](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Pe o gazdă systemd, OmniRoute informează managerul de servicii când este pregătit și continuă să-i trimită semnale, astfel încât un server a cărui buclă de evenimente este blocată să fie oprit și repornit, în loc să rămână activ și să nu răspundă. Semnalele provin din propria buclă de evenimente a serverului: când aceasta se blochează, semnalele se opresc, iar systemd repornește serviciul după ce trece intervalul `WatchdogSec` fără niciun semnal.
 
-### Starea furnizorilor
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) scrie deja o unitate de utilizator care include această configurare. O unitate scrisă de dvs. (cu valoarea implicită `Type=simple`) nu beneficiază de watchdog, așadar adăugați următoarele linii în secțiunea sa `[Service]`:
 
-> **Niciun endpoint REST.** Datele privind starea furnizorilor sunt disponibile prin instrumentul MCP `observability_snapshot` sau pe pagina `/dashboard/providers` din panoul de control.
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
 
-### Detaliile furnizorului
+Unitatea generată setează `Restart=on-failure`, deci adăugați și această linie — fără ea, watchdog-ul doar oprește serviciul blocat, fără să-l repornească.
 
-> **Niciun endpoint REST.** Detaliile pentru fiecare furnizor sunt disponibile pe pagina `/dashboard/providers` din panoul de control.
+- `Type=notify`: serviciul este considerat „pornit” când serverul trimite `READY=1`, nu când procesul este bifurcat. `TimeoutStartSec` limitează durata unei porniri lente.
+- `NotifyAccess=all`: semnalele sunt trimise de procesul serverului, care este un proces-copil al supervizorului `omniroute serve`.
+- `WatchdogSec`: semnalele sunt trimise la fiecare 60 de secunde, așadar utilizați **120 sau mai mult**. Valorile mai mici ar reporni un server sănătos.
+- Rulați `omniroute serve` în prim-plan. `--daemon` detașează serverul de cgroup-ul unității, iar confirmarea de notificare nu se finalizează niciodată.
+
+Verificați după o repornire dacă este activ:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` afișează întârzierea configurată, iar `WatchdogTimestamp` avansează în fiecare minut. O repornire provocată de watchdog este înregistrată ca `Result=watchdog`. Pentru a dezactiva semnalele păstrând unitatea neschimbată, setați `OMNIROUTE_DISABLE_SD_NOTIFY=1`; în absența unui `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows), nu se trimite nimic.
+
+Watchdog-ul verifică doar dacă bucla de evenimente continuă să ruleze. Un server lent, dar a cărui buclă continuă să ruleze, nu este repornit.
+
+### Operațiuni opționale pe calea solicitării (memorie, abilități, reîmprospătarea tokenului)
+
+Extragerea memoriei, injectarea abilităților și reîmprospătarea tokenului OAuth partajează **bucla principală de evenimente Node** cu `/healthz`. Acestea sunt funcționalități activate/dezactivate din panoul de control (`memoryEnabled`, `skillsEnabled`), nu un grup de workeri. Consultați [Mediu — costul buclei de evenimente](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+
+### Starea furnizorului
+
+> **Niciun endpoint REST.** Datele privind starea furnizorilor sunt disponibile prin instrumentul MCP `observability_snapshot` sau pe pagina `/dashboard/providers` a panoului de control.
+
+### Detalii despre furnizor
+
+> **Niciun endpoint REST.** Detaliile pentru fiecare furnizor sunt disponibile pe pagina `/dashboard/providers` a panoului de control.
 
 ---
 

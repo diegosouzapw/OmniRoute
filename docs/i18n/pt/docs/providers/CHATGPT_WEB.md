@@ -33,26 +33,27 @@ as respetivas ligações não são abrangidos por esta descontinuação.
 O túnel apenas é necessário para interações com ferramentas. Todas as rotas indicadas, incluindo `pro`, podem utilizar a
 mesma capacidade de ferramenta local associada à interação quando o túnel e o conector estão configurados.
 
-## Configuração no painel
+## Configuração do painel
 
 1. Abra o fornecedor **ChatGPT Web (Codex)** e adicione uma ligação.
-2. Cole o cabeçalho Cookie completo do ChatGPT, o ID do túnel, a chave de runtime e o nome do conector
-   personalizado. As novas configurações com capacidade para ferramentas têm de utilizar um conector recém-criado com o nome exato
+2. Cole o cabeçalho Cookie completo do ChatGPT, o ID do túnel, a chave de runtime e o nome
+   do conector personalizado. As novas configurações com suporte para ferramentas têm de utilizar um conector recém-criado com o nome exato
    `OmniRoute Codex v2`, com Authentication definido como None e Permissions definido como Allow all
    actions.
-3. Execute a verificação da ligação. O OmniRoute abre um Temporary Chat baseado no browser e deteta
+3. Execute a verificação da ligação. O OmniRoute abre um Temporary Chat suportado pelo browser e deteta
    se Sol e Pro estão disponíveis para a conta.
 4. Guarde a ligação. O OmniRoute substitui o cookie colado pelo estado de armazenamento
-   verificado do Playwright e armazena-o com a chave de runtime através da abstração de credenciais
-   encriptadas.
+   Playwright verificado e armazena-o com a chave de runtime através da abstração de
+   credenciais encriptadas.
 
-O cookie original não é retido após ser guardado com êxito. Quando a sessão expirar, abra
-a ligação, cole um novo cabeçalho Cookie completo e execute novamente a verificação. O estado de diagnóstico
-na caixa de diálogo de edição comunica separadamente o estado do browser, do estado de armazenamento, da autenticação, do Temporary Chat, do túnel,
-do conector e do ciclo completo da ferramenta.
+O cookie original não é conservado após ser guardado com êxito. Quando a sessão expirar, abra
+a ligação, cole um novo cabeçalho Cookie completo e volte a executar a verificação. O estado do
+diagnóstico na caixa de diálogo de edição apresenta separadamente o browser, o estado de armazenamento, o início de sessão, o Temporary Chat, o túnel,
+o conector e o ciclo completo da ferramenta. Para automatizar as atualizações do cookie quando as sessões são renovadas,
+consulte a ferramenta complementar em [Extensão de sincronização de sessões do browser](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nunca submeta para o repositório um cookie real, uma chave de runtime, um estado de armazenamento ou um token de capacidade. Os valores de teste e
-> de documentação têm de ser sempre marcadores de posição.
+> Nunca faça commit de um cookie, uma chave de runtime, um estado de armazenamento ou um token de capacidade reais. Os valores de teste e
+> documentação têm de ser sempre marcadores de posição.
 
 ## Modelos e combos
 
@@ -138,7 +139,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-As proteções contra regressões da descontinuação encontram-se em:
+As salvaguardas de regressão relativas à descontinuação encontram-se em:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

@@ -165,9 +165,9 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## Legjobb ingyenes szolgáltatók
 
-Ezek a szolgáltatók **ingyenes hozzáférést** biztosítanak, bankkártya nélkül:
+Ezek a szolgáltatók **ingyenes hozzáférést** kínálnak bankkártya nélkül:
 
-| Szolgáltató       | Ingyenes kvóta          | Modellek                                 | Csatlakozás módja           |
+| Szolgáltató       | Ingyenes keret          | Modellek                                 | Csatlakozás módja           |
 | ----------------- | ----------------------- | ---------------------------------------- | --------------------------- |
 | **Kiro AI**       | 50 kredit/hónap         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nincs szükség hitelesítésre |
 | **OpenCode Free** | Korlátlan               | GPT-4o, Claude, Gemini                   | Nincs szükség hitelesítésre |
@@ -176,9 +176,8 @@ Ezek a szolgáltatók **ingyenes hozzáférést** biztosítanak, bankkártya né
 | **Cloudflare AI** | 10K neuron/nap          | Több mint 50 modell                      | Nincs szükség hitelesítésre |
 | **NVIDIA NIM**    | ~40 RPM                 | 129 modell                               | API-kulcs szükséges         |
 | **Cerebras**      | $5 regisztrációs kredit | GLM 4.7, GPT-OSS 120B                    | API-kulcs + bankkártya      |
-| **Qoder**         | Korlátlan               | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Nincs szükség hitelesítésre |
 
-**Tipp**: Csatlakoztass több ingyenes szolgáltatót a **korlátlan ingyenes MI-használathoz**, automatikus tartalékra váltással!
+**Tipp**: Csatlakoztass több ingyenes szolgáltatót, és az automatikus tartalékra váltásnak köszönhetően használj **korlátlanul ingyenes AI-t**!
 
 ---
 
@@ -277,6 +276,28 @@ Ezután használd a `model: "auto"` beállítást, és az OmniRoute automatikusa
 1. API-kulcs beszerzése: https://platform.deepseek.com/
 2. Az OmniRoute-ban: Szolgáltatók → Szolgáltató hozzáadása → DeepSeek
 3. Illessze be az API-kulcsot → Csatlakozás
+
+### Qoder: válassza ki a hitelesítő adatok továbbítási módját
+
+A Qoder hitelesítő adatokat igényel. A két továbbítási mód eltérő képességekkel rendelkezik; önmagában a modell neve nem határozza meg, hogy egy adott kapcsolat mire képes.
+
+| Hitelesítő adat                                 | OmniRoute-továbbítási mód                         | A hívó eszközhívásai                                    | Streamelés                                                                               |
+| ----------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `pt-` kezdetű PAT                               | Helyi `qodercli` folyamat az OmniRoute-gazdagépen | Nem támogatott                                          | Pufferelt: az SSE csak azután kerül kibocsátásra, hogy a CLI visszaadta a teljes választ |
+| Nem PAT típusú hozzáférési token vagy API-kulcs | DashScope OpenAI-kompatibilis HTTP-végpont        | Továbbítva, a felsőbb szintű modelltől/kulcstól függően | Felsőbb szintű HTTP/SSE-útvonal                                                          |
+
+PAT használata esetén telepítse a Qoder CLI-t ugyanarra a gazdagépre vagy konténerbe, amelyen az OmniRoute fut. A végrehajtható fájlnak `qodercli` néven elérhetőnek kell lennie, vagy állítsa a `CLI_QODER_BIN` értékét a végrehajtható fájl elérési útjára. A csak a Docker-gazdagépre telepített CLI nem lesz automatikusan elérhető a konténerben. A hiányzó bináris fájlok egyértelmű hibaüzenetet eredményeznek, amely a telepítésre vagy az elérési út beállítására irányítja.
+
+A PAT-alapú csevegési útvonal folyamat-időtúllépése 45 másodperc. A beszélgetést egyetlen prompttá alakítja, és nem streamelő nyomtatási módban hívja meg a CLI-t. A `stream: true` kérése SSE-re módosítja a válasz burkolóformátumát; nem biztosítja a felsőbb szintű tokenek fokozatos továbbítását. A CLI-ellenőrzés és a modelllista lekérése különálló, 20 másodperces időtúllépést használ. Ezek a kód jelenlegi alapértelmezései, nem konfigurálható irányítópult-beállítások.
+
+Egyszerű csevegéshez használjon PAT-kapcsolatokat. A `tools` vagy a régi `functions` mezőt tartalmazó ügynökkérések kizárják a PAT-fiókokat a hitelesítő adatok kiválasztásakor, beleértve a rögzített kombinált célokat is. Egy vegyes Qoder-készlet továbbra is kiválaszthatja a HTTP-fiókját. A PAT-végrehajtó közvetlen hívásai szintén egyértelmű hibával meghiúsulnak a CLI elindítása előtt, ahelyett, hogy észrevétlenül elhagynák az eszközdefiníciókat. Ez a korlátozás az API hívója által megadott eszközökre vonatkozik, nem pedig a Qoder CLI által esetlegesen használt belső eszközökre. Egy HTTP-kulcs nem garantálja, hogy minden modell támogatja az eszközöket; a szokásos modellképesség-ellenőrzések továbbra is érvényesek.
+
+A böngészős OAuth csak akkor érhető el, ha a rendszergazda mind az öt beállítást konfigurálja: `QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`, `QODER_OAUTH_CLIENT_ID` és `QODER_OAUTH_CLIENT_SECRET`. Ezek alapértelmezés szerint üresek; egy nem konfigurált telepítésnél támogatott hitelesítőadat-importot kell használni ahelyett, hogy késznek feltételezné a böngészős bejelentkezési folyamatot.
+
+Megvalósítási hivatkozások: [Qoder-végrehajtó](../../open-sse/executors/qoder.ts),
+[CLI-futtatókörnyezet](../../open-sse/services/qoderCli.ts) és
+[OAuth-konfiguráció](../../src/lib/oauth/constants/oauth.ts). A fokozatos PAT-streamelés
+és a konfigurálható időtúllépés különálló továbbfejlesztések; ez a működés nem ígéri ezek elérhetőségét.
 
 ### Groq
 

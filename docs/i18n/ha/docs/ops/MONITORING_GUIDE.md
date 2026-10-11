@@ -101,26 +101,26 @@ Ga kowane combo:
 
 ## API na Duba Lafiya
 
-OmniRoute yana samar da hanyoyin lafiyar HTTP guda **biyu**. Ba za a iya amfani da su a madadin juna ga masu tsara gudanarwar tsarin ba.
+OmniRoute yana samar da hanyoyin duba lafiyar HTTP guda **biyu**. Ba za a iya amfani da su a madadin juna ga masu tsara tafiyar da sabis ba.
 
-| Hanya                        | Manufa                                                                    | Nauyi                                 | Yi amfani da shi don                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `GET /healthz`               | Rayuwa/shirye-shiryen zagayowar aiki (`ok` / `starting` / `stopping`)     | Mai sauƙi sosai (alamar mataki kawai) | **readiness** na Kubernetes; **liveness** mai sassauci idan dole ne ka yi amfani da HTTP |
-| `GET /api/monitoring/health` | Takaitaccen zurfin tsarin + mai samarwa (DB, heap, ƙididdigar katalog, …) | Mai nauyi (aikin DB / sa ido na sync) | Dashboard, zurfin binciken blackbox, ginannen healthcheck na Docker                      |
+| Hanya                        | Manufa                                                                                 | Nauyi                                 | Yi amfani da shi don                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------- |
+| `GET /healthz`               | Rayuwa/shirye-shiryen zagayen aiki (`ok` / `starting` / `stopping`)                    | Mai sauƙi sosai (tutar mataki kawai)  | **readiness** na Kubernetes; **liveness** mai sassauci idan dole ne a yi amfani da HTTP |
+| `GET /api/monitoring/health` | Takaitaccen bayani mai zurfi na tsarin + mai samarwa (DB, heap, ƙididdigar katalog, …) | Mai nauyi (aikin DB / sa ido na sync) | Dashboard, bincike mai zurfi na blackbox, ginannen healthcheck na Docker                |
 
-> **Lura:** Jadawalin lafiyar masu samarwa, matsalolin autopilot, masu sa ido kan quota, lafiyar token, da cikakkun bayanan latency fiye da `/api/monitoring/health` suna samuwa ta **kayan aikin MCP** `observability_snapshot` ko shafukan **dashboard** — babu keɓaɓɓun hanyoyin REST don waɗannan.
+> **Lura:** Jadawalan lafiyar masu samarwa, matsalolin autopilot, masu sa ido kan quota, lafiyar token, da cikakkun bayanan latency fiye da `/api/monitoring/health` suna samuwa ta **kayan aikin MCP** `observability_snapshot` ko shafukan **dashboard** — babu keɓaɓɓun hanyoyin REST don waɗannan.
 
-Duk hanyoyin biyu suna aiki a kan **Node event loop ɗaya** da sarrafa buƙatu. Hanya mai cin CPU (babban aikin katalog na `GET /v1/models`, matsawar dogon mahallin rubutu / ƙirga token) na iya jinkirta **dukkan** masu sarrafa HTTP, ciki har da `/healthz`. Cunkoson event-loop ≠ mutuwar process. Fi son gyara abin da ke cin albarkatu; daidaita probe kawai yana rage kashe-kashen ƙarya.
+Duk hanyoyin biyu suna gudana a kan **Node event loop ɗaya** da sarrafa buƙatu. Hanyar da CPU ya mamaye (babban aikin katalog na `GET /v1/models`, matsawar dogon mahalli / ƙirga token) na iya jinkirta **dukkan** masu sarrafa HTTP, har da `/healthz`. Cunkoson event-loop ≠ mutuwar process. Ya fi kyau a gyara abin da ke cin albarkatu; daidaita probe kawai yana rage kashe-kashen da ba daidai ba.
 
-### Probe mai sauƙi na mai tsara gudanarwar tsari
+### Probe mai sauƙi na mai tsara tafiyar da sabis
 
 ```bash
 GET /healthz
 # ko HEAD /healthz
 ```
 
-- **200** + jiki `ok` lokacin da matakin zagayowar rayuwar server ya shirya
-- **503** + `starting` / `stopping` yayin farawa ko rufewa
+- **200** + body `ok` lokacin da matakin zagayen aikin uwar garken ya shirya
+- **503** + `starting` / `stopping` yayin farawa ko kashewa
 - Aiwatarwa: `src/app/healthz/route.ts` (babu ping na DB)
 
 ### Lafiyar Tsari (mai zurfi)
@@ -155,40 +155,33 @@ Amsa:
 
 #### `credentialHealth`: probe-cache da SQLite `test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` shi ne **ma'aunin probe-cache da ke cikin ƙwaƙwalwar ajiya**, ba fitar da bayanan `provider_connections.test_status` kai tsaye ba. Bayan #12532, hanyar
-buƙata tana karanta `getCachedCredentialHealthSummary()` kawai; probe na bayan-fage
-suna sabunta cache ba tare da amfani da event loop ba.
+`GET /api/monitoring/health` → `credentialHealth` shi ne **ma’aunin probe-cache da ke cikin ƙwaƙwalwa**, ba fitarwa kai tsaye ta `provider_connections.test_status` ba. Bayan #12532, hanyar buƙata tana karanta `getCachedCredentialHealthSummary()` kawai; probes na bango suna sabunta cache ba tare da yin aiki a kan event loop ba.
 
-| Mataki                     | Inda                                                                  | Abin da yake nufi                                                                                                                                                                                                      |
-| -------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ma'aunin probe-cache       | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Sakamakon probe na lafiyar bayanan shaida na ƙarshe waɗanda har yanzu ake riƙewa a ƙwaƙwalwar process. `source` koyaushe `probe-cache` ne.                                                                             |
-| Bayanin haɗin da ya gaza   | `credentialHealth.failedConnections`                                  | Yana bayyana **kawai idan `failed > 0`**. Iyakantaccen jerin layukan cache masu `status=error` (`connectionId`, `status`, tsabtattun `lastError` / `lastErrorType`). Ana saita `failedOmitted` idan an iyakance jerin. |
-| Matsayin SQLite mai ɗorewa | `credentialHealth.staleDbNonOkCount`                                  | Adadin layukan haɗi masu **aiki** (`is_active=1`) waɗanda `test_status` ɗinsu da aka adana sanannen mara-ok ne (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                      |
+| Mataki                            | Inda                                                                  | Abin da yake nufi                                                                                                                                                                                                       |
+| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ma’aunin probe-cache              | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Sakamakon probe na lafiyar bayanan shaida na ƙarshe da har yanzu ake riƙe da su a ƙwaƙwalwar process. `source` koyaushe `probe-cache` ne.                                                                               |
+| Cikakken bayanin haɗin da ya gaza | `credentialHealth.failedConnections`                                  | Yana nan **kawai lokacin da `failed > 0`**. Iyakantaccen jerin layukan cache masu `status=error` (`connectionId`, `status`, tsabtattun `lastError` / `lastErrorType`). Ana saita `failedOmitted` idan an takaita jerin. |
+| Matsayin SQLite mai dorewa        | `credentialHealth.staleDbNonOkCount`                                  | Adadin layukan haɗi **masu aiki** (`is_active=1`) waɗanda `test_status` ɗinsu da aka adana sanannen matsayi ne da ba ok ba (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).           |
 
 Matakan biyu na iya saɓawa da gangan:
 
-- Ma'auni `failed=0` alhali `staleDbNonOkCount>0` — SQLite har yanzu yana da
-  `test_status` mai ɗorewa (misali `expired` ko `credits_exhausted`) wanda sabon
-  hoton probe-cache bai ƙirga a matsayin `status=error` ba.
-- Ma'auni `failed>0` alhali SQLite yana kama da lafiyayye — wani probe na kwanan nan ya gaza kuma an
-  adana shi a cache; ba a sabunta layin DB ba, ko kuma daga baya an share shi.
+- Ma’auni `failed=0` alhali `staleDbNonOkCount>0` — SQLite har yanzu yana da `test_status` mai dorewa (misali `expired` ko `credits_exhausted`) wanda sabon hoton probe-cache ba ya ƙirga a matsayin `status=error`.
+- Ma’auni `failed>0` alhali SQLite yana bayyana lafiyayye — probe na baya-bayan nan ya gaza kuma an adana shi a cache; ba a sabunta layin DB ba, ko kuma daga baya an share shi.
 
-Kada ka aika faɗakarwa bisa `provider_connections.test_status` kaɗai lokacin tattara bayanai daga wannan
-endpoint. Yi amfani da `failed` + `failedConnections` don gazawar probe ta kai tsaye, sannan
-`staleDbNonOkCount` idan kana buƙatar adadin matsayi mai ɗorewa da aka adana.
+Kada a aika faɗakarwa bisa `provider_connections.test_status` kaɗai yayin tattara bayanai daga wannan endpoint. Yi amfani da `failed` + `failedConnections` don gazawar probe kai tsaye, sannan `staleDbNonOkCount` lokacin da ake buƙatar adadin matsayi mai dorewa da aka adana.
 
 ### Shawarwarin probe na Kubernetes
 
-OmniRoute **Node process guda ɗaya** ne (event loop ɗaya). Daidaitaccen Docker `HEALTHCHECK` yana nufar `/healthz` mai sauƙi. `/api/monitoring/health` yana da **nauyi sosai** don tazarar liveness na kubelet.
+OmniRoute **process na Node guda ɗaya** ne (event loop guda ɗaya). Tsohon Docker `HEALTHCHECK` yana nufin `/healthz` mai sauƙi. `/api/monitoring/health` yana da **nauyi sosai** don tazarar liveness ta kubelet.
 
-| Bincike              | Manufa da aka ba da shawara                                                    | Bayanan kula                                                                                                                                                                                                                                                                                                                                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Farawa**           | HTTP `GET /healthz` tare da dogon `failureThreshold` (ko babban `startPeriod`) | Farawa daga sanyi + ƙaura ta SQLite na iya wuce daƙiƙu kaɗan                                                                                                                                                                                                                                                                                                                                                              |
-| **Shirye-shirye**    | HTTP `GET /healthz`                                                            | Zagayowar rayuwa `ok` / `starting` / `stopping` (200 da 503). Har yanzu yana sauyawa idan CPU ya toshe madaukin. **Samun 200 bayan daƙiƙu da yawa ba alamar lafiya ba ce** (#10303) — yana nufin an hana madaukin taruka samun lokacin aiki kafin mai sarrafa mai byte 3 ya yi aiki                                                                                                                                       |
-| **Kasancewa a raye** | HTTP `GET /livez`, **ko TCP** a babban tashar sabis (`PORT`, tsoho `20128`)    | `/livez` yana nuna cewa tsarin yana raye ne kawai (kullum 200 idan mai sarrafawa ya yi aiki). Har yanzu yana amfani da madaukin taruka ɗaya — aiki da yawa ≠ mutuwa, kuma ba ya gano yunwar madaukin taruka (#10303) fiye da yadda TCP ke yi. Fi son **TCP** idan binciken HTTP ya ƙare saboda cikar lokaci ƙarƙashin nauyin kasida/matsewa; **kar a** kashe pod saboda ɗan gajeren tsaikon madaukin taruka a kowane hali |
-| **Lafiya mai zurfi** | `GET /api/monitoring/health` daga mai bincike na waje                          | Ba don `livenessProbe` na kubelet / `readinessProbe` mai tsauraran lokuta ba                                                                                                                                                                                                                                                                                                                                              |
+| Bincike                      | Manufa da aka ba da shawara                                                    | Bayanan kula                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Farawa**                   | HTTP `GET /healthz` tare da dogon `failureThreshold` (ko babban `startPeriod`) | Farawa daga sanyi + ƙaura ta SQLite na iya wuce daƙiƙu kaɗan                                                                                                                                                                                                                                                                                                                             |
+| **Shirye-shirye**            | HTTP `GET /healthz`                                                            | Matsayin zagayowar rayuwa `ok` / `starting` / `stopping` (200 da 503). Har yanzu yana sauyawa idan CPU ya toshe loop ɗin. **200 da ya ɗauki daƙiƙu da yawa ba lafiya ba ne** (#10303) — yana nufin an hana event loop aiki kafin handler mai byte 3 ya gudana                                                                                                                            |
+| **Kasancewa da rai**         | HTTP `GET /livez`, **ko TCP** a babban port na sabis (`PORT`, tsoho `20128`)   | `/livez` yana nuna cewa process yana rai ne kawai (kullum 200 idan handler ya gudana). Har yanzu yana amfani da event loop ɗin nan — aiki da yawa ≠ mutuwa, kuma ba ya gano yunwar event-loop (#10303) fiye da TCP. Fi son **TCP** idan binciken HTTP yana ƙarewar lokaci a ƙarƙashin nauyin catalog/compression; **kar a** kashe pod saboda gajerun tsaikon event-loop ko ta wace hanya |
+| **Cikakken binciken lafiya** | `GET /api/monitoring/health` daga mai bincike na waje                          | Ba don `livenessProbe` na kubelet / `readinessProbe` mai tsauri ba                                                                                                                                                                                                                                                                                                                       |
 
-Misalin tsari (daidaita iyakokin da farawa daga sanyi da nauyin matsewarku):
+Misalin tsari (daidaita matakan iyaka da nauyin farawa daga sanyi da compression ɗinku):
 
 ```yaml
 ports:
@@ -214,27 +207,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Yayin da madaukin taruka ya tsaya, HTTP /livez na iya ƙarewa saboda cikar lokaci.
-  # TCP ne madadin da ya fi taka-tsantsan:
+  # A lokacin tsaikon event-loop, HTTP /livez na iya ƙarewar lokaci har yanzu. TCP shi ne
+  # madadin da ya fi taka-tsantsan:
   # tcpSocket:
   #   port: http
 ```
 
-**Kar a** saita **liveness** na kubelet zuwa `/api/monitoring/health`. Wannan hanyar tana yin ainihin aikin DB/sa-ido kuma za ta ba da sakamakon ƙarya a ƙarƙashin nauyi.
+**Kar a** saita **liveness** na kubelet zuwa `/api/monitoring/health`. Wannan hanyar tana aiwatar da ainihin aikin DB/monitoring kuma za ta bayar da sakamakon ƙarya ƙarƙashin nauyi.
 
-Mai alaƙa: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (bincike yayin da madaukin taruka yake cike da aiki), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (babban cin albarkatun lissafin farashin kasida), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (babban cin albarkatun ƙidayar token na matsewa).
+Mai alaƙa: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (bincike yayin da event loop yake aiki sosai), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing da ke mamaye albarkatu), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (ƙididdigar token ta compression da ke mamaye albarkatu).
 
-### Aikin hanyar buƙata na zaɓi (ƙwaƙwalwa, ƙwarewa, sabunta token)
+### systemd watchdog (event loop da ya daskare)
 
-Ciro ƙwaƙwalwa, saka ƙwarewa, da sabunta token na OAuth suna amfani da **babban madaukin taruka na Node** ɗaya tare da `/healthz`. Su fasaloli ne da ake kunnawa ko kashewa daga dashboard (`memoryEnabled`, `skillsEnabled`), ba tarin ma'aikata ba ne. Duba [Muhalli — kuɗin madaukin taruka](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+A kan host na systemd, OmniRoute yana sanar da mai sarrafa sabis lokacin da ya shirya kuma yana ci gaba da aika masa da ping, don haka ana kashe kuma a sake kunna server da event loop ɗinsa ya makale maimakon ya ci gaba da kasancewa a kunne cikin shiru. Ping ɗin suna fitowa daga event loop na server ɗin kansa: idan ya toshe, suna tsayawa, sannan systemd ya sake kunna sabis ɗin da zarar `WatchdogSec` ya wuce ba tare da ko guda ɗaya ba.
 
-### Lafiyar Mai Bayarwa
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) ya riga ya rubuta user unit mai wannan. Unit da kuka rubuta da kanku (`Type=simple` na tsohuwa) ba ya samun watchdog, don haka ƙara waɗannan layukan zuwa sashinsa na `[Service]`:
 
-> **Babu REST endpoint.** Ana samun bayanan lafiyar mai bayarwa ta kayan aikin MCP `observability_snapshot` ko shafin dashboard `/dashboard/providers`.
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
 
-### Cikakken Bayanin Mai Bayarwa
+Unit ɗin da aka samar yana saita `Restart=on-failure`, saboda haka ku ƙara wannan layin ma — ba tare da shi ba watchdog zai kashe sabis ɗin da ya makale kawai maimakon sake kunna shi.
 
-> **Babu REST endpoint.** Ana samun cikakken bayani na kowane mai bayarwa ta shafin dashboard `/dashboard/providers`.
+- `Type=notify`: ana ɗaukar cewa sabis ɗin ya “fara” lokacin da server ya aika `READY=1`, ba lokacin da process ya yi fork ba. `TimeoutStartSec` yana kayyade jinkirin farawa.
+- `NotifyAccess=all`: process na server ne ke aika ping ɗin, wanda yake child na supervisor na `omniroute serve`.
+- `WatchdogSec`: ana aika ping kowane daƙiƙa 60, saboda haka yi amfani da **120 ko fiye**. Ƙananan ƙimomi za su sake kunna server mai lafiya.
+- Gudanar da `omniroute serve` a foreground. `--daemon` yana cire server daga cgroup na unit ɗin kuma musayar notify ba za ta taɓa kammalawa ba.
+
+Tabbatar cewa yana aiki bayan sake kunnawa:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` yana nuna jinkirin da aka saita, kuma `WatchdogTimestamp` yana ci gaba da gaba kowane minti. Ana rubuta sake kunnawar da watchdog ya haifar a matsayin `Result=watchdog`. Don kashe ping ɗin yayin barin unit yadda yake, saita `OMNIROUTE_DISABLE_SD_NOTIFY=1`; idan babu `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows), ba a aika komai.
+
+Watchdog yana duba kawai cewa event loop yana ci gaba da gudana. Ba a sake kunna server da yake tafiya a hankali amma har yanzu yana ci gaba da juyawa.
+
+### Aikin hanyar request na zaɓi (memory, skills, sabunta token)
+
+Fitar da bayanai daga ma’adanar ƙwaƙwalwa, shigar da ƙwarewa, da sabunta token na OAuth suna amfani da **babban event loop na Node** tare da `/healthz`. Su fasaloli ne da ake kunnawa ko kashewa daga dashboard (`memoryEnabled`, `skillsEnabled`), ba worker pool ba. Duba [Muhalli — kuɗin event-loop](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+
+### Lafiyar Provider
+
+> **Babu REST endpoint.** Ana samun bayanan lafiyar provider ta hanyar MCP tool `observability_snapshot` ko shafin dashboard na `/dashboard/providers`.
+
+### Cikakkun Bayanai na Provider
+
+> **Babu REST endpoint.** Ana samun cikakkun bayanai na kowane provider ta hanyar shafin dashboard na `/dashboard/providers`.
 
 ---
 

@@ -99,20 +99,20 @@ Pro každou kombinaci:
 
 ---
 
-## API pro kontrolu stavu
+## API kontroly stavu
 
-OmniRoute zpřístupňuje **dva** koncové body HTTP pro kontrolu stavu. Pro orchestrátory nejsou vzájemně zaměnitelné.
+OmniRoute zpřístupňuje **dva** HTTP endpointy pro kontrolu stavu. Pro orchestrátory nejsou vzájemně zaměnitelné.
 
-| Cesta                        | Účel                                                                     | Náročnost                                     | Použití                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `GET /healthz`               | Stav životního cyklu (`ok` / `starting` / `stopping`)                    | Triviální (pouze příznak fáze)                | Kubernetes **readiness**; případně mírná kontrola **liveness**, pokud musíte použít HTTP |
-| `GET /api/monitoring/health` | Podrobný souhrn systému a poskytovatelů (DB, halda, počty v katalogu, …) | Vysoká (synchronní práce s DB / monitoringem) | Řídicí panely, hloubkové kontroly typu blackbox, vestavěný healthcheck Dockeru           |
+| Cesta                        | Účel                                                                     | Náročnost                                     | Použití                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `GET /healthz`               | Živost/připravenost životního cyklu (`ok` / `starting` / `stopping`)     | Minimální (pouze příznak fáze)                | Kubernetes **readiness**; případně mírná **liveness**, pokud musíte použít HTTP |
+| `GET /api/monitoring/health` | Podrobný souhrn systému a poskytovatelů (DB, halda, počty v katalogu, …) | Vysoká (synchronní práce s DB / monitoringem) | Řídicí panely, podrobné blackbox kontroly, vestavěný healthcheck Dockeru        |
 
-> **Poznámka:** Matice stavu poskytovatelů, problémy autopilota, monitory kvót, stav tokenů a podrobnosti o latenci nad rámec `/api/monitoring/health` jsou dostupné prostřednictvím **nástroje MCP** `observability_snapshot` nebo stránek **řídicího panelu** — neexistují pro ně žádné vyhrazené trasy REST.
+> **Poznámka:** Matice stavu poskytovatelů, problémy autopilota, monitorování kvót, stav tokenů a podrobnosti o latenci nad rámec `/api/monitoring/health` jsou dostupné prostřednictvím **nástroje MCP** `observability_snapshot` nebo stránek **řídicího panelu** — neexistují pro ně žádné vyhrazené REST endpointy.
 
-Obě trasy běží ve **stejné smyčce událostí Node** jako zpracování požadavků. Cesta náročná na CPU (rozsáhlé zpracování katalogu `GET /v1/models`, komprese dlouhého kontextu / počítání tokenů) může zpozdit **všechny** obslužné rutiny HTTP včetně `/healthz`. Zaneprázdněná smyčka událostí ≠ mrtvý proces. Upřednostněte odstranění příčiny vysoké zátěže; ladění sond pouze omezuje počet falešných ukončení.
+Obě trasy běží ve **stejné smyčce událostí Node** jako zpracování požadavků. Výpočetně náročná cesta (zpracování velkého katalogu `GET /v1/models`, komprese dlouhého kontextu / počítání tokenů) může zpozdit **všechny** obslužné rutiny HTTP, včetně `/healthz`. Zaneprázdněná smyčka událostí ≠ mrtvý proces. Upřednostněte odstranění příčiny zatížení; úprava sond pouze omezuje počet chybných ukončení.
 
-### Odlehčená sonda pro orchestrátor
+### Odlehčená sonda orchestrátoru
 
 ```bash
 GET /healthz
@@ -120,10 +120,10 @@ GET /healthz
 ```
 
 - **200** + tělo `ok`, když je fáze životního cyklu serveru připravena
-- **503** + `starting` / `stopping` během spouštění nebo vypínání
+- **503** + `starting` / `stopping` během spouštění nebo ukončování
 - Implementace: `src/app/healthz/route.ts` (bez kontroly dostupnosti DB)
 
-### Stav systému (hloubkový)
+### Stav systému (podrobný)
 
 ```bash
 GET /api/monitoring/health
@@ -160,36 +160,37 @@ nikoli aktuální výpis `provider_connections.test_status`. Po #12532 cesta
 požadavku pouze čte `getCachedCredentialHealthSummary()`; sondy na pozadí
 obnovují mezipaměť mimo smyčku událostí.
 
-| Vrstva                             | Kde                                                                   | Co to znamená                                                                                                                                                                                                             |
-| ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ukazatel mezipaměti sond           | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Výsledky posledních sond stavu přihlašovacích údajů, které jsou stále uchovávány v paměti procesu. `source` má vždy hodnotu `probe-cache`.                                                                                |
-| Podrobnosti o neúspěšném připojení | `credentialHealth.failedConnections`                                  | Přítomné **pouze tehdy, když `failed > 0`**. Omezený seznam řádků mezipaměti se `status=error` (`connectionId`, `status`, očištěné `lastError` / `lastErrorType`). `failedOmitted` je nastaveno, pokud byl seznam omezen. |
-| Trvalý stav SQLite                 | `credentialHealth.staleDbNonOkCount`                                  | Počet **aktivních** (`is_active=1`) řádků připojení, jejichž uložený `test_status` má známou nevyhovující hodnotu (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                      |
+| Vrstva                            | Kde                                                                   | Co znamená                                                                                                                                                                                                              |
+| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ukazatel mezipaměti sond          | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Poslední výsledky sond stavu přihlašovacích údajů, které jsou stále uchovávány v paměti procesu. `source` je vždy `probe-cache`.                                                                                        |
+| Podrobnosti neúspěšných připojení | `credentialHealth.failedConnections`                                  | Přítomno **pouze tehdy, když `failed > 0`**. Omezený seznam řádků mezipaměti se `status=error` (`connectionId`, `status`, očištěné `lastError` / `lastErrorType`). `failedOmitted` se nastaví, pokud byl seznam omezen. |
+| Trvalý stav SQLite                | `credentialHealth.staleDbNonOkCount`                                  | Počet **aktivních** (`is_active=1`) řádků připojení, jejichž uložený `test_status` má známou nevyhovující hodnotu (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                    |
 
 Tyto dvě vrstvy se mohou záměrně lišit:
 
 - Ukazatel `failed=0`, zatímco `staleDbNonOkCount>0` — SQLite stále obsahuje trvalý
   `test_status` (například `expired` nebo `credits_exhausted`), který nejnovější
   snímek mezipaměti sond nezapočítává jako `status=error`.
-- Ukazatel `failed>0`, zatímco SQLite vypadá v pořádku — nedávná sonda selhala a její
-  výsledek je uložen v mezipaměti; řádek v DB nebyl aktualizován nebo byl později vymazán.
+- Ukazatel `failed>0`, zatímco SQLite vypadá v pořádku — nedávná sonda selhala a
+  výsledek je uložen v mezipaměti; řádek DB nebyl aktualizován nebo byl později vymazán.
 
-Při získávání dat z tohoto koncového bodu nevytvářejte upozornění pouze na základě
+Při získávání dat z tohoto endpointu negenerujte upozornění pouze na základě
 `provider_connections.test_status`. Pro aktuální selhání sond používejte `failed` +
-`failedConnections` a pro počet uložených trvalých stavů `staleDbNonOkCount`.
+`failedConnections` a `staleDbNonOkCount` použijte, když potřebujete počet
+uložených trvalých stavů.
 
 ### Doporučení pro sondy Kubernetes
 
-OmniRoute je **jeden proces Node** (jedna smyčka událostí). Výchozí Docker `HEALTHCHECK` cílí na odlehčený koncový bod `/healthz`. `/api/monitoring/health` je pro intervaly kontroly liveness nástrojem kubelet **příliš náročný**.
+OmniRoute je **jeden proces Node** (jedna smyčka událostí). Výchozí Docker `HEALTHCHECK` cílí na odlehčený endpoint `/healthz`. `/api/monitoring/health` je pro intervaly sond liveness kubeletu **příliš náročný**.
 
-| Sonda                        | Doporučený cíl                                                                    | Poznámky                                                                                                                                                                                                                                                                                                                                                           |
-| ---------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Spuštění**                 | HTTP `GET /healthz` s dlouhým `failureThreshold` (nebo velkým `startPeriod`)      | Studený start + migrace SQLite mohou trvat déle než několik sekund                                                                                                                                                                                                                                                                                                 |
-| **Připravenost**             | HTTP `GET /healthz`                                                               | Životní cyklus `ok` / `starting` / `stopping` (200 oproti 503). Stav stále kolísá, pokud je smyčka blokována procesorem. **Odpověď 200 trvající několik sekund není známkou dobrého stavu** (#10303) — znamená to, že smyčka událostí byla zahlcena, než se spustila obsluha o velikosti 3 bajtů                                                                   |
-| **Živost**                   | HTTP `GET /livez`, **nebo TCP** na hlavním portu služby (`PORT`, výchozí `20128`) | `/livez` kontroluje pouze běh procesu (pokud se obsluha spustí, vždy vrátí 200). Stále však sdílí smyčku událostí — zaneprázdněný ≠ mrtvý a zahlcení smyčky událostí (#10303) nedetekuje o nic lépe než TCP. Pokud HTTP sondy při zatížení katalogu/komprese vyprší, upřednostněte **TCP**; v žádném případě pod nezabíjejte kvůli krátkým zásekům smyčky událostí |
-| **Hloubková kontrola stavu** | `GET /api/monitoring/health` z externího kontrolního systému                      | Není určeno pro `livenessProbe` kubeletu / častou `readinessProbe`                                                                                                                                                                                                                                                                                                 |
+| Sonda                        | Doporučený cíl                                                                    | Poznámky                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Spuštění**                 | HTTP `GET /healthz` s dlouhým `failureThreshold` (nebo velkým `startPeriod`)      | Studený start + migrace SQLite mohou trvat déle než několik sekund                                                                                                                                                                                                                                                                                                           |
+| **Připravenost**             | HTTP `GET /healthz`                                                               | Životní cyklus `ok` / `starting` / `stopping` (200 oproti 503). Stav stále kolísá, pokud je smyčka blokována vytížením CPU. **Odpověď 200 po několika sekundách neznamená zdravý stav** (#10303) — znamená to, že událostní smyčka byla zablokovaná nedostatkem prostředků, než se spustila obsluha se 3bajtovou odpovědí                                                    |
+| **Životnost**                | HTTP `GET /livez`, **nebo TCP** na hlavním portu služby (`PORT`, výchozí `20128`) | `/livez` kontroluje pouze to, zda proces žije (pokud se obsluha spustí, vždy vrátí 200). Stále však sdílí událostní smyčku — zaneprázdněný ≠ mrtvý a zahlcení událostní smyčky (#10303) nezjistí o nic lépe než TCP. Pokud HTTP sondy vyprší při zatížení katalogem/kompresí, upřednostněte **TCP**; v žádném případě pod při krátkých zásecích událostní smyčky neukončujte |
+| **Hloubková kontrola stavu** | `GET /api/monitoring/health` z externího kontrolního nástroje                     | Není určeno pro kubelet `livenessProbe` / přísnou `readinessProbe`                                                                                                                                                                                                                                                                                                           |
 
-Příklad struktury (upravte prahové hodnoty podle zatížení při studeném startu a kompresi):
+Příklad struktury (upravte prahové hodnoty podle studeného startu a zatížení kompresí):
 
 ```yaml
 ports:
@@ -215,27 +216,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Při záseku smyčky událostí může i HTTP /livez vypršet. TCP je
+  # Při záseku událostní smyčky může i požadavek HTTP /livez vypršet. TCP je
   # konzervativní alternativa:
   # tcpSocket:
   #   port: http
 ```
 
-**Nesměrujte** kontrolu **živosti** kubeletu na `/api/monitoring/health`. Tato cesta provádí skutečné databázové/monitorovací operace a při zatížení bude hlásit falešně pozitivní výsledky.
+**Nenastavujte** kontrolu **životnosti** kubeletu na `/api/monitoring/health`. Tato cesta skutečně pracuje s databází a monitorováním a při zatížení bude vracet falešně pozitivní výsledky.
 
-Související: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sondy, když je smyčka událostí zaneprázdněná), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (výpočet cen katalogu zahlcující procesor), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (počítání tokenů při kompresi zahlcující procesor).
+Související: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sondy při vytížené událostní smyčce), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (výpočet cen katalogu zahlcující prostředky), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (počítání tokenů při kompresi zahlcující prostředky).
 
-### Volitelné operace v cestě požadavku (paměť, dovednosti, obnovení tokenu)
+### Watchdog systemd (zamrzlá událostní smyčka)
 
-Extrakce paměti, vkládání dovedností a obnovení tokenu OAuth sdílejí **hlavní smyčku událostí Node** s `/healthz`. Jde o funkce přepínané na řídicím panelu (`memoryEnabled`, `skillsEnabled`), nikoli o fond pracovních procesů. Viz [Prostředí — zatížení smyčky událostí](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Na hostiteli se systemd OmniRoute informuje správce služeb, když je připraven, a nadále mu pravidelně posílá signály, takže server se zaseknutou událostní smyčkou bude ukončen a restartován, místo aby zůstal spuštěný a nereagoval. Signály odesílá vlastní událostní smyčka serveru: když se zablokuje, signály se přestanou odesílat a systemd službu restartuje, jakmile uplyne `WatchdogSec`, aniž by některý obdržel.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) již vytváří uživatelskou jednotku s touto konfigurací. Jednotka, kterou vytvoříte sami (s výchozím nastavením `Type=simple`), watchdog nemá, proto do její sekce `[Service]` přidejte tyto řádky:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Vygenerovaná jednotka nastavuje `Restart=on-failure`, proto přidejte i tento řádek — bez něj watchdog zaseknutou službu pouze ukončí, místo aby ji restartoval.
+
+- `Type=notify`: služba je považována za „spuštěnou“, když server odešle `READY=1`, nikoli když se proces rozvětví. `TimeoutStartSec` omezuje dobu pomalého spouštění.
+- `NotifyAccess=all`: signály odesílá proces serveru, který je potomkem dohlížecího procesu `omniroute serve`.
+- `WatchdogSec`: signály se odesílají každých 60 sekund, proto použijte hodnotu **120 nebo vyšší**. Menší hodnoty by restartovaly zdravý server.
+- Spouštějte `omniroute serve` v popředí. `--daemon` odpojí server od cgroup jednotky a oznamovací handshake se nikdy nedokončí.
+
+Po restartu ověřte, že je watchdog aktivní:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` zobrazuje nakonfigurovanou prodlevu a `WatchdogTimestamp` se každou minutu posune dopředu. Restart způsobený watchdogem se zaznamená jako `Result=watchdog`. Chcete-li odesílání signálů vypnout a přitom jednotku ponechat beze změny, nastavte `OMNIROUTE_DISABLE_SD_NOTIFY=1`; bez `NOTIFY_SOCKET` (terminál, Docker, Electron, Windows) se nic neodesílá.
+
+Watchdog pouze kontroluje, zda událostní smyčka nadále běží. Server, který je pomalý, ale stále zpracovává události, nebude restartován.
+
+### Volitelné zpracování cesty požadavku (paměť, dovednosti, obnovení tokenu)
+
+Extrakce paměti, vkládání dovedností a obnovení tokenu OAuth sdílejí **hlavní smyčku událostí Node** s `/healthz`. Jde o funkce přepínané v řídicím panelu (`memoryEnabled`, `skillsEnabled`), nikoli o fond pracovních procesů. Viz [Prostředí — náklady paměti, dovedností a obnovení tokenu na smyčku událostí](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Stav poskytovatele
 
-> **Žádný koncový bod REST.** Data o stavu poskytovatelů jsou dostupná prostřednictvím nástroje MCP `observability_snapshot` nebo na stránce řídicího panelu `/dashboard/providers`.
+> **Žádný koncový bod REST.** Údaje o stavu poskytovatele jsou dostupné prostřednictvím nástroje MCP `observability_snapshot` nebo stránky řídicího panelu `/dashboard/providers`.
 
-### Podrobnosti poskytovatele
+### Podrobnosti o poskytovateli
 
-> **Žádný koncový bod REST.** Podrobnosti o jednotlivých poskytovatelích jsou dostupné na stránce řídicího panelu `/dashboard/providers`.
+> **Žádný koncový bod REST.** Podrobnosti o jednotlivých poskytovatelích jsou dostupné prostřednictvím stránky řídicího panelu `/dashboard/providers`.
 
 ---
 

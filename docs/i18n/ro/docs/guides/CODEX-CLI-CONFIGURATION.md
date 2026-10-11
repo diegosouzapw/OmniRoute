@@ -284,22 +284,39 @@ Dacă rulați OmniRoute pe un VPS, puteți genera automat fișierele de profil d
 # De pe un VPS (utilizează instanța OmniRoute locală pe portul 20128)
 omniroute setup-codex
 
-# De pe orice sistem — indicați adresa VPS-ului dvs.
+# De pe orice sistem — indicați adresa VPS-ului
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Previzualizare fără a scrie fișiere
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Generează doar profilurile GLM și Kimi
+# Generează numai profilurile GLM și Kimi
 omniroute setup-codex --only glm,kimi
 
 # Scrie într-un director personalizat
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Comanda preia `/v1/models`, utilizează profiluri optimizate pentru modelele cunoscute, recurge la metadatele catalogului pentru celelalte modele de text compatibile și scrie câte un fișier `~/.codex/<name>.config.toml` pentru fiecare. Este idempotentă — poate fi rulată din nou în siguranță.
+Comanda preia `/v1/models`, utilizează profiluri optimizate pentru modelele cunoscute, recurge la metadatele catalogului pentru celelalte modele text compatibile și scrie câte un fișier `~/.codex/<name>.config.toml` pentru fiecare. Este idempotentă — poate fi rulată din nou în siguranță.
 
-OmniRoute poate, de asemenea, să **sincronizeze automat** aceleași fișiere de profil după ce o descoperire sau un import reușit al modelelor furnizorului modifică catalogul activ. Această funcționalitate este **opțională și dezactivată implicit**: activați-o din **panoul de control CLI Code** („CLI profile auto-sync” → Codex) sau setați `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (respectă și `CLI_ALLOW_CONFIG_WRITES`, activată implicit). Când este activată, aceasta scrie doar fișiere de profil `~/.codex/*.config.toml` separate; nu modifică niciodată fișierul activ/implicit `~/.codex/config.toml`, setările Codex-lb, autentificarea sau selectarea furnizorului.
+Dacă fișierul de bază `config.toml` nu conține o definiție `model_providers.omniroute`, rularea explicită a comenzii
+`setup-codex` include această definiție în fiecare suprapunere generată, utilizând endpointul
+local sau la distanță selectat. Fișierul de bază rămâne neschimbat. O definiție existentă a furnizorului
+este moștenită, inclusiv endpointul și setările sale de autentificare. Un fișier TOML de bază nevalid
+oprește generarea înainte de scrierea profilurilor.
+
+Când furnizați `--api-key` sau `OMNIROUTE_API_KEY`, un furnizor nou definit face referire la
+`env_key = "OMNIROUTE_API_KEY"`; cheia propriu-zisă nu este niciodată salvată sau afișată în
+previzualizare. Setați această variabilă în mediul din care porniți Codex. Fără o cheie
+furnizată, noua definiție nu impune nicio cerință privind cheia, pentru o instanță OmniRoute
+configurată să accepte cereri neautentificate.
+
+Sincronizarea automată opțională a catalogului, descrisă mai jos, păstrează definițiile furnizorilor deja
+existente într-o suprapunere, dar nu inițializează setări noi pentru furnizori; configurați mai întâi furnizorul
+prin configurarea explicită sau din panoul de control. Setările existente ale furnizorilor sunt omise
+din previzualizările `--dry-run`, deoarece pot conține credențiale administrate de operator.
+
+OmniRoute poate, de asemenea, să **sincronizeze automat** aceleași fișiere de profil după ce o descoperire/un import reușit al modelelor furnizorului modifică catalogul activ. Această funcție este **opțională și dezactivată implicit**: activați-o din **panoul de control CLI Code** („Sincronizare automată a profilurilor CLI” → Codex) sau setați `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (respectă și `CLI_ALLOW_CONFIG_WRITES`, activată implicit). Când este activată, aceasta scrie numai fișiere de profil separate `~/.codex/*.config.toml`; nu modifică niciodată fișierul activ/implicit `~/.codex/config.toml`, setările Codex-lb, autentificarea sau selecția furnizorului.
 
 ---
 

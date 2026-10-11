@@ -39,26 +39,13 @@ terowong dan penyambung dikonfigurasikan.
 ## Persediaan papan pemuka
 
 1. Buka penyedia **ChatGPT Web (Codex)** dan tambahkan sambungan.
-2. Tampalkan pengepala Cookie ChatGPT penuh, ID terowong, kunci masa jalan, dan nama
-   penyambung tersuai. Persediaan baharu berkeupayaan alat mesti menggunakan penyambung
-   yang baru dicipta dan dinamakan tepat sebagai `OmniRoute Codex v2`, dengan
-   Authentication ditetapkan kepada None dan Permissions ditetapkan kepada Allow all
-   actions.
-3. Jalankan semakan sambungan. OmniRoute membuka Temporary Chat yang disokong pelayar
-   dan mengesan sama ada Sol dan Pro tersedia untuk akaun tersebut.
-4. Simpan sambungan. OmniRoute menggantikan cookie yang ditampal dengan keadaan storan
-   Playwright yang telah disahkan dan menyimpannya bersama kunci masa jalan melalui
-   abstraksi kelayakan yang disulitkan.
+2. Tampalkan pengepala Cookie ChatGPT yang lengkap, ID terowong, kunci masa jalan dan nama penyambung tersuai. Persediaan baharu yang menyokong alat mesti menggunakan penyambung yang baru dicipta dengan nama tepat `OmniRoute Codex v2`, dengan Authentication ditetapkan kepada None dan Permissions ditetapkan kepada Allow all actions.
+3. Jalankan pemeriksaan sambungan. OmniRoute membuka Temporary Chat berasaskan pelayar dan mengesan sama ada Sol dan Pro tersedia untuk akaun tersebut.
+4. Simpan sambungan. OmniRoute menggantikan kuki yang ditampal dengan keadaan storan Playwright yang telah disahkan dan menyimpannya bersama kunci masa jalan melalui abstraksi kelayakan yang disulitkan.
 
-Cookie mentah tidak dikekalkan selepas penyimpanan berjaya. Apabila sesi tamat tempoh,
-buka sambungan, tampalkan pengepala Cookie penuh yang baharu, dan jalankan semula
-semakan. Status doctor dalam dialog suntingan melaporkan pelayar, keadaan storan, log
-masuk, Temporary Chat, terowong, penyambung, dan perjalanan pergi balik alat secara
-berasingan.
+Kuki mentah tidak disimpan selepas penyimpanan berjaya. Apabila sesi tamat tempoh, buka sambungan, tampalkan pengepala Cookie lengkap yang baharu dan jalankan semula pemeriksaan. Status diagnostik dalam dialog suntingan melaporkan pelayar, keadaan storan, log masuk, Temporary Chat, terowong, penyambung dan perjalanan pergi balik alat secara berasingan. Untuk mengautomatikkan kemas kini kuki apabila sesi bertukar, lihat alat pelengkap dalam [Sambungan Penyegerakan Sesi Pelayar](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Jangan sekali-kali melakukan commit terhadap cookie sebenar, kunci masa jalan, keadaan
-> storan, atau token keupayaan. Nilai ujian dan dokumentasi mestilah sentiasa berupa
-> ruang letak.
+> Jangan sekali-kali komitkan kuki sebenar, kunci masa jalan, keadaan storan atau token keupayaan. Nilai ujian dan dokumentasi hendaklah sentiasa menggunakan ruang letak.
 
 ## Model dan kombo
 

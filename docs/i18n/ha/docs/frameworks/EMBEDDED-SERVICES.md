@@ -5,12 +5,12 @@
 ---
 
 > **Siga:** v3.8.44
-> **Sabuntawa ta ƙarshe:** 2026-09-09
-> **Masu karantawa:** Injiniyoyin da ke ƙara, kulawa, ko gyara matsalolin ayyukan da aka haɗa ciki (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Sabuntawa na ƙarshe:** 2026-09-16
+> **Masu karantawa:** Injiniyoyin da ke ƙara, kula da, ko gano matsalolin ayyukan da aka haɗa cikin gida (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
-Ayyukan da aka haɗa ciki kayan aikin sidecar ne da ake girka a cikin na'ura, waɗanda OmniRoute ke girkawa, sa ido a kansu, kuma
-ke gabatar da su a matsayin cikakkun wuraren da za a iya tura zirga-zirga zuwa gare su. Ba kamar masu samar da sabis na waje ba (waɗanda ake isa gare su ta intanet
-ta amfani da maɓallan API), ayyukan da aka haɗa ciki suna gudana a na'ura ɗaya da OmniRoute kuma suna sadarwa ta loopback.
+Ayyukan da aka haɗa cikin gida kayan aikin tsari ne na gefe da ake girkawa a cikin na’ura, waɗanda OmniRoute ke girkawa, sa ido a kansu, kuma yake
+bayar da su a matsayin cikakkun wuraren da ake iya tura zirga-zirga zuwa gare su. Ba kamar masu samar da sabis na waje ba (waɗanda ake isa gare su ta intanet
+ta amfani da maɓallan API), ayyukan da aka haɗa cikin gida suna gudana a kan na’ura ɗaya da OmniRoute kuma suna sadarwa ta hanyar loopback.
 
 ---
 
@@ -27,38 +27,39 @@ ta amfani da maɓallan API), ayyukan da aka haɗa ciki suna gudana a na'ura ɗay
 
 ---
 
-## 1. Bayani
+## 1. Bayyani Gabaɗaya
 
-### Me ya sa ake amfani da ayyukan da aka haɗa ciki?
+### Me ya sa ake amfani da ayyukan da aka haɗa a ciki?
 
-An haɗa ayyuka shida:
+An haɗa ayyuka guda bakwai:
 
-| Aiki            | Kunshin npm                         | Tsohuwar tashar | Manufa                                                                                                                                                                                                     |
-| --------------- | ----------------------------------- | :-------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                           |      20130      | Na'urar tura zirga-zirgar AI da OmniRoute zai iya amfani da ita a matsayin ƙaramin mai samar da sabis. Ana gabatar da samfura a matsayin `9router/{sub}/{model}`                                           |
-| **CLIProxyAPI** | Binary na sakin GitHub (`cliproxy`) |      8317       | Adaftan proxy na cikin gida don hanyoyin tabbatar da izinin Anthropic CLI. Yana samar da madadin hanyar tura zirga-zirga idan token na OAuth ya ƙare                                                       |
-| **Mux**         | `mux` (`mux server` marar GUI)      |      8322       | Daemon na tsara ayyukan wakilai na cikin gida (coder/mux). Ana sarrafa zagayen rayuwarsa kawai — ba wurin tura zirga-zirga ba ne (babu proxy na LLM).                                                      |
-| **Bifrost**     | `@maximhq/bifrost`                  |      8080       | Backend na isar da AI-gateway na Go. Lokacin da yake gudana, hanyar relay (`/v1/relay/`) tana zaɓarsa ta atomatik                                                                                          |
-| **Dario**       | `@askalf/dario`                     |      3456       | Proxy na rajistar Claude — madadi/mafita idan CLIProxyAPI ya gaza ga zirga-zirga mai tsarin Claude-Code; maɓallin da aka saka ya zama `DARIO_ADMIN_TOKEN` wanda ke kare tsarin sarrafa OAuth na `/admin/*` |
-| **open-wa**     | `@open-wa/wa-automate`              |      8323       | Sarrafa WhatsApp Web ta atomatik (Chromium marar GUI ta Puppeteer). Ana sarrafa zagayen rayuwarsa kawai — ba wurin tura zirga-zirga ba ne.                                                                 |
+| Aiki            | Kunshin npm                                   | Tsohuwar tashar jirgi | Manufa                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | --------------------------------------------- | :-------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                                     |         20130         | Na'ura mai ba da hanya ta AI wadda OmniRoute zai iya amfani da ita a matsayin ƙaramin mai samarwa. Ana gabatar da samfura a matsayin `9router/{sub}/{model}`                                                                                                                                                                                                                |
+| **CLIProxyAPI** | Fayil ɗin binary na sakin GitHub (`cliproxy`) |         8317          | Adaftar wakili ta gida don hanyoyin tantancewar Anthropic CLI. Tana samar da madadin isar da buƙatu lokacin da OAuth tokens suka ƙare                                                                                                                                                                                                                                       |
+| **Mux**         | `mux` (`mux server` mara fuskar mai amfani)   |         8322          | Daemon na gida don tsara tafiyar wakilai (coder/mux). Ana sarrafa zagayowar rayuwarsa kawai — ba wurin isar da buƙatu ba ne (babu wakilcin LLM).                                                                                                                                                                                                                            |
+| **Bifrost**     | `@maximhq/bifrost`                            |         8080          | Backend na isarwar ƙofar AI na Go. Idan yana aiki, hanyar relay (`/v1/relay/`) tana zaɓarsa ta atomatik                                                                                                                                                                                                                                                                     |
+| **Dario**       | `@askalf/dario`                               |         3456          | Wakilin biyan kuɗin Claude — madadi/mafita idan CLIProxyAPI ya gaza don zirga-zirga mai tsarin Claude-Code; maɓallin da aka shigar ya zama `DARIO_ADMIN_TOKEN` wanda ke tsare tsarin sarrafa OAuth na `/admin/*`                                                                                                                                                            |
+| **open-wa**     | `@open-wa/wa-automate`                        |         8323          | Sarrafa WhatsApp Web ta atomatik (Chromium mara fuskar mai amfani ta hanyar Puppeteer). Ana sarrafa zagayowar rayuwarsa kawai — ba wurin isar da buƙatu ba ne.                                                                                                                                                                                                              |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                          |         20135         | Aikin gefe na matsa prompt — ainihin samfurin LLMLingua-2 ONNX (sigar JS/TS ta tsarin Microsoft). `open-sse/services/compression/engines/llmlingua/index.ts` yana aika `/compress` zuwa gare shi ta HTTP, sannan ya koma ga backend na worker-thread da ke cikin tsarin idan aikin gefen ba ya aiki. Ana sarrafa zagayowar rayuwarsa kawai — ba wurin isar da buƙatu ba ne. |
 
-Dukkan ayyukan shida suna bin tsarin sa ido iri ɗaya:
+Dukkan ayyukan guda bakwai suna bin tsarin kulawa iri ɗaya:
 
-- OmniRoute yana girka su a ƙarƙashin `DATA_DIR/services/{name}/` (a ware daga `package.json` na OmniRoute)
-- OmniRoute yana fara su kuma yana sa ido a kansu a matsayin ƙananan processes
-- OmniRoute yana saka maɓallin API na wucin gadi a cikin muhallin ƙaramin process ɗin kuma yana sauya shi ba tare da dakatar da aiki ba (inda hakan ya dace)
-- Dukkan hanyoyin gudanarwa (`/api/services/*`) **LOCAL_ONLY** ne — ana iya samun damar su daga loopback kawai (ƙa'ida mai tsauri #17)
+- OmniRoute yana girka su a ƙarƙashin `DATA_DIR/services/{name}/` (a keɓe daga `package.json` na OmniRoute)
+- OmniRoute yana ƙaddamar da su a matsayin child processes kuma yana sa ido a kansu
+- OmniRoute yana shigar da maɓallin API na wucin gadi cikin muhallin child process kuma yana sabunta shi ba tare da dakatar da aiki ba (inda ya dace)
+- Dukkan hanyoyin gudanarwa (`/api/services/*`) **LOCAL_ONLY** ne — ana iya isa gare su daga loopback kawai (ƙa'ida mai tsauri #17)
 
 ### Muhimman shawarwari (daga tsarin ƙira)
 
-| Shawara                                           | Ƙima                                                                                                |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Samun damar dashboard zuwa UI na asali na 9Router | Reverse proxy a `/dashboard/providers/services/9router/embed/*`                                     |
-| Hanyar girkawa                                    | `npm install {package}` ta `execFile` (babu shell interpolation)                                    |
-| Yanayin amfani                                    | An yi rajistar mai samar da sabis a matsayin `9router/{sub}/{model}` a cikin injin tura zirga-zirga |
-| Gudanar da maɓallin API                           | OmniRoute yana ƙirƙira, ɓoye shi lokacin ajiya (AES-256-GCM), sannan ya saka shi ta env             |
-| Wurin dashboard                                   | `/dashboard/providers/services` (shafuka uku)                                                       |
-| Farawa ta atomatik                                | Maɓallin kunnawa/kashewa ga kowane aiki, a kashe ta tsohuwa                                         |
+| Shawara                                             | Ƙima                                                                                          |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Samun dama ga UI na asali na 9Router daga dashboard | Reverse proxy a `/dashboard/providers/services/9router/embed/*`                               |
+| Hanyar girkawa                                      | `npm install {package}` ta hanyar `execFile` (babu shell interpolation)                       |
+| Yanayin amfani                                      | An yi wa mai samarwa rajista a matsayin `9router/{sub}/{model}` a cikin routing engine        |
+| Gudanar da maɓallin API                             | OmniRoute yana ƙirƙira, yana ɓoyewa yayin ajiya (AES-256-GCM), kuma yana shigar da shi ta env |
+| Wurin dashboard                                     | `/dashboard/providers/services` (shafuka uku)                                                 |
+| Farawa ta atomatik                                  | Sauyawa ga kowane aiki, tsohon saiti OFF                                                      |
 
 ---
 
@@ -68,10 +69,10 @@ Dukkan ayyukan shida suna bin tsarin sa ido iri ɗaya:
 ┌────────────────────────────────────────────────────────────────────┐
 │  Mataki na 1 — UI                                                  │
 │  /dashboard/providers/services  (shafuka: CLIProxyAPI | 9Router | Mux)│
-│  Logs kai tsaye (SSE), Farawa/Tsayawa/Sake farawa/Sabuntawa, Saituna, Shigarwa│
+│  Rajistan ayyuka kai tsaye (SSE), Farawa/Tsayawa/Sake farawa/Sabuntawa, Saituna, Girka│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Shell + karkatar da shafuka ta ?tab= │
+│    ├── page.tsx               Shell + karkatar da shafi ta ?tab=   │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -88,7 +89,7 @@ Dukkan ayyukan shida suna bin tsarin sa ido iri ɗaya:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (reverse HTTP + WebSocket proxy → 9Router upstream)             │
+│    (wakilin HTTP na baya + WebSocket → 9Router upstream)           │
 │                                                                    │
 │  Ƙofa: LOCAL_ONLY_API_PREFIXES ya ƙunshi "/api/services/" da       │
 │        "/dashboard/providers/services/*/embed/"                    │
@@ -97,65 +98,66 @@ Dukkan ayyukan shida suna bin tsarin sa ido iri ɗaya:
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  Mataki na 3 — ServiceSupervisor (src/lib/services/)               │
 │                                                                    │
-│  ServiceSupervisor.ts   Babban mai kulawa (child_process.spawn)    │
-│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
+│  ServiceSupervisor.ts   Mai kula na gama-gari (child_process.spawn)│
+│    ├── girkawa:    execFile('npm', ['install', pkg, '--prefix'])    │
+│    ├── farawa:     spawn(node, [entrypoint], {env, cwd})           │
 │    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── port:       20130 don 9Router (ana iya saita shi)           │
-│    ├── logs:       ma'ajiyar stdio mai zagaye 5 MB → al'amuran SSE │
-│    ├── health:     HTTP GET /health kowane sakan 2–5, murmurewa lokacin buƙata│
-│    └── lifecycle:  SIGTERM sakan 15 → SIGKILL                      │
+│    ├── tashar:     20130 don 9Router (ana iya daidaitawa)          │
+│    ├── rajistoci:  stdio ring buffer 5 MB → abubuwan SSE           │
+│    ├── lafiya:     HTTP GET /health kowane s 2–5, farfaɗowa a buƙata│
+│    └── zagayen aiki: SIGTERM s 15 → SIGKILL                        │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       Yana ƙaddamar da duk SERVICES[] lokacin fara tsari│
+│  bootstrap.ts       Yana ƙaddamar da duk SERVICES[] a farkon tsari │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       GET /v1/models lokaci-lokaci → teburin service_models│
-│  ringBuffer.ts      Ma'ajiyar log mai zagaye (5 MB ga kowace sabis)│
-│  healthCheck.ts     Binciken lafiyar HTTP na lokaci-lokaci         │
+│  modelSync.ts       GET /v1/models lokaci-lokaci → jadawalin service_models│
+│  ringBuffer.ts      Ma'ajiyar rajista mai zagayawa (5 MB ga kowace hidima)│
+│  healthCheck.ts     Binciken lafiyar HTTP ta hanyar tambaya akai-akai│
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
-│                      (masu daidaita shigarwa)                      │
+│                      (masu daidaita masu girkawa)                  │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP mai dacewa da OpenAI (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Mataki na 4 — Mai bayarwa / Karkatarwa                            │
+│  Mataki na 4 — Mai samarwa / Karkatarwa                            │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Yana sake nemo port da API key ga kowace buƙata (babu caching). │
-│    Yana cire prefix ɗin "9router/" daga model id kafin proxying.   │
-│    Yana mayar da 503 service_not_running idan supervisor ba ya cikin "running".│
+│    Yana sake nemo tashar da maɓallin API ga kowace buƙata (babu caching).│
+│    Yana cire prefix na "9router/" daga model id kafin yin proxying.│
+│    Yana dawo da 503 service_not_running idan supervisor ba ya cikin "running".│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
-│    Shigarwa don "9router": isEmbeddedService: true                 │
+│    Shigarwar "9router": isEmbeddedService: true                    │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
 │    Ana adana models a matsayin "9router/{sub}/{model}" (tare da prefix).│
-│    modelSync.ts yana daidaita su kowane minti 5.                   │
+│    modelSync.ts yana daidaita su kowane min 5.                     │
 │                                                                    │
-│  Ana sarrafa lifecycle na Mux KAWAI (Matakai 1-3) — daemon ne na   │
-│  tsara gudanarwar agent, ba LLM proxy ba, don haka ba shi da       │
-│  executor/provider entry na Mataki na 4 kuma ba ya zama makasudin  │
-│  karkatarwa.                                                       │
+│  Ana sarrafa zagayen aikin Mux KAWAI (Matakai 1-3) — daemon ne na  │
+│  tsara ayyukan agent, ba proxy na LLM ba, don haka ba shi da       │
+│  shigarwar executor/provider ta Mataki na 4 kuma ba ya taɓa zama   │
+│  wurin da ake karkatar da buƙata zuwa gare shi.                    │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Muhimman fayilolin tushe
 
-| Fayil                                       | Aiki                                                     |
-| ------------------------------------------- | -------------------------------------------------------- |
-| `src/lib/services/ServiceSupervisor.ts`     | Babban aji: zagayowar rayuwa, kulle, lafiya, ring buffer |
-| `src/lib/services/bootstrap.ts`             | Rijista da farawa ta atomatik a matakin process          |
-| `src/lib/services/registry.ts`              | Taswirar singleton `tool → supervisor`                   |
-| `src/lib/services/apiKey.ts`                | Samar da maɓalli, ɓoyewar AES-256-GCM yayin ajiya        |
-| `src/lib/services/modelSync.ts`             | Daidaita model lokaci-lokaci (minti 5) + bisa buƙata     |
-| `src/lib/services/ringBuffer.ts`            | Ma'ajiyar log mai zagaye ta 5 MB tare da biyan kuɗin SSE |
-| `src/lib/services/healthCheck.ts`           | Binciken lafiya na HTTP (tazara mai iya saitawa)         |
-| `src/lib/services/installers/ninerouter.ts` | Shigarwa/sabuntawa/cirewa ta npm don 9Router             |
-| `src/lib/services/installers/cliproxy.ts`   | Shigarwa/sabuntawa/cirewa ta npm don CLIProxyAPI         |
-| `src/lib/services/installers/mux.ts`        | Shigarwa/sabuntawa/cirewa ta npm don Mux                 |
-| `src/lib/services/installers/openwa.ts`     | Shigarwa/sabuntawa/cirewa ta npm don open-wa             |
-| `src/app/api/services/9router/_lib.ts`      | Mataimakin `getOrInitSupervisor()`                       |
-| `src/app/api/services/[name]/logs/route.ts` | Wurin samun logs na SSE da ake rabawa                    |
-| `open-sse/executors/ninerouter.ts`          | Mai aiwatar da provider (Mataki na 4)                    |
+| Fayil                                       | Matsayi                                                    |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | Babban aji: zagayowar rayuwa, kullewa, lafiya, ring buffer |
+| `src/lib/services/bootstrap.ts`             | Rijista da farawa ta atomatik a matakin process            |
+| `src/lib/services/registry.ts`              | Taswirar singleton `tool → supervisor`                     |
+| `src/lib/services/apiKey.ts`                | Ƙirƙirar maɓalli, ɓoyewar AES-256-GCM yayin ajiya          |
+| `src/lib/services/modelSync.ts`             | Daidaita model lokaci-lokaci (minti 5) + bisa buƙata       |
+| `src/lib/services/ringBuffer.ts`            | Ma'ajiyar log mai zagaye ta 5 MB tare da biyan SSE         |
+| `src/lib/services/healthCheck.ts`           | Binciken lafiyar HTTP (tazarar lokaci mai saitawa)         |
+| `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall don 9Router                   |
+| `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall don CLIProxyAPI               |
+| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall don Mux                       |
+| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall don open-wa                   |
+| `src/lib/services/installers/llmlingua.ts`  | npm install/update/uninstall don LLMLingua                 |
+| `src/app/api/services/9router/_lib.ts`      | Mataimakin `getOrInitSupervisor()`                         |
+| `src/app/api/services/[name]/logs/route.ts` | Endpoint ɗin log na SSE da ake amfani da shi tare          |
+| `open-sse/executors/ninerouter.ts`          | Mai aiwatar da provider (Mataki na 4)                      |
 
 ---
 
@@ -210,18 +212,17 @@ suka kunna a lokaci guda.
 
 ---
 
-## 4. Bayanin API
+## 4. Manunin API
 
-Duk hanyoyin da ke ƙarƙashin `/api/services/` **LOCAL_ONLY** ne (loopback kawai, ƙa’ida
-mai tsauri #17). Buƙatun da ba na loopback ba suna samun `403 LOCAL_ONLY` ba tare da
-la’akari da auth token ba.
+Duk hanyoyin da ke ƙarƙashin `/api/services/` **LOCAL_ONLY** ne (loopback kawai, ƙa’ida mai tsauri #17).
+Buƙatun da ba na loopback ba za su karɓi `403 LOCAL_ONLY` ba tare da la’akari da alamar tantancewa ba.
 
-### 4.1 Ƙarshen hanyoyin 9Router (hanyoyi 11)
+### 4.1 Wuraren ƙarshe na 9Router (hanyoyi 11)
 
 #### `POST /api/services/9router/install`
 
 Shigar da 9Router daga npm. Yana ƙirƙirar `DATA_DIR/services/9router/` tare da nasa
-`package.json` da `node_modules/`. Ba ya cin karo da deps na OmniRoute.
+`package.json` da `node_modules/`. Ba ya cin karo da dependencies na OmniRoute.
 
 **Jikin buƙata** (duk na zaɓi ne):
 
@@ -229,38 +230,38 @@ Shigar da 9Router daga npm. Yana ƙirƙirar `DATA_DIR/services/9router/` tare da
 { "version": "latest" }
 ```
 
-| Fili      | Nau'i    | Tsoho      | Bayani                                    |
-| --------- | -------- | ---------- | ----------------------------------------- |
-| `version` | `string` | `"latest"` | Alamar sigar npm ko semver da za a shigar |
+| Fili      | Nau'i    | Tsoho      | Bayani                                   |
+| --------- | -------- | ---------- | ---------------------------------------- |
+| `version` | `string` | `"latest"` | Alamar sigar npm ko semver da za a girka |
 
 **Amsoshi:**
 
-| Matsayi | Bayani                                                                    |
-| ------- | ------------------------------------------------------------------------- |
-| `200`   | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                    |
-| `400`   | Jikin buƙata mara inganci (gazawar tantancewar Zod)                       |
-| `409`   | Ana kan shigarwa (an riƙe makulli)                                        |
-| `500`   | npm install ya gaza — duba `message` don saƙon kuskure mai sauƙin fahimta |
+| Matsayi | Bayani                                                                     |
+| ------- | -------------------------------------------------------------------------- |
+| `200`   | `{ ok: true, installedVersion: "x.y.z", path: "..." }`                     |
+| `400`   | Jikin buƙata mara inganci (gazawar tantancewar Zod)                        |
+| `409`   | Ana kan girkawa (an riƙe kulle)                                            |
+| `500`   | Girkawar npm ta gaza — duba `message` don saƙon kuskure mai sauƙin fahimta |
 
-**Bayanan kula:** Yana amfani da `execFile('npm', [...])` — babu shell, babu interpolation
-(ƙa’ida mai tsauri #13). Ana gabatar da kurakuran EACCES a matsayin saƙonni masu sauƙin fahimta.
+**Bayanan kula:** Yana amfani da `execFile('npm', [...])` — babu shell, babu interpolation (ƙa’ida mai tsauri #13).
+Ana nuna kurakuran EACCES a matsayin saƙonni masu sauƙin fahimta.
 
 ---
 
 #### `POST /api/services/9router/start`
 
 Fara 9Router. Yana rajistar supervisor idan ba a riga an rajista ba, sannan ya kira
-`supervisor.start()`. Ba ya canza sakamako idan yana gudana tuni.
+`supervisor.start()`. Idempotent ne idan yana gudana tuni.
 
 **Jikin buƙata:** babu
 
 **Amsoshi:**
 
-| Matsayi | Bayani                                                |
-| ------- | ----------------------------------------------------- |
-| `200`   | Abun `ServiceStatus` (duba schema a ƙasa)             |
-| `409`   | Ba a shigar da 9Router ba (`status: "not_installed"`) |
-| `503`   | Farawa ya gaza (kuskuren tsari — duba `lastError`)    |
+| Matsayi | Bayani                                               |
+| ------- | ---------------------------------------------------- |
+| `200`   | Abun `ServiceStatus` (duba schema da ke ƙasa)        |
+| `409`   | Ba a girka 9Router ba (`status: "not_installed"`)    |
+| `503`   | Farawa ta gaza (kuskuren process — duba `lastError`) |
 
 **Schema na ServiceStatus:**
 
@@ -280,35 +281,35 @@ Fara 9Router. Yana rajistar supervisor idan ba a riga an rajista ba, sannan ya k
 
 #### `POST /api/services/9router/stop`
 
-Tsayar da 9Router cikin tsari. Yana aika SIGTERM, ya jira 15 s, sannan ya aika SIGKILL
-idan har yanzu yana aiki. Ba ya canza sakamako idan an riga an tsayar da shi.
+Dakatar da 9Router cikin tsari. Yana aika SIGTERM, ya jira sakan 15, sannan ya aika SIGKILL idan har yanzu yana gudana.
+Idempotent ne idan an riga an dakatar da shi.
 
 **Jikin buƙata:** babu
 
 **Amsoshi:**
 
-| Matsayi | Bayani                             |
-| ------- | ---------------------------------- |
-| `200`   | `ServiceStatus` (state: "stopped") |
-| `503`   | Tsayarwa ta gaza ba zato           |
+| Matsayi | Bayani                                |
+| ------- | ------------------------------------- |
+| `200`   | `ServiceStatus` (state: "stopped")    |
+| `503`   | Dakatarwa ta gaza ba zato ba tsammani |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-Daidai yake da `stop()` sannan `start()` a ƙarƙashin makullin aiki.
+Daidai yake da `stop()` sannan `start()` a ƙarƙashin kullen aiki.
 
 **Jikin buƙata:** babu
 
-**Amsoshi:** iri ɗaya da `start` (yana dawo da `ServiceStatus` na ƙarshe).
+**Amsoshi:** iri ɗaya da `start` (yana mayar da `ServiceStatus` na ƙarshe).
 
 ---
 
 #### `POST /api/services/9router/update`
 
-Yana sabunta 9Router zuwa sabuwar sigar npm. Idan sabis ɗin yana gudana, za a fara
-tsayar da shi, a gudanar da npm install (ana shigar da sabuwar sigar a wurin da yake),
-sannan a sake fara sabis ɗin.
+Yana sabunta 9Router zuwa sabuwar sigar npm. Idan service ɗin yana gudana, za a dakatar da shi
+da farko, a gudanar da npm install (a girka sabuwar sigar a wurin da yake), sannan a
+sake fara service ɗin.
 
 **Jikin buƙata** (duk na zaɓi ne):
 
@@ -328,9 +329,9 @@ sannan a sake fara sabis ɗin.
 
 #### `POST /api/services/9router/rotate-key`
 
-Yana samar da sabon maɓallin API ga 9Router, yana ɓoye shi yayin ajiya, sannan yana sake kunna sabis ɗin
-(idan yana gudana) domin ya ɗauki sabon maɓallin daga muhallinsa. Ana soke ingancin tsohon maɓallin
-nan take.
+Yana ƙirƙirar sabon maɓallin API don 9Router, ya ɓoye shi yayin ajiya, sannan ya sake fara service ɗin
+(idan yana gudana) domin ya ɗauki sabon maɓallin daga environment ɗinsa. Ana
+soke tsohon maɓallin nan take.
 
 **Jikin buƙata:** babu
 
@@ -339,25 +340,25 @@ nan take.
 | Matsayi | Bayani                                     |
 | ------- | ------------------------------------------ |
 | `200`   | `{ keyRotated: true, restarted: boolean }` |
-| `500`   | Juyawar maɓalli ta gaza                    |
+| `500`   | Juyar da maɓalli ta gaza                   |
 
-**Tsaro:** Ba a taɓa mayar da sabon maɓallin cikin amsa (babu fallasar bayanan sirri).
-Ana adana shi a ɓoye (AES-256-GCM) cikin teburin `version_manager`.
+**Tsaro:** Ba a taɓa mayar da sabon maɓallin cikin amsa (babu fallasa credential).
+Ana adana shi a ɓoye (AES-256-GCM) a cikin teburin `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Yana mayar da haɗaɗɗen matsayin kai-tsaye + DB, ciki har da metadata na sigar da samfotin maɓallin API.
+Yana mayar da haɗaɗɗen matsayin kai-tsaye + DB, ciki har da metadata na siga da samfotin maɓallin API.
 
 **Amsoshi:**
 
-| Matsayi | Bayani                         |
-| ------- | ------------------------------ |
-| `200`   | Duba tsarin bayanan da ke ƙasa |
-| `500`   | Karanta matsayin ya gaza       |
+| Matsayi | Bayani                   |
+| ------- | ------------------------ |
+| `200`   | Duba schema da ke ƙasa   |
+| `500`   | Karanta matsayin ya gaza |
 
-**Tsarin amsa:**
+**Schema na amsa:**
 
 ```json
 {
@@ -381,8 +382,8 @@ Yana mayar da haɗaɗɗen matsayin kai-tsaye + DB, ciki har da metadata na sigar
 
 #### `POST /api/services/9router/auto-start`
 
-Kunna ko kashe tutar farawa ta atomatik. Lokacin da `enabled: true`, sabis ɗin yana farawa ta atomatik
-a lokacin da OmniRoute zai sake tashi na gaba (idan an girka sabis ɗin).
+Kunna ko kashe tutar farawa ta atomatik. Lokacin da `enabled: true`, service ɗin zai fara da kansa
+a lokacin da OmniRoute ya sake farawa na gaba (idan an girka service ɗin).
 
 **Jikin buƙata:**
 
@@ -401,24 +402,24 @@ a lokacin da OmniRoute zai sake tashi na gaba (idan an girka sabis ɗin).
 
 #### `GET /api/services/9router/logs`
 
-Rafin SSE na rajistocin kai-tsaye daga ring buffer na stdout/stderr na 9Router.
+SSE stream na log kai-tsaye daga ring buffer na stdout/stderr na 9Router.
 
-**Sigogin query:**
+**Query parameters:**
 
-| Siga     | Nau'i     | Na asali | Bayani                                                                              |
-| -------- | --------- | -------- | ----------------------------------------------------------------------------------- |
-| `tail`   | `integer` | 200      | Yawan layukan tarihi da za a fara aikawa da su (mafi yawa 1000)                     |
-| `filter` | `string`  | babu     | Tace ƙaramin-tsari mara bambancin babba/ƙarami (babu regex — mai kariya daga ReDoS) |
+| Param    | Nau'i     | Tsoho | Bayani                                                                                            |
+| -------- | --------- | ----- | ------------------------------------------------------------------------------------------------- |
+| `tail`   | `integer` | 200   | Adadin layukan tarihi da za a fara aikawa (mafi yawa 1000)                                        |
+| `filter` | `string`  | babu  | Tace substring ba tare da la’akari da babba/ƙaramin harafi ba (babu regex — amintacce daga ReDoS) |
 
 **Abubuwan SSE:**
 
-| Abu         | Bayanai     | Bayani                          |
-| ----------- | ----------- | ------------------------------- |
-| `snapshot`  | `LogLine[]` | Wutsiyar tarihi ta farko        |
-| `log`       | `LogLine`   | Layin rajista na kai-tsaye      |
-| `heartbeat` | `{}`        | Ci gaba da haɗi kowane sakan 15 |
+| Event       | Bayanai     | Bayani                     |
+| ----------- | ----------- | -------------------------- |
+| `snapshot`  | `LogLine[]` | Tail na tarihi na farko    |
+| `log`       | `LogLine`   | Layin log kai-tsaye        |
+| `heartbeat` | `{}`        | Keep-alive kowane sakan 15 |
 
-**Tsarin LogLine:**
+**Schema na LogLine:**
 
 ```json
 {
@@ -430,126 +431,159 @@ Rafin SSE na rajistocin kai-tsaye daga ring buffer na stdout/stderr na 9Router.
 
 **Amsoshi:**
 
-| Matsayi | Bayani                                                |
-| ------- | ----------------------------------------------------- |
-| `200`   | `text/event-stream`                                   |
-| `400`   | Sigar `filter` ta yi tsawo sosai (> haruffa 200)      |
-| `404`   | Ba a sami sabis ba (ba a yi wa supervisor rajista ba) |
+| Matsayi | Bayani                                                    |
+| ------- | --------------------------------------------------------- |
+| `200`   | `text/event-stream`                                       |
+| `400`   | Ma'aunin `filter` ya yi tsawo sosai (> haruffa 200)       |
+| `404`   | Ba a sami sabis ɗin ba (ba a yi wa supervisor rajista ba) |
 
 ---
 
-### 4.2 Endpoints na CLIProxyAPI (routes 10)
+### 4.2 Wuraren ƙarshe na CLIProxyAPI (hanyoyi 10)
 
-CLIProxyAPI yana da tsarin endpoint iri ɗaya da 9Router ban da `rotate-key`, tare da
-`accounts`, `provider-expose` da `auto-restart-adopted`. Yanzu yana karɓar
-keɓaɓɓen maɓallin API na data-plane da ake saka masa lokacin spawn (`needsApiKey: true` a cikin
-`bootstrap.ts`, wanda ake amfani da shi wajen daidaita model); `status` yana ƙunshe da fields kaɗan.
+CLIProxyAPI yana da tsarin wurin ƙarshe iri ɗaya da 9Router ban da `rotate-key`, tare da
+ƙarin `accounts`, `provider-expose` da `auto-restart-adopted`. Yanzu yana karɓar
+keɓaɓɓen maɓallin API na data-plane da ake saka masa lokacin ƙaddamarwa (`needsApiKey: true` a cikin
+`bootstrap.ts`, wanda ake amfani da shi don daidaita samfura); `status` yana ƙunshe da filaye kaɗan.
 
-| Method | Path                                | Bayani                                        |
+| Hanya  | Path                                | Bayani                                        |
 | ------ | ----------------------------------- | --------------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | Girka CLIProxyAPI daga npm                    |
+| `POST` | `/api/services/cliproxy/install`    | Shigar da CLIProxyAPI daga npm                |
 | `POST` | `/api/services/cliproxy/start`      | Fara CLIProxyAPI                              |
-| `POST` | `/api/services/cliproxy/stop`       | Tsayar da CLIProxyAPI                         |
+| `POST` | `/api/services/cliproxy/stop`       | Dakatar da CLIProxyAPI                        |
 | `POST` | `/api/services/cliproxy/restart`    | Sake kunna CLIProxyAPI                        |
-| `POST` | `/api/services/cliproxy/update`     | Sabunta zuwa sabuwar siga                     |
+| `POST` | `/api/services/cliproxy/update`     | Sabunta zuwa sabon sigar                      |
 | `GET`  | `/api/services/cliproxy/status`     | Matsayin kai-tsaye + DB (babu `apiKeyMasked`) |
 | `POST` | `/api/services/cliproxy/auto-start` | Kunna ko kashe farawa ta atomatik             |
 
-Endpoint ɗin `GET /api/services/{name}/logs` da ake rabawa (duba §4.1) yana aiki ga dukkan
-sabis huɗun ta amfani da dynamic segment na `[name]`.
+Wurin ƙarshe na bai ɗaya `GET /api/services/{name}/logs` (duba §4.1) yana aiki ga dukkan
+sabis huɗun ta amfani da sashen mai sauyawa na `[name]`.
 
 ---
 
-### 4.3 Endpoints na Mux (routes 8)
+### 4.3 Wuraren ƙarshe na Mux (hanyoyi 8)
 
-Mux yana da tsarin endpoint iri ɗaya da CLIProxyAPI — babu route na `rotate-key` a saman API
+Mux yana da tsarin wurin ƙarshe iri ɗaya da CLIProxyAPI — babu hanyar `rotate-key` a saman API
 (ana samar da bearer token ɗin kamar na 9Router ta hanyar
-`getOrCreateApiKey("mux")` kuma ana saka shi ta env var na `MUX_SERVER_AUTH_TOKEN`, amma
-har yanzu babu keɓaɓɓen endpoint na juyawa). Ana sarrafa Mux ne kawai ta fuskar lifecycle: saɓanin
-9Router, ba shi da executor na Layer 4 kuma ba a taɓa yi masa rajista a matsayin routing provider.
+`getOrCreateApiKey("mux")` sannan a saka shi ta env var na `MUX_SERVER_AUTH_TOKEN`, amma
+har yanzu babu keɓaɓɓen wurin ƙarshe na sauya shi). Ana sarrafa Mux ne kawai ta fuskar tsarin rayuwarsa: saɓanin
+9Router, ba shi da mai aiwatar da Layer 4 kuma ba a taɓa yi masa rajista a matsayin mai samar da routing ba.
 
-| Method | Path                           | Bayani                            |
-| ------ | ------------------------------ | --------------------------------- |
-| `POST` | `/api/services/mux/install`    | Girka Mux daga npm (`npm i mux`)  |
-| `POST` | `/api/services/mux/start`      | Fara Mux (`mux server`)           |
-| `POST` | `/api/services/mux/stop`       | Tsayar da Mux                     |
-| `POST` | `/api/services/mux/restart`    | Sake kunna Mux                    |
-| `POST` | `/api/services/mux/update`     | Sabunta zuwa sabuwar sigar npm    |
-| `GET`  | `/api/services/mux/status`     | Matsayin kai-tsaye + DB           |
-| `POST` | `/api/services/mux/auto-start` | Kunna ko kashe farawa ta atomatik |
-
----
-
-### 4.4 Endpoints na Bifrost (routes 8)
-
-Bifrost backend ne na relay na AI-gateway da aka rubuta da Go (`@maximhq/bifrost`). Yana amfani da tsarin
-endpoint iri ɗaya da CLIProxyAPI (babu `rotate-key` — Bifrost yana sarrafa nasa provider
-keys a cikin `config.json` ƙarƙashin `-app-dir`).
-
-| Hanya  | Tafarki                            | Bayani                                                                       |
-| ------ | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Shigar da Bifrost daga npm (`@maximhq/bifrost`)                              |
-| `POST` | `/api/services/bifrost/start`      | Fara Bifrost a tashar 8080 (tsoho)                                           |
-| `POST` | `/api/services/bifrost/stop`       | Dakatar da Bifrost                                                           |
-| `POST` | `/api/services/bifrost/restart`    | Sake kunna Bifrost                                                           |
-| `POST` | `/api/services/bifrost/update`     | Sabunta zuwa sabon sigar                                                     |
-| `GET`  | `/api/services/bifrost/status`     | Matsayin kai-tsaye + DB                                                      |
-| `POST` | `/api/services/bifrost/auto-start` | Kunna/kashe farawa ta atomatik                                               |
-| `GET`  | `/api/services/bifrost/logs`       | Ƙarshen log na SSE (ta hanyar haɗaɗɗiyar hanya mai sauyawa ta `[name]/logs`) |
-
-**Haɗin routing:** Lokacin da ba a saita `BIFROST_BASE_URL` ba kuma Bifrost da ake
-kulawa da shi yana aiki, `getBifrostRoutingConfig()` (a cikin `routingBackend.ts`) yana
-amfani da `http://127.0.0.1:{port}` ta atomatik a matsayin tushen URL na relay. Saitaccen
-env na `BIFROST_BASE_URL` koyaushe yana da fifiko.
+| Hanya  | Path                           | Bayani                               |
+| ------ | ------------------------------ | ------------------------------------ |
+| `POST` | `/api/services/mux/install`    | Shigar da Mux daga npm (`npm i mux`) |
+| `POST` | `/api/services/mux/start`      | Fara Mux (`mux server`)              |
+| `POST` | `/api/services/mux/stop`       | Dakatar da Mux                       |
+| `POST` | `/api/services/mux/restart`    | Sake kunna Mux                       |
+| `POST` | `/api/services/mux/update`     | Sabunta zuwa sabon sigar npm         |
+| `GET`  | `/api/services/mux/status`     | Matsayin kai-tsaye + DB              |
+| `POST` | `/api/services/mux/auto-start` | Kunna ko kashe farawa ta atomatik    |
 
 ---
 
-### 4.5 Endpoints na Dario (hanyoyi 12)
+### 4.4 Wuraren ƙarshe na Bifrost (hanyoyi 8)
+
+Bifrost backend ne na relay na ƙofar AI da aka gina da Go (`@maximhq/bifrost`). Yana amfani da tsarin
+wurin ƙarshe iri ɗaya da CLIProxyAPI (babu `rotate-key` — Bifrost yana sarrafa nasa maɓallan
+masu samarwa a cikin `config.json` ƙarƙashin `-app-dir` nasa).
+
+| Hanya  | Path                               | Bayani                                                                         |
+| ------ | ---------------------------------- | ------------------------------------------------------------------------------ |
+| `POST` | `/api/services/bifrost/install`    | Shigar da Bifrost daga npm (`@maximhq/bifrost`)                                |
+| `POST` | `/api/services/bifrost/start`      | Fara Bifrost a port 8080 (na asali)                                            |
+| `POST` | `/api/services/bifrost/stop`       | Dakatar da Bifrost                                                             |
+| `POST` | `/api/services/bifrost/restart`    | Sake kunna Bifrost                                                             |
+| `POST` | `/api/services/bifrost/update`     | Sabunta zuwa sabon sigar                                                       |
+| `GET`  | `/api/services/bifrost/status`     | Matsayin kai-tsaye + DB                                                        |
+| `POST` | `/api/services/bifrost/auto-start` | Kunna ko kashe farawa ta atomatik                                              |
+| `GET`  | `/api/services/bifrost/logs`       | Ƙarshen log na SSE (ta hanyar hanyar mai sauyawa ta bai ɗaya ta `[name]/logs`) |
+
+**Haɗin routing:** Lokacin da ba a saita `BIFROST_BASE_URL` ba kuma supervised instance na Bifrost
+yana gudana, `getBifrostRoutingConfig()` (a cikin `routingBackend.ts`) yana amfani da
+`http://127.0.0.1:{port}` ta atomatik a matsayin tushe URL na relay. env na `BIFROST_BASE_URL` da aka
+saita kai tsaye koyaushe shi ne ke da fifiko.
+
+---
+
+### 4.5 Wuraren ƙarshe na Dario (hanyoyi 12)
 
 Tsarin lifecycle iri ɗaya ne da na sauran sabis (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`) tare da control plane na OAuth
-mai kariyar token a ƙarƙashin `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+mai buƙatar token ƙarƙashin `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (duk suna bayan `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Endpoints na open-wa (hanyoyi 7)
+### 4.6 Wuraren ƙarshe na open-wa (hanyoyi 7)
 
-open-wa (`@open-wa/wa-automate`) yana sarrafa Chromium marar taga (ta hanyar
-Puppeteer) don sarrafa WhatsApp Web ta atomatik. Yana amfani da tsarin endpoint iri ɗaya
-da Mux (har yanzu babu hanyar `rotate-key`). Ana sarrafa lifecycle ɗinsa kawai — ba
-makasudin routing ba ne, kuma ba shi da shigarwar executor/provider ta Layer 4.
+open-wa (`@open-wa/wa-automate`) yana tafiyar da headless Chromium instance (ta hanyar
+Puppeteer) don sarrafa WhatsApp Web ta atomatik. Yana amfani da tsarin wurin ƙarshe iri ɗaya da Mux (har yanzu babu
+hanyar `rotate-key`). Ana sarrafa shi ne kawai ta fuskar lifecycle — ba routing target ba ne,
+kuma ba shi da shigarwar mai aiwatarwa/mai samarwa ta Layer 4.
 
-| Hanya  | Tafarki                           | Bayani                                                                       |
-| ------ | --------------------------------- | ---------------------------------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | Shigar da open-wa daga npm (`@open-wa/wa-automate`)                          |
-| `POST` | `/api/services/openwa/start`      | Fara open-wa a tashar 8323 (tsoho)                                           |
-| `POST` | `/api/services/openwa/stop`       | Dakatar da open-wa                                                           |
-| `POST` | `/api/services/openwa/restart`    | Sake kunna open-wa                                                           |
-| `POST` | `/api/services/openwa/update`     | Sabunta zuwa sabon sigar                                                     |
-| `GET`  | `/api/services/openwa/status`     | Matsayin kai-tsaye + DB                                                      |
-| `POST` | `/api/services/openwa/auto-start` | Kunna/kashe farawa ta atomatik                                               |
-| `GET`  | `/api/services/openwa/logs`       | Ƙarshen log na SSE (ta hanyar haɗaɗɗiyar hanya mai sauyawa ta `[name]/logs`) |
+| Hanya  | Tafarki                           | Bayani                                                            |
+| ------ | --------------------------------- | ----------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Shigar da open-wa daga npm (`@open-wa/wa-automate`)               |
+| `POST` | `/api/services/openwa/start`      | Fara open-wa a tashar 8323 (tsoho)                                |
+| `POST` | `/api/services/openwa/stop`       | Tsayar da open-wa                                                 |
+| `POST` | `/api/services/openwa/restart`    | Sake kunna open-wa                                                |
+| `POST` | `/api/services/openwa/update`     | Sabunta zuwa sabon sigar                                          |
+| `GET`  | `/api/services/openwa/status`     | Matsayin kai-tsaye + DB                                           |
+| `POST` | `/api/services/openwa/auto-start` | Kunna ko kashe farawa ta atomatik                                 |
+| `GET`  | `/api/services/openwa/logs`       | Ƙarshen log na SSE (ta hanyar shared `[name]/logs` dynamic route) |
 
-**Maɓallin API:** ana saka shi a matsayin `WA_KEY` — env override na open-wa mai
-gabaɗayan prefix na `WA_*` yana daidaita shi zuwa zaɓin CLI na `--key`/`-k`
+**Maɓallin API:** ana saka shi a matsayin `WA_KEY` — generic env mai prefix ɗin
+`WA_*` na open-wa yana danganta shi da zaɓin CLI na `--key`/`-k`
 (`dist/cli/setup.js::envArgs()`, an tabbatar da shi da package 4.76.0 da aka
-shigar). Ana sanya prefix na `ow_` lokacin da `generateServiceApiKey()` ya ƙirƙire shi.
-open-wa yana sake karanta maɓallin daga HTTP header na `key`/`api_key` (ba
-`Authorization: Bearer` ba); an keɓe `/api-docs*` a sarari daga binciken
+shigar). Ana sa prefix ɗin `ow_` lokacin da `generateServiceApiKey()` ya ƙirƙire
+shi. open-wa yana sake karanta maɓallin daga HTTP header na `key`/`api_key` (ba
+`Authorization: Bearer` ba); an keɓe `/api-docs*` kai tsaye daga binciken
 (`setupAuthenticationLayer` a cikin `dist/cli/server.js`), don haka health probe
 ba ya buƙatar auth header.
 
-**Haɗawa:** open-wa ba na hukuma ba ne kuma ba shi da alaƙa da WhatsApp —
-lambar da aka haɗa tana fuskantar haɗarin dakatarwa saboda tsarin gano sarrafa kansa
-na WhatsApp. A farkon farawa, ana buga QR code na haɗawa zuwa stdout kuma ana
-bayyana shi ta cikin panel na Logs/stream na SSE da ke akwai — har yanzu babu
-keɓaɓɓen endpoint na hoton QR a wannan haɗin.
+**Haɗawa:** open-wa ba na hukuma ba ne kuma ba shi da alaƙa da WhatsApp — lambar
+da aka haɗa tana fuskantar haɗarin dakatarwa saboda tsarin gano amfani da
+automation na WhatsApp. A farkon farawa, ana buga pairing QR code zuwa stdout
+kuma ana nuna shi ta hanyar panel ɗin Logs/stream na SSE da ake da shi — har yanzu
+babu endpoint na musamman na hoton QR a cikin wannan haɗin.
 
 ---
 
-### 4.7 Reverse proxy (saka dashboard na 9Router)
+### 4.7 Endpoints na LLMLingua (routes 8)
 
-Dashboard yana saka UI na yanar gizo na 9Router a cikin iframe ta hanyar reverse
-proxy na ciki a:
+LLMLingua sidecar ne na matse prompt wanda ke nannaɗe `@atjsh/llmlingua-2`
+(ainihin model na ONNX token-classification, wanda ake saukewa daga Hugging Face
+a kiran `/compress` na farko). Yana amfani da irin tsarin endpoint ɗin Bifrost
+(babu maɓallin API — `needsApiKey: false`, ba ya taɓa sarrafa credentials).
+
+| Hanya  | Tafarki                                        | Bayani                                                                                   |
+| ------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | Yi npm-install na `@atjsh/llmlingua-2` + peers, rubuta script ɗin server na sidecar      |
+| `POST` | `/api/services/llmlingua/start`                | Fara sidecar a tashar 20135 (tsoho)                                                      |
+| `POST` | `/api/services/llmlingua/stop`                 | Tsayar da sidecar                                                                        |
+| `POST` | `/api/services/llmlingua/restart`              | Sake kunna sidecar                                                                       |
+| `POST` | `/api/services/llmlingua/update`               | Sabunta zuwa sabuwar sigar package                                                       |
+| `GET`  | `/api/services/llmlingua/status`               | Matsayin kai-tsaye + DB                                                                  |
+| `POST` | `/api/services/llmlingua/auto-start`           | Kunna ko kashe farawa ta atomatik                                                        |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Kunna ko kashe sake farawa ta atomatik na instance da aka karɓa (wanda ya riga ya wanzu) |
+| `GET`  | `/api/services/llmlingua/logs`                 | Ƙarshen log na SSE (ta hanyar shared `[name]/logs` dynamic route)                        |
+
+**Yarjejeniyar sidecar:** script ɗin server yana samar da `GET /health`
+(nan take — ba ya jiran model) da `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). Model ɗin yana lodawa ne a hankali a kiran
+`/compress` na farko.
+
+**Haɗin matsewa:** `httpSidecarBackend` na
+`open-sse/services/compression/engines/llmlingua/index.ts` yana kiran
+`LLMLINGUA_BASE_URL` (tsoho `http://127.0.0.1:20135`) kuma yana karɓar amsar
+sidecar ne kawai idan ta fi input ɗin gajarta sosai; duk wata gazawa (ba ya aiki,
+timeout, amsar da ba ta yi komai ba) tana komawa ga backend na worker-thread
+mai aiki a cikin process (`./worker.ts`).
+
+---
+
+### 4.8 Reverse proxy (shigar da dashboard na 9Router)
+
+Dashboard yana saka web UI na 9Router a cikin iframe ta hanyar internal reverse
+proxy a:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -558,17 +592,17 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 Wannan proxy:
 
 - Yana tura request zuwa `http://127.0.0.1:{port}/{path}` (loopback kawai)
-- Yana cire headers masu shigowa na `cookie` da `authorization` (babu fallasar session na OmniRoute)
-- Yana saka `Authorization: Bearer {apiKey}` don tantancewar 9Router
+- Yana cire headers na `cookie` da `authorization` masu shigowa (babu fallasar session na OmniRoute)
+- Yana saka `Authorization: Bearer {apiKey}` don authentication na 9Router
 - Yana cire `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` daga response
-- Yana sake rubuta responses na HTML don saka `<base href>` da daidaita cikakkun paths (`/foo` → `/dashboard/.../embed/foo`)
+- Yana sake rubuta responses na HTML don saka `<base href>` da daidaita absolute paths (`/foo` → `/dashboard/.../embed/foo`)
 
-Ana sarrafa upgrades na WebSocket don dashboard ɗin da aka saka ta wani companion server a
-keɓaɓɓiyar tashar (duba `src/lib/services/embedWsProxy.ts`).
+Wani companion server a dedicated port ne ke sarrafa upgrades na WebSocket don
+dashboard ɗin da aka saka (duba `src/lib/services/embedWsProxy.ts`).
 
-**Tsaro:** An rarraba hanyoyin embed proxy a ƙarƙashin `LOCAL_ONLY_API_PREFIXES`
-kuma loopback ne kawai zai iya isa gare su. Maharin da ya samu JWT ta hanyar
-tunnel na Cloudflare/Ngrok ba zai iya yin proxy zuwa sabis ɗin da aka saka ba.
+**Tsaro:** An rarraba routes na embed a ƙarƙashin `LOCAL_ONLY_API_PREFIXES`
+kuma ana iya isa gare su daga loopback kawai. Maharin da ya sami JWT ta hanyar
+tunnel na Cloudflare/Ngrok ba zai iya yin proxy zuwa embedded services ba.
 
 ---
 

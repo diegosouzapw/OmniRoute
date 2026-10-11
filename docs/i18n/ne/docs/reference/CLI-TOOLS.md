@@ -568,65 +568,65 @@ kiro-cli status
 
 ## 10. आन्तरिक OmniRoute CLI
 
-`omniroute` बाइनरीले सर्भर जीवनचक्र, सेटअप, निदान, र प्रदायक व्यवस्थापनका लागि आदेशहरू उपलब्ध गराउँछ। प्रवेश बिन्दु: `bin/omniroute.mjs`।
+`omniroute` बाइनरीले सर्भरको जीवनचक्र, सेटअप, निदान र प्रदायक व्यवस्थापनका लागि आदेशहरू प्रदान गर्छ। प्रवेश बिन्दु: `bin/omniroute.mjs`।
 
 ```bash
 omniroute                              # सर्भर सुरु गर्नुहोस् (पूर्वनिर्धारित पोर्ट 20128)
 omniroute setup                        # अन्तरक्रियात्मक सेटअप विजार्ड
-omniroute doctor                       # कन्फिग, DB, पोर्टहरू र रनटाइम जाँच गर्नुहोस्
+omniroute doctor                       # कन्फिगरेसन, DB, पोर्ट र रनटाइम जाँच गर्नुहोस्
 omniroute providers list               # कन्फिगर गरिएका प्रदायक जडानहरू
 omniroute providers test-all           # प्रत्येक सक्रिय जडान परीक्षण गर्नुहोस्
 omniroute reset-password               # प्रशासकको पासवर्ड रिसेट गर्नुहोस्
 omniroute logs                         # अनुरोध लगहरू स्ट्रिम गर्नुहोस्
-omniroute health                       # विस्तृत स्वास्थ्य स्थिति (ब्रेकरहरू, क्यास, मेमोरी)
+omniroute health                       # विस्तृत स्वास्थ्य स्थिति (ब्रेकर, क्यास, मेमोरी)
 omniroute --version                    # संस्करण देखाउनुहोस्
 omniroute --help                       # सबै आदेशहरू देखाउनुहोस्
 ```
 
-### सेटअप र प्रारम्भीकरण
+### सेटअप र प्रारम्भिकरण
 
 ```bash
 omniroute setup                        # अन्तरक्रियात्मक सेटअप विजार्ड
-omniroute setup --non-interactive      # CI/स्वचालन मोड (env vars + flags पढ्छ)
-omniroute setup --password '<value>'   # प्रशासकको पासवर्ड सिधै सेट गर्नुहोस्
+omniroute setup --non-interactive      # CI/स्वचालन मोड (वातावरण चरहरू + फ्ल्यागहरू पढ्छ)
+omniroute setup --password '<value>'   # प्रशासकको पासवर्ड सीधै सेट गर्नुहोस्
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
   --test-provider                      # एकै पटक प्रदायक थप्नुहोस् र परीक्षण गर्नुहोस्
 ```
 
-गैर-अन्तरक्रियात्मक सेटअपका लागि पहिचान गरिने वातावरण चरहरू:
+गैर-अन्तरक्रियात्मक सेटअपका लागि पहिचान गरिएका वातावरण चरहरू:
 
-| चर                  | उद्देश्य                                                                |
-| ------------------- | ----------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | प्रदायक API कुञ्जी (Commander `.env()` मार्फत `--api-key` सँग बाँधिएको) |
-| `DATA_DIR`          | OmniRoute डेटा डाइरेक्टरीलाई अधिलेखन गर्नुहोस्                          |
+| चर                  | उद्देश्य                                                                    |
+| ------------------- | --------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | प्रदायक API कुञ्जी (Commander `.env()` मार्फत `--api-key` सँग आबद्ध गरिएको) |
+| `DATA_DIR`          | OmniRoute डेटा डाइरेक्टरी अधिलेखन गर्नुहोस्                                 |
 
-अन्य सबै गैर-अन्तरक्रियात्मक इनपुटहरू वातावरण चरका रूपमा नभई फ्ल्यागका रूपमा पास गरिन्छन्:
+अन्य सबै गैर-अन्तरक्रियात्मक इनपुटहरू वातावरण चरका रूपमा नभई फ्ल्यागका रूपमा पठाइन्छन्:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (माथिका `omniroute setup` विकल्पहरू हेर्नुहोस्)।
 
 ### निदान
 
 ```bash
-omniroute doctor                       # कन्फिग, DB, पोर्टहरू, रनटाइम, मेमोरी र सक्रियता जाँच गर्नुहोस्
-omniroute doctor --json                # मेसिनले पढ्न मिल्ने JSON
-omniroute doctor --no-liveness         # HTTP स्वास्थ्य परीक्षण छाड्नुहोस्
-omniroute doctor --host 0.0.0.0        # सक्रियता होस्ट अधिलेखन गर्नुहोस्
+omniroute doctor                       # कन्फिगरेसन, DB, पोर्ट, रनटाइम, मेमोरी र जीवन्तता जाँच गर्नुहोस्
+omniroute doctor --json                # मेसिनले पढ्न सक्ने JSON
+omniroute doctor --no-liveness         # HTTP स्वास्थ्य जाँच छाड्नुहोस्
+omniroute doctor --host 0.0.0.0        # जीवन्तता होस्ट अधिलेखन गर्नुहोस्
 omniroute doctor --liveness-url <url>  # पूर्ण स्वास्थ्य अन्त्यबिन्दु URL अधिलेखन गर्नुहोस्
 ```
 
 doctor ले यी जाँचहरू चलाउँछ: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, र `Server liveness`। कुनै पनि जाँच `fail` भएमा यो गैर-शून्य निकास कोडसहित बन्द हुन्छ।
+`Memory`, र `Server liveness`। कुनै पनि जाँच `fail` भएमा यो गैर-शून्य मानसहित बन्द हुन्छ।
 
 ### प्रदायक व्यवस्थापन
 
 ```bash
 omniroute providers available                       # OmniRoute प्रदायक सूची
-omniroute providers available --search openai       # id/name/alias/category अनुसार सूची फिल्टर गर्नुहोस्
+omniroute providers available --search openai       # id/नाम/उपनाम/श्रेणीअनुसार सूची फिल्टर गर्नुहोस्
 omniroute providers available --category api-key    # श्रेणीअनुसार फिल्टर गर्नुहोस् (api-key, oauth, free, ...)
-omniroute providers available --json                # मेसिनले पढ्न मिल्ने JSON
+omniroute providers available --json                # मेसिनले पढ्न सक्ने JSON
 
 omniroute providers list                            # कन्फिगर गरिएका प्रदायक जडानहरू
 omniroute providers list --json
@@ -641,82 +641,94 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-प्रथम हुन् र त्यसैले सक्रिय स्थानीय वा दूरस्थ सन्दर्भमा
-काम गर्छन्। प्रमाणपत्र इनपुटका लागि `--credential-stdin` वा `--credential-env` प्रयोग गर्नुपर्छ;
-`--dry-run --json` ले संशोधित उपस्थिति/आकार मात्र रिपोर्ट गर्छ। `providers available` ले OmniRoute
-सूची पढ्छ; `providers list/test/test-all/validate` ले तिनको स्थानीय SQLite व्यवहार कायम राख्छन् र
+`providers add/import/auth/edit/remove` API-प्राथमिक हुन् र त्यसैले सक्रिय स्थानीय वा रिमोट सन्दर्भविरुद्ध काम गर्छन्। प्रमाणपत्र इनपुटका लागि
+`--credential-stdin` वा `--credential-env` प्रयोग गर्नुपर्छ; `--dry-run --json` ले
+सम्पादन गरिएको उपस्थिति/आकार मात्र रिपोर्ट गर्छ। `providers available` ले OmniRoute सूची पढ्छ;
+`providers list/test/test-all/validate` ले आफ्नो स्थानीय SQLite व्यवहार कायम राख्छन् र
 सर्भर चलिरहेको हुनु आवश्यक पर्दैन।
+
+अनुकूलित OpenAI-सङ्गत वा Anthropic-सङ्गत नोडका लागि, `omniroute nodes add` द्वारा फर्काइएको
+नोड ID मा `omniroute keys add "$NODE_ID" --stdin` प्रयोग गरी प्रमाणपत्रहरू संलग्न गर्नुहोस्।
+यसका लागि सक्रिय सन्दर्भमा चलिरहेको सर्भर र व्यवस्थापन प्रमाणीकरण आवश्यक हुन्छ।
+CLI ले `POST /api/providers` प्रयोग गर्छ, जसले नोड प्रमाणीकरण गर्छ र त्यसको अन्त्यबिन्दु
+सेटिङहरू जडानमा प्रतिलिपि गर्छ। नोड नभएको, प्राधिकरण असफल भएको वा सर्भर अनुपलब्ध भएको
+अवस्थामा स्थानीय वैकल्पिक प्रमाणपत्र सिर्जना नगरी त्रुटि फर्काइन्छ।
+
+`nodes add --base-url` ले नोडको अन्त्यबिन्दु सेट गर्छ; यो `OMNIROUTE_BASE_URL` मा भएको सर्भर ठेगानाभन्दा
+फरक हुन्छ। OpenAPI फाइलहरूका लागि
+`omniroute openapi dump --format json --out ./openapi.json` प्रयोग गर्नुहोस्; विश्वव्यापी `--output`
+ले CLI प्रदर्शन ढाँचा चयन गर्छ, गन्तव्य फाइलनाम होइन।
 
 ### पुनःप्राप्ति र रिसेट
 
 ```bash
 omniroute reset-password                # प्रशासकको पासवर्ड रिसेट गर्नुहोस् (यो पनि: omniroute-reset-password)
-omniroute reset-encrypted-columns       # इन्क्रिप्ट गरिएका प्रमाणपत्र रिसेटका लागि चेतावनी + dry-run देखाउनुहोस्
+omniroute reset-encrypted-columns       # इन्क्रिप्ट गरिएको प्रमाणपत्र रिसेटका लागि चेतावनी + ड्राइ-रन देखाउनुहोस्
 omniroute reset-encrypted-columns --force  # SQLite मा इन्क्रिप्ट गरिएका प्रमाणपत्रहरू वास्तवमै null बनाउनुहोस्
 ```
 
 ### प्रमाणपत्र निर्यात (⚠ सावधानीपूर्वक सम्हाल्नुहोस्)
 
 ```bash
-omniroute auth export                                 # चेतावनी + पुष्टि द्वार देखाउनुहोस् — DB पहुँच हुँदैन
+omniroute auth export                                 # चेतावनी + पुष्टि अवरोध देखाउनुहोस् — DB पहुँच हुँदैन
 omniroute auth export --force                          # सबै जडानका डिक्रिप्ट गरिएका प्रमाणपत्रहरू JSON का रूपमा stdout मा निर्यात गर्नुहोस्
-omniroute auth export --force --id <id>                 # मेल खाने जडान मात्र निर्यात गर्नुहोस्
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> लाइनहरू उत्सर्जन गर्नुहोस्
-omniroute auth export --force --out creds.json           # फाइलमा लेख्नुहोस् (0600 अनुमतिसहित सिर्जना गरिन्छ)
+omniroute auth export --force --id <id>                 # मिल्दो जडान मात्र निर्यात गर्नुहोस्
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> पङ्क्तिहरू निकाल्नुहोस्
+omniroute auth export --force --out creds.json           # फाइलमा लेख्नुहोस् (0600 अनुमतिहरूसहित सिर्जना गरिन्छ)
 ```
 
-`auth export` **स्थानीय-मात्र** हो (प्रत्यक्ष SQLite पढाइ, HTTP रुट छैन) र यसले जानाजानी
-**सादा पाठ** `apiKey`/`accessToken`/`refreshToken`/`idToken` मानहरू देखाउँछ/लेख्छ — यो त्रुटि होइन,
-यसकै विशेषता हो। `--force` बिना डेटाबेसबाट केही पनि पढिँदैन र केही पनि डिक्रिप्ट गरिँदैन। कुनै
-सादा पाठ उत्सर्जन हुनुअघि stderr मा सधैँ चेतावनी ब्यानर देखाइन्छ। `STORAGE_ENCRYPTION_KEY` सेट
-गरिएको हुनुपर्छ। डिक्रिप्ट गर्न असफल भएको फिल्ड (पुरानो कुञ्जी, बिग्रिएको ciphertext) का लागि सम्पूर्ण
-निर्यात रद्द गर्नु वा अन्तर्निहित त्रुटि चुहाउनुको सट्टा `<field>DecryptFailed: true` रिपोर्ट गरिन्छ।
+`auth export` **स्थानीय-मात्र** हो (प्रत्यक्ष SQLite पठन, कुनै HTTP route होइन) र यसले जानाजानी
+**सादा पाठमा** `apiKey`/`accessToken`/`refreshToken`/`idToken` मानहरू प्रिन्ट/लेखन गर्छ — यो सुविधा हो,
+त्रुटि होइन। `--force` बिना डेटाबेसबाट केही पनि पढिँदैन, र केही पनि डिक्रिप्ट गरिँदैन। कुनै पनि सादा पाठ
+उत्सर्जन हुनुअघि stderr मा चेतावनी ब्यानर सधैँ प्रिन्ट हुन्छ। `STORAGE_ENCRYPTION_KEY` सेट गरिएको
+हुनुपर्छ। डिक्रिप्ट गर्न असफल हुने फिल्ड (पुरानो key, भ्रष्ट ciphertext) लाई सम्पूर्ण export रद्द गर्नु वा
+अन्तर्निहित त्रुटि चुहाउनुको सट्टा `<field>DecryptFailed: true` का रूपमा रिपोर्ट गरिन्छ।
 
-### अन्य उपआदेशहरू
+### अन्य subcommand हरू
 
-अन्यथा उल्लेख नगरिएसम्म, यिनले चलिरहेको OmniRoute सर्भर भएको मान्छन्:
+अन्यथा उल्लेख नगरिएसम्म, यिनले चलिरहेको OmniRoute server अपेक्षा गर्छन्:
 
 ```bash
-omniroute status                       # विस्तृत रनटाइम स्थिति
-omniroute logs                         # अनुरोध लगहरू स्ट्रिम गर्नुहोस् (--json, --search, --follow)
-omniroute config list                  # कन्फिगर गरिएका CLI उपकरणहरू देखाउनुहोस्
+omniroute status                       # विस्तृत runtime स्थिति
+omniroute logs                         # request log हरू stream गर्नुहोस् (--json, --search, --follow)
+omniroute config list                  # कन्फिगर गरिएका CLI tool हरू देखाउनुहोस्
 
-omniroute provider list                # उपलब्ध प्रदायकहरू सूचीबद्ध गर्नुहोस् (providers list को उपनाम)
-omniroute provider add                 # कुनै उपकरणमा OmniRoute लाई प्रदायकका रूपमा दर्ता गर्नुहोस्
-omniroute keys add | list | remove     # API कुञ्जीहरू व्यवस्थापन गर्नुहोस्
-omniroute models [provider]            # मोडेलहरू सूचीबद्ध गर्नुहोस् (--json, --search)
+omniroute provider list                # उपलब्ध provider हरूको सूची देखाउनुहोस् (providers list को alias)
+omniroute provider add                 # कुनै tool मा OmniRoute लाई provider का रूपमा दर्ता गर्नुहोस्
+omniroute keys add | list | remove     # API key हरू व्यवस्थापन गर्नुहोस्
+omniroute models [provider]            # model हरूको सूची देखाउनुहोस् (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # कन्फिगरेसन + DB को स्न्यापसट लिनुहोस्
-omniroute restore                      # अघिल्लो स्न्यापसटबाट पुनर्स्थापना गर्नुहोस्
+omniroute backup                       # config + DB को snapshot लिनुहोस्
+omniroute restore                      # अघिल्लो snapshot बाट पुनर्स्थापना गर्नुहोस्
 
-omniroute health                       # विस्तृत स्वास्थ्य स्थिति (ब्रेकरहरू, क्यास, मेमोरी)
-omniroute quota                        # प्रदायक कोटा उपयोग
-omniroute cache                        # क्यास स्थिति
-omniroute cache clear                  # सिमान्टिक + सिग्नेचर क्यासहरू खाली गर्नुहोस्
+omniroute health                       # विस्तृत health जानकारी (breaker, cache, memory)
+omniroute quota                        # provider quota को प्रयोग
+omniroute cache                        # cache स्थिति
+omniroute cache clear                  # semantic + signature cache हरू खाली गर्नुहोस्
 
-omniroute mcp status | restart         # MCP सर्भरको स्थिति / पुनः सुरु
-omniroute a2a status | card            # A2A सर्भरको स्थिति / एजेन्ट कार्ड
+omniroute mcp status | restart         # MCP server को स्थिति / पुनः सुरु
+omniroute a2a status | card            # A2A server को स्थिति / agent card
 
-omniroute tunnel list | create | stop  # टनेलहरू व्यवस्थापन गर्नुहोस् (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # वातावरणीय चरहरू निरीक्षण / सेट गर्नुहोस् (अस्थायी)
+omniroute tunnel list | create | stop  # tunnel हरू व्यवस्थापन गर्नुहोस् (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # env var हरू निरीक्षण / सेट गर्नुहोस् (अस्थायी)
 
-omniroute test                         # प्रदायक कनेक्टिभिटीको आधारभूत परीक्षण
-omniroute update                       # अद्यावधिकहरू जाँच गर्नुहोस्
-omniroute completion                   # शेल कम्प्लिसन उत्पन्न गर्नुहोस्
+omniroute test                         # provider connectivity smoke test
+omniroute update                       # update हरू जाँच गर्नुहोस्
+omniroute completion                   # shell completion उत्पन्न गर्नुहोस्
 ```
 
-### सामान्य फ्ल्यागहरू
+### सामान्य flag हरू
 
-| फ्ल्याग             | विवरण                                                      |
-| ------------------- | ---------------------------------------------------------- |
-| `--no-open`         | सुरु हुँदा ब्राउजर स्वतः नखोल्नुहोस्                       |
-| `--port <n>`        | API पोर्ट अधिलेखन गर्नुहोस् (पूर्वनिर्धारित 20128)         |
-| `--mcp`             | stdio मार्फत MCP सर्भरका रूपमा चलाउनुहोस् (IDE हरूका लागि) |
-| `--non-interactive` | CI मोड (कुनै प्रम्प्ट छैन; env/फ्ल्यागहरूबाट पढ्छ)         |
-| `--json`            | मेसिनले पढ्न मिल्ने JSON आउटपुट (doctor, providers, आदि)   |
-| `--help`, `-h`      | कमान्ड-विशिष्ट मद्दत देखाउनुहोस्                           |
-| `--version`, `-v`   | इन्स्टल गरिएको संस्करण प्रिन्ट गर्नुहोस्                   |
+| Flag                | विवरण                                                        |
+| ------------------- | ------------------------------------------------------------ |
+| `--no-open`         | सुरु हुँदा browser स्वतः नखोल्नुहोस्                         |
+| `--port <n>`        | API port override गर्नुहोस् (पूर्वनिर्धारित 20128)           |
+| `--mcp`             | stdio मार्फत MCP server का रूपमा चलाउनुहोस् (IDE हरूका लागि) |
+| `--non-interactive` | CI mode (कुनै prompt हुँदैन; env/flag बाट पढ्छ)              |
+| `--json`            | machine-readable JSON output (doctor, providers, आदि)        |
+| `--help`, `-h`      | command-विशिष्ट सहायता देखाउनुहोस्                           |
+| `--version`, `-v`   | install गरिएको version प्रिन्ट गर्नुहोस्                     |
 
 ---
 

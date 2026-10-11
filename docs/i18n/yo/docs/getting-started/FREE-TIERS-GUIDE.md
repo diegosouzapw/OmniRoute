@@ -4,86 +4,83 @@
 
 ---
 
-> **Ní ṣókí**: OmniRoute forúkọsílẹ̀ àwọn ID olùpèsè 357, pẹ̀lú **àwọn àkọsílẹ̀ 152 nínú àkójọ olùpèsè tí a sàmì sí `hasFree`**. Àkójọ àwọn àwòṣe ọ̀fẹ́ tí a ṣàyẹ̀wò pẹkipẹki síi bo **àwọn kọ́kọ́rọ́ pool tó ń tún wáyé 35 / àkọsílẹ̀ 482** (475 tí ó ń ṣiṣẹ́ + 7 tí a ti dáwọ́ dúró). So ọ̀pọ̀ olùpèsè tó yẹ pọ̀ fún agbára ìpadàsẹ́yìn tó gbòòrò síi; gbogbo ìwọ̀n lílò, òfin ìfọwọ́sí, ìlànà àṣírí, àti ipò ìsanwó fún lílò tó kọjá iye tí a yàn ṣì wúlò.
+> **Ní ṣókí**: Lo àwọn àkọọ́lẹ̀ olupèsè tìrẹ tí ó tóótun. OmniRoute ń ṣàkójọpọ̀ àwọn àsopọ̀ tí o ṣètò; kì í ṣe òun ló ń pèsè àpapọ̀ iye token tí a polówó. Ìráyè ọ̀fẹ́ lè nílò ìforúkọsílẹ̀, kọ́kọ́rọ́ API, ìfọwọ́sí, tàbí ọ̀nà ìsanwó. Àwọn ààlà olupèsè, àwọn ìlànà àṣírí, àti àwọn òfin lílò ṣì wúlò.
 
 ---
 
 ## Kí Ni Àwọn Ìpele Ọ̀fẹ́?
 
-Ọ̀pọ̀ olùpèsè AI ń fúnni ní irú **ìráyè ọ̀fẹ́** kan. Gẹ́gẹ́ bí olùpèsè ṣe rí, èyí lè
-túmọ̀ sí endpoint tí kò nílò ìfàṣẹsí, iye ìlò tó ń tún ara rẹ̀ ṣe, ìráyè aláìlópin tí a fi ààlà oṣùwọ̀n sí, ẹ̀bùn ìforúkọsílẹ̀,
-ìfọwọ́sí olówọ́, tàbí ìpolówó fún ìgbà díẹ̀. Àwọn àṣàyàn kan nílò àkọọ́lẹ̀, API key,
-káàdì ìsanwó, KYC, tàbí gbígba àwọn òfin tó jẹ́ ti olùpèsè pàtó.
+Ọ̀pọ̀ àwọn olùpèsè AI ń fúnni ní irú **ìráàyèsí ọ̀fẹ́** kan. Ní ìbámu pẹ̀lú olùpèsè náà, èyí lè túmọ̀ sí endpoint tí kò nílò ìfàṣẹsí, ìpín tí a ń tún fúnni déédéé, ìráàyèsí tí kò ní òpin ṣùgbọ́n tí iye ìbéèrè rẹ̀ ní ààlà, ẹ̀bùn ìforúkọsílẹ̀, ìfọwọ́sí afọwọ́ṣe, tàbí ìpolówó fún ìgbà díẹ̀. Àwọn àṣàyàn kan nílò àkọọ́lẹ̀, API key, káàdì kirẹditi, KYC, tàbí gbígba àwọn òfin pàtó ti olùpèsè.
 
-OmniRoute **ń kó** àwọn ìpele ọ̀fẹ́ wọ̀nyí jọ sínú endpoint kan. Dípò kí o forúkọsílẹ̀ fún iṣẹ́ oríṣiríṣi 10, o so gbogbo wọn pọ̀ mọ́ OmniRoute, kí o sì lo `model: "auto"` láti yan àṣàyàn ọ̀fẹ́ tó dára jù lọ fún ìbéèrè kọ̀ọ̀kan láìfọwọ́ṣe.
+OmniRoute **ń ṣàkójọpọ̀** àwọn àsopọ̀ tí a ti ṣètò sínú endpoint kan. O ṣì ní láti forúkọsílẹ̀ lọ́tọ̀ọ̀tọ̀ fún olùpèsè kọ̀ọ̀kan tí ó nílò àkọọ́lẹ̀. So àwọn àkọọ́lẹ̀ wọ̀nyẹn pọ̀, kí o sì lo `model: "auto"` láti darí ìbéèrè láàárín àwọn ibi-afẹ́ tí ó yẹ. Fífi tuntun sílẹ̀ lè má ní ibi-afẹ́ kankan tí ó yẹ tí kò nílò kọ́kọ́rọ́; fífi OmniRoute sílẹ̀ nìkan kò ṣe ìdánilójú pé ìdáhùn ìfọ̀rọ̀wérọ̀ yóò ṣàṣeyọrí.
 
 ---
 
-## Àwọn Olùpèsè Ìráyè Ọ̀fẹ́ Àpẹẹrẹ
+## Àwọn Olùpèsè Àpẹẹrẹ Tó Ní Ìráyè Ọ̀fẹ́
 
-### Ìráyè Tó Ń Tún Ara Rẹ̀ Ṣe, Tí Kò Nílò Kọ́kọ́rọ́, Tàbí Tí Kò Ní Ààlà
+### Ìráyè Tó Ń Tún Wá, Tí Kò Nílò Kọ́kọ́rọ́, Tàbí Tí Kò Ní Ààlà
 
-Àwọn olùpèsè wọ̀nyí ní ọ̀nà ìráyè ọ̀fẹ́ tó ń tún ara rẹ̀ ṣe, tí kò nílò kọ́kọ́rọ́, tàbí tí kò ní ààlà nínú àkójọ tí a ṣàyẹ̀wò. “Tí kò ní ààlà” túmọ̀ sí pé kò sí ààlà token tí a tẹ̀ jáde; ààlà oṣùwọ̀n, ìṣiṣẹ́ ní àkókò kan náà, àkọọ́lẹ̀, ẹkùn, àti ìlànà ṣì lè wúlò:
+Àwọn olùpèsè wọ̀nyí ní ọ̀nà ìráyè ọ̀fẹ́ tó ń tún wá, tí kò nílò kọ́kọ́rọ́, tàbí tí kò ní ààlà nínú àkójọ tí a ti ṣe àyẹ̀wò. “Tí kò ní ààlà” túmọ̀ sí pé kò sí òpin token tí a tẹ̀ jáde; àwọn ààlà oṣùwọ̀n, ìṣiṣẹ́ lẹ́ẹ̀kan náà, àkọọ́lẹ̀, ẹkùn, àti ìlànà ṣì lè wà:
 
-| Olùpèsè           | Àwọn Awoṣe                                                                                         | Iye Ìlò                                                                                                                             | Bí A Ṣe Lè Sopọ̀                                                                                |
-| ----------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, àti àwọn mìíràn                                       | Àkójọ tí a ṣàyẹ̀wò fojú díwọ̀n adágún oṣooṣù pínpín token 25K                                                                         | Ìṣàn OAuth/àkọọ́lẹ̀; a sàmì sí ToS gẹ́gẹ́ bí `avoid` nínú àkójọ náà                                |
-| **OpenCode Free** | Àkójọpọ̀ awoṣe `*-free` lọ́wọ́lọ́wọ́ nínú ìforúkọsílẹ̀ olùpèsè                                           | Kò nílò kọ́kọ́rọ́; kò sí ààlà token tí a tẹ̀ jáde                                                                                       | Kò nílò ẹ̀rí ìdánimọ̀ olùpèsè; a sàmì sí ToS gẹ́gẹ́ bí `avoid`                                     |
-| **Pollinations**  | Àkójọpọ̀ awoṣe tí kò nílò kọ́kọ́rọ́ lọ́wọ́lọ́wọ́; a ti dáwọ́ àwọn awoṣe àtijọ́ kan dúró tàbí wọ́n nílò kọ́kọ́rọ́ | Kò nílò kọ́kọ́rọ́; kò sí ààlà token tí a tẹ̀ jáde                                                                                       | Kò nílò ẹ̀rí ìdánimọ̀ olùpèsè fún àwọn awoṣe tí kò nílò kọ́kọ́rọ́                                   |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, àti sí i                              | API key ọ̀fẹ́ (kò sí ààlà oṣùwọ̀n, kò sí káàdì); **gbogbo ìbéèrè ni a ń kọ sílẹ̀** fún ìwádìí (jáde kúrò nínú rẹ̀ ní logfare.ai/consent) | Gba kọ́kọ́rọ́ lẹ́sẹ̀kẹsẹ̀ ní logfare.ai/register; ToS/àṣírí ní logfare.ai/tos àti logfare.ai/privacy |
-| **Cloudflare AI** | Àkójọ Workers AI                                                                                   | Adágún tí a ṣàyẹ̀wò fojú díwọ̀n ~30M tokens/oṣù láti inú àwọn ìwọ̀n ìlò tí a tẹ̀ jáde                                                   | Àkọọ́lẹ̀ Cloudflare àti àwọn ẹ̀rí ìdánimọ̀ API                                                     |
-| **Gemini**        | Ìdílé Gemini Flash                                                                                 | Adágún tí a ṣàyẹ̀wò fojú díwọ̀n ~60M tokens/oṣù                                                                                       | Google AI Studio API key; ààlà oṣùwọ̀n wúlò                                                     |
-| **Groq**          | Àwọn awoṣe Llama, GPT-OSS, àti Qwen                                                                | Adágún tí a ṣàyẹ̀wò fojú díwọ̀n ~15M tokens/oṣù                                                                                       | Groq API key; ààlà oṣùwọ̀n wúlò                                                                 |
-| **Cerebras**      | GLM 4.7 àti GPT-OSS 120B                                                                           | Adágún tí a ṣàyẹ̀wò fojú díwọ̀n ~30M tokens/oṣù                                                                                       | Cerebras API key; ààlà oṣùwọ̀n wúlò                                                             |
+| Olùpèsè           | Àwọn Model                                                                                      | Ìpín                                                                                                                                   | Bí A Ṣe Lè Sopọ̀                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, àti àwọn mìíràn                                    | Àkójọ tí a ti ṣe àyẹ̀wò fojú díwọ̀n pé ó ní àpapọ̀ 25K-token fún oṣù kan                                                                  | Ìlànà OAuth/àkọọ́lẹ̀; ToS ni a sàmì sí `avoid` nínú àkójọ náà                                    |
+| **OpenCode Free** | Àkójọpọ̀ model `*-free` lọ́wọ́lọ́wọ́ nínú ìforúkọsílẹ̀ olùpèsè                                        | Kò nílò kọ́kọ́rọ́; kò sí òpin token tí a tẹ̀ jáde                                                                                          | Kò nílò ẹ̀rí ìdánimọ̀ olùpèsè; ToS ni a sàmì sí `avoid`                                          |
+| **Pollinations**  | Àkójọpọ̀ model tí kò nílò kọ́kọ́rọ́ lọ́wọ́lọ́wọ́; a ti dá àwọn model kan tẹ́lẹ̀ dúró tàbí wọ́n nílò kọ́kọ́rọ́ | Kò nílò kọ́kọ́rọ́; kò sí òpin token tí a tẹ̀ jáde                                                                                          | Kò nílò ẹ̀rí ìdánimọ̀ olùpèsè fún àwọn model tí kò nílò kọ́kọ́rọ́                                   |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, àti àwọn mìíràn                    | Kọ́kọ́rọ́ API ọ̀fẹ́ (kò sí ààlà oṣùwọ̀n, kò nílò káàdì); **gbogbo ìbéèrè ni a ń ṣe àkọsílẹ̀ rẹ̀** fún ìwádìí (jáde kúrò ní logfare.ai/consent) | Gba kọ́kọ́rọ́ lẹ́sẹ̀kẹsẹ̀ ní logfare.ai/register; ToS/ìpamọ́ ní logfare.ai/tos àti logfare.ai/privacy |
+| **Cloudflare AI** | Àkójọ Workers AI                                                                                | Àpapọ̀ tí a ti ṣe àyẹ̀wò fojú díwọ̀n pé ó tó ~30M token/oṣù láti inú àwọn ẹ̀ka lílò tí a tẹ̀ jáde                                           | Àkọọ́lẹ̀ Cloudflare àti àwọn ẹ̀rí ìdánimọ̀ API                                                     |
+| **Gemini**        | Ìdílé Gemini Flash                                                                              | Àwọn ààlà oṣùwọ̀n tó yàtọ̀ síra gẹ́gẹ́ bí iṣẹ́-àkànṣe/model; kò sí ìpín token oṣooṣù tó dúró ṣinṣin nínú àkọlé náà                          | Kọ́kọ́rọ́ API Google AI Studio; ṣàyẹ̀wò àwọn ààlà iṣẹ́-àkànṣe tó ń ṣiṣẹ́                             |
+| **Groq**          | Àwọn model Llama, GPT-OSS, àti Qwen                                                             | Àpapọ̀ tí a ti ṣe àyẹ̀wò fojú díwọ̀n pé ó tó ~15M token/oṣù                                                                               | Kọ́kọ́rọ́ API Groq; àwọn ààlà oṣùwọ̀n kan wà                                                       |
 
-### Àwọn Ẹ̀bùn Ìforúkọsílẹ̀ àti Kírẹ́díìtì Tó Jẹ́ Ti Olùpèsè Pàtó
+### Àwọn Ẹ̀bùn Ìforúkọsílẹ̀ àti Kirẹditi Tó Jẹ́ Ti Olùpèsè Kan Pàtó
 
-Àwọn olùpèsè wọ̀nyí ń fún ọ ní **kírẹ́díìtì ọ̀fẹ́** nígbà tí o bá forúkọsílẹ̀:
+Àwọn olùpèsè wọ̀nyí ń fúnni ní ẹ̀bùn ìforúkọsílẹ̀ tàbí kirẹditi ìpolówó, lábẹ́ àwọn òfin yíyẹ wọn. Gẹ́gẹ́ bí a ti fìdí rẹ̀ múlẹ̀ ní 2026-10-08, [ìdíyelé Cerebras](https://www.cerebras.ai/pricing) nílò ọ̀nà ìsanwó fún kirẹditi $5 ẹ̀ẹ̀kan ṣoṣo tó máa parí lẹ́yìn ọjọ́ 30; kì í ṣe ìpín token tó ń tún wá. [Àwọn ààlà oṣùwọ̀n Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) yàtọ̀ síra gẹ́gẹ́ bí iṣẹ́-àkànṣe, model, àti ipele, nítorí náà a kò yí wọn padà sí ìpín token oṣooṣù tí a ṣe ìdánilójú rẹ̀.
 
-| Olùpèsè       | Kírẹ́díìtì Ọ̀fẹ́                                                                 | Àwọn Awoṣe                      | Bí A Ṣe Lè Gbà Á                                    |
-| ------------- | ----------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------- |
-| **DeepSeek**  | 5M token ọ̀fẹ́                                                                  | DeepSeek V4                     | Forúkọsílẹ̀ ní platform.deepseek.com                 |
-| **LongCat**   | Ẹ̀bùn ẹ̀ẹ̀kan ṣoṣo token 10M                                                     | LongCat 2.0                     | API key + KYC; sanwó bí o ṣe ń lò lẹ́yìn ẹ̀bùn náà    |
-| **Vertex AI** | Kírẹ́díìtì ìforúkọsílẹ̀ $300 tí a ṣàfihàn gẹ́gẹ́ bí ~300M tokens nínú awoṣe ìnáwó | Gemini àti àwọn awoṣe alájọṣepọ̀ | Àkọọ́lẹ̀ Google Cloud; àwọn òfin ìsanwó àti yíyẹ wúlò |
+| Olùpèsè       | Kirẹditi Ọ̀fẹ́                                                                | Àwọn Model                       | Bí A Ṣe Lè Gbà Á                                             |
+| ------------- | --------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| **Cerebras**  | Kirẹditi ìpolówó $5 ẹ̀ẹ̀kan ṣoṣo; ó máa parí lẹ́yìn ọjọ́ 30                     | Àkójọ inference lọ́wọ́lọ́wọ́         | Àkọọ́lẹ̀ àti ọ̀nà ìsanwó tó fẹsẹ̀ múlẹ̀                           |
+| **DeepSeek**  | 5M token ọ̀fẹ́                                                                | DeepSeek V4                      | Forúkọsílẹ̀ ní platform.deepseek.com                          |
+| **LongCat**   | Ẹ̀bùn 10M-token ẹ̀ẹ̀kan ṣoṣo                                                   | LongCat 2.0                      | Kọ́kọ́rọ́ API + KYC; san bí o ṣe ń lò lẹ́yìn tí ẹ̀bùn náà bá parí |
+| **Vertex AI** | Kirẹditi ìforúkọsílẹ̀ $300 tí a ṣàfihàn gẹ́gẹ́ bí ~300M token nínú model ìnáwó | Gemini àti àwọn model alábàáṣiṣẹ́ | Àkọọ́lẹ̀ Google Cloud; àwọn òfin ìsanwó àti yíyẹ kan wà        |
 
-### Ìráyè Mìíràn Tó Ní Ààlà
+### Ìráyè Míì Tó Ní Ààlà
 
-Àwọn olùpèsè wọ̀nyí ní **àwọn ìpele ọ̀fẹ́** pẹ̀lú àwọn ààlà pàtó:
+Àwọn olùpèsè wọ̀nyí ní **àwọn ipele ọ̀fẹ́** pẹ̀lú àwọn ààlà pàtó:
 
-| Olùpèsè                    | Ààlà Ọ̀fẹ́                                                                                     | Àwọn Àwòṣe                                        | Ó Dára Jù Fún |
-| -------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------- |
-| **GitHub Models**          | Àfojúsùn àkójọpọ̀ ìlò tí a ṣàyẹ̀wò jẹ́ ~18M tokens/osù                                          | Ìṣàyẹ̀wò ọ̀pọ̀lọpọ̀ àwòṣe                             |
-| **Hugging Face**           | Àkójọpọ̀ kékeré tí ń túnṣe lóṣooṣù                                                            | Àwọn àdánwò àti oríṣiríṣi àwòṣe                   |
-| **OpenRouter free models** | Àkójọpọ̀ tí iye ìbéèrè rẹ̀ ní ààlà; àfikún ẹ̀ẹ̀kan tí kò pọn dandan ń mú ààyè tí ń túnṣe pọ̀ sí i | Àkójọ àwọn àṣàyàn àfẹ́yinti tó gbòòrò              |
-| **AI Horde**               | Agbára àwùjọ tí kò nílò kọ́kọ́rọ́; wíwà rẹ̀ máa ń yípadà                                         | Ìṣírò aláìdásílẹ̀ tí a ń lò nígbà tí àǹfààní bá wà |
+| Olùpèsè                    | Ààlà Ọ̀fẹ́                                                                                     | Àwọn Model                                            | Ó Dára Jù Fún |
+| -------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------- |
+| **GitHub Models**          | Àpapọ̀ tí a ti ṣe àyẹ̀wò fojú díwọ̀n pé ó tó ~18M token/oṣù                                     | Ìṣàyẹ̀wò ọ̀pọ̀lọpọ̀ model                                 |
+| **Hugging Face**           | Àpapọ̀ oṣooṣù kékeré tó ń tún wá                                                              | Àwọn àdánwò àti oríṣiríṣi model                       |
+| **OpenRouter free models** | Àpapọ̀ tó ní ààlà ìbéèrè; àfikún owó ẹ̀ẹ̀kan ṣoṣo tí kò pọn dandan máa ń pọ̀ sí ìpín tó ń tún wá | Àkójọ ìpadà-sẹ́yìn tó gbòòrò                           |
+| **AI Horde**               | Agbára àwùjọ tí kò nílò kọ́kọ́rọ́; wíwà rẹ̀ ń yàtọ̀ síra                                          | Inference alápín tó máa ń ṣiṣẹ́ nígbà tí àǹfààní bá wà |
 
 ---
 
-## Bí A Ṣe Lè Ṣàkójọpọ̀ Àwọn Ìpele Ọ̀fẹ́
+## Bí a Ṣe Lè Ṣàkójọpọ̀ Àwọn Ìpele Ọ̀fẹ́
 
-Ohun ìyanu nípa OmniRoute ni **ṣíṣàkójọpọ̀ àwọn ìpele ọ̀fẹ́**. Dípò gbígbẹ́kẹ̀ lé olùpèsè kan ṣoṣo, o so ọ̀pọ̀ àwọn olùpèsè ọ̀fẹ́ pọ̀, kí o sì jẹ́ kí OmniRoute yan èyí tó dára jù lọ fún ìbéèrè kọ̀ọ̀kan láìfọwọ́yí.
+Idán OmniRoute ni **ṣíṣàkójọpọ̀ àwọn ìpele ọ̀fẹ́**. Dípò gbígbẹ́kẹ̀ lé olupèsè kan ṣoṣo, o so ọ̀pọ̀ àwọn olupèsè ọ̀fẹ́ pọ̀, kí o sì jẹ́ kí OmniRoute yan èyí tó dára jù lọ fún ìbéèrè kọ̀ọ̀kan láìfọwọ́ṣe.
 
-### Àpẹẹrẹ: Ìbúdó Àwọn Ìpele Ọ̀fẹ́ Tó Gbòòrò Sí I
+### Àpẹẹrẹ: Ìborí Ìpele Ọ̀fẹ́ Tó Gbòòrò Sí I
 
-So ọ̀pọ̀ àwọn olùpèsè pọ̀ láti dín gbígbẹ́kẹ̀lé ìpín kan ṣoṣo kù:
+So ọ̀pọ̀ àwọn olupèsè pọ̀ láti dín gbígbẹ́kẹ̀lé ìwọ̀n lílò ẹyọ kan kù:
 
-1. **Gemini** — ìpín kọ́kọ́ API tó ń tún ara rẹ̀ ṣe
-2. **Groq** — ìpín kọ́kọ́ API tó ń tún ara rẹ̀ ṣe
-3. **Pollinations** — ààyè láìsí kọ́kọ́, tó ní ààlà ìwọ̀n ìbéèrè
+1. **Gemini** — ìwọ̀n lílò kọ́kọ́rọ́ API tó ń tún padà
+2. **Groq** — ìwọ̀n lílò kọ́kọ́rọ́ API tó ń tún padà
+3. **Pollinations** — ààyè lílò láìsí kọ́kọ́rọ́, tí ó ní ààlà ìwọ̀n ìbéèrè
 4. **LongCat** — ẹ̀bùn ìforúkọsílẹ̀ ẹ̀ẹ̀kan ṣoṣo (ó nílò KYC)
 
 Lẹ́yìn náà, lo `model: "auto"`, OmniRoute yóò sì:
 
-- Kọ́kọ́ gbìyànjú àsopọ̀ tó yẹ, tí ipò rẹ̀ sì ga jù lọ
-- Bí ìpín rẹ̀ tàbí àyẹ̀wò ìlera rẹ̀ bá kùnà → gbìyànjú olùpèsè tí a ṣètò tó tẹ̀ lé e
-- Bí olùpèsè tí kò nílò kọ́kọ́ kò bá sí nílẹ̀ → tẹ̀ síwájú láàrín àwọn ibi àfojúsùn tó kù
-- Bí gbogbo wọn bá kùnà → lo LongCat gẹ́gẹ́ bí àfẹ́yìntì
+- Kọ́kọ́ gbìyànjú àsopọ̀ tó yẹ tó sì wà ní ipò gíga jù lọ
+- Tí ìwọ̀n lílò rẹ̀ bá tán tàbí àyẹ̀wò ìlera rẹ̀ bá kùnà → gbìyànjú olupèsè tí a ṣètò tẹ̀ lé e
+- Tí olupèsè aláìní kọ́kọ́rọ́ kò bá sí lárọwọ́tó → tẹ̀síwájú láti inú àwọn ibi àfojúsùn tó kù
+- Tí kò bá sí àsopọ̀ tó yẹ tó ṣàṣeyọrí → dá àṣìṣe padà; àwọn kirẹ́dítì ìforúkọsílẹ̀ lè ṣee lò kìkì nígbà tí wọ́n ṣì wúlò tí wọ́n sì wà
 
-**Àbájáde**: ìbúdó àwọn ìpele ọ̀fẹ́ tó gbòòrò sí i pẹ̀lú ìyípadà sí àfẹ́yìntì láìfọwọ́yí — kì í ṣe ìdánilójú agbára aláìlópin.
+**Àbájáde**: ìborí ìpele ọ̀fẹ́ tó gbòòrò sí i pẹ̀lú ìyípadà aládàáṣe sí aṣàyàn mìíràn — kì í ṣe ìdánilójú agbára tí kò ní ààlà.
 
 ---
 
-## Bí A Ṣe Lè So Àwọn Olùpèsè Ọ̀fẹ́ Pọ̀
+## Bí O Ṣe Lè So Àwọn Olùpèsè Ọ̀fẹ́ Pọ̀
 
 ### Ìgbésẹ̀ 1: Ṣí Dashboard
 
@@ -91,42 +88,41 @@ Lọ sí `http://localhost:20128` nínú aṣàwákiri rẹ.
 
 ### Ìgbésẹ̀ 2: Lọ sí Àwọn Olùpèsè
 
-Tẹ **Àwọn Olùpèsè** nínú ọ̀pá ẹ̀gbẹ́.
+Tẹ **Àwọn Olùpèsè** nínú àpá-ẹgbẹ́.
 
-### Ìgbésẹ̀ 3: Tẹ Fi Olùpèsè Kún
+### Ìgbésẹ̀ 3: Tẹ Ṣàfikún Olùpèsè
 
-Tẹ bọ́tìnì **+ Fi Olùpèsè Kún**.
+Tẹ bọ́tìnì **+ Ṣàfikún Olùpèsè**.
 
 ### Ìgbésẹ̀ 4: Yan Olùpèsè Ọ̀fẹ́ Kan
 
-Ṣàwárí àkójọ náà, kí o sì ṣàyẹ̀wò `hasFree`, ìfàṣẹsí, ìpín, ìpamọ́,
-àti dátà àfikún ToS lọ́wọ́lọ́wọ́ ti olùpèsè kọ̀ọ̀kan. Káàdì olùpèsè àti
-[Ìtọ́kasí Àwọn Ìpele Ọ̀fẹ́](../reference/FREE_TIERS.md) ṣe ìyàtọ̀ láàárín àwọn àkójọpọ̀ tó ń tún ara wọn ṣe,
-ààyè aláìní ààlà/láìsí kọ́kọ́, àwọn kírẹ́díìtì ìforúkọsílẹ̀, àwọn àkọsílẹ̀ tí a ti dáwọ́ dúró, àti àwọn orísun tó ní ewu tó ga jù.
+Ṣàwárí àkójọ náà, kí o sì ṣàyẹ̀wò `hasFree` lọ́wọ́lọ́wọ́, ìfàṣẹsí, iye lílò, àṣírí,
+àti metadata ToS ti olùpèsè kọ̀ọ̀kan. Káàdì olùpèsè àti
+[Ìtọ́kasí Àwọn Ìpele Ọ̀fẹ́](../reference/FREE_TIERS.md) ń ṣe ìyàtọ̀ láàárín àwọn ìpèsè tó ń tún ara wọn ṣe,
+ìráàyèsí tí kò ní òpin/tí kò nílò kọ́kọ́rọ́, àwọn kírẹ́díìtì ìforúkọsílẹ̀, àwọn àkọsílẹ̀ tí a ti fòpin sí, àti àwọn orísun tó ní ewu tó ga jù.
 
 ### Ìgbésẹ̀ 5: Tẹ Sopọ̀
 
-Fún olùpèsè `NOAUTH`, kò sí ẹ̀rí ìdánimọ̀ tí a nílò. Àwọn olùpèsè OAuth àti kọ́kọ́ API gbọ́dọ̀ jẹ́
-sísopọ̀ nípasẹ̀ ìlànà àkọọ́lẹ̀ wọn tí a ṣàkọsílẹ̀.
+Fún olùpèsè `NOAUTH`, OmniRoute kì í béèrè ẹ̀rí ìdánimọ̀ upstream. Èyí kò ṣe ìdánilójú pé upstream náà gba àwọn client ẹni-kẹta tàbí pé ó ní agbára tó wà lárọwọ́tó. Àwọn olùpèsè OAuth àti API-key gbọ́dọ̀ jẹ́ sísopọ̀ nípasẹ̀ ìlànà account tí wọ́n ṣàkọsílẹ̀. Client rẹ ṣì máa ń lo kọ́kọ́rọ́ API OmniRoute tí a fi hàn ní **Dashboard → Endpoints** nígbà tí ìfàṣẹsí router bá ṣiṣẹ́.
 
 ### Ìgbésẹ̀ 6: Tún Un Ṣe
 
-So ọ̀pọ̀ àwọn olùpèsè tí àwọn òfin àti àwòṣe ìpamọ́ wọn bá ọ̀nà ìlò rẹ mu pọ̀.
+So ọ̀pọ̀ olùpèsè tí àwọn òfin àti àwòṣe àṣírí wọn bá ìlò rẹ mu pọ̀.
 
 ---
 
-## Bí A Ṣe Lè Ka Àkójọ Náà Lọ́nà Tó Tọ́
+## Kíka Kátálọ́ọ̀gù Náà Lọ́nà Tó Tọ́
 
-- `NOAUTH` túmọ̀ sí pé OmniRoute kò béèrè ẹ̀rí ìdánimọ̀ olùpèsè lọ́wọ́ rẹ; kò
-  ṣe ìdánilójú pé iṣẹ́ yóò máa wà nílẹ̀, pé ìpamọ́ yóò wà, tàbí pé agbára yóò jẹ́ aláìlópin.
-- `hasFree` jẹ́ dátà àfikún fún ìṣàwárí. Ó lè dúró fún ìpín tó ń tún ara rẹ̀ ṣe, ààyè láìsí kọ́kọ́,
-  kírẹ́díìtì ìforúkọsílẹ̀, ètò ìfọwọ́sí, tàbí ìpolówó.
-- `recurring-uncapped` túmọ̀ sí pé kò sí òpin tókìn tí a tẹ̀ jáde; ààlà ìwọ̀n
-  àti iye àwọn ìbéèrè tó lè ṣiṣẹ́ lẹ́ẹ̀kan náà ṣì wúlò.
-- `one-time-initial` kì í tún ara rẹ̀ ṣe lẹ́yìn tí a bá ti lo ẹ̀bùn ìforúkọsílẹ̀ tán.
-- `tos: avoid` jẹ́ ìkìlọ̀ láti ṣàyẹ̀wò àwọn òfin olùpèsè àti ewu àkọọ́lẹ̀ kí o tó lò ó.
-- Àwọn àkọsílẹ̀ tí a sàmì sí `discontinued` ṣì jẹ́ ẹ̀rí ìtàn, a kò sì gbọ́dọ̀ gbé wọn kalẹ̀ gẹ́gẹ́ bí
-  èyí tó jẹ́ ọ̀fẹ́ lọ́wọ́lọ́wọ́.
+- `NOAUTH` túmọ̀ sí pé OmniRoute kò ní béèrè ẹ̀rí ìdánimọ̀ olùpèsè lọ́wọ́ rẹ; kò sì
+  ṣe ìdánilójú pé iṣẹ́ yóò máa wà nígbà gbogbo, pé àṣírí yóò ní ààbò, tàbí pé agbára kò ní ààlà.
+- `hasFree` jẹ́ metadata fún ìṣàwárí. Ó lè dúró fún ìpín iṣẹ́ tó ń tún ara rẹ̀ ṣe, ìwọlé láìsí kọ́kọ́rọ́,
+  kirẹ́díìtì ìforúkọsílẹ̀, ètò ìfọwọ́sí, tàbí ìpolówó.
+- `recurring-uncapped` túmọ̀ sí pé kò sí òrùlé token tí a tẹ̀ jáde tó wà; àwọn ààlà ìwọ̀n ìbéèrè àti
+  iye iṣẹ́ tó lè lọ lẹ́ẹ̀kan náà ṣì wà ní ìmúlò.
+- `one-time-initial` kì í tún wáyé lẹ́yìn tí a bá ti lo ẹ̀bùn ìforúkọsílẹ̀ náà tán.
+- Àwọn olùpèsè `tos: avoid` ni a yọ kúrò nínú ìdarí aládàáṣiṣẹ́ ní àìyípadà (`excludeTosAvoid`). Sísopọ̀ àkọọ́lẹ̀ kan kò ní ré kọjá àsẹ̀ yìí. Gbogbo ìyípadà tí olùṣàkóso bá ṣe gbọ́dọ̀ tẹ̀lé àyẹ̀wò àwọn òfin olùpèsè àti ewu àkọọ́lẹ̀.
+- Àwọn àkọsílẹ̀ tí a sàmì sí `discontinued` ṣì jẹ́ ẹ̀rí ìtàn, a kò sì gbọ́dọ̀ fi wọ́n hàn bí ohun
+  tí ó jẹ́ ọ̀fẹ́ lọ́wọ́lọ́wọ́.
 
 ---
 
@@ -160,18 +156,15 @@ Bí àwọn òfin olùpèsè bá gba ọ̀pọ̀ àkọọ́lẹ̀ tàbí ẹ̀r
 
 ## Ìṣírò Ìpele Ọ̀fẹ́
 
-Kátálọ́ọ̀gù aláàyè tí a ti yọ àwọn àdáwòṣe àkójọpọ̀ rẹ̀ kúrò ń jabo lọ́wọ́lọ́wọ́ pé:
+Kátálọ́ọ̀gù aláàyè tí a ti yọ àwọn àdáwòkọ adágún kúrò nínú rẹ̀ ń ṣàfihàn lọ́wọ́lọ́wọ́ pé:
 
-| Ìwọ̀n                                                                     |                        Iye tí a ti yẹ̀wò lọ́wọ́lọ́wọ́ | Ìtumọ̀                                                                                                                                                                              |
-| ------------------------------------------------------------------------ | -----------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ìpèsè oníwọ̀n tí ń ṣẹlẹ̀ léraléra                                          |                            **~1.62B tokens/osù** | A ka àwọn àkójọpọ̀ tí a pín papọ̀ lẹ́ẹ̀kan ṣoṣo; a yọ àwọn olupèsè tí kò ní ààlà kúrò nínú àpapọ̀ náà                                                                                   |
-| Oṣù àkọ́kọ́ pẹ̀lú àwọn ìpèsè ìforúkọsílẹ̀                                    |                                **~2.22B tokens** | Àpapọ̀ ohun tí ń ṣẹlẹ̀ léraléra pẹ̀lú àwọn kírẹ́díìtì ẹ̀ẹ̀kan ṣoṣo àti àwọn kírẹ́díìtì tí ń ṣẹlẹ̀ léraléra                                                                                 |
-| Àkójọ àwọn módẹ́lì ọ̀fẹ́ tí a ti yẹ̀wò                                       | **35 recurring pool keys / 482 catalog entries** | 475 ń ṣiṣẹ́ + 7 ti dáwọ́ dúró; ó yàtọ̀ sí kátálọ́ọ̀gù olùpèsè 357                                                                                                                       |
-| Àwọn olupèsè ọ̀fẹ́-títí-láé tí ń ṣẹlẹ̀ léraléra/tí kò nílò kọ́kọ́rọ́ tí a ṣojú |                                           **53** | Àwọn olupèsè aláìlẹ́ẹ̀kejì káàkiri àwọn irú kátálọ́ọ̀gù ojoojúmọ́/oṣooṣù/kírẹ́díìtì/aláìní-ààlà tí ń ṣẹlẹ̀ léraléra àti tí kò nílò kọ́kọ́rọ́; a yọ àwọn ìlà tí àǹfààní yíyè wọn ní ààlà kúrò |
-| Àwọn àkọsílẹ̀ kátálọ́ọ̀gù olùpèsè tí a sàmì sí `hasFree`                    |                                    **152 / 357** | Métádátà olùpèsè tó gbòòrò sí i; kì í ṣe gbogbo wọn ló ní ìpín tí ń ṣẹlẹ̀ léraléra tí a lè díwọ̀n                                                                                    |
+| Ìwọ̀n                             |    Iye àyẹ̀wò lọ́wọ́lọ́wọ́ | Ìtumọ̀                                                                            |
+| -------------------------------- | --------------------: | -------------------------------------------------------------------------------- |
+| Ìpèsè oníwọ̀n tó ń tún wá         | **~1.62B tokens/osù** | A ka àwọn adágún pínpín lẹ́ẹ̀kan ṣoṣo; kò ka àwọn olupèsè tí kò ní ààlà sínú àpapọ̀ |
+| Oṣù àkọ́kọ́ pẹ̀lú ìpèsè ìforúkọsílẹ̀ |     **~2.22B tokens** | Àpapọ̀ tó ń tún wá pẹ̀lú àwọn kírẹ́díìtì ẹ̀ẹ̀kan ṣoṣo àti àwọn tó ń tún wá            |
 
-A ṣe ìṣírò àwọn iye wọ̀nyí láti inú `open-sse/config/freeModelCatalog.ts`; wo
-[Ìtọ́kasí Àwọn Ìpele Ọ̀fẹ́](../reference/FREE_TIERS.md) fún yíyọ àdáwòṣe àkójọpọ̀, àwọn àsìá ToS,
+Àwọn wọ̀nyí jẹ́ ìṣírò fún gbogbo kátálọ́ọ̀gù káàkiri àwọn àkọọ́lẹ̀ ọ̀tọ̀ọ̀tọ̀ tó yẹ, kì í ṣe ìpín tí OmniRoute pèsè tàbí àsọtẹ́lẹ̀ fún ìfisílẹ̀ tuntun. Agbára tí o lè lò sinmi lórí àwọn olupèsè tí o so pọ̀ àti àwọn ipò wọn lọ́wọ́lọ́wọ́. A ṣírò àwọn iye náà láti inú `open-sse/config/freeModelCatalog.ts`; wo
+[Ìtọ́kasí Àwọn Ìpele Ọ̀fẹ́](../reference/FREE_TIERS.md) fún yíyọ àdáwòkọ adágún, àwọn àmì ToS,
 àwọn àkọsílẹ̀ tí a ti dáwọ́ dúró, àti ọ̀nà ìṣírò kírẹ́díìtì ìforúkọsílẹ̀.
 
 ---

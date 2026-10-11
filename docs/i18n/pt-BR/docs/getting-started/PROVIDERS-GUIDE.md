@@ -173,18 +173,17 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 Estes provedores oferecem **acesso gratuito** sem exigir cartão de crédito:
 
-| Provedor          | Cota gratuita                     | Modelos                                  | Como conectar           |
-| ----------------- | --------------------------------- | ---------------------------------------- | ----------------------- |
-| **Kiro AI**       | 50 créditos/mês                   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Não requer autenticação |
-| **OpenCode Free** | Ilimitada                         | GPT-4o, Claude, Gemini                   | Não requer autenticação |
-| **Pollinations**  | Não requer chave                  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Não requer autenticação |
-| **LongCat**       | 10M uma única vez                 | LongCat-2.0                              | Chave de API + KYC      |
-| **Cloudflare AI** | 10K neurônios/dia                 | Mais de 50 modelos                       | Não requer autenticação |
-| **NVIDIA NIM**    | ~40 RPM                           | 129 modelos                              | Requer chave de API     |
-| **Cerebras**      | US$ 5 em créditos ao se cadastrar | GLM 4.7, GPT-OSS 120B                    | Chave de API + cartão   |
-| **Qoder**         | Ilimitada                         | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Não requer autenticação |
+| Provedor          | Cota gratuita             | Modelos                                  | Como conectar         |
+| ----------------- | ------------------------- | ---------------------------------------- | --------------------- |
+| **Kiro AI**       | 50 créditos/mês           | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Sem autenticação      |
+| **OpenCode Free** | Ilimitada                 | GPT-4o, Claude, Gemini                   | Sem autenticação      |
+| **Pollinations**  | Não requer chave          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Sem autenticação      |
+| **LongCat**       | 10M em cota única         | LongCat-2.0                              | Chave de API + KYC    |
+| **Cloudflare AI** | 10K neurônios/dia         | Mais de 50 modelos                       | Sem autenticação      |
+| **NVIDIA NIM**    | ~40 RPM                   | 129 modelos                              | Requer chave de API   |
+| **Cerebras**      | Crédito de $5 no cadastro | GLM 4.7, GPT-OSS 120B                    | Chave de API + cartão |
 
-**Dica**: conecte vários provedores gratuitos para obter **IA gratuita ilimitada** com fallback automático!
+**Dica**: Conecte vários provedores gratuitos para ter **IA gratuita ilimitada** com fallback automático!
 
 ---
 
@@ -258,35 +257,75 @@ Depois, use `model: "auto"`, e o OmniRoute escolherá automaticamente o melhor p
 
 ---
 
-## Configuração específica por provedor
+## Configuração específica do provedor
 
 ### OpenAI
 
-1. Obtenha uma chave de API: https://platform.openai.com/api-keys
+1. Obtenha a chave de API: https://platform.openai.com/api-keys
 2. No OmniRoute: Provedores → Adicionar provedor → OpenAI
 3. Cole a chave de API → Conectar
 
 ### Anthropic
 
-1. Obtenha uma chave de API: https://console.anthropic.com/
+1. Obtenha a chave de API: https://console.anthropic.com/
 2. No OmniRoute: Provedores → Adicionar provedor → Anthropic
 3. Cole a chave de API → Conectar
 
 ### Google (Gemini)
 
-1. Obtenha uma chave de API: https://aistudio.google.com/apikey
+1. Obtenha a chave de API: https://aistudio.google.com/apikey
 2. No OmniRoute: Provedores → Adicionar provedor → Gemini
 3. Cole a chave de API → Conectar
 
 ### DeepSeek
 
-1. Obtenha uma chave de API: https://platform.deepseek.com/
+1. Obtenha a chave de API: https://platform.deepseek.com/
 2. No OmniRoute: Provedores → Adicionar provedor → DeepSeek
 3. Cole a chave de API → Conectar
 
+### Qoder: escolha o transporte de credenciais
+
+O Qoder requer credenciais. Seus dois transportes têm recursos diferentes; apenas o nome de um modelo
+não identifica o que uma determinada conexão pode fazer.
+
+| Credencial                              | Transporte do OmniRoute                          | Chamada de ferramentas pelo cliente         | Streaming                                                                  |
+| --------------------------------------- | ------------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------------- |
+| PAT iniciado por `pt-`                  | Processo local `qodercli` no host do OmniRoute   | Não compatível                              | Em buffer: o SSE é emitido somente após a CLI retornar a resposta completa |
+| Token de acesso não PAT ou chave de API | Endpoint HTTP compatível com OpenAI do DashScope | Repassada, sujeita ao modelo/chave upstream | Caminho HTTP/SSE upstream                                                  |
+
+Para um PAT, instale a CLI do Qoder no mesmo host ou contêiner que o OmniRoute. O executável
+deve ser detectável como `qodercli`, ou defina `CLI_QODER_BIN` com o caminho do executável. Uma CLI
+instalada apenas no host do Docker não fica automaticamente disponível no contêiner. A ausência
+dos binários produz um erro explícito que orienta você quanto à instalação ou configuração do caminho.
+
+O caminho de chat com PAT tem um tempo limite de processo de 45 segundos. Ele transforma a conversa em um
+prompt e invoca a CLI no modo de impressão sem streaming. Solicitar `stream: true` altera
+o envelope da resposta para SSE; isso não fornece entrega incremental de tokens upstream.
+A validação da CLI/listagem de modelos usa um tempo limite separado de 20 segundos. Esses são os valores
+padrão atuais do código, não configurações ajustáveis no painel.
+
+Use conexões PAT para chats simples. Solicitações de agentes que incluam `tools` ou `functions`
+legadas excluem contas PAT durante a seleção de credenciais, incluindo destinos de combinação fixados. Um pool
+misto do Qoder ainda pode selecionar sua conta HTTP. Chamadas diretas ao executor PAT também falham
+explicitamente antes de iniciar a CLI, em vez de descartar silenciosamente as definições de ferramentas. Essa
+restrição diz respeito às ferramentas fornecidas pelo cliente da API, não a quaisquer ferramentas internas que a CLI do Qoder
+possa usar. Uma chave HTTP não garante que todos os modelos ofereçam suporte a ferramentas; as verificações normais
+de recursos do modelo ainda se aplicam.
+
+O OAuth pelo navegador está disponível somente quando o administrador configura todas as cinco definições:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` e `QODER_OAUTH_CLIENT_SECRET`. Por padrão, elas ficam vazias; uma
+instalação não configurada deve usar uma importação de credenciais compatível, em vez de presumir
+que o fluxo de login pelo navegador está pronto.
+
+Referências de implementação: [Executor do Qoder](../../open-sse/executors/qoder.ts),
+[runtime da CLI](../../open-sse/services/qoderCli.ts) e
+[configuração do OAuth](../../src/lib/oauth/constants/oauth.ts). O streaming incremental com PAT
+e um tempo limite configurável são melhorias distintas; esse comportamento não os garante.
+
 ### Groq
 
-1. Obtenha uma chave de API: https://console.groq.com/
+1. Obtenha a chave de API: https://console.groq.com/
 2. No OmniRoute: Provedores → Adicionar provedor → Groq
 3. Cole a chave de API → Conectar
 

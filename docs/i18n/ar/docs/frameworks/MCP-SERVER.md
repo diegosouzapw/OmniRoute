@@ -290,102 +290,105 @@ OmniRoute من خلال نموذج الاتصال نفسه المستخدم لم
 
 ## المصادقة والنطاقات
 
-تقرأ استدعاءات أدوات MCP سلاسل النطاقات من المستدعي. يُعد هذا التحقق واحدًا من ثلاثة
-فضاءات أسماء مستقلة. لا يعني الاجتياز لدى أحد المدققات الاجتياز لدى المدققات الأخرى.
-القواعد موضحة في [فضاءات أسماء النطاقات الثلاثة](#three-scope-namespaces).
-وفهرس الأدوات موضح في [نطاقات أدوات MCP](#mcp-tool-scopes).
+تقرأ استدعاءات أدوات MCP سلاسل النطاقات من المستدعي. يمثّل هذا التحقق واحدًا من ثلاثة
+نطاقات أسماء مستقلة. لا يعني الاجتياز لدى أحد أدوات التحقق الاجتياز لدى الأدوات الأخرى.
+ترد القواعد في [نطاقات الأسماء الثلاثة للنطاقات](#three-scope-namespaces).
+ويرد دليل الأدوات في [نطاقات أدوات MCP](#mcp-tool-scopes).
 
-### فضاءات أسماء النطاقات الثلاثة
+### نطاقات الأسماء الثلاثة للنطاقات
 
-يُعد `manage` في مفتاح API، و`read:compression` في أداة MCP، و`read` في
-رمز وصول `oma_live_…` ثلاثة تفويضات مختلفة. يحصل المستدعون الذين يرسلون رمز وصول
-بنطاق `read` إلى مسار إدارة يُجري تعديلات على HTTP 403:
+يمثّل كل من `manage` في مفتاح API، و`read:compression` في أداة MCP، و`read` في
+رمز وصول `oma_live_…` صلاحية مختلفة. يحصل المستدعون الذين يرسلون رمز وصول `read`
+إلى مسار إدارة مُعدِّل على HTTP 403
 `Access token scope 'read' is insufficient; 'write' required.`
-تُحدَّد هذه الرتبة بواسطة `scopeSatisfies`. ولا ترجع هذه الدالة إلى جدول MCP، كما أن
-مُطابق MCP لا يرجع إليها.
+تُحدَّد هذه الرتبة بواسطة `scopeSatisfies`. وهي لا تستشير جدول MCP، كما أن أداة مطابقة
+MCP لا تستشيرها.
 
-| فضاء الأسماء              | بيانات الاعتماد                                               | المدقق                         | ما يسمح به الاجتياز                              |
-| :------------------------ | :------------------------------------------------------------ | :----------------------------- | :----------------------------------------------- |
-| إدارة مفتاح API           | `api_keys.scopes`                                             | `hasManageScope`               | واجهة REST للإدارة الخاصة بمفتاح Bearer هذا      |
-| نطاقات مفتاح API الإضافية | المصفوفة نفسها، سلسلة واحدة مطابقة تمامًا                     | الدالة المساعدة المذكورة أدناه | تلك الإمكانية وحدها                              |
-| نطاقات أدوات MCP          | المصفوفة نفسها، وإلا MCP `_meta`، وإلا `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                 | تلك الأداة، بعد تشغيل الإنفاذ                    |
-| رمز الوصول                | `oma_live_…`                                                  | `scopeSatisfies`               | مسار الإدارة الذي يتطلب أسلوبه ومساره تلك الرتبة |
+| نطاق الأسماء               | بيانات الاعتماد                                               | أداة التحقق                    | ما يسمح به الاجتياز                              |
+| :------------------------- | :------------------------------------------------------------ | :----------------------------- | :----------------------------------------------- |
+| إدارة مفتاح API            | `api_keys.scopes`                                             | `hasManageScope`               | واجهة REST الإدارية لمفتاح Bearer ذاك            |
+| الإضافات الخاصة بمفتاح API | المصفوفة نفسها، سلسلة مطابقة واحدة                            | الدالة المساعدة المذكورة أدناه | تلك الإمكانية وحدها                              |
+| نطاقات أدوات MCP           | المصفوفة نفسها، وإلا MCP `_meta`، وإلا `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                 | تلك الأداة، بعد تشغيل الإنفاذ                    |
+| رمز الوصول                 | `oma_live_…`                                                  | `scopeSatisfies`               | مسار الإدارة الذي يتطلب أسلوبه ومساره تلك الرتبة |
 
-تتناول صفحة
+تتناول
 [مصادقة الإدارة](../guides/MANAGEMENT-AUTH.md) كيفية إصدار كل نوع من بيانات الاعتماد.
 
-#### نطاقات مفتاح API
+#### نطاقات مفاتيح API
 
-تُستخدم مصفوفة `api_keys.scopes` واحدة لمهمتين. وتستخدم كل مهمة دوال مختلفة.
+تخدم مصفوفة `api_keys.scopes` واحدة مهمتين. وتستخدمان دوال مختلفة.
 
-**واجهة REST للإدارة.** النطاقان `manage` و`admin` عضوان في
+**واجهة REST الإدارية.** يُعد `manage` و`admin` العنصرين في
 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
-تُستخدم `hasManageScope` لتخويل مسارات الإدارة لهذا المفتاح. ويتيح `admin`
-إمكانات الإدارة على تلك المسارات. ولا تشير كلمة `admin` هنا إلى رتبة
-رمز الوصول، كما أنها لا تتوسع لتشمل نطاقات أدوات MCP.
+تتولى `hasManageScope` تخويل مسارات الإدارة لذلك المفتاح. ويملك `admin`
+إمكانات الإدارة على تلك المسارات. لا تمثّل كلمة `admin` هنا
+رتبة رمز الوصول، ولا تتوسع لتشمل نطاقات أدوات MCP.
 
-**السلاسل الإضافية.** يخضع كل نطاق منها لاختبار عضوية يتطلب مطابقة تامة، ويظل كل منها
+**السلاسل الإضافية.** يخضع كل منها لاختبار عضوية بمطابقة تامة، ويظل كل منها
 خارج `MANAGEMENT_API_KEY_SCOPES`.
 
-| النطاق                         | ما يسمح به الاجتياز                                                                                                                                                 |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mcp:connect`                  | استثناء LOCAL_ONLY للمسار `/api/mcp/` من خارج عنوان الاسترجاع المحلي فقط (`hasMcpConnectOrManageScope`). ويجتاز هذا الاستثناء أيضًا مفتاح يحمل `manage` أو `admin`. |
-| `self:usage`                   | `GET /api/v1/me/status` لهذا المفتاح (`src/app/api/v1/me/status/route.ts`). يضيف `POST /api/keys` هذا النطاق عند الإنشاء (`normalizeSelfServiceScopesForCreate`).   |
-| `self:account-quota`           | حصص الحساب لدى المزوّد الأصلي ضمن حمولة الحالة (`src/lib/usage/apiKeySelfService.ts`). ويظل مسار الحالة يتطلب `self:usage`.                                         |
-| `policy:bypass-provider-quota` | تتخطى استدعاءات الاستدلال الخاصة بهذا المفتاح سياسة حصة المزوّد (`hasProviderQuotaBypassScope` في `src/sse/handlers/chat.ts`).                                      |
+| النطاق                         | ما يسمح به الاجتياز                                                                                                                                               |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | استثناء LOCAL_ONLY غير الاسترجاعي للمسار `/api/mcp/` فقط (`hasMcpConnectOrManageScope`). يظل المفتاح الذي يحمل `manage` أو `admin` مجتازًا لذلك الاستثناء أيضًا.  |
+| `self:usage`                   | `GET /api/v1/me/status` لهذا المفتاح (`src/app/api/v1/me/status/route.ts`). يضيف `POST /api/keys` هذا النطاق عند الإنشاء (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | حصص حساب المزوّد العلوي ضمن حمولة الحالة تلك (`src/lib/usage/apiKeySelfService.ts`). يظل مسار الحالة متطلبًا للنطاق `self:usage`.                                 |
+| `policy:bypass-provider-quota` | تتخطى استدعاءات الاستدلال لهذا المفتاح سياسة حصة المزوّد (`hasProviderQuotaBypassScope` في `src/sse/handlers/chat.ts`).                                           |
 
 #### المطابقة
 
-الفهرس هو الجدول الموجود ضمن [نطاقات أدوات MCP](#mcp-tool-scopes). لا تتعامل مع
-`MCP_SCOPE_LIST` في `src/shared/constants/mcpScopes.ts` على أنه ذلك الفهرس:
-فهو المجموعة الفرعية الأصلية ذات الأنواع المحددة. وتُعلن الأدوات اللاحقة نطاقات إضافية بجانبه
-(`read:notion` و`read:skills` و`read:local-corpus` وبقية النطاقات في الجدول).
+دليل الأدوات هو الجدول الوارد ضمن [نطاقات أدوات MCP](#mcp-tool-scopes). لا
+تتعامل مع `MCP_SCOPE_LIST` في `src/shared/constants/mcpScopes.ts` على أنه ذلك الدليل:
+فهو المجموعة الفرعية الأصلية محددة الأنواع. تصرّح الأدوات اللاحقة بنطاقات إضافية بجواره
+(`read:notion`، و`read:skills`، و`read:local-corpus`، وبقية عناصر الجدول).
 
-تسمح `evaluateToolScopes` في `open-sse/mcp-server/scopeEnforcement.ts` بإجراء استدعاء
+تسمح `evaluateToolScopes` في `open-sse/mcp-server/scopeEnforcement.ts` بالاستدعاء
 عندما يطابق كل نطاق مطلوب نطاقًا ممنوحًا:
 
 - يطابق `*` كل نطاق مطلوب.
-- يطابق النطاق الممنوح الذي ينتهي بـ`*` نطاقًا مطلوبًا يبدأ
-  بالبادئة التي تسبق النجمة. يطابق `read:*` النطاق `read:compression`.
-- لا يطابق أي نطاق ممنوح آخر سوى السلسلة المطلوبة المطابقة له تمامًا.
+- يطابق النطاق الممنوح الذي ينتهي بـ `*` أي نطاق مطلوب يبدأ
+  بالبادئة السابقة للنجمة. يطابق `read:*` النطاق `read:compression`.
+- لا يطابق أي نطاق ممنوح آخر إلا السلسلة المطلوبة المطابقة له تمامًا.
 
-يفشل المفتاح الذي نطاقاته `["manage"]` في `scopeMatches` للنطاق `read:compression`.
-ويفشل الاستدعاء نفسه مع `admin` و`mcp:connect` و`read` و`write` عندما تكون هذه
-هي السلاسل الوحيدة الممنوحة. ولا يوجد تسلسل هرمي بين نطاقات أدوات MCP
-باستثناء حرف البدل `*` اللاحق.
+يفشل المفتاح ذو النطاقات `["manage"]` في `scopeMatches` عند التحقق من `read:compression`.
+ويفشل الاستدعاء نفسه مع `admin`، و`mcp:connect`، و`read`، و`write` عندما تكون هذه
+هي السلاسل الوحيدة الممنوحة. لا يوجد تسلسل هرمي بين نطاقات أدوات MCP
+باستثناء حرف `*` اللاحق.
 
-يكون الإنفاذ متوقفًا ما لم تكن `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (القيمة الافتراضية
-`false`). وأثناء توقفه، تسمح `evaluateToolScopes` بالاستدعاء وتتخطى
-الفهرس. وعند تشغيله، يستخدم HTTP قيمة `api_keys.scopes` لمفتاح Bearer بوصفها
-`authInfo` (راجع [ربط نطاق HTTP بكل مفتاح](#per-key-http-scope-binding-7895)).
-وعندما لا يمكن العثور على نطاقات للمفتاح، تنتقل مجموعة النطاقات الممنوحة إلى MCP `_meta`، ثم
-`OMNIROUTE_MCP_SCOPES`.
+يكون الإنفاذ معطّلًا ما لم تكن `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (القيمة الافتراضية
+`false`). أثناء تعطيله، تسمح `evaluateToolScopes` بالاستدعاء وتتخطى
+الدليل. وأثناء تشغيله، يستخدم HTTP قيمة `api_keys.scopes` الخاصة بمفتاح Bearer
+بوصفها `authInfo` (راجع [ربط نطاق HTTP لكل مفتاح](#per-key-http-scope-binding-7895)).
+وعندما يتعذر تحديد نطاقات للمفتاح، تنتقل مجموعة النطاقات الممنوحة إلى MCP `_meta`، ثم
+إلى `OMNIROUTE_MCP_SCOPES`.
 
 #### نطاقات رموز الوصول
 
-تحمل رموز `oma_live_…` (`src/lib/accessTokens/scopes.ts`) النطاق `read` أو `write`
-أو `admin`. وتتعامل `scopeSatisfies` معها كرتب: يغطي `admin` النطاقين `write` و`read`،
-ويغطي `write` النطاق `read`. ولا تغطي النطاقات غير المعروفة أي شيء.
+تحمل رموز `oma_live_…` (`src/lib/accessTokens/scopes.ts`) النطاق `read`، أو `write`،
+أو `admin`. تمثّل `scopeSatisfies` رتبة: يغطي `admin` كلًا من `write` و`read`،
+ويغطي `write` النطاق `read`. أما النطاقات غير المعروفة فلا تغطي شيئًا.
 
 تقارن `evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) تلك
 الرتبة مع `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
-- تتطلب `GET` و`HEAD` و`OPTIONS` النطاق `read`.
+- تتطلب `GET`، و`HEAD`، و`OPTIONS` النطاق `read`.
 - تتطلب كل الأساليب الأخرى النطاق `write`.
-- تتطلب المسارات في `ADMIN_SCOPE_PREFIXES` النطاق `admin` لكل الأساليب. والمسار `/api/mcp`
-  مدرج في تلك القائمة، ولذلك لا يزال رمز وصول بنطاق `write` غير قادر على استدعاء واجهة MCP عبر HTTP.
-- تتطلب المسارات في `ADMIN_MUTATION_PREFIXES` النطاق `admin` فقط عند إجراء تعديلات.
+- تتطلب المسارات الموجودة في `ADMIN_SCOPE_PREFIXES` النطاق `admin` لكل أسلوب. يقع `/api/mcp`
+  ضمن تلك القائمة، ولذلك لا يزال رمز وصول `write` غير قادر على استدعاء واجهة MCP عبر HTTP.
+- تتطلب المسارات الموجودة في `ADMIN_MUTATION_PREFIXES` النطاق `admin` لعمليات التعديل فقط.
 
-`PATCH /api/keys/{id}` هي عملية تعديل وليست ضمن قوائم المسؤول تلك، لذا تتلقى
-رموز الوصول ذات النطاق `read` الاستجابة 403:
+`PATCH /api/keys/{id}` هي عملية تعديل وليست مدرجة ضمن قوائم المسؤولين تلك، لذلك تتلقى
+رمزية `read` استجابة 403:
 `Access token scope 'read' is insufficient; 'write' required.`
-يستوفي رمز وصول بنطاق `write` أو `admin` متطلبات ذلك المسار. أما JWT الخاص بلوحة المعلومات، ورمز machine-id الخاص بأداة CLI عبر loopback، ومفتاح API ذي النطاق `manage` أو `admin`، فتسلك فروعًا أخرى ولا تخضع للتضييق وفق هذه الرتبة.
+وتفي رمزية وصول ذات نطاق `write` أو `admin` بمتطلبات ذلك المسار. أما JWT الخاص بلوحة المعلومات، ورمزية machine-id الخاصة بواجهة CLI عبر loopback، ومفتاح API ذي النطاق `manage` أو `admin`، فتسلك
+فروعًا أخرى ولا تُقيَّد بهذه الرتبة.
 
-رمز الوصول الذي يجتاز `scopeSatisfies` لـ `/api/mcp` يكون قد اجتاز بوابة الإدارة فقط. ولا تزال استدعاءات الأدوات تُشغّل `scopeMatches` لمطابقة نطاقات مفتاح API. ولا تُعد رتبة رمز الوصول مُدخلًا لـ `scopeMatches`.
+رمزية الوصول التي تجتاز `scopeSatisfies` للمسار `/api/mcp` تكون قد اجتازت
+بوابة الإدارة فقط. وتظل استدعاءات الأدوات تشغّل `scopeMatches` للتحقق من نطاقات مفتاح API.
+ولا تُستخدم رتبة رمزية الوصول كمدخل إلى `scopeMatches`.
 
 ### نطاقات أدوات MCP
 
-يتم فرض النطاقات مركزيًا في `open-sse/mcp-server/scopeEnforcement.ts`.
+يُطبَّق التحقق من النطاقات مركزيًا في `open-sse/mcp-server/scopeEnforcement.ts`.
 تتطلب كل أداة نطاقات محددة:
 
 | النطاق                | الأدوات                                                                                                                                                                      |
@@ -417,60 +420,74 @@ OmniRoute من خلال نموذج الاتصال نفسه المستخدم لم
 | `read:tools`          | `omniroute_tool_search`                                                                                                                                                      |
 | `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                    |
 | `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                             |
-| `write:gamification`  | `gamification_invite`، `gamification_transfer`                                                                                                                               |
-| `read:plugins`        | `plugin_list`، `plugin_executions`                                                                                                                                           |
-| `write:plugins`       | `plugin_scan`، `plugin_install`، `plugin_uninstall`، `plugin_activate`، `plugin_deactivate`، `plugin_configure`                                                              |
-| `read:obsidian`       | 13 أداة قراءة — `obsidian_list_vault`، `obsidian_read_note`، `obsidian_search_simple`، `obsidian_search_structured`، `obsidian_get_periodic_note`، `obsidian_sync_status`، … |
-| `write:obsidian`      | 9 أدوات كتابة — `obsidian_write_note`، `obsidian_append_note`، `obsidian_patch_note`، `obsidian_move_note`، `obsidian_delete_note`، `obsidian_sync_trigger`، …               |
-| `read:local-corpus`   | `local_corpus_search`، `local_corpus_read`، `local_corpus_status`                                                                                                            |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                               |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                           |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                              |
+| `read:obsidian`       | 13 أداة قراءة — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 أدوات كتابة — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                            |
 
-نطاقات أحرف البدل مدعومة: يمنح `read:*` جميع نطاقات القراءة، ويمنح `*` وصولًا كاملًا.
+النطاقات ذات أحرف البدل مدعومة: يمنح `read:*` جميع نطاقات القراءة، ويمنح `*` وصولًا كاملًا.
 
 ### `mcp:connect` — صلاحية محدودة للمسار (#7895)
 
-يتطلب الوصول إلى نقل HTTP/SSE الخاص بـ MCP ‏(`/api/mcp/*`) من عنوان غير محلي
+يتطلب الوصول إلى نقل MCP عبر HTTP/SSE ‏(`/api/mcp/*`) من عنوان غير تابع لواجهة الاسترجاع
 استثناء LOCAL_ONLY للمسار `/api/mcp/` (راجع `docs/security/ROUTE_GUARD_TIERS.md`). تاريخيًا،
 كان هذا الاستثناء لا يقبل إلا مفتاح API بنطاق `manage`/`admin` كامل — وهو أوسع مما يلزم
-لجهة اتصال لا تحتاج إلا إلى التواصل مع MCP. يصدّر `src/shared/constants/managementScopes.ts` الآن
-`MCP_CONNECT_SCOPE = "mcp:connect"`: نطاقًا إضافيًا محدودًا (وفق السابقة نفسها المتمثلة في
-`SELF_USAGE_SCOPE`) لا يمنح إلا صلاحية تجاوز `/api/mcp/` في
+لمستدعٍ لا يحتاج إلا إلى التواصل مع MCP. يصدّر `src/shared/constants/managementScopes.ts`
+الآن `MCP_CONNECT_SCOPE = "mcp:connect"`: نطاقًا إضافيًا محدودًا (وفق السابقة نفسها التي يتبعها
+`SELF_USAGE_SCOPE`) لا يمنح إلا تخطي `/api/mcp/` في
 `src/server/authz/policies/management.ts` — ولا يمنح أي وصول آخر إلى مسارات الإدارة،
 وقد أُبقي عمدًا خارج `MANAGEMENT_API_KEY_SCOPES`. يظل المفتاح الذي يحمل `manage`/`admin`
-يجتاز الاستثناء دون تغيير؛ أما `mcp:connect` فهو بديل أقل امتيازًا للجهات البعيدة
-التي تتعامل مع MCP فقط، ويُتحقق منه عبر `hasMcpConnectOrManageScope()`.
+قادرًا على اجتياز الاستثناء دون تغيير؛ ويمثل `mcp:connect` بديلًا أقل صلاحية للمستدعين
+البعيدين الذين يستخدمون MCP فقط، ويُتحقق منه عبر `hasMcpConnectOrManageScope()`.
 
 ### ربط نطاق HTTP بكل مفتاح (#7895)
 
 عبر HTTP/SSE، يحلّ `open-sse/mcp-server/httpTransport.ts` الآن نطاقات
-`api_keys.scopes` الفعلية للمتصل عبر `resolveMcpCallerAuthInfo()` ‏(`open-sse/mcp-server/httpAuthContext.ts`)
-ويمررها إلى `transport.handleRequest(req, { authInfo })` في حزمة SDK الخاصة بـ MCP، بحيث
-تعكس `extra.authInfo.scopes` التي تصل إلى كل استدعاء أداة نطاقات مفتاح Bearer نفسه.
-كانت `resolveCallerScopeContext()` في `scopeEnforcement.ts` تعطي الأولوية بالفعل لـ `authInfo` على
-`_meta` وعلى القيمة الاحتياطية من متغير البيئة `OMNIROUTE_MCP_SCOPES` — وهذا التغيير لا يفعل سوى تعبئة
-ذلك المصدر الأول ذي الأولوية القصوى، والذي لم يكن يتلقى بيانات سابقًا عبر HTTP. عندما لا يمكن التوصل
-إلى أي مفتاح API (لعدم وجود ترويسة أو لكون المفتاح غير صالح)، تبقى `authInfo` بقيمة `undefined`
-ويتابع الحل عبر سلسلة `meta`/متغير البيئة الحالية دون تغيير. لا يغيّر هذا الإعداد الافتراضي
-لـ `OMNIROUTE_MCP_ENFORCE_SCOPES` — فلا يزال يلزم تمكين الإنفاذ صراحةً؛ ولا يفعل هذا التغيير سوى
-إعطاء مسار كل مفتاح الأولوية بمجرد تمكينه. لا يتضمن stdio هوية خاصة بكل متصل (راجع
-`mcpCallerIdentity.ts`) ولا يتأثر — إذ يظل معتمدًا على سلسلة القيم الاحتياطية `_meta`/متغير البيئة.
+`api_keys.scopes` الفعلية للمستدعي عبر `resolveMcpCallerAuthInfo()`
+‏(`open-sse/mcp-server/httpAuthContext.ts`) ويمررها إلى
+`transport.handleRequest(req, { authInfo })` في حزمة تطوير MCP، بحيث تعكس
+`extra.authInfo.scopes` التي تصل إلى كل استدعاء أداة نطاقات مفتاح Bearer نفسه.
+كانت `resolveCallerScopeContext()` في `scopeEnforcement.ts` تعطي الأولوية بالفعل إلى
+`authInfo` على `_meta` وعلى الرجوع الاحتياطي إلى متغير البيئة `OMNIROUTE_MCP_SCOPES` —
+وهذا التغيير لا يفعل سوى تعبئة ذلك المصدر الأول ذي الأولوية القصوى، والذي لم يكن يُزوَّد
+سابقًا عبر HTTP. عندما لا يُحل أي مفتاح API (لعدم وجود ترويسة أو لكون المفتاح غير صالح)،
+تظل `authInfo` بقيمة `undefined` ويعود الحل إلى سلسلة `meta`/متغير البيئة الحالية دون تغيير.
+لا تتضمن stdio هوية خاصة بكل مستدعٍ (راجع `mcpCallerIdentity.ts`) ولا تتأثر — إذ تظل تعتمد
+على سلسلة الرجوع الاحتياطي `_meta`/متغير البيئة.
+
+**يُفرض الإنفاذ على مستدعي HTTP/SSE ذوي النطاق المحدود بصرف النظر عن
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.** إن تعيين `OMNIROUTE_MCP_ENFORCE_SCOPES` افتراضيًا إلى `false`
+آمن فقط لتدفق المشغّل الواحد المحلي/stdio، حيث لا توجد هوية خاصة بكل مستدعٍ يمكن تطبيق النطاق
+عليها. تفعّل `open-sse/mcp-server/server.ts::withScopeEnforcement()` إنفاذ النطاق لكل أداة
+دون قيد أو شرط (`shouldForceScopeEnforcement()` في `scopeEnforcement.ts`) كلما أعادت
+`resolveCallerScopeContext()` نتيجة يكون فيها `source === "authInfo"` (أي ترويسة HTTP
+Authorization فعلية خاصة بكل مفتاح، ومقتصرة على HTTP/SSE) وكان ذلك المفتاح لا يحمل نطاق
+`manage`/`admin` كاملًا. يسد هذا الفجوة التي كان يمكن من خلالها لمفتاح لا يحمل سوى نطاق
+التخطي المحدود `mcp:connect` — الموثق أعلاه بأنه لا يمنح سوى استثناء LOCAL_ONLY للمسار
+`/api/mcp/` — استدعاء كل أدوات MCP بمجرد أن يفعّل المشغّل وصول MCP البعيد/غير التابع لواجهة
+الاسترجاع، وذلك ببساطة لأن `OMNIROUTE_MCP_ENFORCE_SCOPES` يأتي بالقيمة الافتراضية `false`.
+يحتفظ مفتاح `manage`/`admin` الكامل عبر HTTP، وكذلك كل مستدعٍ عبر stdio/محلي، بالسلوك الحالي
+المشروط بـ `OMNIROUTE_MCP_ENFORCE_SCOPES` دون تغيير.
 
 ---
 
 ## متغيرات البيئة
 
-| المتغير                                 | القيمة الافتراضية                         | الغرض                                                                                                          |
-| :-------------------------------------- | :---------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`                  | عنوان URL الأساسي الذي يستخدمه خادم MCP عند استدعاء واجهات API الداخلية لـ OmniRoute                           |
-| `OMNIROUTE_API_KEY`                     | (فارغ)                                    | مفتاح API يُمرَّر بصيغة `Authorization: Bearer` إلى استدعاءات API الداخلية                                     |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (لا يؤدي إلى تفعيله سوى `"true"`) | عند التفعيل، يؤدي غياب النطاقات إلى رفض استدعاءات الأدوات وتسجيل `scope_denied:<reason>` في سجل التدقيق        |
-| `OMNIROUTE_MCP_SCOPES`                  | (فارغ)                                    | قائمة نطاقات مسموح بها مفصولة بفواصل وتُعد «متاحة» افتراضيًا (تُستخدم عندما لا يوفّر المستدعي نطاقاته الخاصة)  |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (غير معيّن = مفعّل)                       | عند ضبطه على `0/false/off/no`، يعطّل ضغط أوصاف MCP وقت التسجيل                                                 |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (غير معيّن = مفعّل)                       | اسم بديل للمفتاح نفسه المذكور أعلاه                                                                            |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                   | المهلة الزمنية قبل الإلغاء لعمليات القراءة الإدارية الداخلية (الصحة، والمرونة، والتركيبات، والحصة، والاستخدام) |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                   | المهلة الزمنية قبل الإلغاء للخطوات التي تنتظر موفّرًا (`route_request`، و`web_search`، و`web_fetch`)           |
-| `MCP_TOOL_DENY`                         | (غير معيّن = بلا تصفية)                   | أسماء الأدوات المفصولة بفواصل والمطلوب إسقاطها من `tools/list` (تقليل عدد الأدوات — انظر أدناه)                |
-| `MCP_TOOL_ALLOW`                        | (غير معيّن = بلا تصفية)                   | أسماء الأدوات المفصولة بفواصل والمطلوب الاحتفاظ بها حصريًا (وضع قائمة السماح — انظر أدناه)                     |
-| `DATA_DIR`                              | `~/.omniroute`                            | يُكتب ملف نبض الحياة في `${DATA_DIR}/runtime/mcp-heartbeat.json`                                               |
+| المتغير                                 | القيمة الافتراضية                       | الغرض                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :-------------------------------------- | :-------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`                | عنوان URL الأساسي الذي يستخدمه خادم MCP عند استدعاء واجهات API الداخلية لـ OmniRoute                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_API_KEY`                     | (فارغ)                                  | مفتاح API الذي يُمرَّر بصيغة `Authorization: Bearer` إلى استدعاءات API الداخلية                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (لا تفعّله سوى القيمة `"true"`) | عند تمكينه، يؤدي غياب النطاقات إلى رفض استدعاءات الأدوات وتسجيل `scope_denied:<reason>` في سجل التدقيق. ويُفرَض التطبيق أيضًا بغض النظر عن هذه العلامة على أي مستدعٍ عبر HTTP/SSE جرى تحديده من ترويسة Authorization خاصة بكل مفتاح (`source === "authInfo"`) ولا يمتلك نطاق `manage`/`admin` الكامل — مثل مفتاح لا يحمل سوى نطاق التجاوز المحدود `mcp:connect` — لذا فإن هذه القيمة الافتراضية آمنة فقط لتدفق محلي أحادي المشغّل عبر stdio، وليست آمنة مطلقًا للوصول البعيد من خارج عنوان الاسترجاع |
+| `OMNIROUTE_MCP_SCOPES`                  | (فارغ)                                  | قائمة سماح مفصولة بفواصل للنطاقات التي تُعدّ "متاحة" افتراضيًا (تُستخدم عندما لا يقدّم المستدعي نطاقاته الخاصة)                                                                                                                                                                                                                                                                                                                                                                                      |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (غير معيّن = مفعّل)                     | عند ضبطه على `0/false/off/no`، يعطّل ضغط أوصاف MCP في وقت التسجيل                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (غير معيّن = مفعّل)                     | اسم مستعار بديل للمفتاح نفسه المذكور أعلاه                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                 | المهلة الزمنية للإلغاء لعمليات قراءة الإدارة الداخلية (الصحة، والمرونة، والتركيبات، والحصة، والاستخدام)                                                                                                                                                                                                                                                                                                                                                                                              |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                 | المهلة الزمنية للإلغاء للانتقالات التي تنتظر موفّرًا (`route_request`، و`web_search`، و`web_fetch`)                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `MCP_TOOL_DENY`                         | (غير معيّن = بلا تصفية)                 | أسماء أدوات مفصولة بفواصل لإسقاطها من `tools/list` (تقليل عدد الأدوات — انظر أدناه)                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `MCP_TOOL_ALLOW`                        | (غير معيّن = بلا تصفية)                 | أسماء الأدوات المفصولة بفواصل للاحتفاظ بها حصريًا (وضع قائمة السماح — انظر أدناه)                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `DATA_DIR`                              | `~/.omniroute`                          | يُكتب ملف نبضات القلب إلى `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ---
 

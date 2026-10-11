@@ -173,16 +173,15 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 Các nhà cung cấp này cho phép **truy cập miễn phí** mà không cần thẻ tín dụng:
 
-| Nhà cung cấp      | Hạn mức miễn phí    | Mô hình                                  | Cách kết nối       |
-| ----------------- | ------------------- | ---------------------------------------- | ------------------ |
-| **Kiro AI**       | 50 tín dụng/tháng   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Không cần xác thực |
-| **OpenCode Free** | Không giới hạn      | GPT-4o, Claude, Gemini                   | Không cần xác thực |
-| **Pollinations**  | Không cần khóa      | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Không cần xác thực |
-| **LongCat**       | 10M một lần         | LongCat-2.0                              | Khóa API + KYC     |
-| **Cloudflare AI** | 10K neuron/ngày     | Hơn 50 mô hình                           | Không cần xác thực |
-| **NVIDIA NIM**    | ~40 RPM             | 129 mô hình                              | Cần khóa API       |
-| **Cerebras**      | $5 tín dụng đăng ký | GLM 4.7, GPT-OSS 120B                    | Khóa API + thẻ     |
-| **Qoder**         | Không giới hạn      | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Không cần xác thực |
+| Nhà cung cấp      | Hạn mức miễn phí        | Mô hình                                  | Cách kết nối       |
+| ----------------- | ----------------------- | ---------------------------------------- | ------------------ |
+| **Kiro AI**       | 50 tín dụng/tháng       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Không cần xác thực |
+| **OpenCode Free** | Không giới hạn          | GPT-4o, Claude, Gemini                   | Không cần xác thực |
+| **Pollinations**  | Không cần khóa          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Không cần xác thực |
+| **LongCat**       | 10M một lần             | LongCat-2.0                              | Khóa API + KYC     |
+| **Cloudflare AI** | 10K nơ-ron/ngày         | Hơn 50 mô hình                           | Không cần xác thực |
+| **NVIDIA NIM**    | ~40 RPM                 | 129 mô hình                              | Cần khóa API       |
+| **Cerebras**      | $5 tín dụng khi đăng ký | GLM 4.7, GPT-OSS 120B                    | Khóa API + thẻ     |
 
 **Mẹo**: Kết nối nhiều nhà cung cấp miễn phí để có **AI miễn phí không giới hạn** với khả năng tự động chuyển đổi dự phòng!
 
@@ -258,37 +257,77 @@ Sau đó, sử dụng `model: "auto"` và OmniRoute sẽ tự động chọn nh�
 
 ---
 
-## Thiết lập theo từng nhà cung cấp
+## Thiết lập dành riêng cho từng nhà cung cấp
 
 ### OpenAI
 
-1. Lấy khóa API: https://platform.openai.com/api-keys
+1. Lấy API key: https://platform.openai.com/api-keys
 2. Trong OmniRoute: Nhà cung cấp → Thêm nhà cung cấp → OpenAI
-3. Dán khóa API → Kết nối
+3. Dán API key → Kết nối
 
 ### Anthropic
 
-1. Lấy khóa API: https://console.anthropic.com/
+1. Lấy API key: https://console.anthropic.com/
 2. Trong OmniRoute: Nhà cung cấp → Thêm nhà cung cấp → Anthropic
-3. Dán khóa API → Kết nối
+3. Dán API key → Kết nối
 
 ### Google (Gemini)
 
-1. Lấy khóa API: https://aistudio.google.com/apikey
+1. Lấy API key: https://aistudio.google.com/apikey
 2. Trong OmniRoute: Nhà cung cấp → Thêm nhà cung cấp → Gemini
-3. Dán khóa API → Kết nối
+3. Dán API key → Kết nối
 
 ### DeepSeek
 
-1. Lấy khóa API: https://platform.deepseek.com/
+1. Lấy API key: https://platform.deepseek.com/
 2. Trong OmniRoute: Nhà cung cấp → Thêm nhà cung cấp → DeepSeek
-3. Dán khóa API → Kết nối
+3. Dán API key → Kết nối
+
+### Qoder: chọn phương thức truyền thông tin xác thực
+
+Qoder yêu cầu thông tin xác thực. Hai phương thức truyền của Qoder có các khả năng khác nhau; chỉ riêng tên mô hình
+không thể xác định một kết nối cụ thể có thể làm gì.
+
+| Thông tin xác thực                       | Phương thức truyền của OmniRoute                    | Gọi công cụ từ bên gọi                                         | Truyền phát                                                      |
+| ---------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| PAT bắt đầu bằng `pt-`                   | Tiến trình `qodercli` cục bộ trên máy chủ OmniRoute | Không được hỗ trợ                                              | Có bộ đệm: SSE chỉ được phát sau khi CLI trả về toàn bộ phản hồi |
+| Access token không phải PAT hoặc API key | Điểm cuối HTTP tương thích với OpenAI của DashScope | Được chuyển tiếp, tùy thuộc vào mô hình/khóa phía thượng nguồn | Đường dẫn HTTP/SSE phía thượng nguồn                             |
+
+Đối với PAT, hãy cài đặt Qoder CLI trên cùng máy chủ hoặc container với OmniRoute. Tệp thực thi
+phải có thể được tìm thấy dưới tên `qodercli`, hoặc đặt `CLI_QODER_BIN` thành đường dẫn đến tệp thực thi đó. CLI
+chỉ được cài đặt trên máy chủ Docker sẽ không tự động có mặt trong container. Khi thiếu
+tệp nhị phân, hệ thống sẽ trả về lỗi rõ ràng hướng dẫn bạn cài đặt hoặc cấu hình đường dẫn.
+
+Đường dẫn trò chuyện PAT có thời gian chờ tiến trình là 45 giây. Nó hợp nhất cuộc hội thoại thành một
+prompt và gọi CLI ở chế độ in không truyền phát. Việc yêu cầu `stream: true` sẽ thay đổi
+định dạng bao phản hồi thành SSE; điều này không cung cấp khả năng phân phối token thượng nguồn theo từng phần tăng dần.
+Quá trình xác thực CLI/liệt kê mô hình sử dụng thời gian chờ riêng là 20 giây. Đây là các giá trị mặc định
+hiện tại trong mã, không phải các cài đặt có thể cấu hình trên bảng điều khiển.
+
+Hãy sử dụng các kết nối PAT cho trò chuyện thông thường. Các yêu cầu tác tử có chứa `tools` hoặc `functions`
+kiểu cũ sẽ loại trừ các tài khoản PAT trong quá trình chọn thông tin xác thực, bao gồm cả các mục tiêu combo được ghim. Một nhóm
+Qoder hỗn hợp vẫn có thể chọn tài khoản HTTP của nó. Các lệnh gọi trực tiếp đến trình thực thi PAT cũng sẽ báo lỗi
+rõ ràng trước khi khởi chạy CLI thay vì âm thầm bỏ qua các định nghĩa công cụ. Hạn chế này
+liên quan đến các công cụ do bên gọi API cung cấp, không phải bất kỳ công cụ nội bộ nào mà Qoder
+CLI có thể tự sử dụng. Khóa HTTP không đảm bảo rằng mọi mô hình đều hỗ trợ công cụ; các bước
+kiểm tra khả năng thông thường của mô hình vẫn được áp dụng.
+
+OAuth qua trình duyệt chỉ khả dụng khi quản trị viên cấu hình đủ cả năm thiết lập:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` và `QODER_OAUTH_CLIENT_SECRET`. Theo mặc định, chúng để trống; một
+bản cài đặt chưa được cấu hình nên sử dụng phương thức nhập thông tin xác thực được hỗ trợ thay vì giả định
+rằng quy trình đăng nhập qua trình duyệt đã sẵn sàng.
+
+Tham chiếu triển khai: [Trình thực thi Qoder](../../open-sse/executors/qoder.ts),
+[môi trường chạy CLI](../../open-sse/services/qoderCli.ts) và
+[cấu hình OAuth](../../src/lib/oauth/constants/oauth.ts). Truyền phát PAT theo từng phần tăng dần
+và thời gian chờ có thể cấu hình là các cải tiến riêng biệt; hành vi này không cam kết cung cấp các tính năng đó.
 
 ### Groq
 
-1. Lấy khóa API: https://console.groq.com/
+1. Lấy API key: https://console.groq.com/
 2. Trong OmniRoute: Nhà cung cấp → Thêm nhà cung cấp → Groq
-3. Dán khóa API → Kết nối
+3. Dán API key → Kết nối
 
 ---
 

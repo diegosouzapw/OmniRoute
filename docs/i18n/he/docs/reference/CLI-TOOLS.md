@@ -553,17 +553,17 @@ kiro-cli status
 
 ## 10. ממשק שורת הפקודה הפנימי של OmniRoute
 
-קובץ ההפעלה `omniroute` מספק פקודות לניהול מחזור חיי השרת, להגדרה, לאבחון ולניהול ספקים. נקודת כניסה: `bin/omniroute.mjs`.
+קובץ ההפעלה `omniroute` מספק פקודות לניהול מחזור חיי השרת, הגדרה, אבחון וניהול ספקים. נקודת הכניסה: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # הפעלת השרת (יציאה 20128 כברירת מחדל)
+omniroute                              # הפעלת השרת (פורט ברירת המחדל 20128)
 omniroute setup                        # אשף הגדרה אינטראקטיבי
-omniroute doctor                       # בדיקת תצורה, מסד נתונים, יציאות וסביבת ריצה
+omniroute doctor                       # בדיקת תצורה, מסד נתונים, פורטים וסביבת הרצה
 omniroute providers list               # חיבורי ספקים שהוגדרו
 omniroute providers test-all           # בדיקת כל חיבור פעיל
 omniroute reset-password               # איפוס סיסמת מנהל המערכת
 omniroute logs                         # הזרמת יומני בקשות
-omniroute health                       # מצב תקינות מפורט (מנתקי מעגל, מטמון, זיכרון)
+omniroute health                       # מצב תקינות מפורט (מפסקי זרם, מטמון, זיכרון)
 omniroute --version                    # הצגת הגרסה
 omniroute --help                       # הצגת כל הפקודות
 ```
@@ -573,37 +573,37 @@ omniroute --help                       # הצגת כל הפקודות
 ```bash
 omniroute setup                        # אשף הגדרה אינטראקטיבי
 omniroute setup --non-interactive      # מצב CI/אוטומציה (קורא משתני סביבה + דגלים)
-omniroute setup --password '<value>'   # הגדרת סיסמת מנהל המערכת ישירות
+omniroute setup --password '<value>'   # הגדרה ישירה של סיסמת מנהל המערכת
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
   --test-provider                      # הוספה ובדיקה של ספק בפעולה אחת
 ```
 
-משתני סביבה מזוהים להגדרה לא אינטראקטיבית:
+משתני סביבה מוכרים להגדרה לא אינטראקטיבית:
 
-| משתנה               | מטרה                                                              |
-| ------------------- | ----------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | מפתח API של הספק (מקושר אל `--api-key` דרך `.env()` של Commander) |
-| `DATA_DIR`          | דריסת ספריית הנתונים של OmniRoute                                 |
+| משתנה               | מטרה                                                                 |
+| ------------------- | -------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | מפתח ה-API של הספק (מקושר אל `--api-key` באמצעות Commander `.env()`) |
+| `DATA_DIR`          | דריסת ספריית הנתונים של OmniRoute                                    |
 
 כל שאר הקלטים הלא אינטראקטיביים מועברים כדגלים, ולא כמשתני סביבה:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(ראו את אפשרויות `omniroute setup` לעיל).
+(ראו את האפשרויות של `omniroute setup` לעיל).
 
 ### אבחון
 
 ```bash
-omniroute doctor                       # בדיקת תצורה, מסד נתונים, יציאות, סביבת ריצה, זיכרון וחיוניות
-omniroute doctor --json                # JSON קריא למכונה
-omniroute doctor --no-liveness         # דילוג על בדיקת תקינות HTTP
-omniroute doctor --host 0.0.0.0        # דריסת מארח בדיקת החיוניות
-omniroute doctor --liveness-url <url>  # דריסת כתובת ה-URL המלאה של נקודת הקצה לבדיקת תקינות
+omniroute doctor                       # בדיקת תצורה, מסד נתונים, פורטים, סביבת הרצה, זיכרון וזמינות
+omniroute doctor --json                # JSON לקריאה על ידי מכונה
+omniroute doctor --no-liveness         # דילוג על בדיקת התקינות באמצעות HTTP
+omniroute doctor --host 0.0.0.0        # דריסת מארח בדיקת הזמינות
+omniroute doctor --liveness-url <url>  # דריסה מלאה של כתובת ה-URL של נקודת הקצה לבדיקת תקינות
 ```
 
-פקודת doctor מריצה את הבדיקות הבאות: `Config`, `Database`, `Storage/encryption`,
-`Port availability`, `Node runtime`, `Native binary`‏ (better-sqlite3),
-`Memory` ו-`Server liveness`. היא מסתיימת עם קוד שאינו אפס אם בדיקה כלשהי היא `fail`.
+פקודת האבחון מריצה את הבדיקות הבאות: `Config`, `Database`, `Storage/encryption`,
+`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
+`Memory` ו-`Server liveness`. היא מסתיימת עם קוד יציאה שאינו אפס אם אחת מהבדיקות היא `fail`.
 
 ### ניהול ספקים
 
@@ -611,7 +611,7 @@ omniroute doctor --liveness-url <url>  # דריסת כתובת ה-URL המלאה
 omniroute providers available                       # קטלוג הספקים של OmniRoute
 omniroute providers available --search openai       # סינון הקטלוג לפי מזהה/שם/כינוי/קטגוריה
 omniroute providers available --category api-key    # סינון לפי קטגוריה (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON קריא למכונה
+omniroute providers available --json                # JSON לקריאה על ידי מכונה
 
 omniroute providers list                            # חיבורי ספקים שהוגדרו
 omniroute providers list --json
@@ -626,17 +626,29 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-הפקודות `providers add/import/auth/edit/remove` פועלות בגישת API תחילה, ולכן פועלות מול
-ההקשר המקומי או המרוחק הפעיל. לצורך הזנת פרטי גישה יש להשתמש ב-
-`--credential-stdin` או ב-`--credential-env`; האפשרות `--dry-run --json` מדווחת רק על
-נוכחות/מבנה לאחר השחרה. `providers available` קוראת את קטלוג OmniRoute;
+הפקודות `providers add/import/auth/edit/remove` פועלות בראש ובראשונה באמצעות API, ולכן פועלות מול
+ההקשר המקומי או המרוחק הפעיל. להזנת פרטי גישה יש להשתמש
+ב-`--credential-stdin` או ב-`--credential-env`; האפשרות `--dry-run --json` מדווחת רק
+על נוכחות/מבנה לאחר השחרה. `providers available` קוראת את הקטלוג של OmniRoute;
 הפקודות `providers list/test/test-all/validate` שומרות על התנהגות SQLite המקומית שלהן
 ואינן דורשות שהשרת יפעל.
+
+עבור צומת מותאם אישית התואם ל-OpenAI או ל-Anthropic, צרפו את פרטי הגישה אל
+מזהה הצומת שהוחזר על ידי `omniroute nodes add`, באמצעות `omniroute keys add "$NODE_ID" --stdin`.
+פעולה זו דורשת שרת פועל ואימות ניהולי עבור ההקשר הפעיל.
+ממשק שורת הפקודה משתמש ב-`POST /api/providers`, שמאמת את הצומת ומעתיק את הגדרות נקודת הקצה שלו
+אל החיבור. צומת חסר, כשל הרשאה או שרת שאינו זמין
+מחזירים שגיאה מבלי ליצור פרטי גישה מקומיים כחלופה.
+
+`nodes add --base-url` מגדירה את נקודת הקצה של הצומת; היא שונה מכתובת השרת
+שב-`OMNIROUTE_BASE_URL`. עבור קובצי OpenAPI, השתמשו ב-
+`omniroute openapi dump --format json --out ./openapi.json`; האפשרות הגלובלית `--output`
+בוחרת את עיצוב התצוגה של ממשק שורת הפקודה, ולא שם קובץ יעד.
 
 ### שחזור ואיפוס
 
 ```bash
-omniroute reset-password                # איפוס סיסמת מנהל המערכת (זמין גם בשם: omniroute-reset-password)
+omniroute reset-password                # איפוס סיסמת מנהל המערכת (גם: omniroute-reset-password)
 omniroute reset-encrypted-columns       # הצגת אזהרה + הרצה יבשה לאיפוס פרטי גישה מוצפנים
 omniroute reset-encrypted-columns --force  # איפוס בפועל של פרטי גישה מוצפנים ל-null ב-SQLite
 ```
@@ -651,21 +663,21 @@ omniroute auth export --force --format env               # הפקת שורות O
 omniroute auth export --force --out creds.json           # כתיבה לקובץ (שנוצר עם הרשאות 0600)
 ```
 
-`auth export` פועלת **באופן מקומי בלבד** (קריאה ישירה מ-SQLite, ללא נתיב HTTP) ומדפיסה/כותבת במכוון
-ערכי `apiKey`/`accessToken`/`refreshToken`/`idToken` ב**טקסט גלוי** — זו התכונה, ולא
-תקלה. ללא `--force`, דבר אינו נקרא ממסד הנתונים ודבר אינו מפוענח. כרזת אזהרה מודפסת תמיד אל stderr
-לפני הפקת טקסט גלוי כלשהו. נדרש להגדיר את `STORAGE_ENCRYPTION_KEY`.
+`auth export` פועל **באופן מקומי בלבד** (קריאה ישירה מ-SQLite, ללא נתיב HTTP) ומדפיס/כותב במכוון
+ערכי `apiKey`/`accessToken`/`refreshToken`/`idToken` כ**טקסט גלוי** — זו התכונה, לא
+באג. דבר אינו נקרא ממסד הנתונים, ודבר אינו מפוענח, ללא `--force`. כרזת אזהרה ב-stderr
+מודפסת תמיד לפני הפקת טקסט גלוי כלשהו. נדרש להגדיר את `STORAGE_ENCRYPTION_KEY`.
 שדה שפענוחו נכשל (מפתח מיושן, טקסט מוצפן פגום) מדווח בתור
-`<field>DecryptFailed: true`, במקום לבטל את הייצוא כולו או לחשוף את השגיאה הבסיסית.
+`<field>DecryptFailed: true`, במקום לבטל את הייצוא כולו או לחשוף את השגיאה שבבסיס הכשל.
 
 ### פקודות משנה נוספות
 
-אלה מניחות ששרת OmniRoute פועל, אלא אם צוין אחרת:
+פקודות אלה מניחות ששרת OmniRoute פועל, אלא אם צוין אחרת:
 
 ```bash
 omniroute status                       # מצב זמן ריצה מקיף
 omniroute logs                         # הזרמת יומני בקשות (--json, --search, --follow)
-omniroute config list                  # הצגת כלי CLI שהוגדרו
+omniroute config list                  # הצגת כלי CLI מוגדרים
 
 omniroute provider list                # הצגת ספקים זמינים (כינוי של providers list)
 omniroute provider add                 # רישום OmniRoute כספק בכלי
@@ -676,32 +688,32 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # יצירת תמונת מצב של התצורה ומסד הנתונים
 omniroute restore                      # שחזור מתמונת מצב קודמת
 
-omniroute health                       # מידע מפורט על התקינות (מפסקים, מטמון, זיכרון)
+omniroute health                       # תקינות מפורטת (מפסקי זרם, מטמון, זיכרון)
 omniroute quota                        # ניצול מכסת הספק
 omniroute cache                        # מצב המטמון
-omniroute cache clear                  # ניקוי המטמונים הסמנטיים ומטמוני החתימות
+omniroute cache clear                  # ניקוי מטמוני סמנטיקה וחתימות
 
 omniroute mcp status | restart         # מצב שרת MCP / הפעלה מחדש
 omniroute a2a status | card            # מצב שרת A2A / כרטיס סוכן
 
 omniroute tunnel list | create | stop  # ניהול מנהרות (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # הצגה / הגדרה של משתני סביבה (זמניים)
+omniroute env show | get <k> | set <k> <v>  # בדיקה / הגדרה של משתני סביבה (זמנית)
 
 omniroute test                         # בדיקת עשן לקישוריות הספק
 omniroute update                       # בדיקת עדכונים
-omniroute completion                   # יצירת השלמה אוטומטית למעטפת
+omniroute completion                   # יצירת השלמה למעטפת
 ```
 
 ### דגלים נפוצים
 
 | דגל                 | תיאור                                                |
 | ------------------- | ---------------------------------------------------- |
-| `--no-open`         | אין לפתוח אוטומטית את הדפדפן בעת ההפעלה              |
+| `--no-open`         | אין לפתוח את הדפדפן אוטומטית בעת ההפעלה              |
 | `--port <n>`        | דריסת יציאת ה-API (ברירת המחדל היא 20128)            |
 | `--mcp`             | הפעלה כשרת MCP דרך stdio (עבור סביבות פיתוח משולבות) |
-| `--non-interactive` | מצב CI (ללא הנחיות; קריאה מהסביבה/מהדגלים)           |
-| `--json`            | פלט JSON קריא למכונה (doctor, providers וכו׳)        |
-| `--help`, `-h`      | הצגת עזרה ספציפית לפקודה                             |
+| `--non-interactive` | מצב CI (ללא הנחיות; קריאה ממשתני סביבה/דגלים)        |
+| `--json`            | פלט JSON הניתן לקריאת מכונה (doctor, providers וכו׳) |
+| `--help`, `-h`      | הצגת עזרה ייעודית לפקודה                             |
 | `--version`, `-v`   | הדפסת הגרסה המותקנת                                  |
 
 ---

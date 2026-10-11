@@ -99,20 +99,20 @@ Yhdistelmäkohtaisesti:
 
 ---
 
-## Kuntotarkistus-API
+## Terveystarkistus-API
 
-OmniRoute tarjoaa **kaksi** HTTP-kuntotarkistuspintaa. Ne eivät ole keskenään vaihdettavissa orkestrointijärjestelmissä.
+OmniRoute tarjoaa **kaksi** HTTP-terveystarkistusrajapintaa. Niitä ei voi käyttää toistensa korvikkeina orkestrointijärjestelmissä.
 
-| Polku                        | Tarkoitus                                                                                      | Kuormitus                                      | Käyttökohde                                                                              |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `GET /healthz`               | Elinkaaren elossaolo-/valmiustila (`ok` / `starting` / `stopping`)                             | Vähäinen (vain vaihetilan lippu)               | Kubernetesin **readiness**; kevyt **liveness**, jos HTTP:tä on pakko käyttää             |
-| `GET /api/monitoring/health` | Syvällinen järjestelmän ja palveluntarjoajien yhteenveto (tietokanta, keko, luettelomäärät, …) | Raskas (synkronista tietokanta-/valvontatyötä) | Koontinäytöt, syvälliset blackbox-tarkistukset, Dockerin sisäänrakennettu kuntotarkistus |
+| Polku                        | Tarkoitus                                                                       | Kuormitus                            | Käyttötarkoitus                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `GET /healthz`               | Elinkaaren toimivuus-/valmiustila (`ok` / `starting` / `stopping`)              | Vähäinen (vain vaihetilan tarkistus) | Kubernetesin **readiness**; kevyt **liveness**, jos HTTP:tä on käytettävä                      |
+| `GET /api/monitoring/health` | Järjestelmän ja palveluntarjoajien syväyhteenveto (DB, keko, luettelomäärät, …) | Raskas (synkroninen DB-/valvontatyö) | Koontinäytöt, perusteelliset blackbox-tarkistukset, Dockerin sisäänrakennettu terveystarkistus |
 
-> **Huomautus:** Palveluntarjoajien kuntomatriisit, autopilot-ongelmat, kiintiövalvonta, tunnisteiden kunto ja `/api/monitoring/health`-reittiä yksityiskohtaisemmat viivetiedot ovat käytettävissä **MCP-työkalulla** `observability_snapshot` tai **koontinäytön** sivuilla — niille ei ole erillisiä REST-reittejä.
+> **Huomautus:** Palveluntarjoajien terveystilamatriisit, autopilot-ongelmat, kiintiövalvonta, tunnisteiden terveystila ja `/api/monitoring/health`-rajapintaa yksityiskohtaisemmat viivetiedot ovat saatavilla **MCP-työkalun** `observability_snapshot` tai **koontinäyttösivujen** kautta — niille ei ole erillisiä REST-reittejä.
 
-Molemmat reitit suoritetaan **samassa Noden tapahtumasilmukassa** kuin pyyntöjen käsittely. Suoritinta kuormittava polku (suuren `GET /v1/models`-luettelon käsittely, pitkän kontekstin pakkaus / tunnisteiden laskenta) voi viivästyttää **kaikkia** HTTP-käsittelijöitä, myös `/healthz`-reittiä. Varattu tapahtumasilmukka ≠ kuollut prosessi. Korjaa ensisijaisesti kuormituksen aiheuttaja; tarkistusten säätäminen vain vähentää virheellisiä lopetuksia.
+Molemmat reitit toimivat **samassa Node-tapahtumasilmukassa** kuin pyyntöjen käsittely. Suoritinta kuormittava polku (suuren `GET /v1/models` -luettelon käsittely, pitkän kontekstin pakkaus / tunnisteiden laskenta) voi viivästyttää **kaikkia** HTTP-käsittelijöitä, myös `/healthz`-reittiä. Varattu tapahtumasilmukka ≠ kuollut prosessi. Korjaa ensisijaisesti kuormituksen aiheuttaja; tarkistusten säätäminen vain vähentää virheellisiä lopetuksia.
 
-### Kevyt orkestrointitarkistus
+### Kevyt orkestrointijärjestelmän tarkistus
 
 ```bash
 GET /healthz
@@ -121,9 +121,9 @@ GET /healthz
 
 - **200** + runko `ok`, kun palvelimen elinkaarivaihe on valmis
 - **503** + `starting` / `stopping` käynnistyksen tai sammutuksen aikana
-- Toteutus: `src/app/healthz/route.ts` (ei tietokannan ping-tarkistusta)
+- Toteutus: `src/app/healthz/route.ts` (ei DB-kyselyä)
 
-### Järjestelmän kunto (syvällinen)
+### Järjestelmän terveystila (syvä)
 
 ```bash
 GET /api/monitoring/health
@@ -156,38 +156,38 @@ Vastaus:
 #### `credentialHealth`: tarkistusvälimuisti vs. SQLiten `test_status`
 
 `GET /api/monitoring/health` → `credentialHealth` on **muistissa olevan tarkistusvälimuistin
-mittari**, ei `provider_connections.test_status`-kentän reaaliaikainen vedos. Muutoksen #12532 jälkeen
-pyyntöpolku lukee vain `getCachedCredentialHealthSummary()`-funktion; taustatarkistukset
+mittari**, ei reaaliaikainen vedos `provider_connections.test_status`-arvosta. Muutoksen #12532 jälkeen
+pyyntöpolku lukee vain `getCachedCredentialHealthSummary()`-funktion tuloksen; taustatarkistukset
 päivittävät välimuistin tapahtumasilmukan ulkopuolella.
 
-| Kerros                         | Sijainti                                                              | Merkitys                                                                                                                                                                                                                     |
-| ------------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tarkistusvälimuistin mittari   | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Viimeisimmät tunnistetietojen kuntotarkistustulokset, jotka ovat edelleen prosessin muistissa. `source` on aina `probe-cache`.                                                                                               |
-| Epäonnistuneen yhteyden tiedot | `credentialHealth.failedConnections`                                  | Mukana **vain, kun `failed > 0`**. Rajattu luettelo välimuistiriveistä, joilla on `status=error` (`connectionId`, `status`, puhdistettu `lastError` / `lastErrorType`). `failedOmitted` asetetaan, kun luetteloa on rajattu. |
-| SQLiten pysyvä tila            | `credentialHealth.staleDbNonOkCount`                                  | Niiden **aktiivisten** (`is_active=1`) yhteysrivien määrä, joiden tallennettu `test_status` on tunnettu ei-hyvä tila (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                      |
+| Taso                           | Sijainti                                                              | Merkitys                                                                                                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tarkistusvälimuistin mittari   | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Viimeisimmät tunnistetietojen terveystarkistusten tulokset, jotka ovat edelleen prosessin muistissa. `source` on aina `probe-cache`.                                                                                        |
+| Epäonnistuneen yhteyden tiedot | `credentialHealth.failedConnections`                                  | Näytetään **vain, kun `failed > 0`**. Rajattu luettelo välimuistiriveistä, joilla `status=error` (`connectionId`, `status`, puhdistettu `lastError` / `lastErrorType`). `failedOmitted` asetetaan, jos luetteloa rajattiin. |
+| SQLiten pysyvä tila            | `credentialHealth.staleDbNonOkCount`                                  | Niiden **aktiivisten** (`is_active=1`) yhteysrivien määrä, joiden tallennettu `test_status` on tunnettu muu kuin ok-tila (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                 |
 
-Nämä kaksi kerrosta voivat tarkoituksella olla ristiriidassa:
+Tasot voivat tarkoituksellisesti poiketa toisistaan:
 
-- Mittarin `failed=0`, kun `staleDbNonOkCount>0` — SQLitessa on edelleen pysyvä
-  `test_status` (esimerkiksi `expired` tai `credits_exhausted`), jota viimeisin
+- Mittarin `failed=0`, kun taas `staleDbNonOkCount>0` — SQLitessä on edelleen pysyvä
+  `test_status` (esimerkiksi `expired` tai `credits_exhausted`), jota uusin
   tarkistusvälimuistin tilannevedos ei laske tilaksi `status=error`.
-- Mittarin `failed>0`, vaikka SQLite näyttää terveeltä — äskettäinen tarkistus epäonnistui ja tulos on
-  välimuistissa; tietokantariviä ei ole päivitetty tai se on myöhemmin tyhjennetty.
+- Mittarin `failed>0`, vaikka SQLite näyttää terveeltä — viimeaikainen tarkistus epäonnistui ja tulos on
+  välimuistissa; DB-riviä ei ole päivitetty tai se tyhjennettiin myöhemmin.
 
-Älä muodosta hälytystä pelkästään `provider_connections.test_status`-kentän perusteella, kun keräät tietoja tästä
-päätepisteestä. Käytä arvoja `failed` + `failedConnections` reaaliaikaisiin tarkistusvirheisiin ja
-arvoa `staleDbNonOkCount`, kun tarvitset tallennettujen pysyvien tilojen määrän.
+Älä luo hälytystä pelkästään `provider_connections.test_status`-arvon perusteella, kun keräät tietoja tästä
+päätepisteestä. Käytä `failed`- ja `failedConnections`-arvoja reaaliaikaisiin tarkistusvirheisiin sekä
+`staleDbNonOkCount`-arvoa, kun tarvitset tallennettujen pysyvien tilojen määrän.
 
 ### Kubernetes-tarkistusten suositukset
 
-OmniRoute on **yksi Node-prosessi** (yksi tapahtumasilmukka). Dockerin vakio-`HEALTHCHECK` kohdistuu kevyeen `/healthz`-reittiin. `/api/monitoring/health` on **liian raskas** kubeletin liveness-tarkistusväleille.
+OmniRoute on **yksi Node-prosessi** (yksi tapahtumasilmukka). Dockerin oletusarvoinen `HEALTHCHECK` kohdistuu kevyeen `/healthz`-reittiin. `/api/monitoring/health` on **liian raskas** kubeletin liveness-tarkistusväleihin.
 
-| Koetin                    | Suositeltu kohde                                                                             | Huomautukset                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Käynnistys**            | HTTP `GET /healthz` pitkällä `failureThreshold`-arvolla (tai suurella `startPeriod`-arvolla) | Kylmäkäynnistys + SQLite-migraatio voivat kestää useita sekunteja                                                                                                                                                                                                                                                                                                                                                     |
-| **Valmius**               | HTTP `GET /healthz`                                                                          | Elinkaaren tila `ok` / `starting` / `stopping` (200 vs 503). Tila vaihtelee silti, jos silmukka estyy suorittimeen sidotun työn vuoksi. **Useita sekunteja kestävä 200-vastaus ei merkitse tervettä tilaa** (#10303) — tapahtumasilmukka ei saanut suoritusaikaa ennen kuin 3 tavun käsittelijä suoritettiin                                                                                                          |
-| **Elossaolo**             | HTTP `GET /livez` **tai TCP** pääpalveluportissa (`PORT`, oletus `20128`)                    | `/livez` ilmaisee vain prosessin olevan käynnissä (aina 200, jos käsittelijä suoritetaan). Se käyttää silti samaa tapahtumasilmukkaa — varattu ≠ kuollut, eikä se havaitse tapahtumasilmukan suoritusaikapulaa (#10303) TCP:tä paremmin. Suosi **TCP:tä**, jos HTTP-koettimet aikakatkaistaan luettelo- tai pakkauskuormassa; älä kummassakaan tapauksessa lopeta podia lyhyiden tapahtumasilmukan pysähdysten vuoksi |
-| **Syvä terveystarkistus** | `GET /api/monitoring/health` ulkoisesta tarkistuspalvelusta                                  | Ei kubeletin `livenessProbe`-koettimeksi tai tiukaksi `readinessProbe`-koettimeksi                                                                                                                                                                                                                                                                                                                                    |
+| Koetin                    | Suositeltu kohde                                                                             | Huomautukset                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Käynnistys**            | HTTP `GET /healthz` pitkällä `failureThreshold`-arvolla (tai suurella `startPeriod`-arvolla) | Kylmäkäynnistys + SQLite-siirto voi kestää yli muutaman sekunnin                                                                                                                                                                                                                                                                                                                                                                    |
+| **Valmius**               | HTTP `GET /healthz`                                                                          | Elinkaaren tila `ok` / `starting` / `stopping` (200 vs 503). Tila vaihtelee silti, jos silmukka estyy CPU-kuorman vuoksi. **Usean sekunnin kuluttua saatu 200-vastaus ei merkitse tervettä tilaa** (#10303) — se tarkoittaa, että tapahtumasilmukka jäi ilman suoritusaikaa ennen kuin 3 tavun käsittelijä suoritettiin                                                                                                             |
+| **Elossaolo**             | HTTP `GET /livez` **tai TCP** pääpalveluportissa (`PORT`, oletus `20128`)                    | `/livez` tarkistaa vain, että prosessi on elossa (aina 200, jos käsittelijä suoritetaan). Se käyttää edelleen samaa tapahtumasilmukkaa — kiireinen ≠ kuollut, eikä se havaitse tapahtumasilmukan suoritusaikapulaa (#10303) TCP:tä paremmin. Suosi **TCP:tä**, jos HTTP-koettimet aikakatkaistaan luettelo- tai pakkauskuormituksen aikana; älä kummassakaan tapauksessa lopeta podia tapahtumasilmukan lyhyiden pysähdysten vuoksi |
+| **Syvä terveystarkistus** | `GET /api/monitoring/health` ulkoisesta tarkistuspalvelusta                                  | Ei kubeletin `livenessProbe`-koettimeen eikä tiukkaan `readinessProbe`-koettimeen                                                                                                                                                                                                                                                                                                                                                   |
 
 Esimerkkirakenne (säädä raja-arvot kylmäkäynnistyksen ja pakkauskuorman mukaan):
 
@@ -215,27 +215,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Tapahtumasilmukan pysähtyessä myös HTTP /livez voi aikakatkaista. TCP on
+  # Tapahtumasilmukan pysähtyessä HTTP /livez voi silti aikakatkaista. TCP on
   # varovaisempi vaihtoehto:
   # tcpSocket:
   #   port: http
 ```
 
-**Älä** kohdista kubeletin **elossaolotarkistusta** polkuun `/api/monitoring/health`. Kyseinen polku tekee todellista tietokanta- ja valvontatyötä ja aiheuttaa kuormituksessa vääriä hälytyksiä.
+**Älä** kohdista kubeletin **elossaolotarkistusta** polkuun `/api/monitoring/health`. Kyseinen polku tekee todellista tietokanta- ja valvontatyötä ja tuottaa kuormituksen aikana vääriä positiivisia tuloksia.
 
-Aiheeseen liittyvät: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (koettimet tapahtumasilmukan ollessa varattu), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (luettelohinnoittelun resurssien ylikulutus), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (pakkauksen tokenien laskennan resurssien ylikulutus).
+Liittyvät: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (koettimet tapahtumasilmukan ollessa kiireinen), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (luettelohinnoittelun resurssisyöppö), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (pakkauksen token-laskennan resurssisyöppö).
+
+### systemd-vahtikoira (jäätynyt tapahtumasilmukka)
+
+systemd-isännässä OmniRoute ilmoittaa palvelunhallinnalle, kun se on valmis, ja lähettää sille jatkuvasti sykäyksiä. Näin palvelin, jonka tapahtumasilmukka on jumissa, lopetetaan ja käynnistetään uudelleen sen sijaan, että se jäisi käyntiin mutta vastaamattomaksi. Sykäykset tulevat palvelimen omasta tapahtumasilmukasta: kun se estyy, sykäykset loppuvat ja systemd käynnistää palvelun uudelleen, kun `WatchdogSec` on kulunut ilman yhtäkään sykäystä.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) kirjoittaa jo käyttäjäyksikön, jossa tämä on käytössä. Itse kirjoittamassasi yksikössä (oletuksena `Type=simple`) ei ole vahtikoiraa, joten lisää nämä rivit sen `[Service]`-osioon:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Luotu yksikkö asettaa arvon `Restart=on-failure`, joten lisää myös tämä rivi — ilman sitä vahtikoira vain lopettaa jumiutuneen palvelun sen uudelleenkäynnistämisen sijaan.
+
+- `Type=notify`: palvelu katsotaan käynnistetyksi, kun palvelin lähettää viestin `READY=1`, ei silloin, kun prosessi haarautuu. `TimeoutStartSec` asettaa ylärajan hitaalle käynnistykselle.
+- `NotifyAccess=all`: sykäykset lähettää palvelinprosessi, joka on `omniroute serve` -valvontaprosessin lapsiprosessi.
+- `WatchdogSec`: sykäykset lähetetään 60 sekunnin välein, joten käytä arvoa **120 tai enemmän**. Pienemmät arvot käynnistäisivät terveen palvelimen uudelleen.
+- Suorita `omniroute serve` edustalla. `--daemon` irrottaa palvelimen yksikön cgroup-ryhmästä, eikä ilmoituskättely koskaan valmistu.
+
+Tarkista uudelleenkäynnistyksen jälkeen, että se on aktiivinen:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` näyttää määritetyn viiveen, ja `WatchdogTimestamp` siirtyy eteenpäin minuutin välein. Vahtikoiran aiheuttama uudelleenkäynnistys kirjataan arvolla `Result=watchdog`. Voit poistaa sykäykset käytöstä yksikköä muuttamatta asettamalla `OMNIROUTE_DISABLE_SD_NOTIFY=1`; ilman `NOTIFY_SOCKET`-muuttujaa (pääte, Docker, Electron, Windows) mitään ei lähetetä.
+
+Vahtikoira tarkistaa vain, että tapahtumasilmukka jatkaa toimintaansa. Hidasta mutta edelleen etenevää palvelinta ei käynnistetä uudelleen.
 
 ### Valinnainen pyyntöpolun työ (muisti, taidot, tokenien päivitys)
 
-Muistin poiminta, taitojen lisääminen ja OAuth-tokenien päivitys jakavat **Node-päätapahtumasilmukan** `/healthz`-polun kanssa. Ne ovat hallintapaneelista käyttöön otettavia ominaisuuksia (`memoryEnabled`, `skillsEnabled`), eivät työntekijäsäiepooli. Katso [Ympäristö — tapahtumasilmukan kuormitus](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Muistin poiminta, taitojen injektointi ja OAuth-tunnuksen päivitys jakavat **Node-päätapahtumasilmukan** `/healthz`:n kanssa. Ne ovat hallintapaneelista käyttöön otettavia ominaisuuksia (`memoryEnabled`, `skillsEnabled`), eivät työtekijäpooli. Katso [Ympäristö — muistin, taitojen ja tunnuksen päivityksen tapahtumasilmukkakustannus](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
-### Palveluntarjoajan terveystila
+### Palveluntarjoajan kunto
 
-> **Ei REST-päätepistettä.** Palveluntarjoajien terveystiedot ovat saatavilla MCP-työkalulla `observability_snapshot` tai hallintapaneelin `/dashboard/providers`-sivulla.
+> **Ei REST-päätepistettä.** Palveluntarjoajien kuntotiedot ovat saatavilla MCP-työkalulla `observability_snapshot` tai hallintapaneelin sivulla `/dashboard/providers`.
 
 ### Palveluntarjoajan tiedot
 
-> **Ei REST-päätepistettä.** Palveluntarjoajakohtaiset tiedot ovat saatavilla hallintapaneelin `/dashboard/providers`-sivulla.
+> **Ei REST-päätepistettä.** Palveluntarjoajakohtaiset tiedot ovat saatavilla hallintapaneelin sivulla `/dashboard/providers`.
 
 ---
 

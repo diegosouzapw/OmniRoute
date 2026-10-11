@@ -169,37 +169,36 @@ Jedwali la `memory_vec_meta` (uhamishaji `083_memory_vec.sql`) huhifadhi:
 
 ## Kiendelezi cha mipangilio
 
-Sehemu tisa za upachikaji na vekta zinapatikana katika `MemorySettingsExtended` ndani ya
+Sehemu tisa za upachikaji na vekta zinapatikana katika `MemorySettingsExtended` kwenye
 `src/shared/schemas/memory.ts`, na huhifadhiwa kupitia `src/lib/db/settings.ts`:
 
 | Sehemu                   | Aina                                               | Chaguo-msingi | Maelezo                                                               |
 | ------------------------ | -------------------------------------------------- | ------------- | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Chanzo cha upachikaji cha kutumia                                     |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | Chanzo cha upachikaji kitakachotumika                                 |
 | `embeddingProviderModel` | `string \| null`                                   | `null`        | Mtoa huduma/modeli katika muundo wa `provider/model`                  |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | URL msingi ya endpoint inayooana na OpenAI kwa Memory pekee           |
-| `customModelId`          | `string \| null`                                   | `null`        | Kitambulisho cha modeli kinachotumwa kwa endpoint maalum              |
-| `transformersEnabled`    | `boolean`                                          | `false`       | Kujijumuisha katika Transformers.js (MiniLM, ~400MB)                  |
-| `staticEnabled`          | `boolean`                                          | `false`       | Kujijumuisha katika modeli tuli ya ndani ya potion-base-8M            |
-| `rerankEnabled`          | `boolean`                                          | `false`       | Washa hatua ya upangaji upya (huongeza +200-500ms/req)                |
+| `customBaseUrl`          | `string \| null`                                   | `null`        | URL ya msingi ya kituo kinachooana na OpenAI kwa Kumbukumbu pekee     |
+| `customModelId`          | `string \| null`                                   | `null`        | Kitambulisho cha modeli kinachotumwa kwenye kituo maalum              |
+| `transformersEnabled`    | `boolean`                                          | `false`       | Ruhusa ya kutumia Transformers.js (MiniLM, ~400MB)                    |
+| `staticEnabled`          | `boolean`                                          | `false`       | Ruhusa ya kutumia modeli tuli ya ndani ya potion-base-8M              |
+| `rerankEnabled`          | `boolean`                                          | `false`       | Washa hatua ya kupanga upya (huongeza +200-500ms/ombi)                |
 | `rerankProviderModel`    | `string \| null`                                   | `null`        | Mtoa huduma/modeli ya upangaji upya katika muundo wa `provider/model` |
 
-`rerankProviderModel` hutatuliwa na `POST /v1/rerank` (inayoitwa kupitia loopback), kwa hivyo inakubali chochote ambacho route hiyo inakubali: modeli ya upangaji upya ya wingu iliyochaguliwa (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) au nodi ya mtoa huduma inayooana na OpenAI kama `<node-prefix>/<model>` (kwa mfano `skilled-mini/bge-reranker-v2-m3` kwa TEI/Infinity box). Nodi za loopback zinastahiki kila wakati; nodi iliyo kwenye host nyingine (LAN, Tailscale) pia inahitaji feature flag ya `RERANK_REMOTE_PROVIDER_NODES` na lazima ipitishe sera ya URL zinazotoka ya mtoa huduma — tazama [Feature Flags](../reference/FEATURE_FLAGS.md). Kiteuzi cha dashibodi huorodhesha watoa huduma waliochaguliwa pamoja na nodi za ndani; string yoyote halali ya `provider/model` inaweza kuwekwa moja kwa moja kupitia `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend ya vekta ya kutumia |
+`rerankProviderModel` hutatuliwa na `POST /v1/rerank` (inayoitwa kupitia loopback), kwa hivyo inakubali chochote ambacho njia hiyo inakubali: modeli teule ya upangaji upya ya wingu (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) au nodi ya mtoa huduma inayooana na OpenAI kama `<node-prefix>/<model>` (kwa mfano `skilled-mini/bge-reranker-v2-m3` kwa kisanduku cha TEI/Infinity). Nodi za loopback, pamoja na majina ya seva yaliyoorodheshwa katika `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (kwa mfano jina la huduma ya Docker/Compose), yanaruhusiwa kila wakati; nodi iliyo kwenye seva nyingine (LAN, Tailscale) pia inahitaji alama ya kipengele ya `RERANK_REMOTE_PROVIDER_NODES` na lazima ipitishe sera ya URL zinazotoka za mtoa huduma — tazama [Alama za Vipengele](../reference/FEATURE_FLAGS.md). Kiteuzi cha dashibodi huorodhesha watoa huduma walioteuliwa pamoja na nodi za ndani; mfuatano wowote halali wa `provider/model` unaweza kuwekwa moja kwa moja kupitia `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Mfumo wa nyuma wa vekta utakaotumika |
 
-Hizi zinapatikana kupitia `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+Hizi zinafikiwa kupitia `GET /PUT /api/settings/memory` (skimu `MemorySettingsExtendedSchema`).
 
-Kwa chanzo cha `remote`, Memory pia hukubali mipangilio ya hiari ya `customBaseUrl` na
-`customModelId`. Kwa pamoja, huchagua endpoint ya `/embeddings` inayooana na OpenAI
-na modeli bila kubadilisha sajili ya kimataifa ya upachikaji. Endpoint husawazishwa
-kabla ya kutumiwa na hukaguliwa na sera ya URL zinazotoka ya mtoa huduma: HTTP(S)
-inahitajika, taarifa za uthibitishaji zilizopachikwa na query string hukataliwa, na
-anwani za metadata za wingu huendelea kuzuiwa. Thamani tupu huhifadhi mtoa huduma
-wa sajili aliyechaguliwa. Hitilafu zinazorejeshwa kwenye dashibodi husafishwa na
-taarifa za uthibitishaji za endpoint kamwe haziwekwi kwenye kumbukumbu.
+Kwa chanzo cha `remote`, Kumbukumbu pia hukubali mipangilio ya hiari ya `customBaseUrl` na
+`customModelId`. Kwa pamoja, huchagua kituo na modeli ya `/embeddings` inayooana na OpenAI
+bila kubadilisha sajili ya jumla ya upachikaji. Kituo husawazishwa kabla ya kutumika na
+hukaguliwa na sera ya URL zinazotoka za mtoa huduma: HTTP(S) inahitajika, vitambulisho
+vilivyopachikwa na mifuatano ya hoja hukataliwa, na anwani za metadata za wingu
+huendelea kuzuiwa. Thamani tupu huhifadhi mtoa huduma wa sajili aliyechaguliwa. Hitilafu
+zinazorudishwa kwenye dashibodi husafishwa na vitambulisho vya kituo haviwekwi kamwe kwenye kumbukumbu za mfumo.
 
-> **TODO (D20):** Upeo wa `global` (kushiriki kumbukumbu katika API key zote)
-> haujatekelezwa katika toleo hili. Unahitaji mabadiliko ya schema na njia ya kimataifa
-> ya urejeshaji. Ufuatilie kando.
+> **TODO (D20):** Upeo wa `global` (kushiriki kumbukumbu kwenye funguo zote za API)
+> haujatekelezwa katika toleo hili. Unahitaji mabadiliko ya skimu na njia ya jumla ya
+> urejeshaji. Ufuatilie kando.
 
 ## Tabaka za Hifadhi
 
@@ -906,10 +905,10 @@ Ili kuendelea kuuzima, acha tu `autoSummarize` katika thamani yake ya chaguo-msi
 
 ## Muundo wa Mtoa Huduma wa MemoryBackend
 
-> **Chanzo rasmi:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Chanzo cha ukweli:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Majaribio:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Muundo wa mtoa huduma wa MemoryBackend unaanzisha **safu ya uondoaji ya sehemu ya nyuma inayoweza kuchomekwa** juu ya injini iliyopo ya kumbukumbu. Badala ya kutegemea utekelezaji mmoja wa hifadhi, mfumo wa kumbukumbu sasa unatumia sehemu nyingi za nyuma (SQLite, Obsidian, Notion, sehemu maalum za nyuma za HTTP) zenye uelekezaji unaoweza kusanidiwa wa msingi/mbadala.
+Muundo wa mtoa huduma wa MemoryBackend unaanzisha **safu ya uondoaji wa utegemezi wa backend inayoweza kuchomekwa** juu ya injini iliyopo ya kumbukumbu. Badala ya kufungamanishwa na utekelezaji mmoja wa hifadhi, mfumo wa kumbukumbu sasa unaauni backend nyingi (SQLite, Obsidian, Notion, backend maalum za HTTP) zenye uelekezaji unaoweza kusanidiwa wa msingi/mbadala.
 
 ### Usanifu
 
@@ -921,26 +920,25 @@ Muundo wa mtoa huduma wa MemoryBackend unaanzisha **safu ya uondoaji ya sehemu y
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│         Mratibu wa singleton (manager.ts)                 │
+│           Kipangaji cha singleton (manager.ts)            │
 │                                                          │
-│  Msingi ───► Sehemu ya Nyuma A  (mf. SQLite)             │
-│  Mbadala ──► Sehemu ya Nyuma B  (mf. Obsidian)           │
-│              Sehemu ya Nyuma C  (mf. Notion kupitia       │
-│              GenericBackend)                             │
+│  Msingi ───► Backend A  (mf. SQLite)                     │
+│  Mbadala ──► Backend B  (mf. Obsidian)                   │
+│              Backend C  (mf. Notion kupitia GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ Sehemu ya  │ │ Sehemu ya  │ │ GenericMemory    │
-│ Nyuma ya   │ │ Nyuma ya   │ │ Backend (HTTP)   │
-│ SQLite     │ │ Obsidian   │ │                  │
+│ Backend ya │ │ Backend ya │ │ Backend ya       │
+│ SQLite     │ │ Obsidian   │ │ GenericMemory    │
+│            │ │            │ │ (HTTP)           │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Kiolesura cha Msingi (`backend.ts`)
+#### Kiolesura Kikuu (`backend.ts`)
 
-Kila sehemu ya nyuma lazima itekeleze kiolesura cha `MemoryBackend`:
+Kila backend lazima itekeleze kiolesura cha `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
@@ -957,7 +955,7 @@ interface MemoryBackend {
   // Utafutaji
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Hali ya mfumo
+  // Afya
   health(): Promise<HealthCheckResult>;
 
   // Mzunguko wa maisha (si lazima)
@@ -968,51 +966,51 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Mratibu wa singleton ambaye:
+Kipangaji cha singleton ambacho:
 
-- **Husajili** sehemu za nyuma kupitia `register(backend)` — huitwa wakati wa kuanzisha kutoka `index.ts`
-- **Husanidi** sehemu ya msingi na mbadala kupitia `configure(primary, fallbacks)`
-- **Huelekeza** CRUD/utafutaji kwenda sehemu ya msingi, akitumia mlolongo wa sehemu mbadala inaposhindikana
-- **Hukagua hali** ya sehemu zote za nyuma mara kwa mara
+- **Husajili** backend kupitia `register(backend)` — huitwa wakati wa kuwasha kutoka `index.ts`
+- **Husanidi** backend ya msingi + mbadala kupitia `configure(primary, fallbacks)`
+- **Huelekeza** CRUD/utafutaji kwenye backend ya msingi, huku ikitumia msururu wa backend mbadala inaposhindwa
+- **Hukagua afya** ya backend zote mara kwa mara
 
-**Tabia ya sehemu mbadala:**
+**Tabia ya backend mbadala:**
 
-| Operesheni | Sehemu ya msingi           | Sehemu mbadala                  |
-| ---------- | -------------------------- | ------------------------------- |
-| `create`   | ✅ Ya msingi pekee         | ❌                              |
-| `get`      | ✅ Jaribu ya msingi kwanza | ✅ Tumia mbadala ikiwa ni null  |
-| `update`   | ✅ Ya msingi pekee         | ✅ Usawazishaji usiosubiri jibu |
-| `delete`   | ✅ Ya msingi pekee         | ✅ Usawazishaji usiosubiri jibu |
-| `list`     | ✅ Ya msingi pekee         | ❌                              |
-| `search`   | ✅ Ya msingi kwanza        | ✅ Mbadala kunapotokea hitilafu |
+| Operesheni | Msingi                     | Backend mbadala                       |
+| ---------- | -------------------------- | ------------------------------------- |
+| `create`   | ✅ Backend ya msingi pekee | ❌                                    |
+| `get`      | ✅ Jaribu ya msingi kwanza | ✅ Tumia mbadala ikiwa ni null        |
+| `update`   | ✅ Backend ya msingi pekee | ✅ Usawazishaji usiosubiri majibu     |
+| `delete`   | ✅ Backend ya msingi pekee | ✅ Usawazishaji usiosubiri majibu     |
+| `list`     | ✅ Backend ya msingi pekee | ❌                                    |
+| `search`   | ✅ Ya msingi kwanza        | ✅ Tumia mbadala kunapotokea hitilafu |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Kiunganishi cha jumla cha HTTP ambacho hurekebisha API yoyote ya REST kuwa MemoryBackend. Kinafaa kwa:
+Kiunganishi cha jumla cha HTTP kinachorekebisha API yoyote ya REST kuwa MemoryBackend. Kinafaa kwa:
 
 - **Notion** — unganisha kupitia Notion API
 - **Obsidian** — unganisha kupitia Obsidian Local REST API
-- **Sehemu maalum za nyuma** — huduma yoyote inayotoa API ya kumbukumbu ya RESTful
+- **Backend maalum** — huduma yoyote inayofichua API ya kumbukumbu ya RESTful
 
 **Usanidi:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // URL ya msingi ya API ya backend
-  apiKey?: string;           // Tokeni ya Bearer kwa ajili ya uthibitishaji
+  apiKey?: string;           // Tokeni ya Bearer kwa uthibitishaji
   headers?: Record<string, string>;  // Vichwa maalum vya HTTP
-  timeout?: number;          // Muda wa mwisho wa ombi (chaguomsingi: 30000ms)
+  timeout?: number;          // Muda wa kusubiri ombi (chaguo-msingi: 30000ms)
   backendType?: string;      // Kwa ajili ya kumbukumbu za matukio
 
-  // Ubatilishaji wa endpoint (chaguomsingi hutumia kanuni za REST)
+  // Ubadilishaji wa endpoint (chaguo-msingi hutumia kanuni za REST)
   endpoints?: {
-    search?: string;   // chaguomsingi: "/memories/search"
-    create?: string;   // chaguomsingi: "/memories"
-    list?: string;     // chaguomsingi: "/memories"
-    get?: string;      // chaguomsingi: "/memories/{id}"
-    update?: string;   // chaguomsingi: "/memories/{id}"
-    delete?: string;   // chaguomsingi: "/memories/{id}"
-    health?: string;   // chaguomsingi: "/health"
+    search?: string;   // chaguo-msingi: "/memories/search"
+    create?: string;   // chaguo-msingi: "/memories"
+    list?: string;     // chaguo-msingi: "/memories"
+    get?: string;      // chaguo-msingi: "/memories/{id}"
+    update?: string;   // chaguo-msingi: "/memories/{id}"
+    delete?: string;   // chaguo-msingi: "/memories/{id}"
+    health?: string;   // chaguo-msingi: "/health"
   };
 
   // Ulinganishaji wa majina ya vigezo vya hoja
@@ -1034,11 +1032,11 @@ createKnownBackend("obsidian"); // → GenericMemoryBackend iliyoelekezwa kwenye
 createKnownBackend("notion"); // → GenericMemoryBackend iliyoelekezwa kwenye api.notion.com/v1
 ```
 
-#### Backend Zilizojumuishwa
+#### Backend Zilizojengewa Ndani
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Backend msingi ya chaguomsingi. Hufunika hifadhi iliyopo ya kumbukumbu inayotumia SQLite kupitia `src/lib/memory/store.ts`. Husajiliwa kiotomatiki wakati wa kuwasha.
+Backend chaguo-msingi ya msingi. Hufunika hifadhi iliyopo ya kumbukumbu inayotumia SQLite kupitia `src/lib/memory/store.ts`. Husajiliwa kiotomatiki wakati wa kuwasha.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1047,39 +1045,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Hufunika muunganisho uliopo wa Obsidian (`src/lib/memory/obsidianBackend.ts`). Huunganisha kwenye vault ya Obsidian kupitia Obsidian Local REST API.
+Hufunika muunganisho uliopo wa Obsidian (`src/lib/memory/obsidianBackend.ts`). Huunganisha kwenye ghala la Obsidian kupitia Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adapta ya worker ya ndani ya [claude-mem](https://github.com/thedotmack/claude-mem) — programu-jalizi ya kumbukumbu ya
+Claude Code / Codex / Cursor ambayo hunasa vipindi vya uandishi wa msimbo kama "uchunguzi".
+Ikiwa imesajiliwa, njia za REST za `/api/memory` na utafutaji wa kumbukumbu wa A2A zinaweza kusoma na kuandika
+kwenye hifadhi ileile inayojazwa na hooks za claude-mem.
+
+Worker husikiliza loopback pekee, ambayo ulinzi wa SSRF wa `GenericMemoryBackend` huikataa kimakusudi.
+Adapta hii hailegezi ulinzi huo: host imewekwa moja kwa moja kuwa `127.0.0.1` na schema ya
+usanidi (`ClaudeMemBackendConfigSchema`, `.strict()`) hukubali tu:
+
+| Ufunguo     | Aina   | Chaguo-msingi | Maelezo                                                                                                                             |
+| ----------- | ------ | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —             | Inahitajika, 1024–65535. porti ya worker ya claude-mem kutoka kwenye faili yake ya mipangilio (chaguo-msingi `37700 + uid % 100`).  |
+| `project`   | string | —             | Mradi wa claude-mem wa kutumia. Ikiwa haijawekwa → kila ufunguo wa API wa OmniRoute unahusishwa na mradi wake wenyewe (`apiKeyId`). |
+| `timeoutMs` | number | `5000`        | Muda wa kusubiri kwa kila ombi, 100–30000.                                                                                          |
+
+Iwashe kupitia `PUT /api/settings/memory` na uanzishe upya OmniRoute (backends husajiliwa
+mara moja, katika `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Badala yake, tumia `"primaryBackend": "claude-mem"` ili kuifanya kuwa hifadhi ya REST API. Usanidi
+batili hurekodiwa (`claude-mem.backend.invalid_config`) na kurukwa, hivyo SQLite hubaki kuwa backend msingi.
+
+Uhusishaji na vikomo:
+
+- Vitambulisho ni `claude-mem:<observationId>`; `get`/`delete` hupuuza vitambulisho vya backends nyingine bila
+  kufanya ombi la mtandao.
+- `create` → `POST /api/memory/save`; sehemu za OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) huwekwa katika `metadata.omniroute` ya claude-mem na kurejeshwa zinaposomwa.
+- `search` → `GET /api/search?format=json&type=observations`, ikipunguzwa hadi `maxTokens`
+  (herufi / 4). `list` → endpoint ya observations yenye ugawaji wa kurasa ya worker (`total` ni kikomo cha chini — worker
+  hurejesha `hasMore`, si idadi).
+- Observations zilizonaswa na hook huhusisha `discovery` → `factual`, `decision` → `procedural`, na
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Hakuna masasisho** (`update()` hurejesha `false`; observations hazibadiliki) na **hakuna TTL**
+  (`expiresAt` hupuuzwa). claude-mem huondoa nakala katika uhifadhi unaofanana badala ya kufanya upsert kwa `key`.
+- Uingizaji kwenye prompt (`retrieval.ts`) na zana za MCP za `omniroute_memory_*` bado husoma SQLite
+  moja kwa moja — hazipiti kwenye `memoryManager`, kwa hivyo backend hii haizipatii data.
+
+**Kuelekeza miito ya LLM ya claude-mem kupitia OmniRoute.** claude-mem hubana observations
+kwa kutumia LLM (chaguo-msingi: Claude Agent SDK). Provider yake ya `openai-compatible` inaweza kuelekezwa
+kwa OmniRoute badala yake, huku ikitumia combo fallback na ufuatiliaji wa gharama. Katika `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<ufunguo wa API wa OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<modeli au combo ya OmniRoute>"
+}
+```
 
 ### Mipangilio
 
-Mipangilio ya backend ya kumbukumbu huhifadhiwa katika jedwali la mipangilio ya programu na kudhibitiwa kupitia `src/lib/memory/settings.ts`:
+Mipangilio ya backend ya kumbukumbu huhifadhiwa katika jedwali la mipangilio ya programu na kusimamiwa kupitia `src/lib/memory/settings.ts`:
 
-| Mpangilio           | Ufunguo wa Env/Usanidi   | Chaguomsingi | Maelezo                                  |
-| ------------------- | ------------------------ | ------------ | ---------------------------------------- |
-| Backend msingi      | `memoryPrimaryBackend`   | `"sqlite"`   | ID ya backend msingi                     |
-| Backend za akiba    | `memoryFallbackBackends` | `[]`         | ID za backend za akiba zilizopangwa      |
-| Misanidi ya backend | `memoryBackendConfigs`   | `{}`         | Ubatilishaji wa usanidi kwa kila backend |
+| Mpangilio             | Ufunguo wa Env/Config    | Chaguo-msingi | Maelezo                                         |
+| --------------------- | ------------------------ | ------------- | ----------------------------------------------- |
+| Backend msingi        | `memoryPrimaryBackend`   | `"sqlite"`    | Kitambulisho cha backend msingi                 |
+| Backends mbadala      | `memoryFallbackBackends` | `[]`          | Vitambulisho vya backends mbadala vilivyopangwa |
+| Mipangilio ya backend | `memoryBackendConfigs`   | `{}`          | Marekebisho ya usanidi kwa kila backend         |
 
-Mipangilio husawazishwa kupitia `normalizeMemorySettings()` na kuhifadhiwa kwenye akiba katika `getMemorySettings()`.
+Mipangilio husawazishwa kupitia `normalizeMemorySettings()` na kuhifadhiwa kwenye cache katika `getMemorySettings()`.
 
 ### Mtiririko wa Uanzishaji
 
 ```
 Uanzishaji wa programu
-  → uingizaji wa index.ts (athari ya pembeni): husajili SQLiteBackend
+  → index.ts imports (athari ya pembeni): husajili SQLiteBackend
   → initMemoryBackends() huitwa kutoka kwenye mzunguko wa maisha wa programu:
       1. Pakia mipangilio (getMemorySettings)
-      2. Sanidi backend msingi + za akiba
-      3. Anzisha backend zote (ukaguzi wa afya)
+      1b. Sajili backends za hiari zilizopo katika backendConfigs (claude-mem)
+      2. Sanidi backend msingi + mbadala
+      3. Anzisha backends zote (ukaguzi wa afya)
       4. Tayari kwa maombi
 ```
 
 ### Kuongeza Backend Mpya
 
-1. **Tekeleza kiolesura cha `MemoryBackend`** katika `src/lib/memory/<name>Backend.ts`
+1. **Tekeleza interface ya `MemoryBackend`** katika `src/lib/memory/<name>Backend.ts`
 2. **Hamisha** kutoka `src/lib/memory/index.ts`
-3. **Sajili** kwa `memoryManager.register(yourBackend)` wakati wa kuwasha
-4. **Sanidi** kupitia mipangilio: weka `memoryPrimaryBackend` kuwa ID ya backend yako
-5. **Jaribu** ukitumia `src/lib/memory/__tests__/generic-backend.test.ts` kama rejeleo
+3. **Sajili** kwa kutumia `memoryManager.register(yourBackend)` wakati wa kuwasha
+4. **Sanidi** kupitia mipangilio: weka `memoryPrimaryBackend` kuwa kitambulisho cha backend yako
+5. **Jaribu** ukitumia `src/lib/memory/__tests__/generic-backend.test.ts` kama marejeleo
 
 #### Mfano: Backend ya Brain
 
@@ -1107,19 +1165,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Matokeo yanayotarajiwa: **majaribio 35, yote yakifaulu** yakijumuisha:
+Matokeo yanayotarajiwa: **majaribio 35, yote yakifaulu** yakihusisha:
 
-- Kijenzi (2)
+- Constructor (2)
 - Ukaguzi wa afya (4) — mafanikio, hitilafu 500, hitilafu ya mtandao, ucheleweshaji
-- Uanzishaji (2) — mafanikio, kushindwa
-- Uundaji (2) — endpoint ya chaguomsingi, endpoint maalum
-- Upataji (4) — mafanikio, 404 → null, isiyo 404 husababisha hitilafu, vigezo maalum vya njia
-- Usasishaji (2) — mafanikio, 404 → false
-- Ufutaji (2) — mafanikio, 404 → false
-- Uorodheshaji (2) — vigezo vya hoja, majina maalum ya vigezo
-- Utafutaji (3) — vigezo vya hoja, endpoint maalum, ubadilishaji wa options kuwa mfuatano
-- Vichwa vya uthibitishaji (2) — tokeni ya Bearer, vichwa maalum
-- Kiwanda (1)
+- Uanzishaji (2) — mafanikio, hitilafu
+- Create (2) — endpoint chaguo-msingi, endpoint maalum
+- Get (4) — mafanikio, 404 → null, isiyo 404 hutupa hitilafu, path params maalum
+- Update (2) — mafanikio, 404 → false
+- Delete (2) — mafanikio, 404 → false
+- List (2) — query params, majina maalum ya params
+- Search (3) — query params, endpoint maalum, serialization ya options
+- Vichwa vya uthibitishaji (2) — token ya Bearer, vichwa maalum
+- Factory (1)
 
 #### Ukaguzi wa aina
 

@@ -101,16 +101,16 @@ Por combinação:
 
 ## API de verificação de estado
 
-O OmniRoute disponibiliza **duas** interfaces HTTP para verificação de estado. Não são intercambiáveis para orquestradores.
+O OmniRoute disponibiliza **dois** endpoints HTTP de verificação de estado. Estes não são equivalentes para os orquestradores.
 
-| Caminho                      | Finalidade                                                            | Peso                                            | Utilização                                                                 |
-| ---------------------------- | --------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- |
-| `GET /healthz`               | Atividade/prontidão do ciclo de vida (`ok` / `starting` / `stopping`) | Mínimo (apenas o indicador de fase)             | **Prontidão** do Kubernetes; **atividade** simples se tiver de usar HTTP   |
-| `GET /api/monitoring/health` | Resumo detalhado do sistema + fornecedores (BD, heap, catálogos, …)   | Elevado (trabalho síncrono de BD/monitorização) | Painéis, verificações detalhadas blackbox, healthcheck integrado do Docker |
+| Caminho                      | Finalidade                                                                      | Carga                                           | Utilizar para                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `GET /healthz`               | Estado de atividade/prontidão do ciclo de vida (`ok` / `starting` / `stopping`) | Mínima (apenas o indicador de fase)             | **Prontidão** do Kubernetes; **atividade** não estrita, caso tenha de usar HTTP            |
+| `GET /api/monitoring/health` | Resumo detalhado do sistema + fornecedores (BD, heap, contagens do catálogo, …) | Elevada (trabalho síncrono de BD/monitorização) | Painéis, verificações detalhadas de caixa negra, verificação de estado integrada do Docker |
 
-> **Nota:** As matrizes de estado dos fornecedores, os problemas do autopilot, os monitores de quotas, o estado dos tokens e os detalhes de latência para além de `/api/monitoring/health` estão disponíveis através da **ferramenta MCP** `observability_snapshot` ou das páginas do **painel** — não existem rotas REST dedicadas para esses dados.
+> **Nota:** As matrizes de estado dos fornecedores, os problemas do piloto automático, os monitores de quotas, o estado dos tokens e os detalhes de latência além de `/api/monitoring/health` estão disponíveis através da **ferramenta MCP** `observability_snapshot` ou das páginas do **painel** — não existem rotas REST dedicadas para estes elementos.
 
-Ambas as rotas são executadas no **mesmo ciclo de eventos do Node** que processa os pedidos. Um caminho que consuma intensivamente a CPU (trabalho num catálogo grande de `GET /v1/models`, compressão de contexto longo/contagem de tokens) pode atrasar **todos** os processadores HTTP, incluindo `/healthz`. Ciclo de eventos ocupado ≠ processo inativo. É preferível corrigir o processo que monopoliza os recursos; ajustar as sondas apenas reduz encerramentos incorretos.
+Ambas as rotas são executadas no **mesmo ciclo de eventos do Node** que o processamento de pedidos. Um caminho que sobrecarregue a CPU (processamento de um catálogo grande em `GET /v1/models`, compressão de contexto longo/contagem de tokens) pode atrasar **todos** os processadores HTTP, incluindo `/healthz`. Ciclo de eventos ocupado ≠ processo inativo. É preferível corrigir a causa da sobrecarga; o ajuste das sondas apenas reduz interrupções incorretas.
 
 ### Sonda leve para orquestradores
 
@@ -155,41 +155,41 @@ Resposta:
 
 #### `credentialHealth`: cache de sondas vs `test_status` do SQLite
 
-`GET /api/monitoring/health` → `credentialHealth` é o **indicador da cache de sondas em memória**,
-não uma exportação em tempo real de `provider_connections.test_status`. Após a #12532, o
-caminho do pedido lê apenas `getCachedCredentialHealthSummary()`; as sondas em segundo plano
-atualizam a cache fora do ciclo de eventos.
+`GET /api/monitoring/health` → `credentialHealth` é o **indicador do cache de sondas em
+memória**, não uma extração em tempo real de `provider_connections.test_status`. Após a #12532, o
+caminho do pedido consulta apenas `getCachedCredentialHealthSummary()`; as sondas em segundo plano
+atualizam o cache fora do ciclo de eventos.
 
-| Camada                         | Onde                                                                  | O que significa                                                                                                                                                                                                              |
-| ------------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Indicador da cache de sondas   | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Resultados mais recentes das sondas de estado das credenciais ainda mantidos na memória do processo. `source` é sempre `probe-cache`.                                                                                        |
-| Detalhes de ligações com falha | `credentialHealth.failedConnections`                                  | Presente **apenas quando `failed > 0`**. Lista limitada de linhas da cache com `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` sanitizados). `failedOmitted` é definido quando a lista foi limitada. |
-| Estado persistente do SQLite   | `credentialHealth.staleDbNonOkCount`                                  | Número de linhas de ligações **ativas** (`is_active=1`) cujo `test_status` persistido é um valor conhecido diferente de ok (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                |
+| Camada                         | Onde                                                                  | O que significa                                                                                                                                                                                                                     |
+| ------------------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Indicador do cache de sondas   | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Últimos resultados das sondas de estado das credenciais ainda mantidos na memória do processo. `source` é sempre `probe-cache`.                                                                                                     |
+| Detalhes de ligações com falha | `credentialHealth.failedConnections`                                  | Presente **apenas quando `failed > 0`**. Lista limitada de linhas da cache com `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` sanitizados). `failedOmitted` é definido quando a lista tiver sido limitada. |
+| Estado persistente do SQLite   | `credentialHealth.staleDbNonOkCount`                                  | Contagem de linhas de ligações **ativas** (`is_active=1`) cujo `test_status` persistente corresponde a um estado conhecido não conforme (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).          |
 
 As duas camadas podem divergir intencionalmente:
 
-- Indicador `failed=0` enquanto `staleDbNonOkCount>0` — o SQLite ainda contém um
-  `test_status` persistente (por exemplo, `expired` ou `credits_exhausted`) que o instantâneo
-  mais recente da cache de sondas não contabiliza como `status=error`.
-- Indicador `failed>0` enquanto o SQLite aparenta estar saudável — uma sonda recente falhou e
-  está em cache; a linha da BD não foi atualizada ou foi posteriormente limpa.
+- Indicador `failed=0` enquanto `staleDbNonOkCount>0` — o SQLite ainda tem um
+  `test_status` persistente (por exemplo, `expired` ou `credits_exhausted`) que a captura
+  mais recente do cache de sondas não contabiliza como `status=error`.
+- Indicador `failed>0` enquanto o SQLite parece estar em bom estado — uma sonda recente falhou e o resultado
+  encontra-se em cache; a linha da BD não foi atualizada ou foi posteriormente limpa.
 
-Não gere alertas apenas com base em `provider_connections.test_status` ao recolher dados deste
+Não emita alertas apenas com base em `provider_connections.test_status` ao consultar este
 endpoint. Utilize `failed` + `failedConnections` para falhas de sondas em tempo real e
-`staleDbNonOkCount` quando precisar da contagem persistida de estados persistentes.
+`staleDbNonOkCount` quando precisar da contagem de estados persistentes guardados.
 
 ### Recomendações de sondas para Kubernetes
 
-O OmniRoute é um **único processo Node** (um ciclo de eventos). O `HEALTHCHECK` predefinido do Docker aponta para o endpoint leve `/healthz`. `/api/monitoring/health` é **demasiado pesado** para os intervalos de atividade do kubelet.
+O OmniRoute é um **processo Node único** (um ciclo de eventos). O `HEALTHCHECK` padrão do Docker utiliza o endpoint leve `/healthz`. `/api/monitoring/health` é **demasiado pesado** para os intervalos de verificação de atividade do kubelet.
 
-| Sonda                  | Alvo recomendado                                                                           | Notas                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Arranque**           | HTTP `GET /healthz` com um `failureThreshold` elevado (ou `startPeriod` longo)             | O arranque a frio + a migração do SQLite podem demorar mais do que alguns segundos                                                                                                                                                                                                                                                                                                                                                 |
-| **Disponibilidade**    | HTTP `GET /healthz`                                                                        | Ciclo de vida `ok` / `starting` / `stopping` (200 vs 503). Continua a oscilar se o ciclo estiver bloqueado pela CPU. Uma resposta **200 que demore vários segundos não é saudável** (#10303) — significa que o ciclo de eventos ficou sem recursos antes de o processador de 3 bytes ser executado                                                                                                                                 |
-| **Vitalidade**         | HTTP `GET /livez`, **ou TCP** na porta principal do serviço (`PORT`, predefinição `20128`) | `/livez` apenas indica que o processo está ativo (devolve sempre 200 se o processador for executado). Continua a partilhar o ciclo de eventos — ocupado ≠ morto, e não deteta o bloqueio do ciclo de eventos (#10303) melhor do que o TCP. Prefira **TCP** se as sondas HTTP excederem o tempo limite sob carga de catálogo/compressão; em qualquer dos casos, **não** termine o pod devido a breves bloqueios do ciclo de eventos |
-| **Estado aprofundado** | `GET /api/monitoring/health` a partir de um verificador externo                            | Não se destina a `livenessProbe` do kubelet nem a `readinessProbe` com intervalos reduzidos                                                                                                                                                                                                                                                                                                                                        |
+| Sonda                  | Alvo recomendado                                                                           | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Arranque**           | HTTP `GET /healthz` com um `failureThreshold` elevado (ou `startPeriod` grande)            | O arranque a frio + a migração do SQLite podem demorar mais de alguns segundos                                                                                                                                                                                                                                                                                                                                                        |
+| **Disponibilidade**    | HTTP `GET /healthz`                                                                        | Ciclo de vida `ok` / `starting` / `stopping` (200 vs 503). Ainda oscila se o ciclo estiver bloqueado pela CPU. Um **200 após vários segundos não é saudável** (#10303) — significa que o ciclo de eventos ficou sem recursos antes de o processador de 3 bytes ser executado                                                                                                                                                          |
+| **Atividade**          | HTTP `GET /livez`, **ou TCP** na porta principal do serviço (`PORT`, predefinição `20128`) | `/livez` verifica apenas se o processo está ativo (devolve sempre 200 se o processador for executado). Continua a partilhar o ciclo de eventos — ocupado ≠ inativo, e não deteta a privação do ciclo de eventos (#10303) melhor do que o TCP. Prefira **TCP** se as sondas HTTP excederem o tempo limite sob carga de catálogo/compressão; em qualquer dos casos, **não** termine o pod devido a bloqueios curtos do ciclo de eventos |
+| **Estado aprofundado** | `GET /api/monitoring/health` a partir de um verificador externo                            | Não se destina a `livenessProbe` / `readinessProbe` estrita do kubelet                                                                                                                                                                                                                                                                                                                                                                |
 
-Exemplo de configuração (ajuste os limites à carga de arranque a frio e de compressão):
+Exemplo de configuração (ajuste os limiares à carga do arranque a frio e da compressão):
 
 ```yaml
 ports:
@@ -215,23 +215,54 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Durante um bloqueio do ciclo de eventos, o HTTP /livez pode ainda exceder
-  # o tempo limite. O TCP é a alternativa conservadora:
+  # Durante um bloqueio do ciclo de eventos, o HTTP /livez pode ainda exceder o tempo limite. O TCP é a
+  # alternativa conservadora:
   # tcpSocket:
   #   port: http
 ```
 
-**Não** direcione a **sonda de vitalidade** do kubelet para `/api/monitoring/health`. Esse caminho realiza trabalho real de BD/monitorização e produzirá falsos positivos sob carga.
+**Não** aponte a **atividade** do kubelet para `/api/monitoring/health`. Esse caminho realiza trabalho real de BD/monitorização e produzirá falsos positivos sob carga.
 
-Relacionado: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sondas enquanto o ciclo de eventos está ocupado), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (consumo excessivo no cálculo de preços do catálogo), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (consumo excessivo na contagem de tokens de compressão).
+Relacionado: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sondas enquanto o ciclo de eventos está ocupado), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (consumo excessivo de recursos pelos preços do catálogo), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (consumo excessivo de recursos pela contagem de tokens de compressão).
 
-### Trabalho opcional no percurso do pedido (memória, competências, atualização de tokens)
+### watchdog do systemd (ciclo de eventos bloqueado)
 
-A extração de memória, a injeção de competências e a atualização de tokens OAuth partilham o **ciclo de eventos principal do Node** com `/healthz`. São funcionalidades ativáveis no painel (`memoryEnabled`, `skillsEnabled`), não um conjunto de workers. Consulte [Ambiente — custo do ciclo de eventos](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Num anfitrião systemd, o OmniRoute informa o gestor de serviços quando está pronto e continua a enviar-lhe sinais, para que um servidor cujo ciclo de eventos esteja bloqueado seja terminado e reiniciado em vez de permanecer em execução e sem responder. Os sinais são enviados pelo próprio ciclo de eventos do servidor: quando este fica bloqueado, os sinais param e o systemd reinicia o serviço assim que `WatchdogSec` decorre sem receber nenhum.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) já cria uma unidade de utilizador com esta configuração. Uma unidade criada por si (com a predefinição `Type=simple`) não tem watchdog, por isso adicione estas linhas à respetiva secção `[Service]`:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+A unidade gerada define `Restart=on-failure`, por isso adicione também essa linha — sem ela, o watchdog apenas termina o serviço bloqueado em vez de o reiniciar.
+
+- `Type=notify`: o serviço é considerado «iniciado» quando o servidor envia `READY=1`, e não quando o processo é bifurcado. `TimeoutStartSec` limita a duração de um arranque lento.
+- `NotifyAccess=all`: os sinais são enviados pelo processo do servidor, que é um processo subordinado do supervisor `omniroute serve`.
+- `WatchdogSec`: os sinais são enviados a cada 60 segundos, por isso utilize **120 ou mais**. Valores inferiores reiniciariam um servidor saudável.
+- Execute `omniroute serve` em primeiro plano. `--daemon` separa o servidor do cgroup da unidade e a troca de notificações nunca é concluída.
+
+Após um reinício, verifique se está ativo:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` apresenta o atraso configurado e `WatchdogTimestamp` avança a cada minuto. Um reinício provocado pelo watchdog é registado como `Result=watchdog`. Para desativar os sinais mantendo a unidade tal como está, defina `OMNIROUTE_DISABLE_SD_NOTIFY=1`; sem um `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows), nada é enviado.
+
+O watchdog apenas verifica se o ciclo de eventos continua em execução. Um servidor lento, mas cujo ciclo continue a avançar, não é reiniciado.
+
+### Trabalho opcional no caminho dos pedidos (memória, competências, atualização de tokens)
+
+A extração de memória, a injeção de competências e a renovação de tokens OAuth partilham o **ciclo de eventos principal do Node** com `/healthz`. São funcionalidades ativáveis no painel (`memoryEnabled`, `skillsEnabled`), não um conjunto de workers. Consulte [Ambiente — custo do ciclo de eventos](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Estado dos fornecedores
 
-> **Sem endpoint REST.** Os dados sobre o estado dos fornecedores estão disponíveis através da ferramenta MCP `observability_snapshot` ou da página `/dashboard/providers` do painel.
+> **Sem endpoint REST.** Os dados de estado dos fornecedores estão disponíveis através da ferramenta MCP `observability_snapshot` ou da página `/dashboard/providers` do painel.
 
 ### Detalhes do fornecedor
 

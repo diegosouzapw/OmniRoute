@@ -125,11 +125,11 @@ generátor pokrytý jednotkovými testy), vykreslovaný komponentou `ClaudeGatew
 
 ## Profily (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **nemá nativní soubory profilů** (na rozdíl od souboru `~/.codex/<name>.config.toml`
-nástroje Codex). Standardním mechanismem je `CLAUDE_CONFIG_DIR` — samostatný konfigurační adresář
-pro každý profil, přičemž každý má vlastní soubor `settings.json`, přihlašovací údaje, historii a mezipaměť.
+Claude Code nemá **žádné nativní soubory profilů** (na rozdíl od `~/.codex/<name>.config.toml` v Codexu).
+Obvyklým mechanismem je `CLAUDE_CONFIG_DIR` — samostatný konfigurační adresář pro každý
+profil, přičemž každý má vlastní `settings.json`, přihlašovací údaje, historii a mezipaměť.
 
-Příkaz `omniroute setup-claude` načte aktuální katalog `/v1/models` a zapíše jeden
+`omniroute setup-claude` načte aktuální katalog `/v1/models` a zapíše jeden
 profil pro každý model do `~/.claude/profiles/<name>/settings.json`, přičemž znovu použije
 **stejné názvy jako `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
@@ -148,19 +148,18 @@ profil pro každý model do `~/.claude/profiles/<name>/settings.json`, přičem�
 }
 ```
 
-> **Ověřovací token se do profilu nikdy nezapisuje.** Spusťte profil pomocí
-> `omniroute launch --profile <name>` (příkaz vloží `ANTHROPIC_AUTH_TOKEN` z aktivního
-> kontextu), nebo sami exportujte `ANTHROPIC_AUTH_TOKEN` a spusťte
+> **Ověřovací token se do profilu nikdy nezapisuje.** Spusťte jej pomocí
+> `omniroute launch --profile <name>` (tento příkaz vloží `ANTHROPIC_AUTH_TOKEN` z
+> aktivního kontextu), nebo sami exportujte `ANTHROPIC_AUTH_TOKEN` a spusťte
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Automatická synchronizace po zjištění modelů (volitelná).** OmniRoute může stejné soubory
-`~/.claude/profiles/<name>/settings.json` automaticky znovu vygenerovat pokaždé, když synchronizace
-modelů poskytovatele změní aktuální katalog — nové nebo přejmenované modely tak získají profily bez
-nutnosti znovu spouštět příkaz. Ve výchozím nastavení je tato funkce **vypnutá**: zapněte ji na
-**řídicím panelu CLI Code** („Automatická synchronizace profilů CLI“ → Claude Code) nebo nastavte
-`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (respektuje také `CLI_ALLOW_CONFIG_WRITES`, které je ve
-výchozím nastavení zapnuté). Je-li funkce povolena, zapisuje pouze soubory profilů; nikdy nemění vaši
-aktivní/výchozí konfiguraci Claude, ověřování ani soubor `~/.claude/settings.json`.
+**Automatická synchronizace po zjištění modelů (volitelná).** OmniRoute může automaticky znovu vygenerovat stejné
+soubory `~/.claude/profiles/<name>/settings.json`, kdykoli synchronizace modelů poskytovatele
+změní aktuální katalog — nové či přejmenované modely tak získají profily bez opětovného spuštění
+příkazu. Ve výchozím nastavení je tato funkce **vypnutá**: zapněte ji na **ovládacím panelu CLI Code** („Automatická
+synchronizace profilů CLI“ → Claude Code) nebo nastavte `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (respektuje také
+`CLI_ALLOW_CONFIG_WRITES`, které je ve výchozím nastavení zapnuté). Je-li tato funkce povolená, zapisuje pouze soubory profilů; nikdy
+nemění aktivní ani výchozí konfiguraci Claude, ověřování ani `~/.claude/settings.json`.
 
 ### Generování a používání profilů
 
@@ -173,6 +172,10 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Pouze někteří poskytovatelé
 omniroute setup-claude --only glm,kimi
+
+# Zapsat také profily pro poskytovatele s místním CLI (zcode, auggie, devin-cli-agentic,
+# codex-app-server), kteří nebyli na tomto hostiteli zjištěni (pro místní cíl jsou ve výchozím nastavení přeskočeni)
+omniroute setup-claude --include-local
 
 # Náhled bez zápisu
 omniroute setup-claude --dry-run

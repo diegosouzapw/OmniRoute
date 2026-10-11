@@ -4,80 +4,77 @@
 
 ---
 
-> **TL;DR**: Az OmniRoute 357 szolgáltatói azonosítót regisztrál, amelyek közül **152 szolgáltatókatalógus-bejegyzés `hasFree` jelölésű**. A szigorúbban auditált ingyenesmodell-katalógus **35 ismétlődő készletkulcsot / 482 bejegyzést** tartalmaz (475 aktív + 7 megszűnt). A szélesebb tartalékkapacitás érdekében csatlakoztasson több megfelelő szolgáltatót; továbbra is minden kvóta, jóváhagyási szabály, adatvédelmi irányelv és fizetős túlhasználati feltétel érvényes.
+> **Röviden**: Használd a saját, feltételeknek megfelelő szolgáltatói fiókjaidat. Az OmniRoute az általad konfigurált kapcsolatokat egyesíti; nem biztosítja a hirdetett összesített tokenkeretet. Az ingyenes hozzáféréshez regisztrációra, API-kulcsra, jóváhagyásra vagy fizetési mód megadására lehet szükség. A szolgáltatók korlátozásai, adatvédelmi szabályzatai és feltételei továbbra is érvényesek.
 
 ---
 
 ## Mik azok az ingyenes csomagok?
 
-Számos MI-szolgáltató kínál valamilyen **ingyenes hozzáférést**. A szolgáltatótól függően ez
-jelenthet hitelesítés nélküli végpontot, megújuló kvótát, sebességkorlátozott, de felső korlát nélküli hozzáférést, regisztrációs keretet,
-manuális jóváhagyást vagy ideiglenes promóciót. Egyes lehetőségekhez fiók, API-kulcs,
-hitelkártya, KYC vagy a szolgáltatóspecifikus feltételek elfogadása szükséges.
+Számos MI-szolgáltató kínál valamilyen **ingyenes hozzáférést**. A szolgáltatótól függően ez jelenthet hitelesítés nélküli végpontot, rendszeresen megújuló kvótát, sebességkorlátozott, de összességében korlátlan hozzáférést, regisztrációkor kapott keretet, manuális jóváhagyást vagy ideiglenes promóciót. Egyes lehetőségekhez fiók, API-kulcs, hitelkártya, ügyfél-azonosítás (KYC) vagy szolgáltatóspecifikus feltételek elfogadása szükséges.
 
-Az OmniRoute egyetlen végpontban **egyesíti** ezeket az ingyenes csomagokat. Ahelyett, hogy 10 különböző szolgáltatásra regisztrálna, mindegyiket csatlakoztathatja az OmniRoute-hoz, és a `model: "auto"` használatával automatikusan kiválaszthatja az egyes kérésekhez legjobb ingyenes lehetőséget.
+Az OmniRoute egyetlen végpontban **egyesíti** a konfigurált kapcsolatokat. Továbbra is külön kell regisztrálnia minden olyan szolgáltatónál, amely fiókot igényel. Csatlakoztassa ezeket a fiókokat, és használja a `model: "auto"` beállítást a megfelelő célpontok közötti útválasztáshoz. Előfordulhat, hogy egy friss telepítésben nincs használható, kulcsot nem igénylő célpont; az OmniRoute telepítése önmagában nem garantál sikeres csevegési választ.
 
 ---
 
-## Az ingyenes hozzáférést biztosító reprezentatív szolgáltatók
+## Reprezentatív, ingyenesen hozzáférhető szolgáltatók
 
-### Megújuló, kulcs nélküli vagy felső korlát nélküli hozzáférés
+### Ismétlődő, kulcs nélküli vagy korlátlan hozzáférés
 
-Ezek a szolgáltatók megújuló, kulcs nélküli vagy felső korlát nélküli ingyenes hozzáférési lehetőséggel rendelkeznek az auditált katalógusban. A „felső korlát nélküli” azt jelenti, hogy nincs közzétett tokenkorlát; sebességi, párhuzamossági, fiók-, regionális és szabályzati korlátozások azonban továbbra is érvényesek lehetnek:
+Ezek a szolgáltatók ismétlődő, kulcs nélküli vagy korlátlan ingyenes hozzáférési lehetőséget biztosítanak az auditált katalógusban. A „korlátlan” azt jelenti, hogy nincs közzétett tokenkorlát; ettől még sebességi, párhuzamossági, fiók-, regionális és szabályzati korlátozások érvényesek lehetnek:
 
-| Szolgáltató       | Modellek                                                                                  | Kvóta                                                                                                                                             | Csatlakoztatás módja                                                                           |
-| ----------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 és mások                                      | Az auditált katalógus becslése szerint havi 25K tokenes megosztott készlet                                                                        | OAuth-/fiókfolyamat; az ÁSZF jelölése `avoid` a katalógusban                                   |
-| **OpenCode Free** | A szolgáltatói nyilvántartás aktuális `*-free` modellkészlete                             | Kulcs nélküli; nincs közzétett tokenkorlát                                                                                                        | Nincs szükség szolgáltatói hitelesítő adatra; az ÁSZF jelölése `avoid`                         |
-| **Pollinations**  | Aktuális kulcs nélküli modellkészlet; néhány korábbi modell megszűnt vagy kulcsot igényel | Kulcs nélküli; nincs közzétett tokenkorlát                                                                                                        | A kulcs nélküli modellekhez nincs szükség szolgáltatói hitelesítő adatra                       |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 és további modellek           | Ingyenes API-kulcs (nincs sebességkorlát, nincs szükség kártyára); **minden kérést naplóznak** kutatási célokra (leiratkozás: logfare.ai/consent) | Azonnali kulcs: logfare.ai/register; ÁSZF és adatvédelem: logfare.ai/tos és logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI katalógus                                                                      | Az auditált készlet becslése szerint ~30M token/hó a közzétett használati egységek alapján                                                        | Cloudflare-fiók és API-hitelesítő adatok                                                       |
-| **Gemini**        | Gemini Flash modellcsalád                                                                 | Az auditált készlet becslése szerint ~60M token/hó                                                                                                | Google AI Studio API-kulcs; sebességkorlátok érvényesek                                        |
-| **Groq**          | Llama-, GPT-OSS- és Qwen-modellek                                                         | Az auditált készlet becslése szerint ~15M token/hó                                                                                                | Groq API-kulcs; sebességkorlátok érvényesek                                                    |
-| **Cerebras**      | GLM 4.7 és GPT-OSS 120B                                                                   | Az auditált készlet becslése szerint ~30M token/hó                                                                                                | Cerebras API-kulcs; sebességkorlátok érvényesek                                                |
+| Szolgáltató       | Modellek                                                                                     | Kvóta                                                                                                                                                    | Csatlakozás módja                                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 és mások                                         | Az auditált katalógus becslése szerint havi 25K tokenből álló megosztott keret                                                                           | OAuth-/fiókalapú folyamat; a szolgáltatási feltételek `avoid` jelölést kaptak a katalógusban                       |
+| **OpenCode Free** | A szolgáltatói nyilvántartás aktuális `*-free` modellkészlete                                | Kulcs nélküli; nincs közzétett tokenkorlát                                                                                                               | Nincs szükség szolgáltatói hitelesítő adatra; a szolgáltatási feltételek jelölése `avoid`                          |
+| **Pollinations**  | Az aktuális kulcs nélküli modellkészlet; néhány korábbi modell megszűnt vagy kulcsot igényel | Kulcs nélküli; nincs közzétett tokenkorlát                                                                                                               | A kulcs nélküli modellekhez nincs szükség szolgáltatói hitelesítő adatra                                           |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 és továbbiak                     | Ingyenes API-kulcs (nincsenek sebességkorlátok, nem szükséges bankkártya); **minden kérést naplóznak** kutatási célból (leiratkozás: logfare.ai/consent) | Azonnali kulcs: logfare.ai/register; szolgáltatási feltételek és adatvédelem: logfare.ai/tos és logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI katalógus                                                                         | Az auditált keret becslése szerint ~30M token/hó a közzétett használati egységek alapján                                                                 | Cloudflare-fiók és API-hitelesítő adatok                                                                           |
+| **Gemini**        | Gemini Flash modellcsalád                                                                    | Projektenként és modellenként változó sebességkorlátok; a kiemelt ajánlat nem tartalmaz rögzített havi tokenkeretet                                      | Google AI Studio API-kulcs; ellenőrizze a projekt aktív korlátait                                                  |
+| **Groq**          | Llama, GPT-OSS és Qwen modellek                                                              | Az auditált keret becslése szerint ~15M token/hó                                                                                                         | Groq API-kulcs; sebességkorlátok érvényesek                                                                        |
 
-### Regisztrációs keretek és szolgáltatóspecifikus jóváírások
+### Regisztrációs keretek és szolgáltatóspecifikus kreditek
 
-Ezek a szolgáltatók **ingyenes krediteket** biztosítanak a regisztrációkor:
+Ezek a szolgáltatók regisztrációs kereteket vagy promóciós krediteket kínálnak a jogosultsági szabályaik függvényében. A 2026-10-08-i ellenőrzés szerint a [Cerebras díjszabása](https://www.cerebras.ai/pricing) fizetési mód megadását követeli meg az egyszeri $5 kredithez, amely 30 nap után lejár; ez nem ismétlődő tokenkvóta. A [Gemini sebességkorlátai](https://ai.google.dev/gemini-api/docs/rate-limits) projektenként, modellenként és csomagonként eltérnek, ezért nem számítjuk át őket garantált havi tokenkeretre.
 
-| Szolgáltató   | Ingyenes kreditek                                                                   | Modellek                   | Igénylés módja                                                     |
-| ------------- | ----------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------ |
-| **DeepSeek**  | 5M ingyenes token                                                                   | DeepSeek V4                | Regisztráció a platform.deepseek.com oldalon                       |
-| **LongCat**   | Egyszeri, 10M tokenes keret                                                         | LongCat 2.0                | API-kulcs + KYC; használatalapú fizetés a keret után               |
-| **Vertex AI** | $300 regisztrációs kredit, amely a költségvetési modellben ~300M tokenként szerepel | Gemini- és partnermodellek | Google Cloud-fiók; számlázási és jogosultsági szabályok érvényesek |
+| Szolgáltató   | Ingyenes kreditek                                                                   | Modellek                     | Igénylés módja                                                     |
+| ------------- | ----------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| **Cerebras**  | Egyszeri $5 promóciós kredit; 30 nap után lejár                                     | Aktuális inferenciakatalógus | Fiók és érvényes fizetési mód                                      |
+| **DeepSeek**  | 5M ingyenes token                                                                   | DeepSeek V4                  | Regisztráció a platform.deepseek.com oldalon                       |
+| **LongCat**   | Egyszeri 10M-tokenes keret                                                          | LongCat 2.0                  | API-kulcs + KYC; a keret felhasználása után használatalapú fizetés |
+| **Vertex AI** | $300 regisztrációs kredit, amely a költségvetési modellben ~300M tokenként szerepel | Gemini és partnermodellek    | Google Cloud-fiók; számlázási és jogosultsági szabályok érvényesek |
 
-### Egyéb korlátozott hozzáférés
+### Egyéb korlátozott hozzáférési lehetőségek
 
 Ezek a szolgáltatók meghatározott korlátokkal rendelkező **ingyenes csomagokat** kínálnak:
 
-| Szolgáltató                | Ingyenes korlát                                                                                                                 | Modellek                             | Ideális felhasználás |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------- |
-| **GitHub Models**          | Az auditált, megosztott keret becslések szerint ~18M token/hónap                                                                | Modellek széles körű kiértékelése    |
-| **Hugging Face**           | Kis méretű, havonta megújuló keret                                                                                              | Kísérletek és modellválaszték        |
-| **OpenRouter free models** | Megosztott, kérelmek száma alapján korlátozott keret; egy opcionális, egyszeri feltöltés növeli a rendszeresen megújuló keretet | Széles körű tartalékmodell-katalógus |
-| **AI Horde**               | Kulcs nélküli közösségi kapacitás; az elérhetőség változó                                                                       | Alkalmi elosztott inferencia         |
+| Szolgáltató                | Ingyenes korlát                                                                                            | Modellek                             | Leginkább erre alkalmas |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------------- |
+| **GitHub Models**          | Az auditált megosztott keret becslése szerint ~18M token/hó                                                | Modellek széles körű kiértékelése    |
+| **Hugging Face**           | Kis méretű, ismétlődő havi keret                                                                           | Kísérletek és modellválaszték        |
+| **OpenRouter free models** | Megosztott, kérésszámmal korlátozott keret; egy opcionális, egyszeri feltöltés növeli az ismétlődő keretet | Széles körű tartalékmodell-katalógus |
+| **AI Horde**               | Kulcs nélküli közösségi kapacitás; az elérhetőség változó                                                  | Alkalomszerű elosztott inferencia    |
 
 ---
 
 ## Az ingyenes csomagok halmozása
 
-Az OmniRoute varázsa az **ingyenes csomagok halmozásában** rejlik. Ahelyett, hogy egyetlen szolgáltatóra támaszkodna, több ingyenes szolgáltatót csatlakoztathat, az OmniRoute pedig automatikusan kiválasztja a legjobbat minden egyes kéréshez.
+Az OmniRoute ereje az **ingyenes csomagok halmozásában** rejlik. Ahelyett, hogy egyetlen szolgáltatóra támaszkodna, több ingyenes szolgáltatót csatlakoztathat, és az OmniRoute automatikusan kiválasztja az egyes kérésekhez leginkább megfelelőt.
 
-### Példa: Szélesebb körű ingyenes lefedettség
+### Példa: szélesebb körű ingyenes lefedettség
 
-Csatlakoztasson több szolgáltatót, hogy csökkentse az egyetlen kvótától való függőséget:
+Csatlakoztasson több szolgáltatót, hogy csökkentse az egyetlen kvótától való függést:
 
-1. **Gemini** — rendszeresen megújuló API-kulcsos kvóta
-2. **Groq** — rendszeresen megújuló API-kulcsos kvóta
+1. **Gemini** — megújuló API-kulcsos kvóta
+2. **Groq** — megújuló API-kulcsos kvóta
 3. **Pollinations** — kulcs nélküli, sebességkorlátozott hozzáférés
-4. **LongCat** — egyszeri regisztrációs keret (KYC szükséges)
+4. **LongCat** — egyszeri regisztrációs jóváírás (KYC szükséges)
 
 Ezután használja a `model: "auto"` beállítást, és az OmniRoute:
 
-- Először a legmagasabb rangsorolású, megfelelő kapcsolatot próbálja meg
-- Ha annak kvótája kimerült, vagy az állapot-ellenőrzése sikertelen → megpróbálja a következő konfigurált szolgáltatót
-- Ha a kulcs nélküli szolgáltató nem érhető el → továbblép a fennmaradó célpontokra
-- Ha mindegyik sikertelen → tartalékként a LongCat szolgáltatást használja
+- Először a legmagasabb rangú, használható kapcsolatot próbálja meg
+- Ha annak kvótája kimerült, vagy az állapotellenőrzése sikertelen → megpróbálja a következő beállított szolgáltatót
+- Ha a kulcs nélküli szolgáltató nem érhető el → folytatja a próbálkozást a fennmaradó célokkal
+- Ha egyetlen használható kapcsolat sem jár sikerrel → hibát ad vissza; a regisztrációs jóváírások csak addig használhatók fel, amíg érvényesek és rendelkezésre állnak
 
 **Eredmény**: szélesebb körű ingyenes lefedettség automatikus tartalékra váltással — nem pedig korlátlan kapacitásra vonatkozó garancia.
 
@@ -91,41 +88,40 @@ Nyissa meg a `http://localhost:20128` címet a böngészőjében.
 
 ### 2. lépés: Lépjen a szolgáltatókhoz
 
-Kattintson az oldalsáv **Providers** elemére.
+Kattintson az oldalsáv **Szolgáltatók** elemére.
 
-### 3. lépés: Kattintson a szolgáltató hozzáadása gombra
+### 3. lépés: Kattintson a Szolgáltató hozzáadása lehetőségre
 
-Kattintson a **+ Add Provider** gombra.
+Kattintson a **+ Szolgáltató hozzáadása** gombra.
 
 ### 4. lépés: Válasszon egy ingyenes szolgáltatót
 
-Böngésszen a katalógusban, és tekintse át az egyes szolgáltatók aktuális `hasFree`, hitelesítési, kvóta-, adatvédelmi és szolgáltatási feltételekre vonatkozó metaadatait. A szolgáltatói kártya és az
+Böngéssze át a katalógust, és ellenőrizze az egyes szolgáltatók aktuális `hasFree`, hitelesítési, kvóta-, adatvédelmi és felhasználási feltételekre vonatkozó metaadatait. A szolgáltatói kártya és az
 [Ingyenes csomagok referenciája](../reference/FREE_TIERS.md) megkülönbözteti a rendszeresen megújuló kereteket,
-a korlátlan vagy kulcs nélküli hozzáférést, a regisztrációs jóváírásokat, a megszüntetett bejegyzéseket és a magasabb kockázatú forrásokat.
+a korlátlan vagy kulcs nélküli hozzáférést, a regisztrációs krediteket, a megszüntetett bejegyzéseket és a magasabb kockázatú forrásokat.
 
-### 5. lépés: Kattintson a csatlakozás gombra
+### 5. lépés: Kattintson a Csatlakozás lehetőségre
 
-`NOAUTH` szolgáltató esetén nincs szükség hitelesítési adatra. Az OAuth- és API-kulcsos szolgáltatókat
-a dokumentációjukban ismertetett fiókfolyamaton keresztül kell csatlakoztatni.
+Egy `NOAUTH` szolgáltató esetén az OmniRoute nem kér hitelesítő adatot a külső szolgáltatáshoz. Ez nem garantálja, hogy a külső szolgáltatás elfogad külső fejlesztésű klienseket, vagy rendelkezik szabad kapacitással. Az OAuth- és API-kulcs-alapú szolgáltatókat a dokumentált fiókfolyamatukon keresztül kell csatlakoztatni. Amikor az útválasztó hitelesítése engedélyezve van, a kliens továbbra is az **Irányítópult → Végpontok** alatt megjelenő OmniRoute API-kulcsot használja.
 
 ### 6. lépés: Ismételje meg
 
-Csatlakoztasson több olyan szolgáltatót, amelyek feltételei és adatvédelmi modellje megfelel az Ön felhasználási esetének.
+Csatlakoztasson több olyan szolgáltatót, amelyek felhasználási feltételei és adatvédelmi modellje megfelel az Ön felhasználási esetének.
 
 ---
 
 ## A katalógus helyes értelmezése
 
-- A `NOAUTH` azt jelenti, hogy az OmniRoute nem kér szolgáltatói hitelesítési adatot; ez nem
+- A `NOAUTH` azt jelenti, hogy az OmniRoute nem kér szolgáltatói hitelesítő adatot; ez nem
   garantálja a rendelkezésre állást, az adatvédelmet vagy a korlátlan kapacitást.
-- A `hasFree` felderítési metaadat. Jelölhet rendszeresen megújuló kvótát, kulcs nélküli hozzáférést,
-  regisztrációs jóváírást, jóváhagyási programot vagy promóciót.
-- A `recurring-uncapped` azt jelenti, hogy nem állt rendelkezésre közzétett tokenkorlát; a sebességre és
-  az egyidejű kérésekre vonatkozó korlátozások továbbra is érvényesek.
-- A `one-time-initial` keret nem újul meg a regisztrációs jóváírás felhasználása után.
-- A `tos: avoid` arra figyelmeztet, hogy használat előtt tekintse át a szolgáltató feltételeit és a fiókkal kapcsolatos kockázatokat.
-- A `discontinued` jelölésű bejegyzések történeti bizonyítékként maradnak meg, és nem szabad őket
-  jelenleg ingyenesként bemutatni.
+- A `hasFree` felderítési metaadat. Jelölhet megújuló kvótát, kulcs nélküli hozzáférést,
+  regisztrációs kreditet, jóváhagyási programot vagy promóciót.
+- A `recurring-uncapped` azt jelenti, hogy nem érhető el közzétett tokenkorlát; a sebességi
+  és párhuzamossági korlátozások továbbra is érvényesek.
+- A `one-time-initial` nem újul meg a regisztrációkor kapott keret felhasználása után.
+- A `tos: avoid` szolgáltatók alapértelmezés szerint ki vannak zárva az automatikus útválasztásból (`excludeTosAvoid`). Egy fiók csatlakoztatása nem kerüli meg ezt a szűrőt. Az üzemeltetői felülbírálást minden esetben meg kell előznie a szolgáltatói feltételek és a fiókkockázat felülvizsgálatának.
+- A `discontinued` jelölésű bejegyzések történeti bizonyítékként maradnak meg, és nem szabad
+  őket jelenleg ingyenesként feltüntetni.
 
 ---
 
@@ -157,20 +153,16 @@ kvótájának vagy hozzáférési szabályzatának megkerülésére.
 
 ---
 
-## Az ingyenes csomagok számítása
+## Ingyenes csomagok számítása
 
-Az élő, készlet szerint deduplikált katalógus jelenleg a következőket jelzi:
+Az élő, közös keretek alapján deduplikált katalógus jelenleg a következőket jelzi:
 
-| Mérőszám                                                        |                               Jelenlegi auditált érték | Értelmezés                                                                                                                                  |
-| --------------------------------------------------------------- | -----------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ismétlődő, számszerűsített keret                                |                                 **~1,62B token/hónap** | A megosztott készletek egyszer vannak számítva; a korlátlan szolgáltatók nem szerepelnek az összegben                                       |
-| Első hónap regisztrációs keretekkel                             |                                       **~2,22B token** | Ismétlődő összeg, valamint egyszeri és ismétlődő kreditek                                                                                   |
-| Auditált ingyenesmodell-készlet                                 | **35 ismétlődő készletkulcs / 482 katalógusbejegyzés** | 475 aktív + 7 megszüntetett; elkülönül a 357 szolgáltatót tartalmazó katalógustól                                                           |
-| Képviselt ismétlődő/kulcs nélküli, örökre ingyenes szolgáltatók |                                                 **53** | Egyedi szolgáltatók az ismétlődő napi/havi/kreditalapú/korlátlan és kulcs nélküli katalógustípusokban; a jogosultsághoz kötött sorok nélkül |
-| `hasFree` jelölésű szolgáltatói katalógusbejegyzések            |                                          **152 / 357** | Tágabb szolgáltatói metaadatok; nem mindegyik rendelkezik számszerűsíthető ismétlődő kvótával                                               |
+| Mérőszám                            | Jelenlegi auditált érték | Értelmezés                                                                                 |
+| ----------------------------------- | -----------------------: | ------------------------------------------------------------------------------------------ |
+| Ismétlődő, számszerűsített keret    |   **~1.62B token/hónap** | A közös keretek csak egyszer szerepelnek; a korlátlan szolgáltatók kimaradnak az összegből |
+| Első hónap regisztrációs keretekkel |         **~2.22B token** | Az ismétlődő összeg, valamint az egyszeri és ismétlődő jóváírások együtt                   |
 
-Ezeket az értékeket az `open-sse/config/freeModelCatalog.ts` alapján számítjuk; a készletek deduplikálásával, az ÁSZF-jelölésekkel,
-a megszüntetett bejegyzésekkel és a regisztrációs kreditek módszertanával kapcsolatban lásd az
+Ezek különálló, jogosult fiókokra vonatkozó, teljes katalógust lefedő becslések, nem pedig az OmniRoute által biztosított keret vagy egy új telepítésre vonatkozó előrejelzés. A felhasználható kapacitás a csatlakoztatott szolgáltatóktól és azok aktuális feltételeitől függ. Az értékeket az `open-sse/config/freeModelCatalog.ts` alapján számítjuk ki; a közös keretek deduplikálásával, a szolgáltatási feltételekre vonatkozó jelölésekkel, a megszüntetett bejegyzésekkel és a regisztrációs jóváírások módszertanával kapcsolatban lásd az
 [Ingyenes csomagok referenciáját](../reference/FREE_TIERS.md).
 
 ---

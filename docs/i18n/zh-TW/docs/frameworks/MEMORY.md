@@ -155,32 +155,32 @@ RRF(d) = Σ  1 / (k + rank_i(d))      其中 k = 60（可透過 MEMORY_RRF_K 設
 
 `src/shared/schemas/memory.ts` 中的 `MemorySettingsExtended` 提供九個嵌入與向量欄位，並透過 `src/lib/db/settings.ts` 持久化：
 
-| 欄位                     | 類型                                               | 預設值   | 說明                                             |
-| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 要使用的嵌入來源                                 |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的提供者／模型         |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | 僅供 Memory 使用的 OpenAI 相容端點基礎 URL       |
-| `customModelId`          | `string \| null`                                   | `null`   | 傳送至自訂端點的模型 ID                          |
-| `transformersEnabled`    | `boolean`                                          | `false`  | 選擇啟用 Transformers.js（MiniLM，約 400MB）     |
-| `staticEnabled`          | `boolean`                                          | `false`  | 選擇啟用靜態 potion-base-8M 本機模型             |
-| `rerankEnabled`          | `boolean`                                          | `false`  | 啟用重新排序步驟（每個請求增加 200–500ms）       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | 採用 `provider/model` 格式的重新排序提供者／模型 |
+| 欄位                     | 類型                                               | 預設值   | 說明                                         |
+| ------------------------ | -------------------------------------------------- | -------- | -------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 要使用的嵌入來源                             |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` 格式的提供者/模型           |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | 僅供記憶使用、與 OpenAI 相容的端點基底 URL   |
+| `customModelId`          | `string \| null`                                   | `null`   | 傳送至自訂端點的模型 ID                      |
+| `transformersEnabled`    | `boolean`                                          | `false`  | 選擇啟用 Transformers.js（MiniLM，約 400MB） |
+| `staticEnabled`          | `boolean`                                          | `false`  | 選擇啟用靜態 potion-base-8M 本機模型         |
+| `rerankEnabled`          | `boolean`                                          | `false`  | 啟用重新排序步驟（每個請求增加 200-500ms）   |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` 格式的重新排序提供者/模型   |
 
-`rerankProviderModel` 由 `POST /v1/rerank` 解析（透過回送介面呼叫），因此它接受該路由所接受的任何內容：精選的雲端重新排序模型（`cohere/rerank-v3.5`、`jina-ai/jina-reranker-v3.5`……），或採用 `<node-prefix>/<model>` 格式的 OpenAI 相容提供者節點（例如，對於 TEI/Infinity 主機，可使用 `skilled-mini/bge-reranker-v2-m3`）。回送節點一律符合資格；位於其他主機（LAN、Tailscale）上的節點還需要 `RERANK_REMOTE_PROVIDER_NODES` 功能旗標，且必須通過提供者的傳出 URL 政策——請參閱[功能旗標](../reference/FEATURE_FLAGS.md)。儀表板選擇器會列出精選提供者與本機節點；任何有效的 `provider/model` 字串都可以透過 `PUT /api/settings/memory` 直接設定。
+`rerankProviderModel` 由 `POST /v1/rerank` 解析（透過迴路介面呼叫），因此可接受該路由所接受的任何項目：精選的雲端重新排序模型（`cohere/rerank-v3.5`、`jina-ai/jina-reranker-v3.5`，……），或以 `<node-prefix>/<model>` 表示的 OpenAI 相容提供者節點（例如，TEI/Infinity 主機可使用 `skilled-mini/bge-reranker-v2-m3`）。迴路節點以及列於 `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` 中的主機名稱（例如 Docker/Compose 服務名稱）一律符合使用資格；位於其他主機（LAN、Tailscale）上的節點還需要啟用 `RERANK_REMOTE_PROVIDER_NODES` 功能旗標，且必須通過提供者對外 URL 政策——請參閱[功能旗標](../reference/FEATURE_FLAGS.md)。儀表板選擇器會列出精選提供者與本機節點；任何有效的 `provider/model` 字串都可以透過 `PUT /api/settings/memory` 直接設定。
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | 要使用的向量後端 |
 
 這些設定會透過 `GET /PUT /api/settings/memory` 公開（結構描述為 `MemorySettingsExtendedSchema`）。
 
 對於 `remote` 來源，Memory 也接受選用的 `customBaseUrl` 和
-`customModelId` 設定。兩者可共同選取 OpenAI 相容的 `/embeddings`
-端點與模型，而不變更全域嵌入登錄表。端點在使用前會先正規化，
-並由提供者的傳出 URL 政策檢查：必須使用 HTTP(S)、不允許內嵌認證資訊
-與查詢字串，且雲端中繼資料位址仍會被封鎖。空值會保留所選的登錄表提供者。
-傳回儀表板的錯誤會經過清理，且端點認證資訊永遠不會記錄至日誌。
+`customModelId` 設定。兩者搭配使用時，可以在不變更全域嵌入登錄檔的情況下，
+選取與 OpenAI 相容的 `/embeddings` 端點和模型。端點在使用前會經過
+正規化，並由提供者對外 URL 政策檢查：必須使用 HTTP(S)，不接受內嵌認證資訊
+和查詢字串，且雲端中繼資料位址仍會遭到封鎖。空值會保留所選的登錄檔提供者。
+傳回儀表板的錯誤會經過清理，且端點認證資訊絕不會記錄於日誌中。
 
-> **TODO (D20)：** 此版本尚未實作 `global` 範圍（在所有 API 金鑰之間共用記憶）。
-> 這需要結構描述變更與全域擷取路徑。
-> 請另行追蹤。
+> **TODO (D20)：** `global` 範圍（在所有 API 金鑰之間共享記憶）尚未
+> 於此版本中實作。這需要變更結構描述並建立全域檢索
+> 路徑。請另行追蹤。
 
 ## 儲存層
 
@@ -814,10 +814,10 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ## MemoryBackend 提供者模式
 
-> **唯一真實來源：** `src/lib/memory/backend.ts`、`src/lib/memory/genericBackend.ts`、`src/lib/memory/manager.ts`
+> **真實來源：** `src/lib/memory/backend.ts`、`src/lib/memory/genericBackend.ts`、`src/lib/memory/manager.ts`
 > **測試：** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend 提供者模式在現有的記憶引擎之上導入一層**可插拔的後端抽象層**。記憶系統不再與單一儲存實作綁定，而是支援多種後端（SQLite、Obsidian、Notion、自訂 HTTP 後端），並可設定主要／備援路由。
+MemoryBackend 提供者模式在現有記憶體引擎之上引入了**可插拔的後端抽象層**。記憶體系統不再綁定單一儲存實作，而是支援多種後端（SQLite、Obsidian、Notion、自訂 HTTP 後端），並可設定主要／後援路由。
 
 ### 架構
 
@@ -831,9 +831,9 @@ MemoryBackend 提供者模式在現有的記憶引擎之上導入一層**可插�
 │                   MemoryManager                           │
 │           單例協調器 (manager.ts)                         │
 │                                                          │
-│  主要 ────► 後端 A  （例如 SQLite）                      │
-│  備援 ────► 後端 B  （例如 Obsidian）                    │
-│             後端 C  （例如透過 GenericBackend 的 Notion）│
+│  主要 ─────► 後端 A  (例如 SQLite)                        │
+│  後援 ─────► 後端 B  (例如 Obsidian)                      │
+│              後端 C  (例如透過 GenericBackend 的 Notion)  │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -844,7 +844,7 @@ MemoryBackend 提供者模式在現有的記憶引擎之上導入一層**可插�
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### 核心介面 (`backend.ts`)
+#### 核心介面（`backend.ts`）
 
 每個後端都必須實作 `MemoryBackend` 介面：
 
@@ -853,7 +853,7 @@ interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // 建立、讀取、更新、刪除
+  // CRUD
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -872,40 +872,40 @@ interface MemoryBackend {
 }
 ```
 
-#### MemoryManager (`manager.ts`)
+#### MemoryManager（`manager.ts`）
 
-此單例協調器會：
+單例協調器，負責：
 
-- 透過 `register(backend)` **註冊**後端 — 啟動時由 `index.ts` 呼叫
-- 透過 `configure(primary, fallbacks)` **設定**主要後端與備援後端
-- 將 CRUD／搜尋**路由**至主要後端，失敗時使用備援鏈
-- 定期對所有後端執行**健康檢查**
+- 透過 `register(backend)` **註冊**後端——啟動時由 `index.ts` 呼叫
+- 透過 `configure(primary, fallbacks)` **設定**主要後端與後援後端
+- 將 CRUD／搜尋操作**路由**至主要後端，並在失敗時使用後援鏈
+- 定期對所有後端執行**健康狀態檢查**
 
-**備援行為：**
+**後援行為：**
 
-| 操作     | 主要後端          | 備援後端                |
-| -------- | ----------------- | ----------------------- |
-| `create` | ✅ 僅主要後端     | ❌                      |
-| `get`    | ✅ 先嘗試主要後端 | ✅ 若為 null 則使用備援 |
-| `update` | ✅ 僅主要後端     | ✅ 即發即棄同步         |
-| `delete` | ✅ 僅主要後端     | ✅ 即發即棄同步         |
-| `list`   | ✅ 僅主要後端     | ❌                      |
-| `search` | ✅ 先使用主要後端 | ✅ 發生錯誤時使用備援   |
+| 操作     | 主要後端            | 後援後端              |
+| -------- | ------------------- | --------------------- |
+| `create` | ✅ 僅主要後端       | ❌                    |
+| `get`    | ✅ 先嘗試主要後端   | ✅ 結果為 null 時後援 |
+| `update` | ✅ 僅主要後端       | ✅ 非同步同步，不等待 |
+| `delete` | ✅ 僅主要後端       | ✅ 非同步同步，不等待 |
+| `list`   | ✅ 僅主要後端       | ❌                    |
+| `search` | ✅ 優先使用主要後端 | ✅ 發生錯誤時後援     |
 
-#### GenericMemoryBackend (`genericBackend.ts`)
+#### GenericMemoryBackend（`genericBackend.ts`）
 
-一種通用 HTTP 連接器，可將任何 REST API 轉接為 MemoryBackend。適用於：
+一個通用 HTTP 連接器，可將任何 REST API 轉接為 MemoryBackend。適用於：
 
-- **Notion** — 透過 Notion API 連線
-- **Obsidian** — 透過 Obsidian Local REST API 連線
-- **自訂後端** — 任何公開 RESTful 記憶 API 的服務
+- **Notion**——透過 Notion API 連線
+- **Obsidian**——透過 Obsidian Local REST API 連線
+- **自訂後端**——任何公開 RESTful 記憶體 API 的服務
 
 **設定：**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // 後端 API 的基礎 URL
-  apiKey?: string;           // 用於驗證的 Bearer 權杖
+  apiKey?: string;           // 用於驗證的 Bearer token
   headers?: Record<string, string>;  // 自訂 HTTP 標頭
   timeout?: number;          // 請求逾時時間（預設：30000ms）
   backendType?: string;      // 用於記錄日誌
@@ -942,7 +942,7 @@ createKnownBackend("notion"); // → 指向 api.notion.com/v1 的 GenericMemoryB
 
 #### 內建後端
 
-##### SQLiteBackend (`sqliteBackend.ts`)
+##### SQLiteBackend（`sqliteBackend.ts`）
 
 預設的主要後端。使用 `src/lib/memory/store.ts` 封裝現有的 SQLite 記憶體儲存區。啟動時會自動註冊。
 
@@ -951,21 +951,77 @@ import { sqliteBackend } from "./sqliteBackend";
 memoryManager.register(sqliteBackend);
 ```
 
-##### ObsidianBackend (`obsidianBackend.ts`)
+##### ObsidianBackend（`obsidianBackend.ts`）
 
-封裝現有的 Obsidian 整合功能（`src/lib/memory/obsidianBackend.ts`）。透過 Obsidian Local REST API 連線至 Obsidian vault。
+封裝現有的 Obsidian 整合（`src/lib/memory/obsidianBackend.ts`）。透過 Obsidian Local REST API 連線至 Obsidian vault。
+
+##### ClaudeMemBackend（`claudeMemBackend.ts`）
+
+本機 [claude-mem](https://github.com/thedotmack/claude-mem) worker 的轉接器——這是一個 Claude Code／Codex／Cursor 記憶體外掛程式，會將程式設計工作階段擷取為「觀察紀錄」。
+
+註冊後，`/api/memory` REST 路由與 A2A 記憶體搜尋便可讀取及寫入 claude-mem hook 所填入的相同儲存區。
+
+該 worker 僅綁定回送位址，而 `GenericMemoryBackend` 的 SSRF 防護會刻意拒絕此位址。此轉接器並未放寬該防護：主機已硬式編碼為 `127.0.0.1`，且設定 schema（`ClaudeMemBackendConfigSchema`、`.strict()`）僅接受：
+
+| 鍵          | 類型   | 預設值 | 備註                                                                                              |
+| ----------- | ------ | ------ | ------------------------------------------------------------------------------------------------- |
+| `port`      | number | —      | 必填，1024–65535。來自 claude-mem 設定檔的 worker 連接埠（預設為 `37700 + uid % 100`）。          |
+| `project`   | string | —      | 要使用的 claude-mem 專案。未設定 → 每個 OmniRoute API 金鑰都會對應至各自的專案（即 `apiKeyId`）。 |
+| `timeoutMs` | number | `5000` | 每個請求的逾時時間，100–30000。                                                                   |
+
+透過 `PUT /api/settings/memory` 啟用，並重新啟動 OmniRoute（後端只會在
+`initMemoryBackends()` 中註冊一次）：
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+若要將它設為 REST API 的儲存後端，請改用 `"primaryBackend": "claude-mem"`。無效的
+設定會被記錄（`claude-mem.backend.invalid_config`）並略過，因此 SQLite 仍會維持為主要後端。
+
+對應與限制：
+
+- ID 格式為 `claude-mem:<observationId>`；`get`/`delete` 會忽略其他後端的 ID，且不會發出
+  網路呼叫。
+- `create` → `POST /api/memory/save`；OmniRoute 欄位（`apiKeyId`、`sessionId`、`type`、
+  `key`、`metadata`）會存放在 claude-mem 的 `metadata.omniroute` 中，並在讀取時原樣還原。
+- `search` → `GET /api/search?format=json&type=observations`，並裁剪至 `maxTokens`
+  （字元數 / 4）。`list` → worker 的分頁觀察記錄端點（`total` 是下限值——worker
+  回傳的是 `hasMore`，而不是數量）。
+- 由 Hook 擷取的觀察記錄會將 `discovery` 對應至 `factual`、`decision` 對應至 `procedural`，以及將
+  `bugfix`/`feature`/`refactor`/`change` 對應至 `episodic`。
+- **不支援更新**（`update()` 回傳 `false`；觀察記錄不可變）且**不支援 TTL**
+  （會忽略 `expiresAt`）。claude-mem 會對內容相同的儲存操作進行去重，而不是依 `key` 執行 upsert。
+- 提示詞注入（`retrieval.ts`）和 `omniroute_memory_*` MCP 工具仍會直接讀取 SQLite——
+  它們不會經過 `memoryManager`，因此此後端不會向它們提供資料。
+
+**透過 OmniRoute 路由 claude-mem 自身的 LLM 呼叫。** claude-mem 會使用
+LLM 壓縮觀察記錄（預設使用 Claude Agent SDK）。其 `openai-compatible` 提供者可改為指向
+OmniRoute，以使用組合式備援與成本追蹤。在 `~/.claude-mem/settings.json` 中：
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API 金鑰>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute 模型或組合>"
+}
+```
 
 ### 設定
 
 記憶體後端設定儲存在應用程式設定資料表中，並透過 `src/lib/memory/settings.ts` 管理：
 
-| 設定     | 環境／設定鍵             | 預設值     | 說明                  |
-| -------- | ------------------------ | ---------- | --------------------- |
-| 主要後端 | `memoryPrimaryBackend`   | `"sqlite"` | 主要後端的 ID         |
-| 備援後端 | `memoryFallbackBackends` | `[]`       | 依序排列的備援後端 ID |
-| 後端設定 | `memoryBackendConfigs`   | `{}`       | 各後端的設定覆寫      |
+| 設定     | 環境/設定鍵              | 預設值     | 說明                    |
+| -------- | ------------------------ | ---------- | ----------------------- |
+| 主要後端 | `memoryPrimaryBackend`   | `"sqlite"` | 主要後端的 ID           |
+| 備援後端 | `memoryFallbackBackends` | `[]`       | 依順序排列的備援後端 ID |
+| 後端設定 | `memoryBackendConfigs`   | `{}`       | 各後端的設定覆寫        |
 
-設定會透過 `normalizeMemorySettings()` 正規化，並快取於 `getMemorySettings()`。
+設定會透過 `normalizeMemorySettings()` 正規化，並在 `getMemorySettings()` 中快取。
 
 ### 初始化流程
 
@@ -974,9 +1030,10 @@ memoryManager.register(sqliteBackend);
   → index.ts 匯入（副作用）：註冊 SQLiteBackend
   → 從應用程式生命週期呼叫 initMemoryBackends()：
       1. 載入設定（getMemorySettings）
+      1b. 註冊 backendConfigs 中存在的選用後端（claude-mem）
       2. 設定主要後端與備援後端
-      3. 初始化所有後端（健康狀態檢查）
-      4. 準備接收請求
+      3. 初始化所有後端（健康檢查）
+      4. 準備處理請求
 ```
 
 ### 新增後端
@@ -984,7 +1041,7 @@ memoryManager.register(sqliteBackend);
 1. 在 `src/lib/memory/<name>Backend.ts` 中**實作 `MemoryBackend`** 介面
 2. 從 `src/lib/memory/index.ts` **匯出**
 3. 啟動時使用 `memoryManager.register(yourBackend)` **註冊**
-4. 透過設定進行**設定**：將 `memoryPrimaryBackend` 設為後端 ID
+4. 透過設定進行**設定**：將 `memoryPrimaryBackend` 設為您的後端 ID
 5. 以 `src/lib/memory/__tests__/generic-backend.test.ts` 作為參考進行**測試**
 
 #### 範例：Brain 後端
@@ -1016,15 +1073,15 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 預期輸出：**35 項測試，全部通過**，涵蓋：
 
 - 建構函式（2）
-- 健康狀態檢查（4）— 成功、失敗 500、網路錯誤、延遲
-- 初始化（2）— 成功、失敗
-- 建立（2）— 預設端點、自訂端點
-- 取得（4）— 成功、404 → null、非 404 時擲出例外、自訂路徑參數
-- 更新（2）— 成功、404 → false
-- 刪除（2）— 成功、404 → false
-- 列出（2）— 查詢參數、自訂參數名稱
-- 搜尋（3）— 查詢參數、自訂端點、選項序列化
-- 驗證標頭（2）— Bearer 權杖、自訂標頭
+- 健康檢查（4）——成功、500 失敗、網路錯誤、延遲
+- 初始化（2）——成功、失敗
+- 建立（2）——預設端點、自訂端點
+- 取得（4）——成功、404 → null、非 404 時拋出錯誤、自訂路徑參數
+- 更新（2）——成功、404 → false
+- 刪除（2）——成功、404 → false
+- 列出（2）——查詢參數、自訂參數名稱
+- 搜尋（3）——查詢參數、自訂端點、選項序列化
+- 驗證標頭（2）——Bearer token、自訂標頭
 - 工廠函式（1）
 
 #### 類型檢查

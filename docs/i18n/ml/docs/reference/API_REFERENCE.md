@@ -4,9 +4,12 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇮 [fi](../../../fi/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **ഭാഷകൾ:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
 
-OmniRoute API-യുടെ പ്രധാന റഫറൻസ്. ഇത് പൊതുവായ `/v1` ഇന്റർഫേസും ഏറ്റവും കൂടുതൽ ഉപയോഗിക്കുന്ന മാനേജ്മെന്റ് എൻഡ്പോയിന്റുകളും ഉൾക്കൊള്ളുന്നു; മെഷീൻ വായനാസൗഹൃദമായ [`docs/openapi.yaml`](../openapi.yaml)-ഉം `src/app/api/`-ന് കീഴിലുള്ള റൂട്ട് ട്രീയും സമഗ്രമായ ഉറവിടങ്ങളാണ്.
+OmniRoute API-യുടെ പ്രധാന റഫറൻസ്. ഇത് പൊതുവായ `/v1` ഇന്റർഫേസും ഏറ്റവും കൂടുതൽ ഉപയോഗിക്കുന്ന മാനേജ്മെന്റ് എൻഡ്പോയിന്റുകളും ഉൾക്കൊള്ളുന്നു; മെഷീൻ വായനയോഗ്യമായ [`docs/openapi.yaml`](../openapi.yaml), `src/app/api/`-ന് കീഴിലുള്ള റൂട്ട് ട്രീ എന്നിവയാണ് സമഗ്രമായ ഉറവിടങ്ങൾ.
+
+OpenAI-അനുയോജ്യമായ പ്രോട്ടോക്കോളിന്റെയും പ്രൊവൈഡർ ശേഷി മാട്രിക്സിന്റെയും കേന്ദ്രീകൃത വിവരങ്ങൾക്ക്,
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md) കാണുക.
 
 ---
 
@@ -189,7 +192,7 @@ X-OmniRoute-Compression: <mode>; source=<source>
 
 ---
 
-## എംബെഡ്ഡിങ്ങുകൾ
+## എംബെഡ്ഡിംഗുകൾ
 
 ```bash
 POST /v1/embeddings
@@ -202,14 +205,14 @@ Content-Type: application/json
 }
 ```
 
-ലഭ്യമായ ദാതാക്കൾ: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, Jina AI.
+ലഭ്യമായ പ്രൊവൈഡറുകൾ: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, Jina AI.
 
-കാറ്റലോഗ് ഐഡികൾ `provider/model` രൂപത്തിലാണ് (ഉദാഹരണം: `jina-ai/jina-embeddings-v5-omni-small`). രജിസ്ട്രിയിൽ ദൃശ്യമാകുന്ന ദാതാവിന്റെ പ്രിഫിക്സ് ഇല്ലാത്ത Jina മോഡൽ ഐഡികളും (ഉദാഹരണത്തിന് `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`) പരിഹരിക്കപ്പെടും. Jina embed/rerank/classify/segment ആദ്യം ഡാഷ്ബോർഡിലെ `jina-ai` ക്രെഡൻഷ്യലുകൾ ഉപയോഗിക്കുന്നു; ഡാഷ്ബോർഡ് കീ ഇല്ലാത്തപ്പോൾ മാത്രം `JINA_AI_API_KEY` ഒരു പകരമാർഗമാണ്. `jina-reader` കാർഡ് Reader / `r.jina.ai`-യ്ക്ക് മാത്രമുള്ളതാണ് (`POST /v1/web/fetch`), അത് ഒരിക്കലും embeddings അല്ലെങ്കിൽ rerank നൽകില്ല.
+കാറ്റലോഗ് ഐഡികൾ `provider/model` എന്ന രൂപത്തിലാണ് (ഉദാഹരണം: `jina-ai/jina-embeddings-v5-omni-small`). രജിസ്ട്രിയിൽ ദൃശ്യമാകുന്ന പ്രൊവൈഡർ പ്രിഫിക്സ് ഇല്ലാത്ത Jina മോഡൽ ഐഡികളും (ഉദാഹരണത്തിന് `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`) റെസോൾവ് ചെയ്യപ്പെടും. Jina embed/rerank/classify/segment ആദ്യം ഡാഷ്ബോർഡിലെ `jina-ai` ക്രെഡൻഷ്യലുകൾ ഉപയോഗിക്കുന്നു; ഡാഷ്ബോർഡ് കീ ഇല്ലാത്തപ്പോൾ മാത്രമാണ് `JINA_AI_API_KEY` ഒരു ഫാൾബാക്കായി ഉപയോഗിക്കുന്നത്. `jina-reader` കാർഡ് Reader / `r.jina.ai`-ക്ക് മാത്രമുള്ളതാണ് (`POST /v1/web/fetch`), അത് ഒരിക്കലും embeddings അല്ലെങ്കിൽ rerank നൽകുന്നില്ല.
 
-മൾട്ടിമോഡൽ പിന്തുണയുണ്ടെന്ന് അറിയിക്കുന്ന രജിസ്ട്രി മോഡലുകൾ, ദാതാവിനെ ആശ്രയിക്കാത്ത ഘടനാബദ്ധമായ പരമാവധി 32
+മൾട്ടിമോഡൽ പിന്തുണ പരസ്യപ്പെടുത്തുന്ന രജിസ്ട്രി മോഡലുകൾ, പ്രൊവൈഡറിൽനിന്ന് സ്വതന്ത്രമായ ഘടനാബദ്ധമായ പരമാവധി 32
 ഇനങ്ങളും സ്വീകരിക്കുന്നു. മീഡിയ ഇനങ്ങളുടെ തരങ്ങൾ `text`, `image`, `audio`, `video`, `document` എന്നിവയാണ്. അവയുടെ മീഡിയ `source`
 ഒന്നുകിൽ `{"type":"url","url":"https://..."}` അല്ലെങ്കിൽ
-`{"type":"base64","data":"...","media_type":"..."}` ആയിരിക്കും.
+`{"type":"base64","data":"...","media_type":"..."}` ആണ്.
 
 Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-v5-omni-nano`,
 കൂടാതെ ഫാമിലി അപരനാമമായ `jina-ai/jina-embeddings-v5-omni` → omni-small) Jina-യുടെ നേറ്റീവ്
@@ -230,27 +233,32 @@ EmbeddingsV5Request ഡോക്യുമെന്റുകളും സ്വ�
 }
 ```
 
-നേറ്റീവ് `{ image | audio | video | pdf }` മൂല്യങ്ങൾ ഒരു പൊതു HTTPS URL, ഒരു `data:` URI, അല്ലെങ്കിൽ അസംസ്കൃത
-base64 ആകാം. OmniRoute ആ ഒബ്ജക്റ്റുകളെ സ്ട്രിങ്ങാക്കി മാറ്റുകയോ നേറ്റീവ് ഇമേജ് URL-കൾ ഫെച്ച് ചെയ്യുകയോ ഇല്ല — പൊതു
-മീഡിയ Jina തന്നെ വീണ്ടെടുക്കുന്നു. അധിക Jina ഫീൽഡുകൾ (`task`, `normalized`, `truncate`, `embedding_type`)
-ഫോർവേഡ് ചെയ്യപ്പെടുന്നു. ടെക്സ്റ്റ് മാത്രമുള്ള Jina SKU-കൾ ടെക്സ്റ്റ് അല്ലാത്ത ഡോക്യുമെന്റുകൾ ഇപ്പോഴും നിരസിക്കും.
+നേറ്റീവ് `{ image | audio | video | pdf }` മൂല്യങ്ങൾ ഒരു പബ്ലിക് HTTPS URL, ഒരു `data:` URI, അല്ലെങ്കിൽ റോ
+base64 ആയിരിക്കാം. OmniRoute ആ ഒബ്ജക്റ്റുകളെ സ്ട്രിംഗുകളാക്കി മാറ്റുകയോ നേറ്റീവ് ഇമേജ് URL-കൾ ഫെച്ച് ചെയ്യുകയോ ചെയ്യുന്നില്ല — Jina തന്നെ
+പബ്ലിക് മീഡിയ വീണ്ടെടുക്കുന്നു. അധിക Jina ഫീൽഡുകൾ (`task`, `normalized`, `truncate`, `embedding_type`)
+ഫോർവേഡ് ചെയ്യപ്പെടുന്നു. ടെക്സ്റ്റ് മാത്രമുള്ള Jina SKU-കൾ ഇപ്പോഴും ടെക്സ്റ്റ് അല്ലാത്ത ഡോക്യുമെന്റുകൾ നിരസിക്കുന്നു.
 
 സുരക്ഷാ, ട്രാൻസ്പോർട്ട് പരിധികൾ:
 
-- റിമോട്ട് മീഡിയ URL-കൾ പൊതു HTTPS ആയിരിക്കണം. കാനോനിക്കൽ `{type,source:url}` ഇനങ്ങൾ
-  സെർവർ ഭാഗത്ത് ഫെച്ച് ചെയ്യപ്പെടുകയും (റീഡയറക്ട് പുനഃസാധൂകരണം, സമയപരിധി, വലുപ്പപരിധികൾ, പൊതു DNS, കണക്ഷൻ പിന്നിങ്)
-  ദാതാവിലേക്കുള്ള കോളിനു മുമ്പ് ഇൻലൈൻ ചെയ്യപ്പെടുകയും ചെയ്യും. Jina-നേറ്റീവ് `{image:"https://..."}` ഇനങ്ങൾ
-  അതേ പൊതു-HTTPS പരിശോധനയ്ക്കുശേഷം അതേപടി ഫോർവേഡ് ചെയ്യപ്പെടും; Jina URL ഫെച്ച് ചെയ്യും.
-- ഇൻലൈൻ base64 മീഡിയ ഓരോ ഇനത്തിനും ഡീകോഡ് ചെയ്ത 8 MiB ആയും, അഭ്യർത്ഥനയിലാകെ ഡീകോഡ് ചെയ്ത 16 MiB ആയും പരിമിതപ്പെടുത്തിയിരിക്കുന്നു.
+- റിമോട്ട് മീഡിയ URL-കൾ പബ്ലിക് HTTPS ആയിരിക്കണം. കാനോണിക്കൽ `{type,source:url}` ഇനങ്ങൾ
+  സെർവർ ഭാഗത്ത് ഫെച്ച് ചെയ്യപ്പെടുകയും (റീഡയറക്ട് പുനഃസാധൂകരണം, ടൈംഔട്ട്, വലുപ്പ പരിധികൾ, പബ്ലിക് DNS, കണക്ഷൻ പിന്നിംഗ്)
+  പ്രൊവൈഡർ കോളിന് മുമ്പ് ഇൻലൈൻ ചെയ്യപ്പെടുകയും ചെയ്യുന്നു. Jina-നേറ്റീവ് `{image:"https://..."}` ഇനങ്ങൾ
+  അതേ പബ്ലിക്-HTTPS പരിശോധനയ്ക്കുശേഷം അതേപടി ഫോർവേഡ് ചെയ്യപ്പെടുന്നു; Jina URL ഫെച്ച് ചെയ്യുന്നു.
+- ഇൻലൈൻ base64 മീഡിയ ഓരോ ഇനത്തിനും ഡീകോഡ് ചെയ്ത 8 MiB ആയും മുഴുവൻ റിക്വസ്റ്റിലുമായി ഡീകോഡ് ചെയ്ത 16 MiB ആയും പരിമിതപ്പെടുത്തിയിരിക്കുന്നു.
 
-ദാതാവിനായുള്ള പരിവർത്തനം (കാനോനിക്കൽ ഇനങ്ങൾ ഒരിക്കലും മാറ്റമില്ലാതെ ഫോർവേഡ് ചെയ്യില്ല):
+പ്രൊവൈഡർ പരിഭാഷ (കാനോണിക്കൽ ഇനങ്ങൾ ഒരിക്കലും മാറ്റമില്ലാതെ ഫോർവേഡ് ചെയ്യപ്പെടില്ല):
 
-- Jina മൾട്ടിമോഡൽ മോഡലുകൾ: ഓരോ ടോപ്പ്-ലെവൽ ഇനവും ഇൻലൈൻ മീഡിയയ്ക്ക് data URI-കൾ ഉപയോഗിച്ച്
-  ഒരു മോഡാലിറ്റി-കീഡ് ഒബ്ജക്റ്റായി (`text` / `image` / `audio` / `video` / `pdf`) മാറുന്നു; ഓരോ
-  ടോപ്പ്-ലെവൽ ഇനത്തിനും ഒരു വെക്റ്റർ.
-- Gemini Embedding 2 ഫാമിലി: ഒരു ടോപ്പ്-ലെവൽ അറേ, `content.parts` (`text` അല്ലെങ്കിൽ `inline_data`) ഉള്ള
-  ഒരൊറ്റ നേറ്റീവ് `models/{model}:embedContent` അഭ്യർത്ഥനയായി മാറുന്നു.
-- വ്യക്തമായ മോഡാലിറ്റി മെറ്റാഡാറ്റ ഇല്ലാത്ത അജ്ഞാത/ഡൈനാമിക് മോഡലുകൾ ഘടനാബദ്ധമായ ഇൻപുട്ട് HTTP 400 ഉപയോഗിച്ച് നിരസിക്കും.
+- Jina മൾട്ടിമോഡൽ മോഡലുകൾ: ഓരോ ടോപ്പ്-ലെവൽ ഇനവും ഇൻലൈൻ മീഡിയയ്ക്കായി ഡാറ്റ URI-കൾ ഉപയോഗിക്കുന്ന ഒരു മോഡാലിറ്റി-കീഡ് ഒബ്ജക്റ്റായി
+  (`text` / `image` / `audio` / `video` / `pdf`) മാറുന്നു; ഓരോ ടോപ്പ്-ലെവൽ ഇനത്തിനും ഒരു വെക്റ്റർ.
+- Gemini Embedding 2 ഫാമിലി: ഒരു ടോപ്പ്-ലെവൽ അറേ, `content.parts` (`text` അല്ലെങ്കിൽ `inline_data`) ഉള്ള ഒരൊറ്റ നേറ്റീവ്
+  `models/{model}:embedContent` റിക്വസ്റ്റായി മാറുന്നു.
+- llama.cpp (`llama-cpp/<model>`, ലോക്കൽ സെർവർ ലോഡ് ചെയ്ത ഏത് മോഡലും): കാനോണിക്കൽ `text` ഇനങ്ങൾ
+  പ്ലെയിൻ സ്ട്രിംഗുകളായി മാറുന്നു; `image` / `audio` / `video` എന്നിവയിൽ ഓരോന്നും ഇൻലൈൻ ഡാറ്റയോടെ llama-server-ന്റെ ചാറ്റ് കണ്ടന്റ് പാർട്ടുകൾ (`image_url`,
+  `input_audio`, ഫോർമാറ്റ് `wav` / `mp3` / `flac`, `input_video`) ഉപയോഗിക്കുന്ന ഓരോ
+  `{"content": [part]}` ഒബ്ജക്റ്റായി മാറുന്നു; ഓരോ ടോപ്പ്-ലെവൽ ഇനത്തിനും ഒരു വെക്റ്റർ.
+  സെർവർ `--embedding --mmproj …` ഉപയോഗിച്ച് പ്രവർത്തിക്കണം; പ്രൊജക്ടർ ഇല്ലെങ്കിൽ
+  അത് മീഡിയയെ സ്വയം നിരസിക്കും. `document` പിന്തുണയ്ക്കുന്നില്ല.
+- വ്യക്തമായ മോഡാലിറ്റി മെറ്റാഡാറ്റയില്ലാത്ത അജ്ഞാത/ഡൈനാമിക് മോഡലുകൾ, ഘടനാബദ്ധമായ ഇൻപുട്ട് HTTP 400 ഉപയോഗിച്ച് നിരസിക്കുന്നു.
 
 ```json
 {
@@ -267,17 +275,17 @@ base64 ആകാം. OmniRoute ആ ഒബ്ജക്റ്റുകളെ സ�
 }
 ```
 
-പിന്തുണയ്ക്കാത്ത മോഡൽ/മോഡാലിറ്റി സംയോജനങ്ങൾ ഇനത്തെ നിർബന്ധിതമായി പരിവർത്തനം ചെയ്യുന്നതിനുപകരം HTTP 400 തിരികെ നൽകും. പഴയ string/token അഭ്യർത്ഥനകളിലെ ഇൻപുട്ടുമായി ബന്ധമില്ലാത്ത
-വിപുലീകരണ ഫീൽഡുകൾ മാറ്റമില്ലാതെ പാസ് ചെയ്യുന്നത് തുടരും.
+പിന്തുണയ്ക്കാത്ത മോഡൽ/മോഡാലിറ്റി കോമ്പിനേഷനുകൾ ഇനത്തെ കോഴ്സ് ചെയ്യുന്നതിനുപകരം HTTP 400 തിരികെ നൽകുന്നു. പഴയ സ്ട്രിംഗ്/ടോക്കൺ റിക്വസ്റ്റുകളിലെ ഇൻപുട്ട് അല്ലാത്ത
+എക്സ്റ്റൻഷൻ ഫീൽഡുകൾ മാറ്റമില്ലാതെ പാസ് ചെയ്യുന്നത് തുടരുന്നു.
 
 ```bash
-# എല്ലാ embedding മോഡലുകളും പട്ടികപ്പെടുത്തുക
+# എല്ലാ എംബെഡ്ഡിംഗ് മോഡലുകളും ലിസ്റ്റ് ചെയ്യുക
 GET /v1/embeddings
 ```
 
 ---
 
-## ഇമേജ് ജനറേഷൻ
+## ചിത്രം സൃഷ്ടിക്കൽ
 
 ```bash
 POST /v1/images/generations
@@ -286,15 +294,33 @@ Content-Type: application/json
 
 {
   "model": "openai/gpt-image-2",
-  "prompt": "A beautiful sunset over mountains",
+  "prompt": "പർവതങ്ങൾക്കു മുകളിലെ മനോഹരമായ സൂര്യാസ്തമയം",
   "size": "1024x1024"
 }
 ```
 
-ലഭ്യമായ പ്രൊവൈഡർമാർ: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (ലോക്കൽ), ComfyUI (ലോക്കൽ).
+ലഭ്യമായ പ്രൊവൈഡറുകളിൽ OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (ലോക്കൽ), ComfyUI (ലോക്കൽ) എന്നിവ ഉൾപ്പെടുന്നു.
+
+നിലവിലുള്ള API-key കണക്ഷൻ ZenMux വീണ്ടും ഉപയോഗിക്കുകയും `zenmux/` അല്ലെങ്കിൽ `zm/` പ്രിഫിക്സുകൾ സ്വീകരിക്കുകയും ചെയ്യുന്നു:
+
+- `zenmux/openai/gpt-image-2` ZenMux-ന്റെ OpenAI Images API ഉപയോഗിക്കുന്നു. `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background`, `response_format` എന്നിവ ഓപ്ഷനുകളിൽ ഉൾപ്പെടുന്നു.
+- `zm/meta/muse-image-1.0` പോലുള്ള മറ്റ് പ്രസാധകർ ZenMux-ന്റെ Vertex AI `:predict`
+  എൻഡ്പോയിന്റ് ഉപയോഗിക്കുന്നു. `n` എന്നത് `sampleCount`-ലേക്കും `aspect_ratio` എന്നത് `aspectRatio`-ലേക്കും `image_size`
+  (`1K`, `2K`, `4K`) എന്നത് `sampleImageSize`-ലേക്കും മാപ്പ് ചെയ്യപ്പെടുന്നു. പിക്സൽ `size` ഒരു ആസ്പെക്റ്റ് റേഷ്യോ മാത്രമാണ് നൽകുന്നത്,
+  പിക്സൽ അളവുകൾ ഉറപ്പുനൽകുന്നില്ല. പിന്തുണയ്ക്കുന്ന അനുപാതങ്ങളും റെസല്യൂഷനുകളും എണ്ണവും മോഡൽ അനുസരിച്ച് വ്യത്യാസപ്പെടുന്നു.
+- `zm/inclusionai/ming-image-0.1-design` അതിന്റെ അളവുകൾ സ്വയം തിരഞ്ഞെടുക്കുന്നു. `size`,
+  `aspect_ratio`, `image_size` എന്നിവ ഒഴിവാക്കുക; വ്യക്തമായി നൽകിയ മൂല്യങ്ങൾ HTTP 400 തിരികെ നൽകും. `output_format` ഉപയോഗിച്ച് PNG, JPEG, WebP
+  എന്നിവ അഭ്യർത്ഥിക്കാം.
+
+ഈ ഇന്റഗ്രേഷൻ ടെക്സ്റ്റിൽനിന്നുള്ള ചിത്രം സൃഷ്ടിക്കലിനെ പിന്തുണയ്ക്കുന്നു, റഫറൻസ്-ചിത്ര എഡിറ്റിംഗിനെ അല്ല. Vertex
+ഔട്ട്പുട്ട് `data[].b64_json` ആയി നോർമലൈസ് ചെയ്യപ്പെടുന്നു; ഇമേജ് ബൈറ്റുകൾ മാത്രം ലഭ്യമായിരിക്കുമ്പോൾ `response_format: "url"` ഒരു അപ്സ്ട്രീം
+HTTPS URL അല്ലെങ്കിൽ base64 ഡാറ്റ URL തിരികെ നൽകുന്നു. ശൂന്യമായ/ഫിൽട്ടർ ചെയ്ത ഔട്ട്പുട്ടുകൾ ശൂന്യമായ വിജയപ്രതികരണത്തിന് പകരം
+ഒരു പിശക് തിരികെ നൽകുന്നു. മോഡൽ ആക്സസ് ZenMux അക്കൗണ്ടിനെ ആശ്രയിച്ചിരിക്കുന്നു.
+[ZenMux-ന്റെ Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images), [OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image) എന്നിവ കാണുക.
 
 ```bash
-# എല്ലാ ഇമേജ് മോഡലുകളും പട്ടികപ്പെടുത്തുക
+# എല്ലാ ഇമേജ് മോഡലുകളും ലിസ്റ്റ് ചെയ്യുക
 GET /v1/images/generations
 ```
 
@@ -433,14 +459,14 @@ Bifrost, CLIProxyAPI, ഭാവിയിലെ sidecar റൗട്ടറുക�
 | POST | `/v1/responses`                           | OpenAI Responses                       |
 | POST | `/v1/embeddings`                          | OpenAI                                 |
 | POST | `/v1/images/generations`                  | OpenAI Images                          |
-| POST | `/v1/images/edits`                        | OpenAI Images (എഡിറ്റ്/ഇൻപെയിന്റ്)     |
+| POST | `/v1/images/edits`                        | OpenAI Images (തിരുത്തൽ/inpaint)       |
 | POST | `/v1/videos/generations`                  | OpenAI-ശൈലിയിലുള്ള വീഡിയോ സൃഷ്ടിക്കൽ   |
 | POST | `/v1/music/generations`                   | OpenAI-ശൈലിയിലുള്ള സംഗീത സൃഷ്ടിക്കൽ    |
 | POST | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                     |
 | POST | `/v1/audio/speech`                        | OpenAI TTS (ഓഡിയോ ബോഡി മടക്കിനൽകുന്നു) |
-| POST | `/v1/rerank`                              | Cohere/Voyage-ശൈലിയിലുള്ള റീറാങ്ക്     |
-| POST | `/v1/classify`                            | Jina ക്ലാസിഫൈ (`api.jina.ai`)          |
-| POST | `/v1/segment`                             | Jina സെഗ്മെന്റർ (`segment.jina.ai`)    |
+| POST | `/v1/rerank`                              | Cohere/Voyage-ശൈലിയിലുള്ള rerank       |
+| POST | `/v1/classify`                            | Jina classify (`api.jina.ai`)          |
+| POST | `/v1/segment`                             | Jina segmenter (`segment.jina.ai`)     |
 | POST | `/v1/moderations`                         | OpenAI Moderations                     |
 | GET  | `/v1/models`                              | OpenAI                                 |
 | POST | `/v1/messages/count_tokens`               | Anthropic                              |
@@ -452,64 +478,67 @@ Bifrost, CLIProxyAPI, ഭാവിയിലെ sidecar റൗട്ടറുക�
 | POST | `/api/v1/vscode/{token}/chat/completions` | OpenAI ടോക്കണൈസ്ഡ് അപരനാമം             |
 | POST | `/api/v1/vscode/{token}/responses`        | OpenAI Responses ടോക്കണൈസ്ഡ് അപരനാമം   |
 | POST | `/api/v1/vscode/{token}/api/chat`         | Ollama ടോക്കണൈസ്ഡ് അപരനാമം             |
-| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama ടാഗുകളുടെ ടോക്കണൈസ്ഡ് അപരനാമം   |
+| GET  | `/api/v1/vscode/{token}/api/tags`         | Ollama tags ടോക്കണൈസ്ഡ് അപരനാമം        |
 
-എല്ലാ POST റൂട്ടുകളും ഒരേ ഘടന പിന്തുടരുന്നു: `Bearer your-api-key` + Zod സാധൂകരിച്ച JSON ബോഡി (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` മുതലായവ; `src/shared/validation/schemas.ts` കാണുക). സ്കീമ പരാജയപ്പെട്ടാൽ 4xx മടക്കിനൽകും.
+എല്ലാ POST റൂട്ടുകളും ഒരേ ഘടന പിന്തുടരുന്നു: `Bearer your-api-key` + Zod സാധൂകരിച്ച JSON ബോഡി (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` മുതലായവ; `src/shared/validation/schemas.ts` കാണുക). സ്കീമ സാധൂകരണം പരാജയപ്പെട്ടാൽ 4xx മടക്കിനൽകും.
 
-`Authorization: Bearer ...` ചേർക്കാൻ കഴിയാത്ത ക്ലയന്റുകൾക്കായി, ക്വറി-സ്ട്രിങ് അനുയോജ്യത (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) വഴിയോ താഴെ രേഖപ്പെടുത്തിയിരിക്കുന്ന സമർപ്പിത `/api/v1/vscode/{token}/...` എൻഡ്പോയിന്റുകൾ വഴിയോ URL-ൽ API കീകൾ OmniRoute സ്വീകരിക്കുന്നു.
+`Authorization: Bearer ...` ചേർക്കാൻ കഴിയാത്ത ക്ലയന്റുകൾക്കായി, query-string അനുയോജ്യത (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) വഴിയോ താഴെ രേഖപ്പെടുത്തിയിരിക്കുന്ന പ്രത്യേക `/api/v1/vscode/{token}/...` എൻഡ്പോയിന്റുകൾ വഴിയോ URL-ൽ API കീകൾ OmniRoute സ്വീകരിക്കുന്നു.
 
 ```bash
-# റീറാങ്ക് (ക്ലൗഡ് രജിസ്ട്രി പ്രൊവൈഡർ, അല്ലെങ്കിൽ "<prefix>/<model>" എന്ന രൂപത്തിലുള്ള OpenAI-അനുയോജ്യമായ പ്രൊവൈഡർ നോഡ്)
+# Rerank (ക്ലൗഡ് രജിസ്ട്രി പ്രൊവൈഡർ, അല്ലെങ്കിൽ "<prefix>/<model>" എന്ന രീതിയിലുള്ള OpenAI-അനുയോജ്യ പ്രൊവൈഡർ നോഡ്)
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
-# Jina ക്ലാസിഫൈ (Foundation API ക്രെഡൻഷ്യലുകൾ)
+# Jina classify (Foundation API ക്രെഡൻഷ്യലുകൾ)
 POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."], "labels": ["a", "b"] }
 
-# Jina സെഗ്മെന്റർ
+# Jina segmenter
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina തിരയൽ (s.jina.ai; പ്രൊവൈഡർ അപരനാമങ്ങൾ: jina-search, jina-ai, jina)
+# Jina search (s.jina.ai; പ്രൊവൈഡർ അപരനാമങ്ങൾ: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
-# മോഡറേഷനുകൾ
+# Moderations
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
 # TTS — audio/mpeg (അല്ലെങ്കിൽ അഭ്യർത്ഥിച്ച ഫോർമാറ്റ്) ബോഡി മടക്കിനൽകുന്നു
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Soniox TTS-ന് ഒരു ഭാഷയും വോയിസും ആവശ്യമാണ്: `language`-ന്റെ ഡിഫോൾട്ട് "en" ആണ്; വോയിസ് നൽകിയിട്ടില്ലെങ്കിൽ
-# അല്ലെങ്കിൽ OpenAI-യുടെ സ്റ്റോക്ക് വോയിസ് നാമമാണെങ്കിൽ (alloy, nova, …), അത് "Adrian" ആയി മാറുന്നു
+# Soniox TTS-ന് ഒരു ഭാഷയും ഒരു ശബ്ദവും ആവശ്യമാണ്: `language`-ന്റെ സ്ഥിരസ്ഥിതി "en" ആണ്; ശബ്ദം നൽകിയിട്ടില്ലെങ്കിലോ
+# OpenAI-യുടെ സ്റ്റോക്ക് ശബ്ദനാമം (alloy, nova, …) നൽകിയാലോ അത് "Adrian" ആകുന്നു
 POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
-# ചിത്രം എഡിറ്റ് ചെയ്യൽ (multipart)
+# ചിത്രം തിരുത്തൽ (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# വീഡിയോ / സംഗീത സൃഷ്ടിക്കൽ (പ്രൊവൈഡർ-പ്രിഫിക്സ് ചെയ്ത മോഡൽ ഐഡി)
+# വീഡിയോ / സംഗീത സൃഷ്ടിക്കൽ (പ്രൊവൈഡർ-പ്രിഫിക്സുള്ള മോഡൽ ഐഡി)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **റീറാങ്ക് പ്രൊവൈഡർ നോഡുകൾ:** `<node-prefix>/<model>` എന്ന രൂപത്തിൽ അഭിസംബോധന ചെയ്യുന്ന OpenAI-അനുയോജ്യമായ പ്രൊവൈഡർ നോഡുകളിലേക്കും
-> (oMLX, vLLM, Infinity, ഒരു ഗേറ്റ്വേയ്ക്ക് പിന്നിലുള്ള TEI, …) `POST /v1/rerank` റൂട്ട് ചെയ്യുന്നു. ലൂപ്പ്ബാക്ക്
-> നോഡുകൾക്ക് (`localhost`, `127.0.0.1`, `172.16.0.0/12`) എല്ലായ്പ്പോഴും യോഗ്യതയുണ്ട്. മറ്റേതെങ്കിലും
-> ഹോസ്റ്റിലുള്ള നോഡുകൾക്ക് — ഒരു LAN ബോക്സ് അല്ലെങ്കിൽ Tailscale പിയർ — ഓപ്പറേറ്റർ
+> **Rerank പ്രൊവൈഡർ നോഡുകൾ:** `POST /v1/rerank`, `<node-prefix>/<model>` എന്ന രീതിയിൽ അഭിസംബോധന ചെയ്യുന്ന OpenAI-അനുയോജ്യ പ്രൊവൈഡർ നോഡുകളിലേക്കും
+> (oMLX, vLLM, Infinity, ഒരു ഗേറ്റ്വേയ്ക്ക് പിന്നിലുള്ള TEI, …) റൂട്ട് ചെയ്യുന്നു. Loopback
+> നോഡുകൾ (`localhost`, `127.0.0.1`, `172.16.0.0/12`) എല്ലായ്പ്പോഴും യോഗ്യമാണ്; കൂടാതെ
+> ഓപ്പറേറ്റർ `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`-ൽ പട്ടികപ്പെടുത്തുന്ന ഹോസ്റ്റ്നാമങ്ങളും യോഗ്യമാണ് (ഉദാ. `http://reranker:8080/v1` പോലുള്ള
+> Docker/Compose സേവനനാമം; ഇവ നേരിട്ടാണ് വിളിക്കപ്പെടുന്നത്, ഒരിക്കലും `HTTP(S)_PROXY` വഴിയോ
+> ഒരു കണക്ഷന്റെ പിൻ ചെയ്ത പ്രോക്സി വഴിയോ അല്ല). മറ്റേതെങ്കിലും
+> ഹോസ്റ്റിലുള്ള നോഡുകൾ — ഒരു LAN ബോക്സ് അല്ലെങ്കിൽ Tailscale പിയർ — ഓപ്പറേറ്റർ
 > `RERANK_REMOTE_PROVIDER_NODES` ഫീച്ചർ ഫ്ലാഗ് പ്രവർത്തനക്ഷമമാക്കുകയും നോഡിന്റെ അടിസ്ഥാന URL പ്രൊവൈഡർ
-> ഔട്ട്ബൗണ്ട് URL നയം (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) പാസാകുകയും ചെയ്താൽ മാത്രമേ യോഗ്യതയുള്ളൂ;
-> ക്ലൗഡ്-മെറ്റാഡാറ്റ ഹോസ്റ്റുകളിലേക്ക് ഒരിക്കലും റൂട്ട് ചെയ്യില്ല. മെമ്മറി എൻജിന്റെ റീറാങ്ക് ഘട്ടം ലൂപ്പ്ബാക്കിലൂടെ
-> ഈ റൂട്ട് വിളിക്കുന്നതിനാൽ, Memory ക്രമീകരണങ്ങളിലെ `rerankProviderModel`-നും ഇതേ നിയമം ബാധകമാണ്.
+> ഔട്ട്ബൗണ്ട് URL നയം (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`) പാലിക്കുകയും ചെയ്യുമ്പോൾ മാത്രമേ യോഗ്യമാകൂ.
+> മെമ്മറി എൻജിന്റെ rerank ഘട്ടം loopback വഴി ഈ റൂട്ട് വിളിക്കുന്നതിനാൽ,
+> Memory ക്രമീകരണങ്ങളിലെ `rerankProviderModel`-നും ഇതേ നിയമം ബാധകമാണ്.
 >
-> **ലോക്കൽ സെർവർ ഘടനകൾ:** നോഡിനെ `<base>/v1/rerank`-ൽ വിളിക്കുകയും, 404 ലഭിച്ചാൽ `<base>/rerank`-ൽ വിളിക്കുകയും ചെയ്യുന്നു
-> (Infinity, TEI). അപ്സ്ട്രീം ബോഡിയിൽ Cohere/OpenAI സ്പെല്ലിങ് (`documents`,
-> `return_documents`), TEI സ്പെല്ലിങ് (`texts`, `return_text`) എന്നിവ രണ്ടും ഉൾപ്പെടുന്നു; അപ്സ്ട്രീം പ്രതികരണം
-> Cohere എൻവലപ്പിലേക്ക് നോർമലൈസ് ചെയ്യുന്നു: TEI-യുടെ നേർക്കുനേരെയുള്ള `[{index, score, text}]`, ലഘു ഗേറ്റ്വേകളിൽ നിന്നുള്ള
-> `{results: [{index, score}]}`, Voyage-ശൈലിയിലുള്ള `{data: [...]}` എന്നിവയെല്ലാം ക്ലയന്റിന്
-> `{results: [{index, relevance_score, document?}]}` എന്ന രൂപത്തിൽ, സ്കോർ അനുസരിച്ച് ക്രമപ്പെടുത്തി `top_n`-ൽ പരിമിതപ്പെടുത്തി മടക്കിനൽകുന്നു.
+> **ലോക്കൽ സെർവർ ഘടനകൾ:** നോഡ് `<base>/v1/rerank`-ലും, 404 ലഭിച്ചാൽ `<base>/rerank`-ലും
+> (Infinity, TEI) വിളിക്കപ്പെടുന്നു. അപ്സ്ട്രീം ബോഡിയിൽ Cohere/OpenAI സ്പെല്ലിംഗും (`documents`,
+> `return_documents`) TEI സ്പെല്ലിംഗും (`texts`, `return_text`) ഉൾപ്പെടുന്നു; അപ്സ്ട്രീം പ്രതികരണം
+> Cohere എൻവലപ്പിലേക്ക് നോർമലൈസ് ചെയ്യപ്പെടുന്നു: TEI-യുടെ ലളിതമായ `[{index, score, text}]`, ലളിതമായ ഗേറ്റ്വേകളിൽ നിന്നുള്ള
+> `{results: [{index, score}]}`, Voyage-ശൈലിയിലുള്ള `{data: [...]}` എന്നിവയെല്ലാം ക്ലയന്റിലേക്ക്
+> `{results: [{index, relevance_score, document?}]}` എന്ന രൂപത്തിൽ, സ്കോർ അനുസരിച്ച് ക്രമീകരിച്ച് `top_n` പരിധിയിൽ മടക്കിനൽകുന്നു.
 
 > **പ്രൊവൈഡർ-നോഡ് കണ്ടെത്തൽ:** OpenAI-അനുയോജ്യമായ ഒരു പ്രൊവൈഡർ നോഡിലെ മോഡലുകൾ `GET /v1/models`-ൽ
-> നോഡ് പ്രിഫിക്സിന് കീഴിൽ ദൃശ്യമാകും. എൻഡ്പോയിന്റ് മെറ്റാഡാറ്റ ഇല്ലാത്ത വരികൾ (ലോക്കൽ `/v1/models` ലിസ്റ്റിങ്ങുകളിൽ സാധാരണം)
-> നോഡിന്റെ `apiType` പാരമ്പര്യമായി സ്വീകരിക്കുന്നു; അതിനാൽ ഒരു `embeddings` നോഡിലെ മോഡലുകൾക്ക് ചാറ്റ് ഡിഫോൾട്ടാകുന്നതിന് പകരം `type: "embedding"` ആയിരിക്കും,
-> അതുപോലെ ഒരു `rerank` നോഡിലെ മോഡലുകൾക്ക് `type: "rerank"` ആയിരിക്കും; സമന്വയിപ്പിച്ചതോ മാനുവലായി ചേർത്തതോ ആയ ഒരു വരിയിലെ വ്യക്തമായ
-> `supportedEndpoints`-ന് തുടർന്നും മുൻഗണന ലഭിക്കും.
+> നോഡ് പ്രിഫിക്സിന് കീഴിൽ ദൃശ്യമാകും. എൻഡ്പോയിന്റ് മെറ്റാഡാറ്റ ഇല്ലാത്ത വരികൾ (പ്രാദേശിക `/v1/models` ലിസ്റ്റിങ്ങുകളിൽ സാധാരണം)
+> നോഡിന്റെ `apiType` അവകാശമാക്കുന്നു; അതിനാൽ, ഡിഫോൾട്ടായി ചാറ്റ് ആയി കണക്കാക്കുന്നതിനുപകരം ഒരു `embeddings` നോഡിന്റെ മോഡലുകൾക്ക് `type: "embedding"` എന്നും
+> ഒരു `rerank` നോഡിന്റെ മോഡലുകൾക്ക് `type: "rerank"` എന്നും ആയിരിക്കും; സമന്വയിപ്പിച്ചതോ മാനുവലായി ചേർത്തതോ ആയ ഒരു വരിയിലെ വ്യക്തമായ
+> `supportedEndpoints`-ന് ഇപ്പോഴും മുൻഗണന ലഭിക്കും.
 
 ### സമർപ്പിത പ്രൊവൈഡർ റൂട്ടുകൾ
 
@@ -810,203 +839,282 @@ X-OmniRoute-No-Cache: true
 
 ## ഡാഷ്ബോർഡും മാനേജ്മെന്റും
 
-മാനേജ്മെന്റ് റൂട്ടുകൾക്ക് (പൊതു auth/login ഒഴികെയുള്ള `/api/*`) സാധാരണ inference API കീകൾ ഉപയോഗിച്ച് **അംഗീകാരം ലഭിക്കില്ല**. ക്രെഡൻഷ്യൽ വിഭാഗങ്ങൾ, സ്കോപ്പുകൾ, curl ഉദാഹരണങ്ങൾ എന്നിവയ്ക്ക്:
+മാനേജ്മെന്റ് റൂട്ടുകൾക്ക് (പൊതു auth/login ഒഴികെയുള്ള `/api/*`) സാധാരണ inference API കീകൾ വഴി **അനുമതി ലഭിക്കില്ല**. ക്രെഡൻഷ്യൽ വിഭാഗങ്ങൾ, സ്കോപ്പുകൾ, curl ഉദാഹരണങ്ങൾ എന്നിവയ്ക്ക് കാണുക:
 [മാനേജ്മെന്റ് ഓതന്റിക്കേഷൻ](../guides/MANAGEMENT-AUTH.md).
 
 ### ഓതന്റിക്കേഷൻ
 
-| എൻഡ്പോയിന്റ്                  | രീതി    | വിവരണം                                 |
-| ----------------------------- | ------- | -------------------------------------- |
-| `/api/auth/login`             | POST    | ലോഗിൻ                                  |
-| `/api/auth/logout`            | POST    | ലോഗൗട്ട്                               |
-| `/api/settings/require-login` | GET/PUT | ലോഗിൻ നിർബന്ധമാക്കുന്നത് ടോഗിൾ ചെയ്യുക |
+| എൻഡ്പോയിന്റ്                  | മെത്തഡ് | വിവരണം                           |
+| ----------------------------- | ------- | -------------------------------- |
+| `/api/auth/login`             | POST    | ലോഗിൻ                            |
+| `/api/auth/logout`            | POST    | ലോഗ്ഔട്ട്                        |
+| `/api/settings/require-login` | GET/PUT | ലോഗിൻ നിർബന്ധമാക്കുന്നത് മാറ്റുക |
 
 ### പ്രൊവൈഡർ മാനേജ്മെന്റ്
 
-| എൻഡ്പോയിന്റ്                            | രീതി                  | വിവരണം                                                                                                                                                        |
-| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | പ്രൊവൈഡർമാരെ പട്ടികപ്പെടുത്തുക / സൃഷ്ടിക്കുക                                                                                                                  |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | ഒരു പ്രൊവൈഡറെ മാനേജ് ചെയ്യുക                                                                                                                                  |
-| `/api/providers/[id]/test`              | POST                  | പ്രൊവൈഡർ കണക്ഷൻ പരിശോധിക്കുക                                                                                                                                  |
-| `/api/providers/[id]/models`            | GET                   | പ്രൊവൈഡർ മോഡലുകൾ പട്ടികപ്പെടുത്തുക                                                                                                                            |
-| `/api/providers/validate`               | POST                  | പ്രൊവൈഡർ കോൺഫിഗ് സാധൂകരിക്കുക                                                                                                                                 |
-| `/api/providers/bulk`                   | POST                  | ഒരൊറ്റ പ്രൊവൈഡറിനായി API കീകൾ ബൾക്കായി ചേർക്കുക                                                                                                               |
-| `/api/providers/import`                 | POST                  | പാർസ് ചെയ്ത CSV/JSON ഫയലിൽ നിന്ന് വൈവിധ്യമാർന്ന പ്രൊവൈഡർ പട്ടിക ഇമ്പോർട്ട് ചെയ്യുക (#6836); ഓരോ വരിയിലെയും ഭാഗിക-പരാജയ ഫലങ്ങൾ                                 |
-| `/api/provider-nodes*`                  | വിവിധ                 | പ്രൊവൈഡർ നോഡ് മാനേജ്മെന്റ്                                                                                                                                    |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | ഇഷ്ടാനുസൃത മോഡലുകൾ (ചേർക്കുക, അപ്ഡേറ്റ് ചെയ്യുക, മറയ്ക്കുക/കാണിക്കുക, ഇല്ലാതാക്കുക)                                                                           |
-| `/api/provider-models/validate-and-add` | POST                  | മാനേജ്മെന്റ്-ഓതന്റിക്കേറ്റഡ്, ഓപ്റ്റ്-ഇൻ കർശന കണക്ഷൻ സാധൂകരണവും ആറ്റോമിക് ഇഷ്ടാനുസൃത-മോഡൽ രജിസ്ട്രേഷനും; [മോഡൽ സാധൂകരണം](../guides/MODEL-VALIDATION.md) കാണുക |
+| എൻഡ്പോയിന്റ്                            | മെത്തഡ്                   | വിവരണം                                                                                                                                                          |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | പ്രൊവൈഡറുകളെ പട്ടികപ്പെടുത്തുക / സൃഷ്ടിക്കുക                                                                                                                    |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | ഒരു പ്രൊവൈഡറെ നിയന്ത്രിക്കുക                                                                                                                                    |
+| `/api/providers/[id]/test`              | POST                      | പ്രൊവൈഡർ കണക്ഷൻ പരിശോധിക്കുക                                                                                                                                    |
+| `/api/providers/[id]/models`            | GET                       | പ്രൊവൈഡർ മോഡലുകളെ പട്ടികപ്പെടുത്തുക                                                                                                                             |
+| `/api/providers/validate`               | POST                      | പ്രൊവൈഡർ കോൺഫിഗറേഷൻ സാധൂകരിക്കുക                                                                                                                                |
+| `/api/providers/bulk`                   | POST                      | ഒരു പ്രൊവൈഡറിനായി API കീകൾ കൂട്ടമായി ചേർക്കുക                                                                                                                   |
+| `/api/providers/import`                 | POST                      | പാർസ് ചെയ്ത CSV/JSON ഫയലിൽനിന്ന് വ്യത്യസ്ത തരത്തിലുള്ള പ്രൊവൈഡർ പട്ടിക ഇറക്കുമതി ചെയ്യുക (#6836); ഓരോ വരിയിലെയും ഭാഗിക പരാജയഫലങ്ങൾ                              |
+| `/api/provider-nodes*`                  | വിവിധതരം                  | പ്രൊവൈഡർ നോഡ് മാനേജ്മെന്റ്                                                                                                                                      |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | കസ്റ്റം മോഡലുകളും ഓരോ മോഡലിനുമുള്ള ഓവർറൈഡുകളും (ചേർക്കുക, അപ്ഡേറ്റ് ചെയ്യുക, മറയ്ക്കുക/കാണിക്കുക, ഇല്ലാതാക്കുക)                                                 |
+| `/api/provider-models/validate-and-add` | POST                      | മാനേജ്മെന്റ് ഓതന്റിക്കേഷൻ ആവശ്യമായ, ഐച്ഛികമായ കർശന കണക്ഷൻ സാധൂകരണവും ആറ്റോമിക് കസ്റ്റം-മോഡൽ രജിസ്ട്രേഷനും; [മോഡൽ സാധൂകരണം](../guides/MODEL-VALIDATION.md) കാണുക |
 
-### OAuth ഫ്ലോകൾ
+സമന്വയിപ്പിച്ചതോ ഇറക്കുമതി ചെയ്തതോ ആയ മോഡലുകൾക്കായി, `PUT /api/provider-models` എന്നത് `provider`, `modelId`,
+`maxOutputTokenOverride` എന്നിവ സ്വീകരിക്കുന്നു: ഒരു പോസിറ്റീവ് പൂർണ്ണസംഖ്യ മാനുവൽ ഔട്ട്പുട്ട്-ടോക്കൺ പരിധി സജ്ജമാക്കുന്നു,
+`null` അത് നീക്കി ഡിഫോൾട്ട് പുനഃസ്ഥാപിക്കുന്നു. `GET /api/provider-models?provider=<provider>` ഈ മൂല്യങ്ങൾ
+`modelOutputOverrides`-ൽ തിരികെ നൽകുന്നു; കസ്റ്റം-മോഡൽ റോ ഇല്ലാത്ത മോഡലുകളും ഇതിൽ ഉൾപ്പെടും. ഓവർറൈഡ്
+റൺടൈം `max_output_tokens` ശേഷി ഉപയോഗിക്കുകയും മോഡൽ വീണ്ടും സമന്വയിപ്പിച്ചതിനുശേഷവും നിലനിൽക്കുകയും ചെയ്യുന്നു. OpenAI-അനുയോജ്യമായ
+പ്രൊവൈഡർ പേജ് സമാനമായ എഡിറ്റ്/ക്ലിയർ നിയന്ത്രണങ്ങൾ നൽകുകയും വ്യക്തമായ vision പിന്തുണയുള്ള മോഡലുകളെ അടയാളപ്പെടുത്തുകയും ചെയ്യുന്നു.
 
-| എൻഡ്പോയിന്റ്                     | രീതി  | വിവരണം                    |
-| -------------------------------- | ----- | ------------------------- |
-| `/api/oauth/[provider]/[action]` | വിവിധ | പ്രൊവൈഡർ-നിർദ്ദിഷ്ട OAuth |
+കസ്റ്റം Chat Completions നോഡുകൾ, വ്യക്തമായ reasoning ഒഴിവാക്കലുകളെ upstream backend-ന് അനുയോജ്യമാക്കുന്നു. വിജയകരമായ
+ഒരു കണക്ഷൻ പരിശോധന, `/models` എൻട്രിയിൽ അംഗീകരിക്കപ്പെട്ട `owned_by` മൂല്യം തെളിയിക്കപ്പെടുന്ന ഓരോ കൃത്യമായ മോഡൽ ID-യ്ക്കും
+chat-template നിയന്ത്രണങ്ങൾ സ്വയമേവ തിരഞ്ഞെടുക്കുന്നു: `vllm`, `sglang`, അല്ലെങ്കിൽ `llamacpp`.
+സുതാര്യമായ OpenAI-അനുയോജ്യ wrapper-കൾക്ക് യഥാർത്ഥ മോഡൽ എൻട്രി നെസ്റ്റഡ്
+`openai` ഒബ്ജക്റ്റിനുള്ളിൽ നിലനിർത്താനാകും; കണ്ടെത്തൽ അത്തരത്തിലുള്ള പരമാവധി മൂന്ന് envelope-ുകളിലൂടെ പിന്തുടരുന്നു. ഉടമസ്ഥാവകാശം ഇല്ലാത്തതോ, അറിയപ്പെടാത്തതോ,
+പരസ്പരവിരുദ്ധമായതോ ആയ മോഡലുകൾ സാധാരണ OpenAI സ്വഭാവം നിലനിർത്തുന്നു. കണ്ടെത്തൽ നിലവിലുള്ള catalog അഭ്യർത്ഥന വീണ്ടും ഉപയോഗിക്കുന്നു,
+completion ടോക്കണുകളൊന്നും സൃഷ്ടിക്കുന്നില്ല, കൂടാതെ കണക്ഷൻ എൻഡ്പോയിന്റ് മാറുമ്പോൾ അസാധുവാക്കപ്പെടുന്നു.
 
-### റൂട്ടിംഗും കോൺഫിഗും
+ആ metadata വെളിപ്പെടുത്താത്ത ഒരു backend-നായി ഈ സ്വഭാവം സ്ഥിരപ്പെടുത്താൻ, നിലവിലുള്ള ഭാഗിക
+പ്രൊവൈഡർ അപ്ഡേറ്റ് API ഉപയോഗിക്കുക:
 
-| എൻഡ്പോയിന്റ്          | രീതി     | വിവരണം                                         |
-| --------------------- | -------- | ---------------------------------------------- |
-| `/api/models/alias`   | GET/POST | മോഡൽ അപരനാമങ്ങൾ                                |
-| `/api/models/catalog` | GET      | പ്രൊവൈഡറും തരവും അനുസരിച്ചുള്ള എല്ലാ മോഡലുകളും |
-| `/api/combos*`        | വിവിധ    | കോംബോ മാനേജ്മെന്റ്                             |
-| `/api/keys*`          | വിവിധ    | API കീ മാനേജ്മെന്റ്                            |
-| `/api/pricing`        | GET      | മോഡൽ വിലനിർണ്ണയം                               |
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
 
-### ഉപയോഗവും അനലിറ്റിക്സും
+ആ body `PUT /api/providers/<connection-id>` ഉപയോഗിച്ച് അയയ്ക്കുക. ആ കണക്ഷനിൽ, `none` എന്ന വ്യക്തമായ
+reasoning effort, `chat_template_kwargs.thinking=false` എന്നും
+`chat_template_kwargs.enable_thinking=false` എന്നും അയയ്ക്കപ്പെടുന്നു. ഒരു server-side reasoning നിയമം ഒരു effort നിർബന്ധമാക്കുന്നില്ലെങ്കിൽ,
+വ്യക്തമായി നൽകിയ native template മൂല്യങ്ങൾക്കാണ് മുൻഗണന. ഒരു കസ്റ്റം
+OpenAI-അനുയോജ്യ കണക്ഷൻ Chat Completions body അയയ്ക്കുമ്പോൾ മാത്രമാണ് ഈ ക്രമീകരണം ബാധകമാകുന്നത്; Responses അഭ്യർത്ഥനകളും സാധാരണ
+പ്രൊവൈഡറുകളും അവയുടെ native request shape നിലനിർത്തുന്നു. സാധാരണ OpenAI
+`reasoning_effort` passthrough നിർബന്ധമാക്കാൻ `reasoningControl` എന്നത് `openai` ആയി സജ്ജമാക്കുക; അല്ലെങ്കിൽ സ്വയമേവയുള്ള കണ്ടെത്തൽ ഉപയോഗിക്കാൻ അത് ഒഴിവാക്കുകയോ `null` ആയി സജ്ജമാക്കുകയോ ചെയ്യുക.
 
-| എൻഡ്പോയിന്റ്                     | രീതി            | വിവരണം                                                                                                                                                                                                                                                                                                                                  |
-| -------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | ഉപയോഗ ചരിത്രം                                                                                                                                                                                                                                                                                                                           |
-| `/api/usage/logs`                | GET             | ഉപയോഗ ലോഗുകൾ                                                                                                                                                                                                                                                                                                                            |
-| `/api/usage/request-logs`        | GET             | അഭ്യർത്ഥനാതല ലോഗുകൾ                                                                                                                                                                                                                                                                                                                     |
-| `/api/usage/[connectionId]`      | GET             | ഓരോ കണക്ഷന്റെയും ഉപയോഗം                                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/token-limits`        | GET/POST/DELETE | ഓരോ API കീയുടെയും ടോക്കൺ-പരിധി ബജറ്റുകൾ                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/model-latency-stats` | GET             | ഓരോ പ്രൊവൈഡർ/മോഡലിനുമുള്ള റോളിങ് ലേറ്റൻസി സംഗ്രഹം (ശരാശരി/p50/p95/p99, വിജയ നിരക്ക്); ഫിൽട്ടറുകൾ: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                       |
-| `/api/usage/cache-health`        | GET             | `call_logs`-ലുടനീളമുള്ള പ്രോംപ്റ്റ്-കാഷ് ആരോഗ്യ സംഗ്രഹം — റൈറ്റ്/റീഡ് അനുപാതം, p50/p90/p99 റൈറ്റ്-വലുപ്പ വിതരണം, കനത്ത റൈറ്റുകളുടെ കേന്ദ്രീകരണം, ഓരോ മോഡലിന്റെയും വിഭജനം, കൂടാതെ `healthy`/`degraded`/`thrash`/`no-data` വിധി; ക്വറി പാരാമീറ്ററുകൾ `range` (`1h`\|`24h`\|`7d`\|`30d`, ഡിഫോൾട്ട് `24h`) കൂടാതെ ഐച്ഛികമായ `model` (#8827) |
+വ്യക്തമായ reasoning controls ഒന്നും അടങ്ങിയിട്ടില്ലെങ്കിൽ, Claude Code auto-mode classifier അഭ്യർത്ഥനകൾ native thinking ഡിഫോൾട്ടായി പ്രവർത്തനരഹിതമാക്കുന്നു. കണ്ടെത്തൽ നടത്തുന്നത് model പേരുകളോ completion പരിധികളോ ഉപയോഗിച്ചല്ല, മറിച്ച് Claude-format അഭ്യർത്ഥനകളിലെ classifier-ന്റെ system marker ഉപയോഗിച്ചാണ്. വ്യക്തമായ body controls, പിന്തുണയ്ക്കുന്ന effort/thinking headers, routing rules, resolved model effort എന്നിവയ്ക്ക് നിലവിലുള്ള മുൻഗണന തുടരും. രണ്ട് classifier ഘട്ടങ്ങളും അവയുടെ prompts, completion പരിധികൾ, stop sequences, യഥാർത്ഥ upstream permission verdicts എന്നിവ നിലനിർത്തുന്നു; രണ്ടാം ഘട്ടത്തിന് ആവശ്യപ്പെട്ട ദൃശ്യമായ reasoning സാധാരണ text ആയി തുടർന്നും സൃഷ്ടിക്കാനാകും.
+
+### OAuth പ്രവാഹങ്ങൾ
+
+| Endpoint                         | Method | വിവരണം                    |
+| -------------------------------- | ------ | ------------------------- |
+| `/api/oauth/[provider]/[action]` | വിവിധം | Provider-നിർദ്ദിഷ്ട OAuth |
+
+### Routing & Config
+
+| Endpoint              | Method   | വിവരണം                                     |
+| --------------------- | -------- | ------------------------------------------ |
+| `/api/models/alias`   | GET/POST | Model അപരനാമങ്ങൾ                           |
+| `/api/models/catalog` | GET      | Provider + type അനുസരിച്ചുള്ള എല്ലാ models |
+| `/api/combos*`        | വിവിധം   | Combo മാനേജ്മെന്റ്                         |
+| `/api/keys*`          | വിവിധം   | API key മാനേജ്മെന്റ്                       |
+| `/api/pricing`        | GET      | Model നിരക്കുകൾ                            |
+
+### ഉപയോഗവും Analytics-ഉം
+
+| Endpoint                         | Method          | വിവരണം                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | ഉപയോഗ ചരിത്രം                                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/logs`                | GET             | ഉപയോഗ logs                                                                                                                                                                                                                                                                                                                      |
+| `/api/usage/request-logs`        | GET             | അഭ്യർത്ഥനാതല logs                                                                                                                                                                                                                                                                                                               |
+| `/api/usage/[connectionId]`      | GET             | ഓരോ connection-ന്റെയും ഉപയോഗം                                                                                                                                                                                                                                                                                                   |
+| `/api/usage/token-limits`        | GET/POST/DELETE | ഓരോ API key-യുടെയും token-limit ബജറ്റുകൾ                                                                                                                                                                                                                                                                                        |
+| `/api/usage/model-latency-stats` | GET             | ഓരോ provider/model-ന്റെയും rolling latency aggregate (avg/p50/p95/p99, വിജയനിരക്ക്); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                   |
+| `/api/usage/cache-health`        | GET             | `call_logs` അടിസ്ഥാനമാക്കിയുള്ള prompt-cache health സംഗ്രഹം — write/read അനുപാതം, p50/p90/p99 write-size വിതരണം, heavy-write കേന്ദ്രീകരണം, ഓരോ model-ന്റെയും വിഭജനം, കൂടാതെ `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, ഡിഫോൾട്ട് `24h`), ഐച്ഛികമായ `model` എന്നിവ (#8827) |
+
+### API key അനുമതികൾ
+
+`PATCH /api/keys/{id}` നിലവിലുള്ള ഒരു key-യുടെ അനുമതികൾ പുതുക്കുന്നു. മറ്റെല്ലാ `/api/keys*` route-കളെയും പോലെ, ഇതിന് inference key അല്ല, management authorization ആവശ്യമാണ് ([Management Authentication](../guides/MANAGEMENT-AUTH.md) കാണുക). മാറ്റാൻ ആഗ്രഹിക്കുന്ന fields മാത്രം അയയ്ക്കുക; അവയൊന്നും ഇല്ലാത്ത അഭ്യർത്ഥന `No valid fields to update` എന്ന പിശകോടെ നിരസിക്കപ്പെടും. സ്വീകരിക്കുന്ന fields `src/shared/validation/schemas/keys.ts`-ലെ `updateKeyPermissionsSchema` നിർവചിക്കുന്നു.
+
+| ഫീൽഡ്                                       | തരം                                                                                  | കുറിപ്പുകൾ                                                                                                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                                      | string, 1-200 അക്ഷരങ്ങൾ                                                              |                                                                                                                                                                                            |
+| `isActive`                                  | boolean                                                                              |                                                                                                                                                                                            |
+| `isBanned`                                  | boolean                                                                              |                                                                                                                                                                                            |
+| `expiresAt`                                 | ISO 8601 datetime അല്ലെങ്കിൽ `null`                                                  | `null` കാലഹരണപ്പെടൽ നീക്കം ചെയ്യുന്നു                                                                                                                                                      |
+| `modelAccessMode`                           | `all` \| `restricted`                                                                | മോഡ് `all` ആയിരിക്കുമ്പോൾ `allowedModels` ശൂന്യമായിരിക്കണം                                                                                                                                 |
+| `allowedModels`, `blockedModels`            | string-ുകളുടെ array, പരമാവധി 1000                                                    |                                                                                                                                                                                            |
+| `allowedCombos`                             | string-ുകളുടെ array, പരമാവധി 500                                                     | കീയ്ക്ക് ഏതെല്ലാം കോംബോകൾ വിളിക്കാമെന്ന് നിയന്ത്രിക്കുന്നു; നേരിട്ടുള്ള മോഡലുകൾ `modelAccessMode` / `allowedModels` അനുസരിച്ചാണ് നിയന്ത്രിക്കപ്പെടുന്നത്                                   |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                                | `restricted` ആയിരിക്കുമ്പോൾ `allowedConnections` ശൂന്യമല്ലാതെയും `all` ആയിരിക്കുമ്പോൾ ശൂന്യമായും ആയിരിക്കണം                                                                                |
+| `allowedConnections`                        | UUID-കളുടെ array, പരമാവധി 100                                                        |                                                                                                                                                                                            |
+| `allowAutoCombos`                           | boolean                                                                              | `false` ആണെങ്കിൽ ഈ കീ ഉപയോഗിച്ചുള്ള `auto/*` മോഡലുകൾക്കായുള്ള അഭ്യർത്ഥനകൾ നിരസിക്കുന്നു; ഇത് ഒരിക്കലും സജ്ജീകരിച്ചിട്ടില്ലാത്ത കീകൾ അനുവദിക്കപ്പെടും                                       |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                                        | ഈ കീയ്ക്കായി `GET /v1/models` എന്തെല്ലാം ലിസ്റ്റ് ചെയ്യണമെന്ന് നിർണ്ണയിക്കുന്നു (കോംബോകൾ മാത്രം, മോഡലുകൾ മാത്രം, അല്ലെങ്കിൽ രണ്ടും); കീയ്ക്ക് എന്തെല്ലാം വിളിക്കാമെന്നത് ഇത് മാറ്റുന്നില്ല |
+| `noLog`, `autoResolve`                      | boolean                                                                              |                                                                                                                                                                                            |
+| `throttleDelayMs`                           | integer, 0-300000                                                                    |                                                                                                                                                                                            |
+| `maxSessions`                               | integer, 0-10000                                                                     |                                                                                                                                                                                            |
+| `rateLimits`                                | `{ limit, window }`-ന്റെ array (പോസിറ്റീവ് integer-കൾ, പരമാവധി 50) അല്ലെങ്കിൽ `null` | `null` പരിധികൾ നീക്കം ചെയ്യുന്നു                                                                                                                                                           |
+| `accessSchedule`                            | ഷെഡ്യൂൾ ഒബ്ജക്റ്റ് അല്ലെങ്കിൽ `null`                                                 | `null` ഷെഡ്യൂൾ നീക്കം ചെയ്യുന്നു                                                                                                                                                           |
+| `scopes`                                    | string-ുകളുടെ array, പരമാവധി 32                                                      |                                                                                                                                                                                            |
+| `allowedEndpoints`                          | string-ുകളുടെ array, പരമാവധി 20                                                      |                                                                                                                                                                                            |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                                   |                                                                                                                                                                                            |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                                 | [ഓരോ കീയ്ക്കുമുള്ള കാഷ് ബൈപാസ്](#per-key-cache-bypass) കാണുക                                                                                                                               |
+| `compressionEnabled`                        | boolean                                                                              |                                                                                                                                                                                            |
+| `codexServiceMode`                          | Codex സേവന മോഡുകളിൽ ഒന്ന്                                                            |                                                                                                                                                                                            |
+| `disableNonPublicModels`                    | boolean                                                                              |                                                                                                                                                                                            |
+| `allowUsageCommand`                         | boolean                                                                              |                                                                                                                                                                                            |
+| `usageLimitEnabled`                         | boolean                                                                              |                                                                                                                                                                                            |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | 0-നേക്കാൾ വലുതോ തുല്യമോ ആയ number അല്ലെങ്കിൽ `null`                                  |                                                                                                                                                                                            |
+| `chaosModeEnabled`                          | boolean                                                                              |                                                                                                                                                                                            |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### ക്രമീകരണങ്ങൾ
 
-| എൻഡ്പോയിന്റ്                          | രീതി          | വിവരണം                                                                                                                                                                                        |
-| ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | പൊതുവായ ക്രമീകരണങ്ങൾ                                                                                                                                                                          |
-| `/api/settings/proxy`                 | GET/PUT       | നെറ്റ്വർക്ക് പ്രോക്സി കോൺഫിഗറേഷൻ                                                                                                                                                              |
-| `/api/settings/proxy/test`            | POST          | പ്രോക്സി കണക്ഷൻ പരിശോധിക്കുക                                                                                                                                                                  |
-| `/api/settings/ip-filter`             | GET/PUT       | IP അനുവദനീയപട്ടിക/തടയൽപട്ടിക                                                                                                                                                                  |
-| `/api/settings/thinking-budget`       | GET/PUT       | ചിന്തിക്കൽ/യുക്തിചിന്താ **അഭ്യർത്ഥന** റീറൈറ്റ് മോഡ് (passthrough / auto-strip / custom / adaptive). കംപ്രഷനിൽ നിന്ന് സ്വതന്ത്രമാണ്. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) കാണുക. |
-| `/api/settings/system-prompt`         | GET/PUT       | ആഗോള സിസ്റ്റം പ്രോംപ്റ്റ്                                                                                                                                                                     |
-| `/api/settings/compression`           | GET/PUT       | ആഗോള കംപ്രഷൻ കോൺഫിഗറേഷൻ                                                                                                                                                                       |
-| `/api/settings/purge-request-history` | POST          | അഭ്യർത്ഥനാ ലോഗ് വരികളും ലോക്കൽ കോൾ-ലോഗ് ആർട്ടിഫാക്റ്റുകളും മായ്ക്കുക                                                                                                                          |
+| എൻഡ്പോയിന്റ്                          | രീതി          | വിവരണം                                                                                                                                                                                       |
+| ------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | പൊതുവായ ക്രമീകരണങ്ങൾ                                                                                                                                                                         |
+| `/api/settings/proxy`                 | GET/PUT       | നെറ്റ്വർക്ക് പ്രോക്സി കോൺഫിഗറേഷൻ                                                                                                                                                             |
+| `/api/settings/proxy/test`            | POST          | പ്രോക്സി കണക്ഷൻ പരിശോധിക്കുക                                                                                                                                                                 |
+| `/api/settings/ip-filter`             | GET/PUT       | IP അനുവദനീയപട്ടിക/തടയൽപട്ടിക                                                                                                                                                                 |
+| `/api/settings/thinking-budget`       | GET/PUT       | ചിന്തിക്കൽ/യുക്തിചിന്താ **അഭ്യർത്ഥന** റീറൈറ്റ് മോഡ് (passthrough / auto-strip / custom / adaptive). കംപ്രഷനിൽനിന്ന് സ്വതന്ത്രമാണ്. [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md) കാണുക. |
+| `/api/settings/system-prompt`         | GET/PUT       | ആഗോള സിസ്റ്റം പ്രോംപ്റ്റ്                                                                                                                                                                    |
+| `/api/settings/compression`           | GET/PUT       | ആഗോള കംപ്രഷൻ കോൺഫിഗറേഷൻ                                                                                                                                                                      |
+| `/api/settings/purge-request-history` | POST          | അഭ്യർത്ഥനാ ലോഗ് വരികളും ലോക്കൽ കോൾ-ലോഗ് ആർട്ടിഫാക്റ്റുകളും മായ്ക്കുക                                                                                                                         |
 
 ### കോൺടെക്സ്റ്റും കംപ്രഷനും
 
-| എൻഡ്പോയിന്റ്                           | മെത്തഡ്        | വിവരണം                                                                                              |
+| എൻഡ്പോയിന്റ്                           | രീതി           | വിവരണം                                                                                              |
 | -------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked കംപ്രഷന്റെ പ്രിവ്യൂ                                  |
+| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked കംപ്രഷൻ പ്രിവ്യൂ ചെയ്യുക                             |
 | `/api/compression/language-packs`      | GET            | ലഭ്യമായ Caveman ഭാഷാ പാക്കുകൾ പട്ടികപ്പെടുത്തുക                                                     |
-| `/api/compression/rules`               | GET            | Caveman റൂൾ മെറ്റാഡാറ്റ പട്ടികപ്പെടുത്തുക                                                           |
+| `/api/compression/rules`               | GET            | Caveman നിയമ മെറ്റാഡാറ്റ പട്ടികപ്പെടുത്തുക                                                          |
 | `/api/context/caveman/config`          | GET/PUT        | Caveman-നിർദ്ദിഷ്ട ക്രമീകരണങ്ങളുടെ അപരനാമം                                                          |
 | `/api/context/rtk/config`              | GET/PUT        | ഇഷ്ടാനുസൃത ഫിൽട്ടറുകളും അസംസ്കൃത ഔട്ട്പുട്ട് നിലനിർത്തലും ഉൾപ്പെടെയുള്ള RTK-നിർദ്ദിഷ്ട ക്രമീകരണങ്ങൾ |
-| `/api/context/rtk/filters`             | GET            | RTK ഫിൽട്ടർ കാറ്റലോഗും ഇഷ്ടാനുസൃത ഫിൽട്ടർ ഡയഗ്നോസ്റ്റിക്സും                                         |
+| `/api/context/rtk/filters`             | GET            | RTK ഫിൽട്ടർ കാറ്റലോഗും ഇഷ്ടാനുസൃത-ഫിൽട്ടർ ഡയഗ്നോസ്റ്റിക്സും                                         |
 | `/api/context/rtk/test`                | POST           | ഒരു ടെക്സ്റ്റ് പേലോഡിനെതിരെ RTK പ്രിവ്യൂ/ടെസ്റ്റ് പ്രവർത്തിപ്പിക്കുക                                |
 | `/api/context/rtk/raw-output/[id]`     | GET            | പോയിന്റർ id ഉപയോഗിച്ച് നിലനിർത്തിയ തിരുത്തിയ അസംസ്കൃത ഔട്ട്പുട്ട് വായിക്കുക                         |
 | `/api/context/combos`                  | GET/POST       | കംപ്രഷൻ കോംബോ പട്ടികപ്പെടുത്തുക/സൃഷ്ടിക്കുക                                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | കംപ്രഷൻ കോംബോയുടെ വിശദാംശങ്ങൾ/അപ്ഡേറ്റ്/ഇല്ലാതാക്കൽ                                                 |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | റൂട്ടിംഗ് കോംബോകൾക്ക് കംപ്രഷൻ കോംബോകൾ നിയോഗിക്കുക                                                   |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | കംപ്രഷൻ കോംബോയുടെ വിശദാംശം/അപ്ഡേറ്റ്/ഇല്ലാതാക്കൽ                                                    |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | റൂട്ടിംഗ് കോംബോകൾക്ക് കംപ്രഷൻ കോംബോകൾ നൽകുക                                                         |
 | `/api/context/analytics`               | GET            | കംപ്രഷൻ അനലിറ്റിക്സ് അപരനാമം                                                                        |
 
 ### നിരീക്ഷണം
 
-| എൻഡ്പോയിന്റ്                         | മെത്തഡ്    | വിവരണം                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | സജീവ സെഷൻ ട്രാക്കിംഗ്                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/rate-limits`                   | GET        | ഓരോ അക്കൗണ്ടിനുമുള്ള നിരക്ക് പരിധികൾ                                                                                                                                                                                                                                                                                                                                                                                       |
-| `/api/monitoring/health`             | GET        | ആരോഗ്യ പരിശോധന + പ്രൊവൈഡർ സംഗ്രഹം (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). മാനേജ്മെന്റ് വ്യൂവിൽ `credentialHealth` ഉൾപ്പെടുന്നു: പ്രോബ്-കാഷെ സ്കെയിലറുകൾ, `failed>0` ആയിരിക്കുമ്പോൾ `failedConnections`, കൂടാതെ `staleDbNonOkCount` (SQLite സ്റ്റിക്കി `test_status`, ഗേജ് അല്ല). [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) കാണുക. |
-| `/api/cache/stats`                   | GET/DELETE | കാഷെ സ്ഥിതിവിവരക്കണക്കുകൾ / മായ്ക്കുക                                                                                                                                                                                                                                                                                                                                                                                      |
-| `/api/modality-bridge/stats`         | GET        | ഇൻ-മെമ്മറി `attempts`, വിജയങ്ങൾ/`bridged`, പരാജയങ്ങൾ, കാഷെ ഹിറ്റുകൾ, `totalLatencyMs`, `latencySamples`, സാമ്പിൾ-ഡിനോമിനേറ്റഡ് `averageLatencyMs`, അവസാന ഉപയോഗ സമയം (പുനരാരംഭിക്കുമ്പോൾ റീസെറ്റ് ചെയ്യും; മാനേജ്മെന്റ് ഓത്ത്)                                                                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | മാനേജ്മെന്റ് ഓത്ത്/പ്രോബിന് മുമ്പുള്ള കർശനമായ വിശ്വസനീയ-ലൂപ്പ്ബാക്ക് പരിശോധന; ശുദ്ധീകരിച്ച FFmpeg/ffprobe ലഭ്യതയും പതിപ്പുകളും (no-store)                                                                                                                                                                                                                                                                                  |
-| `/api/modality-bridge/video/extract` | POST       | ആന്തരികമായി പ്രാമാണീകരിച്ച വിശ്വസനീയ-ലൂപ്പ്ബാക്ക് ബൈറ്റ് ബ്രോക്കർ; 50 MiB ഇൻപുട്ട്, പരിധിയിട്ട ക്യൂ/32 MiB ഔട്ട്പുട്ട്, `503` ശേഷി, `499` വിച്ഛേദം, `504` സമയപരിധി; ഇതൊരു പൊതു അപ്ലോഡ് API അല്ല                                                                                                                                                                                                                            |
+| Endpoint                             | Method     | വിവരണം                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | സജീവ സെഷൻ ട്രാക്കിംഗ്                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `/api/rate-limits`                   | GET        | ഓരോ അക്കൗണ്ടിനുമുള്ള നിരക്ക് പരിധികൾ                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/monitoring/health`             | GET        | ആരോഗ്യ പരിശോധന + പ്രൊവൈഡർ സംഗ്രഹം (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). മാനേജ്മെന്റ് കാഴ്ചയിൽ `credentialHealth` ഉൾപ്പെടുന്നു: പ്രോബ്-കാഷ് സ്കെയിലറുകൾ, `failed>0` ആയിരിക്കുമ്പോൾ `failedConnections`, കൂടാതെ `staleDbNonOkCount` (SQLite സ്റ്റിക്കി `test_status`, ഗേജ് അല്ല). [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status) കാണുക. |
+| `/api/cache/stats`                   | GET/DELETE | കാഷ് സ്ഥിതിവിവരക്കണക്കുകൾ / മായ്ക്കൽ                                                                                                                                                                                                                                                                                                                                                                                        |
+| `/api/modality-bridge/stats`         | GET        | ഇൻ-മെമ്മറി `attempts`, വിജയങ്ങൾ/`bridged`, പരാജയങ്ങൾ, കാഷ് ഹിറ്റുകൾ, `totalLatencyMs`, `latencySamples`, സാമ്പിൾ അടിസ്ഥാനത്തിലുള്ള `averageLatencyMs`, അവസാനമായി ഉപയോഗിച്ച സമയം (പുനരാരംഭിക്കുമ്പോൾ റീസെറ്റ് ചെയ്യും; മാനേജ്മെന്റ് ഓതന്റിക്കേഷൻ)                                                                                                                                                                            |
+| `/api/modality-bridge/video/runtime` | GET        | മാനേജ്മെന്റ് ഓതന്റിക്കേഷൻ/പ്രോബിന് മുമ്പുള്ള കർശനമായ വിശ്വസനീയ-ലൂപ്പ്ബാക്ക് പരിശോധന; ശുദ്ധീകരിച്ച FFmpeg/ffprobe ലഭ്യതയും പതിപ്പുകളും (സംഭരിക്കരുത്)                                                                                                                                                                                                                                                                        |
+| `/api/modality-bridge/video/extract` | POST       | ആന്തരിക ഓതന്റിക്കേഷൻ ചെയ്ത വിശ്വസനീയ-ലൂപ്പ്ബാക്ക് ബൈറ്റ് ബ്രോക്കർ; 50 MiB ഇൻപുട്ട്, പരിധിയുള്ള ക്യൂ/32 MiB ഔട്ട്പുട്ട്, `503` ശേഷി, `499` വിച്ഛേദം, `504` സമയപരിധി; ഇതൊരു പൊതു അപ്ലോഡ് API അല്ല                                                                                                                                                                                                                             |
 
 ### ബാക്കപ്പും എക്സ്പോർട്ട്/ഇംപോർട്ടും
 
-| എൻഡ്പോയിന്റ്                | മെത്തഡ് | വിവരണം                                                   |
-| --------------------------- | ------- | -------------------------------------------------------- |
-| `/api/db-backups`           | GET     | ലഭ്യമായ ബാക്കപ്പുകൾ പട്ടികപ്പെടുത്തുക                    |
-| `/api/db-backups`           | PUT     | മാനുവൽ ബാക്കപ്പ് സൃഷ്ടിക്കുക                             |
-| `/api/db-backups`           | POST    | നിർദ്ദിഷ്ട ബാക്കപ്പിൽ നിന്ന് പുനഃസ്ഥാപിക്കുക             |
-| `/api/db-backups/export`    | GET     | ഡാറ്റാബേസ് .sqlite ഫയലായി ഡൗൺലോഡ് ചെയ്യുക                |
-| `/api/db-backups/import`    | POST    | ഡാറ്റാബേസ് മാറ്റിസ്ഥാപിക്കാൻ .sqlite ഫയൽ അപ്ലോഡ് ചെയ്യുക |
-| `/api/db-backups/exportAll` | GET     | പൂർണ്ണ ബാക്കപ്പ് .tar.gz ആർക്കൈവായി ഡൗൺലോഡ് ചെയ്യുക      |
+| Endpoint                    | Method | വിവരണം                                                   |
+| --------------------------- | ------ | -------------------------------------------------------- |
+| `/api/db-backups`           | GET    | ലഭ്യമായ ബാക്കപ്പുകൾ പട്ടികപ്പെടുത്തുക                    |
+| `/api/db-backups`           | PUT    | മാനുവൽ ബാക്കപ്പ് സൃഷ്ടിക്കുക                             |
+| `/api/db-backups`           | POST   | ഒരു നിർദ്ദിഷ്ട ബാക്കപ്പിൽ നിന്ന് പുനഃസ്ഥാപിക്കുക         |
+| `/api/db-backups/export`    | GET    | ഡാറ്റാബേസ് .sqlite ഫയലായി ഡൗൺലോഡ് ചെയ്യുക                |
+| `/api/db-backups/import`    | POST   | ഡാറ്റാബേസ് മാറ്റിസ്ഥാപിക്കാൻ .sqlite ഫയൽ അപ്ലോഡ് ചെയ്യുക |
+| `/api/db-backups/exportAll` | GET    | പൂർണ്ണ ബാക്കപ്പ് .tar.gz ആർക്കൈവായി ഡൗൺലോഡ് ചെയ്യുക      |
 
 ### ക്ലൗഡ് സമന്വയം
 
-| എൻഡ്പോയിന്റ്           | മെത്തഡ്  | വിവരണം                      |
-| ---------------------- | -------- | --------------------------- |
-| `/api/sync/cloud`      | വിവിധതരം | ക്ലൗഡ് സമന്വയ പ്രവർത്തനങ്ങൾ |
-| `/api/sync/initialize` | POST     | സമന്വയം ആരംഭിക്കുക          |
-| `/api/cloud/*`         | വിവിധതരം | ക്ലൗഡ് മാനേജ്മെന്റ്         |
+| Endpoint               | Method | വിവരണം                      |
+| ---------------------- | ------ | --------------------------- |
+| `/api/sync/cloud`      | വിവിധം | ക്ലൗഡ് സമന്വയ പ്രവർത്തനങ്ങൾ |
+| `/api/sync/initialize` | POST   | സമന്വയം ആരംഭിക്കുക          |
+| `/api/cloud/*`         | വിവിധം | ക്ലൗഡ് മാനേജ്മെന്റ്         |
 
 ### ടണലുകൾ
 
-| എൻഡ്പോയിന്റ്               | മെത്തഡ് | വിവരണം                                                                                                  |
-| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET     | ഡാഷ്ബോർഡിനായുള്ള Cloudflare Quick Tunnel ഇൻസ്റ്റാളേഷൻ/റൺടൈം നില വായിക്കുക                               |
-| `/api/tunnels/cloudflared` | POST    | Cloudflare Quick Tunnel പ്രവർത്തനക്ഷമമാക്കുകയോ പ്രവർത്തനരഹിതമാക്കുകയോ ചെയ്യുക (`action=enable/disable`) |
-| `/api/tunnels/ngrok`       | GET     | ഡാഷ്ബോർഡിനായുള്ള ngrok Tunnel റൺടൈം നില വായിക്കുക                                                       |
-| `/api/tunnels/ngrok`       | POST    | ngrok Tunnel പ്രവർത്തനക്ഷമമാക്കുകയോ പ്രവർത്തനരഹിതമാക്കുകയോ ചെയ്യുക (`action=enable/disable`)            |
+| Endpoint                   | Method | വിവരണം                                                                                                 |
+| -------------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| `/api/tunnels/cloudflared` | GET    | ഡാഷ്ബോർഡിനായുള്ള Cloudflare Quick Tunnel ഇൻസ്റ്റാൾ/റൺടൈം നില വായിക്കുക                                 |
+| `/api/tunnels/cloudflared` | POST   | Cloudflare Quick Tunnel പ്രവർത്തനക്ഷമമാക്കുക അല്ലെങ്കിൽ പ്രവർത്തനരഹിതമാക്കുക (`action=enable/disable`) |
+| `/api/tunnels/ngrok`       | GET    | ഡാഷ്ബോർഡിനായുള്ള ngrok Tunnel റൺടൈം നില വായിക്കുക                                                      |
+| `/api/tunnels/ngrok`       | POST   | ngrok Tunnel പ്രവർത്തനക്ഷമമാക്കുക അല്ലെങ്കിൽ പ്രവർത്തനരഹിതമാക്കുക (`action=enable/disable`)            |
 
 ### CLI ഉപകരണങ്ങൾ
 
-| എൻഡ്പോയിന്റ്                       | മെത്തഡ് | വിവരണം            |
-| ---------------------------------- | ------- | ----------------- |
-| `/api/cli-tools/claude-settings`   | GET     | Claude CLI നില    |
-| `/api/cli-tools/codex-settings`    | GET     | Codex CLI നില     |
-| `/api/cli-tools/droid-settings`    | GET     | Droid CLI നില     |
-| `/api/cli-tools/openclaw-settings` | GET     | OpenClaw CLI നില  |
-| `/api/cli-tools/runtime/[toolId]`  | GET     | പൊതുവായ CLI റൺടൈം |
+| എൻഡ്പോയിന്റ്                       | രീതി | വിവരണം            |
+| ---------------------------------- | ---- | ----------------- |
+| `/api/cli-tools/claude-settings`   | GET  | Claude CLI നില    |
+| `/api/cli-tools/codex-settings`    | GET  | Codex CLI നില     |
+| `/api/cli-tools/droid-settings`    | GET  | Droid CLI നില     |
+| `/api/cli-tools/openclaw-settings` | GET  | OpenClaw CLI നില  |
+| `/api/cli-tools/runtime/[toolId]`  | GET  | പൊതുവായ CLI റൺടൈം |
 
 CLI പ്രതികരണങ്ങളിൽ ഇവ ഉൾപ്പെടുന്നു: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### ACP ഏജന്റുകൾ
 
-| എൻഡ്പോയിന്റ്      | മെത്തഡ് | വിവരണം                                                                             |
-| ----------------- | ------- | ---------------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET     | കണ്ടെത്തിയ എല്ലാ ഏജന്റുകളെയും (ബിൽറ്റ്-ഇൻ + കസ്റ്റം) നിലയോടൊപ്പം പട്ടികപ്പെടുത്തുക |
-| `/api/acp/agents` | POST    | കസ്റ്റം ഏജന്റിനെ ചേർക്കുക അല്ലെങ്കിൽ കണ്ടെത്തൽ കാഷ് പുതുക്കുക                      |
-| `/api/acp/agents` | DELETE  | `id` ക്വറി പാരാമീറ്റർ ഉപയോഗിച്ച് കസ്റ്റം ഏജന്റിനെ നീക്കം ചെയ്യുക                   |
+| എൻഡ്പോയിന്റ്      | രീതി   | വിവരണം                                                                                 |
+| ----------------- | ------ | -------------------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | കണ്ടെത്തിയ എല്ലാ ഏജന്റുകളെയും (ബിൽറ്റ്-ഇൻ + ഇഷ്ടാനുസൃതം) നിലയോടൊപ്പം പട്ടികപ്പെടുത്തുക |
+| `/api/acp/agents` | POST   | ഇഷ്ടാനുസൃത ഏജന്റ് ചേർക്കുക അല്ലെങ്കിൽ കണ്ടെത്തൽ കാഷ് പുതുക്കുക                         |
+| `/api/acp/agents` | DELETE | `id` ക്വറി പാരാമീറ്റർ ഉപയോഗിച്ച് ഒരു ഇഷ്ടാനുസൃത ഏജന്റിനെ നീക്കംചെയ്യുക                 |
 
 GET പ്രതികരണത്തിൽ `agents[]` (id, name, binary, version, installed, protocol, isCustom), `summary` (total, installed, notFound, builtIn, custom) എന്നിവ ഉൾപ്പെടുന്നു.
 
 ### പ്രതിരോധശേഷിയും നിരക്ക് പരിധികളും
 
-| എൻഡ്പോയിന്റ്                      | മെത്തഡ്   | വിവരണം                                                                                                                                |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | അഭ്യർത്ഥന ക്യൂ, കണക്ഷൻ കൂൾഡൗൺ, പ്രൊവൈഡർ ബ്രേക്കർ, കാത്തിരിപ്പ് ക്രമീകരണങ്ങൾ എന്നിവ നേടുക/പുതുക്കുക                                    |
-| `/api/resilience/reset`           | POST      | പ്രൊവൈഡർ സർക്യൂട്ട് ബ്രേക്കറുകൾ റീസെറ്റ് ചെയ്യുക                                                                                      |
-| `/api/resilience/model-cooldowns` | GET       | ശേഷിക്കുന്ന സമയത്തിന്റെ അടിസ്ഥാനത്തിൽ ക്രമീകരിച്ച, ഓരോ (പ്രൊവൈഡർ, കണക്ഷൻ, മോഡൽ) അടിസ്ഥാനത്തിലുള്ള സജീവ ലോക്കൗട്ടുകൾ പട്ടികപ്പെടുത്തുക |
-| `/api/resilience/model-cooldowns` | DELETE    | ഒരു മോഡൽ ലോക്കൗട്ട് നീക്കുക — ബോഡി `{provider, model}` അല്ലെങ്കിൽ എല്ലാം മായ്ക്കാൻ `{all: true}`                                      |
-| `/api/rate-limits`                | GET       | ഓരോ അക്കൗണ്ടിന്റെയും നിരക്ക് പരിധി നില                                                                                                |
-| `/api/rate-limit`                 | GET       | ആഗോള നിരക്ക് പരിധി കോൺഫിഗറേഷൻ                                                                                                         |
+| എൻഡ്പോയിന്റ്                      | രീതി      | വിവരണം                                                                                                        |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | അഭ്യർത്ഥന ക്യൂ, കണക്ഷൻ കൂൾഡൗൺ, പ്രൊവൈഡർ ബ്രേക്കർ, കാത്തിരിപ്പ് ക്രമീകരണങ്ങൾ എന്നിവ നേടുക/പുതുക്കുക            |
+| `/api/resilience/reset`           | POST      | പ്രൊവൈഡർ സർക്യൂട്ട് ബ്രേക്കറുകൾ പുനഃസജ്ജമാക്കുക                                                               |
+| `/api/resilience/model-cooldowns` | GET       | ശേഷിക്കുന്ന സമയം അനുസരിച്ച് ക്രമീകരിച്ച സജീവമായ ഓരോ-(പ്രൊവൈഡർ, കണക്ഷൻ, മോഡൽ) ലോക്കൗട്ടുകളും പട്ടികപ്പെടുത്തുക |
+| `/api/resilience/model-cooldowns` | DELETE    | ഒരു മോഡൽ ലോക്കൗട്ട് മായ്ക്കുക — ബോഡി `{provider, model}` അല്ലെങ്കിൽ എല്ലാം മായ്ക്കാൻ `{all: true}`            |
+| `/api/rate-limits`                | GET       | ഓരോ അക്കൗണ്ടിനുമുള്ള നിരക്ക് പരിധിയുടെ നില                                                                    |
+| `/api/rate-limit`                 | GET       | ആഗോള നിരക്ക് പരിധി കോൺഫിഗറേഷൻ                                                                                 |
 
 > നാല് `/api/resilience/*` റൂട്ടുകൾക്കും **മാനേജ്മെന്റ് ഓത്ത്** (`requireManagementAuth`) ആവശ്യമാണ്. പ്രൊവൈഡർ ബ്രേക്കർ, കണക്ഷൻ കൂൾഡൗൺ, മോഡൽ ലോക്കൗട്ട് എന്നിവയുടെ പൂർണ്ണമായ വിശദീകരണത്തിന് [പ്രതിരോധശേഷി (വിപുലീകരിച്ചത്)](#resilience-extended) കാണുക.
 
 ### മൂല്യനിർണ്ണയങ്ങൾ
 
-| എൻഡ്പോയിന്റ് | മെത്തഡ്  | വിവരണം                                                                       |
+| എൻഡ്പോയിന്റ് | രീതി     | വിവരണം                                                                       |
 | ------------ | -------- | ---------------------------------------------------------------------------- |
 | `/api/evals` | GET/POST | മൂല്യനിർണ്ണയ സ്യൂട്ടുകൾ പട്ടികപ്പെടുത്തുക / മൂല്യനിർണ്ണയം പ്രവർത്തിപ്പിക്കുക |
 
 ### നയങ്ങൾ
 
-| എൻഡ്പോയിന്റ്    | മെത്തഡ്         | വിവരണം                          |
-| --------------- | --------------- | ------------------------------- |
-| `/api/policies` | GET/POST/DELETE | റൂട്ടിംഗ് നയങ്ങൾ മാനേജ് ചെയ്യുക |
+| എൻഡ്പോയിന്റ്    | രീതി            | വിവരണം                           |
+| --------------- | --------------- | -------------------------------- |
+| `/api/policies` | GET/POST/DELETE | റൂട്ടിംഗ് നയങ്ങൾ കൈകാര്യംചെയ്യുക |
 
-### അനുപാലനം
+### അനുസൃതത
 
-| എൻഡ്പോയിന്റ്                | മെത്തഡ് | വിവരണം                                   |
-| --------------------------- | ------- | ---------------------------------------- |
-| `/api/compliance/audit-log` | GET     | അനുപാലന ഓഡിറ്റ് ലോഗ് (അവസാനത്തെ N എണ്ണം) |
+| എൻഡ്പോയിന്റ്                | രീതി | വിവരണം                                    |
+| --------------------------- | ---- | ----------------------------------------- |
+| `/api/compliance/audit-log` | GET  | അനുസൃതതാ ഓഡിറ്റ് ലോഗ് (അവസാനത്തെ N എണ്ണം) |
 
 ### v1beta (Gemini-അനുയോജ്യം)
 
-| എൻഡ്പോയിന്റ്               | മെത്തഡ് | വിവരണം                                      |
-| -------------------------- | ------- | ------------------------------------------- |
-| `/v1beta/models`           | GET     | Gemini ഫോർമാറ്റിൽ മോഡലുകൾ പട്ടികപ്പെടുത്തുക |
-| `/v1beta/models/{...path}` | POST    | Gemini `generateContent` എൻഡ്പോയിന്റ്       |
+| എൻഡ്പോയിന്റ്               | രീതി | വിവരണം                                      |
+| -------------------------- | ---- | ------------------------------------------- |
+| `/v1beta/models`           | GET  | Gemini ഫോർമാറ്റിൽ മോഡലുകൾ പട്ടികപ്പെടുത്തുക |
+| `/v1beta/models/{...path}` | POST | Gemini `generateContent` എൻഡ്പോയിന്റ്       |
 
-നേറ്റീവ് Gemini SDK അനുയോജ്യത പ്രതീക്ഷിക്കുന്ന ക്ലയന്റുകൾക്കായി ഈ എൻഡ്പോയിന്റുകൾ Gemini-യുടെ API ഫോർമാറ്റ് പ്രതിഫലിപ്പിക്കുന്നു.
+നേറ്റീവ് Gemini SDK അനുയോജ്യത പ്രതീക്ഷിക്കുന്ന ക്ലയന്റുകൾക്കായി ഈ എൻഡ്പോയിന്റുകൾ Gemini-യുടെ API ഫോർമാറ്റിനെ പ്രതിഫലിപ്പിക്കുന്നു.
 
 ### ആന്തരിക / സിസ്റ്റം API-കൾ
 
-| എൻഡ്പോയിന്റ്             | രീതി | വിവരണം                                                             |
-| ------------------------ | ---- | ------------------------------------------------------------------ |
-| `/api/init`              | GET  | ആപ്ലിക്കേഷൻ ആരംഭിക്കൽ പരിശോധന (ആദ്യ പ്രവർത്തനത്തിൽ ഉപയോഗിക്കുന്നു) |
-| `/api/tags`              | GET  | Ollama-അനുയോജ്യമായ മോഡൽ ടാഗുകൾ (Ollama ക്ലയന്റുകൾക്കായി)           |
-| `/api/restart`           | POST | ക്രമാനുസൃതമായ സെർവർ പുനരാരംഭം ട്രിഗർ ചെയ്യുക                       |
-| `/api/shutdown`          | POST | ക്രമാനുസൃതമായ സെർവർ ഷട്ട്ഡൗൺ ട്രിഗർ ചെയ്യുക                        |
-| `/api/system/env/repair` | POST | OAuth പ്രൊവൈഡർ എൻവയോൺമെന്റ് വേരിയബിളുകൾ നന്നാക്കുക                 |
+| എൻഡ്പോയിന്റ്             | രീതി | വിവരണം                                                                 |
+| ------------------------ | ---- | ---------------------------------------------------------------------- |
+| `/api/init`              | GET  | ആപ്ലിക്കേഷൻ ആരംഭീകരണ പരിശോധന (ആദ്യ പ്രവർത്തനത്തിൽ ഉപയോഗിക്കുന്നത്)     |
+| `/api/tags`              | GET  | Ollama-അനുയോജ്യ മോഡൽ ടാഗുകൾ (Ollama ക്ലയന്റുകൾക്കായി)                  |
+| `/api/restart`           | POST | ക്രമാനുസൃത സർവർ പുനരാരംഭം ട്രിഗർ ചെയ്യുക                               |
+| `/api/shutdown`          | POST | ക്രമാനുസൃത സർവർ ഷട്ട്ഡൗൺ ട്രിഗർ ചെയ്യുക                                |
+| `/api/system/env/repair` | POST | OAuth പ്രൊവൈഡർ എൻവയോൺമെന്റ് വേരിയബിളുകൾ നന്നാക്കുക                     |
+| `/api/system/version`    | GET  | നിലവിലെ/ഏറ്റവും പുതിയ പതിപ്പ്, അപ്ഡേറ്റ് നില, റിലീസ് ചാനൽ              |
+| `/api/system/version`    | POST | ഏറ്റവും പുതിയ പതിപ്പിലേക്കുള്ള വിന്യാസ-അവബോധമുള്ള അപ്ഡേറ്റ് ആരംഭിക്കുക |
 
-> **കുറിപ്പ്:** ഈ എൻഡ്പോയിന്റുകൾ സിസ്റ്റം ആന്തരികമായി അല്ലെങ്കിൽ Ollama ക്ലയന്റ് അനുയോജ്യതയ്ക്കായി ഉപയോഗിക്കുന്നു. അന്തിമ ഉപയോക്താക്കൾ സാധാരണയായി ഇവ നേരിട്ട് വിളിക്കാറില്ല.
+> **കുറിപ്പ്:** ഈ എൻഡ്പോയിന്റുകൾ സിസ്റ്റം ആന്തരികമായി അല്ലെങ്കിൽ Ollama ക്ലയന്റ് അനുയോജ്യതയ്ക്കായി ഉപയോഗിക്കുന്നു. അന്തിമ ഉപയോക്താക്കൾ സാധാരണയായി ഇവയെ നേരിട്ട് വിളിക്കാറില്ല.
 
 ### OAuth എൻവയോൺമെന്റ് നന്നാക്കൽ _(v3.6.1+)_
 
@@ -1019,7 +1127,7 @@ Content-Type: application/json
 }
 ```
 
-ഒരു നിർദ്ദിഷ്ട പ്രൊവൈഡറിനായി നഷ്ടപ്പെട്ടതോ കേടായതോ ആയ OAuth എൻവയോൺമെന്റ് വേരിയബിളുകൾ നന്നാക്കുന്നു. ലഭിക്കുന്ന പ്രതികരണം:
+ഒരു പ്രത്യേക പ്രൊവൈഡറിന്റെ നഷ്ടപ്പെട്ടതോ കേടായതോ ആയ OAuth എൻവയോൺമെന്റ് വേരിയബിളുകൾ നന്നാക്കുന്നു. തിരികെ നൽകുന്നത്:
 
 ```json
 {
@@ -1028,6 +1136,45 @@ Content-Type: application/json
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### പതിപ്പും റിലീസ് ചാനലും
+
+```bash
+GET /api/system/version
+```
+
+ലൂപ്പ്ബാക്കിൽ മാത്രം ലഭ്യമായ മാനേജ്മെന്റ് റൂട്ട് (അഡ്മിൻ ഓത്ത്). പ്രവർത്തിച്ചുകൊണ്ടിരിക്കുന്ന പതിപ്പ്, ഏറ്റവും പുതിയ
+പ്രസിദ്ധീകരിച്ച പതിപ്പ്, ഓട്ടോ-അപ്ഡേറ്റ് നില എന്നിവ തിരികെ നൽകുന്നു. `releaseChannel`, `channels` എന്നിവ അധികമായി ചേർത്ത
+ഫീൽഡുകളാണ് (rail 3.8.54); `channel` അതിന്റെ അർത്ഥം നിലനിർത്തുന്നു — ഡാഷ്ബോർഡ് അപ്ഡേറ്റർ
+ഉപയോഗിക്കുന്ന വിന്യാസ മോഡ് (`npm`, `source` അല്ലെങ്കിൽ `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — പ്രവർത്തിക്കുന്ന ബിൽഡിന്റെ npm ചാനൽ: `-nightly.*` പതിപ്പുകൾക്ക് `nightly`,
+  മറ്റ് പ്രീ-റിലീസുകൾക്ക് (`-rc.*`, `-beta.*`, `-alpha.*`) `next`, `channels.latest`-നേക്കാൾ
+  പഴയ മേജർ പതിപ്പിന്റെ സ്ഥിരതയുള്ള പതിപ്പിന് `lts`, അല്ലാത്തപക്ഷം `latest`. പ്രസിദ്ധീകരണ സമയത്ത്
+  npm dist-tag തിരഞ്ഞെടുക്കുന്ന `scripts/release/dist-tag.mjs`-ലെ അതേ നിയമങ്ങൾ.
+- `channels` — `npm view omniroute dist-tags`-ൽ നിന്നുള്ള ഓരോ dist-tag-ന്റെയും പ്രസിദ്ധീകരിച്ച
+  ഏറ്റവും പുതിയ പതിപ്പ് (registry HTTP ഫാൾബാക്ക്), `latest`-ന്റെ അതേ 10-മിനിറ്റ് TTL ഉപയോഗിച്ച്
+  കാഷ് ചെയ്യുന്നു. `latest` എല്ലായ്പ്പോഴും ഉണ്ടായിരിക്കും (ആദ്യം `latest` ഫീൽഡിലേക്കും തുടർന്ന്
+  `"unavailable"`-ലേക്കും ഫാൾബാക്ക് ചെയ്യുന്നു); ബന്ധപ്പെട്ട dist-tag നിലവിലുണ്ടെങ്കിൽ മാത്രം
+  `next`, `nightly`, `lts` എന്നിവ പ്രത്യക്ഷപ്പെടും. ഒരു `Cache-Control: no-cache` അഭ്യർത്ഥന രണ്ട്
+  ലുക്കപ്പുകളും പുതുക്കുന്നു.
+
+ചാനൽ മോഡൽ (`latest` = 4.0 GA വരെ v3, `next` = rc, `nightly` = `develop` ബിൽഡുകൾ,
+`lts` = 4.0 GA-യ്ക്ക് ശേഷമുള്ള v3 പാച്ചുകൾ) `docs/ops/RELEASE_STRATEGY.md`-ൽ വിവരിച്ചിരിക്കുന്നു.
 
 ---
 

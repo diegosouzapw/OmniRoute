@@ -316,14 +316,14 @@ W wersji v3.6.6 wprowadzono również **hybrydowe zliczanie tokenów**: gdy dost
 
 ---
 
-## 🛡️ Bezpieczne pobieranie wychodzące i ochrona przed SSRF _(v3.6.6+)_
+## 🛡️ Bezpieczne żądania wychodzące i ochrona przed SSRF _(v3.6.6+)_
 
 Wszystkie wywołania służące do walidacji dostawców i wykrywania modeli przechodzą teraz przez dwuwarstwową ochronę ruchu wychodzącego:
 
-1. **Ochrona URL** (`src/shared/network/outboundUrlGuard.ts`) — Blokuje prywatne, zwrotne i lokalne dla łącza zakresy adresów IP przed otwarciem gniazda.
-2. **Bezpieczna funkcja opakowująca pobieranie** (`src/shared/network/safeOutboundFetch.ts`) — Stosuje ochronę URL, normalizuje limity czasu i ponawia żądania po błędach przejściowych z wykładniczym wydłużaniem odstępów.
+1. **Ochrona adresów URL** (`src/shared/network/outboundUrlGuard.ts`) — Najpierw sprawdza nazwę hosta lub literał adresu IP celu w zapisanej postaci; w trybie wyłącznie publicznym opakowanie bezpiecznego pobierania rozwiązuje również nazwę i odrzuca prywatne adresy wynikowe. Domyślnie blokuje punkty końcowe metadanych chmurowych — cały zakres 169.254.0.0/16 oraz znane nazwy hostów metadanych; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blokuje także hosty prywatne i lokalne, natomiast `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (lub starsza zmienna `OUTBOUND_SSRF_GUARD_ENABLED=false`) wyłącza te kontrole. Wartość zapisana za pomocą przełącznika flagi w panelu ma pierwszeństwo przed odpowiadającą jej zmienną, a wbudowani lokalni dostawcy pomijają ochronę podczas walidacji klucza. Zobacz `docs/reference/ENVIRONMENT.md`.
+2. **Opakowanie bezpiecznego pobierania** (`src/shared/network/safeOutboundFetch.ts`) — Stosuje ochronę adresów URL, normalizuje limity czasu i ponawia żądania po błędach przejściowych, używając wykładniczego opóźnienia.
 
-Naruszenia reguł ochrony są zgłaszane jako HTTP 422 (`URL_GUARD_BLOCKED`) i zapisywane w dzienniku audytu zgodności za pośrednictwem `providerAudit.ts`.
+Naruszenia reguł ochrony są zgłaszane jako `URL_GUARD_BLOCKED` — HTTP 503 za pośrednictwem `getSafeOutboundFetchErrorStatus` (400 w trasie wykrywania modeli) — a rzeczywiste blokady SSRF podczas walidacji są zapisywane w dzienniku audytu jako zdarzenia `provider.validation.ssrf_blocked`.
 
 ---
 

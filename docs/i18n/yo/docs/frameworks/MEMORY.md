@@ -160,39 +160,39 @@ Tábìlì `memory_vec_meta` (migration `083_memory_vec.sql`) ń tọ́jú:
 - `last_reset_at` — àmì-àkókò àtúnṣètò kíkún tó ṣẹ̀ṣẹ̀ wáyé.
 - `vec_loaded` — àsíá 0/1 tó ń fi hàn bóyá sqlite-vec ti ṣíṣe ìrùsókè ní àṣeyọrí.
 
-## Ìfẹ̀sí àwọn ààtò
+## Ìmúgbòòrò àwọn ààtò
 
-Àwọn pápá ìṣàmúlò embedding àti vector mẹ́sàn-án wà nínú `MemorySettingsExtended` ní
+Àwọn ààyè mẹ́sàn-án fún embedding àti vector wà nínú `MemorySettingsExtended` ní
 `src/shared/schemas/memory.ts`, tí a sì ń tọ́jú wọn nípasẹ̀ `src/lib/db/settings.ts`:
 
-| Pápá                     | Irú                                                | Àiyípadà | Àpèjúwe                                                |
+| Ààyè                     | Irú                                                | Àìyípadà | Àpèjúwe                                                |
 | ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------ |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | Orísun embedding tí a ó lò                             |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | Olùpèsè/mọ́dẹ́lì ní ìlànà `provider/model`               |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | URL ìpìlẹ̀ endpoint tó bá OpenAI mu fún Memory nìkan    |
-| `customModelId`          | `string \| null`                                   | `null`   | ID mọ́dẹ́lì tí a fi ránṣẹ́ sí endpoint àkànṣe             |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Yíyan Transformers.js wọlé (MiniLM, ~400MB)            |
-| `staticEnabled`          | `boolean`                                          | `false`  | Yíyan mọ́dẹ́lì agbègbè static potion-base-8M wọlé        |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | Olùpèsè/àwòṣe ní ìṣètò `provider/model`                |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL ìpìlẹ̀ endpoint tó bá OpenAI mu, fún Memory nìkan   |
+| `customModelId`          | `string \| null`                                   | `null`   | ID àwòṣe tí a fi ránṣẹ́ sí endpoint àdáni               |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Yíyan láti lo Transformers.js (MiniLM, ~400MB)         |
+| `staticEnabled`          | `boolean`                                          | `false`  | Yíyan láti lo àwòṣe agbègbè static potion-base-8M      |
 | `rerankEnabled`          | `boolean`                                          | `false`  | Mú ìgbésẹ̀ àtúntò ipò ṣiṣẹ́ (ó fi +200-500ms/req kún un) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | Olùpèsè/mọ́dẹ́lì àtúntò ipò ní ìlànà `provider/model`    |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | Olùpèsè/àwòṣe àtúntò ipò ní ìṣètò `provider/model`     |
 
-`rerankProviderModel` ni `POST /v1/rerank` ń yanjú (tí a ń pè lórí loopback), nítorí náà ó gba ohunkóhun tí route náà bá gba: mọ́dẹ́lì àtúntò ipò cloud tí a ti fara balẹ̀ yàn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tàbí node olùpèsè tó bá OpenAI mu gẹ́gẹ́ bí `<node-prefix>/<model>` (fún àpẹẹrẹ, `skilled-mini/bge-reranker-v2-m3` fún àpótí TEI/Infinity). Àwọn node loopback yẹ ní gbogbo ìgbà; node kan lórí host mìíràn (LAN, Tailscale) tún nílò àsìá ẹ̀yà `RERANK_REMOTE_PROVIDER_NODES`, ó sì gbọ́dọ̀ kọjá ìlànà URL àbájáde olùpèsè — wo [Àwọn Àsìá Ẹ̀yà](../reference/FEATURE_FLAGS.md). Olùyàn dashboard ṣe àkójọ àwọn olùpèsè tí a ti fara balẹ̀ yàn pẹ̀lú àwọn node agbègbè; a lè ṣètò okùn `provider/model` èyíkéyìí tó fẹsẹ̀ múlẹ̀ ní tààràtà nípasẹ̀ `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Ẹ̀yìn vector tí a ó lò |
+`rerankProviderModel` ni `POST /v1/rerank` ń yanjú (tí a ń pè nípasẹ̀ loopback), nítorí náà ó gba ohunkóhun tí route náà bá gbà: àwòṣe àtúntò ipò cloud tí a ti fara balẹ̀ yàn (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tàbí node olùpèsè tó bá OpenAI mu gẹ́gẹ́ bí `<node-prefix>/<model>` (fún àpẹẹrẹ, `skilled-mini/bge-reranker-v2-m3` fún àpótí TEI/Infinity). Àwọn node loopback, àti àwọn hostname tí a tò sínú `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (fún àpẹẹrẹ, orúkọ iṣẹ́ Docker/Compose), lè kópa ní gbogbo ìgbà; node kan lórí host mìíràn (LAN, Tailscale) tún nílò àmì ẹ̀ya `RERANK_REMOTE_PROVIDER_NODES`, ó sì gbọ́dọ̀ kọjá ìlànà URL jáde ti olùpèsè — wo [Àwọn Àmì Ẹ̀ya](../reference/FEATURE_FLAGS.md). Ẹ̀rọ àṣàyàn dashboard ń ṣe àtòjọ àwọn olùpèsè tí a ti fara balẹ̀ yàn pẹ̀lú àwọn node agbègbè; a lè ṣètò okun `provider/model` tó fẹsẹ̀ múlẹ̀ èyíkéyìí ní tààrà nípasẹ̀ `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Backend vector tí a ó lò |
 
-A ṣí àwọn wọ̀nyí síta nípasẹ̀ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
+A ṣí wọn síta nípasẹ̀ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`).
 
 Fún orísun `remote`, Memory tún gba àwọn ààtò `customBaseUrl` àti
-`customModelId` tí kò pọn dandan. Ní àpapọ̀, wọ́n yan endpoint `/embeddings`
-àti mọ́dẹ́lì tó bá OpenAI mu láìyí àkọsílẹ̀ embedding àgbáyé padà. A máa ń
-ṣe endpoint náà déédé kí a tó lò ó, a sì máa ń yẹ̀ ẹ́ wò pẹ̀lú ìlànà URL
-àbájáde olùpèsè: HTTP(S) jẹ́ dandan, a kọ àwọn ẹ̀rí ìdánimọ̀ tí a fi sínú rẹ̀
-àti àwọn okùn query, àwọn àdírẹ́sì metadata cloud sì ṣì jẹ́ dídènà. Àwọn iye
-òfo ń pa olùpèsè àkọsílẹ̀ tí a yàn mọ́. A máa ń sọ àwọn àṣìṣe tí a dá padà sí
-dashboard di mímọ́, a kì í sì í kọ àwọn ẹ̀rí ìdánimọ̀ endpoint sínú log láéláé.
+`customModelId` tí kò pọn dandan. Ní àpapọ̀, wọ́n ń yan endpoint `/embeddings`
+àti àwòṣe tó bá OpenAI mu láì yí ìforúkọsílẹ̀ embedding àgbáyé padà. A ń
+ṣe endpoint náà ní ìṣètò kan náà kí a tó lò ó, a sì ń yẹ̀ ẹ́ wò pẹ̀lú ìlànà URL
+jáde ti olùpèsè: HTTP(S) jẹ́ dandan, a kọ àwọn ìjẹ́rìí ìdánimọ̀ tí a fi sínú rẹ̀
+àti àwọn okun ìbéèrè, àwọn àdírẹ́sì metadata cloud sì ṣì wà ní dídènà. Àwọn iye
+òfìfo ń pa olùpèsè ìforúkọsílẹ̀ tí a yàn mọ́. A ń sọ àwọn àṣìṣe tí a dá padà sí
+dashboard di àìléwu, a kì í sì í kọ àwọn ìjẹ́rìí ìdánimọ̀ endpoint sínú àkọsílẹ̀.
 
-> **TODO (D20):** Scope `global` (píńpín àwọn memory káàkiri gbogbo àwọn API key) kò tíì
-> ṣiṣẹ́ nínú ìtújáde yìí. Ó nílò àwọn ìyípadà schema àti ọ̀nà ìgbàpadà àgbáyé.
-> Tọpinpin rẹ̀ lọ́tọ̀.
+> **TODO (D20):** Scope `global` (pípín àwọn ìrántí láàárín gbogbo API keys) kò tíì
+> sí ní ìmúṣẹ nínú ìtújáde yìí. Ó nílò àwọn àyípadà schema àti ipa-ọ̀nà ìmúpadàbọ̀sípò
+> àgbáyé. Tọpinpin rẹ̀ lọ́tọ̀.
 
 ## Àwọn Ìpele Ìtọ́jú
 
@@ -882,14 +882,14 @@ Láti jẹ́ kó wà ní pípa, kàn jẹ́ kí `autoSummarize` dúró sí iye �
 
 ---
 
-## Àpẹrẹ Olùpèsè MemoryBackend
+## Àpẹẹrẹ Olùpèsè MemoryBackend
 
 > **Orísun òtítọ́:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Àwọn ìdánwò:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Àpẹrẹ olùpèsè MemoryBackend ń ṣe àfikún **fẹ́lẹ́fẹ́lẹ́ àfojúrí backend tí a lè ṣètò** lórí ẹ́ńjìnnì ìrántí tó wà tẹ́lẹ̀. Dípò kí ètò ìrántí náà di mọ́ ìmúṣẹ ibi ìpamọ́ kan ṣoṣo, ó ti ń ṣètìlẹ́yìn fún ọ̀pọ̀ backend báyìí (SQLite, Obsidian, Notion, àwọn backend HTTP àdáni) pẹ̀lú ipa-ọ̀nà àkọ́kọ́/àfirọ́pò tí a lè ṣètò.
+Àpẹẹrẹ olùpèsè MemoryBackend ṣe àgbékalẹ̀ **pele àfoyemọ́ backend tí a lè ṣàfikún** lórí ẹ̀rọ ìrántí tó ti wà. Dípò kí ètò ìrántí náà so mọ́ ìmúṣẹ ibi ìpamọ́ kan ṣoṣo, ó ti ń ṣe àtìlẹ́yìn fún ọ̀pọ̀ backend (SQLite, Obsidian, Notion, àwọn backend HTTP àkànṣe) pẹ̀lú ìdarí ipa ọ̀nà àkọ́kọ́/àfẹ́yinti tí a lè ṣètò.
 
-### Ìṣètò
+### Àwòrán Ẹ̀rọ
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -899,11 +899,11 @@ Láti jẹ́ kó wà ní pípa, kàn jẹ́ kí `autoSummarize` dúró sí iye �
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           Olùṣètò Singleton (manager.ts)                  │
+│         Olùṣètò singleton (manager.ts)                    │
 │                                                          │
 │  Àkọ́kọ́ ──► Backend A  (fún àpẹẹrẹ SQLite)              │
-│  Àfirọ́pò ─► Backend B  (fún àpẹẹrẹ Obsidian)            │
-│             Backend C  (fún àpẹẹrẹ Notion nípasẹ̀ GenericBackend) │
+│  Àfẹ́yinti ─► Backend B  (fún àpẹẹrẹ Obsidian)           │
+│              Backend C  (fún àpẹẹrẹ Notion nípasẹ̀ GenericBackend) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -914,9 +914,9 @@ Láti jẹ́ kó wà ní pípa, kàn jẹ́ kí `autoSummarize` dúró sí iye �
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### Ìjánu Pàtàkì (`backend.ts`)
+#### Ìbáṣepọ̀ Pàtàkì (`backend.ts`)
 
-Gbogbo backend gbọ́dọ̀ mú ìjánu `MemoryBackend` ṣẹ:
+Gbogbo backend gbọ́dọ̀ ṣe ìmúṣẹ ìbáṣepọ̀ `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
@@ -936,7 +936,7 @@ interface MemoryBackend {
   // Ìlera
   health(): Promise<HealthCheckResult>;
 
-  // Ìyípo ìgbésí-ayé (àṣàyàn)
+  // Ìgbésí-ayé (kò pọndandan)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -944,77 +944,77 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Olùṣètò Singleton tí ó:
+Olùṣètò singleton tí ó:
 
 - **Forúkọsílẹ̀** àwọn backend nípasẹ̀ `register(backend)` — tí a ń pè nígbà ìbẹ̀rẹ̀ láti `index.ts`
-- **Ṣètò** àkọ́kọ́ + àfirọ́pò nípasẹ̀ `configure(primary, fallbacks)`
-- **Darí** CRUD/ìṣàwárí sí backend àkọ́kọ́, pẹ̀lú ẹ̀wọ̀n àfirọ́pò nígbà ìkùnà
+- **Ṣètò** backend àkọ́kọ́ àti àfẹ́yinti nípasẹ̀ `configure(primary, fallbacks)`
+- **Darí** CRUD/ìṣàwárí sí backend àkọ́kọ́, pẹ̀lú ẹ̀wọ̀n àfẹ́yinti nígbà ìkùnà
 - **Ṣàyẹ̀wò ìlera** gbogbo àwọn backend lẹ́ẹ̀kọ̀ọ̀kan
 
-**Ìhùwàsí àfirọ́pò:**
+**Ìhùwàsí àfẹ́yinti:**
 
-| Ìṣiṣẹ́    | Àkọ́kọ́                  | Àwọn àfirọ́pò                  |
-| -------- | ---------------------- | ----------------------------- |
-| `create` | ✅ Àkọ́kọ́ nìkan         | ❌                            |
-| `get`    | ✅ Kọ́kọ́ gbìyànjú àkọ́kọ́ | ✅ Lo àfirọ́pò bí ó bá jẹ́ null |
-| `update` | ✅ Àkọ́kọ́ nìkan         | ✅ Ìmúdọ́gba tí kò dúró de èsì |
-| `delete` | ✅ Àkọ́kọ́ nìkan         | ✅ Ìmúdọ́gba tí kò dúró de èsì |
-| `list`   | ✅ Àkọ́kọ́ nìkan         | ❌                            |
-| `search` | ✅ Àkọ́kọ́ ni àkọ́kọ́      | ✅ Lo àfirọ́pò nígbà àṣìṣe     |
+| Ìṣẹ́      | Àkọ́kọ́                  | Àwọn àfẹ́yinti                  |
+| -------- | ---------------------- | ------------------------------ |
+| `create` | ✅ Àkọ́kọ́ nìkan         | ❌                             |
+| `get`    | ✅ Kọ́kọ́ gbìyànjú àkọ́kọ́ | ✅ Lo àfẹ́yinti bí ó bá jẹ́ null |
+| `update` | ✅ Àkọ́kọ́ nìkan         | ✅ Amúṣiṣẹ́pọ̀ tí kò dúró de èsì |
+| `delete` | ✅ Àkọ́kọ́ nìkan         | ✅ Amúṣiṣẹ́pọ̀ tí kò dúró de èsì |
+| `list`   | ✅ Àkọ́kọ́ nìkan         | ❌                             |
+| `search` | ✅ Àkọ́kọ́ ní ìbẹ̀rẹ̀      | ✅ Lo àfẹ́yinti nígbà àṣìṣe     |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Asopọ̀ HTTP gbogbogbò kan tí ó ń mú REST API èyíkéyìí bá MemoryBackend mu. Ó wúlò fún:
+Asopọ̀ HTTP gbogbogbò kan tí ó ń mú API REST èyíkéyìí bá MemoryBackend mu. Ó wúlò fún:
 
 - **Notion** — sopọ̀ nípasẹ̀ Notion API
 - **Obsidian** — sopọ̀ nípasẹ̀ Obsidian Local REST API
-- **Àwọn backend àdáni** — iṣẹ́ èyíkéyìí tí ó ṣí API ìrántí RESTful sílẹ̀
+- **Àwọn backend àkànṣe** — iṣẹ́ èyíkéyìí tí ó pèsè API ìrántí RESTful
 
 **Ìṣètò:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // URL ìpìlẹ̀ ti API ẹ̀yìn
-  apiKey?: string;           // Tóókì Bearer fún ìfàṣẹsí
+  baseUrl: string;           // URL ìpìlẹ̀ ti API backend
+  apiKey?: string;           // Tókìn Bearer fún ìfàṣẹsí
   headers?: Record<string, string>;  // Àwọn àkọlé HTTP àkànṣe
-  timeout?: number;          // Àkókò ìdádúró ìbéèrè (àìyípadà: 30000ms)
-  backendType?: string;      // Fún ìkọsílẹ̀ àkọsílẹ̀
+  timeout?: number;          // Àkókò ìdádúró ìbéèrè (àìpé: 30000ms)
+  backendType?: string;      // Fún ìkọsílẹ̀
 
-  // Àwọn ìyípadà ojú-ọ̀nà (àwọn àìyípadà ń lo àwọn àṣà REST)
+  // Àwọn ìkọlélórí endpoint (àwọn àìpé ń lo àwọn ìlànà REST)
   endpoints?: {
-    search?: string;   // àìyípadà: "/memories/search"
-    create?: string;   // àìyípadà: "/memories"
-    list?: string;     // àìyípadà: "/memories"
-    get?: string;      // àìyípadà: "/memories/{id}"
-    update?: string;   // àìyípadà: "/memories/{id}"
-    delete?: string;   // àìyípadà: "/memories/{id}"
-    health?: string;   // àìyípadà: "/health"
+    search?: string;   // àìpé: "/memories/search"
+    create?: string;   // àìpé: "/memories"
+    list?: string;     // àìpé: "/memories"
+    get?: string;      // àìpé: "/memories/{id}"
+    update?: string;   // àìpé: "/memories/{id}"
+    delete?: string;   // àìpé: "/memories/{id}"
+    health?: string;   // àìpé: "/health"
   };
 
-  // Àwọn ìbámu orúkọ àlàyé ìbéèrè
+  // Ìbáṣepọ̀ àwọn orúkọ paramita ìbéèrè
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Àwọn ìbámu orúkọ àlàyé ipa-ọ̀nà
+  // Ìbáṣepọ̀ àwọn orúkọ paramita ipa-ọ̀nà
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**Àwọn ẹ̀yìn tí a mọ̀** ni a ti ṣètò tẹ́lẹ̀ nínú `KNOWN_BACKENDS`:
+**Àwọn backend tí a mọ̀** ni a ti ṣètò tẹ́lẹ̀ nínú `KNOWN_BACKENDS`:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend tí a tọ́ka sí localhost:27123
 createKnownBackend("notion"); // → GenericMemoryBackend tí a tọ́ka sí api.notion.com/v1
 ```
 
-#### Àwọn Ẹ̀yìn Tí A Kọ́ Sínú Rẹ̀
+#### Àwọn Backend Tí A Kọ́ Sínú Ètò
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Ẹ̀yìn àkọ́kọ́ àìyípadà. Ó yí ibi ìtọ́jú ìrántí tó dá lórí SQLite tó wà tẹ́lẹ̀ ká ní lílo `src/lib/memory/store.ts`. A máa forúkọsílẹ̀ rẹ̀ láìfọwọ́ṣe nígbà ìbẹ̀rẹ̀.
+Backend àkọ́kọ́ àìpé. Ó fi àṣọ bo ibi ìpamọ́ ìrántí tó dá lórí SQLite tó ti wà nípa lílo `src/lib/memory/store.ts`. A máa ń forúkọ rẹ̀ sílẹ̀ laifọwọ́yi nígbà ìbẹ̀rẹ̀.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1023,41 +1023,101 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Ó yí ìṣọ̀kan Obsidian tó wà tẹ́lẹ̀ (`src/lib/memory/obsidianBackend.ts`) ká. Ó sopọ̀ mọ́ àpótí Obsidian nípasẹ̀ Obsidian Local REST API.
+Ó fi àṣọ bo ìṣọ̀kan Obsidian tó ti wà (`src/lib/memory/obsidianBackend.ts`). Ó ń sopọ̀ mọ́ vault Obsidian nípasẹ̀ Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Aṣàmúlò fún òṣìṣẹ́ [claude-mem](https://github.com/thedotmack/claude-mem) agbègbè — ohun àmúlò ìrántí
+Claude Code / Codex / Cursor tí ó ń gba àwọn ìgbà ìkọ kóòdù sílẹ̀ gẹ́gẹ́ bí "àwọn àkíyèsí".
+Nígbà tí a bá forúkọ rẹ̀ sílẹ̀, àwọn ipa-ọ̀nà REST `/api/memory` àti ìṣàwárí ìrántí A2A lè ka àti kọ
+sí ibi ìpamọ́ kan náà tí àwọn hook claude-mem ń kún.
+
+Òṣìṣẹ́ náà ń so mọ́ loopback nìkan, èyí tí olùṣọ́ SSRF ti `GenericMemoryBackend` mọ̀ọ́mọ̀ kọ̀.
+Aṣàmúlò yìí kò tú olùṣọ́ náà ká: a ti fi `127.0.0.1` lé host náà lórí taara, àti pé schema ìṣètò
+(`ClaudeMemBackendConfigSchema`, `.strict()`) ń gba àwọn wọ̀nyí nìkan:
+
+| Kọ́kọ́rọ́      | Irú   | Àiyípadà | Àwọn àkíyèsí                                                                                                          |
+| ----------- | ----- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `port`      | nọ́ńbà | —        | Ó pọndandan, 1024–65535. port worker claude-mem láti inú fáìlì ètò rẹ̀ (àiyípadà `37700 + uid % 100`).                 |
+| `project`   | ọ̀rọ̀   | —        | Project claude-mem tí a ó lò. Tí a kò bá ṣètò rẹ̀ → kọ́kọ́rọ́ OmniRoute API kọ̀ọ̀kan yóò tọ́ka sí project tirẹ̀ (`apiKeyId`). |
+| `timeoutMs` | nọ́ńbà | `5000`   | Àkókò ìdádúró fún ìbéèrè kọ̀ọ̀kan, 100–30000.                                                                           |
+
+Mú un ṣiṣẹ́ nípasẹ̀ `PUT /api/settings/memory`, kí o sì tún OmniRoute bẹ̀rẹ̀ (ẹ̀ẹ̀kan ṣoṣo ni a máa ń forúkọsílẹ̀ àwọn backend,
+nínú `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Lò `"primaryBackend": "claude-mem"` dípò rẹ̀ láti jẹ́ kí ó jẹ́ ibi ìpamọ́ fún REST API. A máa ń ṣàkọsílẹ̀
+config tí kò tọ́ (`claude-mem.backend.invalid_config`), a sì máa foju kọ ọ́, nítorí náà SQLite yóò ṣì jẹ́ backend àkọ́kọ́.
+
+Ìtọ́kasí àti àwọn ààlà:
+
+- Àwọn ID jẹ́ `claude-mem:<observationId>`; `get`/`delete` máa ń foju kọ àwọn ID ti àwọn backend mìíràn láì ṣe
+  ìpè nẹ́tíwọ́ọ̀kì.
+- `create` → `POST /api/memory/save`; àwọn field OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) máa ń wà nínú `metadata.omniroute` ti claude-mem, wọ́n sì máa ń padà bọ̀ bí wọ́n ṣe rí nígbà kíkà.
+- `search` → `GET /api/search?format=json&type=observations`, tí a gé kúrú dé `maxTokens`
+  (chars / 4). `list` → endpoint observations onípele ti worker (`total` jẹ́ ààlà kékeré — worker
+  máa ń dá `hasMore` padà, kì í ṣe iye).
+- Àwọn observation tí hook gba máa ń ṣe ìtọ́kasí `discovery` → `factual`, `decision` → `procedural`, àti
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Kò sí ìmúdójúìwọ̀n** (`update()` máa ń dá `false` padà; àwọn observation kò ṣeé yí padà) àti **kò sí TTL**
+  (`expiresAt` ni a máa ń foju kọ). claude-mem máa ń yọ àwọn ìfipamọ́ tó jọra kúrò dípò ṣíṣe upsert nípasẹ̀ `key`.
+- Ìfisí prompt (`retrieval.ts`) àti àwọn irinṣẹ́ MCP `omniroute_memory_*` ṣì máa ń ka SQLite
+  ní tààràtà — wọn kì í gba inú `memoryManager` kọjá, nítorí náà backend yìí kì í pèsè data fún wọn.
+
+**Ṣíṣàkóso àwọn ìpè LLM ti claude-mem fúnra rẹ̀ nípasẹ̀ OmniRoute.** claude-mem máa ń fún àwọn observation pọ̀
+pẹ̀lú LLM (àiyípadà: Claude Agent SDK). Olùpèsè `openai-compatible` rẹ̀ lè tọ́ka sí
+OmniRoute dípò rẹ̀, láti lo combo fallback àti títọpinpin iye owó. Nínú `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
 
 ### Àwọn Ètò
 
-Àwọn ètò ẹ̀yìn ìrántí ni a tọ́jú sínú tábìlì ètò ètò-ìṣàmúlò, a sì ń ṣàkóso wọn nípasẹ̀ `src/lib/memory/settings.ts`:
+Àwọn ètò backend memory wà nípamọ́ sínú tábìlì àwọn ètò app, a sì ń ṣàkóso wọn nípasẹ̀ `src/lib/memory/settings.ts`:
 
-| Ètò               | Bọ́tìnì Env/Àtúntò        | Àìyípadà   | Àpèjúwe                             |
-| ----------------- | ------------------------ | ---------- | ----------------------------------- |
-| Ẹ̀yìn àkọ́kọ́        | `memoryPrimaryBackend`   | `"sqlite"` | ID ti ẹ̀yìn àkọ́kọ́                    |
-| Àwọn ẹ̀yìn àfirọ́pò | `memoryFallbackBackends` | `[]`       | Àwọn ID ẹ̀yìn àfirọ́pò ní ìtòlẹ́sẹẹsẹ  |
-| Àwọn àtúntò ẹ̀yìn  | `memoryBackendConfigs`   | `{}`       | Àwọn ìyípadà àtúntò fún ẹ̀yìn kọ̀ọ̀kan |
+| Ètò                   | Kọ́kọ́rọ́ Env/Config        | Àiyípadà   | Àpèjúwe                                |
+| --------------------- | ------------------------ | ---------- | -------------------------------------- |
+| Backend àkọ́kọ́         | `memoryPrimaryBackend`   | `"sqlite"` | ID ti backend àkọ́kọ́                    |
+| Àwọn backend fallback | `memoryFallbackBackends` | `[]`       | Àwọn ID backend fallback ní ìtòlẹ́sẹẹsẹ |
+| Àwọn config backend   | `memoryBackendConfigs`   | `{}`       | Àwọn ìyípadà config fún backend kọ̀ọ̀kan |
 
-A máa ń mú àwọn ètò bá ìlànà mu nípasẹ̀ `normalizeMemorySettings()`, a sì máa ń fi wọ́n pamọ́ sínú àkọ́jọ́ ìgbà díẹ̀ ní `getMemorySettings()`.
+A máa ń mú àwọn ètò bá ìlànà kan mu nípasẹ̀ `normalizeMemorySettings()`, a sì máa ń fi wọ́n pamọ́ sínú cache ní `getMemorySettings()`.
 
 ### Ìṣàn Ìpilẹ̀ṣẹ̀
 
 ```
-Ìbẹ̀rẹ̀ ètò-ìṣàmúlò
-  → Àwọn ìgbéwọlé index.ts (ipa-ẹgbẹ́): forúkọsílẹ̀ SQLiteBackend
-  → A pe initMemoryBackends() láti inú ìyípo ìgbésí-ayé ètò-ìṣàmúlò:
-      1. Gbé àwọn ètò wọlé (getMemorySettings)
-      2. Ṣètò ẹ̀yìn àkọ́kọ́ + àfirọ́pò
-      3. Pilẹ̀ṣẹ̀ gbogbo àwọn ẹ̀yìn (àyẹ̀wò ìlera)
+Ìpilẹ̀ṣẹ̀ app
+  → àwọn import index.ts (ipa ẹ̀gbẹ́): forúkọsílẹ̀ SQLiteBackend
+  → a pe initMemoryBackends() láti inú ìgbésí-ayé app:
+      1. Gba àwọn ètò (getMemorySettings)
+      1b. Forúkọsílẹ̀ àwọn backend àṣàyàn tí ó wà nínú backendConfigs (claude-mem)
+      2. Ṣètò àkọ́kọ́ + fallback
+      3. Pilẹ̀ṣẹ̀ gbogbo backend (àyẹ̀wò ìlera)
       4. Ṣetán fún àwọn ìbéèrè
 ```
 
-### Fífi Ẹ̀yìn Tuntun Kún Un
+### Ṣíṣe Àfikún Backend Tuntun
 
-1. **Ṣàmúlò atọ́kùn `MemoryBackend`** nínú `src/lib/memory/<name>Backend.ts`
-2. **Gbé jáde** láti `src/lib/memory/index.ts`
-3. **Forúkọsílẹ̀** pẹ̀lú `memoryManager.register(yourBackend)` nígbà ìbẹ̀rẹ̀
-4. **Ṣètò** nípasẹ̀ àwọn ètò: ṣètò `memoryPrimaryBackend` sí ID ẹ̀yìn rẹ
-5. **Dán wò** pẹ̀lú `src/lib/memory/__tests__/generic-backend.test.ts` gẹ́gẹ́ bí àpẹẹrẹ ìtọ́kasí
+1. **Ṣàgbékalẹ̀ interface `MemoryBackend`** nínú `src/lib/memory/<name>Backend.ts`
+2. **Export rẹ̀** láti `src/lib/memory/index.ts`
+3. **Forúkọsílẹ̀ rẹ̀** pẹ̀lú `memoryManager.register(yourBackend)` nígbà ìpilẹ̀ṣẹ̀
+4. **Ṣètò rẹ̀** nípasẹ̀ àwọn ètò: ṣètò `memoryPrimaryBackend` sí ID backend rẹ
+5. **Dán an wò** nípa lílo `src/lib/memory/__tests__/generic-backend.test.ts` gẹ́gẹ́ bí ìtọ́kasí
 
-#### Àpẹẹrẹ: Ẹ̀yìn Brain
+#### Àpẹẹrẹ: Backend Brain
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1077,25 +1137,25 @@ memoryManager.register(brainBackend);
 
 ### Ìjẹ́rìísí
 
-#### Àwọn ìdánwò ẹyọ
+#### Àwọn ìdánwò unit
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Àbájáde tí a retí: **ìdánwò 35, gbogbo wọn kọjá** tí ó bo:
+Àbájáde tí a ń retí: **ìdánwò 35, gbogbo wọn kọjá**, tí ó bo:
 
-- Olùkọ́lé (2)
+- Constructor (2)
 - Àyẹ̀wò ìlera (4) — àṣeyọrí, ìkùnà 500, àṣìṣe nẹ́tíwọ́ọ̀kì, ìdádúró
 - Ìpilẹ̀ṣẹ̀ (2) — àṣeyọrí, ìkùnà
-- Ṣẹ̀dá (2) — ojú-ọ̀nà àìyípadà, ojú-ọ̀nà àkànṣe
-- Gbà (4) — àṣeyọrí, 404 → null, àìṣe-404 ju àṣìṣe jáde, àwọn àlàyé ipa-ọ̀nà àkànṣe
+- Ṣẹ̀dá (2) — endpoint àiyípadà, endpoint àkànṣe
+- Gba (4) — àṣeyọrí, 404 → null, tí kì í ṣe 404 máa ju àṣìṣe, àwọn param path àkànṣe
 - Ṣe ìmúdójúìwọ̀n (2) — àṣeyọrí, 404 → false
 - Pa rẹ́ (2) — àṣeyọrí, 404 → false
-- Ṣe àkójọ (2) — àwọn àlàyé ìbéèrè, àwọn orúkọ àlàyé àkànṣe
-- Wá (3) — àwọn àlàyé ìbéèrè, ojú-ọ̀nà àkànṣe, yíyí àwọn àṣàyàn padà sí ọ̀wọ̀ọ̀wọ́
-- Àwọn àkọlé ìfàṣẹsí (2) — tóókì Bearer, àwọn àkọlé àkànṣe
-- Ilé-iṣẹ́ ìṣẹ̀dá (1)
+- Àtòjọ (2) — àwọn param query, àwọn orúkọ param àkànṣe
+- Ṣàwárí (3) — àwọn param query, endpoint àkànṣe, serialization àwọn option
+- Àwọn header ìfàṣẹsí (2) — token Bearer, àwọn header àkànṣe
+- Factory (1)
 
 #### Àyẹ̀wò irú
 
@@ -1103,4 +1163,4 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 npm run typecheck:core
 ```
 
-Àbájáde tí a retí: **àṣìṣe 0**.
+Ohun tí a ń retí: **àṣìṣe 0**.

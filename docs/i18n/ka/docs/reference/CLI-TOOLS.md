@@ -570,71 +570,71 @@ kiro-cli status
 
 ## 10. შიდა OmniRoute CLI
 
-`omniroute` ბინარული ფაილი უზრუნველყოფს ბრძანებებს სერვერის სასიცოცხლო ციკლის, გამართვის, დიაგნოსტიკისა და პროვაიდერების მართვისთვის. შესვლის წერტილი: `bin/omniroute.mjs`.
+`omniroute` ბინარული ფაილი უზრუნველყოფს ბრძანებებს სერვერის სასიცოცხლო ციკლის, დაყენების, დიაგნოსტიკისა და პროვაიდერების მართვისთვის. შესვლის წერტილი: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # სერვერის გაშვება (ნაგულისხმევი პორტი 20128)
-omniroute setup                        # ინტერაქტიული გამართვის ოსტატი
+omniroute setup                        # ინტერაქტიური დაყენების ოსტატი
 omniroute doctor                       # კონფიგურაციის, DB-ის, პორტებისა და გაშვების გარემოს შემოწმება
-omniroute providers list               # კონფიგურირებული პროვაიდერების კავშირები
-omniroute providers test-all           # ყველა აქტიური კავშირის შემოწმება
+omniroute providers list               # კონფიგურირებული პროვაიდერის კავშირები
+omniroute providers test-all           # ყველა აქტიური კავშირის ტესტირება
 omniroute reset-password               # ადმინისტრატორის პაროლის ჩამოყრა
 omniroute logs                         # მოთხოვნების ჟურნალების ნაკადის ჩვენება
-omniroute health                       # ჯანმრთელობის დეტალური მდგომარეობა (ამომრთველები, კეში, მეხსიერება)
-omniroute --version                    # ვერსიის გამოტანა
+omniroute health                       # ჯანმრთელობის დეტალური სტატუსი (ავარიული გამთიშველები, კეში, მეხსიერება)
+omniroute --version                    # ვერსიის ჩვენება
 omniroute --help                       # ყველა ბრძანების ჩვენება
 ```
 
-### გამართვა და ინიციალიზაცია
+### დაყენება და ინიციალიზაცია
 
 ```bash
-omniroute setup                        # ინტერაქტიული გამართვის ოსტატი
+omniroute setup                        # ინტერაქტიური დაყენების ოსტატი
 omniroute setup --non-interactive      # CI/ავტომატიზაციის რეჟიმი (კითხულობს გარემოს ცვლადებსა და ალმებს)
 omniroute setup --password '<value>'   # ადმინისტრატორის პაროლის პირდაპირ დაყენება
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # პროვაიდერის დამატება და შემოწმება ერთი მოქმედებით
+  --test-provider                      # პროვაიდერის დამატება და ტესტირება ერთი მოქმედებით
 ```
 
-არაინტერაქტიული გამართვისთვის ამოცნობილი გარემოს ცვლადები:
+არაინტერაქტიური დაყენებისთვის ამოცნობილი გარემოს ცვლადები:
 
 | ცვლადი              | დანიშნულება                                                                                  |
 | ------------------- | -------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | პროვაიდერის API გასაღები (დაკავშირებულია `--api-key`-თან Commander-ის `.env()`-ის მეშვეობით) |
 | `DATA_DIR`          | OmniRoute-ის მონაცემთა დირექტორიის ჩანაცვლება                                                |
 
-ყველა სხვა არაინტერაქტიული შეყვანა გადაიცემა ალმების და არა გარემოს ცვლადების სახით:
+ყველა სხვა არაინტერაქტიური შეყვანა გადაეცემა ალმების სახით და არა გარემოს ცვლადებით:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (იხილეთ `omniroute setup`-ის პარამეტრები ზემოთ).
 
 ### დიაგნოსტიკა
 
 ```bash
-omniroute doctor                       # კონფიგურაციის, DB-ის, პორტების, გაშვების გარემოს, მეხსიერებისა და სიცოცხლისუნარიანობის შემოწმება
-omniroute doctor --json                # მანქანისთვის წაკითხვადი JSON
-omniroute doctor --no-liveness         # HTTP ჯანმრთელობის შემოწმების გამოტოვება
-omniroute doctor --host 0.0.0.0        # სიცოცხლისუნარიანობის ჰოსტის ჩანაცვლება
+omniroute doctor                       # კონფიგურაციის, DB-ის, პორტების, გაშვების გარემოს, მეხსიერებისა და აქტიურობის შემოწმება
+omniroute doctor --json                # მანქანურად წაკითხვადი JSON
+omniroute doctor --no-liveness         # HTTP ჯანმრთელობის ზონდის გამოტოვება
+omniroute doctor --host 0.0.0.0        # აქტიურობის ჰოსტის ჩანაცვლება
 omniroute doctor --liveness-url <url>  # ჯანმრთელობის საბოლოო წერტილის სრული URL-ის ჩანაცვლება
 ```
 
 doctor ასრულებს შემდეგ შემოწმებებს: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` და `Server liveness`. თუ რომელიმე შემოწმების შედეგია `fail`, ის მუშაობას არანულოვანი კოდით ასრულებს.
+`Memory` და `Server liveness`. თუ რომელიმე შემოწმების შედეგია `fail`, პროცესი სრულდება ნულისგან განსხვავებული კოდით.
 
 ### პროვაიდერების მართვა
 
 ```bash
 omniroute providers available                       # OmniRoute-ის პროვაიდერების კატალოგი
-omniroute providers available --search openai       # კატალოგის გაფილტვრა id-ის/სახელის/ფსევდონიმის/კატეგორიის მიხედვით
+omniroute providers available --search openai       # კატალოგის გაფილტვრა ID-ის/სახელის/ალტერნატიული სახელის/კატეგორიის მიხედვით
 omniroute providers available --category api-key    # კატეგორიის მიხედვით გაფილტვრა (api-key, oauth, free, ...)
-omniroute providers available --json                # მანქანისთვის წაკითხვადი JSON
+omniroute providers available --json                # მანქანურად წაკითხვადი JSON
 
-omniroute providers list                            # კონფიგურირებული პროვაიდერების კავშირები
+omniroute providers list                            # კონფიგურირებული პროვაიდერის კავშირები
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # ერთი კონფიგურირებული კავშირის შემოწმება
-omniroute providers test-all                        # ყველა აქტიური კავშირის შემოწმება
+omniroute providers test <id|name>                  # ერთი კონფიგურირებული კავშირის ტესტირება
+omniroute providers test-all                        # ყველა აქტიური კავშირის ტესტირება
 omniroute providers validate                        # მხოლოდ ლოკალური სტრუქტურული ვალიდაცია
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
@@ -643,51 +643,63 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` უპირველესად API-ზეა დაფუძნებული და ამიტომ მუშაობს
-აქტიური ლოკალური ან დისტანციური კონტექსტის მიმართ. ავტორიზაციის მონაცემების შეყვანისთვის უნდა გამოიყენოთ
+`providers add/import/auth/edit/remove` უპირველესად API-ს იყენებს და, შესაბამისად,
+მუშაობს აქტიურ ლოკალურ ან დისტანციურ კონტექსტთან. ავტორიზაციის მონაცემების შესაყვანად გამოიყენეთ
 `--credential-stdin` ან `--credential-env`; `--dry-run --json` მხოლოდ
-დაფარულ არსებობას/ფორმას აჩვენებს. `providers available` კითხულობს OmniRoute-ის კატალოგს;
-`providers list/test/test-all/validate` ინარჩუნებს ლოკალურ SQLite ქცევას და
-არ საჭიროებს სერვერის გაშვებულ მდგომარეობას.
+შენიღბულ არსებობას/სტრუქტურას ასახავს. `providers available` კითხულობს OmniRoute-ის კატალოგს;
+`providers list/test/test-all/validate` ინარჩუნებს თავის ლოკალურ SQLite ქცევას და
+არ მოითხოვს სერვერის გაშვებულ მდგომარეობაში ყოფნას.
+
+მორგებული OpenAI-თავსებადი ან Anthropic-თავსებადი კვანძისთვის ავტორიზაციის მონაცემები მიაბით
+`omniroute nodes add`-ის მიერ დაბრუნებულ კვანძის ID-ს, `omniroute keys add "$NODE_ID" --stdin`-ის გამოყენებით.
+ამისთვის საჭიროა გაშვებული სერვერი და მართვის ავტორიზაცია აქტიური კონტექსტისთვის.
+CLI იყენებს `POST /api/providers`-ს, რომელიც კვანძს ამოწმებს და მისი საბოლოო წერტილის
+პარამეტრებს კავშირში აკოპირებს. არარსებული კვანძი, ავტორიზაციის შეცდომა ან მიუწვდომელი
+სერვერი აბრუნებს შეცდომას ლოკალური სარეზერვო ავტორიზაციის მონაცემის შექმნის გარეშე.
+
+`nodes add --base-url` ადგენს კვანძის საბოლოო წერტილს; ის განსხვავდება სერვერის მისამართისგან
+`OMNIROUTE_BASE_URL`-ში. OpenAPI ფაილებისთვის გამოიყენეთ
+`omniroute openapi dump --format json --out ./openapi.json`; გლობალური `--output`
+ირჩევს CLI-ის ჩვენების ფორმატს და არა დანიშნულების ფაილის სახელს.
 
 ### აღდგენა და ჩამოყრა
 
 ```bash
 omniroute reset-password                # ადმინისტრატორის პაროლის ჩამოყრა (ასევე: omniroute-reset-password)
-omniroute reset-encrypted-columns       # დაშიფრული ავტორიზაციის მონაცემების ჩამოყრისთვის გაფრთხილებისა და საცდელი გაშვების ჩვენება
-omniroute reset-encrypted-columns --force  # SQLite-ში დაშიფრული ავტორიზაციის მონაცემების რეალურად null-ად ქცევა
+omniroute reset-encrypted-columns       # დაშიფრული ავტორიზაციის მონაცემების ჩამოყრის გაფრთხილებისა და საცდელი გაშვების ჩვენება
+omniroute reset-encrypted-columns --force  # SQLite-ში დაშიფრული ავტორიზაციის მონაცემების რეალურად განულება
 ```
 
-### ავტორიზაციის მონაცემების ექსპორტი (⚠ სიფრთხილით მოეპყარით)
+### ავტორიზაციის მონაცემების ექსპორტი (⚠ მოეპყარით სიფრთხილით)
 
 ```bash
 omniroute auth export                                 # გაფრთხილებისა და დადასტურების ეტაპის ჩვენება — DB-ზე წვდომის გარეშე
-omniroute auth export --force                          # ყველა კავშირის გაშიფრული ავტორიზაციის მონაცემების stdout-ში JSON-ის სახით ექსპორტი
+omniroute auth export --force                          # ყველა კავშირის გაშიფრული ავტორიზაციის მონაცემების JSON-ის სახით stdout-ში ექსპორტი
 omniroute auth export --force --id <id>                 # მხოლოდ შესაბამისი კავშირის ექსპორტი
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> სტრიქონების გამოტანა
 omniroute auth export --force --out creds.json           # ფაილში ჩაწერა (იქმნება 0600 ნებართვებით)
 ```
 
-`auth export` **მხოლოდ ლოკალურია** (SQLite-ის პირდაპირი წაკითხვა, HTTP მარშრუტის გარეშე) და განზრახ ბეჭდავს/წერს
-`apiKey`/`accessToken`/`refreshToken`/`idToken` მნიშვნელობებს **ღია ტექსტის** სახით — ეს ფუნქციაა და არა
-შეცდომა. `--force`-ის გარეშე მონაცემთა ბაზიდან არაფერი იკითხება და არაფერი იშიფრება. ნებისმიერი ღია ტექსტის
-გამოტანამდე stderr-ში ყოველთვის იბეჭდება გამაფრთხილებელი ბანერი. აუცილებელია `STORAGE_ENCRYPTION_KEY`-ის
-დაყენება. ველი, რომლის გაშიფვრაც ვერ ხერხდება (მოძველებული გასაღები, დაზიანებული შიფრტექსტი), აღინიშნება როგორც
-`<field>DecryptFailed: true`, ნაცვლად იმისა, რომ მთელი ექსპორტი შეწყდეს ან გამომწვევი შეცდომის დეტალები გამჟღავნდეს.
+`auth export` მუშაობს **მხოლოდ ლოკალურად** (SQLite-ის პირდაპირი წაკითხვა, HTTP მარშრუტის გარეშე) და განზრახ ბეჭდავს/წერს
+**ღია ტექსტის სახით** `apiKey`/`accessToken`/`refreshToken`/`idToken` მნიშვნელობებს — ეს ფუნქციაა და არა
+შეცდომა. `--force`-ის გარეშე მონაცემთა ბაზიდან არაფერი იკითხება და არაფერი იშიფრება. stderr-ში
+გამაფრთხილებელი ბანერი ყოველთვის იბეჭდება ღია ტექსტის გამოტანამდე. აუცილებელია, რომ
+`STORAGE_ENCRYPTION_KEY` დაყენებული იყოს. ველი, რომლის გაშიფვრაც ვერ ხერხდება (მოძველებული გასაღები, დაზიანებული შიფროტექსტი), აღინიშნება როგორც
+`<field>DecryptFailed: true`, ნაცვლად მთლიანი ექსპორტის შეწყვეტისა ან შესაბამისი შეცდომის დეტალების გამჟღავნებისა.
 
-### სხვა ქვე-ბრძანებები
+### სხვა ქვებრძანებები
 
-თუ სხვაგვარად არ არის მითითებული, ისინი საჭიროებენ გაშვებულ OmniRoute სერვერს:
+თუ სხვაგვარად არ არის აღნიშნული, ისინი გაშვებულ OmniRoute სერვერს საჭიროებენ:
 
 ```bash
-omniroute status                       # შესრულების გარემოს სრული სტატუსი
+omniroute status                       # გაშვების გარემოს ამომწურავი სტატუსი
 omniroute logs                         # მოთხოვნების ჟურნალის ნაკადის ჩვენება (--json, --search, --follow)
 omniroute config list                  # კონფიგურირებული CLI ხელსაწყოების ჩვენება
 
-omniroute provider list                # ხელმისაწვდომი პროვაიდერების ჩამონათვალი (providers list-ის ფსევდონიმი)
+omniroute provider list                # ხელმისაწვდომი პროვაიდერების სია (providers list-ის მეტსახელი)
 omniroute provider add                 # OmniRoute-ის პროვაიდერად რეგისტრაცია ხელსაწყოში
 omniroute keys add | list | remove     # API გასაღებების მართვა
-omniroute models [provider]            # მოდელების ჩამონათვალი (--json, --search)
+omniroute models [provider]            # მოდელების სია (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # კონფიგურაციისა და DB-ის სარეზერვო ასლის შექმნა
@@ -696,30 +708,30 @@ omniroute restore                      # წინა სარეზერვ�
 omniroute health                       # მდგომარეობის დეტალები (ამომრთველები, კეში, მეხსიერება)
 omniroute quota                        # პროვაიდერის კვოტის გამოყენება
 omniroute cache                        # კეშის სტატუსი
-omniroute cache clear                  # სემანტიკური და სიგნატურების კეშების გასუფთავება
+omniroute cache clear                  # სემანტიკური და ხელმოწერების კეშების გასუფთავება
 
-omniroute mcp status | restart         # MCP სერვერის სტატუსი / გადატვირთვა
+omniroute mcp status | restart         # MCP სერვერის სტატუსი / ხელახლა გაშვება
 omniroute a2a status | card            # A2A სერვერის სტატუსი / აგენტის ბარათი
 
 omniroute tunnel list | create | stop  # გვირაბების მართვა (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # გარემოს ცვლადების ნახვა / დაყენება (დროებით)
+omniroute env show | get <k> | set <k> <v>  # გარემოს ცვლადების ნახვა / დაყენება (დროებითი)
 
 omniroute test                         # პროვაიდერთან კავშირის სწრაფი ტესტი
 omniroute update                       # განახლებების შემოწმება
-omniroute completion                   # გარსისთვის ავტოდასრულების გენერირება
+omniroute completion                   # გარსის ავტოდასრულების გენერირება
 ```
 
-### გავრცელებული ალმები
+### საერთო ალმები
 
-| ალამი               | აღწერა                                                            |
-| ------------------- | ----------------------------------------------------------------- |
-| `--no-open`         | გაშვებისას ბრაუზერი ავტომატურად არ გაიხსნას                       |
-| `--port <n>`        | API პორტის ჩანაცვლება (ნაგულისხმევია 20128)                       |
-| `--mcp`             | MCP სერვერად გაშვება stdio-ს მეშვეობით (IDE-ებისთვის)             |
-| `--non-interactive` | CI რეჟიმი (მინიშნებების გარეშე; კითხულობს env/flags-დან)          |
-| `--json`            | მანქანურად წაკითხვადი JSON გამომავალი (doctor, providers და ა.შ.) |
-| `--help`, `-h`      | კონკრეტული ბრძანების დახმარების ჩვენება                           |
-| `--version`, `-v`   | დაყენებული ვერსიის გამოტანა                                       |
+| ალამი               | აღწერა                                                               |
+| ------------------- | -------------------------------------------------------------------- |
+| `--no-open`         | გაშვებისას ბრაუზერი ავტომატურად არ გაიხსნას                          |
+| `--port <n>`        | API პორტის ჩანაცვლება (ნაგულისხმევია 20128)                          |
+| `--mcp`             | MCP სერვერად გაშვება stdio-ს მეშვეობით (IDE-ებისთვის)                |
+| `--non-interactive` | CI რეჟიმი (შეკითხვების გარეშე; კითხულობს env-დან/ალმებიდან)          |
+| `--json`            | მანქანის მიერ წაკითხვადი JSON გამომავალი (doctor, providers და სხვ.) |
+| `--help`, `-h`      | ბრძანებისთვის სპეციფიკური დახმარების ჩვენება                         |
+| `--version`, `-v`   | დაყენებული ვერსიის დაბეჭდვა                                          |
 
 ---
 

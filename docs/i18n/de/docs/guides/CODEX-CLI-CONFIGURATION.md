@@ -278,10 +278,10 @@ codex -p chat     # cx/gpt-5.5, kein Aufwand festgelegt (Serverstandard)
 
 ## Profile automatisch mit `omniroute setup-codex` generieren
 
-Wenn Sie OmniRoute auf einem VPS ausführen, können Sie Profildateien automatisch aus dem Live-Modellkatalog generieren:
+Wenn Sie OmniRoute auf einem VPS ausführen, können Sie Profildateien automatisch aus dem aktuellen Modellkatalog generieren:
 
 ```bash
-# Von einem VPS aus (verwendet das lokale OmniRoute auf Port 20128)
+# Von einem VPS aus (verwendet lokales OmniRoute auf Port 20128)
 omniroute setup-codex
 
 # Von einem beliebigen Rechner aus — auf Ihren VPS verweisen
@@ -297,9 +297,22 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Der Befehl ruft `/v1/models` ab, verwendet optimierte Profile für bekannte Modelle, greift bei anderen kompatiblen Textmodellen auf die Katalogmetadaten zurück und schreibt für jedes Modell `~/.codex/<name>.config.toml`. Der Vorgang ist idempotent und kann daher sicher erneut ausgeführt werden.
+Der Befehl ruft `/v1/models` ab, verwendet optimierte Profile für bekannte Modelle, greift bei anderen kompatiblen Textmodellen auf die Katalogmetadaten zurück und schreibt für jedes Modell eine Datei unter `~/.codex/<name>.config.toml`. Der Vorgang ist idempotent und kann daher gefahrlos erneut ausgeführt werden.
 
-OmniRoute kann dieselben Profildateien außerdem **automatisch synchronisieren**, nachdem eine erfolgreiche Erkennung bzw. ein erfolgreicher Import von Anbietermodellen den Live-Katalog geändert hat. Diese Funktion ist **optional und standardmäßig deaktiviert**: Aktivieren Sie sie im **CLI Code dashboard** („CLI profile auto-sync“ → Codex) oder setzen Sie `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (dabei wird auch `CLI_ALLOW_CONFIG_WRITES` berücksichtigt, das standardmäßig aktiviert ist). Wenn diese Funktion aktiviert ist, schreibt sie ausschließlich separate Profildateien unter `~/.codex/*.config.toml`; die aktive bzw. standardmäßige Datei `~/.codex/config.toml`, Codex-lb-Einstellungen, Authentifizierung oder Anbieterauswahl werden niemals geändert.
+Wenn die grundlegende `config.toml` keine Definition für `model_providers.omniroute` enthält, fügt ein expliziter Aufruf von `setup-codex` diese Definition jedem generierten Overlay hinzu und verwendet dabei den ausgewählten lokalen oder entfernten Endpunkt. Die grundlegende Datei bleibt unverändert. Eine vorhandene Provider-Definition wird einschließlich ihrer Endpunkt- und Authentifizierungseinstellungen übernommen. Ungültiges TOML in der grundlegenden Datei stoppt die Generierung, bevor Profile geschrieben werden.
+
+Wenn Sie `--api-key` oder `OMNIROUTE_API_KEY` angeben, verweist ein neu definierter Provider auf
+`env_key = "OMNIROUTE_API_KEY"`; der Schlüssel selbst wird niemals gespeichert oder in der
+Vorschau ausgegeben. Legen Sie diese Variable in der Umgebung fest, in der Sie Codex starten. Ohne
+angegebenen Schlüssel enthält die neue Definition keine Schlüsselanforderung und ist damit für eine OmniRoute-Instanz
+geeignet, die so konfiguriert ist, dass sie nicht authentifizierte Anfragen akzeptiert.
+
+Die nachfolgend beschriebene optionale automatische Katalogsynchronisierung behält bereits
+in einem Overlay vorhandene Provider-Definitionen bei, richtet jedoch keine neuen Provider-Einstellungen ein; konfigurieren Sie den Provider
+zunächst über die explizite Einrichtung oder das Dashboard. Vorhandene Provider-Einstellungen werden
+in Vorschauen mit `--dry-run` ausgelassen, da sie vom Betreiber verwaltete Zugangsdaten enthalten können.
+
+OmniRoute kann dieselben Profildateien außerdem automatisch **synchronisieren**, nachdem eine erfolgreiche Erkennung bzw. ein erfolgreicher Import von Provider-Modellen den aktuellen Katalog geändert hat. Diese Funktion ist **optional und standardmäßig deaktiviert**: Aktivieren Sie sie im **CLI-Code-Dashboard** („Automatische CLI-Profilsynchronisierung“ → Codex) oder setzen Sie `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (auch `CLI_ALLOW_CONFIG_WRITES` wird berücksichtigt und ist standardmäßig aktiviert). Wenn die Funktion aktiviert ist, schreibt sie ausschließlich separate Profildateien unter `~/.codex/*.config.toml`; die aktive bzw. standardmäßige Datei `~/.codex/config.toml`, Codex-lb-Einstellungen, Authentifizierungsdaten oder die Provider-Auswahl werden niemals geändert.
 
 ---
 

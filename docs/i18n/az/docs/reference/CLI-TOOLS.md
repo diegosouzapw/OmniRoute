@@ -557,31 +557,31 @@ kiro-cli status
 
 ## 10. Daxili OmniRoute CLI
 
-`omniroute` binar faylı serverin həyat dövrü, quraşdırma, diaqnostika və provayderlərin idarə edilməsi üçün əmrlər təqdim edir. Giriş nöqtəsi: `bin/omniroute.mjs`.
+`omniroute` icra faylı serverin həyat dövrü, quraşdırma, diaqnostika və provayderlərin idarə edilməsi üçün əmrlər təqdim edir. Giriş nöqtəsi: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Serveri işə sal (standart port 20128)
+omniroute                              # Serveri başladın (standart port 20128)
 omniroute setup                        # İnteraktiv quraşdırma köməkçisi
-omniroute doctor                       # Konfiqurasiyanı, DB-ni, portları və icra mühitini yoxla
+omniroute doctor                       # Konfiqurasiyanı, DB-ni, portları və icra mühitini yoxlayın
 omniroute providers list               # Konfiqurasiya edilmiş provayder bağlantıları
-omniroute providers test-all           # Hər aktiv bağlantını sına
-omniroute reset-password               # Administrator parolunu sıfırla
-omniroute logs                         # Sorğu jurnallarını axın şəklində göstər
+omniroute providers test-all           # Hər aktiv bağlantını sınaqdan keçirin
+omniroute reset-password               # Administrator parolunu sıfırlayın
+omniroute logs                         # Sorğu jurnallarını axın şəklində göstərin
 omniroute health                       # Ətraflı sağlamlıq vəziyyəti (kəsicilər, keş, yaddaş)
-omniroute --version                    # Versiyanı göstər
-omniroute --help                       # Bütün əmrləri göstər
+omniroute --version                    # Versiyanı göstərin
+omniroute --help                       # Bütün əmrləri göstərin
 ```
 
 ### Quraşdırma və ilkin sazlama
 
 ```bash
 omniroute setup                        # İnteraktiv quraşdırma köməkçisi
-omniroute setup --non-interactive      # CI/avtomatlaşdırma rejimi (mühit dəyişənlərini və bayraqları oxuyur)
-omniroute setup --password '<value>'   # Administrator parolunu birbaşa təyin et
+omniroute setup --non-interactive      # CI/avtomatlaşdırma rejimi (mühit dəyişənlərini + bayraqları oxuyur)
+omniroute setup --password '<value>'   # Administrator parolunu birbaşa təyin edin
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Provayderi bir əməliyyatda əlavə et və sına
+  --test-provider                      # Provayderi bir addımda əlavə edib sınaqdan keçirin
 ```
 
 Qeyri-interaktiv quraşdırma üçün tanınan mühit dəyişənləri:
@@ -598,34 +598,34 @@ Bütün digər qeyri-interaktiv girişlər mühit dəyişənləri kimi deyil, ba
 ### Diaqnostika
 
 ```bash
-omniroute doctor                       # Konfiqurasiyanı, DB-ni, portları, icra mühitini, yaddaşı və işləkliyi yoxla
+omniroute doctor                       # Konfiqurasiyanı, DB-ni, portları, icra mühitini, yaddaşı və işləkliyi yoxlayın
 omniroute doctor --json                # Maşın tərəfindən oxuna bilən JSON
-omniroute doctor --no-liveness         # HTTP sağlamlıq yoxlamasını ötür
-omniroute doctor --host 0.0.0.0        # İşləklik yoxlaması hostunu əvəz et
-omniroute doctor --liveness-url <url>  # Tam sağlamlıq son nöqtəsi URL-sini əvəz et
+omniroute doctor --no-liveness         # HTTP sağlamlıq yoxlamasını ötürün
+omniroute doctor --host 0.0.0.0        # İşləklik hostunu əvəz edin
+omniroute doctor --liveness-url <url>  # Sağlamlıq son nöqtəsinin tam URL ünvanını əvəz edin
 ```
 
-Doctor bu yoxlamaları icra edir: `Config`, `Database`, `Storage/encryption`,
+Doctor bu yoxlamaları həyata keçirir: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` və `Server liveness`. Hər hansı yoxlamanın nəticəsi `fail` olarsa, sıfırdan fərqli kodla çıxır.
+`Memory` və `Server liveness`. Hər hansı yoxlamanın nəticəsi `fail` olarsa, sıfırdan fərqli çıxış kodu ilə başa çatır.
 
 ### Provayderlərin idarə edilməsi
 
 ```bash
 omniroute providers available                       # OmniRoute provayder kataloqu
-omniroute providers available --search openai       # Kataloqu id/ad/alias/kateqoriya üzrə filtrlə
-omniroute providers available --category api-key    # Kateqoriyaya görə filtrlə (api-key, oauth, free, ...)
+omniroute providers available --search openai       # Kataloqu id/ad/alias/kateqoriyaya görə filtrləyin
+omniroute providers available --category api-key    # Kateqoriyaya görə filtrləyin (api-key, oauth, free, ...)
 omniroute providers available --json                # Maşın tərəfindən oxuna bilən JSON
 
 omniroute providers list                            # Konfiqurasiya edilmiş provayder bağlantıları
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Konfiqurasiya edilmiş bir bağlantını sına
-omniroute providers test-all                        # Hər aktiv bağlantını sına
+omniroute providers test <id|name>                  # Konfiqurasiya edilmiş bir bağlantını sınaqdan keçirin
+omniroute providers test-all                        # Hər aktiv bağlantını sınaqdan keçirin
 omniroute providers validate                        # Yalnız lokal struktur yoxlaması
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Mövcud OAuth prosesi
+omniroute providers auth <provider>                 # Mövcud OAuth axını
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
@@ -633,42 +633,54 @@ omniroute providers remove <id|name> --yes
 `providers add/import/auth/edit/remove` ilk növbədə API-dən istifadə edir və buna görə də
 aktiv lokal və ya uzaq kontekstlə işləyir. Etimad məlumatlarının daxil edilməsi üçün
 `--credential-stdin` və ya `--credential-env` istifadə edilməlidir; `--dry-run --json` yalnız
-redaktə edilmiş mövcudluq/struktur məlumatını göstərir. `providers available` OmniRoute kataloqunu oxuyur;
-`providers list/test/test-all/validate` lokal SQLite davranışını saxlayır və
+redaktə edilmiş mövcudluq/struktur məlumatını bildirir. `providers available` OmniRoute kataloqunu oxuyur;
+`providers list/test/test-all/validate` isə lokal SQLite davranışını saxlayır və
 serverin işləməsini tələb etmir.
+
+Fərdi OpenAI-uyğun və ya Anthropic-uyğun qovşaq üçün etimad məlumatlarını
+`omniroute nodes add` tərəfindən qaytarılan qovşaq ID-sinə `omniroute keys add "$NODE_ID" --stdin` vasitəsilə əlavə edin.
+Bunun üçün işləyən server və aktiv kontekst üzrə idarəetmə autentifikasiyası tələb olunur.
+CLI qovşağı təsdiqləyən və onun son nöqtə parametrlərini bağlantıya
+köçürən `POST /api/providers` sorğusundan istifadə edir. Çatışmayan qovşaq, avtorizasiya xətası və ya əlçatmaz
+server lokal ehtiyat etimad məlumatı yaratmadan xəta qaytarır.
+
+`nodes add --base-url` qovşağın son nöqtəsini təyin edir; bu, `OMNIROUTE_BASE_URL` daxilindəki
+server ünvanından fərqlidir. OpenAPI faylları üçün
+`omniroute openapi dump --format json --out ./openapi.json` istifadə edin; qlobal `--output`
+təyinat faylının adını deyil, CLI displey formatını seçir.
 
 ### Bərpa və sıfırlama
 
 ```bash
-omniroute reset-password                # Administrator parolunu sıfırla (həmçinin: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Şifrələnmiş etimad məlumatlarının sıfırlanması üçün xəbərdarlıq və sınaq icrasını göstər
-omniroute reset-encrypted-columns --force  # SQLite-də şifrələnmiş etimad məlumatlarını faktiki olaraq null et
+omniroute reset-password                # Administrator parolunu sıfırlayın (həmçinin: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Şifrələnmiş etimad məlumatlarının sıfırlanması üçün xəbərdarlıq + sınaq icrasını göstərin
+omniroute reset-encrypted-columns --force  # SQLite daxilində şifrələnmiş etimad məlumatlarını həqiqətən null edin
 ```
 
-### Etimad məlumatlarının ixracı (⚠ ehtiyatla istifadə edin)
+### Etimad məlumatlarının ixracı (⚠ ehtiyatla işləyin)
 
 ```bash
-omniroute auth export                                 # Xəbərdarlıq və təsdiq mərhələsini göstər — DB-yə giriş yoxdur
-omniroute auth export --force                          # BÜTÜN bağlantıların DEŞİFRƏ EDİLMİŞ etimad məlumatlarını JSON kimi stdout-a ixrac et
-omniroute auth export --force --id <id>                 # Yalnız uyğun bağlantını ixrac et
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> sətirlərini çıxar
-omniroute auth export --force --out creds.json           # Fayla yaz (0600 icazələri ilə yaradılır)
+omniroute auth export                                 # Xəbərdarlıq + təsdiq mərhələsini göstərin — DB-yə giriş yoxdur
+omniroute auth export --force                          # BÜTÜN bağlantıların DEŞİFRƏ EDİLMİŞ etimad məlumatlarını JSON kimi stdout-a ixrac edin
+omniroute auth export --force --id <id>                 # Yalnız uyğun gələn bağlantını ixrac edin
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> sətirlərini çıxarın
+omniroute auth export --force --out creds.json           # Fayla yazın (0600 icazələri ilə yaradılır)
 ```
 
-`auth export` **yalnız lokaldır** (birbaşa SQLite oxunması, HTTP marşrutu yoxdur) və bilərəkdən
-**açıq mətn** şəklində `apiKey`/`accessToken`/`refreshToken`/`idToken` dəyərlərini göstərir/yazır — bu, xəta deyil,
-funksiyadır. `--force` olmadan verilənlər bazasından heç nə oxunmur və heç nə deşifrə edilmir. Hər hansı açıq mətn
-çıxarılmazdan əvvəl stderr-ə həmişə xəbərdarlıq banneri yazılır. `STORAGE_ENCRYPTION_KEY` dəyişəninin
-təyin edilməsini tələb edir. Deşifrə edilə bilməyən sahə (köhnəlmiş açar, korlanmış şifrəli mətn) bütün ixracı
-dayandırmaq və ya əsas xətanı sızdırmaq əvəzinə `<field>DecryptFailed: true` kimi bildirilir.
+`auth export` **yalnız lokal rejimdə** işləyir (SQLite-dan birbaşa oxuyur, HTTP marşrutu yoxdur) və qəsdən
+**açıq mətn** şəklində `apiKey`/`accessToken`/`refreshToken`/`idToken` dəyərlərini ekrana çıxarır/fayla yazır — bu, xəta deyil,
+funksiyanın özüdür. `--force` olmadan verilənlər bazasından heç nə oxunmur və heç bir məlumatın şifrəsi açılmır. Hər hansı açıq mətn göstərilməzdən əvvəl
+stderr-də həmişə xəbərdarlıq banneri göstərilir. `STORAGE_ENCRYPTION_KEY` dəyişəninin
+təyin edilməsi tələb olunur. Şifrəsi açıla bilməyən sahə (köhnəlmiş açar, zədələnmiş şifrəli mətn) bütün ixracı dayandırmaq və ya əsas xətanı sızdırmaq əvəzinə
+`<field>DecryptFailed: true` kimi göstərilir.
 
 ### Digər alt əmrlər
 
-Əksi qeyd edilmədiyi halda, bunlar işləyən OmniRoute serverinin mövcud olduğunu fərz edir:
+Əks hal qeyd edilmədikdə, bunlar işləyən OmniRoute serverinin mövcud olduğunu fərz edir:
 
 ```bash
-omniroute status                       # Ətraflı icra vəziyyəti
-omniroute logs                         # Sorğu jurnallarını axınla göstər (--json, --search, --follow)
+omniroute status                       # İş vaxtı vəziyyəti haqqında ətraflı məlumat
+omniroute logs                         # Sorğu jurnallarını axın şəklində göstər (--json, --search, --follow)
 omniroute config list                  # Konfiqurasiya edilmiş CLI alətlərini göstər
 
 omniroute provider list                # Mövcud provayderləri siyahıla (providers list üçün alias)
@@ -677,13 +689,13 @@ omniroute keys add | list | remove     # API açarlarını idarə et
 omniroute models [provider]            # Modelləri siyahıla (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Konfiqurasiya və DB-nin ani surətini yarat
-omniroute restore                      # Əvvəlki ani surətdən bərpa et
+omniroute backup                       # Konfiqurasiyanın + DB-nin ani görüntüsünü yarat
+omniroute restore                      # Əvvəlki ani görüntüdən bərpa et
 
 omniroute health                       # Ətraflı sağlamlıq vəziyyəti (kəsicilər, keş, yaddaş)
 omniroute quota                        # Provayder kvotasının istifadəsi
-omniroute cache                        # Keş vəziyyəti
-omniroute cache clear                  # Semantik və siqnal keşlərini təmizlə
+omniroute cache                        # Keşin vəziyyəti
+omniroute cache clear                  # Semantik + imza keşlərini təmizlə
 
 omniroute mcp status | restart         # MCP serverinin vəziyyəti / yenidən başladılması
 omniroute a2a status | card            # A2A serverinin vəziyyəti / agent kartı
@@ -691,22 +703,22 @@ omniroute a2a status | card            # A2A serverinin vəziyyəti / agent kart
 omniroute tunnel list | create | stop  # Tunelləri idarə et (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Mühit dəyişənlərinə bax / onları təyin et (müvəqqəti)
 
-omniroute test                         # Provayder bağlantısının ilkin sınağı
+omniroute test                         # Provayder bağlantısının ilkin yoxlama testi
 omniroute update                       # Yeniləmələri yoxla
-omniroute completion                   # Shell tamamlama skriptini yarat
+omniroute completion                   # Shell avtomatik tamamlamasını yarat
 ```
 
 ### Ümumi bayraqlar
 
 | Bayraq              | Təsvir                                                             |
 | ------------------- | ------------------------------------------------------------------ |
-| `--no-open`         | Başlanğıcda brauzeri avtomatik açma                                |
-| `--port <n>`        | API portunu dəyişdir (standart olaraq 20128)                       |
+| `--no-open`         | Başladıqda brauzeri avtomatik açma                                 |
+| `--port <n>`        | API portunu dəyişdir (standart 20128)                              |
 | `--mcp`             | stdio üzərindən MCP serveri kimi işə sal (IDE-lər üçün)            |
 | `--non-interactive` | CI rejimi (sorğular yoxdur; env/bayraqlardan oxuyur)               |
 | `--json`            | Maşın tərəfindən oxuna bilən JSON çıxışı (doctor, providers və s.) |
-| `--help`, `-h`      | Komandaya məxsus yardımı göstər                                    |
-| `--version`, `-v`   | Quraşdırılmış versiyanı çap et                                     |
+| `--help`, `-h`      | Əmrə xas köməyi göstər                                             |
+| `--version`, `-v`   | Quraşdırılmış versiyanı göstər                                     |
 
 ---
 

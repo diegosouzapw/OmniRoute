@@ -10,59 +10,59 @@ _Kemas kini terakhir: 2026-06-28_
 
 ## Ringkasan Eksekutif
 
-OmniRoute ialah gerbang penghalaan AI setempat dan papan pemuka yang dibina berasaskan Next.js.
-Ia menyediakan satu titik akhir yang serasi dengan OpenAI (`/v1/*`) dan menghalakan trafik merentasi berbilang penyedia huluan dengan penterjemahan, sandaran, penyegaran token dan penjejakan penggunaan.
+OmniRoute ialah get laluan AI tempatan dan papan pemuka yang dibina menggunakan Next.js.
+Ia menyediakan satu titik akhir yang serasi dengan OpenAI (`/v1/*`) dan menghalakan trafik merentasi berbilang penyedia huluan dengan terjemahan, sandaran, penyegaran token dan penjejakan penggunaan.
 
 Keupayaan teras:
 
-- Permukaan API yang serasi dengan OpenAI untuk CLI/alat (355 penyedia, 108 pelaksana)
-- Penterjemahan permintaan/respons merentasi format penyedia
+- Permukaan API yang serasi dengan OpenAI untuk CLI/alat (372 penyedia, 148 pelaksana)
+- Terjemahan permintaan/respons merentasi format penyedia
 - Sandaran kombo model (jujukan berbilang model)
-- Langkah kombo berstruktur (`provider + model + connection`) dengan susunan masa jalan berdasarkan `compositeTiers`
+- Langkah kombo berstruktur (`provider + model + connection`) dengan susunan masa jalan mengikut `compositeTiers`
 - Sandaran peringkat akaun (berbilang akaun bagi setiap penyedia)
-- Prapemeriksaan kuota dan pemilihan akaun P2C berasaskan kuota dalam laluan sembang utama
-- Pengurusan sambungan penyedia OAuth + kunci API (22 modul penyedia OAuth)
-- Penjanaan pembenaman melalui `/v1/embeddings` (18 penyedia)
+- Prapemeriksaan kuota dan pemilihan akaun P2C yang mengambil kira kuota dalam laluan sembang utama
+- Pengurusan sambungan penyedia OAuth + kunci API (27 modul penyedia OAuth)
+- Penjanaan benam melalui `/v1/embeddings` (18 penyedia)
 - Penjanaan imej melalui `/v1/images/generations` (10+ penyedia, 20+ model)
 - Transkripsi audio melalui `/v1/audio/transcriptions` (18 penyedia)
 - Teks kepada pertuturan melalui `/v1/audio/speech` (24 penyedia terbina dalam)
 - Penjanaan video melalui `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Penjanaan muzik melalui `/v1/music/generations` (ComfyUI)
 - Carian web melalui `/v1/search` (20 penyedia)
-- Penyederhanaan kandungan melalui `/v1/moderations`
-- Pengisihan semula melalui `/v1/rerank`
-- Penghuraian tag pemikiran (`<think>...</think>`) untuk model penaakulan
+- Penyederhanaan melalui `/v1/moderations`
+- Penyusunan semula kedudukan melalui `/v1/rerank`
+- Penghuraian teg pemikiran (``) untuk model penaakulan
 - Pensanitasian respons untuk keserasian ketat dengan SDK OpenAI
 - Penormalan peranan (developer→system, system→user) untuk keserasian merentas penyedia
 - Penukaran output berstruktur (json_schema → Gemini responseSchema)
-- Pengekalan setempat untuk penyedia, kunci, alias, kombo, tetapan dan harga (122 modul DB)
+- Penyimpanan setempat untuk penyedia, kunci, alias, kombo, tetapan dan harga (122 modul DB)
 - Penjejakan penggunaan/kos dan pengelogan permintaan
 - Penyegerakan awan pilihan untuk penyegerakan berbilang peranti/keadaan
-- Senarai IP yang dibenarkan/disekat untuk kawalan akses API
-- Pengurusan belanjawan pemikiran (laluan terus/automatik/tersuai/adaptif)
+- Senarai dibenarkan/senarai disekat IP untuk kawalan akses API
+- Pengurusan belanjawan pemikiran (laluan terus/auto/tersuai/adaptif)
 - Suntikan gesaan sistem global
 - Penjejakan sesi dan pencapjarian
-- Pengehadan kadar dipertingkatkan bagi setiap akaun dengan profil khusus penyedia
+- Pengehadan kadar dipertingkat bagi setiap akaun dengan profil khusus penyedia
 - Corak pemutus litar untuk daya tahan penyedia
-- Perlindungan daripada lonjakan serentak dengan penguncian mutex
+- Perlindungan anti-kawanan serentak dengan penguncian mutex
 - Cache penyahduplikasian permintaan berasaskan tandatangan
-- Lapisan domain: peraturan kos, dasar sandaran, dasar penguncian
-- Context Relay: ringkasan serahan sesi untuk kesinambungan penggiliran akaun
-- Pengekalan keadaan domain (cache tulis terus SQLite untuk sandaran, belanjawan, penguncian dan pemutus litar)
-- Enjin dasar untuk penilaian permintaan berpusat (penguncian → belanjawan → sandaran)
+- Lapisan domain: peraturan kos, dasar sandaran, dasar sekatan
+- Context Relay: ringkasan penyerahan sesi untuk kesinambungan penggiliran akaun
+- Penyimpanan keadaan domain (cache tulis terus SQLite untuk sandaran, belanjawan, sekatan dan pemutus litar)
+- Enjin dasar untuk penilaian permintaan berpusat (sekatan → belanjawan → sandaran)
 - Telemetri permintaan dengan pengagregatan kependaman p50/p95/p99
 - Telemetri sasaran kombo dan sejarah kesihatan sasaran kombo melalui `combo_execution_key` / `combo_step_id`
 - ID korelasi (X-Request-Id) untuk penjejakan hujung ke hujung
-- Pengelogan audit pematuhan dengan pilihan menarik diri bagi setiap kunci API
+- Pengelogan audit pematuhan dengan pilihan tarik diri bagi setiap kunci API
 - Rangka kerja penilaian untuk jaminan kualiti LLM
 - Papan pemuka kesihatan dengan status pemutus litar penyedia masa nyata
-- Pelayan MCP (110 alat) dengan 3 pengangkutan (stdio/SSE/Streamable HTTP)
-- Pelayan A2A (JSON-RPC 2.0 + SSE) dengan kemahiran dan kitaran hayat tugas
-- Sistem memori (pengekstrakan, suntikan, pemerolehan semula, peringkasan)
+- Pelayan MCP (110 alat) dengan 3 pengangkutan (stdio/SSE/HTTP Boleh Distrim)
+- Pelayan A2A (JSON-RPC 2.0 + SSE) dengan kemahiran dan kitar hayat tugas
+- Sistem memori (pengekstrakan, suntikan, perolehan semula, peringkasan)
 - Sistem kemahiran (daftar, pelaksana, kotak pasir, kemahiran terbina dalam)
 - Proksi MITM dengan pengurusan sijil dan pengendalian DNS
 - Perisian tengah pengawal suntikan gesaan
-- Talian paip pemampatan gesaan dengan Caveman, RTK, talian paip bertindan, kombo pemampatan, pek bahasa dan analitik
+- Saluran pemampatan gesaan dengan Caveman, RTK, saluran bertindan, kombo pemampatan, pek bahasa dan analitik
 - Daftar ACP (Agent Communication Protocol)
 - Penyedia OAuth modular (22 modul individu di bawah `src/lib/oauth/providers/`)
 - Skrip nyahpasang/nyahpasang penuh
@@ -70,17 +70,17 @@ Keupayaan teras:
 - Jambatan WebSocket untuk klien WS yang serasi dengan OpenAI (`/v1/ws`)
 - Pengurusan token penyegerakan (pengeluaran/pembatalan, muat turun berkas konfigurasi berversi ETag)
 - GLM Thinking (`glmt`) sebagai pratetap penyedia kelas pertama
-- Pengiraan token hibrid (`/messages/count_tokens` pada bahagian penyedia dengan sandaran anggaran)
-- Penyemaian automatik alias model (30+ penormalan dialek merentas proksi ketika permulaan)
-- Pengambilan keluar yang selamat dengan pengawal SSRF, penyekatan URL persendirian dan percubaan semula boleh dikonfigurasi
-- Percubaan semula sembang yang mengambil kira tempoh bertenang dengan `requestRetry` dan `maxRetryIntervalSec` boleh dikonfigurasi
-- Pengesahan persekitaran masa jalan dengan Zod ketika permulaan
+- Pengiraan token hibrid (`/messages/count_tokens` pada sisi penyedia dengan anggaran sebagai sandaran)
+- Penyemaian automatik alias model (30+ penormalan dialek merentas proksi semasa permulaan)
+- Pengambilan keluar selamat dengan pengawal SSRF, penyekatan URL peribadi dan percubaan semula yang boleh dikonfigurasikan
+- Percubaan semula sembang yang mengambil kira tempoh bertenang dengan `requestRetry` dan `maxRetryIntervalSec` yang boleh dikonfigurasikan
+- Pengesahan persekitaran masa jalan dengan Zod semasa permulaan
 - Audit pematuhan v2 dengan penomboran halaman, peristiwa CRUD penyedia dan pengelogan pengesahan yang disekat SSRF
 
 Model masa jalan utama:
 
-- Laluan aplikasi Next.js di bawah `src/app/api/*` melaksanakan API papan pemuka dan API keserasian
-- Teras SSE/penghalaan dikongsi dalam `src/sse/*` + `open-sse/*` mengendalikan pelaksanaan penyedia, penterjemahan, penstriman, sandaran dan penggunaan
+- Laluan aplikasi Next.js di bawah `src/app/api/*` melaksanakan kedua-dua API papan pemuka dan API keserasian
+- Teras SSE/penghalaan dikongsi dalam `src/sse/*` + `open-sse/*` mengendalikan pelaksanaan penyedia, terjemahan, penstriman, sandaran dan penggunaan
 
 ## Rajah Rujukan
 
@@ -276,53 +276,54 @@ Modul aliran utama:
 - Daftar penyedia pembenaman: `open-sse/config/embeddingRegistry.ts`
 - Pengendali penjanaan imej: `open-sse/handlers/imageGeneration.ts`
 - Daftar penyedia imej: `open-sse/config/imageRegistry.ts`
-- Pembersihan respons: `open-sse/handlers/responseSanitizer.ts`
+- Pensanitasian respons: `open-sse/handlers/responseSanitizer.ts`
 - Penormalan peranan: `open-sse/services/roleNormalizer.ts`
 
 Perkhidmatan (logik perniagaan):
 
-- Pemilihan/pemarkahan akaun: `open-sse/services/accountSelector.ts`
+- Pemilihan/penskoran akaun: `open-sse/services/accountSelector.ts`
 - Pengurusan kitar hayat konteks: `open-sse/services/contextManager.ts`
 - Penguatkuasaan penapis IP: `open-sse/services/ipFilter.ts`
 - Penjejakan sesi: `open-sse/services/sessionManager.ts`
 - Penyahduplikasian permintaan: `open-sse/services/signatureCache.ts`
-- Penyuntikan gesaan sistem: `open-sse/services/systemPrompt.ts`
+- Penyuntikan prom sistem: `open-sse/services/systemPrompt.ts`
 - Pengurusan belanjawan pemikiran: `open-sse/services/thinkingBudget.ts`
 - Penghalaan model kad bebas: `open-sse/services/wildcardRouter.ts`
 - Pengurusan had kadar: `open-sse/services/rateLimitManager.ts`
 - Pemutus litar: `src/shared/utils/circuitBreaker.ts`
 - Penyerahan konteks: `open-sse/services/contextHandoff.ts` — penjanaan dan penyuntikan ringkasan penyerahan untuk strategi geganti konteks
 - Pemampatan: `open-sse/services/compression/*` — pemampatan proaktif sebelum terjemahan penyedia;
-  merangkumi peraturan Caveman, penapis RTK, talian paip bertindan, gabungan pemampatan, statistik dan pengesahan
+  merangkumi peraturan Caveman, penapis RTK, saluran paip bertindan, gabungan pemampatan, statistik dan pengesahan
 - Pengambil kuota Codex: `open-sse/services/codexQuotaFetcher.ts` — mengambil kuota Codex untuk keputusan penyerahan geganti konteks
-- Percubaan semula sedar tempoh bertenang: `src/sse/services/cooldownAwareRetry.ts` — percubaan semula tempoh bertenang bagi setiap model dengan `requestRetry` / `maxRetryIntervalSec` yang boleh dikonfigurasikan
-- Pengambilan keluar yang selamat: `src/shared/network/safeOutboundFetch.ts` — pengambilan penyedia/model terkawal dengan perlindungan SSRF, penyekatan URL peribadi, percubaan semula dan tamat masa
-- Perlindungan URL keluar: `src/shared/network/outboundUrlGuard.ts` — mengesahkan URL penyedia terhadap julat CIDR peribadi/localhost
-- Lalai permintaan penyedia: `open-sse/services/providerRequestDefaults.ts` — nilai lalai `maxTokens`, `temperature`, `thinkingBudgetTokens` pada peringkat penyedia
-- Pemalar penyedia GLM: `open-sse/config/glmProvider.ts` — model GLM, URL kuota dan tamat masa/nilai lalai GLMT yang dikongsi
+- Percubaan semula peka tempoh bertenang: `src/sse/services/cooldownAwareRetry.ts` — percubaan semula tempoh bertenang bagi setiap model dengan `requestRetry` / `maxRetryIntervalSec` yang boleh dikonfigurasikan
+- Pengambilan keluar yang selamat: `src/shared/network/safeOutboundFetch.ts` — pengambilan penyedia/model yang dilindungi dengan perlindungan SSRF, penyekatan URL peribadi, percubaan semula dan tamat masa
+- Perlindungan URL keluar: `src/shared/network/outboundUrlGuard.ts` — semakan hos pada URL penyedia; `src/shared/network/outboundUrlGuardPolicy.ts` memilih mod daripada `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` dan togol papan pemuka masing-masing (lihat `docs/reference/ENVIRONMENT.md`)
+- Lalai permintaan penyedia: `open-sse/services/providerRequestDefaults.ts` — lalai peringkat penyedia bagi `maxTokens`, `temperature`, `thinkingBudgetTokens`
+- Pemalar penyedia GLM: `open-sse/config/glmProvider.ts` — model GLM dikongsi, URL kuota, tamat masa/lalai GLMT
 - Huluan Antigravity: `open-sse/config/antigravityUpstream.ts` — URL asas dan pemalar laluan penemuan
-- Pemalar klien Codex: `open-sse/config/codexClient.ts` — nilai ejen pengguna dan versi klien yang berversi
-- Benih alias model: `src/lib/modelAliasSeed.ts` — menyemai lebih 30 alias dialek rentas proksi semasa permulaan
+- Pemalar klien Codex: `open-sse/config/codexClient.ts` — nilai agen pengguna dan versi klien yang mempunyai versi
+- Benih alias model: `src/lib/modelAliasSeed.ts` — menyemai 30+ alias dialek rentas proksi semasa permulaan
 
 Modul lapisan domain:
 
 - Peraturan kos/belanjawan: `src/domain/costRules.ts`
 - Dasar sandaran: `src/domain/fallbackPolicy.ts`
 - Penyelesai gabungan: `src/domain/comboResolver.ts`
-- Dasar sekatan: `src/domain/lockoutPolicy.ts`
-- Enjin dasar: `src/domain/policyEngine.ts` — penilaian sekatan → belanjawan → sandaran yang berpusat
+- Dasar penguncian: `src/domain/lockoutPolicy.ts`
+- Enjin dasar: `src/domain/policyEngine.ts` — penilaian penguncian → belanjawan → sandaran secara berpusat
 - Katalog kod ralat: `src/shared/constants/errorCodes.ts`
 - ID permintaan: `src/shared/utils/requestId.ts`
 - Tamat masa pengambilan: `src/shared/utils/fetchTimeout.ts`
 - Telemetri permintaan: `src/shared/utils/requestTelemetry.ts`
 - Pematuhan/audit: `src/lib/compliance/index.ts`
 - Pelaksana penilaian: `src/lib/evals/evalRunner.ts`
-- Pengekalan keadaan domain: `src/lib/db/domainState.ts` — CRUD SQLite untuk rantaian sandaran, belanjawan, sejarah kos, keadaan sekatan dan pemutus litar
+- Pengekalan keadaan domain: `src/lib/db/domainState.ts` — CRUD SQLite untuk rantaian sandaran, belanjawan, sejarah kos, keadaan penguncian dan pemutus litar
 
-Modul penyedia OAuth (22 fail individu di bawah `src/lib/oauth/providers/`):
+Modul penyedia OAuth (27 fail individu di bawah `src/lib/oauth/providers/`):
 
 - Indeks daftar: `src/lib/oauth/providers/index.ts`
-- Penyedia individu: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Penyedia individu: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Pembantu dikongsi: `codebuddyDeviceAuth.ts` (aliran peranti CodeBuddy CN/antarabangsa), `museCodeDeviceResponse.ts`
 - Pembalut nipis: `src/lib/oauth/providers.ts` — mengeksport semula daripada modul individu
 
 ## 5) Perkhidmatan Terbenam (v3.8.4)

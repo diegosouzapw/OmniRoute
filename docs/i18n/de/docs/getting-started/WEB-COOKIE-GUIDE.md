@@ -18,11 +18,11 @@ Viele Authentifizierungsprobleme entstehen dadurch, dass Cookies von der falsche
 
 ## Nicht aus dem Cookie-Speicher kopieren
 
-Die meisten Browser zeigen gespeicherte Cookies über folgenden Pfad an:
+Die meisten Browser zeigen gespeicherte Cookies hier an:
 
 ```
-Entwicklertools
-→ Anwendung (oder Speicher)
+DevTools
+→ Application (oder Storage)
 → Cookies
 ```
 
@@ -39,11 +39,11 @@ Die Verwendung dieser Werte kann zu Authentifizierungsfehlern führen, selbst we
 Verwenden Sie stattdessen die Cookies aus einer erfolgreichen Anfrage:
 
 ```
-Entwicklertools
-→ Netzwerk
+DevTools
+→ Network
 → Seite aktualisieren
 → Eine Chat- oder Konversationsanfrage öffnen
-→ Anfrage-Header
+→ Request Headers
 → Cookie
 ```
 
@@ -59,18 +59,18 @@ Der Einrichtungsprozess ist bei den meisten Web-Cookie-Anbietern identisch.
 
 1. Melden Sie sich auf der Website des Anbieters an.
 2. Öffnen Sie die Entwicklertools des Browsers.
-3. Öffnen Sie die Registerkarte **Netzwerk**.
+3. Öffnen Sie die Registerkarte **Network**.
 4. Aktualisieren Sie die Seite.
 5. Öffnen Sie eine authentifizierte Chat- oder Konversationsanfrage.
-6. Kopieren Sie die erforderlichen Authentifizierungsdaten.
+6. Kopieren Sie die erforderlichen Anmeldedaten.
 7. Öffnen Sie OmniRoute.
-8. Gehen Sie zu **Anbieter → Anbieter hinzufügen**.
+8. Gehen Sie zu **Providers → Add Provider**.
 9. Wählen Sie Ihren Web-Cookie-Anbieter aus.
 10. Fügen Sie die Anmeldedaten ein.
-11. Klicken Sie auf **Verbindung testen**.
+11. Klicken Sie auf **Test Connection**.
 12. Speichern Sie den Anbieter.
 
-Welche Anmeldedaten genau erforderlich sind, hängt vom Anbieter ab.
+Welche Anmeldedaten genau erforderlich sind, hängt vom jeweiligen Anbieter ab.
 
 ---
 
@@ -78,52 +78,102 @@ Welche Anmeldedaten genau erforderlich sind, hängt vom Anbieter ab.
 
 Verschiedene Websites speichern Authentifizierungsdaten auf unterschiedliche Weise. Einige benötigen nur Cookies, während andere möglicherweise zusätzliche Header oder Token erfordern.
 
-| Anbieter                        | Format der Anmeldedaten             | Anbieterleitfaden                |
+| Anbieter                        | Anmeldedatenformat                  | Anbieterleitfaden                |
 | ------------------------------- | ----------------------------------- | -------------------------------- |
 | Claude Web                      | Vollständiger Cookie-Anfrage-Header | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Vollständiger Cookie-Header         | `docs/providers/CHATGPT_WEB.md`  |
-| Gemini Web                      | _(prüfen)_                          |                                  |
-| Copilot Web                     | _(prüfen)_                          | `docs/providers/COPILOT-M365.md` |
-| Microsoft 365 Copilot (BizChat) | WS-access_token + chathubPath       | `docs/providers/COPILOT-M365.md` |
-| Grok Web                        | _(prüfen)_                          |                                  |
+| Gemini Web                      | _(überprüfen)_                      |                                  |
+| Copilot Web                     | _(überprüfen)_                      | `docs/providers/COPILOT-M365.md` |
+| Microsoft 365 Copilot (BizChat) | WS access_token + chathubPath       | `docs/providers/COPILOT-M365.md` |
+| Grok Web                        | _(überprüfen)_                      |                                  |
 | ...                             | ...                                 | ...                              |
 
 > Aktualisieren Sie diese Tabelle, wenn neue Web-Cookie-Anbieter hinzugefügt werden oder bestehende Anbieter ihre Authentifizierungsanforderungen ändern.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) ist eine kostenlose Chat-Plattform für Endnutzer, für die keine Registrierung erforderlich ist — die Sitzung wird beim ersten Besuch anonym erstellt und bleibt über drei Cookies bestehen: `uid`, `si_usr_id` und `si_ses_id`. OmniRoute leitet denselben Endpunkt `/api/dispatch` über eine einzelne Modell-ID (`notrack-c`, Alias `ntw`) weiter.
+
+### Schritte zum Verbinden
+
+1. Öffnen Sie [notrack.ai](https://notrack.ai) in Ihrem Browser und lassen Sie das anonyme Sitzungscookie setzen.
+2. Öffnen Sie **Entwicklertools → Netzwerk**, aktualisieren Sie die Seite und klicken Sie auf eine beliebige `/api`-Anfrage.
+3. Kopieren Sie unter **Anfrage-Header** den vollständigen Wert des `Cookie`-Headers.
+4. Navigieren Sie in OmniRoute zu **Anbieter → Anbieter hinzufügen → NoTrack Web (kostenlos)**.
+5. Fügen Sie die Cookie-Zeichenfolge in das Feld `apiKey` ein und klicken Sie auf **Speichern**.
+
+OmniRoute extrahiert `uid`, `si_usr_id` und `si_ses_id` aus der eingefügten Zeichenfolge und erstellt daraus einen bereinigten `Cookie`-Header, der nur diese Paare enthält — sowie `nt_session` (das für angemeldete Konten gesetzte `ntk_…`-Token), sofern vorhanden. Fehlt einer der drei Werte, wird die eingefügte Rohzeichenfolge unverändert weitergeleitet, damit Betreiber mit alternativen Formaten experimentieren können.
+
+### Modell-IDs
+
+| Modell-ID   | Anzeigename | Hinweise                                              |
+| ----------- | ----------- | ----------------------------------------------------- |
+| `notrack-c` | NoTrack C   | Standard — das Upstream-Dispatch-Modell `C`.          |
+| `C`         | NoTrack C   | Alias für `notrack-c` (roher Upstream-Dispatch-Code). |
+| `notrack`   | NoTrack C   | Alias für `notrack-c`.                                |
+| `ntw`       | NoTrack C   | Kurzalias für `notrack-c`.                            |
+
+Alle vier Modell-IDs werden demselben Upstream-Dispatch-Modell (`C`) zugeordnet.
+
+### Anfrageoptionen
+
+Der Executor akzeptiert diese optionalen Felder im Anfrage-Body:
+
+| Body-Feld             | Standardwert | Zweck                                                                                       |
+| --------------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`      | Dispatch-Modus (Freitextzeichenfolge; der Upstream akzeptiert `usual`, …)                   |
+| `notrack_max_turns`   | `6`          | Anzahl interner Durchläufe, die der Upstream vor der Antwort ausführen darf.                |
+| `notrack_chat_id`     | `null`       | Einen vorhandenen Upstream-Chat fortsetzen (für einen neuen Chat weglassen).                |
+| `notrack_attachments` | `[]`         | Durchgereichtes Array von Upstream-Anhangsdeskriptoren.                                     |
+| `notrack_regenerate`  | `false`      | Auf `true` setzen, um eine neu generierte Antwort für den vorherigen Durchlauf anzufordern. |
+
+### Funktionen
+
+- **Streaming- und Nicht-Streaming-Chat-Vervollständigungen**.
+- **Tool-Aufrufe** — setzen Sie `tools: [...]` in der Anfrage; der Executor serialisiert sie in einen Tool-Aufruf-Envelope-Vertrag und analysiert die Modellantworten zurück in OpenAI-`tool_calls`.
+- **`response_format`** — `json_object` und `json_schema` werden unterstützt. Der Executor extrahiert das erste JSON-Objekt aus der Modellantwort und serialisiert es vor der Rückgabe als Zeichenfolge.
+- **Reasoning-Hinweis** — der Executor gibt ein `reasoning`-Delta aus, wenn der Upstream ein `thinking`-Ereignis sendet.
+
+### Einschränkungen
+
+- Der Upstream erzwingt Nutzungskontingente für anonyme Benutzer — werden diese überschritten, gibt der Executor einen 429-Fehler mit einer benutzerfreundlichen Meldung zurück.
+- Alle Modell-IDs werden demselben Upstream-Dispatch-Modell zugeordnet; es gibt keine modellspezifische Umschaltung.
+- Der Executor ruft den Upstream-Endpunkt `/api/chats` nicht auf, daher werden Chatverlauf und Sitzungen nicht automatisch verwaltet. Verwenden Sie `notrack_chat_id`, um einen vorhandenen Upstream-Chat fortzusetzen.
 
 ---
 
 # Was Web-Cookie-Anbieter können und was nicht
 
-Web-Cookie-Anbieter verwenden die Chatoberfläche einer Website wieder. Sie bieten **nicht** dieselben Funktionen wie offizielle APIs.
+Web-Cookie-Anbieter verwenden die Chat-Oberfläche einer Website erneut. Sie bieten **nicht** dieselben Funktionen wie offizielle APIs.
 
 ## Unterstützt
 
-- Authentifizierung mit Ihrer bestehenden Browsersitzung
+- Authentifizierung über Ihre bestehende Browsersitzung
 - Zugriff auf die über Ihr Konto verfügbaren Modelle
-- Streaming von Chatantworten
+- Streaming von Chat-Antworten
 - Kein API-Schlüssel erforderlich
 
 ## Nicht unterstützt
 
 - Funktionsaufrufe
-- Werkzeugaufrufe
+- Tool-Aufrufe
 - Automatische Dateibearbeitung
-- Agentenbasierte IDE-Workflows
-- Ausschließlich über APIs verfügbare Funktionen
+- Agentische IDE-Workflows
+- Ausschließlich über die API verfügbare Funktionen
 
 Dies ist das erwartete Verhalten und **kein** Fehler.
 
-Wenn Sie die Ausführung von Werkzeugen, die automatische Dateibearbeitung oder andere Agenten-Workflows benötigen, verwenden Sie anstelle eines Web-Cookie-Anbieters einen **API-Schlüssel-Anbieter**.
+Wenn Sie die Ausführung von Tools, automatische Dateibearbeitung oder andere Agenten-Workflows benötigen, verwenden Sie anstelle eines Web-Cookie-Anbieters einen **API-Schlüssel-Anbieter**.
 
 ---
 
-# Einschränkung der Validierung
+# Einschränkung bei der Validierung
 
-Eine erfolgreiche **Verbindung testen**-Prüfung oder Cookie-Validierung bestätigt lediglich, dass die bereitgestellten Anmeldedaten dem erwarteten Format zu entsprechen scheinen.
+Ein erfolgreicher **Verbindungstest** oder eine erfolgreiche Cookie-Validierung bestätigt lediglich, dass die angegebenen Anmeldedaten offenbar das erwartete Format aufweisen.
 
-Bis Issue #7857 behoben ist, **garantiert eine erfolgreiche Validierung nicht**, dass sich der Anbieter erfolgreich authentifizieren kann.
+Bis Issue #7857 behoben ist, ist eine erfolgreiche Validierung **keine Garantie** dafür, dass die Authentifizierung beim Anbieter erfolgreich sein wird.
 
-Wenn die Authentifizierung weiterhin fehlschlägt, überprüfen Sie, ob Sie die Anmeldedaten aus einer aktiven Netzwerkanfrage und nicht aus dem Cookie-Speicher des Browsers kopiert haben.
+Falls die Authentifizierung weiterhin fehlschlägt, vergewissern Sie sich, dass Sie die Anmeldedaten aus einer aktiven Netzwerkanfrage und nicht aus dem Cookie-Speicher des Browsers kopiert haben.
 
 ---
 
@@ -131,7 +181,7 @@ Wenn die Authentifizierung weiterhin fehlschlägt, überprüfen Sie, ob Sie die 
 
 ## Authentifizierung schlägt fehl
 
-Überprüfen Sie, ob die Anmeldedaten von hier kopiert wurden:
+Vergewissern Sie sich, dass die Anmeldedaten von folgender Stelle kopiert wurden:
 
 ```
 Netzwerk
@@ -139,7 +189,7 @@ Netzwerk
 → Cookie
 ```
 
-und **nicht** von hier:
+und **nicht** von:
 
 ```
 Anwendung
@@ -152,7 +202,7 @@ Anwendung
 
 Einige Anbieter verwenden Cookies, die nur bei authentifizierten Anfragen gesendet werden.
 
-Kopieren Sie die Anmeldedaten erneut aus einer aktuellen Netzwerkanfrage, nachdem Sie erfolgreich eine Konversation geöffnet haben.
+Kopieren Sie die Anmeldedaten erneut aus einer frischen Netzwerkanfrage, nachdem Sie erfolgreich eine Unterhaltung geöffnet haben.
 
 ---
 
@@ -160,7 +210,7 @@ Kopieren Sie die Anmeldedaten erneut aus einer aktuellen Netzwerkanfrage, nachde
 
 Web-Cookie-Anbieter verwenden Ihre bestehende Browsersitzung.
 
-Wenn Ihre Browsersitzung abläuft oder Sie sich abmelden, müssen Sie neue Anmeldedaten kopieren.
+Wenn Ihre Browsersitzung abläuft oder Sie sich abmelden, müssen Sie neue Anmeldedaten kopieren. Informationen zur automatischen Cookie-Erneuerung für unterstützte Webanbieter finden Sie im begleitenden Tool [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
@@ -168,7 +218,7 @@ Wenn Ihre Browsersitzung abläuft oder Sie sich abmelden, müssen Sie neue Anmel
 
 Bis Issue #7857 behoben ist, garantiert eine erfolgreiche Validierung nicht, dass die Authentifizierungsanfrage erfolgreich sein wird.
 
-Kopieren Sie Ihre Anmeldedaten erneut aus einer aktuellen authentifizierten Anfrage, bevor Sie mit der weiteren Fehlerbehebung fortfahren.
+Kopieren Sie Ihre Anmeldedaten erneut aus einer frischen authentifizierten Anfrage, bevor Sie mit der weiteren Fehlerbehebung fortfahren.
 
 ---
 
@@ -178,14 +228,14 @@ Eine vollständige anbieterspezifische Anleitung finden Sie hier:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Der Leitfaden zu Claude Web zeigt den vollständigen Einrichtungsprozess für einen Web-Cookie-Anbieter und dient als Referenzimplementierung.
+Der Claude-Web-Leitfaden zeigt den vollständigen Einrichtungsprozess für einen Web-Cookie-Anbieter und dient als Referenzimplementierung.
 
 ---
 
 # Bewährte Vorgehensweisen
 
-- Kopieren Sie Anmeldedaten aus einer aktuellen authentifizierten Anfrage.
+- Kopieren Sie die Anmeldedaten aus einer frischen authentifizierten Anfrage.
 - Vermeiden Sie die Wiederverwendung alter Cookies.
 - Halten Sie Ihre Browsersitzung aktiv, während Sie Web-Cookie-Anbieter verwenden.
-- Behandeln Sie kopierte Cookies als vertrauliche Anmeldedaten.
+- Behandeln Sie kopierte Cookies wie vertrauliche Anmeldedaten.
 - Verwenden Sie API-Schlüssel-Anbieter, wenn Sie Funktionsaufrufe oder Agenten-Workflows benötigen.

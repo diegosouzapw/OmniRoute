@@ -10,18 +10,18 @@ _Última actualización: 2026-06-28_
 
 ## Resumen ejecutivo
 
-OmniRoute es una puerta de enlace local de enrutamiento de IA y un panel de control desarrollados sobre Next.js.
-Proporciona un único endpoint compatible con OpenAI (`/v1/*`) y enruta el tráfico entre varios proveedores upstream con traducción, fallback, renovación de tokens y seguimiento del uso.
+OmniRoute es una puerta de enlace local de enrutamiento de IA y un panel de control desarrollados con Next.js.
+Proporciona un único endpoint compatible con OpenAI (`/v1/*`) y enruta el tráfico entre múltiples proveedores ascendentes con traducción, conmutación por error, renovación de tokens y seguimiento del uso.
 
 Capacidades principales:
 
-- Superficie de API compatible con OpenAI para CLI/herramientas (355 proveedores, 108 ejecutores)
+- Superficie de API compatible con OpenAI para CLI/herramientas (372 proveedores, 148 ejecutores)
 - Traducción de solicitudes/respuestas entre formatos de proveedores
-- Fallback mediante combinaciones de modelos (secuencia de varios modelos)
+- Conmutación por error mediante combinaciones de modelos (secuencia de varios modelos)
 - Pasos de combinación estructurados (`provider + model + connection`) con ordenación en tiempo de ejecución mediante `compositeTiers`
-- Fallback a nivel de cuenta (varias cuentas por proveedor)
-- Comprobación previa de cuota y selección de cuentas P2C consciente de la cuota en la ruta principal de chat
-- Gestión de conexiones de proveedores mediante OAuth + claves de API (22 módulos de proveedores OAuth)
+- Conmutación por error a nivel de cuenta (varias cuentas por proveedor)
+- Comprobación previa de cuota y selección de cuentas P2C basada en cuotas en la ruta principal de chat
+- Gestión de conexiones de proveedores mediante OAuth y claves de API (27 módulos de proveedores OAuth)
 - Generación de embeddings mediante `/v1/embeddings` (18 proveedores)
 - Generación de imágenes mediante `/v1/images/generations` (más de 10 proveedores, más de 20 modelos)
 - Transcripción de audio mediante `/v1/audio/transcriptions` (18 proveedores)
@@ -31,56 +31,56 @@ Capacidades principales:
 - Búsqueda web mediante `/v1/search` (20 proveedores)
 - Moderaciones mediante `/v1/moderations`
 - Reordenación mediante `/v1/rerank`
-- Análisis de etiquetas de pensamiento (`<think>...</think>`) para modelos de razonamiento
+- Análisis de etiquetas de pensamiento (``) para modelos de razonamiento
 - Saneamiento de respuestas para una compatibilidad estricta con el SDK de OpenAI
-- Normalización de roles (developer→system, system→user) para compatibilidad entre proveedores
+- Normalización de roles (developer→system, system→user) para garantizar la compatibilidad entre proveedores
 - Conversión de salidas estructuradas (json_schema → Gemini responseSchema)
-- Persistencia local de proveedores, claves, alias, combinaciones, configuración y precios (122 módulos de base de datos)
-- Seguimiento del uso/coste y registro de solicitudes
+- Persistencia local de proveedores, claves, alias, combinaciones, ajustes y precios (122 módulos de base de datos)
+- Seguimiento de uso/costes y registro de solicitudes
 - Sincronización opcional en la nube para sincronizar el estado entre varios dispositivos
 - Lista de permitidos/bloqueados por IP para el control de acceso a la API
-- Gestión del presupuesto de pensamiento (transferencia directa/automático/personalizado/adaptativo)
-- Inyección global del prompt del sistema
-- Seguimiento y generación de huellas digitales de sesiones
-- Limitación de tasa mejorada por cuenta con perfiles específicos del proveedor
-- Patrón de circuit breaker para la resiliencia de los proveedores
-- Protección contra estampidas de solicitudes mediante bloqueo mutex
+- Gestión del presupuesto de pensamiento (passthrough/auto/custom/adaptive)
+- Inyección global de prompts del sistema
+- Seguimiento y creación de huellas digitales de sesiones
+- Limitación de tasa mejorada por cuenta con perfiles específicos de cada proveedor
+- Patrón de disyuntor para mejorar la resiliencia de los proveedores
+- Protección contra avalanchas de solicitudes mediante bloqueo mutex
 - Caché de deduplicación de solicitudes basada en firmas
-- Capa de dominio: reglas de costes, política de fallback y política de bloqueo
-- Context Relay: resúmenes de traspaso de sesión para mantener la continuidad al rotar cuentas
-- Persistencia del estado del dominio (caché de escritura directa en SQLite para fallbacks, presupuestos, bloqueos y circuit breakers)
-- Motor de políticas para la evaluación centralizada de solicitudes (bloqueo → presupuesto → fallback)
+- Capa de dominio: reglas de costes, política de conmutación por error y política de bloqueo
+- Context Relay: resúmenes de transferencia de sesiones para mantener la continuidad al rotar cuentas
+- Persistencia del estado del dominio (caché de escritura simultánea de SQLite para conmutaciones por error, presupuestos, bloqueos y disyuntores)
+- Motor de políticas para la evaluación centralizada de solicitudes (bloqueo → presupuesto → conmutación por error)
 - Telemetría de solicitudes con agregación de latencia p50/p95/p99
-- Telemetría de objetivos de combinación e historial de estado de los objetivos mediante `combo_execution_key` / `combo_step_id`
-- ID de correlación (X-Request-Id) para el seguimiento de extremo a extremo
+- Telemetría de destinos de combinaciones e historial del estado de los destinos mediante `combo_execution_key` / `combo_step_id`
+- ID de correlación (X-Request-Id) para el rastreo de extremo a extremo
 - Registro de auditoría de cumplimiento con opción de exclusión por clave de API
-- Framework de evaluación para el aseguramiento de la calidad de los LLM
-- Panel de estado con información en tiempo real sobre los circuit breakers de los proveedores
+- Marco de evaluación para garantizar la calidad de los LLM
+- Panel de estado con información en tiempo real sobre los disyuntores de los proveedores
 - Servidor MCP (110 herramientas) con 3 transportes (stdio/SSE/Streamable HTTP)
-- Servidor A2A (JSON-RPC 2.0 + SSE) con capacidades y ciclo de vida de tareas
+- Servidor A2A (JSON-RPC 2.0 + SSE) con habilidades y ciclo de vida de tareas
 - Sistema de memoria (extracción, inyección, recuperación y resumen)
-- Sistema de capacidades (registro, ejecutor, sandbox y capacidades integradas)
-- Proxy MITM con gestión de certificados y DNS
-- Middleware de protección contra inyección de prompts
-- Pipeline de compresión de prompts con Caveman, RTK, pipelines apilados, combinaciones de compresión, paquetes de idiomas y analítica
-- Registro ACP (Agent Communication Protocol)
+- Sistema de habilidades (registro, ejecutor, entorno aislado y habilidades integradas)
+- Proxy MITM con gestión de certificados y administración de DNS
+- Middleware de protección contra la inyección de prompts
+- Canalización de compresión de prompts con Caveman, RTK, canalizaciones apiladas, combinaciones de compresión, paquetes de idiomas y analítica
+- Registro de ACP (Agent Communication Protocol)
 - Proveedores OAuth modulares (22 módulos individuales en `src/lib/oauth/providers/`)
 - Scripts de desinstalación/desinstalación completa
 - Acción de reparación del entorno OAuth
 - Puente WebSocket para clientes WS compatibles con OpenAI (`/v1/ws`)
-- Gestión de tokens de sincronización (emisión/revocación y descarga del paquete de configuración versionado mediante ETag)
-- GLM Thinking (`glmt`) como preajuste de proveedor de primera clase
-- Conteo híbrido de tokens (`/messages/count_tokens` del proveedor con estimación como fallback)
-- Inicialización automática de alias de modelos (más de 30 normalizaciones entre dialectos de proxies al iniciar)
-- Solicitudes salientes seguras con protección SSRF, bloqueo de URL privadas y reintentos configurables
-- Reintentos de chat conscientes del periodo de espera con `requestRetry` y `maxRetryIntervalSec` configurables
-- Validación del entorno de ejecución con Zod al iniciar
+- Gestión de tokens de sincronización (emisión/revocación y descarga de paquetes de configuración versionados mediante ETag)
+- Preajuste de proveedor de primera clase para GLM Thinking (`glmt`)
+- Conteo híbrido de tokens (`/messages/count_tokens` en el proveedor con estimación como alternativa)
+- Inicialización automática de alias de modelos (más de 30 normalizaciones entre dialectos de proxies durante el arranque)
+- Solicitudes salientes seguras con protección contra SSRF, bloqueo de URL privadas y reintentos configurables
+- Reintentos de chat que tienen en cuenta el período de espera, con `requestRetry` y `maxRetryIntervalSec` configurables
+- Validación del entorno de ejecución con Zod durante el arranque
 - Auditoría de cumplimiento v2 con paginación, eventos CRUD de proveedores y registro de validaciones bloqueadas por SSRF
 
-Modelo principal de ejecución:
+Modelo de ejecución principal:
 
 - Las rutas de la aplicación Next.js en `src/app/api/*` implementan tanto las API del panel de control como las API de compatibilidad
-- Un núcleo compartido de SSE/enrutamiento en `src/sse/*` + `open-sse/*` gestiona la ejecución de proveedores, la traducción, el streaming, el fallback y el uso
+- Un núcleo compartido de SSE/enrutamiento en `src/sse/*` + `open-sse/*` gestiona la ejecución de proveedores, la traducción, el streaming, la conmutación por error y el uso
 
 ## Diagramas de referencia
 
@@ -268,13 +268,13 @@ Módulos del flujo principal:
 - Detección de formato/configuración de proveedores: `open-sse/services/provider.ts`
 - Análisis/resolución de modelos: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - Lógica de respaldo de cuentas: `open-sse/services/accountFallback.ts`
-- Registro de traducción: `open-sse/translator/index.ts`
-- Transformaciones de flujo: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- Extracción/normalización de uso: `open-sse/utils/usageTracking.ts`
+- Registro de traducciones: `open-sse/translator/index.ts`
+- Transformaciones de flujos: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- Extracción/normalización del uso: `open-sse/utils/usageTracking.ts`
 - Analizador de etiquetas de pensamiento: `open-sse/utils/thinkTagParser.ts`
-- Gestor de incrustaciones: `open-sse/handlers/embeddings.ts`
+- Controlador de incrustaciones: `open-sse/handlers/embeddings.ts`
 - Registro de proveedores de incrustaciones: `open-sse/config/embeddingRegistry.ts`
-- Gestor de generación de imágenes: `open-sse/handlers/imageGeneration.ts`
+- Controlador de generación de imágenes: `open-sse/handlers/imageGeneration.ts`
 - Registro de proveedores de imágenes: `open-sse/config/imageRegistry.ts`
 - Saneamiento de respuestas: `open-sse/handlers/responseSanitizer.ts`
 - Normalización de roles: `open-sse/services/roleNormalizer.ts`
@@ -285,22 +285,22 @@ Servicios (lógica de negocio):
 - Gestión del ciclo de vida del contexto: `open-sse/services/contextManager.ts`
 - Aplicación del filtro de IP: `open-sse/services/ipFilter.ts`
 - Seguimiento de sesiones: `open-sse/services/sessionManager.ts`
-- Desduplicación de solicitudes: `open-sse/services/signatureCache.ts`
+- Deduplicación de solicitudes: `open-sse/services/signatureCache.ts`
 - Inyección del prompt del sistema: `open-sse/services/systemPrompt.ts`
 - Gestión del presupuesto de pensamiento: `open-sse/services/thinkingBudget.ts`
-- Enrutamiento de modelos mediante comodines: `open-sse/services/wildcardRouter.ts`
+- Enrutamiento de modelos con comodines: `open-sse/services/wildcardRouter.ts`
 - Gestión de límites de frecuencia: `open-sse/services/rateLimitManager.ts`
 - Disyuntor: `src/shared/utils/circuitBreaker.ts`
 - Transferencia de contexto: `open-sse/services/contextHandoff.ts` — generación e inyección de resúmenes de transferencia para la estrategia de retransmisión de contexto
 - Compresión: `open-sse/services/compression/*` — compresión proactiva antes de la traducción del proveedor;
   incluye reglas Caveman, filtros RTK, canalizaciones apiladas, combinaciones de compresión, estadísticas y validación
-- Obtenedor de cuota de Codex: `open-sse/services/codexQuotaFetcher.ts` — obtiene la cuota de Codex para tomar decisiones de transferencia en la retransmisión de contexto
-- Reintentos con reconocimiento del período de espera: `src/sse/services/cooldownAwareRetry.ts` — reintentos por modelo durante el período de espera con `requestRetry` / `maxRetryIntervalSec` configurables
-- Solicitudes de salida seguras: `src/shared/network/safeOutboundFetch.ts` — solicitud protegida a proveedores/modelos con protección contra SSRF, bloqueo de URL privadas, reintentos y tiempo de espera
-- Protección de URL de salida: `src/shared/network/outboundUrlGuard.ts` — valida las URL de proveedores frente a rangos CIDR privados/de localhost
+- Recuperador de cuota de Codex: `open-sse/services/codexQuotaFetcher.ts` — recupera la cuota de Codex para tomar decisiones de transferencia en la retransmisión de contexto
+- Reintentos conscientes del tiempo de espera: `src/sse/services/cooldownAwareRetry.ts` — reintentos por modelo durante el tiempo de espera con `requestRetry` / `maxRetryIntervalSec` configurables
+- Fetch saliente seguro: `src/shared/network/safeOutboundFetch.ts` — fetch protegido de proveedores/modelos con protección contra SSRF, bloqueo de URL privadas, reintentos y tiempo de espera
+- Protección de URL salientes: `src/shared/network/outboundUrlGuard.ts` — comprobaciones de host en las URL de proveedores; `src/shared/network/outboundUrlGuardPolicy.ts` selecciona el modo a partir de `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` y sus interruptores del panel de control (consulta `docs/reference/ENVIRONMENT.md`)
 - Valores predeterminados de solicitudes a proveedores: `open-sse/services/providerRequestDefaults.ts` — valores predeterminados de `maxTokens`, `temperature` y `thinkingBudgetTokens` a nivel de proveedor
-- Constantes del proveedor GLM: `open-sse/config/glmProvider.ts` — modelos GLM compartidos, URL de cuotas, tiempo de espera y valores predeterminados de GLMT
-- Servicio ascendente de Antigravity: `open-sse/config/antigravityUpstream.ts` — constantes de la URL base y de la ruta de descubrimiento
+- Constantes del proveedor GLM: `open-sse/config/glmProvider.ts` — modelos GLM, URL de cuotas y valores predeterminados/tiempo de espera de GLMT compartidos
+- Servicio ascendente de Antigravity: `open-sse/config/antigravityUpstream.ts` — URL base y constantes de rutas de descubrimiento
 - Constantes del cliente Codex: `open-sse/config/codexClient.ts` — valores versionados del agente de usuario y de la versión del cliente
 - Datos iniciales de alias de modelos: `src/lib/modelAliasSeed.ts` — inicializa más de 30 alias de dialectos entre proxies al arrancar
 
@@ -308,22 +308,23 @@ Módulos de la capa de dominio:
 
 - Reglas de costes/presupuestos: `src/domain/costRules.ts`
 - Política de respaldo: `src/domain/fallbackPolicy.ts`
-- Resolución de combinaciones: `src/domain/comboResolver.ts`
+- Solucionador de combinaciones: `src/domain/comboResolver.ts`
 - Política de bloqueo: `src/domain/lockoutPolicy.ts`
 - Motor de políticas: `src/domain/policyEngine.ts` — evaluación centralizada de bloqueo → presupuesto → respaldo
 - Catálogo de códigos de error: `src/shared/constants/errorCodes.ts`
 - ID de solicitud: `src/shared/utils/requestId.ts`
-- Tiempo de espera de solicitudes: `src/shared/utils/fetchTimeout.ts`
+- Tiempo de espera de fetch: `src/shared/utils/fetchTimeout.ts`
 - Telemetría de solicitudes: `src/shared/utils/requestTelemetry.ts`
 - Cumplimiento/auditoría: `src/lib/compliance/index.ts`
 - Ejecutor de evaluaciones: `src/lib/evals/evalRunner.ts`
 - Persistencia del estado del dominio: `src/lib/db/domainState.ts` — operaciones CRUD de SQLite para cadenas de respaldo, presupuestos, historial de costes, estado de bloqueo y disyuntores
 
-Módulos de proveedores OAuth (22 archivos individuales en `src/lib/oauth/providers/`):
+Módulos de proveedores OAuth (27 archivos individuales en `src/lib/oauth/providers/`):
 
 - Índice del registro: `src/lib/oauth/providers/index.ts`
-- Proveedores individuales: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- Envoltorio ligero: `src/lib/oauth/providers.ts` — reexporta desde los módulos individuales
+- Proveedores individuales: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Utilidades compartidas: `codebuddyDeviceAuth.ts` (flujo de dispositivo de CodeBuddy CN/internacional), `museCodeDeviceResponse.ts`
+- Envoltorio ligero: `src/lib/oauth/providers.ts` — reexporta desde módulos individuales
 
 ## 5) Servicios integrados (v3.8.4)
 

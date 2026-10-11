@@ -437,7 +437,7 @@ Sadalīts mērķorientētos apakšdirektorijos:
 ## 4. `open-sse/` — Straumēšanas dzinēja darbvieta
 
 Atsevišķa npm darbvieta, kas publicēta kā `@omniroute/open-sse`. Tā nodrošina pieprasījumu
-apstrādi, izpildītājus, tulkotājus, servisus, transformatoru un MCP serveri.
+apstrādi, izpildītājus, tulkotājus, pakalpojumus, transformētāju un MCP serveri.
 
 ```
 open-sse/
@@ -449,9 +449,9 @@ open-sse/
 ├── handlers/               Pieprasījumu apstrādātāji (tērzēšana, iegulumi, audio, attēli, …)
 ├── executors/              108 pakalpojumu sniedzējiem specifiski HTTP izpildītāji
 ├── translator/             Formātu konvertēšana (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
-├── transformer/            Responses API ↔ Chat Completions straumes transformators
-├── services/               Vairāk nekā 80 servisu moduļu (kombinācijas, atkāpšanās mehānismi, kvotas, identitāte, …)
-├── utils/                  Straumēšanas palīgrīki, TLS klients, AWS SigV4, starpniekservera ielāde, …
+├── transformer/            Responses API ↔ Chat Completions straumes transformētājs
+├── services/               Vairāk nekā 80 pakalpojumu moduļu (kombinācijas, atkāpšanās mehānismi, kvotas, identitāte, …)
+├── utils/                  Straumēšanas palīgfunkcijas, TLS klients, AWS SigV4, starpniekservera pieprasījumi, …
 └── mcp-server/             MCP serveris (3 transporti, 33 tvērumi, 110 rīki)
 ```
 
@@ -459,25 +459,25 @@ open-sse/
 
 | Apstrādātājs            | Nolūks                                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `chatCore.ts`           | Galvenais tērzēšanas konveijers (kešatmiņa, ātruma ierobežošana, kombināciju maršrutēšana, izpildītāja izsaukšana) |
+| `chatCore.ts`           | Galvenais tērzēšanas konveijers (kešatmiņa, ātruma ierobežošana, kombināciju maršrutēšana, izpildītāju izsaukšana) |
 | `responsesHandler.ts`   | OpenAI Responses API ieejas punkts                                                                                 |
 | `embeddings.ts`         | Iegulumi                                                                                                           |
 | `imageGeneration.ts`    | Attēlu ģenerēšana                                                                                                  |
-| `audioSpeech.ts`        | Teksta pārveidošana runā                                                                                           |
-| `audioTranscription.ts` | Runas pārveidošana tekstā                                                                                          |
+| `audioSpeech.ts`        | Teksta pārvēršana runā                                                                                             |
+| `audioTranscription.ts` | Runas pārvēršana tekstā                                                                                            |
 | `videoGeneration.ts`    | Video ģenerēšana                                                                                                   |
 | `musicGeneration.ts`    | Mūzikas ģenerēšana                                                                                                 |
-| `rerank.ts`             | Atkārtota ranžēšana                                                                                                |
-| `moderations.ts`        | Moderēšana                                                                                                         |
+| `rerank.ts`             | Pārkārtošana pēc atbilstības                                                                                       |
+| `moderations.ts`        | Satura moderēšana                                                                                                  |
 | `search.ts`             | Meklēšana tīmeklī                                                                                                  |
 | `sseParser.ts`          | SSE notikumu parsētājs                                                                                             |
-| `usageExtractor.ts`     | Marķieru skaita iegūšana no augšupējām straumēm                                                                    |
-| `responseSanitizer.ts`  | Pakalpojumu sniedzējiem specifiskā trokšņa noņemšana                                                               |
-| `responseTranslator.ts` | Saistviela starp pakalpojumu sniedzēja atbildi un tulkotāja slāni                                                  |
+| `usageExtractor.ts`     | Marķieru skaita izgūšana no augšupējām straumēm                                                                    |
+| `responseSanitizer.ts`  | Pakalpojumu sniedzējam specifiskā trokšņa noņemšana                                                                |
+| `responseTranslator.ts` | Sasaistes slānis starp pakalpojumu sniedzēja atbildi un tulkotāja slāni                                            |
 
 ### 4.2 `open-sse/executors/`
 
-108 pakalpojumu sniedzēju izpildītāji, no kuriem katrs paplašina `BaseExecutor` (`base.ts`):
+148 pakalpojumu sniedzēju izpildītāji, no kuriem katrs paplašina `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
@@ -491,7 +491,7 @@ open-sse/
 
 ### 4.3 `open-sse/translator/`
 
-Centrmezgla un spieķu principa tulkošana (OpenAI ir centrmezgls).
+Centrmezgla un atzaru tulkošana (OpenAI ir centrmezgls).
 
 - **9 pieprasījumu tulkotāji** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -506,57 +506,57 @@ Centrmezgla un spieķu principa tulkošana (OpenAI ir centrmezgls).
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, kā arī
   palīgrīku testi.
 - **Attēlu palīgrīki** (`translator/image/sizeMapper.ts`).
-- Augšējais līmenis: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+- Augšējā līmenī: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — uz `TransformStream` balstīts Responses API ↔ Chat
-  Completions pārveidotājs (to izmanto `responses/` maršruta visaptverošais apstrādātājs).
+  Completions pārveidotājs (to izmanto maršruta `responses/` universālais apstrādātājs).
 
 ### 4.5 `open-sse/services/`
 
-Svarīgākie elementi (pilns saraksts atrodas sadaļā `open-sse/services/`):
+Būtiskākie moduļi (pilns saraksts atrodams sadaļā `open-sse/services/`):
 
-| Joma                 | Faili                                                                                                                                                                                                                                                    |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Combo maršrutēšana   | `combo.ts` (19 stratēģijas), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
-| Auto Combo dzinis    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
-| Noturība             | `accountFallback.ts` (nogaidīšanas periods + bloķēšana), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                           |
-| Kvotas               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
-| Kešatmiņa            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
-| Maršrutēšanas loģika | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
-| Modeļu apstrāde      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| Saspiešana           | `compression/` — pilns saspiešanas dziņa savienojums                                                                                                                                                                                                     |
-| Pilnvara + sesija    | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| Līmenis / manifests  | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
-| IP / tīkls           | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| Paketes              | `batchProcessor.ts`                                                                                                                                                                                                                                      |
-| Lietojums            | `usage.ts`                                                                                                                                                                                                                                               |
+| Joma                             | Faili                                                                                                                                                                                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kombinētā maršrutēšana           | `combo.ts` (19 stratēģijas), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
+| Automātiskās kombinēšanas dzinis | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Noturība                         | `accountFallback.ts` (nogaidīšanas periods + bloķēšana), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                           |
+| Kvotas                           | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Kešatmiņa                        | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Maršrutēšanas intelekts          | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Modeļu apstrāde                  | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Saspiešana                       | `compression/` — pilna saspiešanas dziņa integrācija                                                                                                                                                                                                     |
+| Pilnvara + sesija                | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Līmenis / manifests              | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / tīkls                       | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Paketes                          | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Lietojums                        | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 unikāli rīki**, kas savienoti failā `server.ts` (45 kanoniskie rīki failā `schemas/tools.ts` +
+- Failā `server.ts` ir savienoti **110 unikāli rīki** (45 kanoniskie rīki failā `schemas/tools.ts` +
   atmiņas, prasmju, GitHub prasmju, pūla, spēliskošanas, spraudņu, Notion, Obsidian,
-  lokālā korpusa un saspiešanas moduļi — apvienojumu saskaita `countUniqueMcpTools`).
+  lokālā korpusa un saspiešanas moduļi — apvienojums saskaitīts ar `countUniqueMcpTools`).
 - **3 transporti**: stdio, HTTP Streamable, SSE.
-- Izpildlaikā tiek piemēroti **33 tvērumi** — pamata saraksts atrodas failā `src/shared/constants/mcpScopes.ts`, bet pilnā kopa ir katra rīku moduļa deklarēto tvērumu apvienojums.
+- Izpildlaikā tiek piemēroti **33 tvērumi** — pamatuzskaitījums atrodas failā `src/shared/constants/mcpScopes.ts`, bet pilnā kopa ir katra rīku moduļa deklarēto tvērumu apvienojums.
 - Audita tabula: `mcp_tool_audit` (to aizpilda `audit.ts`).
 - Faili: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
-  kā arī testi direktorijā `__tests__/`.
+  kā arī testi mapē `__tests__/`.
 - Pilnu rīku katalogu skatiet dokumentā [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
 
 ### 4.7 `open-sse/config/`
 
-Nodrošinātāju reģistri (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), katra formāta modeļu reģistri (`audioRegistry.ts`,
+Pakalpojumu sniedzēju reģistri (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), katram formātam paredzēti modeļu reģistri (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-identitātes palīgfunkcijas (`codexIdentity.ts`, `codexInstructions.ts`,
+identitātes palīgmoduļi (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-akreditācijas datu palīgfunkcijas (`credentialLoader.ts`, `codexClient.ts`) un mākoņa
+akreditācijas datu palīgmoduļi (`credentialLoader.ts`, `codexClient.ts`) un mākoņpakalpojumu
 adapteri (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
@@ -656,7 +656,7 @@ Biežāk lietotās komandas:
 
 ## 8. `scripts/`
 
-Sakārtota 6 apakšmapēs pēc nolūka.
+Sakārtots 6 apakšmapēs pēc nolūka.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

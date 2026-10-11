@@ -101,16 +101,16 @@ OmniRoute에는 **3개의 모니터링 계층**이 있습니다:
 
 ## 상태 확인 API
 
-OmniRoute는 **두 가지** HTTP 상태 확인 엔드포인트를 제공합니다. 오케스트레이터에서 두 엔드포인트를 서로 바꿔 사용해서는 안 됩니다.
+OmniRoute는 **두 가지** HTTP 상태 확인 인터페이스를 제공합니다. 오케스트레이터에서 이 둘을 서로 바꿔 사용해서는 안 됩니다.
 
-| 경로                         | 목적                                                     | 부하                          | 용도                                                                    |
-| ---------------------------- | -------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------- |
-| `GET /healthz`               | 수명 주기 활성/준비 상태(`ok` / `starting` / `stopping`) | 매우 낮음(단계 플래그만 확인) | Kubernetes **readiness**; HTTP를 사용해야 하는 경우 완화된 **liveness** |
-| `GET /api/monitoring/health` | 심층 시스템 + 제공자 요약(DB, 힙, 카탈로그 개수 등)      | 높음(동기식 DB/모니터링 작업) | 대시보드, 블랙박스 심층 검사, Docker 기본 상태 확인                     |
+| 경로                         | 목적                                                     | 부하                            | 용도                                                                    |
+| ---------------------------- | -------------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `GET /healthz`               | 수명 주기 활성/준비 상태(`ok` / `starting` / `stopping`) | 매우 낮음(단계 플래그만 확인)   | Kubernetes **readiness**; HTTP를 사용해야 하는 경우 완화된 **liveness** |
+| `GET /api/monitoring/health` | 심층 시스템 + 제공자 요약(DB, 힙, 카탈로그 개수 등)      | 높음(동기식 DB / 모니터링 작업) | 대시보드, 블랙박스 심층 검사, Docker 내장 상태 확인                     |
 
-> **참고:** 제공자 상태 매트릭스, autopilot 문제, 할당량 모니터, 토큰 상태 및 `/api/monitoring/health`보다 상세한 지연 시간 정보는 **MCP 도구** `observability_snapshot` 또는 **대시보드** 페이지를 통해 확인할 수 있습니다. 이에 대한 전용 REST 경로는 없습니다.
+> **참고:** 제공자 상태 매트릭스, 오토파일럿 문제, 할당량 모니터, 토큰 상태 및 `/api/monitoring/health`보다 상세한 지연 시간 정보는 **MCP 도구** `observability_snapshot` 또는 **대시보드** 페이지에서 확인할 수 있습니다. 이러한 정보만을 위한 전용 REST 경로는 없습니다.
 
-두 경로 모두 요청 처리와 **동일한 Node 이벤트 루프**에서 실행됩니다. CPU 집약적인 경로(대규모 `GET /v1/models` 카탈로그 작업, 긴 컨텍스트 압축/토큰 계산)는 `/healthz`를 포함한 **모든** HTTP 핸들러를 지연시킬 수 있습니다. 이벤트 루프가 바쁘다고 해서 프로세스가 중단된 것은 아닙니다. 부하를 유발하는 원인을 해결하는 것이 우선이며, 프로브 조정은 잘못된 종료만 줄여 줍니다.
+두 경로 모두 요청 처리와 **동일한 Node 이벤트 루프**에서 실행됩니다. CPU를 많이 사용하는 경로(대규모 `GET /v1/models` 카탈로그 작업, 긴 컨텍스트 압축 / 토큰 계산)는 `/healthz`를 포함한 **모든** HTTP 핸들러를 지연시킬 수 있습니다. 이벤트 루프 사용량이 높다고 해서 프로세스가 중단된 것은 아닙니다. 과도한 부하를 유발하는 작업을 해결하는 것이 우선이며, 프로브 조정은 잘못된 종료를 줄이는 데만 도움이 됩니다.
 
 ### 경량 오케스트레이터 프로브
 
@@ -155,33 +155,40 @@ GET /api/monitoring/health
 
 #### `credentialHealth`: 프로브 캐시와 SQLite `test_status` 비교
 
-`GET /api/monitoring/health` → `credentialHealth`는 `provider_connections.test_status`의 실시간 덤프가 아니라 **인메모리 프로브 캐시 게이지**입니다. #12532 이후 요청 경로는 `getCachedCredentialHealthSummary()`만 읽으며, 백그라운드 프로브는 이벤트 루프 외부에서 캐시를 갱신합니다.
+`GET /api/monitoring/health` → `credentialHealth`는 `provider_connections.test_status`의 실시간 덤프가 아니라 **메모리 내 프로브 캐시
+게이지**입니다. #12532 이후 요청 경로는 `getCachedCredentialHealthSummary()`만
+읽으며, 백그라운드 프로브가 이벤트 루프 외부에서 캐시를 갱신합니다.
 
-| 계층                  | 위치                                                                  | 의미                                                                                                                                                                                                   |
-| --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 프로브 캐시 게이지    | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | 프로세스 메모리에 아직 보관된 마지막 자격 증명 상태 프로브 결과입니다. `source`는 항상 `probe-cache`입니다.                                                                                            |
-| 실패한 연결 세부 정보 | `credentialHealth.failedConnections`                                  | **`failed > 0`인 경우에만** 존재합니다. `status=error`인 캐시 행의 제한된 목록입니다(`connectionId`, `status`, 정제된 `lastError` / `lastErrorType`). 목록이 제한된 경우 `failedOmitted`이 설정됩니다. |
-| SQLite 고정 상태      | `credentialHealth.staleDbNonOkCount`                                  | 영속화된 `test_status`가 알려진 비정상 값(`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`)인 **활성**(`is_active=1`) 연결 행의 수입니다.                               |
+| 계층                  | 위치                                                                  | 의미                                                                                                                                                                                                             |
+| --------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 프로브 캐시 게이지    | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | 프로세스 메모리에 아직 유지되고 있는 마지막 자격 증명 상태 프로브 결과입니다. `source`는 항상 `probe-cache`입니다.                                                                                               |
+| 실패한 연결 상세 정보 | `credentialHealth.failedConnections`                                  | **`failed > 0`인 경우에만** 존재합니다. `status=error`인 캐시 행의 크기 제한 목록입니다(`connectionId`, `status`, 정제된 `lastError` / `lastErrorType`). 목록이 제한으로 잘린 경우 `failedOmitted`가 설정됩니다. |
+| SQLite 고정 상태      | `credentialHealth.staleDbNonOkCount`                                  | 저장된 `test_status`가 알려진 비정상 값(`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`)인 **활성**(`is_active=1`) 연결 행의 개수입니다.                                         |
 
-두 계층은 의도적으로 서로 다를 수 있습니다.
+두 계층은 의도적으로 서로 다른 결과를 나타낼 수 있습니다.
 
-- 게이지가 `failed=0`이지만 `staleDbNonOkCount>0`인 경우 — SQLite에는 최신 프로브 캐시 스냅샷이 `status=error`로 집계하지 않는 고정 `test_status`(예: `expired` 또는 `credits_exhausted`)가 여전히 남아 있습니다.
-- 게이지가 `failed>0`이지만 SQLite가 정상으로 보이는 경우 — 최근 프로브가 실패하여 캐시되었지만 DB 행은 아직 갱신되지 않았거나 이후에 초기화되었습니다.
+- 게이지가 `failed=0`이지만 `staleDbNonOkCount>0`인 경우 — SQLite에
+  고정된 `test_status`(예: `expired` 또는 `credits_exhausted`)가 여전히 남아 있지만, 최신
+  프로브 캐시 스냅샷에서는 이를 `status=error`로 집계하지 않습니다.
+- 게이지가 `failed>0`이지만 SQLite는 정상으로 보이는 경우 — 최근 프로브가 실패하여
+  캐시되었으나 DB 행은 아직 갱신되지 않았거나 나중에 초기화되었습니다.
 
-이 엔드포인트를 스크레이핑할 때 `provider_connections.test_status`만으로 경고를 발생시키지 마십시오. 실시간 프로브 실패에는 `failed` + `failedConnections`를 사용하고, 영속화된 고정 상태의 수가 필요한 경우에는 `staleDbNonOkCount`를 사용하십시오.
+이 엔드포인트를 스크레이핑할 때 `provider_connections.test_status`만을 기준으로 경고를 발생시키지 마십시오.
+실시간 프로브 실패에는 `failed` + `failedConnections`를 사용하고,
+저장된 고정 상태의 개수가 필요한 경우에는 `staleDbNonOkCount`를 사용하십시오.
 
 ### Kubernetes 프로브 권장 사항
 
-OmniRoute는 **단일 Node 프로세스**(하나의 이벤트 루프)입니다. 기본 Docker `HEALTHCHECK`는 경량 `/healthz`를 대상으로 합니다. `/api/monitoring/health`는 kubelet liveness 검사 주기에 사용하기에는 **너무 무겁습니다**.
+OmniRoute는 **단일 Node 프로세스**(이벤트 루프 하나)입니다. 기본 Docker `HEALTHCHECK`는 경량 `/healthz`를 대상으로 합니다. `/api/monitoring/health`는 kubelet liveness 간격으로 사용하기에는 **너무 무겁습니다**.
 
-| 프로브        | 권장 대상                                                                      | 참고                                                                                                                                                                                                                                                                                                                                                                |
-| ------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **시작**      | 긴 `failureThreshold`(또는 큰 `startPeriod`)를 사용하는 HTTP `GET /healthz`    | 콜드 스타트와 SQLite 마이그레이션에 몇 초 이상 걸릴 수 있음                                                                                                                                                                                                                                                                                                         |
-| **준비 상태** | HTTP `GET /healthz`                                                            | 수명 주기 상태는 `ok` / `starting` / `stopping`(200 또는 503)입니다. 루프가 CPU 작업으로 차단되면 여전히 상태가 오락가락합니다. **응답이 200이더라도 수 초가 걸린다면 정상 상태가 아닙니다**(#10303). 이는 3바이트 핸들러가 실행되기 전에 이벤트 루프가 기아 상태였다는 뜻입니다.                                                                                   |
-| **생존 상태** | HTTP `GET /livez` 또는 기본 서비스 포트(`PORT`, 기본값 `20128`)에 대한 **TCP** | `/livez`는 프로세스 생존 여부만 확인합니다(핸들러가 실행되면 항상 200). 이 역시 이벤트 루프를 공유합니다. 즉, 바쁨 ≠ 죽음이며 TCP와 마찬가지로 이벤트 루프 기아 상태(#10303)를 더 잘 감지하지도 못합니다. 카탈로그/압축 부하로 HTTP 프로브가 시간 초과되면 **TCP**를 권장합니다. 어느 방식을 사용하든 짧은 이벤트 루프 중단 때문에 파드를 종료해서는 **안 됩니다**. |
-| **심층 상태** | 외부 검사기에서 `GET /api/monitoring/health`                                   | kubelet `livenessProbe` 또는 주기가 짧은 `readinessProbe`에는 적합하지 않음                                                                                                                                                                                                                                                                                         |
+| 프로브        | 권장 대상                                                                   | 참고                                                                                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **시작**      | 긴 `failureThreshold`(또는 큰 `startPeriod`)를 사용하는 HTTP `GET /healthz` | 콜드 스타트 + SQLite 마이그레이션에는 몇 초 이상 걸릴 수 있음                                                                                                                                                                                                                                                                                      |
+| **준비 상태** | HTTP `GET /healthz`                                                         | 수명 주기 상태는 `ok` / `starting` / `stopping`(200 대 503)입니다. 루프가 CPU 작업으로 차단되면 여전히 상태가 오락가락합니다. **응답에 수 초가 걸리는 200은 정상 상태가 아닙니다**(#10303). 이는 3바이트 핸들러가 실행되기 전에 이벤트 루프가 기아 상태였음을 의미합니다.                                                                          |
+| **생존 상태** | HTTP `GET /livez` 또는 기본 서비스 포트(`PORT`, 기본값 `20128`)의 **TCP**   | `/livez`는 프로세스 생존 여부만 확인합니다(핸들러가 실행되면 항상 200). 이 역시 이벤트 루프를 공유하므로 바쁨 ≠ 중단이며, 이벤트 루프 기아 상태(#10303)를 TCP보다 더 잘 감지하지도 못합니다. 카탈로그/압축 부하에서 HTTP 프로브가 시간 초과되면 **TCP**를 권장합니다. 어느 방식을 사용하든 짧은 이벤트 루프 정지 때문에 pod를 종료하지 **마세요**. |
+| **심층 상태** | 외부 검사기에서 `GET /api/monitoring/health`                                | kubelet `livenessProbe` 또는 짧은 간격의 `readinessProbe`에는 적합하지 않음                                                                                                                                                                                                                                                                        |
 
-예시 구성(콜드 스타트 및 압축 부하에 맞게 임계값 조정):
+예시 구성(콜드 스타트 및 압축 부하에 맞게 임계값을 조정하세요):
 
 ```yaml
 ports:
@@ -207,27 +214,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # 이벤트 루프가 중단되면 HTTP /livez도 시간 초과될 수 있습니다. TCP가
+  # 이벤트 루프가 정지하면 HTTP /livez도 시간 초과될 수 있습니다. TCP가
   # 더 보수적인 대안입니다:
   # tcpSocket:
   #   port: http
 ```
 
-kubelet **생존 상태** 검사가 `/api/monitoring/health`를 가리키게 해서는 **안 됩니다**. 이 경로는 실제 DB/모니터링 작업을 수행하며 부하가 높을 때 오탐을 일으킵니다.
+kubelet **생존 상태** 검사가 `/api/monitoring/health`를 가리키게 하지 **마세요**. 이 경로는 실제 DB/모니터링 작업을 수행하며 부하가 높을 때 오탐이 발생합니다.
 
-관련 항목: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052)(이벤트 루프가 사용 중일 때의 프로브), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055)(카탈로그 가격 책정의 과도한 리소스 점유), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117)(압축 토큰 계산의 과도한 리소스 점유).
+관련 항목: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052)(이벤트 루프가 사용 중일 때의 프로브), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055)(카탈로그 가격 책정으로 인한 리소스 독점), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117)(압축 토큰 수 계산으로 인한 리소스 독점).
+
+### systemd watchdog(멈춘 이벤트 루프)
+
+systemd 호스트에서 OmniRoute는 준비가 완료되면 서비스 관리자에게 알리고 지속적으로 핑을 보냅니다. 따라서 이벤트 루프가 멈춘 서버는 실행 중인 채 아무 응답도 하지 않는 대신 종료되고 다시 시작됩니다. 핑은 서버 자체의 이벤트 루프에서 전송됩니다. 이벤트 루프가 차단되면 핑이 중단되고, `WatchdogSec` 동안 핑이 없으면 systemd가 서비스를 다시 시작합니다.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs)은 이미 이 설정이 포함된 사용자 단위 파일을 작성합니다. 직접 작성한 단위 파일(기본값 `Type=simple`)에는 watchdog가 없으므로 `[Service]` 섹션에 다음 줄을 추가하세요:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+생성된 단위 파일에는 `Restart=on-failure`가 설정되므로 이 줄도 추가하세요. 이 설정이 없으면 watchdog는 멈춘 서비스를 다시 시작하지 않고 종료만 합니다.
+
+- `Type=notify`: 프로세스가 포크될 때가 아니라 서버가 `READY=1`을 전송할 때 서비스가 "시작됨" 상태가 됩니다. `TimeoutStartSec`는 느린 시작의 시간 한도를 지정합니다.
+- `NotifyAccess=all`: 핑은 `omniroute serve` 감독자의 자식인 서버 프로세스에서 전송됩니다.
+- `WatchdogSec`: 핑은 60초마다 전송되므로 **120 이상**을 사용하세요. 더 작은 값을 사용하면 정상 서버가 다시 시작될 수 있습니다.
+- `omniroute serve`를 포그라운드에서 실행하세요. `--daemon`은 서버를 단위의 cgroup에서 분리하므로 알림 핸드셰이크가 완료되지 않습니다.
+
+재시작 후 활성 상태인지 확인하세요:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec`는 구성된 지연 시간을 표시하고 `WatchdogTimestamp`는 매분 갱신됩니다. watchdog로 인한 재시작은 `Result=watchdog`로 기록됩니다. 단위 파일을 그대로 유지하면서 핑을 끄려면 `OMNIROUTE_DISABLE_SD_NOTIFY=1`을 설정하세요. `NOTIFY_SOCKET`이 없는 환경(터미널, Docker, Electron, Windows)에서는 아무것도 전송되지 않습니다.
+
+watchdog는 이벤트 루프가 계속 실행되는지만 확인합니다. 서버가 느리더라도 계속 동작하고 있으면 다시 시작되지 않습니다.
 
 ### 선택적 요청 경로 작업(메모리, 스킬, 토큰 갱신)
 
-메모리 추출, 스킬 주입 및 OAuth 토큰 갱신은 `/healthz`와 **기본 Node 이벤트 루프**를 공유합니다. 이들은 워커 풀이 아니라 대시보드에서 전환할 수 있는 기능(`memoryEnabled`, `skillsEnabled`)입니다. [환경 — 이벤트 루프 비용](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)을 참조하세요.
+메모리 추출, 스킬 주입, OAuth 토큰 갱신은 `/healthz`와 **기본 Node 이벤트 루프**를 공유합니다. 이러한 기능은 대시보드에서 전환할 수 있는 기능(`memoryEnabled`, `skillsEnabled`)이며, 워커 풀이 아닙니다. [환경 — 이벤트 루프 비용](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)을 참조하세요.
 
 ### 공급자 상태
 
-> **REST 엔드포인트가 없습니다.** 공급자 상태 데이터는 MCP 도구 `observability_snapshot` 또는 대시보드의 `/dashboard/providers` 페이지에서 확인할 수 있습니다.
+> **REST 엔드포인트가 없습니다.** 공급자 상태 데이터는 MCP 도구 `observability_snapshot` 또는 대시보드의 `/dashboard/providers` 페이지를 통해 확인할 수 있습니다.
 
 ### 공급자 세부 정보
 
-> **REST 엔드포인트가 없습니다.** 공급자별 세부 정보는 대시보드의 `/dashboard/providers` 페이지에서 확인할 수 있습니다.
+> **REST 엔드포인트가 없습니다.** 공급자별 세부 정보는 대시보드의 `/dashboard/providers` 페이지를 통해 확인할 수 있습니다.
 
 ---
 

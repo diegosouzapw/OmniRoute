@@ -33,26 +33,16 @@ le relative connessioni non sono interessati da questo ritiro.
 Il tunnel è necessario solo per i turni che utilizzano strumenti. Ogni route elencata, inclusa `pro`, può utilizzare la
 stessa funzionalità locale degli strumenti vincolata al turno quando il tunnel e il connettore sono configurati.
 
-## Configurazione dalla dashboard
+## Configurazione della dashboard
 
 1. Apri il provider **ChatGPT Web (Codex)** e aggiungi una connessione.
-2. Incolla l'header Cookie completo di ChatGPT, l'ID del tunnel, la chiave di runtime e il nome del connettore
-   personalizzato. Le nuove configurazioni abilitate agli strumenti devono utilizzare un connettore appena creato denominato esattamente
-   `OmniRoute Codex v2`, con Authentication impostato su None e Permissions impostato su Allow all
-   actions.
-3. Esegui il controllo della connessione. OmniRoute apre una Temporary Chat supportata dal browser e rileva
-   se Sol e Pro sono disponibili per l'account.
-4. Salva la connessione. OmniRoute sostituisce il cookie incollato con lo stato di archiviazione Playwright
-   verificato e lo memorizza insieme alla chiave di runtime tramite l'astrazione delle credenziali
-   crittografate.
+2. Incolla l'header Cookie completo di ChatGPT, l'ID del tunnel, la chiave di runtime e il nome del connettore personalizzato. Le nuove configurazioni con supporto per gli strumenti devono utilizzare un connettore appena creato denominato esattamente `OmniRoute Codex v2`, con Authentication impostato su None e Permissions impostato su Allow all actions.
+3. Esegui il controllo della connessione. OmniRoute apre una Chat temporanea supportata da browser e rileva se Sol e Pro sono disponibili per l'account.
+4. Salva la connessione. OmniRoute sostituisce il cookie incollato con lo stato di archiviazione Playwright verificato e lo memorizza insieme alla chiave di runtime tramite l'astrazione delle credenziali crittografate.
 
-Il cookie non elaborato non viene conservato dopo un salvataggio riuscito. Quando la sessione scade, apri
-la connessione, incolla un nuovo header Cookie completo ed esegui nuovamente il controllo. Lo stato del doctor
-nella finestra di modifica riporta separatamente browser, stato di archiviazione, accesso, Temporary Chat, tunnel,
-connettore e round trip dello strumento.
+Il cookie non elaborato non viene conservato dopo un salvataggio riuscito. Quando la sessione scade, apri la connessione, incolla un nuovo header Cookie completo ed esegui nuovamente il controllo. Lo stato diagnostico nella finestra di modifica indica separatamente lo stato del browser, dello stato di archiviazione, dell'accesso, della Chat temporanea, del tunnel, del connettore e del round trip dello strumento. Per automatizzare gli aggiornamenti dei cookie quando le sessioni vengono ruotate, consulta lo strumento complementare in [Estensione di sincronizzazione della sessione del browser](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Non eseguire mai il commit di un cookie reale, una chiave di runtime, uno stato di archiviazione o un token di funzionalità. I valori usati nei test e
-> nella documentazione devono essere sempre segnaposto.
+> Non eseguire mai il commit di cookie reali, chiavi di runtime, stati di archiviazione o token di funzionalità. I valori utilizzati nei test e nella documentazione devono essere sempre segnaposto.
 
 ## Modelli e combo
 
@@ -129,7 +119,7 @@ fallback HTTP/SSE prima di connettersi all'upstream. Il trasferimento avviene qu
 
 ## Verifica
 
-Eseguire i controlli del provider senza invocare il provider ritirato:
+Esegui i controlli del provider senza richiamare il provider ritirato:
 
 ```bash
 node --import tsx/esm --test \\

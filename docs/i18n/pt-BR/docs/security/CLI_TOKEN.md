@@ -43,17 +43,9 @@ senha a cada execução.
 
 ## Salt padrão (aleatório por instalação)
 
-Quando `OMNIROUTE_CLI_SALT` não está definido, o salt é uma string hexadecimal aleatória
-de 64 caracteres, gerada uma única vez e persistida em `<DATA_DIR>/cli-token-salt.json` (modo `0600`) —
-e não o literal `omniroute-cli-auth-v1` incluído no código-fonte. Tanto `getActiveSalt()` em
-`src/lib/machineToken.ts` quanto seu equivalente em `bin/cli/utils/cliToken.mjs` leem o
-mesmo arquivo, de modo que o servidor e cada execução da CLI nesta instalação convergem para o
-mesmo valor; o literal incluído no código-fonte é usado apenas como fallback de último recurso quando
-ainda não é possível obter um salt persistido ou proveniente do ambiente (por exemplo, em uma nova
-instalação somente da CLI antes de o servidor ter sido executado pela primeira vez). Isso corrige uma
-fragilidade do antigo valor literal padrão fixo: `/etc/machine-id` normalmente pode ser lido por qualquer
-usuário, portanto qualquer usuário local poderia, de outra forma, derivar o mesmo token para todas as
-instalações que nunca definiram `OMNIROUTE_CLI_SALT`.
+Quando `OMNIROUTE_CLI_SALT` não está definido, o salt é uma string hexadecimal aleatória de 64 caracteres, gerada uma única vez e persistida em `<DATA_DIR>/cli-token-salt.json` (modo `0600`) — e não o literal `omniroute-cli-auth-v1` incluído no código-fonte. Tanto `getActiveSalt()` em `src/lib/machineToken.ts` quanto sua implementação espelhada em `bin/cli/utils/cliToken.mjs` leem o mesmo arquivo, de modo que o servidor e cada invocação da CLI nesta instalação convergem para o mesmo valor; o literal incluído no código-fonte é usado apenas como fallback de último recurso quando ainda não é possível estabelecer um salt persistido ou proveniente do ambiente (por exemplo, em uma instalação nova somente da CLI, antes que o servidor tenha sido executado). Isso corrige uma vulnerabilidade do antigo literal fixo padrão: `/etc/machine-id` normalmente pode ser lido por qualquer usuário; portanto, qualquer usuário local poderia, de outra forma, derivar o mesmo token para cada instalação que nunca definiu `OMNIROUTE_CLI_SALT`.
+
+Se não for possível ler ou criar o salt, tanto o servidor quanto a CLI emitem um aviso por processo antes de usar esse fallback de compatibilidade. O aviso não contém salt, token, caminho do sistema de arquivos nem erro bruto. Restaure o acesso a `DATA_DIR` ou defina `OMNIROUTE_CLI_SALT` e, em seguida, reinicie o processo afetado. O aviso torna a falha visível; ele não torna privado o salt público de fallback nem desativa a autenticação da CLI. Salts persistidos válidos existentes e substituições explícitas por variáveis de ambiente mantêm os valores de token anteriores.
 
 ## Rotação do salt
 

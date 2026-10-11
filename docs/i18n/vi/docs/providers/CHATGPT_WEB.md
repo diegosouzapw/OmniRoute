@@ -36,21 +36,23 @@ cùng một khả năng công cụ cục bộ gắn với lượt khi tunnel và
 ## Thiết lập bảng điều khiển
 
 1. Mở nhà cung cấp **ChatGPT Web (Codex)** và thêm một kết nối.
-2. Dán header Cookie ChatGPT đầy đủ, ID tunnel, khóa runtime và tên trình kết nối tùy chỉnh.
-   Các thiết lập mới có khả năng dùng công cụ phải sử dụng một trình kết nối mới được tạo với tên chính xác là
-   `OmniRoute Codex v2`, trong đó Authentication được đặt thành None và Permissions được đặt thành Allow all
+2. Dán toàn bộ header Cookie của ChatGPT, tunnel ID, runtime key và tên custom connector.
+   Các thiết lập mới có khả năng sử dụng công cụ phải dùng một connector mới được tạo có tên chính xác là
+   `OmniRoute Codex v2`, với Authentication được đặt thành None và Permissions được đặt thành Allow all
    actions.
 3. Chạy kiểm tra kết nối. OmniRoute mở một Temporary Chat dựa trên trình duyệt và phát hiện
-   Sol và Pro có khả dụng cho tài khoản hay không.
-4. Lưu kết nối. OmniRoute thay thế cookie đã dán bằng trạng thái lưu trữ Playwright đã được xác minh
-   và lưu trạng thái đó cùng khóa runtime thông qua lớp trừu tượng thông tin xác thực được mã hóa.
+   liệu Sol và Pro có khả dụng cho tài khoản hay không.
+4. Lưu kết nối. OmniRoute thay thế cookie đã dán bằng trạng thái lưu trữ Playwright
+   đã được xác minh và lưu trạng thái đó cùng runtime key thông qua lớp trừu tượng thông tin xác thực
+   được mã hóa.
 
 Cookie thô không được giữ lại sau khi lưu thành công. Khi phiên hết hạn, hãy mở
 kết nối, dán một header Cookie đầy đủ mới và chạy lại bước kiểm tra. Trạng thái doctor
 trong hộp thoại chỉnh sửa báo cáo riêng biệt về trình duyệt, trạng thái lưu trữ, trạng thái đăng nhập, Temporary Chat, tunnel,
-trình kết nối và lượt khứ hồi của công cụ.
+connector và quá trình khứ hồi của công cụ. Để tự động hóa việc cập nhật cookie khi các phiên được luân chuyển,
+hãy xem công cụ đi kèm tại [Tiện ích đồng bộ phiên trình duyệt](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Tuyệt đối không commit cookie thật, khóa runtime, trạng thái lưu trữ hoặc capability token. Các giá trị dùng cho kiểm thử và
+> Tuyệt đối không commit cookie thật, runtime key, trạng thái lưu trữ hoặc capability token. Các giá trị dùng cho kiểm thử và
 > tài liệu phải luôn là giá trị giữ chỗ.
 
 ## Mô hình và combo
@@ -138,7 +140,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Các biện pháp bảo vệ chống hồi quy cho việc ngừng hoạt động nằm trong:
+Các biện pháp bảo vệ chống hồi quy liên quan đến việc ngừng hoạt động nằm trong:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

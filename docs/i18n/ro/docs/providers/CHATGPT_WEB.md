@@ -33,26 +33,29 @@ conexiunile sale nu sunt vizate de această retragere.
 Tunelul este necesar doar pentru interacțiunile cu instrumente. Fiecare rută enumerată, inclusiv `pro`, poate utiliza aceeași
 capabilitate locală pentru instrumente, asociată interacțiunii, atunci când tunelul și conectorul sunt configurate.
 
-## Configurarea din panoul de control
+## Configurarea panoului de control
 
 1. Deschideți furnizorul **ChatGPT Web (Codex)** și adăugați o conexiune.
-2. Lipiți antetul Cookie ChatGPT complet, ID-ul tunelului, cheia de execuție și numele conectorului
-   personalizat. Configurările noi cu suport pentru instrumente trebuie să utilizeze un conector nou creat, denumit exact
-   `OmniRoute Codex v2`, cu Authentication setat la None și Permissions setat la Allow all
-   actions.
-3. Rulați verificarea conexiunii. OmniRoute deschide un Temporary Chat susținut de browser și detectează
-   dacă Sol și Pro sunt disponibile pentru cont.
-4. Salvați conexiunea. OmniRoute înlocuiește modulul cookie lipit cu starea de stocare
-   Playwright verificată și o stochează împreună cu cheia de execuție prin abstractizarea
-   criptată a acreditărilor.
+2. Lipiți antetul Cookie complet pentru ChatGPT, ID-ul tunelului, cheia de execuție și numele
+   conectorului personalizat. Configurările noi cu suport pentru instrumente trebuie să utilizeze
+   un conector nou creat, denumit exact `OmniRoute Codex v2`, cu Autentificare setată la Niciuna
+   și Permisiuni setate la Permite toate acțiunile.
+3. Rulați verificarea conexiunii. OmniRoute deschide un Chat temporar susținut de un browser și
+   detectează dacă Sol și Pro sunt disponibile pentru cont.
+4. Salvați conexiunea. OmniRoute înlocuiește cookie-ul lipit cu starea de stocare Playwright
+   verificată și o stochează împreună cu cheia de execuție prin intermediul abstractizării
+   criptate a acreditărilor.
 
-Modulul cookie brut nu este păstrat după o salvare reușită. Când sesiunea expiră, deschideți
-conexiunea, lipiți un antet Cookie complet nou și rulați din nou verificarea. Starea doctor
-din dialogul de editare raportează separat browserul, starea de stocare, autentificarea, Temporary Chat, tunelul,
-conectorul și ciclul complet al instrumentului.
+Cookie-ul brut nu este păstrat după o salvare reușită. Când sesiunea expiră, deschideți
+conexiunea, lipiți un antet Cookie complet nou și rulați din nou verificarea. Starea de
+diagnostic din dialogul de editare raportează separat browserul, starea de stocare,
+autentificarea, Chatul temporar, tunelul, conectorul și schimbul complet cu instrumentul.
+Pentru a automatiza actualizările cookie-urilor atunci când sesiunile sunt reînnoite,
+consultați instrumentul asociat din [Extensia de sincronizare a sesiunii browserului](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Nu includeți niciodată într-un commit un modul cookie real, o cheie de execuție, o stare de stocare sau un token de capabilitate. Valorile pentru teste și
-> documentație trebuie să fie întotdeauna substituenți.
+> Nu includeți niciodată într-un commit un cookie real, o cheie de execuție, o stare de
+> stocare sau un token de capabilitate. Valorile utilizate în teste și documentație trebuie
+> să fie întotdeauna substituenți.
 
 ## Modele și combinații
 
@@ -110,7 +113,7 @@ Atunci când o combinație conține ChatGPT Web (Codex), puntea WebSocket pentru
 
 ## Verificare
 
-Rulați verificările furnizorului fără a invoca furnizorul retras:
+Rulați controalele furnizorului fără a invoca furnizorul retras:
 
 ```bash
 node --import tsx/esm --test \\
@@ -119,7 +122,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Protecțiile împotriva regresiilor legate de retragere se află în:
+Mecanismele de protecție împotriva regresiilor legate de retragere se află în:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

@@ -4,63 +4,83 @@
 
 ---
 
-## Ziņošana par ievainojamībām
+## Ievainojamību ziņošana
 
 Ja atklājat drošības ievainojamību OmniRoute, lūdzu, ziņojiet par to atbildīgi:
 
-1. **NEIZVEIDOJIET** publisku GitHub issue
-2. Izmantojiet [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+1. **NEVEIDOJIET** publisku GitHub problēmas pieteikumu
+2. Izmantojiet [GitHub drošības ieteikumus](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
 3. Iekļaujiet: aprakstu, reproducēšanas darbības un iespējamo ietekmi
 
-## Atbildes termiņi
+## Reaģēšanas termiņi
 
-| Posms                      | Mērķis                                |
-| -------------------------- | ------------------------------------- |
-| Apstiprinājums             | 48 stundas                            |
-| Izskatīšana un novērtēšana | 5 darba dienas                        |
-| Labojuma laidiens          | 14 darba dienas (kritiskām problēmām) |
+| Posms                     | Mērķis                              |
+| ------------------------- | ----------------------------------- |
+| Saņemšanas apstiprinājums | 48 stundas                          |
+| Šķirošana un novērtēšana  | 5 darbdienas                        |
+| Labojuma laidiens         | 14 darbdienas (kritiskos gadījumos) |
 
 ## Atbalstītās versijas
 
-| Versija | Atbalsta statuss     |
-| ------- | -------------------- |
-| 3.8.x   | ✅ Aktīva            |
-| 3.7.x   | ✅ Drošības atbalsts |
-| < 3.7.0 | ❌ Nav atbalstīta    |
+| Versija | Atbalsta statuss                                     |
+| ------- | ---------------------------------------------------- |
+| 3.9.x   | 🗓️ Plānots — LTS atzars (`stable/v3`), skatiet tālāk |
+| 3.8.x   | ✅ Aktīvs                                            |
+| 3.7.x   | ✅ Drošības atbalsts                                 |
+| < 3.7.0 | ❌ Netiek atbalstīts                                 |
+
+## LTS atbalsta periods (v3.9.x)
+
+Pēc 3.8.59 nākamā versija ir **3.9.0**, kas atver ilgtermiņa atbalsta atzaru
+`stable/v3` zarā (skatiet [`ROADMAP.md`](ROADMAP.md) → "3. posms — v3.9.0 LTS").
+
+- **Ko saņem `stable/v3`:** kļūdu labojumus, drošības ielāpus un nodrošinātāju atjauninājumus. Jaunas
+  funkcijas tiek pievienotas v4 kanālam; LTS atzarā prioritāte ir stabilitāte. `npm install omniroute`
+  (`latest` izplatīšanas tags) paliek v3 visā v4 cikla laikā.
+- **Perioda ilgums:** `<T-GAP-3: gaida īpašnieka lēmumu — skatiet ROADMAP.md>`. Perioda ilgums
+  pēc v4.0 vispārējās pieejamības (kad `latest` pārslēdzas uz v4) **vēl nav noteikts**; šī
+  sadaļa tiks atjaunināta, kad uzturētājs par to paziņos. Līdz tam nepieņemiet, ka pastāv beigu datums.
+- **Ziņošana par ievainojamību LTS atzarā:** izmantojiet to pašu kanālu, ko jebkurai citai versijai —
+  privātu [GitHub drošības ieteikumu](https://github.com/diegosouzapw/OmniRoute/security/advisories/new),
+  nekad publisku problēmas pieteikumu. Norādiet, kuru versiju testējāt (piemēram, `3.9.2`); labojumi tiek ieviesti
+  `stable/v3` un pārnesti uz priekšu uz v4.
+- **Drošības bāzlīnija LTS atzara izveides brīdī:** izmērītais skenera stāvoklis, maršrutu aizsardzības un
+  publisko akreditācijas datu pārbaudes ir reģistrētas
+  [`docs/security/LTS_SECURITY_BASELINE.md`](docs/security/LTS_SECURITY_BASELINE.md).
 
 ---
 
 ## Drošības arhitektūra
 
-OmniRoute izmanto daudzslāņu drošības modeli:
+OmniRoute īsteno daudzslāņu drošības modeli:
 
 ```
-Pieprasījums → CORS → Autorizācijas konveijers (klasificēšana → politikas → izpilde)
-       → Aizsargmehānismi (PII maskētājs, uzvedņu injekcijas, redzes tilts)
-       → Ātruma ierobežotājs → Ķēdes pārtraucējs → Atdzišanas periods → Modeļa bloķēšana → Nodrošinātājs
+Pieprasījums → CORS → Authz konveijers (klasificēt → politikas → ieviest)
+            → Aizsargmehānismi (PII maskētājs, uzvednes injekcija, redzes tilts)
+            → Ātruma ierobežotājs → Ķēdes pārtraucējs → Atdzišana → Modeļa bloķēšana → Nodrošinātājs
 ```
 
 ### 🔐 Autentifikācija un autorizācija
 
-| Funkcija                             | Implementācija                                                                                                                                                                           |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Informācijas paneļa pieteikšanās** | Uz paroli balstīta autentifikācija ar JWT marķieriem (HttpOnly sīkfaili)                                                                                                                 |
-| **API atslēgas autentifikācija**     | Ar HMAC parakstītas atslēgas ar CRC validāciju                                                                                                                                           |
-| **OAuth 2.0 + PKCE**                 | Konkrētam nodrošinātājam paredzētais pārlūkprogrammas/ierīces OAuth izmanto PKCE, ja tas tiek atbalstīts; tikai importējamie Devin akreditācijas dati tiek apstrādāti atsevišķi.         |
-| **Marķiera atjaunošana**             | Automātiska OAuth marķiera atjaunošana pirms derīguma termiņa beigām                                                                                                                     |
-| **Drošie sīkfaili**                  | `AUTH_COOKIE_SECURE=true` HTTPS vidēm                                                                                                                                                    |
-| **Autorizācijas konveijers**         | Maršruta klasificēšana (PUBLIC / CLIENT_API / MANAGEMENT) — skatiet `docs/architecture/AUTHZ_GUIDE.md`                                                                                   |
-| **Maršruta aizsardzības līmeņi**     | Trīs līmeņu modelis pārvaldības maršrutiem (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — skatiet `docs/security/ROUTE_GUARD_TIERS.md`                                                   |
-| **Manage-scope MCP**                 | Attālināta piekļuve `/api/mcp/*` tiek kontrolēta ar API atslēgām, kurām ir `manage` tvērums; `/api/cli-tools/runtime/*` paliek stingri ierobežota ar loopback. Skatiet ROUTE_GUARD_TIERS |
-| **MCP tvērumi**                      | 32 detalizēti tvērumi (read:health, write:combos, execute:completions u. c.) — skatiet `docs/frameworks/MCP-SERVER.md`                                                                   |
+| Funkcija                             | Īstenošana                                                                                                                                                                                                |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Informācijas paneļa pieteikšanās** | Uz paroli balstīta autentifikācija ar JWT marķieriem (HttpOnly sīkdatnēm)                                                                                                                                 |
+| **API atslēgas autentifikācija**     | Ar HMAC parakstītas atslēgas ar CRC validāciju                                                                                                                                                            |
+| **OAuth 2.0 + PKCE**                 | Nodrošinātājam specifiska pārlūkprogrammas/ierīces OAuth izmanto PKCE, ja tas tiek atbalstīts; tikai importēšanai paredzētie Devin akreditācijas dati tiek apstrādāti atsevišķi.                          |
+| **Marķieru atsvaidzināšana**         | Automātiska OAuth marķieru atsvaidzināšana pirms derīguma termiņa beigām                                                                                                                                  |
+| **Drošas sīkdatnes**                 | `AUTH_COOKIE_SECURE=true` HTTPS vidēm                                                                                                                                                                     |
+| **Authz konveijers**                 | Maršrutu klasifikācija (PUBLIC / CLIENT_API / MANAGEMENT) — skatiet `docs/architecture/AUTHZ_GUIDE.md`                                                                                                    |
+| **Maršrutu aizsardzības līmeņi**     | 3 līmeņu modelis pārvaldības maršrutiem (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — skatiet `docs/security/ROUTE_GUARD_TIERS.md`                                                                       |
+| **Pārvaldības tvēruma MCP**          | Attālā piekļuve `/api/mcp/*` ir ierobežota ar API atslēgām, kurām ir `manage` tvērums; `/api/cli-tools/runtime/*` saglabā stingru tikai lokālās atgriezeniskās cilpas piekļuvi. Skatiet ROUTE_GUARD_TIERS |
+| **MCP tvērumi**                      | 32 detalizēti tvērumi (read:health, write:combos, execute:completions utt.) — skatiet `docs/frameworks/MCP-SERVER.md`                                                                                     |
 
-### 🛡️ Šifrēšana miera stāvoklī
+### 🛡️ Šifrēšana glabāšanas laikā
 
-Visi SQLite saglabātie sensitīvie dati tiek šifrēti, izmantojot **AES-256-GCM** ar scrypt atslēgas atvasināšanu:
+Visi sensitīvie dati, kas glabājas SQLite, tiek šifrēti, izmantojot **AES-256-GCM** ar scrypt atslēgas atvasināšanu:
 
 - API atslēgas, piekļuves marķieri, atsvaidzināšanas marķieri un ID marķieri
 - Versijots formāts: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Caurlaides režīms (vienkāršs teksts), ja `STORAGE_ENCRYPTION_KEY` nav iestatīts
+- Tiešās pārsūtīšanas režīms (vienkāršs teksts), ja `STORAGE_ENCRYPTION_KEY` nav iestatīta
 
 ```bash
 # Ģenerēt šifrēšanas atslēgu:
@@ -69,102 +89,102 @@ STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 
 ### 🛡️ Aizsargmehānismu ietvars
 
-OmniRoute komplektācijā ir iekļauts dinamiski pārlādējams **aizsargmehānismu reģistrs** (`src/lib/guardrails/`) ar 3 iebūvētiem aizsargmehānismiem, kas sakārtoti pēc prioritātes:
+OmniRoute ietver karsti pārlādējamu **aizsargmehānismu reģistru** (`src/lib/guardrails/`) ar 3 iebūvētiem aizsargmehānismiem, kas sakārtoti pēc prioritātes:
 
-| Aizsargmehānisms   | Prioritāte | Mērķis                                                                                              |
-| ------------------ | ---------- | --------------------------------------------------------------------------------------------------- |
-| `vision-bridge`    | 5          | Nodrošina ar attēliem saistītus aprakstus modeļiem bez redzes atbalsta; SSRF aizsardzība attēlu URL |
-| `pii-masker`       | 10         | PII noņemšana pirms un pēc izsaukuma (e-pasti, tālruņa numuri, CPF, CNPJ, kredītkartes, SSN)        |
-| `prompt-injection` | 20         | Nosaka ignorēšanas, lomas pārņemšanas, jailbreak un noplūdes modeļus                                |
+| Aizsargmehānisms   | Prioritāte | Mērķis                                                                                                     |
+| ------------------ | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5          | Savieno modeļus bez attēlu apstrādes ar attēlus apzinošiem aprakstiem; SSRF aizsardzība attēlu URL adresēm |
+| `pii-masker`       | 10         | PII rediģēšana pirms un pēc izsaukuma (e-pasti, tālruņi, CPF, CNPJ, kredītkartes, SSN)                     |
+| `prompt-injection` | 20         | Nosaka ignorēšanas, lomu pārņemšanas, ierobežojumu apiešanas un noplūdes modeļus                           |
 
-Pielāgoti aizsargmehānismi tiek reģistrēti, izmantojot `registerGuardrail(new MyGuardrail())`. Modelis darbojas pēc principa fail-open (izņēmumi nekad nebloķē datplūsmu). Atteikšanās no aizsargmehānismiem katram pieprasījumam atsevišķi, izmantojot `x-omniroute-disabled-guardrails` galveni. → Skatiet [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+Pielāgoti aizsargmehānismi tiek reģistrēti, izmantojot `registerGuardrail(new MyGuardrail())`. Modelis darbojas kļūdu tolerances režīmā (izņēmumi nekad nebloķē datplūsmu). Atteikšanās katram pieprasījumam ir iespējama, izmantojot galveni `x-omniroute-disabled-guardrails`. → Skatiet [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Uzvedņu injekciju aizsargs
+### 🧠 Uzvednes injekcijas aizsardzība
 
-Heiristisks starpprogrammatūras risinājums ar labāko iespējamo efektivitāti, kas nosaka uzvedņu injekciju modeļus LLM pieprasījumos.  
-**Tas nav pilnīgs uzvedņu injekciju ugunsmūris** — var rasties kļūdaini pozitīvi rezultāti (nekaitīgas
-personas/RPG uzvednes) un kļūdaini negatīvi rezultāti (leetspeak, atstarpes, modeļi citās valodās).
+Heiristiska starpprogrammatūra, kas pēc iespējas efektīvāk nosaka uzvedņu injekcijas pazīmes LLM pieprasījumos.
+**Tas nav pilnīgs uzvedņu injekcijas ugunsmūris** — iespējami kļūdaini pozitīvi rezultāti (nekaitīgas
+personu/lomu spēļu uzvednes) un kļūdaini negatīvi rezultāti (leetspeak, atstarpes, raksti valodās, kas nav angļu valoda).
 
-| Modeļa tips          | Nopietnība | Piemērs                                              |
-| -------------------- | ---------- | ---------------------------------------------------- |
-| Sistēmas ignorēšana  | Augsta     | "ignore all previous instructions"                   |
-| Lomas pārņemšana     | Vidēja     | "you are now DAN, you can do anything"               |
-| Atdalītāja injekcija | Augsta     | Kodēti atdalītāji konteksta robežu pārraušanai       |
-| DAN/Jailbreak        | Vidēja     | Zināmi jailbreak uzvedņu modeļi                      |
-| Norādījumu noplūde   | Augsta     | "show me your system prompt"                         |
-| Kodējuma apiešana    | Vidēja     | base64/rot13/hex dekodēšana + norādījumu atslēgvārdi |
+| Raksta veids         | Smaguma pakāpe | Piemērs                                              |
+| -------------------- | -------------- | ---------------------------------------------------- |
+| Sistēmas apiešana    | Augsta         | "ignorē visus iepriekšējos norādījumus"              |
+| Lomas pārņemšana     | Vidēja         | "tagad tu esi DAN un vari darīt jebko"               |
+| Atdalītāju injekcija | Augsta         | Kodēti atdalītāji konteksta robežu pārraušanai       |
+| DAN/Jailbreak        | Vidēja         | Zināmi jailbreak uzvedņu raksti                      |
+| Norādījumu noplūde   | Augsta         | "parādi man savu sistēmas uzvedni"                   |
+| Izvairīšanās kodējot | Vidēja         | base64/rot13/hex dekodēšana + norādījumu atslēgvārdi |
 
-Tikai **Augstas** nopietnības noteikšanas gadījumi tiek bloķēti `block` režīmā. Vidējas nopietnības
-grupas tiek reģistrētas, taču `sanitizeRequest` tās nekad nebloķē.
+`block` režīmā tiek bloķēti tikai **augstas** smaguma pakāpes konstatējumi. Vidējas smaguma pakāpes
+grupas tiek reģistrētas žurnālā, taču `sanitizeRequest` tās nekad nebloķē.
 
-Konfigurējiet, izmantojot informācijas paneli (Settings → Security) vai `.env`:
+Konfigurējiet informācijas panelī (Iestatījumi → Drošība) vai `.env` failā:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block (injekciju politika; mantotais "redact" režīms nenoņem injekcijas tekstu)
-INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (noklusējums) | medium | low — nopietnības līmeņi, sākot ar norādīto, tiek bloķēti block režīmā
+INPUT_SANITIZER_MODE=block    # warn | block (injekcijas politika; mantotais "redact" nenoņem injekcijas tekstu)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (noklusējums) | medium | low — smaguma pakāpes, kas ir vienādas ar šo līmeni vai augstākas, tiek bloķētas block režīmā
 ```
 
-### 🔒 PII noņemšana
+### 🔒 PII aizklāšana
 
-Automātiska personu identificējošas informācijas noteikšana un, pēc izvēles, noņemšana:
+Automātiska personu identificējošas informācijas noteikšana un izvēles aizklāšana:
 
-| PII tips         | Modelis               | Aizvietojums       |
+| PII veids        | Raksts                | Aizstājējs         |
 | ---------------- | --------------------- | ------------------ |
 | E-pasts          | `user@domain.com`     | `[EMAIL_REDACTED]` |
 | CPF (Brazīlija)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
 | CNPJ (Brazīlija) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
 | Kredītkarte      | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
-| Tālruņa numurs   | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
+| Tālrunis         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
 | SSN (ASV)        | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true   # pieprasīt PII pārrakstīšanu; neatkarīgi no INPUT_SANITIZER_MODE
-PII_RESPONSE_SANITIZATION=true  # pēc izvēles: noņemt PII no klientiem atgrieztajām nodrošinātāju atbildēm
+PII_REDACTION_ENABLED=true   # pieprasījuma PII pārrakstīšana; nav atkarīga no INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # neobligāti: aizklāt PII pakalpojumu sniedzēju atbildēs, kas tiek atgrieztas klientiem
 ```
 
 ### 🌐 Tīkla drošība
 
-| Funkcija                                 | Apraksts                                                                                           |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **CORS**                                 | Skaidri definēts starpizcelsmju atļauto saraksts (`CORS_ALLOWED_ORIGINS`; mantotais `CORS_ORIGIN`) |
-| **IP filtrēšana**                        | IP diapazonu atļauto/bloķēto saraksts informācijas panelī                                          |
-| **Ātruma ierobežošana**                  | Ātruma ierobežojumi katram nodrošinātājam ar automātisku atkāpšanos                                |
-| **Pret vienlaicīgu pieprasījumu lavīnu** | Mutekss + savienojumu bloķēšana novērš kaskādveida 502 kļūdas                                      |
-| **TLS pirkstu nospiedums**               | Pārlūkprogrammai līdzīga TLS pirkstu nospieduma viltošana, lai mazinātu robotu noteikšanu          |
-| **CLI pirkstu nospiedums**               | Galveņu/satura secība katram nodrošinātājam, lai atbilstu sākotnējā CLI parakstiem                 |
+| Funkcija                           | Apraksts                                                                                                 |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **CORS**                           | Skaidri definēts atļauto starpizcelsmes avotu saraksts (`CORS_ALLOWED_ORIGINS`; mantotais `CORS_ORIGIN`) |
+| **IP filtrēšana**                  | Atļauto/bloķēto IP diapazonu saraksti informācijas panelī                                                |
+| **Ātruma ierobežošana**            | Katram pakalpojumu sniedzējam noteikti ātruma ierobežojumi ar automātisku nogaidīšanu                    |
+| **Pieprasījumu lavīnas novēršana** | Mutex + bloķēšana katram savienojumam novērš kaskādes veida 502 kļūdas                                   |
+| **TLS pirkstu nospiedums**         | Pārlūkam līdzīga TLS pirkstu nospieduma imitēšana, lai mazinātu robotu noteikšanu                        |
+| **CLI pirkstu nospiedums**         | Katram pakalpojumu sniedzējam pielāgota galveņu/pamatteksta secība, kas atbilst vietējā CLI signatūrām   |
 
 ### 🔌 Noturība un pieejamība
 
-| Funkcija                           | Apraksts                                                                          |
-| ---------------------------------- | --------------------------------------------------------------------------------- |
-| **Ķēdes pārtraucējs**              | Trīs stāvokļi (Closed → Open → Half-Open) katram nodrošinātājam, saglabāti SQLite |
-| **Pieprasījumu idempotence**       | 5 sekunžu deduplikācijas logs dublētiem pieprasījumiem                            |
-| **Eksponenciāla atkāpšanās**       | Automātiska atkārtota mēģināšana ar pieaugošām aizturēm                           |
-| **Veselības informācijas panelis** | Nodrošinātāju veselības uzraudzība reāllaikā                                      |
+| Funkcija                            | Apraksts                                                                                       |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Ķēdes pārtraucējs**               | 3 stāvokļi (Slēgts → Atvērts → Daļēji atvērts) katram pakalpojumu sniedzējam, saglabāti SQLite |
+| **Pieprasījumu idempotence**        | 5 sekunžu dublikātu novēršanas logs atkārtotiem pieprasījumiem                                 |
+| **Eksponenciāla nogaidīšana**       | Automātiski atkārtoti mēģinājumi ar pieaugošu aizkavi                                          |
+| **Darbspējas informācijas panelis** | Pakalpojumu sniedzēju darbspējas pārraudzība reāllaikā                                         |
 
 ### 📋 Atbilstība
 
 | Funkcija                        | Apraksts                                                               |
 | ------------------------------- | ---------------------------------------------------------------------- |
 | **Žurnālu saglabāšana**         | Automātiska tīrīšana pēc `CALL_LOG_RETENTION_DAYS`                     |
-| **Atteikšanās no žurnalēšanas** | Katrai API atslēgai `noLog` karodziņš atspējo pieprasījumu žurnalēšanu |
-| **Audita žurnāls**              | Administratīvās darbības tiek izsekotas `audit_log` tabulā             |
-| **MCP audits**                  | Uz SQLite balstīta audita žurnalēšana visiem MCP rīku izsaukumiem      |
-| **Zod validācija**              | Visas API ievades tiek validētas ar Zod v4 shēmām moduļa ielādes laikā |
+| **Atteikšanās no žurnalēšanas** | Katras API atslēgas `noLog` karodziņš atspējo pieprasījumu žurnalēšanu |
+| **Audita žurnāls**              | Administratīvās darbības tiek izsekotas tabulā `audit_log`             |
+| **MCP audits**                  | SQLite nodrošināta audita žurnalēšana visiem MCP rīku izsaukumiem      |
+| **Zod validācija**              | Visas API ievades moduļa ielādes laikā tiek validētas ar Zod v4 shēmām |
 
 ---
 
 ## Obligātie vides mainīgie
 
-Visiem noslēpumiem jābūt iestatītiem pirms servera palaišanas. Ja to trūkst vai tie ir vāji, serveris **nekavējoties pārtrauks darbu**.
+Visi noslēpumi ir jāiestata pirms servera palaišanas. Ja tie nebūs norādīti vai būs vāji, serveris **nekavējoties pārtrauks palaišanu**.
 
 ```bash
-# OBLIGĀTI — serveris bez tiem netiks palaists:
+# OBLIGĀTI — bez šiem serveris netiks palaists:
 JWT_SECRET=$(openssl rand -base64 48)     # vismaz 32 rakstzīmes
 API_KEY_SECRET=$(openssl rand -hex 32)    # vismaz 16 rakstzīmes
 
-# IETEICAMS — iespējo šifrēšanu miera stāvoklī:
+# IETEICAMS — iespējo saglabāto datu šifrēšanu:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
@@ -174,11 +194,11 @@ Serveris aktīvi noraida zināmas vājas vērtības, piemēram, `changeme`, `sec
 
 ## Docker drošība
 
-- Ražošanas vidē izmantojiet lietotāju, kas nav root lietotājs
-- Pievienojiet noslēpumus kā tikai lasāmus sējumus
+- Produkcijas vidē izmantojiet lietotāju bez root privilēģijām
+- Piemontējiet noslēpumus kā tikai lasāmus sējumus
 - Nekad nekopējiet `.env` failus Docker attēlos
 - Izmantojiet `.dockerignore`, lai izslēgtu sensitīvus failus
-- Iestatiet `AUTH_COOKIE_SECURE=true`, ja serveris darbojas aiz HTTPS
+- Iestatiet `AUTH_COOKIE_SECURE=true`, ja tiek izmantots HTTPS
 
 ```bash
 docker run -d \
@@ -197,72 +217,72 @@ docker run -d \
 
 ## Atkarības
 
-- Regulāri palaidiet `npm audit` (`npm run audit:deps` pārbauda galveno projektu + electron)
-- Uzturiet atkarības atjauninātas
-- Projekts priekšpiegādes pārbaudēm izmanto `husky` + `lint-staged` (lint-staged + check-docs-sync + check:any-budget:t11)
-- CI konveijers katrā nosūtīšanā palaiž ESLint drošības noteikumus (`no-eval`, `no-implied-eval`, `no-new-func` = error)
-- Provider konstantes tiek validētas moduļa ielādes laikā, izmantojot Zod (`src/shared/validation/schemas.ts`)
-- Pēc noklusējuma drošas bibliotēkas: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (nav SQLi riska, jo tiek izmantoti parametrizēti vaicājumi), `bcryptjs` (paroļu jaukšana)
+- Regulāri izpildiet `npm audit` (`npm run audit:deps` pārbauda galveno daļu un electron)
+- Regulāri atjauniniet atkarības
+- Projekts izmanto `husky` un `lint-staged` pārbaudēm pirms komita izveides (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI konveijers katras izmaiņu nosūtīšanas laikā izpilda ESLint drošības kārtulas (`no-eval`, `no-implied-eval`, `no-new-func` = kļūda)
+- Pakalpojumu sniedzēju konstantes moduļa ielādes laikā tiek validētas, izmantojot Zod (`src/shared/validation/schemas.ts`)
+- Tiek izmantotas pēc noklusējuma drošas bibliotēkas: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (parametrizētu vaicājumu dēļ nav SQLi riska), `bcryptjs` (paroļu jaukšana)
 
-## Stingrie drošības noteikumi
+## Stingri drošības noteikumi
 
-Šos noteikumus ievieš rīki un pārbaudītāji:
+Šo noteikumu ievērošanu nodrošina rīki un pārskatītāji:
 
-1. **Nekad neiekļaujiet noslēpumus repozitorijā** — `.env` ir izslēgts no git; `.env.example` ir veidne (bez literālām vērtībām, tikai komentāri — skatiet tālāk PUBLIC_CREDS.md)
-2. **Nekad neizmantojiet `eval()`, `new Function()` vai netiešu eval** — to ievēro ESLint
-3. **Nekad neapejiet Husky āķus** (`--no-verify`, `--no-gpg-sign`) bez skaidra operatora apstiprinājuma
-4. **Nekad nerakstiet neapstrādātu SQL maršrutos** — vienmēr izmantojiet `src/lib/db/` (parametrizētu)
-5. **Vienmēr validējiet ievades datus ar Zod** — `src/shared/validation/schemas.ts`
-6. **Vienmēr sanitizējiet augšupējās sistēmas galvenes** — aizliegto vērtību saraksts failā `src/shared/constants/upstreamHeaders.ts`
-7. **Šifrējiet akreditācijas datus miera stāvoklī** — AES-256-GCM, izmantojot `src/lib/db/encryption.ts`
-8. **Publiskos augšupējās OAuth identifikatorus iegūstiet, izmantojot `resolvePublicCred()`** — nekad neieguliet avota kodā literālas vērtības `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com`. Skatiet [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Kļūdu atbildes veidojiet, izmantojot `buildErrorBody()` / `sanitizeErrorMessage()`** — nekad neievietojiet neapstrādātu `err.stack` / `err.message` HTTP / SSE / executor / MCP atbilžu pamattekstā. Skatiet [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **`exec()` / `spawn()` izpildlaika vērtības nododiet, izmantojot `env` opciju** — nekad neievietojiet ārējus ceļus vai neuzticamas vērtības čaulas skriptos, izmantojot virkņu interpolāciju. Atsauce: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Dodiet priekšroku pēc noklusējuma drošām bibliotēkām** — skatiet [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Izmantojiet tās, pirms izstrādāt pašiem savu risinājumu.
+1. **Nekad neiekļaujiet noslēpumus komitos** — `.env` ir iekļauts gitignore; `.env.example` ir veidne (bez literāļiem, tikai komentāri — skatiet tālāk minēto PUBLIC_CREDS.md)
+2. **Nekad neizmantojiet `eval()`, `new Function()` vai netiešu eval izsaukumu** — to nodrošina ESLint
+3. **Nekad neapejiet Husky āķus** (`--no-verify`, `--no-gpg-sign`) bez nepārprotamas operatora atļaujas
+4. **Nekad nerakstiet neapstrādātu SQL maršrutos** — vienmēr izmantojiet `src/lib/db/` (parametrizēts)
+5. **Vienmēr validējiet ievaddatus ar Zod** — `src/shared/validation/schemas.ts`
+6. **Vienmēr attīriet augšupstraumes galvenes** — aizliegumu saraksts atrodas `src/shared/constants/upstreamHeaders.ts`
+7. **Šifrējiet akreditācijas datus glabāšanas laikā** — AES-256-GCM, izmantojot `src/lib/db/encryption.ts`
+8. **Publiskie augšupstraumes OAuth identifikatori jāiegūst, izmantojot `resolvePublicCred()`** — nekad neieguliet avota kodā `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literāļus. Skatiet [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Kļūdu atbildēm jāizmanto `buildErrorBody()` / `sanitizeErrorMessage()`** — nekad neiekļaujiet neapstrādātu `err.stack` / `err.message` HTTP / SSE / izpildītāja / MCP atbilžu pamattekstā. Skatiet [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` izpildlaika vērtības jānodod, izmantojot opciju `env`** — nekad neievietojiet ārējos ceļus vai neuzticamas vērtības ar čaulas starpniecību nodotajos skriptos, izmantojot virkņu interpolāciju. Atsauce: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Dodiet priekšroku pēc noklusējuma drošām bibliotēkām** — skatiet [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Izvēlieties tās, pirms izstrādājat savu risinājumu.
 
-## Piegādes ķēdes skenera konstatējumi (Socket.dev / Snyk / līdzīgi rīki)
+## Piegādes ķēdes skeneru atradumi (Socket.dev / Snyk / līdzīgi)
 
-> **Tvēruma piezīme:** repozitorija saknē esošais `socket.yml` tikai definē `projectIgnorePaths` Socket.dev reģistra puses skenēšanai pēc publicētā npm artefakta publicēšanas — tas nav obligāts CI/PR sapludināšanas kontroles posms. Neviena darbplūsma direktorijā `.github/workflows`, neviens `package.json` skripts un neviens `Makefile` mērķis neizsauc Socket.dev.
+> **Tvēruma piezīme:** repozitorija saknē esošais `socket.yml` tikai nosaka `projectIgnorePaths` Socket.dev reģistra puses pēcpublikācijas skenēšanai publicētajam npm artefaktam — tas nav obligāti izpildāms CI/PR sapludināšanas kontrolpunkts. Neviena darbplūsma direktorijā `.github/workflows`, neviens `package.json` skripts un neviens `Makefile` mērķis neizsauc Socket.dev.
 
 Publicētais `omniroute` npm artefakts ietver Next.js `output: "standalone"`
 būvējumu, kas nozīmē, ka katrs maršruta apstrādātājs — tostarp dokumentētās
-priviliģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultā pakalpojumu
-pārraudzība) — nonāk minificētos `.next/server/*.js` fragmentos. Heiristiskie
+privileģētās funkcijas (MITM, Zed importēšana, Cloud Sync, iegultais pakalpojumu
+pārraugs) — nonāk minificētos `.next/server/*.js` fragmentos. Heiristiskie
 piegādes ķēdes skeneri bieži salīdzina šo fragmentu modeļus ar ļaunprogrammatūras
-signatūrām.
+parakstiem.
 
-Mūsu izmantotā skenera konfigurācija atrodas failā [`socket.yml`](socket.yml)
-repozitorija saknē (Socket.dev GitHub App formāts v2 — skatiet
+Mūsu izmantotā skenera konfigurācija atrodas repozitorija saknes failā
+[`socket.yml`](socket.yml) (Socket.dev GitHub App formāts v2 — skatiet
 <https://docs.socket.dev/docs/socket-yml>). Tā nepārprotami izslēdz
-nepiegādātos direktorijus (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` u.c.), lai skeneris ziņotu tikai par koda ceļiem, kas
+nepublicētos direktorijus (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` utt.), lai skeneris ziņotu tikai par koda ceļiem, kas
 faktiski sasniedz publicētās versijas lietotājus — pašu skenēšanu veic Socket
-GitHub App, nolasot šo failu, nevis šajā repozitorijā esoša darbplūsma.
+GitHub App, nolasot šo failu, nevis šī repozitorija darbplūsma.
 
-Katrai konstatējumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
+Katrai atradumu kategorijai mēs uzturam atsevišķu uzturētāja apliecinājumu:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  katra konstatējuma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
-  v3.8.6 lietotie riska mazināšanas pasākumi.
-- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās funkcijas
-  norāda uz to pašu dokumentu.
+  katra atraduma kartējums: avota fails ↔ atzīmētais fragments ↔ darbība ↔
+  versijā v3.8.6 ieviestais riska mazināšanas pasākums.
+- Avota kodā esošie `SECURITY-AUDITOR-NOTE:` bloki pie katras atzīmētās
+  funkcijas norāda uz to pašu dokumentu.
 
-Lietotājiem, kuru konveijerā šo brīdinājumu nevar mīkstināt: veidojiet būvējumu ar
+Lietotājiem, kuru konveijerā brīdinājumu nevar mīkstināt: veidojiet ar
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Tas aizstāj četrus sensitīvos
-moduļus ar aizvietotājiem, kas izpildlaikā atgriež HTTP 503 `feature-disabled`,
-tādēļ priviliģētie koda ceļi fiziski nav iekļauti komplektā.
-Publicēšanas norādījumus skatiet failā
+moduļus ar aizstājējiem, kas izpildlaikā atgriež HTTP 503 `feature-disabled`,
+tādēļ privileģētie koda ceļi fiziski nav iekļauti komplektā.
+Publicēšanas instrukcijas skatiet
 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
 
 ## Atsauces
 
 - [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — autorizācijas konveijers
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — drošības ierobežojumu ietvars
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — aizsargmehānismu ietvars
 - [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audita žurnāls un glabāšana
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **obligātais** modelis publiskiem augšupējo sistēmu akreditācijas datiem
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **obligātais** modelis kļūdu atbildēm
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — uzturētāja apliecinājums par piegādes ķēdes skenera atradumiem
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — ķēdes pārtraucējs + atdzišanas periods + bloķēšana
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS pirkstu nospiedumu veidošana (juridisks/ētisks paziņojums)
-- [`CLAUDE.md`](CLAUDE.md) — stingrie noteikumi MI aģentiem
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — atlasītas bibliotēkas ar drošiem noklusējuma iestatījumiem
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **obligāts** modelis publiskiem augšupstraumes akreditācijas datiem
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **obligāts** modelis kļūdu atbildēm
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — uzturētāja apliecinājums par piegādes ķēdes skeneru atradumiem
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — ķēdes pārtraucējs + nogaidīšanas periods + bloķēšana
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS pirkstu nospiedumu noteikšana (juridisks/ētisks paziņojums)
+- [`CLAUDE.md`](CLAUDE.md) — stingri noteikumi MI aģentiem
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — atlasītas bibliotēkas ar drošiem noklusējumiem

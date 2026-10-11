@@ -164,37 +164,27 @@ Jarayon holatini `GET /api/memory/engine-status`
 
 ## Sozlamalar kengaytmasi
 
-`src/shared/schemas/memory.ts` ichidagi `MemorySettingsExtended`da toʻqqizta embedding va vektor maydoni mavjud bo‘lib, ular `src/lib/db/settings.ts` orqali saqlanadi:
+Toʻqqizta embedding va vektor maydoni `src/shared/schemas/memory.ts` faylidagi `MemorySettingsExtended` ichida mavjud boʻlib, `src/lib/db/settings.ts` orqali saqlanadi:
 
-| Maydon                   | Tur                                                | Standart qiymat | Tavsif                                                                     |
-| ------------------------ | -------------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | Qaysi embedding manbasidan foydalanish                                     |
-| `embeddingProviderModel` | `string \| null`                                   | `null`          | `provider/model` formatidagi provayder/model                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`          | Faqat Memory uchun OpenAI-mos endpoint asosiy URL manzili                  |
-| `customModelId`          | `string \| null`                                   | `null`          | Maxsus endpointga yuboriladigan model IDsi                                 |
-| `transformersEnabled`    | `boolean`                                          | `false`         | Transformers.js uchun ixtiyoriy yoqish (MiniLM, ~400MB)                    |
-| `staticEnabled`          | `boolean`                                          | `false`         | Statik potion-base-8M mahalliy modeli uchun ixtiyoriy yoqish               |
-| `rerankEnabled`          | `boolean`                                          | `false`         | Qayta tartiblash bosqichini yoqish (har bir soʻrovga +200–500 ms qoʻshadi) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`          | `provider/model` formatidagi qayta tartiblash provayderi/modeli            |
+| Maydon                   | Tur                                                | Standart qiymat | Tavsif                                                                    |
+| ------------------------ | -------------------------------------------------- | --------------- | ------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | Qaysi embedding manbasidan foydalanish                                    |
+| `embeddingProviderModel` | `string \| null`                                   | `null`          | `provider/model` formatidagi provayder/model                              |
+| `customBaseUrl`          | `string \| null`                                   | `null`          | Faqat Memory uchun OpenAI-mos endpoint asosiy URL manzili                 |
+| `customModelId`          | `string \| null`                                   | `null`          | Maxsus endpointga yuboriladigan model IDsi                                |
+| `transformersEnabled`    | `boolean`                                          | `false`         | Transformers.js uchun ixtiyoriy faollashtirish (MiniLM, ~400MB)           |
+| `staticEnabled`          | `boolean`                                          | `false`         | Mahalliy statik potion-base-8M modeli uchun ixtiyoriy faollashtirish      |
+| `rerankEnabled`          | `boolean`                                          | `false`         | Qayta tartiblash bosqichini yoqish (har bir soʻrovga +200-500ms qoʻshadi) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`          | `provider/model` formatidagi qayta tartiblash provayderi/modeli           |
 
-`rerankProviderModel` `POST /v1/rerank` orqali aniqlanadi (loopback orqali chaqiriladi), shuning uchun u ushbu marshrut qabul qiladigan istalgan qiymatni qabul qiladi: saralangan bulutli qayta tartiblash modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) yoki `<node-prefix>/<model>` ko‘rinishidagi OpenAI-mos provayder tuguni (masalan, TEI/Infinity serveri uchun `skilled-mini/bge-reranker-v2-m3`). Loopback tugunlari har doim foydalanishga yaroqli; boshqa xostdagi tugun (LAN, Tailscale) uchun qoʻshimcha ravishda `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrogʻi talab qilinadi va u provayderning chiquvchi URL siyosati tekshiruvidan oʻtishi kerak — [Funksiya bayroqlari](../reference/FEATURE_FLAGS.md) bo‘limiga qarang. Boshqaruv panelidagi tanlash vositasi saralangan provayderlar hamda mahalliy tugunlarni ko‘rsatadi; istalgan yaroqli `provider/model` satrini `PUT /api/settings/memory` orqali bevosita o‘rnatish mumkin.
+`rerankProviderModel` `POST /v1/rerank` orqali aniqlanadi (loopback orqali chaqiriladi), shuning uchun u ushbu marshrut qabul qiladigan har qanday qiymatni qabul qiladi: saralangan bulutli qayta tartiblash modeli (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) yoki `<node-prefix>/<model>` formatidagi OpenAI-mos provayder tuguni (masalan, TEI/Infinity qurilmasi uchun `skilled-mini/bge-reranker-v2-m3`). Loopback tugunlari va `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` ichida koʻrsatilgan host nomlari (masalan, Docker/Compose xizmat nomi) har doim mos hisoblanadi; boshqa hostdagi tugun (LAN, Tailscale) uchun qoʻshimcha ravishda `RERANK_REMOTE_PROVIDER_NODES` funksiya bayrogʻi talab qilinadi va u provayderning chiquvchi URL siyosatidan oʻtishi kerak — [Funksiya bayroqlari](../reference/FEATURE_FLAGS.md)ga qarang. Boshqaruv panelidagi selektor saralangan provayderlar hamda mahalliy tugunlarni koʻrsatadi; har qanday yaroqli `provider/model` satrini `PUT /api/settings/memory` orqali bevosita oʻrnatish mumkin.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Qaysi vektor backendidan foydalanish |
 
 Bular `GET /PUT /api/settings/memory` orqali taqdim etiladi (`MemorySettingsExtendedSchema` sxemasi).
 
-`remote` manbasi uchun Memory ixtiyoriy `customBaseUrl` va
-`customModelId` sozlamalarini ham qabul qiladi. Ular birgalikda global embedding
-reyestrini o‘zgartirmasdan OpenAI-mos `/embeddings` endpointi va modelini tanlaydi.
-Endpoint foydalanishdan oldin normallashtiriladi va provayderning chiquvchi URL
-siyosati asosida tekshiriladi: HTTP(S) talab qilinadi, ichiga hisob ma’lumotlari
-joylangan URL manzillari va so‘rov satrlari rad etiladi, bulut metama’lumotlari
-manzillari esa bloklangan holda qoladi. Bo‘sh qiymatlar tanlangan reyestr provayderini
-saqlab qoladi. Boshqaruv paneliga qaytariladigan xatolar maxfiy ma’lumotlardan
-tozalanadi va endpoint hisob ma’lumotlari hech qachon jurnalga yozilmaydi.
+`remote` manbasi uchun Memory ixtiyoriy `customBaseUrl` va `customModelId` sozlamalarini ham qabul qiladi. Ular birgalikda global embedding reyestrini oʻzgartirmasdan OpenAI-mos `/embeddings` endpointi va modelini tanlaydi. Endpoint ishlatilishidan oldin normallashtiriladi va provayderning chiquvchi URL siyosati asosida tekshiriladi: HTTP(S) talab qilinadi, ichiga hisob maʼlumotlari kiritilgan URL manzillar va soʻrov satrlari rad etiladi, bulut metamaʼlumotlari manzillari esa bloklangan holda qoladi. Boʻsh qiymatlar tanlangan reyestr provayderini saqlab qoladi. Boshqaruv paneliga qaytariladigan xatolar maxfiy maʼlumotlardan tozalanadi va endpoint hisob maʼlumotlari hech qachon jurnalga yozilmaydi.
 
-> **TODO (D20):** `global` qamrovi (xotiralarni barcha API kalitlari orasida ulashish)
-> ushbu relizda amalga oshirilmagan. Buning uchun sxemaga o‘zgartirishlar va global
-> qidirib olish yo‘li talab qilinadi. Alohida kuzatib boring.
+> **TODO (D20):** `global` qamrovi (xotiralarni barcha API kalitlari oʻrtasida ulashish) ushbu relizda amalga oshirilmagan. U sxema oʻzgarishlari va global qidirib olish yoʻlini talab qiladi. Uni alohida kuzatib boring.
 
 ## Saqlash qatlamlari
 
@@ -858,35 +848,36 @@ Uni oʻchiq holda qoldirish uchun `autoSummarize` sozlamasini standart (`false`)
 
 ---
 
-## MemoryBackend provayder andozasi
+## MemoryBackend provayder namunasi
 
-> **Ishonchli manba:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Haqiqat manbasi:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testlar:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend provayder andozasi mavjud xotira mexanizmi ustida **ulanadigan backend abstraksiya qatlamini** taqdim etadi. Endi xotira tizimi bitta saqlash implementatsiyasiga bogʻlanib qolish oʻrniga, sozlanadigan asosiy/zaxira yoʻnaltirishga ega bir nechta backendlarni (SQLite, Obsidian, Notion, maxsus HTTP backendlar) qoʻllab-quvvatlaydi.
+MemoryBackend provayder namunasi mavjud xotira mexanizmi ustiga **ulanadigan backend abstraksiya qatlamini** qoʻshadi. Endi xotira tizimi yagona saqlash implementatsiyasiga bogʻlanib qolmaydi va sozlanadigan asosiy/zaxira yoʻnaltirish bilan bir nechta backendlarni (SQLite, Obsidian, Notion, maxsus HTTP backendlar) qoʻllab-quvvatlaydi.
 
 ### Arxitektura
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    API yoʻnalishlari                      │
+│                    API marshrutlari                       │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           Singleton orkestrator (manager.ts)              │
+│         Singleton muvofiqlashtiruvchi (manager.ts)        │
 │                                                          │
-│  Asosiy ───► Backend A  (masalan, SQLite)                │
-│  Zaxira ───► Backend B  (masalan, Obsidian)              │
-│             Backend C  (masalan, GenericBackend orqali Notion) │
+│  Asosiy ──► Backend A  (masalan, SQLite)                 │
+│  Zaxira ──► Backend B  (masalan, Obsidian)               │
+│             Backend C  (masalan, GenericBackend orqali    │
+│                         Notion)                            │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ backendi   │ │ backendi   │ │ backendi (HTTP)  │
+│ Backend    │ │ Backend    │ │ Backend (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -899,7 +890,7 @@ interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // CRUD
+  // CRUD operatsiyalari
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -920,31 +911,31 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Quyidagilarni bajaradigan Singleton orkestrator:
+Quyidagilarni bajaruvchi singleton muvofiqlashtiruvchi:
 
 - Backendlarni `register(backend)` orqali **roʻyxatdan oʻtkazadi** — yuklanish vaqtida `index.ts` faylidan chaqiriladi
 - Asosiy va zaxira backendlarni `configure(primary, fallbacks)` orqali **sozlaydi**
-- CRUD/qidiruv amallarini asosiy backendga **yoʻnaltiradi**, xatolik yuz berganda zaxira zanjiridan foydalanadi
-- Barcha backendlarning **holatini muntazam tekshiradi**
+- CRUD/qidiruv operatsiyalarini asosiy backendga **yoʻnaltiradi**, xatolik yuz bersa zaxira zanjiridan foydalanadi
+- Barcha backendlarning **holatini davriy tekshiradi**
 
-**Zaxira backend xatti-harakati:**
+**Zaxiraga oʻtish xatti-harakati:**
 
-| Amal     | Asosiy backend          | Zaxira backendlar                     |
-| -------- | ----------------------- | ------------------------------------- |
-| `create` | ✅ Faqat asosiy backend | ❌                                    |
-| `get`    | ✅ Avval asosiy backend | ✅ Natija null boʻlsa, zaxira backend |
-| `update` | ✅ Faqat asosiy backend | ✅ Natijani kutmasdan sinxronlash     |
-| `delete` | ✅ Faqat asosiy backend | ✅ Natijani kutmasdan sinxronlash     |
-| `list`   | ✅ Faqat asosiy backend | ❌                                    |
-| `search` | ✅ Avval asosiy backend | ✅ Xatolikda zaxira backend           |
+| Operatsiya | Asosiy                          | Zaxiralar                                    |
+| ---------- | ------------------------------- | -------------------------------------------- |
+| `create`   | ✅ Faqat asosiy                 | ❌                                           |
+| `get`      | ✅ Avval asosiyni sinab koʻrish | ✅ Natija null boʻlsa, zaxiradan foydalanish |
+| `update`   | ✅ Faqat asosiy                 | ✅ Javobni kutmasdan sinxronlash             |
+| `delete`   | ✅ Faqat asosiy                 | ✅ Javobni kutmasdan sinxronlash             |
+| `list`     | ✅ Faqat asosiy                 | ❌                                           |
+| `search`   | ✅ Avval asosiy                 | ✅ Xatolikda zaxiradan foydalanish           |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Har qanday REST APIʼni MemoryBackendga moslashtiradigan universal HTTP konnektor. Quyidagilar uchun foydali:
+Istalgan REST APIʼni MemoryBackend interfeysiga moslashtiradigan umumiy HTTP ulagichi. Quyidagilar uchun foydali:
 
 - **Notion** — Notion API orqali ulanish
 - **Obsidian** — Obsidian Local REST API orqali ulanish
-- **Maxsus backendlar** — RESTful xotira APIʼsini taqdim etadigan istalgan xizmat
+- **Maxsus backendlar** — RESTful xotira APIʼsini taqdim etuvchi istalgan xizmat
 
 **Konfiguratsiya:**
 
@@ -954,9 +945,9 @@ interface GenericBackendConfig {
   apiKey?: string;           // Autentifikatsiya uchun Bearer tokeni
   headers?: Record<string, string>;  // Maxsus HTTP sarlavhalari
   timeout?: number;          // Soʻrov kutish vaqti (standart: 30000ms)
-  backendType?: string;      // Jurnalga yozish uchun
+  backendType?: string;      // Jurnallash uchun
 
-  // Endpointlarni qayta belgilash (standart qiymatlar REST qoidalaridan foydalanadi)
+  // Endpoint almashtirishlari (standart qiymatlar REST qoidalaridan foydalanadi)
   endpoints?: {
     search?: string;   // standart: "/memories/search"
     create?: string;   // standart: "/memories"
@@ -967,12 +958,12 @@ interface GenericBackendConfig {
     health?: string;   // standart: "/health"
   };
 
-  // Soʻrov parametrlari nomlari mosliklari
+  // Soʻrov parametrlari nomlarining mosliklari
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Yoʻl parametrlari nomlari mosliklari
+  // Yoʻl parametrlari nomlarining mosliklari
   pathParams?: {
     id?/memoryId?
   };
@@ -990,7 +981,7 @@ createKnownBackend("notion"); // → api.notion.com/v1 manziliga yoʻnaltirilgan
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Standart asosiy backend. `src/lib/memory/store.ts` orqali mavjud SQLite asosidagi xotira omborini oʻrab oladi. Ishga tushishda avtomatik ravishda roʻyxatdan oʻtkaziladi.
+Standart asosiy backend. `src/lib/memory/store.ts` yordamida mavjud SQLite asosidagi xotira omborini oʻrab oladi. Yuklanish vaqtida avtomatik ravishda roʻyxatdan oʻtkaziladi.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -999,41 +990,98 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Mavjud Obsidian integratsiyasini (`src/lib/memory/obsidianBackend.ts`) oʻrab oladi. Obsidian Local REST API orqali Obsidian omboriga ulanadi.
+Mavjud Obsidian integratsiyasini (`src/lib/memory/obsidianBackend.ts`) oʻrab oladi. Obsidian Local REST API orqali Obsidian vaultʼiga ulanadi.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Mahalliy [claude-mem](https://github.com/thedotmack/claude-mem) workerʼi — dasturlash seanslarini "kuzatuvlar" sifatida qayd etuvchi Claude Code / Codex / Cursor xotira plagini uchun adapter.
+U roʻyxatdan oʻtkazilgach, `/api/memory` REST marshrutlari va A2A xotira qidiruvi claude-mem hookʼlari toʻldiradigan ayni omborni oʻqishi va unga yozishi mumkin.
+
+Worker faqat loopback interfeysiga bogʻlanadi, `GenericMemoryBackend` SSRF himoyasi esa buni ataylab rad etadi.
+Ushbu adapter bu himoyani zaiflashtirmaydi: host `127.0.0.1` qiymatiga qatʼiy belgilangan va konfiguratsiya sxemasi (`ClaudeMemBackendConfigSchema`, `.strict()`) faqat quyidagilarni qabul qiladi:
+
+| Kalit       | Tur    | Standart qiymat | Izohlar                                                                                                                          |
+| ----------- | ------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —               | Majburiy, 1024–65535. Sozlamalar faylidagi claude-mem worker porti (standart: `37700 + uid % 100`).                              |
+| `project`   | string | —               | Foydalaniladigan claude-mem loyihasi. Belgilanmagan bo‘lsa → har bir OmniRoute API kaliti o‘z loyihasiga moslanadi (`apiKeyId`). |
+| `timeoutMs` | number | `5000`          | Har bir so‘rov uchun kutish vaqti, 100–30000.                                                                                    |
+
+Uni `PUT /api/settings/memory` orqali yoqing va OmniRoute’ni qayta ishga tushiring (backend’lar
+`initMemoryBackends()` ichida bir marta ro‘yxatdan o‘tkaziladi):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Uni REST API uchun saqlash backend’i qilish maqsadida buning o‘rniga `"primaryBackend": "claude-mem"` dan foydalaning. Yaroqsiz
+konfiguratsiya jurnalga yoziladi (`claude-mem.backend.invalid_config`) va o‘tkazib yuboriladi, shu sababli SQLite asosiy backend bo‘lib qoladi.
+
+Moslashtirish va cheklovlar:
+
+- ID’lar `claude-mem:<observationId>` ko‘rinishida bo‘ladi; `get`/`delete` boshqa backend’larning ID’larini
+  tarmoq chaqiruvisiz e’tiborsiz qoldiradi.
+- `create` → `POST /api/memory/save`; OmniRoute maydonlari (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem’ning `metadata.omniroute` maydonida uzatiladi va o‘qishda o‘zgarmagan holda qaytariladi.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens` gacha qisqartiriladi
+  (belgilar / 4). `list` → worker’ning sahifalangan kuzatuvlar endpoint’i (`total` quyi chegara hisoblanadi — worker
+  miqdorni emas, `hasMore` qiymatini qaytaradi).
+- Hook orqali olingan kuzatuvlar `discovery` → `factual`, `decision` → `procedural` va
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` tarzida moslashtiriladi.
+- **Yangilash mavjud emas** (`update()` `false` qaytaradi; kuzatuvlar o‘zgarmas) va **TTL mavjud emas**
+  (`expiresAt` e’tiborsiz qoldiriladi). claude-mem `key` bo‘yicha upsert qilish o‘rniga bir xil saqlashlarni deduplikatsiya qiladi.
+- Prompt kiritish (`retrieval.ts`) va `omniroute_memory_*` MCP vositalari hali ham SQLite’dan
+  to‘g‘ridan-to‘g‘ri o‘qiydi — ular `memoryManager` orqali o‘tmaydi, shuning uchun bu backend ularni ma’lumot bilan ta’minlamaydi.
+
+**claude-mem’ning o‘z LLM chaqiruvlarini OmniRoute orqali yo‘naltirish.** claude-mem kuzatuvlarni
+LLM yordamida siqadi (standart: Claude Agent SDK). Uning `openai-compatible` provayderini
+OmniRoute’ga yo‘naltirish mumkin, bunda kombinatsiyalangan zaxira mexanizmi va xarajatlarni kuzatish qo‘llaniladi. `~/.claude-mem/settings.json` ichida:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API kaliti>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute modeli yoki kombinatsiyasi>"
+}
+```
 
 ### Sozlamalar
 
-Xotira backend sozlamalari ilova sozlamalari jadvalida saqlanadi va `src/lib/memory/settings.ts` orqali boshqariladi:
+Xotira backend’i sozlamalari ilova sozlamalari jadvalida saqlanadi va `src/lib/memory/settings.ts` orqali boshqariladi:
 
-| Sozlama             | Muhit/konfiguratsiya kaliti | Standart   | Tavsif                                     |
-| ------------------- | --------------------------- | ---------- | ------------------------------------------ |
-| Asosiy backend      | `memoryPrimaryBackend`      | `"sqlite"` | Asosiy backend IDsi                        |
-| Zaxira backendlar   | `memoryFallbackBackends`    | `[]`       | Tartiblangan zaxira backend IDlari         |
-| Backend sozlamalari | `memoryBackendConfigs`      | `{}`       | Har bir backend uchun sozlama ustunliklari |
+| Sozlama                    | Muhit/Konfiguratsiya kaliti | Standart qiymat | Tavsif                                                |
+| -------------------------- | --------------------------- | --------------- | ----------------------------------------------------- |
+| Asosiy backend             | `memoryPrimaryBackend`      | `"sqlite"`      | Asosiy backend ID’si                                  |
+| Zaxira backend’lar         | `memoryFallbackBackends`    | `[]`            | Tartiblangan zaxira backend ID’lari                   |
+| Backend konfiguratsiyalari | `memoryBackendConfigs`      | `{}`            | Har bir backend uchun konfiguratsiya o‘zgartirishlari |
 
-Sozlamalar `normalizeMemorySettings()` orqali normallashtiriladi va `getMemorySettings()` da keshga olinadi.
+Sozlamalar `normalizeMemorySettings()` orqali me’yorlashtiriladi va `getMemorySettings()` da keshlanadi.
 
-### Initsializatsiya jarayoni
+### Ishga tushirish jarayoni
 
 ```
-Ilovani dastlabki yuklash
-  → index.ts importlari (yon taʼsir): SQLiteBackendni roʻyxatdan oʻtkazadi
-  → initMemoryBackends() ilovaning hayot siklidan chaqiriladi:
+Ilovaning boshlang‘ich yuklanishi
+  → index.ts importlari (yon ta’sir): SQLiteBackend’ni ro‘yxatdan o‘tkazadi
+  → initMemoryBackends() ilova hayot siklidan chaqiriladi:
       1. Sozlamalarni yuklash (getMemorySettings)
-      2. Asosiy + zaxira backendlarni sozlash
-      3. Barcha backendlarni initsializatsiya qilish (sogʻliq holatini tekshirish)
-      4. Soʻrovlar uchun tayyor
+      1b. backendConfigs ichida mavjud ixtiyoriy backend’larni ro‘yxatdan o‘tkazish (claude-mem)
+      2. Asosiy + zaxira backend’larni sozlash
+      3. Barcha backend’larni ishga tushirish (sog‘lomlik tekshiruvi)
+      4. So‘rovlar uchun tayyor
 ```
 
-### Yangi backend qoʻshish
+### Yangi backend qo‘shish
 
 1. `src/lib/memory/<name>Backend.ts` ichida **`MemoryBackend` interfeysini amalga oshiring**
 2. `src/lib/memory/index.ts` dan **eksport qiling**
-3. Ishga tushishda `memoryManager.register(yourBackend)` yordamida **roʻyxatdan oʻtkazing**
-4. Sozlamalar orqali **sozlang**: `memoryPrimaryBackend` qiymatini backend IDingizga oʻrnating
-5. Namuna sifatida `src/lib/memory/__tests__/generic-backend.test.ts` bilan **sinovdan oʻtkazing**
+3. Ishga tushirish vaqtida `memoryManager.register(yourBackend)` yordamida **ro‘yxatdan o‘tkazing**
+4. Sozlamalar orqali **konfiguratsiya qiling**: `memoryPrimaryBackend` qiymatini backend ID’ingizga o‘rnating
+5. Namuna sifatida `src/lib/memory/__tests__/generic-backend.test.ts` bilan **sinovdan o‘tkazing**
 
-#### Misol: Brain backendi
+#### Misol: Brain backend’i
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1053,7 +1101,7 @@ memoryManager.register(brainBackend);
 
 ### Tekshirish
 
-#### Modul testlari
+#### Birlik testlari
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
@@ -1062,14 +1110,14 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 Kutiladigan natija: quyidagilarni qamrab oluvchi **35 ta test, barchasi muvaffaqiyatli**:
 
 - Konstruktor (2)
-- Sogʻliq holatini tekshirish (4) — muvaffaqiyat, 500 xatosi, tarmoq xatosi, kechikish
-- Initsializatsiya (2) — muvaffaqiyat, muvaffaqiyatsizlik
+- Sog‘lomlik tekshiruvi (4) — muvaffaqiyat, 500 xatosi, tarmoq xatosi, kechikish
+- Ishga tushirish (2) — muvaffaqiyat, muvaffaqiyatsizlik
 - Yaratish (2) — standart endpoint, maxsus endpoint
-- Olish (4) — muvaffaqiyat, 404 → null, 404 boʻlmagan xatoni chiqarish, maxsus yoʻl parametrlari
+- Olish (4) — muvaffaqiyat, 404 → null, 404 bo‘lmagan xatoni chiqarish, maxsus yo‘l parametrlari
 - Yangilash (2) — muvaffaqiyat, 404 → false
-- Oʻchirish (2) — muvaffaqiyat, 404 → false
-- Roʻyxat (2) — soʻrov parametrlari, maxsus parametr nomlari
-- Qidirish (3) — soʻrov parametrlari, maxsus endpoint, parametrlarni serializatsiya qilish
+- O‘chirish (2) — muvaffaqiyat, 404 → false
+- Ro‘yxat (2) — so‘rov parametrlari, maxsus parametr nomlari
+- Qidirish (3) — so‘rov parametrlari, maxsus endpoint, parametrlarni serializatsiya qilish
 - Autentifikatsiya sarlavhalari (2) — Bearer tokeni, maxsus sarlavhalar
 - Fabrika (1)
 
@@ -1079,4 +1127,4 @@ Kutiladigan natija: quyidagilarni qamrab oluvchi **35 ta test, barchasi muvaffaq
 npm run typecheck:core
 ```
 
-Kutiladigan natija: **0 ta xato**.
+Kutiladi: **0 ta xato**.

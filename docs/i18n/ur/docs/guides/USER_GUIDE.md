@@ -670,7 +670,7 @@ post_install() {
 
 ### حسبِ ضرورت ماڈلز
 
-ایپ اپ ڈیٹ کا انتظار کیے بغیر کسی بھی provider میں کوئی بھی model ID شامل کریں:
+ایپ اپ ڈیٹ کا انتظار کیے بغیر کسی بھی فراہم کنندہ میں کوئی بھی ماڈل ID شامل کریں:
 
 ```bash
 # API کے ذریعے
@@ -679,59 +679,59 @@ curl -X POST http://localhost:20128/api/provider-models \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
 # فہرست: curl http://localhost:20128/api/provider-models?provider=openai
-# ہٹائیں: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# حذف کریں: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-یا Dashboard استعمال کریں: **Providers → [Provider] → Custom Models**۔
+یا ڈیش بورڈ استعمال کریں: **Providers → [Provider] → Custom Models**۔
 
 نوٹس:
 
-- OpenRouter اور OpenAI/Anthropic سے ہم آہنگ providers کا انتظام صرف **Available Models** سے کیا جاتا ہے۔ دستی اضافہ، import، اور auto-sync سب ایک ہی دستیاب ماڈلز کی فہرست میں شامل ہوتے ہیں، اس لیے ان providers کے لیے Custom Models کا کوئی علیحدہ حصہ نہیں ہوتا۔
-- **Custom Models** حصہ ان providers کے لیے ہے جو منظم دستیاب ماڈلز کے imports فراہم نہیں کرتے۔
+- OpenRouter اور OpenAI/Anthropic سے مطابقت رکھنے والے فراہم کنندگان کا انتظام صرف **Available Models** سے کیا جاتا ہے۔ دستی اضافہ، درآمد، اور خودکار مطابقت پذیری سب ایک ہی دستیاب ماڈلز کی فہرست میں شامل ہوتے ہیں، اس لیے ان فراہم کنندگان کے لیے علیحدہ Custom Models سیکشن موجود نہیں ہے۔
+- **Custom Models** سیکشن ان فراہم کنندگان کے لیے ہے جو منظم دستیاب ماڈلز کی درآمد فراہم نہیں کرتے۔
 
-### حسبِ ضرورت OpenAI سے ہم آہنگ Providers
+### حسبِ ضرورت OpenAI سے مطابقت رکھنے والے فراہم کنندگان
 
-OpenAI API استعمال کرنے والا کوئی بھی gateway (خود میزبانی کردہ proxy، vLLM، یا فریقِ ثالث aggregator)
-اپنے الگ provider node کے طور پر شامل کیا جا سکتا ہے:
+OpenAI API استعمال کرنے والے کسی بھی گیٹ وے (خود میزبانی کردہ پراکسی، vLLM، یا فریقِ ثالث ایگریگیٹر)
+کو اس کے اپنے فراہم کنندہ نوڈ کے طور پر شامل کیا جا سکتا ہے:
 
 1. **Providers → Add OpenAI Compatible**۔
-2. **Name**: node کے لیے دکھائی جانے والی شناخت۔
-3. **Prefix**: routing کا نام۔ Clients ماڈلز کو `<prefix>/<model>` کے طور پر کال کرتے ہیں، لہٰذا
-   `mygw` prefix والا node، `mygw/gpt-4o-mini` فراہم کرتا ہے۔ یہ لازمی ہے؛ حروف پر کوئی پابندی نہیں۔
-4. **API Type**: endpoint کی وہ قسم جو gateway فراہم کرتا ہے (Chat Completions، Responses،
-   Embeddings، audio، images)۔
-5. **Base URL**: `/v1` تک اور اسے شامل کرتے ہوئے API root (مثلاً
-   `https://gateway.example.com/v1`)، مکمل `/chat/completions` path نہیں۔ غیر معیاری
-   paths والے gateways انہیں **Advanced Settings** کے تحت متعین کرتے ہیں (chat path، models path)۔
-6. **API Key (for Check)** فیلڈ صرف connection کی جانچ کرتی ہے۔ Node بنانے کے بعد،
-   اسے کھولیں اور requests کے استعمال کے لیے key محفوظ کرنے کی خاطر **Add Connection** استعمال کریں۔
+2. **Name**: نوڈ کے لیے ایک نمائشی لیبل۔
+3. **Prefix**: روٹنگ کا نام۔ کلائنٹس ماڈلز کو `<prefix>/<model>` کی صورت میں کال کرتے ہیں، لہٰذا
+   `mygw` پریفکس والا نوڈ `mygw/gpt-4o-mini` فراہم کرتا ہے۔ یہ لازمی ہے؛ حروف کے حوالے سے کوئی پابندی نہیں۔
+4. **API Type**: اینڈ پوائنٹس کا وہ خاندان جو گیٹ وے فراہم کرتا ہے (Chat Completions، Responses،
+   Embeddings، آڈیو، تصاویر)۔
+5. **Base URL**: API روٹ، جس میں `/v1` تک کا حصہ شامل ہو (مثلاً
+   `https://gateway.example.com/v1`)، مکمل `/chat/completions` پاتھ نہیں۔ غیر معیاری
+   پاتھ والے گیٹ ویز انہیں **Advanced Settings** کے تحت مقرر کرتے ہیں (چیٹ پاتھ، ماڈلز پاتھ)۔
+6. **API Key (for Check)** فیلڈ صرف کنکشن کی جانچ کرتی ہے۔ نوڈ بنانے کے بعد،
+   اسے کھولیں اور درخواستوں میں استعمال ہونے والی کلید محفوظ کرنے کے لیے **Add Connection** استعمال کریں۔
 
-Node کو `openai-compatible-<apiType>-<uuid>` کی شکل میں ایک اندرونی id ملتی ہے؛ آپ کو اسے کبھی
-ٹائپ کرنے کی ضرورت نہیں، prefix ہی عوامی نام ہے۔
+نوڈ کو `openai-compatible-<apiType>-<uuid>` کی صورت میں ایک اندرونی id ملتی ہے؛ آپ کو اسے کبھی
+ٹائپ کرنے کی ضرورت نہیں، پریفکس ہی عوامی نام ہے۔
 
-#### محفوظ prefixes
+#### محفوظ پریفکسز
 
-کوئی prefix کسی built-in provider کی id یا alias (مثلاً `openai`، `cf`) یا
-کسی سبکدوش provider کی id نہیں ہو سکتا۔ Model resolver حسبِ ضرورت nodes سے پہلے built-in ids اور aliases
-کی جانچ کرتا ہے، لہٰذا ان prefixes میں سے کسی ایک کو استعمال کرنے والے node کو کبھی traffic نہیں ملے گا:
-`<prefix>/model` اس کے بجائے built-in provider کے پاس جائے گا، یا اگر وہ provider
-سبکدوش ہو چکا ہو تو بند حالت میں ناکام ہو جائے گا۔ ایسے prefix کے ساتھ node بنانے یا اس میں ترمیم کرنے پر یہ رد کر دیا جاتا ہے:
+کوئی پریفکس پہلے سے موجود فراہم کنندہ کا id یا عرف (مثلاً `openai`، `cf`) یا
+کسی سبک دوش فراہم کنندہ کا id نہیں ہو سکتا۔ ماڈل ریزالور حسبِ ضرورت نوڈز سے پہلے پہلے سے موجود
+ids اور عرف چیک کرتا ہے، اس لیے ان پریفکسز میں سے کوئی استعمال کرنے والے نوڈ کو کبھی ٹریفک موصول نہیں ہوگی:
+`<prefix>/model` اس کے بجائے پہلے سے موجود فراہم کنندہ کے پاس جائے گا، یا اگر وہ فراہم کنندہ
+سبک دوش ہو چکا ہو تو محفوظ انداز میں ناکام ہو جائے گا۔ ایسے پریفکس کے ساتھ نوڈ بنانے یا اس میں ترمیم کرنے پر یہ خرابی ظاہر ہوتی ہے:
 
 ```text
-prefix: "<prefix>" ایک محفوظ provider prefix ہے — کوئی مختلف prefix منتخب کریں (محفوظ ids/aliases حسبِ ضرورت nodes کے لیے استعمال نہیں کیے جا سکتے کیونکہ <prefix>/model جیسی requests کسی built-in provider کو route ہوتی ہیں یا اس کے سبکدوش ہونے پر بند حالت میں ناکام ہو جاتی ہیں)
+prefix: "<prefix>" is a reserved provider prefix — choose a different prefix (reserved ids/aliases cannot be used for custom nodes because requests like <prefix>/model route to a built-in provider or fail closed when retired)
 ```
 
-کوئی منفرد prefix (`mygw`، `acme-proxy`) منتخب کریں۔ اگر کسی حسبِ ضرورت node کو بھیجی گئی requests
-ایسی خرابی کے ساتھ ناکام ہوں جس میں کسی built-in provider یا اس کے credentials کا نام ہو، تو جانچیں کہ آیا node کا prefix
-محفوظ ہے: اس اصول کے وجود میں آنے سے پہلے محفوظ کیے گئے nodes اب بھی ذخیرہ ہیں، مگر ان کا prefix
-built-in provider کو route ہوتا ہے۔ Node میں ترمیم کرکے اسے نیا prefix دیں۔
+ایک منفرد پریفکس منتخب کریں (`mygw`، `acme-proxy`)۔ اگر کسی حسبِ ضرورت نوڈ کی درخواستیں ایسی
+خرابی کے ساتھ ناکام ہوں جس میں پہلے سے موجود فراہم کنندہ یا اس کی اسناد کا نام ہو، تو چیک کریں کہ آیا نوڈ کا پریفکس
+محفوظ ہے: اس اصول کے نفاذ سے پہلے محفوظ کیے گئے نوڈز اب بھی موجود ہیں، لیکن ان کا پریفکس ٹریفک کو
+پہلے سے موجود فراہم کنندہ کی طرف بھیجتا ہے۔ نوڈ میں ترمیم کریں اور اسے نیا پریفکس دیں۔
 
-### OmniRoute Peers کو زنجیر بنانا
+### OmniRoute پیئرز کو زنجیر بنانا
 
-ایک اور OmniRoute gateway کو **Custom OpenAI-compatible** provider کے طور پر شامل کیا جا سکتا ہے۔
-Peer کا `/v1` base URL اور اسی peer کی جانب سے جاری کردہ مخصوص، کم از کم اختیارات والی API key استعمال کریں۔
+ایک اور OmniRoute گیٹ وے کو **Custom OpenAI-compatible** فراہم کنندہ کے طور پر شامل کیا جا سکتا ہے۔ اس
+پیئر کا `/v1` بیس URL اور اسی پیئر کی جاری کردہ مخصوص، کم از کم مراعات والی API کلید استعمال کریں۔
 
-باہمی یا multi-hop زنجیروں کے لیے ہر gateway پر اختیاری loop guard فعال کریں:
+دو طرفہ یا متعدد مراحل والی زنجیروں کے لیے، ہر گیٹ وے پر اختیاری لوپ گارڈ فعال کریں:
 
 ```bash
 # gateway-a
@@ -747,18 +747,17 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-صرف واضح طور پر allowlist کیے گئے peer URL کو بھیجی جانے والی requests کو
-`X-OmniRoute-Peer-Trace` header ملتا ہے۔ کوئی gateway دہرائی گئی instance ID یا ختم شدہ hop
-budget کو HTTP `508 Loop Detected` کے ساتھ رد کرتا ہے؛ عام upstream providers کو کوئی peer metadata نہیں ملتا۔
+صرف واضح طور پر اجازت یافتہ پیئر URL کو بھیجی گئی درخواستوں میں
+`X-OmniRoute-Peer-Trace` ہیڈر شامل ہوتا ہے۔ کوئی گیٹ وے دہرائی گئی instance ID یا ختم شدہ hop
+بجٹ کو HTTP `508 Loop Detected` کے ساتھ مسترد کرتا ہے؛ عام upstream فراہم کنندگان کو کوئی پیئر میٹا ڈیٹا نہیں ملتا۔
 
-Peer chaining نہ تو database replication ہے اور نہ ہی host failover۔ ہر gateway اپنی الگ
-SQLite state، caches، rate counters، اور sessions برقرار رکھتا ہے۔ Active/passive یا active/active دستیابی کے لیے
-health-checked reverse proxy یا client failover استعمال کریں، اور ایک SQLite database کو کبھی بھی
-متعدد چلتی ہوئی OmniRoute instances میں mount نہ کریں۔
+پیئر چیننگ ڈیٹابیس ریپلیکیشن یا ہوسٹ فیل اوور نہیں ہے۔ ہر گیٹ وے اپنی الگ
+SQLite حالت، کیشز، شرح کاؤنٹرز، اور سیشنز رکھتا ہے۔ فعال/غیر فعال یا فعال/فعال دستیابی کے لیے صحت کی جانچ والا ریورس پراکسی یا کلائنٹ
+فیل اوور استعمال کریں، اور ایک SQLite ڈیٹابیس کو کبھی بھی بیک وقت چلنے والی متعدد OmniRoute انسٹینسز میں ماؤنٹ نہ کریں۔
 
-### مخصوص Provider Routes
+### مخصوص فراہم کنندہ روٹس
 
-Model validation کے ساتھ requests کو براہِ راست کسی مخصوص provider کی طرف route کریں:
+ماڈل کی توثیق کے ساتھ درخواستوں کو براہِ راست کسی مخصوص فراہم کنندہ کی طرف بھیجیں:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -766,110 +765,110 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-اگر provider prefix موجود نہ ہو تو وہ خودکار طور پر شامل ہو جاتا ہے۔ غیر مطابقت رکھنے والے models پر `400` واپس آتا ہے۔
+اگر فراہم کنندہ کا پریفکس موجود نہ ہو تو وہ خودکار طور پر شامل کر دیا جاتا ہے۔ غیر مماثل ماڈلز `400` لوٹاتے ہیں۔
 
-### Network Proxy کی ترتیب
+### نیٹ ورک پراکسی کی تشکیل
 
 ```bash
-# عالمی proxy مقرر کریں
+# عالمی پراکسی مقرر کریں
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# ہر provider کے لیے الگ proxy
+# فی فراہم کنندہ پراکسی
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Proxy کی جانچ کریں
+# پراکسی کی جانچ کریں
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**ترجیح:** Key-specific → Combo-specific → Provider-specific → Global → Environment۔
+**ترجیح:** کلید کے لیے مخصوص → کومبو کے لیے مخصوص → فراہم کنندہ کے لیے مخصوص → عالمی → ماحول۔
 
-### Model Catalog API
+### ماڈل کیٹلاگ API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Provider کے لحاظ سے اقسام (`chat`، `embedding`، `image`) کے ساتھ گروپ کیے گئے models واپس کرتا ہے۔
+فراہم کنندہ کے لحاظ سے گروپ کیے گئے ماڈلز، اقسام (`chat`، `embedding`، `image`) کے ساتھ لوٹاتا ہے۔
 
-### Cloud Sync
+### کلاؤڈ مطابقت پذیری
 
-- Providers، combos، اور settings کو تمام devices پر sync کریں
-- Timeout + fail-fast کے ساتھ خودکار background sync
-- Production میں server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` کو ترجیح دیں
+- فراہم کنندگان، کومبوز، اور ترتیبات کو مختلف آلات کے درمیان مطابقت پذیر کریں
+- ٹائم آؤٹ + فوری ناکامی کے ساتھ خودکار پس منظر مطابقت پذیری
+- پروڈکشن میں سرور سائیڈ `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` کو ترجیح دیں
 
-### Cloudflare Quick Tunnel
+### Cloudflare فوری ٹنل
 
 - Docker اور دیگر self-hosted deployments کے لیے **Dashboard → Endpoints** میں دستیاب ہے
-- ایک عارضی `https://*.trycloudflare.com` URL بناتا ہے جو آپ کے موجودہ OpenAI-compatible `/v1` endpoint کو درخواستیں آگے بھیجتا ہے
-- پہلی بار فعال کرنے پر `cloudflared` صرف ضرورت کے وقت install ہوتا ہے؛ بعد کے restarts اسی managed binary کو دوبارہ استعمال کرتے ہیں
+- ایک عارضی `https://*.trycloudflare.com` URL بناتا ہے جو آپ کے موجودہ OpenAI-compatible `/v1` endpoint کی طرف فارورڈ کرتا ہے
+- پہلی بار فعال کرنے پر صرف ضرورت کے وقت `cloudflared` انسٹال ہوتا ہے؛ بعد کے restarts اسی managed binary کو دوبارہ استعمال کرتے ہیں
 - OmniRoute یا container restart کے بعد Quick Tunnels خودکار طور پر بحال نہیں ہوتے؛ ضرورت پڑنے پر انہیں dashboard سے دوبارہ فعال کریں
-- Tunnel URLs عارضی ہوتے ہیں اور ہر بار tunnel کو روکنے/چلانے پر تبدیل ہو جاتے ہیں
-- محدود containers میں QUIC UDP buffer کی غیر ضروری warnings سے بچنے کے لیے managed Quick Tunnels بطور ڈیفالٹ HTTP/2 transport استعمال کرتے ہیں
+- Tunnel URLs عارضی ہوتے ہیں اور ہر بار tunnel کو روکنے/شروع کرنے پر تبدیل ہو جاتے ہیں
+- محدود containers میں غیر ضروری QUIC UDP buffer warnings سے بچنے کے لیے managed Quick Tunnels بطور ڈیفالٹ HTTP/2 transport استعمال کرتے ہیں
 - اگر آپ managed transport کے انتخاب کو override کرنا چاہتے ہیں تو `CLOUDFLARED_PROTOCOL=quic` یا `auto` سیٹ کریں
-- اگر آپ managed download کے بجائے پہلے سے install شدہ `cloudflared` binary استعمال کرنا چاہتے ہیں تو `CLOUDFLARED_BIN` سیٹ کریں
-- Cloudflare Quick Tunnel، Tailscale Funnel، اور ngrok Tunnel کے panels کو **Settings → Appearance** میں دکھایا یا چھپایا جا سکتا ہے۔ کسی panel کو چھپانے سے چلتا ہوا tunnel بند نہیں ہوتا۔
+- اگر آپ managed download کے بجائے پہلے سے انسٹال شدہ `cloudflared` binary استعمال کرنا چاہتے ہیں تو `CLOUDFLARED_BIN` سیٹ کریں
+- Cloudflare Quick Tunnel، Tailscale Funnel، اور ngrok Tunnel panels کو **Settings → Appearance** میں دکھایا یا چھپایا جا سکتا ہے۔ کسی panel کو چھپانے سے چلتا ہوا tunnel بند نہیں ہوتا۔
 
-### LLM Gateway Intelligence (مرحلہ 9)
+### LLM Gateway انٹیلیجنس (مرحلہ 9)
 
-- **Semantic Cache** — non-streaming، temperature=0 responses کو خودکار طور پر cache کرتا ہے (`X-OmniRoute-No-Cache: true` کے ذریعے bypass کریں)
-- **Request Idempotency** — `Idempotency-Key` یا `X-Request-Id` header کے ذریعے 5s کے اندر requests کی نقل ختم کرتا ہے
-- **Progress Tracking** — `X-OmniRoute-Progress: true` header کے ذریعے اختیاری SSE `event: progress` events فراہم کرتا ہے
+- **Semantic Cache** — غیر streaming، temperature=0 responses کو خودکار طور پر cache کرتا ہے (`X-OmniRoute-No-Cache: true` کے ذریعے bypass کریں)
+- **Request Idempotency** — `Idempotency-Key` یا `X-Request-Id` header کے ذریعے 5s کے اندر requests کی تکرار ختم کرتا ہے
+- **Progress Tracking** — `X-OmniRoute-Progress: true` header کے ذریعے اختیاری SSE `event: progress` events
 
 ---
 
 ### Translator Playground
 
-**Dashboard → Translator** کے ذریعے رسائی حاصل کریں۔ یہ debug کریں اور بصری طور پر دیکھیں کہ OmniRoute مختلف providers کے درمیان API requests کا ترجمہ کیسے کرتا ہے۔
+**Dashboard → Translator** کے ذریعے رسائی حاصل کریں۔ Debug کریں اور تصوراتی طور پر دیکھیں کہ OmniRoute مختلف providers کے درمیان API requests کا ترجمہ کیسے کرتا ہے۔
 
-| موڈ              | مقصد                                                                                          |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| **Playground**   | source/target formats منتخب کریں، request paste کریں، اور ترجمہ شدہ output فوراً دیکھیں       |
-| **Chat Tester**  | proxy کے ذریعے براہِ راست chat messages بھیجیں اور مکمل request/response cycle کا معائنہ کریں |
-| **Test Bench**   | ترجمے کی درستگی کی تصدیق کے لیے متعدد format combinations پر batch tests چلائیں               |
-| **Live Monitor** | proxy سے requests گزرتے وقت real-time translations دیکھیں                                     |
+| موڈ              | مقصد                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| **Playground**   | source/target formats منتخب کریں، request پیسٹ کریں، اور ترجمہ شدہ output فوراً دیکھیں  |
+| **Chat Tester**  | proxy کے ذریعے live chat messages بھیجیں اور مکمل request/response cycle کا معائنہ کریں |
+| **Test Bench**   | ترجمے کی درستگی کی توثیق کے لیے متعدد format combinations پر batch tests چلائیں         |
+| **Live Monitor** | proxy سے requests گزرتے وقت real-time translations دیکھیں                               |
 
 **استعمال کے مواقع:**
 
-- یہ debug کریں کہ کوئی مخصوص client/provider combination کیوں ناکام ہو رہا ہے
-- تصدیق کریں کہ thinking tags، tool calls، اور system prompts کا درست ترجمہ ہوتا ہے
-- OpenAI، Claude، Gemini، اور Responses API formats کے درمیان format کے فرق کا موازنہ کریں
+- Debug کریں کہ کوئی مخصوص client/provider combination کیوں ناکام ہوتا ہے
+- توثیق کریں کہ thinking tags، tool calls، اور system prompts درست طور پر ترجمہ ہوتے ہیں
+- OpenAI، Claude، Gemini، اور Responses API formats کے درمیان format differences کا موازنہ کریں
 
 ---
 
 ### Routing Strategies
 
-**Dashboard → Settings → Routing** کے ذریعے configure کریں۔ dashboard چھ سب سے زیادہ استعمال ہونے والی strategies دکھاتا ہے؛ combos اور auto-router اندرونی طور پر مزید وسیع مجموعے کو support کرتے ہیں۔
+**Dashboard → Settings → Routing** کے ذریعے configure کریں۔ dashboard سب سے زیادہ استعمال ہونے والی چھ strategies دکھاتا ہے؛ combos اور auto-router اندرونی طور پر ایک زیادہ وسیع مجموعے کو support کرتے ہیں۔
 
-**Dashboard پر نظر آنے والی strategies (account-level routing):**
+**Dashboard میں دکھائی دینے والی strategies (account-level routing):**
 
-| حکمتِ عملی                     | وضاحت                                                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **Fill First**                 | priority کی ترتیب میں accounts استعمال کرتا ہے — primary account عدم دستیابی تک تمام requests سنبھالتا ہے                 |
-| **Round Robin**                | قابلِ ترتیب sticky limit کے ساتھ تمام accounts میں باری باری جاتا ہے (ڈیفالٹ: فی account 3 calls)                         |
-| **P2C (Power of Two Choices)** | 2 بے ترتیب accounts منتخب کر کے زیادہ صحت مند account کی طرف route کرتا ہے — صحت کو مدِنظر رکھتے ہوئے load متوازن کرتا ہے |
-| **Random**                     | Fisher-Yates shuffle استعمال کرتے ہوئے ہر request کے لیے بے ترتیب account منتخب کرتا ہے                                   |
-| **Least Used**                 | سب سے پرانے `lastUsedAt` timestamp والے account کی طرف route کر کے traffic یکساں طور پر تقسیم کرتا ہے                     |
-| **Cost Optimized**             | سب سے کم priority value والے account کی طرف route کرتا ہے، یوں کم ترین لاگت والے providers کے لیے بہتر بناتا ہے           |
+| Strategy                       | وضاحت                                                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fill First**                 | accounts کو priority order میں استعمال کرتی ہے — primary account عدم دستیابی تک تمام requests سنبھالتا ہے                             |
+| **Round Robin**                | قابلِ ترتیب sticky limit کے ساتھ تمام accounts کے درمیان باری باری چلتی ہے (ڈیفالٹ: فی account 3 calls)                               |
+| **P2C (Power of Two Choices)** | 2 بے ترتیب accounts منتخب کرتی ہے اور زیادہ صحت مند account کی طرف route کرتی ہے — health کو مدِنظر رکھتے ہوئے load کو متوازن کرتی ہے |
+| **Random**                     | Fisher-Yates shuffle استعمال کرتے ہوئے ہر request کے لیے بے ترتیب account منتخب کرتی ہے                                               |
+| **Least Used**                 | سب سے پرانے `lastUsedAt` timestamp والے account کی طرف route کرتی ہے، تاکہ traffic یکساں طور پر تقسیم ہو                              |
+| **Cost Optimized**             | سب سے کم priority value والے account کی طرف route کرتی ہے، تاکہ کم ترین لاگت والے providers کو ترجیح دی جا سکے                        |
 
-**اعلیٰ درجے کی combo اور auto strategies** (فی combo یا `auto/*` prefixes کے ذریعے قابلِ ترتیب — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) دیکھیں):
+**اعلیٰ درجے کی combo اور auto strategies** (ہر combo کے لیے یا `auto/*` prefixes کے ذریعے قابلِ ترتیب — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) دیکھیں):
 
-- `priority` — سخت ترتیب، کبھی round-robin نہیں کرتا
+- `priority` — سخت ترتیب، کبھی round-robin استعمال نہیں کرتی
 - `weighted` — فی model weights کے مطابق traffic کی متناسب تقسیم
-- `fill-first` — limits تک پہنچنے تک پہلے model کو استعمال کرتا ہے
+- `fill-first` — limits تک پہنچنے تک پہلے model کو مکمل استعمال کرتی ہے
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
 - `least-used` اور `cost-optimized`
-- `auto` — تمام candidates میں score کی بنیاد پر انتخاب
-- `lkgp` (Last Known Good Provider) — آخری کامیاب provider پر قائم رہتا ہے، پھر rules کی طرف fallback کرتا ہے
-- `context-optimized` — سب سے بڑی خالی context window والا model منتخب کرتا ہے
-- `context-relay` — follow-up turns کے لیے long-context models کو سلسلہ وار جوڑتا ہے
+- `auto` — تمام candidates میں score کی بنیاد پر
+- `lkgp` (Last Known Good Provider) — آخری کامیاب provider کو برقرار رکھتی ہے، پھر rules پر fallback کرتی ہے
+- `context-optimized` — سب سے بڑی دستیاب context window والا model منتخب کرتی ہے
+- `context-relay` — follow-up turns کے لیے long-context models کو زنجیر کی صورت میں جوڑتی ہے
 
 #### External Sticky Session Header
 
-بیرونی session affinity کے لیے (مثلاً reverse proxies کے پیچھے Claude Code/Codex agents)، یہ بھیجیں:
+external session affinity کے لیے (مثلاً reverse proxies کے پیچھے Claude Code/Codex agents)، یہ بھیجیں:
 
 ```http
 X-Session-Id: your-session-key
@@ -877,7 +876,7 @@ X-Session-Id: your-session-key
 
 OmniRoute، `x_session_id` بھی قبول کرتا ہے اور مؤثر session key کو `X-OmniRoute-Session-Id` میں واپس کرتا ہے۔
 
-اگر آپ Nginx استعمال کرتے ہیں اور underscore-form headers بھیجتے ہیں تو اسے فعال کریں:
+اگر آپ Nginx استعمال کرتے ہیں اور underscore-form headers بھیجتے ہیں، تو یہ فعال کریں:
 
 ```nginx
 underscores_in_headers on;
@@ -907,71 +906,131 @@ Chain: production-fallback
 
 ---
 
-### Resilience اور Circuit Breakers
+### عام Provider Combinations اور Routing Patterns
 
-**Dashboard → Settings → Resilience** کے ذریعے configure کریں۔
+OmniRoute میں متعدد providers کو یکجا کرنے اور ان کے درمیان routing کے لیے یہاں چند مثالی patterns ہیں:
 
-OmniRoute پانچ اجزاء کے ساتھ provider-level resilience نافذ کرتا ہے:
+#### 1. Coding Agent Combo: لاگت/رفتار کے Fallback کے ساتھ اعلیٰ درجے کی Reasoning
 
-1. **Request Queue اور Pacing** — system-level request کی رفتار اور بہاؤ کی تشکیل:
-   - **Requests Per Minute (RPM)** — فی account فی منٹ requests کی زیادہ سے زیادہ تعداد
-   - **Min Time Between Requests** — requests کے درمیان milliseconds میں کم از کم وقفہ
-   - **Max Concurrent Requests** — فی account بیک وقت requests کی زیادہ سے زیادہ تعداد
-2. **کنکشن کول ڈاؤن** — دوبارہ کوشش کے قابل ناکامیوں کے بعد ایک کنکشن کے لیے، توثیق کی ہر قسم کے لحاظ سے ترتیب:
-   - **بنیادی کول ڈاؤن** — اپ اسٹریم کی دوبارہ کوشش کے قابل ناکامیوں کے لیے ڈیفالٹ کول ڈاؤن وقفہ
-   - **اپ اسٹریم دوبارہ کوشش کے اشارے استعمال کریں** — دستیاب ہونے پر مستند `Retry-After` یا ری سیٹ اشاروں کی پابندی کرتا ہے
-   - **زیادہ سے زیادہ بیک آف مراحل** — بار بار ناکامیوں کے لیے ایکسپونینشل بیک آف کی زیادہ سے زیادہ سطح
+coding agents (OpenCode، Claude Code، Cursor، Cline) کے لیے موزوں۔ ابتدا میں frontier reasoning models کی طرف route کرتا ہے، اور quota ختم ہونے یا errors کی صورت میں تیز coding models پر fallback کرتا ہے۔
 
-3. **فراہم کنندہ سرکٹ بریکر** — فراہم کنندہ کی اینڈ ٹو اینڈ ناکامیوں کو ٹریک کرتا ہے، ترتیب دی گئی انتباہی حد پر فراہم کنندہ کو انحطاط پذیر قرار دیتا ہے، اور ترتیب دی گئی ناکامی کی حد تک پہنچنے پر بریکر کھول دیتا ہے:
-   - **انحطاط کی حد** — `DEGRADED` میں داخل ہونے سے پہلے فراہم کنندہ کی مسلسل ناکامیوں کی تعداد
-   - **ناکامی کی حد** — `OPEN` میں داخل ہونے سے پہلے فراہم کنندہ کی مسلسل ناکامیوں کی تعداد
-   - **ری سیٹ ٹائم آؤٹ** — فراہم کنندہ کو دوبارہ جانچنے سے پہلے کا وقت
-   - **CLOSED** (صحت مند) — درخواستیں معمول کے مطابق جاری رہتی ہیں
-   - **DEGRADED** — بڑھتی ہوئی ناکامیوں کو ٹریک کرتے ہوئے درخواستیں بدستور جاری رہتی ہیں
-   - **OPEN** — بار بار ناکامیوں کے بعد فراہم کنندہ کو عارضی طور پر بلاک کر دیا جاتا ہے
-   - **HALF_OPEN** — جانچ کی جا رہی ہے کہ آیا فراہم کنندہ بحال ہو چکا ہے
+- **Dashboard**: Combos → New Combo → Name: `agent-coding` → Strategy: `Priority`
+- **Models**:
+  1. `claude/claude-sonnet-4-6` (بنیادی coding agent)
+  2. `openai/gpt-4o` (ثانوی اعلیٰ گنجائش والا fallback)
+  3. `deepseek/deepseek-v4-flash` (اعلیٰ کارکردگی والا، کم لاگت fallback)
 
-   کنکشن تک محدود `429` شرح کی حدود **کنکشن کول ڈاؤن** میں رہتی ہیں اور فراہم کنندہ بریکر میں شمار نہیں ہوتیں۔
+```bash
+# API کے ذریعے مثال
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "agent-coding",
+    "strategy": "priority",
+    "models": [
+      { "model": "claude/claude-sonnet-4-6" },
+      { "model": "openai/gpt-4o" },
+      { "model": "deepseek/deepseek-v4-flash" }
+    ]
+  }'
+```
 
-   فراہم کنندہ بریکر کی رن ٹائم حالت صرف **ڈیش بورڈ → صحت** پر دکھائی جاتی ہے۔
+#### 2. مفت درجے کا خودکار فیل اوور کومبو
 
-4. **کول ڈاؤن کا انتظار کریں** — اگر ہر امیدوار کنکشن پہلے ہی کول ڈاؤن میں ہو تو OmniRoute قریب ترین کول ڈاؤن ختم ہونے کا انتظار کر سکتا ہے اور اسی کلائنٹ درخواست کو خودکار طور پر دوبارہ آزما سکتا ہے۔
+API کے اخراجات کے بغیر دستیابی کا دورانیہ زیادہ سے زیادہ کرنے کے لیے متعدد مفت درجے اور کلید کے بغیر کام کرنے والے فراہم کنندگان کو ایک سلسلے میں جوڑتا ہے۔
 
-5. **شرح کی حد کی خودکار شناخت** — جب اپ اسٹریم فراہم کنندگان واضح انتظار کے وقفے واپس کرتے ہیں تو ترتیب فعال ہونے کی صورت میں وہ اشارے مقامی کنکشن کول ڈاؤن پر فوقیت رکھتے ہیں۔
+- **حکمتِ عملی**: `Least Used` یا `Round Robin` (کوٹاز میں لوڈ تقسیم کرتی ہے)
+- **ماڈلز**:
+  1. `groq/llama-3.3-70b-versatile`
+  2. `gemini/gemini-2.5-flash`
+  3. `cerebras/gpt-oss-120b`
 
-**ماہرانہ مشورہ:** کسی تعطل کے بعد فعال فراہم کنندہ بریکرز کا معائنہ کرنے اور انہیں ری سیٹ کرنے کے لیے **صحت** کا صفحہ استعمال کریں۔ لچک پذیری کا صفحہ صرف ترتیب تبدیل کرتا ہے۔
+```bash
+# CLI کے ذریعے مثال
+omniroute combo create free-stack \
+  --models "groq/llama-3.3-70b-versatile,gemini/gemini-2.5-flash,cerebras/gpt-oss-120b" \
+  --strategy round-robin
+```
+
+#### 3. ملٹی موڈل / وژن اور متن پائپ لائن
+
+ایسے ورک فلوز کے لیے، جن میں تصویر کو سمجھنا اور کوڈ تیار کرنا شامل ہو، مخصوص وژن ماڈلز کو تیز رفتار متن کی تخلیق کے ساتھ جوڑنا۔
+
+- **پیٹرن**: ایک `Priority` کومبو جو پہلے وژن کی صلاحیت رکھنے والے ماڈلز اور آخر میں زیادہ تھروپٹ والا متن/کوڈ ماڈل درج کرتا ہے۔
+- **ماڈلز**:
+  1. `gemini/gemini-2.5-pro` (تصویر/ملٹی موڈل کی مضبوط تفہیم)
+  2. `openai/gpt-4o` (وژن اور ٹول کے استعمال کا متوازن امتزاج)
+  3. `deepseek/deepseek-v4-flash` (متن/کوڈ کی تخلیق)
 
 ---
 
-### ڈیٹابیس ایکسپورٹ / امپورٹ
+### لچک اور سرکٹ بریکرز
 
-ڈیٹابیس بیک اپس کا نظم **ڈیش بورڈ → ترتیبات → نظام اور اسٹوریج** میں کریں۔
+**Dashboard → Settings → Resilience** کے ذریعے ترتیب دیں۔
 
-| کارروائی                       | تفصیل                                                                                                                                                                         |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ڈیٹابیس ایکسپورٹ کریں**      | موجودہ SQLite ڈیٹابیس کو `.sqlite` فائل کے طور پر ڈاؤن لوڈ کرتا ہے                                                                                                            |
-| **سب ایکسپورٹ کریں (.tar.gz)** | ایک مکمل بیک اپ آرکائیو ڈاؤن لوڈ کرتا ہے، جس میں شامل ہیں: ڈیٹابیس، ترتیبات، کومبوز، فراہم کنندہ کنکشنز (اسناد کے بغیر)، API کلید کا میٹا ڈیٹا                                |
-| **ڈیٹابیس امپورٹ کریں**        | موجودہ ڈیٹابیس کو تبدیل کرنے کے لیے `.sqlite` فائل اپ لوڈ کرتا ہے۔ `DISABLE_SQLITE_AUTO_BACKUP=true` نہ ہونے کی صورت میں امپورٹ سے پہلے کا بیک اپ خودکار طور پر بنایا جاتا ہے |
+OmniRoute پانچ اجزاء کے ساتھ فراہم کنندہ کی سطح پر لچک نافذ کرتا ہے:
+
+1. **درخواستوں کی قطار اور رفتار کی تنظیم** — سسٹم کی سطح پر درخواستوں کی تشکیل:
+   - **درخواستیں فی منٹ (RPM)** — فی اکاؤنٹ ایک منٹ میں درخواستوں کی زیادہ سے زیادہ تعداد
+   - **درخواستوں کے درمیان کم از کم وقت** — درخواستوں کے درمیان ملی سیکنڈز میں کم از کم وقفہ
+   - **زیادہ سے زیادہ بیک وقت درخواستیں** — فی اکاؤنٹ بیک وقت درخواستوں کی زیادہ سے زیادہ تعداد
+
+2. **کنکشن کول ڈاؤن** — دوبارہ کوشش کے قابل ناکامیوں کے بعد کسی ایک کنکشن کے لیے، فی توثیقی قسم کی ترتیب:
+   - **بنیادی کول ڈاؤن** — دوبارہ کوشش کے قابل اپ اسٹریم ناکامیوں کے لیے طے شدہ کول ڈاؤن دورانیہ
+   - **اپ اسٹریم ری ٹرائی ہنٹس استعمال کریں** — دستیاب ہونے پر مستند `Retry-After` یا ری سیٹ ہنٹس کی پابندی کرتا ہے
+   - **زیادہ سے زیادہ بیک آف مراحل** — بار بار ہونے والی ناکامیوں کے لیے ایکسپونینشل بیک آف کی زیادہ سے زیادہ سطح
+
+3. **فراہم کنندہ سرکٹ بریکر** — ابتدا سے انتہا تک فراہم کنندہ کی ناکامیوں کو ٹریک کرتا ہے، ترتیب دی گئی انتباہی حد پر فراہم کنندہ کو تنزلی کا شکار قرار دیتا ہے، اور ترتیب دی گئی ناکامی کی حد پوری ہونے پر بریکر کھول دیتا ہے:
+   - **تنزلی کی حد** — `DEGRADED` میں داخل ہونے سے پہلے فراہم کنندہ کی مسلسل ناکامیوں کی تعداد
+   - **ناکامی کی حد** — `OPEN` میں داخل ہونے سے پہلے فراہم کنندہ کی مسلسل ناکامیوں کی تعداد
+   - **ری سیٹ ٹائم آؤٹ** — فراہم کنندہ کو دوبارہ جانچنے سے پہلے کا دورانیہ
+   - **CLOSED** (صحت مند) — درخواستیں معمول کے مطابق جاری رہتی ہیں
+   - **DEGRADED** — بڑھی ہوئی ناکامیوں کو ٹریک کرتے ہوئے درخواستیں جاری رہتی ہیں
+   - **OPEN** — بار بار ناکامیوں کے بعد فراہم کنندہ کو عارضی طور پر مسدود کر دیا جاتا ہے
+   - **HALF_OPEN** — جانچ کی جا رہی ہے کہ آیا فراہم کنندہ بحال ہو گیا ہے
+
+   کنکشن کے دائرۂ کار تک محدود `429` ریٹ لمٹس **کنکشن کول ڈاؤن** میں رہتی ہیں اور فراہم کنندہ بریکر میں شمار نہیں ہوتیں۔
+
+   فراہم کنندہ بریکر کی رن ٹائم حالت صرف **Dashboard → Health** پر دکھائی جاتی ہے۔
+
+4. **کول ڈاؤن کا انتظار** — اگر ہر ممکنہ کنکشن پہلے ہی کول ڈاؤن میں ہو تو OmniRoute قریب ترین کول ڈاؤن کے اختتام کا انتظار کر کے اسی کلائنٹ درخواست کی خودکار طور پر دوبارہ کوشش کر سکتا ہے۔
+
+5. **ریٹ لمٹ کی خودکار شناخت** — جب اپ اسٹریم فراہم کنندگان واضح انتظار کے دورانیے واپس کرتے ہیں تو ترتیب فعال ہونے کی صورت میں وہ ہنٹس مقامی کنکشن کول ڈاؤن کو اوور رائیڈ کر دیتے ہیں۔
+
+**ماہرانہ مشورہ:** کسی تعطل کے بعد فعال فراہم کنندہ بریکرز کا معائنہ اور ری سیٹ کرنے کے لیے **Health** صفحہ استعمال کریں۔ Resilience صفحہ صرف ترتیب تبدیل کرتا ہے۔
+
+---
+
+### ڈیٹا بیس ایکسپورٹ / امپورٹ
+
+**Dashboard → Settings → System & Storage** میں ڈیٹا بیس بیک اپس کا نظم کریں۔
+
+| کارروائی                           | وضاحت                                                                                                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ڈیٹا بیس ایکسپورٹ کریں**         | موجودہ SQLite ڈیٹا بیس کو `.sqlite` فائل کے طور پر ڈاؤن لوڈ کرتا ہے                                                                                                  |
+| **سب کچھ ایکسپورٹ کریں (.tar.gz)** | ایک مکمل بیک اپ آرکائیو ڈاؤن لوڈ کرتا ہے، جس میں شامل ہیں: ڈیٹا بیس، ترتیبات، کومبوز، فراہم کنندہ کنکشنز (اسناد کے بغیر)، API کلید کا میٹا ڈیٹا                      |
+| **ڈیٹا بیس امپورٹ کریں**           | موجودہ ڈیٹا بیس کو تبدیل کرنے کے لیے `.sqlite` فائل اپ لوڈ کرتا ہے۔ جب تک `DISABLE_SQLITE_AUTO_BACKUP=true` نہ ہو، امپورٹ سے پہلے بیک اپ خودکار طور پر بنایا جاتا ہے |
 
 ```bash
-# API: ڈیٹابیس ایکسپورٹ کریں
+# API: ڈیٹا بیس ایکسپورٹ کریں
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: سب ایکسپورٹ کریں (مکمل آرکائیو)
+# API: سب کچھ ایکسپورٹ کریں (مکمل آرکائیو)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: ڈیٹابیس امپورٹ کریں
+# API: ڈیٹا بیس امپورٹ کریں
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**امپورٹ کی توثیق:** امپورٹ کردہ فائل کی سالمیت (SQLite pragma جانچ)، مطلوبہ ٹیبلز (`provider_connections`, `provider_nodes`, `combos`, `api_keys`)، اور حجم (زیادہ سے زیادہ 100MB) کی توثیق کی جاتی ہے۔
+**امپورٹ کی توثیق:** امپورٹ کی گئی فائل کی سالمیت (SQLite pragma جانچ)، مطلوبہ ٹیبلز (`provider_connections`، `provider_nodes`، `combos`، `api_keys`) اور حجم (زیادہ سے زیادہ 100MB) کی توثیق کی جاتی ہے۔
 
-**استعمال کے مواقع:**
+**استعمال کی صورتیں:**
 
-- OmniRoute کو مختلف مشینوں کے درمیان منتقل کریں
-- ہنگامی بحالی کے لیے بیرونی بیک اپس بنائیں
-- ٹیم کے اراکین کے درمیان ترتیبات شیئر کریں (سب ایکسپورٹ کریں → آرکائیو شیئر کریں)
+- OmniRoute کو مشینوں کے درمیان منتقل کرنا
+- آفات سے بحالی کے لیے بیرونی بیک اپس بنانا
+- ٹیم کے اراکین کے درمیان ترتیبات کا اشتراک کرنا (سب کچھ ایکسپورٹ کریں → آرکائیو شیئر کریں)
 
 ---
 
@@ -979,31 +1038,31 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 آسان نیویگیشن کے لیے ترتیبات کا صفحہ **7 ٹیبز** میں منظم کیا گیا ہے:
 
-| ٹیب           | مندرجات                                                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **عمومی**     | نظام کے اسٹوریج ٹولز، ڈیفالٹ رویہ، اینڈ پوائنٹ ٹنل کی مرئیت                                                                                                            |
-| **ظاہری شکل** | تھیم کنٹرولز (روشن/تاریک/نظام)، سائڈ بار کی مرئیت، Cloudflare/Tailscale/ngrok ٹنل کارڈز کے لیے پینل ٹوگلز                                                              |
-| **AI**        | سوچنے کا بجٹ (جوں کا توں منتقلی / خودکار اخراج / حسب ضرورت / موافق — [THINKING_BUDGET.md](./THINKING_BUDGET.md) دیکھیں)، عالمی سسٹم پرامپٹ، پرامپٹ کیش کے اعداد و شمار |
-| **سیکیورٹی**  | لاگ اِن/پاس ورڈ کی ترتیبات، IP رسائی کنٹرول، `/models` کے لیے API توثیق، فراہم کنندہ کو بلاک کرنا، پرامپٹ انجیکشن سے تحفظ                                              |
-| **راؤٹنگ**    | عالمی راؤٹنگ حکمت عملی (پہلے پُر کریں / راؤنڈ رابن / P2C / بے ترتیب / کم ترین استعمال شدہ / لاگت کے لحاظ سے بہتر)، وائلڈ کارڈ ماڈل عرف، فال بیک چینز، کومبو ڈیفالٹس    |
-| **لچک پذیری** | درخواست کی قطار، کنکشن کول ڈاؤن، فراہم کنندہ بریکر کی ترتیب، اور کول ڈاؤن کے انتظار کا رویہ                                                                            |
-| **اعلیٰ**     | عالمی پراکسی ترتیب (HTTP/SOCKS5)، ہر فراہم کنندہ کے لیے پراکسی اوور رائیڈز                                                                                             |
+| ٹیب               | مندرجات                                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **عمومی**         | سسٹم اسٹوریج ٹولز، طے شدہ رویہ، Endpoint ٹنل کی مرئیت                                                                                                         |
+| **ظاہری شکل**     | تھیم کنٹرولز (روشن/تاریک/سسٹم)، سائڈبار کی مرئیت، Cloudflare/Tailscale/ngrok ٹنل کارڈز کے لیے پینل ٹوگلز                                                      |
+| **AI**            | تھنکنگ بجٹ (passthrough / auto-strip / custom / adaptive — دیکھیے [THINKING_BUDGET.md](./THINKING_BUDGET.md))، عالمی سسٹم پرامپٹ، پرامپٹ کیش کے اعداد و شمار  |
+| **سیکیورٹی**      | لاگ اِن/پاس ورڈ کی ترتیبات، IP رسائی کنٹرول، `/models` کے لیے API تصدیق، فراہم کنندہ بلاکنگ، پرامپٹ انجیکشن سے تحفظ                                           |
+| **روٹنگ**         | عالمی روٹنگ حکمتِ عملی (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized)، وائلڈ کارڈ ماڈل عرف، فال بیک زنجیریں، کومبو کی طے شدہ ترتیبات |
+| **استحکام**       | درخواستوں کی قطار، کنکشن کول ڈاؤن، فراہم کنندہ بریکر کی تشکیل، اور کول ڈاؤن کا انتظار کرنے کا رویہ                                                            |
+| **اعلیٰ ترتیبات** | عالمی پراکسی کی تشکیل (HTTP/SOCKS5)، ہر فراہم کنندہ کے لیے الگ پراکسی اوور رائیڈز                                                                             |
 
-عمومی ٹیب میں اب صرف پڑھنے کے قابل لاگنگ اور کیش نوٹس کو دہرایا نہیں جاتا۔ ڈیٹابیس برقرار رکھنے اور
+عمومی ٹیب اب صرف پڑھنے کے قابل لاگنگ اور کیش نوٹس کی نقل نہیں بناتا۔ ڈیٹابیس برقرار رکھنے اور
 بہتر بنانے کی ترتیبات `/api/settings/database` کے ذریعے محفوظ کی جاتی ہیں؛ کیش کو دستی طور پر صاف کرنے کے لیے
-`DELETE /api/cache` استعمال ہوتا ہے۔ درخواست اور پراکسی لاگ قطاروں کی زیادہ سے زیادہ تعداد کو
-`CALL_LOGS_TABLE_MAX_ROWS` اور `PROXY_LOGS_TABLE_MAX_ROWS` کنٹرول کرتے ہیں۔
+`DELETE /api/cache` استعمال ہوتا ہے۔ درخواست اور پراکسی لاگ کی قطاروں کی زیادہ سے زیادہ حدود
+`CALL_LOGS_TABLE_MAX_ROWS` اور `PROXY_LOGS_TABLE_MAX_ROWS` کے ذریعے کنٹرول ہوتی ہیں۔
 
 ---
 
-### لاگت اور بجٹ کا انتظام
+### اخراجات اور بجٹ کا انتظام
 
-**ڈیش بورڈ → لاگتیں** کے ذریعے رسائی حاصل کریں۔
+**Dashboard → Costs** کے ذریعے رسائی حاصل کریں۔
 
-| ٹیب           | مقصد                                                                                                                  |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **بجٹ**       | روزانہ/ہفتہ وار/ماہانہ بجٹس اور حقیقی وقت کی ٹریکنگ کے ساتھ ہر API کلید کے لیے اخراجات کی حدود مقرر کریں              |
-| **قیمت بندی** | فراہم کنندہ کے لحاظ سے ہر 1K اِن پٹ/آؤٹ پٹ ٹوکنز کی لاگت پر مبنی ماڈل قیمتوں کے اندراجات دیکھیں اور ان میں ترمیم کریں |
+| ٹیب        | مقصد                                                                                                             |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| **بجٹ**    | ہر API کلید کے لیے یومیہ/ہفتہ وار/ماہانہ بجٹ کے ساتھ اخراجات کی حدود مقرر کریں اور حقیقی وقت میں نگرانی کریں     |
+| **قیمتیں** | ماڈل کی قیمتوں کے اندراجات دیکھیں اور ان میں ترمیم کریں — ہر فراہم کنندہ کے لیے فی 1K ان پٹ/آؤٹ پٹ ٹوکنز کی لاگت |
 
 ```bash
 # API: بجٹ مقرر کریں
@@ -1011,17 +1070,17 @@ curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: بجٹ کی موجودہ حیثیت حاصل کریں
+# API: بجٹ کی موجودہ حالت حاصل کریں
 curl http://localhost:20128/api/usage/budget
 ```
 
-**لاگت کی ٹریکنگ:** ہر درخواست ٹوکن کے استعمال کو لاگ کرتی ہے اور قیمتوں کے جدول کے ذریعے لاگت کا حساب لگاتی ہے۔ فراہم کنندہ، ماڈل، اور API کلید کے لحاظ سے تفصیلات **Dashboard → Usage** میں دیکھیں۔
+**لاگت کی نگرانی:** ہر درخواست ٹوکن کے استعمال کو لاگ کرتی ہے اور قیمتوں کے جدول کے ذریعے لاگت کا حساب لگاتی ہے۔ فراہم کنندہ، ماڈل اور API کلید کے لحاظ سے تفصیلات **Dashboard → Usage** میں دیکھیں۔
 
 ---
 
 ### آڈیو ٹرانسکرپشن
 
-OmniRoute، OpenAI سے ہم آہنگ اینڈ پوائنٹ کے ذریعے آڈیو ٹرانسکرپشن کی معاونت کرتا ہے:
+OmniRoute، OpenAI سے ہم آہنگ endpoint کے ذریعے آڈیو ٹرانسکرپشن کی معاونت کرتا ہے:
 
 ```bash
 POST /v1/audio/transcriptions
@@ -1035,20 +1094,20 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` مقامی Deepgram روٹ ہے اور اسے Deepgram API کلید درکار ہے۔
-اگر صرف OpenRouter ترتیب دیا گیا ہے، تو `openrouter/deepgram/nova-3` استعمال کریں۔
+`deepgram/nova-3` مقامی Deepgram روٹ ہے اور اسے Deepgram API کلید درکار ہوتی ہے۔
+اگر صرف OpenRouter تشکیل دیا گیا ہو تو `openrouter/deepgram/nova-3` استعمال کریں۔
 
-**اسپیچ ٹو ٹیکسٹ (ٹرانسکرپشن)** فراہم کنندگان:
+**تقریر سے متن (ٹرانسکرپشن)** کے فراہم کنندگان:
 
 - `openai/` (whisper سے ہم آہنگ)
 - `groq/` (Groq Whisper Turbo)
 - `deepgram/` (Nova خاندان)
 - `assemblyai/`
 - `nvidia/` (Parakeet، Canary)
-- `huggingface/` (whisper کی مختلف اقسام)
+- `huggingface/` (whisper کی اقسام)
 - `qwen/`
 
-**ٹیکسٹ ٹو اسپیچ (`POST /v1/audio/speech`)** فراہم کنندگان:
+**متن سے تقریر (`POST /v1/audio/speech`)** کے فراہم کنندگان:
 
 - `openai/` (tts-1، tts-1-hd)
 - `hyperbolic/`
@@ -1065,56 +1124,51 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `coqui/`، `tortoise/`
 - `qwen/`
 
-ٹرانسکرپشن کے لیے معاون آڈیو فارمیٹس: `mp3`، `wav`، `m4a`، `flac`، `ogg`، `webm`۔ TTS آؤٹ پٹ فارمیٹس فراہم کنندہ پر منحصر ہیں (mp3، wav، opus، pcm، mulaw)۔
+ٹرانسکرپشن کے لیے معاون آڈیو فارمیٹس: `mp3`، `wav`، `m4a`، `flac`، `ogg`، `webm`۔ TTS آؤٹ پٹ فارمیٹس فراہم کنندہ پر منحصر ہوتے ہیں (mp3، wav، opus، pcm، mulaw)۔
 
 ---
 
-### کومبو بیلنسنگ کی حکمتِ عملیاں
+### کومبو توازن کی حکمتِ عملیاں
 
-ہر کومبو کے لیے بیلنسنگ کو **Dashboard → Combos → Create/Edit → Strategy** میں ترتیب دیں۔
+ہر کومبو کے لیے توازن کو **Dashboard → Combos → Create/Edit → Strategy** میں تشکیل دیں۔
 
-| حکمتِ عملی                | وضاحت                                                                                          |
-| ------------------------- | ---------------------------------------------------------------------------------------------- |
-| **راؤنڈ رابن**            | ماڈلز کو ترتیب وار باری باری استعمال کرتا ہے                                                   |
-| **ترجیح**                 | ہمیشہ پہلے ماڈل کو آزماتا ہے؛ صرف خرابی کی صورت میں متبادل پر منتقل ہوتا ہے                    |
-| **تصادفی**                | ہر درخواست کے لیے کومبو سے ایک تصادفی ماڈل منتخب کرتا ہے                                       |
-| **وزنی**                  | ہر ماڈل کو تفویض کردہ وزن کی بنیاد پر متناسب طور پر روٹنگ کرتا ہے                              |
-| **کم ترین استعمال**       | حالیہ درخواستوں کی کم ترین تعداد والے ماڈل کی طرف روٹنگ کرتا ہے (کومبو میٹرکس استعمال کرتا ہے) |
-| **لاگت کے لحاظ سے موزوں** | دستیاب سستے ترین ماڈل کی طرف روٹنگ کرتا ہے (قیمتوں کا جدول استعمال کرتا ہے)                    |
+| حکمتِ عملی         | تفصیل                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| **Round-Robin**    | ماڈلز کو ترتیب وار باری باری استعمال کرتا ہے                                                   |
+| **Priority**       | ہمیشہ پہلے ماڈل کو آزماتا ہے؛ صرف خرابی کی صورت میں فال بیک کرتا ہے                            |
+| **Random**         | ہر درخواست کے لیے کومبو سے ایک بے ترتیب ماڈل منتخب کرتا ہے                                     |
+| **Weighted**       | ہر ماڈل کو دیے گئے وزن کی بنیاد پر متناسب طور پر روٹنگ کرتا ہے                                 |
+| **Least-Used**     | حالیہ درخواستوں کی کم ترین تعداد والے ماڈل کی طرف روٹنگ کرتا ہے (کومبو میٹرکس استعمال کرتا ہے) |
+| **Cost-Optimized** | دستیاب سب سے سستے ماڈل کی طرف روٹنگ کرتا ہے (قیمتوں کا جدول استعمال کرتا ہے)                   |
 
-عالمی کومبو ڈیفالٹس کو **Dashboard → Settings → Routing → Combo Defaults** میں مقرر کیا جا سکتا ہے۔
-کومبو ٹارگٹ ٹائم آؤٹس بطور ڈیفالٹ موجودہ درخواست کا ٹائم آؤٹ وراثت میں لیتے ہیں۔ کومبو ڈیفالٹس یا کسی انفرادی کومبو پر **Target timeout
-(seconds)** صرف اس وقت استعمال کریں جب ہر ٹارگٹ کے لیے کم حد سے
-زیادہ تیزی سے فال بیک متحرک ہونا چاہیے۔
+کومبو کی عالمی طے شدہ ترتیبات **Dashboard → Settings → Routing → Combo Defaults** میں مقرر کی جا سکتی ہیں۔
+کومبو ہدف ٹائم آؤٹس طے شدہ طور پر درخواست کے موجودہ ٹائم آؤٹ کو وراثت میں لیتے ہیں۔ کومبو کی طے شدہ ترتیبات یا کسی انفرادی کومبو پر **Target timeout
+(seconds)** صرف اس وقت استعمال کریں جب ہر ہدف کے لیے کم حد سے
+زیادہ تیزی سے فال بیک متحرک کرنا مقصود ہو۔
 
-زیرو لیٹنسی کومبو آپٹیمائزیشنز اختیاری ہیں۔ **Zero-latency optimizations** کو غیر فعال رہنے دیں تاکہ
-یہ لیٹنسی خصوصیات فال بیک ٹارگٹس کے ساتھ مسابقت نہ کریں، TTFT
-ہسٹری کی بنیاد پر ٹارگٹس کو نظر انداز نہ کریں، یا فال بیک درخواستوں کو کمپریس نہ کریں؛ اسے فعال کرنے سے ترتیب شدہ ہیجنگ، پیش گوئی پر مبنی TTFT
-اسکپس، اور فعال فال بیک کمپریشن کو کم ٹیل
-لیٹنسی کے عوض روٹنگ/درخواست کی درستگی پر سمجھوتہ کرنے کی اجازت ملتی ہے۔
+زیرو لیٹنسی کومبو کی بہتریاں اختیاری ہیں۔ ان لیٹنسی خصوصیات کو فال بیک اہداف کے ساتھ دوڑ لگانے، TTFT
+کی سرگزشت کی بنیاد پر اہداف چھوڑنے، یا فال بیک درخواستوں کو کمپریس کرنے سے روکنے کے لیے **Zero-latency optimizations** کو غیر فعال رہنے دیں؛ اسے فعال کرنے سے تشکیل شدہ ہیجنگ، پیش گوئی پر مبنی TTFT
+اسکپس، اور پیشگی فال بیک کمپریشن، کم ٹیل
+لیٹنسی کے بدلے روٹنگ/درخواست کی اصل مطابقت میں سمجھوتا کر سکتے ہیں۔
 
-جب اپ اسٹریم فراہم کنندگان سخت
-`max_tokens` / `maxOutputTokens` حدود کا تقاضا کریں تو **Reasoning token buffer** کو غیر فعال کریں۔ فعال ہونے پر، کومبو روٹنگ صرف ان ریزننگ ماڈلز کے لیے
-اضافی گنجائش شامل کرتی ہے جن کی معلوم آؤٹ پٹ حد ہو، اور جب محفوظ بفر کردہ قدر اس حد سے تجاوز کرے تو
-کلائنٹ ٹوکن حد کو تبدیل نہیں کرتی۔ اگر کلائنٹ کی حد پہلے ہی کسی معلوم حد سے زیادہ ہو،
-تو OmniRoute اپ اسٹریم درخواست بھیجنے سے پہلے اسے گھٹا کر اسی حد تک کر دیتا ہے۔
+جب upstream providers کو سخت `max_tokens` / `maxOutputTokens` حدود درکار ہوں تو **Reasoning token buffer** کو غیر فعال کریں۔ فعال ہونے پر، combo routing صرف ان reasoning models کے لیے اضافی گنجائش شامل کرتی ہے جن کی output cap معلوم ہو، اور جب محفوظ buffered قدر اس cap سے تجاوز کرے تو client token limit کو تبدیل نہیں کرتی۔ اگر client limit پہلے ہی کسی معلوم cap سے زیادہ ہو، تو OmniRoute upstream request بھیجنے سے پہلے اسے کم کرکے اس cap تک محدود کر دیتا ہے۔
 
 ---
 
-### ہیلتھ ڈیش بورڈ
+### Health Dashboard
 
-**Dashboard → Health** کے ذریعے رسائی حاصل کریں۔ 6 کارڈز کے ساتھ ریئل ٹائم سسٹم ہیلتھ کا جائزہ:
+**Dashboard → Health** کے ذریعے رسائی حاصل کریں۔ 6 cards کے ساتھ حقیقی وقت میں system health کا جائزہ:
 
-| کارڈ                   | یہ کیا دکھاتا ہے                                      |
-| ---------------------- | ----------------------------------------------------- |
-| **سسٹم اسٹیٹس**        | اپ ٹائم، ورژن، میموری کا استعمال، ڈیٹا ڈائریکٹری      |
-| **فراہم کنندہ کی صحت** | عالمی فراہم کنندہ سرکٹ بریکر کی رن ٹائم حالت          |
-| **ریٹ لمٹس**           | باقی وقت کے ساتھ ہر اکاؤنٹ کے فعال کنکشن کول ڈاؤنز    |
-| **فعال لاک آؤٹس**      | فعال ماڈل اسکوپڈ لاک آؤٹس اور عارضی اخراجات           |
-| **سگنیچر کیش**         | ڈی ڈپلیکیشن کیش کے اعداد و شمار (فعال کلیدیں، ہٹ ریٹ) |
-| **لیٹنسی ٹیلی میٹری**  | ہر فراہم کنندہ کے لیے p50/p95/p99 لیٹنسی ایگریگیشن    |
+| Card                  | یہ کیا دکھاتا ہے                                            |
+| --------------------- | ----------------------------------------------------------- |
+| **System Status**     | Uptime، version، memory usage، data directory               |
+| **Provider Health**   | Global provider circuit breaker کی runtime state            |
+| **Rate Limits**       | باقی وقت کے ساتھ ہر account کے فعال connection cooldowns    |
+| **Active Lockouts**   | فعال model-scoped lockouts اور عارضی exclusions             |
+| **Signature Cache**   | Deduplication cache کے اعداد و شمار (active keys، hit rate) |
+| **Latency Telemetry** | ہر provider کے لیے p50/p95/p99 latency aggregation          |
 
-**ماہرانہ مشورہ:** Health صفحہ ہر 10 سیکنڈ بعد خودکار طور پر ریفریش ہوتا ہے۔ یہ شناخت کرنے کے لیے سرکٹ بریکر کارڈ استعمال کریں کہ کن فراہم کنندگان کو مسائل کا سامنا ہے۔
+**ماہرانہ مشورہ:** Health page ہر 10 seconds بعد خودکار طور پر refresh ہوتا ہے۔ یہ شناخت کرنے کے لیے circuit breaker card استعمال کریں کہ کن providers کو مسائل درپیش ہیں۔
 
 ---
 

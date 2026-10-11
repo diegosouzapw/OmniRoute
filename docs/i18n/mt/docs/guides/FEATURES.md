@@ -302,14 +302,14 @@ Il-pakkett tal-konfigurazzjoni huwa mibni minn `src/lib/sync/bundle.ts`. Il-kons
 
 ---
 
-## 🛡️ Ħarsi mill-Ħsadatt往外 & Gwardja SSRF _(v3.6.6+)_
+## 🛡️ Talbiet Ħerġin Sikuri u Protezzjoni kontra l-SSRF _(v3.6.6+)_
 
-Il-validazzjoni tal-provdit u l-iskoperta tal-mudell kollha issa jiġu proċessati permezz ta' gwardja ta' barra b'żewġ saffi:
+Is-sejħiet kollha għall-validazzjoni tal-fornituri u għall-iskoperta tal-mudelli issa jgħaddu minn protezzjoni fuq żewġ livelli għat-talbiet ħerġin:
 
-1. **Gwardja URL** (`src/shared/network/outboundUrlGuard.ts`) — Tinkladi firxiet tal-IP privati/loopback/link-local qabel ma jinfetaħ is-socket.
-2. **Wrapper sigur tal-ħsadatt往外** (`src/shared/network/safeOutboundFetch.ts`) — Japplika l-gwardja URL, jinormalizza t-tiżijiet, u jagħmel tentattivi mill-ġdid għal żbalji transitorji b'retroċessjonament esponenzjali.
+1. **Protezzjoni tal-URL** (`src/shared/network/outboundUrlGuard.ts`) — L-ewwel tivverifika l-isem tal-host jew l-indirizz IP litterali tad-destinazzjoni kif ikun miktub; fil-modalità pubblika biss, il-wrapper għat-talbiet sikuri jsolvi wkoll l-isem u jirrifjuta indirizzi privati. B’mod awtomatiku, timblokka l-endpoints tal-metadata tal-cloud — il-medda kollha 169.254.0.0/16 flimkien mal-ismijiet tal-hosts tal-metadata magħrufa; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` jimblokka wkoll hosts privati u loopback; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (jew il-konfigurazzjoni preċedenti `OUTBOUND_SSRF_GUARD_ENABLED=false`) jitfi l-verifiki. Valur issejvjat permezz tal-iswiċċ ta’ flag fid-dashboard jieħu preċedenza fuq il-varjabbli tiegħu, u l-fornituri lokali integrati jaqbżu din il-protezzjoni waqt il-validazzjoni taċ-ċavetta. Ara `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper għat-talbiet sikuri** (`src/shared/network/safeOutboundFetch.ts`) — Japplika l-protezzjoni tal-URL, jinnormalizza l-limiti ta’ żmien, u jerġa’ jipprova wara żbalji temporanji b’dewmien esponenzjali.
 
-Viżolazzjonijiet tal-gwardja jidhru bħala HTTP 422 (`URL_GUARD_BLOCKED`) u jinkitbu fil-log tal-konformità permezz ta' `providerAudit.ts`.
+Il-ksur tar-regoli tal-protezzjoni jidher bħala `URL_GUARD_BLOCKED` — HTTP 503 permezz ta’ `getSafeOutboundFetchErrorStatus` (400 fir-rotta tal-iskoperta tal-mudelli) — u blokki ġenwini tal-SSRF waqt il-validazzjoni jinkitbu fir-reġistru tal-awditjar bħala avvenimenti `provider.validation.ssrf_blocked`.
 
 ---
 

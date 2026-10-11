@@ -4,64 +4,61 @@
 
 ---
 
-> **Na kratko**: OmniRoute registrira 357 ID-jev ponudnikov, pri čemer je **152 vnosov v katalogu ponudnikov označenih z `hasFree`**. Strožji, revidirani katalog brezplačnih modelov zajema **35 ponavljajočih se ključev nabora / 482 vnosov** (475 aktivnih + 7 ukinjenih). Povežite več ustreznih ponudnikov za večjo nadomestno zmogljivost; še vedno veljajo vse kvote, pravila odobritve, pravilniki o zasebnosti in pogoji za plačljivo prekoračitev.
+> **Na kratko**: Uporabite lastne ustrezne račune ponudnikov. OmniRoute združuje povezave, ki jih konfigurirate; ne zagotavlja oglaševanega skupnega proračuna žetonov. Brezplačen dostop lahko zahteva registracijo, ključ API, odobritev ali plačilno sredstvo. Omejitve ponudnikov, pravilniki o zasebnosti in pogoji uporabe še vedno veljajo.
 
 ---
 
 ## Kaj so brezplačne ravni?
 
-Številni ponudniki umetne inteligence ponujajo določeno obliko **brezplačnega dostopa**. Odvisno od ponudnika lahko to
-pomeni končno točko brez preverjanja pristnosti, ponavljajočo se kvoto, neomejen dostop z omejeno hitrostjo, začetna sredstva ob registraciji,
-ročno odobritev ali začasno promocijo. Nekatere možnosti zahtevajo račun, ključ API,
-kreditno kartico, preverjanje KYC ali sprejetje pogojev posameznega ponudnika.
+Številni ponudniki umetne inteligence ponujajo določeno obliko **brezplačnega dostopa**. Odvisno od ponudnika lahko to pomeni končno točko brez preverjanja pristnosti, periodično kvoto, neomejen dostop z omejitvijo hitrosti, dobroimetje ob registraciji, ročno odobritev ali začasno promocijo. Nekatere možnosti zahtevajo račun, ključ API, kreditno kartico, preverjanje KYC ali sprejetje pogojev posameznega ponudnika.
 
-OmniRoute **združuje** te brezplačne ravni v eni končni točki. Namesto da bi se registrirali pri 10 različnih storitvah, jih vse povežete z OmniRoute in uporabite `model: "auto"`, da se za vsako zahtevo samodejno izbere najboljša brezplačna možnost.
+OmniRoute **združuje** konfigurirane povezave v eno končno točko. Še vedno se morate posebej registrirati pri vsakem ponudniku, ki zahteva račun. Povežite te račune in uporabite `model: "auto"` za usmerjanje med ustreznimi cilji. Nova namestitev morda nima nobenega ustreznega cilja brez ključa; sama namestitev OmniRoute ne zagotavlja uspešnega odgovora klepeta.
 
 ---
 
 ## Reprezentativni ponudniki brezplačnega dostopa
 
-### Ponavljajoč se, brezključen ali neomejen dostop
+### Ponavljajoči se dostop, dostop brez ključa ali neomejen dostop
 
-Ti ponudniki imajo v revidiranem katalogu možnost ponavljajočega se, brezključnega ali neomejenega brezplačnega dostopa. »Neomejen« pomeni, da ni objavljene omejitve žetonov; še vedno lahko veljajo omejitve hitrosti, sočasnosti, računa, regije in pravilnikov:
+Ti ponudniki imajo v pregledanem katalogu možnost ponavljajočega se brezplačnega dostopa, dostopa brez ključa ali neomejenega dostopa. »Neomejeno« pomeni, da ni objavljene omejitve števila žetonov; še vedno lahko veljajo omejitve hitrosti, sočasnosti, računa, regije in pravilnikov:
 
-| Ponudnik          | Modeli                                                                                        | Kvota                                                                                                                                            | Kako se povezati                                                                                         |
-| ----------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 in drugi                                          | Revidirani katalog ocenjuje skupni mesečni sklad na 25 tisoč žetonov                                                                             | Potek OAuth/računa; pogoji uporabe so v katalogu označeni z `avoid`                                      |
-| **OpenCode Free** | Trenutni nabor modelov `*-free` v registru ponudnikov                                         | Brez ključa; brez objavljene omejitve žetonov                                                                                                    | Brez poverilnic ponudnika; pogoji uporabe so označeni z `avoid`                                          |
-| **Pollinations**  | Trenutni nabor brezključnih modelov; nekateri prejšnji modeli so ukinjeni ali zahtevajo ključ | Brez ključa; brez objavljene omejitve žetonov                                                                                                    | Za brezključne modele poverilnice ponudnika niso potrebne                                                |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 in drugi                          | Brezplačen ključ API (brez omejitev hitrosti in brez kartice); **vsaka zahteva se beleži** za raziskovalne namene (odjava na logfare.ai/consent) | Takojšnji ključ na logfare.ai/register; pogoji uporabe/zasebnost na logfare.ai/tos in logfare.ai/privacy |
-| **Cloudflare AI** | Katalog Workers AI                                                                            | Revidirani sklad na podlagi objavljenih enot uporabe ocenjuje približno 30 milijonov žetonov na mesec                                            | Račun Cloudflare in poverilnice API                                                                      |
-| **Gemini**        | Družina Gemini Flash                                                                          | Revidirani sklad ocenjuje približno 60 milijonov žetonov na mesec                                                                                | Ključ API za Google AI Studio; veljajo omejitve hitrosti                                                 |
-| **Groq**          | Modeli Llama, GPT-OSS in Qwen                                                                 | Revidirani sklad ocenjuje približno 15 milijonov žetonov na mesec                                                                                | Ključ API za Groq; veljajo omejitve hitrosti                                                             |
-| **Cerebras**      | GLM 4.7 in GPT-OSS 120B                                                                       | Revidirani sklad ocenjuje približno 30 milijonov žetonov na mesec                                                                                | Ključ API za Cerebras; veljajo omejitve hitrosti                                                         |
+| Ponudnik          | Modeli                                                                                       | Kvota                                                                                                                                            | Način povezave                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 in drugi                                         | Pregledani katalog ocenjuje skupni mesečni obseg na 25K žetonov                                                                                  | Postopek OAuth/račun; pogoji uporabe so v katalogu označeni z `avoid`                                       |
+| **OpenCode Free** | Trenutni nabor modelov `*-free` v registru ponudnikov                                        | Brez ključa; brez objavljene omejitve števila žetonov                                                                                            | Brez poverilnic ponudnika; pogoji uporabe so označeni z `avoid`                                             |
+| **Pollinations**  | Trenutni nabor modelov brez ključa; nekateri prejšnji modeli so ukinjeni ali zahtevajo ključ | Brez ključa; brez objavljene omejitve števila žetonov                                                                                            | Za modele brez ključa poverilnice ponudnika niso potrebne                                                   |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 in drugi                         | Brezplačen ključ API (brez omejitev hitrosti in brez kartice); **vsaka zahteva se beleži** za raziskovalne namene (odjava na logfare.ai/consent) | Takojšen ključ na logfare.ai/register; pogoji uporabe in zasebnost na logfare.ai/tos ter logfare.ai/privacy |
+| **Cloudflare AI** | Katalog Workers AI                                                                           | Pregledana skupna kvota je na podlagi objavljenih enot uporabe ocenjena na ~30M žetonov/mesec                                                    | Račun Cloudflare in poverilnice API                                                                         |
+| **Gemini**        | Družina Gemini Flash                                                                         | Spremenljive omejitve hitrosti glede na projekt/model; navedba ne vključuje fiksne mesečne dodelitve žetonov                                     | Ključ API za Google AI Studio; preverite aktivne omejitve projekta                                          |
+| **Groq**          | Modeli Llama, GPT-OSS in Qwen                                                                | Pregledana skupna kvota je ocenjena na ~15M žetonov/mesec                                                                                        | Ključ API za Groq; veljajo omejitve hitrosti                                                                |
 
-### Začetna sredstva ob registraciji in dobropisi posameznih ponudnikov
+### Začetne dodelitve in dobroimetja posameznih ponudnikov
 
-Ti ponudniki vam ob registraciji dodelijo **brezplačna sredstva**:
+Ti ponudniki ponujajo začetne dodelitve ali promocijska dobroimetja, za katera veljajo njihova pravila upravičenosti. Kot je bilo preverjeno 2026-10-08, [cenik Cerebras](https://www.cerebras.ai/pricing) za enkratno dobroimetje v višini $5, ki poteče po 30 dneh, zahteva plačilno sredstvo; to ni ponavljajoča se kvota žetonov. [Omejitve hitrosti Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) se razlikujejo glede na projekt, model in raven, zato niso pretvorjene v zajamčeno mesečno dodelitev žetonov.
 
-| Ponudnik      | Brezplačna sredstva                                                                                                  | Modeli                      | Kako jih pridobiti                                                       |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
-| **DeepSeek**  | 5 milijonov brezplačnih žetonov                                                                                      | DeepSeek V4                 | Registrirajte se na platform.deepseek.com                                |
-| **LongCat**   | Enkratna dodelitev 10 milijonov žetonov                                                                              | LongCat 2.0                 | Ključ API + KYC; po porabi dodeljenih sredstev se plačuje po porabi      |
-| **Vertex AI** | Dobropis ob registraciji v višini $300, ki je v proračunskem modelu predstavljen kot približno 300 milijonov žetonov | Gemini in partnerski modeli | Račun Google Cloud; veljajo pravila glede obračunavanja in upravičenosti |
+| Ponudnik      | Brezplačno dobroimetje                                                                         | Modeli                      | Kako ga pridobiti                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| **Cerebras**  | Enkratno promocijsko dobroimetje v višini $5; poteče po 30 dneh                                | Trenutni katalog sklepanja  | Račun in veljavno plačilno sredstvo                                      |
+| **DeepSeek**  | 5M brezplačnih žetonov                                                                         | DeepSeek V4                 | Registracija na platform.deepseek.com                                    |
+| **LongCat**   | Enkratna dodelitev 10M žetonov                                                                 | LongCat 2.0                 | Ključ API + KYC; po porabi dodelitve se plačuje po porabi                |
+| **Vertex AI** | Začetno dobroimetje v višini $300, ki je v proračunskem modelu predstavljeno kot ~300M žetonov | Gemini in partnerski modeli | Račun Google Cloud; veljajo pravila glede obračunavanja in upravičenosti |
 
-### Drug omejen dostop
+### Drug omejeni dostop
 
 Ti ponudniki imajo **brezplačne ravni** s posebnimi omejitvami:
 
-| Ponudnik                         | Brezplačna omejitev                                                                           | Modeli                               | Najprimernejše za |
-| -------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------- |
-| **GitHub Models**                | Ocenjena skupna revidirana kvota ~18 milijonov žetonov/mesec                                  | Obsežno vrednotenje modelov          |
-| **Hugging Face**                 | Majhna, mesečno obnovljiva kvota                                                              | Eksperimenti in raznolikost modelov  |
-| **Brezplačni modeli OpenRouter** | Skupna kvota z omejenim številom zahtev; izbirno enkratno dobroimetje poveča obnovljivo kvoto | Obsežen katalog nadomestnih možnosti |
-| **AI Horde**                     | Skupnostna zmogljivost brez ključa; razpoložljivost se spreminja                              | Priložnostno porazdeljeno sklepanje  |
+| Ponudnik                   | Brezplačna omejitev                                                                                  | Modeli                              | Najprimernejše za |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------- |
+| **GitHub Models**          | Pregledana skupna kvota je ocenjena na ~18M žetonov/mesec                                            | Ocenjevanje širokega nabora modelov |
+| **Hugging Face**           | Majhna ponavljajoča se mesečna kvota                                                                 | Poskusi in raznolikost modelov      |
+| **OpenRouter free models** | Skupna kvota z omejenim številom zahtev; izbirno enkratno doplačilo poveča ponavljajočo se dodelitev | Obsežen nadomestni katalog          |
+| **AI Horde**               | Zmogljivost skupnosti brez ključa; razpoložljivost se spreminja                                      | Priložnostno porazdeljeno sklepanje |
 
 ---
 
-## Kako združiti brezplačne pakete
+## Kako združevati brezplačne pakete
 
-Čarovnija OmniRoute je v **združevanju brezplačnih paketov**. Namesto da bi se zanašali na enega ponudnika, povežete več brezplačnih ponudnikov in prepustite OmniRoute, da za vsako zahtevo samodejno izbere najboljšega.
+Čar OmniRoute je v **združevanju brezplačnih paketov**. Namesto da se zanašate na enega ponudnika, povežete več brezplačnih ponudnikov in pustite, da OmniRoute samodejno izbere najboljšega za vsako zahtevo.
 
 ### Primer: širša pokritost z brezplačnimi paketi
 
@@ -70,63 +67,61 @@ Povežite več ponudnikov, da zmanjšate odvisnost od posamezne kvote:
 1. **Gemini** — ponavljajoča se kvota ključa API
 2. **Groq** — ponavljajoča se kvota ključa API
 3. **Pollinations** — dostop brez ključa z omejitvijo hitrosti
-4. **LongCat** — enkratna dobroimetja ob registraciji (zahteva KYC)
+4. **LongCat** — enkratno dobroimetje ob registraciji (zahteva KYC)
 
 Nato uporabite `model: "auto"` in OmniRoute bo:
 
-- Najprej poskusil uporabiti najvišje uvrščeno primerno povezavo
-- Če je njena kvota izčrpana ali preverjanje stanja ne uspe → poskusil uporabiti naslednjega konfiguriranega ponudnika
+- Najprej poskusil z najvišje uvrščeno primerno povezavo
+- Če njena kvota ali preverjanje stanja ne uspe → poskusil z naslednjim konfiguriranim ponudnikom
 - Če ponudnik brez ključa ni na voljo → nadaljeval s preostalimi cilji
-- Če vsi poskusi ne uspejo → uporabil LongCat kot rezervno možnost
+- Če nobena primerna povezava ne uspe → vrnil napako; dobroimetje ob registraciji je mogoče uporabljati le, dokler je veljavno in na voljo
 
-**Rezultat**: širša pokritost z brezplačnimi paketi in samodejnim preklopom na rezervno možnost — ne pa jamstvo za neomejeno zmogljivost.
+**Rezultat**: širša pokritost z brezplačnimi paketi s samodejnim preklopom na nadomestno možnost — ne pa zagotovilo neomejene zmogljivosti.
 
 ---
 
 ## Kako povezati brezplačne ponudnike
 
-### 1. korak: odprite nadzorno ploščo
+### 1. korak: Odprite nadzorno ploščo
 
 V brskalniku odprite `http://localhost:20128`.
 
-### 2. korak: pojdite na ponudnike
+### 2. korak: Odprite ponudnike
 
 V stranski vrstici kliknite **Ponudniki**.
 
-### 3. korak: kliknite »Dodaj ponudnika«
+### 3. korak: Kliknite Dodaj ponudnika
 
 Kliknite gumb **+ Dodaj ponudnika**.
 
-### 4. korak: izberite brezplačnega ponudnika
+### 4. korak: Izberite brezplačnega ponudnika
 
-Prebrskajte katalog in preglejte trenutne metapodatke vsakega ponudnika za `hasFree`, preverjanje pristnosti, kvoto, zasebnost
-in pogoje uporabe. Kartica ponudnika in
-[Referenca brezplačnih paketov](../reference/FREE_TIERS.md) razlikujeta med ponavljajočimi se kvotami,
-neomejenim dostopom oziroma dostopom brez ključa, dobroimetjem ob registraciji, ukinjenimi vnosi in viri z večjim tveganjem.
+Prebrskajte katalog in preverite trenutne metapodatke vsakega ponudnika za `hasFree`, preverjanje pristnosti, kvoto, zasebnost in pogoje uporabe. Kartica ponudnika in
+[Referenca brezplačnih paketov](../reference/FREE_TIERS.md) razlikujeta med periodično obnovljivimi kvotami,
+neomejenim dostopom oziroma dostopom brez ključa, dobroimetjem ob registraciji, ukinjenimi možnostmi in viri z večjim tveganjem.
 
-### 5. korak: kliknite »Poveži«
+### 5. korak: Kliknite Poveži
 
-Za ponudnika `NOAUTH` poverilnice niso potrebne. Ponudnike OAuth in ponudnike s ključi API morate
-povezati prek njihovega dokumentiranega postopka za račun.
+Pri ponudniku `NOAUTH` OmniRoute ne zahteva poverilnice za dostop do ponudnikove storitve. To ne zagotavlja, da ponudnik sprejema odjemalce tretjih oseb ali ima razpoložljive zmogljivosti. Ponudnike OAuth in ponudnike s ključem API morate povezati prek njihovega dokumentiranega postopka za račun. Ko je preverjanje pristnosti usmerjevalnika omogočeno, vaš odjemalec še vedno uporablja ključ API za OmniRoute, prikazan v razdelku **Nadzorna plošča → Končne točke**.
 
-### 6. korak: ponovite postopek
+### 6. korak: Ponovite
 
 Povežite več ponudnikov, katerih pogoji in model zasebnosti ustrezajo vašemu primeru uporabe.
 
 ---
 
-## Pravilno razumevanje kataloga
+## Pravilno branje kataloga
 
 - `NOAUTH` pomeni, da OmniRoute od vas ne zahteva poverilnice ponudnika; to ne
   zagotavlja razpoložljivosti, zasebnosti ali neomejene zmogljivosti.
-- `hasFree` je metapodatek za odkrivanje. Predstavlja lahko ponavljajočo se kvoto, dostop brez ključa,
+- `hasFree` so metapodatki za odkrivanje. Predstavljajo lahko ponavljajočo se kvoto, dostop brez ključa,
   dobroimetje ob registraciji, program odobritve ali promocijo.
 - `recurring-uncapped` pomeni, da objavljena omejitev števila žetonov ni bila na voljo; omejitve hitrosti in
   sočasnosti še vedno veljajo.
 - `one-time-initial` se po porabi dobroimetja, dodeljenega ob registraciji, ne ponovi.
-- `tos: avoid` je opozorilo, da pred uporabo preglejte ponudnikove pogoje in tveganje za račun.
-- Vnosi z oznako `discontinued` ostajajo zgodovinski dokaz in jih ni dovoljeno predstavljati kot
-  trenutno brezplačne.
+- Ponudniki z oznako `tos: avoid` so privzeto izključeni iz samodejnega usmerjanja (`excludeTosAvoid`). Povezava računa tega filtra ne zaobide. Vsaka ročna preglasitev mora slediti pregledu pogojev ponudnika in tveganja računa.
+- Vnosi z oznako `discontinued` ostanejo zgodovinski dokaz in ne smejo biti predstavljeni kot
+  trenutno brezplačni.
 
 ---
 
@@ -160,18 +155,15 @@ ponudnikovi kvoti ali pravilniku o dostopu.
 
 ## Izračun brezplačne ravni
 
-Trenutni katalog z združenimi in dedupliciranimi viri poroča:
+Aktualni katalog z odstranjenimi podvojitvami skupnih kvot trenutno navaja:
 
-| Metrika                                                                    |                                          Trenutna preverjena vrednost | Razlaga                                                                                                                                                                       |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ponavljajoča se količinsko opredeljena dodelitev                           |                                          **~1,62 mrd. žetonov/mesec** | Skupni viri so šteti enkrat; ponudniki brez omejitev niso vključeni v vsoto                                                                                                   |
-| Prvi mesec z dodelitvami ob registraciji                                   |                                                **~2,22 mrd. žetonov** | Ponavljajoči se skupni znesek ter enkratni in ponavljajoči se dobropisi                                                                                                       |
-| Preverjen inventar brezplačnih modelov                                     | **35 ključev ponavljajočih se skupnih virov / 482 vnosov v katalogu** | 475 aktivnih + 7 ukinjenih; ločeno od kataloga 357 ponudnikov                                                                                                                 |
-| Zastopani ponudniki, ki so ponavljajoče se/brez ključa brezplačni za vedno |                                                                **53** | Edinstveni ponudniki v ponavljajočih se dnevnih/mesečnih/dobropisnih/neomejenih vrstah kataloga in vrstah brez ključa; vrstice, omejene s pogoji upravičenosti, so izključene |
-| Vnosi v katalogu ponudnikov, označeni z `hasFree`                          |                                                         **152 / 357** | Širši metapodatki ponudnikov; vsi nimajo količinsko opredeljive ponavljajoče se kvote                                                                                         |
+| Merilo                                       | Trenutna revidirana vrednost | Razlaga                                                                      |
+| -------------------------------------------- | ---------------------------: | ---------------------------------------------------------------------------- |
+| Ponavljajoča se količinsko opredeljena kvota |     **~1.62B žetonov/mesec** | Skupne kvote so štete enkrat; ponudniki brez omejitev niso vključeni v vsoto |
+| Prvi mesec z dobroimetji ob registraciji     |           **~2.22B žetonov** | Ponavljajoča se skupna količina ter enkratna in ponavljajoča se dobroimetja  |
 
-Te vrednosti so izračunane iz `open-sse/config/freeModelCatalog.ts`; za deduplikacijo
-skupnih virov, oznake ToS, ukinjene vnose in metodologijo dobropisov ob registraciji glejte
+To so ocene za celoten katalog, ki veljajo za ločene upravičene račune, in ne kvota, ki jo zagotavlja OmniRoute, ali napoved za novo namestitev. Vaša razpoložljiva zmogljivost je odvisna od ponudnikov, ki jih povežete, in njihovih trenutnih pogojev. Vrednosti so izračunane iz `open-sse/config/freeModelCatalog.ts`; za odstranjevanje podvojitev skupnih kvot, oznake pogojev uporabe,
+ukinjene vnose in metodologijo dobroimetij ob registraciji glejte
 [Referenco brezplačnih ravni](../reference/FREE_TIERS.md).
 
 ---

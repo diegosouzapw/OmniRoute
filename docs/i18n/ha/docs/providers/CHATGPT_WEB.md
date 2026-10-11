@@ -21,17 +21,27 @@ Migration `168_retire_chatgpt_web.sql` yana sanya alamar tombstone ga haɗin mas
 
 Ana buƙatar tunnel ne kawai don zagayen kayan aiki. Kowace hanya da aka jera, ciki har da `pro`, za ta iya amfani da irin wannan damar kayan aiki na cikin gida da aka ɗaure da zagaye idan an saita tunnel da connector.
 
-## Saitin dashboard
+## Saitin Dashboard
 
-1. Buɗe mai bayarwar **ChatGPT Web (Codex)** sannan ka ƙara haɗi.
-2. Liƙa cikakken ChatGPT Cookie header, tunnel ID, runtime key, da sunan custom connector. Sabbin saituna masu damar kayan aiki dole ne su yi amfani da sabon connector da aka ƙirƙira mai suna daidai `OmniRoute Codex v2`, tare da saita Authentication zuwa None da Permissions zuwa Allow all actions.
-3. Gudanar da binciken haɗi. OmniRoute yana buɗe Temporary Chat mai goyon bayan burauza kuma yana gano ko Sol da Pro suna samuwa ga asusun.
-4. Adana haɗin. OmniRoute yana maye gurbin cookie da aka liƙa da ingantaccen Playwright storage state, sannan yana adana shi tare da runtime key ta hanyar rufaffen tsarin sarrafa bayanan shaidar shiga.
+1. Buɗe mai samar da **ChatGPT Web (Codex)** sannan ka ƙara haɗi.
+2. Liƙa cikakken taken ChatGPT Cookie, ID na tunnel, runtime key, da sunan custom connector.
+   Sabbin saituna masu iya amfani da kayan aiki dole ne su yi amfani da sabon connector da aka ƙirƙira mai suna daidai
+   `OmniRoute Codex v2`, tare da saita Authentication zuwa None da Permissions zuwa Allow all
+   actions.
+3. Gudanar da binciken haɗin. OmniRoute yana buɗe Temporary Chat mai amfani da browser sannan ya gano
+   ko Sol da Pro suna samuwa ga asusun.
+4. Ajiye haɗin. OmniRoute yana maye gurbin cookie ɗin da aka liƙa da ingantaccen
+   Playwright storage state sannan ya adana shi tare da runtime key ta hanyar tsarin ɓoye
+   bayanan shaidar shiga.
 
-Ba a riƙe ainihin cookie bayan an yi nasarar adanawa. Idan zaman ya ƙare, buɗe haɗin, liƙa sabon cikakken Cookie header, sannan ka sake gudanar da binciken. Matsayin doctor a cikin edit dialog yana bayar da rahoto dabam-dabam kan burauza, storage state, shiga, Temporary Chat, tunnel, connector, da zagayen kayan aiki na turawa da dawowa.
+Ba a riƙe ainihin cookie bayan an yi nasarar ajiyewa. Lokacin da zaman ya ƙare, buɗe
+haɗin, liƙa sabon cikakken taken Cookie, sannan ka sake gudanar da binciken. Matsayin doctor
+a cikin edit dialog yana bayar da rahoton browser, storage state, shiga, Temporary Chat, tunnel,
+connector, da zagayen gwajin kayan aiki daban-daban. Don sarrafa sabunta cookie ta atomatik lokacin da sessions ke canzawa,
+duba kayan aikin da ke tare da shi a [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Kada a taɓa commit na ainihin cookie, runtime key, storage state, ko capability token. Dole ne ƙimomin gwaji da
-> takardu su kasance placeholders koyaushe.
+> Kada ka taɓa commit na ainihin cookie, runtime key, storage state, ko capability token. Ƙimomin gwaji da
+> na takardu dole ne koyaushe su kasance placeholders.
 
 ## Samfura da combos
 
@@ -94,7 +104,7 @@ madadin HTTP/SSE kafin haɗawa da upstream. Daga nan, canja wurin yana bi ta
 
 ## Tabbatarwa
 
-Gudanar da provider controls ba tare da kiran provider da aka dakatar ba:
+Gudanar da gwaje-gwajen sarrafa mai samarwa ba tare da kiran mai samarwar da aka yi wa ritaya ba:
 
 ```bash
 node --import tsx/esm --test \\
@@ -103,7 +113,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Masu kariya daga komawar matsalar dakatarwa suna cikin:
+Masu kariyar koma-baya na ritayar suna cikin:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

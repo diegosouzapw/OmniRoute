@@ -178,13 +178,12 @@ Penyedia berikut menawarkan **akses gratis** tanpa kartu kredit:
 | **Kiro AI**       | 50 kredit/bulan       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Tidak perlu autentikasi |
 | **OpenCode Free** | Tanpa batas           | GPT-4o, Claude, Gemini                   | Tidak perlu autentikasi |
 | **Pollinations**  | Tidak perlu kunci     | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Tidak perlu autentikasi |
-| **LongCat**       | 10 juta satu kali     | LongCat-2.0                              | Kunci API + KYC         |
+| **LongCat**       | 10 juta sekali pakai  | LongCat-2.0                              | Kunci API + KYC         |
 | **Cloudflare AI** | 10 ribu neuron/hari   | 50+ model                                | Tidak perlu autentikasi |
-| **NVIDIA NIM**    | ~40 RPM               | 129 model                                | Memerlukan kunci API    |
+| **NVIDIA NIM**    | ~40 RPM               | 129 model                                | Perlu kunci API         |
 | **Cerebras**      | Kredit pendaftaran $5 | GLM 4.7, GPT-OSS 120B                    | Kunci API + kartu       |
-| **Qoder**         | Tanpa batas           | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Tidak perlu autentikasi |
 
-**Kiat**: Hubungkan beberapa penyedia gratis untuk mendapatkan **AI gratis tanpa batas** dengan peralihan otomatis!
+**Kiat**: Hubungkan beberapa penyedia gratis untuk mendapatkan **AI gratis tanpa batas** dengan pengalihan otomatis!
 
 ---
 
@@ -283,6 +282,29 @@ Kemudian gunakan `model: "auto"` dan OmniRoute akan secara otomatis memilih peny
 1. Dapatkan kunci API: https://platform.deepseek.com/
 2. Di OmniRoute: Penyedia → Tambahkan Penyedia → DeepSeek
 3. Tempelkan kunci API → Hubungkan
+
+### Qoder: pilih metode pengiriman kredensial
+
+Qoder memerlukan kredensial. Kedua metode pengirimannya memiliki kemampuan yang berbeda; nama model saja tidak dapat mengidentifikasi kemampuan koneksi tertentu.
+
+| Kredensial                         | Metode pengiriman OmniRoute                           | Pemanggilan alat oleh pemanggil                  | Streaming                                                              |
+| ---------------------------------- | ----------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| PAT yang diawali dengan `pt-`      | Proses `qodercli` lokal pada host OmniRoute           | Tidak didukung                                   | Di-buffer: SSE hanya dikirim setelah CLI mengembalikan respons lengkap |
+| Token akses non-PAT atau kunci API | Endpoint HTTP DashScope yang kompatibel dengan OpenAI | Diteruskan, bergantung pada model/kunci upstream | Jalur HTTP/SSE upstream                                                |
+
+Untuk PAT, instal Qoder CLI pada host atau kontainer yang sama dengan OmniRoute. File yang dapat dieksekusi harus dapat ditemukan sebagai `qodercli`, atau atur `CLI_QODER_BIN` ke jalur file tersebut. CLI yang hanya diinstal pada host Docker tidak secara otomatis tersedia di dalam kontainer. Ketiadaan file biner menghasilkan galat eksplisit yang mengarahkan Anda ke penginstalan atau pengaturan jalur.
+
+Jalur percakapan PAT memiliki batas waktu proses 45 detik. Jalur ini meratakan percakapan menjadi sebuah prompt dan menjalankan CLI dalam mode cetak non-streaming. Meminta `stream: true` mengubah pembungkus respons menjadi SSE; hal ini tidak menyediakan pengiriman token upstream secara bertahap. Validasi CLI/daftar model menggunakan batas waktu terpisah selama 20 detik. Ini adalah nilai default kode saat ini, bukan pengaturan dasbor yang dapat dikonfigurasi.
+
+Gunakan koneksi PAT untuk percakapan biasa. Permintaan agen yang membawa `tools` atau `functions` lama mengecualikan akun PAT selama pemilihan kredensial, termasuk target kombo yang disematkan. Kumpulan Qoder campuran masih dapat memilih akun HTTP-nya. Panggilan langsung ke eksekutor PAT juga gagal secara eksplisit sebelum menjalankan CLI, alih-alih menghapus definisi alat secara diam-diam. Pembatasan ini berlaku untuk alat yang diberikan oleh pemanggil API, bukan alat internal apa pun yang mungkin digunakan sendiri oleh Qoder CLI. Kunci HTTP tidak menjamin bahwa setiap model mendukung alat; pemeriksaan kemampuan model yang normal tetap berlaku.
+
+OAuth browser hanya tersedia ketika administrator mengonfigurasi kelima pengaturan berikut:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, dan `QODER_OAUTH_CLIENT_SECRET`. Nilai defaultnya kosong; instalasi yang belum dikonfigurasi sebaiknya menggunakan impor kredensial yang didukung alih-alih mengasumsikan bahwa alur masuk melalui browser sudah siap.
+
+Referensi implementasi: [Eksekutor Qoder](../../open-sse/executors/qoder.ts),
+[runtime CLI](../../open-sse/services/qoderCli.ts), dan
+[konfigurasi OAuth](../../src/lib/oauth/constants/oauth.ts). Streaming PAT bertahap dan batas waktu yang dapat dikonfigurasi merupakan peningkatan terpisah; perilaku ini tidak menjanjikan keduanya.
 
 ### Groq
 

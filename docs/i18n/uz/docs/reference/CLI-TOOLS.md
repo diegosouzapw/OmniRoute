@@ -567,41 +567,41 @@ kiro-cli status
 
 ## 10. Ichki OmniRoute CLI
 
-`omniroute` bajariluvchi fayli server hayotiy sikli, sozlash, diagnostika va provayderlarni boshqarish uchun buyruqlarni taqdim etadi. Kirish nuqtasi: `bin/omniroute.mjs`.
+`omniroute` bajariluvchi fayli serverning hayot sikli, sozlash, diagnostika va provayderlarni boshqarish uchun buyruqlarni taqdim etadi. Kirish nuqtasi: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Serverni ishga tushirish (standart port 20128)
 omniroute setup                        # Interaktiv sozlash ustasi
 omniroute doctor                       # Konfiguratsiya, MB, portlar va bajarilish muhitini tekshirish
 omniroute providers list               # Sozlangan provayder ulanishlari
-omniroute providers test-all           # Barcha faol ulanishlarni sinash
+omniroute providers test-all           # Har bir faol ulanishni sinash
 omniroute reset-password               # Administrator parolini tiklash
-omniroute logs                         # So‘rov jurnallarini oqimda ko‘rsatish
+omniroute logs                         # Soʻrov jurnallarini oqimli koʻrsatish
 omniroute health                       # Batafsil holat (uzgichlar, kesh, xotira)
 omniroute --version                    # Versiyani chiqarish
-omniroute --help                       # Barcha buyruqlarni ko‘rsatish
+omniroute --help                       # Barcha buyruqlarni koʻrsatish
 ```
 
 ### Sozlash va ishga tayyorlash
 
 ```bash
 omniroute setup                        # Interaktiv sozlash ustasi
-omniroute setup --non-interactive      # CI/avtomatlashtirish rejimi (muhit o‘zgaruvchilari va bayroqlarni o‘qiydi)
-omniroute setup --password '<value>'   # Administrator parolini bevosita o‘rnatish
+omniroute setup --non-interactive      # CI/avtomatlashtirish rejimi (muhit oʻzgaruvchilari va bayroqlarni oʻqiydi)
+omniroute setup --password '<value>'   # Administrator parolini bevosita belgilash
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Provayderni bir urinishda qo‘shish va sinash
+  --test-provider                      # Provayderni bir urinishda qoʻshish va sinash
 ```
 
-Interaktiv bo‘lmagan sozlash uchun tan olinadigan muhit o‘zgaruvchilari:
+Interaktiv boʻlmagan sozlash uchun tan olinadigan muhit oʻzgaruvchilari:
 
-| O‘zgaruvchi         | Maqsad                                                                        |
+| Oʻzgaruvchi         | Maqsad                                                                        |
 | ------------------- | ----------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Provayder API kaliti (Commander `.env()` orqali `--api-key` bilan bog‘langan) |
-| `DATA_DIR`          | OmniRoute ma’lumotlar katalogini almashtirish                                 |
+| `OMNIROUTE_API_KEY` | Provayder API kaliti (Commander `.env()` orqali `--api-key` bilan bogʻlangan) |
+| `DATA_DIR`          | OmniRoute maʼlumotlar katalogini almashtirish                                 |
 
-Boshqa barcha interaktiv bo‘lmagan kirish qiymatlari muhit o‘zgaruvchilari sifatida emas, bayroqlar orqali uzatiladi:
+Boshqa barcha interaktiv boʻlmagan kiritmalar muhit oʻzgaruvchilari sifatida emas, bayroqlar sifatida uzatiladi:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (yuqoridagi `omniroute setup` parametrlariga qarang).
 
@@ -609,30 +609,30 @@ Boshqa barcha interaktiv bo‘lmagan kirish qiymatlari muhit o‘zgaruvchilari s
 
 ```bash
 omniroute doctor                       # Konfiguratsiya, MB, portlar, bajarilish muhiti, xotira va ishlayotganlikni tekshirish
-omniroute doctor --json                # Mashina o‘qiy oladigan JSON
-omniroute doctor --no-liveness         # HTTP holat tekshiruvini o‘tkazib yuborish
-omniroute doctor --host 0.0.0.0        # Ishlayotganlik xostini almashtirish
-omniroute doctor --liveness-url <url>  # Holat yakuniy nuqtasining to‘liq URL manzilini almashtirish
+omniroute doctor --json                # Mashina oʻqiy oladigan JSON
+omniroute doctor --no-liveness         # HTTP holat tekshiruvini oʻtkazib yuborish
+omniroute doctor --host 0.0.0.0        # Ishlayotganlikni tekshirish xostini almashtirish
+omniroute doctor --liveness-url <url>  # Toʻliq holat yakuniy nuqtasi URL manzilini almashtirish
 ```
 
-Doctor quyidagi tekshiruvlarni bajaradi: `Config`, `Database`, `Storage/encryption`,
+`doctor` quyidagi tekshiruvlarni bajaradi: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` va `Server liveness`. Agar biror tekshiruv `fail` bo‘lsa, u noldan farqli kod bilan yakunlanadi.
+`Memory` va `Server liveness`. Agar biror tekshiruv natijasi `fail` boʻlsa, u noldan farqli kod bilan yakunlanadi.
 
 ### Provayderlarni boshqarish
 
 ```bash
 omniroute providers available                       # OmniRoute provayderlar katalogi
-omniroute providers available --search openai       # Katalogni id/nom/taxallus/toifa bo‘yicha filtrlash
-omniroute providers available --category api-key    # Toifa bo‘yicha filtrlash (api-key, oauth, free, ...)
-omniroute providers available --json                # Mashina o‘qiy oladigan JSON
+omniroute providers available --search openai       # Katalogni id/nom/taxallus/toifa boʻyicha filtrlash
+omniroute providers available --category api-key    # Toifa boʻyicha filtrlash (api-key, oauth, free, ...)
+omniroute providers available --json                # Mashina oʻqiy oladigan JSON
 
 omniroute providers list                            # Sozlangan provayder ulanishlari
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Bitta sozlangan ulanishni sinash
-omniroute providers test-all                        # Barcha faol ulanishlarni sinash
-omniroute providers validate                        # Faqat lokal tuzilmaviy tekshiruv
+omniroute providers test-all                        # Har bir faol ulanishni sinash
+omniroute providers validate                        # Faqat mahalliy tuzilmaviy tekshiruv
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Mavjud OAuth jarayoni
@@ -640,45 +640,57 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` avvalo API orqali ishlaydi va shu sababli
-faol lokal yoki masofaviy kontekstga nisbatan ishlaydi. Hisob ma’lumotlarini kiritish uchun
+`providers add/import/auth/edit/remove` birinchi navbatda API orqali ishlaydi va shu sababli
+faol mahalliy yoki masofaviy kontekst bilan ishlaydi. Hisob maʼlumotlarini kiritish uchun
 `--credential-stdin` yoki `--credential-env` ishlatilishi kerak; `--dry-run --json` faqat
-yashirilgan mavjudlik/tuzilma haqidagi ma’lumotni beradi. `providers available` OmniRoute katalogini o‘qiydi;
-`providers list/test/test-all/validate` o‘zining lokal SQLite xatti-harakatini saqlab qoladi va
+maxfiy qismlari yashirilgan mavjudlik/shakl maʼlumotlarini chiqaradi. `providers available` OmniRoute katalogini oʻqiydi;
+`providers list/test/test-all/validate` esa mahalliy SQLite xatti-harakatini saqlab qoladi va
 server ishlab turishini talab qilmaydi.
 
-### Tiklash va qayta o‘rnatish
+Maxsus OpenAI-mos yoki Anthropic-mos tugun uchun hisob maʼlumotlarini
+`omniroute nodes add` qaytargan tugun ID raqamiga `omniroute keys add "$NODE_ID" --stdin` orqali biriktiring.
+Buning uchun faol kontekstda ishlab turgan server va boshqaruv autentifikatsiyasi talab qilinadi.
+CLI tugunni tekshiradigan va uning yakuniy nuqta sozlamalarini
+ulanishga nusxalaydigan `POST /api/providers` soʻrovidan foydalanadi. Tugun mavjud boʻlmasa, avtorizatsiya muvaffaqiyatsiz tugasa yoki
+server ishlamasa, mahalliy zaxira hisob maʼlumotlari yaratilmaydi va xato qaytariladi.
+
+`nodes add --base-url` tugunning yakuniy nuqtasini belgilaydi; u
+`OMNIROUTE_BASE_URL` ichidagi server manzilidan farq qiladi. OpenAPI fayllari uchun
+`omniroute openapi dump --format json --out ./openapi.json` dan foydalaning; global `--output`
+parametri manzil fayli nomini emas, CLI koʻrsatish formatini tanlaydi.
+
+### Tiklash va asl holatga qaytarish
 
 ```bash
 omniroute reset-password                # Administrator parolini tiklash (shuningdek: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Shifrlangan hisob ma’lumotlarini tiklash uchun ogohlantirish va sinov rejimini ko‘rsatish
-omniroute reset-encrypted-columns --force  # SQLite ichidagi shifrlangan hisob ma’lumotlarini amalda null qilish
+omniroute reset-encrypted-columns       # Shifrlangan hisob maʼlumotlarini tiklash uchun ogohlantirish va sinov rejimini koʻrsatish
+omniroute reset-encrypted-columns --force  # SQLite ichidagi shifrlangan hisob maʼlumotlarini amalda null qilish
 ```
 
-### Hisob ma’lumotlarini eksport qilish (⚠ ehtiyotkorlik bilan ishlating)
+### Hisob maʼlumotlarini eksport qilish (⚠ ehtiyotkorlik bilan ishlating)
 
 ```bash
-omniroute auth export                                 # Ogohlantirish va tasdiqlash bosqichini ko‘rsatish — MBga kirilmaydi
-omniroute auth export --force                          # BARCHA ulanishlarning SHIFRDAN YECHILGAN hisob ma’lumotlarini JSON sifatida stdout’ga eksport qilish
+omniroute auth export                                 # Ogohlantirish va tasdiqlash bosqichini koʻrsatish — MBga murojaat qilinmaydi
+omniroute auth export --force                          # BARCHA ulanishlarning SHIFRDAN YECHILGAN hisob maʼlumotlarini stdout oqimiga JSON sifatida eksport qilish
 omniroute auth export --force --id <id>                 # Faqat mos keluvchi ulanishni eksport qilish
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> qatorlarini chiqarish
 omniroute auth export --force --out creds.json           # Faylga yozish (0600 ruxsatlari bilan yaratiladi)
 ```
 
-`auth export` **faqat lokal** ishlaydi (SQLite bevosita o‘qiladi, HTTP marshruti yo‘q) va ataylab
-**ochiq matn** ko‘rinishidagi `apiKey`/`accessToken`/`refreshToken`/`idToken` qiymatlarini chiqaradi/yozadi — bu
-xato emas, funksiyaning maqsadidir. `--force` bo‘lmasa, ma’lumotlar bazasidan hech narsa o‘qilmaydi va hech narsa shifrdan yechilmaydi. Har qanday ochiq matn chiqarilishidan oldin stderr’da
-ogohlantirish banneri doimo ko‘rsatiladi. `STORAGE_ENCRYPTION_KEY` o‘rnatilgan bo‘lishi
-talab qilinadi. Shifrdan yechish muvaffaqiyatsiz bo‘lgan maydon (eskirgan kalit, buzilgan shifrmatn) butun eksportni
-to‘xtatish yoki asosiy xatoni oshkor qilish o‘rniga `<field>DecryptFailed: true` sifatida bildiriladi.
+`auth export` **faqat lokal rejimda** ishlaydi (SQLiteʼdan toʻgʻridan-toʻgʻri oʻqiydi, HTTP marshruti yoʻq) va ataylab
+`apiKey`/`accessToken`/`refreshToken`/`idToken` qiymatlarini **ochiq matn** koʻrinishida chiqaradi/yozadi — bu xatolik emas,
+balki funksiyaning oʻzidir. `--force` ishlatilmasa, maʼlumotlar bazasidan hech narsa oʻqilmaydi va hech narsa shifrdan chiqarilmaydi. Har qanday ochiq matn chiqarilishidan oldin stderrʼga
+doimo ogohlantirish banneri chiqariladi. `STORAGE_ENCRYPTION_KEY` sozlangan boʻlishi
+talab qilinadi. Shifrdan chiqarib boʻlmaydigan maydon (eskirgan kalit, buzilgan shifrlangan matn) butun eksportni
+toʻxtatish yoki asosiy xatoni oshkor qilish oʻrniga `<field>DecryptFailed: true` sifatida koʻrsatiladi.
 
 ### Boshqa quyi buyruqlar
 
-Alohida qayd etilmagan bo‘lsa, ular ishlab turgan OmniRoute serverini talab qiladi:
+Agar boshqacha qayd etilmagan boʻlsa, bular ishlayotgan OmniRoute serverini talab qiladi:
 
 ```bash
 omniroute status                       # Ishlash holati haqida batafsil maʼlumot
-omniroute logs                         # Soʻrov jurnallarini uzatish (--json, --search, --follow)
+omniroute logs                         # Soʻrov jurnallarini oqimda koʻrsatish (--json, --search, --follow)
 omniroute config list                  # Sozlangan CLI vositalarini koʻrsatish
 
 omniroute provider list                # Mavjud provayderlarni roʻyxatlash (providers list taxallusi)
@@ -687,7 +699,7 @@ omniroute keys add | list | remove     # API kalitlarini boshqarish
 omniroute models [provider]            # Modellarni roʻyxatlash (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Konfiguratsiya va DB oniy nusxasini yaratish
+omniroute backup                       # Konfiguratsiya va maʼlumotlar bazasi oniy nusxasini yaratish
 omniroute restore                      # Oldingi oniy nusxadan tiklash
 
 omniroute health                       # Batafsil holat (uzgichlar, kesh, xotira)
@@ -699,24 +711,24 @@ omniroute mcp status | restart         # MCP serveri holati / qayta ishga tushir
 omniroute a2a status | card            # A2A serveri holati / agent kartasi
 
 omniroute tunnel list | create | stop  # Tunnellarni boshqarish (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Muhit oʻzgaruvchilarini tekshirish / sozlash (vaqtincha)
+omniroute env show | get <k> | set <k> <v>  # Muhit oʻzgaruvchilarini koʻrish / sozlash (vaqtincha)
 
 omniroute test                         # Provayder ulanishining tezkor sinovi
 omniroute update                       # Yangilanishlarni tekshirish
-omniroute completion                   # Qobiq uchun avtomatik toʻldirishni yaratish
+omniroute completion                   # Shell uchun avtomatik toʻldirishni yaratish
 ```
 
 ### Umumiy bayroqlar
 
-| Bayroq              | Tavsif                                                                |
-| ------------------- | --------------------------------------------------------------------- |
-| `--no-open`         | Ishga tushganda brauzerni avtomatik ochmaslik                         |
-| `--port <n>`        | API portini almashtirish (standart 20128)                             |
-| `--mcp`             | stdio orqali MCP serveri sifatida ishlash (IDEʼlar uchun)             |
-| `--non-interactive` | CI rejimi (soʻrovlarsiz; env/bayroqlardan oʻqiydi)                    |
-| `--json`            | Mashina oʻqiy oladigan JSON chiqishi (doctor, providers va boshqalar) |
-| `--help`, `-h`      | Buyruqqa oid yordamni koʻrsatish                                      |
-| `--version`, `-v`   | Oʻrnatilgan versiyani chiqarish                                       |
+| Bayroq              | Tavsif                                                             |
+| ------------------- | ------------------------------------------------------------------ |
+| `--no-open`         | Ishga tushganda brauzerni avtomatik ochmaslik                      |
+| `--port <n>`        | API portini almashtirish (standart qiymat 20128)                   |
+| `--mcp`             | stdio orqali MCP serveri sifatida ishlatish (IDEʼlar uchun)        |
+| `--non-interactive` | CI rejimi (soʻrovlarsiz; env/bayroqlardan oʻqiydi)                 |
+| `--json`            | Mashina oʻqiy oladigan JSON chiqishi (doctor, providers va hokazo) |
+| `--help`, `-h`      | Buyruqqa xos yordamni koʻrsatish                                   |
+| `--version`, `-v`   | Oʻrnatilgan versiyani chiqarish                                    |
 
 ---
 

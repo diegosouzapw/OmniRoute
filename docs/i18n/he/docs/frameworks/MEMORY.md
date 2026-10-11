@@ -165,32 +165,32 @@ RRF(d) = Σ  1 / (k + rank_i(d))      כאשר k = 60 (ניתן להגדרה ב�
 תשעה שדות של הטמעות ווקטורים זמינים ב-`MemorySettingsExtended` שבקובץ
 `src/shared/schemas/memory.ts`, ונשמרים באמצעות `src/lib/db/settings.ts`:
 
-| שדה                      | סוג                                                | ברירת מחדל | תיאור                                                      |
-| ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | מקור ההטמעות שבו יש להשתמש                                 |
-| `embeddingProviderModel` | `string \| null`                                   | `null`     | ספק/מודל בתבנית `provider/model`                           |
-| `customBaseUrl`          | `string \| null`                                   | `null`     | כתובת URL בסיסית לנקודת קצה תואמת OpenAI עבור Memory בלבד  |
-| `customModelId`          | `string \| null`                                   | `null`     | מזהה המודל שנשלח לנקודת הקצה המותאמת אישית                 |
-| `transformersEnabled`    | `boolean`                                          | `false`    | הצטרפות מפורשת לשימוש ב-Transformers.js ‏(MiniLM, כ-400MB) |
-| `staticEnabled`          | `boolean`                                          | `false`    | הצטרפות מפורשת לשימוש במודל המקומי הסטטי potion-base-8M    |
-| `rerankEnabled`          | `boolean`                                          | `false`    | הפעלת שלב דירוג מחדש (מוסיף 200–500ms לבקשה)               |
-| `rerankProviderModel`    | `string \| null`                                   | `null`     | ספק/מודל לדירוג מחדש בתבנית `provider/model`               |
+| שדה                      | סוג                                                | ברירת מחדל | תיאור                                                        |
+| ------------------------ | -------------------------------------------------- | ---------- | ------------------------------------------------------------ |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | באיזה מקור הטמעות להשתמש                                     |
+| `embeddingProviderModel` | `string \| null`                                   | `null`     | ספק/מודל בתבנית `provider/model`                             |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | כתובת URL בסיסית של נקודת קצה תואמת OpenAI, עבור Memory בלבד |
+| `customModelId`          | `string \| null`                                   | `null`     | מזהה המודל שנשלח לנקודת הקצה המותאמת אישית                   |
+| `transformersEnabled`    | `boolean`                                          | `false`    | הצטרפות לשימוש ב-Transformers.js ‏(MiniLM, כ-400MB)          |
+| `staticEnabled`          | `boolean`                                          | `false`    | הצטרפות לשימוש במודל המקומי הסטטי potion-base-8M             |
+| `rerankEnabled`          | `boolean`                                          | `false`    | הפעלת שלב דירוג מחדש (מוסיף 200-500ms+ לכל בקשה)             |
+| `rerankProviderModel`    | `string \| null`                                   | `null`     | ספק/מודל לדירוג מחדש בתבנית `provider/model`                 |
 
-`rerankProviderModel` נפתר באמצעות `POST /v1/rerank` (שנקרא דרך ממשק הלולאה המקומית), ולכן הוא מקבל כל ערך שהנתיב הזה מקבל: מודל ענן נבחר לדירוג מחדש (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) או צומת ספק תואם OpenAI בתבנית `<node-prefix>/<model>` (לדוגמה, `skilled-mini/bge-reranker-v2-m3` עבור שרת TEI/Infinity). צומתי לולאה מקומית תמיד מורשים; צומת במארח אחר (LAN,‏ Tailscale) דורש בנוסף את דגל התכונה `RERANK_REMOTE_PROVIDER_NODES` וחייב לעמוד במדיניות כתובות ה-URL היוצאות של הספק — ראו [דגלי תכונות](../reference/FEATURE_FLAGS.md). הבורר בלוח הבקרה מציג ספקים נבחרים וכן צמתים מקומיים; ניתן להגדיר ישירות כל מחרוזת `provider/model` תקינה באמצעות `PUT /api/settings/memory`.
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | אחסון הווקטורים שבו יש להשתמש |
+הערך `rerankProviderModel` מזוהה על ידי `POST /v1/rerank` (שנקרא דרך loopback), ולכן הוא מקבל כל דבר שהנתיב הזה מקבל: מודל ענן מאוצר לדירוג מחדש (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) או צומת ספק תואם OpenAI בתבנית `<node-prefix>/<model>` (לדוגמה, `skilled-mini/bge-reranker-v2-m3` עבור שרת TEI/Infinity). צומתי loopback ושמות מארחים המפורטים ב-`OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (לדוגמה, שם שירות של Docker/Compose) תמיד כשירים; צומת במארח אחר (LAN,‏ Tailscale) דורש בנוסף את דגל התכונה `RERANK_REMOTE_PROVIDER_NODES` ועליו לעמוד במדיניות כתובות ה-URL היוצאות של הספק — ראו [דגלי תכונות](../reference/FEATURE_FLAGS.md). הבורר בלוח הבקרה מציג ספקים מאוצרים לצד צמתים מקומיים; ניתן להגדיר ישירות כל מחרוזת `provider/model` תקינה באמצעות `PUT /api/settings/memory`.
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | באיזה מנגנון אחסון וקטורי להשתמש |
 
-הגדרות אלה נחשפות באמצעות `GET /PUT /api/settings/memory` (סכימה `MemorySettingsExtendedSchema`).
+שדות אלה נחשפים באמצעות `GET /PUT /api/settings/memory` (הסכמה `MemorySettingsExtendedSchema`).
 
-עבור המקור `remote`,‏ Memory מקבל גם את ההגדרות האופציונליות `customBaseUrl` ו-
-`customModelId`. יחד הן בוחרות נקודת קצה תואמת OpenAI מסוג `/embeddings`
-ומודל, מבלי לשנות את מרשם ההטמעות הגלובלי. נקודת הקצה
-מנורמלת לפני השימוש ונבדקת בהתאם למדיניות כתובות ה-URL היוצאות של הספק: נדרש
-HTTP(S), פרטי אימות מוטמעים ומחרוזות שאילתה נדחים, וכתובות של מטא-נתוני ענן
-נותרות חסומות. ערכים ריקים משמרים את ספק המרשם שנבחר. שגיאות
-המוחזרות ללוח הבקרה עוברות סינון, ופרטי האימות של נקודת הקצה לעולם אינם נרשמים ביומן.
+עבור המקור `remote`,‏ Memory מקבל גם את ההגדרות האופציונליות `customBaseUrl`
+ו-`customModelId`. יחד הן בוחרות נקודת קצה `/embeddings` ומודל תואמי OpenAI
+מבלי לשנות את מרשם ההטמעות הגלובלי. נקודת הקצה עוברת נרמול לפני השימוש ונבדקת
+על פי מדיניות כתובות ה-URL היוצאות של הספק: נדרש HTTP(S), פרטי גישה מוטמעים
+ומחרוזות שאילתה נדחים, וכתובות מטא-נתונים של ענן נשארות חסומות. ערכים ריקים
+משמרים את ספק המרשם שנבחר. שגיאות המוחזרות ללוח הבקרה עוברות סינון, ופרטי
+הגישה לנקודת הקצה לעולם אינם נכתבים ליומנים.
 
-> **TODO (D20):** התחום `global` (שיתוף זיכרונות בין כל מפתחות ה-API) אינו
-> ממומש במהדורה זו. הוא דורש שינויי סכימה ונתיב אחזור גלובלי.
+> **לביצוע (D20):** התחום `global` (שיתוף זיכרונות בין כל מפתחות ה-API) אינו
+> ממומש בגרסה זו. הוא דורש שינויי סכמה ונתיב אחזור גלובלי.
 > יש לעקוב אחריו בנפרד.
 
 ## שכבות אחסון
@@ -893,12 +893,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## תבנית ספק MemoryBackend
+## תבנית הספק MemoryBackend
 
 > **מקור האמת:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **בדיקות:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-תבנית הספק MemoryBackend מוסיפה **שכבת הפשטה ניתנת להחלפה עבור מנגנוני אחסון** מעל מנוע הזיכרון הקיים. במקום להיות כבולה למימוש אחסון יחיד, מערכת הזיכרון תומכת כעת במספר מנגנוני אחסון (SQLite,‏ Obsidian,‏ Notion ומנגנוני HTTP מותאמים אישית), עם ניתוב ראשי/חלופי הניתן להגדרה.
+תבנית הספק MemoryBackend מוסיפה **שכבת הפשטה ניתנת להחלפה עבור מנגנוני קצה עורפי** מעל מנוע הזיכרון הקיים. במקום להיות קשורה למימוש אחסון יחיד, מערכת הזיכרון תומכת כעת במספר מנגנוני קצה עורפי (SQLite, Obsidian, Notion ומנגנוני HTTP מותאמים אישית), עם ניתוב ראשי/חלופי הניתן להגדרה.
 
 ### ארכיטקטורה
 
@@ -910,32 +910,31 @@ curl -X POST http://localhost:20128/api/memory/summarize \
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           מתזמר Singleton ‏(manager.ts)                    │
+│           מתזמר יחידני (manager.ts)                       │
 │                                                          │
-│  ראשי ─────► מנגנון A ‏(למשל SQLite)                      │
-│  חלופי ────► מנגנון B ‏(למשל Obsidian)                    │
-│              מנגנון C ‏(למשל Notion דרך GenericBackend)   │
+│  ראשי ──► מנגנון A  (למשל SQLite)                        │
+│  חלופי ─► מנגנון B  (למשל Obsidian)                      │
+│           מנגנון C  (למשל Notion דרך GenericBackend)      │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
-│ מנגנון     │ │ מנגנון     │ │ מנגנון           │
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│            │ │            │ │ ‏(HTTP)            │
+│ מנגנון     │ │ מנגנון     │ │ מנגנון (HTTP)    │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
 #### ממשק הליבה (`backend.ts`)
 
-כל מנגנון אחסון חייב לממש את הממשק `MemoryBackend`:
+כל מנגנון קצה עורפי חייב לממש את הממשק `MemoryBackend`:
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // יצירה, קריאה, עדכון ומחיקה
+  // פעולות CRUD
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -956,43 +955,43 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-מתזמר Singleton אשר:
+מתזמר יחידני אשר:
 
-- **רושם** מנגנוני אחסון באמצעות `register(backend)` — נקרא בעת האתחול מתוך `index.ts`
+- **רושם** מנגנוני קצה עורפי באמצעות `register(backend)` — נקרא בעת האתחול מתוך `index.ts`
 - **מגדיר** מנגנון ראשי ומנגנונים חלופיים באמצעות `configure(primary, fallbacks)`
-- **מנתב** פעולות CRUD/חיפוש אל המנגנון הראשי, עם שרשרת חלופות במקרה של כשל
-- **בודק את התקינות** של כל מנגנוני האחסון באופן תקופתי
+- **מנתב** פעולות CRUD וחיפוש אל המנגנון הראשי, עם שרשרת חלופות במקרה של כשל
+- מבצע **בדיקות תקינות** תקופתיות לכל מנגנוני הקצה העורפי
 
-**התנהגות החלופות:**
+**התנהגות המעבר לחלופה:**
 
-| פעולה    | ראשי                      | חלופות                      |
-| -------- | ------------------------- | --------------------------- |
-| `create` | ✅ ראשי בלבד              | ❌                          |
-| `get`    | ✅ ניסיון תחילה מול הראשי | ✅ חלופה אם התוצאה היא null |
-| `update` | ✅ ראשי בלבד              | ✅ סנכרון ללא המתנה לתוצאה  |
-| `delete` | ✅ ראשי בלבד              | ✅ סנכרון ללא המתנה לתוצאה  |
-| `list`   | ✅ ראשי בלבד              | ❌                          |
-| `search` | ✅ ראשי תחילה             | ✅ חלופה במקרה של שגיאה     |
+| פעולה    | ראשי                   | חלופות                      |
+| -------- | ---------------------- | --------------------------- |
+| `create` | ✅ ראשי בלבד           | ❌                          |
+| `get`    | ✅ ניסיון ראשוני בראשי | ✅ חלופה אם התוצאה היא null |
+| `update` | ✅ ראשי בלבד           | ✅ סנכרון ללא המתנה לתוצאה  |
+| `delete` | ✅ ראשי בלבד           | ✅ סנכרון ללא המתנה לתוצאה  |
+| `list`   | ✅ ראשי בלבד           | ❌                          |
+| `search` | ✅ ראשי תחילה          | ✅ חלופה במקרה של שגיאה     |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-מחבר HTTP כללי שמתאים כל REST API לממשק MemoryBackend. שימושי עבור:
+מחבר HTTP כללי שמתאים כל API מסוג REST לממשק MemoryBackend. שימושי עבור:
 
-- **Notion** — התחברות באמצעות Notion API
-- **Obsidian** — התחברות באמצעות Obsidian Local REST API
-- **מנגנוני אחסון מותאמים אישית** — כל שירות שחושף API זיכרון בסגנון REST
+- **Notion** — התחברות דרך Notion API
+- **Obsidian** — התחברות דרך Obsidian Local REST API
+- **מנגנונים מותאמים אישית** — כל שירות שחושף API זיכרון מסוג REST
 
 **הגדרה:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // כתובת ה-URL הבסיסית של ה-API בצד השרת
+  baseUrl: string;           // כתובת ה-URL הבסיסית של API מנגנון הקצה העורפי
   apiKey?: string;           // אסימון Bearer לאימות
   headers?: Record<string, string>;  // כותרות HTTP מותאמות אישית
   timeout?: number;          // זמן קצוב לבקשה (ברירת מחדל: 30000ms)
   backendType?: string;      // לצורכי רישום ביומן
 
-  // דריסות לנקודות קצה (ברירות המחדל משתמשות במוסכמות REST)
+  // דריסות של נקודות קצה (ברירות המחדל משתמשות במוסכמות REST)
   endpoints?: {
     search?: string;   // ברירת מחדל: "/memories/search"
     create?: string;   // ברירת מחדל: "/memories"
@@ -1003,30 +1002,30 @@ interface GenericBackendConfig {
     health?: string;   // ברירת מחדל: "/health"
   };
 
-  // מיפויי שמות של פרמטרים בשאילתה
+  // מיפויי שמות של פרמטרי שאילתה
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // מיפויי שמות של פרמטרים בנתיב
+  // מיפויי שמות של פרמטרי נתיב
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**צדי שרת מוכרים** מוגדרים מראש ב-`KNOWN_BACKENDS`:
+**מנגנוני קצה עורפי מוכרים** מוגדרים מראש בתוך `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend שמצביע אל localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend שמצביע אל api.notion.com/v1
+createKnownBackend("obsidian"); // ← GenericMemoryBackend שמצביע אל localhost:27123
+createKnownBackend("notion"); // ← GenericMemoryBackend שמצביע אל api.notion.com/v1
 ```
 
-#### צדי שרת מובנים
+#### מנגנוני קצה עורפי מובנים
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-צד השרת הראשי המוגדר כברירת מחדל. עוטף את מאגר הזיכרון הקיים המבוסס על SQLite באמצעות `src/lib/memory/store.ts`. נרשם אוטומטית בעת האתחול.
+מנגנון הקצה העורפי הראשי כברירת מחדל. עוטף את מאגר הזיכרון הקיים, המבוסס על SQLite, באמצעות `src/lib/memory/store.ts`. נרשם אוטומטית בעת האתחול.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1035,17 +1034,76 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-עוטף את שילוב Obsidian הקיים (`src/lib/memory/obsidianBackend.ts`). מתחבר לכספת Obsidian באמצעות Obsidian Local REST API.
+עוטף את שילוב Obsidian הקיים (`src/lib/memory/obsidianBackend.ts`). מתחבר לכספת Obsidian דרך Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+מתאם עבור תהליך עובד מקומי של [claude-mem](https://github.com/thedotmack/claude-mem) — תוסף הזיכרון של
+Claude Code / Codex / Cursor, שמתעד הפעלות תכנות בתור "תצפיות".
+כאשר הוא רשום, נתיבי ה-REST של `/api/memory` וחיפוש הזיכרון של A2A יכולים לקרוא ולכתוב
+לאותו מאגר שה-hooks של claude-mem ממלאים.
+
+התהליך העובד מאזין לממשק loopback בלבד, שאותו הגנת ה-SSRF של `GenericMemoryBackend` דוחה בכוונה.
+מתאם זה אינו מקל את ההגנה הזו: המארח מקודד באופן קשיח בתור `127.0.0.1`, וסכמת ההגדרה
+(`ClaudeMemBackendConfigSchema`, `.strict()`) מקבלת רק:
+
+| מפתח        | סוג    | ברירת מחדל | הערות                                                                                                      |
+| ----------- | ------ | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —          | חובה, 1024–65535. פורט ה-worker של claude-mem מקובץ ההגדרות שלו (ברירת מחדל: `37700 + uid % 100`).         |
+| `project`   | string | —          | פרויקט claude-mem שבו יש להשתמש. אם לא הוגדר → כל מפתח API של OmniRoute ממופה לפרויקט משלו (ה-`apiKeyId`). |
+| `timeoutMs` | number | `5000`     | זמן קצוב לכל בקשה, 100–30000.                                                                              |
+
+הפעילו אותו באמצעות `PUT /api/settings/memory` והפעילו מחדש את OmniRoute (רכיבי backend נרשמים
+פעם אחת, בתוך `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+השתמשו במקום זאת ב-`"primaryBackend": "claude-mem"` כדי להפוך אותו למאגר עבור ה-REST API. תצורה
+לא תקינה נרשמת ביומן (`claude-mem.backend.invalid_config`) ומדולגת, כך ש-SQLite נשאר ה-backend הראשי.
+
+מיפוי ומגבלות:
+
+- מזהים הם בתבנית `claude-mem:<observationId>`; הפעולות `get`/`delete` מתעלמות ממזהים של רכיבי backend אחרים ללא
+  קריאת רשת.
+- `create` → `POST /api/memory/save`; השדות של OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) מועברים בתוך `metadata.omniroute` של claude-mem ומשוחזרים בקריאה.
+- `search` → `GET /api/search?format=json&type=observations`, עם קיצוץ לפי `maxTokens`
+  (מספר תווים / 4). `list` → נקודת הקצה המדופדפת של ה-worker לתצפיות (`total` הוא חסם תחתון — ה-worker
+  מחזיר `hasMore`, לא ספירה).
+- תצפיות שנלכדו באמצעות hooks ממפות `discovery` → `factual`,‏ `decision` → `procedural`, וכן
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **אין עדכונים** (`update()` מחזירה `false`; תצפיות אינן ניתנות לשינוי) ו-**אין TTL**
+  (מתעלמים מ-`expiresAt`).‏ claude-mem מסיר כפילויות בשמירות זהות במקום לבצע upsert לפי `key`.
+- הזרקת prompt (`retrieval.ts`) וכלי ה-MCP מסוג `omniroute_memory_*` עדיין קוראים ישירות מ-SQLite
+  — הם אינם עוברים דרך `memoryManager`, ולכן backend זה אינו מזין אותם.
+
+**ניתוב קריאות ה-LLM של claude-mem עצמו דרך OmniRoute.**‏ claude-mem דוחס תצפיות
+באמצעות LLM (ברירת מחדל: Claude Agent SDK). ניתן להפנות במקום זאת את ספק ה-`openai-compatible` שלו
+אל OmniRoute, וכך ליהנות מ-combo fallback וממעקב עלויות. בתוך `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<מפתח API של OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<מודל או combo של OmniRoute>"
+}
+```
 
 ### הגדרות
 
-הגדרות צד השרת של הזיכרון נשמרות בטבלת הגדרות היישום ומנוהלות באמצעות `src/lib/memory/settings.ts`:
+הגדרות ה-backend של הזיכרון מאוחסנות בטבלת הגדרות היישום ומנוהלות באמצעות `src/lib/memory/settings.ts`:
 
-| הגדרה           | מפתח סביבה/תצורה         | ברירת מחדל | תיאור                        |
-| --------------- | ------------------------ | ---------- | ---------------------------- |
-| צד שרת ראשי     | `memoryPrimaryBackend`   | `"sqlite"` | המזהה של צד השרת הראשי       |
-| צדי שרת חלופיים | `memoryFallbackBackends` | `[]`       | מזהי צדי שרת חלופיים לפי סדר |
-| תצורות צד שרת   | `memoryBackendConfigs`   | `{}`       | דריסות תצורה עבור כל צד שרת  |
+| הגדרה                 | מפתח סביבה/תצורה         | ברירת מחדל | תיאור                        |
+| --------------------- | ------------------------ | ---------- | ---------------------------- |
+| Backend ראשי          | `memoryPrimaryBackend`   | `"sqlite"` | המזהה של ה-backend הראשי     |
+| רכיבי backend חלופיים | `memoryFallbackBackends` | `[]`       | מזהי backend חלופיים לפי סדר |
+| תצורות backend        | `memoryBackendConfigs`   | `{}`       | דריסות תצורה לכל backend     |
 
 ההגדרות מנורמלות באמצעות `normalizeMemorySettings()` ונשמרות במטמון ב-`getMemorySettings()`.
 
@@ -1053,23 +1111,24 @@ memoryManager.register(sqliteBackend);
 
 ```
 אתחול היישום
-  → ייבוא של index.ts (כתופעת לוואי): רושם את SQLiteBackend
-  → initMemoryBackends() נקראת ממחזור החיים של היישום:
+  → ייבואי index.ts (כתוצאת לוואי): רישום SQLiteBackend
+  → קריאה אל initMemoryBackends() ממחזור החיים של היישום:
       1. טעינת הגדרות (getMemorySettings)
-      2. הגדרת צד שרת ראשי + צדי שרת חלופיים
-      3. אתחול כל צדי השרת (בדיקת תקינות)
+      1b. רישום רכיבי backend אופציונליים שנמצאים ב-backendConfigs (claude-mem)
+      2. הגדרת backend ראשי + חלופיים
+      3. אתחול כל רכיבי ה-backend (בדיקת תקינות)
       4. מוכן לבקשות
 ```
 
-### הוספת צד שרת חדש
+### הוספת Backend חדש
 
-1. **ממשו את הממשק `MemoryBackend`** ב-`src/lib/memory/<name>Backend.ts`
+1. **ממשו את הממשק `MemoryBackend`** בתוך `src/lib/memory/<name>Backend.ts`
 2. **ייצאו** מתוך `src/lib/memory/index.ts`
 3. **רשמו** באמצעות `memoryManager.register(yourBackend)` בעת האתחול
-4. **הגדירו** באמצעות ההגדרות: הגדירו את `memoryPrimaryBackend` למזהה צד השרת שלכם
+4. **הגדירו** באמצעות ההגדרות: קבעו את `memoryPrimaryBackend` למזהה ה-backend שלכם
 5. **בדקו** תוך שימוש ב-`src/lib/memory/__tests__/generic-backend.test.ts` כדוגמה
 
-#### דוגמה: צד שרת Brain
+#### דוגמה: Brain Backend
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1098,16 +1157,16 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 פלט צפוי: **35 בדיקות, כולן עוברות**, המכסות:
 
 - בנאי (2)
-- בדיקת תקינות (4) — הצלחה, כשל 500, שגיאת רשת, זמן השהיה
+- בדיקת תקינות (4) — הצלחה, כשל 500, שגיאת רשת, השהיה
 - אתחול (2) — הצלחה, כשל
 - יצירה (2) — נקודת קצה המוגדרת כברירת מחדל, נקודת קצה מותאמת אישית
-- אחזור (4) — הצלחה, 404 ← null, זריקת שגיאה שאינה 404, פרמטרים מותאמים אישית בנתיב
-- עדכון (2) — הצלחה, 404 ← false
-- מחיקה (2) — הצלחה, 404 ← false
-- הצגת רשימה (2) — פרמטרים בשאילתה, שמות פרמטרים מותאמים אישית
-- חיפוש (3) — פרמטרים בשאילתה, נקודת קצה מותאמת אישית, סריאליזציה של אפשרויות
+- קבלה (4) — הצלחה, 404 → null, שגיאה שאינה 404, פרמטרים מותאמים אישית לנתיב
+- עדכון (2) — הצלחה, 404 → false
+- מחיקה (2) — הצלחה, 404 → false
+- רשימה (2) — פרמטרים של שאילתה, שמות פרמטרים מותאמים אישית
+- חיפוש (3) — פרמטרים של שאילתה, נקודת קצה מותאמת אישית, סריאליזציה של אפשרויות
 - כותרות אימות (2) — אסימון Bearer, כותרות מותאמות אישית
-- מפעל (1)
+- Factory (1)
 
 #### בדיקת טיפוסים
 

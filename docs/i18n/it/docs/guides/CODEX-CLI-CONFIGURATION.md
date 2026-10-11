@@ -277,7 +277,7 @@ codex -p chat     # cx/gpt-5.5, nessun impegno impostato (valore predefinito del
 
 ## Generazione automatica dei profili con `omniroute setup-codex`
 
-Se esegui OmniRoute su un VPS, puoi generare automaticamente i file dei profili dal catalogo dei modelli attivo:
+Se esegui OmniRoute su un VPS, puoi generare automaticamente i file di profilo dal catalogo dei modelli attivo:
 
 ```bash
 # Da un VPS (usa OmniRoute locale sulla porta 20128)
@@ -292,13 +292,19 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 # Genera solo i profili GLM e Kimi
 omniroute setup-codex --only glm,kimi
 
-# Scrive in una directory personalizzata
+# Scrivi in una directory personalizzata
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Il comando recupera `/v1/models`, usa profili ottimizzati per i modelli noti, ricorre ai metadati del catalogo per gli altri modelli di testo compatibili e scrive `~/.codex/<name>.config.toml` per ciascuno. È idempotente, quindi può essere rieseguito in sicurezza.
+Il comando recupera `/v1/models`, usa profili ottimizzati per i modelli noti, ricorre ai metadati del catalogo per gli altri modelli di testo compatibili e scrive `~/.codex/<name>.config.toml` per ciascuno. È idempotente, quindi può essere eseguito nuovamente in sicurezza.
 
-OmniRoute può anche **sincronizzare automaticamente** gli stessi file dei profili dopo che il rilevamento o l'importazione dei modelli di un provider modifica correttamente il catalogo attivo. Questa funzionalità è **facoltativa e disattivata per impostazione predefinita**: attivala dalla **dashboard CLI Code** ("Sincronizzazione automatica dei profili CLI" → Codex), oppure imposta `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (rispetta anche `CLI_ALLOW_CONFIG_WRITES`, attivo per impostazione predefinita). Quando è abilitata, scrive soltanto file di profilo separati in `~/.codex/*.config.toml`; non modifica mai il file attivo/predefinito `~/.codex/config.toml`, le impostazioni di Codex-lb, l'autenticazione o la selezione del provider.
+Se il file `config.toml` di base non contiene una definizione `model_providers.omniroute`, l'esecuzione esplicita di `setup-codex` include tale definizione in ogni overlay generato, utilizzando l'endpoint locale o remoto selezionato. Il file di base rimane invariato. Una definizione del provider già esistente viene ereditata, incluse le relative impostazioni di endpoint e autenticazione. Un file TOML di base non valido interrompe la generazione prima della scrittura dei profili.
+
+Quando fornisci `--api-key` o `OMNIROUTE_API_KEY`, un provider appena definito fa riferimento a `env_key = "OMNIROUTE_API_KEY"`; la chiave stessa non viene mai salvata né visualizzata nell'anteprima. Imposta questa variabile nell'ambiente da cui avvii Codex. Se non viene fornita alcuna chiave, la nuova definizione non richiede una chiave, per un'istanza OmniRoute configurata per accettare richieste non autenticate.
+
+La sincronizzazione automatica opzionale del catalogo descritta di seguito conserva le definizioni dei provider già presenti in un overlay, ma non inizializza nuove impostazioni del provider; configura prima il provider tramite la configurazione esplicita o la dashboard. Le impostazioni dei provider esistenti vengono omesse dalle anteprime in modalità dry-run perché potrebbero contenere credenziali gestite dall'operatore.
+
+OmniRoute può anche **sincronizzare automaticamente** gli stessi file di profilo dopo che un rilevamento o un'importazione dei modelli del provider completati correttamente modificano il catalogo attivo. Questa funzionalità è **facoltativa e disattivata per impostazione predefinita**: attivala dalla **dashboard CLI Code** ("Sincronizzazione automatica dei profili CLI" → Codex), oppure imposta `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (rispetta anche `CLI_ALLOW_CONFIG_WRITES`, attivata per impostazione predefinita). Quando è abilitata, scrive solo file di profilo `~/.codex/*.config.toml` separati; non modifica mai il file attivo/predefinito `~/.codex/config.toml`, le impostazioni di Codex-lb, l'autenticazione o la selezione del provider.
 
 ---
 

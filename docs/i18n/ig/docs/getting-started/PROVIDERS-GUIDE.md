@@ -163,22 +163,21 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ---
 
-## Ndị Na-enye Ọrụ Efughị Ego Kachasị Mma
+## Ndị Na-eweta Ọrụ Efú Kachasị Mma
 
-Ndị na-enye ọrụ ndị a na-enye **ohere iji n'efu** na-enweghị kaadị kredit:
+Ndị na-eweta ọrụ ndị a na-enye **ohere iji n'efu** na-enweghị kaadị kredit:
 
-| Onye Na-enye Ọrụ  | Oke Ojiji Efughị Ego        | Ụdị Model                                | Otu E Si Jikọọ            |
-| ----------------- | --------------------------- | ---------------------------------------- | ------------------------- |
-| **Kiro AI**       | kredit 50 kwa ọnwa          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Achọghị nkwenye njirimara |
-| **OpenCode Free** | Enweghị oke                 | GPT-4o, Claude, Gemini                   | Achọghị nkwenye njirimara |
-| **Pollinations**  | Achọghị key                 | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Achọghị nkwenye njirimara |
-| **LongCat**       | 10M otu ugboro              | LongCat-2.0                              | API key + KYC             |
-| **Cloudflare AI** | neuron 10K kwa ụbọchị       | model karịrị 50                          | Achọghị nkwenye njirimara |
-| **NVIDIA NIM**    | ~40 RPM                     | model 129                                | API key dị mkpa           |
-| **Cerebras**      | kredit $5 maka ndebanye aha | GLM 4.7, GPT-OSS 120B                    | API key + kaadị           |
-| **Qoder**         | Enweghị oke                 | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Achọghị nkwenye njirimara |
+| Onye Na-eweta Ọrụ | Oke Efú                | Ụdịdị                                    | Otu E Si Jikọọ            |
+| ----------------- | ---------------------- | ---------------------------------------- | ------------------------- |
+| **Kiro AI**       | kredit 50 kwa ọnwa     | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Achọghị nkwenye njirimara |
+| **OpenCode Free** | Enweghị oke            | GPT-4o, Claude, Gemini                   | Achọghị nkwenye njirimara |
+| **Pollinations**  | Achọghị igodo          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Achọghị nkwenye njirimara |
+| **LongCat**       | 10M otu ugboro         | LongCat-2.0                              | Igodo API + KYC           |
+| **Cloudflare AI** | neuron 10K kwa ụbọchị  | ụdịdị 50+                                | Achọghị nkwenye njirimara |
+| **NVIDIA NIM**    | ~40 RPM                | ụdịdị 129                                | Achọrọ igodo API          |
+| **Cerebras**      | kredit ndebanye aha $5 | GLM 4.7, GPT-OSS 120B                    | Igodo API + kaadị         |
 
-**Ndụmọdụ**: Jikọọ ọtụtụ ndị na-enye ọrụ efughị ego ka ị nweta **AI efughị ego na-enweghị oke** nke na-eji nhọrọ ọzọ na-akpaghị aka ma nke mbụ daa!
+**Ndụmọdụ**: Jikọọ ọtụtụ ndị na-eweta ọrụ efú iji nweta **AI efú na-enweghị oke** nke nwere usoro ndabere akpaka!
 
 ---
 
@@ -256,33 +255,73 @@ Mgbe ahụ jiri `model: "auto"`; OmniRoute ga-ahọrọ nke kachasị mma maka a
 
 ### OpenAI
 
-1. Nweta API key: https://platform.openai.com/api-keys
-2. N'ime OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → OpenAI
-3. Tapawa API key → Jikọọ
+1. Nweta igodo API: https://platform.openai.com/api-keys
+2. Na OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → OpenAI
+3. Tapawa igodo API → Jikọọ
 
 ### Anthropic
 
-1. Nweta API key: https://console.anthropic.com/
-2. N'ime OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Anthropic
-3. Tapawa API key → Jikọọ
+1. Nweta igodo API: https://console.anthropic.com/
+2. Na OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Anthropic
+3. Tapawa igodo API → Jikọọ
 
 ### Google (Gemini)
 
-1. Nweta API key: https://aistudio.google.com/apikey
-2. N'ime OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Gemini
-3. Tapawa API key → Jikọọ
+1. Nweta igodo API: https://aistudio.google.com/apikey
+2. Na OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Gemini
+3. Tapawa igodo API → Jikọọ
 
 ### DeepSeek
 
-1. Nweta API key: https://platform.deepseek.com/
-2. N'ime OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → DeepSeek
-3. Tapawa API key → Jikọọ
+1. Nweta igodo API: https://platform.deepseek.com/
+2. Na OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → DeepSeek
+3. Tapawa igodo API → Jikọọ
+
+### Qoder: họrọ ụzọ mbufe nzere
+
+Qoder chọrọ nzere. Ụzọ mbufe abụọ ya nwere ikike dị iche iche; aha model
+naanị anaghị akọwa ihe njikọ ọ bụla nwere ike ime.
+
+| Nzere                                        | Ụzọ mbufe OmniRoute                           | Ịkpọ ngwaọrụ nke onye na-akpọ oku                    | Mgbasa data                                                          |
+| -------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------- |
+| PAT nke na-amalite na `pt-`                  | Usoro `qodercli` mpaghara na host OmniRoute   | Anaghị akwado ya                                     | E debere ya: a na-ezipụ SSE naanị mgbe CLI weghachiri azịza zuru ezu |
+| Access token na-abụghị PAT ma ọ bụ igodo API | Endpoint HTTP nke DashScope kwekọrọ na OpenAI | A na-ebufe ya ozugbo, dabere na model/igodo upstream | Ụzọ HTTP/SSE upstream                                                |
+
+Maka PAT, wụnye Qoder CLI n'otu host ma ọ bụ container ebe OmniRoute dị. A ga-enwerịrị ike
+ịchọta executable ahụ dịka `qodercli`, ma ọ bụ tọọ `CLI_QODER_BIN` ka ọ bụrụ ụzọ executable ya. CLI
+arụnyere naanị na host Docker anaghị adị na container na-akpaghị aka. Ọ bụrụ na
+binaries adịghị, a ga-ewepụta njehie doro anya nke ga-eduzi gị na nrụnye ma ọ bụ nhazi ụzọ ahụ.
+
+Ụzọ nkata PAT nwere oke oge usoro nke sekọnd 45. Ọ na-eme ka mkparịta ụka ahụ bụrụ otu
+prompt ma kpọọ CLI n'ụdị mbipụta na-enweghị mgbasa data. Ịrịọ `stream: true` na-agbanwe
+envelope nzaghachi ka ọ bụrụ SSE; ọ naghị enye nnyefe token upstream n'usoro obere obere.
+Nkwado CLI/ndepụta model na-eji oke oge sekọnd 20 dị iche. Ndị a bụ ndabara koodu dị
+ugbu a, ọ bụghị ntọala dashboard a pụrụ ịhazi.
+
+Jiri njikọ PAT maka nkata nkịtị. Arịrịọ agent ndị nwere `tools` ma ọ bụ `functions` ochie
+na-ewepụ akaụntụ PAT n'oge nhọpụta nzere, gụnyere combo targets ndị a kpọgidere. Otu Qoder
+agwakọtara ka nwere ike ịhọrọ akaụntụ HTTP ya. Oku kpọmkwem na PAT executor ga-adakwa
+n'ụzọ doro anya tupu ebupute CLI kama ịhapụ nkọwa ngwaọrụ na nzuzo. Mmachi a
+metụtara ngwaọrụ onye na-akpọ API nyere, ọ bụghị ngwaọrụ ime ọ bụla Qoder
+CLI nwere ike iji n'onwe ya. Igodo HTTP anaghị ekwe nkwa na model ọ bụla na-akwado ngwaọrụ; nyocha
+ikike model nkịtị ka na-arụ ọrụ.
+
+OAuth nchọgharị dị naanị mgbe onye nchịkwa haziri ntọala ise niile:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, na `QODER_OAUTH_CLIENT_SECRET`. Ha na-abụ efu na ndabara; nrụnye
+a na-ahazibeghị kwesịrị iji mbubata nzere akwadoro kama iche na
+usoro nbanye nchọgharị adịla njikere.
+
+Ntụaka mmejuputa: [Qoder executor](../../open-sse/executors/qoder.ts),
+[oge ọrụ CLI](../../open-sse/services/qoderCli.ts), na
+[nhazi OAuth](../../src/lib/oauth/constants/oauth.ts). Mgbasa PAT n'usoro obere obere
+na oke oge a pụrụ ịhazi bụ nkwalite dị iche iche; omume a anaghị ekwe nkwa ha.
 
 ### Groq
 
-1. Nweta API key: https://console.groq.com/
-2. N'ime OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Groq
-3. Tapawa API key → Jikọọ
+1. Nweta igodo API: https://console.groq.com/
+2. Na OmniRoute: Ndị Na-enye Ọrụ → Tinye Onye Na-enye Ọrụ → Groq
+3. Tapawa igodo API → Jikọọ
 
 ---
 

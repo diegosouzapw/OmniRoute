@@ -629,11 +629,11 @@ omniroute setup --add-provider \
   --test-provider                      # Pievienot un pārbaudīt pakalpojumu sniedzēju vienā darbībā
 ```
 
-Neinteraktīvajā iestatīšanā atpazītie vides mainīgie:
+Atpazītie vides mainīgie neinteraktīvai iestatīšanai:
 
 | Mainīgais           | Nolūks                                                                                     |
 | ------------------- | ------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | Pakalpojumu sniedzēja API atslēga (piesaistīta `--api-key`, izmantojot Commander `.env()`) |
+| `OMNIROUTE_API_KEY` | Pakalpojumu sniedzēja API atslēga (saistīta ar `--api-key`, izmantojot Commander `.env()`) |
 | `DATA_DIR`          | Aizstāt OmniRoute datu direktoriju                                                         |
 
 Visas pārējās neinteraktīvās ievades tiek nodotas kā karogi, nevis vides mainīgie:
@@ -643,16 +643,16 @@ Visas pārējās neinteraktīvās ievades tiek nodotas kā karogi, nevis vides m
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Pārbaudīt konfigurāciju, DB, portus, izpildvidi, atmiņu un darbspēju
+omniroute doctor                       # Pārbaudīt konfigurāciju, DB, portus, izpildvidi, atmiņu un darbīgumu
 omniroute doctor --json                # Mašīnlasāms JSON
 omniroute doctor --no-liveness         # Izlaist HTTP darbspējas pārbaudi
-omniroute doctor --host 0.0.0.0        # Aizstāt darbspējas pārbaudes resursdatoru
+omniroute doctor --host 0.0.0.0        # Aizstāt darbīguma pārbaudes resursdatoru
 omniroute doctor --liveness-url <url>  # Aizstāt pilno darbspējas galapunkta URL
 ```
 
 Komanda doctor veic šādas pārbaudes: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` un `Server liveness`. Ja kādas pārbaudes rezultāts ir `fail`, tā pabeidz darbu ar statusu, kas nav nulle.
+`Memory` un `Server liveness`. Tā beidz darbu ar kodu, kas nav nulle, ja kādas pārbaudes rezultāts ir `fail`.
 
 ### Pakalpojumu sniedzēju pārvaldība
 
@@ -678,80 +678,92 @@ omniroute providers remove <id|name> --yes
 `providers add/import/auth/edit/remove` primāri izmanto API un tādēļ darbojas ar
 aktīvo lokālo vai attālo kontekstu. Akreditācijas datu ievadei jāizmanto
 `--credential-stdin` vai `--credential-env`; `--dry-run --json` ziņo tikai par
-rediģētu esamību/struktūru. `providers available` nolasa OmniRoute katalogu;
+aizklātu datu esamību un struktūru. `providers available` nolasa OmniRoute katalogu;
 `providers list/test/test-all/validate` saglabā savu lokālo SQLite darbību, un
 to izmantošanai serverim nav jādarbojas.
+
+Pielāgotam ar OpenAI vai Anthropic saderīgam mezglam piesaistiet akreditācijas datus
+mezgla ID, ko atgriež `omniroute nodes add`, izmantojot `omniroute keys add "$NODE_ID" --stdin`.
+Tam nepieciešams darbojošs serveris un pārvaldības autentifikācija aktīvajam kontekstam.
+CLI izmanto `POST /api/providers`, kas validē mezglu un kopē tā galapunkta
+iestatījumus savienojumā. Ja mezgls nav atrasts, autorizācija neizdodas vai serveris
+nav pieejams, tiek atgriezta kļūda, neizveidojot lokālus rezerves akreditācijas datus.
+
+`nodes add --base-url` iestata mezgla galapunktu; tas atšķiras no servera adreses
+mainīgajā `OMNIROUTE_BASE_URL`. OpenAPI failiem izmantojiet
+`omniroute openapi dump --format json --out ./openapi.json`; globālā opcija `--output`
+atlasa CLI attēlojuma formatējumu, nevis mērķa faila nosaukumu.
 
 ### Atkopšana un atiestatīšana
 
 ```bash
 omniroute reset-password                # Atiestatīt administratora paroli (arī: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Parādīt brīdinājumu un izmēģinājuma izpildi šifrēto akreditācijas datu atiestatīšanai
-omniroute reset-encrypted-columns --force  # Faktiski iestatīt šifrētos akreditācijas datus SQLite datubāzē uz nulli
+omniroute reset-encrypted-columns --force  # Faktiski iestatīt šifrētos akreditācijas datus SQLite vērtībā null
 ```
 
-### Akreditācijas datu eksportēšana (⚠ rīkojieties uzmanīgi)
+### Akreditācijas datu eksportēšana (⚠ rīkojieties piesardzīgi)
 
 ```bash
 omniroute auth export                                 # Parādīt brīdinājumu un pieprasīt apstiprinājumu — bez piekļuves DB
-omniroute auth export --force                          # Eksportēt VISU savienojumu ATŠIFRĒTOS akreditācijas datus uz stdout JSON formātā
+omniroute auth export --force                          # Eksportēt VISU savienojumu ATŠIFRĒTOS akreditācijas datus uz standarta izvadi JSON formātā
 omniroute auth export --force --id <id>                 # Eksportēt tikai atbilstošo savienojumu
-omniroute auth export --force --format env               # Izvadīt OMNIROUTE_<PROVIDER>_<FIELD>=<value> rindas
-omniroute auth export --force --out creds.json           # Ierakstīt failā (izveidots ar 0600 atļaujām)
+omniroute auth export --force --format env               # Izvadīt rindas OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Ierakstīt failā (izveidots ar atļaujām 0600)
 ```
 
-`auth export` darbojas **tikai lokāli** (tieša SQLite lasīšana, bez HTTP maršruta) un apzināti izvada/ieraksta
-**vienkārša teksta** `apiKey`/`accessToken`/`refreshToken`/`idToken` vērtības — tā ir funkcija, nevis
-kļūda. Bez `--force` no datubāzes nekas netiek nolasīts un nekas netiek atšifrēts. Pirms jebkāda vienkārša teksta
-izvades stderr vienmēr tiek parādīts brīdinājuma reklāmkarogs. Nepieciešams iestatīt `STORAGE_ENCRYPTION_KEY`.
-Lauks, kuru neizdodas atšifrēt (novecojusi atslēga, bojāts šifrētais teksts), tiek norādīts kā
+`auth export` darbojas **tikai lokāli** (tieša SQLite lasīšana, bez HTTP maršruta) un apzināti izvada/raksta
+**vienkārša teksta** `apiKey`/`accessToken`/`refreshToken`/`idToken` vērtības — tā ir paredzēta funkcionalitāte, nevis
+kļūda. Bez `--force` nekas netiek nolasīts no datubāzes un nekas netiek atšifrēts. Pirms jebkādu vienkārša teksta datu izvades stderr
+vienmēr tiek parādīts brīdinājuma reklāmkarogs. Nepieciešams, lai būtu iestatīts `STORAGE_ENCRYPTION_KEY`.
+Lauks, kuru neizdodas atšifrēt (novecojusi atslēga, bojāts šifrteksts), tiek uzrādīts kā
 `<field>DecryptFailed: true`, nevis tiek pārtraukta visa eksportēšana vai atklāta pamatā esošā kļūda.
 
 ### Citas apakškomandas
 
-Ja nav norādīts citādi, tās pieņem, ka darbojas OmniRoute serveris:
+Ja nav norādīts citādi, šīm komandām nepieciešams darbojošs OmniRoute serveris:
 
 ```bash
 omniroute status                       # Visaptverošs izpildlaika statuss
-omniroute logs                         # Straumēt pieprasījumu žurnālus (--json, --search, --follow)
-omniroute config list                  # Parādīt konfigurētos CLI rīkus
+omniroute logs                         # Pieprasījumu žurnālu straumēšana (--json, --search, --follow)
+omniroute config list                  # Konfigurēto CLI rīku attēlošana
 
-omniroute provider list                # Uzskaitīt pieejamos nodrošinātājus (komandas providers list aizstājvārds)
-omniroute provider add                 # Reģistrēt OmniRoute kā nodrošinātāju rīkā
-omniroute keys add | list | remove     # Pārvaldīt API atslēgas
-omniroute models [provider]            # Uzskaitīt modeļus (--json, --search)
+omniroute provider list                # Pieejamo nodrošinātāju saraksts (providers list aizstājvārds)
+omniroute provider add                 # OmniRoute reģistrēšana rīkā kā nodrošinātāju
+omniroute keys add | list | remove     # API atslēgu pārvaldība
+omniroute models [provider]            # Modeļu saraksts (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Izveidot konfigurācijas un DB momentuzņēmumu
-omniroute restore                      # Atjaunot no iepriekšēja momentuzņēmuma
+omniroute backup                       # Konfigurācijas un DB momentuzņēmums
+omniroute restore                      # Atjaunošana no iepriekšēja momentuzņēmuma
 
-omniroute health                       # Detalizēts darbspējas stāvoklis (drošinātāji, kešatmiņa, atmiņa)
+omniroute health                       # Detalizēts darbspējas stāvoklis (slēdži, kešatmiņa, atmiņa)
 omniroute quota                        # Nodrošinātāja kvotas lietojums
 omniroute cache                        # Kešatmiņas statuss
-omniroute cache clear                  # Notīrīt semantisko un parakstu kešatmiņu
+omniroute cache clear                  # Semantiskās un parakstu kešatmiņas notīrīšana
 
 omniroute mcp status | restart         # MCP servera statuss / restartēšana
 omniroute a2a status | card            # A2A servera statuss / aģenta kartīte
 
-omniroute tunnel list | create | stop  # Pārvaldīt tuneļus (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Pārbaudīt / iestatīt vides mainīgos (īslaicīgi)
+omniroute tunnel list | create | stop  # Tuneļu pārvaldība (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Vides mainīgo pārbaude / iestatīšana (īslaicīgi)
 
-omniroute test                         # Nodrošinātāja savienojamības pamatpārbaude
-omniroute update                       # Pārbaudīt atjauninājumus
-omniroute completion                   # Ģenerēt čaulas automātisko pabeigšanu
+omniroute test                         # Nodrošinātāja savienojamības ātrā pārbaude
+omniroute update                       # Atjauninājumu pārbaude
+omniroute completion                   # Čaulas automātiskās pabeigšanas ģenerēšana
 ```
 
-### Biežāk lietotie karodziņi
+### Biežāk lietotie karogi
 
-| Karodziņš           | Apraksts                                                   |
+| Karogs              | Apraksts                                                   |
 | ------------------- | ---------------------------------------------------------- |
-| `--no-open`         | Startējot automātiski neatvērt pārlūkprogrammu             |
-| `--port <n>`        | Aizstāt API portu (noklusējums: 20128)                     |
+| `--no-open`         | Startēšanas laikā automātiski neatvērt pārlūkprogrammu     |
+| `--port <n>`        | Ignorēt API porta iestatījumu (noklusējums: 20128)         |
 | `--mcp`             | Darbināt kā MCP serveri, izmantojot stdio (IDE vajadzībām) |
-| `--non-interactive` | CI režīms (bez uzvednēm; nolasa no vides/karodziņiem)      |
+| `--non-interactive` | CI režīms (bez uzvednēm; nolasa no vides/karogiem)         |
 | `--json`            | Mašīnlasāma JSON izvade (doctor, providers u.c.)           |
 | `--help`, `-h`      | Parādīt konkrētās komandas palīdzību                       |
-| `--version`, `-v`   | Izdrukāt instalēto versiju                                 |
+| `--version`, `-v`   | Izvadīt instalēto versiju                                  |
 
 ---
 

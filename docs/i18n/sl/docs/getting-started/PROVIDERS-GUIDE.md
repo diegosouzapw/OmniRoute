@@ -173,18 +173,17 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 Ti ponudniki omogočajo **brezplačen dostop** brez kreditne kartice:
 
-| Ponudnik          | Brezplačna kvota               | Modeli                                   | Način povezave        |
-| ----------------- | ------------------------------ | ---------------------------------------- | --------------------- |
-| **Kiro AI**       | 50 kreditov/mesec              | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Brez avtentikacije    |
-| **OpenCode Free** | Neomejeno                      | GPT-4o, Claude, Gemini                   | Brez avtentikacije    |
-| **Pollinations**  | Ključ ni potreben              | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Brez avtentikacije    |
-| **LongCat**       | Enkratno 10M                   | LongCat-2.0                              | Ključ API + KYC       |
-| **Cloudflare AI** | 10K nevronov/dan               | Več kot 50 modelov                       | Brez avtentikacije    |
-| **NVIDIA NIM**    | ~40 RPM                        | 129 modelov                              | Potreben je ključ API |
-| **Cerebras**      | $5 dobroimetja ob registraciji | GLM 4.7, GPT-OSS 120B                    | Ključ API + kartica   |
-| **Qoder**         | Neomejeno                      | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Brez avtentikacije    |
+| Ponudnik          | Brezplačna kvota          | Modeli                                   | Način povezave            |
+| ----------------- | ------------------------- | ---------------------------------------- | ------------------------- |
+| **Kiro AI**       | 50 kreditov/mesec         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Avtentikacija ni potrebna |
+| **OpenCode Free** | Neomejeno                 | GPT-4o, Claude, Gemini                   | Avtentikacija ni potrebna |
+| **Pollinations**  | Ključ ni potreben         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Avtentikacija ni potrebna |
+| **LongCat**       | 10M enkratno              | LongCat-2.0                              | Ključ API + KYC           |
+| **Cloudflare AI** | 10K nevronov/dan          | Več kot 50 modelov                       | Avtentikacija ni potrebna |
+| **NVIDIA NIM**    | ~40 zahtev/minuto         | 129 modelov                              | Potreben je ključ API     |
+| **Cerebras**      | $5 dobroimetja ob prijavi | GLM 4.7, GPT-OSS 120B                    | Ključ API + kartica       |
 
-**Nasvet**: Povežite več brezplačnih ponudnikov za **neomejeno brezplačno uporabo umetne inteligence** s samodejnim preklopom ob napaki!
+**Nasvet**: Povežite več brezplačnih ponudnikov za **neomejeno brezplačno umetno inteligenco** s samodejnim preklopom na nadomestnega ponudnika!
 
 ---
 
@@ -258,7 +257,7 @@ Nato uporabite `model: "auto"` in OmniRoute bo za vsako zahtevo samodejno izbral
 
 ---
 
-## Nastavitev posameznih ponudnikov
+## Nastavitev glede na ponudnika
 
 ### OpenAI
 
@@ -283,6 +282,46 @@ Nato uporabite `model: "auto"` in OmniRoute bo za vsako zahtevo samodejno izbral
 1. Pridobite ključ API: https://platform.deepseek.com/
 2. V OmniRoute: Ponudniki → Dodaj ponudnika → DeepSeek
 3. Prilepite ključ API → Poveži
+
+### Qoder: izberite način prenosa poverilnic
+
+Qoder zahteva poverilnice. Njegova načina prenosa imata različne zmogljivosti; samo ime modela
+ne opredeljuje, kaj lahko posamezna povezava naredi.
+
+| Poverilnica                              | Način prenosa OmniRoute                                    | Klicanje orodij s strani klicatelja                      | Pretočno pošiljanje                                        |
+| ---------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
+| PAT, ki se začne z `pt-`                 | Lokalni proces `qodercli` na gostitelju OmniRoute          | Ni podprto                                               | Medpomnjeno: SSE se odda šele, ko CLI vrne celoten odgovor |
+| Dostopni žeton, ki ni PAT, ali ključ API | Končna točka HTTP, združljiva z OpenAI, storitve DashScope | Posredovano naprej, odvisno od nadrejenega modela/ključa | Nadrejena pot HTTP/SSE                                     |
+
+Za PAT namestite Qoder CLI na istem gostitelju ali v istem vsebniku kot OmniRoute. Izvedljiva datoteka
+mora biti dosegljiva kot `qodercli`, sicer nastavite `CLI_QODER_BIN` na pot do nje. CLI,
+nameščen samo na gostitelju Docker, ni samodejno prisoten v vsebniku. Manjkajoče
+izvedljive datoteke povzročijo izrecno napako z navodili za namestitev ali nastavitev poti.
+
+Pot za klepet s PAT ima 45-sekundno časovno omejitev procesa. Pogovor združi v en
+poziv in prikliče CLI v nepretočnem načinu izpisa. Zahteva `stream: true` spremeni
+ovojnico odgovora v SSE; ne omogoča postopnega prejemanja žetonov iz nadrejene storitve.
+Preverjanje CLI/seznam modelov uporablja ločeno 20-sekundno časovno omejitev. To so trenutne privzete
+vrednosti kode in ne nastavitve, ki bi jih bilo mogoče konfigurirati na nadzorni plošči.
+
+Povezave PAT uporabljajte za navaden klepet. Zahteve posrednika, ki vsebujejo `tools` ali podedovane `functions`,
+pri izbiri poverilnic izključijo račune PAT, vključno s pripetimi kombiniranimi cilji. Mešana
+skupina Qoder lahko še vedno izbere svoj račun HTTP. Tudi neposredni klici izvajalnika PAT se
+izrecno končajo z napako pred zagonom CLI, namesto da bi potiho opustili definicije orodij. Ta
+omejitev se nanaša na orodja, ki jih posreduje klicatelj API-ja, ne pa na notranja orodja, ki jih
+lahko uporablja sam Qoder CLI. Ključ HTTP ne zagotavlja, da vsak model podpira orodja; še vedno
+veljajo običajna preverjanja zmogljivosti modela.
+
+OAuth prek brskalnika je na voljo samo, kadar skrbnik konfigurira vseh pet nastavitev:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` in `QODER_OAUTH_CLIENT_SECRET`. Privzeto so prazne; pri
+nekonfigurirani namestitvi uporabite podprt uvoz poverilnic, namesto da predpostavljate,
+da je postopek prijave prek brskalnika pripravljen.
+
+Reference implementacije: [izvajalnik Qoder](../../open-sse/executors/qoder.ts),
+[izvajalno okolje CLI](../../open-sse/services/qoderCli.ts) in
+[konfiguracija OAuth](../../src/lib/oauth/constants/oauth.ts). Postopno pretočno pošiljanje PAT
+in nastavljiva časovna omejitev sta ločeni izboljšavi; to vedenje ju ne zagotavlja.
 
 ### Groq
 

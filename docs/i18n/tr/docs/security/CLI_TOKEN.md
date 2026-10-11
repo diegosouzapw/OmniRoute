@@ -45,19 +45,9 @@ uç noktalarını çağırmasına olanak tanır.
 
 ## Varsayılan salt (kurulum başına rastgele)
 
-`OMNIROUTE_CLI_SALT` ayarlanmadığında salt, bir kez oluşturulan ve
-`<DATA_DIR>/cli-token-salt.json` konumunda (`0600` moduyla) kalıcı olarak saklanan
-rastgele 64 karakterlik bir onaltılık dizedir; depoya eklenmiş sabit
-`omniroute-cli-auth-v1` değeri değildir. Hem `src/lib/machineToken.ts` içindeki
-`getActiveSalt()` hem de `bin/cli/utils/cliToken.mjs` içindeki karşılığı aynı
-dosyayı okur; böylece sunucu ve bu kurulumdaki her CLI çağrısı aynı değerde
-uzlaşır. Depoya eklenmiş sabit değer yalnızca henüz kalıcı veya ortam değişkeni
-tabanlı bir salt oluşturulamadığında son çare olarak kullanılır (örneğin, sunucu
-daha önce hiç çalıştırılmadan önceki yeni bir yalnızca-CLI kurulumu). Bu, eski
-sabit varsayılanın zayıflığını giderir: `/etc/machine-id` genellikle herkes
-tarafından okunabilir olduğundan, aksi takdirde herhangi bir yerel kullanıcı
-`OMNIROUTE_CLI_SALT` değerinin hiç ayarlanmadığı her kurulum için aynı belirteci
-türetebilirdi.
+`OMNIROUTE_CLI_SALT` ayarlanmadığında salt, bir kez oluşturulan ve `<DATA_DIR>/cli-token-salt.json` konumunda (`0600` moduyla) kalıcı olarak saklanan, 64 karakterlik rastgele bir onaltılık dizedir; depoya eklenmiş `omniroute-cli-auth-v1` sabit değeri değildir. Hem `src/lib/machineToken.ts` içindeki `getActiveSalt()` hem de bunun `bin/cli/utils/cliToken.mjs` içindeki karşılığı aynı dosyayı okur; böylece sunucu ve bu kurulumdaki her CLI çağrısı aynı değeri kullanır. Depoya eklenmiş sabit değer yalnızca henüz kalıcı veya ortam değişkeninden alınan bir salt oluşturulamadığında son çare olarak kullanılır (örneğin, sunucu daha önce hiç çalıştırılmadan yapılan yeni bir yalnızca-CLI kurulumu). Bu, eski sabit varsayılan değerin zayıflığını giderir: `/etc/machine-id` genellikle herkes tarafından okunabilir olduğundan, aksi takdirde herhangi bir yerel kullanıcı `OMNIROUTE_CLI_SALT` değerinin hiç ayarlanmadığı her kurulum için aynı token'ı türetebilirdi.
+
+Salt okunamaz veya oluşturulamazsa hem sunucu hem de CLI, geriye dönük uyumluluk amaçlı yedek değeri kullanmadan önce süreç başına bir uyarı yayınlar. Uyarı; salt, token, dosya sistemi yolu veya ham hata içermez. `DATA_DIR` erişimini geri yükleyin veya `OMNIROUTE_CLI_SALT` değerini ayarlayın, ardından etkilenen süreci yeniden başlatın. Uyarı, hatayı görünür kılar; genel yedek salt değerini gizli hâle getirmez veya CLI kimlik doğrulamasını devre dışı bırakmaz. Mevcut geçerli kalıcı salt değerleri ve açık ortam değişkeni geçersiz kılmaları, önceki token değerlerini korur.
 
 ## Salt rotasyonu
 

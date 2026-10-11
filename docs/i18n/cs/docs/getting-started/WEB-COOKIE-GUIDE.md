@@ -4,15 +4,15 @@
 
 ---
 
-Poskytovatelé Web Cookie umožňují OmniRoute používat službu AI prostřednictvím vaší stávající relace v prohlížeči namísto klíče API. Jsou užiteční, pokud již máte přístup ke službě prostřednictvím jejího webu a chcete, aby OmniRoute používal stejnou ověřenou relaci.
+Poskytovatelé Web Cookie umožňují OmniRoute používat službu AI prostřednictvím vaší stávající relace v prohlížeči namísto klíče API. Jsou užiteční, pokud již máte přístup ke službě přes její webové stránky a chcete, aby OmniRoute používal stejnou ověřenou relaci.
 
-Na rozdíl od poskytovatelů používajících klíče API se poskytovatelé Web Cookie ověřují pomocí přihlašovacích údajů, které váš prohlížeč odesílá webu.
+Na rozdíl od poskytovatelů využívajících klíč API se poskytovatelé Web Cookie ověřují pomocí přihlašovacích údajů, které váš prohlížeč odesílá webovým stránkám.
 
 ---
 
 # Než začnete
 
-> **Důležité:** Přihlašovací údaje vždy kopírujte z **aktuálního síťového požadavku**, **nikoli** z úložiště souborů cookie v prohlížeči.
+> **Důležité:** Přihlašovací údaje vždy kopírujte z **živého síťového požadavku**, **nikoli** z úložiště souborů cookie v prohlížeči.
 
 Mnoho problémů s ověřováním je způsobeno kopírováním souborů cookie z nesprávného místa.
 
@@ -21,35 +21,35 @@ Mnoho problémů s ověřováním je způsobeno kopírováním souborů cookie z
 Většina prohlížečů zpřístupňuje uložené soubory cookie prostřednictvím:
 
 ```
-Vývojářské nástroje
-→ Aplikace (nebo Úložiště)
-→ Soubory cookie
+DevTools
+→ Application (nebo Storage)
+→ Cookies
 ```
 
 Přestože tyto soubory cookie vypadají správně, mohou být:
 
 - zastaralé
 - neúplné
-- bez souborů cookie odesílaných pouze při ověřených požadavcích
+- bez souborů cookie, které se odesílají pouze při ověřených požadavcích
 
 Použití těchto hodnot může způsobit selhání ověřování, i když se zdají být platné.
 
-## Kopírování z aktuálního požadavku
+## Kopírování z živého požadavku
 
 Místo toho použijte soubory cookie z úspěšného požadavku:
 
 ```
-Vývojářské nástroje
-→ Síť
-→ Obnovit stránku
-→ Otevřít požadavek chatu nebo konverzace
-→ Hlavičky požadavku
+DevTools
+→ Network
+→ Obnovte stránku
+→ Otevřete požadavek chatu nebo konverzace
+→ Request Headers
 → Cookie
 ```
 
 Hlavička požadavku `Cookie` obsahuje přesné ověřovací údaje, které váš prohlížeč úspěšně použil.
 
-U většiny poskytovatelů Web Cookie je to hodnota, kterou je třeba vložit do OmniRoute.
+U většiny poskytovatelů Web Cookie se právě tato hodnota vkládá do OmniRoute.
 
 ---
 
@@ -57,28 +57,28 @@ U většiny poskytovatelů Web Cookie je to hodnota, kterou je třeba vložit do
 
 Postup nastavení je u většiny poskytovatelů Web Cookie stejný.
 
-1. Přihlaste se na web poskytovatele.
+1. Přihlaste se na webové stránky poskytovatele.
 2. Otevřete vývojářské nástroje prohlížeče.
-3. Otevřete kartu **Síť**.
+3. Otevřete kartu **Network**.
 4. Obnovte stránku.
 5. Otevřete ověřený požadavek chatu nebo konverzace.
 6. Zkopírujte požadované ověřovací údaje.
 7. Otevřete OmniRoute.
-8. Přejděte na **Poskytovatelé → Přidat poskytovatele**.
-9. Vyberte poskytovatele Web Cookie.
+8. Přejděte na **Providers → Add Provider**.
+9. Vyberte svého poskytovatele Web Cookie.
 10. Vložte přihlašovací údaje.
-11. Klikněte na **Otestovat připojení**.
+11. Klikněte na **Test Connection**.
 12. Uložte poskytovatele.
 
-Přesné požadované přihlašovací údaje závisí na poskytovateli.
+Konkrétní požadované přihlašovací údaje závisí na poskytovateli.
 
 ---
 
 # Formáty přihlašovacích údajů poskytovatelů
 
-Různé weby ukládají ověřovací údaje různými způsoby. Některé vyžadují pouze soubory cookie, zatímco jiné mohou vyžadovat další hlavičky nebo tokeny.
+Různé webové stránky ukládají ověřovací údaje odlišně. Některé vyžadují pouze soubory cookie, zatímco jiné mohou vyžadovat další hlavičky nebo tokeny.
 
-| Poskytovatel                    | Formát přihlašovacích údajů     | Průvodce poskytovatelem          |
+| Poskytovatel                    | Formát přihlašovacích údajů     | Průvodce poskytovatele           |
 | ------------------------------- | ------------------------------- | -------------------------------- |
 | Claude Web                      | Úplná hlavička požadavku Cookie | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | Úplná hlavička Cookie           | `docs/providers/CHATGPT_WEB.md`  |
@@ -88,20 +88,70 @@ Různé weby ukládají ověřovací údaje různými způsoby. Některé vyžad
 | Grok Web                        | _(ověřit)_                      |                                  |
 | ...                             | ...                             | ...                              |
 
-> Tuto tabulku aktualizujte při přidávání nových poskytovatelů Web Cookie nebo při změně požadavků na ověřování u stávajících poskytovatelů.
+> Aktualizujte tuto tabulku při přidání nových poskytovatelů Web Cookie nebo při změně požadavků na ověřování u stávajících poskytovatelů.
+
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) je bezplatná chatovací platforma pro spotřebitele, která nevyžaduje registraci — relace se vytvoří anonymně při první návštěvě a přetrvává prostřednictvím tří souborů cookie: `uid`, `si_usr_id` a `si_ses_id`. OmniRoute zprostředkovává stejný koncový bod `/api/dispatch` prostřednictvím jediného ID modelu (`notrack-c`, alias `ntw`).
+
+### Postup připojení
+
+1. Otevřete v prohlížeči stránku [notrack.ai](https://notrack.ai) a nechte nastavit soubor cookie anonymní relace.
+2. Otevřete **Vývojářské nástroje → Síť**, obnovte stránku a klikněte na libovolný požadavek `/api`.
+3. V části **Hlavičky požadavku** zkopírujte celou hodnotu hlavičky `Cookie`.
+4. V OmniRoute přejděte na **Poskytovatelé → Přidat poskytovatele → NoTrack Web (zdarma)**.
+5. Vložte řetězec cookie do pole `apiKey` a klikněte na **Uložit**.
+
+OmniRoute z vloženého řetězce extrahuje `uid`, `si_usr_id` a `si_ses_id` a znovu sestaví čistou hlavičku `Cookie` obsahující pouze tyto dvojice — a také `nt_session` (token `ntk_…` nastavený pro přihlášené účty), pokud je přítomen. Pokud některá z těchto tří hodnot chybí, nezměněný vložený řetězec se předá dál, aby mohli provozovatelé experimentovat s alternativními formáty.
+
+### ID modelů
+
+| ID modelu   | Zobrazovaný název | Poznámky                                                     |
+| ----------- | ----------------- | ------------------------------------------------------------ |
+| `notrack-c` | NoTrack C         | Výchozí — upstreamový distribuční model `C`.                 |
+| `C`         | NoTrack C         | Alias pro `notrack-c` (nezpracovaný upstreamový kód modelu). |
+| `notrack`   | NoTrack C         | Alias pro `notrack-c`.                                       |
+| `ntw`       | NoTrack C         | Krátký alias pro `notrack-c`.                                |
+
+Všechna čtyři ID modelů jsou mapována na stejný upstreamový distribuční model (`C`).
+
+### Možnosti požadavku
+
+Vykonavatel přijímá v těle požadavku tato volitelná pole:
+
+| Pole těla             | Výchozí hodnota | Účel                                                                                 |
+| --------------------- | --------------- | ------------------------------------------------------------------------------------ |
+| `notrack_mode`        | `usual`         | Režim distribuce (libovolný řetězec; upstream přijímá `usual`, …)                    |
+| `notrack_max_turns`   | `6`             | Počet interních kol, která může upstream provést před odpovědí.                      |
+| `notrack_chat_id`     | `null`          | Pokračování existujícího upstreamového chatu (pro nový chat vynechte).               |
+| `notrack_attachments` | `[]`            | Průchozí pole upstreamových deskriptorů příloh.                                      |
+| `notrack_regenerate`  | `false`         | Nastavte na `true`, chcete-li vyžádat nově vygenerovanou odpověď pro předchozí kolo. |
+
+### Funkce
+
+- **Streamované i nestreamované** dokončování chatu.
+- **Volání nástrojů** — v požadavku nastavte `tools: [...]`; vykonavatel je serializuje do kontraktu obálky volání nástrojů a odpovědi modelu převede zpět na `tool_calls` OpenAI.
+- **`response_format`** — podporovány jsou formáty `json_object` a `json_schema`. Vykonavatel extrahuje první objekt JSON z odpovědi modelu a před vrácením ho převede na řetězec.
+- **Indikace uvažování** — když upstream odešle událost `thinking`, vykonavatel vyšle dílčí aktualizaci `reasoning`.
+
+### Omezení
+
+- Upstream vynucuje kvóty anonymního používání — při jejich překročení vykonavatel vrátí stav 429 s uživatelsky přívětivou zprávou.
+- Všechna ID modelů odkazují na stejný upstreamový distribuční model; mezi jednotlivými modely nelze přepínat.
+- Vykonavatel nevolá upstreamový koncový bod `/api/chats`, takže historie chatů ani relace nejsou spravovány automaticky. K pokračování existujícího upstreamového chatu použijte `notrack_chat_id`.
 
 ---
 
-# Co poskytovatelé Web Cookie mohou a nemohou dělat
+# Co poskytovatelé používající webové soubory cookie mohou a nemohou dělat
 
-Poskytovatelé Web Cookie využívají chatovací rozhraní webu. **Neposkytují** stejné možnosti jako oficiální rozhraní API.
+Poskytovatelé používající webové soubory cookie využívají chatovací rozhraní webu. **Neposkytují** stejné možnosti jako oficiální API.
 
 ## Podporováno
 
-- Ověřování pomocí stávající relace v prohlížeči
+- Ověřování pomocí stávající relace prohlížeče
 - Přístup k modelům dostupným prostřednictvím vašeho účtu
 - Streamování odpovědí chatu
-- Není vyžadován klíč API
+- Není vyžadován žádný klíč API
 
 ## Není podporováno
 
@@ -109,29 +159,29 @@ Poskytovatelé Web Cookie využívají chatovací rozhraní webu. **Neposkytují
 - Volání nástrojů
 - Automatické úpravy souborů
 - Agentní pracovní postupy v IDE
-- Funkce dostupné pouze prostřednictvím API
+- Funkce dostupné pouze přes API
 
-Toto je očekávané chování a **nejde** o chybu.
+Toto chování je očekávané a **nejedná se** o chybu.
 
-Pokud potřebujete spouštění nástrojů, automatické úpravy souborů nebo jiné agentní pracovní postupy, použijte namísto poskytovatele Web Cookie **poskytovatele používajícího klíč API**.
+Pokud potřebujete spouštění nástrojů, automatické úpravy souborů nebo jiné agentní pracovní postupy, použijte místo poskytovatele Web Cookie **poskytovatele s klíčem API**.
 
 ---
 
-# Omezení ověřování
+# Upozornění k ověření
 
-Úspěšný **Test připojení** nebo ověření souborů cookie pouze potvrzuje, že zadané přihlašovací údaje mají očekávaný formát.
+Úspěšné **Test Connection** nebo ověření souborů cookie pouze potvrzuje, že zadané přihlašovací údaje mají očekávaný formát.
 
-Dokud nebude vyřešen problém #7857, úspěšné ověření **nezaručuje**, že se poskytovatele podaří úspěšně ověřit.
+Dokud nebude vyřešen problém č. 7857, úspěšné ověření **nezaručuje**, že se poskytovateli podaří úspěšně ověřit totožnost.
 
-Pokud ověření stále selhává, zkontrolujte, zda jste přihlašovací údaje zkopírovali z aktuálního síťového požadavku, a nikoli z úložiště souborů cookie v prohlížeči.
+Pokud se ověření totožnosti stále nedaří, zkontrolujte, zda jste přihlašovací údaje zkopírovali z aktuálního síťového požadavku, nikoli z úložiště souborů cookie v prohlížeči.
 
 ---
 
 # Řešení problémů
 
-## Ověření selhává
+## Ověření totožnosti se nezdařilo
 
-Ověřte, zda byly přihlašovací údaje zkopírovány z:
+Ověřte, že přihlašovací údaje byly zkopírovány z:
 
 ```
 Síť
@@ -150,7 +200,7 @@ Aplikace
 
 ## Soubor cookie funguje v prohlížeči, ale ne v OmniRoute
 
-Někteří poskytovatelé používají soubory cookie, které jsou odesílány pouze při ověřených požadavcích.
+Někteří poskytovatelé používají soubory cookie, které se odesílají pouze během ověřených požadavků.
 
 Po úspěšném otevření konverzace znovu zkopírujte přihlašovací údaje z nového síťového požadavku.
 
@@ -158,15 +208,15 @@ Po úspěšném otevření konverzace znovu zkopírujte přihlašovací údaje z
 
 ## Platnost relace vypršela
 
-Poskytovatelé Web Cookie používají vaši stávající relaci v prohlížeči.
+Poskytovatelé Web Cookie používají vaši stávající relaci prohlížeče.
 
-Pokud platnost relace v prohlížeči vyprší nebo se odhlásíte, musíte zkopírovat novou sadu přihlašovacích údajů.
+Pokud platnost relace prohlížeče vyprší nebo se odhlásíte, musíte zkopírovat novou sadu přihlašovacích údajů. Chcete-li automatizovat obnovování souborů cookie u podporovaných webových poskytovatelů, přečtěte si informace o doprovodném nástroji [Rozšíření pro synchronizaci relace prohlížeče](../guides/SESSION-SYNC-EXTENSION.md).
 
 ---
 
-## Test připojení je úspěšný, ale požadavky selhávají
+## Test připojení proběhne úspěšně, ale požadavky selhávají
 
-Dokud nebude vyřešen problém #7857, úspěšné ověření nezaručuje, že ověřovací požadavek uspěje.
+Dokud nebude vyřešen problém č. 7857, úspěšné ověření nezaručuje, že požadavek na ověření totožnosti proběhne úspěšně.
 
 Než budete pokračovat v řešení problémů, znovu zkopírujte přihlašovací údaje z nového ověřeného požadavku.
 
@@ -178,7 +228,7 @@ Než budete pokračovat v řešení problémů, znovu zkopírujte přihlašovac�
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Průvodce Claude Web ukazuje celý proces nastavení poskytovatele Web Cookie a slouží jako referenční implementace.
+Průvodce Claude Web popisuje celý proces nastavení poskytovatele Web Cookie a slouží jako referenční implementace.
 
 ---
 
@@ -186,6 +236,6 @@ Průvodce Claude Web ukazuje celý proces nastavení poskytovatele Web Cookie a 
 
 - Kopírujte přihlašovací údaje z nového ověřeného požadavku.
 - Nepoužívejte opakovaně staré soubory cookie.
-- Při používání poskytovatelů Web Cookie udržujte relaci v prohlížeči aktivní.
-- S kopírovanými soubory cookie zacházejte jako s citlivými přihlašovacími údaji.
-- Pokud potřebujete volání funkcí nebo agentní pracovní postupy, použijte poskytovatele používající klíč API.
+- Při používání poskytovatelů Web Cookie udržujte relaci prohlížeče aktivní.
+- Považujte zkopírované soubory cookie za citlivé přihlašovací údaje.
+- Pokud potřebujete volání funkcí nebo agentní pracovní postupy, používejte poskytovatele s klíčem API.

@@ -36,23 +36,24 @@ cumas céanna uirlise áitiúla atá ceangailte leis an seal a úsáid nuair at�
 ## Socrú an deais
 
 1. Oscail an soláthraí **ChatGPT Web (Codex)** agus cuir nasc leis.
-2. Greamaigh ceanntásc iomlán ChatGPT Cookie, ID an tolláin, an eochair ama rite, agus ainm an nascóra
-   shaincheaptha. Ní mór do shocruithe nua atá in ann uirlisí a úsáid nascóir nuachruthaithe a úsáid darb ainm go díreach
-   `OmniRoute Codex v2`, le Authentication socraithe go None agus Permissions socraithe go Allow all
+2. Greamaigh ceanntásc iomlán ChatGPT Cookie, aitheantas an tolláin, an eochair ama rite agus ainm an nascóra shaincheaptha.
+   Ní mór do shocruithe nua atá in ann uirlisí a úsáid nascóir nuachruthaithe darb ainm díreach
+   `OmniRoute Codex v2` a úsáid, agus Authentication socraithe mar None agus Permissions socraithe mar Allow all
    actions.
-3. Rith seiceáil an naisc. Osclaíonn OmniRoute Temporary Chat le tacaíocht brabhsálaí agus braitheann sé
+3. Rith seiceáil an naisc. Osclaíonn OmniRoute Temporary Chat atá bunaithe ar bhrabhsálaí agus braitheann sé
    an bhfuil Sol agus Pro ar fáil don chuntas.
-4. Sábháil an nasc. Cuireann OmniRoute an staid stórála fhíoraithe
-   Playwright in ionad an fhianáin ghreamaithe agus stórálann sé í leis an eochair ama rite tríd an astarraingt
-   dintiúr chriptithe.
+4. Sábháil an nasc. Cuireann OmniRoute staid stórála fhíoraithe
+   Playwright in ionad an fhianáin a greamaíodh agus stórálann sé í leis an eochair ama rite tríd an
+   astarraingt criptithe dintiúr.
 
 Ní choinnítear an fianán amh tar éis sábháil rathúil. Nuair a théann an seisiún in éag, oscail
-an nasc, greamaigh ceanntásc iomlán úr Cookie, agus rith an tseiceáil arís. Tuairiscíonn stádas an dochtúra
+an nasc, greamaigh ceanntásc iomlán Cookie úr, agus rith an tseiceáil arís. Tuairiscíonn an stádas doctor
 sa dialóg eagarthóireachta an brabhsálaí, an staid stórála, an síniú isteach, Temporary Chat, an tollán,
-an nascóir, agus an turas iomlán uirlise ar leithligh.
+an nascóir agus an turas fillte uirlise ar leithligh. Chun nuashonruithe fianán a uathoibriú nuair a rothlaíonn seisiúin,
+féach an uirlis chompánach in [Síneadh Sioncronaithe Seisiúin Brabhsálaí](../guides/SESSION-SYNC-EXTENSION.md).
 
-> Ná tiomnaigh fíorfhianán, eochair ama rite, staid stórála ná comhartha cumais riamh. Ní mór
-> luachanna tástála agus doiciméadachta a bheith ina sealbhóirí áite i gcónaí.
+> Ná cuir fíorfhianán, eochair ama rite, staid stórála ná ceadchomhartha cumais faoi rialú leaganacha riamh. Ní mór
+> luachanna tástála agus doiciméadúcháin a bheith ina sealbhóirí áite i gcónaí.
 
 ## Samhlacha agus teaglamaí
 
@@ -129,7 +130,7 @@ cúltaca HTTP/SSE sula nascann sé leis an bhfoinse réamhtheachtach. Téann an 
 
 ## Fíorú
 
-Rith rialuithe an tsoláthraí gan an soláthraí scortha a ghairm:
+Rith rialuithe an tsoláthraí gan an soláthraí scortha a agairt:
 
 ```bash
 node --import tsx/esm --test \\
@@ -138,7 +139,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-Tá cosaintí cúlchéimnithe scoir sna comhaid seo a leanas:
+Tá cosaintí aischéimnithe don scor le fáil sna comhaid seo:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

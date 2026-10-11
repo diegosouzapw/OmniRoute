@@ -317,12 +317,12 @@ v3.6.6 还引入了**混合令牌计数**：当 Claude 兼容的提供者公开 
 
 ## 🛡️ 安全出站请求与 SSRF 防护 _(v3.6.6+)_
 
-所有提供者验证和模型发现调用现在都会经过双层出站防护：
+现在，所有提供者验证和模型发现调用都会经过两层出站防护：
 
-1. **URL 防护**（`src/shared/network/outboundUrlGuard.ts`）— 在套接字打开前阻止访问私有、环回和链路本地 IP 范围。
-2. **安全请求封装器**（`src/shared/network/safeOutboundFetch.ts`）— 应用 URL 防护、规范化超时设置，并通过指数退避机制重试暂时性错误。
+1. **URL 防护** (`src/shared/network/outboundUrlGuard.ts`) — 首先检查按原样提供的目标主机名或 IP 字面量；在仅允许公网的模式下，安全请求封装器还会解析该名称，并拒绝解析到私有地址的结果。默认情况下，它会阻止云元数据端点，包括整个 169.254.0.0/16 网段以及已知的元数据主机名；`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` 还会阻止私有主机和环回主机；`OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true`（或旧版的 `OUTBOUND_SSRF_GUARD_ENABLED=false`）会关闭这些检查。通过功能标志的仪表板开关保存的值优先于对应的变量，并且内置本地提供者在密钥验证期间会跳过此防护。请参阅 `docs/reference/ENVIRONMENT.md`。
+2. **安全请求封装器** (`src/shared/network/safeOutboundFetch.ts`) — 应用 URL 防护、标准化超时设置，并通过指数退避机制重试暂时性错误。
 
-违反防护规则时会返回 HTTP 422（`URL_GUARD_BLOCKED`），并通过 `providerAudit.ts` 写入合规审计日志。
+防护违规会显示为 `URL_GUARD_BLOCKED`——通过 `getSafeOutboundFetchErrorStatus` 返回 HTTP 503（在模型发现路由上返回 400）——而验证期间真正的 SSRF 阻止事件会作为 `provider.validation.ssrf_blocked` 事件写入审计日志。
 
 ---
 

@@ -167,29 +167,27 @@ Tabulka `memory_vec_meta` (migrace `083_memory_vec.sql`) ukládá:
 
 ## Rozšíření nastavení
 
-V `MemorySettingsExtended` v `src/shared/schemas/memory.ts` je k dispozici devět polí pro embeddingy a vektory, která se uchovávají prostřednictvím `src/lib/db/settings.ts`:
+V `MemorySettingsExtended` v souboru `src/shared/schemas/memory.ts` je k dispozici devět polí pro embeddingy a vektory, která se ukládají prostřednictvím `src/lib/db/settings.ts`:
 
-| Pole                     | Typ                                                | Výchozí hodnota | Popis                                                                    |
-| ------------------------ | -------------------------------------------------- | --------------- | ------------------------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | Který zdroj embeddingů použít                                            |
-| `embeddingProviderModel` | `string \| null`                                   | `null`          | Poskytovatel/model ve formátu `provider/model`                           |
-| `customBaseUrl`          | `string \| null`                                   | `null`          | Základní URL endpointu kompatibilního s OpenAI, určeného pouze pro paměť |
-| `customModelId`          | `string \| null`                                   | `null`          | ID modelu odesílané vlastnímu endpointu                                  |
-| `transformersEnabled`    | `boolean`                                          | `false`         | Výslovné povolení Transformers.js (MiniLM, ~400 MB)                      |
-| `staticEnabled`          | `boolean`                                          | `false`         | Výslovné povolení lokálního statického modelu potion-base-8M             |
-| `rerankEnabled`          | `boolean`                                          | `false`         | Povolit krok přehodnocení pořadí (přidá +200–500 ms/požadavek)           |
-| `rerankProviderModel`    | `string \| null`                                   | `null`          | Poskytovatel/model pro přehodnocení pořadí ve formátu `provider/model`   |
+| Pole                     | Typ                                                | Výchozí hodnota | Popis                                                                |
+| ------------------------ | -------------------------------------------------- | --------------- | -------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`        | Který zdroj embeddingů použít                                        |
+| `embeddingProviderModel` | `string \| null`                                   | `null`          | Poskytovatel/model ve formátu `provider/model`                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`          | Základní URL koncového bodu kompatibilního s OpenAI pouze pro Memory |
+| `customModelId`          | `string \| null`                                   | `null`          | ID modelu odesílané vlastnímu koncovému bodu                         |
+| `transformersEnabled`    | `boolean`                                          | `false`         | Výslovné povolení Transformers.js (MiniLM, ~400MB)                   |
+| `staticEnabled`          | `boolean`                                          | `false`         | Výslovné povolení lokálního statického modelu potion-base-8M         |
+| `rerankEnabled`          | `boolean`                                          | `false`         | Povolení kroku přehodnocení pořadí (přidává +200-500ms/požadavek)    |
+| `rerankProviderModel`    | `string \| null`                                   | `null`          | Poskytovatel/model přehodnocení pořadí ve formátu `provider/model`   |
 
-`rerankProviderModel` je vyhodnocován prostřednictvím `POST /v1/rerank` (volaného přes loopback), takže přijímá cokoli, co přijímá tato trasa: vybraný cloudový model pro přehodnocení pořadí (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nebo uzel poskytovatele kompatibilního s OpenAI ve formátu `<node-prefix>/<model>` (např. `skilled-mini/bge-reranker-v2-m3` pro server TEI/Infinity). Uzly na loopbacku jsou vždy způsobilé; uzel na jiném hostiteli (LAN, Tailscale) navíc vyžaduje příznak funkce `RERANK_REMOTE_PROVIDER_NODES` a musí splňovat zásady odchozích URL poskytovatele — viz [Příznaky funkcí](../reference/FEATURE_FLAGS.md). Selektor na řídicím panelu uvádí vybrané poskytovatele a místní uzly; jakýkoli platný řetězec `provider/model` lze nastavit přímo prostřednictvím `PUT /api/settings/memory`.
+`rerankProviderModel` se překládá pomocí `POST /v1/rerank` (volaného přes loopback), takže přijímá cokoli, co přijímá tato trasa: spravovaný cloudový model pro přehodnocení pořadí (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) nebo uzel poskytovatele kompatibilního s OpenAI ve formátu `<node-prefix>/<model>` (např. `skilled-mini/bge-reranker-v2-m3` pro server TEI/Infinity). Uzel na loopbacku a názvy hostitelů uvedené v `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (např. název služby Docker/Compose) jsou vždy způsobilé; uzel na jiném hostiteli (LAN, Tailscale) navíc vyžaduje příznak funkce `RERANK_REMOTE_PROVIDER_NODES` a musí projít zásadami odchozích URL poskytovatele — viz [Příznaky funkcí](../reference/FEATURE_FLAGS.md). Selektor na řídicím panelu uvádí spravované poskytovatele a místní uzly; libovolný platný řetězec `provider/model` lze nastavit přímo prostřednictvím `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Který vektorový backend použít |
 
-Tato nastavení jsou zpřístupněna prostřednictvím `GET /PUT /api/settings/memory` (schéma `MemorySettingsExtendedSchema`).
+Tato pole jsou zpřístupněna prostřednictvím `GET /PUT /api/settings/memory` (schéma `MemorySettingsExtendedSchema`).
 
-Pro zdroj `remote` přijímá Memory také volitelná nastavení `customBaseUrl` a `customModelId`. Společně vybírají endpoint `/embeddings` kompatibilní s OpenAI a model, aniž by měnily globální registr embeddingů. Endpoint se před použitím normalizuje a kontroluje podle zásad odchozích URL poskytovatele: je vyžadováno HTTP(S), vložené přihlašovací údaje a řetězce dotazu jsou odmítnuty a adresy metadat cloudových služeb zůstávají blokovány. Prázdné hodnoty zachovají vybraného poskytovatele z registru. Chyby vrácené řídicímu panelu jsou očištěny a přihlašovací údaje endpointu se nikdy nezaznamenávají do protokolů.
+Pro zdroj `remote` přijímá Memory také volitelná nastavení `customBaseUrl` a `customModelId`. Společně vybírají koncový bod `/embeddings` kompatibilní s OpenAI a model, aniž by měnily globální registr embeddingů. Koncový bod je před použitím normalizován a zkontrolován podle zásad odchozích URL poskytovatele: je vyžadován protokol HTTP(S), vložené přihlašovací údaje a řetězce dotazu jsou odmítnuty a adresy cloudových metadat zůstávají blokovány. Prázdné hodnoty zachovají vybraného poskytovatele z registru. Chyby vrácené řídicímu panelu jsou sanitizovány a přihlašovací údaje koncového bodu se nikdy nezaznamenávají do protokolu.
 
-> **TODO (D20):** Rozsah `global` (sdílení pamětí napříč všemi klíči API) není
-> v této verzi implementován. Vyžaduje změny schématu a globální cestu
-> načítání. Evidujte jej samostatně.
+> **TODO (D20):** Rozsah `global` (sdílení vzpomínek mezi všemi klíči API) není v této verzi implementován. Vyžaduje změny schématu a globální cestu načítání. Sledujte jej samostatně.
 
 ## Vrstvy úložiště
 
@@ -901,30 +899,30 @@ Chcete-li ji ponechat vypnutou, jednoduše zachovejte výchozí hodnotu `autoSum
 > **Zdroj pravdy:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testy:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-Vzor poskytovatele MemoryBackend zavádí nad stávajícím paměťovým enginem **připojitelnou abstrakční vrstvu backendu**. Namísto vazby na jedinou implementaci úložiště nyní paměťový systém podporuje více backendů (SQLite, Obsidian, Notion, vlastní HTTP backendy) s konfigurovatelným směrováním na primární a záložní backendy.
+Vzor poskytovatele MemoryBackend zavádí nad stávajícím paměťovým enginem **abstrakční vrstvu s vyměnitelnými backendy**. Namísto vazby na jedinou implementaci úložiště nyní paměťový systém podporuje více backendů (SQLite, Obsidian, Notion, vlastní HTTP backendy) s konfigurovatelným směrováním na primární a záložní backendy.
 
 ### Architektura
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    Trasy API                              │
+│                    API routy                              │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│        Singletonový orchestrátor (manager.ts)             │
+│        Orchestrátor typu singleton (manager.ts)           │
 │                                                          │
 │  Primární ──► Backend A  (např. SQLite)                  │
 │  Záložní  ──► Backend B  (např. Obsidian)                │
-│               Backend C  (např. Notion přes GenericBackend)│
+│              Backend C  (např. Notion přes GenericBackend)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ Backend    │ │ Backend    │ │ Backend (HTTP)   │
+│ backend    │ │ backend    │ │ backend (HTTP)   │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -937,7 +935,7 @@ interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // CRUD
+  // CRUD operace
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -958,23 +956,23 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-Singletonový orchestrátor, který:
+Orchestrátor typu singleton, který:
 
-- **Registruje** backendy prostřednictvím `register(backend)` — voláno při spuštění z `index.ts`
+- **Registruje** backendy prostřednictvím `register(backend)` — volá se při spuštění z `index.ts`
 - **Konfiguruje** primární a záložní backendy prostřednictvím `configure(primary, fallbacks)`
-- **Směruje** operace CRUD a vyhledávání na primární backend, při selhání použije řetězec záložních backendů
+- **Směruje** CRUD operace a vyhledávání na primární backend s řetězcem záložních backendů při selhání
 - Pravidelně provádí **kontroly stavu** všech backendů
 
 **Chování záložních backendů:**
 
-| Operace  | Primární backend          | Záložní backendy                        |
-| -------- | ------------------------- | --------------------------------------- |
-| `create` | ✅ Pouze primární         | ❌                                      |
-| `get`    | ✅ Nejprve zkusí primární | ✅ Záložní, pokud vrátí null            |
-| `update` | ✅ Pouze primární         | ✅ Asynchronní synchronizace bez čekání |
-| `delete` | ✅ Pouze primární         | ✅ Asynchronní synchronizace bez čekání |
-| `list`   | ✅ Pouze primární         | ❌                                      |
-| `search` | ✅ Nejprve primární       | ✅ Záložní při chybě                    |
+| Operace  | Primární                  | Záložní                      |
+| -------- | ------------------------- | ---------------------------- |
+| `create` | ✅ Pouze primární         | ❌                           |
+| `get`    | ✅ Nejprve zkusí primární | ✅ Záložní, pokud vrátí null |
+| `update` | ✅ Pouze primární         | ✅ Asynchronní synchronizace |
+| `delete` | ✅ Pouze primární         | ✅ Asynchronní synchronizace |
+| `list`   | ✅ Pouze primární         | ❌                           |
+| `search` | ✅ Nejprve primární       | ✅ Záložní při chybě         |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -982,19 +980,19 @@ Obecný HTTP konektor, který přizpůsobí libovolné REST API rozhraní Memory
 
 - **Notion** — připojení prostřednictvím Notion API
 - **Obsidian** — připojení prostřednictvím Obsidian Local REST API
-- **Vlastní backendy** — jakákoli služba, která poskytuje RESTful paměťové API
+- **Vlastní backendy** — libovolná služba poskytující RESTful API pro paměť
 
 **Konfigurace:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // Základní URL backendového API
-  apiKey?: string;           // Bearer token pro autentizaci
+  baseUrl: string;           // Základní URL API backendu
+  apiKey?: string;           // Bearer token pro ověřování
   headers?: Record<string, string>;  // Vlastní HTTP hlavičky
   timeout?: number;          // Časový limit požadavku (výchozí: 30000ms)
   backendType?: string;      // Pro protokolování
 
-  // Přepsání koncových bodů (výchozí hodnoty používají konvence REST)
+  // Přepsání endpointů (výchozí hodnoty používají konvence REST)
   endpoints?: {
     search?: string;   // výchozí: "/memories/search"
     create?: string;   // výchozí: "/memories"
@@ -1020,15 +1018,15 @@ interface GenericBackendConfig {
 **Známé backendy** jsou předem nakonfigurovány v `KNOWN_BACKENDS`:
 
 ```typescript
-createKnownBackend("obsidian"); // → GenericMemoryBackend směrující na localhost:27123
-createKnownBackend("notion"); // → GenericMemoryBackend směrující na api.notion.com/v1
+createKnownBackend("obsidian"); // → GenericMemoryBackend směřující na localhost:27123
+createKnownBackend("notion"); // → GenericMemoryBackend směřující na api.notion.com/v1
 ```
 
 #### Vestavěné backendy
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Výchozí primární backend. Zapouzdřuje existující úložiště paměti založené na SQLite pomocí `src/lib/memory/store.ts`. Automaticky se registruje při spuštění.
+Výchozí primární backend. Obaluje stávající paměťové úložiště založené na SQLite pomocí `src/lib/memory/store.ts`. Při spuštění se registruje automaticky.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1037,19 +1035,79 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Zapouzdřuje existující integraci s Obsidianem (`src/lib/memory/obsidianBackend.ts`). Připojuje se k trezoru Obsidianu prostřednictvím Obsidian Local REST API.
+Obaluje stávající integraci s Obsidianem (`src/lib/memory/obsidianBackend.ts`). Připojuje se k trezoru Obsidian prostřednictvím Obsidian Local REST API.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Adaptér pro lokální worker [claude-mem](https://github.com/thedotmack/claude-mem) — paměťový plugin
+pro Claude Code / Codex / Cursor, který zaznamenává programovací relace jako „pozorování“.
+Po jeho registraci mohou REST routy `/api/memory` a vyhledávání v paměti A2A číst a zapisovat
+do stejného úložiště, které naplňují hooky claude-mem.
+
+Worker naslouchá pouze na rozhraní loopback, které ochrana proti SSRF v `GenericMemoryBackend` záměrně odmítá.
+Tento adaptér danou ochranu nezmírňuje: hostitel je pevně nastaven na `127.0.0.1` a konfigurační
+schéma (`ClaudeMemBackendConfigSchema`, `.strict()`) přijímá pouze:
+
+| Klíč        | Typ    | Výchozí | Poznámky                                                                                                                       |
+| ----------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `port`      | number | —       | Povinné, 1024–65535. Port workeru claude-mem z jeho souboru nastavení (výchozí `37700 + uid % 100`).                           |
+| `project`   | string | —       | Projekt claude-mem, který se má použít. Není-li nastaven → každý klíč API OmniRoute se mapuje na vlastní projekt (`apiKeyId`). |
+| `timeoutMs` | number | `5000`  | Časový limit jednotlivého požadavku, 100–30000.                                                                                |
+
+Povolte jej pomocí `PUT /api/settings/memory` a restartujte OmniRoute (backendy se registrují
+jednou, v `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Chcete-li jej použít jako úložiště pro REST API, použijte místo toho `"primaryBackend": "claude-mem"`.
+Neplatná konfigurace se zaznamená do protokolu (`claude-mem.backend.invalid_config`) a přeskočí,
+takže SQLite zůstane primárním backendem.
+
+Mapování a omezení:
+
+- ID mají formát `claude-mem:<observationId>`; `get`/`delete` ignorují ID ostatních backendů bez
+  síťového volání.
+- `create` → `POST /api/memory/save`; pole OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) se přenášejí v `metadata.omniroute` služby claude-mem a při čtení se obnoví.
+- `search` → `GET /api/search?format=json&type=observations`, oříznuto podle `maxTokens`
+  (počet znaků / 4). `list` → stránkovaný endpoint workeru pro pozorování (`total` je dolní mez — worker
+  vrací `hasMore`, nikoli počet).
+- Pozorování zachycená hookem mapují `discovery` → `factual`, `decision` → `procedural` a
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Žádné aktualizace** (`update()` vrací `false`; pozorování jsou neměnná) a **žádné TTL**
+  (`expiresAt` se ignoruje). claude-mem odstraňuje duplicity identických uložení namísto upsertu podle `key`.
+- Vkládání do promptu (`retrieval.ts`) a nástroje MCP `omniroute_memory_*` stále čtou přímo z SQLite
+  — nepoužívají `memoryManager`, takže jim tento backend neposkytuje data.
+
+**Směrování vlastních volání LLM služby claude-mem přes OmniRoute.** claude-mem komprimuje pozorování
+pomocí LLM (výchozí: Claude Agent SDK). Jeho provider `openai-compatible` může místo toho odkazovat
+na OmniRoute a využívat kombinované záložní směrování a sledování nákladů. V `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<klíč API OmniRoute>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<model nebo kombinace OmniRoute>"
+}
+```
 
 ### Nastavení
 
 Nastavení backendu paměti jsou uložena v tabulce nastavení aplikace a spravována prostřednictvím `src/lib/memory/settings.ts`:
 
-| Nastavení            | Klíč prostředí/konfigurace | Výchozí    | Popis                                        |
-| -------------------- | -------------------------- | ---------- | -------------------------------------------- |
-| Primární backend     | `memoryPrimaryBackend`     | `"sqlite"` | ID primárního backendu                       |
-| Záložní backendy     | `memoryFallbackBackends`   | `[]`       | Seřazená ID záložních backendů               |
-| Konfigurace backendů | `memoryBackendConfigs`     | `{}`       | Přepsání konfigurace pro jednotlivé backendy |
+| Nastavení            | Klíč prostředí/konfigurace | Výchozí    | Popis                                      |
+| -------------------- | -------------------------- | ---------- | ------------------------------------------ |
+| Primární backend     | `memoryPrimaryBackend`     | `"sqlite"` | ID primárního backendu                     |
+| Záložní backendy     | `memoryFallbackBackends`   | `[]`       | Seřazená ID záložních backendů             |
+| Konfigurace backendů | `memoryBackendConfigs`     | `{}`       | Přepsání konfigurace jednotlivých backendů |
 
-Nastavení jsou normalizována pomocí `normalizeMemorySettings()` a ukládána do mezipaměti v `getMemorySettings()`.
+Nastavení se normalizují pomocí `normalizeMemorySettings()` a ukládají do mezipaměti v `getMemorySettings()`.
 
 ### Průběh inicializace
 
@@ -1058,20 +1116,21 @@ Spuštění aplikace
   → importy v index.ts (vedlejší efekt): registrují SQLiteBackend
   → initMemoryBackends() voláno z životního cyklu aplikace:
       1. Načtení nastavení (getMemorySettings)
+      1b. Registrace volitelných backendů uvedených v backendConfigs (claude-mem)
       2. Konfigurace primárního a záložních backendů
       3. Inicializace všech backendů (kontrola stavu)
-      4. Připraveno pro požadavky
+      4. Připraveno na požadavky
 ```
 
 ### Přidání nového backendu
 
 1. **Implementujte rozhraní `MemoryBackend`** v `src/lib/memory/<name>Backend.ts`
-2. **Exportujte** z `src/lib/memory/index.ts`
-3. **Zaregistrujte** pomocí `memoryManager.register(yourBackend)` při spuštění
-4. **Nakonfigurujte** prostřednictvím nastavení: nastavte `memoryPrimaryBackend` na ID svého backendu
-5. **Otestujte** s využitím `src/lib/memory/__tests__/generic-backend.test.ts` jako reference
+2. **Exportujte jej** z `src/lib/memory/index.ts`
+3. **Zaregistrujte jej** při spuštění pomocí `memoryManager.register(yourBackend)`
+4. **Nakonfigurujte jej** prostřednictvím nastavení: nastavte `memoryPrimaryBackend` na ID svého backendu
+5. **Otestujte jej** podle `src/lib/memory/__tests__/generic-backend.test.ts`
 
-#### Příklad: Backend Brain
+#### Příklad: backend Brain
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1097,18 +1156,18 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-Očekávaný výstup: **35 testů, všechny úspěšné**, které pokrývají:
+Očekávaný výstup: **35 testů, všechny úspěšné**, pokrývajících:
 
 - Konstruktor (2)
-- Kontrola stavu (4) — úspěch, selhání 500, síťová chyba, latence
+- Kontrola stavu (4) — úspěch, selhání 500, chyba sítě, latence
 - Inicializace (2) — úspěch, selhání
-- Vytvoření (2) — výchozí koncový bod, vlastní koncový bod
-- Získání (4) — úspěch, 404 → null, jiná chyba než 404, vlastní parametry cesty
+- Vytvoření (2) — výchozí endpoint, vlastní endpoint
+- Načtení (4) — úspěch, 404 → null, jiný stav než 404 vyvolá výjimku, vlastní parametry cesty
 - Aktualizace (2) — úspěch, 404 → false
 - Odstranění (2) — úspěch, 404 → false
 - Výpis (2) — parametry dotazu, vlastní názvy parametrů
-- Vyhledávání (3) — parametry dotazu, vlastní koncový bod, serializace možností
-- Autorizační hlavičky (2) — Bearer token, vlastní hlavičky
+- Vyhledávání (3) — parametry dotazu, vlastní endpoint, serializace voleb
+- Autorizační hlavičky (2) — token Bearer, vlastní hlavičky
 - Tovární funkce (1)
 
 #### Kontrola typů

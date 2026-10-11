@@ -316,14 +316,14 @@ De configuratiebundel wordt opgebouwd door `src/lib/sync/bundle.ts`. Clients ver
 
 ---
 
-## 🛡️ Veilig uitgaand ophalen en SSRF-beveiliging _(v3.6.6+)_
+## 🛡️ Veilig uitgaand ophalen & SSRF-beveiliging _(v3.6.6+)_
 
-Alle providervalidatie- en modeldetectieaanroepen verlopen nu via een tweelaagse beveiliging voor uitgaand verkeer:
+Alle aanroepen voor providervalidatie en modeldetectie verlopen nu via een tweelaagse beveiliging voor uitgaand verkeer:
 
-1. **URL-beveiliging** (`src/shared/network/outboundUrlGuard.ts`) — Blokkeert privé-, loopback- en link-local-IP-bereiken voordat de socket wordt geopend.
-2. **Veilige fetch-wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Past de URL-beveiliging toe, normaliseert time-outs en probeert tijdelijke fouten opnieuw met exponentiële back-off.
+1. **URL-beveiliging** (`src/shared/network/outboundUrlGuard.ts`) — Controleert eerst de doelhostnaam of het IP-adres zoals dit letterlijk is opgegeven; in de modus voor uitsluitend openbare adressen zet de wrapper voor veilig ophalen ook de naam om en weigert deze privé-IP-adressen. Standaard blokkeert deze beveiliging cloudmetadata-eindpunten: heel 169.254.0.0/16 plus de bekende metadatahostnamen; `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=false` blokkeert ook privé- en loopbackhosts; `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true` (of de verouderde instelling `OUTBOUND_SSRF_GUARD_ENABLED=false`) schakelt de controles uit. Een waarde die via een schakelaar in het dashboard van een vlag is opgeslagen, heeft voorrang op de bijbehorende variabele, en ingebouwde lokale providers slaan de beveiliging tijdens sleutelvalidatie over. Zie `docs/reference/ENVIRONMENT.md`.
+2. **Wrapper voor veilig ophalen** (`src/shared/network/safeOutboundFetch.ts`) — Past de URL-beveiliging toe, normaliseert time-outs en probeert tijdelijke fouten opnieuw met exponentiële back-off.
 
-Schendingen van de beveiligingsregels worden weergegeven als HTTP 422 (`URL_GUARD_BLOCKED`) en via `providerAudit.ts` naar het compliance-auditlogboek geschreven.
+Beveiligingsovertredingen worden weergegeven als `URL_GUARD_BLOCKED` — HTTP 503 via `getSafeOutboundFetchErrorStatus` (400 op de route voor modeldetectie) — en daadwerkelijke SSRF-blokkeringen tijdens validatie worden als `provider.validation.ssrf_blocked`-gebeurtenissen naar het auditlogboek geschreven.
 
 ---
 

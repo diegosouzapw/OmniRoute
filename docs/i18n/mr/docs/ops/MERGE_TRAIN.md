@@ -5,67 +5,86 @@
 ---
 
 v3.8.49 पासून (quality/velocity योजनेतील WS3.2/WS3.4), पुनरावलोकन केलेले PRs
-`release/vX.Y.Z` मध्ये विलीन करण्यासाठी डीफॉल्ट मार्ग **Mergify merge queue** (`.mergify.yml`)
-आहे; खाली दस्तऐवजीकरण केलेला **manual merge-train** हा पर्यायी मार्ग आहे — तो घटनांदरम्यान,
-रिलीज फ्रीझच्या वेळी किंवा Mergify Open Source योजना कधी बदलल्यास वापरला जातो.
+`release/vX.Y.Z` मध्ये विलीन करण्याचा डीफॉल्ट मार्ग **Mergify merge queue** (`.mergify.yml`)
+आहे; खाली दस्तऐवजीकरण केलेली **manual merge-train** ही FALLBACK आहे — ती incidents,
+release freezes दरम्यान किंवा Mergify Open Source योजना कधी बदलल्यास वापरली जाते.
 
-## डीफॉल्ट मार्ग: Mergify queue
+## डीफॉल्ट मार्ग: Mergify रांग
 
-1. मोहिमांद्वारे PR चे पुनरावलोकन झालेले/तो हिरवा झालेला असतो आणि मालकाच्या pre-merge ⭐
-   gate द्वारे त्याला मंजुरी मिळालेली असते (अहवाल + प्रत्येक घटकावरील निर्णय — `/merge-prs` Step 0.75 पहा).
-2. मालक (किंवा मालकाच्या निर्णयानुसार काम करणारे सत्र) **`queue`**
-   लेबल लावतो. हे लेबल म्हणजेच विलिनीकरणाची मंजुरी आहे; Mergify फक्त ती अंमलात आणते.
-3. Mergify रांगेतील जास्तीत जास्त 10 PRs ची बॅच बनवते, fast-gates विरुद्ध बॅचचे प्रमाणीकरण
-   करते आणि विलीन करते (squash). लाल बॅचचे **आपोआप द्विभाजन केले जाते** — दोषी PR
-   सुमारे log2(N) पुनर्प्रमाणीकरणांमध्ये वेगळा केला जातो आणि रांगेतून काढला जातो; उर्वरित पुढे जातात.
-4. विलिनीकरणानंतर, continuous release-green workflow push झाल्यावर नवीन tip चे प्रमाणीकरण
-   करते आणि या संयोजनामुळे regression झाल्यास attribution issue उघडते (कधीही auto-revert करत नाही).
+1. PR चे campaigns द्वारे पुनरावलोकन केले जाते/त्याला हिरवा कंदील दिला जातो आणि मालकाच्या प्री-मर्ज ⭐
+   गेटद्वारे मंजुरी दिली जाते (अहवाल + प्रत्येक घटकासाठी निर्णय — `/merge-prs` मधील पायरी 0.75 पहा).
+2. मालक (किंवा मालकाच्या निर्णयानुसार कार्य करणारे सत्र) **`queue`**
+   लेबल लावतो. हे लेबल म्हणजेच मर्जची मंजुरी; Mergify केवळ तिची अंमलबजावणी करते.
+3. Mergify रांगेतील PRs ची fast-gates विरुद्ध **क्रमशः** (एका वेळी एक) पडताळणी
+   करते आणि मर्ज (squash) करते. बॅचिंग + स्वयंचलित द्विभाजन हे सशुल्क Mergify स्तराचे
+   वैशिष्ट्य आहे (मोफत योजनेवर "Cannot use Merge Queue batch", #7220), त्यामुळे `.mergify.yml` मध्ये
+   `batch_size` सेट केलेले नाही; बॅचिंगचे काम खालील मॅन्युअल merge-train कडेच राहते. ज्या PR च्या
+   तपासण्या `checks_timeout` नंतरही प्रलंबित असतात (240 मिनिटे = `quality.yml` च्या
+   मोजलेल्या p95 च्या 2×), तो रांग अडवण्याऐवजी रांगेतून काढला जातो.
+4. मर्जनंतर, सतत चालणारा release-green workflow push झाल्यावर नवीन tip ची पडताळणी
+   करतो आणि या संयोजनामुळे regression झाल्यास attribution issue उघडतो (कधीही आपोआप revert करत नाही).
 
-सुरक्षा-नियम (`CLAUDE.md` Hard Rules #21/#22 शी समरूप):
+सुरक्षानियम (`CLAUDE.md` मधील कठोर नियम #21/#22 चे प्रतिबिंब):
 
-- **रिलीज फ्रीझ सुरू आहे** → फ्रीझ केलेल्या branch ला लक्ष्य करणाऱ्या PRs ना लेबल लावू नका; आधी
+- **Release freeze सुरू आहे** → गोठवलेल्या branch ला लक्ष्य करणाऱ्या PRs ना लेबल लावू नका; प्रथम
   सक्रिय `release/vX+1` कडे पुन्हा लक्ष्यित करा.
-- **दुसऱ्या सत्राचा in-flight PR** → त्याला कधीही लेबल लावू नका; फक्त मालकी असलेले सत्र
+- **दुसऱ्या सत्राचा प्रगतीपथावरील PR** → त्याला कधीही लेबल लावू नका; केवळ मालकी असलेले सत्र
   स्वतःचे काम रांगेत लावते.
-- केवळ tests असलेले diffs आणि `hotfix` लेबल असलेले PRs आधीच कमी केलेले CI चालवतात
-  (`RELEASE_CHECKLIST.md` → Hotfix Fast-Lane पहा); प्रत्यक्षात चालवला गेलेला कोणताही
-  check संच queue conditions स्वीकारतात (`#check-failure=0` + `#check-pending=0`).
+- केवळ tests असलेले diffs आणि `hotfix` लेबल असलेले PRs आधीच कमी केलेले CI चालवतात (पहा
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); प्रत्यक्षात चाललेल्या कोणत्याही
+  check संचाला रांगेच्या अटी स्वीकारतात (`#check-failure=0` + `#check-pending=0`).
 
 ## पर्यायी मार्ग: manual merge-train
 
-Queue उपलब्ध नसताना हा वापरला जातो. यात v3.8.47 चक्रादरम्यान एका दिवसात 33 PRs
-पूर्ण करण्यासाठी वापरलेल्या पद्धतीचे संहितीकरण केले आहे:
+Queue अनुपलब्ध असताना हा वापरला जातो. यामध्ये v3.8.47 cycle दरम्यान
+एका दिवसात 33 PRs पूर्ण करण्यासाठी वापरलेली पद्धत संहिताबद्ध केली आहे:
 
-1. **बॅच तयार करा** (पुनरावलोकन+मंजुरी झालेले सुमारे 10–30 PRs). `linked:` collisions
-   तपासा (समान `tap.testFiles`, समान CHANGELOG hunks) आणि त्यांना क्रमाने हाताळा.
-2. **फक्त एकदाच प्रमाणीकरण करा**: release tip पासून वेगळ्या isolated worktree मध्ये सर्व batch
-   heads स्थानिकरीत्या विलीन करा, नंतर release-equivalent suite चालवा
-   (`npm run check:release-green`; रिलीजपूर्वी `--with-build` जोडा).
-   `scripts/release/merge-train.sh <base> <PR#>…` steps 1–2 स्वयंचलित करते (संघर्ष करणारे
+1. **Batch तयार करा** (पुनरावलोकन+मंजुरी झालेले सुमारे 10–30 PRs). `linked:` collisions
+   (समान `tap.testFiles`, समान CHANGELOG hunks) तपासा आणि त्यांना क्रमाने हाताळा.
+2. **एकदाच प्रमाणीकरण करा**: release tip वर आधारित स्वतंत्र worktree मध्ये batch मधील सर्व
+   heads स्थानिकरीत्या merge करा आणि नंतर release-equivalent suite चालवा
+   (`npm run check:release-green`; release पूर्वी `--with-build` जोडा).
+   `scripts/release/merge-train.sh <base> <PR#>…` द्वारे steps 1–2 स्वयंचलित होतात (संघर्ष करणारे
    PRs बाहेर काढले जातात आणि train पुढे सुरू राहते). Full mode मध्ये `npm run test:unit` चालते —
-   box-tuned runner (`--test-concurrency=20`), **दोन अनुक्रमिक 4-core CI
-   shards नव्हेत**, ज्यांच्यामुळे 16-core box वरील प्रमुख phase सुमारे 25% क्षमतेवर चालत होता
-   (2026-07-18 रोजी दुरुस्त केले). `--fast` (दिवसभरातील mega-train drains, मालकाने 2026-07-18 रोजी मंजूर केलेले)
-   प्रत्येक static gate + vitest कायम ठेवते, परंतु केवळ onboard केलेल्या PRs मुळे बदललेल्या
-   node:test files चालवते; तरीही एकत्रित tip वर दिवसातून किमान एकदा FULL suite चालवणे
-   आवश्यक आहे (`--fast` शिवाय एक train).
-3. **हिरवा** → PRs क्रमाने विलीन करा (प्रत्येकापूर्वी `state,headRefOid` पुन्हा तपासा —
-   ज्या PR चा head बदलला आहे तो पुन्हा review मध्ये जातो). प्रत्येक merge चा net diff हा
-   त्या PR चा स्वतःचा बदल असल्याचे सिद्ध करा (auto-resolve reverts नकोत: व्याप्तीबाहेरील
+   box साठी अनुकूल केलेला runner (`--test-concurrency=20`), **दोन क्रमिक 4-core CI
+   shards नव्हे**, ज्यांमुळे प्रमुख phase मध्ये 16-core box च्या केवळ सुमारे 25% क्षमतेचा वापर होत होता
+   (2026-07-18 रोजी दुरुस्त केले). `--fast` (दिवसभरातील mega-train drains साठी,
+   मालकाने 2026-07-18 रोजी मंजूर केलेले) प्रत्येक static gate + vitest कायम ठेवते, मात्र
+   onboard केलेल्या PRs मुळे बदललेल्या node:test files एवढ्याच चालवते; जमा झालेल्या tip वर
+   FULL suite तरीही दिवसातून किमान एकदा चालवली पाहिजे (`--fast` शिवाय एक train).
+3. **Green** → PRs क्रमाने merge करा (प्रत्येकापूर्वी `state,headRefOid` पुन्हा तपासा —
+   ज्या PR चा head बदलला आहे तो पुन्हा review मध्ये जातो). प्रत्येक merge चा net diff
+   हा त्या PR चाच बदल आहे हे सिद्ध करा (auto-resolve reverts करू नका: कार्यक्षेत्राबाहेरील
    deletions साठी `git diff --stat` चे audit करा).
-4. **लाल** → एकेक करून पुनर्प्रमाणीकरण करण्याऐवजी बॅचचे अर्ध्या भागांत द्विभाजन करा
-   (प्रत्येक अर्ध्याचे प्रमाणीकरण करा); दोषी PR पुराव्यासह पुन्हा review queue मध्ये पाठवा.
-5. **कधीही करू नका**: freeze दरम्यान frozen branch मध्ये विलीन करणे; कुठेही `git stash`
-   वापरणे; लाल स्थिती आपोआप निघून जाईल या आशेने CI सरसकट पुन्हा चालवणे (नियम: लाल स्थिती ही माहिती असते).
+4. **Red** → एकेक करून पुन्हा प्रमाणीकरण करण्याऐवजी batch चे अर्ध्या भागांत द्विभाजन करा
+   (प्रत्येक अर्ध्या भागाचे प्रमाणीकरण करा); अडथळा आणणारा PR पुराव्यासह review queue मध्ये परत पाठवा.
+5. **कधीही करू नका**: freeze दरम्यान frozen branch मध्ये merge करणे; कुठेही `git stash`
+   वापरणे; red अदृश्य होईल या आशेने CI सरसकट पुन्हा चालवणे (नियम: red म्हणजे माहिती).
 
-## स्तररचना (फक्त fast-gates सह queue सुरक्षित का आहे)
+## स्तररचना (केवळ fast-gates सह queue सुरक्षित का आहे)
 
-- **प्रत्येक PR साठी** (quality.yml fast-gates): TIA-प्रभावित tests + संपूर्ण unit 4-shard +
+- **प्रत्येक PR साठी** (quality.yml fast-gates): TIA-प्रभावित tests + पूर्ण unit 4-shard +
   vitest + lint bag + typecheck + docs/changelog integrity.
-- **प्रत्येक batch/tip साठी** (continuous release-green): release branch वरील प्रत्येक push साठी
-  `--quick` HARD gates; दिवसातून 3 वेळा संपूर्ण `--with-build --full-ci` sweeps.
+- **प्रत्येक batch/tip साठी** (continuous release-green): release branch कडे होणाऱ्या प्रत्येक
+  push वर `--quick` HARD gates; दिवसातून 3 वेळा पूर्ण `--with-build --full-ci` sweeps.
 - **प्रत्येक release साठी** (release PR वरील ci.yml): E2E ×9 सह संपूर्ण matrix,
   package-artifact + tarball boot-smoke, coverage/ratchets.
 
-पूर्वीपेक्षा कोणत्याही गोष्टीचे कमी प्रमाणीकरण होत नाही — जड surface फक्त प्रत्येक PR ऐवजी
-प्रत्येक batch/tip साठी चालते, आणि यामुळेच O(N) round-trips दूर होतात.
+पूर्वीपेक्षा कमी प्रमाणीकरण कशाचेही होत नाही — मोठ्या संसाधनांची आवश्यकता असलेला भाग आता
+प्रत्येक PR ऐवजी प्रत्येक batch/tip साठी चालतो आणि त्यामुळेच O(N) round-trips दूर होतात.
+
+## `merge-train.sh` साठी fresh-checkout पूर्वावश्यकता
+
+Script root checkout वर (कोणतेही worktree काम सुरू होण्यापूर्वी) fail-fast **preflight**
+चालवते, जेणेकरून बिघडलेली installation कधीही red train असल्याचा भास निर्माण करू शकणार नाही:
+
+1. `npm ci`, त्यानंतर npm ने block केलेले `bun` postinstall चालवा:
+   `(cd node_modules/bun && node install.js)` — अन्यथा `check:provider-consistency`
+   आणि `check:known-symbols` (दोन्ही `bun scripts/…`) train आणि base दोन्हींवर
+   कोणत्याही violation line शिवाय fail होतात.
+2. अनावश्यक `node_modules/node_modules` नसावे (duplicate dependency tree; React दोनदा load होते
+   आणि UI vitest suites तत्काळ fail होतात).
+3. `node_modules/.bin/tsc` अस्तित्वात आणि executable असावे (अपूर्ण installation मध्ये ते नसते).
+
+Train blocking `npm run check:cycles:ratchet` चालवते; केवळ `npm run check:cycles`
+हे advisory आहे (ते SCCs ची यादी देते आणि निरोगी base वरही non-zero exit करते).

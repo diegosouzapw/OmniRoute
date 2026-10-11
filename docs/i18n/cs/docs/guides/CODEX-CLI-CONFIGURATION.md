@@ -277,13 +277,13 @@ codex -p chat     # cx/gpt-5.5, úsilí nenastaveno (výchozí nastavení server
 
 ## Automatické generování profilů pomocí `omniroute setup-codex`
 
-Pokud OmniRoute provozujete na VPS, můžete automaticky generovat soubory profilů z aktuálního katalogu modelů:
+Pokud provozujete OmniRoute na VPS, můžete automaticky generovat soubory profilů z aktuálního katalogu modelů:
 
 ```bash
 # Z VPS (používá místní OmniRoute na portu 20128)
 omniroute setup-codex
 
-# Z libovolného počítače — nasměrujte jej na svůj VPS
+# Z libovolného počítače — zadejte adresu svého VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Náhled bez zápisu souborů
@@ -292,13 +292,30 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 # Generovat pouze profily GLM a Kimi
 omniroute setup-codex --only glm,kimi
 
-# Zápis do vlastního adresáře
+# Zapsat do vlastního adresáře
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Příkaz načte `/v1/models`, použije vyladěné profily pro známé modely, pro ostatní kompatibilní textové modely použije jako záložní řešení metadata katalogu a pro každý z nich zapíše `~/.codex/<name>.config.toml`. Je idempotentní — lze jej bezpečně spustit opakovaně.
+Příkaz načte `/v1/models`, pro známé modely použije vyladěné profily, u ostatních kompatibilních textových modelů použije metadata katalogu a pro každý z nich zapíše `~/.codex/<name>.config.toml`. Je idempotentní — lze jej bezpečně spouštět opakovaně.
 
-OmniRoute také může tyto stejné soubory profilů **automaticky synchronizovat** poté, co úspěšné zjištění/import modelů poskytovatele změní aktuální katalog. Tato funkce je **volitelná a ve výchozím nastavení vypnutá**: zapněte ji na **řídicím panelu CLI Code** („Automatická synchronizace profilů CLI“ → Codex) nebo nastavte `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (respektuje také `CLI_ALLOW_CONFIG_WRITES`, které je ve výchozím nastavení zapnuté). Je-li funkce povolena, zapisuje pouze samostatné soubory profilů `~/.codex/*.config.toml`; nikdy nemění aktivní/výchozí soubor `~/.codex/config.toml`, nastavení Codex-lb, ověřování ani výběr poskytovatele.
+Pokud základní soubor `config.toml` neobsahuje definici `model_providers.omniroute`, explicitní příkaz
+`setup-codex` tuto definici zahrne do každé vygenerované překryvné konfigurace s použitím vybraného
+místního nebo vzdáleného koncového bodu. Základní soubor ponechá beze změny. Existující definice poskytovatele
+se zdědí, včetně jejího koncového bodu a nastavení ověřování. Neplatný základní soubor TOML
+zastaví generování ještě před zápisem profilů.
+
+Pokud zadáte `--api-key` nebo `OMNIROUTE_API_KEY`, nově definovaný poskytovatel odkazuje na
+`env_key = "OMNIROUTE_API_KEY"`; samotný klíč se nikdy neukládá ani nezobrazuje v
+náhledu. Nastavte tuto proměnnou v prostředí, ze kterého spouštíte Codex. Pokud klíč
+nezadáte, nová definice nebude žádný klíč vyžadovat, což je určeno pro instanci OmniRoute
+nakonfigurovanou tak, aby přijímala neověřené požadavky.
+
+Níže popsaná automatická synchronizace katalogu, kterou je nutné výslovně zapnout, zachová definice poskytovatelů, které již
+v překryvné konfiguraci existují, ale nezavádí nová nastavení poskytovatele; poskytovatele
+nejprve nakonfigurujte pomocí explicitního nastavení nebo ovládacího panelu. Existující nastavení poskytovatele jsou
+z náhledů zkušebního spuštění vynechána, protože mohou obsahovat přihlašovací údaje spravované provozovatelem.
+
+OmniRoute může také tyto stejné soubory profilů **automaticky synchronizovat** poté, co úspěšné zjištění/import modelů poskytovatele změní aktuální katalog. Tuto funkci je nutné **výslovně zapnout a ve výchozím nastavení je vypnutá**: přepněte ji v **ovládacím panelu CLI Code** („Automatická synchronizace profilů CLI“ → Codex) nebo nastavte `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (respektuje také `CLI_ALLOW_CONFIG_WRITES`, které je ve výchozím nastavení zapnuté). Je-li tato funkce zapnutá, zapisuje pouze samostatné soubory profilů `~/.codex/*.config.toml`; nikdy nemění aktivní/výchozí soubor `~/.codex/config.toml`, nastavení Codex-lb, ověřování ani výběr poskytovatele.
 
 ---
 

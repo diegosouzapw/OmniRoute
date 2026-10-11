@@ -101,16 +101,16 @@ Pro Combo:
 
 ## Health-Check-API
 
-OmniRoute stellt **zwei** HTTP-Endpunkte für Zustandsprüfungen bereit. Für Orchestratoren sind sie nicht austauschbar.
+OmniRoute stellt **zwei** HTTP-Endpunkte für Zustandsprüfungen bereit. Sie sind für Orchestratoren nicht austauschbar.
 
-| Pfad                         | Zweck                                                                          | Aufwand                                      | Verwendung für                                                               |
-| ---------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------- | ---------------------------------------------------------------------------- |
-| `GET /healthz`               | Verfügbarkeit/Bereitschaft im Lebenszyklus (`ok` / `starting` / `stopping`)    | Minimal (nur Phasen-Flag)                    | Kubernetes-**Readiness**; einfache **Liveness**, falls HTTP erforderlich ist |
-| `GET /api/monitoring/health` | Detaillierte System- und Provider-Zusammenfassung (DB, Heap, Kataloganzahl, …) | Hoch (synchrone DB-/Monitoring-Verarbeitung) | Dashboards, detaillierte Blackbox-Prüfungen, integrierter Docker-Healthcheck |
+| Pfad                         | Zweck                                                                                 | Aufwand                                | Verwendung für                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
+| `GET /healthz`               | Verfügbarkeits-/Bereitschaftsstatus des Lebenszyklus (`ok` / `starting` / `stopping`) | Minimal (nur Phasen-Flag)              | Kubernetes-**Readiness**; einfache **Liveness**, falls HTTP verwendet werden muss |
+| `GET /api/monitoring/health` | Detaillierte System- und Anbieterübersicht (DB, Heap, Kataloganzahlen, …)             | Hoch (synchrone DB-/Monitoring-Arbeit) | Dashboards, detaillierte Blackbox-Prüfungen, integrierter Docker-Healthcheck      |
 
-> **Hinweis:** Provider-Zustandsmatrizen, Autopilot-Probleme, Kontingentüberwachung, Token-Zustand und Latenzdetails, die über `/api/monitoring/health` hinausgehen, sind über das **MCP-Tool** `observability_snapshot` oder die **Dashboard-Seiten** verfügbar – dafür gibt es keine dedizierten REST-Routen.
+> **Hinweis:** Anbieter-Zustandsmatrizen, Autopilot-Probleme, Kontingentmonitore, Token-Zustand und Latenzdetails, die über `/api/monitoring/health` hinausgehen, sind über das **MCP-Tool** `observability_snapshot` oder die **Dashboard-Seiten** verfügbar – dafür gibt es keine eigenen REST-Routen.
 
-Beide Routen werden in derselben **Node-Ereignisschleife** wie die Anfrageverarbeitung ausgeführt. Ein CPU-intensiver Pfad (umfangreiche Katalogverarbeitung für `GET /v1/models`, Komprimierung langer Kontexte / Token-Zählung) kann **alle** HTTP-Handler verzögern, einschließlich `/healthz`. Eine ausgelastete Ereignisschleife ≠ ein abgestürzter Prozess. Beheben Sie vorzugsweise den Ressourcenfresser; die Anpassung von Probes reduziert lediglich fälschliche Beendigungen.
+Beide Routen werden in derselben **Node-Event-Loop** wie die Anfrageverarbeitung ausgeführt. Ein CPU-gebundener Pfad (umfangreiche Katalogverarbeitung für `GET /v1/models`, Komprimierung langer Kontexte / Token-Zählung) kann **alle** HTTP-Handler verzögern, einschließlich `/healthz`. Eine ausgelastete Event-Loop ≠ ein abgestürzter Prozess. Beheben Sie vorzugsweise den Ressourcenfresser; die Anpassung von Probes reduziert lediglich fälschliche Beendigungen.
 
 ### Leichtgewichtige Orchestrator-Probe
 
@@ -119,7 +119,7 @@ GET /healthz
 # oder HEAD /healthz
 ```
 
-- **200** + Antworttext `ok`, wenn die Lebenszyklusphase des Servers bereit ist
+- **200** + Textkörper `ok`, wenn die Lebenszyklusphase des Servers bereit ist
 - **503** + `starting` / `stopping` während des Starts oder Herunterfahrens
 - Implementierung: `src/app/healthz/route.ts` (kein DB-Ping)
 
@@ -153,43 +153,43 @@ Antwort:
 }
 ```
 
-#### `credentialHealth`: Probe-Cache gegenüber SQLite-`test_status`
+#### `credentialHealth`: Probe-Cache im Vergleich zu SQLite-`test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` ist die **In-Memory-Anzeige des Probe-Caches**
-und kein Live-Dump von `provider_connections.test_status`. Seit #12532 liest der
+`GET /api/monitoring/health` → `credentialHealth` ist die **Messgröße des
+In-Memory-Probe-Caches** und keine Live-Ausgabe von `provider_connections.test_status`. Seit #12532 liest der
 Anfragepfad ausschließlich `getCachedCredentialHealthSummary()`; Hintergrund-Probes
-aktualisieren den Cache außerhalb der Ereignisschleife.
+aktualisieren den Cache außerhalb der Event-Loop.
 
-| Ebene                                    | Ort                                                                   | Bedeutung                                                                                                                                                                                                                     |
-| ---------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Probe-Cache-Anzeige                      | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Die letzten Ergebnisse der Anmeldedaten-Zustandsprüfung, die sich noch im Prozessspeicher befinden. `source` ist immer `probe-cache`.                                                                                         |
-| Details zu fehlgeschlagenen Verbindungen | `credentialHealth.failedConnections`                                  | Nur vorhanden, **wenn `failed > 0`**. Begrenzte Liste von Cache-Zeilen mit `status=error` (`connectionId`, `status`, bereinigtes `lastError` / `lastErrorType`). `failedOmitted` wird gesetzt, wenn die Liste begrenzt wurde. |
-| Persistenter SQLite-Status               | `credentialHealth.staleDbNonOkCount`                                  | Anzahl **aktiver** (`is_active=1`) Verbindungszeilen, deren persistierter `test_status` einen bekannten Nicht-OK-Wert aufweist (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).             |
+| Ebene                                 | Ort                                                                   | Bedeutung                                                                                                                                                                                                                              |
+| ------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Probe-Cache-Messgröße                 | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Die letzten Ergebnisse der Anmeldedaten-Zustandsprüfungen, die noch im Prozessspeicher vorgehalten werden. `source` ist immer `probe-cache`.                                                                                           |
+| Details fehlgeschlagener Verbindungen | `credentialHealth.failedConnections`                                  | Nur vorhanden, **wenn `failed > 0`**. Begrenzte Liste von Cache-Zeilen mit `status=error` (`connectionId`, `status`, bereinigte Werte für `lastError` / `lastErrorType`). `failedOmitted` wird gesetzt, wenn die Liste begrenzt wurde. |
+| Persistenter SQLite-Status            | `credentialHealth.staleDbNonOkCount`                                  | Anzahl **aktiver** (`is_active=1`) Verbindungszeilen, deren persistierter `test_status` einen bekannten Nicht-ok-Wert aufweist (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                      |
 
 Die beiden Ebenen können absichtlich voneinander abweichen:
 
-- Anzeige `failed=0`, während `staleDbNonOkCount>0` – SQLite enthält weiterhin einen persistenten
-  `test_status` (beispielsweise `expired` oder `credits_exhausted`), den der aktuelle
+- Messgröße `failed=0`, während `staleDbNonOkCount>0` – SQLite enthält weiterhin einen persistenten
+  `test_status` (zum Beispiel `expired` oder `credits_exhausted`), den der neueste
   Probe-Cache-Snapshot nicht als `status=error` zählt.
-- Anzeige `failed>0`, während SQLite einen fehlerfreien Zustand zeigt – eine kürzlich ausgeführte Probe ist fehlgeschlagen und wurde
-  zwischengespeichert; die DB-Zeile wurde noch nicht aktualisiert oder später zurückgesetzt.
+- Messgröße `failed>0`, während SQLite einen fehlerfreien Zustand anzeigt – eine aktuelle Probe ist fehlgeschlagen und
+  wurde zwischengespeichert; die DB-Zeile wurde noch nicht aktualisiert oder später zurückgesetzt.
 
-Lösen Sie beim Abrufen dieses Endpunkts keine Warnung ausschließlich aufgrund von
-`provider_connections.test_status` aus. Verwenden Sie `failed` + `failedConnections` für aktuelle Probe-Fehler und
-`staleDbNonOkCount`, wenn Sie die Anzahl persistenter Statuswerte benötigen.
+Lösen Sie beim Abrufen dieses Endpunkts keine Warnung allein aufgrund von `provider_connections.test_status`
+aus. Verwenden Sie `failed` + `failedConnections` für aktuelle Probe-Fehler und
+`staleDbNonOkCount`, wenn Sie die Anzahl der persistenten Statuswerte benötigen.
 
 ### Empfehlungen für Kubernetes-Probes
 
-OmniRoute ist ein **einzelner Node-Prozess** (eine Ereignisschleife). Der standardmäßige Docker-`HEALTHCHECK` verwendet den leichtgewichtigen Endpunkt `/healthz`. `/api/monitoring/health` ist für Liveness-Intervalle des kubelet **zu aufwendig**.
+OmniRoute ist ein **einzelner Node-Prozess** (eine Event-Loop). Der standardmäßige Docker-`HEALTHCHECK` verwendet den leichtgewichtigen Endpunkt `/healthz`. `/api/monitoring/health` ist für Liveness-Intervalle des kubelet **zu aufwendig**.
 
-| Prüfung                            | Empfohlenes Ziel                                                                    | Hinweise                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ---------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Start**                          | HTTP `GET /healthz` mit einem langen `failureThreshold` (oder großen `startPeriod`) | Kaltstart und SQLite-Migration können länger als einige Sekunden dauern                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **Bereitschaft**                   | HTTP `GET /healthz`                                                                 | Lebenszyklus `ok` / `starting` / `stopping` (200 vs. 503). Schwankt weiterhin, wenn die Schleife durch CPU-Last blockiert ist. Eine Antwort mit **200 nach mehreren Sekunden ist nicht gesund** (#10303) — sie bedeutet, dass die Ereignisschleife bereits ausgelastet war, bevor der 3-Byte-Handler ausgeführt wurde                                                                                                                                                         |
-| **Lebendigkeit**                   | HTTP `GET /livez` **oder TCP** am Hauptdienst-Port (`PORT`, Standardwert `20128`)   | `/livez` prüft nur, ob der Prozess aktiv ist (immer 200, wenn der Handler ausgeführt wird). Der Endpunkt nutzt weiterhin dieselbe Ereignisschleife — beschäftigt ≠ tot, und er erkennt eine Überlastung der Ereignisschleife (#10303) nicht besser als TCP. Bevorzugen Sie **TCP**, wenn HTTP-Prüfungen unter Katalog-/Komprimierungslast Zeitüberschreitungen verursachen; beenden Sie den Pod in beiden Fällen **nicht** aufgrund kurzer Blockierungen der Ereignisschleife |
-| **Tiefgehende Integritätsprüfung** | `GET /api/monitoring/health` von einem externen Prüfdienst                          | Nicht für die kubelet-`livenessProbe` oder eine eng getaktete `readinessProbe` geeignet                                                                                                                                                                                                                                                                                                                                                                                       |
+| Probe             | Empfohlenes Ziel                                                                    | Hinweise                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Start**         | HTTP `GET /healthz` mit einem langen `failureThreshold` (oder großen `startPeriod`) | Kaltstart und SQLite-Migration können länger als einige Sekunden dauern                                                                                                                                                                                                                                                                                                                                                                |
+| **Bereitschaft**  | HTTP `GET /healthz`                                                                 | Lebenszyklus `ok` / `starting` / `stopping` (200 vs. 503). Flattert weiterhin, wenn die Schleife durch CPU-Last blockiert ist. Eine **200 nach mehreren Sekunden ist nicht gesund** (#10303) — sie bedeutet, dass die Event-Schleife ausgehungert war, bevor der 3-Byte-Handler ausgeführt wurde                                                                                                                                       |
+| **Lebendigkeit**  | HTTP `GET /livez` **oder TCP** am Hauptdienst-Port (`PORT`, Standardwert `20128`)   | `/livez` prüft nur, ob der Prozess aktiv ist (immer 200, wenn der Handler ausgeführt wird). Der Endpunkt nutzt weiterhin dieselbe Event-Schleife — beschäftigt ≠ tot, und er erkennt ein Aushungern der Event-Schleife (#10303) nicht besser als TCP. Bevorzugen Sie **TCP**, wenn HTTP-Probes unter Katalog-/Komprimierungslast in einen Timeout laufen; beenden Sie den Pod in keinem Fall aufgrund kurzer Event-Schleifen-Blockaden |
+| **Tiefenprüfung** | `GET /api/monitoring/health` durch einen externen Prüfdienst                        | Nicht für die kubelet-`livenessProbe` oder eine eng getaktete `readinessProbe`                                                                                                                                                                                                                                                                                                                                                         |
 
-Beispielkonfiguration (passen Sie die Schwellenwerte an Ihre Kaltstart- und Komprimierungslast an):
+Beispielkonfiguration (passen Sie die Schwellenwerte an Ihren Kaltstart und Ihre Komprimierungslast an):
 
 ```yaml
 ports:
@@ -215,27 +215,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Bei einer Blockierung der Ereignisschleife kann auch für HTTP /livez
-  # eine Zeitüberschreitung auftreten. TCP ist die konservative Alternative:
+  # Bei einer Blockade der Event-Schleife kann HTTP /livez trotzdem in einen Timeout laufen. TCP ist die
+  # konservative Alternative:
   # tcpSocket:
   #   port: http
 ```
 
-Richten Sie die kubelet-**Lebendigkeitsprüfung nicht** auf `/api/monitoring/health`. Dieser Pfad führt tatsächliche Datenbank-/Überwachungsarbeit aus und erzeugt unter Last falsch positive Ergebnisse.
+Richten Sie die kubelet-**Lebendigkeitsprüfung nicht** auf `/api/monitoring/health`. Dieser Pfad führt echte Datenbank-/Überwachungsarbeit aus und meldet unter Last fälschlicherweise einen Fehler.
 
-Siehe auch: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (Prüfungen, während die Ereignisschleife beschäftigt ist), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (Katalogpreisberechnung beansprucht zu viele Ressourcen), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (Tokenzählung für die Komprimierung beansprucht zu viele Ressourcen).
+Siehe auch: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (Probes bei ausgelasteter Event-Schleife), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (Katalogpreisberechnung als Ressourcenfresser), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (Token-Zählung bei der Komprimierung als Ressourcenfresser).
+
+### systemd-Watchdog (eingefrorene Event-Schleife)
+
+Auf einem systemd-Host teilt OmniRoute dem Dienstmanager mit, wann es bereit ist, und sendet weiterhin Pings. Dadurch wird ein Server, dessen Event-Schleife feststeckt, beendet und neu gestartet, statt aktiv und reaktionslos zu bleiben. Die Pings stammen aus der eigenen Event-Schleife des Servers: Wenn sie blockiert, bleiben die Pings aus, und systemd startet den Dienst neu, sobald innerhalb der mit `WatchdogSec` festgelegten Zeit kein Ping eingegangen ist.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) schreibt bereits eine Benutzereinheit mit dieser Konfiguration. Eine selbst erstellte Einheit (standardmäßig `Type=simple`) hat keinen Watchdog. Fügen Sie daher ihrem Abschnitt `[Service]` diese Zeilen hinzu:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Die generierte Einheit setzt `Restart=on-failure`. Fügen Sie daher auch diese Zeile hinzu — ohne sie beendet der Watchdog lediglich den festgefahrenen Dienst, statt ihn neu zu starten.
+
+- `Type=notify`: Der Dienst gilt als „gestartet“, wenn der Server `READY=1` sendet, nicht wenn der Prozess erzeugt wird. `TimeoutStartSec` begrenzt die Dauer eines langsamen Starts.
+- `NotifyAccess=all`: Die Pings werden vom Serverprozess gesendet, der ein Kindprozess des Supervisors `omniroute serve` ist.
+- `WatchdogSec`: Pings werden alle 60 Sekunden gesendet; verwenden Sie daher **120 oder mehr**. Kleinere Werte würden einen funktionierenden Server neu starten.
+- Führen Sie `omniroute serve` im Vordergrund aus. `--daemon` trennt den Server von der cgroup der Einheit, sodass der Notify-Handshake nie abgeschlossen wird.
+
+Prüfen Sie nach einem Neustart, ob der Watchdog aktiv ist:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` zeigt die konfigurierte Verzögerung an, und `WatchdogTimestamp` wird jede Minute aktualisiert. Ein vom Watchdog ausgelöster Neustart wird als `Result=watchdog` protokolliert. Um die Pings zu deaktivieren, ohne die Einheit zu ändern, setzen Sie `OMNIROUTE_DISABLE_SD_NOTIFY=1`; ohne `NOTIFY_SOCKET` (Terminal, Docker, Electron, Windows) wird nichts gesendet.
+
+Der Watchdog prüft lediglich, ob die Event-Schleife weiterläuft. Ein Server, der langsam ist, aber noch weiterarbeitet, wird nicht neu gestartet.
 
 ### Optionale Verarbeitung im Anfragepfad (Speicher, Skills, Token-Aktualisierung)
 
-Speicherextraktion, Skills-Injektion und OAuth-Token-Aktualisierung nutzen gemeinsam mit `/healthz` die **Node-Hauptereignisschleife**. Es handelt sich um über das Dashboard umschaltbare Funktionen (`memoryEnabled`, `skillsEnabled`), nicht um einen Worker-Pool. Siehe [Umgebung — Kosten für die Ereignisschleife durch Speicher, Skills und Token-Aktualisierung](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Speicherextraktion, Skills-Injektion und OAuth-Token-Aktualisierung teilen sich den **Haupt-Event-Loop von Node** mit `/healthz`. Es handelt sich dabei um über das Dashboard umschaltbare Funktionen (`memoryEnabled`, `skillsEnabled`), nicht um einen Worker-Pool. Siehe [Umgebung — Event-Loop-Kosten](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
-### Anbieterintegrität
+### Provider-Zustand
 
-> **Kein REST-Endpunkt.** Daten zur Anbieterintegrität sind über das MCP-Tool `observability_snapshot` oder die Dashboard-Seite `/dashboard/providers` verfügbar.
+> **Kein REST-Endpunkt.** Zustandsdaten der Provider sind über das MCP-Tool `observability_snapshot` oder die Dashboard-Seite `/dashboard/providers` verfügbar.
 
-### Anbieterdetails
+### Provider-Details
 
-> **Kein REST-Endpunkt.** Details zu einzelnen Anbietern sind über die Dashboard-Seite `/dashboard/providers` verfügbar.
+> **Kein REST-Endpunkt.** Details zu einzelnen Providern sind über die Dashboard-Seite `/dashboard/providers` verfügbar.
 
 ---
 

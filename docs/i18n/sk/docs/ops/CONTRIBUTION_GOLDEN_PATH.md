@@ -5,51 +5,52 @@
 ---
 
 Pomocou tejto príručky vyberte najmenší spoľahlivý vývojový cyklus pre pull request. Nenahrádza
-architektonické a bezpečnostné dokumenty pre konkrétne oblasti, na ktoré sa odkazuje nižšie; prepája
+architektonické a bezpečnostné dokumenty pre jednotlivé oblasti, na ktoré sa odkazuje nižšie; prepája
 každý bežný typ zmeny s jeho kontraktmi, cielenými kontrolami a pokrytím v CI.
 
 ## Postup, ktorým prechádza každá zmena
 
 1. **Pred úpravami vyberte základnú vetvu.** Nájdite najvyššiu aktívnu vetvu `release/v*` a vytvorte
-   vetvu z jej špičky. Zacieľte na túto vetvu, nie na `main`. Ak je aktívne zmrazenie vydania,
-   nezacieľujte na zmrazenú vetvu; použite nasledujúci aktívny cyklus opísaný v dokumente
+   vetvu z jej špičky. Ako cieľ použite túto vetvu, nie `main`. Ak prebieha zmrazenie vydania,
+   nepoužívajte ako cieľ zmrazenú vetvu; použite nasledujúci aktívny cyklus opísaný v dokumente
    [Model vetvenia a vydávania](BRANCHING_MODEL.md).
 2. **Pomenujte kontrakty.** Identifikujte každý katalóg, schému, generovaný artefakt, verejné API
-   alebo používateľské rozhranie, ktoré zmena ovplyvňuje. Tabuľka nižšie uvádza minimálnu počiatočnú
-   množinu.
+   alebo používateľské rozhranie, ktoré zmena ovplyvňuje. Tabuľka nižšie uvádza minimálnu
+   počiatočnú množinu.
 3. **Napíšte alebo aktualizujte cielené testy.** Zmeny produkčného kódu v `src/`, `open-sse/`,
-   `electron/` alebo `bin/` vyžadujú automatizovaný test v tom istom PR. Spustite najmenšie testovacie
-   súbory, ktoré dokazujú dané správanie, a potom uvedené cielené kontroly.
-4. **Nechajte CI spustiť širokú maticu.** V PR sa spustia všetky časti jednotkových testov, Vitest,
-   kontrola pokrytia a produkčné zostavenie. Širokú súpravu testov spúšťajte lokálne iba vtedy, keď
-   cielené zlyhanie poukazuje na širší vplyv alebo keď zmena zasahuje viacero podsystémov.
-5. **Pred kontrolou zosúlaďte zmeny.** Načítajte aktívnu základnú vetvu, skontrolujte jej nové commity
-   a svoj diff voči nej a potom podľa postupu pre prispievateľov vykonajte rebase alebo zlúčte
-   základnú vetvu. Konflikty v generovaných súboroch a katalógoch vyriešte v ich zdroji, znova ich
-   vygenerujte, opätovne spustite cielený cyklus a potvrďte, že PR stále smeruje do aktívnej vetvy
-   vydania.
+   `electron/` alebo `bin/` vyžadujú automatizovaný test v rovnakom PR. Spustite najmenšie testovacie
+   súbory, ktoré preukazujú dané správanie, a potom uvedené cielené kontroly.
+4. **Nechajte CI spustiť širokú maticu.** V PR sa spustia všetky jednotkové fragmenty, Vitest,
+   kontrola rastu pokrytia a produkčné zostavenie. Širokú súpravu spúšťajte lokálne iba vtedy, keď
+   cielené zlyhanie naznačuje širší vplyv alebo keď zmena zasahuje viacero subsystémov.
+5. **Pred kontrolou zosúlaďte zmeny.** Načítajte aktívnu základnú vetvu, skontrolujte jej nové
+   commity a rozdiely svojej vetvy voči nej a potom podľa pracovného postupu prispievateľa vykonajte
+   rebase alebo zlúčenie základnej vetvy. Konflikty v generovaných súboroch a katalógoch vyriešte
+   v ich zdroji, znova ich vygenerujte, opätovne spustite cielený cyklus a potvrďte, že PR stále
+   smeruje na aktívnu vetvu vydania.
 6. **Zaznamenajte dôkazy.** V šablóne PR uveďte spustené príkazy, každý pridaný alebo zmenený
-   testovací súbor, migrácie či príznaky funkcií a všetky overenia vykonávané iba v CI, ktoré ešte
-   čakajú na dokončenie.
+   testovací súbor, migrácie alebo príznaky funkcií a všetky overenia vykonávané iba v CI, ktoré
+   ešte čakajú na dokončenie.
 
 ## Odporúčané postupy podľa typu zmeny
 
-Príkazy uvedené nižšie predstavujú minimálne cielené kontroly, nie povolenie vynechať test, ktorý
-priamo pokrýva správanie, ktoré ste zmenili.
+Príkazy nižšie predstavujú minimálne cielené kontroly, nie povolenie na vynechanie testu, ktorý
+priamo pokrýva zmenené správanie.
 
 ### Poskytovateľ
 
 **Kontrakty**
 
-- Definícia poskytovateľa v `src/shared/constants/providers/` a jej skladanie v
+- Definícia poskytovateľa v `src/shared/constants/providers/` a jej zostavenie v
   `src/shared/constants/providers.ts`.
-- Modely a schopnosti v `open-sse/config/providerRegistry.ts` alebo v jeho vyčlenených súboroch
+- Modely a funkcie v `open-sse/config/providerRegistry.ts` alebo v jeho vyčlenených súboroch
   registra.
-- Výber vykonávacieho modulu/prekladača, konfigurácia OAuth alebo API kľúča, prvky ovládacieho panela
-  a prípadne generovaná dokumentácia poskytovateľov.
+- Výber vykonávača/prekladača, konfigurácia OAuth alebo kľúča API, prostriedky ovládacieho panela
+  a generovaná referencia poskytovateľov, ak je relevantná.
 - Verejné prihlasovacie údaje musia používať `resolvePublicCred()`; chybové odpovede musia používať
-  zdieľané pomocné funkcie na sanitizáciu chýb. Pozrite si `docs/security/PUBLIC_CREDS.md` (git;
-  nekompiluje sa do `/docs`) a dokument [Sanitizácia chýb](../security/ERROR_SANITIZATION.md).
+  spoločné pomocné funkcie na sanitizáciu chýb. Pozrite si `docs/security/PUBLIC_CREDS.md` (git;
+  nekompiluje sa do `/docs`) a dokument
+  [Sanitizácia chýb](../security/ERROR_SANITIZATION.md).
 
 **Cielený cyklus**
 
@@ -58,13 +59,13 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # keď sa katalóg zmení; commitnite vygenerovaný diff
+npm run gen:provider-reference   # keď sa zmení katalóg; commitnite vygenerované rozdiely
 npm run lint
 ```
 
-Otestujte aj každú ovplyvnenú skupinu požiadaviek: chat, Responses, obrázky, embeddings, zvuk alebo
-video. Diffy generovaného katalógu a referenčných výstupov kontrolujte ako zmeny kontraktu;
-neprijímajte ich bez overenia.
+Otestujte tiež každú ovplyvnenú skupinu požiadaviek: chat, Responses, obrázky, embeddings, zvuk
+alebo video. Rozdiely v generovanom katalógu a referenčných výstupoch posudzujte ako zmeny
+kontraktu; neprijímajte ich bez kontroly.
 
 ### Smerovanie
 
@@ -73,10 +74,10 @@ neprijímajte ich bez overenia.
 - Verejné hodnoty stratégií a metadáta používateľského rozhrania v
   `src/shared/constants/routingStrategies.ts`.
 - Odosielanie a radenie v `open-sse/services/combo.ts` a `open-sse/services/combo/`.
-- Schémy combo, perzistencia, stav odolnosti, schopnosti modelov a ovládacie prvky API/používateľského
+- Schémy combo, perzistencia, stav odolnosti, funkcie modelov a ovládacie prvky API/používateľského
   rozhrania.
-- Dokumenty [Mechanizmus Auto-Combo](../routing/AUTO-COMBO.md) a dokumentácia odolnosti, keď sa mení
-  správanie.
+- Dokumentácia [Mechanizmus Auto-Combo](../routing/AUTO-COMBO.md) a dokumentácia odolnosti, keď sa
+  zmení správanie.
 
 **Cielený cyklus**
 
@@ -87,8 +88,8 @@ npm run check:known-symbols      # zmeny registrácie stratégie
 npm run lint
 ```
 
-Lokálne používajte deterministické testy so simulovaným upstreamom. Živé smoke testy combo vyžadujú
-prihlasovacie údaje a vykonávajú sa manuálne; nenahrádzajú CI.
+Lokálne používajte deterministické testy so simulovaným upstreamom. Živé základné testy combo
+vyžadujú prihlasovacie údaje a vykonávajú sa manuálne; nenahrádzajú CI.
 
 ### UI / UX
 
@@ -96,10 +97,10 @@ prihlasovacie údaje a vykonávajú sa manuálne; nenahrádzajú CI.
 
 - Hranice trás/stránok Next.js a zdieľaných komponentov v `src/app/` a
   `src/shared/components/`.
-- Tvary odpovedí API, stavy načítania/prázdneho obsahu/chýb, správanie pri používaní klávesnice
-  a čítačky obrazovky, responzívne rozloženie, motívy a rozšírenie lokalizácií.
+- Tvary odpovedí API, stavy načítania/prázdneho obsahu/chýb, správanie klávesnice a čítačiek
+  obrazovky, responzívne rozloženie, motívy a rozšírenie lokalizácií.
 - Anglické zdrojové reťazce používateľského rozhrania v `src/i18n/messages/en.json`; nový text
-  zobrazovaný používateľom nevkladajte priamo do kódu.
+  určený používateľom nevkladajte priamo do kódu.
 
 **Cielený cyklus**
 
@@ -110,9 +111,9 @@ npm run check:dashboard-typecheck
 npm run lint
 ```
 
-Pri zmenách interakcie alebo vzhľadu spustite aplikáciu a skontrolujte úzke aj široké zobrazenia. CI
-spúšťa produkčné zostavenie a širšie súpravy testov; vizuálne správanie však stále vyžaduje cielený
-test komponentu, Playwright alebo zdokumentovanú manuálnu kontrolu primeranú danej zmene.
+Pri zmenách interakcie alebo vzhľadu spustite aplikáciu a skontrolujte úzke aj široké zobrazenia.
+CI spúšťa produkčné zostavenie a širšie súpravy; vizuálne správanie stále vyžaduje cielený test
+komponentu, Playwright alebo zdokumentovanú manuálnu kontrolu zodpovedajúcu danej zmene.
 
 ### i18n
 
@@ -122,8 +123,8 @@ test komponentu, Playwright alebo zdokumentovanú manuálnu kontrolu primeranú 
   lokalizácií.
 - Katalógy CLI sa nachádzajú samostatne v `bin/cli/locales/`.
 - Presne zachovajte zástupné symboly a značky ICU. Neprekladajte názvy produktov/poskytovateľov/modelov,
-  názvy protokolov a hlavičiek, príkazy, identifikátory kódu/JSON, adresy URL, premenné prostredia ani
-  chránené výrazy ako `OmniRoute`, `OAuth`, `MCP` a `A2A`. Aktuálny zdrojový zoznam je
+  názvy protokolov a hlavičiek, príkazy, identifikátory kódu/JSON, adresy URL, premenné prostredia
+  ani chránené výrazy, ako sú `OmniRoute`, `OAuth`, `MCP` a `A2A`. Aktuálny zdrojový zoznam je
   `scripts/i18n/glossary/protected-terms.json`.
 
 **Cielený cyklus**
@@ -137,19 +138,19 @@ npm run check:cli-i18n          # keď sa zmenia reťazce/katalógy CLI
 npm run lint
 ```
 
-Toto je usmernenie pre existujúci systém, nie výzva na rozšírenie jeho nástrojov alebo modelu kľúčov.
-Kým sa navrhuje náhradný systém, udržiavajte opravy i18n presne cielené. Nespúšťajte prekladové
+Ide o usmernenie pre existujúci systém, nie o výzvu na rozšírenie jeho nástrojov alebo modelu kľúčov.
+Počas navrhovania náhradného systému udržujte opravy i18n presne zacielené. Nespúšťajte prekladové
 príkazy, ktoré volajú externé služby, pokiaľ úloha výslovne nevyžaduje generované preklady a
-neskontrolovali ste výsledný diff.
+neskontrolovali ste výsledné rozdiely.
 
 ### CLI
 
 **Kontrakty**
 
-- Verejné príkazy a príznaky v `bin/cli/`, vygenerované príkazy API, návratové kódy, stdout/stderr a
+- Verejné príkazy a príznaky v `bin/cli/`, generované príkazy API, návratové kódy, stdout/stderr a
   štruktúry výstupu JSON, správanie konfigurácie/prostredia a súbory zahrnuté v balíku.
-- Reťazce CLI zobrazené používateľovi musia používať internacionalizačnú vrstvu CLI a katalógy `en`/`pt-BR` musia zostať zosúladené.
-- Zachovajte Node ako podporované runtime prostredie a zmluvu publikovaného binárneho súboru.
+- Reťazce CLI zobrazované používateľom musia používať internacionalizačnú vrstvu CLI a katalógy `en`/`pt-BR` musia zostať zosúladené.
+- Zachovajte Node ako podporované runtime prostredie a kontrakt publikovaného binárneho súboru.
 
 **Cielený cyklus**
 
@@ -161,16 +162,17 @@ npm run check:pack-policy     # zmeny verejného rozhrania balíka
 npm run lint
 ```
 
-Ak správanie závisí od parsovania, súborov alebo návratového stavu, použite presný príkaz v dočasnom dátovom adresári. CI vykonáva širšie kontroly artefaktov balíka a ekosystému.
+Ak správanie závisí od parsovania, súborov alebo návratového
+stavu, použite presný príkaz v dočasnom dátovom adresári. CI vykonáva širšie kontroly artefaktov balíka a ekosystému.
 
 ### Databáza
 
-**Zmluvy**
+**Kontrakty**
 
-- Doménové moduly sa nachádzajú v `src/lib/db/`; importujte konkrétne moduly priamo (stará vrstva opätovného exportu `localDb.ts` bola odstránená).
+- Doménové moduly v `src/lib/db/`; importujte konkrétne moduly priamo (stará vrstva opätovného exportu `localDb.ts` bola odstránená).
 - Číslované, idempotentné migrácie SQL v `src/lib/db/migrations/`, bezpečnosť transakcií, správanie pri aktualizácii,
   indexy a každý volajúci ovplyvnený schémou.
-- Trasy a obslužné rutiny nikdy nevykonávajú priamo nespracované SQL.
+- Trasy a obslužné rutiny nikdy nevykonávajú nespracované SQL priamo.
 
 **Cielený cyklus**
 
@@ -182,55 +184,98 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-Pri pridávaní migrácie otestujte novú databázu aj aktualizáciu z predchádzajúcej schémy. Databázové testy musia zatvoriť popisovače a počas čistenia zavolať `resetDbInstance()`. Príkaz `npm run test:bun:db` spúšťajte iba vtedy, keď sa zmení nezaručená cesta adaptéra Bun; Node zostáva autoritatívny.
+Pri pridávaní migrácie otestujte novú databázu aj aktualizáciu z predchádzajúcej schémy. Databázové testy
+musia zatvoriť handly a počas čistenia zavolať `resetDbInstance()`. Príkaz `npm run test:bun:db` spustite iba vtedy,
+keď sa zmení voliteľná cesta adaptéra Bun; Node zostáva autoritatívny.
 
 ### Zostavenie / nasadenie
 
-**Zmluvy**
+**Kontrakty**
 
-- Koreňové manifesty a manifesty pracovných priestorov/súbor uzamknutia, `scripts/build/`, samostatné zostavenie Next.js, obsah balíka `dist/`,
-  metadáta platforiem Electron, pracovné postupy CI a kontrolné mechanizmy nasadenia.
-- Podporované rozsahy Node a povolené použitie Bun uvedené v `CLAUDE.md` musia zostať zachované.
-- Artefakty zostavenia nesmú byť sledované; uplatňujú sa zásady pre závislosti, licencie, pracovné postupy a balíky.
+- Koreňové manifesty a manifesty pracovných priestorov/lockfile, `scripts/build/`, samostatné zostavenie Next.js, obsah balíka
+  `dist/`, metadáta platformy Electron, pracovné postupy CI a kontrolné prvky nasadenia.
+- Podporované rozsahy Node a povolené použitie Bun v `CLAUDE.md` musia zostať zachované.
+- Artefakty zostavenia zostávajú nesledované; uplatňujú sa pravidlá pre závislosti, licencie, pracovné postupy a balíky.
 
 **Cielený cyklus**
 
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
 npm run check:build-scope
-npm run check:lockfile         # zmeny závislostí alebo súboru uzamknutia
+npm run check:lockfile         # zmeny závislostí alebo lockfile
 npm run check:pack-policy      # zmeny verejného rozhrania publikovaného balíka
 npm run lint
 ```
 
-Príkaz `npm run build` používajte lokálne iba vtedy, keď zmena ovplyvňuje kompiláciu, samostatné zostavenie, zdroje
-alebo zbaľovanie runtime prostredia. Príkaz `npm run build:release` používajte iba na validáciu vydania/nasadenia. Zostavenie v CI je
-konečným signálom pre všetky platformy; zmeny Electron špecifické pre platformu vyžadujú zodpovedajúce cielené zostavenie
-alebo dôkaz z overovacieho testu.
+Príkaz `npm run build` použite lokálne iba vtedy, keď zmena ovplyvňuje kompiláciu, samostatné zostavenie, prostriedky
+alebo zbaľovanie runtime prostredia. Príkaz `npm run build:release` použite iba na overenie vydania/nasadenia. Zostavenie CI je
+konečným signálom naprieč platformami; zmeny Electron špecifické pre platformu vyžadujú zodpovedajúce cielené zostavenie
+alebo dôkaz zo základného testu.
+
+## Lokálny cyklus kandidáta
+
+Testy zdrojového kódu nemôžu dokázať, že sa zabalený artefakt spustí: zoznamy súborov balíka, odstránené závislosti
+a natívne binárne súbory zlyhajú až po nainštalovaní a spustení tarballu. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) je lokálnou časťou postupu zostaviť raz / overiť / nasadiť z
+RFC #8084: zostaví jedného kandidáta, overí presne tento artefakt, nasadí ho premenovaním
+adresárov a vráti nasadenie späť, keď nasadený slot neprejde kontrolou stavu.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # vypíše plán, nič nezmení
+npm run dev:candidate -- run                   # zostavenie + overenie + nasadenie, automatické vrátenie späť
+npm run dev:candidate -- build                 # npm pack + inštalácia do _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # spustenie na voľnom porte, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # zámena current a previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # opätovné použitie tarballu zostaveného inde (CI)
+```
+
+- **Zostavte raz.** `build` zabalí aktuálny strom (potrebuje `dist/server.js`, preto najprv spustite
+  `npm run build:release`) alebo skopíruje `--from-tarball` a následne nainštaluje tarball do
+  izolovaného prefixu npm, pretože tarball neobsahuje `node_modules`. Identifikátorom je skrátený sha
+  z `HEAD` (`-dirty`, keď strom obsahuje lokálne zmeny) alebo `tgz-<sha256>` pre tarball. Čistý identifikátor,
+  ktorý už bol zostavený, sa namiesto opätovného zostavenia znova použije; na jeho opätovné zostavenie zadajte `--force`.
+- **Overujte balík, nie zdrojový kód.** `validate` spustí nainštalované CLI
+  (`serve --port <free port>`) s novým `DATA_DIR=<candidate>/data`, falošnými tajnými hodnotami a premennými
+  `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` a `INITIAL_PASSWORD` operátora odstránenými z
+  prostredia, čím overí správanie novej inštalácie bez kľúčov na rozhraní loopback. Počká, kým
+  `GET /api/health` vráti 200, vyžaduje, aby `GET /v1/models` vrátilo 200, zastaví skupinu procesov
+  a uloží výsledok do `validation.json` spolu s hashom tarballu.
+- **Nasaďte ten istý artefakt.** `promote` odmietne kandidáta bez úspešného overenia jeho
+  aktuálneho hashu tarballu. Predvolený aktívny slot je `_artifacts/candidate/current`; `--target <dir>`
+  vyberie iný adresár na tom istom súborovom systéme a jeho predchádzajúci slot je `<dir>.previous`.
+  Každé premenovanie je atomické a zlyhanie počas procesu obráti už vykonané premenovania.
+- **Vráťte nasadenie späť.** `run` znova overí nasadený slot a zamení `current` a `previous` späť, keď
+  táto kontrola zlyhá. Kandidát, ktorý neprejde prvým overením, sa nikdy nenasadí.
+
+Všetko sa zapisuje do adresára `_artifacts/candidate/`, ktorý git ignoruje; existujúca inštalácia OmniRoute
+ani jej dátový adresár sa nikdy nezmenia. Nasadené CLI sa nachádza v
+`_artifacts/candidate/current/prefix/bin/omniroute`; pri používaní ho spustite s vlastným `DATA_DIR`.
+Návratové kódy: `0` úspech, `1` neúspešné overenie alebo nasadenie, `2` chyba použitia alebo chýbajúce zostavenie.
 
 ## Lokálny cyklus verzus CI
 
-| Spúšťané lokálne pre každú úpravu                                                        | CI poskytuje širší prehľad                                                                |
-| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Priame testy správania a vyššie uvedené kontroly kategórií                               | Paralelizovaná úplná sada jednotkových testov a sériové testy                             |
-| `npm run lint`                                                                           | Sady testov Vitest a postupne sprísňované požiadavky na pokrytie/kvalitu                  |
-| Kontrola typov alebo zostavenie iba vtedy, keď to vyžaduje dotknutý kontrakt             | Produkčné zostavenie a kontroly zabezpečenia, dokumentácie, závislostí a pravidiel PR     |
-| Manuálna interakcia/živé kontroly iba vtedy, keď automatizácia nedokáže overiť správanie | Medziúlohové integračné kontroly a kontroly platforiem nakonfigurované pracovným postupom |
+| Spúšťajte lokálne pre každú úpravu                                                             | CI poskytuje širší signál                                                            |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Priame testy správania a vyššie uvedené kontroly kategórií                                     | Rozdelený kompletný balík jednotkových testov a sériové testy                        |
+| `npm run lint`                                                                                 | Balíky testov Vitest a postupne sprísňované limity pokrytia/kvality                  |
+| Kontrola typov alebo zostavenie iba vtedy, keď si to dotknutý kontrakt vyžaduje                | Produkčné zostavenie a kontroly bezpečnosti, dokumentácie, závislostí a pravidiel PR |
+| Manuálne interakcie/kontroly za behu iba vtedy, keď automatizácia nedokáže správanie preukázať | Integrácia medzi úlohami a kontroly platforiem nakonfigurované pracovným postupom    |
 
 Úspešný cielený cyklus je dôkazom o zmenenom kontrakte, nie dôkazom, že nesúvisiace kontroly CI
-prejdú. Zároveň nenechávajte každú lokálnu úpravu čakať na úplnú maticu repozitára.
+prejdú. Zároveň netreba pri každej lokálnej úprave čakať na kompletnú maticu repozitára.
 
 ## Kontrolný zoznam zosúladenia
 
 Pred požiadaním o kontrolu:
 
-- Overte, že základom PR je stále najvyššia aktívna vetva `release/v*`.
-- Načítajte tento základ a skontrolujte commity, ktoré boli začlenené od vytvorenia vašej vetvy.
-- Skontrolujte `git diff <active-base>...HEAD`, či neobsahuje náhodné alebo generované zmeny.
-- Konflikty katalógu a generovaných dokumentov vyriešte aktualizáciou zdroja a opätovným vygenerovaním výstupu.
-- Po zosúladení znova spustite každý cielený test/kontrolu uvedenú v popise PR.
-- Nikdy nezmierňujte tvrdenia ani neodstraňujte povinné testy len preto, aby zodpovedali posunutému základu.
+- Overte, že základná vetva PR je stále najvyššia aktívna vetva `release/v*`.
+- Načítajte túto základnú vetvu a skontrolujte commity, ktoré do nej pribudli od vytvorenia vašej vetvy.
+- Skontrolujte `git diff <active-base>...HEAD`, či neobsahuje neúmyselné zmeny alebo zmeny vo vygenerovaných súboroch.
+- Konflikty v katalógoch a generovaných dokumentoch riešte aktualizáciou zdroja a opätovným vygenerovaním výstupu.
+- Po zosúladení znova spustite všetky cielené testy/kontroly uvedené v popise PR.
+- Nikdy nezmierňujte overenia ani nevynechávajte povinné testy len preto, aby zodpovedali posunutej základnej vetve.
 
 Pravidlá zmrazenia vydania a zmeny cieľovej vetvy nájdete v dokumente
-[Model vetvenia a vydávania](BRANCHING_MODEL.md). Úplný zoznam kontrol CI nájdete v dokumente
-[Referenčná príručka kontrol kvality](../architecture/QUALITY_GATES.md).
+[Model vetvenia a vydávania](BRANCHING_MODEL.md). Kompletný zoznam kontrol CI nájdete v dokumente
+[Referenčný prehľad kontrol kvality](../architecture/QUALITY_GATES.md).

@@ -142,34 +142,34 @@ RRF(d) = Σ  1 / (k + rank_i(d))      जेथे k = 60 (MEMORY_RRF_K द्�
 ## सेटिंग्ज विस्तार
 
 `MemorySettingsExtended` मध्ये नऊ एम्बेडिंग आणि व्हेक्टर फील्ड उपलब्ध आहेत
-आणि ती `src/shared/schemas/memory.ts` मध्ये परिभाषित असून `src/lib/db/settings.ts` द्वारे कायमस्वरूपी जतन केली जातात:
+`src/shared/schemas/memory.ts` मध्ये, आणि ती `src/lib/db/settings.ts` द्वारे कायमस्वरूपी जतन केली जातात:
 
-| फील्ड                    | प्रकार                                             | डीफॉल्ट  | वर्णन                                                   |
-| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | कोणता एम्बेडिंग स्रोत वापरायचा                          |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` स्वरूपातील प्रदाता/मॉडेल               |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | केवळ मेमरीसाठी OpenAI-सुसंगत एंडपॉइंटचा बेस URL         |
-| `customModelId`          | `string \| null`                                   | `null`   | सानुकूल एंडपॉइंटला पाठवलेला मॉडेल ID                    |
-| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js साठी निवडक सक्रियकरण (MiniLM, ~400MB)   |
-| `staticEnabled`          | `boolean`                                          | `false`  | स्थानिक static potion-base-8M मॉडेलसाठी निवडक सक्रियकरण |
-| `rerankEnabled`          | `boolean`                                          | `false`  | पुनर्क्रमांकन टप्पा सक्रिय करा (+200-500ms/req वाढते)   |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` स्वरूपातील पुनर्क्रमांकन प्रदाता/मॉडेल |
+| फील्ड                    | प्रकार                                             | डीफॉल्ट  | वर्णन                                                                  |
+| ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | कोणता एम्बेडिंग स्रोत वापरायचा                                         |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` स्वरूपातील प्रदाता/मॉडेल                              |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | फक्त मेमरीसाठी OpenAI-सुसंगत एंडपॉइंटचा बेस URL                        |
+| `customModelId`          | `string \| null`                                   | `null`   | सानुकूल एंडपॉइंटकडे पाठवला जाणारा मॉडेल ID                             |
+| `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js साठी निवडाधारित सक्रियता (MiniLM, ~400MB)              |
+| `staticEnabled`          | `boolean`                                          | `false`  | स्थिर potion-base-8M स्थानिक मॉडेलसाठी निवडाधारित सक्रियता             |
+| `rerankEnabled`          | `boolean`                                          | `false`  | पुनर्क्रमांकनाची पायरी सक्रिय करा (प्रत्येक विनंतीला +200-500ms जोडते) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` स्वरूपातील पुनर्क्रमांकन प्रदाता/मॉडेल                |
 
-`rerankProviderModel` चे निराकरण `POST /v1/rerank` द्वारे केले जाते (loopback वरून कॉल केले जाते), त्यामुळे तो रूट स्वीकारत असलेले काहीही हे स्वीकारते: निवडक क्लाउड पुनर्क्रमांकन मॉडेल (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) किंवा `<node-prefix>/<model>` स्वरूपातील OpenAI-सुसंगत प्रदाता नोड (उदा. TEI/Infinity बॉक्ससाठी `skilled-mini/bge-reranker-v2-m3`). Loopback नोड नेहमी पात्र असतात; दुसऱ्या होस्टवरील (LAN, Tailscale) नोडसाठी याव्यतिरिक्त `RERANK_REMOTE_PROVIDER_NODES` फीचर फ्लॅग आवश्यक असतो आणि त्याने प्रदात्याचे आउटबाउंड URL धोरण उत्तीर्ण केले पाहिजे — [फीचर फ्लॅग्ज](../reference/FEATURE_FLAGS.md) पहा. डॅशबोर्ड निवडकर्ता निवडक प्रदाते आणि स्थानिक नोडची सूची दाखवतो; कोणतीही वैध `provider/model` स्ट्रिंग थेट `PUT /api/settings/memory` द्वारे सेट करता येते.
+`rerankProviderModel` चे निराकरण `POST /v1/rerank` द्वारे केले जाते (लूपबॅकवरून कॉल केले जाते), त्यामुळे हा रूट स्वीकारत असलेले काहीही ते स्वीकारते: निवडक क्लाउड पुनर्क्रमांकन मॉडेल (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) किंवा `<node-prefix>/<model>` स्वरूपातील OpenAI-सुसंगत प्रदाता नोड (उदा. TEI/Infinity बॉक्ससाठी `skilled-mini/bge-reranker-v2-m3`). लूपबॅक नोड्स आणि `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` मध्ये सूचीबद्ध केलेली होस्टनावे (उदा. Docker/Compose सेवेचे नाव) नेहमीच पात्र असतात; दुसऱ्या होस्टवरील नोडसाठी (LAN, Tailscale) याव्यतिरिक्त `RERANK_REMOTE_PROVIDER_NODES` फीचर फ्लॅग आवश्यक असतो आणि त्याने प्रदात्याचे आउटबाउंड URL धोरण उत्तीर्ण केले पाहिजे — [फीचर फ्लॅग्ज](../reference/FEATURE_FLAGS.md) पहा. डॅशबोर्ड निवडक क्लाउड प्रदाते तसेच स्थानिक नोड्स सूचीबद्ध करतो; कोणतीही वैध `provider/model` स्ट्रिंग थेट `PUT /api/settings/memory` द्वारे सेट केली जाऊ शकते.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | कोणता व्हेक्टर बॅकएंड वापरायचा |
 
-हे `GET /PUT /api/settings/memory` द्वारे उपलब्ध केले आहेत (स्कीमा `MemorySettingsExtendedSchema`).
+ही `GET /PUT /api/settings/memory` द्वारे उपलब्ध केली जातात (स्कीमा `MemorySettingsExtendedSchema`).
 
 `remote` स्रोतासाठी, Memory पर्यायी `customBaseUrl` आणि
-`customModelId` सेटिंग्जही स्वीकारते. एकत्रितपणे, जागतिक एम्बेडिंग रजिस्ट्री न बदलता ही सेटिंग्ज OpenAI-सुसंगत `/embeddings`
-एंडपॉइंट आणि मॉडेल निवडतात. वापरण्यापूर्वी एंडपॉइंट सामान्यीकृत केला जातो आणि प्रदात्याच्या आउटबाउंड URL धोरणानुसार तपासला जातो: HTTP(S)
-आवश्यक आहे, अंतर्भूत क्रेडेन्शियल्स आणि क्वेरी स्ट्रिंग्ज नाकारल्या जातात आणि क्लाउड-मेटाडेटा
-पत्ते अवरोधितच राहतात. रिक्त मूल्यांमुळे निवडलेला रजिस्ट्री प्रदाता कायम राहतो. डॅशबोर्डला
-परत केलेल्या त्रुटी स्वच्छ केल्या जातात आणि एंडपॉइंट क्रेडेन्शियल्सची कधीही नोंद केली जात नाही.
+`customModelId` सेटिंग्जही स्वीकारते. एकत्रितपणे, ती जागतिक एम्बेडिंग रजिस्ट्री न बदलता OpenAI-सुसंगत `/embeddings`
+एंडपॉइंट आणि मॉडेल निवडतात. वापरण्यापूर्वी एंडपॉइंट सामान्यीकृत केला जातो आणि प्रदात्याच्या आउटबाउंड URL धोरणाद्वारे तपासला जातो: HTTP(S)
+आवश्यक आहे, अंतर्भूत क्रेडेन्शियल्स आणि क्वेरी स्ट्रिंग्ज नाकारल्या जातात, आणि क्लाउड-मेटाडेटा
+पत्ते अवरोधितच राहतात. रिक्त मूल्ये निवडलेला रजिस्ट्री प्रदाता कायम ठेवतात. डॅशबोर्डला
+परत केल्या जाणाऱ्या त्रुटी सुरक्षित केल्या जातात आणि एंडपॉइंट क्रेडेन्शियल्स कधीही लॉग केली जात नाहीत.
 
-> **TODO (D20):** `global` व्याप्ती (सर्व API कींमध्ये मेमरी सामायिक करणे) या
-> रिलीझमध्ये कार्यान्वित केलेली नाही. त्यासाठी स्कीमा बदल आणि जागतिक पुनर्प्राप्ती
-> मार्ग आवश्यक आहे. याचा स्वतंत्रपणे मागोवा घ्या.
+> **TODO (D20):** `global` व्याप्ती (सर्व API कीजमध्ये मेमरीज सामायिक करणे) या
+> रिलीझमध्ये अंमलात आणलेली नाही. त्यासाठी स्कीमा बदल आणि जागतिक पुनर्प्राप्ती
+> मार्ग आवश्यक आहे. स्वतंत्रपणे मागोवा घ्या.
 
 ## स्टोरेज स्तर
 
@@ -866,7 +866,7 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 > **सत्याचा अधिकृत स्रोत:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **चाचण्या:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend प्रदाता पॅटर्न विद्यमान मेमरी इंजिनवर एक **प्लग करण्यायोग्य बॅकएंड अमूर्तीकरण स्तर** सादर करतो. एकाच स्टोरेज अंमलबजावणीशी बांधलेले राहण्याऐवजी, मेमरी प्रणाली आता कॉन्फिगर करता येणाऱ्या प्राथमिक/फॉलबॅक राउटिंगसह अनेक बॅकएंडना (SQLite, Obsidian, Notion, सानुकूल HTTP बॅकएंड) समर्थन देते.
+MemoryBackend प्रदाता पॅटर्न विद्यमान मेमरी इंजिनवर **प्लग करण्यायोग्य बॅकएंड अमूर्तीकरण स्तर** सादर करतो. एका स्टोरेज अंमलबजावणीशी बांधील राहण्याऐवजी, मेमरी प्रणाली आता कॉन्फिगर करण्यायोग्य प्राथमिक/फॉलबॅक रूटिंगसह अनेक बॅकएंडना (SQLite, Obsidian, Notion, सानुकूल HTTP बॅकएंड) समर्थन देते.
 
 ### आर्किटेक्चर
 
@@ -878,10 +878,10 @@ MemoryBackend प्रदाता पॅटर्न विद्यमान 
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           सिंगलटन समन्वयक (manager.ts)                    │
+│           सिंगलटन समन्वयक (manager.ts)                   │
 │                                                          │
-│  प्राथमिक ──► बॅकएंड A  (उदा. SQLite)                    │
-│  फॉलबॅक  ──► बॅकएंड B  (उदा. Obsidian)                   │
+│  प्राथमिक ──► बॅकएंड A  (उदा. SQLite)                   │
+│  फॉलबॅक ───► बॅकएंड B  (उदा. Obsidian)                  │
 │              बॅकएंड C  (उदा. GenericBackend द्वारे Notion)│
 └──────────────────────┬───────────────────────────────────┘
                        │
@@ -893,16 +893,16 @@ MemoryBackend प्रदाता पॅटर्न विद्यमान 
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### मूलभूत इंटरफेस (`backend.ts`)
+#### मुख्य इंटरफेस (`backend.ts`)
 
-प्रत्येक बॅकएंडने `MemoryBackend` इंटरफेसची अंमलबजावणी करणे आवश्यक आहे:
+प्रत्येक बॅकएंडने `MemoryBackend` इंटरफेस अंमलात आणणे आवश्यक आहे:
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // तयार करणे, वाचणे, अद्ययावत करणे आणि हटवणे
+  // CRUD
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -925,25 +925,25 @@ interface MemoryBackend {
 
 सिंगलटन समन्वयक जो:
 
-- `register(backend)` द्वारे बॅकएंडची **नोंदणी करतो** — बूटच्या वेळी `index.ts` मधून कॉल केले जाते
-- `configure(primary, fallbacks)` द्वारे प्राथमिक + फॉलबॅक **कॉन्फिगर करतो**
-- अपयश आल्यास फॉलबॅक साखळी वापरून CRUD/शोध विनंत्या प्राथमिक बॅकएंडकडे **पाठवतो**
-- सर्व बॅकएंडच्या स्थितीची वेळोवेळी **तपासणी करतो**
+- `register(backend)` द्वारे बॅकएंडची **नोंदणी** करतो — बूटच्या वेळी `index.ts` मधून कॉल केला जातो
+- `configure(primary, fallbacks)` द्वारे प्राथमिक + फॉलबॅक **कॉन्फिगर** करतो
+- अपयश आल्यास फॉलबॅक साखळीसह CRUD/शोध प्राथमिक बॅकएंडकडे **रूट** करतो
+- सर्व बॅकएंडची वेळोवेळी **स्थिती तपासणी** करतो
 
 **फॉलबॅक वर्तन:**
 
-| ऑपरेशन   | प्राथमिक                    | फॉलबॅक                   |
-| -------- | --------------------------- | ------------------------ |
-| `create` | ✅ फक्त प्राथमिक            | ❌                       |
-| `get`    | ✅ आधी प्राथमिक वापरून पाहा | ✅ null असल्यास फॉलबॅक   |
-| `update` | ✅ फक्त प्राथमिक            | ✅ विनाप्रतीक्षा समक्रमण |
-| `delete` | ✅ फक्त प्राथमिक            | ✅ विनाप्रतीक्षा समक्रमण |
-| `list`   | ✅ फक्त प्राथमिक            | ❌                       |
-| `search` | ✅ आधी प्राथमिक             | ✅ त्रुटी आल्यास फॉलबॅक  |
+| ऑपरेशन   | प्राथमिक                     | फॉलबॅक                                |
+| -------- | ---------------------------- | ------------------------------------- |
+| `create` | ✅ केवळ प्राथमिक             | ❌                                    |
+| `get`    | ✅ प्रथम प्राथमिक वापरून पहा | ✅ null असल्यास फॉलबॅक                |
+| `update` | ✅ केवळ प्राथमिक             | ✅ परिणामाची प्रतीक्षा न करता समक्रमण |
+| `delete` | ✅ केवळ प्राथमिक             | ✅ परिणामाची प्रतीक्षा न करता समक्रमण |
+| `list`   | ✅ केवळ प्राथमिक             | ❌                                    |
+| `search` | ✅ प्रथम प्राथमिक            | ✅ त्रुटी आल्यास फॉलबॅक               |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-कोणत्याही REST API ला MemoryBackend मध्ये रूपांतरित करणारा एक सर्वसाधारण HTTP कनेक्टर. पुढील गोष्टींसाठी उपयुक्त:
+कोणत्याही REST API चे MemoryBackend मध्ये रूपांतर करणारा सामान्य HTTP कनेक्टर. पुढील गोष्टींसाठी उपयुक्त:
 
 - **Notion** — Notion API द्वारे कनेक्ट करा
 - **Obsidian** — Obsidian Local REST API द्वारे कनेक्ट करा
@@ -953,13 +953,13 @@ interface MemoryBackend {
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // बॅकएंड API चा बेस URL
-  apiKey?: string;           // प्रमाणीकरणासाठी Bearer टोकन
-  headers?: Record<string, string>;  // सानुकूल HTTP हेडर्स
-  timeout?: number;          // विनंतीची कालमर्यादा (डीफॉल्ट: 30000ms)
+  baseUrl: string;           // बॅकएंड API चा मूळ URL
+  apiKey?: string;           // प्रमाणीकरणासाठी बेअरर टोकन
+  headers?: Record<string, string>;  // सानुकूल HTTP हेडर
+  timeout?: number;          // विनंती कालबाह्यता (डीफॉल्ट: 30000ms)
   backendType?: string;      // लॉगिंगसाठी
 
-  // एंडपॉइंट ओव्हरराइड्स (डीफॉल्टमध्ये REST पद्धती वापरल्या जातात)
+  // एंडपॉइंट ओव्हरराइड (डीफॉल्ट REST पद्धती वापरतात)
   endpoints?: {
     search?: string;   // डीफॉल्ट: "/memories/search"
     create?: string;   // डीफॉल्ट: "/memories"
@@ -970,30 +970,30 @@ interface GenericBackendConfig {
     health?: string;   // डीफॉल्ट: "/health"
   };
 
-  // क्वेरी पॅरामीटर नावांची मॅपिंग्ज
+  // क्वेरी पॅरामीटर नावांची मॅपिंग
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // पाथ पॅरामीटर नावांची मॅपिंग्ज
+  // पाथ पॅरामीटर नावांची मॅपिंग
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**ज्ञात बॅकएंड्स** `KNOWN_BACKENDS` मध्ये पूर्व-कॉन्फिगर केलेले आहेत:
+**ज्ञात बॅकएंड** `KNOWN_BACKENDS` मध्ये पूर्व-कॉन्फिगर केलेले आहेत:
 
 ```typescript
 createKnownBackend("obsidian"); // → localhost:27123 कडे निर्देश करणारा GenericMemoryBackend
 createKnownBackend("notion"); // → api.notion.com/v1 कडे निर्देश करणारा GenericMemoryBackend
 ```
 
-#### अंगभूत बॅकएंड्स
+#### अंगभूत बॅकएंड
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-डीफॉल्ट प्राथमिक बॅकएंड. `src/lib/memory/store.ts` वापरून विद्यमान SQLite-आधारित मेमरी स्टोअरला रॅप करतो. बूट होताना स्वयंचलितपणे नोंदणीकृत होतो.
+डीफॉल्ट प्राथमिक बॅकएंड. `src/lib/memory/store.ts` वापरून विद्यमान SQLite-आधारित मेमरी स्टोअरला रॅप करतो. बूटच्या वेळी आपोआप नोंदणीकृत होतो.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1002,27 +1002,87 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-विद्यमान Obsidian इंटिग्रेशनला (`src/lib/memory/obsidianBackend.ts`) रॅप करतो. Obsidian Local REST API द्वारे Obsidian व्हॉल्टशी कनेक्ट होतो.
+विद्यमान Obsidian एकत्रीकरणाला (`src/lib/memory/obsidianBackend.ts`) रॅप करतो. Obsidian Local REST API द्वारे Obsidian व्हॉल्टशी कनेक्ट करतो.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+स्थानिक [claude-mem](https://github.com/thedotmack/claude-mem) वर्करसाठी अॅडॅप्टर — कोडिंग सत्रे "निरीक्षणे" म्हणून कॅप्चर करणारे
+Claude Code / Codex / Cursor मेमरी प्लगइन.
+त्याची नोंदणी केल्यानंतर, `/api/memory` REST मार्ग आणि A2A मेमरी शोध claude-mem च्या हुक्सद्वारे भरले जाणारे
+तेच स्टोअर वाचू आणि लिहू शकतात.
+
+वर्कर केवळ लूपबॅकशी बाइंड होतो, ज्याला `GenericMemoryBackend` चे SSRF सुरक्षा नियंत्रण हेतुपुरस्सर नाकारते.
+हा अॅडॅप्टर ते सुरक्षा नियंत्रण शिथिल करत नाही: होस्ट `127.0.0.1` वर हार्ड-कोड केलेला आहे आणि कॉन्फिगरेशन
+स्कीमा (`ClaudeMemBackendConfigSchema`, `.strict()`) केवळ पुढील गोष्टी स्वीकारते:
+
+| की          | प्रकार   | डीफॉल्ट | नोंदी                                                                                                                     |
+| ----------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | संख्या   | —       | आवश्यक, 1024–65535. त्याच्या सेटिंग्ज फाइलमधील claude-mem worker पोर्ट (डीफॉल्ट `37700 + uid % 100`).                     |
+| `project`   | स्ट्रिंग | —       | वापरायचा claude-mem प्रकल्प. सेट न केल्यास → प्रत्येक OmniRoute API की तिच्या स्वतःच्या प्रकल्पाशी (`apiKeyId`) मॅप होते. |
+| `timeoutMs` | संख्या   | `5000`  | प्रत्येक विनंतीसाठी टाइमआउट, 100–30000.                                                                                   |
+
+ते `PUT /api/settings/memory` द्वारे सक्षम करा आणि OmniRoute रीस्टार्ट करा (बॅकएंड्सची नोंदणी
+`initMemoryBackends()` मध्ये फक्त एकदाच केली जाते):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+REST API साठी ते स्टोअर बनवण्यासाठी त्याऐवजी `"primaryBackend": "claude-mem"` वापरा. अवैध
+कॉन्फिग लॉग केले जाते (`claude-mem.backend.invalid_config`) आणि वगळले जाते, त्यामुळे SQLite प्राथमिक राहते.
+
+मॅपिंग आणि मर्यादा:
+
+- IDs हे `claude-mem:<observationId>` स्वरूपात असतात; `get`/`delete` नेटवर्क कॉल न करता इतर बॅकएंड्सचे IDs
+  दुर्लक्षित करतात.
+- `create` → `POST /api/memory/save`; OmniRoute फील्ड्स (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem च्या `metadata.omniroute` मध्ये पाठवली जातात आणि वाचताना राउंड-ट्रिप होतात.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens`
+  (अक्षरे / 4) पर्यंत ट्रिम केले जाते. `list` → worker चे पृष्ठांकित observations एंडपॉइंट (`total` ही निम्न मर्यादा आहे — worker
+  संख्या नव्हे, तर `hasMore` परत करतो).
+- Hook द्वारे कॅप्चर केलेली observations अशी मॅप होतात: `discovery` → `factual`, `decision` → `procedural`, आणि
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **अपडेट्स नाहीत** (`update()` हे `false` परत करते; observations अपरिवर्तनीय आहेत) आणि **TTL नाही**
+  (`expiresAt` दुर्लक्षित केले जाते). `key` नुसार upsert करण्याऐवजी claude-mem एकसारख्या saves चे deduplication करते.
+- Prompt injection (`retrieval.ts`) आणि `omniroute_memory_*` MCP साधने अजूनही SQLite मधून
+  थेट वाचतात — ती `memoryManager` मधून जात नाहीत, त्यामुळे हा बॅकएंड त्यांना डेटा पुरवत नाही.
+
+**claude-mem चे स्वतःचे LLM कॉल्स OmniRoute द्वारे रूट करणे.** claude-mem observations
+एका LLM च्या साहाय्याने संक्षिप्त करते (डीफॉल्ट: Claude Agent SDK). त्याचा `openai-compatible` provider
+त्याऐवजी OmniRoute कडे निर्देशित केला जाऊ शकतो, ज्यामुळे combo fallback आणि खर्च ट्रॅकिंगचा लाभ मिळतो. `~/.claude-mem/settings.json` मध्ये:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API की>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute मॉडेल किंवा combo>"
+}
+```
 
 ### सेटिंग्ज
 
-मेमरी बॅकएंड सेटिंग्ज ॲप सेटिंग्ज टेबलमध्ये संग्रहित केल्या जातात आणि `src/lib/memory/settings.ts` द्वारे व्यवस्थापित केल्या जातात:
+मेमरी बॅकएंड सेटिंग्ज अॅपच्या सेटिंग्ज टेबलमध्ये साठवल्या जातात आणि `src/lib/memory/settings.ts` द्वारे व्यवस्थापित केल्या जातात:
 
 | सेटिंग           | Env/Config की            | डीफॉल्ट    | वर्णन                                   |
 | ---------------- | ------------------------ | ---------- | --------------------------------------- |
 | प्राथमिक बॅकएंड  | `memoryPrimaryBackend`   | `"sqlite"` | प्राथमिक बॅकएंडचा ID                    |
 | फॉलबॅक बॅकएंड्स  | `memoryFallbackBackends` | `[]`       | क्रमबद्ध फॉलबॅक बॅकएंड IDs              |
-| बॅकएंड कॉन्फिग्ज | `memoryBackendConfigs`   | `{}`       | प्रत्येक बॅकएंडसाठी कॉन्फिग ओव्हरराइड्स |
+| बॅकएंड कॉन्फिग्स | `memoryBackendConfigs`   | `{}`       | प्रत्येक बॅकएंडसाठी कॉन्फिग ओव्हरराइड्स |
 
-सेटिंग्ज `normalizeMemorySettings()` द्वारे सामान्यीकृत केल्या जातात आणि `getMemorySettings()` मध्ये कॅश केल्या जातात.
+सेटिंग्ज `normalizeMemorySettings()` द्वारे सामान्यीकृत केल्या जातात आणि `getMemorySettings()` येथे कॅश केल्या जातात.
 
 ### इनिशियलायझेशन प्रवाह
 
 ```
-ॲप बूटस्ट्रॅप
-  → index.ts इम्पोर्ट्स (साइड-इफेक्ट): SQLiteBackend ची नोंदणी करतात
-  → ॲप लाइफसायकलमधून initMemoryBackends() कॉल केले जाते:
+अॅप बूटस्ट्रॅप
+  → index.ts imports (साइड-इफेक्ट): SQLiteBackend ची नोंदणी करते
+  → अॅप लाइफसायकलमधून initMemoryBackends() कॉल केले जाते:
       1. सेटिंग्ज लोड करा (getMemorySettings)
+      1b. backendConfigs मध्ये उपस्थित असलेल्या opt-in बॅकएंड्सची नोंदणी करा (claude-mem)
       2. प्राथमिक + फॉलबॅक कॉन्फिगर करा
       3. सर्व बॅकएंड्स इनिशियलाइझ करा (आरोग्य तपासणी)
       4. विनंत्यांसाठी तयार
@@ -1030,10 +1090,10 @@ memoryManager.register(sqliteBackend);
 
 ### नवीन बॅकएंड जोडणे
 
-1. `src/lib/memory/<name>Backend.ts` मध्ये **`MemoryBackend` इंटरफेसची अंमलबजावणी करा**
+1. `src/lib/memory/<name>Backend.ts` मध्ये **`MemoryBackend` अमलात आणा**
 2. `src/lib/memory/index.ts` मधून **एक्सपोर्ट करा**
-3. बूट होताना `memoryManager.register(yourBackend)` सह **नोंदणी करा**
-4. सेटिंग्जद्वारे **कॉन्फिगर करा**: `memoryPrimaryBackend` ला तुमच्या बॅकएंड ID वर सेट करा
+3. बूटच्या वेळी `memoryManager.register(yourBackend)` वापरून **नोंदणी करा**
+4. सेटिंग्जद्वारे **कॉन्फिगर करा**: `memoryPrimaryBackend` ला तुमच्या बॅकएंडचा ID सेट करा
 5. संदर्भ म्हणून `src/lib/memory/__tests__/generic-backend.test.ts` वापरून **चाचणी करा**
 
 #### उदाहरण: Brain बॅकएंड
@@ -1062,19 +1122,19 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-अपेक्षित आउटपुट: खालील बाबी समाविष्ट करणाऱ्या **35 चाचण्या, सर्व यशस्वी**:
+अपेक्षित आउटपुट: पुढील बाबी समाविष्ट करणाऱ्या **35 चाचण्या, सर्व उत्तीर्ण**:
 
-- कन्स्ट्रक्टर (2)
+- Constructor (2)
 - आरोग्य तपासणी (4) — यश, अपयश 500, नेटवर्क त्रुटी, विलंब
-- इनिशियलाइझ (2) — यश, अपयश
-- तयार करणे (2) — डीफॉल्ट एंडपॉइंट, सानुकूल एंडपॉइंट
-- मिळवणे (4) — यश, 404 → null, 404 व्यतिरिक्त त्रुटी थ्रो करणे, सानुकूल पाथ पॅरामीटर्स
-- अपडेट करणे (2) — यश, 404 → false
-- हटवणे (2) — यश, 404 → false
-- सूची (2) — क्वेरी पॅरामीटर्स, सानुकूल पॅरामीटर नावे
-- शोध (3) — क्वेरी पॅरामीटर्स, सानुकूल एंडपॉइंट, पर्यायांचे सिरियलायझेशन
-- प्रमाणीकरण हेडर्स (2) — Bearer टोकन, सानुकूल हेडर्स
-- फॅक्टरी (1)
+- Initialize (2) — यश, अपयश
+- Create (2) — डीफॉल्ट एंडपॉइंट, सानुकूल एंडपॉइंट
+- Get (4) — यश, 404 → null, non-404 throw, सानुकूल path params
+- Update (2) — यश, 404 → false
+- Delete (2) — यश, 404 → false
+- List (2) — query params, सानुकूल param नावे
+- Search (3) — query params, सानुकूल एंडपॉइंट, options serialization
+- Auth headers (2) — Bearer token, सानुकूल headers
+- Factory (1)
 
 #### प्रकार तपासणी
 

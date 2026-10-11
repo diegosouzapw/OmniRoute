@@ -149,35 +149,35 @@ RRF በልዩ ልዩ retrieval systems መካከል የውጤት መደበኛነ
 
 ## የቅንብሮች ቅጥያ
 
-ዘጠኝ የመክተቻና የቬክተር መስኮች በ`MemorySettingsExtended` ውስጥ
-በ`src/shared/schemas/memory.ts` ይገኛሉ፣ በ`src/lib/db/settings.ts` በኩልም በቋሚነት ይቀመጣሉ፦
+ዘጠኝ የኤምቤዲንግ እና የቬክተር መስኮች በ`MemorySettingsExtended` ውስጥ በ
+`src/shared/schemas/memory.ts` ይገኛሉ፣ በ`src/lib/db/settings.ts` በኩልም በቋሚነት ይቀመጣሉ፦
 
 | መስክ                      | ዓይነት                                               | ነባሪ      | መግለጫ                                                   |
 | ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------ |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | የትኛውን የመክተቻ ምንጭ መጠቀም እንዳለበት                            |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | የትኛውን የኤምቤዲንግ ምንጭ መጠቀም እንዳለበት                          |
 | `embeddingProviderModel` | `string \| null`                                   | `null`   | አቅራቢ/ሞዴል በ`provider/model` ቅርጸት                        |
-| `customBaseUrl`          | `string \| null`                                   | `null`   | ለMemory ብቻ የሚያገለግል OpenAI-ተኳሃኝ የመዳረሻ ነጥብ መሠረታዊ URL     |
-| `customModelId`          | `string \| null`                                   | `null`   | ወደ ብጁ የመዳረሻ ነጥቡ የሚላክ የሞዴል ID                           |
-| `transformersEnabled`    | `boolean`                                          | `false`  | ለTransformers.js የፈቃድ መርጦ መግባት (MiniLM፣ ~400MB)        |
-| `staticEnabled`          | `boolean`                                          | `false`  | ለስታቲክ potion-base-8M አካባቢያዊ ሞዴል የፈቃድ መርጦ መግባት          |
-| `rerankEnabled`          | `boolean`                                          | `false`  | የዳግም ደረጃ ማውጣት ደረጃን ማንቃት (በእያንዳንዱ ጥያቄ +200-500ms ይጨምራል) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | የዳግም ደረጃ ማውጣት አቅራቢ/ሞዴል በ`provider/model` ቅርጸት          |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | ለማህደረ ትውስታ ብቻ የሚያገለግል OpenAI-ተኳሃኝ የመድረሻ መሠረታዊ URL      |
+| `customModelId`          | `string \| null`                                   | `null`   | ወደ ብጁ መድረሻው የሚላክ የሞዴል መታወቂያ                            |
+| `transformersEnabled`    | `boolean`                                          | `false`  | ለTransformers.js መርጦ ማንቃት (MiniLM፣ ~400MB)             |
+| `staticEnabled`          | `boolean`                                          | `false`  | ለስታቲክ potion-base-8M አካባቢያዊ ሞዴል መርጦ ማንቃት               |
+| `rerankEnabled`          | `boolean`                                          | `false`  | የድጋሚ ደረጃ አሰጣጥ ደረጃን ማንቃት (በእያንዳንዱ ጥያቄ +200-500ms ይጨምራል) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | የድጋሚ ደረጃ አሰጣጥ አቅራቢ/ሞዴል በ`provider/model` ቅርጸት          |
 
-`rerankProviderModel` በ`POST /v1/rerank` (በloopback በኩል የሚጠራ) ይፈታል፤ ስለዚህ ያ መንገድ የሚቀበለውን ማንኛውንም ነገር ይቀበላል፦ የተመረጠ የደመና ዳግም-ደረጃ ማውጫ ሞዴል (`cohere/rerank-v3.5`፣ `jina-ai/jina-reranker-v3.5`፣ …) ወይም OpenAI-ተኳሃኝ የአቅራቢ ኖድ እንደ `<node-prefix>/<model>` (ለምሳሌ፣ ለTEI/Infinity ሳጥን `skilled-mini/bge-reranker-v2-m3`)። Loopback ኖዶች ሁልጊዜ ብቁ ናቸው፤ በሌላ አስተናጋጅ (LAN፣ Tailscale) ላይ ያለ ኖድ በተጨማሪ የ`RERANK_REMOTE_PROVIDER_NODES` ባህሪ ሰንደቅን ይፈልጋል፣ እንዲሁም የአቅራቢውን ወጪ URL ፖሊሲ ማለፍ አለበት — [የባህሪ ሰንደቆች](../reference/FEATURE_FLAGS.md)ን ይመልከቱ። የዳሽቦርዱ መራጭ የተመረጡ አቅራቢዎችንና አካባቢያዊ ኖዶችን ይዘረዝራል፤ ማንኛውም ትክክለኛ `provider/model` ሕብረቁምፊ በ`PUT /api/settings/memory` በኩል በቀጥታ ሊዋቀር ይችላል።
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | የትኛውን የቬክተር ጀርባ አገልግሎት መጠቀም እንዳለበት |
+`rerankProviderModel` በ`POST /v1/rerank` (በloopback በኩል የሚጠራ) ይፈታል፣ ስለዚህ ያ መንገድ የሚቀበለውን ማንኛውንም ነገር ይቀበላል፦ የተመረጠ የደመና ድጋሚ ደረጃ አሰጣጥ ሞዴል (`cohere/rerank-v3.5`፣ `jina-ai/jina-reranker-v3.5`፣ …) ወይም OpenAI-ተኳሃኝ የአቅራቢ ኖድ እንደ `<node-prefix>/<model>` (ለምሳሌ፣ ለTEI/Infinity ሳጥን `skilled-mini/bge-reranker-v2-m3`)። Loopback ኖዶች እና በ`OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` ውስጥ የተዘረዘሩ የአስተናጋጅ ስሞች (ለምሳሌ፣ የDocker/Compose አገልግሎት ስም) ሁልጊዜ ብቁ ናቸው፤ በሌላ አስተናጋጅ (LAN፣ Tailscale) ላይ ያለ ኖድ በተጨማሪ የ`RERANK_REMOTE_PROVIDER_NODES` ባህሪ ጠቋሚን ይፈልጋል እና የአቅራቢውን ወደ ውጭ የሚወጣ URL ፖሊሲ ማለፍ አለበት — [የባህሪ ጠቋሚዎች](../reference/FEATURE_FLAGS.md)ን ይመልከቱ። የዳሽቦርዱ መራጭ የተመረጡ አቅራቢዎችን እና አካባቢያዊ ኖዶችን ይዘረዝራል፤ ማንኛውም ትክክለኛ የ`provider/model` ሕብረቁምፊ በ`PUT /api/settings/memory` በኩል በቀጥታ ሊዋቀር ይችላል።
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | የትኛውን የቬክተር ጀርባ ማከማቻ መጠቀም እንዳለበት |
 
 እነዚህ በ`GET /PUT /api/settings/memory` (ስኪማ `MemorySettingsExtendedSchema`) በኩል ይቀርባሉ።
 
 ለ`remote` ምንጭ፣ Memory አማራጭ የሆኑትን `customBaseUrl` እና
-`customModelId` ቅንብሮችም ይቀበላል። ሁለቱ በአንድነት፣ ዓለም አቀፉን የመክተቻ መዝገብ ሳይቀይሩ OpenAI-ተኳሃኝ የ`/embeddings`
-መዳረሻ ነጥብና ሞዴል ይመርጣሉ። የመዳረሻ ነጥቡ ከመጠቀሙ በፊት
-መደበኛ ይደረጋል፣ እንዲሁም በአቅራቢው ወጪ URL ፖሊሲ ይፈተሻል፦ HTTP(S)
-ያስፈልጋል፣ የተካተቱ ማረጋገጫዎችና የጥያቄ ሕብረቁምፊዎች ውድቅ ይደረጋሉ፣ እንዲሁም የደመና-ሜታዳታ
-አድራሻዎች እንደታገዱ ይቆያሉ። ባዶ እሴቶች የተመረጠውን የመዝገብ አቅራቢ እንዳለ ያቆያሉ። ወደ
-ዳሽቦርዱ የሚመለሱ ስህተቶች ከስሱ መረጃ ይጸዳሉ፣ የመዳረሻ ነጥብ ማረጋገጫዎችም በፍጹም አይመዘገቡም።
+`customModelId` ቅንብሮችም ይቀበላል። እነዚህ በአንድነት ዓለም አቀፉን የኤምቤዲንግ መዝገብ ሳይቀይሩ OpenAI-ተኳሃኝ የ`/embeddings`
+መድረሻን እና ሞዴልን ይመርጣሉ። መድረሻው ከመጠቀሙ በፊት
+ወደ መደበኛ ቅርጽ ይለወጣል እና በአቅራቢው ወደ ውጭ የሚወጣ URL ፖሊሲ ይፈተሻል፦ HTTP(S)
+ያስፈልጋል፣ የተካተቱ ማረጋገጫዎች እና የጥያቄ ሕብረቁምፊዎች ውድቅ ይደረጋሉ፣ እና የደመና-ሜታዳታ
+አድራሻዎች እንደታገዱ ይቆያሉ። ባዶ እሴቶች የተመረጠውን የመዝገብ አቅራቢ ያስቀራሉ። ወደ ዳሽቦርዱ
+የሚመለሱ ስህተቶች ከስሱ መረጃ ይጸዳሉ፣ እና የመድረሻ ማረጋገጫዎች ፈጽሞ በምዝግብ አይመዘገቡም።
 
-> **TODO (D20)፦** `global` ወሰን (በሁሉም API ቁልፎች መካከል ትውስታዎችን ማጋራት)
-> በዚህ ልቀት ውስጥ አልተተገበረም። የስኪማ ለውጦችንና ዓለም አቀፍ የመልሶ ማግኛ
+> **TODO (D20):** `global` ወሰን (ትውስታዎችን በሁሉም API ቁልፎች መካከል ማጋራት)
+> በዚህ ልቀት ውስጥ አልተተገበረም። የስኪማ ለውጦችን እና ዓለም አቀፍ የሰርስሮ ማውጫ
 > መንገድን ይፈልጋል። በተናጠል ይከታተሉት።
 
 ## የማከማቻ ንብርብሮች
@@ -850,48 +850,48 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## የMemoryBackend አቅራቢ ንድፍ
+## MemoryBackend አቅራቢ ንድፍ
 
-> **ትክክለኛው የመረጃ ምንጭ፦** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
-> **ሙከራዎች፦** `src/lib/memory/__tests__/generic-backend.test.ts`
+> **የእውነት ምንጭ:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **ሙከራዎች:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-የMemoryBackend አቅራቢ ንድፍ በነባሩ የትውስታ ሞተር ላይ **ሊሰካ የሚችል የጀርባ-ክፍል ረቂቅ ንብርብር** ያስተዋውቃል። ከአንድ የማከማቻ ትግበራ ጋር ብቻ ከመታሰር ይልቅ፣ የትውስታ ሥርዓቱ አሁን ሊዋቀር የሚችል ዋና/ተተኪ ማዞሪያ ያላቸውን በርካታ የጀርባ ክፍሎች (SQLite፣ Obsidian፣ Notion፣ ብጁ HTTP የጀርባ ክፍሎች) ይደግፋል።
+የMemoryBackend አቅራቢ ንድፍ በነባሩ የማህደረ ትውስታ ሞተር ላይ **ሊሰካ የሚችል የባክኤንድ ማጠቃለያ ንብርብር** ያስተዋውቃል። ከአንድ የማከማቻ አተገባበር ጋር ብቻ ከመተሳሰር ይልቅ፣ የማህደረ ትውስታ ስርዓቱ አሁን በሚዋቀር ዋና/ተተኪ ማዘዋወር በርካታ ባክኤንዶችን (SQLite፣ Obsidian፣ Notion፣ ብጁ HTTP ባክኤንዶች) ይደግፋል።
 
 ### አርክቴክቸር
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    የAPI መንገዶች                          │
+│                    API መስመሮች                            │
 │            (src/app/api/memory/route.ts)                  │
 └──────────────────────┬───────────────────────────────────┘
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           ነጠላ አስተባባሪ (manager.ts)                     │
+│           ነጠላ አስተባባሪ (manager.ts)                    │
 │                                                          │
-│  ዋና ──────► የጀርባ ክፍል A  (ለምሳሌ SQLite)              │
-│  ተተኪ ─────► የጀርባ ክፍል B  (ለምሳሌ Obsidian)            │
-│             የጀርባ ክፍል C  (ለምሳሌ Notion በGenericBackend)│
+│  ዋና ──────► ባክኤንድ A  (ለምሳሌ SQLite)                  │
+│  ተተኪ ─────► ባክኤንድ B  (ለምሳሌ Obsidian)                │
+│             ባክኤንድ C  (ለምሳሌ Notion በGenericBackend)   │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ የጀርባ ክፍል │ │ የጀርባ ክፍል │ │ የጀርባ ክፍል (HTTP) │
+│ ባክኤንድ    │ │ ባክኤንድ    │ │ ባክኤንድ (HTTP)    │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
 #### ዋና በይነገጽ (`backend.ts`)
 
-እያንዳንዱ የጀርባ ክፍል የ`MemoryBackend` በይነገጽን መተግበር አለበት፦
+እያንዳንዱ ባክኤንድ የ`MemoryBackend` በይነገጽን መተግበር አለበት፦
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // CRUD
+  // መፍጠር፣ ማንበብ፣ ማዘመን እና መሰረዝ
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -901,7 +901,7 @@ interface MemoryBackend {
   // ፍለጋ
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // ጤንነት
+  // ጤና
   health(): Promise<HealthCheckResult>;
 
   // የሕይወት ዑደት (አማራጭ)
@@ -914,21 +914,21 @@ interface MemoryBackend {
 
 የሚከተሉትን የሚያከናውን ነጠላ አስተባባሪ፦
 
-- የጀርባ ክፍሎችን በ`register(backend)` **ይመዘግባል** — ሲነሳ ከ`index.ts` ይጠራል
-- ዋናውን + ተተኪዎችን በ`configure(primary, fallbacks)` **ያዋቅራል**
-- CRUD/ፍለጋን ወደ ዋናው **ያዞራል**፣ ሲከሽፍም የተተኪ ሰንሰለትን ይጠቀማል
-- ሁሉንም የጀርባ ክፍሎች በየጊዜው **የጤንነት ፍተሻ ያደርግባቸዋል**
+- ባክኤንዶችን በ`register(backend)` **ይመዘግባል** — በማስነሳት ጊዜ ከ`index.ts` ይጠራል
+- ዋናውን እና ተተኪዎቹን በ`configure(primary, fallbacks)` **ያዋቅራል**
+- CRUD/ፍለጋን ወደ ዋናው ባክኤንድ **ያዘዋውራል**፣ ካልተሳካም የተተኪዎችን ሰንሰለት ይጠቀማል
+- የሁሉንም ባክኤንዶች **የጤና ምርመራ** በየጊዜው ያከናውናል
 
 **የተተኪ ባህሪ፦**
 
-| ክወና      | ዋና                  | ተተኪዎች                  |
-| -------- | ------------------- | ---------------------- |
-| `create` | ✅ ዋናው ብቻ           | ❌                     |
-| `get`    | ✅ መጀመሪያ ዋናውን ይሞክራል | ✅ null ከሆነ ተተኪን ይጠቀማል |
-| `update` | ✅ ዋናው ብቻ           | ✅ ጀምሮ-ሳይጠብቅ ማመሳሰል     |
-| `delete` | ✅ ዋናው ብቻ           | ✅ ጀምሮ-ሳይጠብቅ ማመሳሰል     |
-| `list`   | ✅ ዋናው ብቻ           | ❌                     |
-| `search` | ✅ መጀመሪያ ዋናው        | ✅ ስህተት ሲኖር ተተኪን ይጠቀማል |
+| ክዋኔ      | ዋና                  | ተተኪዎች                 |
+| -------- | ------------------- | --------------------- |
+| `create` | ✅ ዋናው ብቻ           | ❌                    |
+| `get`    | ✅ መጀመሪያ ዋናውን ይሞክራል | ✅ null ከሆነ ተተኪ ይጠቀማል |
+| `update` | ✅ ዋናው ብቻ           | ✅ ምላሽ ሳይጠብቅ ያመሳስላል   |
+| `delete` | ✅ ዋናው ብቻ           | ✅ ምላሽ ሳይጠብቅ ያመሳስላል   |
+| `list`   | ✅ ዋናው ብቻ           | ❌                    |
+| `search` | ✅ መጀመሪያ ዋናውን ይጠቀማል | ✅ ስህተት ሲኖር ተተኪ ይጠቀማል |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
@@ -936,19 +936,19 @@ interface MemoryBackend {
 
 - **Notion** — በNotion API በኩል ያገናኙ
 - **Obsidian** — በObsidian Local REST API በኩል ያገናኙ
-- **ብጁ የጀርባ ክፍሎች** — RESTful የትውስታ API የሚያቀርብ ማንኛውም አገልግሎት
+- **ብጁ ባክኤንዶች** — RESTful የማህደረ ትውስታ API የሚያቀርብ ማንኛውም አገልግሎት
 
 **ውቅር፦**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // የጀርባ API መሠረታዊ URL
+  baseUrl: string;           // የባክኤንድ API መሠረታዊ URL
   apiKey?: string;           // ለማረጋገጫ የBearer ቶከን
   headers?: Record<string, string>;  // ብጁ HTTP ራስጌዎች
   timeout?: number;          // የጥያቄ ጊዜ ገደብ (ነባሪ፦ 30000ms)
-  backendType?: string;      // ለምዝግብ ማስቀመጥ
+  backendType?: string;      // ለምዝገባ
 
-  // የመዳረሻ ነጥብ ሽረቶች (ነባሪዎች የREST ልማዶችን ይጠቀማሉ)
+  // የመጨረሻ ነጥብ መተኪያዎች (ነባሪዎች የREST ደንቦችን ይጠቀማሉ)
   endpoints?: {
     search?: string;   // ነባሪ፦ "/memories/search"
     create?: string;   // ነባሪ፦ "/memories"
@@ -959,30 +959,30 @@ interface GenericBackendConfig {
     health?: string;   // ነባሪ፦ "/health"
   };
 
-  // የጥያቄ መለኪያ ስም ማዛመጃዎች
+  // የመጠይቅ መለኪያ ስም ማዛመጃዎች
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // የዱካ መለኪያ ስም ማዛመጃዎች
+  // የመንገድ መለኪያ ስም ማዛመጃዎች
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**የታወቁ ጀርባዎች** በ`KNOWN_BACKENDS` ውስጥ አስቀድመው ተዋቅረዋል፦
+**የታወቁ ባክኤንዶች** በ`KNOWN_BACKENDS` ውስጥ አስቀድመው ተዋቅረዋል፦
 
 ```typescript
-createKnownBackend("obsidian"); // → ወደ localhost:27123 የሚያመለክት GenericMemoryBackend
-createKnownBackend("notion"); // → ወደ api.notion.com/v1 የሚያመለክት GenericMemoryBackend
+createKnownBackend("obsidian"); // → ወደ localhost:27123 የተመራ GenericMemoryBackend
+createKnownBackend("notion"); // → ወደ api.notion.com/v1 የተመራ GenericMemoryBackend
 ```
 
-#### አብሮገነብ ጀርባዎች
+#### አብሮገነብ ባክኤንዶች
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-ነባሪው ዋና ጀርባ። `src/lib/memory/store.ts`ን በመጠቀም ነባሩን SQLite-ተኮር የማህደረ ትውስታ ማከማቻ ይጠቀልላል። ሲነሳ በራስ-ሰር ይመዘገባል።
+ነባሪው ዋና ባክኤንድ። `src/lib/memory/store.ts`ን በመጠቀም ነባሩን SQLite-ተኮር የማህደረ ትውስታ ማከማቻ ይጠቀልላል። በማስነሳት ጊዜ በራስ-ሰር ይመዘገባል።
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -991,41 +991,101 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-ነባሩን የObsidian ውህደት (`src/lib/memory/obsidianBackend.ts`) ይጠቀልላል። በObsidian Local REST API በኩል ከObsidian ማከማቻ ጋር ይገናኛል።
+ነባሩን የObsidian ውህደት (`src/lib/memory/obsidianBackend.ts`) ይጠቀልላል። በObsidian Local REST API በኩል ከObsidian vault ጋር ይገናኛል።
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+ለአካባቢያዊ [claude-mem](https://github.com/thedotmack/claude-mem) worker የተዘጋጀ አስማሚ — የኮድ አጻጻፍ ክፍለ ጊዜዎችን እንደ "ምልከታዎች" የሚይዘው
+የClaude Code / Codex / Cursor የማህደረ ትውስታ ፕለጊን።
+ሲመዘገብ፣ የ`/api/memory` REST መስመሮች እና የA2A ማህደረ ትውስታ ፍለጋ claude-mem ሁኮች የሚሞሉትን
+ተመሳሳይ ማከማቻ ማንበብና መጻፍ ይችላሉ።
+
+worker ወደ loopback ብቻ ይገናኛል፣ ይህንንም የ`GenericMemoryBackend` SSRF መከላከያ ሆን ብሎ ይከለክላል።
+ይህ አስማሚ ያንን መከላከያ አያላላውም፦ host ወደ `127.0.0.1` በቋሚነት ተዋቅሯል፣ እና የውቅር
+schema (`ClaudeMemBackendConfigSchema`, `.strict()`) የሚከተሉትን ብቻ ይቀበላል፦
+
+| ቁልፍ         | ዓይነት   | ነባሪ    | ማስታወሻዎች                                                                                              |
+| ----------- | ------ | ------ | ---------------------------------------------------------------------------------------------------- |
+| `port`      | ቁጥር    | —      | አስፈላጊ፣ 1024–65535። ከቅንብሮች ፋይሉ የሚገኘው የ claude-mem worker ወደብ (ነባሪ `37700 + uid % 100`)።               |
+| `project`   | ሕብረቁምፊ | —      | ጥቅም ላይ የሚውል የ claude-mem ፕሮጀክት። ካልተዋቀረ → እያንዳንዱ የ OmniRoute API ቁልፍ ወደ የራሱ ፕሮጀክት (`apiKeyId`) ይመደባል። |
+| `timeoutMs` | ቁጥር    | `5000` | ለእያንዳንዱ ጥያቄ የጊዜ ገደብ፣ 100–30000።                                                                      |
+
+በ`PUT /api/settings/memory` በኩል ያንቁት እና OmniRouteን እንደገና ያስጀምሩ (backends አንድ ጊዜ
+ብቻ በ`initMemoryBackends()` ውስጥ ይመዘገባሉ)፦
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+ለ REST API ማከማቻ እንዲሆን በምትኩ `"primaryBackend": "claude-mem"`ን ይጠቀሙ። ልክ ያልሆነ
+ውቅር ወደ ምዝግብ ይጻፋል (`claude-mem.backend.invalid_config`) እና ይዘለላል፤ ስለዚህ SQLite ዋና ሆኖ ይቀጥላል።
+
+መመደብ እና ገደቦች፦
+
+- IDs `claude-mem:<observationId>` ናቸው፤ `get`/`delete` የሌሎች backends IDsን ያለ
+  የአውታረ መረብ ጥሪ ችላ ይላሉ።
+- `create` → `POST /api/memory/save`፤ የ OmniRoute መስኮች (`apiKeyId`፣ `sessionId`፣ `type`፣
+  `key`፣ `metadata`) በ claude-mem `metadata.omniroute` ውስጥ ይተላለፋሉ እና ሲነበቡ ያለምንም ለውጥ ይመለሳሉ።
+- `search` → `GET /api/search?format=json&type=observations`፣ እስከ `maxTokens`
+  (ቁምፊዎች / 4) ይቆረጣል። `list` → የ worker በገጽ የተከፋፈለ observations endpoint (`total` ዝቅተኛ ገደብ ነው — worker
+  ብዛት ሳይሆን `hasMore`ን ይመልሳል)።
+- በ Hook የተያዙ observations `discovery` → `factual`፣ `decision` → `procedural`፣ እና
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` ሆነው ይመደባሉ።
+- **ማዘመን አይቻልም** (`update()` `false`ን ይመልሳል፤ observations የማይለወጡ ናቸው) እና **TTL የለም**
+  (`expiresAt` ችላ ይባላል)። claude-mem በ`key` መሠረት upsert ከማድረግ ይልቅ ተመሳሳይ savesን ከመደጋገም ይከላከላል።
+- Prompt injection (`retrieval.ts`) እና የ`omniroute_memory_*` MCP መሣሪያዎች አሁንም SQLiteን
+  በቀጥታ ያነባሉ — በ`memoryManager` በኩል አያልፉም፣ ስለዚህ ይህ backend ውሂብ አያቀርብላቸውም።
+
+**የ claude-mem የራሱን LLM ጥሪዎች በ OmniRoute በኩል ማስተላለፍ።** claude-mem observationsን
+በ LLM ያጠቃልላል (ነባሪ፦ Claude Agent SDK)። የእሱ `openai-compatible` provider ወደ
+OmniRoute እንዲያመለክት በማድረግ combo fallback እና የወጪ ክትትልን መጠቀም ይችላል። በ`~/.claude-mem/settings.json` ውስጥ፦
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API ቁልፍ>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute ሞዴል ወይም combo>"
+}
+```
 
 ### ቅንብሮች
 
-የማህደረ ትውስታ ጀርባ ቅንብሮች በመተግበሪያው የቅንብሮች ሰንጠረዥ ውስጥ ይከማቻሉ፣ እንዲሁም በ`src/lib/memory/settings.ts` በኩል ይተዳደራሉ፦
+የ Memory backend ቅንብሮች በመተግበሪያው የቅንብሮች ሰንጠረዥ ውስጥ ይከማቻሉ እና በ`src/lib/memory/settings.ts` በኩል ይተዳደራሉ፦
 
-| ቅንብር        | የአካባቢ/ውቅር ቁልፍ            | ነባሪ        | መግለጫ                            |
-| ----------- | ------------------------ | ---------- | ------------------------------- |
-| ዋና ጀርባ      | `memoryPrimaryBackend`   | `"sqlite"` | የዋናው ጀርባ ID                     |
-| ተጠባባቂ ጀርባዎች | `memoryFallbackBackends` | `[]`       | በቅደም ተከተል የተደረደሩ ተጠባባቂ ጀርባ IDዎች |
-| የጀርባ ውቅሮች   | `memoryBackendConfigs`   | `{}`       | ለእያንዳንዱ ጀርባ የሚደረጉ የውቅር ሽረቶች     |
+| ቅንብር              | Env/ውቅር ቁልፍ              | ነባሪ        | መግለጫ                               |
+| ----------------- | ------------------------ | ---------- | ---------------------------------- |
+| ዋና backend        | `memoryPrimaryBackend`   | `"sqlite"` | የዋናው backend ID                    |
+| Fallback backends | `memoryFallbackBackends` | `[]`       | ቅደም ተከተል ያላቸው fallback backend IDs |
+| Backend ውቅሮች      | `memoryBackendConfigs`   | `{}`       | ለእያንዳንዱ backend የውቅር ለውጦች          |
 
-ቅንብሮች በ`normalizeMemorySettings()` በኩል መደበኛ ቅርጽ ይይዛሉ፣ እና በ`getMemorySettings()` ላይ ይሸጎጣሉ።
+ቅንብሮች በ`normalizeMemorySettings()` መደበኛ ቅርጽ ይይዛሉ እና በ`getMemorySettings()` ላይ cache ይደረጋሉ።
 
 ### የማስጀመር ፍሰት
 
 ```
-የመተግበሪያ ማስነሻ
-  → index.ts ማስመጣቶች (እንደ ጎንዮሽ ውጤት)፦ SQLiteBackendን ይመዘግባሉ
-  → initMemoryBackends() ከመተግበሪያው የሕይወት ዑደት ይጠራል፦
+የመተግበሪያው መነሻ ሂደት
+  → index.ts imports (side-effect)፦ SQLiteBackendን ይመዘግባል
+  → initMemoryBackends() ከመተግበሪያው lifecycle ይጠራል፦
       1. ቅንብሮችን ጫን (getMemorySettings)
-      2. ዋናውን + ተጠባባቂዎቹን አዋቅር
-      3. ሁሉንም ጀርባዎች አስጀምር (የጤና ምርመራ)
-      4. ለጥያቄዎች ዝግጁ
+      1b. በ backendConfigs ውስጥ የሚገኙ opt-in backendsን መዝግብ (claude-mem)
+      2. primary + fallbackን አዋቅር
+      3. ሁሉንም backends አስጀምር (የጤና ምርመራ)
+      4. ጥያቄዎችን ለመቀበል ዝግጁ
 ```
 
-### አዲስ ጀርባ ማከል
+### አዲስ Backend ማከል
 
-1. በ`src/lib/memory/<name>Backend.ts` ውስጥ የ**`MemoryBackend`ን በይነገጽ ይተግብሩ**
-2. ከ`src/lib/memory/index.ts` **ወደ ውጭ ይላኩ**
-3. ሲነሳ በ`memoryManager.register(yourBackend)` **ይመዝግቡ**
-4. በቅንብሮች በኩል **ያዋቅሩ**፦ `memoryPrimaryBackend`ን ወደ ጀርባዎ ID ያቀናብሩ
+1. በ`src/lib/memory/<name>Backend.ts` ውስጥ የ**`MemoryBackend`ን ተግባራዊነት ይገንቡ**
+2. ከ`src/lib/memory/index.ts` **Export ያድርጉ**
+3. በመነሻ ጊዜ በ`memoryManager.register(yourBackend)` **ይመዝግቡ**
+4. በቅንብሮች በኩል **ያዋቅሩ**፦ `memoryPrimaryBackend`ን ወደ backend IDዎ ያዘጋጁ
 5. `src/lib/memory/__tests__/generic-backend.test.ts`ን እንደ ማጣቀሻ በመጠቀም **ይፈትሹ**
 
-#### ምሳሌ፦ Brain ጀርባ
+#### ምሳሌ፦ Brain Backend
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1045,25 +1105,25 @@ memoryManager.register(brainBackend);
 
 ### ማረጋገጫ
 
-#### የክፍል ፈተናዎች
+#### Unit tests
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-የሚጠበቀው ውጤት፦ **35 ፈተናዎች፣ ሁሉም ያለፉ**፣ የሚከተሉትን ይሸፍናሉ፦
+የሚጠበቀው ውጤት፦ **35 ሙከራዎች፣ ሁሉም ያለፉ**፣ የሚከተሉትን የሚሸፍኑ፦
 
-- ገንቢ (2)
-- የጤና ምርመራ (4) — ስኬት፣ ውድቀት 500፣ የአውታረ መረብ ስህተት፣ መዘግየት
-- ማስጀመር (2) — ስኬት፣ ውድቀት
-- መፍጠር (2) — ነባሪ መዳረሻ ነጥብ፣ ብጁ መዳረሻ ነጥብ
-- ማግኘት (4) — ስኬት፣ 404 → null፣ 404 ያልሆነ ስህተት መጣል፣ ብጁ የዱካ መለኪያዎች
-- ማዘመን (2) — ስኬት፣ 404 → false
-- መሰረዝ (2) — ስኬት፣ 404 → false
-- መዘርዘር (2) — የጥያቄ መለኪያዎች፣ ብጁ የመለኪያ ስሞች
-- መፈለግ (3) — የጥያቄ መለኪያዎች፣ ብጁ መዳረሻ ነጥብ፣ የአማራጮች ተከታታይ ማድረግ
-- የማረጋገጫ ራስጌዎች (2) — Bearer ቶከን፣ ብጁ ራስጌዎች
-- ፋብሪካ (1)
+- Constructor (2)
+- Health check (4) — ስኬት፣ የ500 ውድቀት፣ የአውታረ መረብ ስህተት፣ መዘግየት
+- Initialize (2) — ስኬት፣ ውድቀት
+- Create (2) — ነባሪ endpoint፣ ብጁ endpoint
+- Get (4) — ስኬት፣ 404 → null፣ non-404 throw፣ ብጁ path params
+- Update (2) — ስኬት፣ 404 → false
+- Delete (2) — ስኬት፣ 404 → false
+- List (2) — query params፣ ብጁ param ስሞች
+- Search (3) — query params፣ ብጁ endpoint፣ የ options serialization
+- Auth headers (2) — Bearer token፣ ብጁ headers
+- Factory (1)
 
 #### የዓይነት ምርመራ
 

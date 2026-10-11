@@ -41,19 +41,11 @@ mật khẩu trong mỗi lần gọi.
 | **Không bỏ qua bảo vệ `always`** | `isAlwaysProtectedPath()` được đánh giá trước bước kiểm tra token CLI. `/api/shutdown` và `/api/settings/database` luôn yêu cầu JWT.                                                                                                         |
 | **Không thể xuất**               | Token không bao giờ được ghi xuống đĩa hoặc ghi vào nhật ký.                                                                                                                                                                                 |
 
-## Salt mặc định (ngẫu nhiên cho mỗi lần cài đặt)
+## Salt mặc định (ngẫu nhiên theo từng lần cài đặt)
 
-Khi `OMNIROUTE_CLI_SALT` chưa được đặt, salt là một chuỗi hex ngẫu nhiên dài 64 ký tự,
-được tạo một lần và lưu tại `<DATA_DIR>/cli-token-salt.json` (chế độ `0600`) —
-không phải giá trị cố định `omniroute-cli-auth-v1` có trong mã nguồn. Cả `getActiveSalt()` trong
-`src/lib/machineToken.ts` và bản tương ứng của nó trong `bin/cli/utils/cliToken.mjs` đều đọc
-cùng một tệp, vì vậy máy chủ và mọi lần gọi CLI trong bản cài đặt này sẽ thống nhất về
-cùng một giá trị; giá trị cố định có trong mã nguồn chỉ được dùng làm phương án dự phòng cuối cùng khi chưa thể thiết lập
-salt được lưu trữ hoặc salt từ biến môi trường (ví dụ: một bản cài đặt mới chỉ có CLI
-trước khi máy chủ từng được chạy). Điều này khắc phục một điểm yếu của giá trị mặc định cố định
-trước đây: `/etc/machine-id` thường có thể được mọi người đọc, vì vậy bất kỳ người dùng cục bộ nào
-cũng có thể tạo ra cùng một token cho mọi bản cài đặt chưa từng đặt
-`OMNIROUTE_CLI_SALT`.
+Khi `OMNIROUTE_CLI_SALT` chưa được đặt, salt là một chuỗi hex ngẫu nhiên dài 64 ký tự, được tạo một lần và lưu tại `<DATA_DIR>/cli-token-salt.json` (chế độ `0600`) — không phải giá trị cố định `omniroute-cli-auth-v1` được lưu trong mã nguồn. Cả `getActiveSalt()` trong `src/lib/machineToken.ts` và bản tương ứng của hàm này trong `bin/cli/utils/cliToken.mjs` đều đọc cùng một tệp, vì vậy máy chủ và mọi lần gọi CLI trên bản cài đặt này sẽ cùng sử dụng một giá trị; giá trị cố định được lưu trong mã nguồn chỉ được dùng làm phương án dự phòng cuối cùng khi chưa thể thiết lập salt từ tệp lưu trữ hoặc biến môi trường (ví dụ: một bản cài đặt mới chỉ có CLI, trước khi máy chủ từng được chạy). Điều này khắc phục một điểm yếu của giá trị mặc định cố định trước đây: `/etc/machine-id` thường có thể được mọi người dùng đọc, do đó bất kỳ người dùng cục bộ nào cũng có thể suy ra cùng một token cho mọi bản cài đặt chưa từng đặt `OMNIROUTE_CLI_SALT`.
+
+Nếu không thể đọc hoặc tạo salt, cả máy chủ và CLI đều phát ra một cảnh báo cho mỗi tiến trình trước khi sử dụng phương án dự phòng tương thích đó. Cảnh báo không chứa salt, token, đường dẫn hệ thống tệp hoặc lỗi thô. Hãy khôi phục quyền truy cập vào `DATA_DIR` hoặc đặt `OMNIROUTE_CLI_SALT`, sau đó khởi động lại tiến trình bị ảnh hưởng. Cảnh báo giúp lỗi trở nên dễ nhận biết; cảnh báo không làm cho salt dự phòng công khai trở thành riêng tư hoặc vô hiệu hóa cơ chế xác thực CLI. Các salt hợp lệ đã được lưu trữ và các giá trị ghi đè rõ ràng từ môi trường vẫn giữ nguyên giá trị token trước đó.
 
 ## Xoay vòng salt
 

@@ -4,18 +4,18 @@
 
 ---
 
-> **Kort samengevat**: OmniRoute registreert 357 provider-ID's, met **152 providercatalogusvermeldingen die als `hasFree` zijn gemarkeerd**. De strenger gecontroleerde catalogus van gratis modellen omvat **35 terugkerende poolsleutels / 482 vermeldingen** (475 actief + 7 stopgezet). Koppel meerdere geschikte providers voor een bredere terugvalcapaciteit; alle quota, goedkeuringsregels, privacybeleidsregels en voorwaarden voor betaald meerverbruik blijven van toepassing.
+> **Kort gezegd**: Neem je eigen geschikte provideraccounts mee. OmniRoute combineert de verbindingen die je configureert; het verstrekt niet zelf het geadverteerde totale tokenbudget. Voor gratis toegang kunnen registratie, een API-sleutel, goedkeuring of een betaalmethode vereist zijn. De limieten, privacybeleidsregels en voorwaarden van providers blijven van toepassing.
 
 ---
 
 ## Wat zijn gratis niveaus?
 
 Veel AI-providers bieden een vorm van **gratis toegang**. Afhankelijk van de provider kan dat
-een eindpunt zonder authenticatie, een terugkerend quotum, onbeperkte toegang met snelheidslimieten, een registratietegoed,
-handmatige goedkeuring of een tijdelijke aanbieding zijn. Voor sommige opties zijn een account, API-sleutel,
+een endpoint zonder authenticatie, een periodiek vernieuwd quotum, onbeperkte toegang met snelheidslimiet, een tegoed bij registratie,
+handmatige goedkeuring of een tijdelijke actie betekenen. Voor sommige opties zijn een account, API-sleutel,
 creditcard, KYC of acceptatie van providerspecifieke voorwaarden vereist.
 
-OmniRoute **bundelt** deze gratis niveaus in één eindpunt. In plaats van je bij 10 verschillende diensten te registreren, koppel je ze allemaal aan OmniRoute en gebruik je `model: "auto"` om voor elk verzoek automatisch de beste gratis optie te kiezen.
+OmniRoute **voegt** geconfigureerde verbindingen samen in één endpoint. Je moet je nog steeds afzonderlijk registreren bij elke provider waarvoor een account vereist is. Koppel die accounts en gebruik `model: "auto"` om verzoeken naar geschikte doelen te routeren. Een nieuwe installatie heeft mogelijk geen geschikt doelsysteem zonder sleutel; alleen OmniRoute installeren garandeert geen succesvol chatantwoord.
 
 ---
 
@@ -23,67 +23,67 @@ OmniRoute **bundelt** deze gratis niveaus in één eindpunt. In plaats van je bi
 
 ### Terugkerende, sleutelloze of onbeperkte toegang
 
-Deze providers hebben in de gecontroleerde catalogus een terugkerende, sleutelloze of onbeperkte route voor gratis toegang. „Onbeperkt” betekent dat er geen gepubliceerde tokenlimiet is; limieten voor snelheid, gelijktijdigheid, accounts en regio's, evenals beleidsbeperkingen, kunnen nog steeds van toepassing zijn:
+Deze providers bieden in de gecontroleerde catalogus een terugkerende, sleutelloze of onbeperkte route voor gratis toegang. “Onbeperkt” betekent dat er geen gepubliceerde tokenlimiet is; er kunnen nog steeds beperkingen gelden voor gebruikssnelheid, gelijktijdigheid, accounts, regio’s en beleid:
 
-| Provider          | Modellen                                                                                                     | Quotum                                                                                                                                 | Koppelen                                                                                               |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 en andere                                                        | De gecontroleerde catalogus schat een gedeelde maandelijkse pool van 25K tokens                                                        | OAuth-/accountproces; ToS in de catalogus gemarkeerd als `avoid`                                       |
-| **OpenCode Free** | Huidige verzameling `*-free`-modellen in het providerregister                                                | Sleutelloos; geen gepubliceerde tokenlimiet                                                                                            | Geen providerreferenties vereist; ToS gemarkeerd als `avoid`                                           |
-| **Pollinations**  | Huidige verzameling sleutelloze modellen; sommige voormalige modellen zijn beëindigd of vereisen een sleutel | Sleutelloos; geen gepubliceerde tokenlimiet                                                                                            | Geen providerreferenties vereist voor de sleutelloze modellen                                          |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 en meer                                          | Gratis API-sleutel (geen snelheidslimieten, geen kaart); **elk verzoek wordt gelogd** voor onderzoek (afmelden via logfare.ai/consent) | Direct een sleutel via logfare.ai/register; ToS/privacybeleid via logfare.ai/tos en logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI-catalogus                                                                                         | De gecontroleerde pool schat op basis van gepubliceerde gebruikseenheden circa 30M tokens/maand                                        | Cloudflare-account en API-referenties                                                                  |
-| **Gemini**        | Gemini Flash-familie                                                                                         | De gecontroleerde pool schat circa 60M tokens/maand                                                                                    | Google AI Studio API-sleutel; snelheidslimieten zijn van toepassing                                    |
-| **Groq**          | Llama-, GPT-OSS- en Qwen-modellen                                                                            | De gecontroleerde pool schat circa 15M tokens/maand                                                                                    | Groq API-sleutel; snelheidslimieten zijn van toepassing                                                |
-| **Cerebras**      | GLM 4.7 en GPT-OSS 120B                                                                                      | De gecontroleerde pool schat circa 30M tokens/maand                                                                                    | Cerebras API-sleutel; snelheidslimieten zijn van toepassing                                            |
+| Provider          | Modellen                                                                                                  | Quotum                                                                                                                                             | Verbinding maken                                                                                                       |
+| ----------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 en andere modellen                                            | De gecontroleerde catalogus schat een gedeelde maandelijkse pool van 25K tokens                                                                    | OAuth-/accountprocedure; gebruiksvoorwaarden gemarkeerd als `avoid` in de catalogus                                    |
+| **OpenCode Free** | Huidige verzameling `*-free`-modellen in het providerregister                                             | Sleutelloos; geen gepubliceerde tokenlimiet                                                                                                        | Geen providerreferenties vereist; gebruiksvoorwaarden gemarkeerd als `avoid`                                           |
+| **Pollinations**  | Huidige verzameling sleutelloze modellen; sommige eerdere modellen zijn stopgezet of vereisen een sleutel | Sleutelloos; geen gepubliceerde tokenlimiet                                                                                                        | Geen providerreferenties vereist voor de sleutelloze modellen                                                          |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 en meer                                       | Gratis API-sleutel (geen snelheidslimieten, geen kaart vereist); **elk verzoek wordt vastgelegd** voor onderzoek (afmelden via logfare.ai/consent) | Direct een sleutel via logfare.ai/register; gebruiksvoorwaarden/privacybeleid via logfare.ai/tos en logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI-catalogus                                                                                      | De gecontroleerde pool wordt op basis van gepubliceerde gebruikseenheden geschat op ~30M tokens/maand                                              | Cloudflare-account en API-referenties                                                                                  |
+| **Gemini**        | Gemini Flash-familie                                                                                      | Variabele snelheidslimieten per project/model; het overzicht bevat geen vaste maandelijkse tokentoekenning                                         | Google AI Studio API-sleutel; controleer de actieve limieten van het project                                           |
+| **Groq**          | Llama-, GPT-OSS- en Qwen-modellen                                                                         | De gecontroleerde pool wordt geschat op ~15M tokens/maand                                                                                          | Groq API-sleutel; snelheidslimieten zijn van toepassing                                                                |
 
 ### Registratietegoeden en providerspecifieke tegoeden
 
-Deze providers geven je **gratis tegoed** wanneer je je registreert:
+Deze providers bieden registratietegoeden of promotietegoeden, onder voorbehoud van hun toelatingsregels. Zoals geverifieerd op 2026-10-08, vereist [de prijsstelling van Cerebras](https://www.cerebras.ai/pricing) een betaalmethode voor een eenmalig tegoed van $5 dat na 30 dagen verloopt; dit is geen terugkerend tokenquotum. [De snelheidslimieten van Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) verschillen per project, model en niveau en worden daarom niet omgerekend naar een gegarandeerde maandelijkse tokentoekenning.
 
-| Provider      | Gratis tegoed                                                                | Modellen                   | Hoe je het krijgt                                                              |
-| ------------- | ---------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ |
-| **DeepSeek**  | 5M gratis tokens                                                             | DeepSeek V4                | Registreer je via platform.deepseek.com                                        |
-| **LongCat**   | Eenmalig tegoed van 10M tokens                                               | LongCat 2.0                | API-sleutel + KYC; betalen naar gebruik nadat het tegoed is verbruikt          |
-| **Vertex AI** | $300 registratietegoed, in het budgetmodel weergegeven als circa 300M tokens | Gemini- en partnermodellen | Google Cloud-account; facturerings- en geschiktheidsregels zijn van toepassing |
+| Provider      | Gratis tegoeden                                                             | Modellen                    | Verkrijgen                                                                  |
+| ------------- | --------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------- |
+| **Cerebras**  | Eenmalig promotietegoed van $5; verloopt na 30 dagen                        | Huidige inferentiecatalogus | Account en geldige betaalmethode                                            |
+| **DeepSeek**  | 5M gratis tokens                                                            | DeepSeek V4                 | Registreer u via platform.deepseek.com                                      |
+| **LongCat**   | Eenmalige toekenning van 10M tokens                                         | LongCat 2.0                 | API-sleutel + KYC; betalen naar gebruik na de toekenning                    |
+| **Vertex AI** | Registratietegoed van $300, weergegeven als ~300M tokens in het budgetmodel | Gemini- en partnermodellen  | Google Cloud-account; facturerings- en toelatingsregels zijn van toepassing |
 
-### Andere beperkte toegang
+### Overige beperkte toegang
 
 Deze providers hebben **gratis niveaus** met specifieke limieten:
 
-| Aanbieder                  | Gratis limiet                                                                                              | Modellen                                    | Meest geschikt voor |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------- |
-| **GitHub Models**          | Geschatte gecontroleerde gedeelde pool van ~18M tokens/maand                                               | Brede modelevaluatie                        |
-| **Hugging Face**           | Kleine, maandelijks terugkerende pool                                                                      | Experimenten en modelvariatie               |
-| **OpenRouter free models** | Gedeelde pool met een aanvraaglimiet; een optionele eenmalige opwaardering verhoogt de terugkerende limiet | Brede catalogus met alternatieven           |
-| **AI Horde**               | Sleutelloze communitycapaciteit; beschikbaarheid varieert                                                  | Opportunistische gedistribueerde inferentie |
+| Provider                       | Gratis limiet                                                                                              | Modellen                                    | Meest geschikt voor |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------- |
+| **GitHub Models**              | De gecontroleerde gedeelde pool wordt geschat op ~18M tokens/maand                                         | Brede modelevaluatie                        |
+| **Hugging Face**               | Kleine, terugkerende maandelijkse pool                                                                     | Experimenten en modelvariatie               |
+| **Gratis OpenRouter-modellen** | Gedeelde pool met een verzoeklimiet; een optionele eenmalige opwaardering verhoogt de terugkerende toelage | Brede fallbackcatalogus                     |
+| **AI Horde**                   | Sleutelloze communitycapaciteit; beschikbaarheid varieert                                                  | Opportunistische gedistribueerde inferentie |
 
 ---
 
 ## Gratis niveaus stapelen
 
-De kracht van OmniRoute zit in het **stapelen van gratis niveaus**. In plaats van afhankelijk te zijn van één provider, verbind je meerdere gratis providers en laat je OmniRoute automatisch de beste voor elke aanvraag kiezen.
+De kracht van OmniRoute is het **stapelen van gratis niveaus**. In plaats van afhankelijk te zijn van één provider, verbind je meerdere gratis providers en laat je OmniRoute automatisch voor elk verzoek de beste kiezen.
 
 ### Voorbeeld: bredere dekking met gratis niveaus
 
-Verbind meerdere providers om de afhankelijkheid van één enkel quotum te verminderen:
+Verbind meerdere providers om de afhankelijkheid van één afzonderlijk quotum te verminderen:
 
 1. **Gemini** — terugkerend API-sleutelquotum
 2. **Groq** — terugkerend API-sleutelquotum
-3. **Pollinations** — sleutelloze toegang met snelheidslimiet
+3. **Pollinations** — toegang zonder sleutel, met snelheidslimiet
 4. **LongCat** — eenmalig tegoed bij registratie (vereist KYC)
 
-Gebruik vervolgens `model: "auto"`, waarna OmniRoute:
+Gebruik vervolgens `model: "auto"` en OmniRoute zal:
 
-- Eerst de hoogst gerangschikte geschikte verbinding probeert
-- De volgende geconfigureerde provider probeert als het quotum is verbruikt of de statuscontrole mislukt
-- De resterende doelen afgaat als de sleutelloze provider niet beschikbaar is
-- LongCat als back-up gebruikt als alle andere opties mislukken
+- Eerst de hoogst gerangschikte geschikte verbinding proberen
+- Als het quotum of de statuscontrole mislukt → de volgende geconfigureerde provider proberen
+- Als de provider zonder sleutel niet beschikbaar is → doorgaan met de resterende doelen
+- Als geen enkele geschikte verbinding slaagt → een fout retourneren; registratietegoeden zijn alleen bruikbaar zolang ze geldig en beschikbaar zijn
 
-**Resultaat**: bredere dekking met gratis niveaus en automatische uitwijkmogelijkheden — geen garantie op onbeperkte capaciteit.
+**Resultaat**: bredere dekking met gratis niveaus en automatische terugval — geen garantie op onbeperkte capaciteit.
 
 ---
 
-## Gratis providers verbinden
+## Verbinding maken met gratis providers
 
 ### Stap 1: Open het dashboard
 
@@ -91,42 +91,40 @@ Ga in je browser naar `http://localhost:20128`.
 
 ### Stap 2: Ga naar Providers
 
-Klik in de zijbalk op **Providers**.
+Klik op **Providers** in de zijbalk.
 
-### Stap 3: Klik op Add Provider
+### Stap 3: Klik op Provider toevoegen
 
-Klik op de knop **+ Add Provider**.
+Klik op de knop **+ Provider toevoegen**.
 
 ### Stap 4: Selecteer een gratis provider
 
-Blader door de catalogus en bekijk voor elke provider de actuele metadata voor `hasFree`, authenticatie, quota, privacy
-en gebruiksvoorwaarden. De providerkaart en het
-[Overzicht van gratis niveaus](../reference/FREE_TIERS.md) maken onderscheid tussen terugkerende tegoedpools,
-ongelimiteerde/sleutelloze toegang, registratietegoeden, stopgezette vermeldingen en bronnen met een hoger risico.
+Blader door de catalogus en bekijk voor elke provider de actuele metadata voor `hasFree`, authenticatie, quota, privacy en gebruiksvoorwaarden. De providerkaart en het
+[Overzicht van gratis niveaus](../reference/FREE_TIERS.md) maken onderscheid tussen periodiek aangevulde tegoeden,
+onbeperkte/sleutelloze toegang, registratietegoeden, niet langer beschikbare vermeldingen en bronnen met een hoger risico.
 
-### Stap 5: Klik op Connect
+### Stap 5: Klik op Verbinden
 
-Voor een `NOAUTH`-provider zijn geen inloggegevens vereist. Providers met OAuth of API-sleutels moeten
-worden verbonden via hun gedocumenteerde accountprocedure.
+Voor een `NOAUTH`-provider vraagt OmniRoute niet om inloggegevens voor de upstreamdienst. Dit garandeert niet dat de upstreamdienst externe clients accepteert of voldoende capaciteit beschikbaar heeft. Providers die OAuth- of API-sleutels gebruiken, moeten via hun gedocumenteerde accountprocedure worden verbonden. Je client gebruikt nog steeds de OmniRoute-API-sleutel die wordt weergegeven onder **Dashboard → Endpoints** wanneer routerauthenticatie is ingeschakeld.
 
-### Stap 6: Herhaal
+### Stap 6: Herhaal dit proces
 
-Verbind meerdere providers waarvan de voorwaarden en het privacymodel bij jouw toepassing passen.
+Verbind meerdere providers waarvan de voorwaarden en het privacymodel bij je gebruiksscenario passen.
 
 ---
 
 ## De catalogus correct interpreteren
 
-- `NOAUTH` betekent dat OmniRoute je niet om inloggegevens voor de provider vraagt; dit biedt geen
-  garantie op beschikbaarheid, privacy of onbeperkte capaciteit.
-- `hasFree` is metadata voor vindbaarheid. Dit kan staan voor een terugkerend quotum, sleutelloze toegang,
-  registratietegoed, een goedkeuringsprogramma of een aanbieding.
-- `recurring-uncapped` betekent dat er geen gepubliceerde tokenlimiet beschikbaar was; snelheids- en
-  gelijktijdigheidslimieten zijn nog steeds van toepassing.
-- `one-time-initial` wordt niet vernieuwd nadat het registratietegoed is verbruikt.
-- `tos: avoid` is een waarschuwing om vóór gebruik de voorwaarden van de provider en de risico's voor je account te beoordelen.
-- Vermeldingen met de markering `discontinued` blijven behouden als historisch bewijs en mogen niet worden voorgesteld als
-  momenteel gratis.
+- `NOAUTH` betekent dat OmniRoute u niet om inloggegevens van een provider vraagt; dit
+  garandeert geen uptime, privacy of onbeperkte capaciteit.
+- `hasFree` is metadata voor vindbaarheid. Dit kan staan voor een terugkerend quotum, toegang zonder sleutel,
+  registratietegoed, een goedkeuringsprogramma of een promotie.
+- `recurring-uncapped` betekent dat er geen gepubliceerde tokenlimiet beschikbaar was; beperkingen voor de aanvraagsnelheid en
+  gelijktijdigheid zijn nog steeds van toepassing.
+- `one-time-initial` wordt niet herhaald nadat het registratietegoed is verbruikt.
+- Providers met `tos: avoid` worden standaard uitgesloten van automatische routering (`excludeTosAvoid`). Het koppelen van een account omzeilt dit filter niet. Elke handmatige uitzondering door een beheerder moet plaatsvinden na beoordeling van de providervoorwaarden en het accountrisico.
+- Vermeldingen met de markering `discontinued` blijven als historisch bewijs behouden en mogen niet als
+  momenteel gratis worden gepresenteerd.
 
 ---
 
@@ -158,21 +156,18 @@ quotum- of toegangsbeleid van een provider te omzeilen.
 
 ---
 
-## Berekening van gratis niveaus
+## Berekening van de gratis niveaus
 
-De actuele, op pools gededupliceerde catalogus rapporteert momenteel:
+De actuele, op pools ontdubbelde catalogus vermeldt momenteel:
 
-| Metriek                                                                       |                         Huidige gecontroleerde waarde | Interpretatie                                                                                                                                              |
-| ----------------------------------------------------------------------------- | ----------------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Terugkerende gekwantificeerde toekenning                                      |                               **~1.62B tokens/maand** | Gedeelde pools worden één keer geteld; providers zonder limiet zijn uitgesloten van de som                                                                 |
-| Eerste maand met registratietegoeden                                          |                                     **~2.22B tokens** | Terugkerend totaal plus eenmalige en terugkerende tegoeden                                                                                                 |
-| Gecontroleerde inventaris van gratis modellen                                 | **35 terugkerende poolsleutels / 482 catalogusitems** | 475 actief + 7 beëindigd; te onderscheiden van de catalogus met 357 providers                                                                              |
-| Vertegenwoordigde terugkerende/sleutelloze providers die blijvend gratis zijn |                                                **53** | Unieke providers voor terugkerende dagelijkse/maandelijkse tegoeden, onbeperkte en sleutelloze catalogustypen; rijen met toelatingsvoorwaarden uitgesloten |
-| Providercatalogusitems gemarkeerd met `hasFree`                               |                                         **152 / 357** | Bredere providermetadata; niet alle hebben een kwantificeerbaar terugkerend quotum                                                                         |
+| Metriek                                  | Huidige gecontroleerde waarde | Interpretatie                                                                               |
+| ---------------------------------------- | ----------------------------: | ------------------------------------------------------------------------------------------- |
+| Terugkerende gekwantificeerde toekenning |       **~1.62B tokens/maand** | Gedeelde pools zijn één keer meegeteld; providers zonder limiet zijn uitgesloten van de som |
+| Eerste maand met registratiecredits      |             **~2.22B tokens** | Terugkerend totaal plus eenmalige en terugkerende credits                                   |
 
-Deze waarden worden berekend op basis van `open-sse/config/freeModelCatalog.ts`; zie de
-[Referentie voor gratis niveaus](../reference/FREE_TIERS.md) voor pooldeduplicatie, ToS-markeringen,
-beëindigde items en de methodologie voor registratietegoeden.
+Dit zijn schattingen voor de volledige catalogus, verdeeld over afzonderlijke in aanmerking komende accounts, en geen tegoed dat door OmniRoute wordt verstrekt of een voorspelling voor een nieuwe installatie. Uw bruikbare capaciteit is afhankelijk van de providers die u koppelt en hun actuele voorwaarden. De waarden worden berekend op basis van `open-sse/config/freeModelCatalog.ts`; raadpleeg de
+[Referentie voor gratis niveaus](../reference/FREE_TIERS.md) voor ontdubbeling van pools, ToS-markeringen,
+beëindigde vermeldingen en de methodologie voor registratiecredits.
 
 ---
 

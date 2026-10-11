@@ -171,20 +171,19 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## En İyi Ücretsiz Sağlayıcılar
 
-Bu sağlayıcılar, kredi kartı gerektirmeden **ücretsiz erişim** sunar:
+Bu sağlayıcılar kredi kartı gerektirmeden **ücretsiz erişim** sunar:
 
-| Sağlayıcı         | Ücretsiz Kota    | Modeller                                 | Nasıl Bağlanılır          |
+| Sağlayıcı         | Ücretsiz Kota    | Modeller                                 | Bağlantı Yöntemi          |
 | ----------------- | ---------------- | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | Ayda 50 kredi    | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Kimlik doğrulama gerekmez |
 | **OpenCode Free** | Sınırsız         | GPT-4o, Claude, Gemini                   | Kimlik doğrulama gerekmez |
 | **Pollinations**  | Anahtar gerekmez | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Kimlik doğrulama gerekmez |
 | **LongCat**       | Tek seferlik 10M | LongCat-2.0                              | API anahtarı + KYC        |
-| **Cloudflare AI** | Günde 10K nöron  | 50+ model                                | Kimlik doğrulama gerekmez |
+| **Cloudflare AI** | Günde 10K nöron  | 50'den fazla model                       | Kimlik doğrulama gerekmez |
 | **NVIDIA NIM**    | ~40 RPM          | 129 model                                | API anahtarı gerekir      |
 | **Cerebras**      | Kayıtta $5 kredi | GLM 4.7, GPT-OSS 120B                    | API anahtarı + kart       |
-| **Qoder**         | Sınırsız         | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Kimlik doğrulama gerekmez |
 
-**İpucu**: Otomatik yedeklemeyle **sınırsız ücretsiz yapay zekâ** kullanımı için birden fazla ücretsiz sağlayıcı bağlayın!
+**İpucu**: Otomatik yedek sağlayıcı desteğiyle **sınırsız ücretsiz yapay zekâ** için birden fazla ücretsiz sağlayıcı bağlayın!
 
 ---
 
@@ -262,32 +261,54 @@ Ardından `model: "auto"` kullanın; OmniRoute her istek için en uygun sağlay�
 
 ### OpenAI
 
-1. API anahtarı alın: https://platform.openai.com/api-keys
-2. OmniRoute'ta: Sağlayıcılar → Sağlayıcı Ekle → OpenAI
+1. API anahtarını alın: https://platform.openai.com/api-keys
+2. OmniRoute içinde: Sağlayıcılar → Sağlayıcı Ekle → OpenAI
 3. API anahtarını yapıştırın → Bağlan
 
 ### Anthropic
 
-1. API anahtarı alın: https://console.anthropic.com/
-2. OmniRoute'ta: Sağlayıcılar → Sağlayıcı Ekle → Anthropic
+1. API anahtarını alın: https://console.anthropic.com/
+2. OmniRoute içinde: Sağlayıcılar → Sağlayıcı Ekle → Anthropic
 3. API anahtarını yapıştırın → Bağlan
 
 ### Google (Gemini)
 
-1. API anahtarı alın: https://aistudio.google.com/apikey
-2. OmniRoute'ta: Sağlayıcılar → Sağlayıcı Ekle → Gemini
+1. API anahtarını alın: https://aistudio.google.com/apikey
+2. OmniRoute içinde: Sağlayıcılar → Sağlayıcı Ekle → Gemini
 3. API anahtarını yapıştırın → Bağlan
 
 ### DeepSeek
 
-1. API anahtarı alın: https://platform.deepseek.com/
-2. OmniRoute'ta: Sağlayıcılar → Sağlayıcı Ekle → DeepSeek
+1. API anahtarını alın: https://platform.deepseek.com/
+2. OmniRoute içinde: Sağlayıcılar → Sağlayıcı Ekle → DeepSeek
 3. API anahtarını yapıştırın → Bağlan
+
+### Qoder: kimlik bilgisi aktarım yöntemini seçin
+
+Qoder, kimlik bilgileri gerektirir. İki aktarım yöntemi farklı yeteneklere sahiptir; yalnızca bir model adı, belirli bir bağlantının neler yapabileceğini göstermez.
+
+| Kimlik bilgisi                                 | OmniRoute aktarım yöntemi                           | Çağıran tarafın araç çağrısı                          | Akış                                                                         |
+| ---------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pt-` ile başlayan PAT                         | OmniRoute ana makinesindeki yerel `qodercli` işlemi | Desteklenmez                                          | Arabelleğe alınır: SSE yalnızca CLI tam yanıtı döndürdükten sonra gönderilir |
+| PAT olmayan erişim belirteci veya API anahtarı | DashScope OpenAI uyumlu HTTP uç noktası             | Üst modelin/anahtarın desteğine bağlı olarak iletilir | Üst HTTP/SSE yolu                                                            |
+
+PAT için Qoder CLI'ı OmniRoute ile aynı ana makineye veya container'a yükleyin. Yürütülebilir dosya `qodercli` olarak bulunabilir olmalı ya da `CLI_QODER_BIN` değerini yürütülebilir dosyanın yoluna ayarlamalısınız. Yalnızca Docker ana makinesine yüklenen bir CLI, container içinde otomatik olarak kullanılamaz. Eksik yürütülebilir dosyalar, sizi yükleme veya yol ayarına yönlendiren açık bir hata oluşturur.
+
+PAT sohbet yolunun işlem zaman aşımı 45 saniyedir. Konuşmayı tek bir isteme dönüştürür ve CLI'ı akışsız yazdırma modunda çağırır. `stream: true` istenmesi, yanıt zarfını SSE olarak değiştirir; üst kaynaktan artımlı belirteç iletimi sağlamaz. CLI doğrulaması/model listelemesi, 20 saniyelik ayrı bir zaman aşımı kullanır. Bunlar mevcut kod varsayılanlarıdır; yapılandırılabilir pano ayarları değildir.
+
+PAT bağlantılarını düz sohbet için kullanın. `tools` veya eski `functions` taşıyan aracı istekleri, sabitlenmiş birleşik hedefler dâhil olmak üzere kimlik bilgisi seçimi sırasında PAT hesaplarını hariç tutar. Karma bir Qoder havuzu yine de HTTP hesabını seçebilir. PAT yürütücüsüne yapılan doğrudan çağrılar da araç tanımlarını sessizce yok saymak yerine CLI'ı başlatmadan önce açıkça başarısız olur. Bu kısıtlama, Qoder CLI'ın kendi içinde kullanabileceği araçlarla değil, API çağrısını yapan tarafın sağladığı araçlarla ilgilidir. Bir HTTP anahtarı, her modelin araçları desteklediğini garanti etmez; normal model yeteneği kontrolleri yine geçerlidir.
+
+Tarayıcı OAuth'u yalnızca yönetici şu beş ayarın tamamını yapılandırdığında kullanılabilir: `QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`, `QODER_OAUTH_CLIENT_ID` ve `QODER_OAUTH_CLIENT_SECRET`. Bunların varsayılan değerleri boştur; yapılandırılmamış bir kurulum, tarayıcıda oturum açma akışının hazır olduğunu varsaymak yerine desteklenen bir kimlik bilgisi içe aktarma yöntemini kullanmalıdır.
+
+Uygulama referansları: [Qoder yürütücüsü](../../open-sse/executors/qoder.ts),
+[CLI çalışma zamanı](../../open-sse/services/qoderCli.ts) ve
+[OAuth yapılandırması](../../src/lib/oauth/constants/oauth.ts). Artımlı PAT akışı
+ve yapılandırılabilir zaman aşımı ayrı geliştirmelerdir; bu davranış bunların sağlanacağını taahhüt etmez.
 
 ### Groq
 
-1. API anahtarı alın: https://console.groq.com/
-2. OmniRoute'ta: Sağlayıcılar → Sağlayıcı Ekle → Groq
+1. API anahtarını alın: https://console.groq.com/
+2. OmniRoute içinde: Sağlayıcılar → Sağlayıcı Ekle → Groq
 3. API anahtarını yapıştırın → Bağlan
 
 ---

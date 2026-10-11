@@ -4,21 +4,21 @@
 
 ---
 
-Web Cookie provayderlari OmniRoute’ga API kaliti o‘rniga mavjud brauzer seansingiz orqali AI xizmatidan foydalanish imkonini beradi. Ular xizmatga uning veb-sayti orqali allaqachon kirish huquqiga ega bo‘lsangiz va OmniRoute ham ayni autentifikatsiya qilingan seansdan foydalanishini istasangiz foydalidir.
+Web Cookie provayderlari OmniRouteʼga API kaliti o‘rniga mavjud brauzer seansingiz orqali AI xizmatidan foydalanish imkonini beradi. Ular xizmatga uning veb-sayti orqali allaqachon kirish huquqiga ega bo‘lsangiz va OmniRoute ham ayni autentifikatsiya qilingan seansdan foydalanishini istasangiz foydalidir.
 
-API kalitli provayderlardan farqli ravishda, Web Cookie provayderlari brauzeringiz veb-saytga yuboradigan hisob ma’lumotlari yordamida autentifikatsiya qiladi.
+API kalitli provayderlardan farqli ravishda, Web Cookie provayderlari brauzeringiz veb-saytga yuboradigan hisob maʼlumotlari yordamida autentifikatsiya qiladi.
 
 ---
 
 # Boshlashdan oldin
 
-> **Muhim:** Hisob ma’lumotlarini har doim brauzeringizning cookie xotirasidan **emas**, **faol tarmoq so‘rovidan** nusxalang.
+> **Muhim:** Hisob maʼlumotlarini har doim brauzeringizning cookie saqlash joyidan **emas**, balki **jonli tarmoq so‘rovidan** nusxalang.
 
 Ko‘plab autentifikatsiya muammolari cookie fayllarini noto‘g‘ri joydan nusxalash sababli yuzaga keladi.
 
-## Cookie xotirasidan nusxalamang
+## Cookie saqlash joyidan nusxalamang
 
-Aksariyat brauzerlar saqlangan cookie fayllarini quyidagi joyda ko‘rsatadi:
+Ko‘pchilik brauzerlar saqlangan cookie fayllarini quyidagi joyda ko‘rsatadi:
 
 ```
 DevTools
@@ -26,30 +26,32 @@ DevTools
 → Cookies
 ```
 
-Bu cookie fayllari to‘g‘ri ko‘rinsa-da, ular quyidagicha bo‘lishi mumkin:
+Bu cookie fayllari to‘g‘ri ko‘rinsa-da, ular:
 
 - eskirgan
 - to‘liq bo‘lmagan
 - faqat autentifikatsiya qilingan so‘rovlarda yuboriladigan cookie fayllari mavjud bo‘lmagan
 
-Bu qiymatlardan foydalanish, ular yaroqli ko‘rinsa ham, autentifikatsiya xatolariga olib kelishi mumkin.
+bo‘lishi mumkin.
 
-## Faol so‘rovdan nusxalang
+Bu qiymatlardan foydalanish, hatto ular yaroqli ko‘rinsa ham, autentifikatsiya xatolariga olib kelishi mumkin.
+
+## Jonli so‘rovdan nusxalang
 
 Buning o‘rniga muvaffaqiyatli so‘rovdagi cookie fayllaridan foydalaning:
 
 ```
 DevTools
 → Network
-→ Sahifani yangilash
-→ Chat yoki suhbat so‘rovini ochish
+→ Sahifani yangilang
+→ Chat yoki suhbat so‘rovini oching
 → Request Headers
 → Cookie
 ```
 
-`Cookie` so‘rov sarlavhasi brauzeringiz muvaffaqiyatli foydalangan aniq autentifikatsiya ma’lumotlarini o‘z ichiga oladi.
+`Cookie` so‘rov sarlavhasi brauzeringiz muvaffaqiyatli ishlatgan aniq autentifikatsiya maʼlumotlarini o‘z ichiga oladi.
 
-Aksariyat Web Cookie provayderlari uchun aynan shu qiymat OmniRoute’ga joylashtirilishi kerak.
+Aksariyat Web Cookie provayderlari uchun OmniRouteʼga aynan shu qiymatni joylashtirish kerak.
 
 ---
 
@@ -58,27 +60,27 @@ Aksariyat Web Cookie provayderlari uchun aynan shu qiymat OmniRoute’ga joylash
 Sozlash jarayoni aksariyat Web Cookie provayderlari uchun bir xil.
 
 1. Provayder veb-saytiga kiring.
-2. Brauzerning Developer Tools vositalarini oching.
+2. Brauzerning Developer Tools oynasini oching.
 3. **Network** varag‘ini oching.
 4. Sahifani yangilang.
 5. Autentifikatsiya qilingan chat yoki suhbat so‘rovini oching.
-6. Kerakli autentifikatsiya hisob ma’lumotlarini nusxalang.
-7. OmniRoute’ni oching.
+6. Kerakli autentifikatsiya hisob maʼlumotlarini nusxalang.
+7. OmniRouteʼni oching.
 8. **Providers → Add Provider** bo‘limiga o‘ting.
 9. Web Cookie provayderingizni tanlang.
-10. Hisob ma’lumotlarini joylashtiring.
+10. Hisob maʼlumotlarini joylashtiring.
 11. **Test Connection** tugmasini bosing.
 12. Provayderni saqlang.
 
-Talab qilinadigan aniq hisob ma’lumotlari provayderga bog‘liq.
+Talab qilinadigan aniq hisob maʼlumotlari provayderga bog‘liq.
 
 ---
 
-# Provayder hisob ma’lumotlari formatlari
+# Provayder hisob maʼlumotlari formatlari
 
-Turli veb-saytlar autentifikatsiya ma’lumotlarini turlicha saqlaydi. Ayrimlari faqat cookie fayllarini talab qilsa, boshqalari qo‘shimcha sarlavhalar yoki tokenlarni ham talab qilishi mumkin.
+Turli veb-saytlar autentifikatsiya maʼlumotlarini turlicha saqlaydi. Ayrimlari faqat cookie fayllarini talab qilsa, boshqalari qo‘shimcha sarlavhalar yoki tokenlarni ham talab qilishi mumkin.
 
-| Provayder                       | Hisob ma’lumotlari formati      | Provayder qo‘llanmasi            |
+| Provayder                       | Hisob maʼlumotlari formati      | Provayder qo‘llanmasi            |
 | ------------------------------- | ------------------------------- | -------------------------------- |
 | Claude Web                      | To‘liq Cookie so‘rov sarlavhasi | `docs/providers/CLAUDE_WEB.md`   |
 | ChatGPT Web (Codex)             | To‘liq Cookie sarlavhasi        | `docs/providers/CHATGPT_WEB.md`  |
@@ -90,48 +92,98 @@ Turli veb-saytlar autentifikatsiya ma’lumotlarini turlicha saqlaydi. Ayrimlari
 
 > Yangi Web Cookie provayderlari qo‘shilganda yoki mavjud provayderlarning autentifikatsiya talablari o‘zgarganda ushbu jadvalni yangilang.
 
+## NoTrack (notrack-web)
+
+NoTrack ([notrack.ai](https://notrack.ai)) — roʻyxatdan oʻtishni talab qilmaydigan bepul foydalanuvchi chat platformasi. Seans saytga ilk tashrifda anonim tarzda yaratiladi va uchta cookie orqali saqlanadi: `uid`, `si_usr_id` va `si_ses_id`. OmniRoute ayni `/api/dispatch` endpointini bitta model identifikatori (`notrack-c`, taxallusi `ntw`) orqali proksi qiladi.
+
+### Ulanish bosqichlari
+
+1. Brauzeringizda [notrack.ai](https://notrack.ai) saytini oching va anonim seans cookiesi oʻrnatilishiga ruxsat bering.
+2. **DevTools → Network** boʻlimini oching, sahifani yangilang va istalgan `/api` soʻrovini bosing.
+3. **Request Headers** boʻlimidan toʻliq `Cookie` sarlavhasi qiymatini nusxalang.
+4. OmniRouteʼda **Providers → Add Provider → NoTrack Web (Free)** boʻlimiga oʻting.
+5. Cookie satrini `apiKey` maydoniga joylashtiring va **Save** tugmasini bosing.
+
+OmniRoute joylashtirilgan satrdan `uid`, `si_usr_id` va `si_ses_id` qiymatlarini ajratib oladi hamda faqat shu juftliklardan iborat toza `Cookie` sarlavhasini qayta tuzadi — mavjud boʻlsa, tizimga kirgan hisoblar uchun oʻrnatiladigan `nt_session` (`ntk_…` tokeni) ham qoʻshiladi. Uchta qiymatdan birortasi yetishmasa, operatorlar muqobil formatlarni sinab koʻrishi uchun joylashtirilgan xom satr oʻzgartirilmasdan uzatiladi.
+
+### Model identifikatorlari
+
+| Model identifikatori | Koʻrsatiladigan nom | Izohlar                                                           |
+| -------------------- | ------------------- | ----------------------------------------------------------------- |
+| `notrack-c`          | NoTrack C           | Standart — yuqori oqimdagi `C` dispetcher modeli.                 |
+| `C`                  | NoTrack C           | `notrack-c` uchun taxallus (yuqori oqimning xom dispetcher kodi). |
+| `notrack`            | NoTrack C           | `notrack-c` uchun taxallus.                                       |
+| `ntw`                | NoTrack C           | `notrack-c` uchun qisqa taxallus.                                 |
+
+Toʻrtta model identifikatorining barchasi bir xil yuqori oqim dispetcher modeliga (`C`) mos keladi.
+
+### Soʻrov parametrlari
+
+Ijrochi soʻrov tanasidagi quyidagi ixtiyoriy maydonlarni qabul qiladi:
+
+| Tana maydoni          | Standart qiymat | Maqsad                                                                                  |
+| --------------------- | --------------- | --------------------------------------------------------------------------------------- |
+| `notrack_mode`        | `usual`         | Dispetcher rejimi (ixtiyoriy satr; yuqori oqim `usual`, … ni qabul qiladi)              |
+| `notrack_max_turns`   | `6`             | Javob berishdan oldin yuqori oqim bajarishi mumkin boʻlgan ichki navbatlar soni.        |
+| `notrack_chat_id`     | `null`          | Mavjud yuqori oqim chatini davom ettirish (yangi chat uchun kiritmang).                 |
+| `notrack_attachments` | `[]`            | Yuqori oqim biriktirma deskriptorlarining oʻzgartirilmasdan uzatiladigan massivi.       |
+| `notrack_regenerate`  | `false`         | Oldingi navbat uchun javobni qayta yaratishni soʻrash maqsadida `true` qilib belgilang. |
+
+### Imkoniyatlar
+
+- **Oqimli va oqimsiz** chat yakunlashlari.
+- **Vositalarni chaqirish** — soʻrovda `tools: [...]` ni belgilang; ijrochi ularni vosita chaqiruvi konverti shartnomasiga serializatsiya qiladi va model javoblarini qayta OpenAI `tool_calls` formatiga tahlil qiladi.
+- **`response_format`** — `json_object` va `json_schema` qoʻllab-quvvatlanadi. Ijrochi model javobidan birinchi JSON obyektini ajratib oladi va qaytarishdan oldin uni satrga aylantiradi.
+- **Mulohaza koʻrsatmasi** — yuqori oqim `thinking` hodisasini yuborganda, ijrochi `reasoning` deltasini chiqaradi.
+
+### Cheklovlar
+
+- Yuqori oqim anonim foydalanish kvotalarini qoʻllaydi — kvota oshib ketganda, ijrochi tushunarli xabar bilan 429 xatosini qaytaradi.
+- Barcha model identifikatorlari bir xil yuqori oqim dispetcher modeliga yoʻnaltiriladi; har bir model uchun alohida almashtirish imkoniyati yoʻq.
+- Ijrochi yuqori oqimning `/api/chats` endpointini chaqirmaydi, shu sababli chat tarixi/seanslar avtomatik boshqarilmaydi. Mavjud yuqori oqim chatini davom ettirish uchun `notrack_chat_id` dan foydalaning.
+
 ---
 
-# Web Cookie provayderlari nimalarni qila oladi va qila olmaydi
+# Web Cookie provayderlari nimalarga qodir va nimalarga qodir emas
 
-Web Cookie provayderlari veb-saytning chat interfeysidan qayta foydalanadi. Ular rasmiy API’lar bilan bir xil imkoniyatlarni **taqdim etmaydi**.
+Web Cookie provayderlari veb-saytning chat interfeysidan qayta foydalanadi. Ular rasmiy APIʼlar bilan bir xil imkoniyatlarni **taqdim etmaydi**.
 
-## Qo‘llab-quvvatlanadi
+## Qoʻllab-quvvatlanadi
 
-- Mavjud brauzer seansingiz yordamida autentifikatsiya qilish
+- Mavjud brauzer seansingiz orqali autentifikatsiya qilish
 - Hisobingiz orqali mavjud modellardan foydalanish
-- Chat javoblarini oqimli uzatish
+- Chat javoblarini oqim tarzida olish
 - API kaliti talab qilinmaydi
 
-## Qo‘llab-quvvatlanmaydi
+## Qoʻllab-quvvatlanmaydi
 
 - Funksiyalarni chaqirish
 - Vositalarni chaqirish
 - Fayllarni avtomatik tahrirlash
-- Agentga asoslangan IDE ish jarayonlari
+- Agentli IDE ish jarayonlari
 - Faqat API orqali mavjud funksiyalar
 
-Bu kutilgan xatti-harakat bo‘lib, **xatolik emas**.
+Bu kutilgan xatti-harakat bo‘lib, **xato emas**.
 
-Agar sizga vositalarni ishga tushirish, fayllarni avtomatik tahrirlash yoki boshqa agent ish jarayonlari kerak bo‘lsa, Web Cookie provayderi o‘rniga **API kalitli provayderdan** foydalaning.
+Agar sizga vositalarni ishga tushirish, fayllarni avtomatik tahrirlash yoki boshqa agentli ish jarayonlari kerak boʻlsa, Web Cookie provayderi oʻrniga **API kalitli provayderdan** foydalaning.
 
 ---
 
-# Tekshiruvga oid cheklov
+# Tekshiruv bo‘yicha ogohlantirish
 
-Muvaffaqiyatli **Test Connection** yoki cookie tekshiruvi faqat taqdim etilgan hisob ma’lumotlari kutilgan formatda ekanini tasdiqlaydi.
+Muvaffaqiyatli **Ulanishni tekshirish** yoki cookie fayllarini tekshirish faqat taqdim etilgan hisob maʼlumotlari kutilgan formatda ekanini tasdiqlaydi.
 
-Issue #7857 hal etilmaguncha, muvaffaqiyatli tekshiruv provayder muvaffaqiyatli autentifikatsiya qilinishini **kafolatlamaydi**.
+Issue #7857 hal etilmaguncha, muvaffaqiyatli tekshiruv provayder autentifikatsiyadan muvaffaqiyatli oʻtishini **kafolatlamaydi**.
 
-Agar autentifikatsiya hali ham muvaffaqiyatsiz bo‘lsa, hisob ma’lumotlarini brauzerning cookie xotirasidan emas, faol tarmoq so‘rovidan nusxalaganingizni tekshiring.
+Agar autentifikatsiya hanuz amalga oshmasa, hisob maʼlumotlarini brauzerning cookie saqlash joyidan emas, balki faol tarmoq soʻrovidan nusxalaganingizni tekshiring.
 
 ---
 
 # Muammolarni bartaraf etish
 
-## Autentifikatsiya muvaffaqiyatsiz
+## Autentifikatsiya amalga oshmadi
 
-Hisob ma’lumotlari quyidagi joydan nusxalanganini tekshiring:
+Hisob maʼlumotlari quyidagi joydan nusxalanganini tekshiring:
 
 ```
 Network
@@ -150,42 +202,42 @@ Application
 
 ## Cookie brauzerda ishlaydi, ammo OmniRoute’da ishlamaydi
 
-Ayrim provayderlar faqat autentifikatsiya qilingan so‘rovlar davomida yuboriladigan cookie fayllarini o‘z ichiga oladi.
+Baʼzi provayderlar faqat autentifikatsiya qilingan soʻrovlar vaqtida yuboriladigan cookie fayllarini oʻz ichiga oladi.
 
-Suhbatni muvaffaqiyatli ochgandan so‘ng hisob ma’lumotlarini yangi tarmoq so‘rovidan qayta nusxalang.
+Suhbatni muvaffaqiyatli ochgandan keyin hisob maʼlumotlarini yangi tarmoq soʻrovidan qayta nusxalang.
 
 ---
 
-## Seans muddati tugagan
+## Seans muddati tugadi
 
 Web Cookie provayderlari mavjud brauzer seansingizdan foydalanadi.
 
-Agar brauzer seansingiz muddati tugasa yoki tizimdan chiqsangiz, yangi hisob ma’lumotlari to‘plamini nusxalashingiz kerak.
+Agar brauzer seansingiz muddati tugasa yoki hisobdan chiqsangiz, yangi hisob maʼlumotlari toʻplamini nusxalashingiz kerak. Qoʻllab-quvvatlanadigan veb-provayderlar uchun cookie fayllarini yangilashni avtomatlashtirish maqsadida [Brauzer seansini sinxronlash kengaytmasi](../guides/SESSION-SYNC-EXTENSION.md) yordamchi vositasiga qarang.
 
 ---
 
-## Test Connection muvaffaqiyatli, ammo so‘rovlar bajarilmaydi
+## Ulanish tekshiruvi muvaffaqiyatli, ammo soʻrovlar bajarilmaydi
 
-Issue #7857 hal etilmaguncha, tekshiruvdan o‘tish autentifikatsiya so‘rovi muvaffaqiyatli bajarilishini kafolatlamaydi.
+Issue #7857 hal etilmaguncha, tekshiruvdan oʻtish autentifikatsiya soʻrovi muvaffaqiyatli bajarilishini kafolatlamaydi.
 
-Qo‘shimcha muammolarni bartaraf etishdan oldin hisob ma’lumotlaringizni yangi autentifikatsiya qilingan so‘rovdan qayta nusxalang.
+Muammoni bartaraf etishni davom ettirishdan oldin hisob maʼlumotlaringizni yangi autentifikatsiya qilingan soʻrovdan qayta nusxalang.
 
 ---
 
-# Provayder misoli
+# Provayder namunasi
 
-Muayyan provayderga oid to‘liq bosqichma-bosqich qo‘llanma uchun quyidagiga qarang:
+Muayyan provayder uchun toʻliq bosqichma-bosqich qoʻllanmani koʻrish uchun:
 
 - **Claude Web** — `docs/providers/CLAUDE_WEB.md`
 
-Claude Web qo‘llanmasi Web Cookie provayderini to‘liq sozlash jarayonini namoyish etadi va namunaviy amalga oshirish sifatida xizmat qiladi.
+Claude Web qoʻllanmasi Web Cookie provayderini toʻliq sozlash jarayonini namoyish etadi va namunaviy qoʻllanma vazifasini bajaradi.
 
 ---
 
 # Eng yaxshi amaliyotlar
 
-- Hisob ma’lumotlarini yangi autentifikatsiya qilingan so‘rovdan nusxalang.
-- Eski cookie fayllaridan qayta foydalanmang.
+- Hisob maʼlumotlarini yangi autentifikatsiya qilingan soʻrovdan nusxalang.
+- Eski cookie fayllarini qayta ishlatishdan saqlaning.
 - Web Cookie provayderlaridan foydalanayotganda brauzer seansingizni faol saqlang.
-- Nusxalangan cookie fayllarini maxfiy hisob ma’lumotlari sifatida saqlang.
-- Funksiyalarni chaqirish yoki agent ish jarayonlari kerak bo‘lsa, API kalitli provayderlardan foydalaning.
+- Nusxalangan cookie fayllarini maxfiy hisob maʼlumotlari sifatida saqlang.
+- Funksiyalarni chaqirish yoki agentli ish jarayonlari kerak boʻlganda API kalitli provayderlardan foydalaning.

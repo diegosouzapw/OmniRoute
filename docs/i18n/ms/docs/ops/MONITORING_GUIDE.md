@@ -99,18 +99,18 @@ Bagi setiap kombo:
 
 ---
 
-## API Semakan Kesihatan
+## API Pemeriksaan Kesihatan
 
-OmniRoute menyediakan **dua** permukaan kesihatan HTTP. Kedua-duanya tidak boleh digunakan secara saling menggantikan untuk pengorkestra.
+OmniRoute menyediakan **dua** permukaan kesihatan HTTP. Kedua-duanya tidak boleh digunakan secara saling ganti untuk pengorkestra.
 
-| Laluan                       | Tujuan                                                               | Beban                                 | Gunakan untuk                                                                       |
-| ---------------------------- | -------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `GET /healthz`               | Keaktifan/kesiapsiagaan kitar hayat (`ok` / `starting` / `stopping`) | Ringan (bendera fasa sahaja)          | **Kesiapsiagaan** Kubernetes; **keaktifan** ringan jika anda mesti menggunakan HTTP |
-| `GET /api/monitoring/health` | Ringkasan mendalam sistem + penyedia (DB, heap, kiraan katalog, …)   | Berat (kerja DB segerak / pemantauan) | Papan pemuka, semakan mendalam blackbox, semakan kesihatan terbina dalam Docker     |
+| Laluan                       | Tujuan                                                                  | Beban                                 | Gunakan untuk                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------- |
+| `GET /healthz`               | Keaktifan/kesediaan kitar hayat (`ok` / `starting` / `stopping`)        | Sangat ringan (bendera fasa sahaja)   | **Kesediaan** Kubernetes; **keaktifan** ringan jika anda mesti menggunakan HTTP         |
+| `GET /api/monitoring/health` | Ringkasan sistem + penyedia yang mendalam (DB, heap, kiraan katalog, …) | Berat (kerja DB / pemantauan segerak) | Papan pemuka, pemeriksaan mendalam blackbox, pemeriksaan kesihatan terbina dalam Docker |
 
 > **Nota:** Matriks kesihatan penyedia, isu autopilot, pemantau kuota, kesihatan token dan butiran kependaman selain `/api/monitoring/health` tersedia melalui **alat MCP** `observability_snapshot` atau halaman **papan pemuka** — tiada laluan REST khusus untuk perkara tersebut.
 
-Kedua-dua laluan berjalan pada **gelung peristiwa Node yang sama** dengan pengendalian permintaan. Laluan yang terikat CPU (kerja katalog `GET /v1/models` yang besar, pemampatan konteks panjang / pengiraan token) boleh melengahkan **semua** pengendali HTTP, termasuk `/healthz`. Gelung peristiwa sibuk ≠ proses mati. Utamakan pembaikan proses yang membolot sumber; pelarasan prob hanya mengurangkan penamatan palsu.
+Kedua-dua laluan berjalan pada **gelung peristiwa Node yang sama** seperti pengendalian permintaan. Laluan yang terikat kepada CPU (kerja katalog `GET /v1/models` yang besar, pemampatan konteks panjang / pengiraan token) boleh melengahkan **semua** pengendali HTTP, termasuk `/healthz`. Gelung peristiwa sibuk ≠ proses mati. Utamakan pembaikan punca beban; pelarasan prob hanya mengurangkan penamatan palsu.
 
 ### Prob pengorkestra ringan
 
@@ -119,9 +119,9 @@ GET /healthz
 # atau HEAD /healthz
 ```
 
-- **200** + isi `ok` apabila fasa kitar hayat pelayan sudah sedia
+- **200** + badan `ok` apabila fasa kitar hayat pelayan sudah sedia
 - **503** + `starting` / `stopping` semasa permulaan atau penutupan
-- Pelaksanaan: `src/app/healthz/route.ts` (tanpa ping DB)
+- Pelaksanaan: `src/app/healthz/route.ts` (tiada ping DB)
 
 ### Kesihatan Sistem (mendalam)
 
@@ -156,38 +156,38 @@ Respons:
 #### `credentialHealth`: cache prob berbanding `test_status` SQLite
 
 `GET /api/monitoring/health` → `credentialHealth` ialah **tolok cache prob dalam memori**,
-bukan longgokan langsung `provider_connections.test_status`. Selepas #12532, laluan
+bukannya paparan langsung `provider_connections.test_status`. Selepas #12532, laluan
 permintaan hanya membaca `getCachedCredentialHealthSummary()`; prob latar belakang
 menyegarkan cache di luar gelung peristiwa.
 
-| Lapisan                 | Lokasi                                                                | Maksudnya                                                                                                                                                                                                              |
-| ----------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tolok cache prob        | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Hasil prob kesihatan kelayakan terakhir yang masih disimpan dalam memori proses. `source` sentiasa `probe-cache`.                                                                                                      |
-| Butiran sambungan gagal | `credentialHealth.failedConnections`                                  | Hadir **hanya apabila `failed > 0`**. Senarai terhad baris cache dengan `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` yang disanitasi). `failedOmitted` ditetapkan apabila senarai dihadkan. |
-| Status lekat SQLite     | `credentialHealth.staleDbNonOkCount`                                  | Bilangan baris sambungan **aktif** (`is_active=1`) yang `test_status` tersimpannya merupakan nilai bukan ok yang diketahui (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).          |
+| Lapisan                 | Lokasi                                                                | Maksudnya                                                                                                                                                                                                                          |
+| ----------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tolok cache prob        | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Hasil prob kesihatan kelayakan terakhir yang masih disimpan dalam memori proses. `source` sentiasa `probe-cache`.                                                                                                                  |
+| Butiran sambungan gagal | `credentialHealth.failedConnections`                                  | Hadir **hanya apabila `failed > 0`**. Senarai terhad baris cache dengan `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` yang telah disanitasi). `failedOmitted` ditetapkan apabila senarai telah dihadkan. |
+| Status melekat SQLite   | `credentialHealth.staleDbNonOkCount`                                  | Bilangan baris sambungan **aktif** (`is_active=1`) yang `test_status` berterusannya merupakan nilai bukan-ok yang diketahui (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                     |
 
-Kedua-dua lapisan boleh berbeza secara disengajakan:
+Kedua-dua lapisan boleh berbeza dengan sengaja:
 
-- Tolok `failed=0` sementara `staleDbNonOkCount>0` — SQLite masih mempunyai
-  `test_status` lekat (contohnya `expired` atau `credits_exhausted`) yang tidak
-  dikira sebagai `status=error` oleh petikan cache prob terkini.
-- Tolok `failed>0` sementara SQLite kelihatan sihat — prob terkini gagal dan
-  dicache; baris DB belum dikemas kini, atau telah dikosongkan kemudian.
+- Tolok `failed=0` manakala `staleDbNonOkCount>0` — SQLite masih mempunyai
+  `test_status` melekat (contohnya `expired` atau `credits_exhausted`) yang tidak
+  dikira sebagai `status=error` oleh syot kilat cache prob terkini.
+- Tolok `failed>0` manakala SQLite kelihatan sihat — prob terkini telah gagal dan
+  dicache; baris DB belum dikemas kini atau telah dikosongkan kemudian.
 
-Jangan cetuskan amaran berdasarkan `provider_connections.test_status` sahaja ketika mengikis
+Jangan cetuskan amaran berdasarkan `provider_connections.test_status` semata-mata apabila mengikis
 titik akhir ini. Gunakan `failed` + `failedConnections` untuk kegagalan prob langsung dan
-`staleDbNonOkCount` apabila anda memerlukan kiraan status lekat tersimpan.
+`staleDbNonOkCount` apabila anda memerlukan kiraan status melekat yang disimpan secara berterusan.
 
 ### Cadangan prob Kubernetes
 
-OmniRoute ialah **satu proses Node** (satu gelung peristiwa). `HEALTHCHECK` Docker standard menyasarkan `/healthz` yang ringan. `/api/monitoring/health` adalah **terlalu berat** untuk selang keaktifan kubelet.
+OmniRoute ialah **satu proses Node** (satu gelung peristiwa). `HEALTHCHECK` Docker lalai menyasarkan `/healthz` yang ringan. `/api/monitoring/health` adalah **terlalu berat** untuk selang keaktifan kubelet.
 
-| Probe                  | Sasaran yang disyorkan                                                                     | Catatan                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Permulaan**          | HTTP `GET /healthz` dengan `failureThreshold` yang panjang (atau `startPeriod` yang besar) | Permulaan sejuk + migrasi SQLite boleh mengambil masa lebih daripada beberapa saat                                                                                                                                                                                                                                                                                                                      |
-| **Kesediaan**          | HTTP `GET /healthz`                                                                        | Kitar hayat `ok` / `starting` / `stopping` (200 berbanding 503). Masih berubah-ubah jika gelung disekat oleh CPU. **Respons 200 yang mengambil masa beberapa saat bukanlah sihat** (#10303) — ini bermakna gelung peristiwa telah kebuluran sebelum pengendali 3 bait dijalankan                                                                                                                        |
-| **Keaktifan**          | HTTP `GET /livez`, **atau TCP** pada port perkhidmatan utama (`PORT`, lalai `20128`)       | `/livez` hanya menunjukkan proses masih hidup (sentiasa 200 jika pengendali berjalan). Ia masih berkongsi gelung peristiwa — sibuk ≠ mati, dan ia tidak mengesan kebuluran gelung peristiwa (#10303) dengan lebih baik berbanding TCP. Utamakan **TCP** jika probe HTTP tamat masa ketika beban katalog/pemampatan; jangan matikan pod akibat gangguan singkat gelung peristiwa dalam mana-mana keadaan |
-| **Kesihatan mendalam** | `GET /api/monitoring/health` daripada pemeriksa luaran                                     | Bukan untuk `livenessProbe` kubelet / `readinessProbe` yang ketat                                                                                                                                                                                                                                                                                                                                       |
+| Prob                   | Sasaran yang disyorkan                                                                     | Catatan                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Permulaan**          | HTTP `GET /healthz` dengan `failureThreshold` yang panjang (atau `startPeriod` yang besar) | Permulaan sejuk + migrasi SQLite boleh mengambil masa lebih daripada beberapa saat                                                                                                                                                                                                                                                                                                                          |
+| **Kesediaan**          | HTTP `GET /healthz`                                                                        | Kitar hayat `ok` / `starting` / `stopping` (200 berbanding 503). Masih berubah-ubah jika gelung disekat CPU. **Respons 200 yang mengambil masa beberapa saat bukan keadaan sihat** (#10303) — ini bermakna gelung peristiwa telah terhalang sebelum pengendali 3 bait dijalankan                                                                                                                            |
+| **Keaktifan**          | HTTP `GET /livez`, **atau TCP** pada port perkhidmatan utama (`PORT`, lalai `20128`)       | `/livez` hanya menunjukkan proses masih hidup (sentiasa 200 jika pengendali dijalankan). Ia masih berkongsi gelung peristiwa — sibuk ≠ mati, dan ia tidak mengesan halangan gelung peristiwa (#10303) dengan lebih baik berbanding TCP. Utamakan **TCP** jika prob HTTP tamat masa di bawah beban katalog/pemampatan; jangan **bunuh** pod semasa gangguan singkat gelung peristiwa dalam mana-mana keadaan |
+| **Kesihatan mendalam** | `GET /api/monitoring/health` daripada pemeriksa luaran                                     | Bukan untuk `livenessProbe` kubelet / `readinessProbe` yang kerap                                                                                                                                                                                                                                                                                                                                           |
 
 Contoh struktur (laraskan ambang mengikut beban permulaan sejuk dan pemampatan anda):
 
@@ -215,19 +215,50 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Ketika gelung peristiwa tergendala, HTTP /livez masih boleh tamat masa. TCP ialah
+  # Semasa gelung peristiwa tergendala, HTTP /livez masih boleh tamat masa. TCP ialah
   # alternatif yang lebih konservatif:
   # tcpSocket:
   #   port: http
 ```
 
-**Jangan** halakan **keaktifan** kubelet kepada `/api/monitoring/health`. Laluan tersebut menjalankan kerja DB/pemantauan sebenar dan akan menghasilkan positif palsu ketika beban tinggi.
+**Jangan** halakan **keaktifan** kubelet kepada `/api/monitoring/health`. Laluan tersebut menjalankan kerja DB/pemantauan sebenar dan akan menghasilkan positif palsu di bawah beban.
 
-Berkaitan: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (probe ketika gelung peristiwa sibuk), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (penggunaan berlebihan sumber oleh penetapan harga katalog), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (penggunaan berlebihan sumber oleh pengiraan token pemampatan).
+Berkaitan: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (prob semasa gelung peristiwa sibuk), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (monopoli pemprosesan harga katalog), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (monopoli pengiraan token pemampatan).
+
+### watchdog systemd (gelung peristiwa beku)
+
+Pada hos systemd, OmniRoute memberitahu pengurus perkhidmatan apabila ia sudah bersedia dan terus menghantar ping kepadanya, supaya pelayan yang gelung peristiwanya tersekat akan dimatikan dan dimulakan semula dan bukannya terus berjalan tanpa memberikan respons. Ping datang daripada gelung peristiwa pelayan itu sendiri: apabila gelung itu disekat, ping berhenti dan systemd memulakan semula perkhidmatan selepas tempoh `WatchdogSec` berlalu tanpa menerima sebarang ping.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) sudah menulis unit pengguna yang menyertakan konfigurasi ini. Unit yang anda tulis sendiri (`Type=simple` secara lalai) tidak mempunyai watchdog, jadi tambahkan baris berikut pada bahagian `[Service]`:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Unit yang dijana menetapkan `Restart=on-failure`, jadi tambahkan baris itu juga — tanpanya, watchdog hanya mematikan perkhidmatan yang tersekat dan bukannya memulakannya semula.
+
+- `Type=notify`: perkhidmatan dianggap "dimulakan" apabila pelayan menghantar `READY=1`, bukan apabila proses melakukan fork. `TimeoutStartSec` mengehadkan tempoh permulaan yang perlahan.
+- `NotifyAccess=all`: ping dihantar oleh proses pelayan, yang merupakan proses anak kepada penyelia `omniroute serve`.
+- `WatchdogSec`: ping dihantar setiap 60 saat, jadi gunakan **120 atau lebih**. Nilai yang lebih kecil akan memulakan semula pelayan yang sihat.
+- Jalankan `omniroute serve` di latar hadapan. `--daemon` memisahkan pelayan daripada cgroup unit dan jabat tangan pemberitahuan tidak akan selesai.
+
+Pastikan ia aktif selepas dimulakan semula:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` menunjukkan sela masa yang dikonfigurasikan dan `WatchdogTimestamp` bergerak ke hadapan setiap minit. Permulaan semula yang disebabkan oleh watchdog direkodkan sebagai `Result=watchdog`. Untuk mematikan ping sambil mengekalkan unit seperti sedia ada, tetapkan `OMNIROUTE_DISABLE_SD_NOTIFY=1`; tanpa `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows), tiada apa-apa dihantar.
+
+Watchdog hanya memeriksa sama ada gelung peristiwa terus berjalan. Pelayan yang perlahan tetapi masih berfungsi tidak akan dimulakan semula.
 
 ### Kerja laluan permintaan pilihan (memori, kemahiran, penyegaran token)
 
-Pengekstrakan memori, penyuntikan kemahiran dan penyegaran token OAuth berkongsi **gelung peristiwa Node utama** dengan `/healthz`. Ia merupakan ciri togol papan pemuka (`memoryEnabled`, `skillsEnabled`), bukannya kelompok pekerja. Lihat [Persekitaran — kos gelung peristiwa](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Pengekstrakan memori, penyuntikan kemahiran dan penyegaran semula token OAuth berkongsi **gelung peristiwa Node utama** dengan `/healthz`. Ciri-ciri ini boleh ditogol melalui papan pemuka (`memoryEnabled`, `skillsEnabled`), bukannya kumpulan pekerja. Lihat [Persekitaran — kos gelung peristiwa](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Kesihatan Penyedia
 

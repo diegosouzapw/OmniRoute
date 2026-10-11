@@ -5,67 +5,90 @@
 ---
 
 Od v3.8.49 (WS3.2/WS3.4 plana kvalitete/brzine) zadani put spajanja
-pregledanih PR-ova u `release/vX.Y.Z` jest **Mergifyjev red čekanja za spajanje** (`.mergify.yml`);
-**ručni vlak spajanja** dokumentiran u nastavku REZERVNA je opcija — upotrebljava se tijekom incidenata,
-zamrzavanja izdanja ili ako se Mergifyjev plan otvorenog koda ikada promijeni.
+pregledanih PR-ova u `release/vX.Y.Z` jest **Mergifyjev red za spajanje** (`.mergify.yml`);
+**ručni vlak za spajanje** dokumentiran u nastavku REZERVNA je opcija — koristi se tijekom incidenata,
+zamrzavanja izdanja ili ako se Mergifyjev plan Open Source ikada promijeni.
 
 ## Zadani put: Mergifyjev red čekanja
 
-1. PR je pregledan/prošao je provjere kampanja i odobren je vlasnikovom ⭐ kontrolom
-   prije spajanja (izvješće + odluka za svaku stavku — pogledajte Korak 0.75 u `/merge-prs`).
+1. Kampanje pregledavaju PR i daju mu zeleno svjetlo, a vlasnik ga odobrava putem svojeg ⭐
+   kontrolnog koraka prije spajanja (izvješće + odluka za svaku stavku — pogledajte `/merge-prs`, korak 0.75).
 2. Vlasnik (ili sesija koja postupa prema vlasnikovoj odluci) dodjeljuje oznaku **`queue`**.
-   Oznaka JEST odobrenje za spajanje; Mergify ga samo izvršava.
-3. Mergify grupira do 10 PR-ova u redu čekanja, provjerava skupinu pomoću brzih kontrola
-   i spaja ih (squash). Neuspješna skupina **automatski se prepolovljuje** — problematični PR
-   izolira se kroz približno log2(N) ponovnih provjera i uklanja iz reda čekanja; ostali nastavljaju.
-4. Nakon spajanja kontinuirani tijek rada za provjeru ispravnosti izdanja provjerava novi vrh pri pushu
-   i otvara problem s atribucijom ako je kombinacija prouzročila regresiju (nikada ne izvodi automatski revert).
+   Ta oznaka JEST odobrenje za spajanje; Mergify ga samo izvršava.
+3. Mergify provjerava PR-ove u redu čekanja **serijski** (jedan po jedan) prema brzim
+   kontrolama i spaja ih (squash). Grupiranje + automatska bisekcija dio su Mergifyjeve
+   plaćene razine ("Cannot use Merge Queue batch" u besplatnom planu, #7220), stoga
+   `.mergify.yml` ne postavlja `batch_size`; grupiranje ostaje zadatak ručnog niza spajanja
+   opisanog u nastavku. PR čije su provjere i dalje na čekanju nakon `checks_timeout`
+   (240 min = 2× izmjereni p95 za `quality.yml`) uklanja se iz reda umjesto da blokira red.
+4. Nakon spajanja, kontinuirani tijek rada za provjeru ispravnosti izdanja provjerava novi
+   vrh grane pri pushu i otvara problem za utvrđivanje odgovornosti ako je kombinacija
+   uzrokovala regresiju (bez automatskog vraćanja promjena).
 
-Zaštitne mjere (odražavaju Stroga pravila #21/#22 iz `CLAUDE.md`):
+Zaštitna pravila (odražavaju stroga pravila #21/#22 iz `CLAUDE.md`):
 
-- **Otvoreno je zamrzavanje izdanja** → NEMOJTE označavati PR-ove koji ciljaju zamrznutu granu; najprije ih preusmjerite na
-  aktivni `release/vX+1`.
-- **PR druge sesije koji je u tijeku** → nikada ga nemojte označavati; samo vlasnička sesija stavlja
-  vlastiti rad u red čekanja.
-- Razlike koje mijenjaju samo testove i PR-ovi s oznakom `hotfix` već pokreću smanjeni skup CI provjera (pogledajte
-  `RELEASE_CHECKLIST.md` → Ubrzani put za hitne popravke); uvjeti reda čekanja prihvaćaju bilo koji
-  skup provjera koji je stvarno pokrenut (`#check-failure=0` + `#check-pending=0`).
+- **Aktivno zamrzavanje izdanja** → NEMOJTE označavati PR-ove usmjerene na zamrznutu
+  granu; prvo ih preusmjerite na aktivnu granu `release/vX+1`.
+- **PR druge sesije koji je u tijeku** → nikada ga nemojte označiti; samo vlasnička
+  sesija stavlja vlastiti rad u red čekanja.
+- Razlike koje sadrže samo testove i PR-ovi s oznakom `hotfix` već pokreću smanjeni skup
+  CI provjera (pogledajte `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); uvjeti reda čekanja
+  prihvaćaju onaj skup provjera koji je stvarno pokrenut (`#check-failure=0` +
+  `#check-pending=0`).
 
-## Rezervna opcija: ručni vlak spajanja
+## Rezervna opcija: ručni vlak za spajanje
 
-Upotrebljava se kada red čekanja nije dostupan. Time se formalizira praksa kojom su tijekom
-ciklusa v3.8.47 obrađena 33 PR-a u jednom danu:
+Koristi se kada red nije dostupan. Time se formalizira praksa kojom su tijekom ciklusa v3.8.47
+u jednom danu obrađena 33 PR-a:
 
-1. **Sastavite skupinu** (približno 10–30 pregledanih i odobrenih PR-ova). Provjerite kolizije `linked:`
-   (iste `tap.testFiles`, isti dijelovi CHANGELOG-a) i takve PR-ove obradite slijedno.
-2. **Provjerite JEDNOM**: u izoliranom worktreeju temeljenom na vrhu grane izdanja lokalno spojite sve
-   vrhove skupine, a zatim pokrenite skup testova jednak onome za izdanje
+1. **Sastavite grupu** (~10–30 pregledanih i odobrenih PR-ova). Provjerite kolizije `linked:`
+   (isti `tap.testFiles`, isti dijelovi CHANGELOG-a) i obradite ih slijedno.
+2. **Provjerite JEDNOM**: u izoliranom radnom stablu temeljenom na vrhu grane izdanja lokalno
+   spojite sve vrhove grupe, a zatim pokrenite skup provjera ekvivalentan izdanju
    (`npm run check:release-green`; prije izdanja dodajte `--with-build`).
    `scripts/release/merge-train.sh <base> <PR#>…` automatizira korake 1–2 (PR-ovi u sukobu
-   izbacuju se, a vlak nastavlja). Puni način rada pokreće `npm run test:unit` — izvršivač
-   prilagođen stroju (`--test-concurrency=20`), a **ne** dvije uzastopne CI particije s 4 jezgre,
-   zbog kojih je dominantna faza koristila približno 25 % stroja sa 16 jezgri (ispravljeno
-   2026-07-18). `--fast` (pražnjenje velikih vlakova unutar dana, uz odobrenje vlasnika 2026-07-18)
-   zadržava svaku statičku kontrolu + vitest, ali pokreće samo node:test datoteke koje su promijenili
-   ukrcani PR-ovi; PUNI skup i dalje se mora pokrenuti barem jednom dnevno na
-   akumuliranom vrhu (jedan vlak bez `--fast`).
-3. **Uspjeh** → spojite PR-ove redom (prije svakog ponovno provjerite `state,headRefOid` —
-   PR čiji se vrh promijenio vraća se u red čekanja za pregled). Dokažite da je neto razlika svakog spajanja
-   isključivo vlastita promjena tog PR-a (bez reverta nastalih automatskim razrješavanjem: pregledajte `git diff --stat`
-   radi brisanja izvan opsega).
-4. **Neuspjeh** → prepolovite skupinu (provjerite svaku polovicu) umjesto ponovne provjere
-   jednog po jednog PR-a; vratite problematični PR u red čekanja za pregled zajedno s dokazima.
-5. **Nikada nemojte**: spajati u zamrznutu granu tijekom zamrzavanja; upotrebljavati `git stash` igdje;
-   naslijepo ponovno pokretati CI u nadi da će neuspjeh nestati (pravilo: neuspjeh je informacija).
+   izbacuju se, a vlak nastavlja). Puni način rada pokreće `npm run test:unit` — izvršavač
+   prilagođen računalu (`--test-concurrency=20`), **a ne** dvije uzastopne CI particije s
+   4 jezgre, zbog kojih je dominantna faza koristila samo ~25 % računala sa 16 jezgri
+   (ispravljeno 2026-07-18). `--fast` (obrada velikih vlakova tijekom dana, uz odobrenje
+   vlasnika 2026-07-18) zadržava svaku statičku kontrolu + vitest, ali pokreće samo
+   node:test datoteke koje su promijenili ukrcani PR-ovi; PUNI skup provjera i dalje se
+   mora pokrenuti barem jednom dnevno na akumuliranom vrhu (jedan vlak bez `--fast`).
+3. **Prolaz** → spojite PR-ove redom (ponovno provjeravajući `state,headRefOid` prije svakog —
+   PR čiji se vrh promijenio ponovno ulazi u pregled). Dokažite da je neto razlika svakog
+   spajanja isključivo vlastita promjena tog PR-a (bez automatskog razrješavanja vraćanjem:
+   provjerite `git diff --stat` radi brisanja izvan opsega).
+4. **Pad** → podijelite grupu napola (provjerite svaku polovicu) umjesto ponovne provjere
+   jednog po jednog PR-a; vratite problematični PR u red za pregled zajedno s dokazima.
+5. **Nikad**: ne spajajte u zamrznutu granu tijekom zamrzavanja; ne koristite `git stash`
+   nigdje; ne pokrećite CI iznova naslijepo u nadi da će pad nestati (pravilo: pad je informacija).
 
-## Razine (zašto je red čekanja siguran samo s brzim kontrolama)
+## Razine (zašto je red siguran samo s brzim kontrolama)
 
-- **Po PR-u** (brze kontrole iz quality.yml): testovi obuhvaćeni TIA-om + puni jedinični testovi u 4 particije +
-  vitest + skup provjera lintera + provjera tipova + provjera integriteta dokumentacije/CHANGELOG-a.
-- **Po skupini/vrhu** (kontinuirana provjera ispravnosti izdanja): OBVEZNE kontrole `--quick` pri svakom pushu u
-  granu izdanja; puni prolazi `--with-build --full-ci` 3× dnevno.
+- **Po PR-u** (brze kontrole iz quality.yml): testovi na koje utječe TIA + puni jedinični
+  testovi u 4 particije + vitest + skup lint provjera + provjera tipova + provjera
+  cjelovitosti dokumentacije/CHANGELOG-a.
+- **Po grupi/vrhu** (kontinuirana provjera ispravnosti izdanja): STROGE kontrole `--quick`
+  pri svakom slanju na granu izdanja; puna izvođenja `--with-build --full-ci` 3× dnevno.
 - **Po izdanju** (ci.yml na PR-u izdanja): potpuna matrica, uključujući E2E ×9,
-  artefakt paketa + osnovni test pokretanja iz tarballa, pokrivenost/pragove.
+  artefakt paketa + osnovnu provjeru pokretanja tarballa, pokrivenost/pragove.
 
-Ništa se ne provjerava manje nego prije — zahtjevne provjere samo se pokreću po skupini/vrhu
+Ništa se ne provjerava manje nego prije — zahtjevne provjere samo se pokreću po grupi/vrhu
 umjesto po PR-u, čime se uklanjaju O(N) povratni ciklusi.
+
+## Preduvjeti svježe radne kopije za `merge-train.sh`
+
+Skripta na korijenskoj radnoj kopiji pokreće **predprovjeru** koja se prekida pri prvom
+neuspjehu (prije bilo kakvog rada u radnom stablu), tako da se neispravna instalacija nikad
+ne može prikazati kao neuspješan vlak:
+
+1. Pokrenite `npm ci`, a zatim `bun` postinstall koji npm blokira:
+   `(cd node_modules/bun && node install.js)` — u suprotnom `check:provider-consistency`
+   i `check:known-symbols` (oba koriste `bun scripts/…`) padaju i na vlaku I na osnovi,
+   bez retka koji navodi kršenje.
+2. Ne smije postojati zalutali `node_modules/node_modules` (duplicirano stablo ovisnosti;
+   React se učitava dvaput, a UI vitest skupovi odmah padaju).
+3. `node_modules/.bin/tsc` mora postojati i biti izvršiv (u djelomičnoj instalaciji nedostaje).
+
+Vlak pokreće blokirajući `npm run check:cycles:ratchet`; samostalni `npm run check:cycles`
+savjetodavan je (ispisuje SCC-ove i završava s kodom različitim od nule čak i na ispravnoj osnovi).

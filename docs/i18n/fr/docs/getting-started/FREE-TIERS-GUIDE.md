@@ -4,64 +4,64 @@
 
 ---
 
-> **TL;DR** : OmniRoute enregistre 357 identifiants de fournisseurs, avec **152 entrées du catalogue de fournisseurs marquées `hasFree`**. Le catalogue audité plus strict des modèles gratuits couvre **35 clés de pools récurrents / 482 entrées** (475 actives + 7 abandonnées). Connectez plusieurs fournisseurs adaptés pour bénéficier d’une plus grande capacité de repli ; chaque quota, règle d’approbation, politique de confidentialité et condition de dépassement payant reste applicable.
+> **TL;DR** : Utilisez vos propres comptes auprès de fournisseurs éligibles. OmniRoute combine les connexions que vous configurez ; il ne fournit pas le budget total de jetons annoncé. L’accès gratuit peut nécessiter une inscription, une clé API, une approbation ou un moyen de paiement. Les limites, les politiques de confidentialité et les conditions des fournisseurs continuent de s’appliquer.
 
 ---
 
-## Que sont les offres gratuites ?
+## Que sont les offres gratuites ?
 
 De nombreux fournisseurs d’IA proposent une forme d’**accès gratuit**. Selon le fournisseur, il peut
-s’agir d’un point de terminaison sans authentification, d’un quota récurrent, d’un accès illimité soumis à des limites de débit, d’un crédit
-d’inscription, d’une approbation manuelle ou d’une promotion temporaire. Certaines options nécessitent un compte, une clé API,
-une carte bancaire, une vérification KYC ou l’acceptation de conditions propres au fournisseur.
+s’agir d’un point de terminaison sans authentification, d’un quota récurrent, d’un accès non plafonné avec limitation du débit, d’un crédit accordé à l’inscription,
+d’une approbation manuelle ou d’une promotion temporaire. Certaines options nécessitent un compte, une clé API,
+une carte de crédit, une procédure KYC ou l’acceptation de conditions propres au fournisseur.
 
-OmniRoute **agrège** ces offres gratuites au sein d’un même point de terminaison. Au lieu de vous inscrire à 10 services différents, vous les connectez tous à OmniRoute et utilisez `model: "auto"` afin de sélectionner automatiquement la meilleure option gratuite pour chaque requête.
+OmniRoute **regroupe** les connexions configurées au sein d’un point de terminaison unique. Vous devez tout de même vous inscrire séparément auprès de chaque fournisseur nécessitant un compte. Connectez ces comptes et utilisez `model: "auto"` pour acheminer les requêtes vers les cibles admissibles. Une nouvelle installation peut ne disposer d’aucune cible sans clé admissible ; l’installation d’OmniRoute à elle seule ne garantit pas l’obtention d’une réponse de chat.
 
 ---
 
-## Fournisseurs représentatifs proposant un accès gratuit
+## Fournisseurs représentatifs avec accès gratuit
 
-### Accès récurrent, sans clé ou illimité
+### Accès récurrent, sans clé ou sans plafond
 
-Ces fournisseurs proposent, dans le catalogue audité, un mode d’accès gratuit récurrent, sans clé ou illimité. « Illimité » signifie qu’aucun plafond de jetons n’est publié ; des limites de débit, de concurrence, de compte, de région et de politique peuvent néanmoins s’appliquer :
+Ces fournisseurs proposent, dans le catalogue audité, un mode d’accès gratuit récurrent, sans clé ou sans plafond. « Sans plafond » signifie qu’aucune limite de jetons n’est publiée ; des limites de débit, de concurrence, de compte, de région et de politique peuvent néanmoins s’appliquer :
 
-| Fournisseur       | Modèles                                                                                               | Quota                                                                                                                                                        | Méthode de connexion                                                                                                        |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 et autres                                                 | Le catalogue audité estime un pool mensuel partagé de 25 000 jetons                                                                                          | Flux OAuth/compte ; les conditions d’utilisation sont signalées par `avoid` dans le catalogue                               |
-| **OpenCode Free** | Ensemble actuel des modèles `*-free` dans le registre des fournisseurs                                | Sans clé ; aucun plafond de jetons publié                                                                                                                    | Aucun identifiant de fournisseur ; conditions d’utilisation signalées par `avoid`                                           |
-| **Pollinations**  | Ensemble actuel de modèles sans clé ; certains anciens modèles sont abandonnés ou nécessitent une clé | Sans clé ; aucun plafond de jetons publié                                                                                                                    | Aucun identifiant de fournisseur pour les modèles sans clé                                                                  |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 et plus encore                            | Clé API gratuite (aucune limite de débit, aucune carte) ; **chaque requête est enregistrée** à des fins de recherche (désinscription sur logfare.ai/consent) | Clé instantanée sur logfare.ai/register ; conditions d’utilisation/confidentialité sur logfare.ai/tos et logfare.ai/privacy |
-| **Cloudflare AI** | Catalogue Workers AI                                                                                  | Le pool audité estime environ 30 millions de jetons/mois à partir des unités d’utilisation publiées                                                          | Compte Cloudflare et identifiants API                                                                                       |
-| **Gemini**        | Famille Gemini Flash                                                                                  | Le pool audité estime environ 60 millions de jetons/mois                                                                                                     | Clé API Google AI Studio ; des limites de débit s’appliquent                                                                |
-| **Groq**          | Modèles Llama, GPT-OSS et Qwen                                                                        | Le pool audité estime environ 15 millions de jetons/mois                                                                                                     | Clé API Groq ; des limites de débit s’appliquent                                                                            |
-| **Cerebras**      | GLM 4.7 et GPT-OSS 120B                                                                               | Le pool audité estime environ 30 millions de jetons/mois                                                                                                     | Clé API Cerebras ; des limites de débit s’appliquent                                                                        |
+| Fournisseur       | Modèles                                                                                                     | Quota                                                                                                                                                                | Mode de connexion                                                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 et autres                                                       | Le catalogue audité estime à 25 000 jetons le quota mensuel partagé                                                                                                  | Flux OAuth/compte ; conditions d’utilisation signalées comme `avoid` dans le catalogue                                         |
+| **OpenCode Free** | Ensemble actuel de modèles `*-free` dans le registre du fournisseur                                         | Sans clé ; aucun plafond de jetons publié                                                                                                                            | Aucun identifiant du fournisseur ; conditions d’utilisation signalées comme `avoid`                                            |
+| **Pollinations**  | Ensemble actuel de modèles sans clé ; certains anciens modèles ne sont plus proposés ou nécessitent une clé | Sans clé ; aucun plafond de jetons publié                                                                                                                            | Aucun identifiant du fournisseur pour les modèles sans clé                                                                     |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 et d’autres                                     | Clé API gratuite (aucune limite de débit, aucune carte requise) ; **chaque requête est journalisée** à des fins de recherche (désinscription sur logfare.ai/consent) | Clé instantanée sur logfare.ai/register ; conditions d’utilisation et confidentialité sur logfare.ai/tos et logfare.ai/privacy |
+| **Cloudflare AI** | Catalogue Workers AI                                                                                        | Le quota audité est estimé à environ 30 millions de jetons par mois d’après les unités d’utilisation publiées                                                        | Compte Cloudflare et identifiants API                                                                                          |
+| **Gemini**        | Famille Gemini Flash                                                                                        | Limites de débit variables selon le projet et le modèle ; aucune allocation mensuelle fixe de jetons n’est incluse dans l’offre mise en avant                        | Clé API Google AI Studio ; vérifiez les limites actives du projet                                                              |
+| **Groq**          | Modèles Llama, GPT-OSS et Qwen                                                                              | Le quota audité est estimé à environ 15 millions de jetons par mois                                                                                                  | Clé API Groq ; des limites de débit s’appliquent                                                                               |
 
-### Crédits d’inscription et crédits propres aux fournisseurs
+### Allocations à l’inscription et crédits propres aux fournisseurs
 
-Ces fournisseurs vous accordent des **crédits gratuits** lors de votre inscription :
+Ces fournisseurs offrent des allocations à l’inscription ou des crédits promotionnels, sous réserve de leurs règles d’admissibilité. Comme vérifié le 2026-10-08, la [tarification de Cerebras](https://www.cerebras.ai/pricing) exige un moyen de paiement pour bénéficier d’un crédit unique de 5 $ qui expire après 30 jours ; il ne s’agit pas d’un quota récurrent de jetons. Les [limites de débit de Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) varient selon le projet, le modèle et le niveau ; elles ne sont donc pas converties en une allocation mensuelle garantie de jetons.
 
-| Fournisseur   | Crédits gratuits                                                                                       | Modèles                       | Comment les obtenir                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------- | ----------------------------------------------------------------------------- |
-| **DeepSeek**  | 5 millions de jetons gratuits                                                                          | DeepSeek V4                   | Inscrivez-vous sur platform.deepseek.com                                      |
-| **LongCat**   | Crédit unique de 10 millions de jetons                                                                 | LongCat 2.0                   | Clé API + KYC ; paiement à l’utilisation après épuisement du crédit           |
-| **Vertex AI** | Crédit d’inscription de 300 $, représenté par environ 300 millions de jetons dans le modèle budgétaire | Gemini et modèles partenaires | Compte Google Cloud ; les règles de facturation et d’éligibilité s’appliquent |
+| Fournisseur   | Crédits gratuits                                                                                       | Modèles                       | Mode d’obtention                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------- |
+| **Cerebras**  | Crédit promotionnel unique de 5 $ ; expire après 30 jours                                              | Catalogue d’inférence actuel  | Compte et moyen de paiement valide                                              |
+| **DeepSeek**  | 5 millions de jetons gratuits                                                                          | DeepSeek V4                   | Inscription sur platform.deepseek.com                                           |
+| **LongCat**   | Allocation unique de 10 millions de jetons                                                             | LongCat 2.0                   | Clé API + KYC ; paiement à l’utilisation après épuisement de l’allocation       |
+| **Vertex AI** | Crédit d’inscription de 300 $, représenté par environ 300 millions de jetons dans le modèle budgétaire | Gemini et modèles partenaires | Compte Google Cloud ; les règles de facturation et d’admissibilité s’appliquent |
 
 ### Autres accès limités
 
-Ces fournisseurs proposent des **offres gratuites** assorties de limites spécifiques :
+Ces fournisseurs proposent des **offres gratuites** assorties de limites précises :
 
-| Fournisseur                       | Limite gratuite                                                                                                     | Modèles                                   | Idéal pour |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- |
-| **GitHub Models**                 | Pool partagé contrôlé estimé à environ 18 millions de jetons/mois                                                   | Évaluation d’un large éventail de modèles |
-| **Hugging Face**                  | Petit pool mensuel récurrent                                                                                        | Expérimentations et variété de modèles    |
-| **Modèles gratuits d’OpenRouter** | Pool partagé avec un nombre limité de requêtes ; un rechargement unique facultatif augmente l’allocation récurrente | Vaste catalogue de solutions de repli     |
-| **AI Horde**                      | Capacité communautaire sans clé ; la disponibilité varie                                                            | Inférence distribuée opportuniste         |
+| Fournisseur                | Limite gratuite                                                                                               | Modèles                                   | Idéal pour |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------- |
+| **GitHub Models**          | Le quota partagé audité est estimé à environ 18 millions de jetons par mois                                   | Évaluation d’un large éventail de modèles |
+| **Hugging Face**           | Petit quota mensuel récurrent                                                                                 | Expérimentations et diversité des modèles |
+| **OpenRouter free models** | Quota partagé limité en nombre de requêtes ; une recharge unique facultative augmente l’allocation récurrente | Large catalogue de solutions de secours   |
+| **AI Horde**               | Capacité communautaire sans clé ; la disponibilité varie                                                      | Inférence distribuée opportuniste         |
 
 ---
 
 ## Comment cumuler les offres gratuites
 
-La force d’OmniRoute réside dans le **cumul des offres gratuites**. Au lieu de dépendre d’un seul fournisseur, vous connectez plusieurs fournisseurs gratuits et laissez OmniRoute sélectionner automatiquement le meilleur pour chaque requête.
+La magie d’OmniRoute réside dans le **cumul des offres gratuites**. Au lieu de dépendre d’un seul fournisseur, vous connectez plusieurs fournisseurs gratuits et laissez OmniRoute sélectionner automatiquement le meilleur pour chaque requête.
 
 ### Exemple : une couverture gratuite plus étendue
 
@@ -69,63 +69,62 @@ Connectez plusieurs fournisseurs afin de réduire votre dépendance à un quota 
 
 1. **Gemini** — quota récurrent associé à une clé API
 2. **Groq** — quota récurrent associé à une clé API
-3. **Pollinations** — accès sans clé, soumis à une limitation de débit
-4. **LongCat** — crédit unique accordé à l’inscription (nécessite une vérification KYC)
+3. **Pollinations** — accès sans clé, soumis à des limites de débit
+4. **LongCat** — crédit unique accordé lors de l’inscription (vérification KYC requise)
 
 Utilisez ensuite `model: "auto"` et OmniRoute effectuera les opérations suivantes :
 
 - Essayer d’abord la connexion éligible la mieux classée
-- Si son quota est épuisé ou si sa vérification d’intégrité échoue → essayer le fournisseur configuré suivant
-- Si le fournisseur sans clé est indisponible → poursuivre avec les cibles restantes
-- Si toutes échouent → utiliser LongCat comme solution de secours
+- Si son quota est épuisé ou si sa vérification d’état échoue → essayer le fournisseur configuré suivant
+- Si le fournisseur sans clé est indisponible → poursuivre avec les autres cibles
+- Si aucune connexion éligible n’aboutit → renvoyer une erreur ; les crédits d’inscription ne sont utilisables que tant qu’ils sont valides et disponibles
 
-**Résultat** : une couverture gratuite plus étendue avec basculement automatique — et non une garantie de capacité illimitée.
+**Résultat** : une couverture gratuite plus étendue avec un mécanisme de secours automatique — et non une garantie de capacité illimitée.
 
 ---
 
 ## Comment connecter des fournisseurs gratuits
 
-### Étape 1 : ouvrir le tableau de bord
+### Étape 1 : Ouvrir le tableau de bord
 
 Accédez à `http://localhost:20128` dans votre navigateur.
 
-### Étape 2 : accéder aux fournisseurs
+### Étape 2 : Accéder aux fournisseurs
 
 Cliquez sur **Fournisseurs** dans la barre latérale.
 
-### Étape 3 : cliquer sur Ajouter un fournisseur
+### Étape 3 : Cliquer sur Ajouter un fournisseur
 
 Cliquez sur le bouton **+ Ajouter un fournisseur**.
 
-### Étape 4 : sélectionner un fournisseur gratuit
+### Étape 4 : Sélectionner un fournisseur gratuit
 
 Parcourez le catalogue et examinez les métadonnées actuelles de chaque fournisseur concernant `hasFree`, l’authentification, les quotas, la confidentialité
-et les conditions d’utilisation. La fiche du fournisseur et le
-[Référentiel des offres gratuites](../reference/FREE_TIERS.md) distinguent les quotas récurrents,
-les accès illimités ou sans clé, les crédits d’inscription, les entrées abandonnées et les sources présentant davantage de risques.
+et les conditions d’utilisation. La fiche du fournisseur et la
+[Référence des offres gratuites](../reference/FREE_TIERS.md) distinguent les quotas
+récurrents, les accès sans limite ou sans clé, les crédits d’inscription, les entrées abandonnées et les sources présentant davantage de risques.
 
-### Étape 5 : cliquer sur Connecter
+### Étape 5 : Cliquer sur Connecter
 
-Pour un fournisseur `NOAUTH`, aucun identifiant n’est requis. Les fournisseurs utilisant OAuth ou une clé API doivent être
-connectés conformément à la procédure de compte décrite dans leur documentation.
+Pour un fournisseur `NOAUTH`, OmniRoute ne demande aucun identifiant auprès du service en amont. Cela ne garantit pas que celui-ci accepte les clients tiers ni qu’il dispose d’une capacité suffisante. Les fournisseurs utilisant OAuth ou une clé API doivent être connectés en suivant la procédure documentée pour leur compte. Votre client utilise toujours la clé API OmniRoute affichée dans **Tableau de bord → Points de terminaison** lorsque l’authentification du routeur est activée.
 
-### Étape 6 : répéter l’opération
+### Étape 6 : Répéter
 
-Connectez plusieurs fournisseurs dont les conditions et le modèle de confidentialité correspondent à votre cas d’utilisation.
+Connectez plusieurs fournisseurs dont les conditions d’utilisation et le modèle de confidentialité correspondent à votre cas d’usage.
 
 ---
 
-## Bien interpréter le catalogue
+## Lire correctement le catalogue
 
-- `NOAUTH` signifie qu’OmniRoute ne vous demande aucun identifiant pour ce fournisseur ; cela ne
+- `NOAUTH` signifie qu’OmniRoute ne vous demande pas d’identifiants de fournisseur ; cela ne
   garantit ni la disponibilité, ni la confidentialité, ni une capacité illimitée.
-- `hasFree` est une métadonnée de découverte. Elle peut désigner un quota récurrent, un accès sans clé,
-  un crédit d’inscription, un programme soumis à approbation ou une promotion.
-- `recurring-uncapped` signifie qu’aucun plafond de jetons publié n’était disponible ; des limites de débit et
-  de concurrence continuent néanmoins de s’appliquer.
-- `one-time-initial` ne se renouvelle pas une fois le crédit d’inscription épuisé.
-- `tos: avoid` est un avertissement invitant à examiner les conditions du fournisseur et les risques liés au compte avant toute utilisation.
-- Les entrées marquées `discontinued` sont conservées à titre historique et ne doivent pas être présentées comme
+- `hasFree` est une métadonnée de découverte. Elle peut représenter un quota récurrent, un accès sans clé,
+  un crédit d’inscription, un programme d’approbation ou une promotion.
+- `recurring-uncapped` signifie qu’aucun plafond de jetons publié n’était disponible ; les limites de débit et
+  de concurrence continuent de s’appliquer.
+- `one-time-initial` n’est pas renouvelé une fois le crédit d’inscription consommé.
+- Les fournisseurs avec `tos: avoid` sont exclus par défaut du routage automatique (`excludeTosAvoid`). Connecter un compte ne permet pas de contourner ce filtre. Toute dérogation accordée par un opérateur doit être précédée d’un examen des conditions du fournisseur et des risques associés au compte.
+- Les entrées marquées `discontinued` restent des données historiques et ne doivent pas être présentées comme
   actuellement gratuites.
 
 ---
@@ -158,21 +157,18 @@ le quota ou la politique d’accès d’un fournisseur.
 
 ---
 
-## Calcul du niveau gratuit
+## Calcul de l’offre gratuite
 
-Le catalogue en production, dédupliqué par pool, indique actuellement :
+Le catalogue en production, après déduplication des pools, indique actuellement :
 
-| Métrique                                                         |                                    Valeur actuelle auditée | Interprétation                                                                                                                                                              |
-| ---------------------------------------------------------------- | ---------------------------------------------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Allocation récurrente quantifiée                                 |                                   **~1,62 Md tokens/mois** | Les pools partagés ne sont comptés qu’une fois ; les fournisseurs sans plafond sont exclus de la somme                                                                      |
-| Premier mois avec les allocations d’inscription                  |                                     **~2,22 Md de tokens** | Total récurrent auquel s’ajoutent les crédits ponctuels et récurrents                                                                                                       |
-| Inventaire audité des modèles gratuits                           | **35 clés de pool récurrentes / 482 entrées de catalogue** | 475 actives + 7 abandonnées ; distinct du catalogue de 357 fournisseurs                                                                                                     |
-| Fournisseurs gratuits permanents récurrents/sans clé représentés |                                                     **53** | Fournisseurs uniques pour les types de catalogue récurrents quotidiens/mensuels, à crédits, sans plafond et sans clé ; lignes soumises à des critères d’éligibilité exclues |
-| Entrées du catalogue de fournisseurs marquées `hasFree`          |                                              **152 / 357** | Métadonnées générales des fournisseurs ; tous ne disposent pas d’un quota récurrent quantifiable                                                                            |
+| Métrique                                    | Valeur actuelle auditée | Interprétation                                                                                         |
+| ------------------------------------------- | ----------------------: | ------------------------------------------------------------------------------------------------------ |
+| Allocation récurrente quantifiée            |  **~1.62B tokens/mois** | Les pools partagés ne sont comptés qu’une fois ; les fournisseurs sans plafond sont exclus de la somme |
+| Premier mois avec les crédits d’inscription |       **~2.22B tokens** | Total récurrent auquel s’ajoutent les crédits ponctuels et récurrents                                  |
 
-Ces valeurs sont calculées à partir de `open-sse/config/freeModelCatalog.ts` ; consultez la
-[Référence des niveaux gratuits](../reference/FREE_TIERS.md) pour la déduplication des pools, les indicateurs de conditions d’utilisation,
-les entrées abandonnées et la méthodologie relative aux crédits d’inscription.
+Il s’agit d’estimations portant sur l’ensemble du catalogue et réparties entre différents comptes éligibles, et non d’une allocation fournie par OmniRoute ni d’une prévision pour une nouvelle installation. Votre capacité utilisable dépend des fournisseurs que vous connectez et de leurs conditions actuelles. Les valeurs sont calculées à partir de `open-sse/config/freeModelCatalog.ts` ; consultez la
+[Référence des offres gratuites](../reference/FREE_TIERS.md) pour en savoir plus sur la déduplication des pools, les indicateurs relatifs aux conditions d’utilisation,
+les entrées abandonnées et la méthodologie appliquée aux crédits d’inscription.
 
 ---
 

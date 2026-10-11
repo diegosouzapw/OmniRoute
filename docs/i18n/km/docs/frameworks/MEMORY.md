@@ -165,33 +165,33 @@ vector store ត្រូវបានបង្កើតឡើងវិញ ហើ
 វាល embedding និង vector ចំនួនប្រាំបួនមាននៅក្នុង `MemorySettingsExtended` ក្នុង
 `src/shared/schemas/memory.ts` ហើយត្រូវបានរក្សាទុកតាមរយៈ `src/lib/db/settings.ts`៖
 
-| វាល                      | ប្រភេទ                                             | តម្លៃលំនាំដើម | ការពិពណ៌នា                                                                 |
-| ------------------------ | -------------------------------------------------- | ------------- | -------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`      | ប្រភព embedding ដែលត្រូវប្រើ                                               |
-| `embeddingProviderModel` | `string \| null`                                   | `null`        | អ្នកផ្តល់សេវា/ម៉ូដែលក្នុងទម្រង់ `provider/model`                           |
-| `customBaseUrl`          | `string \| null`                                   | `null`        | URL មូលដ្ឋានរបស់ endpoint ដែលត្រូវគ្នាជាមួយ OpenAI សម្រាប់ Memory ប៉ុណ្ណោះ |
-| `customModelId`          | `string \| null`                                   | `null`        | លេខសម្គាល់ម៉ូដែលដែលត្រូវផ្ញើទៅ endpoint ផ្ទាល់ខ្លួន                        |
-| `transformersEnabled`    | `boolean`                                          | `false`       | ការជ្រើសរើសប្រើ Transformers.js (MiniLM, ~400MB)                           |
-| `staticEnabled`          | `boolean`                                          | `false`       | ការជ្រើសរើសប្រើម៉ូដែលមូលដ្ឋាន static potion-base-8M                        |
-| `rerankEnabled`          | `boolean`                                          | `false`       | បើកជំហានរៀបលំដាប់ឡើងវិញ (បន្ថែម +200-500ms/req)                            |
-| `rerankProviderModel`    | `string \| null`                                   | `null`        | អ្នកផ្តល់សេវា/ម៉ូដែលសម្រាប់រៀបលំដាប់ឡើងវិញក្នុងទម្រង់ `provider/model`     |
+| វាល                      | ប្រភេទ                                             | លំនាំដើម | ការពិពណ៌នា                                                          |
+| ------------------------ | -------------------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | ប្រភព embedding ដែលត្រូវប្រើ                                        |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | ក្រុមហ៊ុនផ្តល់សេវា/ម៉ូដែលក្នុងទម្រង់ `provider/model`               |
+| `customBaseUrl`          | `string \| null`                                   | `null`   | URL មូលដ្ឋានរបស់ endpoint ដែលត្រូវគ្នាជាមួយ OpenAI សម្រាប់តែ Memory |
+| `customModelId`          | `string \| null`                                   | `null`   | ID ម៉ូដែលដែលផ្ញើទៅ endpoint ផ្ទាល់ខ្លួន                             |
+| `transformersEnabled`    | `boolean`                                          | `false`  | បើកប្រើ Transformers.js តាមការជ្រើសរើស (MiniLM, ~400MB)             |
+| `staticEnabled`          | `boolean`                                          | `false`  | បើកប្រើម៉ូដែលមូលដ្ឋាន static potion-base-8M តាមការជ្រើសរើស          |
+| `rerankEnabled`          | `boolean`                                          | `false`  | បើកជំហានរៀបចំណាត់ថ្នាក់ឡើងវិញ (បន្ថែម +200-500ms/req)               |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | ក្រុមហ៊ុនផ្តល់សេវា/ម៉ូដែល rerank ក្នុងទម្រង់ `provider/model`       |
 
-`rerankProviderModel` ត្រូវបានដោះស្រាយដោយ `POST /v1/rerank` (ហៅតាម loopback) ដូច្នេះវាទទួលយកអ្វីក៏ដោយដែល route នោះទទួលយក៖ ម៉ូដែល cloud សម្រាប់រៀបលំដាប់ឡើងវិញដែលបានជ្រើសសម្រិតសម្រាំង (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ឬ node របស់អ្នកផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ក្នុងទម្រង់ `<node-prefix>/<model>` (ឧ. `skilled-mini/bge-reranker-v2-m3` សម្រាប់ម៉ាស៊ីន TEI/Infinity)។ Node ប្រភេទ loopback តែងតែមានសិទ្ធិប្រើប្រាស់។ Node នៅលើ host ផ្សេងទៀត (LAN, Tailscale) ត្រូវការបន្ថែមនូវ feature flag `RERANK_REMOTE_PROVIDER_NODES` ហើយត្រូវតែឆ្លងកាត់គោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្តល់សេវា — សូមមើល [Feature Flags](../reference/FEATURE_FLAGS.md)។ កម្មវិធីជ្រើសរើសលើ dashboard បង្ហាញអ្នកផ្តល់សេវាដែលបានជ្រើសសម្រិតសម្រាំង រួមជាមួយ node មូលដ្ឋាន។ string `provider/model` ដែលត្រឹមត្រូវណាមួយអាចត្រូវបានកំណត់ដោយផ្ទាល់តាមរយៈ `PUT /api/settings/memory`។
-| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | backend សម្រាប់ vector ដែលត្រូវប្រើ |
+`rerankProviderModel` ត្រូវបានដោះស្រាយដោយ `POST /v1/rerank` (ត្រូវបានហៅតាម loopback) ដូច្នេះវាទទួលយកអ្វីក៏ដោយដែល route នោះទទួលយក៖ ម៉ូដែល cloud rerank ដែលបានជ្រើសសម្រិតសម្រាំង (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) ឬ node របស់ក្រុមហ៊ុនផ្តល់សេវាដែលត្រូវគ្នាជាមួយ OpenAI ក្នុងទម្រង់ `<node-prefix>/<model>` (ឧ. `skilled-mini/bge-reranker-v2-m3` សម្រាប់ម៉ាស៊ីន TEI/Infinity)។ Loopback nodes និង hostnames ដែលបានរាយក្នុង `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (ឧ. ឈ្មោះសេវា Docker/Compose) តែងតែមានសិទ្ធិប្រើប្រាស់។ node ដែលស្ថិតលើ host ផ្សេង (LAN, Tailscale) ទាមទារ feature flag `RERANK_REMOTE_PROVIDER_NODES` បន្ថែម ហើយត្រូវឆ្លងកាត់គោលការណ៍ URL ចេញក្រៅរបស់ក្រុមហ៊ុនផ្តល់សេវា — សូមមើល [Feature Flags](../reference/FEATURE_FLAGS.md)។ ឧបករណ៍ជ្រើសរើសលើ dashboard បង្ហាញក្រុមហ៊ុនផ្តល់សេវាដែលបានជ្រើសសម្រិតសម្រាំង ព្រមទាំង local nodes។ ខ្សែអក្សរ `provider/model` ត្រឹមត្រូវណាមួយអាចត្រូវបានកំណត់ដោយផ្ទាល់តាមរយៈ `PUT /api/settings/memory`។
+| `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | backend vector ដែលត្រូវប្រើ |
 
-ការកំណត់ទាំងនេះត្រូវបានបង្ហាញឱ្យប្រើតាមរយៈ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`)។
+ការកំណត់ទាំងនេះត្រូវបានបង្ហាញតាមរយៈ `GET /PUT /api/settings/memory` (schema `MemorySettingsExtendedSchema`)។
 
 សម្រាប់ប្រភព `remote` Memory ក៏ទទួលយកការកំណត់ជាជម្រើស `customBaseUrl` និង
-`customModelId` ផងដែរ។ នៅពេលប្រើរួមគ្នា ពួកវាជ្រើសរើស endpoint `/embeddings`
-និងម៉ូដែលដែលត្រូវគ្នាជាមួយ OpenAI ដោយមិនផ្លាស់ប្តូរ registry សកលរបស់ embedding។ Endpoint ត្រូវបាន
-ធ្វើឱ្យមានទម្រង់ស្តង់ដារមុនពេលប្រើ និងត្រូវបានត្រួតពិនិត្យដោយគោលការណ៍ URL ចេញក្រៅរបស់អ្នកផ្តល់សេវា៖ តម្រូវឱ្យប្រើ HTTP(S)
-ព័ត៌មានសម្ងាត់ដែលបានបង្កប់ និង query string ត្រូវបានបដិសេធ ហើយអាសយដ្ឋាន cloud-metadata
-នៅតែត្រូវបានទប់ស្កាត់។ តម្លៃទទេរក្សាទុកអ្នកផ្តល់សេវា registry ដែលបានជ្រើស។ កំហុស
+`customModelId` ផងដែរ។ ការកំណត់ទាំងពីរនេះរួមគ្នាជ្រើសរើស endpoint `/embeddings`
+ដែលត្រូវគ្នាជាមួយ OpenAI និងម៉ូដែល ដោយមិនផ្លាស់ប្តូរបញ្ជីឈ្មោះ embedding សកល។ endpoint ត្រូវបាន
+ធ្វើឱ្យមានទម្រង់ស្តង់ដារមុនពេលប្រើ និងត្រូវបានត្រួតពិនិត្យដោយគោលការណ៍ URL ចេញក្រៅរបស់ក្រុមហ៊ុនផ្តល់សេវា៖ HTTP(S)
+ត្រូវបានទាមទារ ព័ត៌មានសម្ងាត់ដែលបានបង្កប់ និង query strings ត្រូវបានបដិសេធ ហើយអាសយដ្ឋាន
+cloud-metadata នៅតែត្រូវបានទប់ស្កាត់។ តម្លៃទទេរក្សាក្រុមហ៊ុនផ្តល់សេវាពីបញ្ជីឈ្មោះដែលបានជ្រើសរើស។ កំហុស
 ដែលបញ្ជូនត្រឡប់ទៅ dashboard ត្រូវបានសម្អាត ហើយព័ត៌មានសម្ងាត់របស់ endpoint មិនត្រូវបានកត់ត្រាក្នុង log ឡើយ។
 
-> **TODO (D20)៖** Scope `global` (ការចែករំលែក memory នៅទូទាំង API key ទាំងអស់) មិនទាន់ត្រូវបាន
-> អនុវត្តនៅក្នុងការចេញផ្សាយនេះទេ។ វាតម្រូវឱ្យមានការផ្លាស់ប្តូរ schema និងផ្លូវ retrieval
-> សកល។ តាមដានវាដោយឡែក។
+> **TODO (D20)៖** Scope `global` (ការចែករំលែក memories នៅទូទាំង API keys ទាំងអស់) មិនទាន់ត្រូវបាន
+> អនុវត្តក្នុង release នេះទេ។ វាទាមទារការផ្លាស់ប្តូរ schema និង retrieval
+> path សកល។ ត្រូវតាមដានដោយឡែក។
 
 ## ស្រទាប់ផ្ទុកទិន្នន័យ
 
@@ -888,12 +888,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## លំនាំអ្នកផ្ដល់សេវា MemoryBackend
+## លំនាំអ្នកផ្តល់ MemoryBackend
 
-> **ប្រភពពិតប្រាកដ៖** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
-> **ការធ្វើតេស្ត៖** `src/lib/memory/__tests__/generic-backend.test.ts`
+> **ប្រភពពិតតែមួយ:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **ការធ្វើតេស្ត:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-លំនាំអ្នកផ្ដល់សេវា MemoryBackend ណែនាំនូវ **ស្រទាប់អរូបី backend ដែលអាចដោតប្ដូរបាន** លើម៉ាស៊ីនអង្គចងចាំដែលមានស្រាប់។ ជំនួសឱ្យការជាប់ពាក់ព័ន្ធនឹងការអនុវត្តការផ្ទុកតែមួយ ឥឡូវនេះប្រព័ន្ធអង្គចងចាំគាំទ្រ backend ជាច្រើន (SQLite, Obsidian, Notion និង backend HTTP ផ្ទាល់ខ្លួន) ជាមួយការកំណត់រចនាសម្ព័ន្ធនៃការបញ្ជូនផ្លូវ primary/fallback។
+លំនាំអ្នកផ្តល់ MemoryBackend បន្ថែម **ស្រទាប់អរូបី backend ដែលអាចដោតបន្ថែមបាន** នៅលើម៉ាស៊ីនមេម៉ូរីដែលមានស្រាប់។ ជំនួសឱ្យការភ្ជាប់ទៅនឹងការអនុវត្តកន្លែងផ្ទុកតែមួយ ប្រព័ន្ធមេម៉ូរីឥឡូវគាំទ្រ backend ច្រើន (SQLite, Obsidian, Notion, backend HTTP ផ្ទាល់ខ្លួន) ជាមួយនឹងការកំណត់រចនាសម្ព័ន្ធនាំផ្លូវទៅកាន់ backend ចម្បង/បម្រុង។
 
 ### ស្ថាបត្យកម្ម
 
@@ -905,11 +905,11 @@ curl -X POST http://localhost:20128/api/memory/summarize \
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           អ្នកសម្របសម្រួល Singleton (manager.ts)          │
+│           កម្មវិធីសម្របសម្រួល Singleton (manager.ts)      │
 │                                                          │
-│  ចម្បង ──► Backend A  (ឧ. SQLite)                        │
-│  បម្រុង ─► Backend B  (ឧ. Obsidian)                      │
-│             Backend C  (ឧ. Notion តាម GenericBackend)    │
+│  ចម្បង ─────► Backend A  (ឧ. SQLite)                     │
+│  បម្រុង ────► Backend B  (ឧ. Obsidian)                   │
+│               Backend C  (ឧ. Notion តាម GenericBackend)  │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -922,14 +922,14 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 #### ចំណុចប្រទាក់ស្នូល (`backend.ts`)
 
-រាល់ backend ត្រូវតែអនុវត្តចំណុចប្រទាក់ `MemoryBackend`៖
+backend នីមួយៗត្រូវតែអនុវត្តចំណុចប្រទាក់ `MemoryBackend`៖
 
 ```typescript
 interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // បង្កើត អាន ធ្វើបច្ចុប្បន្នភាព និងលុប
+  // ប្រតិបត្តិការ CRUD
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -939,10 +939,10 @@ interface MemoryBackend {
   // ស្វែងរក
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // ស្ថានភាពដំណើរការ
+  // ស្ថានភាពប្រព័ន្ធ
   health(): Promise<HealthCheckResult>;
 
-  // វដ្ដជីវិត (ជាជម្រើស)
+  // វដ្តជីវិត (ជាជម្រើស)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -950,43 +950,43 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-អ្នកសម្របសម្រួល Singleton ដែល៖
+កម្មវិធីសម្របសម្រួល Singleton ដែល៖
 
-- **ចុះឈ្មោះ** backend តាមរយៈ `register(backend)` — ត្រូវបានហៅនៅពេលចាប់ផ្ដើមពី `index.ts`
-- **កំណត់រចនាសម្ព័ន្ធ** primary + fallback តាមរយៈ `configure(primary, fallbacks)`
-- **បញ្ជូនផ្លូវ** CRUD/ការស្វែងរកទៅ primary ដោយប្រើខ្សែសង្វាក់ fallback នៅពេលបរាជ័យ
-- **ត្រួតពិនិត្យស្ថានភាពដំណើរការ** របស់ backend ទាំងអស់តាមកាលកំណត់
+- **ចុះឈ្មោះ** backend តាមរយៈ `register(backend)` — ត្រូវបានហៅនៅពេលចាប់ផ្តើមពី `index.ts`
+- **កំណត់រចនាសម្ព័ន្ធ** backend ចម្បង + backend បម្រុង តាមរយៈ `configure(primary, fallbacks)`
+- **នាំផ្លូវ** ប្រតិបត្តិការ CRUD/ការស្វែងរកទៅកាន់ backend ចម្បង ដោយមានខ្សែសង្វាក់ backend បម្រុងនៅពេលបរាជ័យ
+- **ពិនិត្យស្ថានភាពប្រព័ន្ធ** របស់ backend ទាំងអស់ជាប្រចាំ
 
-**ឥរិយាបថ fallback៖**
+**ឥរិយាបថនៃការប្រើ backend បម្រុង:**
 
-| ប្រតិបត្តិការ | Primary                  | Fallbacks                          |
-| ------------- | ------------------------ | ---------------------------------- |
-| `create`      | ✅ តែ Primary ប៉ុណ្ណោះ   | ❌                                 |
-| `get`         | ✅ សាកល្បង primary ជាមុន | ✅ Fallback ប្រសិនបើ null          |
-| `update`      | ✅ តែ Primary ប៉ុណ្ណោះ   | ✅ ធ្វើសមកាលកម្មដោយមិនរង់ចាំលទ្ធផល |
-| `delete`      | ✅ តែ Primary ប៉ុណ្ណោះ   | ✅ ធ្វើសមកាលកម្មដោយមិនរង់ចាំលទ្ធផល |
-| `list`        | ✅ តែ Primary ប៉ុណ្ណោះ   | ❌                                 |
-| `search`      | ✅ Primary ជាមុន         | ✅ Fallback នៅពេលមានកំហុស          |
+| ប្រតិបត្តិការ | ចម្បង                       | បម្រុង                               |
+| ------------- | --------------------------- | ------------------------------------ |
+| `create`      | ✅ តែ backend ចម្បងប៉ុណ្ណោះ | ❌                                   |
+| `get`         | ✅ សាកល្បង backend ចម្បងមុន | ✅ ប្រើ backend បម្រុង ប្រសិនបើ null |
+| `update`      | ✅ តែ backend ចម្បងប៉ុណ្ណោះ | ✅ ធ្វើសមកាលកម្មដោយមិនរង់ចាំលទ្ធផល   |
+| `delete`      | ✅ តែ backend ចម្បងប៉ុណ្ណោះ | ✅ ធ្វើសមកាលកម្មដោយមិនរង់ចាំលទ្ធផល   |
+| `list`        | ✅ តែ backend ចម្បងប៉ុណ្ណោះ | ❌                                   |
+| `search`      | ✅ backend ចម្បងមុន         | ✅ ប្រើ backend បម្រុងពេលមានកំហុស    |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-ឧបករណ៍តភ្ជាប់ HTTP ទូទៅដែលសម្រប REST API ណាមួយឱ្យទៅជា MemoryBackend។ មានប្រយោជន៍សម្រាប់៖
+ឧបករណ៍តភ្ជាប់ HTTP ទូទៅដែលសម្រប REST API ណាមួយទៅជា MemoryBackend។ មានប្រយោជន៍សម្រាប់៖
 
-- **Notion** — តភ្ជាប់តាម Notion API
-- **Obsidian** — តភ្ជាប់តាម Obsidian Local REST API
-- **Backend ផ្ទាល់ខ្លួន** — សេវាណាមួយដែលបង្ហាញ RESTful memory API
+- **Notion** — ភ្ជាប់តាមរយៈ Notion API
+- **Obsidian** — ភ្ជាប់តាមរយៈ Obsidian Local REST API
+- **Backend ផ្ទាល់ខ្លួន** — សេវាកម្មណាមួយដែលបង្ហាញ RESTful memory API
 
-**ការកំណត់រចនាសម្ព័ន្ធ៖**
+**ការកំណត់រចនាសម្ព័ន្ធ:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // URL មូលដ្ឋានរបស់ backend API
   apiKey?: string;           // Bearer token សម្រាប់ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ
-  headers?: Record<string, string>;  // HTTP headers ផ្ទាល់ខ្លួន
-  timeout?: number;          // រយៈពេលអស់សុពលភាពនៃសំណើ (លំនាំដើម៖ 30000ms)
-  backendType?: string;      // សម្រាប់ការកត់ត្រា log
+  headers?: Record<string, string>;  // HTTP header ផ្ទាល់ខ្លួន
+  timeout?: number;          // រយៈពេលអតិបរមានៃសំណើ (លំនាំដើម៖ 30000ms)
+  backendType?: string;      // សម្រាប់ការកត់ត្រា
 
-  // ការកំណត់ជំនួស endpoint (តម្លៃលំនាំដើមប្រើអនុសញ្ញា REST)
+  // ការកំណត់ជាន់លើ endpoint (តម្លៃលំនាំដើមប្រើអនុសញ្ញា REST)
   endpoints?: {
     search?: string;   // លំនាំដើម៖ "/memories/search"
     create?: string;   // លំនាំដើម៖ "/memories"
@@ -997,30 +997,30 @@ interface GenericBackendConfig {
     health?: string;   // លំនាំដើម៖ "/health"
   };
 
-  // ការផ្គូផ្គងឈ្មោះ query parameter
+  // ការផ្គូផ្គងឈ្មោះប៉ារ៉ាម៉ែត្រសំណួរ
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // ការផ្គូផ្គងឈ្មោះ path parameter
+  // ការផ្គូផ្គងឈ្មោះប៉ារ៉ាម៉ែត្រផ្លូវ
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**Backend ដែលស្គាល់រួច** ត្រូវបានកំណត់ជាមុននៅក្នុង `KNOWN_BACKENDS`៖
+**Backend ដែលស្គាល់រួច** ត្រូវបានកំណត់រចនាសម្ព័ន្ធជាមុនក្នុង `KNOWN_BACKENDS`៖
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend ដែលចង្អុលទៅ localhost:27123
 createKnownBackend("notion"); // → GenericMemoryBackend ដែលចង្អុលទៅ api.notion.com/v1
 ```
 
-#### Backend ដែលមានស្រាប់
+#### Backend ដែលភ្ជាប់មកជាមួយ
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-ជា backend ចម្បងលំនាំដើម។ វារុំឃ្លាំងអង្គចងចាំដែលមានស្រាប់ និងផ្អែកលើ SQLite ដោយប្រើ `src/lib/memory/store.ts`។ វាត្រូវបានចុះឈ្មោះដោយស្វ័យប្រវត្តិនៅពេលចាប់ផ្ដើម។
+ជា backend ចម្បងលំនាំដើម។ វាគ្របដណ្តប់កន្លែងផ្ទុកមេម៉ូរីដែលមានមូលដ្ឋានលើ SQLite ដែលមានស្រាប់ ដោយប្រើ `src/lib/memory/store.ts`។ វាត្រូវបានចុះឈ្មោះដោយស្វ័យប្រវត្តិនៅពេលចាប់ផ្តើម។
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1029,39 +1029,99 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-រុំការរួមបញ្ចូល Obsidian ដែលមានស្រាប់ (`src/lib/memory/obsidianBackend.ts`)។ ភ្ជាប់ទៅ Obsidian vault តាមរយៈ Obsidian Local REST API។
+គ្របដណ្តប់ការរួមបញ្ចូល Obsidian ដែលមានស្រាប់ (`src/lib/memory/obsidianBackend.ts`)។ វាភ្ជាប់ទៅកាន់ vault របស់ Obsidian តាមរយៈ Obsidian Local REST API។
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+អាដាប់ទ័រសម្រាប់ worker [claude-mem](https://github.com/thedotmack/claude-mem) ក្នុងម៉ាស៊ីនមូលដ្ឋាន — ជាកម្មវិធីជំនួយមេម៉ូរីរបស់
+Claude Code / Codex / Cursor ដែលចាប់យកសម័យកាលសរសេរកូដជា "ការសង្កេត"។
+នៅពេលវាត្រូវបានចុះឈ្មោះ ផ្លូវ REST `/api/memory` និងការស្វែងរកមេម៉ូរី A2A អាចអាន និងសរសេរ
+កន្លែងផ្ទុកដូចគ្នាដែល hook របស់ claude-mem បញ្ចូលទិន្នន័យ។
+
+worker ភ្ជាប់តែលើ loopback ប៉ុណ្ណោះ ដែលរបាំងការពារ SSRF របស់ `GenericMemoryBackend` បដិសេធដោយចេតនា។
+អាដាប់ទ័រនេះមិនបន្ធូរបន្ថយរបាំងការពារនោះទេ៖ host ត្រូវបានកំណត់ថេរជា `127.0.0.1` ហើយ schema
+នៃការកំណត់រចនាសម្ព័ន្ធ (`ClaudeMemBackendConfigSchema`, `.strict()`) ទទួលយកតែ៖
+
+| គន្លឹះ      | ប្រភេទ    | លំនាំដើម | កំណត់សម្គាល់                                                                                                            |
+| ----------- | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `port`      | លេខ       | —        | តម្រូវឱ្យមាន ចន្លោះពី 1024–65535។ port របស់ claude-mem worker ពីឯកសារការកំណត់របស់វា (លំនាំដើម `37700 + uid % 100`)។     |
+| `project`   | ខ្សែអក្សរ | —        | គម្រោង claude-mem ដែលត្រូវប្រើ។ បើមិនបានកំណត់ → OmniRoute API key នីមួយៗត្រូវបានផ្គូផ្គងទៅគម្រោងរៀងៗខ្លួន (`apiKeyId`)។ |
+| `timeoutMs` | លេខ       | `5000`   | ពេលអស់កំណត់សម្រាប់សំណើនីមួយៗ ចន្លោះពី 100–30000។                                                                        |
+
+បើកប្រើវាតាមរយៈ `PUT /api/settings/memory` ហើយចាប់ផ្ដើម OmniRoute ឡើងវិញ (backends ត្រូវបានចុះឈ្មោះ
+តែម្ដងប៉ុណ្ណោះ នៅក្នុង `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+ប្រើ `"primaryBackend": "claude-mem"` ជំនួសវិញ ដើម្បីកំណត់វាជាកន្លែងផ្ទុកសម្រាប់ REST API។ config ដែលមិនត្រឹមត្រូវ
+នឹងត្រូវបានកត់ត្រា (`claude-mem.backend.invalid_config`) និងរំលង ដូច្នេះ SQLite នៅតែជា backend ចម្បង។
+
+ការផ្គូផ្គង និងដែនកំណត់៖
+
+- IDs មានទម្រង់ `claude-mem:<observationId>`; `get`/`delete` មិនអើពើ IDs របស់ backends ផ្សេងទៀត ដោយមិនធ្វើ
+  network call។
+- `create` → `POST /api/memory/save`; វាលរបស់ OmniRoute (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) ស្ថិតនៅក្នុង `metadata.omniroute` របស់ claude-mem ហើយត្រូវបានបង្វិលត្រឡប់មកវិញនៅពេលអាន។
+- `search` → `GET /api/search?format=json&type=observations` ដែលត្រូវបានកាត់តម្រឹមតាម `maxTokens`
+  (ចំនួនតួអក្សរ / 4)។ `list` → observations endpoint ដែលមាន pagination របស់ worker (`total` គឺជាព្រំដែនខាងក្រោម — worker
+  ត្រឡប់ `hasMore` មិនមែនចំនួនសរុបទេ)។
+- observations ដែល hook ចាប់យក ផ្គូផ្គង `discovery` → `factual`, `decision` → `procedural`, និង
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`។
+- **មិនគាំទ្រការធ្វើបច្ចុប្បន្នភាព** (`update()` ត្រឡប់ `false`; observations មិនអាចកែប្រែបាន) និង **មិនមាន TTL**
+  (`expiresAt` ត្រូវបានមិនអើពើ)។ claude-mem លុបច្បាប់ចម្លងស្ទួននៃការរក្សាទុកដូចគ្នា ជំនួសឱ្យការធ្វើ upsert តាម `key`។
+- ការបញ្ចូលទៅក្នុង prompt (`retrieval.ts`) និងឧបករណ៍ MCP `omniroute_memory_*` នៅតែអាន SQLite
+  ដោយផ្ទាល់ — ពួកវាមិនឆ្លងកាត់ `memoryManager` ទេ ដូច្នេះ backend នេះមិនផ្ដល់ទិន្នន័យដល់ពួកវាឡើយ។
+
+**ការបញ្ជូន LLM calls ផ្ទាល់ខ្លួនរបស់ claude-mem តាមរយៈ OmniRoute។** claude-mem បង្រួម observations
+ដោយប្រើ LLM (លំនាំដើម៖ Claude Agent SDK)។ provider `openai-compatible` របស់វាអាចចង្អុលទៅ
+OmniRoute ជំនួសវិញ ដោយទទួលបាន combo fallback និងការតាមដានចំណាយ។ នៅក្នុង `~/.claude-mem/settings.json`៖
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
 
 ### ការកំណត់
 
 ការកំណត់ memory backend ត្រូវបានរក្សាទុកក្នុងតារាងការកំណត់របស់កម្មវិធី និងគ្រប់គ្រងតាមរយៈ `src/lib/memory/settings.ts`៖
 
-| ការកំណត់                     | កូនសោ Env/Config         | លំនាំដើម   | ការពិពណ៌នា                          |
-| ---------------------------- | ------------------------ | ---------- | ----------------------------------- |
-| Backend ចម្បង                | `memoryPrimaryBackend`   | `"sqlite"` | ID របស់ backend ចម្បង               |
-| Backend បម្រុង               | `memoryFallbackBackends` | `[]`       | ID របស់ backend បម្រុងតាមលំដាប់     |
-| ការកំណត់រចនាសម្ព័ន្ធ backend | `memoryBackendConfigs`   | `{}`       | ការកំណត់ជំនួសសម្រាប់ backend នីមួយៗ |
+| ការកំណត់             | គន្លឹះ Env/Config        | លំនាំដើម   | សេចក្ដីពិពណ៌នា                      |
+| -------------------- | ------------------------ | ---------- | ----------------------------------- |
+| Backend ចម្បង        | `memoryPrimaryBackend`   | `"sqlite"` | ID របស់ backend ចម្បង               |
+| Backends បម្រុង      | `memoryFallbackBackends` | `[]`       | IDs របស់ backends បម្រុងតាមលំដាប់   |
+| Configs របស់ backend | `memoryBackendConfigs`   | `{}`       | ការកំណត់ជំនួសសម្រាប់ backend នីមួយៗ |
 
 ការកំណត់ត្រូវបានធ្វើឱ្យមានទម្រង់ស្តង់ដារតាមរយៈ `normalizeMemorySettings()` និងរក្សាទុកក្នុង cache នៅ `getMemorySettings()`។
 
-### លំហូរនៃការចាប់ផ្ដើម
+### លំហូរចាប់ផ្ដើម
 
 ```
 ការចាប់ផ្ដើមកម្មវិធី
-  → ការ import របស់ index.ts (ផលប៉ះពាល់បន្ទាប់បន្សំ)៖ ចុះឈ្មោះ SQLiteBackend
-  → initMemoryBackends() ត្រូវបានហៅពី lifecycle របស់កម្មវិធី៖
+  → index.ts imports (ផលប៉ះពាល់បន្ទាប់បន្សំ)៖ ចុះឈ្មោះ SQLiteBackend
+  → initMemoryBackends() ត្រូវបានហៅពីវដ្ដជីវិតរបស់កម្មវិធី៖
       1. ផ្ទុកការកំណត់ (getMemorySettings)
-      2. កំណត់រចនាសម្ព័ន្ធ backend ចម្បង + backend បម្រុង
-      3. ចាប់ផ្ដើម backend ទាំងអស់ (ពិនិត្យស្ថានភាពដំណើរការ)
+      1b. ចុះឈ្មោះ backends ដែលបានជ្រើសបើកប្រើ និងមាននៅក្នុង backendConfigs (claude-mem)
+      2. កំណត់ backend ចម្បង + បម្រុង
+      3. ចាប់ផ្ដើម backends ទាំងអស់ (ពិនិត្យសុខភាព)
       4. រួចរាល់សម្រាប់សំណើ
 ```
 
 ### ការបន្ថែម Backend ថ្មី
 
-1. **អនុវត្ត interface `MemoryBackend`** ក្នុង `src/lib/memory/<name>Backend.ts`
+1. **អនុវត្ត interface `MemoryBackend`** នៅក្នុង `src/lib/memory/<name>Backend.ts`
 2. **Export** ពី `src/lib/memory/index.ts`
 3. **ចុះឈ្មោះ** ដោយប្រើ `memoryManager.register(yourBackend)` នៅពេលចាប់ផ្ដើម
-4. **កំណត់រចនាសម្ព័ន្ធ** តាមរយៈការកំណត់៖ កំណត់ `memoryPrimaryBackend` ទៅជា ID របស់ backend របស់អ្នក
-5. **ធ្វើតេស្ត** ដោយយោងទៅលើ `src/lib/memory/__tests__/generic-backend.test.ts`
+4. **កំណត់រចនាសម្ព័ន្ធ** តាមរយៈការកំណត់៖ កំណត់ `memoryPrimaryBackend` ជា ID របស់ backend អ្នក
+5. **ធ្វើតេស្ត** ដោយយោងតាម `src/lib/memory/__tests__/generic-backend.test.ts`
 
 #### ឧទាហរណ៍៖ Brain Backend
 
@@ -1083,30 +1143,30 @@ memoryManager.register(brainBackend);
 
 ### ការផ្ទៀងផ្ទាត់
 
-#### Unit test
+#### Unit tests
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-លទ្ធផលដែលរំពឹងទុក៖ **35 តេស្ត ដែលទាំងអស់ឆ្លងកាត់** គ្របដណ្ដប់លើ៖
+លទ្ធផលរំពឹងទុក៖ **35 tests ដែលទាំងអស់ឆ្លងកាត់** គ្របដណ្ដប់លើ៖
 
 - Constructor (2)
-- ការពិនិត្យស្ថានភាពដំណើរការ (4) — ជោគជ័យ, បរាជ័យ 500, កំហុសបណ្ដាញ, latency
+- ការពិនិត្យសុខភាព (4) — ជោគជ័យ, បរាជ័យ 500, network error, latency
 - ការចាប់ផ្ដើម (2) — ជោគជ័យ, បរាជ័យ
 - ការបង្កើត (2) — endpoint លំនាំដើម, endpoint ផ្ទាល់ខ្លួន
-- ការទទួលយក (4) — ជោគជ័យ, 404 → null, non-404 បោះ exception, path params ផ្ទាល់ខ្លួន
+- ការទាញយក (4) — ជោគជ័យ, 404 → null, non-404 throw, path params ផ្ទាល់ខ្លួន
 - ការធ្វើបច្ចុប្បន្នភាព (2) — ជោគជ័យ, 404 → false
 - ការលុប (2) — ជោគជ័យ, 404 → false
-- បញ្ជី (2) — query params, ឈ្មោះ parameter ផ្ទាល់ខ្លួន
+- បញ្ជី (2) — query params, ឈ្មោះ param ផ្ទាល់ខ្លួន
 - ការស្វែងរក (3) — query params, endpoint ផ្ទាល់ខ្លួន, options serialization
 - Auth headers (2) — Bearer token, headers ផ្ទាល់ខ្លួន
 - Factory (1)
 
-#### ការពិនិត្យ type
+#### ការពិនិត្យប្រភេទ
 
 ```bash
 npm run typecheck:core
 ```
 
-លទ្ធផលដែលរំពឹងទុក៖ **0 កំហុស**។
+លទ្ធផលរំពឹងទុក៖ **0 errors**។

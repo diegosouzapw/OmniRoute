@@ -169,31 +169,31 @@ pyyntöä kohden. Edistymistä voidaan seurata kyselyllä
 
 ## Asetusten laajennus
 
-`MemorySettingsExtended` sisältää yhdeksän upotus- ja vektorikenttää tiedostossa
-`src/shared/schemas/memory.ts`, ja ne tallennetaan tiedoston `src/lib/db/settings.ts` kautta:
+`MemorySettingsExtended`-tyypissä on käytettävissä yhdeksän upotus- ja vektorikenttää tiedostossa
+`src/shared/schemas/memory.ts`, ja ne säilytetään tiedoston `src/lib/db/settings.ts` kautta:
 
-| Kenttä                   | Tyyppi                                             | Oletusarvo | Kuvaus                                                                |
-| ------------------------ | -------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Käytettävä upotuslähde                                                |
-| `embeddingProviderModel` | `string \| null`                                   | `null`     | Palveluntarjoaja/malli muodossa `provider/model`                      |
-| `customBaseUrl`          | `string \| null`                                   | `null`     | Vain Memoryn käyttämän OpenAI-yhteensopivan päätepisteen perus-URL    |
-| `customModelId`          | `string \| null`                                   | `null`     | Mukautettuun päätepisteeseen lähetettävä mallitunnus                  |
-| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js:n käyttöönotto (MiniLM, ~400MB)                       |
-| `staticEnabled`          | `boolean`                                          | `false`    | Paikallisen staattisen potion-base-8M-mallin käyttöönotto             |
-| `rerankEnabled`          | `boolean`                                          | `false`    | Ota uudelleenjärjestelyvaihe käyttöön (lisää +200-500ms/pyyntö)       |
-| `rerankProviderModel`    | `string \| null`                                   | `null`     | Uudelleenjärjestelyn palveluntarjoaja/malli muodossa `provider/model` |
+| Kenttä                   | Tyyppi                                             | Oletusarvo | Kuvaus                                                                 |
+| ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | Käytettävä upotuslähde                                                 |
+| `embeddingProviderModel` | `string \| null`                                   | `null`     | Palveluntarjoaja/malli `provider/model`-muodossa                       |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | Vain Memorylle tarkoitettu OpenAI-yhteensopivan päätepisteen perus-URL |
+| `customModelId`          | `string \| null`                                   | `null`     | Mukautettuun päätepisteeseen lähetettävä mallitunnus                   |
+| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js:n käyttöönotto (MiniLM, ~400 Mt)                       |
+| `staticEnabled`          | `boolean`                                          | `false`    | Paikallisen staattisen potion-base-8M-mallin käyttöönotto              |
+| `rerankEnabled`          | `boolean`                                          | `false`    | Ota uudelleenjärjestelyvaihe käyttöön (lisää +200–500 ms/pyyntö)       |
+| `rerankProviderModel`    | `string \| null`                                   | `null`     | Uudelleenjärjestelyn palveluntarjoaja/malli `provider/model`-muodossa  |
 
-`rerankProviderModel` ratkaistaan kutsulla `POST /v1/rerank` (joka tehdään takaisinkytkentäyhteyden kautta), joten se hyväksyy kaiken, minkä kyseinen reitti hyväksyy: kuratoidun pilvipohjaisen uudelleenjärjestelymallin (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tai OpenAI-yhteensopivan palveluntarjoajasolmun muodossa `<node-prefix>/<model>` (esim. `skilled-mini/bge-reranker-v2-m3` TEI/Infinity-palvelimelle). Takaisinkytkentäsolmut ovat aina kelvollisia; toisella isäntäkoneella (LAN, Tailscale) sijaitseva solmu edellyttää lisäksi `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslippua, ja sen on läpäistävä palveluntarjoajan lähtevien URL-osoitteiden käytäntö — katso [Ominaisuusliput](../reference/FEATURE_FLAGS.md). Hallintapaneelin valitsin luettelee kuratoidut palveluntarjoajat sekä paikalliset solmut; mikä tahansa kelvollinen `provider/model`-merkkijono voidaan asettaa suoraan kutsulla `PUT /api/settings/memory`.
+`rerankProviderModel` ratkaistaan kutsulla `POST /v1/rerank` (kutsu tehdään loopback-yhteyden kautta), joten se hyväksyy kaiken, mitä kyseinen reitti hyväksyy: kuratoidun pilvipohjaisen uudelleenjärjestelymallin (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) tai OpenAI-yhteensopivan palveluntarjoajasolmun muodossa `<node-prefix>/<model>` (esimerkiksi `skilled-mini/bge-reranker-v2-m3` TEI/Infinity-palvelimelle). Loopback-solmut ja `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`-muuttujassa luetellut isäntänimet (esimerkiksi Docker/Compose-palvelun nimi) ovat aina kelvollisia; toisella isännällä (LAN, Tailscale) oleva solmu edellyttää lisäksi `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslippua, ja sen on läpäistävä palveluntarjoajan lähtevien URL-osoitteiden käytäntö — katso [Ominaisuusliput](../reference/FEATURE_FLAGS.md). Hallintapaneelin valitsin näyttää kuratoidut palveluntarjoajat ja paikalliset solmut; mikä tahansa kelvollinen `provider/model`-merkkijono voidaan asettaa suoraan kutsulla `PUT /api/settings/memory`.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | Käytettävä vektoritaustajärjestelmä |
 
 Nämä ovat käytettävissä rajapinnan `GET /PUT /api/settings/memory` kautta (skeema `MemorySettingsExtendedSchema`).
 
-`remote`-lähdettä käytettäessä Memory hyväksyy myös valinnaiset `customBaseUrl`- ja
+`remote`-lähteelle Memory hyväksyy myös valinnaiset `customBaseUrl`- ja
 `customModelId`-asetukset. Yhdessä ne valitsevat OpenAI-yhteensopivan `/embeddings`-
-päätepisteen ja mallin muuttamatta yleistä upotusrekisteriä. Päätepiste normalisoidaan
-ennen käyttöä ja tarkistetaan palveluntarjoajan lähtevien URL-osoitteiden käytännön mukaisesti: HTTP(S)
-vaaditaan, upotetut tunnistetiedot ja kyselymerkkijonot hylätään, ja pilvipalvelujen metatieto-
-osoitteet pysyvät estettyinä. Tyhjät arvot säilyttävät valitun rekisterin palveluntarjoajan. Hallintapaneelille
+päätepisteen ja mallin muuttamatta yleistä upotusrekisteriä. Päätepiste
+normalisoidaan ennen käyttöä ja tarkistetaan palveluntarjoajan lähtevien URL-osoitteiden käytännön mukaisesti: HTTP(S)
+vaaditaan, sisällytetyt tunnistetiedot ja kyselymerkkijonot hylätään, ja pilvipalvelujen metatieto-
+osoitteet pysyvät estettyinä. Tyhjät arvot säilyttävät valitun rekisteripalveluntarjoajan. Hallintapaneeliin
 palautettavat virheet puhdistetaan, eikä päätepisteen tunnistetietoja koskaan kirjata lokiin.
 
 > **TODO (D20):** `global`-laajuutta (muistojen jakaminen kaikkien API-avainten kesken) ei ole
@@ -913,10 +913,10 @@ Jos haluat pitää sen pois käytöstä, säilytä vain `autoSummarize`-asetukse
 
 ## MemoryBackend-palveluntarjoajamalli
 
-> **Ensisijainen tietolähde:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **Totuuden lähde:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **Testit:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend-palveluntarjoajamalli tuo olemassa olevan muistimoottorin päälle **vaihdettavan taustajärjestelmän abstraktiokerroksen**. Sen sijaan, että muistijärjestelmä olisi sidottu yhteen tallennustoteutukseen, se tukee nyt useita taustajärjestelmiä (SQLite, Obsidian, Notion ja mukautetut HTTP-taustajärjestelmät), joiden ensisijainen ja varareititys voidaan määrittää.
+MemoryBackend-palveluntarjoajamalli tuo olemassa olevan muistimoottorin päälle **vaihdettavan taustajärjestelmien abstraktiokerroksen**. Sen sijaan, että muistijärjestelmä olisi sidottu yhteen tallennustoteutukseen, se tukee nyt useita taustajärjestelmiä (SQLite, Obsidian, Notion ja mukautetut HTTP-taustajärjestelmät) sekä määritettävää ensisijaista ja varajärjestelmiin perustuvaa reititystä.
 
 ### Arkkitehtuuri
 
@@ -928,12 +928,12 @@ MemoryBackend-palveluntarjoajamalli tuo olemassa olevan muistimoottorin päälle
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│         Singleton-orkestroija (manager.ts)                │
+│           Singleton-orkestroija (manager.ts)              │
 │                                                          │
 │  Ensisijainen ──► Taustajärjestelmä A  (esim. SQLite)    │
-│  Vara ──────────► Taustajärjestelmä B  (esim. Obsidian)  │
-│                   Taustajärjestelmä C  (esim. Notion      │
-│                   GenericBackendin kautta)                │
+│  Varajärjestelmä ─► Taustajärjestelmä B (esim. Obsidian) │
+│                     Taustajärjestelmä C                   │
+│                     (esim. Notion GenericBackendin kautta)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -941,7 +941,7 @@ MemoryBackend-palveluntarjoajamalli tuo olemassa olevan muistimoottorin päälle
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite-    │ │ Obsidian-  │ │ GenericMemory-   │
 │ tausta-    │ │ tausta-    │ │ taustajärjestelmä│
-│ järjestelmä│ │ järjestelmä│ │ (HTTP)            │
+│ järjestelmä│ │ järjestelmä│ │ (HTTP)           │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -964,7 +964,7 @@ interface MemoryBackend {
   // Haku
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // Terveys
+  // Toimintakunto
   health(): Promise<HealthCheckResult>;
 
   // Elinkaari (valinnainen)
@@ -979,39 +979,39 @@ Singleton-orkestroija, joka:
 
 - **Rekisteröi** taustajärjestelmät `register(backend)`-kutsulla — kutsutaan käynnistyksen yhteydessä tiedostosta `index.ts`
 - **Määrittää** ensisijaisen taustajärjestelmän ja varajärjestelmät kutsulla `configure(primary, fallbacks)`
-- **Reitittää** CRUD-toiminnot ja haut ensisijaiseen taustajärjestelmään käyttäen varaketjua virhetilanteessa
-- **Tarkistaa kaikkien taustajärjestelmien kunnon** säännöllisesti
+- **Reitittää** CRUD-toiminnot ja haut ensisijaiseen taustajärjestelmään sekä käyttää virhetilanteissa varajärjestelmäketjua
+- **Tarkistaa kaikkien taustajärjestelmien toimintakunnon** säännöllisesti
 
-**Varajärjestelmän toiminta:**
+**Varajärjestelmien toiminta:**
 
-| Toiminto | Ensisijainen                  | Varajärjestelmät                            |
-| -------- | ----------------------------- | ------------------------------------------- |
-| `create` | ✅ Vain ensisijainen          | ❌                                          |
-| `get`    | ✅ Kokeile ensin ensisijaista | ✅ Vara, jos tulos on null                  |
-| `update` | ✅ Vain ensisijainen          | ✅ Asynkroninen synkronointi ilman odotusta |
-| `delete` | ✅ Vain ensisijainen          | ✅ Asynkroninen synkronointi ilman odotusta |
-| `list`   | ✅ Vain ensisijainen          | ❌                                          |
-| `search` | ✅ Ensisijainen ensin         | ✅ Vara virhetilanteessa                    |
+| Toiminto | Ensisijainen                  | Varajärjestelmät                      |
+| -------- | ----------------------------- | ------------------------------------- |
+| `create` | ✅ Vain ensisijainen          | ❌                                    |
+| `get`    | ✅ Kokeile ensin ensisijaista | ✅ Varajärjestelmä, jos tulos on null |
+| `update` | ✅ Vain ensisijainen          | ✅ Taustalla tehtävä synkronointi     |
+| `delete` | ✅ Vain ensisijainen          | ✅ Taustalla tehtävä synkronointi     |
+| `list`   | ✅ Vain ensisijainen          | ❌                                    |
+| `search` | ✅ Ensisijainen ensin         | ✅ Varajärjestelmä virhetilanteessa   |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-Yleiskäyttöinen HTTP-yhdistin, joka mukauttaa minkä tahansa REST API:n MemoryBackendiksi. Hyödyllinen seuraaville:
+Yleiskäyttöinen HTTP-yhdistin, joka sovittaa minkä tahansa REST-rajapinnan MemoryBackend-taustajärjestelmäksi. Hyödyllinen seuraaville:
 
 - **Notion** — yhdistä Notion API:n kautta
 - **Obsidian** — yhdistä Obsidian Local REST API:n kautta
-- **Mukautetut taustajärjestelmät** — mikä tahansa palvelu, joka tarjoaa RESTful-muisti-API:n
+- **Mukautetut taustajärjestelmät** — mikä tahansa palvelu, joka tarjoaa RESTful-muistirajapinnan
 
 **Määritykset:**
 
 ```typescript
 interface GenericBackendConfig {
   baseUrl: string;           // Taustajärjestelmän API:n perus-URL
-  apiKey?: string;           // Bearer-tunniste todentamista varten
+  apiKey?: string;           // Bearer-tunnus todennusta varten
   headers?: Record<string, string>;  // Mukautetut HTTP-otsakkeet
   timeout?: number;          // Pyynnön aikakatkaisu (oletus: 30000ms)
   backendType?: string;      // Lokitusta varten
 
-  // Päätepisteiden ohitukset (oletusarvot noudattavat REST-käytäntöjä)
+  // Päätepisteiden ohitukset (oletukset noudattavat REST-käytäntöjä)
   endpoints?: {
     search?: string;   // oletus: "/memories/search"
     create?: string;   // oletus: "/memories"
@@ -1022,19 +1022,19 @@ interface GenericBackendConfig {
     health?: string;   // oletus: "/health"
   };
 
-  // Kyselyparametrien nimien määritykset
+  // Kyselyparametrien nimien vastaavuudet
   queryParams?: {
     query?/apiKeyId?/limit?/offset?/strategy?/maxTokens?/type?/sessionId?/orderBy?/orderDir?/options?
   };
 
-  // Polkuparametrien nimien määritykset
+  // Polkuparametrien nimien vastaavuudet
   pathParams?: {
     id?/memoryId?
   };
 }
 ```
 
-**Tunnetut taustajärjestelmät** on esimääritetty `KNOWN_BACKENDS`-kohdassa:
+**Tunnetut taustajärjestelmät** on esimääritetty `KNOWN_BACKENDS`-rakenteessa:
 
 ```typescript
 createKnownBackend("obsidian"); // → GenericMemoryBackend, joka osoittaa osoitteeseen localhost:27123
@@ -1045,7 +1045,7 @@ createKnownBackend("notion"); // → GenericMemoryBackend, joka osoittaa osoitte
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-Ensisijainen oletustaustajärjestelmä. Kapseloi olemassa olevan SQLite-pohjaisen muistivaraston käyttämällä tiedostoa `src/lib/memory/store.ts`. Rekisteröidään automaattisesti käynnistyksen yhteydessä.
+Oletusarvoinen ensisijainen taustajärjestelmä. Kapseloi olemassa olevan SQLite-pohjaisen muistivaraston käyttäen tiedostoa `src/lib/memory/store.ts`. Rekisteröidään automaattisesti käynnistyksen yhteydessä.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1054,41 +1054,100 @@ memoryManager.register(sqliteBackend);
 
 ##### ObsidianBackend (`obsidianBackend.ts`)
 
-Kapseloi olemassa olevan Obsidian-integraation (`src/lib/memory/obsidianBackend.ts`). Muodostaa yhteyden Obsidian-holviin Obsidian Local REST API:n kautta.
+Kapseloi olemassa olevan Obsidian-integraation (`src/lib/memory/obsidianBackend.ts`). Yhdistää Obsidian-holviin Obsidian Local REST API:n kautta.
+
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+Sovitin paikalliselle [claude-mem](https://github.com/thedotmack/claude-mem)-työprosessille — Claude Code / Codex / Cursor -muistiliitännäiselle, joka tallentaa ohjelmointi-istunnot "havaintoina".
+Kun se on rekisteröity, `/api/memory`-REST-reitit ja A2A-muistihaku voivat lukea ja kirjoittaa
+samaan varastoon, jota claude-memin koukut täyttävät.
+
+Työprosessi kuuntelee vain takaisinkytkentäosoitetta, jonka `GenericMemoryBackend`-luokan SSRF-suojaus tarkoituksella estää.
+Tämä sovitin ei lievennä kyseistä suojausta: isäntä on kiinteästi määritetty arvoon `127.0.0.1`, ja määritysskeema
+(`ClaudeMemBackendConfigSchema`, `.strict()`) hyväksyy vain:
+
+| Avain       | Tyyppi | Oletusarvo | Huomautukset                                                                                                                 |
+| ----------- | ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —          | Pakollinen, 1024–65535. claude-mem-työprosessin portti sen asetustiedostosta (oletus `37700 + uid % 100`).                   |
+| `project`   | string | —          | Käytettävä claude-mem-projekti. Jos ei asetettu → jokainen OmniRoute API -avain yhdistetään omaan projektiinsa (`apiKeyId`). |
+| `timeoutMs` | number | `5000`     | Pyyntökohtainen aikakatkaisu, 100–30000.                                                                                     |
+
+Ota se käyttöön komennolla `PUT /api/settings/memory` ja käynnistä OmniRoute uudelleen (taustaosat rekisteröidään
+kerran funktiossa `initMemoryBackends()`):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+Käytä sen sijaan asetusta `"primaryBackend": "claude-mem"`, jos haluat tehdä siitä REST API:n tallennuspaikan. Virheellinen
+määritys kirjataan lokiin (`claude-mem.backend.invalid_config`) ja ohitetaan, joten SQLite säilyy ensisijaisena.
+
+Yhdistäminen ja rajoitukset:
+
+- ID:t ovat muotoa `claude-mem:<observationId>`; `get`/`delete` ohittavat muiden taustaosien ID:t ilman
+  verkkokutsua.
+- `create` → `POST /api/memory/save`; OmniRoute-kentät (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) kulkevat claude-memin `metadata.omniroute`-kentässä ja säilyvät edestakaisessa muunnoksessa luettaessa.
+- `search` → `GET /api/search?format=json&type=observations`, rajattuna arvoon `maxTokens`
+  (merkkejä / 4). `list` → työprosessin sivutettu havaintojen päätepiste (`total` on alaraja — työprosessi
+  palauttaa arvon `hasMore`, ei lukumäärää).
+- Koukkujen tallentamissa havainnoissa `discovery` → `factual`, `decision` → `procedural` ja
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`.
+- **Ei päivityksiä** (`update()` palauttaa `false`; havainnot ovat muuttumattomia) eikä **TTL:ää**
+  (`expiresAt` ohitetaan). claude-mem poistaa identtisten tallennusten kaksoiskappaleet sen sijaan, että se tekisi upsert-operaation `key`-arvon perusteella.
+- Kehotesyöttö (`retrieval.ts`) ja `omniroute_memory_*`-MCP-työkalut lukevat edelleen SQLitea
+  suoraan — ne eivät kulje `memoryManager`-komponentin kautta, joten tämä taustaosa ei syötä niille tietoja.
+
+**claude-memin omien LLM-kutsujen reititys OmniRouten kautta.** claude-mem pakkaa havaintoja
+LLM:n avulla (oletus: Claude Agent SDK). Sen `openai-compatible`-palveluntarjoaja voidaan sen sijaan ohjata
+OmniRouteen, jolloin yhdistelmien varajärjestely ja kustannusseuranta tulevat käyttöön. Tiedostossa `~/.claude-mem/settings.json`:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API -avain>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute-malli tai -yhdistelmä>"
+}
+```
 
 ### Asetukset
 
-Muistin taustajärjestelmän asetukset tallennetaan sovelluksen asetustauluun, ja niitä hallitaan tiedoston `src/lib/memory/settings.ts` kautta:
+Muistitaustaosan asetukset tallennetaan sovelluksen asetustauluun ja niitä hallitaan tiedoston `src/lib/memory/settings.ts` kautta:
 
-| Asetus                          | Ympäristö-/määritysavain | Oletus     | Kuvaus                                           |
-| ------------------------------- | ------------------------ | ---------- | ------------------------------------------------ |
-| Ensisijainen taustajärjestelmä  | `memoryPrimaryBackend`   | `"sqlite"` | Ensisijaisen taustajärjestelmän tunnus           |
-| Varataustajärjestelmät          | `memoryFallbackBackends` | `[]`       | Järjestetyt varataustajärjestelmien tunnukset    |
-| Taustajärjestelmien määritykset | `memoryBackendConfigs`   | `{}`       | Taustajärjestelmäkohtaiset määritysten ohitukset |
+| Asetus                  | Ympäristö-/määritysavain | Oletusarvo | Kuvaus                                   |
+| ----------------------- | ------------------------ | ---------- | ---------------------------------------- |
+| Ensisijainen taustaosa  | `memoryPrimaryBackend`   | `"sqlite"` | Ensisijaisen taustaosan ID               |
+| Varataustaosat          | `memoryFallbackBackends` | `[]`       | Järjestetty luettelo taustaosien ID:istä |
+| Taustaosien määritykset | `memoryBackendConfigs`   | `{}`       | Taustaosakohtaiset määritysten ohitukset |
 
-Asetukset normalisoidaan `normalizeMemorySettings()`-funktiolla ja tallennetaan välimuistiin `getMemorySettings()`-funktiossa.
+Asetukset normalisoidaan funktiolla `normalizeMemorySettings()` ja tallennetaan välimuistiin funktiossa `getMemorySettings()`.
 
 ### Alustusprosessi
 
 ```
 Sovelluksen käynnistys
-  → index.ts-tuonnit (sivuvaikutuksena): rekisteröi SQLiteBackend-taustajärjestelmän
-  → initMemoryBackends() kutsutaan sovelluksen elinkaaren aikana:
+  → index.ts-tuonnit (sivuvaikutus): rekisteröi SQLiteBackend-taustaosan
+  → initMemoryBackends() kutsutaan sovelluksen elinkaaresta:
       1. Lataa asetukset (getMemorySettings)
-      2. Määritä ensisijainen taustajärjestelmä ja varataustajärjestelmät
-      3. Alusta kaikki taustajärjestelmät (kuntotarkistus)
-      4. Valmis pyyntöjä varten
+      1b. Rekisteröi backendConfigs-määrityksissä olevat erikseen käyttöön otettavat taustaosat (claude-mem)
+      2. Määritä ensisijainen taustaosa ja varataustaosat
+      3. Alusta kaikki taustaosat (kuntotarkistus)
+      4. Valmis vastaanottamaan pyyntöjä
 ```
 
-### Uuden taustajärjestelmän lisääminen
+### Uuden taustaosan lisääminen
 
 1. **Toteuta `MemoryBackend`**-rajapinta tiedostossa `src/lib/memory/<name>Backend.ts`
-2. **Vie** tiedostosta `src/lib/memory/index.ts`
-3. **Rekisteröi** kutsulla `memoryManager.register(yourBackend)` käynnistyksen yhteydessä
-4. **Määritä** asetusten kautta: aseta `memoryPrimaryBackend` taustajärjestelmäsi tunnukseksi
-5. **Testaa** käyttämällä viitteenä tiedostoa `src/lib/memory/__tests__/generic-backend.test.ts`
+2. **Vie** se tiedostosta `src/lib/memory/index.ts`
+3. **Rekisteröi** se käynnistyksen yhteydessä komennolla `memoryManager.register(yourBackend)`
+4. **Määritä** se asetusten kautta: aseta `memoryPrimaryBackend` taustaosasi ID:ksi
+5. **Testaa** käyttäen viitteenä tiedostoa `src/lib/memory/__tests__/generic-backend.test.ts`
 
-#### Esimerkki: Brain-taustajärjestelmä
+#### Esimerkki: Brain-taustaosa
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1117,15 +1176,15 @@ npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbo
 Odotettu tulos: **35 testiä, kaikki läpäisty**, kattaen seuraavat:
 
 - Konstruktori (2)
-- Kuntotarkistus (4) — onnistuminen, 500-virhe, verkkovirhe, viive
+- Kuntotarkistus (4) — onnistuminen, virhe 500, verkkovirhe, viive
 - Alustus (2) — onnistuminen, epäonnistuminen
 - Luonti (2) — oletuspäätepiste, mukautettu päätepiste
-- Haku tunnuksella (4) — onnistuminen, 404 → null, muu kuin 404 → poikkeus, mukautetut polkuparametrit
+- Haku ID:llä (4) — onnistuminen, 404 → null, muu kuin 404 → poikkeus, mukautetut polkuparametrit
 - Päivitys (2) — onnistuminen, 404 → false
 - Poisto (2) — onnistuminen, 404 → false
-- Luettelointi (2) — kyselyparametrit, mukautetut parametrien nimet
+- Listaus (2) — kyselyparametrit, mukautetut parametrien nimet
 - Haku (3) — kyselyparametrit, mukautettu päätepiste, asetusten serialisointi
-- Todennusotsakkeet (2) — Bearer-tunniste, mukautetut otsakkeet
+- Todennusotsakkeet (2) — Bearer-tunnus, mukautetut otsakkeet
 - Tehdasfunktio (1)
 
 #### Tyyppitarkistus

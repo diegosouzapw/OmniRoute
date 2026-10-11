@@ -99,18 +99,18 @@ Combo တစ်ခုချင်းစီအတွက်-
 
 ---
 
-## ကျန်းမာရေး စစ်ဆေးမှု API
+## ကျန်းမာရေးစစ်ဆေးမှု API
 
-OmniRoute သည် HTTP ကျန်းမာရေး အခြေအနေပြ မျက်နှာပြင် **နှစ်ခု** ကို ဖော်ထုတ်ပေးထားသည်။ Orchestrator များအတွက် ၎င်းတို့ကို အပြန်အလှန် အစားထိုးအသုံးပြု၍ မရပါ။
+OmniRoute သည် HTTP ကျန်းမာရေးစစ်ဆေးမှု မျက်နှာပြင် **နှစ်ခု** ကို ဖော်ထုတ်ပေးထားသည်။ Orchestrator များအတွက် ၎င်းတို့ကို အပြန်အလှန် အစားထိုးအသုံးပြု၍ မရပါ။
 
-| Path                         | ရည်ရွယ်ချက်                                                                    | ဝန်အား                                       | အသုံးပြုရန်                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------- | -------------------------------------------------------------------------------- |
-| `GET /healthz`               | Lifecycle liveness/readiness (`ok` / `starting` / `stopping`)                  | အလွန်ပေါ့ပါးသည် (phase flag သာ)              | Kubernetes **readiness**; HTTP ကို မဖြစ်မနေသုံးရပါက ပျော့ပျောင်းသော **liveness** |
-| `GET /api/monitoring/health` | နက်ရှိုင်းသော system + provider အနှစ်ချုပ် (DB၊ heap၊ catalog အရေအတွက်များ၊ …) | လေးလံသည် (sync DB / monitoring လုပ်ငန်းများ) | Dashboard များ၊ blackbox နက်ရှိုင်းစစ်ဆေးမှုများ၊ Docker ၏ built-in healthcheck  |
+| လမ်းကြောင်း                  | ရည်ရွယ်ချက်                                                                         | ဝန်ပမာဏ                                       | အသုံးပြုရန်                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET /healthz`               | Lifecycle liveness/readiness (`ok` / `starting` / `stopping`)                       | အလွန်ပေါ့ပါးသည် (phase flag သာ)               | Kubernetes **readiness**; HTTP ကို မဖြစ်မနေသုံးရပါက အပျော့စား **liveness**            |
+| `GET /api/monitoring/health` | စနစ် + provider အနှစ်ချုပ်ကို အသေးစိတ်စစ်ဆေးမှု (DB၊ heap၊ catalog အရေအတွက်များ၊ …) | လေးလံသည် (sync DB / monitoring လုပ်ဆောင်ချက်) | Dashboard များ၊ blackbox အသေးစိတ်စစ်ဆေးမှုများ၊ Docker ၏ ထည့်သွင်းပြီးသား healthcheck |
 
-> **မှတ်ချက်:** Provider health matrix များ၊ autopilot ပြဿနာများ၊ quota monitor များ၊ token health နှင့် `/api/monitoring/health` ထက် ကျော်လွန်သော latency အသေးစိတ်များကို **MCP tool** `observability_snapshot` သို့မဟုတ် **dashboard** စာမျက်နှာများမှ ရရှိနိုင်သည် — ၎င်းတို့အတွက် သီးခြား REST route များ မရှိပါ။
+> **မှတ်ချက်:** Provider ကျန်းမာရေး matrix များ၊ autopilot ပြဿနာများ၊ quota monitor များ၊ token ကျန်းမာရေးနှင့် `/api/monitoring/health` ထက်ပိုမိုအသေးစိတ်သော latency အချက်အလက်များကို **MCP tool** `observability_snapshot` သို့မဟုတ် **dashboard** စာမျက်နှာများမှ ရယူနိုင်သည် — ၎င်းတို့အတွက် သီးခြား REST route များ မရှိပါ။
 
-Route နှစ်ခုစလုံးသည် request များကို ကိုင်တွယ်သည့် **တူညီသော Node event loop** ပေါ်တွင် အလုပ်လုပ်သည်။ CPU-bound path တစ်ခု (ကြီးမားသော `GET /v1/models` catalog လုပ်ဆောင်မှု၊ long-context compression / token counting) သည် `/healthz` အပါအဝင် HTTP handler **အားလုံး** ကို နှောင့်နှေးစေနိုင်သည်။ Event-loop အလုပ်များနေခြင်း ≠ process သေဆုံးနေခြင်း ဖြစ်သည်။ ဝန်ပိစေသည့် အကြောင်းရင်းကို ဦးစားပေးပြင်ဆင်ပါ။ Probe tuning သည် မှားယွင်းစွာ ရပ်တန့်သတ်ဖြတ်မှုများကိုသာ လျှော့ချပေးသည်။
+Route နှစ်ခုစလုံးသည် request ကို ကိုင်တွယ်သည့် **တူညီသော Node event loop** ပေါ်တွင် အလုပ်လုပ်သည်။ CPU-bound path တစ်ခု (ကြီးမားသော `GET /v1/models` catalog လုပ်ဆောင်ချက်၊ ရှည်လျားသော context compression / token ရေတွက်ခြင်း) သည် `/healthz` အပါအဝင် HTTP handler **အားလုံး** ကို နှောင့်နှေးစေနိုင်သည်။ Event-loop အလုပ်များနေခြင်း ≠ process ရပ်တန့်သွားခြင်း ဖြစ်သည်။ ဝန်ပိစေသည့် လုပ်ဆောင်ချက်ကို ပြင်ဆင်ခြင်းအား ဦးစားပေးပါ။ Probe ချိန်ညှိခြင်းသည် မှားယွင်းစွာ ရပ်တန့်ပစ်ခြင်းကိုသာ လျှော့ချပေးနိုင်သည်။
 
 ### ပေါ့ပါးသော orchestrator probe
 
@@ -119,11 +119,11 @@ GET /healthz
 # သို့မဟုတ် HEAD /healthz
 ```
 
-- Server lifecycle phase သည် ready ဖြစ်နေချိန်တွင် **200** + body `ok`
-- Boot သို့မဟုတ် shutdown လုပ်နေစဉ် **503** + `starting` / `stopping`
+- Server lifecycle phase အဆင်သင့်ဖြစ်ချိန်တွင် **200** + body `ok`
+- စတင်နေစဉ် သို့မဟုတ် ပိတ်နေစဉ်အတွင်း **503** + `starting` / `stopping`
 - အကောင်အထည်ဖော်ထားသည့်နေရာ: `src/app/healthz/route.ts` (DB ping မရှိ)
 
-### System Health (နက်ရှိုင်းစစ်ဆေးမှု)
+### စနစ်ကျန်းမာရေး (အသေးစိတ်)
 
 ```bash
 GET /api/monitoring/health
@@ -155,41 +155,40 @@ GET /api/monitoring/health
 
 #### `credentialHealth`: probe-cache နှင့် SQLite `test_status` နှိုင်းယှဉ်ချက်
 
-`GET /api/monitoring/health` → `credentialHealth` သည် `provider_connections.test_status` ၏ live dump မဟုတ်ဘဲ **in-memory probe-cache
-gauge** ဖြစ်သည်။ #12532 နောက်ပိုင်းတွင် request path သည်
-`getCachedCredentialHealthSummary()` ကိုသာ ဖတ်ရှုသည်။ နောက်ခံ probe များက event loop ပြင်ပတွင်
-cache ကို refresh လုပ်သည်။
+`GET /api/monitoring/health` → `credentialHealth` သည် `provider_connections.test_status` ၏ တိုက်ရိုက် dump မဟုတ်ဘဲ **memory အတွင်းရှိ probe-cache
+gauge** ဖြစ်သည်။ #12532 နောက်ပိုင်းတွင် request path သည် `getCachedCredentialHealthSummary()` ကိုသာ ဖတ်ရှုသည်။ Background probe များသည် event loop ပြင်ပတွင် cache ကို
+ပြန်လည်မွမ်းမံသည်။
 
-| Layer                             | တည်နေရာ                                                               | အဓိပ္ပာယ်                                                                                                                                                                                                                                                                |
-| --------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Probe-cache gauge                 | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Process memory အတွင်း ဆက်လက်သိမ်းထားသော နောက်ဆုံး credential-health probe ရလဒ်များ။ `source` သည် အမြဲတမ်း `probe-cache` ဖြစ်သည်။                                                                                                                                         |
-| မအောင်မြင်သော connection အသေးစိတ် | `credentialHealth.failedConnections`                                  | **`failed > 0` ဖြစ်သည့်အခါမှသာ** ပါဝင်သည်။ `status=error` ဖြစ်သော cache row များ၏ အရေအတွက်ကန့်သတ်ထားသည့် စာရင်း (`connectionId`, `status`, သန့်စင်ထားသော `lastError` / `lastErrorType`)။ စာရင်းကို အရေအတွက်ကန့်သတ်ဖြတ်တောက်ထားသည့်အခါ `failedOmitted` ကို သတ်မှတ်ထားသည်။ |
-| SQLite sticky status              | `credentialHealth.staleDbNonOkCount`                                  | သိရှိထားသော non-ok `test_status` (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`) ရှိသည့် **active** (`is_active=1`) connection row များ၏ အရေအတွက်။                                                                                     |
+| အလွှာ                             | တည်နေရာ                                                               | အဓိပ္ပာယ်                                                                                                                                                                                                                                       |
+| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Probe-cache gauge                 | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Process memory ထဲတွင် ဆက်လက်သိမ်းဆည်းထားသော နောက်ဆုံး credential-health probe ရလဒ်များ။ `source` သည် အမြဲတမ်း `probe-cache` ဖြစ်သည်။                                                                                                            |
+| မအောင်မြင်သော connection အသေးစိတ် | `credentialHealth.failedConnections`                                  | `failed > 0` ဖြစ်သည့်အခါတွင်သာ ရှိသည်။ `status=error` ဖြစ်သော cache row များ၏ အရေအတွက်ကန့်သတ်ထားသည့် စာရင်း (`connectionId`၊ `status`၊ သန့်စင်ထားသော `lastError` / `lastErrorType`)။ စာရင်းကို ကန့်သတ်ထားပါက `failedOmitted` ကို သတ်မှတ်ထားသည်။ |
+| SQLite sticky status              | `credentialHealth.staleDbNonOkCount`                                  | သိရှိထားသော non-ok (`error`၊ `expired`၊ `credits_exhausted`၊ `banned`၊ `deactivated`၊ `unavailable`) persisted `test_status` ရှိသည့် **အသုံးပြုနေသော** (`is_active=1`) connection row များ၏ အရေအတွက်။                                           |
 
-Layer နှစ်ခုသည် ရည်ရွယ်ချက်ရှိရှိ ကွဲလွဲနိုင်သည်-
+ရည်ရွယ်ချက်အရ အလွှာနှစ်ခုအကြား ကွာခြားနိုင်သည်:
 
-- Gauge တွင် `failed=0` ဖြစ်ပြီး `staleDbNonOkCount>0` ဖြစ်ခြင်း — SQLite တွင် နောက်ဆုံး
+- Gauge `failed=0` ဖြစ်သော်လည်း `staleDbNonOkCount>0` ဖြစ်ခြင်း — SQLite တွင် နောက်ဆုံး
   probe-cache snapshot က `status=error` အဖြစ် မရေတွက်သော sticky
   `test_status` (ဥပမာ `expired` သို့မဟုတ် `credits_exhausted`) ရှိနေဆဲဖြစ်သည်။
-- Gauge တွင် `failed>0` ဖြစ်ပြီး SQLite က ကျန်းမာနေပုံရခြင်း — မကြာသေးမီ probe တစ်ခု မအောင်မြင်ဘဲ
-  cache ထဲတွင် သိမ်းထားသည်။ DB row ကို update မလုပ်ရသေးခြင်း သို့မဟုတ် နောက်ပိုင်းတွင် ရှင်းလင်းထားခြင်း ဖြစ်နိုင်သည်။
+- Gauge `failed>0` ဖြစ်သော်လည်း SQLite က ကျန်းမာနေသကဲ့သို့ မြင်ရခြင်း — မကြာသေးမီက probe တစ်ခု မအောင်မြင်ခဲ့ပြီး
+  cache ထဲတွင် သိမ်းထားသည်။ DB row ကို မပြင်ဆင်ရသေးခြင်း သို့မဟုတ် နောက်ပိုင်းတွင် ရှင်းလင်းထားခြင်း ဖြစ်နိုင်သည်။
 
-ဤ endpoint ကို scrape လုပ်သည့်အခါ `provider_connections.test_status` တစ်ခုတည်းအပေါ် မူတည်၍
-alert မလုပ်ပါနှင့်။ Live probe failure များအတွက် `failed` + `failedConnections` ကို အသုံးပြုပြီး
-persist လုပ်ထားသော sticky-status အရေအတွက် လိုအပ်သည့်အခါ `staleDbNonOkCount` ကို အသုံးပြုပါ။
+ဤ endpoint ကို scrape လုပ်ချိန်တွင် `provider_connections.test_status` တစ်ခုတည်းအပေါ် အခြေခံ၍ alert မလုပ်ပါနှင့်။
+တိုက်ရိုက် probe ကျရှုံးမှုများအတွက် `failed` + `failedConnections` ကို အသုံးပြုပြီး၊ persisted sticky-status အရေအတွက် လိုအပ်သည့်အခါ
+`staleDbNonOkCount` ကို အသုံးပြုပါ။
 
 ### Kubernetes probe အကြံပြုချက်များ
 
-OmniRoute သည် **Node process တစ်ခုတည်း** (event loop တစ်ခု) ဖြစ်သည်။ ပုံမှန် Docker `HEALTHCHECK` သည် ပေါ့ပါးသော `/healthz` ကို ပစ်မှတ်ထားသည်။ `/api/monitoring/health` သည် kubelet liveness interval များအတွက် **အလွန်လေးလံသည်**။
+OmniRoute သည် **Node process တစ်ခုတည်း** (event loop တစ်ခု) ဖြစ်သည်။ မူလ Docker `HEALTHCHECK` သည် ပေါ့ပါးသော `/healthz` ကို ပစ်မှတ်ထားသည်။ `/api/monitoring/health` သည် kubelet liveness interval များအတွက် **လေးလံလွန်းသည်**။
 
-| စမ်းသပ်ချက်                           | အကြံပြုထားသော ပစ်မှတ်                                                                                      | မှတ်ချက်များ                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **စတင်ခြင်း**                         | ရှည်လျားသော `failureThreshold` (သို့မဟုတ် ကြီးမားသော `startPeriod`) ပါသည့် HTTP `GET /healthz`             | Cold start + SQLite migration သည် စက္ကန့်အနည်းငယ်ထက် ပိုကြာနိုင်သည်                                                                                                                                                                                                                                                                                                                                                                                            |
-| **အဆင်သင့်ဖြစ်မှု**                   | HTTP `GET /healthz`                                                                                        | Lifecycle `ok` / `starting` / `stopping` (200 နှင့် 503)။ loop ကို CPU က ပိတ်ဆို့ထားပါက မတည်ငြိမ်မှုများ ရှိနေဆဲဖြစ်သည်။ **စက္ကန့်များစွာကြာပြီးမှ ရရှိသော 200 သည် healthy မဟုတ်ပါ** (#10303) — ၎င်းသည် 3-byte handler မလည်ပတ်မီ event loop တွင် လုပ်ဆောင်ခွင့် မရခဲ့ကြောင်း ဆိုလိုသည်                                                                                                                                                                         |
-| **အသက်ရှင်မှု**                       | HTTP `GET /livez`၊ **သို့မဟုတ် TCP** ကို ပင်မ service port (`PORT`၊ မူလတန်ဖိုး `20128`) တွင် အသုံးပြုခြင်း | `/livez` သည် process အသက်ရှင်နေခြင်းကိုသာ စစ်ဆေးသည် (handler လည်ပတ်ပါက အမြဲတမ်း 200)။ ၎င်းသည် event loop ကို မျှဝေအသုံးပြုနေဆဲဖြစ်သည် — အလုပ်များနေခြင်း ≠ သေဆုံးနေခြင်း၊ ထို့ပြင် event-loop လုပ်ဆောင်ခွင့်မရခြင်း (#10303) ကို TCP ထက် ပိုမိုကောင်းမွန်စွာ မစစ်ဆေးနိုင်ပါ။ catalog/compression load အောက်တွင် HTTP probes များ timeout ဖြစ်ပါက **TCP** ကို ဦးစားပေးပါ။ မည်သည့်နည်းလမ်းတွင်မဆို event-loop ခဏတာ ရပ်တန့်မှုများကြောင့် pod ကို **မသတ်ပါနှင့်** |
-| **နက်ရှိုင်းသော ကျန်းမာရေးစစ်ဆေးမှု** | ပြင်ပ checker တစ်ခုမှ `GET /api/monitoring/health`                                                         | kubelet `livenessProbe` / ကြားကာလတိုသော `readinessProbe` အတွက် မဟုတ်ပါ                                                                                                                                                                                                                                                                                                                                                                                         |
+| စမ်းသပ်ချက်             | အကြံပြုထားသော ပစ်မှတ်                                                                                      | မှတ်ချက်များ                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **စတင်ခြင်း**           | ရှည်လျားသော `failureThreshold` (သို့မဟုတ် ကြီးမားသော `startPeriod`) ပါသည့် HTTP `GET /healthz`             | Cold start + SQLite migration သည် စက္ကန့်အနည်းငယ်ထက် ပိုကြာနိုင်သည်                                                                                                                                                                                                                                                                                                                                                                                            |
+| **အဆင်သင့်ဖြစ်မှု**     | HTTP `GET /healthz`                                                                                        | Lifecycle `ok` / `starting` / `stopping` (200 နှင့် 503)။ loop သည် CPU ကြောင့် ပိတ်ဆို့နေပါက အခြေအနေသည် အတက်အကျဖြစ်နေဆဲဖြစ်သည်။ **စက္ကန့်များစွာကြာပြီးမှ ရရှိသော 200 သည် ကောင်းမွန်သော အခြေအနေမဟုတ်ပါ** (#10303) — ၎င်းသည် 3-byte handler မလည်ပတ်မီ event loop က အလုပ်လုပ်ခွင့်မရခဲ့ကြောင်း ဆိုလိုသည်                                                                                                                                                         |
+| **အသက်ဝင်မှု**          | HTTP `GET /livez`၊ **သို့မဟုတ် TCP** ကို ပင်မ service port (`PORT`၊ မူလတန်ဖိုး `20128`) တွင် အသုံးပြုခြင်း | `/livez` သည် process အသက်ဝင်နေခြင်းကိုသာ စစ်ဆေးသည် (handler လည်ပတ်ပါက အမြဲတမ်း 200)။ ၎င်းသည် event loop ကို မျှဝေအသုံးပြုနေဆဲဖြစ်သည် — အလုပ်များနေခြင်း ≠ ရပ်တန့်သေဆုံးနေခြင်းဖြစ်ပြီး event-loop starvation (#10303) ကို TCP ထက် ပိုကောင်းစွာ မရှာဖွေနိုင်ပါ။ catalog/compression ဝန်အောက်တွင် HTTP စမ်းသပ်ချက်များ timeout ဖြစ်ပါက **TCP** ကို ဦးစားပေးပါ။ မည်သည့်နည်းလမ်းကို သုံးသည်ဖြစ်စေ ခဏတာ event-loop ရပ်တန့်မှုများကြောင့် pod ကို **မရပ်ပစ်ပါနှင့်** |
+| **အသေးစိတ် ကျန်းမာရေး** | ပြင်ပစစ်ဆေးရေးကိရိယာမှ `GET /api/monitoring/health`                                                        | kubelet `livenessProbe` / အကြိမ်ရေစိပ်သော `readinessProbe` အတွက် မဟုတ်ပါ                                                                                                                                                                                                                                                                                                                                                                                       |
 
-နမူနာပုံစံ (သင့် cold-start နှင့် compression load တို့နှင့် ကိုက်ညီအောင် threshold များကို ချိန်ညှိပါ):
+နမူနာပုံစံ (သင့် cold-start နှင့် compression ဝန်နှင့် ကိုက်ညီအောင် threshold များကို ချိန်ညှိပါ):
 
 ```yaml
 ports:
@@ -216,26 +215,57 @@ livenessProbe:
   timeoutSeconds: 3
   failureThreshold: 6
   # event-loop ရပ်တန့်မှုအောက်တွင် HTTP /livez သည် timeout ဖြစ်နိုင်သေးသည်။ TCP သည်
-  # ပိုမိုသတိထားသော အစားထိုးနည်းလမ်းဖြစ်သည်:
+  # ပို၍သတိထားသော အခြားရွေးချယ်မှုဖြစ်သည်:
   # tcpSocket:
   #   port: http
 ```
 
-kubelet **liveness** ကို `/api/monitoring/health` သို့ **မညွှန်ပါနှင့်**။ ထို path သည် အမှန်တကယ် DB/monitoring အလုပ်များကို လုပ်ဆောင်သောကြောင့် load အောက်တွင် မှားယွင်းသော positive ရလဒ်များ ဖြစ်ပေါ်စေမည်။
+kubelet **liveness** ကို `/api/monitoring/health` သို့ **မညွှန်ပါနှင့်**။ ထို path သည် DB/monitoring လုပ်ငန်းများကို အမှန်တကယ်လုပ်ဆောင်ပြီး ဝန်များနေချိန်တွင် false-positive ဖြစ်လိမ့်မည်။
 
-ဆက်စပ်အကြောင်းအရာများ: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (event loop အလုပ်များနေစဉ် probes များ)၊ [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing က အရင်းအမြစ်များစွာ အသုံးပြုခြင်း)၊ [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count က အရင်းအမြစ်များစွာ အသုံးပြုခြင်း)။
+ဆက်စပ်အကြောင်းအရာများ: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (event loop အလုပ်များနေစဉ် စမ်းသပ်ချက်များ)၊ [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing က အရင်းအမြစ်များကို အလွန်အကျွံသုံးစွဲခြင်း)၊ [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count က အရင်းအမြစ်များကို အလွန်အကျွံသုံးစွဲခြင်း)။
+
+### systemd watchdog (ရပ်တန့်နေသော event loop)
+
+systemd host တစ်ခုပေါ်တွင် OmniRoute သည် အဆင်သင့်ဖြစ်သည့်အချိန်၌ service manager ကို အသိပေးပြီး ဆက်လက် ping လုပ်နေသည်။ ထို့ကြောင့် event loop ရပ်တန့်နေသော server သည် ဆက်လက်အလုပ်လုပ်နေသကဲ့သို့ တိတ်ဆိတ်နေမည့်အစား ရပ်တန့်ခံရပြီး ပြန်လည်စတင်မည်ဖြစ်သည်။ Ping များသည် server ၏ ကိုယ်ပိုင် event loop မှလာသည်။ ၎င်းပိတ်ဆို့သွားပါက ping များရပ်သွားပြီး၊ ping တစ်ခုမျှမရရှိဘဲ `WatchdogSec` အချိန်ကျော်လွန်သွားသည့်အခါ systemd က service ကို ပြန်လည်စတင်သည်။
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) သည် ဤအရာပါဝင်သော user unit တစ်ခုကို ရေးသားပေးပြီးဖြစ်သည်။ သင်ကိုယ်တိုင်ရေးသားသည့် unit တစ်ခု (မူလ `Type=simple`) တွင် watchdog မပါဝင်သောကြောင့် ၎င်း၏ `[Service]` ကဏ္ဍသို့ အောက်ပါစာကြောင်းများကို ထည့်ပါ:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+ထုတ်လုပ်ပေးထားသော unit သည် `Restart=on-failure` ကို သတ်မှတ်ထားသောကြောင့် ထိုစာကြောင်းကိုလည်း ထည့်ပါ — ၎င်းမပါလျှင် watchdog သည် ရပ်တန့်နေသော service ကို ပြန်လည်စတင်ခြင်းမပြုဘဲ ရပ်ပစ်ရုံသာ လုပ်မည်ဖြစ်သည်။
+
+- `Type=notify`: process က fork လုပ်သည့်အချိန်တွင်မဟုတ်ဘဲ server က `READY=1` ပို့သည့်အချိန်တွင် service ကို "စတင်ပြီး" ဟု သတ်မှတ်သည်။ `TimeoutStartSec` သည် ကြာမြင့်သော စတင်မှုကို အချိန်ကန့်သတ်ပေးသည်။
+- `NotifyAccess=all`: ping များကို `omniroute serve` supervisor ၏ child ဖြစ်သော server process က ပို့သည်။
+- `WatchdogSec`: ping များကို စက္ကန့် 60 တိုင်း ပို့သောကြောင့် **120 သို့မဟုတ် ထို့ထက်ပိုသော** တန်ဖိုးကို သုံးပါ။ ပိုငယ်သောတန်ဖိုးများသည် ကောင်းမွန်စွာအလုပ်လုပ်နေသည့် server ကို ပြန်လည်စတင်စေလိမ့်မည်။
+- `omniroute serve` ကို foreground တွင် လုပ်ဆောင်ပါ။ `--daemon` သည် server ကို unit ၏ cgroup မှ ခွဲထုတ်သဖြင့် notify handshake သည် မည်သည့်အခါမျှ မပြီးဆုံးနိုင်ပါ။
+
+ပြန်လည်စတင်ပြီးနောက် ၎င်းအသက်ဝင်နေကြောင်း စစ်ဆေးပါ:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` သည် သတ်မှတ်ထားသော ကြန့်ကြာချိန်ကို ပြသပြီး `WatchdogTimestamp` သည် မိနစ်တိုင်း ရှေ့သို့ရွေ့သည်။ watchdog ကြောင့် ဖြစ်ပေါ်သော ပြန်လည်စတင်မှုကို `Result=watchdog` အဖြစ် မှတ်တမ်းတင်ထားသည်။ Unit ကို မပြောင်းလဲဘဲ ping များကို ပိတ်ရန် `OMNIROUTE_DISABLE_SD_NOTIFY=1` ဟု သတ်မှတ်ပါ။ `NOTIFY_SOCKET` မရှိပါက (terminal၊ Docker၊ Electron၊ Windows) မည်သည့်အရာမျှ ပို့မည်မဟုတ်ပါ။
+
+Watchdog သည် event loop ဆက်လက်လည်ပတ်နေခြင်းရှိမရှိကိုသာ စစ်ဆေးသည်။ နှေးကွေးသော်လည်း ဆက်လက်လည်ပတ်နေသော server ကို ပြန်လည်စတင်မည်မဟုတ်ပါ။
 
 ### ရွေးချယ်နိုင်သော request-path လုပ်ငန်းများ (memory၊ skills၊ token refresh)
 
-Memory extraction၊ skills injection နှင့် OAuth token refresh တို့သည် `/healthz` နှင့်အတူ **ပင်မ Node event loop** ကို မျှဝေအသုံးပြုသည်။ ၎င်းတို့သည် dashboard-toggle လုပ်ဆောင်ချက်များ (`memoryEnabled`, `skillsEnabled`) ဖြစ်ပြီး worker pool မဟုတ်ပါ။ [Environment — event-loop ကုန်ကျစရိတ်](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349) ကို ကြည့်ပါ။
+မှတ်ဉာဏ်ထုတ်ယူခြင်း၊ skills ထည့်သွင်းခြင်းနှင့် OAuth token အသစ်ပြန်လည်ရယူခြင်းတို့သည် `/healthz` နှင့် **ပင်မ Node event loop** ကို အတူတကွ အသုံးပြုပါသည်။ ၎င်းတို့သည် dashboard မှ အဖွင့်အပိတ်လုပ်နိုင်သော လုပ်ဆောင်ချက်များ (`memoryEnabled`, `skillsEnabled`) ဖြစ်ပြီး worker pool မဟုတ်ပါ။ [Environment — event-loop ကုန်ကျစရိတ်](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349) ကို ကြည့်ပါ။
 
-### Provider ၏ ကျန်းမာရေးအခြေအနေ
+### Provider အခြေအနေ
 
-> **REST endpoint မရှိပါ။** Provider health data ကို MCP tool `observability_snapshot` သို့မဟုတ် dashboard `/dashboard/providers` စာမျက်နှာမှ ရရှိနိုင်သည်။
+> **REST endpoint မရှိပါ။** Provider အခြေအနေဒေတာကို MCP tool `observability_snapshot` သို့မဟုတ် dashboard ၏ `/dashboard/providers` စာမျက်နှာမှ ရရှိနိုင်ပါသည်။
 
 ### Provider အသေးစိတ်
 
-> **REST endpoint မရှိပါ။** Provider တစ်ခုချင်းစီ၏ အသေးစိတ်အချက်အလက်များကို dashboard `/dashboard/providers` စာမျက်နှာမှ ရရှိနိုင်သည်။
+> **REST endpoint မရှိပါ။** Provider တစ်ခုချင်းစီ၏ အသေးစိတ်အချက်အလက်များကို dashboard ၏ `/dashboard/providers` စာမျက်နှာမှ ရရှိနိုင်ပါသည်။
 
 ---
 

@@ -125,13 +125,13 @@ Claude टूल कार्ड (**Dashboard → CLI Code**) या इंस�
 
 ## प्रोफाइल्स (`CLAUDE_CONFIG_DIR`)
 
-Claude Code मध्ये **मूळ प्रोफाइल फाइल्स नाहीत** (Codex च्या `~/.codex/<name>.config.toml` पेक्षा वेगळे).
-प्रचलित यंत्रणा म्हणजे `CLAUDE_CONFIG_DIR` — प्रत्येक प्रोफाइलसाठी स्वतंत्र कॉन्फिगरेशन डायरेक्टरी,
-आणि प्रत्येकामध्ये त्याची स्वतःची `settings.json`, क्रेडेन्शियल्स, इतिहास आणि कॅश असते.
+Claude Code मध्ये **मूळ प्रोफाइल फाइल्स नाहीत** (Codex च्या `~/.codex/<name>.config.toml` प्रमाणे).
+यासाठी प्रचलित यंत्रणा म्हणजे `CLAUDE_CONFIG_DIR` — प्रत्येक
+प्रोफाइलसाठी स्वतंत्र कॉन्फिग निर्देशिका, ज्यामध्ये स्वतःची `settings.json`, क्रेडेन्शियल्स, इतिहास आणि कॅश असते.
 
-`omniroute setup-claude` लाइव्ह `/v1/models` कॅटलॉग मिळवते आणि
-`~/.claude/profiles/<name>/settings.json` येथे प्रत्येक मॉडेलसाठी एक प्रोफाइल लिहिते, तसेच
-**`setup-codex` मधील तीच नावे** (`glm52`, `kimi-k27`, `deepseek-pro`, …) पुन्हा वापरते:
+`omniroute setup-claude` थेट `/v1/models` कॅटलॉग मिळवते आणि प्रत्येक मॉडेलसाठी
+`~/.claude/profiles/<name>/settings.json` येथे एक प्रोफाइल लिहिते, ज्यामध्ये
+**`setup-codex` सारखीच नावे** (`glm52`, `kimi-k27`, `deepseek-pro`, …) पुन्हा वापरली जातात:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -148,19 +148,19 @@ Claude Code मध्ये **मूळ प्रोफाइल फाइल्
 }
 ```
 
-> **ऑथ टोकन प्रोफाइलमध्ये कधीही लिहिले जात नाही.** `omniroute launch --profile <name>` वापरून
-> लाँच करा (ते सक्रिय कॉन्टेक्स्टमधून `ANTHROPIC_AUTH_TOKEN` अंतर्भूत करते), किंवा स्वतः
-> `ANTHROPIC_AUTH_TOKEN` एक्सपोर्ट करा आणि `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` चालवा.
+> **ऑथ टोकन प्रोफाइलमध्ये कधीही लिहिले जात नाही.** सुरू करण्यासाठी
+> `omniroute launch --profile <name>` वापरा (ते सक्रिय कॉन्टेक्स्टमधून `ANTHROPIC_AUTH_TOKEN`
+> अंतःक्षेपित करते), किंवा स्वतः `ANTHROPIC_AUTH_TOKEN` एक्सपोर्ट करून
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` चालवा.
 
-**मॉडेल डिस्कव्हरीनंतर ऑटो-सिंक (निवड केल्यास).** प्रोव्हायडर मॉडेल
-सिंकमुळे लाइव्ह कॅटलॉग बदलल्यावर OmniRoute याच `~/.claude/profiles/<name>/settings.json`
-फाइल्स आपोआप पुन्हा तयार करू शकते — त्यामुळे कमांड पुन्हा न चालवता नवीन/पुनर्नामित मॉडेल्ससाठी प्रोफाइल्स तयार होतात.
-हे **डीफॉल्टनुसार बंद असते**: ते **CLI Code डॅशबोर्ड** वरून टॉगल करा ("CLI profile
-auto-sync" → Claude Code), किंवा `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` सेट करा (ते
-`CLI_ALLOW_CONFIG_WRITES` चाही आदर करते, जे डीफॉल्टनुसार सुरू असते). सक्षम केल्यावर ते फक्त प्रोफाइल फाइल्स लिहिते; ते कधीही
-तुमचे सक्रिय/डीफॉल्ट Claude कॉन्फिगरेशन, ऑथ किंवा `~/.claude/settings.json` बदलत नाही.
+**मॉडेल शोधानंतर स्वयंचलित सिंक (ऐच्छिक).** प्रोव्हायडर मॉडेल
+सिंकमुळे थेट कॅटलॉगमध्ये बदल झाला की OmniRoute त्याच
+`~/.claude/profiles/<name>/settings.json` फाइल्स स्वयंचलितपणे पुन्हा निर्माण करू शकते — त्यामुळे कमांड पुन्हा न चालवता नवीन/पुनर्नामित मॉडेल्ससाठी प्रोफाइल्स मिळतात.
+हे **डीफॉल्टनुसार बंद** असते: ते **CLI Code डॅशबोर्ड**मधून टॉगल करा ("CLI प्रोफाइल
+स्वयंचलित-सिंक" → Claude Code), किंवा `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` सेट करा (ते डीफॉल्टनुसार सुरू असलेल्या
+`CLI_ALLOW_CONFIG_WRITES` चादेखील आदर करते). सक्षम केल्यावर ते केवळ प्रोफाइल फाइल्स लिहिते; ते तुमचे सक्रिय/डीफॉल्ट Claude कॉन्फिग, ऑथ किंवा `~/.claude/settings.json` कधीही बदलत नाही.
 
-### प्रोफाइल्स तयार करणे + वापरणे
+### प्रोफाइल्स निर्माण करणे + वापरणे
 
 ```bash
 # स्थानिक OmniRoute
@@ -172,10 +172,14 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # फक्त काही प्रोव्हायडर्स
 omniroute setup-claude --only glm,kimi
 
-# न लिहिता पूर्वावलोकन
+# या होस्टवर आढळलेले नसलेले स्थानिक-CLI प्रोव्हायडर्ससाठीही प्रोफाइल्स लिहा (zcode, auggie, devin-cli-agentic,
+# codex-app-server) (स्थानिक लक्ष्याकरिता डीफॉल्टनुसार वगळले जातात)
+omniroute setup-claude --include-local
+
+# न लिहिता पूर्वावलोकन करा
 omniroute setup-claude --dry-run
 
-# प्रोफाइल लाँच करा
+# प्रोफाइल सुरू करा
 omniroute launch --profile kimi-k27
 ```
 

@@ -123,15 +123,15 @@ Claude Code:
 
 ---
 
-## الملفات التعريفية (`CLAUDE_CONFIG_DIR`)
+## الملفات الشخصية (`CLAUDE_CONFIG_DIR`)
 
-لا يحتوي Claude Code على **ملفات تعريفية أصلية** (بخلاف `~/.codex/<name>.config.toml` في Codex).
+لا يحتوي Claude Code على **ملفات ملفات شخصية أصلية** (بخلاف ملفات Codex من النمط `~/.codex/<name>.config.toml`).
 الآلية المتعارف عليها هي `CLAUDE_CONFIG_DIR` — دليل إعدادات منفصل لكل
-ملف تعريفي، ولكل منها ملف `settings.json` وبيانات اعتماد وسجل وذاكرة تخزين مؤقت خاصة به.
+ملف شخصي، ولكل منها ملف `settings.json` وبيانات اعتماد وسجل وذاكرة تخزين مؤقت خاصة به.
 
-يجلب `omniroute setup-claude` الكتالوج المباشر من `/v1/models` ويكتب ملفًا
-تعريفيًا واحدًا لكل نموذج في `~/.claude/profiles/<name>/settings.json`، مع إعادة استخدام
-**الأسماء نفسها التي يستخدمها `setup-codex`** (`glm52` و`kimi-k27` و`deepseek-pro`، …):
+يجلب `omniroute setup-claude` كتالوج `/v1/models` المباشر وينشئ
+ملفًا شخصيًا لكل نموذج في `~/.claude/profiles/<name>/settings.json`، مع إعادة استخدام
+**الأسماء نفسها المستخدمة في `setup-codex`** (`glm52`، و`kimi-k27`، و`deepseek-pro`، و…):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -148,35 +148,39 @@ Claude Code:
 }
 ```
 
-> **لا يُكتب رمز المصادقة المميز في الملف التعريفي مطلقًا.** شغّله باستخدام
-> `omniroute launch --profile <name>` (إذ يحقن `ANTHROPIC_AUTH_TOKEN` من
-> السياق النشط)، أو صدّر `ANTHROPIC_AUTH_TOKEN` بنفسك ثم شغّل
+> **لا تُكتب أبدًا وحدة مصادقة الوصول في الملف الشخصي.** شغّل باستخدام
+> `omniroute launch --profile <name>` (وهو يحقن `ANTHROPIC_AUTH_TOKEN` من
+> السياق النشط)، أو صدّر `ANTHROPIC_AUTH_TOKEN` بنفسك وشغّل
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
 **المزامنة التلقائية بعد اكتشاف النماذج (اختيارية).** يمكن لـ OmniRoute إعادة إنشاء ملفات
 `~/.claude/profiles/<name>/settings.json` نفسها تلقائيًا كلما غيّرت مزامنة نماذج أحد المزوّدين
-الكتالوج المباشر — بحيث تحصل النماذج الجديدة أو المُعاد تسميتها على ملفات تعريفية دون إعادة تشغيل
-الأمر. تكون هذه الميزة **معطّلة افتراضيًا**: فعّلها من **لوحة معلومات CLI Code** ("المزامنة التلقائية
-لملفات CLI التعريفية" → Claude Code)، أو عيّن `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (كما أنها تحترم
-`CLI_ALLOW_CONFIG_WRITES`، وهو مفعّل افتراضيًا). عند تمكينها، لا تكتب سوى ملفات التعريف؛ ولا تغيّر مطلقًا
-إعدادات Claude النشطة أو الافتراضية، أو المصادقة، أو `~/.claude/settings.json`.
+الكتالوج المباشر — بحيث تحصل النماذج الجديدة أو المُعاد تسميتها على ملفات شخصية دون إعادة تشغيل
+الأمر. تكون هذه الميزة **معطّلة افتراضيًا**: يمكنك تبديلها من **لوحة معلومات CLI Code** ("المزامنة
+التلقائية لملفات CLI الشخصية" ← Claude Code)، أو تعيين `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (كما أنها تراعي
+`CLI_ALLOW_CONFIG_WRITES`، المفعّل افتراضيًا). عند تمكينها، لا تكتب سوى ملفات الملفات الشخصية؛ ولا تغيّر أبدًا
+إعدادات Claude النشطة/الافتراضية أو المصادقة أو الملف `~/.claude/settings.json`.
 
-### إنشاء الملفات التعريفية واستخدامها
+### إنشاء الملفات الشخصية واستخدامها
 
 ```bash
-# OmniRoute محلي
+# OmniRoute المحلي
 omniroute setup-claude
 
-# خادم VPS بعيد (يضمّن عنوان URL الخاص بخادم VPS في كل ملف تعريفي)
+# خادم VPS بعيد (يضمّن عنوان URL الخاص بخادم VPS في كل ملف شخصي)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # بعض المزوّدين فقط
 omniroute setup-claude --only glm,kimi
 
-# معاينة دون كتابة
+# اكتب أيضًا ملفات شخصية لمزوّدي CLI المحليين (zcode، وauggie، وdevin-cli-agentic،
+# وcodex-app-server) الذين لم يُكتشفوا على هذا المضيف (يتم تخطيهم افتراضيًا لهدف محلي)
+omniroute setup-claude --include-local
+
+# عاين دون كتابة
 omniroute setup-claude --dry-run
 
-# تشغيل ملف تعريفي
+# شغّل ملفًا شخصيًا
 omniroute launch --profile kimi-k27
 ```
 

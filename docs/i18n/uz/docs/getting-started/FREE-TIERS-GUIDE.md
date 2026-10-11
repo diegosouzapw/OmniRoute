@@ -4,82 +4,79 @@
 
 ---
 
-> **Qisqacha**: OmniRoute 357 ta provayder ID sini roʻyxatdan oʻtkazadi, ulardan **152 ta provayder katalogi yozuvi `hasFree` bilan belgilangan**. Qatʼiyroq auditdan oʻtkazilgan bepul modellar katalogi **35 ta takrorlanuvchi pul kaliti / 482 ta yozuvni** (475 ta faol + 7 ta toʻxtatilgan) qamrab oladi. Kengroq zaxira imkoniyati uchun bir nechta mos provayderni ulang; barcha kvotalar, tasdiqlash qoidalari, maxfiylik siyosatlari va pullik limitdan oshish shartlari amal qilishda davom etadi.
+> **Qisqacha**: Talablarga mos provayder hisoblaringizdan foydalaning. OmniRoute siz sozlagan ulanishlarni birlashtiradi; u eʼlon qilingan umumiy token budjetini taqdim etmaydi. Bepul foydalanish uchun roʻyxatdan oʻtish, API kaliti, tasdiqlash yoki toʻlov usuli talab qilinishi mumkin. Provayder cheklovlari, maxfiylik siyosatlari va foydalanish shartlari hamon amal qiladi.
 
 ---
 
 ## Bepul tariflar nima?
 
-Koʻplab AI provayderlari qandaydir shaklda **bepul foydalanish imkoniyatini** taklif qiladi. Provayderga qarab, bu
-autentifikatsiyasiz endpoint, takroriy kvota, tezlik chekloviga ega limitsiz foydalanish, roʻyxatdan oʻtish bonusi,
-qoʻlda tasdiqlash yoki vaqtinchalik aksiya boʻlishi mumkin. Ayrim variantlar hisob, API kaliti,
-kredit karta, KYC yoki provayderga xos shartlarni qabul qilishni talab qiladi.
+Koʻplab AI provayderlari qandaydir shaklda **bepul foydalanish** imkoniyatini taqdim etadi. Provayderga qarab, bu autentifikatsiyasiz endpoint, davriy kvota, soʻrovlar tezligi cheklangan, ammo umumiy hajmi cheklanmagan foydalanish, roʻyxatdan oʻtish uchun beriladigan bonus, qoʻlda tasdiqlash yoki vaqtinchalik aksiya boʻlishi mumkin. Ayrim variantlar hisob, API kaliti, kredit karta, KYC yoki provayderga xos shartlarni qabul qilishni talab qiladi.
 
-OmniRoute ushbu bepul tariflarni bitta endpointda **birlashtiradi**. 10 ta turli xizmatda alohida roʻyxatdan oʻtish oʻrniga, ularning barchasini OmniRoute’ga ulaysiz va har bir soʻrov uchun eng yaxshi bepul variantni avtomatik tanlash maqsadida `model: "auto"` dan foydalanasiz.
+OmniRoute sozlangan ulanishlarni bitta endpointda **birlashtiradi**. Hisob talab qiladigan har bir provayderda baribir alohida roʻyxatdan oʻtishingiz kerak. Ushbu hisoblarni ulang va mos maqsadlar orasida yoʻnaltirish uchun `model: "auto"` dan foydalaning. Yangi oʻrnatishda kalitsiz foydalanish mumkin boʻlgan birorta ham mos maqsad boʻlmasligi mumkin; faqat OmniRouteʼni oʻrnatishning oʻzi chatdan muvaffaqiyatli javob olinishini kafolatlamaydi.
 
 ---
 
-## Bepul foydalanishni taklif qiluvchi asosiy provayderlar
+## Bepul kirish imkonini beruvchi namunaviy provayderlar
 
-### Takroriy, kalitsiz yoki limitsiz foydalanish
+### Takroriy, kalitsiz yoki cheklanmagan kirish
 
-Ushbu provayderlar auditdan oʻtgan katalogda takroriy, kalitsiz yoki limitsiz bepul foydalanish yoʻliga ega. “Limitsiz” eʼlon qilingan token chegarasi yoʻqligini anglatadi; tezlik, parallel soʻrovlar, hisob, hududiy va siyosat cheklovlari baribir amal qilishi mumkin:
+Ushbu provayderlar tekshirilgan katalogda takroriy, kalitsiz yoki cheklanmagan bepul kirish usuliga ega. “Cheklanmagan” eʼlon qilingan token chegarasi yoʻqligini anglatadi; tezlik, parallellik, hisob, hududiy va siyosat cheklovlari baribir qoʻllanishi mumkin:
 
-| Provayder         | Modellar                                                                                      | Kvota                                                                                                                                                                 | Qanday ulash mumkin                                                                                                           |
-| ----------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 va boshqalar                                      | Auditdan oʻtgan katalog hisobiga koʻra, oyiga 25K-tokenlik umumiy pul                                                                                                 | OAuth/hisob jarayoni; katalogda ToS `avoid` deb belgilangan                                                                   |
-| **OpenCode Free** | Provayder reyestridagi joriy `*-free` modellar toʻplami                                       | Kalitsiz; eʼlon qilingan token chegarasi yoʻq                                                                                                                         | Provayder hisob maʼlumotlari talab qilinmaydi; ToS `avoid` deb belgilangan                                                    |
-| **Pollinations**  | Joriy kalitsiz modellar toʻplami; ayrim avvalgi modellar toʻxtatilgan yoki kalit talab qiladi | Kalitsiz; eʼlon qilingan token chegarasi yoʻq                                                                                                                         | Kalitsiz modellar uchun provayder hisob maʼlumotlari talab qilinmaydi                                                         |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 va boshqalar                      | Bepul API kaliti (tezlik cheklovi va karta talab qilinmaydi); tadqiqot uchun **har bir soʻrov qayd etiladi** (logfare.ai/consent manzilida bundan voz kechish mumkin) | Kalitni logfare.ai/register manzilida darhol oling; ToS/maxfiylik qoidalari logfare.ai/tos va logfare.ai/privacy manzillarida |
-| **Cloudflare AI** | Workers AI katalogi                                                                           | Auditdan oʻtgan pul hisobiga koʻra, eʼlon qilingan foydalanish birliklari asosida oyiga ~30M token                                                                    | Cloudflare hisobi va API hisob maʼlumotlari                                                                                   |
-| **Gemini**        | Gemini Flash oilasi                                                                           | Auditdan oʻtgan pul hisobiga koʻra, oyiga ~60M token                                                                                                                  | Google AI Studio API kaliti; tezlik cheklovlari amal qiladi                                                                   |
-| **Groq**          | Llama, GPT-OSS va Qwen modellari                                                              | Auditdan oʻtgan pul hisobiga koʻra, oyiga ~15M token                                                                                                                  | Groq API kaliti; tezlik cheklovlari amal qiladi                                                                               |
-| **Cerebras**      | GLM 4.7 va GPT-OSS 120B                                                                       | Auditdan oʻtgan pul hisobiga koʻra, oyiga ~30M token                                                                                                                  | Cerebras API kaliti; tezlik cheklovlari amal qiladi                                                                           |
+| Provayder         | Modellar                                                                                      | Kvota                                                                                                                                                         | Ulanish usuli                                                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 va boshqalar                                      | Tekshirilgan katalog hisobiga koʻra, oyiga 25K tokenlik umumiy pul                                                                                            | OAuth/hisob jarayoni; katalogda ToS `avoid` deb belgilangan                                                          |
+| **OpenCode Free** | Provayder reyestridagi joriy `*-free` modellar toʻplami                                       | Kalitsiz; eʼlon qilingan token chegarasi yoʻq                                                                                                                 | Provayder hisob maʼlumotlari talab qilinmaydi; ToS `avoid` deb belgilangan                                           |
+| **Pollinations**  | Joriy kalitsiz modellar toʻplami; ayrim avvalgi modellar toʻxtatilgan yoki kalit talab qiladi | Kalitsiz; eʼlon qilingan token chegarasi yoʻq                                                                                                                 | Kalitsiz modellar uchun provayder hisob maʼlumotlari talab qilinmaydi                                                |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 va boshqalar                      | Bepul API kaliti (tezlik cheklovlarisiz, karta talab qilinmaydi); tadqiqot uchun **har bir soʻrov qayd etiladi** (logfare.ai/consent orqali rad etish mumkin) | Kalitni logfare.ai/register orqali darhol olish mumkin; ToS/maxfiylik siyosati: logfare.ai/tos va logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI katalogi                                                                           | Eʼlon qilingan foydalanish birliklari asosida tekshirilgan pul hisobi oyiga ~30M tokenni tashkil etadi                                                        | Cloudflare hisobi va API hisob maʼlumotlari                                                                          |
+| **Gemini**        | Gemini Flash oilasi                                                                           | Loyiha/model boʻyicha oʻzgaruvchan tezlik cheklovlari; asosiy taklifga belgilangan oylik token granti kiritilmagan                                            | Google AI Studio API kaliti; loyihaning faol cheklovlarini tekshiring                                                |
+| **Groq**          | Llama, GPT-OSS va Qwen modellari                                                              | Tekshirilgan pul hisobi oyiga ~15M tokenni tashkil etadi                                                                                                      | Groq API kaliti; tezlik cheklovlari qoʻllanadi                                                                       |
 
-### Roʻyxatdan oʻtish bonuslari va provayderga xos kreditlar
+### Roʻyxatdan oʻtish grantlari va provayderga xos kreditlar
 
-Ushbu provayderlar roʻyxatdan oʻtganingizda sizga **bepul kreditlar** beradi:
+Ushbu provayderlar muvofiqlik qoidalariga rioya qilingan holda roʻyxatdan oʻtish grantlari yoki reklama kreditlarini taklif qiladi. 2026-10-08 sanasida tekshirilganidek, [Cerebras narxlari](https://www.cerebras.ai/pricing) 30 kundan keyin muddati tugaydigan bir martalik $5 kredit uchun toʻlov usulini talab qiladi; bu takroriy token kvotasi emas. [Gemini tezlik cheklovlari](https://ai.google.dev/gemini-api/docs/rate-limits) loyiha, model va darajaga qarab oʻzgaradi, shu sababli ular kafolatlangan oylik token grantiga aylantirilmagan.
 
-| Provayder     | Bepul kreditlar                                                                     | Modellar                   | Qanday olish mumkin                                              |
-| ------------- | ----------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------- |
-| **DeepSeek**  | 5M ta bepul token                                                                   | DeepSeek V4                | platform.deepseek.com saytida roʻyxatdan oʻting                  |
-| **LongCat**   | Bir martalik 10M-tokenlik bonus                                                     | LongCat 2.0                | API kaliti + KYC; bonus tugagach, foydalanishga qarab toʻlanadi  |
-| **Vertex AI** | Budjet modelida ~300M token sifatida ifodalangan $300 lik roʻyxatdan oʻtish krediti | Gemini va hamkor modellari | Google Cloud hisobi; billing va muvofiqlik qoidalari amal qiladi |
+| Provayder     | Bepul kreditlar                                                                  | Modellar                   | Olish usuli                                                         |
+| ------------- | -------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------- |
+| **Cerebras**  | Bir martalik $5 reklama krediti; muddati 30 kundan keyin tugaydi                 | Joriy inferensiya katalogi | Hisob va amaldagi toʻlov usuli                                      |
+| **DeepSeek**  | 5M bepul token                                                                   | DeepSeek V4                | platform.deepseek.com saytida roʻyxatdan oʻting                     |
+| **LongCat**   | Bir martalik 10M tokenlik grant                                                  | LongCat 2.0                | API kaliti + KYC; grantdan keyin foydalanishga qarab toʻlov         |
+| **Vertex AI** | Byudjet modelida ~300M token sifatida ifodalangan $300 roʻyxatdan oʻtish krediti | Gemini va hamkor modellar  | Google Cloud hisobi; hisob-kitob va muvofiqlik qoidalari qoʻllanadi |
 
-### Boshqa cheklangan foydalanish imkoniyatlari
+### Boshqa cheklangan kirish imkoniyatlari
 
-Ushbu provayderlarda muayyan cheklovlarga ega **bepul tariflar** mavjud:
+Ushbu provayderlar muayyan cheklovlarga ega **bepul darajalarni** taklif qiladi:
 
-| Provayder                      | Bepul limit                                                                                         | Modellar                                   | Eng mos keladigan holatlar |
-| ------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| **GitHub Models**              | Auditdan o‘tgan umumiy hovuz taxminan oyiga 18M token                                               | Modellarni keng ko‘lamda baholash          |
-| **Hugging Face**               | Har oy yangilanadigan kichik hajmdagi hovuz                                                         | Tajribalar va model xilma-xilligi          |
-| **OpenRouter bepul modellari** | So‘rovlar soni cheklangan umumiy hovuz; ixtiyoriy bir martalik to‘ldirish muntazam limitni oshiradi | Keng qamrovli zaxira katalogi              |
-| **AI Horde**                   | Kalitsiz hamjamiyat resurslari; mavjudlik o‘zgarib turadi                                           | Imkoniyatga qarab taqsimlangan inferensiya |
+| Provayder                  | Bepul chegara                                                                                     | Modellar                                   | Eng mos foydalanish holati |
+| -------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
+| **GitHub Models**          | Tekshirilgan umumiy pul hisobi oyiga ~18M tokenni tashkil etadi                                   | Modellarni keng qamrovda baholash          |
+| **Hugging Face**           | Kichik, takroriy oylik pul                                                                        | Tajribalar va model xilma-xilligi          |
+| **OpenRouter free models** | Soʻrovlar soni cheklangan umumiy pul; ixtiyoriy bir martalik toʻldirish takroriy limitni oshiradi | Keng qamrovli zaxira katalogi              |
+| **AI Horde**               | Kalitsiz hamjamiyat quvvati; mavjudlik oʻzgarib turadi                                            | Imkoniyatga qarab taqsimlangan inferensiya |
 
 ---
 
 ## Bepul tariflarni qanday birlashtirish mumkin
 
-OmniRoute’ning asosiy afzalligi — **bepul tariflarni birlashtirish**. Bitta provayderga tayanish o‘rniga, bir nechta bepul provayderni ulaysiz va OmniRoute’ga har bir so‘rov uchun eng yaxshisini avtomatik ravishda tanlash imkonini berasiz.
+OmniRoute’ning afzalligi — **bepul tariflarni birlashtirish**. Bitta provayderga tayanish o‘rniga, bir nechta bepul provayderni ulaysiz va OmniRoute’ga har bir so‘rov uchun eng yaxshisini avtomatik ravishda tanlash imkonini berasiz.
 
-### Misol: Bepul tariflardan kengroq foydalanish
+### Misol: Bepul tariflar qamrovini kengaytirish
 
 Bitta kvotaga qaramlikni kamaytirish uchun bir nechta provayderni ulang:
 
-1. **Gemini** — davriy API kaliti kvotasi
-2. **Groq** — davriy API kaliti kvotasi
-3. **Pollinations** — kalitsiz, so‘rovlar tezligi cheklangan foydalanish
-4. **LongCat** — ro‘yxatdan o‘tishda bir marta beriladigan grant (KYC talab qilinadi)
+1. **Gemini** — muntazam yangilanadigan API kaliti kvotasi
+2. **Groq** — muntazam yangilanadigan API kaliti kvotasi
+3. **Pollinations** — kalitsiz, so‘rovlar tezligi cheklangan kirish
+4. **LongCat** — ro‘yxatdan o‘tishda bir marta beriladigan grant (KYC talab etiladi)
 
-So‘ng `model: "auto"` dan foydalaning va OmniRoute:
+So‘ng `model: "auto"` parametridan foydalaning va OmniRoute:
 
 - Avval reytingi eng yuqori bo‘lgan mos ulanishni sinab ko‘radi
-- Agar uning kvotasi tugagan yoki holat tekshiruvi muvaffaqiyatsiz bo‘lsa → keyingi sozlangan provayderni sinab ko‘radi
-- Agar kalitsiz provayder ishlamasa → qolgan manbalarni sinashda davom etadi
-- Agar barchasi muvaffaqiyatsiz bo‘lsa → LongCat’dan zaxira sifatida foydalanadi
+- Agar uning kvotasi tugagan yoki ishlash holati tekshiruvi muvaffaqiyatsiz bo‘lsa → keyingi sozlangan provayderni sinab ko‘radi
+- Agar kalitsiz provayder mavjud bo‘lmasa → qolgan maqsadlar bo‘yicha davom etadi
+- Agar hech bir mos ulanish muvaffaqiyatli ishlamasa → xatolik qaytaradi; ro‘yxatdan o‘tish kreditlaridan faqat ular amal qilayotgan va mavjud bo‘lgan paytda foydalanish mumkin
 
-**Natija**: avtomatik zaxira mexanizmi bilan bepul tariflardan kengroq foydalanish — bu cheklanmagan quvvat kafolati emas.
+**Natija**: avtomatik zaxira variantiga ega kengroq bepul tarif qamrovi — ammo bu cheksiz quvvat kafolati emas.
 
 ---
 
@@ -87,27 +84,26 @@ So‘ng `model: "auto"` dan foydalaning va OmniRoute:
 
 ### 1-qadam: Boshqaruv panelini oching
 
-Brauzeringizda `http://localhost:20128` manziliga o‘ting.
+Brauzeringizda `http://localhost:20128` manziliga oʻting.
 
-### 2-qadam: Provayderlar bo‘limiga o‘ting
+### 2-qadam: Provayderlar boʻlimiga oʻting
 
 Yon paneldagi **Provayderlar** bandini bosing.
 
-### 3-qadam: Provayder qo‘shish tugmasini bosing
+### 3-qadam: Provayder qoʻshish tugmasini bosing
 
-**+ Provayder qo‘shish** tugmasini bosing.
+**+ Provayder qoʻshish** tugmasini bosing.
 
 ### 4-qadam: Bepul provayderni tanlang
 
-Katalogni ko‘rib chiqing va har bir provayderning joriy `hasFree`, autentifikatsiya, kvota, maxfiylik
-hamda ToS metama’lumotlarini tekshiring. Provayder kartasi va
-[Bepul tariflar ma’lumotnomasi](../reference/FREE_TIERS.md) davriy resurslar,
-cheklanmagan/kalitsiz foydalanish, ro‘yxatdan o‘tish kreditlari, to‘xtatilgan yozuvlar va yuqori xavfli manbalarni bir-biridan ajratib ko‘rsatadi.
+Katalogni koʻrib chiqing va har bir provayderning joriy `hasFree`, autentifikatsiya, kvota, maxfiylik
+hamda foydalanish shartlari (ToS) metamaʼlumotlarini tekshiring. Provayder kartasi va
+[Bepul tariflar maʼlumotnomasi](../reference/FREE_TIERS.md) davriy ravishda yangilanadigan resurslar,
+cheklanmagan/kalitsiz kirish, roʻyxatdan oʻtish kreditlari, toʻxtatilgan yozuvlar va xavfi yuqoriroq manbalarni bir-biridan ajratib koʻrsatadi.
 
 ### 5-qadam: Ulanish tugmasini bosing
 
-`NOAUTH` provayderi uchun hisobga olish ma’lumotlari talab qilinmaydi. OAuth va API kalitidan foydalanadigan provayderlar
-ularning hujjatlarida ko‘rsatilgan hisob ulash jarayoni orqali ulanishi kerak.
+`NOAUTH` provayderi uchun OmniRoute yuqori oqim hisob maʼlumotlarini soʻramaydi. Bu yuqori oqim provayderi uchinchi tomon mijozlarini qabul qilishi yoki unda yetarli quvvat mavjudligini kafolatlamaydi. OAuth va API kaliti talab qilinadigan provayderlar hujjatlashtirilgan hisob ulash jarayoni orqali ulanishi kerak. Router autentifikatsiyasi yoqilganida, mijozingiz **Boshqaruv paneli → Yakuniy nuqtalar** boʻlimida koʻrsatilgan OmniRoute API kalitidan foydalanishda davom etadi.
 
 ### 6-qadam: Takrorlang
 
@@ -115,18 +111,18 @@ Shartlari va maxfiylik modeli foydalanish holatingizga mos keladigan bir nechta 
 
 ---
 
-## Katalogni to‘g‘ri talqin qilish
+## Katalogni toʻgʻri talqin qilish
 
-- `NOAUTH` OmniRoute sizdan provayder hisobga olish ma’lumotlarini so‘ramasligini anglatadi; bu
-  uzluksiz ishlash, maxfiylik yoki cheklanmagan quvvatni kafolatlamaydi.
-- `hasFree` — aniqlash metama’lumoti. U davriy kvota, kalitsiz foydalanish,
-  ro‘yxatdan o‘tish krediti, tasdiqlash dasturi yoki aksiyani anglatishi mumkin.
-- `recurring-uncapped` e’lon qilingan token chegarasi mavjud emasligini anglatadi; so‘rovlar tezligi va
-  parallel so‘rovlar soniga oid cheklovlar baribir amal qiladi.
-- `one-time-initial` ro‘yxatdan o‘tishda berilgan grant sarflangach, qayta berilmaydi.
-- `tos: avoid` — foydalanishdan oldin provayder shartlari va hisob bilan bog‘liq xavflarni ko‘rib chiqish kerakligi haqidagi ogohlantirish.
-- `discontinued` deb belgilangan yozuvlar tarixiy dalil sifatida saqlanadi va ularni
-  hozirda bepul deb ko‘rsatish mumkin emas.
+- `NOAUTH` OmniRoute sizdan provayder hisob maʼlumotlarini soʻramasligini anglatadi; bu ish vaqti, maxfiylik yoki cheklanmagan sigʻimni
+  kafolatlamaydi.
+- `hasFree` — topish uchun moʻljallangan metadata. U davriy kvota, kalitsiz kirish,
+  roʻyxatdan oʻtish krediti, tasdiqlash dasturi yoki aksiyani anglatishi mumkin.
+- `recurring-uncapped` eʼlon qilingan token chegarasi mavjud emasligini anglatadi; tezlik va
+  parallel ishlash cheklovlari baribir amal qiladi.
+- `one-time-initial` roʻyxatdan oʻtishda berilgan grant sarflangach, qayta berilmaydi.
+- `tos: avoid` provayderlari birlamchi holatda avtomatik marshrutlashdan chiqarib tashlanadi (`excludeTosAvoid`). Hisobni ulash bu filtrni chetlab oʻtmaydi. Operator tomonidan qilinadigan har qanday istisno provayder shartlari va hisob xavfi koʻrib chiqilgandan keyin amalga oshirilishi kerak.
+- `discontinued` deb belgilangan yozuvlar tarixiy dalil sifatida saqlanadi va hozirda
+  bepul deb taqdim etilmasligi kerak.
 
 ---
 
@@ -158,20 +154,16 @@ chetlab o‘tish uchun qo‘shimcha hisoblar yaratmang.
 
 ---
 
-## Bepul tarif hisob-kitobi
+## Bepul tarif hisobi
 
-Jonli, havzalar bo‘yicha takrorlari olib tashlangan katalog hozirda quyidagilarni ko‘rsatadi:
+Amaldagi, umumiy havzalardagi takroriy hisoblarni chiqarib tashlagan katalog hozir quyidagilarni ko‘rsatadi:
 
-| Ko‘rsatkich                                              |                             Joriy tekshirilgan qiymat | Talqin                                                                                                                                          |
-| -------------------------------------------------------- | ----------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Davriy hisoblangan limit                                 |                                   **~1.62B token/oy** | Umumiy havzalar bir marta hisoblangan; cheklanmagan provayderlar yig‘indiga kiritilmagan                                                        |
-| Ro‘yxatdan o‘tish limitlari bilan birinchi oy            |                                      **~2.22B token** | Davriy jami miqdor hamda bir martalik va davriy kreditlar                                                                                       |
-| Tekshirilgan bepul modellar ro‘yxati                     | **35 ta davriy havza kaliti / 482 ta katalog yozuvi** | 475 tasi faol + 7 tasi to‘xtatilgan; 357 ta provayderdan iborat katalogdan farq qiladi                                                          |
-| Taqdim etilgan davriy/kalitsiz doimiy bepul provayderlar |                                                **53** | Davriy kunlik/oylik/kreditli/cheklanmagan va kalitsiz katalog turlaridagi noyob provayderlar; muvofiqlik bilan cheklangan qatorlar kiritilmagan |
-| `hasFree` bilan belgilangan provayder katalogi yozuvlari |                                         **152 / 357** | Kengroq provayder metama’lumotlari; ularning barchasida ham miqdoriy baholash mumkin bo‘lgan davriy kvota mavjud emas                           |
+| Ko‘rsatkich                                   | Joriy tekshirilgan qiymat | Izoh                                                                                  |
+| --------------------------------------------- | ------------------------: | ------------------------------------------------------------------------------------- |
+| Davriy miqdoriy limit                         |       **~1.62B token/oy** | Umumiy havzalar bir marta hisoblangan; cheklanmagan provayderlar summaga kiritilmagan |
+| Ro‘yxatdan o‘tish grantlari bilan birinchi oy |          **~2.22B token** | Davriy jami miqdor hamda bir martalik va davriy kreditlar                             |
 
-Bu qiymatlar `open-sse/config/freeModelCatalog.ts` asosida hisoblangan; havzalar bo‘yicha takrorlarni olib tashlash, ToS bayroqlari,
-to‘xtatilgan yozuvlar va ro‘yxatdan o‘tish kreditlarini hisoblash metodologiyasi uchun
+Bular OmniRoute tomonidan taqdim etiladigan limit yoki yangi o‘rnatish uchun prognoz emas, balki alohida talablarga javob beruvchi hisoblar bo‘yicha butun katalog miqyosidagi taxminiy qiymatlardir. Foydalanishingiz mumkin bo‘lgan sig‘im siz ulagan provayderlar va ularning joriy shartlariga bog‘liq. Qiymatlar `open-sse/config/freeModelCatalog.ts` asosida hisoblanadi; havzalardagi takroriy hisoblarni chiqarib tashlash, ToS belgilari, faoliyati to‘xtatilgan yozuvlar va ro‘yxatdan o‘tish krediti metodologiyasi uchun
 [Bepul tariflar ma’lumotnomasi](../reference/FREE_TIERS.md)ga qarang.
 
 ---

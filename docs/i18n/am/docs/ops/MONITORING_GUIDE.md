@@ -101,26 +101,26 @@ OmniRoute **3 የክትትል ንብርብሮች** አሉት፦
 
 ## የጤና ምርመራ API
 
-OmniRoute **ሁለት** የHTTP ጤና መከታተያ መገናኛዎችን ያቀርባል። ለኦርኬስትሬተሮች እርስ በርሳቸው ተለዋዋጭ አይደሉም።
+OmniRoute **ሁለት** የHTTP ጤና መፈተሻ መገናኛዎችን ያቀርባል። ለኦርኬስትሬተሮች እርስ በርሳቸው ተለዋዋጭ አይደሉም።
 
-| ዱካ                           | ዓላማ                                                    | ክብደት                      | ለዚህ ይጠቀሙበት                                                   |
-| ---------------------------- | ------------------------------------------------------ | ------------------------- | ------------------------------------------------------------ |
-| `GET /healthz`               | የሕይወት ዑደት ሕያውነት/ዝግጁነት (`ok` / `starting` / `stopping`) | ቀላል (የደረጃ ምልክት ብቻ)        | የKubernetes **readiness**፤ HTTP መጠቀም ካለብዎት ለስላሳ **liveness** |
-| `GET /api/monitoring/health` | ጥልቅ የስርዓት + አቅራቢ ማጠቃለያ (DB፣ heap፣ የካታሎግ ብዛቶች፣ …)       | ከባድ (የተመሳሰለ DB / ክትትል ሥራ) | ዳሽቦርዶች፣ የblackbox ጥልቅ ምርመራዎች፣ የDocker አብሮገነብ healthcheck     |
+| ዱካ                           | ዓላማ                                                    | ክብደት                       | የአጠቃቀም ሁኔታ                                                 |
+| ---------------------------- | ------------------------------------------------------ | -------------------------- | ---------------------------------------------------------- |
+| `GET /healthz`               | የሕይወት ዑደት ሕያውነት/ዝግጁነት (`ok` / `starting` / `stopping`) | እጅግ ቀላል (የደረጃ ጠቋሚ ብቻ)      | የKubernetes **ዝግጁነት**፤ HTTPን የግድ መጠቀም ካለብዎት ለስላሳ **ሕያውነት** |
+| `GET /api/monitoring/health` | ጥልቅ የስርዓት + የአቅራቢ ማጠቃለያ (DB፣ heap፣ የካታሎግ ብዛቶች፣ …)      | ከባድ (የተመሳሰለ DB / የክትትል ሥራ) | ዳሽቦርዶች፣ ጥልቅ የblackbox ምርመራዎች፣ የDocker አብሮገነብ የጤና ምርመራ      |
 
-> **ማስታወሻ፦** የአቅራቢ ጤና ማትሪክሶች፣ የautopilot ችግሮች፣ የquota መከታተያዎች፣ የtoken ጤና እና ከ`/api/monitoring/health` በላይ የሆነ የlatency ዝርዝር በ**MCP tool** `observability_snapshot` ወይም በ**dashboard** ገጾች በኩል ይገኛሉ — ለእነዚህ የተለዩ REST መስመሮች የሉም።
+> **ማስታወሻ፦** የአቅራቢ ጤና ማትሪክሶች፣ የautopilot ችግሮች፣ የኮታ ተቆጣጣሪዎች፣ የቶከን ጤና እና ከ`/api/monitoring/health` በላይ የሆኑ የመዘግየት ዝርዝሮች በ**MCP መሣሪያው** `observability_snapshot` ወይም በ**ዳሽቦርድ** ገጾች በኩል ይገኛሉ — ለእነዚህ የተለዩ REST መስመሮች የሉም።
 
-ሁለቱም መስመሮች ጥያቄዎችን ከሚያስተናግደው ጋር በ**ተመሳሳዩ የNode event loop** ላይ ይሰራሉ። CPUን አጥብቆ የሚጠቀም ዱካ (ትልቅ የ`GET /v1/models` ካታሎግ ሥራ፣ ረጅም-ዐውድ ማመቅ / token መቁጠር) `/healthz`ን ጨምሮ **ሁሉንም** HTTP handlers ሊያዘገይ ይችላል። event loop ሥራ በዝቶበታል ≠ process ሞቷል። ጫናውን የሚፈጥረውን ማስተካከል ይመረጣል፤ የprobe ማስተካከያ የተሳሳተ ማቋረጥን ብቻ ይቀንሳል።
+ሁለቱም መስመሮች የጥያቄዎች አያያዝ በሚከናወንበት **ተመሳሳይ የNode event loop** ላይ ይሠራሉ። CPUን አጥብቆ የሚጠቀም መስመር (ትልቅ የ`GET /v1/models` ካታሎግ ሥራ፣ ረጅም-አውድ መጭመቅ / የቶከን ቆጠራ) `/healthz`ን ጨምሮ **ሁሉንም** የHTTP ተቆጣጣሪዎች ሊያዘገይ ይችላል። Event-loop ሥራ የበዛበት ≠ ሂደቱ የሞተ። የሐሰት ማቋረጦችን ለመቀነስ ምርመራውን ብቻ ከማስተካከል ይልቅ ሀብት አባካኙን ማስተካከል ይመረጣል።
 
-### ቀላል የorchestrator probe
+### ቀላል የኦርኬስትሬተር ምርመራ
 
 ```bash
 GET /healthz
 # ወይም HEAD /healthz
 ```
 
-- የserver lifecycle phase ዝግጁ ሲሆን **200** + body `ok`
-- በመነሳት ወይም በመዘጋት ጊዜ **503** + `starting` / `stopping`
+- የአገልጋዩ የሕይወት ዑደት ደረጃ ዝግጁ ሲሆን **200** + ይዘት `ok`
+- በማስነሳት ወይም በማጥፋት ጊዜ **503** + `starting` / `stopping`
 - አተገባበር፦ `src/app/healthz/route.ts` (የDB ping የለም)
 
 ### የስርዓት ጤና (ጥልቅ)
@@ -155,41 +155,40 @@ GET /api/monitoring/health
 
 #### `credentialHealth`፦ probe-cache ከSQLite `test_status` ጋር
 
-`GET /api/monitoring/health` → `credentialHealth` **በማህደረ ትውስታ ውስጥ ያለው የprobe-cache
-መለኪያ** እንጂ የ`provider_connections.test_status` የቀጥታ ውሂብ ማሳያ አይደለም። ከ#12532 በኋላ
-የrequest path `getCachedCredentialHealthSummary()`ን ብቻ ያነባል፤ background probes
-cacheን ከevent loop ውጪ ያድሳሉ።
+`GET /api/monitoring/health` → `credentialHealth` በቀጥታ የሚወሰድ የ`provider_connections.test_status` ዝርዝር ሳይሆን **በማህደረ ትውስታ ውስጥ ያለው የprobe-cache
+መለኪያ** ነው። ከ#12532 በኋላ የጥያቄው መስመር `getCachedCredentialHealthSummary()`ን ብቻ ያነባል፤ የጀርባ ምርመራዎች
+መሸጎጫውን ከevent loop ውጭ ያድሳሉ።
 
-| ንብርብር                | የት                                                                    | ትርጉሙ                                                                                                                                                                             |
-| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| የProbe-cache መለኪያ    | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | በprocess memory ውስጥ አሁንም የተያዙ የመጨረሻዎቹ የcredential-health probe ውጤቶች። `source` ሁልጊዜ `probe-cache` ነው።                                                                             |
-| የከሸፈ connection ዝርዝር | `credentialHealth.failedConnections`                                  | **`failed > 0` ሲሆን ብቻ** ይኖራል። `status=error` ያላቸው የcache rows የተገደበ ዝርዝር (`connectionId`፣ `status`፣ የተጣራ `lastError` / `lastErrorType`)። ዝርዝሩ ሲገደብ `failedOmitted` ይዘጋጃል።        |
-| SQLite sticky status | `credentialHealth.staleDbNonOkCount`                                  | በpersisted `test_status` ውስጥ የሚታወቅ non-ok (`error`፣ `expired`፣ `credits_exhausted`፣ `banned`፣ `deactivated`፣ `unavailable`) ያላቸው **active** (`is_active=1`) connection rows ብዛት። |
+| ንብርብር             | ቦታ                                                                    | ትርጉሙ                                                                                                                                                                   |
+| ----------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| የProbe-cache መለኪያ | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | በሂደቱ ማህደረ ትውስታ ውስጥ አሁንም የተያዙ የመጨረሻዎቹ የማረጋገጫ-ጤና ምርመራ ውጤቶች። `source` ሁልጊዜ `probe-cache` ነው።                                                                              |
+| ያልተሳካ የግንኙነት ዝርዝር | `credentialHealth.failedConnections`                                  | **`failed > 0` ሲሆን ብቻ** ይኖራል። `status=error` ያላቸው ውስን የመሸጎጫ ረድፎች ዝርዝር (`connectionId`፣ `status`፣ የተጣራ `lastError` / `lastErrorType`)። ዝርዝሩ ሲገደብ `failedOmitted` ይዘጋጃል። |
+| የSQLite ቋሚ ሁኔታ    | `credentialHealth.staleDbNonOkCount`                                  | ተቀምጦ የቆየ `test_status` የታወቀ ያልሆነ-ok (`error`፣ `expired`፣ `credits_exhausted`፣ `banned`፣ `deactivated`፣ `unavailable`) የሆነባቸው **ንቁ** (`is_active=1`) የግንኙነት ረድፎች ብዛት።   |
 
-ሁለቱ ንብርብሮች ሆን ብለው ሊለያዩ ይችላሉ፦
+ሁለቱ ንብርብሮች ሆን ተብሎ ሊለያዩ ይችላሉ፦
 
-- መለኪያው `failed=0` ሆኖ `staleDbNonOkCount>0` ሲሆን — SQLite አሁንም የተጣበቀ
-  `test_status` (ለምሳሌ `expired` ወይም `credits_exhausted`) አለው፤ የቅርብ ጊዜው
-  የprobe-cache snapshot ግን እንደ `status=error` አይቆጥረውም።
-- መለኪያው `failed>0` ሆኖ SQLite ጤናማ ሲመስል — የቅርብ ጊዜ probe ከሽፎ
-  cache ውስጥ ተቀምጧል፤ DB row አልተዘመነም ወይም በኋላ ተጠርጓል።
+- መለኪያው `failed=0` ሆኖ `staleDbNonOkCount>0` ሲሆን — SQLite አሁንም ቋሚ
+  `test_status` (ለምሳሌ `expired` ወይም `credits_exhausted`) ይዟል፤ የቅርብ ጊዜው
+  የprobe-cache ቅጽበታዊ እይታ ደግሞ እንደ `status=error` አይቆጥረውም።
+- መለኪያው `failed>0` ሆኖ SQLite ጤናማ ሲመስል — የቅርብ ጊዜ ምርመራ አልተሳካም እና
+  ተሸጎጧል፤ የDB ረድፉ አልተዘመነም ወይም በኋላ ተጠርጓል።
 
-ይህን endpoint በመሰብሰብ ጊዜ በ`provider_connections.test_status` ላይ ብቻ ተመስርተው ማንቂያ አያስነሱ።
-ለቀጥታ የprobe ውድቀቶች `failed` + `failedConnections`ን፣ የተቀመጠውን
-የsticky-status ብዛት ሲፈልጉ ደግሞ `staleDbNonOkCount`ን ይጠቀሙ።
+ይህን መገናኛ ሲሰበስቡ በ`provider_connections.test_status` ላይ ብቻ በመመሥረት
+ማንቂያ አያስነሱ። ለቀጥታ የምርመራ ውድቀቶች `failed` + `failedConnections`ን፣
+ተቀምጦ የቆየው ቋሚ-ሁኔታ ብዛት ሲያስፈልግዎ `staleDbNonOkCount`ን ይጠቀሙ።
 
-### የKubernetes probe ምክሮች
+### የKubernetes ምርመራ ምክረ ሐሳቦች
 
-OmniRoute **አንድ የNode process** (አንድ event loop) ነው። መደበኛው የDocker `HEALTHCHECK` ቀላሉን `/healthz` ዒላማ ያደርጋል። `/api/monitoring/health` ለkubelet liveness የጊዜ ክፍተቶች **በጣም ከባድ** ነው።
+OmniRoute **አንድ የNode ሂደት** (አንድ event loop) ነው። መደበኛው የDocker `HEALTHCHECK` ቀላሉን `/healthz` ያነጣጥራል። `/api/monitoring/health` ለkubelet የሕያውነት ክፍተቶች **በጣም ከባድ** ነው።
 
-| ፕሮብ              | የሚመከር ዒላማ                                                              | ማስታወሻዎች                                                                                                                                                                                                                                               |
-| ---------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ማስጀመሪያ**       | HTTP `GET /healthz` ከረጅም `failureThreshold` (ወይም ትልቅ `startPeriod`) ጋር | ቀዝቃዛ ማስጀመር + SQLite ማዛወር ከጥቂት ሰከንዶች ሊበልጥ ይችላል                                                                                                                                                                                                         |
-| **ዝግጁነት**        | HTTP `GET /healthz`                                                    | የሕይወት ዑደት `ok` / `starting` / `stopping` (200 ከ503 ጋር ሲነጻጸር)። ሉፑ በCPU ከታገደ አሁንም ይዋዥቃል። **200 ከበርካታ ሰከንዶች በኋላ መመለሱ ጤናማ አይደለም** (#10303) — ይህም ባለ3-ባይት ተቆጣጣሪው ከመስራቱ በፊት የክስተት ሉፑ የማስኬጃ ጊዜ እንዳላገኘ ያሳያል                                                   |
-| **ሕያውነት**        | HTTP `GET /livez`፣ **ወይም TCP** በዋናው የአገልግሎት ወደብ (`PORT`፣ ነባሪ `20128`)  | `/livez` ሂደቱ ሕያው መሆኑን ብቻ ያረጋግጣል (ተቆጣጣሪው ከሰራ ሁልጊዜ 200)። አሁንም የክስተት ሉፑን ይጋራል — ሥራ የበዛበት ≠ የሞተ፣ እና የክስተት ሉፕ የማስኬጃ ጊዜ እጦትን (#10303) ከTCP በተሻለ አያገኝም። በካታሎግ/መጭመቅ ጫና ወቅት HTTP ፕሮቦች ጊዜያቸው ካለፈ **TCP**ን ይምረጡ፤ በሁለቱም ሁኔታ በአጭር የክስተት ሉፕ መቆም ምክንያት ፖዱን **አይግደሉ** |
-| **ጥልቅ የጤና ምርመራ** | `GET /api/monitoring/health` ከውጫዊ ፈታሽ                                  | ለkubelet `livenessProbe` / ተደጋጋሚ `readinessProbe` አይደለም                                                                                                                                                                                               |
+| መመርመሪያ           | የሚመከር ዒላማ                                                              | ማስታወሻዎች                                                                                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **መነሻ**          | HTTP `GET /healthz` ከረጅም `failureThreshold` (ወይም ትልቅ `startPeriod`) ጋር | ቀዝቃዛ ጅምር + SQLite ፍልሰት ከጥቂት ሰከንዶች ሊበልጥ ይችላል                                                                                                                                                                                                               |
+| **ዝግጁነት**        | HTTP `GET /healthz`                                                    | የሕይወት ዑደት `ok` / `starting` / `stopping` (200 ከ 503 ጋር)። ሉፑ በCPU ከታገደ አሁንም ይዋዥቃል። **ከበርካታ ሰከንዶች በኋላ የሚመጣ 200 ጤናማ አይደለም** (#10303) — ይህም ባለ3-ባይት ተቆጣጣሪው ከመስራቱ በፊት የክስተት ሉፑ ጊዜ እንዳላገኘ ያመለክታል                                                                |
+| **ሕያውነት**        | HTTP `GET /livez`፣ **ወይም TCP** በዋናው የአገልግሎት ወደብ (`PORT`፣ ነባሪ `20128`)  | `/livez` ሂደቱ በሕይወት መኖሩን ብቻ ያረጋግጣል (ተቆጣጣሪው ከሰራ ሁልጊዜ 200)። አሁንም የክስተት ሉፑን ይጋራል — ስራ በዝቶበታል ≠ ሞቷል፣ እንዲሁም የክስተት ሉፕ ጊዜ ማጣትን (#10303) ከTCP በተሻለ አያገኝም። በካታሎግ/ማመቂያ ጫና ሥር HTTP መመርመሪያዎች ጊዜያቸው ካለፈ **TCP**ን ይምረጡ፤ በሁለቱም ሁኔታ በአጭር የክስተት ሉፕ መቆም ምክንያት podን **አይግደሉ** |
+| **ጥልቅ የጤና ምርመራ** | `GET /api/monitoring/health` ከውጫዊ መርማሪ                                 | ለkubelet `livenessProbe` / ተደጋጋሚ `readinessProbe` አይደለም                                                                                                                                                                                                   |
 
-የምሳሌ ቅርጽ (ገደቦቹን ከቀዝቃዛ ማስጀመርዎ እና ከመጭመቅ ጫናዎ ጋር ያስተካክሉ)፦
+የቅርጽ ምሳሌ (ገደቦቹን ከቀዝቃዛ ጅምርዎ እና ከማመቂያ ጫናዎ ጋር ያስተካክሉ):
 
 ```yaml
 ports:
@@ -216,26 +215,57 @@ livenessProbe:
   timeoutSeconds: 3
   failureThreshold: 6
   # የክስተት ሉፑ ሲቆም HTTP /livez አሁንም ጊዜው ሊያልፍ ይችላል። TCP
-  # ጥንቃቄ የተሞላበት አማራጭ ነው፦
+  # ጥንቃቄ የተሞላበት አማራጭ ነው:
   # tcpSocket:
   #   port: http
 ```
 
-የkubelet **ሕያውነት** ፕሮብን ወደ `/api/monitoring/health` **አታመልክቱ**። ይህ ዱካ እውነተኛ የDB/ክትትል ሥራ ያከናውናል፣ እና በጫና ወቅት በስህተት ችግር እንዳለ ያመለክታል።
+የkubelet **ሕያውነት** መመርመሪያን ወደ `/api/monitoring/health` **አታመልክቱ**። ይህ ዱካ እውነተኛ የDB/ክትትል ሥራ ያከናውናል እና በጫና ሥር በስህተት ችግር እንዳለ ይጠቁማል።
 
-ተዛማጅ፦ [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (የክስተት ሉፑ ሥራ ሲበዛበት የሚደረጉ ፕሮቦች)፣ [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (የካታሎግ ዋጋ አሰጣጥ ግብዓት መቆጣጠር)፣ [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (የመጭመቅ ቶከን-ቆጠራ ግብዓት መቆጣጠር)።
+ተዛማጅ፦ [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (የክስተት ሉፑ ሥራ በበዛበት ጊዜ የሚደረጉ ምርመራዎች)፣ [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (የካታሎግ ዋጋ አወጣጥ ሀብትን መቆጣጠር)፣ [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (የማመቂያ token ቆጠራ ሀብትን መቆጣጠር)።
 
-### አማራጭ የጥያቄ-ዱካ ሥራ (ማህደረ ትውስታ፣ ክህሎቶች፣ የቶከን ማደስ)
+### systemd watchdog (የቀዘቀዘ የክስተት ሉፕ)
 
-የማህደረ ትውስታ ማውጣት፣ ክህሎቶችን ማስገባት እና የOAuth ቶከን ማደስ **ዋናውን Node የክስተት ሉፕ** ከ`/healthz` ጋር ይጋራሉ። እነዚህ የዳሽቦርድ አብራ/አጥፋ ባህሪያት (`memoryEnabled`፣ `skillsEnabled`) እንጂ የሠራተኛ ፑል አይደሉም። [አካባቢ — የማህደረ ትውስታ፣ ክህሎቶች እና ቶከን ማደስ የክስተት-ሉፕ ወጪ](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)ን ይመልከቱ።
+በsystemd አስተናጋጅ ላይ፣ OmniRoute ሲዘጋጅ ለአገልግሎት አስተዳዳሪው ያሳውቃል እና ማሳወቁን ይቀጥላል፤ ስለዚህ የክስተት ሉፑ የተጣበቀ አገልጋይ እንደበራ ዝም ብሎ ከመቆየት ይልቅ ተገድሎ እንደገና ይጀመራል። ምቶቹ የሚመጡት ከአገልጋዩ ራሱ የክስተት ሉፕ ነው፦ ሲታገድ ምቶቹ ይቆማሉ፣ እና `WatchdogSec` ያለ ምት ካለፈ በኋላ systemd አገልግሎቱን እንደገና ያስጀምረዋል።
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) ይህን የያዘ የተጠቃሚ unit አስቀድሞ ይጽፋል። እርስዎ ራስዎ የሚጽፉት unit (ነባሪው `Type=simple`) watchdog አይኖረውም፣ ስለዚህ እነዚህን መስመሮች ወደ `[Service]` ክፍሉ ያክሉ፦
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+የተፈጠረው unit `Restart=on-failure`ን ያዘጋጃል፣ ስለዚህ ያንን መስመርም ያክሉ — ያለዚያ watchdog የተጣበቀውን አገልግሎት እንደገና ከማስጀመር ይልቅ ይገድለዋል ብቻ።
+
+- `Type=notify`፦ አገልጋዩ `READY=1`ን ሲልክ አገልግሎቱ «ጀምሯል» ተብሎ ይቆጠራል፤ ሂደቱ fork ሲያደርግ አይደለም። `TimeoutStartSec` ዘገምተኛ ጅምርን ይገድባል።
+- `NotifyAccess=all`፦ ምቶቹ የሚላኩት በአገልጋይ ሂደቱ ነው፣ ይህም የ`omniroute serve` ተቆጣጣሪ ልጅ ሂደት ነው።
+- `WatchdogSec`፦ ምቶች በየ60 ሰከንዱ ይላካሉ፣ ስለዚህ **120 ወይም ከዚያ በላይ** ይጠቀሙ። ከዚያ ያነሱ እሴቶች ጤናማ አገልጋይን እንደገና ያስጀምራሉ።
+- `omniroute serve`ን ከፊት ለፊት ያስኪዱ። `--daemon` አገልጋዩን ከunitው cgroup ይነጥለዋል፣ እና የማሳወቂያ መጨባበጡ ፈጽሞ አይጠናቀቅም።
+
+እንደገና ከተጀመረ በኋላ ንቁ መሆኑን ያረጋግጡ፦
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` የተዋቀረውን መዘግየት ያሳያል፣ እና `WatchdogTimestamp` በየደቂቃው ወደፊት ይንቀሳቀሳል። በwatchdog ምክንያት የተፈጠረ ዳግም ማስጀመር `Result=watchdog` ተብሎ ይመዘገባል። unitውን እንዳለ አቆይተው ምቶቹን ለማጥፋት `OMNIROUTE_DISABLE_SD_NOTIFY=1`ን ያዘጋጁ፤ `NOTIFY_SOCKET` ከሌለ (terminal፣ Docker፣ Electron፣ Windows) ምንም ነገር አይላክም።
+
+watchdog የሚያረጋግጠው የክስተት ሉፑ መሥራቱን መቀጠሉን ብቻ ነው። ዘገምተኛ የሆነ ነገር ግን አሁንም እየሠራ ያለ አገልጋይ እንደገና አይጀመርም።
+
+### አማራጭ የጥያቄ-ዱካ ሥራ (ማህደረ ትውስታ፣ ክህሎቶች፣ token ማደስ)
+
+ማህደረ ትውስታ ማውጣት፣ ክህሎቶችን ማስገባት እና OAuth ቶከን ማደስ **ዋናውን የNode ክስተት ሉፕ** ከ`/healthz` ጋር ይጋራሉ። እነዚህ የዳሽቦርድ ማብሪያ ባህሪያት (`memoryEnabled`፣ `skillsEnabled`) እንጂ የሠራተኛ ፑል አይደሉም። [Environment — የክስተት ሉፕ ወጪ](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349)ን ይመልከቱ።
 
 ### የአቅራቢ ጤና
 
-> **የREST መዳረሻ የለም።** የአቅራቢ ጤና ውሂብ በMCP መሣሪያ `observability_snapshot` ወይም በዳሽቦርድ `/dashboard/providers` ገጽ በኩል ይገኛል።
+> **የREST መጨረሻ ነጥብ የለም።** የአቅራቢ ጤና ውሂብ በMCP መሣሪያ `observability_snapshot` ወይም በዳሽቦርዱ `/dashboard/providers` ገጽ በኩል ይገኛል።
 
 ### የአቅራቢ ዝርዝር
 
-> **የREST መዳረሻ የለም።** የእያንዳንዱ አቅራቢ ዝርዝር በዳሽቦርድ `/dashboard/providers` ገጽ በኩል ይገኛል።
+> **የREST መጨረሻ ነጥብ የለም።** የእያንዳንዱ አቅራቢ ዝርዝር በዳሽቦርዱ `/dashboard/providers` ገጽ በኩል ይገኛል።
 
 ---
 

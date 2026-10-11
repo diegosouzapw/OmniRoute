@@ -21,17 +21,27 @@ Migration `168_retire_chatgpt_web.sql` મેળ ખાતા પ્રદાત
 
 ટનલ માત્ર tool turns માટે જરૂરી છે. `pro` સહિત સૂચિબદ્ધ દરેક route, ટનલ અને connector ગોઠવેલા હોય ત્યારે સમાન turn-bound સ્થાનિક tool capabilityનો ઉપયોગ કરી શકે છે.
 
-## Dashboard સેટઅપ
+## ડેશબોર્ડ સેટઅપ
 
-1. **ChatGPT Web (Codex)** પ્રદાતા ખોલો અને કનેક્શન ઉમેરો.
-2. સંપૂર્ણ ChatGPT Cookie header, tunnel ID, runtime key અને custom connectorનું નામ પેસ્ટ કરો. નવા tool-capable સેટઅપ્સે બરાબર `OmniRoute Codex v2` નામનો નવો બનાવેલો connector જ વાપરવો જોઈએ, જેમાં Authenticationને None અને Permissionsને Allow all actions પર સેટ કરેલા હોય.
-3. કનેક્શન ચકાસણી ચલાવો. OmniRoute બ્રાઉઝર-આધારિત Temporary Chat ખોલે છે અને એકાઉન્ટ માટે Sol તથા Pro ઉપલબ્ધ છે કે કેમ તે શોધે છે.
-4. કનેક્શન સાચવો. OmniRoute પેસ્ટ કરેલી cookieને ચકાસેલી Playwright storage stateથી બદલે છે અને encrypted credential abstraction મારફતે તેને runtime key સાથે સંગ્રહે છે.
+1. **ChatGPT Web (Codex)** પ્રોવાઇડર ખોલો અને કનેક્શન ઉમેરો.
+2. સંપૂર્ણ ChatGPT Cookie હેડર, ટનલ ID, રનટાઇમ કી અને કસ્ટમ કનેક્ટરનું
+   નામ પેસ્ટ કરો. નવા ટૂલ-સક્ષમ સેટઅપ્સે `OmniRoute Codex v2` નામથી જ નવું બનાવેલું
+   કનેક્ટર વાપરવું આવશ્યક છે, જેમાં Authentication ને None અને Permissions ને Allow all
+   actions પર સેટ કરેલ હોય.
+3. કનેક્શન ચકાસણી ચલાવો. OmniRoute બ્રાઉઝર-આધારિત Temporary Chat ખોલે છે અને
+   એકાઉન્ટ માટે Sol અને Pro ઉપલબ્ધ છે કે નહીં તે શોધે છે.
+4. કનેક્શન સાચવો. OmniRoute પેસ્ટ કરેલી કૂકીને ચકાસાયેલ
+   Playwright સ્ટોરેજ સ્ટેટથી બદલે છે અને તેને એન્ક્રિપ્ટેડ
+   ક્રેડેન્શિયલ એબ્સ્ટ્રેક્શન મારફતે રનટાઇમ કી સાથે સંગ્રહિત કરે છે.
 
-સફળતાપૂર્વક સાચવ્યા પછી મૂળ cookie જાળવી રાખવામાં આવતી નથી. સત્રની મુદત પૂરી થાય ત્યારે, કનેક્શન ખોલો, નવી સંપૂર્ણ Cookie header પેસ્ટ કરો અને ચકાસણી ફરીથી ચલાવો. edit dialogમાં doctor status બ્રાઉઝર, storage state, sign-in, Temporary Chat, tunnel, connector અને tool round-trip વિશે અલગથી અહેવાલ આપે છે.
+સફળતાપૂર્વક સાચવ્યા પછી રૉ કૂકી જાળવી રાખવામાં આવતી નથી. જ્યારે સેશન સમાપ્ત થાય, ત્યારે
+કનેક્શન ખોલો, નવું સંપૂર્ણ Cookie હેડર પેસ્ટ કરો અને ચકાસણી ફરીથી ચલાવો. એડિટ ડાયલોગમાં
+ડૉક્ટર સ્ટેટસ બ્રાઉઝર, સ્ટોરેજ સ્ટેટ, સાઇન-ઇન, Temporary Chat, ટનલ,
+કનેક્ટર અને ટૂલ રાઉન્ડ-ટ્રિપની સ્થિતિ અલગથી દર્શાવે છે. સેશન્સ બદલાય ત્યારે કૂકી અપડેટ્સને સ્વચાલિત કરવા માટે,
+[Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) માં આપેલું સહાયક ટૂલ જુઓ.
 
-> વાસ્તવિક cookie, runtime key, storage state અથવા capability token ક્યારેય commit કરશો નહીં. પરીક્ષણ અને
-> દસ્તાવેજીકરણનાં મૂલ્યો હંમેશાં placeholders હોવા જોઈએ.
+> વાસ્તવિક કૂકી, રનટાઇમ કી, સ્ટોરેજ સ્ટેટ અથવા કેપેબિલિટી ટોકન ક્યારેય કમિટ કરશો નહીં. ટેસ્ટ અને
+> દસ્તાવેજીકરણનાં મૂલ્યો હંમેશાં પ્લેસહોલ્ડર્સ હોવા જોઈએ.
 
 ## Models અને combos
 
@@ -100,7 +110,7 @@ Compose નેટવર્કની અંદર માત્ર પોર્ટ
 
 ## ચકાસણી
 
-નિવૃત્ત પ્રદાતાને ઇન્વોક કર્યા વિના પ્રદાતા નિયંત્રણો ચલાવો:
+નિવૃત્ત કરાયેલા provider ને invoke કર્યા વિના provider controls ચલાવો:
 
 ```bash
 node --import tsx/esm --test \\
@@ -109,7 +119,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-નિવૃત્તિ માટેના રિગ્રેશન ગાર્ડ્સ અહીં છે:
+નિવૃત્તિ માટેના regression guards અહીં ઉપલબ્ધ છે:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`

@@ -173,34 +173,34 @@ Cormack et al. ஆய்வுக் கட்டுரையிலிருந�
 
 ## அமைப்புகள் நீட்டிப்பு
 
-ஒன்பது embedding மற்றும் vector புலங்கள் `src/shared/schemas/memory.ts`-இல் உள்ள `MemorySettingsExtended`-இல் கிடைக்கின்றன; அவை `src/lib/db/settings.ts` வழியாக நிலைத்துச் சேமிக்கப்படுகின்றன:
+`src/shared/schemas/memory.ts`-இல் உள்ள `MemorySettingsExtended`-இல் ஒன்பது embedding மற்றும் vector புலங்கள் கிடைக்கின்றன; அவை `src/lib/db/settings.ts` வழியாக நிலையாகச் சேமிக்கப்படுகின்றன:
 
-| புலம்                    | வகை                                                | இயல்புநிலை | விளக்கம்                                                                                        |
-| ------------------------ | -------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------- |
-| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | பயன்படுத்த வேண்டிய embedding மூலம்                                                              |
-| `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` வடிவமைப்பிலுள்ள வழங்குநர்/மாதிரி                                               |
-| `customBaseUrl`          | `string \| null`                                   | `null`     | Memory-க்கு மட்டும் உரிய OpenAI-இணக்கமான endpoint அடிப்படை URL                                  |
-| `customModelId`          | `string \| null`                                   | `null`     | தனிப்பயன் endpoint-க்கு அனுப்பப்படும் மாதிரி ID                                                 |
-| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js-க்கான விருப்பச் சேர்க்கை (MiniLM, ~400MB)                                       |
-| `staticEnabled`          | `boolean`                                          | `false`    | நிலையான potion-base-8M உள்ளூர் மாதிரிக்கான விருப்பச் சேர்க்கை                                   |
-| `rerankEnabled`          | `boolean`                                          | `false`    | மறுதரவரிசைப்படுத்தல் படிநிலையைச் செயல்படுத்துதல் (ஒவ்வொரு கோரிக்கைக்கும் +200-500ms சேர்க்கும்) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` வடிவமைப்பிலுள்ள மறுதரவரிசைப்படுத்தல் வழங்குநர்/மாதிரி                          |
+| புலம்                    | வகை                                                | இயல்புநிலை | விளக்கம்                                                                                       |
+| ------------------------ | -------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"`   | பயன்படுத்த வேண்டிய embedding மூலம்                                                             |
+| `embeddingProviderModel` | `string \| null`                                   | `null`     | `provider/model` வடிவமைப்பிலுள்ள வழங்குநர்/மாதிரி                                              |
+| `customBaseUrl`          | `string \| null`                                   | `null`     | Memory-க்கு மட்டும் உரிய OpenAI-இணக்கமான endpoint அடிப்படை URL                                 |
+| `customModelId`          | `string \| null`                                   | `null`     | தனிப்பயன் endpoint-க்கு அனுப்பப்படும் மாதிரி ID                                                |
+| `transformersEnabled`    | `boolean`                                          | `false`    | Transformers.js-க்கான விருப்பச் செயல்படுத்தல் (MiniLM, ~400MB)                                 |
+| `staticEnabled`          | `boolean`                                          | `false`    | நிலையான potion-base-8M உள்ளூர் மாதிரிக்கான விருப்பச் செயல்படுத்தல்                             |
+| `rerankEnabled`          | `boolean`                                          | `false`    | மறுதரவரிசைப்படுத்தல் படிநிலையைச் செயல்படுத்தும் (ஒவ்வொரு கோரிக்கைக்கும் +200-500ms சேர்க்கும்) |
+| `rerankProviderModel`    | `string \| null`                                   | `null`     | `provider/model` வடிவமைப்பிலுள்ள மறுதரவரிசைப்படுத்தல் வழங்குநர்/மாதிரி                         |
 
-`rerankProviderModel` என்பது `POST /v1/rerank` மூலம் தீர்மானிக்கப்படுகிறது (loopback வழியாக அழைக்கப்படுகிறது), எனவே அந்த route ஏற்கும் எதையும் இது ஏற்கும்: தேர்ந்தெடுத்துச் சேர்க்கப்பட்ட cloud rerank மாதிரி (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) அல்லது `<node-prefix>/<model>` வடிவிலுள்ள OpenAI-இணக்கமான வழங்குநர் node (எ.கா., TEI/Infinity box-க்கான `skilled-mini/bge-reranker-v2-m3`). Loopback node-கள் எப்போதும் தகுதியுடையவை; வேறொரு host-இல் (LAN, Tailscale) உள்ள node-க்கு கூடுதலாக `RERANK_REMOTE_PROVIDER_NODES` feature flag தேவைப்படுவதுடன், அது வழங்குநரின் outbound URL கொள்கையையும் கடக்க வேண்டும் — [Feature Flags](../reference/FEATURE_FLAGS.md)-ஐப் பார்க்கவும். Dashboard selector தேர்ந்தெடுத்துச் சேர்க்கப்பட்ட வழங்குநர்களையும் உள்ளூர் node-களையும் பட்டியலிடுகிறது; செல்லுபடியாகும் எந்த `provider/model` சரத்தையும் `PUT /api/settings/memory` வழியாக நேரடியாக அமைக்கலாம்.
+`rerankProviderModel`, `POST /v1/rerank` மூலம் தீர்மானிக்கப்படுகிறது (loopback வழியாக அழைக்கப்படுகிறது); எனவே அந்த route ஏற்றுக்கொள்ளும் எதையும் இது ஏற்றுக்கொள்ளும்: தேர்ந்தெடுக்கப்பட்ட cloud மறுதரவரிசைப்படுத்தல் மாதிரி (`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) அல்லது `<node-prefix>/<model>` வடிவிலுள்ள OpenAI-இணக்கமான வழங்குநர் node (எ.கா., TEI/Infinity box-க்கான `skilled-mini/bge-reranker-v2-m3`). Loopback node-களும் `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`-இல் பட்டியலிடப்பட்டுள்ள hostname-களும் (எ.கா., Docker/Compose சேவைப் பெயர்) எப்போதும் தகுதியானவை; வேறொரு host-இல் (LAN, Tailscale) உள்ள node-க்கு கூடுதலாக `RERANK_REMOTE_PROVIDER_NODES` feature flag தேவைப்படுகிறது, மேலும் அது வழங்குநரின் வெளிச்செல்லும் URL கொள்கையை நிறைவேற்ற வேண்டும் — [Feature Flags](../reference/FEATURE_FLAGS.md)-ஐப் பார்க்கவும். Dashboard selector, தேர்ந்தெடுக்கப்பட்ட வழங்குநர்களையும் உள்ளூர் node-களையும் பட்டியலிடுகிறது; செல்லுபடியாகும் எந்த `provider/model` string-ஐயும் `PUT /api/settings/memory` வழியாக நேரடியாக அமைக்கலாம்.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | பயன்படுத்த வேண்டிய vector backend |
 
-இவை `GET /PUT /api/settings/memory` வழியாக வெளிப்படுத்தப்படுகின்றன (schema `MemorySettingsExtendedSchema`).
+இவை `GET /PUT /api/settings/memory` வழியாக வெளிப்படுத்தப்படுகின்றன (`MemorySettingsExtendedSchema` schema).
 
-`remote` மூலத்திற்காக, Memory விருப்பத்திற்குரிய `customBaseUrl` மற்றும்
-`customModelId` அமைப்புகளையும் ஏற்கிறது. இவை இரண்டும் சேர்ந்து, உலகளாவிய embedding registry-ஐ
-மாற்றாமல் OpenAI-இணக்கமான `/embeddings` endpoint மற்றும் மாதிரியைத் தேர்ந்தெடுக்கின்றன. Endpoint
-பயன்பாட்டிற்கு முன் சீராக்கப்பட்டு, வழங்குநரின் outbound URL கொள்கையால் சரிபார்க்கப்படுகிறது: HTTP(S)
-தேவைப்படுகிறது, உட்பொதிக்கப்பட்ட சான்றுகளும் query string-களும் நிராகரிக்கப்படுகின்றன, மேலும் cloud-metadata
-முகவரிகள் தொடர்ந்து தடுக்கப்படுகின்றன. வெற்று மதிப்புகள் தேர்ந்தெடுக்கப்பட்ட registry வழங்குநரைத் தக்கவைக்கின்றன. Dashboard-க்குத்
-திருப்பப்படும் பிழைகள் பாதுகாப்பாக வடிகட்டப்படுகின்றன; endpoint சான்றுகள் ஒருபோதும் பதிவு செய்யப்படுவதில்லை.
+`remote` மூலத்திற்காக, விருப்பத்திற்குரிய `customBaseUrl` மற்றும்
+`customModelId` அமைப்புகளையும் Memory ஏற்றுக்கொள்கிறது. இவை இரண்டும் சேர்ந்து, உலகளாவிய embedding registry-ஐ மாற்றாமல் OpenAI-இணக்கமான `/embeddings`
+endpoint மற்றும் மாதிரியைத் தேர்ந்தெடுக்கின்றன. பயன்படுத்துவதற்கு முன் endpoint
+இயல்பாக்கப்பட்டு, வழங்குநரின் வெளிச்செல்லும் URL கொள்கையால் சரிபார்க்கப்படுகிறது: HTTP(S)
+தேவைப்படுகிறது; உட்பொதிக்கப்பட்ட சான்றுகளும் query string-களும் நிராகரிக்கப்படுகின்றன; மேலும் cloud-metadata
+முகவரிகள் தொடர்ந்து தடுக்கப்பட்டிருக்கும். வெற்று மதிப்புகள் தேர்ந்தெடுக்கப்பட்ட registry வழங்குநரை அப்படியே வைத்திருக்கும். Dashboard-க்கு
+அனுப்பப்படும் பிழைகள் பாதுகாப்பாக்கப்படுகின்றன; endpoint சான்றுகள் ஒருபோதும் பதிவுகளில் எழுதப்படுவதில்லை.
 
-> **TODO (D20):** `global` scope (அனைத்து API key-களிலும் நினைவுகளைப் பகிர்தல்) இந்த வெளியீட்டில்
-> செயல்படுத்தப்படவில்லை. இதற்கு schema மாற்றங்களும் உலகளாவிய மீட்டெடுப்புப்
+> **TODO (D20):** அனைத்து API key-களுக்கும் இடையே நினைவுகளைப் பகிரும் `global` scope இந்த வெளியீட்டில்
+> செயல்படுத்தப்படவில்லை. இதற்கு schema மாற்றங்களும் உலகளாவிய retrieval
 > பாதையும் தேவை. இதைத் தனியாகக் கண்காணிக்கவும்.
 
 ## சேமிப்பக அடுக்குகள்
@@ -862,10 +862,10 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ## MemoryBackend வழங்குநர் வடிவமைப்பு
 
-> **அதிகாரப்பூர்வ மூலம்:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **உண்மையின் ஆதாரம்:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **சோதனைகள்:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend வழங்குநர் வடிவமைப்பு, ஏற்கனவே உள்ள நினைவக இயந்திரத்தின் மீது **செருகக்கூடிய பின்தள அருவமாக்கல் அடுக்கை** அறிமுகப்படுத்துகிறது. ஒற்றைச் சேமிப்பகச் செயலாக்கத்துடன் பிணைக்கப்பட்டிருப்பதற்குப் பதிலாக, நினைவக அமைப்பு இப்போது கட்டமைக்கக்கூடிய முதன்மை/மாற்று வழிப்படுத்தலுடன் பல பின்தளங்களை (SQLite, Obsidian, Notion, தனிப்பயன் HTTP பின்தளங்கள்) ஆதரிக்கிறது.
+MemoryBackend வழங்குநர் வடிவமைப்பு, ஏற்கனவே உள்ள நினைவக இயந்திரத்தின் மீது ஒரு **செருகக்கூடிய பின்தள அருவமாக்கல் அடுக்கை** அறிமுகப்படுத்துகிறது. ஒற்றை சேமிப்பகச் செயலாக்கத்துடன் பிணைக்கப்பட்டிருப்பதற்குப் பதிலாக, நினைவக அமைப்பு இப்போது அமைவாக்கக்கூடிய முதன்மை/மாற்று வழிப்படுத்தலுடன் பல பின்தளங்களை (SQLite, Obsidian, Notion, தனிப்பயன் HTTP பின்தளங்கள்) ஆதரிக்கிறது.
 
 ### கட்டமைப்பு
 
@@ -877,18 +877,18 @@ MemoryBackend வழங்குநர் வடிவமைப்பு, ஏற
                        │
 ┌──────────────────────▼───────────────────────────────────┐
 │                   MemoryManager                           │
-│           ஒற்றை நிகழ்வு ஒருங்கிணைப்பாளர் (manager.ts)     │
+│           ஒற்றை நிகழ்வு ஒருங்கிணைப்பாளர் (manager.ts)    │
 │                                                          │
 │  முதன்மை ──► பின்தளம் A  (எ.கா. SQLite)                  │
-│  மாற்று   ──► பின்தளம் B  (எ.கா. Obsidian)                │
-│             பின்தளம் C  (எ.கா. GenericBackend வழி Notion) │
+│  மாற்று   ─► பின்தளம் B  (எ.கா. Obsidian)                │
+│             பின்தளம் C  (எ.கா. GenericBackend வழி Notion)│
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
         ▼              ▼              ▼
 ┌────────────┐ ┌────────────┐ ┌──────────────────┐
 │ SQLite     │ │ Obsidian   │ │ GenericMemory    │
-│ பின்தளம்   │ │ பின்தளம்   │ │ பின்தளம் (HTTP) │
+│ பின்தளம்   │ │ பின்தளம்   │ │ பின்தளம் (HTTP)  │
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
@@ -901,7 +901,7 @@ interface MemoryBackend {
   readonly id: string;
   readonly displayName: string;
 
-  // உருவாக்குதல், படித்தல், புதுப்பித்தல், நீக்குதல்
+  // உருவாக்குதல், வாசித்தல், புதுப்பித்தல், நீக்குதல்
   create(input: CreateMemoryInput): Promise<Memory>;
   get(id: string): Promise<Memory | null>;
   update(id: string, updates: Partial<...>): Promise<boolean>;
@@ -911,10 +911,10 @@ interface MemoryBackend {
   // தேடல்
   search(config: SearchConfig): Promise<Memory[]>;
 
-  // ஆரோக்கிய நிலை
+  // நலநிலை
   health(): Promise<HealthCheckResult>;
 
-  // வாழ்க்கைச் சுழற்சி (விருப்பத்திற்குரியது)
+  // வாழ்நிலைச் சுழற்சி (விருப்பத்திற்குரியது)
   initialize?(): Promise<void>;
   shutdown?(): Promise<void>;
 }
@@ -924,38 +924,38 @@ interface MemoryBackend {
 
 பின்வருவனவற்றைச் செய்யும் ஒற்றை நிகழ்வு ஒருங்கிணைப்பாளர்:
 
-- `register(backend)` வழியாகப் பின்தளங்களைப் **பதிவு செய்கிறது** — தொடக்கத்தின்போது `index.ts`-இலிருந்து அழைக்கப்படுகிறது
-- `configure(primary, fallbacks)` வழியாக முதன்மை + மாற்றுப் பின்தளங்களை **உள்ளமைக்கிறது**
-- தோல்வியின்போது மாற்றுச் சங்கிலியைப் பயன்படுத்தி, CRUD/தேடல் செயல்பாடுகளை முதன்மைப் பின்தளத்திற்கு **வழிப்படுத்துகிறது**
-- அனைத்து பின்தளங்களிலும் அவ்வப்போது **ஆரோக்கியச் சோதனைகளை** மேற்கொள்கிறது
+- `register(backend)` வழியாகப் பின்தளங்களைப் **பதிவுசெய்கிறது** — துவக்கத்தின்போது `index.ts`-இலிருந்து அழைக்கப்படுகிறது
+- `configure(primary, fallbacks)` வழியாக முதன்மை + மாற்றுப் பின்தளங்களை **அமைவாக்குகிறது**
+- CRUD/தேடல் செயல்பாடுகளை முதன்மைப் பின்தளத்திற்கு **வழிப்படுத்துகிறது**, தோல்வியின்போது மாற்றுப் பின்தளச் சங்கிலியைப் பயன்படுத்துகிறது
+- எல்லாப் பின்தளங்களுக்கும் அவ்வப்போது **நலநிலைச் சோதனைகளைச்** செய்கிறது
 
 **மாற்றுப் பின்தள நடத்தை:**
 
-| செயல்பாடு | முதன்மை                      | மாற்றுப் பின்தளங்கள்              |
-| --------- | ---------------------------- | --------------------------------- |
-| `create`  | ✅ முதன்மை மட்டும்           | ❌                                |
-| `get`     | ✅ முதலில் முதன்மையை முயலும் | ✅ null எனில் மாற்றுப் பின்தளம்   |
-| `update`  | ✅ முதன்மை மட்டும்           | ✅ காத்திருக்காமல் ஒத்திசைத்தல்   |
-| `delete`  | ✅ முதன்மை மட்டும்           | ✅ காத்திருக்காமல் ஒத்திசைத்தல்   |
-| `list`    | ✅ முதன்மை மட்டும்           | ❌                                |
-| `search`  | ✅ முதலில் முதன்மை           | ✅ பிழையின்போது மாற்றுப் பின்தளம் |
+| செயல்பாடு | முதன்மை                            | மாற்றுப் பின்தளங்கள்                     |
+| --------- | ---------------------------------- | ---------------------------------------- |
+| `create`  | ✅ முதன்மை மட்டும்                 | ❌                                       |
+| `get`     | ✅ முதலில் முதன்மையை முயற்சிக்கும் | ✅ null எனில் மாற்றுப் பின்தளம்          |
+| `update`  | ✅ முதன்மை மட்டும்                 | ✅ பதிலுக்குக் காத்திராமல் ஒத்திசைக்கும் |
+| `delete`  | ✅ முதன்மை மட்டும்                 | ✅ பதிலுக்குக் காத்திராமல் ஒத்திசைக்கும் |
+| `list`    | ✅ முதன்மை மட்டும்                 | ❌                                       |
+| `search`  | ✅ முதன்மை முதலில்                 | ✅ பிழையின்போது மாற்றுப் பின்தளம்        |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-எந்த REST API-யையும் MemoryBackend ஆக மாற்றியமைக்கும் பொதுவான HTTP இணைப்பி. பின்வருவனவற்றிற்கு இது பயனுள்ளதாக இருக்கும்:
+எந்த REST API-யையும் MemoryBackend ஆக மாற்றியமைக்கும் ஒரு பொதுவான HTTP இணைப்பான். இது பின்வருவனவற்றிற்கு பயனுள்ளது:
 
 - **Notion** — Notion API வழியாக இணைக்கவும்
 - **Obsidian** — Obsidian Local REST API வழியாக இணைக்கவும்
 - **தனிப்பயன் பின்தளங்கள்** — RESTful நினைவக API-ஐ வெளிப்படுத்தும் எந்தச் சேவையும்
 
-**உள்ளமைவு:**
+**அமைவாக்கம்:**
 
 ```typescript
 interface GenericBackendConfig {
-  baseUrl: string;           // பின்தள API-இன் அடிப்படை URL
+  baseUrl: string;           // பின்தள API-யின் அடிப்படை URL
   apiKey?: string;           // அங்கீகாரத்திற்கான Bearer token
   headers?: Record<string, string>;  // தனிப்பயன் HTTP தலைப்புகள்
-  timeout?: number;          // கோரிக்கை காலக்கெடு (இயல்புநிலை: 30000ms)
+  timeout?: number;          // கோரிக்கை காலாவதி நேரம் (இயல்புநிலை: 30000ms)
   backendType?: string;      // பதிவிடுவதற்காக
 
   // முனைப்புள்ளி மேலெழுதல்கள் (இயல்புநிலைகள் REST மரபுகளைப் பயன்படுத்துகின்றன)
@@ -981,18 +981,18 @@ interface GenericBackendConfig {
 }
 ```
 
-**அறியப்பட்ட பின்தளங்கள்** `KNOWN_BACKENDS`-இல் முன்கூட்டியே உள்ளமைக்கப்பட்டுள்ளன:
+**அறியப்பட்ட பின்தளங்கள்** `KNOWN_BACKENDS`-இல் முன்கூட்டியே அமைவாக்கப்பட்டுள்ளன:
 
 ```typescript
 createKnownBackend("obsidian"); // → localhost:27123-ஐச் சுட்டும் GenericMemoryBackend
 createKnownBackend("notion"); // → api.notion.com/v1-ஐச் சுட்டும் GenericMemoryBackend
 ```
 
-#### உள்ளமைக்கப்பட்ட பின்தளங்கள்
+#### உள்ளமைந்த பின்தளங்கள்
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-இயல்புநிலை முதன்மைப் பின்தளம். `src/lib/memory/store.ts`-ஐப் பயன்படுத்தி, ஏற்கனவே உள்ள SQLite-அடிப்படையிலான நினைவகச் சேமிப்பகத்தைப் பொதிகிறது. தொடக்கத்தின்போது தானாகப் பதிவுசெய்யப்படும்.
+இயல்புநிலை முதன்மைப் பின்தளம். `src/lib/memory/store.ts`-ஐப் பயன்படுத்தி, ஏற்கனவே உள்ள SQLite-அடிப்படையிலான நினைவகச் சேமிப்பகத்தைப் பொதிகிறது. துவக்கத்தின்போது தானாகவே பதிவுசெய்யப்படுகிறது.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -1003,39 +1003,94 @@ memoryManager.register(sqliteBackend);
 
 ஏற்கனவே உள்ள Obsidian ஒருங்கிணைப்பை (`src/lib/memory/obsidianBackend.ts`) பொதிகிறது. Obsidian Local REST API வழியாக ஓர் Obsidian vault-உடன் இணைகிறது.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+குறியீட்டாக்க அமர்வுகளை "observations" ஆகப் பதிவுசெய்யும் Claude Code / Codex / Cursor நினைவகச் செருகுநிரலான, உள்ளூர் [claude-mem](https://github.com/thedotmack/claude-mem) worker-க்கான ஏற்பி. இது பதிவுசெய்யப்பட்டால், `/api/memory` REST வழித்தடங்களும் A2A நினைவகத் தேடலும் claude-mem-இன் hooks நிரப்பும் அதே சேமிப்பகத்தை வாசிக்கவும் எழுதவும் முடியும்.
+
+worker loopback-இல் மட்டுமே பிணைகிறது; இதை `GenericMemoryBackend`-இன் SSRF பாதுகாப்பு திட்டமிட்டே நிராகரிக்கிறது. இந்த ஏற்பி அந்தப் பாதுகாப்பைத் தளர்த்துவதில்லை: host `127.0.0.1` என நிலையாகக் குறியிடப்பட்டுள்ளது, மேலும் அமைவாக்க schema (`ClaudeMemBackendConfigSchema`, `.strict()`) பின்வருவனவற்றை மட்டுமே ஏற்கிறது:
+
+| விசை        | வகை    | இயல்புநிலை | குறிப்புகள்                                                                                                                                         |
+| ----------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —          | அவசியம், 1024–65535. அதன் settings கோப்பிலுள்ள claude-mem worker port (இயல்புநிலை `37700 + uid % 100`).                                             |
+| `project`   | string | —          | பயன்படுத்த வேண்டிய claude-mem project. அமைக்கப்படவில்லை எனில் → ஒவ்வொரு OmniRoute API key-யும் அதன் சொந்த project-உடன் (`apiKeyId`) பொருத்தப்படும். |
+| `timeoutMs` | number | `5000`     | ஒவ்வொரு கோரிக்கைக்குமான காலக்கெடு, 100–30000.                                                                                                       |
+
+`PUT /api/settings/memory` மூலம் இதைச் செயல்படுத்தி OmniRoute-ஐ மறுதொடக்கம் செய்யவும் (backends
+`initMemoryBackends()`-இல் ஒருமுறை மட்டுமே பதிவு செய்யப்படுகின்றன):
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+REST API-க்கான சேமிப்பகமாக இதை அமைக்க, அதற்குப் பதிலாக `"primaryBackend": "claude-mem"`-ஐப் பயன்படுத்தவும். தவறான
+config பதிவு செய்யப்பட்டு (`claude-mem.backend.invalid_config`) தவிர்க்கப்படும்; எனவே SQLite முதன்மையாகவே இருக்கும்.
+
+பொருத்துதலும் வரம்புகளும்:
+
+- ID-கள் `claude-mem:<observationId>` வடிவில் இருக்கும்; `get`/`delete`, பிற backends-இன் ID-களை
+  network call செய்யாமல் புறக்கணிக்கும்.
+- `create` → `POST /api/memory/save`; OmniRoute புலங்கள் (`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`) claude-mem-இன் `metadata.omniroute`-இல் அனுப்பப்பட்டு, வாசிக்கும்போது மாற்றமின்றி மீட்டெடுக்கப்படும்.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens`
+  (chars / 4) அளவிற்கு சுருக்கப்படும். `list` → worker-இன் பக்கமிடப்பட்ட observations endpoint (`total` என்பது குறைந்தபட்ச வரம்பு — worker
+  எண்ணிக்கையை அல்ல, `hasMore`-ஐத் திருப்பித் தருகிறது).
+- Hook மூலம் கைப்பற்றப்பட்ட observations-இல் `discovery` → `factual`, `decision` → `procedural`, மேலும்
+  `bugfix`/`feature`/`refactor`/`change` → `episodic` எனப் பொருத்தப்படும்.
+- **புதுப்பிப்புகள் இல்லை** (`update()` ஆனது `false`-ஐத் திருப்பித் தரும்; observations மாற்ற முடியாதவை) மற்றும் **TTL இல்லை**
+  (`expiresAt` புறக்கணிக்கப்படும்). `key` அடிப்படையில் upsert செய்வதற்குப் பதிலாக, ஒரே மாதிரியான saves-ஐ claude-mem நகல்நீக்கம் செய்கிறது.
+- Prompt injection (`retrieval.ts`) மற்றும் `omniroute_memory_*` MCP கருவிகள் இன்னும் SQLite-ஐ
+  நேரடியாக வாசிக்கின்றன — அவை `memoryManager` வழியாகச் செல்வதில்லை; எனவே இந்த backend அவற்றுக்கு தரவை வழங்காது.
+
+**claude-mem-இன் சொந்த LLM அழைப்புகளை OmniRoute வழியாக அனுப்புதல்.** claude-mem observations-ஐ
+LLM மூலம் சுருக்குகிறது (இயல்புநிலை: Claude Agent SDK). அதன் `openai-compatible` provider-ஐ
+OmniRoute-ஐச் சுட்டுமாறு அமைக்கலாம்; இதனால் combo fallback மற்றும் செலவுக் கண்காணிப்பு பயன்படுத்தப்படும். `~/.claude-mem/settings.json`-இல்:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API key>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute model or combo>"
+}
+```
+
 ### அமைப்புகள்
 
-நினைவகப் பின்தள அமைப்புகள் பயன்பாட்டு அமைப்புகள் அட்டவணையில் சேமிக்கப்பட்டு, `src/lib/memory/settings.ts` வழியாக நிர்வகிக்கப்படுகின்றன:
+Memory backend அமைப்புகள் app settings அட்டவணையில் சேமிக்கப்பட்டு, `src/lib/memory/settings.ts` மூலம் நிர்வகிக்கப்படுகின்றன:
 
-| அமைப்பு              | சூழல்/உள்ளமைவு விசை      | இயல்புநிலை | விளக்கம்                                        |
-| -------------------- | ------------------------ | ---------- | ----------------------------------------------- |
-| முதன்மைப் பின்தளம்   | `memoryPrimaryBackend`   | `"sqlite"` | முதன்மைப் பின்தளத்தின் ID                       |
-| மாற்றுப் பின்தளங்கள் | `memoryFallbackBackends` | `[]`       | வரிசைப்படுத்தப்பட்ட மாற்றுப் பின்தள ID-கள்      |
-| பின்தள உள்ளமைவுகள்   | `memoryBackendConfigs`   | `{}`       | ஒவ்வொரு பின்தளத்திற்குமான உள்ளமைவு மேலெழுதல்கள் |
+| அமைப்பு           | Env/Config விசை          | இயல்புநிலை | விளக்கம்                                    |
+| ----------------- | ------------------------ | ---------- | ------------------------------------------- |
+| முதன்மை backend   | `memoryPrimaryBackend`   | `"sqlite"` | முதன்மை backend-இன் ID                      |
+| Fallback backends | `memoryFallbackBackends` | `[]`       | வரிசைப்படுத்தப்பட்ட fallback backend ID-கள் |
+| Backend configs   | `memoryBackendConfigs`   | `{}`       | ஒவ்வொரு backend-க்குமான config மாற்றீடுகள்  |
 
-அமைப்புகள் `normalizeMemorySettings()` வழியாகச் சீராக்கப்பட்டு, `getMemorySettings()`-இல் இடைநினைவகப்படுத்தப்படுகின்றன.
+அமைப்புகள் `normalizeMemorySettings()` மூலம் இயல்பாக்கப்பட்டு, `getMemorySettings()`-இல் cache செய்யப்படுகின்றன.
 
-### துவக்க ஓட்டம்
+### தொடக்கச் செயல்முறை
 
 ```
-பயன்பாட்டின் துவக்கம்
-  → index.ts இறக்குமதிகள் (பக்க விளைவு): SQLiteBackend-ஐப் பதிவுசெய்கின்றன
-  → பயன்பாட்டு வாழ்க்கைச் சுழற்சியிலிருந்து initMemoryBackends() அழைக்கப்படுகிறது:
-      1. அமைப்புகளை ஏற்றுதல் (getMemorySettings)
-      2. முதன்மை + மாற்றுப் பின்தளங்களை உள்ளமைத்தல்
-      3. அனைத்துப் பின்தளங்களையும் துவக்குதல் (நலநிலைச் சரிபார்ப்பு)
+App தொடக்கம்
+  → index.ts imports (பக்க விளைவாக): SQLiteBackend-ஐப் பதிவு செய்கிறது
+  → app lifecycle-இலிருந்து initMemoryBackends() அழைக்கப்படுகிறது:
+      1. அமைப்புகளை ஏற்றவும் (getMemorySettings)
+      1b. backendConfigs-இல் உள்ள, விருப்பத்தேர்வு செய்யப்பட்ட backends-ஐப் பதிவு செய்யவும் (claude-mem)
+      2. முதன்மை + fallback-ஐ உள்ளமைக்கவும்
+      3. அனைத்து backends-ஐயும் தொடக்கவும் (நிலைச் சரிபார்ப்பு)
       4. கோரிக்கைகளுக்குத் தயார்
 ```
 
-### புதிய பின்தளத்தைச் சேர்த்தல்
+### புதிய Backend-ஐச் சேர்த்தல்
 
-1. `src/lib/memory/<name>Backend.ts`-இல் **`MemoryBackend` இடைமுகத்தைச் செயல்படுத்தவும்**
-2. `src/lib/memory/index.ts`-இலிருந்து **ஏற்றுமதி செய்யவும்**
-3. தொடக்கத்தின்போது `memoryManager.register(yourBackend)` மூலம் **பதிவுசெய்யவும்**
-4. அமைப்புகள் வழியாக **உள்ளமைக்கவும்**: `memoryPrimaryBackend`-ஐ உங்கள் பின்தள ID-க்கு அமைக்கவும்
+1. `src/lib/memory/<name>Backend.ts`-இல் **`MemoryBackend`-ஐச் செயல்படுத்தவும்**
+2. `src/lib/memory/index.ts`-இலிருந்து **export செய்யவும்**
+3. தொடக்கத்தில் `memoryManager.register(yourBackend)` மூலம் **பதிவு செய்யவும்**
+4. அமைப்புகள் வழியாக **உள்ளமைக்கவும்**: `memoryPrimaryBackend`-ஐ உங்கள் backend ID-க்கு அமைக்கவும்
 5. `src/lib/memory/__tests__/generic-backend.test.ts`-ஐ மேற்கோளாகக் கொண்டு **சோதிக்கவும்**
 
-#### எடுத்துக்காட்டு: Brain பின்தளம்
+#### எடுத்துக்காட்டு: Brain Backend
 
 ```typescript
 import { createGenericMemoryBackend } from "./genericBackend";
@@ -1055,27 +1110,27 @@ memoryManager.register(brainBackend);
 
 ### சரிபார்ப்பு
 
-#### அலகுச் சோதனைகள்
+#### Unit சோதனைகள்
 
 ```bash
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-எதிர்பார்க்கப்படும் வெளியீடு: பின்வருவனவற்றை உள்ளடக்கும் **35 சோதனைகள், அனைத்தும் தேர்ச்சி**:
+எதிர்பார்க்கப்படும் வெளியீடு: பின்வருவனவற்றை உள்ளடக்கிய **35 சோதனைகள், அனைத்தும் வெற்றி**:
 
-- கட்டமைப்பான் (2)
-- நலநிலைச் சரிபார்ப்பு (4) — வெற்றி, 500 தோல்வி, பிணையப் பிழை, தாமதம்
-- துவக்குதல் (2) — வெற்றி, தோல்வி
-- உருவாக்குதல் (2) — இயல்புநிலை முனைப்புள்ளி, தனிப்பயன் முனைப்புள்ளி
-- பெறுதல் (4) — வெற்றி, 404 → null, 404 அல்லாதபோது பிழை எறிதல், தனிப்பயன் பாதை அளவுருக்கள்
-- புதுப்பித்தல் (2) — வெற்றி, 404 → false
-- நீக்குதல் (2) — வெற்றி, 404 → false
-- பட்டியலிடுதல் (2) — வினவல் அளவுருக்கள், தனிப்பயன் அளவுருப் பெயர்கள்
-- தேடுதல் (3) — வினவல் அளவுருக்கள், தனிப்பயன் முனைப்புள்ளி, விருப்பங்களின் தொடராக்கம்
-- அங்கீகாரத் தலைப்புகள் (2) — Bearer token, தனிப்பயன் தலைப்புகள்
-- உருவாக்கி (1)
+- Constructor (2)
+- Health check (4) — வெற்றி, failure 500, network error, latency
+- Initialize (2) — வெற்றி, தோல்வி
+- Create (2) — இயல்புநிலை endpoint, தனிப்பயன் endpoint
+- Get (4) — வெற்றி, 404 → null, 404 அல்லாதபோது throw, தனிப்பயன் path params
+- Update (2) — வெற்றி, 404 → false
+- Delete (2) — வெற்றி, 404 → false
+- List (2) — query params, தனிப்பயன் param பெயர்கள்
+- Search (3) — query params, தனிப்பயன் endpoint, options serialization
+- Auth headers (2) — Bearer token, தனிப்பயன் headers
+- Factory (1)
 
-#### வகைச் சரிபார்ப்பு
+#### Type சரிபார்ப்பு
 
 ```bash
 npm run typecheck:core

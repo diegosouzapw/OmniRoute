@@ -103,16 +103,16 @@ Za vsako kombinacijo:
 
 OmniRoute ponuja **dve** površini HTTP za preverjanje zdravja. Za orkestratorje nista medsebojno zamenljivi.
 
-| Pot                          | Namen                                                                                 | Obremenitev                               | Uporaba                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `GET /healthz`               | Živost/pripravljenost življenjskega cikla (`ok` / `starting` / `stopping`)            | Zanemarljiva (samo zastavica faze)        | Kubernetes **readiness**; nezahteven **liveness**, če morate uporabiti HTTP                |
-| `GET /api/monitoring/health` | Poglobljen povzetek sistema in ponudnikov (DB, kopica, število elementov kataloga, …) | Visoka (sinhrono delo z DB/nadzorovanjem) | Nadzorne plošče, poglobljena preverjanja blackbox, Dockerjevo vgrajeno preverjanje zdravja |
+| Pot                          | Namen                                                                        | Obremenitev                            | Uporaba                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
+| `GET /healthz`               | Živost/pripravljenost življenjskega cikla (`ok` / `starting` / `stopping`)   | Zanemarljiva (samo zastavica faze)     | Kubernetes **readiness**; mehki **liveness**, če morate uporabljati HTTP          |
+| `GET /api/monitoring/health` | Poglobljen povzetek sistema in ponudnikov (DB, kopica, število katalogov, …) | Velika (sinhrono delo DB/nadzorovanja) | Nadzorne plošče, poglobljena preverjanja blackbox, vgrajeni Dockerjev healthcheck |
 
 > **Opomba:** Matrike zdravja ponudnikov, težave avtopilota, nadzorniki kvot, zdravje žetonov in podrobnosti o zakasnitvah, ki presegajo `/api/monitoring/health`, so na voljo prek **orodja MCP** `observability_snapshot` ali strani **nadzorne plošče** — zanje ni namenskih poti REST.
 
-Obe poti se izvajata v **isti Nodeovi dogodkovni zanki** kot obdelava zahtev. CPE-intenzivna pot (obsežna obdelava kataloga `GET /v1/models`, stiskanje dolgega konteksta/štetje žetonov) lahko zakasni **vse** obdelovalnike HTTP, vključno z `/healthz`. Zasedena dogodkovna zanka ≠ mrtev proces. Prednostno odpravite vzrok obremenitve; prilagajanje preverjanj zgolj zmanjša število neupravičenih prekinitev.
+Obe poti se izvajata v **isti Nodeovi dogodkovni zanki** kot obravnavanje zahtev. Pot, ki intenzivno uporablja CPE (obsežno delo s katalogom `GET /v1/models`, stiskanje dolgega konteksta/štetje žetonov), lahko zakasni **vse** obravnavalnike HTTP, vključno z `/healthz`. Zaposlena dogodkovna zanka ≠ mrtev proces. Prednostno odpravite vzrok obremenitve; prilagajanje sond zgolj zmanjša število lažnih prekinitev.
 
-### Lahko preverjanje za orkestrator
+### Lahka sonda za orkestrator
 
 ```bash
 GET /healthz
@@ -120,7 +120,7 @@ GET /healthz
 ```
 
 - **200** + telo `ok`, ko je faza življenjskega cikla strežnika pripravljena
-- **503** + `starting` / `stopping` med zagonom ali zaustavljanjem
+- **503** + `starting` / `stopping` med zagonom ali zaustavitvijo
 - Implementacija: `src/app/healthz/route.ts` (brez preverjanja dosegljivosti DB)
 
 ### Zdravje sistema (poglobljeno)
@@ -153,35 +153,35 @@ Odgovor:
 }
 ```
 
-#### `credentialHealth`: predpomnilnik preverjanj v primerjavi s SQLite `test_status`
+#### `credentialHealth`: predpomnilnik sond v primerjavi s SQLite `test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` je **merilnik predpomnilnika preverjanj v pomnilniku**, ne sprotni izpis `provider_connections.test_status`. Po #12532 pot zahteve bere samo `getCachedCredentialHealthSummary()`; preverjanja v ozadju osvežujejo predpomnilnik zunaj dogodkovne zanke.
+`GET /api/monitoring/health` → `credentialHealth` je **merilnik predpomnilnika sond v pomnilniku**, ne sprotni izpis `provider_connections.test_status`. Po #12532 pot zahteve bere samo `getCachedCredentialHealthSummary()`; sonde v ozadju osvežujejo predpomnilnik zunaj dogodkovne zanke.
 
-| Plast                              | Kje                                                                   | Kaj pomeni                                                                                                                                                                                                                |
-| ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Merilnik predpomnilnika preverjanj | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Rezultati zadnjih preverjanj zdravja poverilnic, ki so še vedno shranjeni v pomnilniku procesa. `source` je vedno `probe-cache`.                                                                                          |
-| Podrobnosti neuspele povezave      | `credentialHealth.failedConnections`                                  | Prisotno **samo, ko je `failed > 0`**. Omejen seznam vrstic predpomnilnika s `status=error` (`connectionId`, `status`, prečiščena `lastError` / `lastErrorType`). `failedOmitted` je nastavljen, ko je bil seznam omejen. |
-| Lepljivo stanje SQLite             | `credentialHealth.staleDbNonOkCount`                                  | Število vrstic **aktivnih** (`is_active=1`) povezav, katerih trajno shranjeni `test_status` je znano stanje, ki ni v redu (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).              |
+| Plast                         | Kje                                                                   | Kaj pomeni                                                                                                                                                                                                           |
+| ----------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Merilnik predpomnilnika sond  | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Zadnji rezultati sond zdravja poverilnic, ki so še shranjeni v pomnilniku procesa. `source` je vedno `probe-cache`.                                                                                                  |
+| Podrobnosti neuspele povezave | `credentialHealth.failedConnections`                                  | Prisotno **samo, ko je `failed > 0`**. Omejen seznam vrstic predpomnilnika s `status=error` (`connectionId`, `status`, očiščena `lastError` / `lastErrorType`). `failedOmitted` se nastavi, ko je bil seznam omejen. |
+| Trajno stanje SQLite          | `credentialHealth.staleDbNonOkCount`                                  | Število **aktivnih** (`is_active=1`) vrstic povezav, katerih shranjeni `test_status` je znano stanje, ki ni »v redu« (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).              |
 
 Plasti se lahko namenoma ne ujemata:
 
-- Merilnik `failed=0`, medtem ko je `staleDbNonOkCount>0` — SQLite še vedno vsebuje lepljivi `test_status` (na primer `expired` ali `credits_exhausted`), ki ga najnovejši posnetek predpomnilnika preverjanj ne šteje kot `status=error`.
-- Merilnik `failed>0`, medtem ko je SQLite videti zdrav — nedavno preverjanje je spodletelo in je shranjeno v predpomnilniku; vrstica DB še ni bila posodobljena ali pa je bila pozneje počiščena.
+- Merilnik `failed=0`, medtem ko je `staleDbNonOkCount>0` — SQLite še vedno vsebuje trajni `test_status` (na primer `expired` ali `credits_exhausted`), ki ga najnovejši posnetek predpomnilnika sond ne šteje kot `status=error`.
+- Merilnik `failed>0`, medtem ko je SQLite videti zdrav — nedavna sonda ni uspela in rezultat je predpomnjen; vrstica DB še ni bila posodobljena ali pa je bila pozneje počiščena.
 
-Pri pridobivanju podatkov s te končne točke ne sprožajte opozoril samo na podlagi `provider_connections.test_status`. Za trenutne neuspehe preverjanj uporabite `failed` + `failedConnections`, za število trajno shranjenih lepljivih stanj pa `staleDbNonOkCount`.
+Pri zajemanju podatkov s te končne točke opozoril ne ustvarjajte zgolj na podlagi `provider_connections.test_status`. Za sprotne napake sond uporabite `failed` + `failedConnections`, kadar potrebujete število trajno shranjenih stanj, ki niso »v redu«, pa uporabite `staleDbNonOkCount`.
 
-### Priporočila za preverjanja Kubernetes
+### Priporočila za sonde Kubernetes
 
-OmniRoute je **en sam proces Node** (ena dogodkovna zanka). Privzeti Dockerjev `HEALTHCHECK` uporablja lahko pot `/healthz`. `/api/monitoring/health` je za intervale preverjanja živosti kubelet **preveč obremenjujoč**.
+OmniRoute je **en sam proces Node** (ena dogodkovna zanka). Privzeti Dockerjev `HEALTHCHECK` cilja na lahko pot `/healthz`. `/api/monitoring/health` je **prezahtevna** za intervale preverjanja živosti kubelet.
 
-| Preverjanje             | Priporočeni cilj                                                                    | Opombe                                                                                                                                                                                                                                                                                                                                                                                    |
+| Sonda                   | Priporočeni cilj                                                                    | Opombe                                                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Zagon**               | HTTP `GET /healthz` z dolgim `failureThreshold` (ali velikim `startPeriod`)         | Hladen zagon in selitev SQLite lahko trajata več kot nekaj sekund                                                                                                                                                                                                                                                                                                                         |
-| **Pripravljenost**      | HTTP `GET /healthz`                                                                 | Stanja življenjskega cikla `ok` / `starting` / `stopping` (200 proti 503). Še vedno niha, če je zanka blokirana zaradi CPE. **Odziv 200, ki traja več sekund, ni zdrav** (#10303) — pomeni, da je bila dogodkovna zanka izstradana, preden se je izvedel 3-bajtni obdelovalnik                                                                                                            |
-| **Živost**              | HTTP `GET /livez` **ali TCP** na glavnih vratih storitve (`PORT`, privzeto `20128`) | `/livez` preverja samo, ali je proces živ (vedno vrne 200, če se obdelovalnik izvede). Še vedno si deli dogodkovno zanko — zasedeno ≠ mrtvo in stradanja dogodkovne zanke (#10303) ne zazna nič bolje kot TCP. Če preverjanja HTTP potečejo pod obremenitvijo kataloga/stiskanja, raje uporabite **TCP**; v nobenem primeru pa ne prekinite poda zaradi kratkih zastojev dogodkovne zanke |
-| **Poglobljeno zdravje** | `GET /api/monitoring/health` iz zunanjega preverjevalnika                           | Ni namenjeno za kubelet `livenessProbe` ali strogo `readinessProbe`                                                                                                                                                                                                                                                                                                                       |
+| **Zagon**               | HTTP `GET /healthz` z dolgim `failureThreshold` (ali velikim `startPeriod`)         | Hladni zagon in migracija SQLite lahko trajata več kot nekaj sekund                                                                                                                                                                                                                                                                                                                       |
+| **Pripravljenost**      | HTTP `GET /healthz`                                                                 | Stanje življenjskega cikla `ok` / `starting` / `stopping` (200 proti 503). Še vedno niha, če je zanka blokirana zaradi procesorske obremenitve. **Odziv 200 po več sekundah ne pomeni zdravega stanja** (#10303) — pomeni, da je bila dogodkovna zanka izčrpana, preden se je izvedel 3-bajtni obdelovalnik                                                                               |
+| **Živost**              | HTTP `GET /livez` **ali TCP** na glavnih vratih storitve (`PORT`, privzeto `20128`) | `/livez` preverja samo, ali je proces živ (vedno vrne 200, če se obdelovalnik izvede). Še vedno uporablja isto dogodkovno zanko — zasedeno ≠ mrtvo, stradanja dogodkovne zanke (#10303) pa ne zazna nič bolje kot TCP. Če sonde HTTP potečejo med obremenitvijo kataloga/stiskanja, dajte prednost **TCP**; v nobenem primeru ne zaustavite poda zaradi kratkih zastojev dogodkovne zanke |
+| **Poglobljeno zdravje** | `GET /api/monitoring/health` iz zunanjega preverjevalnika                           | Ni namenjeno za kubelet `livenessProbe` ali strogo nastavljen `readinessProbe`                                                                                                                                                                                                                                                                                                            |
 
-Primer strukture (pragove prilagodite obremenitvi pri hladnem zagonu in stiskanju):
+Primer strukture (pragove prilagodite hladnemu zagonu in obremenitvi zaradi stiskanja):
 
 ```yaml
 ports:
@@ -207,27 +207,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Med zastojem dogodkovne zanke lahko tudi zahteva HTTP /livez poteče. TCP je
-  # konservativna alternativa:
+  # Ob zastoju dogodkovne zanke lahko HTTP /livez še vedno poteče. TCP je
+  # bolj konservativna alternativa:
   # tcpSocket:
   #   port: http
 ```
 
-**Ne** usmerjajte kubeletovega preverjanja **živosti** na `/api/monitoring/health`. Ta pot dejansko izvaja opravila zbirke podatkov in spremljanja ter bo pod obremenitvijo vrnila lažno pozitiven rezultat.
+Kubeletove sonde **živosti ne usmerite** na `/api/monitoring/health`. Ta pot dejansko izvaja opravila zbirke podatkov/nadzora in bo pod obremenitvijo sprožala lažno pozitivne rezultate.
 
-Povezano: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (preverjanja, ko je dogodkovna zanka zasedena), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (obremenitev zaradi določanja cen kataloga), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (obremenitev zaradi štetja žetonov pri stiskanju).
+Povezano: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (sonde, medtem ko je dogodkovna zanka zasedena), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (obremenjevanje zaradi določanja cen kataloga), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (obremenjevanje zaradi štetja žetonov pri stiskanju).
 
-### Izbirna opravila na poti zahteve (pomnilnik, veščine, osveževanje žetonov)
+### Čuvaj systemd (zamrznjena dogodkovna zanka)
 
-Pridobivanje pomnilnika, vstavljanje veščin in osveževanje žetonov OAuth si delijo **glavno dogodkovno zanko Node** z `/healthz`. To so funkcije, ki jih je mogoče preklopiti na nadzorni plošči (`memoryEnabled`, `skillsEnabled`), in ne področna skupina delavcev. Glejte [Okolje — strošek dogodkovne zanke](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Na gostitelju systemd OmniRoute upravitelju storitev sporoči, kdaj je pripravljen, in mu še naprej pošilja signale, tako da je strežnik, katerega dogodkovna zanka je obtičala, zaustavljen in znova zagnan, namesto da bi ostal zagnan in neodziven. Signali se pošiljajo iz strežnikove lastne dogodkovne zanke: ko se ta blokira, se pošiljanje ustavi, systemd pa znova zažene storitev, ko čas `WatchdogSec` poteče brez signala.
 
-### Zdravje ponudnika
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) že ustvari uporabniško enoto s to nastavitvijo. Enota, ki jo napišete sami (s privzetim `Type=simple`), nima čuvaja, zato v njen razdelek `[Service]` dodajte naslednje vrstice:
 
-> **Ni končne točke REST.** Podatki o zdravju ponudnika so na voljo prek orodja MCP `observability_snapshot` ali strani nadzorne plošče `/dashboard/providers`.
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Ustvarjena enota nastavi `Restart=on-failure`, zato dodajte tudi to vrstico — brez nje čuvaj obtičalo storitev samo zaustavi, namesto da bi jo znova zagnal.
+
+- `Type=notify`: storitev velja za »zagnano«, ko strežnik pošlje `READY=1`, in ne že ob razvejitvi procesa. `TimeoutStartSec` omejuje trajanje počasnega zagona.
+- `NotifyAccess=all`: signale pošilja strežniški proces, ki je podrejeni proces nadzornika `omniroute serve`.
+- `WatchdogSec`: signali se pošiljajo vsakih 60 sekund, zato uporabite vrednost **120 ali več**. Manjše vrednosti bi znova zagnale zdrav strežnik.
+- Zaženite `omniroute serve` v ospredju. `--daemon` strežnik loči od kontrolne skupine enote, zato se rokovanje za obveščanje nikoli ne dokonča.
+
+Po ponovnem zagonu preverite, ali je čuvaj dejaven:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` prikazuje nastavljeno zakasnitev, `WatchdogTimestamp` pa se vsako minuto posodobi. Ponovni zagon, ki ga povzroči čuvaj, se zabeleži kot `Result=watchdog`. Če želite pošiljanje signalov izklopiti, ne da bi spreminjali enoto, nastavite `OMNIROUTE_DISABLE_SD_NOTIFY=1`; če `NOTIFY_SOCKET` ni prisoten (terminal, Docker, Electron, Windows), se ne pošlje nič.
+
+Čuvaj preverja samo, ali se dogodkovna zanka še naprej izvaja. Strežnik, ki je počasen, vendar še vedno napreduje, se ne zažene znova.
+
+### Izbirna opravila na poti zahtev (pomnilnik, veščine, osveževanje žetonov)
+
+Ekstrakcija pomnilnika, vstavljanje veščin in osveževanje žetona OAuth si **delijo glavno dogodkovno zanko Node** z `/healthz`. To so funkcije, ki jih je mogoče preklopiti na nadzorni plošči (`memoryEnabled`, `skillsEnabled`), in ne delovna gruča. Glejte [Okolje — obremenitev dogodkovne zanke](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+
+### Stanje ponudnika
+
+> **Ni končne točke REST.** Podatki o stanju ponudnikov so na voljo prek orodja MCP `observability_snapshot` ali strani `/dashboard/providers` na nadzorni plošči.
 
 ### Podrobnosti ponudnika
 
-> **Ni končne točke REST.** Podrobnosti posameznega ponudnika so na voljo na strani nadzorne plošče `/dashboard/providers`.
+> **Ni končne točke REST.** Podrobnosti posameznega ponudnika so na voljo na strani `/dashboard/providers` na nadzorni plošči.
 
 ---
 

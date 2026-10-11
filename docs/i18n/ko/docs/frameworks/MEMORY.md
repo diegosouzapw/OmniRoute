@@ -154,35 +154,27 @@ RRF는 이질적인 검색 시스템 간에 점수를 정규화할 필요 없이
 
 ## 설정 확장
 
-`src/shared/schemas/memory.ts`의 `MemorySettingsExtended`에는 9개의 임베딩 및 벡터 필드가 있으며,
-`src/lib/db/settings.ts`를 통해 영구 저장됩니다.
+`src/shared/schemas/memory.ts`의 `MemorySettingsExtended`에서는 9개의 임베딩 및 벡터 필드를 사용할 수 있으며, `src/lib/db/settings.ts`를 통해 영속화됩니다.
 
 | 필드                     | 타입                                               | 기본값   | 설명                                           |
 | ------------------------ | -------------------------------------------------- | -------- | ---------------------------------------------- |
 | `embeddingSource`        | `"remote" \| "static" \| "transformers" \| "auto"` | `"auto"` | 사용할 임베딩 소스                             |
-| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` 형식의 제공자/모델            |
+| `embeddingProviderModel` | `string \| null`                                   | `null`   | `provider/model` 형식의 공급자/모델            |
 | `customBaseUrl`          | `string \| null`                                   | `null`   | 메모리 전용 OpenAI 호환 엔드포인트 기본 URL    |
 | `customModelId`          | `string \| null`                                   | `null`   | 사용자 지정 엔드포인트로 전송할 모델 ID        |
 | `transformersEnabled`    | `boolean`                                          | `false`  | Transformers.js 사용 동의(MiniLM, 약 400MB)    |
 | `staticEnabled`          | `boolean`                                          | `false`  | 정적 potion-base-8M 로컬 모델 사용 동의        |
 | `rerankEnabled`          | `boolean`                                          | `false`  | 재순위 지정 단계 활성화(요청당 200~500ms 추가) |
-| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` 형식의 재순위 제공자/모델     |
+| `rerankProviderModel`    | `string \| null`                                   | `null`   | `provider/model` 형식의 재순위 공급자/모델     |
 
-`rerankProviderModel`은 `POST /v1/rerank`에 의해 해석되며(루프백을 통해 호출), 따라서 해당 라우트가 허용하는 모든 값을 사용할 수 있습니다. 여기에는 선별된 클라우드 재순위 모델(`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) 또는 `<node-prefix>/<model>` 형식의 OpenAI 호환 제공자 노드(예: TEI/Infinity 박스의 `skilled-mini/bge-reranker-v2-m3`)가 포함됩니다. 루프백 노드는 항상 사용할 수 있습니다. 다른 호스트(LAN, Tailscale)의 노드를 사용하려면 추가로 `RERANK_REMOTE_PROVIDER_NODES` 기능 플래그가 필요하며, 제공자 아웃바운드 URL 정책을 통과해야 합니다. 자세한 내용은 [기능 플래그](../reference/FEATURE_FLAGS.md)를 참조하세요. 대시보드 선택기에는 선별된 제공자와 로컬 노드가 표시되며, 유효한 모든 `provider/model` 문자열은 `PUT /api/settings/memory`를 통해 직접 설정할 수 있습니다.
+`rerankProviderModel`은 루프백을 통해 호출되는 `POST /v1/rerank`에 의해 확인되므로, 해당 라우트가 허용하는 모든 항목을 사용할 수 있습니다. 여기에는 선별된 클라우드 재순위 모델(`cohere/rerank-v3.5`, `jina-ai/jina-reranker-v3.5`, …) 또는 `<node-prefix>/<model>` 형식의 OpenAI 호환 공급자 노드(예: TEI/Infinity 박스용 `skilled-mini/bge-reranker-v2-m3`)가 포함됩니다. 루프백 노드와 `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`에 나열된 호스트 이름(예: Docker/Compose 서비스 이름)은 항상 사용할 수 있습니다. 다른 호스트(LAN, Tailscale)에 있는 노드는 추가로 `RERANK_REMOTE_PROVIDER_NODES` 기능 플래그가 필요하며 공급자 아웃바운드 URL 정책을 통과해야 합니다. 자세한 내용은 [기능 플래그](../reference/FEATURE_FLAGS.md)를 참조하세요. 대시보드 선택기에는 선별된 공급자와 로컬 노드가 표시되며, 유효한 모든 `provider/model` 문자열은 `PUT /api/settings/memory`를 통해 직접 설정할 수 있습니다.
 | `vectorStore` | `"sqlite-vec" \| "qdrant" \| "auto"` | `"auto"` | 사용할 벡터 백엔드 |
 
-이 설정들은 `GET /PUT /api/settings/memory`를 통해 노출됩니다(스키마: `MemorySettingsExtendedSchema`).
+이러한 설정은 `GET /PUT /api/settings/memory`를 통해 노출됩니다(스키마: `MemorySettingsExtendedSchema`).
 
-`remote` 소스의 경우 메모리는 선택적 `customBaseUrl` 및
-`customModelId` 설정도 허용합니다. 이 두 설정을 함께 사용하면 전역 임베딩 레지스트리를
-변경하지 않고 OpenAI 호환 `/embeddings` 엔드포인트와 모델을 선택할 수 있습니다. 엔드포인트는
-사용 전에 정규화되며 제공자 아웃바운드 URL 정책에 따라 검사됩니다. HTTP(S)가
-필수이며, 포함된 자격 증명과 쿼리 문자열은 거부되고, 클라우드 메타데이터
-주소는 계속 차단됩니다. 대시보드에 반환되는 오류는 민감한 정보가 제거되며 엔드포인트 자격 증명은 절대 로그에 기록되지 않습니다.
+`remote` 소스의 경우 Memory는 선택적 `customBaseUrl` 및 `customModelId` 설정도 허용합니다. 이 두 설정을 함께 사용하면 전역 임베딩 레지스트리를 변경하지 않고도 OpenAI 호환 `/embeddings` 엔드포인트와 모델을 선택할 수 있습니다. 엔드포인트는 사용 전에 정규화되며 공급자 아웃바운드 URL 정책에 따라 검사됩니다. HTTP(S)가 필수이며, 포함된 자격 증명과 쿼리 문자열은 거부되고, 클라우드 메타데이터 주소는 계속 차단됩니다. 빈 값은 선택된 레지스트리 공급자를 유지합니다. 대시보드에 반환되는 오류는 민감한 정보가 제거되며, 엔드포인트 자격 증명은 절대 로그에 기록되지 않습니다.
 
-> **TODO (D20):** `global` 범위(모든 API 키 간에 메모리 공유)는 이번 릴리스에서
-> 구현되지 않았습니다. 이를 위해서는 스키마 변경과 전역 검색
-> 경로가 필요합니다. 별도로 추적하세요.
+> **TODO (D20):** 모든 API 키에서 메모리를 공유하는 `global` 범위는 이번 릴리스에서 구현되지 않았습니다. 이를 구현하려면 스키마 변경과 전역 검색 경로가 필요합니다. 별도로 추적하세요.
 
 ## 스토리지 계층
 
@@ -856,12 +848,12 @@ curl -X POST http://localhost:20128/api/memory/summarize \
 
 ---
 
-## MemoryBackend 제공자 패턴
+## MemoryBackend 프로바이더 패턴
 
-> **정본:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
+> **신뢰할 수 있는 원본:** `src/lib/memory/backend.ts`, `src/lib/memory/genericBackend.ts`, `src/lib/memory/manager.ts`
 > **테스트:** `src/lib/memory/__tests__/generic-backend.test.ts`
 
-MemoryBackend 제공자 패턴은 기존 메모리 엔진 위에 **플러그형 백엔드 추상화 계층**을 도입합니다. 단일 저장소 구현에 종속되는 대신, 이제 메모리 시스템은 기본/폴백 라우팅을 구성할 수 있는 여러 백엔드(SQLite, Obsidian, Notion, 사용자 지정 HTTP 백엔드)를 지원합니다.
+MemoryBackend 프로바이더 패턴은 기존 메모리 엔진 위에 **플러그형 백엔드 추상화 계층**을 도입합니다. 메모리 시스템은 더 이상 단일 스토리지 구현에 종속되지 않으며, 기본/폴백 라우팅을 구성하여 여러 백엔드(SQLite, Obsidian, Notion, 사용자 정의 HTTP 백엔드)를 지원합니다.
 
 ### 아키텍처
 
@@ -877,7 +869,7 @@ MemoryBackend 제공자 패턴은 기존 메모리 엔진 위에 **플러그형 
 │                                                          │
 │  기본 ─────► 백엔드 A  (예: SQLite)                      │
 │  폴백 ─────► 백엔드 B  (예: Obsidian)                    │
-│             백엔드 C  (예: GenericBackend를 통한 Notion) │
+│              백엔드 C  (예: GenericBackend를 통한 Notion) │
 └──────────────────────┬───────────────────────────────────┘
                        │
         ┌──────────────┼──────────────┐
@@ -888,9 +880,9 @@ MemoryBackend 제공자 패턴은 기존 메모리 엔진 위에 **플러그형 
 └────────────┘ └────────────┘ └──────────────────┘
 ```
 
-#### 핵심 인터페이스(`backend.ts`)
+#### 핵심 인터페이스 (`backend.ts`)
 
-모든 백엔드는 `MemoryBackend` 인터페이스를 구현해야 합니다:
+모든 백엔드는 `MemoryBackend` 인터페이스를 구현해야 합니다.
 
 ```typescript
 interface MemoryBackend {
@@ -918,31 +910,31 @@ interface MemoryBackend {
 
 #### MemoryManager (`manager.ts`)
 
-다음을 수행하는 싱글턴 오케스트레이터입니다:
+다음 작업을 수행하는 싱글턴 오케스트레이터입니다.
 
-- `register(backend)`를 통해 백엔드를 **등록**합니다. 부팅 시 `index.ts`에서 호출됩니다.
-- `configure(primary, fallbacks)`를 통해 기본 백엔드와 폴백을 **구성**합니다.
-- CRUD/검색 작업을 기본 백엔드로 **라우팅**하며, 실패 시 폴백 체인을 사용합니다.
-- 모든 백엔드의 **상태를 주기적으로 확인**합니다.
+- `register(backend)`를 통해 백엔드를 **등록** — 부팅 시 `index.ts`에서 호출
+- `configure(primary, fallbacks)`를 통해 기본 백엔드와 폴백을 **구성**
+- CRUD/검색을 기본 백엔드로 **라우팅**하고, 실패 시 폴백 체인 사용
+- 모든 백엔드의 **상태를 주기적으로 확인**
 
 **폴백 동작:**
 
 | 작업     | 기본 백엔드              | 폴백                           |
 | -------- | ------------------------ | ------------------------------ |
 | `create` | ✅ 기본 백엔드만         | ❌                             |
-| `get`    | ✅ 기본 백엔드 먼저 시도 | ✅ null이면 폴백               |
+| `get`    | ✅ 기본 백엔드 먼저 시도 | ✅ null이면 폴백 사용          |
 | `update` | ✅ 기본 백엔드만         | ✅ 응답을 기다리지 않고 동기화 |
 | `delete` | ✅ 기본 백엔드만         | ✅ 응답을 기다리지 않고 동기화 |
 | `list`   | ✅ 기본 백엔드만         | ❌                             |
-| `search` | ✅ 기본 백엔드 먼저 시도 | ✅ 오류 발생 시 폴백           |
+| `search` | ✅ 기본 백엔드 먼저 시도 | ✅ 오류 발생 시 폴백 사용      |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 
-모든 REST API를 MemoryBackend로 변환하는 범용 HTTP 커넥터입니다. 다음과 같은 용도에 유용합니다:
+모든 REST API를 MemoryBackend로 변환하는 범용 HTTP 커넥터입니다. 다음 용도로 유용합니다.
 
 - **Notion** — Notion API를 통해 연결
 - **Obsidian** — Obsidian Local REST API를 통해 연결
-- **사용자 지정 백엔드** — RESTful 메모리 API를 제공하는 모든 서비스
+- **사용자 정의 백엔드** — RESTful 메모리 API를 노출하는 모든 서비스
 
 **구성:**
 
@@ -950,7 +942,7 @@ interface MemoryBackend {
 interface GenericBackendConfig {
   baseUrl: string;           // 백엔드 API의 기본 URL
   apiKey?: string;           // 인증용 Bearer 토큰
-  headers?: Record<string, string>;  // 사용자 지정 HTTP 헤더
+  headers?: Record<string, string>;  // 사용자 정의 HTTP 헤더
   timeout?: number;          // 요청 제한 시간(기본값: 30000ms)
   backendType?: string;      // 로깅용
 
@@ -988,7 +980,7 @@ createKnownBackend("notion"); // → api.notion.com/v1을 가리키는 GenericMe
 
 ##### SQLiteBackend (`sqliteBackend.ts`)
 
-기본 주 백엔드입니다. `src/lib/memory/store.ts`를 사용하여 기존 SQLite 기반 메모리 저장소를 래핑합니다. 부팅 시 자동으로 등록됩니다.
+기본 기본 백엔드입니다. `src/lib/memory/store.ts`를 사용하는 기존 SQLite 기반 메모리 저장소를 래핑합니다. 부팅 시 자동으로 등록됩니다.
 
 ```typescript
 import { sqliteBackend } from "./sqliteBackend";
@@ -999,15 +991,72 @@ memoryManager.register(sqliteBackend);
 
 기존 Obsidian 통합(`src/lib/memory/obsidianBackend.ts`)을 래핑합니다. Obsidian Local REST API를 통해 Obsidian 볼트에 연결합니다.
 
+##### ClaudeMemBackend (`claudeMemBackend.ts`)
+
+코딩 세션을 "관찰"로 캡처하는 Claude Code / Codex / Cursor 메모리 플러그인인 로컬 [claude-mem](https://github.com/thedotmack/claude-mem) 워커용 어댑터입니다.
+이를 등록하면 `/api/memory` REST 라우트와 A2A 메모리 검색에서 claude-mem의 훅이 채우는 것과 동일한 저장소를 읽고 쓸 수 있습니다.
+
+워커는 루프백에만 바인딩되며, `GenericMemoryBackend`의 SSRF 보호 기능은 의도적으로 이를 거부합니다.
+이 어댑터는 해당 보호 기능을 완화하지 않습니다. 호스트는 `127.0.0.1`로 하드 코딩되어 있으며, 구성
+스키마(`ClaudeMemBackendConfigSchema`, `.strict()`)는 다음 항목만 허용합니다:
+
+| 키          | 유형   | 기본값 | 참고                                                                                                            |
+| ----------- | ------ | ------ | --------------------------------------------------------------------------------------------------------------- |
+| `port`      | number | —      | 필수, 1024–65535. 설정 파일에 지정된 claude-mem 워커 포트입니다(기본값: `37700 + uid % 100`).                   |
+| `project`   | string | —      | 사용할 claude-mem 프로젝트입니다. 설정하지 않으면 각 OmniRoute API 키가 자체 프로젝트(`apiKeyId`)에 매핑됩니다. |
+| `timeoutMs` | number | `5000` | 요청별 타임아웃, 100–30000.                                                                                     |
+
+`PUT /api/settings/memory`를 통해 활성화한 후 OmniRoute를 다시 시작합니다(백엔드는
+`initMemoryBackends()`에서 한 번만 등록됩니다).
+
+```json
+{
+  "backendConfigs": { "claude-mem": { "port": 37701, "project": "OmniRoute" } },
+  "fallbackBackends": ["claude-mem"]
+}
+```
+
+REST API의 저장소로 사용하려면 대신 `"primaryBackend": "claude-mem"`을 사용하세요. 잘못된
+설정은 기록되고(`claude-mem.backend.invalid_config`) 건너뛰므로 SQLite가 기본 백엔드로 유지됩니다.
+
+매핑 및 제한 사항:
+
+- ID 형식은 `claude-mem:<observationId>`입니다. `get`/`delete`는 네트워크 호출 없이 다른 백엔드의
+  ID를 무시합니다.
+- `create` → `POST /api/memory/save`; OmniRoute 필드(`apiKeyId`, `sessionId`, `type`,
+  `key`, `metadata`)는 claude-mem의 `metadata.omniroute`에 포함되며 읽을 때 그대로 복원됩니다.
+- `search` → `GET /api/search?format=json&type=observations`, `maxTokens`에 맞게 잘립니다
+  (문자 수 / 4). `list` → 워커의 페이지네이션된 관찰 항목 엔드포인트(`total`은 하한값입니다. 워커는
+  개수가 아니라 `hasMore`를 반환합니다).
+- 훅으로 캡처된 관찰 항목은 `discovery` → `factual`, `decision` → `procedural`,
+  `bugfix`/`feature`/`refactor`/`change` → `episodic`으로 매핑됩니다.
+- **업데이트는 지원되지 않으며**(`update()`는 `false`를 반환하고 관찰 항목은 불변임), **TTL도 지원되지 않습니다**
+  (`expiresAt`은 무시됨). claude-mem은 `key`를 기준으로 업서트하는 대신 동일한 저장 내용을 중복 제거합니다.
+- 프롬프트 주입(`retrieval.ts`)과 `omniroute_memory_*` MCP 도구는 여전히 SQLite를
+  직접 읽습니다. 이들은 `memoryManager`를 거치지 않으므로 이 백엔드의 데이터가 제공되지 않습니다.
+
+**claude-mem 자체의 LLM 호출을 OmniRoute를 통해 라우팅하기.** claude-mem은 LLM으로 관찰 항목을
+압축합니다(기본값: Claude Agent SDK). 대신 `openai-compatible` 공급자가 OmniRoute를 가리키도록
+설정하면 콤보 폴백과 비용 추적을 활용할 수 있습니다. `~/.claude-mem/settings.json`에서:
+
+```json
+{
+  "CLAUDE_MEM_PROVIDER": "openai-compatible",
+  "CLAUDE_MEM_OPENAI_COMPAT_BASE_URL": "http://localhost:20128/v1",
+  "CLAUDE_MEM_OPENAI_COMPAT_API_KEY": "<OmniRoute API 키>",
+  "CLAUDE_MEM_OPENAI_COMPAT_MODEL": "<OmniRoute 모델 또는 콤보>"
+}
+```
+
 ### 설정
 
 메모리 백엔드 설정은 앱 설정 테이블에 저장되며 `src/lib/memory/settings.ts`를 통해 관리됩니다.
 
-| 설정        | 환경/구성 키             | 기본값     | 설명                         |
+| 설정        | 환경/설정 키             | 기본값     | 설명                         |
 | ----------- | ------------------------ | ---------- | ---------------------------- |
-| 주 백엔드   | `memoryPrimaryBackend`   | `"sqlite"` | 주 백엔드의 ID               |
-| 대체 백엔드 | `memoryFallbackBackends` | `[]`       | 순서가 지정된 대체 백엔드 ID |
-| 백엔드 구성 | `memoryBackendConfigs`   | `{}`       | 백엔드별 구성 재정의         |
+| 기본 백엔드 | `memoryPrimaryBackend`   | `"sqlite"` | 기본 백엔드의 ID             |
+| 폴백 백엔드 | `memoryFallbackBackends` | `[]`       | 순서가 지정된 폴백 백엔드 ID |
+| 백엔드 설정 | `memoryBackendConfigs`   | `{}`       | 백엔드별 설정 재정의         |
 
 설정은 `normalizeMemorySettings()`를 통해 정규화되고 `getMemorySettings()`에서 캐시됩니다.
 
@@ -1015,11 +1064,12 @@ memoryManager.register(sqliteBackend);
 
 ```
 앱 부트스트랩
-  → index.ts 가져오기(부수 효과): SQLiteBackend 등록
+  → index.ts 임포트(부수 효과): SQLiteBackend 등록
   → 앱 수명 주기에서 initMemoryBackends() 호출:
       1. 설정 로드(getMemorySettings)
-      2. 주 백엔드 및 대체 백엔드 구성
-      3. 모든 백엔드 초기화(상태 확인)
+      1b. backendConfigs에 있는 선택형 백엔드 등록(claude-mem)
+      2. 기본 + 폴백 구성
+      3. 모든 백엔드 초기화(상태 검사)
       4. 요청 처리 준비 완료
 ```
 
@@ -1057,13 +1107,13 @@ memoryManager.register(brainBackend);
 npx vitest run src/lib/memory/__tests__/generic-backend.test.ts --reporter=verbose
 ```
 
-예상 출력: 다음 항목을 다루는 **35개 테스트 모두 통과**:
+예상 출력: 다음 항목을 다루는 **35개 테스트, 모두 통과**:
 
 - 생성자(2)
-- 상태 확인(4) — 성공, 실패 500, 네트워크 오류, 지연 시간
+- 상태 검사(4) — 성공, 500 실패, 네트워크 오류, 지연 시간
 - 초기화(2) — 성공, 실패
 - 생성(2) — 기본 엔드포인트, 사용자 지정 엔드포인트
-- 조회(4) — 성공, 404 → null, 404 이외의 오류 발생, 사용자 지정 경로 매개변수
+- 조회(4) — 성공, 404 → null, 404 외 오류 발생, 사용자 지정 경로 매개변수
 - 업데이트(2) — 성공, 404 → false
 - 삭제(2) — 성공, 404 → false
 - 목록(2) — 쿼리 매개변수, 사용자 지정 매개변수 이름

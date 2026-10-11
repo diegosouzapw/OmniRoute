@@ -172,20 +172,19 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## Eng yaxshi bepul provayderlar
 
-Bu provayderlar kredit kartasiz **bepul foydalanish imkonini** beradi:
+Ushbu provayderlar kredit kartasiz **bepul foydalanish** imkonini beradi:
 
-| Provayder         | Bepul kvota                       | Modellar                                 | Ulanish usuli                     |
-| ----------------- | --------------------------------- | ---------------------------------------- | --------------------------------- |
-| **Kiro AI**       | Oyiga 50 kredit                   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikatsiya talab qilinmaydi |
-| **OpenCode Free** | Cheklanmagan                      | GPT-4o, Claude, Gemini                   | Autentifikatsiya talab qilinmaydi |
-| **Pollinations**  | Kalit talab qilinmaydi            | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikatsiya talab qilinmaydi |
-| **LongCat**       | Bir martalik 10M                  | LongCat-2.0                              | API kaliti + KYC                  |
-| **Cloudflare AI** | Kuniga 10K neyron                 | 50+ model                                | Autentifikatsiya talab qilinmaydi |
-| **NVIDIA NIM**    | ~40 RPM                           | 129 model                                | API kaliti talab qilinadi         |
-| **Cerebras**      | Roʻyxatdan oʻtish uchun $5 kredit | GLM 4.7, GPT-OSS 120B                    | API kaliti + karta                |
-| **Qoder**         | Cheklanmagan                      | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Autentifikatsiya talab qilinmaydi |
+| Provayder         | Bepul kvota                   | Modellar                                 | Ulanish usuli                     |
+| ----------------- | ----------------------------- | ---------------------------------------- | --------------------------------- |
+| **Kiro AI**       | Oyiga 50 kredit               | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikatsiya talab qilinmaydi |
+| **OpenCode Free** | Cheksiz                       | GPT-4o, Claude, Gemini                   | Autentifikatsiya talab qilinmaydi |
+| **Pollinations**  | Kalit talab qilinmaydi        | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikatsiya talab qilinmaydi |
+| **LongCat**       | Bir martalik 10M              | LongCat-2.0                              | API kaliti + KYC                  |
+| **Cloudflare AI** | Kuniga 10K neyron             | 50 dan ortiq model                       | Autentifikatsiya talab qilinmaydi |
+| **NVIDIA NIM**    | ~40 RPM                       | 129 ta model                             | API kaliti talab qilinadi         |
+| **Cerebras**      | Roʻyxatdan oʻtishda $5 kredit | GLM 4.7, GPT-OSS 120B                    | API kaliti + karta                |
 
-**Maslahat**: Avtomatik zaxira provayderiga oʻtish imkoniyati bilan **cheklanmagan bepul AI** uchun bir nechta bepul provayderni ulang!
+**Maslahat**: Avtomatik zaxira provayderga oʻtish imkoniyati bilan **cheksiz bepul AI** uchun bir nechta bepul provayderni ulang!
 
 ---
 
@@ -264,31 +263,71 @@ Soʻng `model: "auto"` parametridan foydalaning va OmniRoute har bir soʻrov uch
 ### OpenAI
 
 1. API kalitini oling: https://platform.openai.com/api-keys
-2. OmniRoute ichida: Provayderlar → Provayder qoʻshish → OpenAI
+2. OmniRoute’da: Provayderlar → Provayder qo‘shish → OpenAI
 3. API kalitini kiriting → Ulanish
 
 ### Anthropic
 
 1. API kalitini oling: https://console.anthropic.com/
-2. OmniRoute ichida: Provayderlar → Provayder qoʻshish → Anthropic
+2. OmniRoute’da: Provayderlar → Provayder qo‘shish → Anthropic
 3. API kalitini kiriting → Ulanish
 
 ### Google (Gemini)
 
 1. API kalitini oling: https://aistudio.google.com/apikey
-2. OmniRoute ichida: Provayderlar → Provayder qoʻshish → Gemini
+2. OmniRoute’da: Provayderlar → Provayder qo‘shish → Gemini
 3. API kalitini kiriting → Ulanish
 
 ### DeepSeek
 
 1. API kalitini oling: https://platform.deepseek.com/
-2. OmniRoute ichida: Provayderlar → Provayder qoʻshish → DeepSeek
+2. OmniRoute’da: Provayderlar → Provayder qo‘shish → DeepSeek
 3. API kalitini kiriting → Ulanish
+
+### Qoder: hisob ma’lumotlarini uzatish usulini tanlang
+
+Qoder hisob ma’lumotlarini talab qiladi. Uning ikkita uzatish usuli turli imkoniyatlarga ega; faqat model nomining
+o‘zi muayyan ulanish nimalarga qodirligini aniqlamaydi.
+
+| Hisob ma’lumoti                             | OmniRoute uzatish usuli                          | Chaqiruvchi vositalarini chaqirish                    | Oqimli uzatish                                                           |
+| ------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| `pt-` bilan boshlanuvchi PAT                | OmniRoute xostidagi mahalliy `qodercli` jarayoni | Qo‘llab-quvvatlanmaydi                                | Buferlangan: SSE faqat CLI to‘liq javobni qaytargandan keyin chiqariladi |
+| PAT bo‘lmagan kirish tokeni yoki API kaliti | DashScope OpenAI bilan mos HTTP endpointi        | Yuqori oqimdagi model/kalitga bog‘liq holda uzatiladi | Yuqori oqimdagi HTTP/SSE yo‘li                                           |
+
+PAT uchun Qoder CLI’ni OmniRoute bilan bir xil xost yoki konteynerga o‘rnating. Bajariladigan fayl
+`qodercli` sifatida topilishi kerak yoki `CLI_QODER_BIN` qiymatini uning bajariladigan fayl yo‘liga o‘rnating. Faqat
+Docker xostiga o‘rnatilgan CLI konteyner ichida avtomatik ravishda mavjud bo‘lmaydi. Bajariladigan fayl
+topilmasa, o‘rnatish yoki yo‘lni sozlashga yo‘naltiruvchi aniq xato ko‘rsatiladi.
+
+PAT chat yo‘li uchun jarayonning kutish vaqti 45 soniya. U suhbatni yagona
+promptga aylantiradi va CLI’ni oqimsiz chop etish rejimida ishga tushiradi. `stream: true` so‘rovi
+javob qobig‘ini SSE’ga o‘zgartiradi; u yuqori oqim tokenlarini bosqichma-bosqich yetkazib bermaydi.
+CLI’ni tekshirish/modellar ro‘yxatini olish alohida 20 soniyalik kutish vaqtidan foydalanadi. Bular joriy kodning
+standart qiymatlari bo‘lib, boshqaruv panelida sozlanadigan parametrlar emas.
+
+Oddiy chat uchun PAT ulanishlaridan foydalaning. `tools` yoki eskirgan `functions`ni o‘z ichiga olgan agent so‘rovlari
+hisob ma’lumotlarini tanlash vaqtida PAT hisoblarini, jumladan, mahkamlangan kombinatsiya nishonlarini ham istisno qiladi. Aralash
+Qoder puli o‘zining HTTP hisobini baribir tanlashi mumkin. PAT ijrochisiga to‘g‘ridan-to‘g‘ri chaqiruvlar ham
+vosita ta’riflarini bildirmasdan tashlab yuborish o‘rniga, CLI’ni ishga tushirishdan oldin aniq xato bilan yakunlanadi. Bu
+cheklov Qoder CLI’ning o‘zi ishlatishi mumkin bo‘lgan ichki vositalarga emas, API chaqiruvchisi taqdim etgan vositalarga
+taalluqlidir. HTTP kaliti har bir model vositalarni qo‘llab-quvvatlashini kafolatlamaydi; model
+imkoniyatlarini odatiy tekshirishlar hamon amal qiladi.
+
+Brauzer orqali OAuth faqat administrator quyidagi beshta sozlamaning barchasini sozlaganida mavjud:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` va `QODER_OAUTH_CLIENT_SECRET`. Ularning standart qiymati bo‘sh; sozlanmagan
+o‘rnatish brauzer orqali tizimga kirish jarayoni tayyor deb hisoblash o‘rniga, qo‘llab-quvvatlanadigan hisob
+ma’lumotlarini import qilish usulidan foydalanishi kerak.
+
+Amalga oshirish bo‘yicha manbalar: [Qoder ijrochisi](../../open-sse/executors/qoder.ts),
+[CLI ish muhiti](../../open-sse/services/qoderCli.ts) va
+[OAuth konfiguratsiyasi](../../src/lib/oauth/constants/oauth.ts). PAT uchun bosqichma-bosqich oqimli uzatish
+va sozlanadigan kutish vaqti alohida takomillashtirishlardir; bu xatti-harakat ularni va’da qilmaydi.
 
 ### Groq
 
 1. API kalitini oling: https://console.groq.com/
-2. OmniRoute ichida: Provayderlar → Provayder qoʻshish → Groq
+2. OmniRoute’da: Provayderlar → Provayder qo‘shish → Groq
 3. API kalitini kiriting → Ulanish
 
 ---

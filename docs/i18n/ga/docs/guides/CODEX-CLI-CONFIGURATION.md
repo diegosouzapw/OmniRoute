@@ -272,13 +272,13 @@ codex -p chat     # cx/gpt-5.5, gan iarracht socraithe (réamhshocrú an fhreast
 
 ## Próifílí a ghiniúint go huathoibríoch le `omniroute setup-codex`
 
-Má ritheann tú OmniRoute ar VPS, is féidir leat comhaid phróifíle a uathghiniúint ón gcatalóg bheo samhlacha:
+Má ritheann tú OmniRoute ar VPS, is féidir leat comhaid phróifíle a ghiniúint go huathoibríoch ón gcatalóg bheo samhlacha:
 
 ```bash
 # Ó VPS (úsáideann sé OmniRoute áitiúil ar phort 20128)
 omniroute setup-codex
 
-# Ó aon ríomhaire — dírigh ar do VPS é
+# Ó aon ríomhaire — treoraigh chuig do VPS é
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Réamhamharc gan comhaid a scríobh
@@ -291,9 +291,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Faigheann an t-ordú `/v1/models`, úsáideann sé próifílí mionchoigeartaithe do shamhlacha aitheanta, téann sé i muinín meiteashonraí na catalóige do shamhlacha téacs comhoiriúnacha eile, agus scríobhann sé `~/.codex/<name>.config.toml` do gach ceann acu. Tá sé idéimpitéinseach — is féidir é a rith arís go sábháilte.
+Faigheann an t-ordú `/v1/models`, úsáideann sé próifílí mionchoigeartaithe le haghaidh samhlacha aitheanta, téann sé i muinín meiteashonraí na catalóige le haghaidh samhlacha téacs comhoiriúnacha eile, agus scríobhann sé `~/.codex/<name>.config.toml` do gach ceann acu. Tá sé idéimitheach — is féidir é a rith arís go sábháilte.
 
-Is féidir le OmniRoute na comhaid phróifíle chéanna seo a **uathshioncronú** freisin tar éis d’aimsiú/iompórtáil rathúil samhlacha soláthraí an chatalóg bheo a athrú. Is gné **roghnach í seo agus tá sí múchta de réir réamhshocraithe**: scoránaigh í ón **deais CLI Code** ("Uathshioncronú próifílí CLI" → Codex), nó socraigh `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (urramaíonn sí `CLI_ALLOW_CONFIG_WRITES` freisin, atá cumasaithe de réir réamhshocraithe). Nuair atá sí cumasaithe, ní scríobhann sí ach comhaid phróifíle ar leith `~/.codex/*.config.toml`; ní athraíonn sí riamh an comhad gníomhach/réamhshocraithe `~/.codex/config.toml`, socruithe Codex-lb, fíordheimhniú ná roghnú soláthraí.
+Mura bhfuil sainmhíniú `model_providers.omniroute` sa bhunchomhad `config.toml`, cuireann
+`setup-codex` follasach an sainmhíniú sin san áireamh i ngach forleagan ginte, agus úsáid á baint as an
+gcríochphointe áitiúil nó cianda roghnaithe. Fágann sé an bunchomhad gan athrú. Faightear sainmhíniú
+soláthraí atá ann cheana le hoidhreacht, lena n-áirítear a chríochphointe agus a shocruithe fíordheimhnithe. Cuireann
+TOML neamhbhailí sa bhunchomhad stop leis an nginiúint sula scríobhtar próifílí.
+
+Nuair a sholáthraíonn tú `--api-key` nó `OMNIROUTE_API_KEY`, tagraíonn soláthraí nuashainithe do
+`env_key = "OMNIROUTE_API_KEY"`; ní shábháiltear ná ní phriontáiltear an eochair féin sa
+réamhamharc choíche. Socraigh an athróg sin sa timpeallacht ina seolann tú Codex. Gan
+eochair sholáthraithe, níl aon riachtanas eochrach sa sainmhíniú nua, le haghaidh ásc OmniRoute
+atá cumraithe chun glacadh le hiarratais neamhfhíordheimhnithe.
+
+Caomhnaíonn uathshioncronú roghnach na catalóige a bhfuil cur síos air thíos sainmhínithe soláthraí atá
+i bhforleagan cheana féin ach ní chuireann sé socruithe nua soláthraí ar bun; cumraigh an soláthraí
+ar dtús le socrú follasach nó leis an deais. Fágtar socruithe soláthraí atá ann cheana ar lár
+ó réamhamhairc rith thirim toisc go bhféadfadh dintiúir arna mbainistiú ag an oibreoir a bheith iontu.
+
+Is féidir le OmniRoute na comhaid phróifíle chéanna seo a **uathshioncronú** freisin tar éis d’fhionnachtain/iompórtáil rathúil samhlacha soláthraí an chatalóg bheo a athrú. Tá sé seo **roghnach agus múchta de réir réamhshocraithe**: scoránaigh é ón **deais CLI Code** ("Uathshioncronú próifílí CLI" → Codex), nó socraigh `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (urramaíonn sé `CLI_ALLOW_CONFIG_WRITES` freisin, atá casta air de réir réamhshocraithe). Nuair atá sé cumasaithe, ní scríobhann sé ach comhaid phróifíle ar leith `~/.codex/*.config.toml`; ní athraíonn sé an comhad gníomhach/réamhshocraithe `~/.codex/config.toml`, socruithe Codex-lb, fíordheimhniú ná roghnú soláthraí choíche.
 
 ---
 

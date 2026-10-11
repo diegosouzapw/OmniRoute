@@ -43,17 +43,9 @@ wachtwoord hoeft op te geven.
 
 ## Standaardsalt (willekeurig per installatie)
 
-Wanneer `OMNIROUTE_CLI_SALT` niet is ingesteld, is de salt een willekeurige hexadecimale tekenreeks
-van 64 tekens die eenmaal wordt gegenereerd en wordt opgeslagen in `<DATA_DIR>/cli-token-salt.json` (modus `0600`) —
-niet de ingecheckte letterlijke waarde `omniroute-cli-auth-v1`. Zowel `getActiveSalt()` in
-`src/lib/machineToken.ts` als de tegenhanger ervan in `bin/cli/utils/cliToken.mjs` lezen hetzelfde
-bestand, zodat de server en elke CLI-aanroep binnen deze installatie op dezelfde
-waarde uitkomen; de ingecheckte letterlijke waarde wordt alleen als laatste redmiddel gebruikt wanneer er nog geen
-opgeslagen salt of salt uit een omgevingsvariabele beschikbaar is (bijvoorbeeld bij een nieuwe installatie met alleen de CLI
-voordat de server ooit is uitgevoerd). Dit verhelpt een zwakte van de oude vaste letterlijke
-standaardwaarde: `/etc/machine-id` is doorgaans voor iedereen leesbaar, waardoor elke lokale gebruiker
-anders hetzelfde token zou kunnen afleiden voor elke installatie waarin
-`OMNIROUTE_CLI_SALT` nooit is ingesteld.
+Wanneer `OMNIROUTE_CLI_SALT` niet is ingesteld, is de salt een willekeurige hexadecimale tekenreeks van 64 tekens die eenmaal wordt gegenereerd en opgeslagen in `<DATA_DIR>/cli-token-salt.json` (modus `0600`) — niet de ingecheckte letterlijke waarde `omniroute-cli-auth-v1`. Zowel `getActiveSalt()` in `src/lib/machineToken.ts` als de tegenhanger ervan in `bin/cli/utils/cliToken.mjs` lezen hetzelfde bestand, zodat de server en elke CLI-aanroep binnen deze installatie uiteindelijk dezelfde waarde gebruiken; de ingecheckte letterlijke waarde wordt alleen gebruikt als laatste redmiddel wanneer er nog geen opgeslagen salt of salt uit een omgevingsvariabele kan worden vastgesteld (bijvoorbeeld bij een nieuwe installatie met alleen de CLI, voordat de server ooit is uitgevoerd). Hiermee wordt een zwakte van de oude vaste standaardwaarde verholpen: `/etc/machine-id` is doorgaans voor iedereen leesbaar, waardoor elke lokale gebruiker anders hetzelfde token zou kunnen afleiden voor elke installatie waarin `OMNIROUTE_CLI_SALT` nooit is ingesteld.
+
+Als de salt niet kan worden gelezen of aangemaakt, geven zowel de server als de CLI eenmaal per proces een waarschuwing voordat ze die compatibiliteitsfallback gebruiken. De waarschuwing bevat geen salt, token, bestandssysteempad of onbewerkte foutmelding. Herstel de toegang tot `DATA_DIR` of stel `OMNIROUTE_CLI_SALT` in en start vervolgens het getroffen proces opnieuw. De waarschuwing maakt het probleem zichtbaar; zij maakt de openbare fallback-salt niet privé en schakelt CLI-authenticatie niet uit. Bestaande geldige opgeslagen salts en expliciete overschrijvingen via omgevingsvariabelen behouden hun eerdere tokenwaarden.
 
 ## Saltrotatie
 

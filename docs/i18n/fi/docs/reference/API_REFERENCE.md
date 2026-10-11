@@ -4,9 +4,12 @@
 
 ---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../reference/API_REFERENCE.md) · 🇪🇹 [am](../../../am/docs/reference/API_REFERENCE.md) · 🇸🇦 [ar](../../../ar/docs/reference/API_REFERENCE.md) · 🇦🇿 [az](../../../az/docs/reference/API_REFERENCE.md) · 🇧🇬 [bg](../../../bg/docs/reference/API_REFERENCE.md) · 🇧🇩 [bn](../../../bn/docs/reference/API_REFERENCE.md) · 🇧🇦 [bs](../../../bs/docs/reference/API_REFERENCE.md) · 🇨🇿 [cs](../../../cs/docs/reference/API_REFERENCE.md) · 🇩🇰 [da](../../../da/docs/reference/API_REFERENCE.md) · 🇩🇪 [de](../../../de/docs/reference/API_REFERENCE.md) · 🇬🇷 [el](../../../el/docs/reference/API_REFERENCE.md) · 🇪🇸 [es](../../../es/docs/reference/API_REFERENCE.md) · 🇪🇪 [et](../../../et/docs/reference/API_REFERENCE.md) · 🇮🇷 [fa](../../../fa/docs/reference/API_REFERENCE.md) · 🇫🇷 [fr](../../../fr/docs/reference/API_REFERENCE.md) · 🇮🇪 [ga](../../../ga/docs/reference/API_REFERENCE.md) · 🇮🇳 [gu](../../../gu/docs/reference/API_REFERENCE.md) · 🇳🇬 [ha](../../../ha/docs/reference/API_REFERENCE.md) · 🇮🇱 [he](../../../he/docs/reference/API_REFERENCE.md) · 🇮🇳 [hi](../../../hi/docs/reference/API_REFERENCE.md) · 🇭🇷 [hr](../../../hr/docs/reference/API_REFERENCE.md) · 🇭🇺 [hu](../../../hu/docs/reference/API_REFERENCE.md) · 🇦🇲 [hy](../../../hy/docs/reference/API_REFERENCE.md) · 🇮🇩 [id](../../../id/docs/reference/API_REFERENCE.md) · 🇳🇬 [ig](../../../ig/docs/reference/API_REFERENCE.md) · 🇮🇹 [it](../../../it/docs/reference/API_REFERENCE.md) · 🇯🇵 [ja](../../../ja/docs/reference/API_REFERENCE.md) · 🇬🇪 [ka](../../../ka/docs/reference/API_REFERENCE.md) · 🇰🇭 [km](../../../km/docs/reference/API_REFERENCE.md) · 🇮🇳 [kn](../../../kn/docs/reference/API_REFERENCE.md) · 🇰🇷 [ko](../../../ko/docs/reference/API_REFERENCE.md) · 🇱🇹 [lt](../../../lt/docs/reference/API_REFERENCE.md) · 🇱🇻 [lv](../../../lv/docs/reference/API_REFERENCE.md) · 🇮🇳 [ml](../../../ml/docs/reference/API_REFERENCE.md) · 🇮🇳 [mr](../../../mr/docs/reference/API_REFERENCE.md) · 🇲🇾 [ms](../../../ms/docs/reference/API_REFERENCE.md) · 🇲🇹 [mt](../../../mt/docs/reference/API_REFERENCE.md) · 🇲🇲 [my](../../../my/docs/reference/API_REFERENCE.md) · 🇳🇵 [ne](../../../ne/docs/reference/API_REFERENCE.md) · 🇳🇱 [nl](../../../nl/docs/reference/API_REFERENCE.md) · 🇳🇴 [no](../../../no/docs/reference/API_REFERENCE.md) · 🇮🇳 [or](../../../or/docs/reference/API_REFERENCE.md) · 🇮🇳 [pa](../../../pa/docs/reference/API_REFERENCE.md) · 🇵🇭 [phi](../../../phi/docs/reference/API_REFERENCE.md) · 🇵🇱 [pl](../../../pl/docs/reference/API_REFERENCE.md) · 🇵🇹 [pt](../../../pt/docs/reference/API_REFERENCE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/API_REFERENCE.md) · 🇷🇴 [ro](../../../ro/docs/reference/API_REFERENCE.md) · 🇷🇺 [ru](../../../ru/docs/reference/API_REFERENCE.md) · 🇱🇰 [si](../../../si/docs/reference/API_REFERENCE.md) · 🇸🇰 [sk](../../../sk/docs/reference/API_REFERENCE.md) · 🇸🇮 [sl](../../../sl/docs/reference/API_REFERENCE.md) · 🇷🇸 [sr](../../../sr/docs/reference/API_REFERENCE.md) · 🇸🇪 [sv](../../../sv/docs/reference/API_REFERENCE.md) · 🇰🇪 [sw](../../../sw/docs/reference/API_REFERENCE.md) · 🇮🇳 [ta](../../../ta/docs/reference/API_REFERENCE.md) · 🇮🇳 [te](../../../te/docs/reference/API_REFERENCE.md) · 🇹🇭 [th](../../../th/docs/reference/API_REFERENCE.md) · 🇹🇷 [tr](../../../tr/docs/reference/API_REFERENCE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/API_REFERENCE.md) · 🇵🇰 [ur](../../../ur/docs/reference/API_REFERENCE.md) · 🇺🇿 [uz](../../../uz/docs/reference/API_REFERENCE.md) · 🇻🇳 [vi](../../../vi/docs/reference/API_REFERENCE.md) · 🇳🇬 [yo](../../../yo/docs/reference/API_REFERENCE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/API_REFERENCE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/API_REFERENCE.md)
+🌐 **Kielet:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
 
-OmniRoute APIn keskeinen viitedokumentaatio. Se kattaa julkisen `/v1`-rajapinnan ja käytetyimmät hallintapäätepisteet; koneellisesti luettava [`docs/openapi.yaml`](../openapi.yaml) ja hakemiston `src/app/api/` alla oleva reittipuu ovat kattavat lähteet.
+OmniRoute APIn keskeinen viitedokumentaatio. Se kattaa julkisen `/v1`-rajapinnan ja yleisimmin käytetyt hallintapäätepisteet; koneellisesti luettava [`docs/openapi.yaml`](../openapi.yaml) ja hakemiston `src/app/api/` alla oleva reittipuu ovat kattavat lähteet.
+
+OpenAI-yhteensopivaan protokollaan ja palveluntarjoajien ominaisuusmatriisiin keskittyvät tiedot ovat dokumentissa
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
 
 ---
 
@@ -229,11 +232,16 @@ Content-Type: application/json
 
 Saatavilla olevat palveluntarjoajat: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, Jina AI.
 
-Luettelotunnisteet ovat muotoa `provider/model` (esimerkki: `jina-ai/jina-embeddings-v5-omni-small`). Rekisterissä esiintyvät Jinan pelkät mallitunnisteet (esimerkiksi `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`) selvitetään myös. Jinan embed/rerank/classify/segment käyttää ensisijaisesti hallintapaneelin `jina-ai`-tunnistetietoja; `JINA_AI_API_KEY` toimii varavaihtoehtona vain, jos hallintapaneelin avainta ei ole. `jina-reader`-kortti on tarkoitettu vain Readerille / `r.jina.ai`:lle (`POST /v1/web/fetch`), eikä se koskaan tarjoa upotuksia tai uudelleenjärjestystä.
+Luettelotunnukset ovat muodossa `provider/model` (esimerkki: `jina-ai/jina-embeddings-v5-omni-small`). Myös rekisterissä esiintyvät Jina-mallien pelkät tunnukset (esimerkiksi `jina-embeddings-v5-text-small`, `jina-reranker-v3.5`) ratkaistaan. Jinan upotus-, uudelleenjärjestely-, luokittelu- ja segmentointitoiminnot käyttävät ensisijaisesti hallintapaneelin `jina-ai`-tunnistetietoja; `JINA_AI_API_KEY`-arvoa käytetään varavaihtoehtona vain, jos hallintapaneelin avainta ei ole. `jina-reader`-kortti on tarkoitettu vain Readerille / `r.jina.ai`-palvelulle (`POST /v1/web/fetch`), eikä se koskaan tarjoa upotuksia tai uudelleenjärjestelyä.
 
-Rekisterimallit, jotka ilmoittavat tukevansa multimodaalisuutta, hyväksyvät myös enintään 32 palveluntarjoajasta riippumatonta rakenteista kohdetta. Mediakohteiden tyypit ovat `text`, `image`, `audio`, `video` ja `document`. Niiden median `source` on joko `{"type":"url","url":"https://..."}` tai `{"type":"base64","data":"...","media_type":"..."}`.
+Monimodaalista tukea ilmoittavat rekisterimallit hyväksyvät myös enintään 32 palveluntarjoajasta riippumatonta rakenteista
+kohdetta. Mediakohteiden tyypit ovat `text`, `image`, `audio`, `video` ja `document`. Niiden median `source`
+on joko `{"type":"url","url":"https://..."}` tai
+`{"type":"base64","data":"...","media_type":"..."}`.
 
-Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-v5-omni-nano` ja tuoteperheen alias `jina-ai/jina-embeddings-v5-omni` → omni-small) hyväksyy myös Jinan natiivit EmbeddingsV5Request-dokumentit ja **välittää ne muuttamattomina** osoitteeseen `https://api.jina.ai/v1/embeddings`:
+Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-v5-omni-nano`
+ja perhealias `jina-ai/jina-embeddings-v5-omni` → omni-small) hyväksyy myös Jinan alkuperäiset
+EmbeddingsV5Request-dokumentit ja **välittää ne muuttamattomina** osoitteeseen `https://api.jina.ai/v1/embeddings`:
 
 ```json
 {
@@ -250,18 +258,33 @@ Jina v5 Omni (`jina-ai/jina-embeddings-v5-omni-small`, `jina-ai/jina-embeddings-
 }
 ```
 
-Natiivien `{ image | audio | video | pdf }`-arvot voivat olla julkinen HTTPS-URL-osoite, `data:`-URI tai käsittelemätön base64-data. OmniRoute ei muunna näitä objekteja merkkijonoiksi eikä nouda natiivien kuvien URL-osoitteita — Jina noutaa julkisen median itse. Jinan lisäkentät (`task`, `normalized`, `truncate`, `embedding_type`) välitetään eteenpäin. Vain tekstiä tukevat Jina-tuoteversiot hylkäävät edelleen muut kuin tekstidokumentit.
+Alkuperäiset `{ image | audio | video | pdf }`-arvot voivat olla julkinen HTTPS-URL-osoite, `data:`-URI tai raaka
+base64-data. OmniRoute ei muunna näitä objekteja merkkijonoiksi eikä nouda alkuperäisiä kuvien URL-osoitteita — Jina noutaa
+julkisen median itse. Jinan lisäkentät (`task`, `normalized`, `truncate`, `embedding_type`)
+välitetään edelleen. Vain tekstiä tukevat Jina-SKU:t hylkäävät edelleen muut kuin tekstidokumentit.
 
 Tietoturva- ja siirtorajoitukset:
 
-- Etämedian URL-osoitteiden on oltava julkisia HTTPS-osoitteita. Kanoniset `{type,source:url}`-kohteet noudetaan palvelinpuolella (uudelleenohjausten uudelleenvalidointi, aikakatkaisu, kokorajoitukset, julkinen DNS ja yhteyden kiinnitys) ja upotetaan ennen palveluntarjoajakutsua. Jinan natiivit `{image:"https://..."}`-kohteet välitetään sellaisinaan saman julkista HTTPS-osoitetta koskevan tarkistuksen jälkeen; Jina noutaa URL-osoitteen.
-- Sisäisen base64-median purettu koko on rajoitettu 8 MiB:iin kohdetta kohti ja yhteensä 16 MiB:iin pyyntöä kohti.
+- Etämedian URL-osoitteiden on oltava julkisia HTTPS-osoitteita. Kanoniset `{type,source:url}`-kohteet noudetaan
+  palvelinpuolella (uudelleenohjausten uudelleenvalidointi, aikakatkaisu, kokorajoitukset, julkinen DNS, yhteyden kiinnitys) ja
+  upotetaan ennen palveluntarjoajakutsua. Jinan alkuperäiset `{image:"https://..."}`-kohteet välitetään sellaisinaan
+  saman julkisen HTTPS-tarkistuksen jälkeen; Jina noutaa URL-osoitteen.
+- Sisäisen base64-median purettu koko on rajoitettu 8 MiB:uun kohdetta kohti ja 16 MiB:uun koko pyynnössä.
 
 Palveluntarjoajakohtainen muunnos (kanonisia kohteita ei koskaan välitetä muuttamattomina):
 
-- Jinan multimodaaliset mallit: jokaisesta ylätason kohteesta tulee yksi modaliteettiavaimella varustettu objekti (`text` / `image` / `audio` / `video` / `pdf`), joka käyttää sisäiselle medialle data-URI-tunnisteita; yksi vektori kutakin ylätason kohdetta kohti.
-- Gemini Embedding 2 -tuoteperhe: yhdestä ylätason taulukosta muodostetaan yksi natiivi `models/{model}:embedContent`-pyyntö, jossa on `content.parts` (`text` tai `inline_data`).
-- Tuntemattomat/dynaamiset mallit, joilla ei ole eksplisiittisiä modaliteettien metatietoja, hylkäävät rakenteisen syötteen HTTP 400 -vastauksella.
+- Jinan monimodaaliset mallit: jokaisesta ylimmän tason kohteesta tulee yksi modaliteettiavaimella varustettu objekti
+  (`text` / `image` / `audio` / `video` / `pdf`), joka käyttää data-URI-osoitteita sisäiselle medialle; yksi vektori kutakin
+  ylimmän tason kohdetta kohti.
+- Gemini Embedding 2 -perhe: yhdestä ylimmän tason taulukosta tulee yksi alkuperäinen
+  `models/{model}:embedContent`-pyyntö, jossa on `content.parts` (`text` tai `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, mikä tahansa paikallisen palvelimen lataama malli): kanoniset `text`-kohteet
+  muunnetaan tavallisiksi merkkijonoiksi, ja `image` / `audio` / `video` muunnetaan kukin yhdeksi
+  `{"content": [part]}`-objektiksi käyttäen llama-serverin keskustelusisällön osia (`image_url`,
+  `input_audio`, jonka muoto on `wav` / `mp3` / `flac`, `input_video`) ja sisäistä dataa; yksi vektori
+  kutakin ylimmän tason kohdetta kohti. Palvelin on käynnistettävä valinnoilla `--embedding --mmproj …`; ilman projektoria se
+  hylkää median itse. `document`-tyyppiä ei tueta.
+- Tuntemattomat/dynaamiset mallit, joilla ei ole nimenomaisia modaliteettien metatietoja, hylkäävät rakenteisen syötteen HTTP 400 -vastauksella.
 
 ```json
 {
@@ -278,7 +301,8 @@ Palveluntarjoajakohtainen muunnos (kanonisia kohteita ei koskaan välitetä muut
 }
 ```
 
-Mallit ja modaliteetit, joiden yhdistelmää ei tueta, palauttavat HTTP 400 -vastauksen kohteen pakkomuuntamisen sijaan. Vanhojen merkkijono-/tunnistepyyntöjen muut kuin syötekenttiin liittyvät laajennuskentät välitetään edelleen muuttamattomina.
+Mallin ja modaliteetin yhdistelmät, joita ei tueta, palauttavat HTTP 400 -vastauksen kohteen pakkomuunnoksen sijaan. Muut kuin syötekentät sisältävät
+laajennuskentät välitetään vanhoissa merkkijono-/tunnistepyynnöissä edelleen muuttamattomina.
 
 ```bash
 # Luettele kaikki upotusmallit
@@ -296,12 +320,31 @@ Content-Type: application/json
 
 {
   "model": "openai/gpt-image-2",
-  "prompt": "Kaunis auringonlasku vuorten yllä",
+  "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
 ```
 
-Saatavilla olevat palveluntarjoajat: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (paikallinen), ComfyUI (paikallinen).
+Saatavilla olevia palveluntarjoajia ovat OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (paikallinen) ja ComfyUI (paikallinen).
+
+ZenMux käyttää olemassa olevaa API-avainyhteyttä ja hyväksyy etuliitteet `zenmux/` tai `zm/`:
+
+- `zenmux/openai/gpt-image-2` käyttää ZenMuxin OpenAI Images API -rajapintaa. Vaihtoehtoja ovat `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background` ja `response_format`.
+- Muut julkaisijat, kuten `zm/meta/muse-image-1.0`, käyttävät ZenMuxin Vertex AI `:predict`
+  -päätepistettä. `n` vastaa parametria `sampleCount`, `aspect_ratio` parametria `aspectRatio` ja `image_size`
+  (`1K`, `2K`, `4K`) parametria `sampleImageSize`. Pikseleinä annettu `size` määrittää vain kuvasuhteen,
+  ei taattuja pikselimittoja. Tuetut kuvasuhteet, resoluutiot ja määrät vaihtelevat malleittain.
+- `zm/inclusionai/ming-image-0.1-design` valitsee mittansa itse. Jätä `size`,
+  `aspect_ratio` ja `image_size` pois; eksplisiittiset arvot palauttavat HTTP 400 -virheen. PNG-, JPEG- ja WebP-muotoa
+  voidaan pyytää parametrilla `output_format`.
+
+Tämä integraatio tukee tekstistä kuvaksi -generointia, ei viitekuvien muokkaamista. Vertexin
+tuloste normalisoidaan muotoon `data[].b64_json`; `response_format: "url"` palauttaa alkuperäisen
+HTTPS-URL-osoitteen tai base64-data-URL-osoitteen, kun saatavilla on vain kuvan tavut. Tyhjät tai suodatetut tulosteet
+palauttavat virheen tyhjän onnistumisvastauksen sijaan. Mallien käyttöoikeus riippuu ZenMux-tilistä.
+Katso [ZenMuxin Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) ja
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
 # Luettele kaikki kuvamallit
@@ -441,40 +484,40 @@ Käytä tätä päätepistettä, kun rinnakkaisprosessi suoritetaan pääprosess
 
 ## Yhteensopivuuspäätepisteet
 
-| Metodi | Polku                                     | Muoto                                      |
-| ------ | ----------------------------------------- | ------------------------------------------ |
-| POST   | `/v1/chat/completions`                    | OpenAI                                     |
-| POST   | `/v1/messages`                            | Anthropic                                  |
-| POST   | `/v1/responses`                           | OpenAI Responses                           |
-| POST   | `/v1/embeddings`                          | OpenAI                                     |
-| POST   | `/v1/images/generations`                  | OpenAI Images                              |
-| POST   | `/v1/images/edits`                        | OpenAI Images (muokkaus/täyttö)            |
-| POST   | `/v1/videos/generations`                  | OpenAI-tyylinen videogenerointi            |
-| POST   | `/v1/music/generations`                   | OpenAI-tyylinen musiikkigenerointi         |
-| POST   | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                         |
-| POST   | `/v1/audio/speech`                        | OpenAI TTS (palauttaa äänisisällön)        |
-| POST   | `/v1/rerank`                              | Cohere/Voyage-tyylinen uudelleenjärjestely |
-| POST   | `/v1/classify`                            | Jina-luokittelu (`api.jina.ai`)            |
-| POST   | `/v1/segment`                             | Jina-segmentoija (`segment.jina.ai`)       |
-| POST   | `/v1/moderations`                         | OpenAI Moderations                         |
-| GET    | `/v1/models`                              | OpenAI                                     |
-| POST   | `/v1/messages/count_tokens`               | Anthropic                                  |
-| GET    | `/v1beta/models`                          | Gemini                                     |
-| POST   | `/v1beta/models/{...path}`                | Gemini generateContent                     |
-| POST   | `/v1/api/chat`                            | Ollama                                     |
-| GET    | `/api/v1/vscode/{token}/`                 | OpenAI-luettelon alias                     |
-| GET    | `/api/v1/vscode/{token}/models`           | OpenAI-mallien alias                       |
-| POST   | `/api/v1/vscode/{token}/chat/completions` | OpenAI:n tokenisoitu alias                 |
-| POST   | `/api/v1/vscode/{token}/responses`        | OpenAI Responsesin tokenisoitu alias       |
-| POST   | `/api/v1/vscode/{token}/api/chat`         | Ollaman tokenisoitu alias                  |
-| GET    | `/api/v1/vscode/{token}/api/tags`         | Ollama-tunnisteiden tokenisoitu alias      |
+| Menetelmä | Polku                                     | Muoto                                      |
+| --------- | ----------------------------------------- | ------------------------------------------ |
+| POST      | `/v1/chat/completions`                    | OpenAI                                     |
+| POST      | `/v1/messages`                            | Anthropic                                  |
+| POST      | `/v1/responses`                           | OpenAI Responses                           |
+| POST      | `/v1/embeddings`                          | OpenAI                                     |
+| POST      | `/v1/images/generations`                  | OpenAI Images                              |
+| POST      | `/v1/images/edits`                        | OpenAI Images (muokkaus/täyttö)            |
+| POST      | `/v1/videos/generations`                  | OpenAI-tyylinen videogenerointi            |
+| POST      | `/v1/music/generations`                   | OpenAI-tyylinen musiikkigenerointi         |
+| POST      | `/v1/audio/transcriptions`                | OpenAI Audio (STT)                         |
+| POST      | `/v1/audio/speech`                        | OpenAI TTS (palauttaa audiorungon)         |
+| POST      | `/v1/rerank`                              | Cohere/Voyage-tyylinen uudelleenjärjestely |
+| POST      | `/v1/classify`                            | Jina-luokittelu (`api.jina.ai`)            |
+| POST      | `/v1/segment`                             | Jina-segmentoija (`segment.jina.ai`)       |
+| POST      | `/v1/moderations`                         | OpenAI Moderations                         |
+| GET       | `/v1/models`                              | OpenAI                                     |
+| POST      | `/v1/messages/count_tokens`               | Anthropic                                  |
+| GET       | `/v1beta/models`                          | Gemini                                     |
+| POST      | `/v1beta/models/{...path}`                | Gemini generateContent                     |
+| POST      | `/v1/api/chat`                            | Ollama                                     |
+| GET       | `/api/v1/vscode/{token}/`                 | OpenAI-luettelon alias                     |
+| GET       | `/api/v1/vscode/{token}/models`           | OpenAI-mallien alias                       |
+| POST      | `/api/v1/vscode/{token}/chat/completions` | OpenAI:n tokenoitu alias                   |
+| POST      | `/api/v1/vscode/{token}/responses`        | OpenAI Responsesin tokenoitu alias         |
+| POST      | `/api/v1/vscode/{token}/api/chat`         | Ollaman tokenoitu alias                    |
+| GET       | `/api/v1/vscode/{token}/api/tags`         | Ollama-tunnisteiden tokenoitu alias        |
 
 Kaikki POST-reitit noudattavat samaa rakennetta: `Bearer your-api-key` + Zod-validoitu JSON-runko (`v1RerankSchema`, `v1ModerationSchema`, `v1AudioSpeechSchema` jne.; katso `src/shared/validation/schemas.ts`). Skeeman validoinnin epäonnistuessa palautetaan 4xx.
 
-Asiakkaille, jotka eivät voi liittää `Authorization: Bearer ...` -otsaketta, OmniRoute hyväksyy API-avaimet myös URL-osoitteessa joko yhteensopivuuskyselyparametreina (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) tai alla dokumentoitujen erillisten `/api/v1/vscode/{token}/...`-päätepisteiden kautta.
+Asiakkaille, jotka eivät voi liittää `Authorization: Bearer ...` -otsaketta, OmniRoute hyväksyy API-avaimet myös URL-osoitteessa joko yhteensopivien kyselymerkkijonoparametrien (`?token=...`, `?apiKey=...`, `?api_key=...`, `?key=...`) tai alla dokumentoitujen erillisten `/api/v1/vscode/{token}/...`-päätepisteiden kautta.
 
 ```bash
-# Uudelleenjärjestely (pilvirekisteripalveluntarjoaja tai OpenAI-yhteensopiva palveluntarjoajasolmu muodossa "<prefix>/<model>")
+# Uudelleenjärjestely (pilvirekisterin tarjoaja tai OpenAI-yhteensopiva tarjoajasolmu muodossa "<prefix>/<model>")
 POST /v1/rerank      { "model": "jina-ai/jina-reranker-v3.5", "query": "...", "documents": ["..."] }
 
 # Jina-luokittelu (Foundation API -tunnistetiedot)
@@ -483,47 +526,50 @@ POST /v1/classify    { "model": "jina-embeddings-v5-text-small", "input": ["..."
 # Jina-segmentoija
 POST /v1/segment     { "content": "...", "return_chunks": true }
 
-# Jina-haku (s.jina.ai; palveluntarjoaja-aliakset: jina-search, jina-ai, jina)
+# Jina-haku (s.jina.ai; tarjoaja-aliakset: jina-search, jina-ai, jina)
 POST /v1/search      { "query": "...", "provider": "jina-search" }
 
 # Moderointi
 POST /v1/moderations { "model": "omni-moderation-latest", "input": "..." }
 
-# TTS — palauttaa audio/mpeg-sisällön (tai pyydetyn muodon)
+# TTS — palauttaa audio/mpeg-rungon (tai pyydetyn muodon)
 POST /v1/audio/speech { "model": "openai/tts-1", "input": "Hello", "voice": "alloy" }
 
-# Soniox TTS edellyttää kieltä ja ääntä: `language`-kentän oletusarvo on "en"; puuttuva
+# Soniox TTS edellyttää kieltä ja ääntä: `language`-parametrin oletusarvo on "en"; puuttuva
 # ääni tai OpenAI:n vakioäänen nimi (alloy, nova, …) korvataan arvolla "Adrian"
 POST /v1/audio/speech { "model": "soniox/tts-rt-v1", "input": "Xin chào", "voice": "Adrian", "language": "vi" }
 
 # Kuvan muokkaus (multipart)
 POST /v1/images/edits  -F image=@input.png -F prompt="..." -F mask=@mask.png
 
-# Videon/musiikin generointi (palveluntarjoajan etuliitteellä varustettu mallitunnus)
+# Videon/musiikin generointi (tarjoajan etuliitteellä varustettu mallitunniste)
 POST /v1/videos/generations { "model": "runway/gen-3", "prompt": "..." }
 POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 ```
 
-> **Uudelleenjärjestelyn palveluntarjoajasolmut:** `POST /v1/rerank` reitittää pyynnöt myös OpenAI-yhteensopiviin palveluntarjoajasolmuihin
+> **Uudelleenjärjestelyn tarjoajasolmut:** `POST /v1/rerank` reitittää pyynnöt myös OpenAI-yhteensopiviin tarjoajasolmuihin
 > (oMLX, vLLM, Infinity, yhdyskäytävän takana oleva TEI, …), joihin viitataan muodossa `<node-prefix>/<model>`. Loopback-
-> solmut (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ovat aina käytettävissä. Millä tahansa muulla
-> isännällä sijaitsevat solmut — lähiverkon laite tai Tailscale-vertaislaite — ovat käytettävissä vain, kun operaattori ottaa käyttöön
-> `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslipun **ja** solmun perus-URL läpäisee palveluntarjoajan
-> lähtevien URL-osoitteiden käytännön (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> pilven metatietoisäntiin ei koskaan reititetä. Muistimoottorin uudelleenjärjestelyvaihe kutsuu tätä reittiä
+> solmut (`localhost`, `127.0.0.1`, `172.16.0.0/12`) ovat aina kelvollisia, samoin kuin isäntänimet, jotka
+> operaattori määrittää kohdassa `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (esimerkiksi Docker/Compose-palvelun nimi,
+> kuten `http://reranker:8080/v1`; näihin otetaan yhteys suoraan, ei koskaan `HTTP(S)_PROXY`-välityspalvelimen tai
+> yhteyteen kiinnitetyn välityspalvelimen kautta). Muilla
+> isännillä sijaitsevat solmut — lähiverkon laite tai Tailscale-vertaislaite — ovat kelvollisia vain, kun operaattori ottaa
+> `RERANK_REMOTE_PROVIDER_NODES`-ominaisuuslipun käyttöön **ja** solmun perus-URL läpäisee tarjoajan
+> lähtevien URL-osoitteiden käytännön (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
+> Muistimoottorin uudelleenjärjestelyvaihe kutsuu tätä reittiä
 > loopback-yhteyden kautta, joten sama sääntö koskee Muisti-asetusten `rerankProviderModel`-arvoa.
 >
-> **Paikallisten palvelinten rakenteet:** solmua kutsutaan osoitteessa `<base>/v1/rerank` ja 404-vastauksen tapauksessa osoitteessa `<base>/rerank`
-> (Infinity, TEI). Ylävirtaan lähetettävä runko sisältää sekä Cohere/OpenAI-kirjoitusasun (`documents`,
-> `return_documents`) että TEI-kirjoitusasun (`texts`, `return_text`), ja ylävirran vastaus
-> normalisoidaan Cohere-kuoreen: TEI:n paljas `[{index, score, text}]`, ohuiden yhdyskäytävien
+> **Paikallisten palvelimien rakenteet:** solmua kutsutaan osoitteessa `<base>/v1/rerank` ja 404-vastauksen tapauksessa osoitteessa `<base>/rerank`
+> (Infinity, TEI). Ylävirtaan lähetettävä runko sisältää sekä Cohere/OpenAI-muodon (`documents`,
+> `return_documents`) että TEI-muodon (`texts`, `return_text`), ja ylävirran vastaus
+> normalisoidaan Cohere-kuoreen: TEI:n paljas `[{index, score, text}]`, kevyiden yhdyskäytävien
 > `{results: [{index, score}]}` ja Voyage-tyylinen `{data: [...]}` palautetaan kaikki asiakkaalle muodossa
-> `{results: [{index, relevance_score, document?}]}`, pistemäärän mukaan järjestettynä ja enintään `top_n` tulokseen rajattuna.
+> `{results: [{index, relevance_score, document?}]}`, pisteiden mukaan lajiteltuina ja enintään `top_n`-määrään rajattuina.
 
-> **Palvelinsolmujen haku:** OpenAI-yhteensopivan palvelinsolmun mallit näkyvät `GET /v1/models` -vastauksessa
-> solmun etuliitteen alla. Rivit, joissa ei ole päätepisteiden metatietoja (tyypillistä paikallisissa `/v1/models`-listauksissa),
-> perivät solmun `apiType`-arvon, joten `embeddings`-solmun mallien `type` on `"embedding"` ja
-> `rerank`-solmun mallien `type` on `"rerank"` sen sijaan, että oletusarvona olisi chat; synkronoidulla tai manuaalisesti lisätyllä rivillä eksplisiittisesti määritetty
+> **Palvelinsolmujen tunnistus:** OpenAI-yhteensopivan palvelinsolmun mallit näkyvät `GET /v1/models`-vastauksessa
+> solmun etuliitteen alla. Rivit, joissa ei ole päätepisteiden metatietoja (tyypillistä paikallisille `/v1/models`-listauksille),
+> perivät solmun `apiType`-arvon, joten `embeddings`-solmun mallien tyyppi on `type: "embedding"` ja
+> `rerank`-solmun mallien tyyppi on `type: "rerank"` sen sijaan, että oletuksena olisi keskustelu; synkronoidulla tai manuaalisesti lisätyllä rivillä nimenomaisesti määritetty
 > `supportedEndpoints` on silti ensisijainen.
 
 ### Palvelinkohtaiset reitit
@@ -534,7 +580,7 @@ POST /v1/providers/{provider}/embeddings
 POST /v1/providers/{provider}/images/generations
 ```
 
-Palvelimen etuliite lisätään automaattisesti, jos se puuttuu. Yhteensopimattomat mallit palauttavat tilakoodin `400`.
+Palveluntarjoajan etuliite lisätään automaattisesti, jos se puuttuu. Yhteensopimattomat mallit palauttavat tilakoodin `400`.
 
 ---
 
@@ -828,60 +874,141 @@ X-OmniRoute-No-Cache: true
 
 ## Hallintapaneeli ja hallinta
 
-Hallintareittejä (`/api/*`, lukuun ottamatta julkista todennusta/kirjautumista) **ei** valtuuteta
-tavallisilla päättely-API-avaimilla. Tunnistetietotyypit, käyttöoikeusalueet ja curl-esimerkit:
+Tavalliset päättely-API-avaimet **eivät** anna käyttöoikeutta hallintareitteihin (`/api/*`, julkista todennusta/kirjautumista lukuun ottamatta). Tunnistetietoperheet, käyttöoikeusalueet ja curl-esimerkit:
 [Hallinnan todennus](../guides/MANAGEMENT-AUTH.md).
 
 ### Todennus
 
-| Päätepiste                    | Menetelmä | Kuvaus                                                  |
-| ----------------------------- | --------- | ------------------------------------------------------- |
-| `/api/auth/login`             | POST      | Kirjaudu sisään                                         |
-| `/api/auth/logout`            | POST      | Kirjaudu ulos                                           |
-| `/api/settings/require-login` | GET/PUT   | Ota kirjautumisvaatimus käyttöön tai poista se käytöstä |
+| Päätepiste                    | Menetelmä | Kuvaus                        |
+| ----------------------------- | --------- | ----------------------------- |
+| `/api/auth/login`             | POST      | Kirjautuminen sisään          |
+| `/api/auth/logout`            | POST      | Kirjautuminen ulos            |
+| `/api/settings/require-login` | GET/PUT   | Kirjautumisvaatimuksen vaihto |
 
 ### Palveluntarjoajien hallinta
 
-| Päätepiste                              | Menetelmä             | Kuvaus                                                                                                                                                           |
-| --------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Luettele / luo palveluntarjoajia                                                                                                                                 |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Hallitse palveluntarjoajaa                                                                                                                                       |
-| `/api/providers/[id]/test`              | POST                  | Testaa yhteys palveluntarjoajaan                                                                                                                                 |
-| `/api/providers/[id]/models`            | GET                   | Luettele palveluntarjoajan mallit                                                                                                                                |
-| `/api/providers/validate`               | POST                  | Validoi palveluntarjoajan määritykset                                                                                                                            |
-| `/api/providers/bulk`                   | POST                  | Lisää API-avaimia joukolla YHDELLE palveluntarjoajalle                                                                                                           |
-| `/api/providers/import`                 | POST                  | Tuo heterogeeninen palveluntarjoajien LUETTELO jäsennetystä CSV/JSON-tiedostosta (#6836); rivikohtaiset osittaisen epäonnistumisen tulokset                      |
-| `/api/provider-nodes*`                  | Eri menetelmiä        | Palveluntarjoajan solmujen hallinta                                                                                                                              |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Mukautetut mallit (lisää, päivitä, piilota/näytä, poista)                                                                                                        |
-| `/api/provider-models/validate-and-add` | POST                  | Hallintatodennettu, valinnainen tiukka yhteyden validointi ja atominen mukautetun mallin rekisteröinti; katso [Mallin validointi](../guides/MODEL-VALIDATION.md) |
+| Päätepiste                              | Menetelmä                 | Kuvaus                                                                                                                                                           |
+| --------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Palveluntarjoajien luettelointi / luominen                                                                                                                       |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Palveluntarjoajan hallinta                                                                                                                                       |
+| `/api/providers/[id]/test`              | POST                      | Palveluntarjoajayhteyden testaaminen                                                                                                                             |
+| `/api/providers/[id]/models`            | GET                       | Palveluntarjoajan mallien luettelointi                                                                                                                           |
+| `/api/providers/validate`               | POST                      | Palveluntarjoajan määritysten validointi                                                                                                                         |
+| `/api/providers/bulk`                   | POST                      | API-avainten massalisäys YHDELLE palveluntarjoajalle                                                                                                             |
+| `/api/providers/import`                 | POST                      | Heterogeenisen palveluntarjoajaluettelon tuonti jäsennetystä CSV-/JSON-tiedostosta (#6836); rivikohtaiset osittaisen epäonnistumisen tulokset                    |
+| `/api/provider-nodes*`                  | Useita                    | Palveluntarjoajasolmujen hallinta                                                                                                                                |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Mukautetut mallit ja mallikohtaiset ohitukset (lisäys, päivitys, piilotus/näyttäminen, poistaminen)                                                              |
+| `/api/provider-models/validate-and-add` | POST                      | Hallintatodennettu, valinnainen tiukka yhteyden validointi ja atominen mukautetun mallin rekisteröinti; katso [Mallin validointi](../guides/MODEL-VALIDATION.md) |
+
+Synkronoitujen/tuotujen mallien osalta `PUT /api/provider-models` hyväksyy kentät `provider`, `modelId` ja
+`maxOutputTokenOverride`: positiivinen kokonaisluku asettaa manuaalisen tulostetunnisteiden enimmäismäärän, ja `null`
+poistaa sen sekä palauttaa oletusarvon. `GET /api/provider-models?provider=<provider>` palauttaa nämä
+arvot kohdassa `modelOutputOverrides`, mukaan lukien mallit, joilla ei ole mukautetun mallin riviä. Ohitus
+käyttää ajonaikaista `max_output_tokens`-ominaisuutta ja säilyy mallin uudelleensynkronoinnin jälkeen. OpenAI-yhteensopivan
+palveluntarjoajan sivu tarjoaa samat muokkaus- ja tyhjennysohjaimet sekä merkitsee mallit, joilla on nimenomainen kuvatuki.
+
+Mukautetut Chat Completions -solmut mukauttavat nimenomaiset päättelyn käytöstäpoistot ylävirran taustajärjestelmään. Onnistunut
+yhteystesti valitsee automaattisesti keskustelumallipohjan ohjaimet kullekin tarkalle mallitunnukselle,
+jonka `/models`-merkintä osoittaa tunnistetun `owned_by`-arvon: `vllm`, `sglang` tai `llamacpp`.
+Läpinäkyvät OpenAI-yhteensopivat kääreet voivat säilyttää alkuperäisen mallimerkinnän sisäkkäisessä
+`openai`-objektissa; tunnistus seuraa enintään kolmea tällaista käärettä. Mallit, joiden omistajuus puuttuu, on tuntematon tai
+ristiriitainen, säilyttävät tavallisen OpenAI-käyttäytymisen. Tunnistus käyttää uudelleen olemassa olevaa luettelopyyntöä,
+ei luo valmistumistunnisteita ja mitätöityy, kun yhteyden päätepiste muuttuu.
+
+Jos haluat kiinnittää käyttäytymisen taustajärjestelmälle, joka ei tarjoa näitä metatietoja, käytä olemassa olevaa osittaista
+palveluntarjoajan päivitys-API:a:
+
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
+
+Lähetä tämä runko pyynnöllä `PUT /api/providers/<connection-id>`. Kyseisessä yhteydessä nimenomainen
+päättelyponnistuksen arvo `none` lähetetään muodossa `chat_template_kwargs.thinking=false` ja
+`chat_template_kwargs.enable_thinking=false`. Nimenomaiset natiivin mallipohjan arvot säilyvät määräävinä,
+ellei palvelinpuolen päättelysääntö pakota tiettyä ponnistusta. Asetusta sovelletaan vain, kun mukautettu
+OpenAI-yhteensopiva yhteys lähettää Chat Completions -rungon; Responses-pyynnöt ja tavalliset
+palveluntarjoajat säilyttävät natiivin pyyntörakenteensa. Aseta `reasoningControl`-arvoksi `openai`, jos haluat pakottaa tavallisen OpenAI:n
+`reasoning_effort`-arvon läpiviennin, tai jätä se pois / aseta arvoksi `null`, jos haluat käyttää automaattista tunnistusta.
+
+Claude Code -automaattitilan luokittelijapyynnöt asettavat oletusarvoisen natiivin päättelyn pois käytöstä, jos ne eivät sisällä
+eksplisiittisiä päättelyasetuksia. Tunnistus käyttää Claude-muotoisissa pyynnöissä olevaa luokittelijan järjestelmämerkintää,
+ei mallien nimiä tai vastausten pituusrajoja. Eksplisiittiset rungon asetukset, tuetut vaivannäköä/päättelyä
+koskevat otsakkeet, reitityssäännöt ja ratkaistu mallin vaivannäkö säilyttävät nykyisen prioriteettinsa. Luokittelijan
+molemmat vaiheet säilyttävät kehotteensa, vastausten pituusrajansa, pysäytyssekvenssinsä ja todelliset ylävirran käyttöoikeuksia
+koskevat päätöksensä; toinen vaihe voi edelleen tuottaa pyydetyn näkyvän päättelynsä tavallisena tekstinä.
 
 ### OAuth-työnkulut
 
-| Päätepiste                       | Menetelmä      | Kuvaus                          |
-| -------------------------------- | -------------- | ------------------------------- |
-| `/api/oauth/[provider]/[action]` | Eri menetelmiä | Palveluntarjoajakohtainen OAuth |
+| Päätepiste                       | Menetelmä | Kuvaus                          |
+| -------------------------------- | --------- | ------------------------------- |
+| `/api/oauth/[provider]/[action]` | Useita    | Palveluntarjoajakohtainen OAuth |
 
 ### Reititys ja määritykset
 
-| Päätepiste            | Menetelmä      | Kuvaus                                           |
-| --------------------- | -------------- | ------------------------------------------------ |
-| `/api/models/alias`   | GET/POST       | Mallien aliakset                                 |
-| `/api/models/catalog` | GET            | Kaikki mallit palveluntarjoajan ja tyypin mukaan |
-| `/api/combos*`        | Eri menetelmiä | Yhdistelmien hallinta                            |
-| `/api/keys*`          | Eri menetelmiä | API-avainten hallinta                            |
-| `/api/pricing`        | GET            | Mallien hinnoittelu                              |
+| Päätepiste            | Menetelmä | Kuvaus                                           |
+| --------------------- | --------- | ------------------------------------------------ |
+| `/api/models/alias`   | GET/POST  | Mallien aliakset                                 |
+| `/api/models/catalog` | GET       | Kaikki mallit palveluntarjoajan ja tyypin mukaan |
+| `/api/combos*`        | Useita    | Yhdistelmien hallinta                            |
+| `/api/keys*`          | Useita    | API-avainten hallinta                            |
+| `/api/pricing`        | GET       | Mallien hinnoittelu                              |
 
 ### Käyttö ja analytiikka
 
-| Päätepiste                       | Menetelmä       | Kuvaus                                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Käyttöhistoria                                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/logs`                | GET             | Käyttölokit                                                                                                                                                                                                                                                                                                                            |
-| `/api/usage/request-logs`        | GET             | Pyyntötason lokit                                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/[connectionId]`      | GET             | Yhteyskohtainen käyttö                                                                                                                                                                                                                                                                                                                 |
-| `/api/usage/token-limits`        | GET/POST/DELETE | API-avainkohtaiset tunnisterajabudjetit                                                                                                                                                                                                                                                                                                |
-| `/api/usage/model-latency-stats` | GET             | Liukuva palveluntarjoaja- ja mallikohtainen viivekooste (keskiarvo/p50/p95/p99, onnistumisprosentti); suodattimet: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                     |
-| `/api/usage/cache-health`        | GET             | Kehotevälimuistin kuntokooste `call_logs`-tiedoista — kirjoitus-/lukusuhde, kirjoituskoon p50/p90/p99-jakauma, raskaiden kirjoitusten keskittyminen, mallikohtainen erittely sekä `healthy`/`degraded`/`thrash`/`no-data`-tila-arvio; kyselyparametrit `range` (`1h`\|`24h`\|`7d`\|`30d`, oletus `24h`) ja valinnainen `model` (#8827) |
+| Päätepiste                       | Menetelmä       | Kuvaus                                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Käyttöhistoria                                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/logs`                | GET             | Käyttölokit                                                                                                                                                                                                                                                                                                                               |
+| `/api/usage/request-logs`        | GET             | Pyyntökohtaiset lokit                                                                                                                                                                                                                                                                                                                     |
+| `/api/usage/[connectionId]`      | GET             | Yhteyskohtainen käyttö                                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/token-limits`        | GET/POST/DELETE | API-avainkohtaiset token-rajoitusbudjetit                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/model-latency-stats` | GET             | Liukuva palveluntarjoaja-/mallikohtainen latenssikooste (keskiarvo/p50/p95/p99, onnistumisaste); suodattimet: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                             |
+| `/api/usage/cache-health`        | GET             | `call_logs`-tietoihin perustuva kehotevälimuistin kuntokooste — kirjoitus-/lukusuhde, kirjoituskoon p50/p90/p99-jakauma, suurten kirjoitusten keskittyminen, mallikohtainen erittely sekä `healthy`/`degraded`/`thrash`/`no-data`-arvio; kyselyparametrit `range` (`1h`\|`24h`\|`7d`\|`30d`, oletus `24h`) ja valinnainen `model` (#8827) |
+
+### API-avainten käyttöoikeudet
+
+`PATCH /api/keys/{id}` päivittää olemassa olevan avaimen käyttöoikeudet. Kuten jokainen `/api/keys*`-reitti, se edellyttää hallinnan valtuutusta (katso [Hallinnan todennus](../guides/MANAGEMENT-AUTH.md)), ei päättelyavainta. Lähetä vain kentät, joita haluat muuttaa; pyyntö, jossa ei ole yhtäkään niistä, hylätään virheellä `No valid fields to update`. Hyväksytyt kentät määrittelee `updateKeyPermissionsSchema` tiedostossa `src/shared/validation/schemas/keys.ts`.
+
+| Kenttä                                      | Tyyppi                                                                                      | Huomautukset                                                                                                                                           |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                                      | merkkijono, 1–200 merkkiä                                                                   |                                                                                                                                                        |
+| `isActive`                                  | totuusarvo                                                                                  |                                                                                                                                                        |
+| `isBanned`                                  | totuusarvo                                                                                  |                                                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 -päivämäärä ja -aika tai `null`                                                    | `null` poistaa vanhentumisajan                                                                                                                         |
+| `modelAccessMode`                           | `all` \| `restricted`                                                                       | `allowedModels`-taulukon on oltava tyhjä, kun tilana on `all`                                                                                          |
+| `allowedModels`, `blockedModels`            | merkkijonotaulukko, enintään 1000 alkiota                                                   |                                                                                                                                                        |
+| `allowedCombos`                             | merkkijonotaulukko, enintään 500 alkiota                                                    | Määrittää, mitä yhdistelmiä avaimella voi kutsua; suoria malleja hallitaan asetuksilla `modelAccessMode` / `allowedModels`                             |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                                       | `allowedConnections` ei saa olla tyhjä, kun tilana on `restricted`, ja sen on oltava tyhjä, kun tilana on `all`                                        |
+| `allowedConnections`                        | UUID-taulukko, enintään 100 alkiota                                                         |                                                                                                                                                        |
+| `allowAutoCombos`                           | totuusarvo                                                                                  | `false` hylkää tällä avaimella tehdyt pyynnöt `auto/*`-malleille; avaimet, joille arvoa ei ole koskaan asetettu, sallitaan                             |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                                               | Määrittää, mitä `GET /v1/models` luettelee tälle avaimelle (vain yhdistelmät, vain mallit tai molemmat); tämä ei muuta sitä, mitä avaimella voi kutsua |
+| `noLog`, `autoResolve`                      | totuusarvo                                                                                  |                                                                                                                                                        |
+| `throttleDelayMs`                           | kokonaisluku, 0–300000                                                                      |                                                                                                                                                        |
+| `maxSessions`                               | kokonaisluku, 0–10000                                                                       |                                                                                                                                                        |
+| `rateLimits`                                | taulukko kohteita `{ limit, window }` (positiivisia kokonaislukuja, enintään 50) tai `null` | `null` poistaa rajoitukset                                                                                                                             |
+| `accessSchedule`                            | aikatauluobjekti tai `null`                                                                 | `null` poistaa aikataulun                                                                                                                              |
+| `scopes`                                    | merkkijonotaulukko, enintään 32 alkiota                                                     |                                                                                                                                                        |
+| `allowedEndpoints`                          | merkkijonotaulukko, enintään 20 alkiota                                                     |                                                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                                          |                                                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                                        | Katso [Avainkohtainen välimuistin ohitus](#per-key-cache-bypass)                                                                                       |
+| `compressionEnabled`                        | totuusarvo                                                                                  |                                                                                                                                                        |
+| `codexServiceMode`                          | jokin Codex-palvelutiloista                                                                 |                                                                                                                                                        |
+| `disableNonPublicModels`                    | totuusarvo                                                                                  |                                                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                                                     |                                                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                                                     |                                                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 tai `null`                                                                      |                                                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                                                     |                                                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Asetukset
 
@@ -891,27 +1018,27 @@ tavallisilla päättely-API-avaimilla. Tunnistetietotyypit, käyttöoikeusalueet
 | `/api/settings/proxy`                 | GET/PUT       | Verkkovälityspalvelimen määritykset                                                                                                                                                                       |
 | `/api/settings/proxy/test`            | POST          | Testaa välityspalvelinyhteys                                                                                                                                                                              |
 | `/api/settings/ip-filter`             | GET/PUT       | IP-osoitteiden sallittujen/estettyjen luettelo                                                                                                                                                            |
-| `/api/settings/thinking-budget`       | GET/PUT       | Ajattelu-/päättely**pyynnön** uudelleenkirjoitustila (läpivienti / automaattinen poisto / mukautettu / adaptiivinen). Riippumaton pakkauksesta. Katso [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/thinking-budget`       | GET/PUT       | Ajattelu-/päättelypyynnön **uudelleenkirjoitustila** (läpivienti / automaattinen poisto / mukautettu / adaptiivinen). Riippumaton pakkauksesta. Katso [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
 | `/api/settings/system-prompt`         | GET/PUT       | Yleinen järjestelmäkehote                                                                                                                                                                                 |
 | `/api/settings/compression`           | GET/PUT       | Yleiset pakkausmääritykset                                                                                                                                                                                |
 | `/api/settings/purge-request-history` | POST          | Tyhjennä pyyntölokin rivit ja paikalliset kutsulokiartifaktit                                                                                                                                             |
 
 ### Konteksti ja pakkaus
 
-| Päätepiste                             | Menetelmä      | Kuvaus                                                                                   |
-| -------------------------------------- | -------------- | ---------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | Esikatsele off/lite/standard/aggressive/ultra/RTK/stacked-pakkausta                      |
-| `/api/compression/language-packs`      | GET            | Luettele saatavilla olevat Caveman-kielipaketit                                          |
-| `/api/compression/rules`               | GET            | Luettele Caveman-sääntöjen metatiedot                                                    |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman-kohtaisten asetusten alias                                                       |
-| `/api/context/rtk/config`              | GET/PUT        | RTK-kohtaiset asetukset, mukaan lukien mukautetut suodattimet ja raakatuotoksen säilytys |
-| `/api/context/rtk/filters`             | GET            | RTK-suodatinluettelo ja mukautettujen suodattimien diagnostiikka                         |
-| `/api/context/rtk/test`                | POST           | Suorita RTK-esikatselu/testi tekstihyötykuormalla                                        |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Lue säilytetty peitetty raakatuotos osoittimen tunnuksen perusteella                     |
-| `/api/context/combos`                  | GET/POST       | Pakkausyhdistelmien luettelo / luonti                                                    |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Pakkausyhdistelmän tiedot / päivitys / poisto                                            |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Määritä pakkausyhdistelmiä reititysyhdistelmille                                         |
-| `/api/context/analytics`               | GET            | Pakkausanalytiikan alias                                                                 |
+| Päätepiste                             | Menetelmä      | Kuvaus                                                                                    |
+| -------------------------------------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | Esikatsele off/lite/standard/aggressive/ultra/RTK/stacked-pakkausta                       |
+| `/api/compression/language-packs`      | GET            | Luettele saatavilla olevat Caveman-kielipaketit                                           |
+| `/api/compression/rules`               | GET            | Luettele Caveman-sääntöjen metatiedot                                                     |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman-kohtaisten asetusten alias                                                        |
+| `/api/context/rtk/config`              | GET/PUT        | RTK-kohtaiset asetukset, mukaan lukien mukautetut suodattimet ja raakavastauksen säilytys |
+| `/api/context/rtk/filters`             | GET            | RTK-suodatinluettelo ja mukautettujen suodattimien diagnostiikka                          |
+| `/api/context/rtk/test`                | POST           | Suorita RTK-esikatselu/-testi tekstisisällölle                                            |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Lue säilytetty peitetty raakavastaus osoittimen tunnuksella                               |
+| `/api/context/combos`                  | GET/POST       | Pakkausyhdistelmien luettelo / luonti                                                     |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Pakkausyhdistelmän tiedot / päivitys / poisto                                             |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Määritä pakkausyhdistelmiä reititysyhdistelmille                                          |
+| `/api/context/analytics`               | GET            | Pakkausanalytiikan alias                                                                  |
 
 ### Valvonta
 
@@ -921,11 +1048,11 @@ tavallisilla päättely-API-avaimilla. Tunnistetietotyypit, käyttöoikeusalueet
 | `/api/rate-limits`                   | GET        | Tilikohtaiset nopeusrajoitukset                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/api/monitoring/health`             | GET        | Kuntotarkistus ja palveluntarjoajien yhteenveto (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Hallintanäkymä sisältää `credentialHealth`-tiedot: tarkistusvälimuistin skalaariarvot, `failedConnections`, kun `failed>0`, sekä `staleDbNonOkCount` (SQLiten pysyvä `test_status`, ei mittari). Katso [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
 | `/api/cache/stats`                   | GET/DELETE | Välimuistin tilastot / tyhjennys                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/stats`         | GET        | Muistissa olevat `attempts`, onnistumiset/`bridged`, epäonnistumiset, välimuistiosumat, `totalLatencyMs`, `latencySamples`, näytemäärään perustuva `averageLatencyMs` ja viimeisimmän käytön aika (nollautuvat uudelleenkäynnistyksessä; hallintatodennus)                                                                                                                                                                         |
+| `/api/modality-bridge/stats`         | GET        | Muistissa olevat `attempts`-yritykset, onnistumiset/`bridged`, epäonnistumiset, välimuistiosumat, `totalLatencyMs`, `latencySamples`, otosmäärään perustuva `averageLatencyMs` sekä viimeisimmän käytön aika (nollautuu uudelleenkäynnistyksen yhteydessä; hallintatodennus)                                                                                                                                                       |
 | `/api/modality-bridge/video/runtime` | GET        | Tiukka luotetun takaisinkytkentäosoitteen tarkistus ennen hallintatodennusta/-tarkistusta; puhdistetut FFmpeg-/ffprobe-saatavuus- ja versiotiedot (ei tallennusta)                                                                                                                                                                                                                                                                 |
 | `/api/modality-bridge/video/extract` | POST       | Sisäinen todennettu luotetun takaisinkytkentäosoitteen tavuvälittäjä; 50 MiB:n syöte, rajattu jono / 32 MiB:n tuloste, `503` kapasiteetin ylittyessä, `499` yhteyden katketessa, `504` määräajan ylittyessä; ei julkinen latausrajapinta                                                                                                                                                                                           |
 
-### Varmuuskopiointi sekä vienti/tuonti
+### Varmuuskopiointi ja vienti/tuonti
 
 | Päätepiste                  | Menetelmä | Kuvaus                                           |
 | --------------------------- | --------- | ------------------------------------------------ |
@@ -942,51 +1069,51 @@ tavallisilla päättely-API-avaimilla. Tunnistetietotyypit, käyttöoikeusalueet
 | ---------------------- | --------- | -------------------------- |
 | `/api/sync/cloud`      | Useita    | Pilvisynkronointitoiminnot |
 | `/api/sync/initialize` | POST      | Alusta synkronointi        |
-| `/api/cloud/*`         | Useita    | Pilvipalvelun hallinta     |
+| `/api/cloud/*`         | Useita    | Pilvihallinta              |
 
 ### Tunnelit
 
-| Päätepiste                 | Menetelmä | Kuvaus                                                                                  |
-| -------------------------- | --------- | --------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET       | Lue Cloudflare Quick Tunnelin asennus- ja suorituksenaikainen tila koontinäyttöä varten |
-| `/api/tunnels/cloudflared` | POST      | Ota Cloudflare Quick Tunnel käyttöön tai poista se käytöstä (`action=enable/disable`)   |
-| `/api/tunnels/ngrok`       | GET       | Lue ngrok Tunnelin suorituksenaikainen tila koontinäyttöä varten                        |
-| `/api/tunnels/ngrok`       | POST      | Ota ngrok Tunnel käyttöön tai poista se käytöstä (`action=enable/disable`)              |
+| Päätepiste                 | Menetelmä | Kuvaus                                                                                     |
+| -------------------------- | --------- | ------------------------------------------------------------------------------------------ |
+| `/api/tunnels/cloudflared` | GET       | Lue Cloudflare Quick Tunnelin asennus- ja suorituksenaikainen tila hallintapaneelia varten |
+| `/api/tunnels/cloudflared` | POST      | Ota Cloudflare Quick Tunnel käyttöön tai poista se käytöstä (`action=enable/disable`)      |
+| `/api/tunnels/ngrok`       | GET       | Lue ngrok Tunnelin suorituksenaikainen tila hallintapaneelia varten                        |
+| `/api/tunnels/ngrok`       | POST      | Ota ngrok Tunnel käyttöön tai poista se käytöstä (`action=enable/disable`)                 |
 
 ### CLI-työkalut
 
-| Päätepiste                         | Menetelmä | Kuvaus                        |
-| ---------------------------------- | --------- | ----------------------------- |
-| `/api/cli-tools/claude-settings`   | GET       | Claude CLI:n tila             |
-| `/api/cli-tools/codex-settings`    | GET       | Codex CLI:n tila              |
-| `/api/cli-tools/droid-settings`    | GET       | Droid CLI:n tila              |
-| `/api/cli-tools/openclaw-settings` | GET       | OpenClaw CLI:n tila           |
-| `/api/cli-tools/runtime/[toolId]`  | GET       | Yleinen CLI-suoritusympäristö |
+| Päätepiste                         | Menetelmä | Kuvaus              |
+| ---------------------------------- | --------- | ------------------- |
+| `/api/cli-tools/claude-settings`   | GET       | Claude CLI:n tila   |
+| `/api/cli-tools/codex-settings`    | GET       | Codex CLI:n tila    |
+| `/api/cli-tools/droid-settings`    | GET       | Droid CLI:n tila    |
+| `/api/cli-tools/openclaw-settings` | GET       | OpenClaw CLI:n tila |
+| `/api/cli-tools/runtime/[toolId]`  | GET       | Yleinen CLI-ajoaika |
 
-CLI-vastaukset sisältävät seuraavat kentät: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
+CLI-vastaukset sisältävät: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### ACP-agentit
 
-| Päätepiste        | Menetelmä | Kuvaus                                                                        |
-| ----------------- | --------- | ----------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET       | Luettele kaikki tunnistetut agentit (sisäänrakennetut + mukautetut) tiloineen |
-| `/api/acp/agents` | POST      | Lisää mukautettu agentti tai päivitä tunnistuksen välimuisti                  |
-| `/api/acp/agents` | DELETE    | Poista mukautettu agentti `id`-kyselyparametrin perusteella                   |
+| Päätepiste        | Menetelmä | Kuvaus                                                                     |
+| ----------------- | --------- | -------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET       | Luettele kaikki havaitut agentit (sisäänrakennetut + mukautetut) tiloineen |
+| `/api/acp/agents` | POST      | Lisää mukautettu agentti tai päivitä tunnistusvälimuisti                   |
+| `/api/acp/agents` | DELETE    | Poista mukautettu agentti `id`-kyselyparametrin perusteella                |
 
 GET-vastaus sisältää `agents[]`-taulukon (id, name, binary, version, installed, protocol, isCustom) ja `summary`-yhteenvedon (total, installed, notFound, builtIn, custom).
 
 ### Vikasietoisuus ja nopeusrajoitukset
 
-| Päätepiste                        | Menetelmä | Kuvaus                                                                                                               |
-| --------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Hae tai päivitä pyyntöjonoa, yhteyden jäähyaikaa, palveluntarjoajan katkaisijaa ja odotusasetuksia                   |
-| `/api/resilience/reset`           | POST      | Nollaa palveluntarjoajien virtapiirikatkaisimet                                                                      |
-| `/api/resilience/model-cooldowns` | GET       | Luettele aktiiviset (palveluntarjoaja, yhteys, malli) -kohtaiset lukitukset jäljellä olevan ajan mukaan lajiteltuina |
-| `/api/resilience/model-cooldowns` | DELETE    | Poista mallin lukitus — runko `{provider, model}` tai `{all: true}`, jos haluat poistaa kaiken                       |
-| `/api/rate-limits`                | GET       | Tilikohtainen nopeusrajoitusten tila                                                                                 |
-| `/api/rate-limit`                 | GET       | Yleinen nopeusrajoitusten määritys                                                                                   |
+| Päätepiste                        | Menetelmä | Kuvaus                                                                                                          |
+| --------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Hae/päivitä pyyntöjono, yhteyden jäähdytysaika, palveluntarjoajan katkaisija ja odotusasetukset                 |
+| `/api/resilience/reset`           | POST      | Nollaa palveluntarjoajien virtapiirikatkaisijat                                                                 |
+| `/api/resilience/model-cooldowns` | GET       | Luettele aktiiviset palveluntarjoaja-, yhteys- ja mallikohtaiset estot jäljellä olevan ajan mukaan lajiteltuina |
+| `/api/resilience/model-cooldowns` | DELETE    | Poista mallin esto — runko `{provider, model}` tai `{all: true}` kaiken poistamiseksi                           |
+| `/api/rate-limits`                | GET       | Tilikohtainen nopeusrajoituksen tila                                                                            |
+| `/api/rate-limit`                 | GET       | Yleinen nopeusrajoituksen määritys                                                                              |
 
-> Kaikki neljä `/api/resilience/*`-reittiä edellyttävät **hallinnan todennusta** (`requireManagementAuth`). Katso kohdasta [Vikasietoisuus (laajennettu)](#resilience-extended) kattava erittely palveluntarjoajan katkaisijan, yhteyden jäähyajan ja mallin lukituksen eroista.
+> Kaikki neljä `/api/resilience/*`-reittiä edellyttävät **hallinnan todennusta** (`requireManagementAuth`). Katso kohdasta [Vikasietoisuus (laajennettu)](#resilience-extended) täydellinen erittely palveluntarjoajan katkaisijan, yhteyden jäähdytysajan ja mallin eston eroista.
 
 ### Arvioinnit
 
@@ -1013,19 +1140,21 @@ GET-vastaus sisältää `agents[]`-taulukon (id, name, binary, version, installe
 | `/v1beta/models`           | GET       | Luettele mallit Gemini-muodossa      |
 | `/v1beta/models/{...path}` | POST      | Geminin `generateContent`-päätepiste |
 
-Nämä päätepisteet jäljittelevät Geminin API-muotoa asiakasohjelmille, jotka edellyttävät natiivia Gemini SDK -yhteensopivuutta.
+Nämä päätepisteet jäljittelevät Geminin API-muotoa asiakkaille, jotka edellyttävät alkuperäistä Gemini SDK -yhteensopivuutta.
 
-### Sisäiset / järjestelmän API:t
+### Sisäiset API:t / järjestelmä-API:t
 
-| Päätepiste               | Menetelmä | Kuvaus                                                                        |
-| ------------------------ | --------- | ----------------------------------------------------------------------------- |
-| `/api/init`              | GET       | Sovelluksen alustuksen tarkistus (käytetään ensimmäisellä käynnistyskerralla) |
-| `/api/tags`              | GET       | Ollama-yhteensopivat mallitunnisteet (Ollama-asiakasohjelmille)               |
-| `/api/restart`           | POST      | Käynnistä palvelin hallitusti uudelleen                                       |
-| `/api/shutdown`          | POST      | Sammuta palvelin hallitusti                                                   |
-| `/api/system/env/repair` | POST      | Korjaa OAuth-palveluntarjoajan ympäristömuuttujat                             |
+| Päätepiste               | Menetelmä | Kuvaus                                                             |
+| ------------------------ | --------- | ------------------------------------------------------------------ |
+| `/api/init`              | GET       | Sovelluksen alustustarkistus (käytetään ensimmäisellä ajokerralla) |
+| `/api/tags`              | GET       | Ollama-yhteensopivat mallitunnisteet (Ollama-asiakkaille)          |
+| `/api/restart`           | POST      | Käynnistä hallittu palvelimen uudelleenkäynnistys                  |
+| `/api/shutdown`          | POST      | Käynnistä hallittu palvelimen sammutus                             |
+| `/api/system/env/repair` | POST      | Korjaa OAuth-palveluntarjoajan ympäristömuuttujat                  |
+| `/api/system/version`    | GET       | Nykyinen/uusin versio, päivityksen tila ja julkaisukanava          |
+| `/api/system/version`    | POST      | Aloita käyttöönottotavan huomioiva päivitys uusimpaan versioon     |
 
-> **Huomautus:** Järjestelmä käyttää näitä päätepisteitä sisäisesti, tai niitä käytetään Ollama-asiakasohjelmien yhteensopivuuteen. Loppukäyttäjät eivät yleensä kutsu niitä.
+> **Huomautus:** Järjestelmä käyttää näitä päätepisteitä sisäisesti, tai niitä käytetään Ollama-asiakasyhteensopivuuteen. Loppukäyttäjät eivät yleensä kutsu niitä.
 
 ### OAuth-ympäristön korjaus _(v3.6.1+)_
 
@@ -1047,6 +1176,44 @@ Korjaa tietyn palveluntarjoajan puuttuvat tai vioittuneet OAuth-ympäristömuutt
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Versio ja julkaisukanava
+
+```bash
+GET /api/system/version
+```
+
+Vain takaisinkytkentäliittymästä käytettävissä oleva hallintareitti (järjestelmänvalvojan todennus). Palauttaa käytössä olevan version, uusimman
+julkaistun version ja automaattisen päivityksen tilan. `releaseChannel` ja `channels` ovat lisääviä
+kenttiä (haara 3.8.54); `channel` säilyttää merkityksensä — käyttöönottotapa, jota hallintapaneelin päivitystoiminto
+käyttää (`npm`, `source` tai `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — käytössä olevan koontiversion npm-kanava: `nightly` versioille `-nightly.*`,
+  `next` muille esijulkaisuille (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` vakaalle versiolle, jonka
+  pääversio on vanhempi kuin `channels.latest`, muussa tapauksessa `latest`. Samat säännöt kuin
+  tiedostossa `scripts/release/dist-tag.mjs`, joka valitsee npm:n dist-tagin julkaisuhetkellä.
+- `channels` — kunkin dist-tagin uusin julkaistu versio komennosta `npm view omniroute dist-tags`
+  (varalla rekisterin HTTP-kutsu), välimuistissa samalla 10 minuutin TTL-ajalla kuin `latest`.
+  `latest` on aina mukana (varalla käytetään `latest`-kenttää ja sen jälkeen arvoa `"unavailable"`);
+  `next`, `nightly` ja `lts` ovat mukana vain, kun kyseinen dist-tag on olemassa.
+  `Cache-Control: no-cache` -pyyntö päivittää molemmat haut.
+
+Kanavamalli (`latest` = v3 version 4.0 GA-julkaisuun asti, `next` = rc, `nightly` = `develop`-koonnit,
+`lts` = v3-korjausversiot 4.0 GA-julkaisun jälkeen) kuvataan tiedostossa `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

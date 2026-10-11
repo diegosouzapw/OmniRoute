@@ -434,9 +434,10 @@ server/
 
 ---
 
-## 4. `open-sse/` — Χώρος εργασίας μηχανής streaming
+## 4. `open-sse/` — Χώρος εργασίας μηχανής ροής
 
-Ξεχωριστός χώρος εργασίας npm που δημοσιεύεται ως `@omniroute/open-sse`. Διαχειρίζεται την επεξεργασία αιτημάτων, τους εκτελεστές, τους μεταφραστές, τις υπηρεσίες, τον μετασχηματιστή και τον διακομιστή MCP.
+Ξεχωριστός χώρος εργασίας npm που δημοσιεύεται ως `@omniroute/open-sse`. Περιλαμβάνει την επεξεργασία
+αιτημάτων, τους εκτελεστές, τους μεταφραστές, τις υπηρεσίες, τον μετασχηματιστή και τον διακομιστή MCP.
 
 ```
 open-sse/
@@ -445,47 +446,47 @@ open-sse/
 ├── tsconfig.json
 ├── types.d.ts
 ├── config/                 Μητρώα παρόχων, προφίλ κεφαλίδων, ταυτότητα, …
-├── handlers/               Χειριστές αιτημάτων (συνομιλία, embeddings, ήχος, εικόνα, …)
+├── handlers/               Χειριστές αιτημάτων (συνομιλία, ενσωματώσεις, ήχος, εικόνα, …)
 ├── executors/              108 εκτελεστές HTTP ειδικοί για παρόχους
 ├── translator/             Μετατροπή μορφών (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Μετασχηματιστής ροής Responses API ↔ Chat Completions
-├── services/               80+ αρθρώματα υπηρεσιών (συνδυασμοί, εναλλακτικές, ποσοστώσεις, ταυτότητα, …)
-├── utils/                  Βοηθητικά streaming, πελάτης TLS, AWS SigV4, λήψη μέσω διακομιστή μεσολάβησης, …
-└── mcp-server/             Διακομιστής MCP (3 μέσα μεταφοράς, 33 πεδία, 110 εργαλεία)
+├── services/               80+ αρθρώματα υπηρεσιών (συνδυασμοί, εφεδρική δρομολόγηση, ποσοστώσεις, ταυτότητα, …)
+├── utils/                  Βοηθητικά ροής, πελάτης TLS, AWS SigV4, ανάκτηση μέσω διακομιστή μεσολάβησης, …
+└── mcp-server/             Διακομιστής MCP (3 τρόποι μεταφοράς, 33 πεδία, 110 εργαλεία)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
 | Χειριστής               | Σκοπός                                                                                                |
 | ----------------------- | ----------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | Κύρια ροή επεξεργασίας συνομιλίας (cache, όριο ρυθμού, δρομολόγηση συνδυασμών, αποστολή σε εκτελεστή) |
-| `responsesHandler.ts`   | Σημείο εισόδου του OpenAI Responses API                                                               |
-| `embeddings.ts`         | Embeddings                                                                                            |
+| `chatCore.ts`           | Κύρια διοχέτευση συνομιλίας (κρυφή μνήμη, όριο ρυθμού, δρομολόγηση συνδυασμών, αποστολή σε εκτελεστή) |
+| `responsesHandler.ts`   | Σημείο εισόδου του Responses API του OpenAI                                                           |
+| `embeddings.ts`         | Ενσωματώσεις                                                                                          |
 | `imageGeneration.ts`    | Δημιουργία εικόνων                                                                                    |
 | `audioSpeech.ts`        | Μετατροπή κειμένου σε ομιλία                                                                          |
 | `audioTranscription.ts` | Μετατροπή ομιλίας σε κείμενο                                                                          |
 | `videoGeneration.ts`    | Δημιουργία βίντεο                                                                                     |
 | `musicGeneration.ts`    | Δημιουργία μουσικής                                                                                   |
 | `rerank.ts`             | Ανακατάταξη                                                                                           |
-| `moderations.ts`        | Έλεγχος περιεχομένου                                                                                  |
+| `moderations.ts`        | Εποπτεία περιεχομένου                                                                                 |
 | `search.ts`             | Αναζήτηση στον ιστό                                                                                   |
 | `sseParser.ts`          | Αναλυτής συμβάντων SSE                                                                                |
-| `usageExtractor.ts`     | Εξαγωγή πλήθους token από upstream ροές                                                               |
+| `usageExtractor.ts`     | Εξαγωγή του πλήθους διακριτικών από ανάντη ροές                                                       |
 | `responseSanitizer.ts`  | Αφαίρεση θορύβου που αφορά συγκεκριμένους παρόχους                                                    |
-| `responseTranslator.ts` | Συνδετικό επίπεδο μεταξύ της απόκρισης παρόχου και του επιπέδου μετάφρασης                            |
+| `responseTranslator.ts` | Συνδετικός κώδικας μεταξύ της απόκρισης παρόχου και του επιπέδου μετάφρασης                           |
 
 ### 4.2 `open-sse/executors/`
 
-108 εκτελεστές παρόχων, καθένας από τους οποίους επεκτείνει το `BaseExecutor` (`base.ts`):
+148 εκτελεστές παρόχων, καθένας από τους οποίους επεκτείνει το `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
-`pollinations`, `qoder`, `vertex`, `devin-desktop`, καθώς και `claudeIdentity.ts`
-(κοινόχρηστο βοηθητικό ταυτότητας) και `index.ts` (μητρώο).
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, καθώς και το `claudeIdentity.ts`
+(κοινόχρηστο βοηθητικό ταυτότητας) και το `index.ts` (μητρώο).
 
-> Σημείωση: οι πάροχοι που δεν αναφέρονται εδώ εξυπηρετούνται από το `default.ts` μέσω του γενικού
-> εκτελεστή που είναι συμβατός με OpenAI. Ο πλήρης κατάλογος παρόχων (355 πάροχοι) βρίσκεται στο
+> Σημείωση: οι πάροχοι που δεν παρατίθενται εδώ εξυπηρετούνται από το `default.ts` με χρήση του γενικού
+> εκτελεστή που είναι συμβατός με το OpenAI. Ο πλήρης κατάλογος παρόχων (355 πάροχοι) βρίσκεται στο
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
@@ -509,42 +510,42 @@ open-sse/
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — Μετατροπέας Responses API ↔ Chat
-  Completions βασισμένος σε `TransformStream` (χρησιμοποιείται από την καθολική διαδρομή `responses/`).
+- `responsesTransformer.ts` — μετατροπέας Responses API ↔ Chat
+  Completions που βασίζεται στο `TransformStream` (χρησιμοποιείται από την καθολική διαδρομή `responses/`).
 
 ### 4.5 `open-sse/services/`
 
 Κυριότερα σημεία (πλήρης λίστα στο `open-sse/services/`):
 
-| Τομέας               | Αρχεία                                                                                                                                                                                                                                                   |
+| Αντικείμενο          | Αρχεία                                                                                                                                                                                                                                                   |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Δρομολόγηση Combo    | `combo.ts` (19 στρατηγικές), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
 | Μηχανή Auto Combo    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
-| Ανθεκτικότητα        | `accountFallback.ts` (περίοδος αναμονής + κλείδωμα), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                               |
+| Ανθεκτικότητα        | `accountFallback.ts` (περίοδος αναμονής + αποκλεισμός), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                            |
 | Ποσοστώσεις          | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
 | Προσωρινή αποθήκευση | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
 | Ευφυΐα δρομολόγησης  | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
 | Διαχείριση μοντέλων  | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
 | Συμπίεση             | `compression/` — πλήρης διασύνδεση της μηχανής συμπίεσης                                                                                                                                                                                                 |
 | Token + συνεδρία     | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| Βαθμίδα / μανιφέστο  | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| Βαθμίδα / manifest   | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
 | IP / δίκτυο          | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| Δέσμες               | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Μαζικές εργασίες     | `batchProcessor.ts`                                                                                                                                                                                                                                      |
 | Χρήση                | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 μοναδικά εργαλεία** διασυνδεδεμένα στο `server.ts` (45 κανονικά στο `schemas/tools.ts` +
-  αρθρώματα μνήμης, δεξιοτήτων, δεξιοτήτων GitHub, pool, παιχνιδοποίησης, προσθέτων, Notion, Obsidian,
-  τοπικού corpus και συμπίεσης — η ένωση καταμετράται από το `countUniqueMcpTools`).
-- **3 τρόποι μεταφοράς**: stdio, HTTP Streamable, SSE.
-- **33 πεδία πρόσβασης** επιβάλλονται κατά την εκτέλεση — η βασική λίστα βρίσκεται στο `src/shared/constants/mcpScopes.ts`, ενώ το πλήρες σύνολο είναι η ένωση των πεδίων πρόσβασης που δηλώνονται από κάθε άρθρωμα εργαλείων.
+- **110 μοναδικά εργαλεία** διασυνδεδεμένα στο `server.ts` (45 βασικά στο `schemas/tools.ts` +
+  αρθρώματα μνήμης, δεξιοτήτων, δεξιοτήτων GitHub, δεξαμενής, παιχνιδοποίησης, προσθέτων, Notion, Obsidian,
+  τοπικού σώματος δεδομένων και συμπίεσης — η ένωση καταμετράται από το `countUniqueMcpTools`).
+- **3 μέσα μεταφοράς**: stdio, HTTP Streamable, SSE.
+- **33 πεδία δικαιωμάτων** επιβάλλονται κατά την εκτέλεση — η βασική λίστα βρίσκεται στο `src/shared/constants/mcpScopes.ts`, ενώ το πλήρες σύνολο είναι η ένωση των πεδίων δικαιωμάτων που δηλώνονται από κάθε άρθρωμα εργαλείων.
 - Πίνακας ελέγχου: `mcp_tool_audit` (συμπληρώνεται από το `audit.ts`).
 - Αρχεία: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
   καθώς και δοκιμές στον κατάλογο `__tests__/`.
-- Δείτε το [MCP-SERVER.md](../frameworks/MCP-SERVER.md) για τον πλήρη κατάλογο εργαλείων.
+- Ανατρέξτε στο [MCP-SERVER.md](../frameworks/MCP-SERVER.md) για τον πλήρη κατάλογο εργαλείων.
 
 ### 4.7 `open-sse/config/`
 
@@ -562,7 +563,7 @@ cloud (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 
 ### 4.8 `open-sse/utils/`
 
-Πρωτογενείς λειτουργίες ροής και βοηθητικά εργαλεία παρόχων: `stream.ts`, `streamHandler.ts`,
+Πρωτογενή στοιχεία ροής και βοηθητικά εργαλεία παρόχων: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

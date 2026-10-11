@@ -99,28 +99,28 @@ Fún combo kọ̀ọ̀kan:
 
 ---
 
-## API Àyẹ̀wò Ìlera
+## API Ìṣàyẹ̀wò Ìlera
 
-OmniRoute ń pèsè ojú-ọ̀nà ìlera HTTP **méjì**. Wọn kò lè rọ́pò ara wọn fún àwọn olùṣètò.
+OmniRoute ń pèsè ojú-ọ̀nà ìlera HTTP **méjì**. Wọn kò ṣe pàṣípààrọ̀ fún àwọn olùṣàkóso ètò.
 
-| Ọ̀nà                          | Ìdí                                                            | Ìwọ̀n                         | Lò ó fún                                                          |
-| ---------------------------- | -------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
-| `GET /healthz`               | Ìwàláàyè/ìmúrasílẹ̀ ìgbésí-ayé (`ok` / `starting` / `stopping`) | Fúyẹ́ (àmì ìpele nìkan)       | **Ìmúrasílẹ̀** Kubernetes; **ìwàláàyè** rírọ̀ bí o bá gbọ́dọ̀ lo HTTP |
-| `GET /api/monitoring/health` | Àkótán jíjinlẹ̀ ti ètò + olùpèsè (DB, heap, iye catalog, …)     | Wúwo (DB sync / iṣẹ́ àbójútó) | Àwọn dashboard, àyẹ̀wò jíjinlẹ̀ blackbox, healthcheck inú Docker    |
+| Ojú-ọ̀nà                      | Ète                                                             | Ìwọ̀n                              | Lò ó fún                                                            |
+| ---------------------------- | --------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `GET /healthz`               | Wíwàláàyè/ìmúrasílẹ̀ ìgbésí-ayé (`ok` / `starting` / `stopping`) | Fúyẹ́ (àmì ìpele nìkan)            | **Ìmúrasílẹ̀** Kubernetes; **wíwàláàyè** rírọ̀ bí o bá gbọ́dọ̀ lo HTTP  |
+| `GET /api/monitoring/health` | Àkótán jíjinlẹ̀ ti ètò + olùpèsè (DB, heap, iye katalọ́ọ̀gù, …)    | Wúwo (iṣẹ́ DB / àbójútó amúṣiṣẹpọ̀) | Àwọn dásibọ́ọ̀du, àwọn àyẹ̀wò jíjinlẹ̀ blackbox, àyẹ̀wò ìlera inú Docker |
 
-> **Àkíyèsí:** Àwọn matrix ìlera olùpèsè, àwọn ìṣòro autopilot, àwọn olùṣọ́ quota, ìlera token, àti àlàyé latency tó ju ti `/api/monitoring/health` lọ wà nípasẹ̀ **irinṣẹ́ MCP** `observability_snapshot` tàbí àwọn ojú-ewé **dashboard** — kò sí àwọn ọ̀nà REST pàtó fún wọn.
+> **Àkíyèsí:** Àwọn mátríìsì ìlera olùpèsè, àwọn ìṣòro autopilot, àwọn olùṣọ́ kótà, ìlera token, àti ẹ̀kúnrẹ́rẹ́ latency tó kọjá `/api/monitoring/health` wà nípasẹ̀ **irinṣẹ́ MCP** `observability_snapshot` tàbí àwọn ojú-ewé **dásibọ́ọ̀du** — kò sí àwọn ojú-ọ̀nà REST ọ̀tọ̀ fún wọn.
 
-Àwọn ọ̀nà méjèèjì ń ṣiṣẹ́ lórí **Node event loop kan náà** tí ó ń bójú tó àwọn ìbéèrè. Ọ̀nà tí CPU ń dí mọ́ (iṣẹ́ catalog ńlá `GET /v1/models`, compression àyíká-ọ̀rọ̀ gígùn / kíkà token) lè dá **gbogbo** olùdarí HTTP dúró, pẹ̀lú `/healthz`. Event-loop tí ó dí ≠ process tí ó kú. Ó dára jù láti ṣàtúnṣe ohun tó ń gba gbogbo agbára; ṣíṣe àtúnṣe probe kàn dín àwọn pípa tí kò tọ́ kù.
+Àwọn ojú-ọ̀nà méjèèjì ń ṣiṣẹ́ lórí **Node event loop kan náà** bí ìṣàkóso ìbéèrè. Ojú-ọ̀nà tí CPU dì mọ́ (iṣẹ́ katalọ́ọ̀gù `GET /v1/models` ńlá, ìfúnpọ̀ àyíká ọ̀rọ̀ gígùn / kíkà token) lè mú kí **gbogbo** olùṣàkóso HTTP pẹ́, pẹ̀lú `/healthz`. Event-loop tó dí ≠ process tó kú. Ó dára láti ṣàtúnṣe ohun tó ń jẹ ohun àmúlò púpọ̀; ṣíṣètò probe kàn ń dín pípa èké kù.
 
-### Probe olùṣètò tó fúyẹ́
+### Probe olùṣàkóso ètò tó fẹ́ẹ́rẹ́
 
 ```bash
 GET /healthz
 # tàbí HEAD /healthz
 ```
 
-- **200** + ara `ok` nígbà tí ìpele ìgbésí-ayé server bá ti múra
-- **503** + `starting` / `stopping` nígbà ìbẹ̀rẹ̀ tàbí ìdásílẹ̀
+- **200** + body `ok` nígbà tí ìpele ìgbésí-ayé server bá ti múra
+- **503** + `starting` / `stopping` nígbà ìbẹ̀rẹ̀ tàbí ìdádúró
 - Ìmúṣẹ: `src/app/healthz/route.ts` (kò sí ping DB)
 
 ### Ìlera Ètò (jíjinlẹ̀)
@@ -153,43 +153,43 @@ GET /api/monitoring/health
 }
 ```
 
-#### `credentialHealth`: probe-cache ní ìfiwéra pẹ̀lú SQLite `test_status`
+#### `credentialHealth`: probe-cache sí SQLite `test_status`
 
-`GET /api/monitoring/health` → `credentialHealth` ni **òṣùwọ̀n probe-cache inú memory**,
-kì í ṣe ìtújáde lẹ́sẹ̀kẹsẹ̀ ti `provider_connections.test_status`. Lẹ́yìn #12532,
-ọ̀nà ìbéèrè náà ń ka `getCachedCredentialHealthSummary()` nìkan; àwọn probe abẹ́lẹ̀
+`GET /api/monitoring/health` → `credentialHealth` ni **òṣùwọ̀n probe-cache inú ìrántí**,
+kì í ṣe ìtújáde lọ́wọ́lọ́wọ́ ti `provider_connections.test_status`. Lẹ́yìn #12532,
+ojú-ọ̀nà ìbéèrè ń ka `getCachedCredentialHealthSummary()` nìkan; àwọn probe abẹ́lẹ̀
 ń sọ cache náà dọ̀tun níta event loop.
 
-| Ìpele                     | Ibi                                                                   | Ohun tí ó túmọ̀ sí                                                                                                                                                                                                                       |
-| ------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Òṣùwọ̀n probe-cache        | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Àwọn àbájáde probe ìlera credential tó ṣẹ̀ṣẹ̀ kẹ́yìn tí a ṣì ń pa mọ́ sínú memory process. `source` jẹ́ `probe-cache` ní gbogbo ìgbà.                                                                                                        |
-| Àlàyé connection tó kùnà  | `credentialHealth.failedConnections`                                  | Ó wà **nígbà tí `failed > 0` nìkan**. Àtòjọ tó ní ààlà ti àwọn row cache pẹ̀lú `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` tí a ti sọ di mímọ́). A máa ṣètò `failedOmitted` nígbà tí àtòjọ náà bá dé ààlà rẹ̀. |
-| Ipo SQLite tó dúró ṣinṣin | `credentialHealth.staleDbNonOkCount`                                  | Iye àwọn row connection tó **ṣiṣẹ́** (`is_active=1`) tí `test_status` tí a fi pamọ́ jẹ́ non-ok tí a mọ̀ (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                                                  |
+| Ìpele                  | Ibi                                                                   | Ohun tó túmọ̀ sí                                                                                                                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Òṣùwọ̀n probe-cache     | `credentialHealth.total` / `healthy` / `failed` / `unknown` / `stale` | Àwọn àbájáde probe ìlera ẹ̀rí ìdánimọ̀ tó kẹ́yìn tí a ṣì ń pa mọ́ sínú ìrántí process. `source` jẹ́ `probe-cache` ní gbogbo ìgbà.                                                                                                |
+| Ẹ̀kúnrẹ́rẹ́ àsopọ̀ tó kùnà | `credentialHealth.failedConnections`                                  | Ó wà **nígbà tí `failed > 0` nìkan**. Àtòjọ tó ní ààlà ti àwọn ìlà cache pẹ̀lú `status=error` (`connectionId`, `status`, `lastError` / `lastErrorType` tí a ti fọ́ mọ́). A ṣètò `failedOmitted` nígbà tí àtòjọ náà bá dé ààlà. |
+| Ipò alámúlò SQLite     | `credentialHealth.staleDbNonOkCount`                                  | Iye àwọn ìlà àsopọ̀ **tó ń ṣiṣẹ́** (`is_active=1`) tí `test_status` tí a fi pamọ́ jẹ́ non-ok tí a mọ̀ (`error`, `expired`, `credits_exhausted`, `banned`, `deactivated`, `unavailable`).                                         |
 
-Àwọn ìpele méjèèjì lè yàtọ̀ sí ara wọn láìní àṣìṣe:
+Àwọn ìpele méjèèjì lè yàtọ̀ síra pẹ̀lú ète:
 
 - Òṣùwọ̀n `failed=0` nígbà tí `staleDbNonOkCount>0` — SQLite ṣì ní
-  `test_status` tó dúró ṣinṣin (fún àpẹẹrẹ `expired` tàbí `credits_exhausted`) tí snapshot
+  `test_status` alámúlò kan (fún àpẹẹrẹ `expired` tàbí `credits_exhausted`) tí àwòrán
   probe-cache tuntun kò kà sí `status=error`.
-- Òṣùwọ̀n `failed>0` nígbà tí SQLite dà bí ẹni pé ó ní ìlera — probe kan tó ṣẹ̀ṣẹ̀ wá kùnà, a sì
-  ti fi pamọ́ sínú cache; a kò tíì ṣe ìmúdójúìwọ̀n row DB náà, tàbí a ti parẹ́ rẹ̀ lẹ́yìn náà.
+- Òṣùwọ̀n `failed>0` nígbà tí SQLite dàbí ẹni pé ó ní ìlera — probe àìpẹ́ kan kùnà, a sì
+  fi pamọ́ sínú cache; a kò tíì ṣe ìmúdójúìwọ̀n ìlà DB náà, tàbí a ti pa á rẹ́ lẹ́yìn náà.
 
-Má ṣe fi ìkìlọ̀ ránṣẹ́ nítorí `provider_connections.test_status` nìkan nígbà tí o bá ń gba data láti
-endpoint yìí. Lo `failed` + `failedConnections` fún àwọn ìkùnà probe lẹ́sẹ̀kẹsẹ̀, kí o sì lo
-`staleDbNonOkCount` nígbà tí o bá nílò iye ipo tó dúró ṣinṣin tí a fi pamọ́.
+Má ṣe fi ìkìlọ̀ ránṣẹ́ lórí `provider_connections.test_status` nìkan nígbà tí o bá ń gba dátà láti
+endpoint yìí. Lo `failed` + `failedConnections` fún àwọn ìkùnà probe lọ́wọ́lọ́wọ́, kí o sì lo
+`staleDbNonOkCount` nígbà tí o bá nílò iye sticky-status tí a fi pamọ́.
 
 ### Àwọn àbá probe Kubernetes
 
-OmniRoute jẹ́ **process Node kan ṣoṣo** (event loop kan). Docker `HEALTHCHECK` àkọ́kọ́ ń tọ́ka sí `/healthz` tó fúyẹ́. `/api/monitoring/health` **wúwo jù** fún àwọn àkókò liveness kubelet.
+OmniRoute jẹ́ **Node process kan ṣoṣo** (event loop kan). Docker `HEALTHCHECK` àtẹ̀jáde ń dojú kọ `/healthz` tó fẹ́ẹ́rẹ́. `/api/monitoring/health` **wúwo jù** fún àwọn àkókò-àárín wíwàláàyè kubelet.
 
-| Ìdánwò            | Àfojúsùn tí a ṣedúrò fún                                                       | Àwọn àkíyèsí                                                                                                                                                                                                                                                                                                                                                                |
-| ----------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ìbẹ̀rẹ̀**         | HTTP `GET /healthz` pẹ̀lú `failureThreshold` gígùn (tàbí `startPeriod` ńlá)     | Ìbẹ̀rẹ̀ tútù + ìṣíkiri SQLite lè ju ìṣẹ́jú-àáyá díẹ̀ lọ                                                                                                                                                                                                                                                                                                                         |
-| **Ìmúrasílẹ̀**     | HTTP `GET /healthz`                                                            | Ìpele ìgbésí-ayé `ok` / `starting` / `stopping` (200 sí 503). Ó ṣì lè má dúró ṣinṣin bí CPU bá dí loop náà. **200 tó gba ọ̀pọ̀lọpọ̀ ìṣẹ́jú-àáyá kì í ṣe àmì ìlera** (#10303) — ó túmọ̀ sí pé event loop kò rí àkókò ṣiṣẹ́ kí handler oníbáìtì 3 náà tó ṣiṣẹ́                                                                                                                       |
-| **Ìwàláàyè**      | HTTP `GET /livez`, **tàbí TCP** lórí port iṣẹ́ àkọ́kọ́ (`PORT`, àiyipada `20128`) | `/livez` ń ṣàyẹ̀wò pé process wà láàyè nìkan (200 ní gbogbo ìgbà tí handler bá ṣiṣẹ́). Ó ṣì ń lo event loop kan náà — jíjẹ́ oníṣẹ́ púpọ̀ ≠ pípa, kò sì lè ṣàwárí event-loop starvation (#10303) ju bí TCP ṣe lè ṣe lọ. Yan **TCP** bí àwọn ìdánwò HTTP bá ń parí àkókò lábẹ́ ẹrù catalog/compression; má sì **pa** pod náà nítorí ìdádúró event-loop kékeré, láìka èyí tí o lò sí |
-| **Ìlera jíjinlẹ̀** | `GET /api/monitoring/health` láti ọ̀dọ̀ olùṣàyẹ̀wò òde                            | Kì í ṣe fún kubelet `livenessProbe` / `readinessProbe` tó máa ń ṣiṣẹ́ léraléra ní àárín àkókò kúkúrú                                                                                                                                                                                                                                                                         |
+| Ìwádìí            | Àfojúsùn tí a dábàá                                                            | Àwọn àkíyèsí                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ìbẹ̀rẹ̀**         | HTTP `GET /healthz` pẹ̀lú `failureThreshold` gígùn (tàbí `startPeriod` ńlá)     | Ìbẹ̀rẹ̀ láti inú òtútù + ìṣíkiri SQLite lè ju ìṣẹ́jú-àáyá díẹ̀ lọ                                                                                                                                                                                                                                                                                                                    |
+| **Ìmúrasílẹ̀**     | HTTP `GET /healthz`                                                            | Ìpele ìgbésí-ayé `ok` / `starting` / `stopping` (200 sí 503). Ó ṣì lè máa yípadà bí CPU bá dí loop náà. **200 tí ó gba ọ̀pọ̀ ìṣẹ́jú-àáyá kò túmọ̀ sí ìlera** (#10303) — ó túmọ̀ sí pé event loop kò rí àyè ṣiṣẹ́ kí handler oníbáìtì mẹ́ta tó ṣiṣẹ́                                                                                                                                      |
+| **Wíwàláàyè**     | HTTP `GET /livez`, **tàbí TCP** lórí port iṣẹ́ àkọ́kọ́ (`PORT`, àìyípadà `20128`) | `/livez` ń ṣàyẹ̀wò pé process wà láàyè nìkan (ó máa ń dá 200 padà nígbà gbogbo bí handler bá ṣiṣẹ́). Ó ṣì ń lo event loop kan náà — ọwọ́ dí ≠ òkú, kò sì lè ṣàwárí àìrí-àyè event-loop (#10303) ju bí TCP ṣe lè ṣe lọ. Yan **TCP** bí àkókò àwọn ìwádìí HTTP bá parí lábẹ́ ẹrù catalog/compression; **má ṣe** pa pod náà nítorí event-loop tó dúró fún ìgbà díẹ̀, èyíkéyìí tí o bá lò |
+| **Ìlera jíjinlẹ̀** | `GET /api/monitoring/health` láti ọ̀dọ̀ olùṣàyẹ̀wò òde                            | Kì í ṣe fún `livenessProbe` kubelet / `readinessProbe` aláàlà tóóró                                                                                                                                                                                                                                                                                                              |
 
-Àpẹẹrẹ ìṣètò (ṣe àtúnṣe àwọn ààlà gẹ́gẹ́ bí ìbẹ̀rẹ̀ tútù àti ẹrù compression rẹ):
+Àpẹẹrẹ ìrísí (ṣàtúnṣe àwọn ààlà sí ẹrù ìbẹ̀rẹ̀ láti inú òtútù àti compression rẹ):
 
 ```yaml
 ports:
@@ -215,27 +215,58 @@ livenessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 6
-  # Nígbà ìdádúró event-loop, HTTP /livez ṣì lè parí àkókò. TCP ni
+  # Nígbà tí event-loop bá dúró, àkókò HTTP /livez lè ṣì parí. TCP ni
   # àṣàyàn oníṣọ́ra:
   # tcpSocket:
   #   port: http
 ```
 
-**Má ṣe** darí **liveness** kubelet sí `/api/monitoring/health`. Ọ̀nà yẹn ń ṣe iṣẹ́ DB/monitoring gidi, yóò sì fúnni ní èsì rere tí kò tọ́ lábẹ́ ẹrù.
+**Má ṣe** darí **liveness** kubelet sí `/api/monitoring/health`. Path yẹn ń ṣe iṣẹ́ DB/monitoring gidi, yóò sì fi ìkìlọ̀ èké hàn lábẹ́ ẹrù.
 
-Àwọn ohun tó jọmọ́: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (àwọn ìdánwò nígbà tí event loop bá dí), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing tó ń gba agbára púpọ̀), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count tó ń gba agbára púpọ̀).
+Ohun tó jọmọ́: [#10052](https://github.com/diegosouzapw/OmniRoute/issues/10052) (àwọn ìwádìí nígbà tí event loop bá dí), [#9685](https://github.com/diegosouzapw/OmniRoute/issues/9685) / [#10055](https://github.com/diegosouzapw/OmniRoute/pull/10055) (catalog pricing tó ń gba agbára púpọ̀), [#10117](https://github.com/diegosouzapw/OmniRoute/issues/10117) (compression token-count tó ń gba agbára púpọ̀).
 
-### Iṣẹ́ àfikún lórí ọ̀nà ìbéèrè (ìrántí, ọgbọ́n, ìsọdọtun token)
+### watchdog systemd (event loop tó di)
 
-Yíyọ ìrántí jáde, fífi ọgbọ́n sínú, àti ìsọdọtun OAuth token ń lo **Node event loop àkọ́kọ́** kan náà pẹ̀lú `/healthz`. Wọ́n jẹ́ àwọn ẹ̀ya ara tí a lè tan tàbí pa lórí dashboard (`memoryEnabled`, `skillsEnabled`), kì í ṣe worker pool. Wo [Àyíká — iye owó event-loop](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
+Lórí host systemd, OmniRoute máa ń sọ fún olùṣàkóso iṣẹ́ nígbà tí ó bá ti múra, ó sì máa ń fi ping ránṣẹ́ sí i, kí server tí event loop rẹ̀ bá di lè jẹ́ pípa kí a sì tún un bẹ̀rẹ̀ dípò kí ó máa ṣiṣẹ́ láìdásí. Àwọn ping náà ń wá láti inú event loop ti server fúnra rẹ̀: nígbà tí ó bá dí, wọ́n máa dáwọ́ dúró, systemd yóò sì tún iṣẹ́ náà bẹ̀rẹ̀ nígbà tí `WatchdogSec` bá kọjá láìsí ping kankan.
+
+[`omniroute autostart enable`](../../bin/cli/tray/autostart.mjs) ti ń kọ user unit tó ní èyí tẹ́lẹ̀. Unit tí o kọ fúnra rẹ (pẹ̀lú `Type=simple` àìyípadà) kò ní watchdog, nítorí náà fi àwọn ìlà wọ̀nyí kún apá `[Service]` rẹ̀:
+
+```ini
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=180
+TimeoutStartSec=300
+```
+
+Unit tí a ṣẹ̀dá náà ń ṣètò `Restart=on-failure`, nítorí náà fi ìlà yẹn kún un pẹ̀lú — láìsí rẹ̀, watchdog yóò kàn pa iṣẹ́ tó di náà dípò títún un bẹ̀rẹ̀.
+
+- `Type=notify`: iṣẹ́ náà ni a kà sí pé ó ti “bẹ̀rẹ̀” nígbà tí server bá fi `READY=1` ránṣẹ́, kì í ṣe nígbà tí process bá ṣe fork. `TimeoutStartSec` ń fi ààlà sí ìbẹ̀rẹ̀ tó lọra.
+- `NotifyAccess=all`: process server, tó jẹ́ ọmọ supervisor `omniroute serve`, ló ń fi àwọn ping náà ránṣẹ́.
+- `WatchdogSec`: àwọn ping máa ń jáde lẹ́ẹ̀kan ní gbogbo ìṣẹ́jú 60, nítorí náà lo **120 tàbí jù bẹ́ẹ̀ lọ**. Àwọn iye tó kéré jù yóò tún server tó ní ìlera bẹ̀rẹ̀.
+- Ṣiṣe `omniroute serve` ní foreground. `--daemon` ń ya server náà kúrò nínú cgroup unit, ìbánisọ̀rọ̀ notify náà kò sì ní parí.
+
+Ṣàyẹ̀wò pé ó ń ṣiṣẹ́ lẹ́yìn àtún-bẹ̀rẹ̀:
+
+```bash
+systemctl --user show omniroute -p WatchdogUSec -p WatchdogTimestamp
+```
+
+`WatchdogUSec` ń fi ìdádúró tí a ṣètò hàn, `WatchdogTimestamp` sì ń tẹ̀ síwájú ní gbogbo ìṣẹ́jú. Àtún-bẹ̀rẹ̀ tí watchdog fa ni a máa ń kọ sílẹ̀ gẹ́gẹ́ bí `Result=watchdog`. Láti pa àwọn ping náà láìyí unit náà padà, ṣètò `OMNIROUTE_DISABLE_SD_NOTIFY=1`; láìsí `NOTIFY_SOCKET` (terminal, Docker, Electron, Windows), kò sí ohun tí a ó fi ránṣẹ́.
+
+Watchdog náà ń ṣàyẹ̀wò pé event loop ṣì ń ṣiṣẹ́ nìkan. Server tó lọra ṣùgbọ́n tó ṣì ń yí kò ní jẹ́ títún bẹ̀rẹ̀.
+
+### Iṣẹ́ àṣàyàn lórí request-path (memory, skills, ìsọdọ̀tun token)
+
+Ìyọkúrò ìrántí, fífi àwọn ọgbọ́n sínú ètò, àti ìtúnṣe àmì OAuth ń lo **ìyípo ìṣẹ̀lẹ̀ Node àkọ́kọ́** kan náà pẹ̀lú `/healthz`. Àwọn wọ̀nyí jẹ́ àwọn ẹ̀yà tí a lè tan tàbí pa lórí pánẹ́ẹ̀lì (`memoryEnabled`, `skillsEnabled`), kì í ṣe àkójọpọ̀ àwọn worker. Wo [Àyíká — iye iṣẹ́ ìyípo ìṣẹ̀lẹ̀](../reference/ENVIRONMENT.md#event-loop-cost-of-memory-skills-and-token-refresh-10349).
 
 ### Ìlera Olùpèsè
 
-> **Kò sí REST endpoint.** Dátà ìlera olùpèsè wà nípasẹ̀ irinṣẹ́ MCP `observability_snapshot` tàbí ojú-ewé dashboard `/dashboard/providers`.
+> **Kò sí endpoint REST.** Dátà ìlera olùpèsè wà nípasẹ̀ irinṣẹ́ MCP `observability_snapshot` tàbí ojú-ewé pánẹ́ẹ̀lì `/dashboard/providers`.
 
 ### Àlàyé Olùpèsè
 
-> **Kò sí REST endpoint.** Àlàyé olùpèsè kọ̀ọ̀kan wà nípasẹ̀ ojú-ewé dashboard `/dashboard/providers`.
+> **Kò sí endpoint REST.** Àlàyé olùpèsè kọ̀ọ̀kan wà nípasẹ̀ ojú-ewé pánẹ́ẹ̀lì `/dashboard/providers`.
 
 ---
 

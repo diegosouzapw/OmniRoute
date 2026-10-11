@@ -21,17 +21,27 @@ Migration `168_retire_chatgpt_web.sql` মিলে যাওয়া প্র
 
 tunnel শুধু tool turn-এর জন্য প্রয়োজন। tunnel এবং connector কনফিগার করা থাকলে `pro`-সহ তালিকাভুক্ত প্রতিটি route একই turn-bound স্থানীয় tool capability ব্যবহার করতে পারে।
 
-## Dashboard সেটআপ
+## ড্যাশবোর্ড সেটআপ
 
-1. **ChatGPT Web (Codex)** প্রোভাইডার খুলুন এবং একটি সংযোগ যোগ করুন।
-2. সম্পূর্ণ ChatGPT Cookie header, tunnel ID, runtime key এবং custom connector-এর নাম পেস্ট করুন। নতুন tool-capable সেটআপে অবশ্যই সদ্য তৈরি এমন একটি connector ব্যবহার করতে হবে, যার নাম ঠিক `OmniRoute Codex v2`, Authentication-এর মান None এবং Permissions-এর মান Allow all actions হিসেবে সেট করা আছে।
-3. সংযোগ পরীক্ষা চালান। OmniRoute একটি browser-backed Temporary Chat খোলে এবং অ্যাকাউন্টটির জন্য Sol ও Pro উপলভ্য কি না শনাক্ত করে।
-4. সংযোগটি সংরক্ষণ করুন। OmniRoute পেস্ট করা cookie-টি যাচাইকৃত Playwright storage state দিয়ে প্রতিস্থাপন করে এবং encrypted credential abstraction-এর মাধ্যমে runtime key-এর সঙ্গে সেটি সংরক্ষণ করে।
+1. **ChatGPT Web (Codex)** প্রোভাইডারটি খুলুন এবং একটি সংযোগ যোগ করুন।
+2. সম্পূর্ণ ChatGPT Cookie হেডার, tunnel ID, runtime key এবং custom connector-এর
+   নাম পেস্ট করুন। নতুন tool-সক্ষম সেটআপে অবশ্যই সদ্য তৈরি করা এমন একটি connector ব্যবহার করতে হবে, যার নাম হুবহু
+   `OmniRoute Codex v2`, যেখানে Authentication সেট করা থাকবে None এবং Permissions সেট করা থাকবে Allow all
+   actions।
+3. সংযোগ পরীক্ষা চালান। OmniRoute একটি ব্রাউজার-সমর্থিত Temporary Chat খুলে অ্যাকাউন্টটির জন্য
+   Sol এবং Pro উপলভ্য কি না তা শনাক্ত করে।
+4. সংযোগটি সংরক্ষণ করুন। OmniRoute পেস্ট করা cookie-টিকে যাচাইকৃত
+   Playwright storage state দিয়ে প্রতিস্থাপন করে এবং এনক্রিপ্ট করা
+   credential abstraction-এর মাধ্যমে runtime key-এর সঙ্গে এটি সংরক্ষণ করে।
 
-সফলভাবে সংরক্ষণের পর raw cookie রাখা হয় না। সেশনের মেয়াদ শেষ হলে সংযোগটি খুলুন, একটি নতুন সম্পূর্ণ Cookie header পেস্ট করুন এবং পুনরায় পরীক্ষা চালান। edit dialog-এর doctor status browser, storage state, sign-in, Temporary Chat, tunnel, connector এবং tool round-trip-এর অবস্থা আলাদাভাবে জানায়।
+সফলভাবে সংরক্ষণের পর raw cookie আর রাখা হয় না। সেশনের মেয়াদ শেষ হলে,
+সংযোগটি খুলুন, একটি নতুন সম্পূর্ণ Cookie হেডার পেস্ট করুন এবং পরীক্ষাটি আবার চালান। সম্পাদনা ডায়ালগের doctor status-এ
+browser, storage state, sign-in, Temporary Chat, tunnel,
+connector এবং tool round-trip-এর অবস্থা আলাদাভাবে দেখানো হয়। সেশন পরিবর্তনের সময় cookie আপডেট স্বয়ংক্রিয় করতে,
+সহযোগী টুলটির জন্য [Browser Session Sync Extension](../guides/SESSION-SYNC-EXTENSION.md) দেখুন।
 
-> কোনো আসল cookie, runtime key, storage state বা capability token কখনো commit করবেন না। পরীক্ষা ও
-> ডকুমেন্টেশনের মানগুলো অবশ্যই সবসময় placeholder হতে হবে।
+> কোনো বাস্তব cookie, runtime key, storage state বা capability token কখনো commit করবেন না। পরীক্ষা ও
+> ডকুমেন্টেশনের মানগুলো অবশ্যই placeholder হতে হবে।
 
 ## Model এবং combo
 
@@ -98,7 +108,7 @@ OmniRoute ডেটা ভলিউম থেকে পৃথক এবং ব�
 
 ## যাচাইকরণ
 
-অবসরপ্রাপ্ত প্রোভাইডারকে আহ্বান না করে প্রোভাইডার নিয়ন্ত্রণগুলো চালান:
+অবসরপ্রাপ্ত provider-কে আহ্বান না করে provider নিয়ন্ত্রণগুলো চালান:
 
 ```bash
 node --import tsx/esm --test \\
@@ -107,7 +117,7 @@ node --import tsx/esm --test \\
   tests/unit/chatgpt-web-environment-double-unescape.test.ts
 ```
 
-অবসরগ্রহণ-সংক্রান্ত রিগ্রেশন গার্ডগুলো এখানে রয়েছে:
+অবসর-সংক্রান্ত regression guard-গুলো এখানে রয়েছে:
 
 - `tests/unit/chatgpt-web-retirement.test.ts`
 - `tests/unit/chatgpt-web-runtime-block.test.ts`
