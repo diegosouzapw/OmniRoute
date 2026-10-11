@@ -78,3 +78,43 @@ test("omitted fallbackAttempts does not invent a count", () => {
   assembleStreamingResponseHeaders(baseArgs(), build);
   assert.equal("fallbackAttempts" in calls[0].meta, false);
 });
+
+test("the requesting key's anthropic header policy decides the strip flag", () => {
+  const cases: Array<[string, Record<string, unknown>, boolean]> = [
+    ["no key → forward", {}, false],
+    ["strip mode", { apiKeyInfo: { anthropicRateLimitHeaders: "strip" } }, true],
+    [
+      "auto, unpinned key → strip",
+      {
+        apiKeyInfo: {
+          anthropicRateLimitHeaders: "auto",
+          scopes: ["self:account-quota"],
+          allowedConnections: [],
+        },
+      },
+      true,
+    ],
+    [
+      "default unset mode → forward (legacy behavior preserved)",
+      { apiKeyInfo: { scopes: [], allowedConnections: [] } },
+      false,
+    ],
+    [
+      "auto, pinned key sharing the provider → forward",
+      {
+        provider: "claude",
+        apiKeyInfo: {
+          anthropicRateLimitHeaders: "auto",
+          scopes: ["self:account-quota"],
+          allowedConnections: ["conn-1"],
+        },
+      },
+      false,
+    ],
+  ];
+  for (const [name, overrides, expected] of cases) {
+    const { build, calls } = makeBuild();
+    assembleStreamingResponseHeaders(baseArgs(overrides), build);
+    assert.equal(calls[0].meta.stripAnthropicAccountHeaders, expected, name);
+  }
+});
