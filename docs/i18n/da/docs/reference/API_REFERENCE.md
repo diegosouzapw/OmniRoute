@@ -395,6 +395,12 @@ Et spejl i `dual`-tilstand kan også genkendes uden forespørgselsparameteren: D
 Klienter, der viser en modelvælger, bør anmode om `?prefix=alias` — det er det, som
 [OmniCopilot VS Code-udvidelsen](../guides/VSCODE-COPILOT.md) gør.
 
+### Individuelt skjulte chatmodeller
+
+En model, der er markeret som **Skjult** på sin udbyders side, fjernes fra kataloget og afvises med HTTP `404` / `model_not_found`, når den efterspørges eksplicit. Kontrollen bruger den udbyder og model, der er fundet efter opløsning af udbyderaliaser, præfikser for kompatible udbydernoder og forbindelsens standardværdier. En combo springer skjulte mål over og kan bruge et andet synligt mål; hvis der ikke er nogen eksekverbare mål tilbage, returneres samme fejlkode. Når modellen vises igen, gælder det fra næste anmodning. Tilsidesættelser af synlighed, der kun gælder billeder, skjuler ikke chatmodellen med samme ID.
+
+Denne indstilling for den enkelte model er adskilt fra [tilladelses- og blokeringslisterne for modelvisning](../routing/MODEL_EXPOSURE_LIST.md), som filtrerer katalogets udbud og kandidater til automatisk routing, men bevarer eksplicit afsendelse. API-nøglens modeltilladelser gælder fortsat uafhængigt. Katalogets standardtilstand for præfikser er fortsat `dual`.
+
 ### Modelvarianter uden tænkning
 
 For Claude-modeller med tænkeevne viser `/v1/models` også en **variant uden tænkning**, hvis id har præfikset `claude-3-omniroute-no-thinking/`:

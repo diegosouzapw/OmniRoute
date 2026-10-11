@@ -1,0 +1,1 @@
+- **tests:** Require explicit recovery ownership for new executor overrides, using an AST guard and a fixed legacy identity snapshot. Document the override contract; linked behavioral tests remain responsible for proving payload and retry correctness. Refs #14629.

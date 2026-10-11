@@ -382,6 +382,12 @@ yang menunjuk kepada ID utama.
 Klien yang memaparkan pemilih model hendaklah meminta `?prefix=alias` — inilah yang dilakukan oleh
 [sambungan OmniCopilot VS Code](../guides/VSCODE-COPILOT.md).
 
+### Model sembang yang disembunyikan secara individu
+
+Model yang ditandakan **Tersembunyi** pada halaman pembekalnya dikecualikan daripada katalog dan ditolak dengan HTTP `404` / `model_not_found` apabila diminta secara eksplisit. Semakan menggunakan pembekal dan model yang telah ditentukan, termasuk alias pembekal, awalan nod pembekal yang serasi dan nilai lalai sambungan. Combo melangkau sasaran tersembunyi dan boleh menggunakan sasaran lain yang kelihatan; jika tiada sasaran yang boleh dilaksanakan, kod ralat yang sama dikembalikan. Menunjukkan semula model berkuat kuasa pada permintaan seterusnya. Penggantian tetapan keterlihatan khusus untuk imej tidak menyembunyikan model sembang dengan ID yang sama.
+
+Tetapan setiap model ini berasingan daripada [senarai benarkan dan sekat untuk pendedahan model](../routing/MODEL_EXPOSURE_LIST.md), yang menapis paparan katalog dan calon penghalaan automatik sambil mengekalkan penghantaran eksplisit. Kebenaran model bagi kunci API terus digunakan secara bebas. Mod awalan lalai katalog kekal `dual`.
+
 ### Varian model tanpa pemikiran
 
 Bagi model Claude yang berkeupayaan berfikir, `/v1/models` turut memaparkan varian **tanpa pemikiran** yang ID-nya diawali dengan `claude-3-omniroute-no-thinking/`:

@@ -388,6 +388,12 @@ polje koje pokazuje na primarni id.
 Klijenti koji renderuju birač modela trebali bi zahtijevati `?prefix=alias` — to je ono što
 [OmniCopilot VS Code ekstenzija](../guides/VSCODE-COPILOT.md) radi.
 
+### Pojedinačno skriveni modeli za razgovor
+
+Model označen kao **Skriven** na stranici svog provajdera isključuje se iz kataloga, a izričit zahtjev za njim odbija se uz HTTP `404` / `model_not_found`. Provjera koristi razriješenog provajdera i model, uzimajući u obzir pseudonime provajdera, prefikse čvorova kompatibilnih provajdera i zadane vrijednosti veze. Combo preskače skrivene ciljeve i može koristiti drugi vidljivi cilj; ako ne preostane nijedan izvršiv cilj, vraća isti kôd greške. Ponovno prikazivanje važi od sljedećeg zahtjeva. Nadjačavanja vidljivosti samo za slike ne skrivaju model za razgovor s istim ID-jem.
+
+Ova pojedinačna postavka odvojena je od [lista dozvoljenog i zabranjenog izlaganja modela](../routing/MODEL_EXPOSURE_LIST.md), koje filtriraju ponudu kataloga i kandidate za automatsko usmjeravanje, a zadržavaju izričito slanje zahtjeva. Dozvole za modele API ključa i dalje se primjenjuju nezavisno. Zadani režim prefiksa kataloga ostaje `dual`.
+
 ### No-thinking varijante modela
 
 Za Claude modele sa sposobnošću razmišljanja (thinking), `/v1/models` također oglašava **no-thinking** varijantu čiji je id prefiksiran sa `claude-3-omniroute-no-thinking/`:

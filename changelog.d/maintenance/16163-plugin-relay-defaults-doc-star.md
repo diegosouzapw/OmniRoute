@@ -1,0 +1,1 @@
+- **test(plugin-v2):** the plugin keeps the four catalog filter defaults when relaying parsed options, and the guide names `*` as the full-catalog escape hatch ([#16163](https://github.com/diegosouzapw/OmniRoute/pull/16163)) — thanks @maxmad64bis

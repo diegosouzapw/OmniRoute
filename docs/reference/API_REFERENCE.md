@@ -447,6 +447,20 @@ field pointing at the primary id.
 Clients that render a model picker should request `?prefix=alias` — this is what the
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md) does.
 
+### Individually hidden chat models
+
+A model marked **Hidden** on its provider page is excluded from the catalog and rejected
+with HTTP `404` / `model_not_found` when requested explicitly. The check uses the resolved
+provider and model, including provider aliases, compatible-provider node prefixes, and
+connection defaults. A combo skips hidden targets and can use a visible sibling; when no
+executable target remains it returns the same error code. Unhiding takes effect on the next
+request. Image-only visibility overrides do not hide the chat model with the same ID.
+
+This individual model setting is separate from the
+[model exposure allow/deny lists](../routing/MODEL_EXPOSURE_LIST.md), which filter catalog
+advertisement and auto-routing candidates while retaining explicit dispatch. API-key model
+permissions continue to apply independently. The default catalog prefix mode remains `dual`.
+
 ### No-thinking model variants
 
 For thinking-capable Claude models, `/v1/models` also advertises a **no-thinking** variant whose id is prefixed with `claude-3-omniroute-no-thinking/`:
@@ -793,6 +807,57 @@ distinguishes them.
 **Auth:** the caller's own Bearer API key, validated with `isValidApiKey` — this is _not_ the
 management surface (`/api/keys/…`), which stays behind `requireManagementAuth`.
 
+### Raw vs. Cutoff-Adjusted Quota Percentages
+
+When consuming `/api/usage/om-usage`, callers should note the distinction between the
+percentages presented by the **plain-text output** and the structured **JSON output**:
+
+| Aspect               | Plain-text format (`/api/usage/om-usage` / `@@om-usage`)                             | JSON format (`?format=json`)                                          |
+| :------------------- | :----------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Output field**     | `NN% left` (e.g., `20% left`)                                                        | `provider.quotas` / `providers[].quotas`                              |
+| **Measurement**      | **Cutoff-adjusted usable allowance**: remaining capacity above the cutoff threshold  | **Raw upstream quota**: unadjusted provider measurement               |
+| **Cutoff scaling**   | Scaled via `effectiveRemainingPercent()` so the protected reserve reads as `0% left` | None (raw snapshot values as reported by the provider)                |
+| **Threshold data**   | Incorporated into the displayed percentage                                           | Stored in `quotaWindowThresholds` per connection (or server defaults) |
+| **Primary consumer** | Interactive CLIs, terminal prompts, human operators                                  | Programmatic integrations, dashboards, analytics, billing trackers    |
+
+#### The Cutoff Adjustment Formula
+
+OmniRoute supports proactive quota cutoffs to prevent upstream exhaustion (configured via connection
+`quotaWindowThresholds`, provider defaults, or global resilience settings). When a cutoff threshold
+(e.g., `cutoff = 25%`) is active on a quota window, the text renderer calculates remaining allowance as:
+
+- If `remaining <= cutoff`: returns `0%`.
+- If `remaining > cutoff`: returns `((remaining - cutoff) / (100 - cutoff)) * 100`.
+
+The formatted text output rounds this to the nearest integer (`Math.round(...)`).
+
+#### Illustrative Example
+
+Consider a provider window with **60% raw usage** (hence **40% raw remaining quota**) and a configured
+**25% remaining-quota cutoff** threshold:
+
+| Representation                | Calculation                                        | Remaining |                Implied Used                |
+| :---------------------------- | :------------------------------------------------- | :-------: | :----------------------------------------: |
+| **Raw JSON (`?format=json`)** | Upstream snapshot (`quotas[window]`)               |  **40%**  |                  **60%**                   |
+| **Text format (`NN% left`)**  | `((40 - 25) / (100 - 25)) * 100 = (15 / 75) * 100` |  **20%**  | **80%** (if calculating `100 - remaining`) |
+
+- **Why text shows 20% left:** Out of the 40% physical quota left on the account, 25% is reserved by the
+  cutoff policy. The caller has only 15% out of 75% usable headroom remaining before the router stops
+  routing to this connection. Scaling ensures the connection signals exhaustion (`0% left`) exactly when
+  routing will cease.
+- **Why JSON preserves raw values:** The JSON payload returns the exact provider snapshot (`UsageSnapshot`)
+  so external tools have access to ground-truth upstream utilization and connection-level
+  `quotaWindowThresholds` without server-side lossy scaling.
+
+#### Consumer Migration Guidance
+
+If an external integration (such as an editor plugin or agent extension) previously scraped the text
+endpoint (`NN% left`) and computed used percentage as `100 - NN`, migrating to `?format=json` means:
+
+- Reading raw JSON values will reflect **actual upstream consumption** (60% used in the example above).
+- If the integration wishes to preserve the text endpoint's usable-allowance semantics, it can evaluate
+  the effective remaining formula client-side using `quotaWindowThresholds` for connection-level overrides.
+
 ---
 
 ## Semantic Cache
@@ -957,6 +1022,47 @@ verdicts; the second stage can still produce its requested visible reasoning as 
 | `/api/usage/token-limits`        | GET/POST/DELETE | Per-API-key token-limit budgets                                                                                                                                                                                                                                                                      |
 | `/api/usage/model-latency-stats` | GET             | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
 | `/api/usage/cache-health`        | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
+
+### API key permissions
+
+`PATCH /api/keys/{id}` updates an existing key's permissions. Like every `/api/keys*` route it needs management authorization (see [Management Authentication](../guides/MANAGEMENT-AUTH.md)), not an inference key. Send only the fields you want to change; a request with none of them is rejected with `No valid fields to update`. The accepted fields are defined by `updateKeyPermissionsSchema` in `src/shared/validation/schemas/keys.ts`.
+
+| Field                                       | Type                                                                 | Notes                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | string, 1-200 chars                                                  |                                                                                                                        |
+| `isActive`                                  | boolean                                                              |                                                                                                                        |
+| `isBanned`                                  | boolean                                                              |                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 datetime or `null`                                          | `null` clears the expiry                                                                                               |
+| `modelAccessMode`                           | `all` \| `restricted`                                                | `allowedModels` must be empty when the mode is `all`                                                                   |
+| `allowedModels`, `blockedModels`            | array of strings, up to 1000                                         |                                                                                                                        |
+| `allowedCombos`                             | array of strings, up to 500                                          | Gates which combos the key may call; direct models are governed by `modelAccessMode` / `allowedModels`                 |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                | `allowedConnections` must be non-empty when `restricted` and empty when `all`                                          |
+| `allowedConnections`                        | array of UUIDs, up to 100                                            |                                                                                                                        |
+| `allowAutoCombos`                           | boolean                                                              | `false` rejects requests for `auto/*` models with this key; keys that never set it are allowed                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                        | What `GET /v1/models` lists for this key (combos only, models only, or both); it does not change what the key may call |
+| `noLog`, `autoResolve`                      | boolean                                                              |                                                                                                                        |
+| `throttleDelayMs`                           | integer, 0-300000                                                    |                                                                                                                        |
+| `maxSessions`                               | integer, 0-10000                                                     |                                                                                                                        |
+| `rateLimits`                                | array of `{ limit, window }` (positive integers, up to 50) or `null` | `null` clears the limits                                                                                               |
+| `accessSchedule`                            | schedule object or `null`                                            | `null` clears the schedule                                                                                             |
+| `scopes`                                    | array of strings, up to 32                                           |                                                                                                                        |
+| `allowedEndpoints`                          | array of strings, up to 20                                           |                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                   |                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                 | See [Per-key cache bypass](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | boolean                                                              |                                                                                                                        |
+| `codexServiceMode`                          | one of the Codex service modes                                       |                                                                                                                        |
+| `disableNonPublicModels`                    | boolean                                                              |                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                              |                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                              |                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 or `null`                                                |                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                              |                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Settings
 
