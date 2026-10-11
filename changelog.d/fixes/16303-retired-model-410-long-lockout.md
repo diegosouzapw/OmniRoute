@@ -1,0 +1,1 @@
+- **fix(models):** Retired models reporting 410 lock for 24 hours on status alone ([#16303](https://github.com/diegosouzapw/OmniRoute/pull/16303)) — thanks @maxmad64bis

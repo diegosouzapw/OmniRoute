@@ -1858,6 +1858,28 @@ export function checkFallbackError(
   const shouldUseQuotaSignal = !isRateLimitStatus || preserveQuota429;
 
   // Check error message FIRST - specific patterns take priority over status codes
+  // A retired model will fail identically on every future request — lock it for
+  // a long, fixed window instead of the generic transient-error branch's short
+  // backoff, which would otherwise keep re-selecting a permanently dead model
+  // roughly every cooldown window, all day, hammering the provider with
+  // guaranteed-to-fail requests. A 404 needs a known wording (see
+  // MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS); a 410 locks on status alone — any
+  // wording, empty or missing text included (e.g. Ollama `was retired`).
+  // `quotaResetHintMs` flows into combo.ts's per-request model-lockout as an
+  // upstream-verified reset, honored in full, not clamped to the ~20min ceiling.
+  if (
+    status === HTTP_STATUS.GONE ||
+    (status === HTTP_STATUS.NOT_FOUND && isModelPermanentlyUnavailable(errorStr))
+  ) {
+    const cooldownMs = 24 * 60 * 60 * 1000; // 24h
+    return {
+      shouldFallback: true,
+      cooldownMs,
+      reason: "not_found",
+      quotaResetHintMs: cooldownMs,
+    };
+  }
+
   if (errorText) {
     // T06 (sub2api #1037): Permanent account deactivation — do NOT retry, mark as permanent failure
     if (isAccountDeactivated(errorStr)) {
@@ -1866,28 +1888,6 @@ export function checkFallbackError(
         cooldownMs: 365 * 24 * 60 * 60 * 1000, // 1 year = effectively permanent
         reason: RateLimitReason.AUTH_ERROR,
         permanent: true,
-      };
-    }
-
-    // A retired model (Gemini deprecated-model 404, Fireworks/etc. end-of-life 410)
-    // will fail identically on every future request — lock it for a long, fixed
-    // window instead of falling through to the generic transient-error branch's
-    // short backoff, which would otherwise keep re-selecting a permanently dead
-    // model roughly every cooldown window, all day, hammering the provider with
-    // guaranteed-to-fail requests (see MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS).
-    // `quotaResetHintMs` flows into combo.ts's per-request model-lockout as an
-    // upstream-verified reset, so it is honored in full and not clamped to the
-    // normal ~20min model-lockout ceiling.
-    if (
-      (status === HTTP_STATUS.NOT_FOUND || status === HTTP_STATUS.GONE) &&
-      isModelPermanentlyUnavailable(errorStr)
-    ) {
-      const cooldownMs = 24 * 60 * 60 * 1000; // 24h
-      return {
-        shouldFallback: true,
-        cooldownMs,
-        reason: "not_found",
-        quotaResetHintMs: cooldownMs,
       };
     }
 
