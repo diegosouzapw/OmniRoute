@@ -1,0 +1,1 @@
+- **Accurate log-export counts**: streamed exports now finish with the actual emitted row count, including after concurrent deletion or hydration failure. Preflight counts are explicitly estimates; the dashboard reads the final count without parsing the full download. Proxy-log pagination is documented as a live, best-effort export. Fixes #13999.

@@ -33,6 +33,59 @@ function stringArray(value: unknown): string[] {
   return value.map(stringValue).filter((value): value is string => Boolean(value));
 }
 
+/**
+ * fal model ids are `<owner>/<app>[/path]`. First-party apps live under the
+ * `fal-ai` owner; third-party vendors publish under their own owner namespace
+ * (bytedance, alibaba, minimax, …).
+ *
+ * The previous code recognised only `fal-ai/`, `xai/` and `google/` as
+ * already-owned and prefixed everything else with `fal-ai/`, which rewrote
+ * `bytedance/seedance-2.5/text-to-video` to
+ * `fal-ai/bytedance/seedance-2.5/text-to-video`. fal reads the first segment as
+ * the app name, so it answered 404 “Application bytedance not found” — leaving
+ * every vendor-owned model unreachable even when the registry lists the owner
+ * and the account is entitled to it.
+ *
+ * Owners derived from fal's public video catalogue (24 namespaces, ~157 models
+ * that were previously unreachable). Extend the set if fal adds a vendor.
+ */
+const FAL_VENDOR_OWNERS = new Set([
+  "fal-ai",
+  "alibaba",
+  "argil",
+  "blackforestlabs",
+  "bria",
+  "bytedance",
+  "cassetteai",
+  "clarityai",
+  "creatify",
+  "decart",
+  "elevenlabs",
+  "google",
+  "lightricks",
+  "luma",
+  "minimax",
+  "mirage-api",
+  "mirelo-ai",
+  "moonvalley",
+  "nvidia",
+  "pixelcut",
+  "sonilo",
+  "topaz",
+  "veed",
+  "wan",
+  "xai",
+]);
+
+/**
+ * fal expects `<owner>/<app>[/path]`. An id that already carries a vendor owner
+ * is used verbatim; anything else is a first-party app that needs `fal-ai/`.
+ */
+function falModelPath(resolvedModel: string): string {
+  const owner = resolvedModel.split("/")[0];
+  return FAL_VENDOR_OWNERS.has(owner) ? resolvedModel : `fal-ai/${resolvedModel}`;
+}
+
 function numberValue(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
@@ -41,6 +94,83 @@ function falDuration(value: unknown, fallback: string): string {
   if (typeof value === "string" && /^(4|6|8)s$/.test(value)) return value;
   const numeric = numberValue(value);
   return numeric && [4, 6, 8].includes(numeric) ? `${numeric}s` : fallback;
+}
+
+/** Seconds from a caller-supplied duration, accepting `8`, `"8"` or `"8s"`. */
+function falSeconds(value: unknown): number | undefined {
+  const numeric = numberValue(value);
+  if (numeric !== undefined) return numeric;
+  if (typeof value === "string") {
+    const match = value.trim().match(/^(\d+(?:\.\d+)?)s?$/);
+    if (match) return Number(match[1]);
+  }
+  return undefined;
+}
+
+function clampInt(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+/**
+ * fal apps disagree on the duration wire format and only reject a mismatch with a
+ * 422, so each format has to be encoded per app family:
+ *   - fal-ai's own wrappers (Veo, LTX, …) take the `"8s"` string form
+ *   - most vendor apps take a bare numeric string `"8"` (Seedance, Kling, …)
+ *   - some take a bare number `8` (Wan)
+ * `falDuration` above keeps the historical `"Ns"` default, and the overrides
+ * below cover the families that were verified against fal's published OpenAPI
+ * schemas. Add an entry here rather than changing the default, so models that
+ * already work stay untouched.
+ */
+const FAL_DURATION_OVERRIDES: Array<{
+  test: RegExp;
+  encode: (seconds: number) => string | number;
+  fallback: string | number;
+}> = [
+  // bytedance/seedance-*: string enum "auto" | "4" … "30"
+  { test: /(?:^|\/)seedance-/, encode: (n) => String(clampInt(n, 4, 30)), fallback: "auto" },
+  // fal-ai/kling-video/v3/*: string enum "3" … "15"
+  { test: /kling-video\/v3\//, encode: (n) => String(clampInt(n, 3, 15)), fallback: "5" },
+  // fal-ai/wan/* (and the wan/ owner): integer enum 2 … 15
+  { test: /(?:^|\/)wan\//, encode: (n) => clampInt(n, 2, 15), fallback: 5 },
+  // minimax/h3-*: bare integer 5 … 15 (verified against fal's OpenAPI:
+  // `{"type": "integer", "minimum": 5, "maximum": 15, "default": 5}`)
+  { test: /(?:^|\/)h3(?:-|\/)/, encode: (n) => clampInt(n, 5, 15), fallback: 5 },
+];
+
+/** Duration in the wire format the addressed fal app expects. */
+function falDurationFor(model: string, value: unknown): string | number {
+  const override = FAL_DURATION_OVERRIDES.find((entry) => entry.test.test(model));
+  if (!override) return falDuration(value, "8s");
+  const seconds = falSeconds(value);
+  return seconds === undefined ? override.fallback : override.encode(seconds);
+}
+
+/**
+ * fal apps disagree on the resolution wire format too. Most accept the lowercase
+ * `"720p"` form, but some vendor apps publish an uppercase enum — MiniMax H3 uses
+ * `"480P" | "768P" | "1080P"` and has no 720p tier at all — and reject a mismatch
+ * with a 422. As with the duration overrides above, add an entry here rather than
+ * changing the default, so models that already work stay untouched.
+ */
+const FAL_RESOLUTION_OVERRIDES: Array<{
+  test: RegExp;
+  encode: (resolution: string) => string;
+}> = [
+  // minimax/h3-*: uppercase enum "480P" | "768P" | "1080P". 720p has no tier on
+  // this app, so it maps onto its native 768P mid-tier.
+  {
+    test: /(?:^|\/)h3(?:-|\/)/,
+    encode: (r) => (r.startsWith("480") ? "480P" : r.startsWith("1080") ? "1080P" : "768P"),
+  },
+];
+
+/** Resolution in the wire format the addressed fal app expects. */
+function falResolutionFor(model: string, value: unknown, quality: unknown): string {
+  const explicit = stringValue(value);
+  const resolution = explicit || (quality === "hd" ? "1080p" : "720p");
+  const override = FAL_RESOLUTION_OVERRIDES.find((entry) => entry.test.test(model));
+  return override ? override.encode(resolution.toLowerCase()) : resolution;
 }
 
 function grokDuration(value: unknown, fallback = 6): number {
@@ -98,8 +228,8 @@ export function buildFalVideoRequestBody(body: FalBody, model = ""): FalBody {
   const request: FalBody = {
     prompt: stringValue(body.prompt) || "",
     aspect_ratio: stringValue(body.aspect_ratio) || "16:9",
-    duration: falDuration(body.duration, "8s"),
-    resolution: stringValue(body.resolution) || (body.quality === "hd" ? "1080p" : "720p"),
+    duration: falDurationFor(model, body.duration),
+    resolution: falResolutionFor(model, body.resolution, body.quality),
     generate_audio: typeof body.generate_audio === "boolean" ? body.generate_audio : true,
   };
 
@@ -257,12 +387,7 @@ async function runFalQueue({
   const timeoutMs = getConfiguredTimeout();
   const deadline = startTime + timeoutMs;
   const resolvedModel = resolveFalModel(model, body, kind);
-  const falModel =
-    resolvedModel.startsWith("fal-ai/") ||
-    resolvedModel.startsWith("xai/") ||
-    resolvedModel.startsWith("google/")
-      ? resolvedModel
-      : `fal-ai/${resolvedModel}`;
+  const falModel = falModelPath(resolvedModel);
   const queueUrl = `${baseUrl}/${falModel}`;
 
   try {

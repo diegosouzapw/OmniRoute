@@ -1,0 +1,1 @@
+- fix(cache): include structured tool calls and outputs in both exact cache signatures while preserving plain-message keys (#15816).

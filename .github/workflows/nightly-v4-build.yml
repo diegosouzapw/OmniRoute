@@ -1,0 +1,176 @@
+name: Nightly v4 build (dormant)
+
+# DORMANT until the 3.9.0 LTS cut creates `develop` (docs/ops/RELEASE_STRATEGY.md →
+# channel `nightly`). The first job checks `git ls-remote --heads origin develop`
+# and ends the run green and silent while the branch does not exist.
+#
+# When develop exists: compute `<core>-nightly.<YYYYMMDD>.<sha7>` with
+# scripts/release/compute-nightly-version.mjs, build the release bundle, validate
+# the pack artifact and keep the tarball as a workflow artifact. Publishing to npm
+# under the `nightly` dist-tag happens ONLY when the repository variable
+# `NIGHTLY_PUBLISH` is exactly 'true' — and additionally requires npm Trusted
+# Publishing to accept this workflow file (npmjs.com → package settings), since
+# today it is configured for npm-publish.yml only.
+
+on:
+  schedule:
+    - cron: "23 4 * * *" # 04:23 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-v4-build
+  cancel-in-progress: false
+
+env:
+  NIGHTLY_NODE_VERSION: "24"
+
+jobs:
+  detect:
+    name: Detect develop
+    # Upstream-only for scheduled runs (check-workflows scheduled-guard).
+    if: (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute')
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      exists: ${{ steps.develop.outputs.exists }}
+    steps:
+      - name: Check that develop exists
+        id: develop
+        env:
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-remote --heads "$REPO_URL" develop)" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "develop does not exist yet — nightly v4 build is dormant, nothing to do."
+          fi
+
+  build:
+    name: Build nightly
+    needs: detect
+    if: (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') && needs.detect.outputs.exists == 'true'
+    # Same dynamic-runner rule as npm-publish.yml: a full `next build` outgrew the
+    # 16 GB hosted runner during v3.8.49. Never runs on pull_request.
+    runs-on: ${{ vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    env:
+      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NIGHTLY_NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Compute nightly version
+        id: version
+        run: |
+          set -euo pipefail
+          # The schedule's GITHUB_SHA is the default branch, not develop — use HEAD.
+          HEAD_SHA=$(git rev-parse HEAD)
+          VERSION=$(node scripts/release/compute-nightly-version.mjs --sha "$HEAD_SHA")
+          # Defense in depth: the computed version must resolve to the nightly channel.
+          TAG=$(node scripts/release/dist-tag.mjs --version "$VERSION" --requested auto < /dev/null)
+          if [ "$TAG" != "nightly" ]; then
+            echo "Computed $VERSION resolves to dist-tag '$TAG', expected 'nightly'" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📦 omniroute@$VERSION (dist-tag=nightly)"
+
+      - name: Install dependencies
+        uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: "false" # a publishable artifact never restores node_modules from cache
+
+      - name: Stamp the nightly version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Build release bundle
+        run: npm run build:release
+
+      - name: Validate npm package artifact
+        env:
+          # The provenance guard checks ancestry against origin/main by default; a
+          # nightly is cut from develop.
+          OMNIROUTE_RELEASE_REF: origin/develop
+        run: npm run check:pack-artifact
+
+      - name: Pack the tarball
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          npm pack --ignore-scripts
+          TARBALL="omniroute-${VERSION}.tgz"
+          test -f "$TARBALL" || { echo "expected $TARBALL after npm pack" >&2; ls -la ./*.tgz || true; exit 1; }
+
+      - name: Upload nightly tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: npm-nightly-tarball
+          path: omniroute-${{ steps.version.outputs.version }}.tgz
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    name: Publish nightly to npm
+    needs: build
+    if: (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') && vars.NIGHTLY_PUBLISH == 'true'
+    runs-on: ubuntu-latest # Trusted Publishing (OIDC) requires a GitHub-hosted runner
+    permissions:
+      contents: read
+      id-token: write # npm provenance + Trusted Publishing
+    steps:
+      - name: Download nightly tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: npm-nightly-tarball
+          path: .
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NIGHTLY_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Ensure npm supports Trusted Publishing
+        run: |
+          set -euo pipefail
+          if ! node -e "const [a,b]=process.argv[1].split('.').map(Number); process.exit(a>11||(a===11&&b>=15)?0:1)" "$(npm --version)"; then
+            # Pinned exact version (supply-chain: never float @latest in a publish job).
+            npm install -g --ignore-scripts npm@11.15.0
+          fi
+          npm --version
+
+      - name: Publish with --tag nightly
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          case "$VERSION" in
+            *-nightly.*) ;;
+            *) echo "Refusing to publish non-nightly version '$VERSION' from the nightly workflow" >&2; exit 1 ;;
+          esac
+          TARBALL="omniroute-${VERSION}.tgz"
+          test -f "$TARBALL" || { echo "tarball $TARBALL did not arrive from the build job" >&2; exit 1; }
+          npm publish "$TARBALL" --provenance --access public --tag nightly --ignore-scripts
+          echo "✅ Published omniroute@$VERSION (dist-tag=nightly)"

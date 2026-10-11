@@ -1,0 +1,1 @@
+- fix(browser): gemini-web now applies the configured provider proxy to its Playwright context, and headed browsers (zai-web) start a private Xvfb when the host has no display (Docker -web image now installs xvfb), with a clear 503 instead of a bare 502 when none can be started (#15076, #15300)

@@ -13,6 +13,7 @@
 //   - .next/, .build/, dist/, dist-electron/ (build artefatos)
 //   - .claude/ (worktrees de agentes)
 //   - _references/, _mono_repo/ (código de referência não pertencente ao repo)
+//   - qualquer diretório _* na RAIZ (repositórios/artefatos privados; AGENTS.md)
 // Isso garante que workspaces novos (opencode-plugin, opencode-provider, open-sse, etc.)
 // sejam automaticamente cobertos sem edição do script.
 //
@@ -61,6 +62,9 @@ export function discoverManifests(root) {
     }
     for (const e of entries) {
       if (EXCLUDED_SEGMENTS.has(e.name)) continue;
+      // Root _* directories are private by repository policy. Keep nested
+      // workspace directories in scope, including names such as packages/_internal.
+      if (depth === 0 && e.isDirectory() && e.name.startsWith("_")) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full, depth + 1);

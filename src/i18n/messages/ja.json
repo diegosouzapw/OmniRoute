@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "デフォルト (自動)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "最大出力トークン数",
+    "maxOutputTokenOverrideHint": "トークン数を正の整数で入力してください。空欄にすると既定値を使用します。",
     "contextWindowOverrideLabel": "コンテキストウィンドウの上書き",
     "contextWindowOverridePlaceholder": "例: 131072",
     "contextWindowOverrideHint": "プロバイダーが誤ったコンテキストウィンドウを報告する場合に、このモデルの実際のコンテキストウィンドウ（トークン数）を手動で設定します。自動検出またはカタログの値よりも優先され、コンボルーティングによるモデルのドロップを防ぎます。",

@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Vaikimisi (automaatne)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Väljundtokenite maksimaalne arv",
+    "maxOutputTokenOverrideHint": "Sisestage positiivne täisarv tokeneid. Vaikeväärtuse kasutamiseks jätke tühjaks.",
     "contextWindowOverrideLabel": "Kontekstiakna alistus",
     "contextWindowOverridePlaceholder": "nt 131072",
     "contextWindowOverrideHint": "Määra käsitsi selle mudeli tegelik kontekstiaken (tokenites), kui teenusepakkuja esitab selle kohta valeinfo. See on automaatselt tuvastatud ja kataloogi väärtuste suhtes ülimuslik ning takistab kombineeritud marsruutimisel mudeli väljajätmist.",

@@ -336,7 +336,6 @@ Nebo jej umístěte do rozpoznávaného umístění:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Uživatelská úroveň
-<project>/.compression/rules/hi/filler.json   # Úroveň projektu
 ```
 
 ### Doporučené postupy pro jazykové balíčky

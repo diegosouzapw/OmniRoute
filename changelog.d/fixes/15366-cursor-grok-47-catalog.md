@@ -1,0 +1,1 @@
+- fix(cursor): expose Grok 4.7 context, reasoning and fast variants from the Cursor catalog and preserve their parameters upstream (#15366).

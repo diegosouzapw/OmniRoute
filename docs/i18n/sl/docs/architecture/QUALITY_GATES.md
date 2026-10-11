@@ -305,12 +305,14 @@ pogodba dokumentacije/okolja, skladnost i18n, testi enot) ostajajo nespremenjena
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — enkratna
   sprostitev (`scripts/quality/relax-baselines.mjs`); zavrne ponovni zagon z isto opombo.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  izmeri vsako številsko kontrolo tako kot CI in izpiše preostali rezervni prostor za vsako kontrolo
-  (`scripts/quality/baseline-headroom.mjs`). Nočno opravilo `baseline-headroom` objavi
-  tabelo v aktivni zadevi **📈 Rezervni prostor izhodiščnih meja (faza hitrosti)** in doda oznako
-  `headroom-alert`, kadar je katera koli kontrola znotraj 10 % svoje zgornje meje ali jo že presega. Ta zadeva
-  služi kot zgodnje opozorilo: proračun, ki se zapolni v nekaj dneh, pomeni, da sprostitev porabi
-  nekaj zahtevkov PR, ne pa celotna ekipa — preverite opombe `_rebaseline_*` problematične kontrole.
+  meri vsako številčno preverjanje kakovosti na enak način kot CI in izpiše preostalo rezervo za vsako preverjanje
+  (`scripts/quality/baseline-headroom.mjs`). Nočno opravilo `baseline-headroom` objavi tabelo
+  v povzetku izvajanja delovnega toka in naloži poročilo JSON/Markdown z imenom
+  `baseline-headroom-<run_id>`, ki se hrani 90 dni. Opozorilne in kritične vrstice označujejo
+  preverjanja, ki imajo do zgornje meje največ 10% rezerve ali so jo že presegla.
+  Ta poročila pregledujte kot zgodnje opozorilo o porabljanju proračunov; preverite opombe
+  `_rebaseline_*` za zadevno preverjanje. Opravilo ne ustvarja ali posodablja več trajne prijave težave;
+  #12149 ohranja zgodovino prejšnjih poročil.
 
 **Način za novo kodo (Clean-as-You-Code) — od 2026-08-30, samo hitra pot za PR**
 

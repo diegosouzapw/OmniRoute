@@ -1,3 +1,4 @@
+import { learnCopilotModelRejection } from "../services/copilotModelRejections.ts";
 import {
   extractRequestToolMetadata,
   resolveResponseToolNameMap,
@@ -3578,16 +3579,12 @@ async function handleChatCoreInner({
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
           if (!(await shouldIsolateProbeFailures())) {
             const modelToLock = targetModel || model;
-            lockModel(
-              provider,
-              errorConnectionId,
-              modelToLock,
-              "model_not_found",
-              notFoundCooldownMs
-            );
-            console.warn(
-              `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${modelToLock} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
-            );
+            if (!learnCopilotModelRejection(statusCode, provider, errorConnectionId, modelToLock, upstreamErrorBody)) {
+              lockModel(provider, errorConnectionId, modelToLock, "model_not_found", notFoundCooldownMs);
+              console.warn(
+                `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${modelToLock} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
+              );
+            }
           }
         }
       } catch {}

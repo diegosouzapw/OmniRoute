@@ -1,0 +1,1 @@
+- **fix(cli):** Individual provider tests use the server probe when no local recipe exists, report skipped offline tests without marking credentials unhealthy, and include connections without expiration records in provider status. Refs #12849.

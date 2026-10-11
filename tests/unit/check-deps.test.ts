@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 // @ts-expect-error — .mjs gate module has no type declarations
 import {
@@ -28,6 +29,40 @@ test("flags multiple new deps, preserves order, de-dupes", () => {
 });
 
 // --- 6A.8: automatic workspace discovery ---
+
+test("manifest discovery excludes private root directories but checks nested workspaces", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-deps-scope-"));
+  try {
+    const manifests = [
+      "package.json",
+      "packages/new-workspace/package.json",
+      "packages/_internal/package.json",
+      "_artifacts/foreign-project/package.json",
+      "_tasks/private-plan/package.json",
+      "_future-private/project/package.json",
+    ];
+    for (const rel of manifests) {
+      const file = path.join(root, rel);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(
+        file,
+        JSON.stringify({ dependencies: { "unreviewed-workspace-dep": "1.0.0" } })
+      );
+    }
+    const found = discoverManifests(root);
+    assert.deepEqual(found, [
+      "package.json",
+      "packages/_internal/package.json",
+      "packages/new-workspace/package.json",
+    ]);
+    const deps = found.flatMap((rel: string) =>
+      Object.keys(JSON.parse(fs.readFileSync(path.join(root, rel), "utf8")).dependencies)
+    );
+    assert.deepEqual(findUnapprovedDeps(deps, new Set()), ["unreviewed-workspace-dep"]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("6A.8: discoverManifests finds root and workspace package.json files", () => {
   const manifests = discoverManifests(repoRoot);

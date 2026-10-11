@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Προεπιλογή (αυτόματα)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Μέγιστος αριθμός διακριτικών εξόδου",
+    "maxOutputTokenOverrideHint": "Εισαγάγετε έναν θετικό ακέραιο αριθμό token. Αφήστε το κενό για την προεπιλεγμένη τιμή.",
     "contextWindowOverrideLabel": "Παράκαμψη παραθύρου συμφραζομένων",
     "contextWindowOverridePlaceholder": "π.χ. 131072",
     "contextWindowOverrideHint": "Ορίστε χειροκίνητα το πραγματικό παράθυρο συμφραζομένων αυτού του μοντέλου (σε tokens), όταν ο πάροχος το αναφέρει εσφαλμένα. Υπερισχύει των τιμών που εντοπίζονται αυτόματα ή προέρχονται από τον κατάλογο και αποτρέπει τον αποκλεισμό του μοντέλου από τη συνδυαστική δρομολόγηση.",

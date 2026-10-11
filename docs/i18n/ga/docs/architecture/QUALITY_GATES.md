@@ -314,12 +314,14 @@ conradh doiciméad/timpeallachta, paireacht i18n, tástálacha aonaid) — is t�
   maolú aonuaire (`scripts/quality/relax-baselines.mjs`); diúltaíonn sé rith faoi dhó leis an
   nóta céanna.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  tomhaiseann sé gach geata uimhriúil ar an dóigh chéanna le CI agus priontálann sé an spás atá fágtha do gach geata
-  (`scripts/quality/baseline-headroom.mjs`). Postálann an jab oíche `baseline-headroom` an
-  tábla chuig an tsaincheist bheo **📈 Spás bonnlíne (céim luais)** agus cuireann sé an lipéad
-  `headroom-alert` leis nuair atá aon gheata laistigh de 10% dá uasteorainn nó os a cionn cheana féin. Is í an tsaincheist sin
-  an réamhrabhadh: má líontar buiséad i gceann cúpla lá, ciallaíonn sé go bhfuil an maolú á ídiú ag
-  cúpla PR, seachas ag an bhfoireann iomlán — féach ar nótaí `_rebaseline_*` an gheata chiontaigh.
+  tomhaiseann sé gach seiceáil cháilíochta uimhriúil ar an mbealach céanna le CI agus taispeánann sé an corrlach atá fágtha do gach seiceáil
+  (`scripts/quality/baseline-headroom.mjs`). Foilsíonn an jab oíche `baseline-headroom` an tábla
+  san achoimre ar rith an tsreafa oibre agus uaslódálann sé a thuairisc JSON/Markdown mar
+  `baseline-headroom-<run_id>`, a choinnítear ar feadh 90 lá. Léiríonn na sraitheanna rabhaidh agus criticiúla
+  seiceálacha nach bhfuil níos mó ná 10% fágtha acu go dtí a dteorainn nó a sháraigh í cheana féin.
+  Úsáid na tuairiscí seo mar rabhadh luath go bhfuil na buiséid á n-ídiú; scrúdaigh nótaí
+  `_rebaseline_*` na seiceála lena mbaineann. Ní chruthaíonn ná ní nuashonraíonn an jab saincheist bhuan a thuilleadh;
+  coinníonn #12149 stair na dtuairiscí roimhe seo.
 
 **Mód cóid nua (Glan agus Tú ag Códú) — ó 2026-08-30 i leith, mear-chonair PR amháin**
 

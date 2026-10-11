@@ -314,12 +314,14 @@ dokumentācijas/vides līgums, i18n paritāte, vienībtesti) nav mainītas — n
   atvieglošana (`scripts/quality/relax-baselines.mjs`); atsakās darboties divreiz ar vienu un to pašu
   piezīmi.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mēra katru skaitlisko vārteju tāpat kā CI un izvada katras vārtejas atlikušo rezervi
-  (`scripts/quality/baseline-headroom.mjs`). Ik nakti izpildītais `baseline-headroom` uzdevums publicē
-  tabulu aktuālajā pieteikumā **📈 Bāzes robežvērtību rezerve (ātruma posms)** un pievieno
-  `headroom-alert` etiķeti, ja kāda vārteja ir 10% robežās no sava limita vai jau to pārsniedz. Šis pieteikums
-  ir agrīnais brīdinājums: budžets, kas tiek izsmelts dažu dienu laikā, nozīmē, ka atvieglojumu patērē
-  daži PR, nevis visa komanda — pārbaudiet attiecīgās vārtejas `_rebaseline_*` piezīmes.
+  mēra katru skaitlisko kvalitātes pārbaudi tāpat kā CI un parāda katrai pārbaudei atlikušo rezervi
+  (`scripts/quality/baseline-headroom.mjs`). Nakts uzdevums `baseline-headroom` publicē tabulu
+  darbplūsmas izpildes kopsavilkumā un augšupielādē JSON/Markdown pārskatu ar nosaukumu
+  `baseline-headroom-<run_id>`, ko glabā 90 dienas. Brīdinājuma un kritiskās rindas norāda
+  pārbaudes, kurām līdz robežai atlikuši ne vairāk kā 10% vai kuras to jau pārsniegušas.
+  Pārskatiet šos pārskatus kā agrīnu brīdinājumu par budžetu izlietojumu; apskatiet attiecīgās pārbaudes
+  `_rebaseline_*` piezīmes. Uzdevums vairs neveido un neatjaunina pastāvīgu problēmas pieteikumu;
+  #12149 saglabā iepriekšējo pārskatu vēsturi.
 
 **Jaunā koda režīms (Clean-as-You-Code) — kopš 2026-08-30, tikai PR ātrais ceļš**
 

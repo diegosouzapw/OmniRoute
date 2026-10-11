@@ -308,12 +308,14 @@ kontrata ng docs/env, parity ng i18n, mga unit test) — ang bagsak na test ay b
   isang-beses na relaxation (`scripts/quality/relax-baselines.mjs`); tatanggi itong tumakbo nang dalawang beses gamit ang
   parehong tala.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  sinusukat ang bawat numeric gate sa paraang ginagawa ng CI at ipinapakita ang natitirang headroom kada gate
-  (`scripts/quality/baseline-headroom.mjs`). Ipinopost ng nightly na `baseline-headroom` job ang
-  talahanayan sa aktibong issue na **📈 Baseline headroom (yugto ng velocity)** at idinaragdag ang
-  label na `headroom-alert` kapag ang anumang gate ay nasa loob ng 10% ng cap nito o lumampas na rito. Ang issue na iyon
-  ang maagang babala: kapag napupuno ang isang budget sa loob ng ilang araw, nangangahulugan itong nauubos ang relaxation dahil sa
-  ilang PR, hindi dahil sa buong team — tingnan ang mga tala na `_rebaseline_*` ng gate na sanhi nito.
+  sinusukat ang bawat numerikong pagsusuri sa kalidad sa paraang ginagawa ng CI at ipinapakita ang natitirang puwang bago ang limitasyon nito
+  (`scripts/quality/baseline-headroom.mjs`). Inilalathala ng gabi-gabing `baseline-headroom` na gawain ang talahanayan
+  sa buod ng pagpapatakbo ng workflow at ina-upload ang ulat na JSON/Markdown bilang
+  `baseline-headroom-<run_id>`, na itinatago nang 90 araw. Tinutukoy ng mga hanay na babala at kritikal
+  ang mga pagsusuring may 10% o mas kaunting puwang bago ang limitasyon, o lumampas na rito.
+  Suriin ang mga ulat na ito bilang maagang babala sa pagkaubos ng mga nakalaang badyet; tingnan ang mga tala na
+  `_rebaseline_*` ng kaukulang pagsusuri. Hindi na lumilikha o nag-a-update ang gawain ng permanenteng issue;
+  pinananatili ng #12149 ang kasaysayan ng mga naunang ulat.
 
 **New-code mode (Clean-as-You-Code) — mula 2026-08-30, para lamang sa mabilis na landas ng PR**
 

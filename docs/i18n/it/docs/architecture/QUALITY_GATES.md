@@ -318,13 +318,14 @@ invariati: un test fallito resta un test fallito.
   una tantum (`scripts/quality/relax-baselines.mjs`); rifiuta di essere eseguito due volte con la
   stessa nota.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  misura ogni gate numerico nello stesso modo della CI e mostra il margine rimanente per ciascun
-  gate (`scripts/quality/baseline-headroom.mjs`). Il job notturno `baseline-headroom` pubblica la
-  tabella nell'issue attiva **📈 Margine delle baseline (fase di velocità)** e aggiunge
-  l'etichetta `headroom-alert` quando un gate si trova entro il 10% dal proprio limite o lo ha
-  già superato. Quell'issue è il sistema di allerta preventiva: un budget che si esaurisce in
-  pochi giorni indica che l'allentamento viene consumato da poche PR, non dall'intero team —
-  consultare le note `_rebaseline_*` del gate interessato.
+  misura ogni controllo numerico come fa la CI e mostra il margine residuo per ciascun controllo
+  (`scripts/quality/baseline-headroom.mjs`). Il job notturno `baseline-headroom` pubblica la tabella
+  nel riepilogo dell’esecuzione del workflow e carica il rapporto JSON/Markdown come
+  `baseline-headroom-<run_id>`, conservato per 90 giorni. Le righe di avviso e quelle critiche indicano
+  i controlli con un margine pari o inferiore al 10% del limite, oppure che lo hanno già superato.
+  Esaminare questi rapporti come avviso precoce del consumo dei budget; consultare le note
+  `_rebaseline_*` del controllo interessato. Il job non crea né aggiorna più una issue permanente;
+  #12149 conserva lo storico dei rapporti precedenti.
 
 **Modalità nuovo codice (Clean-as-You-Code) — dal 2026-08-30, solo percorso rapido delle PR**
 
