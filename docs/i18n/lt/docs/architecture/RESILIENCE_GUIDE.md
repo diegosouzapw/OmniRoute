@@ -69,7 +69,7 @@ Regresijos patikra: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 ## 2. Ryšio atvėsimo laikotarpis
 
-**Apimtis:** vienas teikėjo ryšys / paskyra / raktas.
+**Taikymo sritis:** vienas teikėjo ryšys / paskyra / raktas.
 
 **Paskirtis:** praleisti vieną netinkamą raktą, kol kiti to paties teikėjo ryšiai toliau aptarnauja užklausas.
 
@@ -91,134 +91,159 @@ Regresijos patikra: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 - OAuth bazinis: 5 s
 - API rakto bazinis: 3 s
-- API rakto 429: pirmenybė teikiama aukštesniojo serverio `Retry-After` / atkūrimo antraštėms / išanalizuojamam atkūrimo tekstui
+- API rakto 429: pirmenybė teikiama aukštesniojo lygmens `Retry-After` / atkūrimo antraštėms / išanalizuojamam atkūrimo tekstui
 - Delsos didinimas: `baseCooldownMs * 2 ** failureIndex`
 
-**Apsauga nuo vienalaikių užklausų antplūdžio:** neleidžia lygiagrečioms triktims pernelyg pratęsti atvėsimo laikotarpio ar dukart padidinti `backoffLevel`.
+**Apsauga nuo lavinos efekto:** neleidžia lygiagrečioms triktims pernelyg pratęsti atvėsimo laikotarpio arba dukart padidinti `backoffLevel`.
 
-Kiro dvejetainiai `reasoningContentEvent` kadrai su netuščiu parašu išsaugo samprotavimo veiklą per vykdyklę kaip tuščią `reasoning_content` deltą. Parašas neperduodamas. Metaduomenys, neužbaigti kadrai ir tušti parašai nepaleidžia turinio laiko limito iš naujo; nepriklausomas aktyvaus srauto trukmės limitas ir kliento atšaukimas lieka galioti. (`open-sse/executors/kiro/reasoning.ts`).
+**Srauto turinio strigtys paskyrai atvėsimo laikotarpio netaiko.** Kai turinio strigties stebėjimo mechanizmas
+(`open-sse/utils/streamHandler.ts`) nutraukia srautą, kuris laiku nepateikė jokios modelio išvesties,
+`markAccountUnavailable()` užregistruoja ryšio klaidą, tačiau nenustato jokio
+atvėsimo laikotarpio: strigtis priklauso tai užklausai ir dažniausiai kyla dėl ilgo samprotavimo etapo, kai
+išvestis dar nepateikta. Operatoriai gali tai vėl įjungti naudodami `resilienceSettings.streamStallCooldown.enabled`
+(numatytoji reikšmė `false`).
+
+**Samprotavimo kadrai iš naujo paleidžia turinio strigties laiko biudžetą.** Samprotavimo modelis gali mąstyti
+kelias minutes prieš pateikdamas pirmą matomą leksemą: Claude siunčia `thinking_delta` kadrus, kurių
+mąstymo tekstas gali būti tuščias, o Responses API siunčia vieną samprotavimo elementą po
+kito. `isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) atpažįsta
+šiuos kadrus, o stebėjimo mechanizmas, užuot nutraukęs apdorojimą, po kiekvieno jų iš naujo paleidžia savo laiko biudžetą.
+Jie vis tiek nėra modelio išvestis, todėl apdorojimas, pasibaigęs pateikus tik samprotavimą, vis tiek
+registruojamas kaip tuščias, o apdorojimas, kuriame samprotavimas sustoja ir siunčiami tik palaikomieji signalai, vis tiek aktyvuoja
+stebėjimo mechanizmą.
+
+Kiro dvejetainiai `reasoningContentEvent` kadrai su netuščiu parašu išsaugo šią
+samprotavimo veiklą vykdyklėje kaip tuščią `reasoning_content` pokytį. Parašas
+nepersiunčiamas. Metaduomenys, neužbaigti kadrai ir tušti parašai iš naujo nepaleidžia
+turinio laiko biudžeto; nepriklausomas aktyvaus srauto skirtasis laikas ir kliento atšaukimas vis tiek
+taikomi (`open-sse/executors/kiro/reasoning.ts`).
 
 **Galutinės būsenos (NE atvėsimo laikotarpiai):**
 
-- `banned` — nustatoma aptikus uždraustą raktažodį / paskyros blokavimą (žr. [BAN_DETECTION](../security/BAN_DETECTION.md)), taip pat po trijų iš eilės aukštesniojo serverio atsisakymų vykdyti atskiras užklausas (`request_rejected`, pvz., Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); po vieno atsisakymo ryšiui tik pritaikomas atvėsimo laikotarpis
-- `expired` (po riboto pakartotinių bandymų skaičiaus pereinama į galutinę būseną — `EXPIRED_RETRY_MAX = 3` su eksponentiniu delsos didinimu — todėl laikinos OAuth klaidos gali išnykti savaime prieš visam laikui išaktyvinant paskyrą)
+- `banned` — nustatoma aptikus uždraustą raktažodį / paskyros blokavimą (žr. [BAN_DETECTION](../security/BAN_DETECTION.md)) ir po trijų iš eilės aukštesniojo lygmens atsisakymų vykdyti konkrečią užklausą (`request_rejected`, pvz., Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); po vieno atsisakymo ryšiui tik pritaikomas atvėsimo laikotarpis
+- `expired` (po riboto pakartotinių bandymų skaičiaus pereina į galutinę būseną — `EXPIRED_RETRY_MAX = 3` su eksponentiniu delsos didinimu — todėl laikinos OAuth klaidos gali išnykti savaime prieš visam laikui išaktyvinant paskyrą)
 - `credits_exhausted`
 
 Šios būsenos išlieka, kol pakeičiami prisijungimo duomenys arba operatorius jas nustato iš naujo. Neperrašykite galutinių būsenų laikina atvėsimo būsena.
 
-**Atidėtasis atkūrimas:** kai `rateLimitedUntil` laikas praeina, ryšys vėl tampa tinkamas naudoti. Sėkmingai jį panaudojus, `clearAccountError()` išvalo visus klaidos laukus.
+**Atidėtasis atkūrimas:** kai `rateLimitedUntil` laikas praeina, ryšys vėl tampa tinkamas naudoti. Sėkmingai jį panaudojus, `clearAccountError()` išvalo visus klaidų laukus.
 
 ### Claude OAuth naudojimo riba: žemesnio prioriteto kanalas + seanso ribos nustatymas iš naujo
 
-**Apimtis:** vienas Claude prenumeratos (OAuth) ryšys. Abi funkcijos **pasirenkamos atskirai kiekvienam
-ryšiui** (Redaguoti ryšį → Claude skiltis → `lowPriorityMode` / `autoLimitReset`, esančios
+**Taikymo sritis:** vienas Claude prenumeratos (OAuth) ryšys. Abi funkcijos yra **pasirenkamos kiekvienam
+ryšiui atskirai** (Redaguoti ryšį → Claude skiltis → `lowPriorityMode` / `autoLimitReset`, esančios
 `providerSpecificData`; abi pagal numatytuosius nustatymus išjungtos) ir atitinka Claude Code komandas `/low-priority` bei
-`/limit-reset` (ryšio protokolas užfiksuotas pagal Claude Code 2.1.263).
+`/limit-reset` (perdavimo protokolas užfiksuotas iš Claude Code 2.1.263).
 
 **Įgyvendinimas:**
 
-- Būsenų automatas + atsakymų klasifikavimas: `open-sse/services/claudeLowPriority.ts`
-- Atkūrimo būsenos / rezervavimo klientas: `open-sse/services/claudeLimitReset.ts`
-- Vykdyklės integravimo taškas (antraštės įterpimas + pakartotinis bandymas su ta pačia paskyra): `open-sse/executors/base.ts::execute()`
+- Būsenų automatas + atsako klasifikavimas: `open-sse/services/claudeLowPriority.ts`
+- Atkūrimo būsena / užklausos klientas: `open-sse/services/claudeLimitReset.ts`
+- Vykdyklės kabliukas (antraštės įterpimas + pakartotinis bandymas su ta pačia paskyra): `open-sse/executors/base.ts::execute()`
 - Pasirinkimo išsaugojimas: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
 **Aktyviklis:** 5 valandų naudojimo riba — `429`, kurio antraštėse yra
-`anthropic-ratelimit-unified-status: rejected` ir, kai paskyra yra tinkama,
+`anthropic-ratelimit-unified-status: rejected` ir, kai paskyra atitinka reikalavimus,
 `anthropic-ratelimit-unified-slow-offer: treatment`. Iki pirmojo ribą žyminčio
-429 niekas nesiunčiama; staigus 429 be suvienodintų antraščių apdorojamas įprastu atvėsimo mechanizmu.
+429 niekas nesiunčiama; dažnio ribojimo 429 be suvienodintų antraščių apdorojama įprastu atvėsimo mechanizmu.
 
 **Žemesnio prioriteto kanalas** (`lowPriorityMode`):
 
-- Gavusi ribą žymintį 429 vykdyklė priima pasiūlymą ir nedelsdama pakartoja užklausą su **ta pačia**
-  paskyra bei `anthropic-usage-limit: slow`; kanalas lieka aktyvus iki paskelbto
-  `anthropic-ratelimit-unified-reset` (+60 s atsargos), o kiekvienoje per tą laikotarpį siunčiamoje užklausoje yra
-  ši antraštė. Perimtas 429 nepasiekia `handleChatCore`, todėl ryšiui
-  **netaikomas** atvėsimo laikotarpis ir jis nepakeičiamas kitu.
+- Susidūrus su 429 riba, vykdyklė priima pasiūlymą ir iš karto pakartotinai bando naudoti **tą pačią**
+  paskyrą su `anthropic-usage-limit: slow`; režimas lieka aktyvus iki paskelbto
+  `anthropic-ratelimit-unified-reset` (+60 s atsargos), o kiekvienoje to laikotarpio užklausoje
+  perduodama ši antraštė. Perimtas 429 niekada nepasiekia `handleChatCore`, todėl ryšiui
+  **nėra** įjungiamas atvėsimo laikotarpis ir jis nepakeičiamas kitu.
 - `anthropic-ratelimit-unified-slow-status` vėlesniuose atsakymuose: `active` / `not_needed`
-  išlaiko kanalą; `slot_busy` (429) arba `529` atveju laukiama serverio nurodyto
-  `anthropic-ratelimit-unified-slow-retry-after` (numatyta 20 s, ribojama iki 5–600 s, ±30 % atsitiktinis nuokrypis)
-  ir bandoma dar kartą, neviršijant `anthropic-ratelimit-unified-slow-max-wait` (numatyta 20 min., ribojama
-  iki 1 min.–6 val.) — viršijus šį laiką kanalas uždaromas, o 10 minučių atvėsimo laikotarpis neleidžia jo priimti iš naujo. Be to,
-  laukimo trukmę riboja likęs pačios užklausos aukštesniojo serverio paleidimo skirtasis laikas
-  (`resolveFetchStartTimeout`, pagal numatytuosius nustatymus 10 min.) atėmus 5 s atsargą: be šio apribojimo
-  numatytasis 20 minučių maksimalus laukimas truktų ilgiau nei užklausa, o miego režimas būtų nutrauktas
-  laukimo metu, todėl vietoj tvarkingo `max_wait` užbaigimo ir atvėsimo būtų pateikta `TimeoutError`.
-- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5 val. lango pasikeitimas arba
-  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (tai užbaigia kanalą kaip
-  `extra_usage` esant bet kokiai būsenai, nes mokamas limito viršijimas dabar padengia ribą) uždaro kanalą; tuomet
-  atsakymas perduodamas įprastam atvėsimo mechanizmui. `budget_exhausted` įsimenama iki
-  paskelbto biudžeto atkūrimo (≤ 8 dienos).
-- Ribos patikra vykdoma po pačios vykdyklės vidinių bandymo pakartojimų, kuriuos sukelia 400 (konteksto
-  redagavimas, mąstymo / pastangų ribojimas, automatinis parametrų mokymasis), todėl tik per
-  vieną iš šių pakartojimų pasirodęs ribą žymintis 429 vis tiek perimamas ir nepatenka į atvėsimo mechanizmą.
-- Būsena saugoma atmintyje kiekvienam ryšiui atskirai (paleidus iš naujo, pasiūlymui priimti prireikia vieno papildomo ribą žyminčio 429).
+  išlaiko režimą; `slot_busy` (429) arba `529` atveju laukiama serverio nurodyto
+  `anthropic-ratelimit-unified-slow-retry-after` laiko (numatytoji reikšmė – 20 s, ribojama iki 5–600 s, ±30 % atsitiktinis nuokrypis)
+  ir bandymas kartojamas, neviršijant `anthropic-ratelimit-unified-slow-max-wait` (numatytoji reikšmė – 20 min., ribojama
+  iki 1 min.–6 val.) — viršijus šią ribą režimas baigiamas, o 10 minučių atvėsimo laikotarpis
+  neleidžia jo priimti iš naujo. Laukimas taip pat ribojamas likusiu pačios užklausos
+  laukimo iki perdavimo aukštesnio lygio serveriui pradžios laiku (`resolveFetchStartTimeout`, pagal numatymą 10 min.),
+  atėmus 5 s atsargą: be šio ribojimo numatytasis 20 minučių maksimalus laukimas truktų ilgiau
+  už pačią užklausą, o miego būsena būtų nutraukta laukimo metu ir būtų pateikta `TimeoutError`,
+  o ne tvarkinga `max_wait` pabaiga ir atvėsimo laikotarpis.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5 val. lango persivertimas arba
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (dėl to režimas esant
+  bet kokiai būsenai užbaigiamas kaip `extra_usage`, nes mokamas limito viršijimas dabar padengia ribą)
+  užbaigia režimą; tada atsakymas perduodamas į įprastą atvėsimo kelią. `budget_exhausted`
+  įsimenamas iki paskelbto biudžeto nustatymo iš naujo (≤ 8 dienos).
+- Ribos tikrinimas vykdomas po vykdyklės vidinių, 400 atsako sukeltų pakartotinių bandymų tame pačiame bandyme
+  (konteksto redagavimo, mąstymo / pastangų apribojimų, automatinio parametrų mokymosi), todėl 429 ribos
+  atsakas, pasirodęs tik per vieną iš šių pakartotinių bandymų, vis tiek perimamas, o ne perduodamas
+  į atvėsimo kelią.
+- Būsena laikoma atmintyje atskirai kiekvienam ryšiui (paleidus iš naujo, norint vėl priimti režimą,
+  patiriamas vienas papildomas 429 ribos atsakas).
 
-**Seanso ribos nustatymas iš naujo** (`autoLimitReset`, išbandomas prieš kanalą, kai įjungtos abi funkcijos):
+**Seanso limito nustatymas iš naujo** (`autoLimitReset`, bandoma prieš režimą, kai įjungti abu):
 
 - `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
   blokas; kai `arm: "reset"` ir `available: true`,
   `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` su
   `{ "program": "juniper_tide" }` (organizacijos UUID iš
-  `providerSpecificData.organizationUUID`, pradinis atsarginis variantas).
+  `providerSpecificData.organizationUUID`, o atsarginis variantas – pradinis inicijavimas).
 - `result: reset|not_limited` → užklausa pakartojama visu greičiu (be lėtojo režimo antraštės).
-  `already_used` / `not_offered` įsimena `next_available_at` (pagal numatytuosius nustatymus viena savaitė); po bet kokios
-  trikties taikoma 15 minučių delsa. Atkūrimą galima atlikti kartą per savaitę ir jis vis tiek įskaičiuojamas į
-  savaitės ribą.
+  `already_used` / `not_offered` įsimena `next_available_at` (pagal numatymą – viena savaitė);
+  įvykus bet kokiai trikčiai taikomas 15 minučių atidėjimas. Nustatymas iš naujo galimas kartą
+  per savaitę ir vis tiek įskaičiuojamas į savaitinį limitą.
 
-Apsaugos nuo regresijų: `tests/unit/claude-low-priority-mode.test.ts`,
+Regresijų apsaugos: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
-### Seanso prieraišumas (#7274)
+### Seanso susiejimas (#7274)
 
-**Apimtis:** vienas kliento seansas (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` antraštė), priskirtas vienam ryšiui, **bet kuriam** teikėjui.
+**Aprėptis:** vienas kliento seansas (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` antraštė), susietas su vienu ryšiu, **bet kuriam** teikėjui.
 
-**Paskirtis:** išlaikyti kelių užklausų agentą (Claude Code, aider, pasirinktinius agentus) toje pačioje paskyroje tarp užklausų, taip sumažinant konteksto praradimą keičiant paskyras ir pasikartojančias šaltojo paleidimo 429 klaidas teikėjų sistemose, kuriose seanso būsena saugoma atskirai kiekvienai paskyrai.
+**Paskirtis:** išlaikyti kelių sąveikos etapų agentą (Claude Code, aider, pasirinktinius agentus) toje pačioje paskyroje tarp užklausų, sumažinant konteksto praradimą tarp paskyrų ir pasikartojančius 429 atsakus po šaltosios pradžios teikėjams, kurių seanso būsena susieta su paskyra.
 
 **Įgyvendinimas:**
 
 - TTL nustatymas: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Susiejimo pasirinkimas / sukūrimas: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Antraštės išskyrimas (bendrasis, bet kuriam teikėjui): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Išliekamoji susiejimų lentelė: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Nustatymas: `sessionAffinityTtlMs` (visuotinis TTL milisekundėmis, `0` išjungia) — `src/lib/db/settings.ts`. Per migraciją `124_generic_session_affinity_ttl.sql` pervadintas iš tik Codex skirto `codexSessionAffinityTtlMs`; bet kokia anksčiau sukonfigūruota Codex TTL reikšmė perkeliama kaip naujoji numatytoji reikšmė.
+- Susiejimo pasirinkimas / kūrimas: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Antraštės išgavimas (bendrasis, bet kuriam teikėjui): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Išsaugoma susiejimų lentelė: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Nuostata: `sessionAffinityTtlMs` (bendrasis TTL milisekundėmis, `0` išjungia) — `src/lib/db/settings.ts`. Perkeliant `124_generic_session_affinity_ttl.sql`, pavadinimas pakeistas iš tik Codex skirto `codexSessionAffinityTtlMs`; bet koks anksčiau sukonfigūruotas Codex TTL perkeliamas kaip naujoji numatytoji reikšmė.
 
-Iki #7274 `resolveSessionAffinityTtlMs()` visiems teikėjams, išskyrus `codex`, iš karto grąžindavo `0`, todėl TTL nustatymas (ir seanso antraštės) niekur kitur neturėjo poveikio, nors susiejimo mechanizmas ir antraščių išskyrimas jau nepriklausė nuo konkretaus teikėjo. Pataisoje šis ankstyvas grąžinimas pašalintas; dabar TTL vienodai taikomas kiekvienam teikėjui, kai visuotinai nustatoma didesnė nei `0` reikšmė.
+Iki #7274 `resolveSessionAffinityTtlMs()` iš karto grąžindavo `0` visiems teikėjams, išskyrus `codex`, todėl TTL nuostata (ir seanso antraštės) kitur neturėjo jokio poveikio, nors susiejimo mechanizmas ir antraščių išgavimas jau buvo nepriklausomi nuo teikėjo. Pataisa pašalino šį ankstyvą grąžinimą; dabar TTL vienodai taikomas kiekvienam teikėjui, kai visuotinai nustatoma didesnė nei `0` reikšmė.
 
-Trys seanso susiejimo antraštės niekada nepersiunčiamos aukštyn — vykdyklės savo aukštesniojo lygmens antraštes kuria nuo nulio, užuot persiuntusios kliento antraštes, todėl tai lieka tik vidiniu koreliacijos identifikatoriumi.
+Trys seanso susiejimo antraštės niekada neperduodamos aukštesnio lygio serveriui — vykdyklės savo aukštesnio lygio serverio antraštes kuria nuo nulio, užuot persiuntusios kliento antraštes, todėl tai lieka tik vidiniu koreliacijos identifikatoriumi.
 
 ### Išskirtinės valdomų seansų ryšio nuomos
 
-**Taikymo sritis:** vienam aktyviam valdomam HTTP klientui / seansui priklauso vienas tinkamas OmniRoute ryšys.
+**Aprėptis:** vienam aktyviam valdomam HTTP klientui / seansui priklauso vienas tinkamas OmniRoute ryšys.
 
-**Paskirtis:** suteikti ilgalaikę išskirtinę ryšio nuosavybę klientams, kuriems tarp užklausų reikalingas griežtas maršruto parinkimo
-barjeras. Tai skiriasi nuo seanso susiejimo, kuris yra neprivaloma tęstinumo pirmenybė:
-išskirtinė nuoma išsaugo gyvavimo ciklo būseną SQLite, užtikrina visuotinį aktyvaus savininko ir
-aktyvaus ryšio unikalumą bei atmeta pasenusią kartą prieš perduodant užklausą teikėjui.
+**Paskirtis:** suteikti ilgalaikę išskirtinę ryšio nuosavybę klientams, kuriems tarp užklausų
+reikalinga griežta maršruto parinkimo riba. Tai skiriasi nuo seanso susiejimo, kuris yra neprivaloma
+tęstinumo pirmenybė: išskirtinės nuomos gyvavimo ciklo būsena išsaugoma SQLite, užtikrinamas
+visuotinis aktyvaus savininko ir aktyvaus ryšio unikalumas, o pasenusi karta atmetama prieš
+perduodant užklausą teikėjui.
 
-Funkcija pasirenkama atskirai kiekvienam API raktui. Valdomas raktas turi turėti `lease:exclusive` aprėptį ir
-aiškiai nurodytą netuščią `allowedConnections` sąrašą. Gyvavimo ciklo galinį tašką gali naudoti bet kuris HTTP klientas; nereikia
-nei kliento pavadinimo, nei naudotojo agento, nei teikėjo, nei OAuth metodo, nei modelio. Nuomai priklauso ryšys,
-o ne modelis, todėl pakeitus modelį susiejimas išlieka, kol ryšys tebėra įprastai
-tinkamas. Įprastos modelio, kvotos, būklės, atvėsimo laikotarpio ir leidžiamųjų sąrašų taisyklės išlieka viršesnės ir gali
-perkelti tą pačią kartą į kitą laisvą tinkamą ryšį.
+Ši funkcija pasirenkama atskirai kiekvienam API raktui. Valdomas raktas privalo turėti
+`lease:exclusive` aprėptį ir aiškiai nurodytą netuščią `allowedConnections` sąrašą. Gyvavimo ciklo
+galinį tašką gali naudoti bet kuris HTTP klientas; kliento vardas, naudotojo agentas, teikėjas,
+OAuth metodas ar modelis nėra būtini. Nuomai priklauso ryšys, o ne modelis, todėl pakeitus modelį
+susiejimas išlaikomas tol, kol ryšys tebėra įprastai tinkamas. Įprastos modelio, kvotos, būklės,
+atvėsimo ir leidžiamųjų sąrašų taisyklės lieka viršesnės ir gali perkelti tą pačią kartą į kitą
+laisvą tinkamą ryšį.
 
-Gyvavimo ciklas valdomas per `POST /api/v1/session-leases`, naudojant JSON veiksmus `acquire`, `renew` ir `release`.
-Valdomos išvedimo užklausos pateikia neskaidrią `X-OmniRoute-Lease-Owner` reikšmę ir tikslią
-`X-OmniRoute-Lease-Generation` reikšmę. Savininko reikšmę sudaro `vlo_` ir po jo einantys 43 base64url simboliai; saugoma tik
-jos SHA-256 maiša. Kiekvienas galutinis perdavimo barjeras taip pat susiejamas su autentifikuoto API rakto ID ir
-aktyvaus ryšio ID. Nuomos valdymo antraštės pašalinamos iš žurnalų, išsaugomų užklausų momentinių kopijų ir
-aukštesniojo lygmens vykdyklių antraščių.
+Gyvavimo ciklas yra `POST /api/v1/session-leases` su JSON veiksmais `acquire`, `renew` ir `release`.
+Valdomos išvedimo užklausos pateikia nepermatomą `X-OmniRoute-Lease-Owner` reikšmę ir tikslią
+`X-OmniRoute-Lease-Generation` reikšmę. Savininko identifikatorius prasideda `vlo_`, po kurio eina 43 base64url simboliai; saugoma tik
+jo SHA-256 maiša. Kiekvienas galutinis išsiuntimo barjeras taip pat susiejamas su autentifikuoto API rakto ID ir
+aktyvaus ryšio ID. Nuomos valdymo antraštės pašalinamos iš žurnalų, išsaugotų užklausų momentinių kopijų ir
+aukštesniojo lygmens vykdytojo antraščių.
 
-Jei įprasto maršruto parinkimo metu yra tinkamų valdomų kandidatų, tačiau kiekvieną laisvą kandidatą užima
-svetima aktyvi nuoma, OmniRoute grąžina HTTP `429`, kodą, nurodantį, kad nuomos pajėgumai nepasiekiami,
-laukimo, kol atsiras pajėgumų, būseną ir apribotą `Retry-After` reikšmę, apskaičiuotą pagal anksčiausiai pasibaigsiančią susijusią nuomą.
-Įprastas tinkamų kandidatų nebuvimas nėra nuomos konfliktas, todėl jam išlieka esama maršruto parinkimo klaidų semantika.
+Jei įprastas maršruto parinkimas turi tinkamų valdomų kandidatų, tačiau kiekvienas laisvas kandidatas yra užimtas
+svetimos aktyvios nuomos, „OmniRoute“ grąžina HTTP `429`, kodą `lease-capacity-unavailable`,
+laukimo, kol atsiras pajėgumų, būseną ir apribotą `Retry-After` reikšmę, nustatytą pagal anksčiausią susijusį galiojimo pabaigos laiką.
+Įprastas tinkamų kandidatų nebuvimas nėra nuomos konfliktas ir išlaiko esamą maršruto parinkimo klaidų semantiką.
 
-Susiję mechanizmai išlieka atskirti:
+Susiję mechanizmai lieka atskirti:
 
-- OAuth seansų užimtumas yra procesui lokalus neprivalomas OAuth paskyrų paskirstymas.
-- Paskyrų semaforai suteikia užklausų lygiagretumo leidimus, kurie nustoja galioti užklausai pasibaigus.
-- Išskirtinės valdomų seansų nuomos yra ilgalaikė gyvavimo ciklo nuosavybė su kartos barjeru.
+- OAuth seanso užimtumas yra proceso ribose veikiantis švelnaus paskirstymo mechanizmas, skirtas OAuth paskyroms.
+- Paskyrų semaforai suteikia užklausų lygiagretumo leidimus, kurių galiojimas baigiasi užklausai pasibaigus.
+- Išskirtinės valdomų seansų nuomos užtikrina patvarų gyvavimo ciklo nuosavybės valdymą su kartos barjeru.
 
 ---
 

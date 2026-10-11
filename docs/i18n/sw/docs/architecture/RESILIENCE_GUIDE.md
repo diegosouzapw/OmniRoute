@@ -71,11 +71,11 @@ Kinga dhidi ya kurudi kwa hitilafu: `tests/unit/provider-cooldown-window-gate.te
 
 **Upeo:** muunganisho/akaunti/ufunguo mmoja wa mtoa huduma.
 
-**Lengo:** kuruka ufunguo mmoja mbovu huku miunganisho mingine ya mtoa huduma huyo ikiendelea kuhudumia.
+**Madhumuni:** kuruka ufunguo mmoja wenye hitilafu huku miunganisho mingine ya mtoa huduma huyo ikiendelea kuhudumia.
 
 **Utekelezaji:**
 
-- Weka alama ya kutopatikana: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Weka kuwa haipatikani: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Uteuzi: `getProviderCredentials*` katika faili hiyo hiyo
 - Ukokotoaji wa kipindi cha kusubiri: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Mipangilio: `src/lib/resilience/settings.ts`
@@ -85,124 +85,160 @@ Kinga dhidi ya kurudi kwa hitilafu: `tests/unit/provider-cooldown-window-gate.te
 - `rateLimitedUntil` — muhuri wa muda hadi kipindi cha kusubiri kiishe
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — kihesabu cha ongezeko la kielelezo la muda wa kusubiri
+- `backoffLevel` — kihesabu cha ucheleweshaji unaoongezeka kwa kiwango cha kipeo
 
-**Vipindi chaguo-msingi vya kusubiri:**
+**Vipindi chaguomsingi vya kusubiri:**
 
 - Msingi wa OAuth: sekunde 5
 - Msingi wa ufunguo wa API: sekunde 3
-- 429 ya ufunguo wa API: hupendelea `Retry-After`/vichwa vya kuweka upya vya mfumo wa juu/maandishi ya wakati wa kuweka upya yanayoweza kuchanganuliwa
-- Ongezeko la muda wa kusubiri: `baseCooldownMs * 2 ** failureIndex`
+- 429 ya ufunguo wa API: hupendelea vichwa vya mfumo wa juu vya `Retry-After`/uwekaji upya/maandishi ya uwekaji upya yanayoweza kuchanganuliwa
+- Ucheleweshaji: `baseCooldownMs * 2 ** failureIndex`
 
-**Kinga dhidi ya msongamano wa maombi ya wakati mmoja:** huzuia hitilafu zinazotokea kwa wakati mmoja kuongeza kipindi cha kusubiri kupita kiasi au kuongeza `backoffLevel` mara mbili.
+**Kizuizi dhidi ya msongamano wa maombi ya wakati mmoja:** huzuia hitilafu zinazotokea kwa wakati mmoja kurefusha kupita kiasi kipindi cha kusubiri au kuongeza `backoffLevel` mara mbili.
 
-Fremu za binary za Kiro za `reasoningContentEvent` zenye sahihi isiyo tupu huhifadhi shughuli ya kufikiri kupitia kitekelezaji kama delta tupu ya `reasoning_content`. Sahihi haipitishwi. Metadata, fremu zisizokamilika na sahihi tupu hazianzi upya muda wa kusubiri maudhui; kikomo huru cha muda wa mtiririko unaoendelea na kughairi kwa mteja bado vinatumika. (`open-sse/executors/kiro/reasoning.ts`).
+**Kukwama kwa maudhui ya mtiririko hakufanyi akaunti iingie katika kipindi cha kusubiri.** Wakati kifuatiliaji cha kukwama kwa maudhui
+(`open-sse/utils/streamHandler.ts`) kinapokata tamaa kuhusu mtiririko ambao haukutuma towe la modeli ndani ya
+muda, `markAccountUnavailable()` hurekodi hitilafu kwenye muunganisho lakini hakiweki
+kipindi cha kusubiri: kukwama huko ni kwa ombi hilo, na mara nyingi huwa ni zamu ndefu ya kufikiri bila
+towe bado. Waendeshaji wanaweza kuwasha tena chaguo hili kwa kutumia `resilienceSettings.streamStallCooldown.enabled`
+(chaguomsingi ni `false`).
+
+**Fremu za kufikiri huanzisha upya bajeti ya kukwama kwa maudhui.** Modeli ya kufikiri inaweza kufikiri kwa
+dakika kadhaa kabla ya tokeni yake ya kwanza inayoonekana: Claude hutiririsha fremu za `thinking_delta` ambazo
+maandishi yake ya kufikiri yanaweza kuwa tupu, na Responses API hutiririsha kipengee kimoja cha kufikiri baada ya
+kingine. `isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) hutambua
+fremu hizi, na kifuatiliaji huanzisha upya bajeti yake kwa kila fremu badala ya kughairi
+zamu. Bado si towe la modeli, kwa hivyo zamu inayoishia na kufikiri pekee bado
+huripotiwa kuwa tupu, na zamu inayoacha kufikiri kisha ikatuma ishara za uhai pekee bado huamsha
+kifuatiliaji.
+
+Fremu jozi za `reasoningContentEvent` za Kiro zenye sahihi isiyo tupu huhifadhi
+shughuli hii ya kufikiri kupitia kitekelezaji kama delta tupu ya `reasoning_content`. Sahihi hiyo
+haisambazwi. Metadata, fremu zisizokamilika na sahihi tupu hazianzishi upya
+bajeti ya maudhui; muda huru wa mwisho wa mtiririko amilifu na kughairi kwa mteja bado
+hutumika (`open-sse/executors/kiro/reasoning.ts`).
 
 **Hali za mwisho (SI vipindi vya kusubiri):**
 
-- `banned` — huwekwa na utambuzi wa neno muhimu lililopigwa marufuku / kupigwa marufuku kwa akaunti (angalia [BAN_DETECTION](../security/BAN_DETECTION.md)), na pia na kukataliwa mara tatu mfululizo kwa kila ombi na mfumo wa juu (`request_rejected`, kwa mfano Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); kukataliwa mara moja huweka tu muunganisho katika kipindi cha kusubiri
-- `expired` (hubadilika kuwa hali ya mwisho baada ya majaribio yenye kikomo — `EXPIRED_RETRY_MAX = 3` pamoja na ongezeko la kielelezo la muda wa kusubiri — ili hitilafu za muda za OAuth ziweze kujirekebisha kabla ya akaunti kuzimwa kabisa)
+- `banned` — huwekwa na utambuzi wa neno lililopigwa marufuku / kupigwa marufuku kwa akaunti (angalia [BAN_DETECTION](../security/BAN_DETECTION.md)), na pia na kukataliwa mara tatu mfululizo kwa kila ombi na mfumo wa juu (`request_rejected`, kwa mfano, OAuth 403 ya Anthropic "Ombi haliruhusiwi" — `open-sse/services/requestRejectedStreak.ts`); kukataliwa mara moja huweka tu muunganisho katika kipindi cha kusubiri
+- `expired` (hubadilika kuwa hali ya mwisho baada ya majaribio yenye kikomo — `EXPIRED_RETRY_MAX = 3` yenye ucheleweshaji unaoongezeka kwa kiwango cha kipeo — ili hitilafu za muda za OAuth ziweze kujirekebisha kabla ya akaunti kuzimwa kabisa)
 - `credits_exhausted`
 
-Hali hizi hudumu hadi vitambulisho vibadilike au mwendeshaji aziweke upya. Usiandike juu ya hali za mwisho kwa hali ya muda ya kusubiri.
+Hizi hudumu hadi vitambulisho vibadilike au mwendeshaji avirejeshe. Usiandike hali ya muda ya kipindi cha kusubiri juu ya hali za mwisho.
 
-**Urejeshaji wa uvivu:** `rateLimitedUntil` ikishapita, muunganisho unastahiki tena. Baada ya kutumiwa kwa mafanikio, `clearAccountError()` huondoa sehemu zote za hitilafu.
+**Urejeshaji wa kivivu:** wakati `rateLimitedUntil` umepita, muunganisho unastahiki tena. Baada ya matumizi yenye mafanikio, `clearAccountError()` huondoa sehemu zote za hitilafu.
 
 ### Kikomo cha matumizi cha Claude OAuth: njia ya kipaumbele cha chini + uwekaji upya wa kikomo cha kipindi
 
-**Upeo:** muunganisho mmoja wa usajili wa Claude (OAuth). Vipengele vyote viwili ni vya **kuwezeshwa kwa hiari kwa kila
+**Upeo:** muunganisho mmoja wa usajili wa Claude (OAuth). Vipengele vyote viwili ni vya **kuwashwa kwa hiari kwa kila
 muunganisho** (Hariri muunganisho → sehemu ya Claude → `lowPriorityMode` / `autoLimitReset` katika
-`providerSpecificData`, vyote vikiwa vimezimwa kwa chaguo-msingi) na huakisi amri za Claude Code za `/low-priority` na
-`/limit-reset` (mkataba wa mawasiliano ulionakiliwa kutoka Claude Code 2.1.263).
+`providerSpecificData`, vyote vikiwa vimezimwa kwa chaguomsingi) na vinaakisi amri za Claude Code za `/low-priority` na
+`/limit-reset` (mkataba wa mawasiliano ulionaswa kutoka Claude Code 2.1.263).
 
 **Utekelezaji:**
 
 - Mashine ya hali + uainishaji wa majibu: `open-sse/services/claudeLowPriority.ts`
 - Kiteja cha hali/dai la uwekaji upya: `open-sse/services/claudeLimitReset.ts`
-- Kiunganishi cha kitekelezaji (uingizaji wa kichwa + kujaribu tena akaunti hiyo hiyo): `open-sse/executors/base.ts::execute()`
-- Uhifadhi wa chaguo la kuwezesha: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+- Kiunganishi cha kitekelezaji (uingizaji wa kichwa + jaribio jingine kwa akaunti ileile): `open-sse/executors/base.ts::execute()`
+- Uhifadhi wa chaguo la kuwasha kwa hiari: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
 **Kichochezi:** kikomo cha matumizi cha saa 5 — `429` ambayo vichwa vyake vina
-`anthropic-ratelimit-unified-status: rejected` na, akaunti inapostahiki,
+`anthropic-ratelimit-unified-status: rejected` na, wakati akaunti inastahiki,
 `anthropic-ratelimit-unified-slow-offer: treatment`. Hakuna kinachotumwa kabla ya 429 hiyo ya kwanza ya kufikia kikomo;
-429 ya ghafla isiyo na vichwa vilivyounganishwa hupitia njia ya kawaida ya kipindi cha kusubiri.
+429 ya maombi mengi ya ghafla isiyo na vichwa vilivyounganishwa hupitia njia ya kawaida ya kipindi cha kusubiri.
 
 **Njia ya kipaumbele cha chini** (`lowPriorityMode`):
 
-- Kwenye 429 ya kufikia kikomo, kitekelezaji hukubali ofa na mara moja kujaribu tena **akaunti hiyo hiyo**
-  kwa `anthropic-usage-limit: slow`; njia hiyo hubaki hai hadi muda uliotangazwa wa
-  `anthropic-ratelimit-unified-reset` (+sekunde 60 za ziada) na kila ombi katika kipindi hicho hubeba
-  kichwa hicho. 429 iliyonaswa haifiki kamwe kwa `handleChatCore`, kwa hivyo muunganisho
-  **hauwekwi** katika kipindi cha kusubiri wala haubadilishwi.
-- `anthropic-ratelimit-unified-slow-status` katika majibu yanayofuata: `active` / `not_needed`
-  huendeleza njia hiyo; `slot_busy` (429) au `529` husubiri muda wa seva wa
-  `anthropic-ratelimit-unified-slow-retry-after` (chaguo-msingi sekunde 20, hulazimishwa kati ya sekunde 5–600, mtikisiko wa ±30%)
-  na kujaribu tena, kwa kikomo cha `anthropic-ratelimit-unified-slow-max-wait` (chaguo-msingi dakika 20, hulazimishwa kati ya
-  dakika 1–saa 6) — baada ya hapo njia huisha na muda wa kutulia wa dakika 10 huzuia kukubaliwa tena. Muda wa
-  kusubiri pia huwekewa kikomo na muda uliosalia wa kuanza kwa mfumo wa juu wa ombi lenyewe
-  (`resolveFetchStartTimeout`, dakika 10 kwa chaguo-msingi) ukiondoa nafasi ya sekunde 5: bila kikomo hicho,
-  muda wa juu chaguo-msingi wa dakika 20 wa kusubiri ungezidi muda wa ombi na usingizi ungekatishwa
-  katikati ya kusubiri, na kutoa `TimeoutError` badala ya mwisho laini wa `max_wait` + muda wa kutulia.
+- Kwenye ukomo wa 429, kitekelezaji kinakubali ofa na mara moja kinajaribu tena akaunti **ileile**
+  ikiwa na `anthropic-usage-limit: slow`; njia hubaki hai hadi
+  `anthropic-ratelimit-unified-reset` iliyotangazwa (+sekunde 60 za nyongeza), na kila ombi katika kipindi hicho hubeba
+  header hiyo. 429 iliyonaswa kamwe haifiki `handleChatCore`, kwa hivyo muunganisho
+  **hauwekwi** katika kipindi cha kusubiri na haubadilishwi.
+- `anthropic-ratelimit-unified-slow-status` kwenye majibu ya baadaye: `active` / `not_needed`
+  huendeleza njia; `slot_busy` (429) au `529` husubiri muda wa seva wa
+  `anthropic-ratelimit-unified-slow-retry-after` (chaguomsingi sekunde 20, kikomo sekunde 5–600, jitter ya ±30%)
+  na kujaribu tena, kwa kuwekewa mpaka na `anthropic-ratelimit-unified-slow-max-wait` (chaguomsingi dakika 20, kikomo
+  dakika 1–saa 6) — baada ya hapo njia huisha na kipindi cha kutulia cha dakika 10 huzuia kukubaliwa tena. Muda wa
+  kusubiri pia huwekewa kikomo na muda uliosalia wa timeout ya kuanza kwa upstream ya ombi lenyewe
+  (`resolveFetchStartTimeout`, chaguomsingi dakika 10) ukiondoa ukingo wa sekunde 5: bila kikomo hicho,
+  muda wa juu wa kusubiri wa chaguomsingi wa dakika 20 ungezidi muda wa ombi na usingizi ungekatizwa
+  katikati ya kusubiri, na kusababisha `TimeoutError` badala ya mwisho laini wa `max_wait` + kipindi cha kutulia.
 - `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, kuanza upya kwa dirisha la saa 5, au
   `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (ambayo huimaliza kama
-  `extra_usage` katika hali yoyote, kwa kuwa matumizi ya ziada yanayolipiwa sasa yanashughulikia kikomo) humaliza njia hiyo;
+  `extra_usage` kwa hali yoyote, kwa kuwa matumizi ya ziada yanayolipiwa sasa yanafunika ukomo) huimaliza njia;
   kisha jibu hupitia njia ya kawaida ya kipindi cha kusubiri. `budget_exhausted` hukumbukwa hadi
-  muda uliotangazwa wa kuweka upya bajeti (≤ siku 8).
-- Ukaguzi wa kikomo hufanyika baada ya majaribio ya ndani ya jaribio yanayoendeshwa na 400 ya kitekelezaji chenyewe (uhariri wa
-  muktadha, uwekaji mipaka wa kufikiri/juhudi, ujifunzaji-otomatiki wa vigezo), kwa hivyo 429 ya kufikia kikomo inayojitokeza tu katika
+  uwekaji upya wa bajeti uliotangazwa (≤ siku 8).
+- Ukaguzi wa ukomo huendeshwa baada ya majaribio ya ndani ya jaribio moja ya kitekelezaji yanayoanzishwa na 400 (uhariri wa
+  muktadha, mipaka ya thinking/effort, ujifunzaji-otomatiki wa parameta), kwa hivyo 429 ya ukomo inayojitokeza tu kwenye
   mojawapo ya majaribio hayo bado hunaswa badala ya kufika kwenye njia ya kipindi cha kusubiri.
-- Hali huhifadhiwa kwenye kumbukumbu kwa kila muunganisho (kuwasha upya kunahitaji 429 moja ya ziada ya kufikia kikomo ili kukubali tena).
+- Hali huhifadhiwa ndani ya kumbukumbu kwa kila muunganisho (kuanzisha upya hugharimu 429 moja ya ziada ya ukomo ili kukubali tena).
 
-**Uwekaji upya wa kikomo cha kipindi** (`autoLimitReset`, hujaribiwa kabla ya njia hiyo ikiwa vyote vimewashwa):
+**Uwekaji upya wa kikomo cha kipindi** (`autoLimitReset`, hujaribiwa kabla ya njia wakati zote zimewashwa):
 
-- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → kizuizi cha `juniper_tide`;
+- `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → block ya `juniper_tide`;
   wakati `arm: "reset"` na `available: true`,
-  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` pamoja na
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` ikiwa na
   `{ "program": "juniper_tide" }` (UUID ya shirika kutoka
-  `providerSpecificData.organizationUUID`, urejeleo mbadala wa uanzishaji).
-- `result: reset|not_limited` → ombi hujaribiwa tena kwa kasi kamili (bila kichwa cha polepole).
-  `already_used` / `not_offered` huhifadhi `next_available_at` (chaguo-msingi wiki moja);
-  hitilafu yoyote huanzisha muda wa kusubiri wa dakika 15. Uwekaji upya hufanyika mara moja kwa wiki na bado huhesabiwa
-  katika kikomo cha kila wiki.
+  `providerSpecificData.organizationUUID`, na bootstrap kama njia mbadala).
+- `result: reset|not_limited` → ombi hujaribiwa tena kwa kasi kamili (bila header ya slow).
+  `already_used` / `not_offered` huhifadhi `next_available_at` (chaguomsingi wiki moja);
+  hitilafu yoyote husubiri kwa dakika 15 kabla ya kujaribu tena. Uwekaji upya ni mara moja kwa wiki na bado huhesabiwa katika
+  kikomo cha kila wiki.
 
-Vizuizi vya urejeshi wa hitilafu: `tests/unit/claude-low-priority-mode.test.ts`,
+Vilinda dhidi ya marejeo ya hitilafu: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Uhusiano wa kipindi (#7274)
 
-**Upeo:** kipindi kimoja cha kiteja (kichwa cha `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) kinachofungamanishwa na muunganisho mmoja, kwa mtoa huduma **yeyote**.
+**Wigo:** kipindi kimoja cha mteja (`X-Session-Id` / `x-codex-session-id` / header ya `x-omniroute-session`) kilichofungamanishwa na muunganisho mmoja, kwa mtoa huduma **yeyote**.
 
-**Madhumuni:** kudumisha ajenti wa mazungumzo ya hatua nyingi (Claude Code, aider, ajenti maalum) kwenye akaunti ileile katika maombi mbalimbali, hivyo kupunguza upotevu wa muktadha unaotokana na kubadilisha akaunti na hitilafu za mara kwa mara za 429 wakati wa kuanza upya kwa watoa huduma wenye hali ya kipindi kwa kila akaunti.
+**Madhumuni:** kuweka wakala wa zamu nyingi (Claude Code, aider, mawakala maalum) kwenye akaunti ileile katika maombi mbalimbali, kupunguza kupotea kwa muktadha kati ya akaunti na 429 za kuanza bila joto zinazojirudia kwa watoa huduma wenye hali ya kipindi kwa kila akaunti.
 
 **Utekelezaji:**
 
 - Utatuzi wa TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Uteuzi/uundaji wa pini: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Utoaji wa kichwa (wa jumla, kwa mtoa huduma yeyote): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Jedwali la pini linalohifadhiwa: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Mpangilio: `sessionAffinityTtlMs` (TTL ya jumla katika ms, `0` huizima) — `src/lib/db/settings.ts`. Ulibadilishwa jina kutoka `codexSessionAffinityTtlMs`, uliokuwa wa Codex pekee, kupitia uhamishaji `124_generic_session_affinity_ttl.sql`, ambao huhamisha TTL yoyote ya Codex iliyosanidiwa awali kuwa thamani mpya chaguomsingi.
+- Uteuzi/uundaji wa uunganishaji: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Uchukuaji wa header (wa jumla, mtoa huduma yeyote): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Jedwali la uunganishaji linalohifadhiwa: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Mpangilio: `sessionAffinityTtlMs` (TTL ya jumla katika ms, `0` huizima) — `src/lib/db/settings.ts`. Ulibadilishwa jina kutoka `codexSessionAffinityTtlMs` ya Codex pekee na uhamishaji `124_generic_session_affinity_ttl.sql`, ambao huhamisha TTL yoyote ya Codex iliyosanidiwa hapo awali kuwa chaguomsingi jipya.
 
-Kabla ya #7274, `resolveSessionAffinityTtlMs()` ilisitisha moja kwa moja na kurudisha `0` kwa kila mtoa huduma isipokuwa `codex`, kwa hivyo mpangilio wa TTL (na vichwa vya kipindi) haukuwa na athari mahali pengine popote ingawa utaratibu wa kubandika na utoaji wa vichwa tayari haukutegemea mtoa huduma. Marekebisho yaliondoa urejeshaji huo wa mapema; sasa TTL inatumika kwa usawa kwa kila mtoa huduma pindi inapowekwa kimataifa kuwa zaidi ya `0`.
+Kabla ya #7274, `resolveSessionAffinityTtlMs()` ilikomesha mapema kwa kurudisha `0` kwa kila mtoa huduma isipokuwa `codex`, kwa hivyo mpangilio wa TTL (na header za kipindi) haukuwa na athari popote pengine ingawa utaratibu wa uunganishaji na uchukuaji wa header tayari havikutegemea mtoa huduma. Marekebisho yaliondoa urejeshaji huo wa mapema; TTL sasa inatumika kwa usawa kwa kila mtoa huduma mara inapowekwa kwa jumla zaidi ya `0`.
 
-Vichwa vitatu vya mshikamano wa kipindi havitumwi kamwe kwenda kwa mtoa huduma wa juu — vitekelezaji huunda vichwa vyao wenyewe vya mtoa huduma wa juu kuanzia mwanzo badala ya kupitisha vichwa vya mteja, kwa hivyo hiki hubaki kuwa kitambulisho cha ndani cha uhusianishaji pekee.
+Header hizo tatu za uhusiano wa kipindi kamwe hazitumwi upstream — vitekelezaji huunda header zao za upstream upya badala ya kupitisha header za mteja, kwa hivyo hii hubaki kitambulisho cha ndani cha uhusianishaji pekee.
 
 ### Ukodishaji wa kipekee wa miunganisho ya vipindi vinavyodhibitiwa
 
-**Upeo:** mteja/kipindi kimoja amilifu cha HTTP kinachodhibitiwa humiliki muunganisho mmoja unaostahiki wa OmniRoute.
+**Wigo:** mteja/kipindi kimoja cha HTTP kinachodhibitiwa na kilicho hai humiliki muunganisho mmoja unaostahiki wa OmniRoute.
 
-**Madhumuni:** kutoa umiliki wa kudumu na wa kipekee wa muunganisho kwa wateja wanaohitaji mpaka madhubuti wa uelekezaji katika maombi mbalimbali. Hii ni tofauti na mshikamano wa kipindi, ambao ni mapendeleo laini ya mwendelezo: ukodishaji wa kipekee huhifadhi hali ya mzunguko wa maisha katika SQLite, hutekeleza upekee wa kimataifa wa mmiliki amilifu na muunganisho amilifu, na hukataa kizazi kilichopitwa na wakati kabla ya kutumwa kwa mtoa huduma.
+**Madhumuni:** kutoa umiliki wa kipekee na wa kudumu wa muunganisho kwa wateja wanaohitaji mpaka thabiti wa uelekezaji
+katika maombi mbalimbali. Hii ni tofauti na uhusiano wa kipindi, ambao ni upendeleo laini wa mwendelezo:
+ukodishaji wa kipekee huhifadhi hali ya mzunguko wa maisha katika SQLite, hutekeleza upekee wa kimataifa wa mmiliki hai na
+muunganisho hai, na hukataa kizazi kilichopitwa na wakati kabla ya kutumwa kwa mtoa huduma.
 
-Kipengele hiki huwashwa kwa hiari kwa kila ufunguo wa API. Ufunguo unaodhibitiwa lazima uwe na upeo wa `lease:exclusive` na orodha ya `allowedConnections` iliyo wazi na isiyo tupu. Mteja yeyote wa HTTP anaweza kutumia endpoint ya mzunguko wa maisha; hakuna jina la mteja, user-agent, mtoa huduma, mbinu ya OAuth, wala modeli inayohitajika. Ukodishaji humiliki muunganisho, si modeli, kwa hivyo kubadilisha modeli hudumisha uhusiano huo mradi muunganisho uendelee kustahiki kwa kawaida. Kanuni za kawaida za modeli, mgao, afya, kipindi cha kusubiri, na orodha ya ruhusa huendelea kuwa na mamlaka na zinaweza kuhamisha kizazi kilekile hadi kwenye muunganisho mwingine huru unaostahiki.
+Kipengele hiki huwashwa kwa hiari kwa kila ufunguo wa API. Ufunguo unaodhibitiwa lazima uwe na scope ya `lease:exclusive` na
+orodha bayana isiyo tupu ya `allowedConnections`. Mteja yeyote wa HTTP anaweza kutumia endpoint ya mzunguko wa maisha; hakuna
+jina la mteja, user-agent, mtoa huduma, mbinu ya OAuth, au modeli inayohitajika. Ukodishaji humiliki muunganisho,
+si modeli, kwa hivyo kubadilisha modeli hudumisha uhusiano huo ilimradi muunganisho uendelee
+kustahiki kwa kawaida. Kanuni za kawaida za modeli, quota, afya, kipindi cha kusubiri na orodha ya ruhusa hubaki na mamlaka na zinaweza
+kuhamisha kizazi kilekile hadi kwenye muunganisho mwingine huru unaostahiki.
 
-Mzunguko wa maisha ni `POST /api/v1/session-leases` wenye vitendo vya JSON `acquire`, `renew`, na `release`. Maombi ya inferensi yanayodhibitiwa huwasilisha thamani fiche ya `X-OmniRoute-Lease-Owner` na `X-OmniRoute-Lease-Generation` halisi. Mmiliki hutumia `vlo_` ikifuatiwa na vibambo 43 vya base64url; ni heshi yake ya SHA-256 pekee inayohifadhiwa. Kila mpaka wa mwisho wa utumaji pia hufungamanisha kitambulisho cha ufunguo wa API kilichothibitishwa na kitambulisho cha muunganisho amilifu. Vichwa vya udhibiti wa ukodishaji huondolewa kwenye kumbukumbu, vijipicha vya maombi vilivyohifadhiwa, na vichwa vya kitekelezaji cha mtoa huduma wa juu.
+Mzunguko wa maisha ni `POST /api/v1/session-leases` wenye vitendo vya JSON `acquire`, `renew`, na `release`.
+Maombi ya inferensi yanayosimamiwa huwasilisha thamani isiyoeleweka ya `X-OmniRoute-Lease-Owner` na
+`X-OmniRoute-Lease-Generation` halisi. Mmiliki hutumia `vlo_` ikifuatiwa na herufi 43 za base64url; ni
+hashi yake ya SHA-256 pekee inayohifadhiwa. Kizuizi cha mwisho cha kila utumaji pia hufungamanisha kitambulisho cha ufunguo wa API uliothibitishwa na
+kitambulisho cha muunganisho amilifu. Vichwa vya udhibiti wa ukodishaji huondolewa kwenye kumbukumbu, vijipicha vya maombi vilivyohifadhiwa, na
+vichwa vya kitekelezaji cha upstream.
 
-Ikiwa uelekezaji wa kawaida una wagombea wanaostahiki wanaodhibitiwa lakini kila mgombea huru amekaliwa na ukodishaji amilifu wa mhusika mwingine, OmniRoute hurejesha HTTP `429`, msimbo wa lease-capacity-unavailable, hali ya kusubiri uwezo, na `Retry-After` yenye kikomo inayotokana na muda wa mapema zaidi wa kuisha unaohusika. Kutokuwepo kwa kawaida kwa wanaostahiki si ushindani wa ukodishaji na hudumisha semantiki zake zilizopo za hitilafu za uelekezaji.
+Iwapo uelekezaji wa kawaida una viteuliwa vinavyostahiki vinavyosimamiwa lakini kila kiteuliwa kilicho huru kinamilikiwa na
+ukodishaji amilifu wa mwingine, OmniRoute hurejesha HTTP `429`, msimbo wa lease-capacity-unavailable, hali ya
+waiting-for-capacity, na `Retry-After` yenye kikomo inayotokana na muda wa mapema zaidi wa kuisha unaohusika.
+Kutokuwa na viteuliwa vinavyostahiki katika hali ya kawaida si mgongano wa ukodishaji na huhifadhi semantiki zilizopo za hitilafu za uelekezaji.
 
-Taratibu zinazohusiana hubaki tofauti:
+Mbinu zinazohusiana hubaki tofauti:
 
-- Ukaliwa wa kipindi cha OAuth ni usambazaji laini wa ndani ya mchakato kwa akaunti za OAuth.
-- Semafori za akaunti hutoa vibali vya utekelezaji wa maombi kwa wakati mmoja na huisha ombi linapokamilika.
-- Ukodishaji wa kipekee wa vipindi vinavyodhibitiwa ni umiliki wa kudumu wa mzunguko wa maisha wenye mpaka wa kizazi.
+- Ukaaji wa kipindi cha OAuth ni usambazaji laini wa ndani ya mchakato kwa akaunti za OAuth.
+- Semafori za akaunti hutoa ruhusa za utekelezaji wa maombi kwa wakati mmoja na hukoma ombi linapokamilika.
+- Ukodishaji wa kipekee wa vipindi vinavyosimamiwa ni umiliki endelevu wa mzunguko wa maisha wenye kizuizi cha kizazi.
 
 ---
 

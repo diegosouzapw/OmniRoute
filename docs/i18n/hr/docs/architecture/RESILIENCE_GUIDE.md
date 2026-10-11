@@ -67,7 +67,7 @@ eksponencijalnu odgodu `minRetryCooldownMs → maxRetryCooldownMs`. Nadjačavanj
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`.
 Zaštita od regresije: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
-## 2. Razdoblje mirovanja veze
+## 2. Hlađenje veze
 
 **Opseg:** jedna veza/račun/ključ pružatelja usluge.
 
@@ -77,132 +77,168 @@ Zaštita od regresije: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 - Označavanje kao nedostupno: `src/sse/services/auth.ts::markAccountUnavailable()`
 - Odabir: `getProviderCredentials*` u istoj datoteci
-- Izračun razdoblja mirovanja: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Izračun hlađenja: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - Postavke: `src/lib/resilience/settings.ts`
 
 **Polja po vezi:**
 
-- `rateLimitedUntil` — vremenska oznaka do isteka razdoblja mirovanja
+- `rateLimitedUntil` — vremenska oznaka do isteka hlađenja
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — brojač eksponencijalnog odgađanja
 
-**Zadana razdoblja mirovanja:**
+**Zadana hlađenja:**
 
-- OAuth osnova: 5s
-- Osnova za API ključ: 3s
-- 429 za API ključ: prednost imaju uzvodna zaglavlja `Retry-After`/zaglavlja za poništavanje/tekst poništavanja koji se može raščlaniti
+- Osnovno za OAuth: 5s
+- Osnovno za API ključ: 3s
+- API ključ 429: prednost imaju zaglavlja `Retry-After`/zaglavlja za poništavanje uzvodnog sustava ili tekst poništavanja koji se može raščlaniti
 - Odgađanje: `baseCooldownMs * 2 ** failureIndex`
 
-**Zaštita od stampeda zahtjeva:** sprječava da istodobni kvarovi prekomjerno produlje razdoblje mirovanja ili dvaput povećaju `backoffLevel`.
+**Zaštita od stampeda zahtjeva:** sprječava da istodobni neuspjesi prekomjerno produlje hlađenje ili dvaput povećaju `backoffLevel`.
 
-Kiro binarni okviri `reasoningContentEvent` s potpisom koji nije prazan čuvaju aktivnost zaključivanja kroz izvršitelj kao praznu deltu `reasoning_content`. Potpis se ne prosljeđuje. Metapodaci, nepotpuni okviri i prazni potpisi ne pokreću ponovno vremensko ograničenje za sadržaj; neovisno ograničenje trajanja aktivnog toka i otkazivanje od strane klijenta ostaju na snazi. (`open-sse/executors/kiro/reasoning.ts`).
+**Zastoji sadržaja toka ne aktiviraju hlađenje računa.** Kada nadzornik zastoja sadržaja
+(`open-sse/utils/streamHandler.ts`) odustane od toka koji nije na vrijeme poslao izlaz modela,
+`markAccountUnavailable()` bilježi pogrešku na vezi, ali ne postavlja
+hlađenje: zastoj pripada tom zahtjevu, najčešće dugom koraku zaključivanja koji još nema
+izlaza. Operateri ga mogu ponovno uključiti putem `resilienceSettings.streamStallCooldown.enabled`
+(zadano `false`).
 
-**Završna stanja (NISU razdoblja mirovanja):**
+**Okviri zaključivanja ponovno pokreću vremenski budžet zastoja sadržaja.** Model za zaključivanje može razmišljati
+minutama prije svojeg prvog vidljivog tokena: Claude šalje okvire `thinking_delta` čiji
+tekst razmišljanja može biti prazan, a Responses API šalje jednu stavku zaključivanja za
+drugom. `isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) prepoznaje
+te okvire, a nadzornik pri svakome ponovno pokreće svoj budžet umjesto otkazivanja
+koraka. Oni se i dalje ne smatraju izlazom modela, pa se korak koji završi samo zaključivanjem i dalje
+prijavljuje kao prazan, a korak koji prestane zaključivati i šalje samo poruke održavanja veze i dalje aktivira
+nadzornik.
 
-- `banned` — postavlja se otkrivanjem zabranjene ključne riječi / zabrane računa (pogledajte [BAN_DETECTION](../security/BAN_DETECTION.md)) te nakon tri uzastopna uzvodna odbijanja pojedinačnih zahtjeva (`request_rejected`, npr. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); jedno odbijanje samo stavlja vezu u razdoblje mirovanja
-- `expired` (prelazi u završno stanje nakon ograničenog broja ponovnih pokušaja — `EXPIRED_RETRY_MAX = 3` uz eksponencijalno odgađanje — kako bi se prolazne OAuth pogreške mogle same ispraviti prije trajnog deaktiviranja računa)
+Kirovi binarni okviri `reasoningContentEvent` s nepraznim potpisom čuvaju ovu
+aktivnost zaključivanja kroz izvršitelj kao praznu deltu `reasoning_content`. Potpis se
+ne prosljeđuje. Metapodaci, nepotpuni okviri i prazni potpisi ne pokreću ponovno
+budžet sadržaja; neovisno vremensko ograničenje aktivnog toka i otkazivanje od strane klijenta i dalje se
+primjenjuju (`open-sse/executors/kiro/reasoning.ts`).
+
+**Završna stanja (NISU hlađenja):**
+
+- `banned` — postavlja se otkrivanjem zabranjene ključne riječi / zabrane računa (pogledajte [BAN_DETECTION](../security/BAN_DETECTION.md)) i nakon tri uzastopna odbijanja pojedinačnog zahtjeva od strane uzvodnog sustava (`request_rejected`, npr. Anthropic OAuth 403 "Zahtjev nije dopušten" — `open-sse/services/requestRejectedStreak.ts`); jedno odbijanje samo aktivira hlađenje veze
+- `expired` (prelazi u završno stanje nakon ograničenog broja ponovnih pokušaja — `EXPIRED_RETRY_MAX = 3` s eksponencijalnim odgađanjem — tako da se prolazne OAuth pogreške mogu same otkloniti prije nego što se račun trajno deaktivira)
 - `credits_exhausted`
 
-Ta stanja traju dok se vjerodajnice ne promijene ili ih operater ne poništi. Nemojte prebrisati završna stanja prolaznim stanjem mirovanja.
+Ta stanja ostaju dok se vjerodajnice ne promijene ili ih operater ne poništi. Nemojte prebrisati završna stanja prolaznim stanjem hlađenja.
 
-**Lijeni oporavak:** kada `rateLimitedUntil` prođe, veza ponovno postaje dostupna za odabir. Nakon uspješne uporabe `clearAccountError()` briše sva polja pogrešaka.
+**Lijeni oporavak:** kada `rateLimitedUntil` prođe, veza ponovno postaje prihvatljiva. Nakon uspješne upotrebe `clearAccountError()` briše sva polja pogreške.
 
-### Zid potrošnje za Claude OAuth: traka nižeg prioriteta + poništavanje ograničenja sesije
+### Claudeov prag upotrebe za OAuth: traka nižeg prioriteta + poništavanje ograničenja sesije
 
-**Opseg:** jedna veza pretplate na Claude (OAuth). Obje su značajke **uključive zasebno po
-vezi** (Uređivanje veze → odjeljak Claude → `lowPriorityMode` / `autoLimitReset` u
+**Opseg:** jedna veza Claude pretplate (OAuth). Obje značajke moraju se **uključiti zasebno za svaku
+vezu** (Uredi vezu → odjeljak Claude → `lowPriorityMode` / `autoLimitReset` u
 `providerSpecificData`, obje su zadano isključene) i odgovaraju naredbama `/low-priority` i
-`/limit-reset` alata Claude Code (mrežni ugovor zabilježen iz verzije Claude Code 2.1.263).
+`/limit-reset` u Claude Codeu (protokol prijenosa zabilježen iz Claude Code 2.1.263).
 
 **Implementacija:**
 
 - Automat stanja + klasifikacija odgovora: `open-sse/services/claudeLowPriority.ts`
-- Klijent za status/aktiviranje poništavanja: `open-sse/services/claudeLimitReset.ts`
-- Priključak izvršitelja (umetanje zaglavlja + ponovni pokušaj na istom računu): `open-sse/executors/base.ts::execute()`
-- Pohrana uključivanja: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+- Klijent za status/zahtjev poništavanja: `open-sse/services/claudeLimitReset.ts`
+- Priključak izvršitelja (umetanje zaglavlja + ponovni pokušaj s istim računom): `open-sse/executors/base.ts::execute()`
+- Trajno spremanje uključivanja: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-**Okidač:** zid potrošnje od 5 sati — odgovor `429` čija zaglavlja sadrže
+**Okidač:** 5-satni prag upotrebe — `429` čija zaglavlja sadrže
 `anthropic-ratelimit-unified-status: rejected` i, kada račun ispunjava uvjete,
 `anthropic-ratelimit-unified-slow-offer: treatment`. Ništa se ne šalje prije tog prvog odgovora
-429 uzrokovanog zidom; skupni 429 bez objedinjenih zaglavlja prolazi uobičajenim putem razdoblja mirovanja.
+429 za prag; rafalni 429 bez objedinjenih zaglavlja prolazi uobičajenim putem hlađenja.
 
 **Traka nižeg prioriteta** (`lowPriorityMode`):
 
-- Nakon odgovora 429 uzrokovanog zidom izvršitelj prihvaća ponudu i odmah ponovno pokušava s **istim**
+- Na zidu 429 izvršitelj prihvaća ponudu i odmah ponovno pokušava s **istim**
   računom uz `anthropic-usage-limit: slow`; traka ostaje aktivna do najavljenog
-  `anthropic-ratelimit-unified-reset` (+60s dodatnog vremena), a svaki zahtjev u tom razdoblju sadrži
-  zaglavlje. Presretnuti 429 nikada ne dolazi do `handleChatCore`, pa se veza
-  **ne** stavlja u razdoblje mirovanja niti se zamjenjuje drugom.
+  `anthropic-ratelimit-unified-reset` (+60 s tolerancije), a svaki zahtjev u tom razdoblju sadrži
+  to zaglavlje. Presretnuti 429 nikad ne dolazi do `handleChatCore`, pa se veza
+  **ne** stavlja na hlađenje niti se zamjenjuje drugom.
 - `anthropic-ratelimit-unified-slow-status` u kasnijim odgovorima: `active` / `not_needed`
-  zadržavaju traku; `slot_busy` (429) ili `529` čekaju prema poslužiteljevu
-  `anthropic-ratelimit-unified-slow-retry-after` (zadano 20s, ograničeno na 5–600s, ±30% nasumičnog odstupanja)
-  i ponovno pokušavaju, uz ograničenje određeno s `anthropic-ratelimit-unified-slow-max-wait` (zadano 20 min, ograničeno
-  na 1 min–6 h) — nakon toga traka završava, a 10-minutno razdoblje hlađenja blokira ponovno prihvaćanje. Vrijeme
-  čekanja dodatno je ograničeno preostalim vremenom vlastitog vremenskog ograničenja zahtjeva za početak uzvodne obrade
-  (`resolveFetchStartTimeout`, zadano 10 min) umanjenim za 5 s: bez tog ograničenja
+  zadržavaju traku; `slot_busy` (429) ili `529` čekaju poslužiteljev
+  `anthropic-ratelimit-unified-slow-retry-after` (zadano 20 s, ograničeno na 5–600 s, ±30 % slučajnog odstupanja)
+  i ponovno pokušavaju, uz ograničenje postavljeno s `anthropic-ratelimit-unified-slow-max-wait` (zadano 20 min, ograničeno
+  na 1 min–6 h) — nakon toga traka završava, a 10-minutno hlađenje blokira ponovno prihvaćanje. Čekanje
+  je dodatno ograničeno preostalim vremenom vlastitog vremenskog ograničenja zahtjeva za pokretanje prema nadređenom poslužitelju
+  (`resolveFetchStartTimeout`, zadano 10 min) umanjenim za rezervu od 5 s: bez tog ograničenja
   zadano maksimalno čekanje od 20 minuta nadživjelo bi zahtjev, a mirovanje bi bilo prekinuto
-  usred čekanja, prikazujući `TimeoutError` umjesto urednog završetka `max_wait` + razdoblja hlađenja.
-- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, početak novog prozora od 5h ili
+  usred čekanja, čime bi se pojavio `TimeoutError` umjesto urednog završetka `max_wait` + hlađenja.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, prijelaz 5-satnog prozora ili
   `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (što završava traku kao
-  `extra_usage` pri bilo kojem statusu jer plaćeno prekoračenje sada pokriva zid) završavaju traku; odgovor
-  zatim prolazi uobičajenim putem razdoblja mirovanja. `budget_exhausted` pamti se do
+  `extra_usage` pri bilo kojem statusu jer plaćeno prekoračenje sada pokriva zid) završavaju traku;
+  odgovor zatim prolazi u uobičajeni tijek hlađenja. `budget_exhausted` pamti se do
   najavljenog poništavanja proračuna (≤ 8 dana).
-- Provjera zida izvodi se nakon izvršiteljevih vlastitih ponovnih pokušaja unutar istog pokušaja potaknutih odgovorom 400 (uređivanje
-  konteksta, ograničavanje razmišljanja/napora, automatsko učenje parametara), pa se 429 uzrokovan zidom koji se pojavi tek pri
-  jednom od tih ponovnih pokušaja ipak presreće umjesto da dospije na put razdoblja mirovanja.
-- Stanje se čuva u memoriji po vezi (ponovno pokretanje zahtijeva jedan dodatni 429 uzrokovan zidom za ponovno prihvaćanje).
+- Provjera zida izvodi se nakon vlastitih ponovnih pokušaja izvršitelja unutar pokušaja potaknutih statusom 400 (uređivanje
+  konteksta, ograničenja razmišljanja/napora, automatsko učenje parametara), pa se zid 429 koji se pojavi tek
+  u jednom od tih ponovnih pokušaja i dalje presreće umjesto da dođe do tijeka hlađenja.
+- Stanje se čuva u memoriji po vezi (ponovno pokretanje uzrokuje jedan dodatni zid 429 radi ponovnog prihvaćanja).
 
-**Poništavanje ograničenja sesije** (`autoLimitReset`, pokušava se prije trake kada su obje značajke uključene):
+**Poništavanje ograničenja sesije** (`autoLimitReset`, pokušava se prije trake kada su oba uključena):
 
 - `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
-  kada je `arm: "reset"` i `available: true`,
+  kada su `arm: "reset"` i `available: true`,
   `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` s
   `{ "program": "juniper_tide" }` (UUID organizacije iz
-  `providerSpecificData.organizationUUID`, uz pričuvno početno dohvaćanje).
+  `providerSpecificData.organizationUUID`, uz pričuvno inicijalno dohvaćanje).
 - `result: reset|not_limited` → zahtjev se ponovno pokušava punom brzinom (bez sporog zaglavlja).
   `already_used` / `not_offered` pamte `next_available_at` (zadano jedan tjedan); svaki
-  neuspjeh aktivira odgađanje od 15 minuta. Poništavanje je moguće jednom tjedno i i dalje se uračunava u
+  neuspjeh uvodi odgodu od 15 minuta. Poništavanje je moguće jednom tjedno i još se uvijek uračunava u
   tjedno ograničenje.
 
-Zaštite od regresija: `tests/unit/claude-low-priority-mode.test.ts`,
+Zaštite od regresije: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
 ### Afinitet sesije (#7274)
 
-**Opseg:** jedna klijentska sesija (zaglavlje `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) vezana uz jednu vezu, za **bilo kojeg** pružatelja.
+**Opseg:** jedna klijentska sesija (zaglavlje `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) prikvačena na jednu vezu, za **bilo kojeg** pružatelja usluge.
 
-**Svrha:** zadržati agenta koji radi kroz više interakcija (Claude Code, aider, prilagođeni agenti) na istom računu kroz više zahtjeva, čime se smanjuje gubitak konteksta zbog prebacivanja između računa i ponavljanje pogrešaka 429 pri hladnom pokretanju kod pružatelja usluga sa stanjem sesije po računu.
+**Svrha:** zadržati agenta s više uzastopnih interakcija (Claude Code, aider, prilagođeni agenti) na istom računu kroz više zahtjeva, čime se smanjuju gubitak konteksta između računa i ponovljene 429 pogreške pri hladnom pokretanju kod pružatelja usluga sa stanjem sesije po računu.
 
 **Implementacija:**
 
 - Određivanje TTL-a: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Odabir/izrada vezivanja: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- Izdvajanje zaglavlja (generičko, za bilo kojeg pružatelja usluga): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Tablica trajno pohranjenih vezivanja: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Postavka: `sessionAffinityTtlMs` (globalni TTL u ms, `0` ga onemogućuje) — `src/lib/db/settings.ts`. Preimenovano iz postavke `codexSessionAffinityTtlMs`, namijenjene samo Codexu, migracijom `124_generic_session_affinity_ttl.sql`, koja prenosi svaki prethodno konfigurirani TTL za Codex kao novu zadanu vrijednost.
+- Odabir/stvaranje prikvačenja: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Izdvajanje zaglavlja (generičko, bilo koji pružatelj): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Trajno pohranjena tablica prikvačenja: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Postavka: `sessionAffinityTtlMs` (globalni TTL u ms, `0` onemogućuje) — `src/lib/db/settings.ts`. Preimenovano iz postavke `codexSessionAffinityTtlMs`, namijenjene samo Codexu, migracijom `124_generic_session_affinity_ttl.sql`, koja prenosi svaki prethodno konfigurirani Codex TTL kao novu zadanu vrijednost.
 
-Prije #7274, `resolveSessionAffinityTtlMs()` odmah je vraćao `0` za svakog pružatelja usluga osim `codex`, pa postavka TTL-a (i zaglavlja sesije) nije imala učinka nigdje drugdje, iako su mehanizam vezivanja i izdvajanje zaglavlja već bili neovisni o pružatelju usluga. Ispravkom je uklonjen taj rani izlaz; TTL se sada jednako primjenjuje na svakog pružatelja usluga čim se globalno postavi na vrijednost veću od `0`.
+Prije #7274, `resolveSessionAffinityTtlMs()` odmah je vraćao `0` za svakog pružatelja osim `codex`, pa postavka TTL-a (i zaglavlja sesije) nigdje drugdje nisu imali učinka, iako su mehanizam prikvačenja i izdvajanje zaglavlja već bili neovisni o pružatelju. Ispravkom je uklonjen taj rani povratak; TTL se sada primjenjuje jednako na svakog pružatelja nakon što se globalno postavi iznad `0`.
 
-Tri zaglavlja afiniteta sesije nikada se ne prosljeđuju uzvodno — izvršitelji izrađuju vlastita uzvodna zaglavlja ispočetka umjesto prosljeđivanja klijentskih zaglavlja, pa ona ostaju samo interni korelacijski identifikatori.
+Tri zaglavlja afiniteta sesije nikad se ne prosljeđuju nadređenom poslužitelju — izvršitelji sastavljaju vlastita zaglavlja prema nadređenom poslužitelju od početka umjesto da prosljeđuju klijentska zaglavlja, pa ona ostaju isključivo interni korelacijski identifikatori.
 
-### Ekskluzivni najmovi upravljanih veza sesije
+### Isključivi najmovi veza upravljanih sesija
 
 **Opseg:** jedan aktivni upravljani HTTP klijent/sesija posjeduje jednu prihvatljivu OmniRoute vezu.
 
-**Svrha:** pružiti trajno ekskluzivno vlasništvo nad vezom klijentima kojima je potrebna stroga granica usmjeravanja kroz više zahtjeva. To se razlikuje od afiniteta sesije, koji predstavlja blagu preferenciju kontinuiteta: ekskluzivni najam trajno pohranjuje stanje životnog ciklusa u SQLiteu, provodi globalnu jedinstvenost aktivnog vlasnika i aktivne veze te odbija zastarjelu generaciju prije slanja pružatelju usluga.
+**Svrha:** pružiti trajno isključivo vlasništvo nad vezom klijentima kojima je potrebna čvrsta
+granica usmjeravanja između zahtjeva. To se razlikuje od afiniteta sesije, koji je blaga preferencija kontinuiteta:
+isključivi najam trajno pohranjuje stanje životnog ciklusa u SQLiteu, provodi globalnu jedinstvenost aktivnog vlasnika i
+aktivne veze te odbija zastarjelu generaciju prije slanja pružatelju usluge.
 
-Značajka se zasebno uključuje za svaki API ključ. Upravljani ključ mora imati opseg `lease:exclusive` i eksplicitan popis `allowedConnections` koji nije prazan. Bilo koji HTTP klijent može upotrebljavati krajnju točku životnog ciklusa; nisu potrebni naziv klijenta, korisnički agent, pružatelj usluga, OAuth metoda ni model. Najam posjeduje vezu, a ne model, pa se pri promjeni modela zadržava vezivanje sve dok veza ostaje prihvatljiva prema uobičajenim pravilima. Uobičajena pravila za model, kvotu, stanje, razdoblje čekanja i popis dopuštenih veza ostaju mjerodavna te mogu premjestiti istu generaciju na drugu slobodnu prihvatljivu vezu.
+Značajka se uključuje zasebno za svaki API ključ. Upravljani ključ mora imati opseg `lease:exclusive` i
+izričit neprazan popis `allowedConnections`. Svaki HTTP klijent može koristiti krajnju točku životnog ciklusa; nisu
+potrebni naziv klijenta, korisnički agent, pružatelj usluge, OAuth metoda ni model. Najam posjeduje vezu,
+a ne model, pa promjena modela zadržava vezu dok ona ostaje uobičajeno
+prihvatljiva. Uobičajena pravila modela, kvote, ispravnosti, hlađenja i popisa dopuštenih veza ostaju mjerodavna te mogu
+istu generaciju prebaciti na drugu slobodnu prihvatljivu vezu.
 
-Životnim ciklusom upravlja se putem `POST /api/v1/session-leases` s JSON radnjama `acquire`, `renew` i `release`. Upravljani zahtjevi za izvođenje predikcije šalju neprozirnu vrijednost `X-OmniRoute-Lease-Owner` i točnu vrijednost `X-OmniRoute-Lease-Generation`. Identifikator vlasnika sastoji se od prefiksa `vlo_` iza kojeg slijede 43 znaka u formatu base64url; pohranjuje se samo njegov SHA-256 sažetak. Svaka završna provjera prije slanja također veže ID autentificiranog API ključa i ID aktivne veze. Zaglavlja za upravljanje najmom uklanjaju se iz zapisnika, pohranjenih snimki zahtjeva i zaglavlja uzvodnih izvršitelja.
+Životni ciklus koristi `POST /api/v1/session-leases` s JSON radnjama `acquire`, `renew` i `release`.
+Zahtjevi za upravljano izvođenje modela navode neprozirnu vrijednost `X-OmniRoute-Lease-Owner` i točnu
+vrijednost `X-OmniRoute-Lease-Generation`. Vlasnik koristi prefiks `vlo_` iza kojeg slijede 43 znaka base64url; pohranjuje se samo
+njegov SHA-256 sažetak. Svaka završna zaštita otpreme također se veže uz ID autentificiranog API ključa i
+ID aktivne veze. Zaglavlja za upravljanje zakupom uklanjaju se iz zapisnika, zadržanih snimki zahtjeva i
+zaglavlja izvršitelja više razine.
 
-Ako uobičajeno usmjeravanje pronađe prihvatljive upravljane kandidate, ali je svaki slobodni kandidat zauzet stranim aktivnim najmom, OmniRoute vraća HTTP `429`, kôd nedostupnog kapaciteta najma, stanje čekanja na kapacitet i ograničenu vrijednost `Retry-After` izvedenu iz najranijeg relevantnog isteka. Uobičajeni slučaj bez prihvatljivih kandidata ne predstavlja sukob najmova i zadržava postojeću semantiku pogrešaka usmjeravanja.
+Ako uobičajeno usmjeravanje ima dostupne upravljane kandidate, ali je svaki slobodan kandidat zauzet
+aktivnim zakupom drugog vlasnika, OmniRoute vraća HTTP `429`, kôd lease-capacity-unavailable, stanje
+waiting-for-capacity i ograničenu vrijednost `Retry-After` izvedenu iz najranijeg relevantnog isteka.
+Uobičajen nedostatak prihvatljivih kandidata nije nadmetanje za zakup i zadržava postojeću semantiku pogrešaka usmjeravanja.
 
 Povezani mehanizmi ostaju odvojeni:
 
-- Zauzetost OAuth sesije predstavlja lokalnu, blagu raspodjelu OAuth računa unutar procesa.
-- Semafori računa dodjeljuju dopuštenja za istodobno izvršavanje zahtjeva i završavaju kada se zahtjev dovrši.
-- Ekskluzivni najmovi upravljanih sesija predstavljaju trajno vlasništvo tijekom životnog ciklusa uz provjeru generacije.
+- Zauzetost OAuth sesije predstavlja lokalnu, neobvezujuću raspodjelu procesa za OAuth račune.
+- Semafori računa dodjeljuju dopuštenja za istodobne zahtjeve i završavaju kada se zahtjev dovrši.
+- Isključivi zakup upravljane sesije predstavlja trajno vlasništvo nad životnim ciklusom sa zaštitom generacije.
 
 ---
 

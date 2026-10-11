@@ -67,54 +67,72 @@ OmniRoute मा तीनवटा फरक तर परस्पर सम�
 `OMNIROUTE_PROVIDER_BREAKER_{OAUTH,API_KEY}_{FAILURE_THRESHOLD,FAILURE_WINDOW_MS,COOLDOWN_MS}`।
 रिग्रेसन गार्ड: `tests/unit/provider-cooldown-window-gate.test.ts`।
 
-## 2. जडान कूलडाउन
+## 2. जडान कुलडाउन
 
-**दायरा:** एउटै प्रदायक जडान/खाता/कुञ्जी।
+**दायरा:** एकल प्रदायक जडान/खाता/कुञ्जी।
 
-**उद्देश्य:** एउटै प्रदायकका अन्य जडानहरूले सेवा दिइरहँदा एउटा खराब कुञ्जीलाई छाड्ने।
+**उद्देश्य:** एउटै प्रदायकका अन्य जडानहरूले सेवा दिइरहँदा एउटा खराब कुञ्जीलाई छोड्ने।
 
 **कार्यान्वयन:**
 
 - अनुपलब्ध चिन्ह लगाउने: `src/sse/services/auth.ts::markAccountUnavailable()`
-- चयन: सोही फाइलमा रहेको `getProviderCredentials*`
-- कूलडाउन गणना: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- छनोट: सोही फाइलमा `getProviderCredentials*`
+- कुलडाउन गणना: `open-sse/services/accountFallback.ts::checkFallbackError()`
 - सेटिङहरू: `src/lib/resilience/settings.ts`
 
-**प्रत्येक जडानका फिल्डहरू:**
+**प्रति जडान फिल्डहरू:**
 
-- `rateLimitedUntil` — कूलडाउन समाप्त नहुँदासम्मको टाइमस्ट्याम्प
+- `rateLimitedUntil` — कुलडाउन समाप्त नहुँदासम्मको टाइमस्ट्याम्प
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
-- `backoffLevel` — एक्सपोनेन्सियल ब्याकअफ काउन्टर
+- `backoffLevel` — एक्स्पोनेन्सियल ब्याकअफ काउन्टर
 
-**पूर्वनिर्धारित कूलडाउनहरू:**
+**पूर्वनिर्धारित कुलडाउनहरू:**
 
 - OAuth आधार: 5s
 - API-key आधार: 3s
-- API-key 429: अपस्ट्रिम `Retry-After`/रिसेट हेडरहरू/पार्स गर्न मिल्ने रिसेट पाठलाई प्राथमिकता दिन्छ
+- API-key 429: अपस्ट्रिम `Retry-After`/रिसेट हेडरहरू/पार्स गर्न सकिने रिसेट पाठलाई प्राथमिकता दिन्छ
 - ब्याकअफ: `baseCooldownMs * 2 ** failureIndex`
 
-**थन्डरिङ-हर्ड-विरोधी सुरक्षा:** समवर्ती विफलताहरूले कूलडाउनलाई अत्यधिक लम्ब्याउन वा `backoffLevel` लाई दोहोरो रूपमा बढाउनबाट रोक्छ।
+**एन्टी-थन्डरिङ-हर्ड सुरक्षा:** समवर्ती विफलताहरूले कुलडाउन अत्यधिक लम्ब्याउन वा `backoffLevel` लाई दुईपटक बढाउनबाट रोक्छ।
 
-खाली नभएको हस्ताक्षर भएका Kiro का बाइनरी `reasoningContentEvent` फ्रेमहरूले एक्जिक्युटर हुँदै खाली `reasoning_content` डेल्टाका रूपमा तर्क गतिविधि कायम राख्छन्। हस्ताक्षर अगाडि पठाइँदैन। मेटाडेटा, अपूर्ण फ्रेम र खाली हस्ताक्षरहरूले सामग्रीको समयसीमा पुनः सुरु गर्दैनन्; सक्रिय स्ट्रिमको स्वतन्त्र समयसीमा र क्लाइन्टबाट रद्द गर्ने प्रक्रिया लागू रहन्छन्। (`open-sse/executors/kiro/reasoning.ts`).
+**स्ट्रिम सामग्री रोकिनुले खातालाई कुलडाउनमा राख्दैन।** समयमा कुनै मोडेल आउटपुट नपठाएको स्ट्रिमलाई सामग्री-स्टल वाचडग
+(`open-sse/utils/streamHandler.ts`) ले त्याग्दा, `markAccountUnavailable()` ले जडानमा त्रुटि अभिलेख गर्छ तर कुनै
+कुलडाउन सेट गर्दैन: उक्त स्टल सो अनुरोधसँग सम्बन्धित हुन्छ, जुन प्रायः अझै कुनै आउटपुट नआएको लामो रिजनिङ टर्न हुन्छ।
+अपरेटरहरूले `resilienceSettings.streamStallCooldown.enabled`
+(पूर्वनिर्धारित `false`) मार्फत यसलाई पुनः सक्षम गर्न सक्छन्।
 
-**अन्तिम अवस्थाहरू (कूलडाउन होइनन्):**
+**रिजनिङ फ्रेमहरूले सामग्री-स्टल बजेट पुनः सुरु गर्छन्।** कुनै रिजनिङ मोडेलले आफ्नो पहिलो दृश्यात्मक टोकनअघि
+मिनेटौँसम्म सोच्न सक्छ: Claude ले `thinking_delta` फ्रेमहरू स्ट्रिम गर्छ, जसको
+सोचाइसम्बन्धी पाठ खाली हुन सक्छ, र Responses API ले एकपछि अर्को रिजनिङ आइटम स्ट्रिम गर्छ।
+`isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) ले
+यी फ्रेमहरू पहिचान गर्छ, र वाचडगले टर्न रद्द गर्नुको सट्टा प्रत्येक फ्रेममा आफ्नो बजेट पुनः सुरु गर्छ।
+ती अझै पनि मोडेल आउटपुट होइनन्, त्यसैले केवल रिजनिङसहित समाप्त हुने टर्न अझै पनि
+खाली भनेर रिपोर्ट हुन्छ, र रिजनिङ रोकिएर केवल हार्टबिटहरू पठाउने टर्नले अझै पनि
+वाचडग ट्रिगर गर्छ।
 
-- `banned` — प्रतिबन्धित-किवर्ड / खाता-प्रतिबन्ध पहिचानद्वारा सेट गरिन्छ ([BAN_DETECTION](../security/BAN_DETECTION.md) हेर्नुहोस्), साथै लगातार तीनवटा अपस्ट्रिम प्रति-अनुरोध अस्वीकृतिहरूद्वारा (`request_rejected`, जस्तै Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); एउटा मात्र अस्वीकृतिले जडानलाई केवल कूलडाउनमा राख्छ
-- `expired` (सीमित पुनःप्रयासपछि अन्तिम अवस्थामा रूपान्तरण हुन्छ — एक्सपोनेन्सियल ब्याकअफसहित `EXPIRED_RETRY_MAX = 3` — जसले अस्थायी OAuth त्रुटिहरूलाई खाता स्थायी रूपमा निष्क्रिय हुनुअघि आफैँ ठीक हुन दिन्छ)
+खाली नभएको सिग्नेचर भएका Kiro का बाइनरी `reasoningContentEvent` फ्रेमहरूले यो
+रिजनिङ गतिविधिलाई एक खाली `reasoning_content` डेल्टाका रूपमा एक्जिक्युटरमार्फत सुरक्षित राख्छन्। सिग्नेचर
+अगाडि पठाइँदैन। मेटाडेटा, अपूर्ण फ्रेमहरू र खाली सिग्नेचरहरूले
+सामग्री बजेट पुनः सुरु गर्दैनन्; स्वतन्त्र सक्रिय-स्ट्रिम टाइमआउट र क्लाइन्ट रद्दीकरण अझै पनि
+लागू हुन्छन् (`open-sse/executors/kiro/reasoning.ts`)।
+
+**टर्मिनल अवस्थाहरू (कुलडाउन होइनन्):**
+
+- `banned` — प्रतिबन्धित-किवर्ड / खाता-प्रतिबन्ध पहिचानद्वारा सेट गरिन्छ ([BAN_DETECTION](../security/BAN_DETECTION.md) हेर्नुहोस्), र लगातार तीनवटा अपस्ट्रिम प्रति-अनुरोध अस्वीकारहरूद्वारा (`request_rejected`, जस्तै Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); एउटै अस्वीकारले जडानलाई केवल कुलडाउनमा राख्छ
+- `expired` (सीमित पुनःप्रयासपछि टर्मिनल अवस्थामा रूपान्तरण हुन्छ — एक्स्पोनेन्सियल ब्याकअफसहित `EXPIRED_RETRY_MAX = 3` — ताकि क्षणिक OAuth त्रुटिहरूले खाता स्थायी रूपमा निष्क्रिय हुनुअघि आफैँ सुधारिन सकून्)
 - `credits_exhausted`
 
-यी क्रेडेन्सियलहरू परिवर्तन नभएसम्म वा कुनै अपरेटरले यिनलाई रिसेट नगरेसम्म कायम रहन्छन्। अन्तिम अवस्थाहरूलाई अस्थायी कूलडाउन अवस्थाले अधिलेखन नगर्नुहोस्।
+प्रमाणपत्रहरू परिवर्तन नभएसम्म वा कुनै अपरेटरले तिनलाई रिसेट नगरेसम्म यी कायम रहन्छन्। टर्मिनल अवस्थाहरूलाई क्षणिक कुलडाउन अवस्थाले अधिलेखन नगर्नुहोस्।
 
-**लेजी रिकभरी:** `rateLimitedUntil` बितिसकेपछि, जडान फेरि योग्य हुन्छ। सफल प्रयोगपछि, `clearAccountError()` ले सबै त्रुटि फिल्डहरू खाली गर्छ।
+**लेजी रिकभरी:** `rateLimitedUntil` बितिसकेपछि जडान पुनः योग्य हुन्छ। सफल प्रयोगपछि, `clearAccountError()` ले सबै त्रुटि फिल्डहरू खाली गर्छ।
 
-### Claude OAuth प्रयोग सीमा: कम-प्राथमिकता लेन + सत्र-सीमा रिसेट
+### Claude OAuth प्रयोग सीमा: कम-प्राथमिकताको लेन + सत्र-सीमा रिसेट
 
-**दायरा:** एउटा Claude सदस्यता (OAuth) जडान। दुवै सुविधाहरू **प्रत्येक जडानका लागि अप्ट-इन
-गर्नुपर्ने** हुन्छन् (जडान सम्पादन गर्नुहोस् → Claude खण्ड → `providerSpecificData` मा
-`lowPriorityMode` / `autoLimitReset`, दुवै पूर्वनिर्धारित रूपमा बन्द) र Claude Code का
-`/low-priority` र `/limit-reset` कमान्डहरूको अनुकरण गर्छन् (Claude Code 2.1.263 बाट
-वायर कन्ट्र्याक्ट लिइएको)।
+**दायरा:** एउटा Claude सदस्यता (OAuth) जडान। दुवै सुविधा **प्रति जडान अप्ट-इन
+गर्नुपर्ने** छन् (जडान सम्पादन गर्नुहोस् → Claude खण्ड → `providerSpecificData` मा `lowPriorityMode` / `autoLimitReset`,
+दुवै पूर्वनिर्धारित रूपमा बन्द) र Claude Code का `/low-priority` तथा
+`/limit-reset` कमान्डहरू प्रतिबिम्बित गर्छन् (वायर कन्ट्र्याक्ट Claude Code 2.1.263 बाट क्याप्चर गरिएको)।
 
 **कार्यान्वयन:**
 
@@ -123,105 +141,103 @@ OmniRoute मा तीनवटा फरक तर परस्पर सम�
 - एक्जिक्युटर हुक (हेडर इन्जेक्सन + उही-खाता पुनःप्रयास): `open-sse/executors/base.ts::execute()`
 - अप्ट-इन स्थायित्व: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-**ट्रिगर:** 5-घण्टे प्रयोग सीमा — एउटा `429` जसका हेडरहरूमा
-`anthropic-ratelimit-unified-status: rejected` हुन्छ र, खाता योग्य हुँदा,
-`anthropic-ratelimit-unified-slow-offer: treatment` हुन्छ। त्यो पहिलो सीमा
-429 अघि केही पनि पठाइँदैन; युनिफाइड हेडरहरू नभएको बर्स्ट 429 सामान्य कूलडाउन मार्गबाट जान्छ।
+**ट्रिगर:** 5-घण्टे प्रयोग सीमा — एउटा `429` जसका हेडरहरूले
+`anthropic-ratelimit-unified-status: rejected` बोकेका हुन्छन् र, खाता योग्य हुँदा,
+`anthropic-ratelimit-unified-slow-offer: treatment` बोकेको हुन्छ। त्यो पहिलो सीमा
+429 आउनुअघि केही पनि पठाइँदैन; युनिफाइड हेडरहरूबिनाको बर्स्ट 429 सामान्य कुलडाउन मार्गबाट जान्छ।
 
-**कम-प्राथमिकता लेन** (`lowPriorityMode`):
+**कम-प्राथमिकताको लेन** (`lowPriorityMode`):
 
-- सीमा 429 मा एक्जिक्युटरले प्रस्ताव स्वीकार गर्छ र `anthropic-usage-limit: slow` सहित
-  **उही** खातालाई तुरुन्त पुनःप्रयास गर्छ; घोषणा गरिएको
-  `anthropic-ratelimit-unified-reset` (+60s ग्रेस) सम्म लेन सक्रिय रहन्छ र त्यस अवधिका
-  प्रत्येक अनुरोधमा उक्त हेडर हुन्छ। इन्टरसेप्ट गरिएको 429 कहिल्यै `handleChatCore` सम्म
-  पुग्दैन, त्यसैले जडानलाई कूलडाउनमा **राखिँदैन** र अर्को जडानतर्फ घुमाइँदैन।
-- पछिल्ला प्रतिक्रियाहरूमा `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
-  ले लेन कायम राख्छन्; `slot_busy` (429) वा `529` ले सर्भरको
-  `anthropic-ratelimit-unified-slow-retry-after` (पूर्वनिर्धारित 20s, 5–600s मा सीमित, ±30% जिटर)
-  कुर्छ र पुनःप्रयास गर्छ, जुन `anthropic-ratelimit-unified-slow-max-wait` (पूर्वनिर्धारित 20 min,
-  1 min–6 h मा सीमित) द्वारा सीमाबद्ध हुन्छ — त्यो पार भएपछि लेन समाप्त हुन्छ र 10-मिनेटको
-  कूल-अफले पुनःस्वीकृति रोक्छ। प्रतीक्षा समयलाई अनुरोधकै अपस्ट्रिम-सुरु टाइमआउटमा बाँकी रहेको
-  समय (`resolveFetchStartTimeout`, पूर्वनिर्धारित रूपमा 10 min) बाट 5 s मार्जिन घटाएर थप
-  सीमित गरिन्छ: त्यो सीमा नभएमा 20-मिनेटको पूर्वनिर्धारित अधिकतम प्रतीक्षाले अनुरोधभन्दा
-  बढी समय लिने थियो र प्रतीक्षा बीचमै स्लीप रद्द हुने थियो, जसले सहज `max_wait` समाप्ति +
-  कूल-अफको सट्टा `TimeoutError` देखाउने थियो।
-- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5h-विन्डो रोलओभर, वा
-  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (जसले कुनै पनि स्थितिमा
-  यसलाई `extra_usage` का रूपमा समाप्त गर्छ, किनकि सशुल्क ओभरेजले अब सीमा समेट्छ) ले लेन
-  समाप्त गर्छन्; त्यसपछि प्रतिक्रिया सामान्य कूलडाउन मार्गमा जान्छ। `budget_exhausted` लाई
-  घोषणा गरिएको बजेट रिसेट (≤ 8 days) सम्म सम्झिइन्छ।
-- सीमा जाँच एक्जिक्युटरका आफ्नै 400-प्रेरित प्रयास-भित्रका पुनःप्रयासहरू (कन्टेक्स्ट
-  सम्पादन, थिङ्किङ/एफर्ट क्ल्याम्पहरू, प्यारामिटर अटो-लर्न) पछि चल्छ, त्यसैले ती
-  पुनःप्रयासहरूमध्ये एउटामा मात्र देखिने सीमा 429 पनि कूलडाउन मार्गमा पुग्नुको सट्टा
-  इन्टरसेप्ट हुन्छ।
-- अवस्था प्रत्येक जडानका लागि इन-मेमोरी हुन्छ (पुनःसुरु गर्दा पुनःस्वीकार गर्न एउटा अतिरिक्त सीमा 429 लाग्छ)।
+- वाल 429 मा executor ले प्रस्ताव स्वीकार गर्छ र तुरुन्तै **उही**
+  account लाई `anthropic-usage-limit: slow` सहित पुनः प्रयास गर्छ; घोषणा गरिएको
+  `anthropic-ratelimit-unified-reset` (+60s grace) सम्म lane सक्रिय रहन्छ र त्यस अवधिभित्रका प्रत्येक अनुरोधमा
+  उक्त header रहन्छ। अवरोध गरिएको 429 कहिल्यै `handleChatCore` सम्म पुग्दैन, त्यसैले connection लाई
+  cooldown मा **राखिँदैन** र अर्कोमा rotate गरिँदैन।
+- पछिल्ला responses मा `anthropic-ratelimit-unified-slow-status`: `active` / `not_needed`
+  ले lane कायम राख्छन्; `slot_busy` (429) वा `529` ले server को
+  `anthropic-ratelimit-unified-slow-retry-after` (पूर्वनिर्धारित 20s, 5–600s मा clamp, ±30% jitter)
+  पर्खेर पुनः प्रयास गर्छन्, जसलाई `anthropic-ratelimit-unified-slow-max-wait` (पूर्वनिर्धारित 20 min, 1 min–6 h मा clamp)
+  ले सीमित गर्छ — त्यो समय नाघेपछि lane समाप्त हुन्छ र 10-minute cool-off ले पुनः स्वीकार रोक्छ। पर्खाइलाई
+  अनुरोधको आफ्नै upstream-start timeout मा बाँकी रहेको समय
+  (`resolveFetchStartTimeout`, पूर्वनिर्धारित रूपमा 10 min) बाट 5 s margin घटाएर थप रूपमा सीमित गरिन्छ: त्यो cap नभए
+  पूर्वनिर्धारित 20-minute max-wait अनुरोधभन्दा लामो हुन्थ्यो र sleep बीचमै रद्द हुन्थ्यो,
+  जसले सहज `max_wait` समाप्ति + cool-off को सट्टा `TimeoutError` देखाउँथ्यो।
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, 5h-window rollover, वा
+  `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (जसले कुनै पनि status मा यसलाई
+  `extra_usage` का रूपमा समाप्त गर्छ, किनकि paid overage ले अब वाल समेट्छ) ले lane समाप्त गर्छन्; त्यसपछि
+  response सामान्य cooldown मार्गमा जान्छ। `budget_exhausted` लाई घोषणा गरिएको budget reset (≤ 8 days)
+  सम्म सम्झिराखिन्छ।
+- वाल जाँच executor का आफ्नै 400-प्रेरित intra-attempt पुनः प्रयासहरू (context
+  editing, thinking/effort clamps, param auto-learn) पछि चल्छ, त्यसैले तीमध्ये कुनै एउटा पुनः प्रयासमा मात्र
+  देखिने वाल 429 पनि cooldown मार्गमा पुग्नुको सट्टा अवरोध गरिन्छ।
+- State प्रत्येक connection का लागि in-memory हुन्छ (restart गर्दा पुनः स्वीकार गर्न एउटा अतिरिक्त वाल 429 लाग्छ)।
 
-**सत्र-सीमा रिसेट** (`autoLimitReset`, दुवै सक्रिय हुँदा लेनअघि प्रयास गरिन्छ):
+**Session-limit reset** (`autoLimitReset`, दुवै सक्रिय हुँदा lane अघि प्रयास गरिन्छ):
 
 - `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → `juniper_tide`
-  ब्लक; `arm: "reset"` र `available: true` हुँदा,
-  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` लाई
-  `{ "program": "juniper_tide" }` सहित पठाइन्छ (`providerSpecificData.organizationUUID`
-  बाट सङ्गठन UUID, बुटस्ट्र्याप फलब्याक)।
-- `result: reset|not_limited` → अनुरोध पूर्ण गतिमा पुनःप्रयास गरिन्छ (स्लो हेडरबिना)।
-  `already_used` / `not_offered` ले `next_available_at` (पूर्वनिर्धारित रूपमा एक हप्ता)
-  मेमोइज गर्छन्; कुनै पनि विफलताले 15 मिनेट ब्याकअफ गर्छ। रिसेट हप्तामा एक पटक हुन्छ र
-  अझै पनि साप्ताहिक सीमामा गणना हुन्छ।
+  block; `arm: "reset"` र `available: true` हुँदा,
+  `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` सँग
+  `{ "program": "juniper_tide" }` (organization UUID
+  `providerSpecificData.organizationUUID` बाट, bootstrap fallback)।
+- `result: reset|not_limited` → अनुरोधलाई पूर्ण गतिमा पुनः प्रयास गरिन्छ (slow header बिना)।
+  `already_used` / `not_offered` ले `next_available_at` (पूर्वनिर्धारित एक हप्ता) सम्झेर राख्छन्; कुनै पनि
+  failure ले 15 minutes backoff गर्छ। reset हप्तामा एकपटक हुन्छ र अझै पनि
+  weekly limit मा गणना हुन्छ।
 
-रिग्रेसन सुरक्षाहरू: `tests/unit/claude-low-priority-mode.test.ts`,
+Regression guards: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`।
 
-### सत्र एफिनिटी (#7274)
+### Session affinity (#7274)
 
-**दायरा:** **कुनै पनि** प्रदायकका लागि, एउटा जडानमा पिन गरिएको एउटा क्लाइन्ट सत्र (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` हेडर)।
+**दायरा:** एउटा client session (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) लाई **कुनै पनि** provider का लागि एउटा connection मा pin गरिन्छ।
 
-**उद्देश्य:** बहु-टर्न एजेन्ट (Claude Code, aider, अनुकूलन एजेन्टहरू) लाई अनुरोधहरूबीच एउटै खातामा कायम राख्नु, जसले प्रति-खाता सत्र अवस्था भएका प्रदायकहरूमा अन्तर-खाता सन्दर्भ गुम्ने समस्या र बारम्बार हुने कोल्ड-स्टार्ट 429 हरू घटाउँछ।
+**उद्देश्य:** multi-turn agent (Claude Code, aider, custom agents) लाई अनुरोधहरूभरि एउटै account मा राख्नु, जसले cross-account context loss र per-account session state भएका providers मा दोहोरिने cold-start 429s घटाउँछ।
 
 **कार्यान्वयन:**
 
-- TTL निर्धारण: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- पिन चयन/सिर्जना: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
-- हेडर निष्कर्षण (सामान्य, जुनसुकै प्रदायक): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- स्थायी रूपमा भण्डारित पिन तालिका: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- सेटिङ: `sessionAffinityTtlMs` (ms मा विश्वव्यापी TTL, `0` ले निष्क्रिय गर्छ) — `src/lib/db/settings.ts`। माइग्रेसन `124_generic_session_affinity_ttl.sql` द्वारा Codex-मात्र `codexSessionAffinityTtlMs` बाट पुनः नामकरण गरिएको हो, जसले पहिले कन्फिगर गरिएको कुनै पनि Codex TTL लाई नयाँ पूर्वनिर्धारित मानका रूपमा सार्छ।
+- TTL resolution: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Pin selection/creation: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Header extraction (generic, any provider): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Persisted pin table: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Setting: `sessionAffinityTtlMs` (global TTL in ms, `0` ले निष्क्रिय गर्छ) — `src/lib/db/settings.ts`। Codex-मात्रको `codexSessionAffinityTtlMs` बाट migration `124_generic_session_affinity_ttl.sql` द्वारा नाम परिवर्तन गरिएको हो, जसले पहिले configure गरिएको कुनै पनि Codex TTL लाई नयाँ पूर्वनिर्धारित मानका रूपमा सार्छ।
 
-#7274 अघि, `resolveSessionAffinityTtlMs()` ले `codex` बाहेक प्रत्येक प्रदायकका लागि तत्काल `0` फिर्ता गर्थ्यो, त्यसैले पिनिङ संयन्त्र र हेडर निष्कर्षण पहिले नै प्रदायक-निरपेक्ष भए तापनि TTL सेटिङ (र सत्र हेडरहरू) ले अन्यत्र कुनै प्रभाव पार्दैनथे। समाधानले त्यो प्रारम्भिक फिर्ता हटायो; अब TTL लाई विश्वव्यापी रूपमा `0` भन्दा माथि सेट गरेपछि यो प्रत्येक प्रदायकमा समान रूपमा लागू हुन्छ।
+#7274 अघि, `resolveSessionAffinityTtlMs()` ले `codex` बाहेक प्रत्येक provider का लागि `0` मा तुरुन्त hard-bail गर्थ्यो, त्यसैले pinning mechanism र header extraction पहिले नै provider-agnostic भए तापनि TTL setting (र session headers) को अन्यत्र कुनै प्रभाव थिएन। fix ले त्यो early-return हटायो; अब TTL लाई globally `0` भन्दा माथि set गरेपछि यो प्रत्येक provider मा समान रूपमा लागू हुन्छ।
 
-तीनवटा सत्र-अफिनिटी हेडरहरू कहिल्यै अपस्ट्रिममा फर्वार्ड गरिँदैनन् — एक्जिक्युटरहरूले क्लाइन्ट हेडरहरू पास गर्नुको सट्टा आफ्नै अपस्ट्रिम हेडरहरू सुरुदेखि निर्माण गर्छन्, त्यसैले यो आन्तरिक सहसम्बन्ध ID का रूपमा मात्र रहन्छ।
+तीनवटै session-affinity headers लाई कहिल्यै upstream forward गरिँदैन — executors ले client headers लाई pass-through गर्नुको सट्टा आफ्नै upstream headers सुरुदेखि बनाउँछन्, त्यसैले यो internal correlation id का रूपमा मात्र रहन्छ।
 
-### विशेष व्यवस्थापित सत्र जडान लिजहरू
+### Exclusive managed session connection leases
 
-**दायरा:** एउटा सक्रिय व्यवस्थापित HTTP क्लाइन्ट/सत्रले एउटा योग्य OmniRoute जडानको स्वामित्व लिन्छ।
+**दायरा:** एउटा active managed HTTP client/session ले एउटा eligible OmniRoute connection स्वामित्वमा लिन्छ।
 
-**उद्देश्य:** अनुरोधहरूबीच कठोर राउटिङ
-सीमा चाहिने क्लाइन्टहरूका लागि टिकाउ विशेष जडान स्वामित्व उपलब्ध गराउनु। यो सत्र अफिनिटीभन्दा फरक छ, जुन निरन्तरताका लागि नरम प्राथमिकता हो:
-विशेष लिजले SQLite मा जीवनचक्र अवस्था कायम राख्छ, विश्वव्यापी सक्रिय-स्वामी र
-सक्रिय-जडानको अद्वितीयता लागू गर्छ, र प्रदायकमा डिस्प्याच गर्नुअघि पुरानो जेनेरेसन अस्वीकार गर्छ।
+**उद्देश्य:** अनुरोधहरूभरि hard routing
+fence आवश्यक पर्ने clients लाई टिकाउ exclusive connection ownership उपलब्ध गराउनु। यो session affinity भन्दा फरक छ, जुन soft continuity preference हो:
+exclusive lease ले SQLite मा lifecycle state कायम राख्छ, global active-owner र
+active-connection uniqueness लागू गर्छ, र provider dispatch अघि stale generation अस्वीकार गर्छ।
 
-यो सुविधा प्रत्येक API कुञ्जीका लागि अप्ट-इन हो। व्यवस्थापित कुञ्जीसँग `lease:exclusive` स्कोप र
-स्पष्ट रूपमा गैर-रिक्त `allowedConnections` सूची हुनुपर्छ। कुनै पनि HTTP क्लाइन्टले जीवनचक्र एन्डपोइन्ट प्रयोग गर्न सक्छ; कुनै
-क्लाइन्ट नाम, user-agent, प्रदायक, OAuth विधि वा मोडेल आवश्यक पर्दैन। लिजले जडानको स्वामित्व लिन्छ,
-मोडेलको होइन, त्यसैले जडान सामान्य रूपमा
-योग्य रहँदासम्म मोडेल परिवर्तन हुँदा पनि बाइन्डिङ कायम रहन्छ। सामान्य मोडेल, कोटा, स्वास्थ्य, कूलडाउन र अनुमतिसूची नियमहरू नै
-आधिकारिक रहन्छन् र तिनले उही जेनेरेसनलाई अर्को खाली योग्य जडानमा सार्न सक्छन्।
+यो feature प्रत्येक API key का लागि opt-in हो। managed key सँग `lease:exclusive` scope र
+स्पष्ट non-empty `allowedConnections` list हुनैपर्छ। कुनै पनि HTTP client ले lifecycle endpoint प्रयोग गर्न सक्छ; कुनै
+client name, user-agent, provider, OAuth method, वा model आवश्यक पर्दैन। lease ले connection स्वामित्वमा लिन्छ,
+model होइन, त्यसैले connection सामान्य रूपमा eligible रहुन्जेल model परिवर्तनले binding कायम राख्छ।
+सामान्य model, quota, health, cooldown, र allowlist नियमहरू authoritative रहन्छन् र
+उही generation लाई अर्को free eligible connection मा सार्न सक्छन्।
 
-जीवनचक्र `POST /api/v1/session-leases` हो, जसमा `acquire`, `renew`, र `release` JSON कार्यहरू हुन्छन्।
-व्यवस्थापित इन्फरेन्स अनुरोधहरूले अपारदर्शी `X-OmniRoute-Lease-Owner` मान र ठ्याक्कै मिल्ने
-`X-OmniRoute-Lease-Generation` प्रस्तुत गर्छन्। स्वामीले `vlo_` पछि 43 वटा base64url क्यारेक्टर प्रयोग गर्छ; यसको
-SHA-256 ह्यास मात्र भण्डारण गरिन्छ। प्रत्येक अन्तिम डिस्प्याच सीमाले प्रमाणीकरण गरिएको API कुञ्जी ID र
-सक्रिय जडान ID लाई पनि बाइन्ड गर्छ। लिज नियन्त्रण हेडरहरू लगहरू, कायम राखिएका अनुरोध स्न्यापसटहरू र
+जीवनचक्र JSON कार्यहरू `acquire`, `renew`, र `release` सहितको `POST /api/v1/session-leases` हो।
+व्यवस्थित इन्फरेन्स अनुरोधहरूले अपारदर्शी `X-OmniRoute-Lease-Owner` मान र ठ्याक्कै मिल्ने
+`X-OmniRoute-Lease-Generation` प्रस्तुत गर्छन्। स्वामीमा `vlo_` पछि 43 वटा base64url वर्ण हुन्छन्; यसको
+SHA-256 ह्यास मात्र भण्डारण गरिन्छ। प्रत्येक अन्तिम डिस्प्याच फेन्सले प्रमाणीकरण गरिएको API कुञ्जी ID र
+सक्रिय जडान ID लाई पनि आबद्ध गर्छ। लीज नियन्त्रण हेडरहरू लगहरू, सुरक्षित राखिएका अनुरोध स्न्यापसटहरू, र
 अपस्ट्रिम एक्जिक्युटर हेडरहरूबाट हटाइन्छन्।
 
-यदि सामान्य राउटिङसँग योग्य व्यवस्थापित उम्मेदवारहरू छन् तर प्रत्येक खाली उम्मेदवारमा
-विदेशी सक्रिय लिजको स्वामित्व छ भने, OmniRoute ले HTTP `429`, lease-capacity-unavailable कोड,
-waiting-for-capacity अवस्था, र सबैभन्दा चाँडो हुने सान्दर्भिक म्याद समाप्तिबाट निकालिएको सीमित `Retry-After` फिर्ता गर्छ।
-सामान्य रिक्त योग्यता लिज विवाद होइन र यसले आफ्नो विद्यमान राउटिङ त्रुटि व्यवहार कायम राख्छ।
+यदि सामान्य राउटिङमा योग्य व्यवस्थित उम्मेदवारहरू छन् तर प्रत्येक खाली उम्मेदवार विदेशी सक्रिय लीजद्वारा
+ओगटिएको छ भने, OmniRoute ले HTTP `429`, lease-capacity-unavailable कोड,
+क्षमता-प्रतीक्षा अवस्था, र सबैभन्दा चाँडो हुने सान्दर्भिक म्याद समाप्तिबाट व्युत्पन्न सीमित `Retry-After` फर्काउँछ।
+सामान्य खाली योग्यता लीज विवाद होइन र यसले आफ्नो विद्यमान राउटिङ त्रुटि अर्थविज्ञान कायम राख्छ।
 
-सम्बन्धित संयन्त्रहरू अलग रहन्छन्:
+सम्बन्धित संयन्त्रहरू अलग-अलग रहन्छन्:
 
-- OAuth सत्र ओक्युपेन्सी OAuth खाताहरूका लागि प्रक्रियाभित्र सीमित नरम वितरण हो।
+- OAuth सत्र अधिभोग OAuth खाताहरूका लागि प्रक्रियाभित्र सीमित नरम वितरण हो।
 - खाता सेमाफोरहरूले अनुरोध-समवर्तीता अनुमतिहरू प्रदान गर्छन् र अनुरोध पूरा भएपछि समाप्त हुन्छन्।
-- विशेष व्यवस्थापित सत्र लिजहरू जेनेरेसन सीमासहितको टिकाउ जीवनचक्र स्वामित्व हुन्।
+- विशेष व्यवस्थित सत्र लीजहरू जेनेरेसन फेन्ससहितको टिकाउ जीवनचक्र स्वामित्व हुन्।
 
 ---
 

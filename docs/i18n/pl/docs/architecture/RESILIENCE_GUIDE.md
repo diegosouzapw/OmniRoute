@@ -71,7 +71,7 @@ Test zabezpieczający przed regresją: `tests/unit/provider-cooldown-window-gate
 
 **Zakres:** pojedyncze połączenie/konto/klucz dostawcy.
 
-**Cel:** pominięcie jednego wadliwego klucza, podczas gdy inne połączenia tego samego dostawcy nadal obsługują żądania.
+**Cel:** pominięcie jednego wadliwego klucza, podczas gdy pozostałe połączenia tego samego dostawcy nadal obsługują żądania.
 
 **Implementacja:**
 
@@ -82,127 +82,167 @@ Test zabezpieczający przed regresją: `tests/unit/provider-cooldown-window-gate
 
 **Pola dla każdego połączenia:**
 
-- `rateLimitedUntil` — znacznik czasu wygaśnięcia okresu karencji
+- `rateLimitedUntil` — znacznik czasu określający koniec okresu karencji
 - `testStatus: "unavailable"`
 - `lastError`, `lastErrorType`, `errorCode`
 - `backoffLevel` — licznik wykładniczego wycofywania
 
 **Domyślne okresy karencji:**
 
-- Bazowy dla OAuth: 5 s
-- Bazowy dla klucza API: 3 s
-- 429 dla klucza API: preferuje pochodzące z usługi nadrzędnej nagłówki `Retry-After`/resetowania lub możliwy do przeanalizowania tekst resetowania
+- Podstawa dla OAuth: 5s
+- Podstawa dla klucza API: 3s
+- Kod 429 dla klucza API: preferuje nagłówek źródłowy `Retry-After`, nagłówki resetowania lub możliwy do przeanalizowania tekst resetowania
 - Wycofywanie: `baseCooldownMs * 2 ** failureIndex`
 
-**Ochrona przed lawiną równoczesnych żądań:** zapobiega nadmiernemu wydłużaniu okresu karencji lub podwójnemu zwiększaniu `backoffLevel` przez równoczesne błędy.
+**Zabezpieczenie przed efektem „thundering herd”:** zapobiega nadmiernemu wydłużaniu okresu karencji lub podwójnemu zwiększaniu `backoffLevel` przez równoczesne błędy.
 
-Binarne ramki `reasoningContentEvent` Kiro z niepustą sygnaturą zachowują aktywność rozumowania podczas przejścia przez executor jako pustą deltę `reasoning_content`. Sygnatura nie jest przekazywana dalej. Metadane, niekompletne ramki i puste sygnatury nie uruchamiają ponownie limitu czasu na treść; niezależny limit czasu aktywnego strumienia i anulowanie przez klienta nadal obowiązują. (`open-sse/executors/kiro/reasoning.ts`).
+**Zastoje treści strumienia nie uruchamiają okresu karencji konta.** Gdy mechanizm nadzorujący zastój treści
+(`open-sse/utils/streamHandler.ts`) rezygnuje ze strumienia, który nie wysłał na czas żadnych danych wyjściowych modelu,
+`markAccountUnavailable()` zapisuje błąd dla połączenia, ale nie ustawia okresu
+karencji: zastój dotyczy tego żądania i najczęściej wynika z długiego etapu rozumowania, który nie wygenerował jeszcze
+danych wyjściowych. Operatorzy mogą ponownie włączyć tę funkcję za pomocą `resilienceSettings.streamStallCooldown.enabled`
+(domyślnie `false`).
+
+**Ramki rozumowania restartują limit czasu zastoju treści.** Model rozumujący może myśleć przez
+wiele minut przed wygenerowaniem pierwszego widocznego tokenu: Claude przesyła strumieniowo ramki `thinking_delta`, których
+tekst rozumowania może być pusty, a interfejs Responses API przesyła kolejno elementy rozumowania.
+`isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) rozpoznaje
+te ramki, a mechanizm nadzorujący restartuje swój limit czasu po każdej z nich zamiast anulować
+turę. Nadal nie są one danymi wyjściowymi modelu, dlatego tura kończąca się wyłącznie rozumowaniem wciąż jest
+zgłaszana jako pusta, a tura, która przestaje przesyłać rozumowanie i wysyła jedynie sygnały podtrzymujące, nadal uruchamia
+mechanizm nadzorujący.
+
+Binarne ramki `reasoningContentEvent` Kiro z niepustym podpisem zachowują tę
+aktywność rozumowania w executorze jako pustą deltę `reasoning_content`. Podpis nie jest
+przekazywany dalej. Metadane, niekompletne ramki i puste podpisy nie restartują
+limitu czasu treści; niezależny limit czasu aktywnego strumienia i anulowanie przez klienta nadal
+mają zastosowanie (`open-sse/executors/kiro/reasoning.ts`).
 
 **Stany końcowe (NIE okresy karencji):**
 
-- `banned` — ustawiany po wykryciu słowa kluczowego oznaczającego blokadę lub blokady konta (zobacz [BAN_DETECTION](../security/BAN_DETECTION.md)), a także po trzech kolejnych odmowach usługi nadrzędnej dotyczących pojedynczego żądania (`request_rejected`, np. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); pojedyncza odmowa jedynie wprowadza połączenie w okres karencji
-- `expired` (przechodzi do stanu końcowego po ograniczonej liczbie ponowień — `EXPIRED_RETRY_MAX = 3` z wykładniczym wycofywaniem — dzięki czemu przejściowe błędy OAuth mogą ustąpić samoczynnie, zanim konto zostanie trwale dezaktywowane)
+- `banned` — ustawiany po wykryciu zablokowanego słowa kluczowego / blokady konta (zobacz [BAN_DETECTION](../security/BAN_DETECTION.md)) oraz po trzech kolejnych odmowach źródłowych dotyczących pojedynczych żądań (`request_rejected`, np. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); pojedyncza odmowa jedynie uruchamia okres karencji połączenia
+- `expired` (przechodzi do stanu końcowego po ograniczonej liczbie ponownych prób — `EXPIRED_RETRY_MAX = 3` z wykładniczym wycofywaniem — dzięki czemu przejściowe błędy OAuth mogą ustąpić samoistnie, zanim konto zostanie trwale dezaktywowane)
 - `credits_exhausted`
 
-Stany te utrzymują się do czasu zmiany danych uwierzytelniających lub zresetowania ich przez operatora. Nie zastępuj stanów końcowych przejściowym stanem okresu karencji.
+Stany te utrzymują się do czasu zmiany danych uwierzytelniających lub zresetowania ich przez operatora. Nie nadpisuj stanów końcowych przejściowym stanem okresu karencji.
 
-**Leniwe odzyskiwanie:** gdy `rateLimitedUntil` upłynie, połączenie ponownie kwalifikuje się do użycia. Po pomyślnym użyciu `clearAccountError()` usuwa wszystkie pola błędów.
+**Leniwe odzyskiwanie:** gdy `rateLimitedUntil` znajduje się w przeszłości, połączenie ponownie kwalifikuje się do użycia. Po udanym użyciu `clearAccountError()` usuwa wszystkie pola błędów.
 
-### Bariera użycia Claude OAuth: ścieżka o niższym priorytecie + reset limitu sesji
+### Limit wykorzystania Claude OAuth: pas o niższym priorytecie + reset limitu sesji
 
-**Zakres:** jedno połączenie subskrypcji Claude (OAuth). Obie funkcje są **opcjonalnie włączane dla każdego
+**Zakres:** jedno połączenie subskrypcji Claude (OAuth). Obie funkcje są **opcjonalne dla każdego
 połączenia** (Edytuj połączenie → sekcja Claude → `lowPriorityMode` / `autoLimitReset` w
-`providerSpecificData`, obie domyślnie wyłączone) i odzwierciedlają polecenia `/low-priority` oraz
-`/limit-reset` z Claude Code (kontrakt komunikacyjny przechwycony z Claude Code 2.1.263).
+`providerSpecificData`, obie domyślnie wyłączone) i odpowiadają poleceniom `/low-priority` oraz
+`/limit-reset` Claude Code (kontrakt protokołu przechwycony z Claude Code 2.1.263).
 
 **Implementacja:**
 
 - Maszyna stanów + klasyfikacja odpowiedzi: `open-sse/services/claudeLowPriority.ts`
-- Klient statusu/żądania resetowania: `open-sse/services/claudeLimitReset.ts`
-- Punkt zaczepienia executora (wstrzykiwanie nagłówka + ponowienie na tym samym koncie): `open-sse/executors/base.ts::execute()`
-- Utrwalanie ustawienia opcjonalnego: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
+- Klient statusu resetowania/żądania resetowania: `open-sse/services/claudeLimitReset.ts`
+- Punkt integracji executora (wstrzykiwanie nagłówka + ponowna próba na tym samym koncie): `open-sse/executors/base.ts::execute()`
+- Utrwalanie zgody: `src/lib/providers/requestDefaults.ts::normalizeProviderSpecificData()`
 
-**Wyzwalacz:** 5-godzinna bariera użycia — odpowiedź `429`, której nagłówki zawierają
+**Wyzwalacz:** 5-godzinny limit wykorzystania — odpowiedź `429`, której nagłówki zawierają
 `anthropic-ratelimit-unified-status: rejected` oraz, gdy konto się kwalifikuje,
 `anthropic-ratelimit-unified-slow-offer: treatment`. Nic nie jest wysyłane przed pierwszą odpowiedzią
-429 dotyczącą bariery; seria odpowiedzi 429 bez ujednoliconych nagłówków przechodzi standardową ścieżką okresu karencji.
+429 informującą o osiągnięciu limitu; seria odpowiedzi 429 bez ujednoliconych nagłówków przechodzi przez normalną ścieżkę okresu karencji.
 
-**Ścieżka o niższym priorytecie** (`lowPriorityMode`):
+**Pas o niższym priorytecie** (`lowPriorityMode`):
 
-- Po otrzymaniu odpowiedzi 429 dotyczącej bariery executor przyjmuje ofertę i natychmiast ponawia żądanie na **tym samym**
-  koncie z `anthropic-usage-limit: slow`; ścieżka pozostaje aktywna do ogłoszonego czasu
-  `anthropic-ratelimit-unified-reset` (+60 s okresu buforowego), a każde żądanie w tym przedziale zawiera
+- W przypadku 429 wynikającego z limitu wykonawca akceptuje ofertę i natychmiast ponawia próbę dla **tego samego**
+  konta z `anthropic-usage-limit: slow`; ścieżka pozostaje aktywna do ogłoszonego czasu
+  `anthropic-ratelimit-unified-reset` (+60 s marginesu), a każde żądanie w tym przedziale zawiera
   ten nagłówek. Przechwycona odpowiedź 429 nigdy nie dociera do `handleChatCore`, więc połączenie
-  **nie** przechodzi w okres karencji ani nie jest zastępowane innym.
+  **nie** przechodzi w okres schładzania ani nie zostaje zastąpione innym.
 - `anthropic-ratelimit-unified-slow-status` w późniejszych odpowiedziach: `active` / `not_needed`
-  utrzymują ścieżkę; `slot_busy` (429) lub `529` powodują oczekiwanie przez wskazany przez serwer czas
-  `anthropic-ratelimit-unified-slow-retry-after` (domyślnie 20 s, ograniczony do 5–600 s, z losowym odchyleniem ±30%)
-  i ponowienie, z limitem `anthropic-ratelimit-unified-slow-max-wait` (domyślnie 20 min, ograniczenie
-  od 1 min do 6 godz.) — po jego przekroczeniu ścieżka się kończy, a 10-minutowy okres wyciszenia blokuje ponowne przyjęcie. Czas
-  oczekiwania jest dodatkowo ograniczony przez pozostały czas własnego limitu rozpoczęcia żądania nadrzędnego
-  (`resolveFetchStartTimeout`, domyślnie 10 min) pomniejszony o margines 5 s: bez tego ograniczenia
-  domyślny maksymalny czas oczekiwania wynoszący 20 minut przekroczyłby czas życia żądania, a uśpienie zostałoby przerwane
-  w trakcie oczekiwania, ujawniając `TimeoutError` zamiast łagodnego zakończenia `max_wait` + wyciszenia.
-- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, rozpoczęcie nowego 5-godzinnego okna lub
+  utrzymują ścieżkę; `slot_busy` (429) lub `529` powodują oczekiwanie przez określony przez serwer czas
+  `anthropic-ratelimit-unified-slow-retry-after` (domyślnie 20 s, ograniczenie 5–600 s, losowe odchylenie ±30%)
+  i ponowienie próby, z limitem wyznaczonym przez `anthropic-ratelimit-unified-slow-max-wait` (domyślnie
+  20 min, ograniczenie 1 min–6 godz.) — po jego przekroczeniu ścieżka się kończy, a 10-minutowy okres
+  schładzania blokuje ponowną akceptację. Czas oczekiwania jest dodatkowo ograniczony pozostałym czasem
+  własnego limitu żądania na rozpoczęcie komunikacji z usługą nadrzędną (`resolveFetchStartTimeout`,
+  domyślnie 10 min) pomniejszonym o 5 s marginesu: bez tego ograniczenia domyślny maksymalny czas
+  oczekiwania wynoszący 20 minut przekroczyłby czas życia żądania, a oczekiwanie zostałoby przerwane
+  w trakcie, zwracając `TimeoutError` zamiast łagodnego zakończenia `max_wait` i okresu schładzania.
+- `weekly_limit` / `budget_exhausted` / `off` / `ineligible`, odnowienie 5-godzinnego okna albo
   `ineligible` + `anthropic-ratelimit-unified-overage-in-use: true` (co kończy ścieżkę jako
-  `extra_usage` przy dowolnym statusie, ponieważ płatne użycie ponad limit pokrywa teraz barierę) kończą ścieżkę;
-  odpowiedź przechodzi następnie do standardowej ścieżki okresu karencji. `budget_exhausted` jest zapamiętywany do
-  ogłoszonego resetu budżetu (≤ 8 dni).
-- Sprawdzanie bariery następuje po wewnętrznych ponowieniach executora w ramach próby, wywołanych odpowiedzią 400 (edycja
-  kontekstu, ograniczenia myślenia/wysiłku, automatyczne uczenie parametrów), więc odpowiedź 429 dotycząca bariery, która pojawi się dopiero podczas
-  jednego z tych ponowień, nadal zostanie przechwycona zamiast trafić do ścieżki okresu karencji.
-- Stan jest przechowywany w pamięci osobno dla każdego połączenia (restart skutkuje jedną dodatkową odpowiedzią 429 dotyczącą bariery, zanim oferta zostanie ponownie przyjęta).
+  `extra_usage` niezależnie od statusu, ponieważ płatne użycie ponad limit obejmuje teraz ten limit)
+  kończą ścieżkę; odpowiedź trafia następnie do standardowej obsługi okresu schładzania.
+  `budget_exhausted` jest zapamiętywane do ogłoszonego resetu budżetu (≤ 8 dni).
+- Sprawdzenie limitu następuje po własnych, wyzwalanych odpowiedzią 400 ponowieniach próby wykonawcy
+  w ramach tej samej próby (edycja kontekstu, ograniczenia myślenia/wysiłku, automatyczne uczenie
+  parametrów), więc odpowiedź 429 wynikająca z limitu, która pojawia się dopiero przy jednym z tych
+  ponowień, nadal jest przechwytywana zamiast trafiać do obsługi okresu schładzania.
+- Stan jest przechowywany w pamięci osobno dla każdego połączenia (restart powoduje konieczność
+  odebrania jednej dodatkowej odpowiedzi 429 wynikającej z limitu, aby ponownie zaakceptować ofertę).
 
-**Reset limitu sesji** (`autoLimitReset`, wykonywany przed ścieżką, gdy obie funkcje są włączone):
+**Reset limitu sesji** (`autoLimitReset`, podejmowany przed użyciem ścieżki, gdy obie funkcje są włączone):
 
 - `GET https://api.anthropic.com/api/oauth/usage?at_wall=1&skip_spend=1` → blok `juniper_tide`;
   gdy `arm: "reset"` i `available: true`,
   `POST https://api.anthropic.com/api/organizations/{orgUUID}/reset_rate_limits` z
   `{ "program": "juniper_tide" }` (UUID organizacji z
-  `providerSpecificData.organizationUUID`, z rezerwową wartością z inicjalizacji).
+  `providerSpecificData.organizationUUID`, z rezerwowym użyciem danych inicjalizacyjnych).
 - `result: reset|not_limited` → żądanie jest ponawiane z pełną szybkością (bez nagłówka trybu wolnego).
-  `already_used` / `not_offered` zapamiętują `next_available_at` (domyślnie jeden tydzień); każda
-  awaria powoduje 15-minutowe wycofanie. Reset jest dostępny raz w tygodniu i nadal wlicza się do
-  limitu tygodniowego.
+  `already_used` / `not_offered` zapamiętują `next_available_at` (domyślnie jeden tydzień);
+  każda awaria powoduje 15-minutowe wycofanie. Reset jest dostępny raz w tygodniu i nadal wlicza się
+  do limitu tygodniowego.
 
 Zabezpieczenia przed regresją: `tests/unit/claude-low-priority-mode.test.ts`,
 `tests/unit/claude-limit-reset.test.ts`, `tests/unit/claude-low-priority-executor.test.ts`.
 
-### Koligacja sesji (#7274)
+### Powiązanie sesji (#7274)
 
-**Zakres:** jedna sesja klienta (nagłówek `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) przypisana do jednego połączenia dla **dowolnego** dostawcy.
+**Zakres:** jedna sesja klienta (nagłówek `X-Session-Id` / `x-codex-session-id` / `x-omniroute-session`) przypięta do jednego połączenia dla **dowolnego** dostawcy.
 
-**Cel:** utrzymanie wieloturowego agenta (Claude Code, aider, agenci niestandardowi) na tym samym koncie między żądaniami, co ogranicza utratę kontekstu przy przełączaniu kont oraz powtarzające się błędy 429 przy zimnym starcie u dostawców przechowujących stan sesji na poziomie konta.
+**Cel:** utrzymanie agenta prowadzącego wieloetapową konwersację (Claude Code, aider, agenci niestandardowi) na tym samym koncie między żądaniami, co ogranicza utratę kontekstu przy przechodzeniu między kontami oraz powtarzające się odpowiedzi 429 przy zimnym starcie u dostawców przechowujących stan sesji osobno dla każdego konta.
 
 **Implementacja:**
 
-- Ustalanie TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
-- Wybór/tworzenie przypisania: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Określanie TTL: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Wybór/tworzenie przypięcia: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
 - Wyodrębnianie nagłówka (ogólne, dla dowolnego dostawcy): `src/sse/services/auth.ts::extractSessionAffinityKey()`
-- Utrwalona tabela przypisań: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
-- Ustawienie: `sessionAffinityTtlMs` (globalny TTL w ms, `0` wyłącza) — `src/lib/db/settings.ts`. Nazwa została zmieniona z właściwego tylko dla Codex ustawienia `codexSessionAffinityTtlMs` przez migrację `124_generic_session_affinity_ttl.sql`, która przenosi każdą wcześniej skonfigurowaną wartość TTL dla Codex jako nową wartość domyślną.
+- Utrwalona tabela przypięć: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Ustawienie: `sessionAffinityTtlMs` (globalny TTL w ms, `0` wyłącza) — `src/lib/db/settings.ts`. Nazwa została zmieniona z przeznaczonej wyłącznie dla Codex wartości `codexSessionAffinityTtlMs` przez migrację `124_generic_session_affinity_ttl.sql`, która przenosi wcześniej skonfigurowany TTL Codex jako nową wartość domyślną.
 
-Przed #7274 funkcja `resolveSessionAffinityTtlMs()` natychmiast zwracała `0` dla każdego dostawcy poza `codex`, więc ustawienie TTL (oraz nagłówki sesji) nie miało wpływu nigdzie indziej, mimo że mechanizm przypisywania i wyodrębnianie nagłówków były już niezależne od dostawcy. Poprawka usunęła ten wcześniejszy zwrot; TTL jest teraz stosowany jednolicie do każdego dostawcy, gdy jego globalna wartość zostanie ustawiona powyżej `0`.
+Przed #7274 funkcja `resolveSessionAffinityTtlMs()` natychmiast zwracała `0` dla każdego dostawcy poza `codex`, więc ustawienie TTL (oraz nagłówki sesji) nie miały wpływu nigdzie indziej, mimo że mechanizm przypinania i wyodrębnianie nagłówków były już niezależne od dostawcy. Poprawka usunęła ten przedwczesny zwrot; TTL jest teraz stosowany jednolicie do każdego dostawcy, gdy jego globalna wartość jest większa niż `0`.
 
-Trzy nagłówki koligacji sesji nigdy nie są przekazywane dalej — wykonawcy tworzą własne nagłówki dla dostawcy od podstaw, zamiast przekazywać nagłówki klienta, więc pozostają one wyłącznie wewnętrznymi identyfikatorami korelacji.
+Te trzy nagłówki powiązania sesji nigdy nie są przekazywane do usługi nadrzędnej — wykonawcy budują własne nagłówki dla usługi nadrzędnej od podstaw, zamiast przekazywać nagłówki klienta, dzięki czemu pozostają one wyłącznie wewnętrznymi identyfikatorami korelacji.
 
 ### Wyłączne dzierżawy połączeń dla zarządzanych sesji
 
-**Zakres:** jeden aktywny zarządzany klient HTTP/sesja jest właścicielem jednego kwalifikującego się połączenia OmniRoute.
+**Zakres:** jeden aktywny zarządzany klient/sesja HTTP posiada jedno kwalifikujące się połączenie OmniRoute.
 
-**Cel:** zapewnienie trwałego, wyłącznego prawa własności do połączenia klientom, którzy potrzebują ścisłej granicy routingu między żądaniami. Różni się to od koligacji sesji, która jest miękką preferencją ciągłości: wyłączna dzierżawa utrwala stan cyklu życia w SQLite, wymusza globalną unikalność aktywnego właściciela i aktywnego połączenia oraz odrzuca nieaktualną generację przed przekazaniem żądania do dostawcy.
+**Cel:** zapewnienie trwałej, wyłącznej własności połączenia klientom, którzy potrzebują ścisłej bariery routingu
+między żądaniami. Różni się to od powiązania sesji, które jest miękką preferencją ciągłości:
+wyłączna dzierżawa utrwala stan cyklu życia w SQLite, wymusza globalną unikalność aktywnego właściciela
+i aktywnego połączenia oraz odrzuca nieaktualną generację przed przekazaniem żądania do dostawcy.
 
-Funkcja jest opcjonalna dla poszczególnych kluczy API. Zarządzany klucz musi mieć zakres `lease:exclusive` oraz jawną, niepustą listę `allowedConnections`. Każdy klient HTTP może używać punktu końcowego cyklu życia; nazwa klienta, user-agent, dostawca, metoda OAuth ani model nie są wymagane. Dzierżawa jest przypisana do połączenia, a nie do modelu, dlatego zmiana modelu zachowuje powiązanie, dopóki połączenie nadal spełnia zwykłe kryteria kwalifikacji. Standardowe reguły dotyczące modelu, limitu, stanu, okresu oczekiwania i listy dozwolonych połączeń pozostają nadrzędne i mogą przenieść tę samą generację do innego wolnego, kwalifikującego się połączenia.
+Funkcja jest opcjonalnie włączana dla poszczególnych kluczy API. Zarządzany klucz musi mieć zakres
+`lease:exclusive` oraz jawną, niepustą listę `allowedConnections`. Każdy klient HTTP może korzystać
+z punktu końcowego cyklu życia; nie są wymagane nazwa klienta, agent użytkownika, dostawca, metoda OAuth
+ani model. Dzierżawa obejmuje połączenie, a nie model, dlatego zmiana modelu zachowuje powiązanie,
+dopóki połączenie pozostaje standardowo kwalifikujące się. Standardowe reguły dotyczące modelu, limitów,
+stanu, okresu schładzania i listy dozwolonych połączeń pozostają nadrzędne i mogą przenieść tę samą
+generację do innego wolnego, kwalifikującego się połączenia.
 
-Cykl życia jest obsługiwany przez `POST /api/v1/session-leases` z akcjami JSON `acquire`, `renew` i `release`. Zarządzane żądania inferencji przekazują nieprzezroczystą wartość `X-OmniRoute-Lease-Owner` oraz dokładną wartość `X-OmniRoute-Lease-Generation`. Identyfikator właściciela składa się z prefiksu `vlo_`, po którym następują 43 znaki base64url; przechowywany jest wyłącznie jego skrót SHA-256. Każda ostateczna kontrola przed przekazaniem żądania wiąże również identyfikator uwierzytelnionego klucza API oraz identyfikator aktywnego połączenia. Nagłówki sterujące dzierżawą są usuwane z dzienników, zachowanych migawek żądań oraz nagłówków przekazywanych przez wykonawców.
+Cykl życia jest obsługiwany przez `POST /api/v1/session-leases` z akcjami JSON `acquire`, `renew` i `release`.
+Żądania zarządzanego wnioskowania przedstawiają nieprzezroczystą wartość `X-OmniRoute-Lease-Owner` oraz dokładną wartość
+`X-OmniRoute-Lease-Generation`. Identyfikator właściciela składa się z prefiksu `vlo_`, po którym następują 43 znaki base64url; przechowywany
+jest wyłącznie jego skrót SHA-256. Każda końcowa blokada wysłania wiąże również identyfikator uwierzytelnionego klucza API oraz
+identyfikator aktywnego połączenia. Nagłówki sterujące dzierżawą są usuwane z dzienników, zachowanych migawek żądań oraz
+nagłówków przekazywanych do wykonawcy nadrzędnego.
 
-Jeśli standardowy routing ma kwalifikujących się zarządzanych kandydatów, ale każdy wolny kandydat jest zajęty przez obcą aktywną dzierżawę, OmniRoute zwraca HTTP `429`, kod niedostępności pojemności dzierżaw, stan oczekiwania na pojemność oraz ograniczoną wartość `Retry-After` wyliczoną na podstawie najwcześniejszego odpowiedniego terminu wygaśnięcia. Zwykły brak kwalifikujących się kandydatów nie stanowi konfliktu dzierżaw i zachowuje dotychczasową semantykę błędów routingu.
+Jeśli zwykłe trasowanie ma kwalifikujących się zarządzanych kandydatów, ale każdy wolny kandydat jest zajęty przez
+aktywną obcą dzierżawę, OmniRoute zwraca HTTP `429`, kod lease-capacity-unavailable, stan
+oczekiwania na dostępność oraz ograniczoną wartość `Retry-After` wyznaczoną na podstawie najwcześniejszego istotnego terminu wygaśnięcia.
+Zwykły brak kwalifikujących się kandydatów nie stanowi konfliktu dzierżaw i zachowuje dotychczasową semantykę błędów trasowania.
 
 Powiązane mechanizmy pozostają odrębne:
 
 - Zajętość sesji OAuth jest lokalnym dla procesu mechanizmem miękkiej dystrybucji kont OAuth.
-- Semafory kont przyznają uprawnienia do współbieżnego wykonywania żądań i kończą się wraz z zakończeniem żądania.
-- Wyłączne dzierżawy połączeń dla zarządzanych sesji zapewniają trwałe prawo własności w ramach cyklu życia wraz z kontrolą generacji.
+- Semafory kont przyznają zezwolenia na współbieżne żądania i zwalniają je po zakończeniu żądania.
+- Wyłączne zarządzane dzierżawy sesji zapewniają trwałą własność w całym cyklu życia z blokadą generacyjną.
 
 ---
 
