@@ -1,0 +1,1 @@
+- **fix(sse):** in-request Codex 429 / Antigravity BYOP 422 account rotation now stays inside the request's connection allowlist (API key `allowed_connections`, combo-step `allowedConnectionIds`, quota pool) instead of picking any account of the provider ([#15990](https://github.com/diegosouzapw/OmniRoute/pull/15990))
