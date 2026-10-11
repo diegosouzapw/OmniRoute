@@ -3381,7 +3381,44 @@
     "httpError": "Yêu cầu thất bại với mã HTTP {status}",
     "testFailedNoDetail": "Kiểm thử thất bại mà không có thông báo lỗi",
     "additionalCapabilities": "Khả năng bổ sung: {list}",
-    "comboRefMember": "Combo → {name}"
+    "comboRefMember": "Combo → {name}",
+    "keyAccessButton": "Quyền truy cập khóa API",
+    "allowedInKeys": "Được phép trong: {count, plural, one {# khóa} other {# khóa}}",
+    "keysLoading": "Đang tải các khóa API…",
+    "keysRetry": "Thử tải lại khóa",
+    "accessViaPattern": "qua {pattern}",
+    "accessBlocked": "Bị chặn bởi {pattern}",
+    "editKeyAccess": "Chỉnh sửa quyền truy cập khóa",
+    "toggleKeyAccess": "Cho phép {item} trên {name}",
+    "resultNetworkError": "Gán thất bại",
+    "resultWouldEmptyModels": "Sẽ khiến khóa này không có mô hình nào được phép — thay vào đó hãy chỉnh sửa quyền truy cập khóa",
+    "resultWouldEmptyCombos": "Sẽ khiến khóa này không có combo nào được phép — thay vào đó hãy chỉnh sửa quyền truy cập khóa",
+    "keyUpdatePending": "{name} vẫn đang được cập nhật. Vui lòng thử lại sau giây lát.",
+    "assignToKeys": "Gán cho các khóa API…",
+    "assignApply": "Áp dụng thay đổi",
+    "assignComplete": "Đã cập nhật quyền truy cập khóa API",
+    "assignFailed": "Một số cập nhật khóa API đã thất bại",
+    "assignNoChanges": "Không có quyền truy cập khóa API nào được thay đổi",
+    "selectedAccessItems": "Mục đã chọn: {count}",
+    "assignExcludedCombos": "{count, plural, one {# hàng combo được chọn không phải là mô hình và sẽ bị bỏ qua ở đây} other {# hàng combo được chọn không phải là mô hình và sẽ bị bỏ qua ở đây}}. Hãy gán combo từ tab Combos.",
+    "assignActionAdd": "Thêm",
+    "assignActionRemove": "Xóa",
+    "searchKeys": "Tìm kiếm khóa API",
+    "selectApiKey": "Chọn khóa API {name}",
+    "allModelsAccess": "Tất cả mô hình",
+    "allCombosAccess": "Tất cả combo",
+    "modelAccessCount": "Mô hình: {count}",
+    "comboAccessCount": "Combo: {count}",
+    "keyInactive": "Không hoạt động",
+    "keyBanned": "Bị cấm",
+    "keyRevoked": "Đã thu hồi",
+    "switchRestrictedConfirm": "Chuyển khóa này sang quyền truy cập bị hạn chế: chỉ các mục đã chọn mới được phép",
+    "removeNoChangeHint": "Khóa này cho phép tất cả; việc gỡ bỏ các mục đã chọn sẽ không có thay đổi nào",
+    "removeStaysAllowedHint": "Vẫn được phép trên khóa này thông qua {patterns}",
+    "resultChanged": "Đã thay đổi",
+    "resultUnchanged": "Không thay đổi",
+    "resultSkipped": "Đã bỏ qua",
+    "resultNeedsSwitch": "Cần chuyển sang chế độ hạn chế"
   },
   "combos": {
     "title": "Combo",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Nhà cung cấp (tất cả tài khoản dùng chung một cầu chì)",
     "resilienceTokenRefreshScopeConnection": "Kết nối (mỗi tài khoản có cầu chì riêng)",
     "resilienceTokenRefreshThreshold": "Lỗi trước khi tạm dừng",
-    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt"
+    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt",
+    "compressionSettingsCavemanOutputMode": "Chế độ đầu ra Caveman",
+    "compressionSettingsAutoClarityBypass": "Bỏ qua tính năng tự động làm rõ"
   },
   "contextRtk": {
     "title": "Công cụ RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Giữ nguyên prompt hệ thống"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Tin nhắn ngắn hơn mức này sẽ không được nén. Thấp hơn = nén nhiều hơn.",
     "tooltipMinSavings": "Chỉ nén nếu tiết kiệm được ít nhất ngần này token.",
     "ultraSettings": "Cài đặt tối đa",
-    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM"
+    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM",
+    "preview": {
+      "lite": "Phản hồi ngắn gọn. Giữ nguyên thuật ngữ kỹ thuật, mã, lỗi, URL và mã định danh.",
+      "full": "Phản hồi cực ngắn và gọn. Giữ nguyên toàn bộ nội dung kỹ thuật.",
+      "ultra": "Phản hồi siêu ngắn gọn với các từ viết tắt kỹ thuật phổ biến. Giữ nguyên các ký hiệu chính xác."
+    }
   },
   "translator": {
     "title": "Trình dịch",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Chưa đo",
     "upstream4xx": "{count} lỗi phía client",
     "upstream5xx": "{count} lỗi máy chủ",
-    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit"
+    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit",
+    "upstreamRefusals": "{count} từ chối từ máy chủ"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",

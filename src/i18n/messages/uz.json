@@ -3381,7 +3381,44 @@
     "httpError": "Soʻrov HTTP {status} bilan muvaffaqiyatsiz tugadi",
     "testFailedNoDetail": "Test xatolik xabarisiz muvaffaqiyatsiz tugadi",
     "additionalCapabilities": "Qoʻshimcha imkoniyatlar: {list}",
-    "comboRefMember": "Kombinatsiya → {name}"
+    "comboRefMember": "Kombinatsiya → {name}",
+    "keyAccessButton": "API kaliti ruxsatlari",
+    "allowedInKeys": "Quyidagilarda ruxsat etilgan: {count, plural, one {# ta kalit} other {# ta kalit}}",
+    "keysLoading": "API kalitlari yuklanmoqda…",
+    "keysRetry": "Kalitlarni qayta yuklash",
+    "accessViaPattern": "{pattern} orqali",
+    "accessBlocked": "{pattern} tomonidan bloklangan",
+    "editKeyAccess": "Kalit ruxsatlarini tahrirlash",
+    "toggleKeyAccess": "{name} uchun {item} ga ruxsat berish",
+    "resultNetworkError": "Biriktirish amalga oshmadi",
+    "resultWouldEmptyModels": "Bu kalitni hech qanday ruxsat etilgan modellsiz qoldiradi — buning oʻrniga kalit ruxsatini tahrirlang",
+    "resultWouldEmptyCombos": "Bu kalitni hech qanday ruxsat etilgan kombolarsiz qoldiradi — buning oʻrniga kalit ruxsatini tahrirlang",
+    "keyUpdatePending": "{name} hali ham yangilanmoqda. Bir ozdan keyin qayta urinib koʻring.",
+    "assignToKeys": "API kalitlariga biriktirish…",
+    "assignApply": "Oʻzgarishlarni qoʻllash",
+    "assignComplete": "API kaliti ruxsatlari yangilandi",
+    "assignFailed": "Baʼzi API kalitlarini yangilash muvaffaqiyatsiz tugadi",
+    "assignNoChanges": "Hech qanday API kalit ruxsati oʻzgartirilmadi",
+    "selectedAccessItems": "Tanlangan elementlar: {count}",
+    "assignExcludedCombos": "{count, plural, one {Tanlangan # ta kombo qatori model emas va bu yerda tashlab ketiladi} other {Tanlangan # ta kombo qatori model emas va bu yerda tashlab ketiladi}}. Kombolarni Combos yorligʻidan biriktiring.",
+    "assignActionAdd": "Qoʻshish",
+    "assignActionRemove": "Olib tashlash",
+    "searchKeys": "API kalitlarini qidirish",
+    "selectApiKey": "{name} API kalitini tanlash",
+    "allModelsAccess": "Barcha modellar",
+    "allCombosAccess": "Barcha kombinatsiyalar",
+    "modelAccessCount": "Modellar: {count}",
+    "comboAccessCount": "Kombinatsiyalar: {count}",
+    "keyInactive": "Faol emas",
+    "keyBanned": "Bloklangan",
+    "keyRevoked": "Bekor qilingan",
+    "switchRestrictedConfirm": "Ushbu kalitni cheklangan ruxsatga oʻtkazish: faqat tanlangan elementlarga ruxsat beriladi",
+    "removeNoChangeHint": "Bu kalit barchasiga ruxsat beradi; tanlangan elementlarni olib tashlash hech narsani oʻzgartirmaydi",
+    "removeStaysAllowedHint": "{patterns} orqali ushbu kalitda hali ham ruxsat berilgan",
+    "resultChanged": "Oʻzgartirildi",
+    "resultUnchanged": "Oʻzgarishsiz",
+    "resultSkipped": "Oʻtkazib yuborildi",
+    "resultNeedsSwitch": "Cheklangan rejimga oʻtkazish talab etiladi"
   },
   "combos": {
     "title": "Kombinatsiyalar",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Taʼminotchi (barcha hisoblar bitta kesgichni ulashadi)",
     "resilienceTokenRefreshScopeConnection": "Ulanish (har bir hisobning o'z uzgichi bor)",
     "resilienceTokenRefreshThreshold": "To'xtatishdan oldingi xatolar",
-    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza"
+    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza",
+    "compressionSettingsCavemanOutputMode": "Caveman chiqish rejimi",
+    "compressionSettingsAutoClarityBypass": "Aniqlikni avtomatik chetlab o‘tish"
   },
   "contextRtk": {
     "title": "RTK mexanizmi",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Tizim ko‘rsatmasini saqlash"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Bundan qisqa xabarlar siqilmaydi. Pastroq = ko‘proq siqish.",
     "tooltipMinSavings": "Faqat kamida shuncha token tejalsa, siqiladi.",
     "ultraSettings": "Ultra sozlamalar",
-    "ultraSettingsDesc": "SLM asosidagi semantik siqish"
+    "ultraSettingsDesc": "SLM asosidagi semantik siqish",
+    "preview": {
+      "lite": "Qisqa javob bering. Texnik atamalar, kod, xatolar, URL manzillar va identifikatorlarni saqlang.",
+      "full": "Juda qisqa va ixcham javob bering. Barcha texnik mazmunni saqlang.",
+      "ultra": "Keng tarqalgan texnik qisqartmalardan foydalanib, o‘ta qisqa javob bering. Belgilarni aynan saqlang."
+    }
   },
   "translator": {
     "title": "Tarjimon",
@@ -11438,7 +11485,8 @@
     "notMeasured": "O‘lchanmagan",
     "upstream4xx": "{count} murojaat tashqarisidagi xatolar",
     "upstream5xx": "{count} server tashqarisidagi xatolar",
-    "uniformEgressLine": "{provider} da {exits} ta chiqishdan {affected} tasi birga ishlamayapti (soʻnggi {hours} soat) — chiqish muammosi emas"
+    "uniformEgressLine": "{provider} da {exits} ta chiqishdan {affected} tasi birga ishlamayapti (soʻnggi {hours} soat) — chiqish muammosi emas",
+    "upstreamRefusals": "{count} ta yuqori rad etish"
   },
   "playground": {
     "title": "Model sinov maydoni",

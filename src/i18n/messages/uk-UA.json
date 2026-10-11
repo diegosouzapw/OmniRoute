@@ -3381,7 +3381,44 @@
     "httpError": "Запит завершився помилкою HTTP {status}",
     "testFailedNoDetail": "Тест завершився помилкою без повідомлення про помилку",
     "additionalCapabilities": "Додаткові можливості: {list}",
-    "comboRefMember": "Комбінація → {name}"
+    "comboRefMember": "Комбінація → {name}",
+    "keyAccessButton": "Доступ API-ключа",
+    "allowedInKeys": "Дозволено у: {count, plural, one {# ключі} few {# ключах} many {# ключах} other {# ключах}}",
+    "keysLoading": "Завантаження API-ключів…",
+    "keysRetry": "Повторити завантаження ключів",
+    "accessViaPattern": "через {pattern}",
+    "accessBlocked": "Заблоковано {pattern}",
+    "editKeyAccess": "Редагувати доступ ключа",
+    "toggleKeyAccess": "Дозволити {item} для {name}",
+    "resultNetworkError": "Не вдалося призначити",
+    "resultWouldEmptyModels": "Це залишить цей ключ без дозволених моделей — натомість змініть доступ до ключа",
+    "resultWouldEmptyCombos": "Це залишить цей ключ без дозволених комбо — натомість змініть доступ до ключа",
+    "keyUpdatePending": "{name} все ще оновлюється. Спробуйте знову за мить.",
+    "assignToKeys": "Призначити для API-ключів…",
+    "assignApply": "Застосувати зміни",
+    "assignComplete": "Доступ API-ключа оновлено",
+    "assignFailed": "Не вдалося оновити деякі API-ключі",
+    "assignNoChanges": "Доступ до API-ключа не змінено",
+    "selectedAccessItems": "Вибрано елементів: {count}",
+    "assignExcludedCombos": "{count, plural, one {# вибраний рядок комбо не є моделлю і буде пропущений тут} few {# вибрані рядки комбо не є моделями і будуть пропущені тут} many {# вибраних рядків комбо не є моделями і будуть пропущені тут} other {# вибраних рядків комбо не є моделями і будуть пропущені тут}}. Призначайте комбо на вкладці Combos.",
+    "assignActionAdd": "Додати",
+    "assignActionRemove": "Видалити",
+    "searchKeys": "Пошук API-ключів",
+    "selectApiKey": "Вибрати API-ключ {name}",
+    "allModelsAccess": "Усі моделі",
+    "allCombosAccess": "Усі комбінації",
+    "modelAccessCount": "Моделі: {count}",
+    "comboAccessCount": "Комбінації: {count}",
+    "keyInactive": "Неактивний",
+    "keyBanned": "Заблокований",
+    "keyRevoked": "Відкликано",
+    "switchRestrictedConfirm": "Перемкнути цей ключ на обмежений доступ: буде дозволено лише вибрані елементи",
+    "removeNoChangeHint": "Цей ключ дозволяє все; видалення вибраних елементів нічого не змінить",
+    "removeStaysAllowedHint": "Все ще дозволено для цього ключа через {patterns}",
+    "resultChanged": "Змінено",
+    "resultUnchanged": "Без змін",
+    "resultSkipped": "Пропущено",
+    "resultNeedsSwitch": "Потрібно перемкнути на обмежений доступ"
   },
   "combos": {
     "title": "Комбо",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Провайдер (усі облікові записи використовують один розривач)",
     "resilienceTokenRefreshScopeConnection": "З'єднання (кожен обліковий запис має власний автомат)",
     "resilienceTokenRefreshThreshold": "Помилки перед призупиненням",
-    "resilienceTokenRefreshCooldown": "Пауза після спрацювання"
+    "resilienceTokenRefreshCooldown": "Пауза після спрацювання",
+    "compressionSettingsCavemanOutputMode": "Режим виведення Caveman",
+    "compressionSettingsAutoClarityBypass": "Автоматичний обхід чіткості"
   },
   "contextRtk": {
     "title": "Двигун RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Зберігати системний промпт"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Коротші повідомлення не стискаються. Нижче = більше стиснення.",
     "tooltipMinSavings": "Стискайте лише якщо це зберігає принаймні таку кількість токенів.",
     "ultraSettings": "Ультра налаштування",
-    "ultraSettingsDesc": "Семантичне стиснення на основі SLM"
+    "ultraSettingsDesc": "Семантичне стиснення на основі SLM",
+    "preview": {
+      "lite": "Відповідайте стисло. Зберігайте технічні терміни, код, помилки, URL-адреси та ідентифікатори.",
+      "full": "Відповідайте лаконічно й компактно. Зберігайте всю технічну суть.",
+      "ultra": "Відповідайте максимально стисло, використовуючи загальноприйняті технічні скорочення. Зберігайте точні символи."
+    }
   },
   "translator": {
     "title": "Перекладач",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Не виміряно",
     "upstream4xx": "{count} верхніх помилок клієнта",
     "upstream5xx": "{count} помилки верхнього сервера",
-    "uniformEgressLine": "{affected} з {exits} виходів одночасно виходять з ладу на {provider} (останні {hours} год.) — це не проблема виходу"
+    "uniformEgressLine": "{affected} з {exits} виходів одночасно виходять з ладу на {provider} (останні {hours} год.) — це не проблема виходу",
+    "upstreamRefusals": "{count} відмов апастріму"
   },
   "playground": {
     "title": "Title",

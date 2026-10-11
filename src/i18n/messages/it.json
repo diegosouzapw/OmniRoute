@@ -3381,7 +3381,44 @@
     "httpError": "Richiesta non riuscita con HTTP {status}",
     "testFailedNoDetail": "Test non riuscito senza un messaggio di errore",
     "additionalCapabilities": "Funzionalità aggiuntive: {list}",
-    "comboRefMember": "Combo → {name}"
+    "comboRefMember": "Combo → {name}",
+    "keyAccessButton": "Accesso alla chiave API",
+    "allowedInKeys": "Consentito in: {count, plural, one {# chiave} other {# chiavi}}",
+    "keysLoading": "Caricamento chiavi API…",
+    "keysRetry": "Riprova a caricare le chiavi",
+    "accessViaPattern": "tramite {pattern}",
+    "accessBlocked": "Bloccato da {pattern}",
+    "editKeyAccess": "Modifica accesso chiave",
+    "toggleKeyAccess": "Consenti {item} su {name}",
+    "resultNetworkError": "Assegnazione non riuscita",
+    "resultWouldEmptyModels": "Lascerebbe questa chiave senza modelli consentiti — modifica invece l'accesso della chiave",
+    "resultWouldEmptyCombos": "Lascerebbe questa chiave senza combo consentite — modifica invece l'accesso della chiave",
+    "keyUpdatePending": "{name} è ancora in fase di aggiornamento. Riprova tra un momento.",
+    "assignToKeys": "Assegna alle chiavi API…",
+    "assignApply": "Applica modifiche",
+    "assignComplete": "Accesso alla chiave API aggiornato",
+    "assignFailed": "Alcuni aggiornamenti delle chiavi API non sono riusciti",
+    "assignNoChanges": "Nessun accesso alla chiave API modificato",
+    "selectedAccessItems": "Elementi selezionati: {count}",
+    "assignExcludedCombos": "{count, plural, one {# riga di combo selezionata non è un modello e verrà ignorata qui} other {# righe di combo selezionate non sono modelli e verranno ignorate qui}}. Assegna le combo dalla scheda Combos.",
+    "assignActionAdd": "Aggiungi",
+    "assignActionRemove": "Rimuovi",
+    "searchKeys": "Cerca chiavi API",
+    "selectApiKey": "Seleziona chiave API {name}",
+    "allModelsAccess": "Tutti i modelli",
+    "allCombosAccess": "Tutte le combinazioni",
+    "modelAccessCount": "Modelli: {count}",
+    "comboAccessCount": "Combinazioni: {count}",
+    "keyInactive": "Inattivo",
+    "keyBanned": "Bloccato",
+    "keyRevoked": "Revocato",
+    "switchRestrictedConfirm": "Imposta questa chiave su accesso limitato: saranno consentiti solo gli elementi selezionati",
+    "removeNoChangeHint": "Questa chiave consente tutto; la rimozione degli elementi selezionati non apporterà alcuna modifica",
+    "removeStaysAllowedHint": "Ancora consentito su questa chiave tramite {patterns}",
+    "resultChanged": "Modificato",
+    "resultUnchanged": "Nessuna modifica",
+    "resultSkipped": "Ignorato",
+    "resultNeedsSwitch": "Richiede il passaggio ad accesso limitato"
   },
   "combos": {
     "title": "Combinazioni",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (tutti gli account condividono un unico interruttore)",
     "resilienceTokenRefreshScopeConnection": "Connessione (ogni account ha il proprio circuit breaker)",
     "resilienceTokenRefreshThreshold": "Fallimenti prima della pausa",
-    "resilienceTokenRefreshCooldown": "Pausa dopo l'attivazione"
+    "resilienceTokenRefreshCooldown": "Pausa dopo l'attivazione",
+    "compressionSettingsCavemanOutputMode": "Modalità di uscita cavernicolo",
+    "compressionSettingsAutoClarityBypass": "Bypass automatico della chiarezza"
   },
   "contextRtk": {
     "title": "Motore RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Lunghezza massima del risultato strumento",
         "description": "Limite di caratteri per il troncamento proattivo. Predefinito 2000. Sovrascrivibile con OMNIROUTE_LITE_MAX_TOOL_LENGTH se il campo è vuoto."
+      },
+      "preserveSystemPrompt": {
+        "label": "Preserva prompt di sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "I messaggi più brevi di questo non vengono compressi. Più basso = maggiore compressione.",
     "tooltipMinSavings": "Comprimi solo se salva almeno questo numero di token.",
     "ultraSettings": "Impostazioni ultra",
-    "ultraSettingsDesc": "Compressione semantica basata su SLM"
+    "ultraSettingsDesc": "Compressione semantica basata su SLM",
+    "preview": {
+      "lite": "Rispondi in modo conciso. Mantieni invariati termini tecnici, codice, errori, URL e identificatori.",
+      "full": "Rispondi in modo succinto e compatto. Mantieni tutto il contenuto tecnico.",
+      "ultra": "Rispondi in modo estremamente succinto usando abbreviazioni tecniche comuni. Mantieni invariati i simboli esatti."
+    }
   },
   "translator": {
     "title": "Traduttore",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Non misurato",
     "upstream4xx": "{count} errori del client a monte",
     "upstream5xx": "{count} errori del server a monte",
-    "uniformEgressLine": "{affected} di {exits} uscite falliscono insieme su {provider} (ultime {hours}h) — non è un problema di uscita"
+    "uniformEgressLine": "{affected} di {exits} uscite falliscono insieme su {provider} (ultime {hours}h) — non è un problema di uscita",
+    "upstreamRefusals": "{count} rifiuti upstream"
   },
   "playground": {
     "title": "Title",

@@ -3381,7 +3381,44 @@
     "httpError": "Zahtjev nije uspio sa statusom HTTP {status}",
     "testFailedNoDetail": "Test nije uspio bez poruke o grešci",
     "additionalCapabilities": "Dodatne mogućnosti: {list}",
-    "comboRefMember": "Kombinacija → {name}"
+    "comboRefMember": "Kombinacija → {name}",
+    "keyAccessButton": "Pristup API ključu",
+    "allowedInKeys": "Dozvoljeno u: {count, plural, one {# ključu} few {# ključa} other {# ključeva}}",
+    "keysLoading": "Učitavanje API ključeva…",
+    "keysRetry": "Pokušaj ponovo učitati ključeve",
+    "accessViaPattern": "putem {pattern}",
+    "accessBlocked": "Blokirano od strane {pattern}",
+    "editKeyAccess": "Uredi pristup ključu",
+    "toggleKeyAccess": "Dozvoli {item} na {name}",
+    "resultNetworkError": "Dodjeljivanje nije uspjelo",
+    "resultWouldEmptyModels": "Ovo bi ostavilo ovaj ključ bez dozvoljenih modela — umjesto toga uredite pristup ključu",
+    "resultWouldEmptyCombos": "Ovo bi ostavilo ovaj ključ bez dozvoljenih kombinacija — umjesto toga uredite pristup ključu",
+    "keyUpdatePending": "{name} se još uvijek ažurira. Pokušajte ponovo za trenutak.",
+    "assignToKeys": "Dodijeli API ključevima…",
+    "assignApply": "Primijeni promjene",
+    "assignComplete": "Pristup API ključu ažuriran",
+    "assignFailed": "Neka ažuriranja API ključeva nisu uspjela",
+    "assignNoChanges": "Pristup API ključevima nije promijenjen",
+    "selectedAccessItems": "Odabrane stavke: {count}",
+    "assignExcludedCombos": "{count, plural, one {# odabrani red kombinacije nije model i ovdje će biti preskočen} few {# odabrana reda kombinacije nisu modeli i ovdje će biti preskočeni} other {# odabranih redova kombinacije nisu modeli i ovdje će biti preskočeni}}. Dodijelite kombinacije s kartice Combos.",
+    "assignActionAdd": "Dodaj",
+    "assignActionRemove": "Ukloni",
+    "searchKeys": "Pretraži API ključeve",
+    "selectApiKey": "Odaberi API ključ {name}",
+    "allModelsAccess": "Svi modeli",
+    "allCombosAccess": "Sve kombinacije",
+    "modelAccessCount": "Modeli: {count}",
+    "comboAccessCount": "Kombinacije: {count}",
+    "keyInactive": "Neaktivno",
+    "keyBanned": "Blokirano",
+    "keyRevoked": "Opozvano",
+    "switchRestrictedConfirm": "Prebaci ovaj ključ na ograničeni pristup: samo odabrane stavke će biti dozvoljene",
+    "removeNoChangeHint": "Ovaj ključ dozvoljava sve; uklanjanje odabranih stavki neće ništa promijeniti",
+    "removeStaysAllowedHint": "I dalje dozvoljeno na ovom ključu putem {patterns}",
+    "resultChanged": "Izmijenjeno",
+    "resultUnchanged": "Nema promjene",
+    "resultSkipped": "Preskočeno",
+    "resultNeedsSwitch": "Potrebno je prebaciti na ograničeni pristup"
   },
   "combos": {
     "title": "Kombinacije",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Pružalac (svi nalozi dijele jedan prekidač)",
     "resilienceTokenRefreshScopeConnection": "Veza (svaki nalog ima vlastiti prekidač)",
     "resilienceTokenRefreshThreshold": "Neuspjesi prije pauze",
-    "resilienceTokenRefreshCooldown": "Pauza nakon aktiviranja"
+    "resilienceTokenRefreshCooldown": "Pauza nakon aktiviranja",
+    "compressionSettingsCavemanOutputMode": "Način izlaza pećinskog čovjeka",
+    "compressionSettingsAutoClarityBypass": "Automatsko zaobilaženje jasnoće"
   },
   "contextRtk": {
     "title": "RTK pogon",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maksimalna dužina rezultata alata",
         "description": "Ograničenje karaktera za proaktivno skraćivanje rezultata alata. Podrazumijevano 2000. Prepišite sa OMNIROUTE_LITE_MAX_TOOL_LENGTH kada je ovo polje prazno."
+      },
+      "preserveSystemPrompt": {
+        "label": "Zadrži sistemski prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Poruke kraće od ovoga se ne kompresuju. Niže = više kompresije.",
     "tooltipMinSavings": "Kompresuj samo ako uštedi najmanje toliko tokena.",
     "ultraSettings": "Ultra postavke",
-    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u"
+    "ultraSettingsDesc": "Semantička kompresija zasnovana na SLM-u",
+    "preview": {
+      "lite": "Odgovaraj koncizno. Zadrži tehničke termine, kod, greške, URL-ove i identifikatore.",
+      "full": "Odgovaraj kratko i kompaktno. Zadrži svu tehničku suštinu.",
+      "ultra": "Odgovaraj ultra kratko uz uobičajene tehničke skraćenice. Zadrži tačne simbole."
+    }
   },
   "translator": {
     "title": "Prevodilac",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Nije mjereno",
     "upstream4xx": "{count} grešaka klijenta na izvoru",
     "upstream5xx": "{count} grešaka servera na izvoru",
-    "uniformEgressLine": "{affected} od {exits} izlaza neuspješno zajedno na {provider} (posljednjih {hours}h) — nije problem izlaza"
+    "uniformEgressLine": "{affected} od {exits} izlaza neuspješno zajedno na {provider} (posljednjih {hours}h) — nije problem izlaza",
+    "upstreamRefusals": "{count} upstream odbijanja"
   },
   "playground": {
     "title": "Testno okruženje za modele",

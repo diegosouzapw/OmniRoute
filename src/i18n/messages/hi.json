@@ -3381,7 +3381,44 @@
     "httpError": "अनुरोध HTTP {status} के साथ विफल रहा",
     "testFailedNoDetail": "बिना किसी त्रुटि संदेश के परीक्षण विफल रहा",
     "additionalCapabilities": "अतिरिक्त क्षमताएं: {list}",
-    "comboRefMember": "कॉम्बो → {name}"
+    "comboRefMember": "कॉम्बो → {name}",
+    "keyAccessButton": "API कुंजी एक्सेस",
+    "allowedInKeys": "इनमें अनुमत: {count, plural, one {# कुंजी} other {# कुंजियाँ}}",
+    "keysLoading": "API कुंजियाँ लोड हो रही हैं…",
+    "keysRetry": "कुंजियों को लोड करने का पुनः प्रयास करें",
+    "accessViaPattern": "{pattern} के माध्यम से",
+    "accessBlocked": "{pattern} द्वारा अवरोधित",
+    "editKeyAccess": "कुंजी एक्सेस संपादित करें",
+    "toggleKeyAccess": "{name} पर {item} की अनुमति दें",
+    "resultNetworkError": "असाइनमेंट विफल रहा",
+    "resultWouldEmptyModels": "इससे इस कुंजी के पास कोई अनुमत मॉडल नहीं बचेगा — इसके बजाय कुंजी एक्सेस को संपादित करें",
+    "resultWouldEmptyCombos": "इससे इस कुंजी के पास कोई अनुमत कॉम्बो नहीं बचेगा — इसके बजाय कुंजी एक्सेस को संपादित करें",
+    "keyUpdatePending": "{name} को अभी भी अपडेट किया जा रहा है। कुछ क्षणों में पुनः प्रयास करें।",
+    "assignToKeys": "API कुंजियों को असाइन करें…",
+    "assignApply": "परिवर्तन लागू करें",
+    "assignComplete": "API कुंजी एक्सेस अपडेट किया गया",
+    "assignFailed": "कुछ API कुंजी अपडेट विफल रहे",
+    "assignNoChanges": "किसी भी API कुंजी का एक्सेस नहीं बदला गया",
+    "selectedAccessItems": "चयनित आइटम: {count}",
+    "assignExcludedCombos": "{count, plural, one {# चयनित कॉम्बो पंक्ति एक मॉडल नहीं है और इसे यहाँ छोड़ दिया जाएगा} other {# चयनित कॉम्बो पंक्तियाँ मॉडल नहीं हैं और उन्हें यहाँ छोड़ दिया जाएगा}}। Combos टैब से कॉम्बो असाइन करें।",
+    "assignActionAdd": "जोड़ें",
+    "assignActionRemove": "हटाएं",
+    "searchKeys": "API कुंजियाँ खोजें",
+    "selectApiKey": "API कुंजी {name} चुनें",
+    "allModelsAccess": "सभी मॉडल",
+    "allCombosAccess": "सभी कॉम्बो",
+    "modelAccessCount": "मॉडल: {count}",
+    "comboAccessCount": "कॉम्बो: {count}",
+    "keyInactive": "निष्क्रिय",
+    "keyBanned": "प्रतिबंधित",
+    "keyRevoked": "निरस्त",
+    "switchRestrictedConfirm": "इस कुंजी को प्रतिबंधित एक्सेस पर स्विच करें: केवल चयनित आइटमों की अनुमति होगी",
+    "removeNoChangeHint": "यह कुंजी सभी चीज़ों की अनुमति देती है; चयनित आइटमों को हटाने से कोई बदलाव नहीं होगा",
+    "removeStaysAllowedHint": "{patterns} के माध्यम से इस कुंजी पर अभी भी अनुमत है",
+    "resultChanged": "परिवर्तित",
+    "resultUnchanged": "कोई बदलाव नहीं",
+    "resultSkipped": "छोड़ा गया",
+    "resultNeedsSwitch": "प्रतिबंधित पर स्विच करने की आवश्यकता है"
   },
   "combos": {
     "title": "संयोजन",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "प्रदाता (सभी खाते एक ही ब्रेकर साझा करते हैं)",
     "resilienceTokenRefreshScopeConnection": "कनेक्शन (प्रत्येक खाते का अपना ब्रेकर है)",
     "resilienceTokenRefreshThreshold": "रोकने से पहले विफलताएँ",
-    "resilienceTokenRefreshCooldown": "ट्रिप होने के बाद विराम"
+    "resilienceTokenRefreshCooldown": "ट्रिप होने के बाद विराम",
+    "compressionSettingsCavemanOutputMode": "केवमैन आउटपुट मोड",
+    "compressionSettingsAutoClarityBypass": "ऑटो स्पष्टता बायपास"
   },
   "contextRtk": {
     "title": "RTK इंजन",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "सिस्टम प्रॉम्प्ट सुरक्षित रखें"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "इससे छोटे संदेश संपीड़ित नहीं होते. कम = अधिक संपीड़न।",
     "tooltipMinSavings": "केवल तभी संपीड़ित करें यदि यह कम से कम इतने टोकन बचाता है।",
     "ultraSettings": "अल्ट्रा सेटिंग्स",
-    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न"
+    "ultraSettingsDesc": "एसएलएम-संचालित सिमेंटिक संपीड़न",
+    "preview": {
+      "lite": "संक्षिप्त उत्तर दें। तकनीकी शब्द, कोड, त्रुटियाँ, URLs और पहचानकर्ता अपरिवर्तित रखें।",
+      "full": "अत्यंत संक्षिप्त और सघन उत्तर दें। सभी तकनीकी तथ्य बनाए रखें।",
+      "ultra": "सामान्य तकनीकी संक्षेपों के साथ अत्यंत संक्षिप्त उत्तर दें। सटीक प्रतीकों को अपरिवर्तित रखें।"
+    }
   },
   "translator": {
     "title": "अनुवादक",
@@ -11438,7 +11485,8 @@
     "notMeasured": "मापा नहीं गया",
     "upstream4xx": "{count} उपरी क्लाइंट त्रुटियाँ",
     "upstream5xx": "{count} उपरी सर्वर त्रुटियाँ",
-    "uniformEgressLine": "{exits} में से {affected} एग्ज़िट {provider} पर एक साथ विफल हो रहे हैं (पिछले {hours} घंटों में) — यह एग्ज़िट की समस्या नहीं है"
+    "uniformEgressLine": "{exits} में से {affected} एग्ज़िट {provider} पर एक साथ विफल हो रहे हैं (पिछले {hours} घंटों में) — यह एग्ज़िट की समस्या नहीं है",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृतियाँ"
   },
   "playground": {
     "title": "Title",

@@ -3381,7 +3381,44 @@
     "httpError": "တောင်းဆိုမှုသည် HTTP {status} ဖြင့် မအောင်မြင်ပါ",
     "testFailedNoDetail": "အမှားသတင်းစကား မပါဘဲ စမ်းသပ်မှု မအောင်မြင်ပါ",
     "additionalCapabilities": "ထပ်ဆောင်း လုပ်ဆောင်နိုင်စွမ်းများ- {list}",
-    "comboRefMember": "Combo → {name}"
+    "comboRefMember": "Combo → {name}",
+    "keyAccessButton": "API key အသုံးပြုခွင့်",
+    "allowedInKeys": "ခွင့်ပြုထားသည် - {count, plural, one {ကီး # ခု} other {ကီး # ခု}}",
+    "keysLoading": "API key များကို တင်နေသည်…",
+    "keysRetry": "Key များ ပြန်လည်ရယူရန် ထပ်ကြိုးစားပါ",
+    "accessViaPattern": "{pattern} မှတစ်ဆင့်",
+    "accessBlocked": "{pattern} ကြောင့် ပိတ်ဆို့ထားသည်",
+    "editKeyAccess": "Key အသုံးပြုခွင့်ကို ပြင်ဆင်ရန်",
+    "toggleKeyAccess": "{name} တွင် {item} ကို ခွင့်ပြုရန်",
+    "resultNetworkError": "သတ်မှတ်ပေးမှု မအောင်မြင်ပါ",
+    "resultWouldEmptyModels": "ဤကီးတွင် ခွင့်ပြုထားသော မော်ဒယ်များ မကျန်တော့ဘဲ ဖြစ်သွားပါမည် — ၎င်းအစား ကီးအသုံးပြုခွင့်ကို တည်းဖြတ်ပါ",
+    "resultWouldEmptyCombos": "ဤကီးတွင် ခွင့်ပြုထားသော combo များ မကျန်တော့ဘဲ ဖြစ်သွားပါမည် — ၎င်းအစား ကီးအသုံးပြုခွင့်ကို တည်းဖြတ်ပါ",
+    "keyUpdatePending": "{name} ကို အပ်ဒိတ်လုပ်နေဆဲဖြစ်သည်။ ခဏအကြာတွင် ထပ်စမ်းကြည့်ပါ။",
+    "assignToKeys": "API key များသို့ သတ်မှတ်ပေးရန်…",
+    "assignApply": "အပြောင်းအလဲများကို အတည်ပြုရန်",
+    "assignComplete": "API key အသုံးပြုခွင့်ကို အပ်ဒိတ်လုပ်ပြီးပါပြီ",
+    "assignFailed": "အချို့သော API key အပ်ဒိတ်များ မအောင်မြင်ပါ",
+    "assignNoChanges": "API ကီး အသုံးပြုခွင့် ပြောင်းလဲမှု မရှိပါ",
+    "selectedAccessItems": "ရွေးချယ်ထားသော အရာများ- {count}",
+    "assignExcludedCombos": "{count, plural, one {ရွေးချယ်ထားသော combo အတန်း # ခုသည် မော်ဒယ်မဟုတ်သဖြင့် ဤနေရာတွင် ကျော်သွားပါမည်} other {ရွေးချယ်ထားသော combo အတန်း # ခုသည် မော်ဒယ်များမဟုတ်သဖြင့် ဤနေရာတွင် ကျော်သွားပါမည်}}။ Combos တက်ဘ်မှ combo များကို သတ်မှတ်ပါ။",
+    "assignActionAdd": "ထည့်ရန်",
+    "assignActionRemove": "ဖယ်ရှားရန်",
+    "searchKeys": "API key များကို ရှာဖွေရန်",
+    "selectApiKey": "API key {name} ကို ရွေးရန်",
+    "allModelsAccess": "မော်ဒယ်အားလုံး",
+    "allCombosAccess": "Combo အားလုံး",
+    "modelAccessCount": "မော်ဒယ်များ- {count}",
+    "comboAccessCount": "Combo များ- {count}",
+    "keyInactive": "အသုံးမပြုပါ",
+    "keyBanned": "ပိတ်ပင်ထားသည်",
+    "keyRevoked": "ရုပ်သိမ်းထားသည်",
+    "switchRestrictedConfirm": "ဤ key ကို ကန့်သတ်အသုံးပြုခွင့်သို့ ပြောင်းပါ- ရွေးချယ်ထားသော အရာများကိုသာ ခွင့်ပြုပါမည်",
+    "removeNoChangeHint": "ဤ key သည် အရာအားလုံးကို ခွင့်ပြုထားသည်၊ ရွေးချယ်ထားသော အရာများကို ဖယ်ရှားခြင်းက မည်သည့်ပြောင်းလဲမှုမျှ ဖြစ်စေမည်မဟုတ်ပါ",
+    "removeStaysAllowedHint": "{patterns} မှတစ်ဆင့် ဤကီးတွင် ဆက်လက်ခွင့်ပြုထားဆဲဖြစ်သည်",
+    "resultChanged": "ပြောင်းလဲပြီး",
+    "resultUnchanged": "ပြောင်းလဲမှုမရှိပါ",
+    "resultSkipped": "ကျော်သွားသည်",
+    "resultNeedsSwitch": "ကန့်သတ်အသုံးပြုခွင့်သို့ ပြောင်းရန် လိုအပ်သည်"
   },
   "combos": {
     "title": "ပေါင်းစပ်မော်ဒယ်များ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ပေးသွင်းသူ (အကောင့်အားလုံးသည် တစ်ခုတည်းသော ပြတ်တောက်စက်ကို မျှဝေသည်)",
     "resilienceTokenRefreshScopeConnection": "ချိတ်ဆက်မှု (အကောင့်တိုင်းတွင် ၎င်း၏ breaker ရှိသည်)",
     "resilienceTokenRefreshThreshold": "ရပ်တန့်မှုမပြုမီ မအောင်မြင်မှုများ",
-    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ"
+    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ",
+    "compressionSettingsCavemanOutputMode": "Caveman အထွက်မုဒ်",
+    "compressionSettingsAutoClarityBypass": "အလိုအလျောက် ရှင်းလင်းမှု ကျော်လွှားခြင်း"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "စနစ်ညွှန်ကြားချက်ကို ထိန်းသိမ်းပါ"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ဤအရွယ်အစားထက်တိုသော မက်ဆေ့ချ်များကို မချုံ့ပါ။ နိမ့်လေလေ = ပိုမိုချုံ့လေလေ။",
     "tooltipMinSavings": "အနည်းဆုံး ဤမျှသော token အရေအတွက်ကို ချွေတာနိုင်မှသာ ချုံ့ပါ။",
     "ultraSettings": "အလွန်ပြင်းထန်သော ဆက်တင်များ",
-    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း"
+    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း",
+    "preview": {
+      "lite": "တိုတိုတုတ်တုတ် တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ ဝေါဟာရများ၊ code၊ error များ၊ URLs နှင့် identifiers များကို မပြောင်းလဲဘဲ ထိန်းသိမ်းပါ။",
+      "full": "အလွန်တိုတောင်းကျစ်လျစ်စွာ တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ အကြောင်းအရာအားလုံးကို ထိန်းသိမ်းပါ။",
+      "ultra": "အသုံးများသော နည်းပညာဆိုင်ရာ အတိုကောက်များဖြင့် အလွန်တိုတောင်းစွာ တုံ့ပြန်ပါ။ သင်္ကေတအတိအကျကို ထိန်းသိမ်းပါ။"
+    }
   },
   "translator": {
     "title": "ဘာသာပြန်ကိရိယာ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "မတိုင်းတာရသေးပါ",
     "upstream4xx": "{count} ကလိန်းအတွက် အမှားအယွင်းများ",
     "upstream5xx": "{count} ဆာဗာအတွက် အမှားအယွင်းများ",
-    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ"
+    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ",
+    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",

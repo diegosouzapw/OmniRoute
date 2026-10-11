@@ -3381,7 +3381,44 @@
     "httpError": "A requisição falhou com HTTP {status}",
     "testFailedNoDetail": "O teste falhou sem uma mensagem de erro",
     "additionalCapabilities": "Capacidades adicionais: {list}",
-    "comboRefMember": "Combo → {name}"
+    "comboRefMember": "Combo → {name}",
+    "keyAccessButton": "Acesso da chave de API",
+    "allowedInKeys": "Permitido em: {count, plural, one {# chave} other {# chaves}}",
+    "keysLoading": "Carregando chaves de API…",
+    "keysRetry": "Tentar carregar chaves novamente",
+    "accessViaPattern": "via {pattern}",
+    "accessBlocked": "Bloqueado por {pattern}",
+    "editKeyAccess": "Editar acesso da chave",
+    "toggleKeyAccess": "Permitir {item} em {name}",
+    "resultNetworkError": "Falha na atribuição",
+    "resultWouldEmptyModels": "Deixaria esta chave sem modelos permitidos — em vez disso, edite o acesso da chave",
+    "resultWouldEmptyCombos": "Deixaria esta chave sem combos permitidos — em vez disso, edite o acesso da chave",
+    "keyUpdatePending": "{name} ainda está sendo atualizado. Tente novamente em instantes.",
+    "assignToKeys": "Atribuir a chaves de API…",
+    "assignApply": "Aplicar alterações",
+    "assignComplete": "Acesso da chave de API atualizado",
+    "assignFailed": "Falha ao atualizar algumas chaves de API",
+    "assignNoChanges": "Nenhum acesso de chave de API foi alterado",
+    "selectedAccessItems": "Itens selecionados: {count}",
+    "assignExcludedCombos": "{count, plural, one {# linha de combo selecionada não é um modelo e será ignorada aqui} other {# linhas de combo selecionadas não são modelos e serão ignoradas aqui}}. Atribua combos a partir da aba Combos.",
+    "assignActionAdd": "Adicionar",
+    "assignActionRemove": "Remover",
+    "searchKeys": "Buscar chaves de API",
+    "selectApiKey": "Selecionar chave de API {name}",
+    "allModelsAccess": "Todos os modelos",
+    "allCombosAccess": "Todos os combos",
+    "modelAccessCount": "Modelos: {count}",
+    "comboAccessCount": "Combos: {count}",
+    "keyInactive": "Inativo",
+    "keyBanned": "Banido",
+    "keyRevoked": "Revogado",
+    "switchRestrictedConfirm": "Mudar esta chave para acesso restrito: apenas os itens selecionados serão permitidos",
+    "removeNoChangeHint": "Esta chave permite tudo; remover os itens selecionados não fará nenhuma alteração",
+    "removeStaysAllowedHint": "Ainda permitido nesta chave por meio de {patterns}",
+    "resultChanged": "Alterado",
+    "resultUnchanged": "Sem alterações",
+    "resultSkipped": "Ignorado",
+    "resultNeedsSwitch": "Precisa mudar para restrito"
   },
   "combos": {
     "title": "Combinações",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Provedor (todas as contas compartilham um único disjuntor)",
     "resilienceTokenRefreshScopeConnection": "Conexão (cada conta tem seu próprio disjuntor)",
     "resilienceTokenRefreshThreshold": "Falhas antes de pausar",
-    "resilienceTokenRefreshCooldown": "Pausa após acionamento"
+    "resilienceTokenRefreshCooldown": "Pausa após acionamento",
+    "compressionSettingsCavemanOutputMode": "Modo de saída do homem das cavernas",
+    "compressionSettingsAutoClarityBypass": "Desvio de clareza automática"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Comprimento máximo do resultado da ferramenta",
         "description": "Limite de caracteres para o recorte proativo. Padrão 2000. Substitua com OMNIROUTE_LITE_MAX_TOOL_LENGTH se o campo estiver vazio."
+      },
+      "preserveSystemPrompt": {
+        "label": "Preservar prompt de sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
+    "preview": {
+      "lite": "Responda conciso. Preserve termos tecnicos, codigo, erros, URLs e identificadores.",
+      "full": "Responda seco e compacto. Preserve todo conteudo tecnico.",
+      "ultra": "Responda ultra compacto com abreviacoes tecnicas comuns. Preserve simbolos exatos."
+    }
   },
   "translator": {
     "title": "Tradutor",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Não medido",
     "upstream4xx": "{count} erros de cliente upstream",
     "upstream5xx": "{count} erros de servidor upstream",
-    "uniformEgressLine": "{affected} de {exits} saídas falham juntas em {provider} (últimas {hours}h) — não é um problema de saída"
+    "uniformEgressLine": "{affected} de {exits} saídas falham juntas em {provider} (últimas {hours}h) — não é um problema de saída",
+    "upstreamRefusals": "{count} recusas upstream"
   },
   "playground": {
     "title": "Title",

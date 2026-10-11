@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} తో అభ్యర్థన విఫలమైంది",
     "testFailedNoDetail": "లోపం సందేశం లేకుండా పరీక్ష విఫలమైంది",
     "additionalCapabilities": "అదనపు సామర్థ్యాలు: {list}",
-    "comboRefMember": "కాంబో → {name}"
+    "comboRefMember": "కాంబో → {name}",
+    "keyAccessButton": "API కీ యాక్సెస్",
+    "allowedInKeys": "వీటిలో అనుమతించబడింది: {count, plural, one {# కీ} other {# కీలు}}",
+    "keysLoading": "API కీలను లోడ్ చేస్తోంది…",
+    "keysRetry": "కీలను మళ్లీ లోడ్ చేయడానికి ప్రయత్నించండి",
+    "accessViaPattern": "{pattern} ద్వారా",
+    "accessBlocked": "{pattern} ద్వారా బ్లాక్ చేయబడింది",
+    "editKeyAccess": "కీ యాక్సెస్‌ను సవరించండి",
+    "toggleKeyAccess": "{name} పై {item}ను అనుమతించండి",
+    "resultNetworkError": "కేటాయింపు విఫలమైంది",
+    "resultWouldEmptyModels": "ఇది ఈ కీని ఎటువంటి అనుమతించబడిన మోడల్స్ లేకుండా చేస్తుంది — బదులుగా కీ యాక్సెస్‌ను సవరించండి",
+    "resultWouldEmptyCombos": "ఇది ఈ కీని ఎటువంటి అనుమతించబడిన కాంబోలు లేకుండా చేస్తుంది — బదులుగా కీ యాక్సెస్‌ను సవరించండి",
+    "keyUpdatePending": "{name} ఇంకా అప్‌డేట్ అవుతోంది. కాసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.",
+    "assignToKeys": "API కీలకు కేటాయించండి…",
+    "assignApply": "మార్పులను వర్తింపజేయండి",
+    "assignComplete": "API కీ యాక్సెస్ నవీకరించబడింది",
+    "assignFailed": "కొన్ని API కీ నవీకరణలు విఫలమయ్యాయి",
+    "assignNoChanges": "ఏ API కీ యాక్సెస్ మార్చబడలేదు",
+    "selectedAccessItems": "ఎంచుకున్న అంశాలు: {count}",
+    "assignExcludedCombos": "{count, plural, one {ఎంచుకున్న # కాంబో వరుస మోడల్ కాదు మరియు ఇక్కడ దాటవేయబడుతుంది} other {ఎంచుకున్న # కాంబో వరుసలు మోడల్స్ కావు మరియు ఇక్కడ దాటవేయబడతాయి}}. Combos ట్యాబ్ నుండి కాంబోలను కేటాయించండి.",
+    "assignActionAdd": "జోడించండి",
+    "assignActionRemove": "తీసివేయండి",
+    "searchKeys": "API కీలను శోధించండి",
+    "selectApiKey": "API కీ {name}ను ఎంచుకోండి",
+    "allModelsAccess": "అన్ని మోడల్స్",
+    "allCombosAccess": "అన్ని కాంబోలు",
+    "modelAccessCount": "మోడల్స్: {count}",
+    "comboAccessCount": "కాంబోలు: {count}",
+    "keyInactive": "ఇన్‌యాక్టివ్",
+    "keyBanned": "నిషేధించబడింది",
+    "keyRevoked": "రద్దు చేయబడింది",
+    "switchRestrictedConfirm": "ఈ కీని పరిమిత యాక్సెస్‌కి మార్చండి: ఎంచుకున్న అంశాలు మాత్రమే అనుమతించబడతాయి",
+    "removeNoChangeHint": "ఈ కీ ప్రతిదానినీ అనుమతిస్తుంది; ఎంచుకున్న అంశాలను తీసివేయడం వల్ల ఎలాంటి మార్పు ఉండదు",
+    "removeStaysAllowedHint": "{patterns} ద్వారా ఈ కీపై ఇంకా అనుమతించబడుతుంది",
+    "resultChanged": "మార్చబడింది",
+    "resultUnchanged": "ఎలాంటి మార్పు లేదు",
+    "resultSkipped": "దాటవేయబడింది",
+    "resultNeedsSwitch": "పరిమిత యాక్సెస్‌కి మార్చవలసి ఉంది"
   },
   "combos": {
     "title": "కాంబోలు",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ప్రొవైడర్ (అన్ని ఖాతాలు ఒకే బ్రేకర్‌ను పంచుకుంటాయి)",
     "resilienceTokenRefreshScopeConnection": "కనెక్షన్ (ప్రతి ఖాతాకు దాని సొంత బ్రేకర్ ఉంటుంది)",
     "resilienceTokenRefreshThreshold": "నిలిపివేయడానికి ముందు వైఫల్యాలు",
-    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం"
+    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం",
+    "compressionSettingsCavemanOutputMode": "కేవ్‌మ్యాన్ అవుట్‌పుట్ మోడ్",
+    "compressionSettingsAutoClarityBypass": "ఆటో క్లారిటీ బైపాస్"
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "సిస్టమ్ ప్రాంప్ట్‌ను భద్రపరచండి"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "దీని కంటే చిన్న సందేశాలు కుదించబడవు. దిగువ = మరింత కుదింపు.",
     "tooltipMinSavings": "ఇది కనీసం ఇన్ని టోకెన్లను ఆదా చేస్తే మాత్రమే కుదించండి.",
     "ultraSettings": "అల్ట్రా సెట్టింగ్‌లు",
-    "ultraSettingsDesc": "SLM-శక్తితో కూడిన సెమాంటిక్ కంప్రెషన్"
+    "ultraSettingsDesc": "SLM-శక్తితో కూడిన సెమాంటిక్ కంప్రెషన్",
+    "preview": {
+      "lite": "క్లుప్తంగా స్పందించండి. సాంకేతిక పదాలు, కోడ్, లోపాలు, URLs మరియు ఐడెంటిఫైయర్లను యథాతథంగా ఉంచండి.",
+      "full": "అతి సంక్షిప్తంగా, కుదింపుగా స్పందించండి. సాంకేతిక విషయమంతటినీ పరిరక్షించండి.",
+      "ultra": "సాధారణ సాంకేతిక సంక్షిప్తాలతో అతి క్లుప్తంగా స్పందించండి. ఖచ్చితమైన చిహ్నాలను అలాగే ఉంచండి."
+    }
   },
   "translator": {
     "title": "అనువాదకం",
@@ -11438,7 +11485,8 @@
     "notMeasured": "కొలవబడలేదు",
     "upstream4xx": "{count} అప్స్ట్రీమ్ క్లయింట్ పొరపాట్లు",
     "upstream5xx": "{count} అప్స్ట్రీమ్ సర్వర్ పొరపాట్లు",
-    "uniformEgressLine": "{provider}లో {exits} ఎగ్జిట్లలో {affected} కలిసి విఫలమవుతున్నాయి (గత {hours} గంటల్లో) — ఎగ్జిట్ సమస్య కాదు"
+    "uniformEgressLine": "{provider}లో {exits} ఎగ్జిట్లలో {affected} కలిసి విఫలమవుతున్నాయి (గత {hours} గంటల్లో) — ఎగ్జిట్ సమస్య కాదు",
+    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",

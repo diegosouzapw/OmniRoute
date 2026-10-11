@@ -3381,7 +3381,44 @@
     "httpError": "הבקשה נכשלה עם HTTP {status}",
     "testFailedNoDetail": "הבדיקה נכשלה ללא הודעת שגיאה",
     "additionalCapabilities": "יכולות נוספות: {list}",
-    "comboRefMember": "שילוב → {name}"
+    "comboRefMember": "שילוב → {name}",
+    "keyAccessButton": "גישה למפתח API",
+    "allowedInKeys": "מורשה ב: {count, plural, one {# מפתח} other {# מפתחות}}",
+    "keysLoading": "טוען מפתחות API…",
+    "keysRetry": "נסה שוב לטעון מפתחות",
+    "accessViaPattern": "באמצעות {pattern}",
+    "accessBlocked": "נחסם על ידי {pattern}",
+    "editKeyAccess": "עריכת הרשאות מפתח",
+    "toggleKeyAccess": "אפשר את {item} ב-{name}",
+    "resultNetworkError": "השיוך נכשל",
+    "resultWouldEmptyModels": "פעולה זו תשאיר מפתח זה ללא מודלים מורשים — ערוך את הגישה למפתח במקום זאת",
+    "resultWouldEmptyCombos": "פעולה זו תשאיר מפתח זה ללא שילובים מורשים — ערוך את הגישה למפתח במקום זאת",
+    "keyUpdatePending": "העדכון של {name} עדיין נמשך. נסה שוב בעוד רגע.",
+    "assignToKeys": "שייך למפתחות API…",
+    "assignApply": "החל שינויים",
+    "assignComplete": "הרשאות מפתח ה-API עודכנו",
+    "assignFailed": "חלק מעדכוני מפתחות ה-API נכשלו",
+    "assignNoChanges": "לא שונתה הגישה למפתח ה-API",
+    "selectedAccessItems": "פריטים שנבחרו: {count}",
+    "assignExcludedCombos": "{count, plural, one {# שורת שילוב שנבחרה אינה מודל ותדולג כאן} other {# שורות שילוב שנבחרו אינן מודלים וידולגו כאן}}. הקצה שילובים מכרטיסיית Combos.",
+    "assignActionAdd": "הוספה",
+    "assignActionRemove": "הסרה",
+    "searchKeys": "חיפוש מפתחות API",
+    "selectApiKey": "בחר מפתח API {name}",
+    "allModelsAccess": "כל המודלים",
+    "allCombosAccess": "כל השילובים",
+    "modelAccessCount": "מודלים: {count}",
+    "comboAccessCount": "שילובים: {count}",
+    "keyInactive": "לא פעיל",
+    "keyBanned": "חסום",
+    "keyRevoked": "נשלל",
+    "switchRestrictedConfirm": "העבר מפתח זה לגישה מוגבלת: רק הפריטים שנבחרו יורשו",
+    "removeNoChangeHint": "מפתח זה מאפשר הכל; הסרת הפריטים שנבחרו לא תבצע כל שינוי",
+    "removeStaysAllowedHint": "עדיין מורשה במפתח זה באמצעות {patterns}",
+    "resultChanged": "שונה",
+    "resultUnchanged": "ללא שינוי",
+    "resultSkipped": "דולג",
+    "resultNeedsSwitch": "דורש מעבר לגישה מוגבלת"
   },
   "combos": {
     "title": "שילובים",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ספק (כל החשבונות חולקים מפסק אחד)",
     "resilienceTokenRefreshScopeConnection": "חיבור (לכל חשבון יש מפסיק משלו)",
     "resilienceTokenRefreshThreshold": "כשלים לפני השהיה",
-    "resilienceTokenRefreshCooldown": "השהיה לאחר הפעלה"
+    "resilienceTokenRefreshCooldown": "השהיה לאחר הפעלה",
+    "compressionSettingsCavemanOutputMode": "מצב פלט איש מערות",
+    "compressionSettingsAutoClarityBypass": "מעקף בהירות אוטומטי"
   },
   "contextRtk": {
     "title": "מנוע RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "שמור על הנחיית המערכת"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "הודעות קצרות מזה אינן דחוסות. נמוך יותר = יותר דחיסה.",
     "tooltipMinSavings": "דחוס רק אם זה חוסך לפחות כל כך הרבה אסימונים.",
     "ultraSettings": "הגדרות אולטרה",
-    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM"
+    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM",
+    "preview": {
+      "lite": "השב בקצרה. שמור על מונחים טכניים, קוד, שגיאות, כתובות URL ומזהים.",
+      "full": "השב בתמציתיות ובקיצור. שמור על כל התוכן הטכני.",
+      "ultra": "השב בקיצור מרבי עם קיצורים טכניים נפוצים. שמור על הסמלים המדויקים."
+    }
   },
   "translator": {
     "title": "מתרגם",
@@ -11438,7 +11485,8 @@
     "notMeasured": "לא נמדד",
     "upstream4xx": "{count} שגיאות קליינט עליון",
     "upstream5xx": "{count} שגיאות שרת עליון",
-    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה"
+    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה",
+    "upstreamRefusals": "{count} דחיות upstream"
   },
   "playground": {
     "title": "Title",

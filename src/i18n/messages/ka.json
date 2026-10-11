@@ -3381,7 +3381,44 @@
     "httpError": "მოთხოვნა ვერ შესრულდა HTTP {status} სტატუსით",
     "testFailedNoDetail": "ტესტი ჩაიშალა შეცდომის შეტყობინების გარეშე",
     "additionalCapabilities": "დამატებითი შესაძლებლობები: {list}",
-    "comboRefMember": "კომბინაცია → {name}"
+    "comboRefMember": "კომბინაცია → {name}",
+    "keyAccessButton": "API გასაღების წვდომა",
+    "allowedInKeys": "დაშვებულია: {count, plural, one {# გასაღებში} other {# გასაღებში}}",
+    "keysLoading": "API გასაღებები იტვირთება…",
+    "keysRetry": "გასაღებების ჩატვირთვის გამეორება",
+    "accessViaPattern": "{pattern}-ის მეშვეობით",
+    "accessBlocked": "დაბლოკილია {pattern}-ის მიერ",
+    "editKeyAccess": "გასაღების წვდომის რედაქტირება",
+    "toggleKeyAccess": "{item}-ის დაშვება {name}-ზე",
+    "resultNetworkError": "მინიჭება ვერ მოხერხდა",
+    "resultWouldEmptyModels": "ეს ამ გასაღებს დაშვებული მოდელების გარეშე დატოვებს — ამის ნაცვლად შეცვალეთ გასაღების წვდომა",
+    "resultWouldEmptyCombos": "ეს ამ გასაღებს დაშვებული კომბოების გარეშე დატოვებს — ამის ნაცვლად შეცვალეთ გასაღების წვდომა",
+    "keyUpdatePending": "{name} ჯერ კიდევ ახლდება. სცადეთ ხელახლა ცოტა ხანში.",
+    "assignToKeys": "API გასაღებებზე მინიჭება…",
+    "assignApply": "ცვლილებების გამოყენება",
+    "assignComplete": "API გასაღების წვდომა განახლდა",
+    "assignFailed": "ზოგიერთი API გასაღების განახლება ვერ მოხერხდა",
+    "assignNoChanges": "API გასაღების წვდომა არ შეცვლილა",
+    "selectedAccessItems": "არჩეული ელემენტები: {count}",
+    "assignExcludedCombos": "{count, plural, one {# არჩეული კომბოს სტრიქონი არ არის მოდელი და აქ გამოიტოვება} other {# არჩეული კომბოს სტრიქონი არ არის მოდელი და აქ გამოიტოვება}}. მიანიჭეთ კომბოები ჩანართიდან Combos.",
+    "assignActionAdd": "დამატება",
+    "assignActionRemove": "ამოშლა",
+    "searchKeys": "API გასაღებების ძიება",
+    "selectApiKey": "აირჩიეთ API გასაღები {name}",
+    "allModelsAccess": "ყველა მოდელი",
+    "allCombosAccess": "ყველა კომბინაცია",
+    "modelAccessCount": "მოდელები: {count}",
+    "comboAccessCount": "კომბინაციები: {count}",
+    "keyInactive": "არააქტიური",
+    "keyBanned": "დაბლოკილი",
+    "keyRevoked": "გაუქმებულია",
+    "switchRestrictedConfirm": "ამ გასაღების შეზღუდულ წვდომაზე გადაყვანა: მხოლოდ არჩეული ელემენტები იქნება დაშვებული",
+    "removeNoChangeHint": "ეს გასაღები ყველაფერს უშვებს; არჩეული ელემენტების ამოშლა არაფერს შეცვლის",
+    "removeStaysAllowedHint": "ამ გასაღებზე კვლავ დაშვებულია {patterns}-ის მეშვეობით",
+    "resultChanged": "შეცვლილია",
+    "resultUnchanged": "უცვლელია",
+    "resultSkipped": "გამოტოვებულია",
+    "resultNeedsSwitch": "საჭიროებს შეზღუდულ რეჟიმზე გადაყვანას"
   },
   "combos": {
     "title": "კომბინაციები",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "პროვაიდერი (ყველა ანგარიში იყენებს ერთ გამთიშელს)",
     "resilienceTokenRefreshScopeConnection": "კავშირი (თითოეულ ანგარიშს აქვს საკუთარი გამთიშელი)",
     "resilienceTokenRefreshThreshold": "შეჩერებამდე დაშვებული მარცხების რაოდენობა",
-    "resilienceTokenRefreshCooldown": "შეჩერება გამორთვის შემდეგ"
+    "resilienceTokenRefreshCooldown": "შეჩერება გამორთვის შემდეგ",
+    "compressionSettingsCavemanOutputMode": "Caveman-ის გამოტანის რეჟიმი",
+    "compressionSettingsAutoClarityBypass": "სიცხადის ავტომატური გამოტოვება"
   },
   "contextRtk": {
     "title": "RTK ძრავა",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "სისტემური მითითების შენარჩუნება"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ამაზე მოკლე შეტყობინებები არ იკუმშება. ნაკლები = მეტი შეკუმშვა.",
     "tooltipMinSavings": "შეკუმშვა მხოლოდ იმ შემთხვევაში, თუ მინიმუმ ამდენ ტოკენს დაზოგავს.",
     "ultraSettings": "ულტრა პარამეტრები",
-    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა"
+    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა",
+    "preview": {
+      "lite": "უპასუხეთ მოკლედ. უცვლელად შეინარჩუნეთ ტექნიკური ტერმინები, კოდი, შეცდომები, URLs და იდენტიფიკატორები.",
+      "full": "უპასუხეთ ლაკონიურად და კომპაქტურად. შეინარჩუნეთ სრული ტექნიკური შინაარსი.",
+      "ultra": "უპასუხეთ უკიდურესად ლაკონიურად, გავრცელებული ტექნიკური აბრევიატურებით. ზუსტი სიმბოლოები უცვლელად შეინარჩუნეთ."
+    }
   },
   "translator": {
     "title": "მთარგმნელი",
@@ -11438,7 +11485,8 @@
     "notMeasured": "არ არის გაზომილი",
     "upstream4xx": "{count} ზედა კლიენტის შეცდომები",
     "upstream5xx": "{count} ზემოდან მომავალი სერვერის შეცდომები",
-    "uniformEgressLine": "{affected} {exits} ეგზიტიდან {provider}-ზე ერთად ვარდება (ბოლო {hours}სთ) — ეს ეგზიტის პრობლემა არ არის"
+    "uniformEgressLine": "{affected} {exits} ეგზიტიდან {provider}-ზე ერთად ვარდება (ბოლო {hours}სთ) — ეს ეგზიტის პრობლემა არ არის",
+    "upstreamRefusals": "{count} upstream უარყოფა"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",

@@ -3381,7 +3381,44 @@
     "httpError": "ವಿನಂತಿಯು HTTP {status} ನೊಂದಿಗೆ ವಿಫಲವಾಗಿದೆ",
     "testFailedNoDetail": "ಯಾವುದೇ ದೋಷ ಸಂದೇಶವಿಲ್ಲದೆ ಪರೀಕ್ಷೆ ವಿಫಲವಾಗಿದೆ",
     "additionalCapabilities": "ಹೆಚ್ಚುವರಿ ಸಾಮರ್ಥ್ಯಗಳು: {list}",
-    "comboRefMember": "ಕಾಂಬೊ → {name}"
+    "comboRefMember": "ಕಾಂಬೊ → {name}",
+    "keyAccessButton": "API ಕೀ ಪ್ರವೇಶ",
+    "allowedInKeys": "{count, plural, one {# ಕೀಯಲ್ಲಿ} other {# ಕೀಗಳಲ್ಲಿ}} ಅನುಮತಿಸಲಾಗಿದೆ",
+    "keysLoading": "API ಕೀಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+    "keysRetry": "ಕೀಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಮರುಪ್ರಯತ್ನಿಸಿ",
+    "accessViaPattern": "{pattern} ಮೂಲಕ",
+    "accessBlocked": "{pattern} ನಿಂದ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
+    "editKeyAccess": "ಕೀ ಪ್ರವೇಶವನ್ನು ಸಂಪಾದಿಸಿ",
+    "toggleKeyAccess": "{name} ನಲ್ಲಿ {item} ಅನ್ನು ಅನುಮತಿಸಿ",
+    "resultNetworkError": "ನಿಯೋಜನೆ ವಿಫಲವಾಗಿದೆ",
+    "resultWouldEmptyModels": "ಇದು ಈ ಕೀಯನ್ನು ಯಾವುದೇ ಅನುಮತಿಸಲಾದ ಮಾದರಿಗಳಿಲ್ಲದಂತೆ ಮಾಡುತ್ತದೆ — ಬದಲಿಗೆ ಕೀ ಪ್ರವೇಶವನ್ನು ಸಂಪಾದಿಸಿ",
+    "resultWouldEmptyCombos": "ಇದು ಈ ಕೀಯನ್ನು ಯಾವುದೇ ಅನುಮತಿಸಲಾದ ಕಾಂಬೋಗಳಿಲ್ಲದಂತೆ ಮಾಡುತ್ತದೆ — ಬದಲಿಗೆ ಕೀ ಪ್ರವೇಶವನ್ನು ಸಂಪಾದಿಸಿ",
+    "keyUpdatePending": "{name} ಅನ್ನು ಇನ್ನೂ ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ. ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "assignToKeys": "API ಕೀಗಳಿಗೆ ನಿಯೋಜಿಸಿ…",
+    "assignApply": "ಬದಲಾವಣೆಗಳನ್ನು ಅನ್ವಯಿಸಿ",
+    "assignComplete": "API ಕೀ ಪ್ರವೇಶವನ್ನು ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ",
+    "assignFailed": "ಕೆಲವು API ಕೀ ಅಪ್‌ಡೇಟ್‌ಗಳು ವಿಫಲವಾಗಿವೆ",
+    "assignNoChanges": "ಯಾವುದೇ API ಕೀ ಪ್ರವೇಶವನ್ನು ಬದಲಾಯಿಸಲಾಗಿಲ್ಲ",
+    "selectedAccessItems": "ಆಯ್ಕೆಮಾಡಲಾದ ಐಟಂಗಳು: {count}",
+    "assignExcludedCombos": "{count, plural, one {ಆಯ್ಕೆಮಾಡಲಾದ # ಕಾಂಬೋ ಸಾಲು ಮಾದರಿಯಾಗಿಲ್ಲ ಮತ್ತು ಅದನ್ನು ಇಲ್ಲಿ ಬಿಟ್ಟುಬಿಡಲಾಗುತ್ತದೆ} other {ಆಯ್ಕೆಮಾಡಲಾದ # ಕಾಂಬೋ ಸಾಲುಗಳು ಮಾದರಿಗಳಾಗಿಲ್ಲ ಮತ್ತು ಅವುಗಳನ್ನು ಇಲ್ಲಿ ಬಿಟ್ಟುಬಿಡಲಾಗುತ್ತದೆ}}. Combos ಟ್ಯಾಬ್‌ನಿಂದ ಕಾಂಬೋಗಳನ್ನು ನಿಯೋಜಿಸಿ.",
+    "assignActionAdd": "ಸೇರಿಸಿ",
+    "assignActionRemove": "ತೆಗೆದುಹಾಕಿ",
+    "searchKeys": "API ಕೀಗಳನ್ನು ಹುಡುಕಿ",
+    "selectApiKey": "API ಕೀ {name} ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "allModelsAccess": "ಎಲ್ಲ ಮಾದರಿಗಳು",
+    "allCombosAccess": "ಎಲ್ಲ ಕಾಂಬೋಗಳು",
+    "modelAccessCount": "ಮಾದರಿಗಳು: {count}",
+    "comboAccessCount": "ಕಾಂಬೋಗಳು: {count}",
+    "keyInactive": "ನಿಷ್ಕ್ರಿಯ",
+    "keyBanned": "ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
+    "keyRevoked": "ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ",
+    "switchRestrictedConfirm": "ಈ ಕೀಯನ್ನು ನಿರ್ಬಂಧಿತ ಪ್ರವೇಶಕ್ಕೆ ಬದಲಾಯಿಸಿ: ಆಯ್ಕೆಮಾಡಿದ ಐಟಂಗಳಿಗೆ ಮಾತ್ರ ಅನುಮತಿಸಲಾಗುತ್ತದೆ",
+    "removeNoChangeHint": "ಈ ಕೀ ಎಲ್ಲವನ್ನೂ ಅನುಮತಿಸುತ್ತದೆ; ಆಯ್ಕೆಮಾಡಿದ ಐಟಂಗಳನ್ನು ತೆಗೆದುಹಾಕುವುದರಿಂದ ಯಾವುದೇ ಬದಲಾವಣೆಯಾಗುವುದಿಲ್ಲ",
+    "removeStaysAllowedHint": "{patterns} ಮೂಲಕ ಈ ಕೀಯಲ್ಲಿ ಇನ್ನೂ ಅನುಮತಿಸಲಾಗಿದೆ",
+    "resultChanged": "ಬದಲಾಯಿಸಲಾಗಿದೆ",
+    "resultUnchanged": "ಯಾವುದೇ ಬದಲಾವಣೆ ಇಲ್ಲ",
+    "resultSkipped": "ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ",
+    "resultNeedsSwitch": "ನಿರ್ಬಂಧಿತ ಸ್ಥಿತಿಗೆ ಬದಲಾಯಿಸುವ ಅಗತ್ಯವಿದೆ"
   },
   "combos": {
     "title": "ಸಂಯೋಜನೆಗಳು",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ಪೂರೈಕೆದಾರ (ಎಲ್ಲಾ ಖಾತೆಗಳು ಒಂದೇ ಬ್ರೇಕರ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತವೆ)",
     "resilienceTokenRefreshScopeConnection": "ಸಂಪರ್ಕ (ಪ್ರತಿ ಖಾತೆಗೂ ತನ್ನದೇ ಆದ ಬ್ರೇಕರ್ ಇದೆ)",
     "resilienceTokenRefreshThreshold": "ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವಿಫಲತೆಗಳು",
-    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ"
+    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ",
+    "compressionSettingsCavemanOutputMode": "ಕೇವ್ಮ್ಯಾನ್ ಔಟ್ಪುಟ್ ಮೋಡ್",
+    "compressionSettingsAutoClarityBypass": "ಸ್ವಯಂ ಸ್ಪಷ್ಟತೆ ಬೈಪಾಸ್"
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "ಸಿಸ್ಟಮ್ ಪ್ರಾಂಪ್ಟ್ ಅನ್ನು ಸಂರಕ್ಷಿಸಿ"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ಇದಕ್ಕಿಂತ ಚಿಕ್ಕ ಸಂದೇಶಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುವುದಿಲ್ಲ. ಕಡಿಮೆ = ಹೆಚ್ಚು ಸಂಕುಚನ.",
     "tooltipMinSavings": "ಕನಿಷ್ಠ ಇಷ್ಟು ಟೋಕನ್ಗಳನ್ನು ಉಳಿಸಿದರೆ ಮಾತ್ರ ಸಂಕುಚಿಸಿ.",
     "ultraSettings": "ಅಲ್ಟ್ರಾ ಸೆಟ್ಟಿಂಗ್ಗಳು",
-    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ"
+    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ",
+    "preview": {
+      "lite": "ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ತಾಂತ್ರಿಕ ಪದಗಳು, code, errors, URLs ಮತ್ತು identifiers ಅನ್ನು ಉಳಿಸಿ.",
+      "full": "ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಮತ್ತು ಸಾಂದ್ರವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ಎಲ್ಲ ತಾಂತ್ರಿಕ ವಿಷಯವನ್ನು ಉಳಿಸಿ.",
+      "ultra": "ಸಾಮಾನ್ಯ ತಾಂತ್ರಿಕ ಸಂಕ್ಷೇಪಣಗಳೊಂದಿಗೆ ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ನಿಖರ ಚಿಹ್ನೆಗಳನ್ನು ಉಳಿಸಿ."
+    }
   },
   "translator": {
     "title": "ಅನುವಾದಕ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ",
     "upstream4xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಕ್ಲೈಂಟ್ ದೋಷಗಳು",
     "upstream5xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಸರ್ವರ್ ದೋಷಗಳು",
-    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ"
+    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ",
+    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",

@@ -3381,7 +3381,44 @@
     "httpError": "فشل الطلب برمز HTTP {status}",
     "testFailedNoDetail": "فشل الاختبار بدون رسالة خطأ",
     "additionalCapabilities": "إمكانيات إضافية: {list}",
-    "comboRefMember": "تركيبة → {name}"
+    "comboRefMember": "تركيبة → {name}",
+    "keyAccessButton": "صلاحية وصول مفتاح API",
+    "allowedInKeys": "مسموح به في: {count, plural, one {# مفتاح} other {# مفاتيح}}",
+    "keysLoading": "جارٍ تحميل مفاتيح API…",
+    "keysRetry": "إعادة محاولة تحميل المفاتيح",
+    "accessViaPattern": "عبر {pattern}",
+    "accessBlocked": "محظور بواسطة {pattern}",
+    "editKeyAccess": "تعديل صلاحية وصول المفتاح",
+    "toggleKeyAccess": "السماح بـ {item} على {name}",
+    "resultNetworkError": "فشل التعيين",
+    "resultWouldEmptyModels": "سيترك هذا المفتاح بدون أي نماذج مسموح بها — عدّل صلاحيات وصول المفتاح بدلاً من ذلك",
+    "resultWouldEmptyCombos": "سيترك هذا المفتاح بدون أي تجميعات مسموح بها — عدّل صلاحيات وصول المفتاح بدلاً من ذلك",
+    "keyUpdatePending": "لا يزال {name} قيد التحديث. حاول مرة أخرى بعد لحظات.",
+    "assignToKeys": "التعيين لمفاتيح API…",
+    "assignApply": "تطبيق التغييرات",
+    "assignComplete": "تم تحديث صلاحية وصول مفتاح API",
+    "assignFailed": "فشل تحديث بعض مفاتيح API",
+    "assignNoChanges": "لم يتم تغيير صلاحيات وصول مفتاح API",
+    "selectedAccessItems": "العناصر المحددة: {count}",
+    "assignExcludedCombos": "{count, plural, one {# صف تجميعة محدد ليس نموذجاً وسيتم تخطيه هنا} other {# صفوف تجميعات محددة ليست نماذج وسيتم تخطيها هنا}}. قم بتعيين التجميعات من علامة التبويب Combos.",
+    "assignActionAdd": "إضافة",
+    "assignActionRemove": "إزالة",
+    "searchKeys": "البحث في مفاتيح API",
+    "selectApiKey": "تحديد مفتاح API {name}",
+    "allModelsAccess": "جميع النماذج",
+    "allCombosAccess": "جميع التوليفات",
+    "modelAccessCount": "النماذج: {count}",
+    "comboAccessCount": "التوليفات: {count}",
+    "keyInactive": "غير نشط",
+    "keyBanned": "محظور",
+    "keyRevoked": "تم الإبطال",
+    "switchRestrictedConfirm": "تحويل هذا المفتاح إلى وصول مقيد: سيتم السماح بالعناصر المحددة فقط",
+    "removeNoChangeHint": "يسمح هذا المفتاح بكل شيء؛ لن تُحدث إزالة العناصر المحددة أي تغيير",
+    "removeStaysAllowedHint": "لا يزال مسموحاً به على هذا المفتاح من خلال {patterns}",
+    "resultChanged": "تم التغيير",
+    "resultUnchanged": "دون تغيير",
+    "resultSkipped": "تم التخطي",
+    "resultNeedsSwitch": "يتطلب التحويل إلى مقيد"
   },
   "combos": {
     "title": "المجموعات",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "المزوّد (جميع الحسابات تشترك في قاطع واحد)",
     "resilienceTokenRefreshScopeConnection": "الاتصال (لكل حساب قاطع خاص به)",
     "resilienceTokenRefreshThreshold": "عدد الفشل قبل الإيقاف",
-    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل"
+    "resilienceTokenRefreshCooldown": "الوقفة بعد التفعيل",
+    "compressionSettingsCavemanOutputMode": "وضع إخراج Caveman",
+    "compressionSettingsAutoClarityBypass": "تجاوز الوضوح التلقائي"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "الحفاظ على توجيه النظام"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "لا يتم ضغط الرسائل الأقصر من ذلك. أقل = المزيد من الضغط.",
     "tooltipMinSavings": "قم بالضغط فقط إذا كان يحفظ هذا العدد من الرموز المميزة على الأقل.",
     "ultraSettings": "إعدادات الترا",
-    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM"
+    "ultraSettingsDesc": "الضغط الدلالي الذي يعمل بنظام SLM",
+    "preview": {
+      "lite": "أجب بإيجاز. حافظ على المصطلحات التقنية والشيفرة والأخطاء وعناوين URL والمعرّفات.",
+      "full": "أجب باقتضاب وبصيغة مضغوطة مع الحفاظ على كامل المضمون التقني.",
+      "ultra": "أجب بأقصى إيجاز باستخدام الاختصارات التقنية الشائعة، وحافظ على الرموز كما هي."
+    }
   },
   "translator": {
     "title": "مترجم",
@@ -11438,7 +11485,8 @@
     "notMeasured": "غير مقاس",
     "upstream4xx": "{count} أخطاء عميل من المصدر العلوي",
     "upstream5xx": "{count} أخطاء الخادم العلوي",
-    "uniformEgressLine": "فشل {affected} من {exits} مخرجًا معًا على {provider} (آخر {hours}h) — ليس مشكلة خروج"
+    "uniformEgressLine": "فشل {affected} من {exits} مخرجًا معًا على {provider} (آخر {hours}h) — ليس مشكلة خروج",
+    "upstreamRefusals": "{count} رفضًا من الخادم الأعلى"
   },
   "playground": {
     "title": "العنوان",

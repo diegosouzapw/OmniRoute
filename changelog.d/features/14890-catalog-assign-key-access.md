@@ -1,0 +1,1 @@
+- **feat(dashboard):** assign selected models and combos to API keys from the catalog, with explicit confirmation before restricting an allow-all key.

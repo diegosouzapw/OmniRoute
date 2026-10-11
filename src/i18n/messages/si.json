@@ -3381,7 +3381,44 @@
     "httpError": "ඉල්ලීම HTTP {status} සමඟ අසාර්ථක විය",
     "testFailedNoDetail": "දෝෂ පණිවිඩයක් නොමැතිව පරීක්ෂණය අසාර්ථක විය",
     "additionalCapabilities": "අමතර හැකියාවන්: {list}",
-    "comboRefMember": "සංයෝජනය → {name}"
+    "comboRefMember": "සංයෝජනය → {name}",
+    "keyAccessButton": "API යතුරු ප්‍රවේශය",
+    "allowedInKeys": "අවසර දී ඇත්තේ: {count, plural, one {යතුරු # ක} other {යතුරු # ක}}",
+    "keysLoading": "API යතුරු පූරණය වෙමින් පවතී…",
+    "keysRetry": "යතුරු පූරණය නැවත උත්සාහ කරන්න",
+    "accessViaPattern": "{pattern} හරහා",
+    "accessBlocked": "{pattern} මඟින් අවහිර කර ඇත",
+    "editKeyAccess": "යතුරු ප්‍රවේශය සංස්කරණය කරන්න",
+    "toggleKeyAccess": "{name} මත {item} සඳහා ඉඩ දෙන්න",
+    "resultNetworkError": "පැවරීම අසාර්ථක විය",
+    "resultWouldEmptyModels": "මෙම යතුරට කිසිදු අවසර ලත් මොඩලයක් නොමැති තත්ත්වයක් ඇති වේ — ඒ වෙනුවට යතුරු ප්‍රවේශය සංස්කරණය කරන්න",
+    "resultWouldEmptyCombos": "මෙම යතුරට කිසිදු අවසර ලත් combo එකක් නොමැති තත්ත්වයක් ඇති වේ — ඒ වෙනුවට යතුරු ප්‍රවේශය සංස්කරණය කරන්න",
+    "keyUpdatePending": "{name} තවමත් යාවත්කාලීන වෙමින් පවතී. සුළු මොහොතකින් නැවත උත්සාහ කරන්න.",
+    "assignToKeys": "API යතුරු වෙත පවරන්න…",
+    "assignApply": "වෙනස්කම් ක්‍රියාත්මක කරන්න",
+    "assignComplete": "API යතුරු ප්‍රවේශය යාවත්කාලීන කරන ලදී",
+    "assignFailed": "සමහර API යතුරු යාවත්කාලීන කිරීම් අසාර්ථක විය",
+    "assignNoChanges": "කිසිදු API යතුරු ප්‍රවේශයක් වෙනස් නොවීය",
+    "selectedAccessItems": "තෝරාගත් අයිතම: {count}",
+    "assignExcludedCombos": "{count, plural, one {තෝරාගත් combo පේළි # මොඩලයක් නොවන අතර මෙහිදී මඟ හරිනු ලැබේ} other {තෝරාගත් combo පේළි # මොඩල නොවන අතර මෙහිදී මඟ හරිනු ලැබේ}}. Combos පටිත්තෙන් combo පවරන්න.",
+    "assignActionAdd": "එක් කරන්න",
+    "assignActionRemove": "ඉවත් කරන්න",
+    "searchKeys": "API යතුරු සොයන්න",
+    "selectApiKey": "{name} API යතුර තෝරන්න",
+    "allModelsAccess": "සියලු මාදිලි",
+    "allCombosAccess": "සියලු සංයෝජන",
+    "modelAccessCount": "මාදිලි: {count}",
+    "comboAccessCount": "සංයෝජන: {count}",
+    "keyInactive": "අක්‍රිය",
+    "keyBanned": "තහනම් කර ඇත",
+    "keyRevoked": "අවලංගු කරන ලදී",
+    "switchRestrictedConfirm": "මෙම යතුර සීමිත ප්‍රවේශයකට මාරු කරන්න: තෝරාගත් අයිතම සඳහා පමණක් ඉඩ දෙනු ලැබේ",
+    "removeNoChangeHint": "මෙම යතුර සියල්ල සඳහා ඉඩ දෙයි; තෝරාගත් අයිතම ඉවත් කිරීමෙන් කිසිදු වෙනසක් සිදු නොවේ",
+    "removeStaysAllowedHint": "{patterns} හරහා මෙම යතුර මත තවමත් අවසර ඇත",
+    "resultChanged": "වෙනස් කරන ලදී",
+    "resultUnchanged": "වෙනසක් නැත",
+    "resultSkipped": "මඟ හරින ලදී",
+    "resultNeedsSwitch": "සීමිත ප්‍රවේශයකට මාරු කිරීම අවශ්‍යයි"
   },
   "combos": {
     "title": "සංයෝජන",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "සැපයුම්කරු (සියලු ගිණුම් එක් බ්‍රේකරයක් බෙදා ගනී)",
     "resilienceTokenRefreshScopeConnection": "සම්බන්ධතාවය (සෑම ගිණුමකටම එහිම බ්‍රේකරය ඇත)",
     "resilienceTokenRefreshThreshold": "විරාමයකට පෙර අසාර්ථකතා",
-    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය"
+    "resilienceTokenRefreshCooldown": "සක්‍රීය වූ පසු විරාමය",
+    "compressionSettingsCavemanOutputMode": "Caveman ප්රතිදාන ප්රකාරය",
+    "compressionSettingsAutoClarityBypass": "ස්වයංක්රීය පැහැදිලිතා මඟහැරීම"
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "පද්ධති ප්රේරකය සංරක්ෂණය කරන්න"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "මෙයට වඩා කෙටි පණිවිඩ සම්පීඩනය නොකෙරේ. අඩු = වැඩි සම්පීඩනයක්.",
     "tooltipMinSavings": "අවම වශයෙන් මෙම ටෝකන ගණනවත් ඉතිරි කරන්නේ නම් පමණක් සම්පීඩනය කරන්න.",
     "ultraSettings": "Ultra සැකසුම්",
-    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය"
+    "ultraSettingsDesc": "SLM මඟින් බලගැන්වෙන අර්ථමය සම්පීඩනය",
+    "preview": {
+      "lite": "සංක්ෂිප්තව ප්රතිචාර දක්වන්න. තාක්ෂණික පද, code, errors, URLs සහ identifiers එලෙසම තබාගන්න.",
+      "full": "ඉතා කෙටියෙන් හා සංක්ෂිප්තව ප්රතිචාර දක්වන්න. සියලු තාක්ෂණික අන්තර්ගතය සුරකින්න.",
+      "ultra": "පොදු තාක්ෂණික කෙටි යෙදුම් භාවිතයෙන් අතිශයින් කෙටියෙන් ප්රතිචාර දක්වන්න. නිශ්චිත සංකේත එලෙසම තබාගන්න."
+    }
   },
   "translator": {
     "title": "පරිවර්තකය",
@@ -11438,7 +11485,8 @@
     "notMeasured": "මනින ලද්දේ නැත",
     "upstream4xx": "{count} උපරිම ක්‍රීඩා ප්‍රදේශය තුළ දෝෂ",
     "upstream5xx": "{count} උපරිම සර්වර දෝෂ",
-    "uniformEgressLine": "{affected} {exits} ඕත්තු සමග අසාධුවෙයි හි {provider} (පැමිණීම {hours} පැය) — ඕත්තු ගැටළුවක් නොවේ"
+    "uniformEgressLine": "{affected} {exits} ඕත්තු සමග අසාධුවෙයි හි {provider} (පැමිණීම {hours} පැය) — ඕත්තු ගැටළුවක් නොවේ",
+    "upstreamRefusals": "{count} upstream ප්‍රතික්ෂේප"
   },
   "playground": {
     "title": "ආකෘති අත්හදා බැලීමේ පරිසරය",

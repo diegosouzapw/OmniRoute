@@ -3381,7 +3381,44 @@
     "httpError": "請求失敗，HTTP {status}",
     "testFailedNoDetail": "測試失敗且無錯誤訊息",
     "additionalCapabilities": "其他功能：{list}",
-    "comboRefMember": "組合 → {name}"
+    "comboRefMember": "組合 → {name}",
+    "keyAccessButton": "API 金鑰存取權限",
+    "allowedInKeys": "允許於：{count, plural, one {# 個金鑰} other {# 個金鑰}}",
+    "keysLoading": "正在載入 API 金鑰…",
+    "keysRetry": "重試載入金鑰",
+    "accessViaPattern": "透過 {pattern}",
+    "accessBlocked": "受 {pattern} 阻擋",
+    "editKeyAccess": "編輯金鑰存取權限",
+    "toggleKeyAccess": "在 {name} 上允許 {item}",
+    "resultNetworkError": "指派失敗",
+    "resultWouldEmptyModels": "這會導致此金鑰沒有任何允許的模型 — 請改為編輯金鑰存取權限",
+    "resultWouldEmptyCombos": "這會導致此金鑰沒有任何允許的組合 — 請改為編輯金鑰存取權限",
+    "keyUpdatePending": "{name} 仍在更新中。請稍後再試。",
+    "assignToKeys": "指派至 API 金鑰…",
+    "assignApply": "套用變更",
+    "assignComplete": "API 金鑰存取權限已更新",
+    "assignFailed": "部分 API 金鑰更新失敗",
+    "assignNoChanges": "未變更任何 API 金鑰存取權限",
+    "selectedAccessItems": "已選取項目：{count}",
+    "assignExcludedCombos": "{count, plural, one {所選的 # 個組合列不是模型，在此將予略過} other {所選的 # 個組合列不是模型，在此將予略過}}。請從 Combos 分頁指派組合。",
+    "assignActionAdd": "新增",
+    "assignActionRemove": "移除",
+    "searchKeys": "搜尋 API 金鑰",
+    "selectApiKey": "選取 API 金鑰 {name}",
+    "allModelsAccess": "所有模型",
+    "allCombosAccess": "所有組合",
+    "modelAccessCount": "模型：{count}",
+    "comboAccessCount": "組合：{count}",
+    "keyInactive": "無效",
+    "keyBanned": "已封鎖",
+    "keyRevoked": "已撤銷",
+    "switchRestrictedConfirm": "將此金鑰切換為受限制存取：僅允許選取的項目",
+    "removeNoChangeHint": "此金鑰允許所有項目；移除選取的項目將不會產生任何變更",
+    "removeStaysAllowedHint": "仍透過 {patterns} 允許在此金鑰使用",
+    "resultChanged": "已變更",
+    "resultUnchanged": "無變更",
+    "resultSkipped": "已略過",
+    "resultNeedsSwitch": "需要切換為受限制"
   },
   "combos": {
     "title": "組合",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "提供者（所有帳戶共用一個斷路器）",
     "resilienceTokenRefreshScopeConnection": "連線（每個帳戶各有自己的斷路器）",
     "resilienceTokenRefreshThreshold": "暫停前的失敗次數",
-    "resilienceTokenRefreshCooldown": "觸發後暫停"
+    "resilienceTokenRefreshCooldown": "觸發後暫停",
+    "compressionSettingsCavemanOutputMode": "穴居人輸出模式",
+    "compressionSettingsAutoClarityBypass": "自動清晰度旁路"
   },
   "contextRtk": {
     "title": "RTK 引擎",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "最大工具結果長度",
         "description": "主動截斷工具結果的字元上限。預設 2000。該欄位未設定時可用 OMNIROUTE_LITE_MAX_TOOL_LENGTH 覆寫。"
+      },
+      "preserveSystemPrompt": {
+        "label": "保留系統提示詞"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "比這短的訊息不會被壓縮。更低=更多壓縮。",
     "tooltipMinSavings": "僅當至少儲存這麼多權杖時才進行壓縮。",
     "ultraSettings": "超級設定",
-    "ultraSettingsDesc": "SLM 支援的語義壓縮"
+    "ultraSettingsDesc": "SLM 支援的語義壓縮",
+    "preview": {
+      "lite": "回覆要簡潔。保留技術術語、程式碼、錯誤、URL 和識別符號。",
+      "full": "回覆要簡短緊湊。保留所有技術實質。",
+      "ultra": "用常見技術縮寫進行極簡回覆。保留精確符號。"
+    }
   },
   "translator": {
     "title": "翻譯器",
@@ -11438,7 +11485,8 @@
     "notMeasured": "未測量",
     "upstream4xx": "{count} 上游客戶端錯誤",
     "upstream5xx": "{count} 上游伺服器錯誤",
-    "uniformEgressLine": "{affected} 中的 {exits} 個出口在 {provider} 上同時失敗 (最後 {hours} 小時) — 不是出口問題"
+    "uniformEgressLine": "{affected} 中的 {exits} 個出口在 {provider} 上同時失敗 (最後 {hours} 小時) — 不是出口問題",
+    "upstreamRefusals": "{count}次上游拒絕"
   },
   "playground": {
     "title": "模型演練場",

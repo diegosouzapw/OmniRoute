@@ -3381,7 +3381,44 @@
     "httpError": "Arịrịọ dara na HTTP {status}",
     "testFailedNoDetail": "Nnwale dara na-enweghị ozi njehie",
     "additionalCapabilities": "Ikike ndị ọzọ: {list}",
-    "comboRefMember": "Ngwakọta → {name}"
+    "comboRefMember": "Ngwakọta → {name}",
+    "keyAccessButton": "Nnweta igodo API",
+    "allowedInKeys": "E kwere na: {count, plural, one {# igodo} other {# igodo}}",
+    "keysLoading": "Na-ebudata igodo API…",
+    "keysRetry": "Nwaa ọzọ ibudata igodo",
+    "accessViaPattern": "site na {pattern}",
+    "accessBlocked": "Egbochiri site na {pattern}",
+    "editKeyAccess": "Dezie nnweta igodo",
+    "toggleKeyAccess": "Kwe ka {item} na {name}",
+    "resultNetworkError": "Nkenye adaala",
+    "resultWouldEmptyModels": "Ọ ga-ahapụ igodo a n'enweghị ụdị ekwere — dezie ohere igodo kama",
+    "resultWouldEmptyCombos": "Ọ ga-ahapụ igodo a n'enweghị combos ekwere — dezie ohere igodo kama",
+    "keyUpdatePending": "A ka na-emelite {name}. Nwaa ọzọ n'obere oge.",
+    "assignToKeys": "Kenye na igodo API…",
+    "assignApply": "Tinye mgbanwe",
+    "assignComplete": "Emelitere nnweta igodo API",
+    "assignFailed": "Ụfọdụ mmelite igodo API adaala",
+    "assignNoChanges": "Enweghị ohere igodo API agbanwere",
+    "selectedAccessItems": "Ihe ndị ahọpụtara: {count}",
+    "assignExcludedCombos": "{count, plural, one {# ahịrị combo ahọpụtara abụghị ụdị ma a ga-awụpụ ya ebe a} other {# ahịrị combo ahọpụtara abụghị ụdị ma a ga-awụpụ ha ebe a}}. Kenye combos site na taabụ Combos.",
+    "assignActionAdd": "Tinye",
+    "assignActionRemove": "Wepụ",
+    "searchKeys": "Chọọ igodo API",
+    "selectApiKey": "Họrọ igodo API {name}",
+    "allModelsAccess": "Ụdị niile",
+    "allCombosAccess": "Nchịkọta niile",
+    "modelAccessCount": "Ụdị: {count}",
+    "comboAccessCount": "Nchịkọta: {count}",
+    "keyInactive": "Anaghị arụ ọrụ",
+    "keyBanned": "Amachibidoro",
+    "keyRevoked": "Kagburu",
+    "switchRestrictedConfirm": "Gbanwee igodo a ka ọ bụrụ nnweta amachibidoro: naanị ihe ndị ahọpụtara ka a ga-ekwe",
+    "removeNoChangeHint": "Igodo a na-ekwe ihe niile; iwepụ ihe ndị ahọpụtara agaghị eweta mgbanwe ọ bụla",
+    "removeStaysAllowedHint": "A ka kwere na igodo a site na {patterns}",
+    "resultChanged": "Gbanwere",
+    "resultUnchanged": "Enweghị mgbanwe",
+    "resultSkipped": "A gafere",
+    "resultNeedsSwitch": "Chọrọ mgbanwe gaa na amachibidoro"
   },
   "combos": {
     "title": "Ngwakọta",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Onye nnye (akkaunt niile dabere na otu breaker)",
     "resilienceTokenRefreshScopeConnection": "Njikọ (ọ bụrụ na ngwaọrụ ọ bụla nwere ya nke ya)",
     "resilienceTokenRefreshThreshold": "Njefọ n'ihu ka a ga-egbu oge",
-    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere"
+    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere",
+    "compressionSettingsCavemanOutputMode": "Ụdị mmepụta onye ọgba",
+    "compressionSettingsAutoClarityBypass": "Ngafe idoanya akpaka"
   },
   "contextRtk": {
     "title": "Injin RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Chekwaa system prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "A naghị eme mkpakọ n’ozi ndị dị mkpụmkpụ karịa nke a. Nke dị ala = mkpakọ karịa.",
     "tooltipMinSavings": "Mee mkpakọ naanị ma ọ bụrụ na ọ na-echekwa opekata mpe token ole a.",
     "ultraSettings": "Ntọala Ultra",
-    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado"
+    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado",
+    "preview": {
+      "lite": "Zaa nkenke. Debe okwu teknụzụ, code, njehie, URLs, na ihe njirimara.",
+      "full": "Zaa nkenke ma dị mkpụmkpụ. Debe ọdịnaya teknụzụ niile.",
+      "ultra": "Zaa n’ụzọ dị nnọọ nkenke site na iji ndebiri teknụzụ ndị a na-ahụkarị. Debe akara niile otu ha dị."
+    }
   },
   "translator": {
     "title": "Onye Ntụgharị",
@@ -11438,7 +11485,8 @@
     "notMeasured": "A tụghị",
     "upstream4xx": "{count} njehie onye ahịa n'elu",
     "upstream5xx": "{count} njehie sava n'elu",
-    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ"
+    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ",
+    "upstreamRefusals": "{count} ọjụjụ upstream"
   },
   "playground": {
     "title": "Ebe Nnwale Model",

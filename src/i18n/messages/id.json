@@ -3381,7 +3381,44 @@
     "httpError": "Permintaan gagal dengan HTTP {status}",
     "testFailedNoDetail": "Pengujian gagal tanpa pesan kesalahan",
     "additionalCapabilities": "Kemampuan tambahan: {list}",
-    "comboRefMember": "Kombo → {name}"
+    "comboRefMember": "Kombo → {name}",
+    "keyAccessButton": "Akses kunci API",
+    "allowedInKeys": "Diizinkan di: {count, plural, one {# kunci} other {# kunci}}",
+    "keysLoading": "Memuat kunci API…",
+    "keysRetry": "Coba lagi memuat kunci",
+    "accessViaPattern": "melalui {pattern}",
+    "accessBlocked": "Diblokir oleh {pattern}",
+    "editKeyAccess": "Edit akses kunci",
+    "toggleKeyAccess": "Izinkan {item} pada {name}",
+    "resultNetworkError": "Penetapan gagal",
+    "resultWouldEmptyModels": "Akan membuat kunci ini tidak memiliki model yang diizinkan — edit akses kunci sebagai gantinya",
+    "resultWouldEmptyCombos": "Akan membuat kunci ini tidak memiliki kombo yang diizinkan — edit akses kunci sebagai gantinya",
+    "keyUpdatePending": "{name} masih diperbarui. Coba lagi sebentar lagi.",
+    "assignToKeys": "Tetapkan ke kunci API…",
+    "assignApply": "Terapkan perubahan",
+    "assignComplete": "Akses kunci API diperbarui",
+    "assignFailed": "Beberapa pembaruan kunci API gagal",
+    "assignNoChanges": "Tidak ada akses kunci API yang diubah",
+    "selectedAccessItems": "Item yang dipilih: {count}",
+    "assignExcludedCombos": "{count, plural, one {# baris kombo yang dipilih bukan model dan akan dilewati di sini} other {# baris kombo yang dipilih bukan model dan akan dilewati di sini}}. Tetapkan kombo dari tab Combos.",
+    "assignActionAdd": "Tambah",
+    "assignActionRemove": "Hapus",
+    "searchKeys": "Cari kunci API",
+    "selectApiKey": "Pilih kunci API {name}",
+    "allModelsAccess": "Semua model",
+    "allCombosAccess": "Semua kombo",
+    "modelAccessCount": "Model: {count}",
+    "comboAccessCount": "Kombo: {count}",
+    "keyInactive": "Tidak aktif",
+    "keyBanned": "Diblokir",
+    "keyRevoked": "Dicabut",
+    "switchRestrictedConfirm": "Ubah kunci ini ke akses terbatas: hanya item yang dipilih yang akan diizinkan",
+    "removeNoChangeHint": "Kunci ini mengizinkan semuanya; menghapus item yang dipilih tidak akan membuat perubahan apa pun",
+    "removeStaysAllowedHint": "Masih diizinkan pada kunci ini melalui {patterns}",
+    "resultChanged": "Diubah",
+    "resultUnchanged": "Tidak ada perubahan",
+    "resultSkipped": "Dilewati",
+    "resultNeedsSwitch": "Perlu diubah ke terbatas"
   },
   "combos": {
     "title": "kombo",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Penyedia (semua akun berbagi satu pemutus)",
     "resilienceTokenRefreshScopeConnection": "Koneksi (setiap akun memiliki pemutusnya sendiri)",
     "resilienceTokenRefreshThreshold": "Kegagalan sebelum dijeda",
-    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu"
+    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu",
+    "compressionSettingsCavemanOutputMode": "Mode keluaran manusia gua",
+    "compressionSettingsAutoClarityBypass": "Bypass kejelasan otomatis"
   },
   "contextRtk": {
     "title": "Mesin RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Pertahankan prompt sistem"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Pesan yang lebih pendek dari ini tidak dikompresi. Lebih rendah = lebih banyak kompresi.",
     "tooltipMinSavings": "Hanya kompres jika menyimpan setidaknya token sebanyak ini.",
     "ultraSettings": "Pengaturan Ultra",
-    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM"
+    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM",
+    "preview": {
+      "lite": "Berikan respons ringkas. Pertahankan istilah teknis, kode, kesalahan, URL, dan pengidentifikasi.",
+      "full": "Berikan respons singkat dan padat. Pertahankan seluruh substansi teknis.",
+      "ultra": "Berikan respons sangat singkat dengan singkatan teknis umum. Pertahankan simbol secara persis."
+    }
   },
   "translator": {
     "title": "Penerjemah",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Belum diukur",
     "upstream4xx": "{count} kesalahan klien upstream",
     "upstream5xx": "{count} kesalahan server upstream",
-    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit"
+    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit",
+    "upstreamRefusals": "{count} penolakan upstream"
   },
   "playground": {
     "title": "Title",

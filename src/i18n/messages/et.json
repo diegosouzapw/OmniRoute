@@ -3381,7 +3381,44 @@
     "httpError": "Päring ebaõnnestus HTTP-staatusega {status}",
     "testFailedNoDetail": "Test ebaõnnestus ilma veateateta",
     "additionalCapabilities": "Täiendavad võimekused: {list}",
-    "comboRefMember": "Kombinatsioon → {name}"
+    "comboRefMember": "Kombinatsioon → {name}",
+    "keyAccessButton": "API-võtme juurdepääs",
+    "allowedInKeys": "Lubatud: {count, plural, one {# võtmes} other {# võtmes}}",
+    "keysLoading": "API-võtmete laadimine…",
+    "keysRetry": "Proovi võtmete laadimist uuesti",
+    "accessViaPattern": "{pattern} kaudu",
+    "accessBlocked": "Blokeeritud mustriga {pattern}",
+    "editKeyAccess": "Muuda võtme juurdepääsu",
+    "toggleKeyAccess": "Luba {item} võtmel {name}",
+    "resultNetworkError": "Määramine ebaõnnestus",
+    "resultWouldEmptyModels": "Jätaks selle võtme ilma lubatud mudeliteta — muuda selle asemel võtme juurdepääsu",
+    "resultWouldEmptyCombos": "Jätaks selle võtme ilma lubatud kombodeta — muuda selle asemel võtme juurdepääsu",
+    "keyUpdatePending": "{name} on veel uuendamisel. Proovi hetke pärast uuesti.",
+    "assignToKeys": "Määra API-võtmetele…",
+    "assignApply": "Rakenda muudatused",
+    "assignComplete": "API-võtme juurdepääs uuendatud",
+    "assignFailed": "Mõne API-võtme uuendamine ebaõnnestus",
+    "assignNoChanges": "Ühtegi API-võtme juurdepääsu ei muudetud",
+    "selectedAccessItems": "Valitud üksusi: {count}",
+    "assignExcludedCombos": "{count, plural, one {# valitud komborida pole mudel ja jäetakse siin vahele} other {# valitud komborida pole mudelid ja jäetakse siin vahele}}. Määra kombod vahekaardilt Combos.",
+    "assignActionAdd": "Lisa",
+    "assignActionRemove": "Eemalda",
+    "searchKeys": "Otsi API-võtmeid",
+    "selectApiKey": "Vali API-võti {name}",
+    "allModelsAccess": "Kõik mudelid",
+    "allCombosAccess": "Kõik kombinatsioonid",
+    "modelAccessCount": "Mudelid: {count}",
+    "comboAccessCount": "Kombinatsioonid: {count}",
+    "keyInactive": "Mitteaktiivne",
+    "keyBanned": "Blokeeritud",
+    "keyRevoked": "Tühistatud",
+    "switchRestrictedConfirm": "Lülita see võti piiratud juurdepääsule: lubatakse ainult valitud üksused",
+    "removeNoChangeHint": "See võti lubab kõike; valitud üksuste eemaldamine ei muuda midagi",
+    "removeStaysAllowedHint": "Sellel võtmel endiselt lubatud mustrite {patterns} kaudu",
+    "resultChanged": "Muudetud",
+    "resultUnchanged": "Muutusi pole",
+    "resultSkipped": "Vahele jäetud",
+    "resultNeedsSwitch": "Vajab piiratud juurdepääsule lülitamist"
   },
   "combos": {
     "title": "Kombinatsioonid",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Pakkuja (kõik kontod jagavad ühte piirajat)",
     "resilienceTokenRefreshScopeConnection": "Ühendus (igal kontol on oma katkesti)",
     "resilienceTokenRefreshThreshold": "Tõrgete arv enne peatamist",
-    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist"
+    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist",
+    "compressionSettingsCavemanOutputMode": "Koopainimese väljundrežiim",
+    "compressionSettingsAutoClarityBypass": "Automaatne selgusekontrollist möödahiilimine"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Säilita süsteemiviip"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Sellest lühemaid sõnumeid ei tihendata. Väiksem = rohkem tihendamist.",
     "tooltipMinSavings": "Tihenda ainult siis, kui see säästab vähemalt nii palju tokeneid.",
     "ultraSettings": "Ultraseaded",
-    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine"
+    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine",
+    "preview": {
+      "lite": "Vasta lühidalt. Säilita tehnilised terminid, kood, vead, URL-id ja identifikaatorid.",
+      "full": "Vasta napilt ja kompaktselt. Säilita kogu tehniline sisu.",
+      "ultra": "Vasta ülilühidalt, kasutades levinud tehnilisi lühendeid. Säilita täpsed sümbolid."
+    }
   },
   "translator": {
     "title": "Tõlkija",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Mõõtmata",
     "upstream4xx": "{count} ülespoole kliendivigad",
     "upstream5xx": "{count} ülespoole serverivigad",
-    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem"
+    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem",
+    "upstreamRefusals": "{count} upstream-keeldumist"
   },
   "playground": {
     "title": "Mudelite testkeskkond",

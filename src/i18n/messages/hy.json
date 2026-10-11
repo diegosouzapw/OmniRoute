@@ -3381,7 +3381,44 @@
     "httpError": "Հարցումը ձախողվեց HTTP {status} կոդով",
     "testFailedNoDetail": "Թեստը ձախողվեց առանց սխալի հաղորդագրության",
     "additionalCapabilities": "Լրացուցիչ հնարավորություններ՝ {list}",
-    "comboRefMember": "Համակցություն → {name}"
+    "comboRefMember": "Համակցություն → {name}",
+    "keyAccessButton": "API բանալու հասանելիություն",
+    "allowedInKeys": "Թույլատրված է՝ {count, plural, one {# բանալիում} other {# բանալիներում}}",
+    "keysLoading": "API բանալիների բեռնում…",
+    "keysRetry": "Կրկնել բանալիների բեռնումը",
+    "accessViaPattern": "{pattern}-ի միջոցով",
+    "accessBlocked": "Արգելափակված է {pattern}-ի կողմից",
+    "editKeyAccess": "Խմբագրել բանալու հասանելիությունը",
+    "toggleKeyAccess": "Թույլատրել {item}-ը {name}-ում",
+    "resultNetworkError": "Նշանակումը ձախողվեց",
+    "resultWouldEmptyModels": "Այս բանալին կմնա առանց թույլատրված մոդելների — փոխարենը խմբագրեք բանալու մուտքի իրավունքները",
+    "resultWouldEmptyCombos": "Այս բանալին կմնա առանց թույլատրված կոմբոների — փոխարենը խմբագրեք բանալու մուտքի իրավունքները",
+    "keyUpdatePending": "{name}-ը դեռ թարմացվում է: Փորձեք կրկին մի փոքր ուշ:",
+    "assignToKeys": "Նշանակել API բանալիներին…",
+    "assignApply": "Կիրառել փոփոխությունները",
+    "assignComplete": "API բանալու հասանելիությունը թարմացված է",
+    "assignFailed": "API բանալիների որոշ թարմացումներ ձախողվեցին",
+    "assignNoChanges": "API բանալու հասանելիության որևէ փոփոխություն չի կատարվել",
+    "selectedAccessItems": "Ընտրված տարրեր՝ {count}",
+    "assignExcludedCombos": "{count, plural, one {Ընտրված # կոմբո տողը մոդել չէ և այստեղ բաց կթողնվի} other {Ընտրված # կոմբո տողերը մոդել չեն և այստեղ բաց կթողնվեն}}: Նշանակեք կոմբոները Combos ներդիրից:",
+    "assignActionAdd": "Ավելացնել",
+    "assignActionRemove": "Հեռացնել",
+    "searchKeys": "Փնտրել API բանալիներ",
+    "selectApiKey": "Ընտրել API բանալի {name}",
+    "allModelsAccess": "Բոլոր մոդելները",
+    "allCombosAccess": "Բոլոր համակցությունները",
+    "modelAccessCount": "Մոդելներ՝ {count}",
+    "comboAccessCount": "Համակցություններ՝ {count}",
+    "keyInactive": "Ոչ ակտիվ",
+    "keyBanned": "Արգելափակված",
+    "keyRevoked": "Հետկանչված",
+    "switchRestrictedConfirm": "Այս բանալին փոխարկել սահմանափակ հասանելիության. կթույլատրվեն միայն ընտրված տարրերը",
+    "removeNoChangeHint": "Այս բանալին թույլատրում է ամեն ինչ. ընտրված տարրերի հեռացումը ոչ մի փոփոխություն չի կատարի",
+    "removeStaysAllowedHint": "Դեռևս թույլատրված է այս բանալու վրա {patterns}-ի միջոցով",
+    "resultChanged": "Փոփոխված է",
+    "resultUnchanged": "Անփոփոխ",
+    "resultSkipped": "Բաց թողնված",
+    "resultNeedsSwitch": "Պահանջվում է անցում սահմանափակի"
   },
   "combos": {
     "title": "Կոմբինացիաներ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Մատակարար (բոլոր հաշիվները կիսում են մեկ ընդհատիչ)",
     "resilienceTokenRefreshScopeConnection": "Կապ (յուրաքանչյուր հաշիվ ունի իր ընդհատիչը)",
     "resilienceTokenRefreshThreshold": "Հաջողությունից առաջ կանգնեցնելու համար պարտություններ",
-    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո"
+    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո",
+    "compressionSettingsCavemanOutputMode": "Քարանձավային ոճի ելքային ռեժիմ",
+    "compressionSettingsAutoClarityBypass": "Հստակության ավտոմատ շրջանցում"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Պահպանել համակարգային հուշումը"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Սրանից կարճ հաղորդագրությունները չեն սեղմվում։ Ավելի ցածր = ավելի շատ սեղմում։",
     "tooltipMinSavings": "Սեղմել միայն այն դեպքում, եթե խնայվում է առնվազն այսքան տոկեն։",
     "ultraSettings": "Ultra կարգավորումներ",
-    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում"
+    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում",
+    "preview": {
+      "lite": "Պատասխանեք հակիրճ։ Պահպանեք տեխնիկական եզրույթները, կոդը, սխալները, URL-ները և նույնացուցիչները։",
+      "full": "Պատասխանել շատ հակիրճ և սեղմ։ Պահպանել ամբողջ տեխնիկական բովանդակությունը։",
+      "ultra": "Պատասխանել ծայրահեղ հակիրճ՝ օգտագործելով տարածված տեխնիկական հապավումներ։ Պահպանել ճշգրիտ նշանները։"
+    }
   },
   "translator": {
     "title": "Թարգմանիչ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Չի չափվել",
     "upstream4xx": "{count} վերահոսքային հաճախորդի սխալներ",
     "upstream5xx": "{count} վերահոսքային սերվերի սխալներ",
-    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ"
+    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ",
+    "upstreamRefusals": "{count} upstream մերժում"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",

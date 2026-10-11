@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} সহ অনুরোধ ব্যর্থ হয়েছে",
     "testFailedNoDetail": "কোনো ত্রুটি বার্তা ছাড়াই পরীক্ষা ব্যর্থ হয়েছে",
     "additionalCapabilities": "অতিরিক্ত সক্ষমতা: {list}",
-    "comboRefMember": "কম্বো → {name}"
+    "comboRefMember": "কম্বো → {name}",
+    "keyAccessButton": "API কী অ্যাক্সেস",
+    "allowedInKeys": "অনুমোদিত: {count, plural, one {#টি কী} other {#টি কী}}",
+    "keysLoading": "API কী লোড হচ্ছে…",
+    "keysRetry": "কী পুনরায় লোড করার চেষ্টা করুন",
+    "accessViaPattern": "{pattern}-এর মাধ্যমে",
+    "accessBlocked": "{pattern} দ্বারা ব্লক করা হয়েছে",
+    "editKeyAccess": "কী অ্যাক্সেস সম্পাদনা করুন",
+    "toggleKeyAccess": "{name}-এ {item} অনুমতি দিন",
+    "resultNetworkError": "অ্যাসাইনমেন্ট ব্যর্থ হয়েছে",
+    "resultWouldEmptyModels": "এটি এই কী-তে কোনো অনুমোদিত মডেল রাখবে না — এর পরিবর্তে কী অ্যাক্সেস সম্পাদনা করুন",
+    "resultWouldEmptyCombos": "এটি এই কী-তে কোনো অনুমোদিত কম্বো রাখবে না — এর পরিবর্তে কী অ্যাক্সেস সম্পাদনা করুন",
+    "keyUpdatePending": "{name} এখনও আপডেট করা হচ্ছে। কিছুক্ষণের মধ্যে আবার চেষ্টা করুন।",
+    "assignToKeys": "API কীতে অ্যাসাইন করুন…",
+    "assignApply": "পরিবর্তন প্রয়োগ করুন",
+    "assignComplete": "API কী অ্যাক্সেস আপডেট করা হয়েছে",
+    "assignFailed": "কিছু API কী আপডেট ব্যর্থ হয়েছে",
+    "assignNoChanges": "কোনো API কী অ্যাক্সেস পরিবর্তন করা হয়নি",
+    "selectedAccessItems": "নির্বাচিত আইটেম: {count}টি",
+    "assignExcludedCombos": "{count, plural, one {#টি নির্বাচিত কম্বো সারি কোনো মডেল নয় এবং এখানে এড়িয়ে যাওয়া হবে} other {#টি নির্বাচিত কম্বো সারি কোনো মডেল নয় এবং এখানে এড়িয়ে যাওয়া হবে}}। Combos ট্যাব থেকে কম্বো বরাদ্দ করুন।",
+    "assignActionAdd": "যোগ করুন",
+    "assignActionRemove": "সরিয়ে ফেলুন",
+    "searchKeys": "API কী খুঁজুন",
+    "selectApiKey": "API কী {name} নির্বাচন করুন",
+    "allModelsAccess": "সকল মডেল",
+    "allCombosAccess": "সকল কম্বো",
+    "modelAccessCount": "মডেল: {count}টি",
+    "comboAccessCount": "কম্বো: {count}টি",
+    "keyInactive": "নিষ্ক্রিয়",
+    "keyBanned": "নিষিদ্ধ",
+    "keyRevoked": "বাতিল করা হয়েছে",
+    "switchRestrictedConfirm": "এই কী-টিকে সীমাবদ্ধ অ্যাক্সেসে পরিবর্তন করুন: কেবল নির্বাচিত আইটেমগুলোর অনুমতি থাকবে",
+    "removeNoChangeHint": "এই কী সবকিছু অনুমতি দেয়; নির্বাচিত আইটেমগুলো সরালে কোনো পরিবর্তন হবে না",
+    "removeStaysAllowedHint": "{patterns}-এর মাধ্যমে এখনও এই কী-তে অনুমোদিত",
+    "resultChanged": "পরিবর্তিত",
+    "resultUnchanged": "কোনো পরিবর্তন নেই",
+    "resultSkipped": "এড়িয়ে যাওয়া হয়েছে",
+    "resultNeedsSwitch": "সীমাবদ্ধ অবস্থায় পরিবর্তন করা প্রয়োজন"
   },
   "combos": {
     "title": "কম্বোসমূহ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "প্রদানকারী (সমস্ত অ্যাকাউন্ট একটি ব্রেকার ভাগ করে নেয়)",
     "resilienceTokenRefreshScopeConnection": "সংযোগ (প্রতিটি অ্যাকাউন্টের নিজস্ব ব্রেকার আছে)",
     "resilienceTokenRefreshThreshold": "বিরতি নেওয়ার আগে ব্যর্থতা",
-    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি"
+    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি",
+    "compressionSettingsCavemanOutputMode": "গুহামানব আউটপুট মোড",
+    "compressionSettingsAutoClarityBypass": "স্বয়ংক্রিয় স্বচ্ছতা বাইপাস"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "সিস্টেম প্রম্পট সংরক্ষণ করুন"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "এর চেয়ে ছোট বার্তাগুলি সংকুচিত হয় না। নিম্ন = আরও সংকোচন।",
     "tooltipMinSavings": "শুধুমাত্র সংকুচিত করুন যদি এটি অন্তত এতগুলো টোকেন সংরক্ষণ করে।",
     "ultraSettings": "আল্ট্রা সেটিংস",
-    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন"
+    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন",
+    "preview": {
+      "lite": "সংক্ষেপে উত্তর দিন। প্রযুক্তিগত পরিভাষা, কোড, ত্রুটি, URLs এবং শনাক্তকারী অপরিবর্তিত রাখুন।",
+      "full": "সংক্ষিপ্ত ও আঁটসাঁটভাবে উত্তর দিন। সব প্রযুক্তিগত তথ্য অক্ষুণ্ণ রাখুন।",
+      "ultra": "প্রচলিত প্রযুক্তিগত সংক্ষিপ্ত রূপ ব্যবহার করে অত্যন্ত সংক্ষেপে উত্তর দিন। প্রতীকগুলো হুবহু অপরিবর্তিত রাখুন।"
+    }
   },
   "translator": {
     "title": "অনুবাদক",
@@ -11438,7 +11485,8 @@
     "notMeasured": "পরিমাপ করা হয়নি",
     "upstream4xx": "{count} উপস্ট্রিম ক্লায়েন্ট ত্রুটি",
     "upstream5xx": "{count} উপস্ট্রিম সার্ভার ত্রুটি",
-    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়"
+    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়",
+    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",

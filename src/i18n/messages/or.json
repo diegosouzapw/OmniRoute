@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} ସହିତ ଅନୁରୋଧ ବିଫଳ ହେଲା",
     "testFailedNoDetail": "କୌଣସି ତ୍ରୁଟି ବାର୍ତ୍ତା ବିନା ପରୀକ୍ଷଣ ବିଫଳ ହେଲା",
     "additionalCapabilities": "ଅତିରିକ୍ତ କ୍ଷମତା: {list}",
-    "comboRefMember": "କମ୍ବୋ → {name}"
+    "comboRefMember": "କମ୍ବୋ → {name}",
+    "keyAccessButton": "API କୀ ଆକ୍ସେସ୍",
+    "allowedInKeys": "ଅନୁମୋଦିତ: {count, plural, one {# key} other {# keys}}",
+    "keysLoading": "API କୀ ଲୋଡ୍ ହେଉଛି…",
+    "keysRetry": "କୀ ଲୋଡ୍ କରିବା ପୁନଃ ଚେଷ୍ଟା କରନ୍ତୁ",
+    "accessViaPattern": "{pattern} ମାଧ୍ୟମରେ",
+    "accessBlocked": "{pattern} ଦ୍ୱାରା ବ୍ଲକ୍ କରାଯାଇଛି",
+    "editKeyAccess": "କୀ ଆକ୍ସେସ୍ ସମ୍ପାଦନା କରନ୍ତୁ",
+    "toggleKeyAccess": "{name} ରେ {item} କୁ ଅନୁମତି ଦିଅନ୍ତୁ",
+    "resultNetworkError": "ନ୍ୟସ୍ତ କରିବା ବିଫଳ ହେଲା",
+    "resultWouldEmptyModels": "ଏହା ଏହି key କୁ କୌଣସି ଅନୁମତିପ୍ରାପ୍ତ model ବିନା ଛାଡ଼ିଦେବ — ଏହା ବଦଳରେ key access ଏଡିଟ୍ କରନ୍ତୁ",
+    "resultWouldEmptyCombos": "ଏହା ଏହି key କୁ କୌଣସି ଅନୁମତିପ୍ରାପ୍ତ combo ବିନା ଛାଡ଼ିଦେବ — ଏହା ବଦଳରେ key access ଏଡିଟ୍ କରନ୍ତୁ",
+    "keyUpdatePending": "{name} ଏବେ ମଧ୍ୟ ଅପଡେଟ୍ ହେଉଛି। କିଛି ସମୟ ପରେ ପୁନର୍ବାର ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "assignToKeys": "API କୀ ଗୁଡ଼ିକୁ ନ୍ୟସ୍ତ କରନ୍ତୁ…",
+    "assignApply": "ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ଲାଗୁ କରନ୍ତୁ",
+    "assignComplete": "API କୀ ଆକ୍ସେସ୍ ଅପଡେଟ୍ ହୋଇଛି",
+    "assignFailed": "କିଛି API କୀ ଅପଡେଟ୍ ବିଫଳ ହୋଇଛି",
+    "assignNoChanges": "କୌଣସି API key access ପରିବର୍ତ୍ତନ ହୋଇନାହିଁ",
+    "selectedAccessItems": "ଚୟନିତ ଆଇଟମ୍: {count}",
+    "assignExcludedCombos": "{count, plural, one {# ଚୟନିତ combo ଧାଡ଼ି ଏକ model ନୁହେଁ ଏବଂ ଏଠାରେ ବାଦ୍ ଦିଆଯିବ} other {# ଚୟନିତ combo ଧାଡ଼ି model ନୁହଁନ୍ତି ଏବଂ ଏଠାରେ ବାଦ୍ ଦିଆଯିବ}}। Combos ଟ୍ୟାବ୍‌ରୁ combos ଆସାଇନ୍ କରନ୍ତୁ।",
+    "assignActionAdd": "ଯୋଡ଼ନ୍ତୁ",
+    "assignActionRemove": "ହଟାନ୍ତୁ",
+    "searchKeys": "API କୀ ଖୋଜନ୍ତୁ",
+    "selectApiKey": "API କୀ {name} ଚୟନ କରନ୍ତୁ",
+    "allModelsAccess": "ସମସ୍ତ ମଡେଲ୍",
+    "allCombosAccess": "ସମସ୍ତ କମ୍ବୋ",
+    "modelAccessCount": "ମଡେଲ୍: {count}",
+    "comboAccessCount": "କମ୍ବୋ: {count}",
+    "keyInactive": "ନିଷ୍କ୍ରିୟ",
+    "keyBanned": "ପ୍ରତିବନ୍ଧିତ",
+    "keyRevoked": "ରଦ୍ଦ କରାଯାଇଛି",
+    "switchRestrictedConfirm": "ଏହି କୀ’କୁ ସୀମିତ ଆକ୍ସେସକୁ ବଦଳାନ୍ତୁ: କେବଳ ଚୟନିତ ଆଇଟମଗୁଡ଼ିକୁ ଅନୁମତି ଦିଆଯିବ",
+    "removeNoChangeHint": "ଏହି କୀ ସବୁକିଛିକୁ ଅନୁମତି ଦିଏ; ଚୟନିତ ଆଇଟମଗୁଡ଼ିକୁ ହଟାଇଲେ କୌଣସି ପରିବର୍ତ୍ତନ ହେବ ନାହିଁ",
+    "removeStaysAllowedHint": "{patterns} ମାଧ୍ୟମରେ ଏହି key ରେ ଏବେ ମଧ୍ୟ ଅନୁମତି ଅଛି",
+    "resultChanged": "ପରିବର୍ତ୍ତିତ",
+    "resultUnchanged": "କୌଣସି ପରିବର୍ତ୍ତନ ନାହିଁ",
+    "resultSkipped": "ଏଡ଼ାଇ ଦିଆଗଲା",
+    "resultNeedsSwitch": "ସୀମିତ ଆକ୍ସେସକୁ ସୁଇଚ୍ କରିବା ଆବଶ୍ୟକ"
   },
   "combos": {
     "title": "କମ୍ବୋଗୁଡ଼ିକ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ପ୍ରୋଭାଇଡର (ସମସ୍ତ ଖାତା ଗୋଟିଏ ବ୍ରେକର ଅଂଶୀଦାର କରନ୍ତି)",
     "resilienceTokenRefreshScopeConnection": "ସଂଯୋଗ (ପ୍ରତ୍ୟେକ ଖାତା ନିଜର ଏକ ବ୍ରେକର ରଖେ)",
     "resilienceTokenRefreshThreshold": "ବିରତି ଦେବା ପୂର୍ବରୁ ବିଫଳତା",
-    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ"
+    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ",
+    "compressionSettingsCavemanOutputMode": "ଗୁହାମାନବ ଆଉଟପୁଟ୍ ମୋଡ୍",
+    "compressionSettingsAutoClarityBypass": "ସ୍ୱୟଂଚାଳିତ ସ୍ପଷ୍ଟତା ବାଇପାସ୍"
   },
   "contextRtk": {
     "title": "RTK ଇଞ୍ଜିନ୍",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ସଂରକ୍ଷଣ କରନ୍ତୁ"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ଏହାଠାରୁ ଛୋଟ ସନ୍ଦେଶଗୁଡ଼ିକ ସଙ୍କୁଚିତ ହୁଏ ନାହିଁ। କମ୍ = ଅଧିକ ସଙ୍କୋଚନ।",
     "tooltipMinSavings": "ଅତି କମ୍ରେ ଏତିକି ଟୋକେନ୍ ସଞ୍ଚୟ ହେଲେ ମାତ୍ର ସଙ୍କୁଚିତ କରନ୍ତୁ।",
     "ultraSettings": "ଅଲ୍ଟ୍ରା ସେଟିଂସ୍",
-    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ"
+    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ",
+    "preview": {
+      "lite": "ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରାଯୁକ୍ତିକ ଶବ୍ଦ, କୋଡ୍, ତ୍ରୁଟି, URLs ଏବଂ ପରିଚୟକଗୁଡ଼ିକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
+      "full": "ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଓ ସୁସଂହତ ଉତ୍ତର ଦିଅନ୍ତୁ। ସମସ୍ତ ପ୍ରାଯୁକ୍ତିକ ସାରବସ୍ତୁକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
+      "ultra": "ସାଧାରଣ ପ୍ରାଯୁକ୍ତିକ ସଂକ୍ଷିପ୍ତ ରୂପ ବ୍ୟବହାର କରି ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରତୀକଗୁଡ଼ିକୁ ଠିକ୍ ସେହିପରି ରଖନ୍ତୁ।"
+    }
   },
   "translator": {
     "title": "ଅନୁବାଦକ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "ମାପ କରାଯାଇନାହିଁ",
     "upstream4xx": "{count} ଉପରି ଗ୍ରାହକ ତ୍ରୁଟିଗୁଡ଼ିକ",
     "upstream5xx": "{count} ଉପରି ସର୍ଭର ତ୍ରୁଟିଗୁଡ଼ିକ",
-    "uniformEgressLine": "{provider}ରେ {exits}ଟି ଏକ୍ଜିଟ୍ ମଧ୍ୟରୁ {affected}ଟି ଏକାଠି ବିଫଳ ହେଉଛି (ଗତ {hours}ଘଣ୍ଟା) — ଏହା ଏକ୍ଜିଟ୍ ସମସ୍ୟା ନୁହେଁ"
+    "uniformEgressLine": "{provider}ରେ {exits}ଟି ଏକ୍ଜିଟ୍ ମଧ୍ୟରୁ {affected}ଟି ଏକାଠି ବିଫଳ ହେଉଛି (ଗତ {hours}ଘଣ୍ଟା) — ଏହା ଏକ୍ଜିଟ୍ ସମସ୍ୟା ନୁହେଁ",
+    "upstreamRefusals": "{count} ଅପଷ୍ଟ୍ରିମ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ"
   },
   "playground": {
     "title": "ମଡେଲ୍ ପ୍ଲେଗ୍ରାଉଣ୍ଡ",

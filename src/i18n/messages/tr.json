@@ -3381,7 +3381,44 @@
     "httpError": "İstek HTTP {status} ile başarısız oldu",
     "testFailedNoDetail": "Test bir hata mesajı olmadan başarısız oldu",
     "additionalCapabilities": "Ek yetenekler: {list}",
-    "comboRefMember": "Kombinasyon → {name}"
+    "comboRefMember": "Kombinasyon → {name}",
+    "keyAccessButton": "API anahtarı erişimi",
+    "allowedInKeys": "İzin verilen: {count, plural, one {# anahtar} other {# anahtar}}",
+    "keysLoading": "API anahtarları yükleniyor…",
+    "keysRetry": "Anahtarları yüklemeyi yeniden dene",
+    "accessViaPattern": "{pattern} üzerinden",
+    "accessBlocked": "{pattern} tarafından engellendi",
+    "editKeyAccess": "Anahtar erişimini düzenle",
+    "toggleKeyAccess": "{name} üzerinde {item} öğesine izin ver",
+    "resultNetworkError": "Atama başarısız oldu",
+    "resultWouldEmptyModels": "Bu işlem anahtarda izin verilen hiçbir model bırakmaz — bunun yerine anahtar erişimini düzenleyin",
+    "resultWouldEmptyCombos": "Bu işlem anahtarda izin verilen hiçbir kombo bırakmaz — bunun yerine anahtar erişimini düzenleyin",
+    "keyUpdatePending": "{name} hâlâ güncelleniyor. Kısa süre sonra tekrar deneyin.",
+    "assignToKeys": "API anahtarlarına ata…",
+    "assignApply": "Değişiklikleri uygula",
+    "assignComplete": "API anahtarı erişimi güncellendi",
+    "assignFailed": "Bazı API anahtarı güncellemeleri başarısız oldu",
+    "assignNoChanges": "Hiçbir API anahtarı erişimi değiştirilmedi",
+    "selectedAccessItems": "Seçilen öğeler: {count}",
+    "assignExcludedCombos": "{count, plural, one {# seçilen kombo satırı bir model değildir ve burada atlanacaktır} other {# seçilen kombo satırı model değildir ve burada atlanacaktır}}. Komboları Kombolar sekmesinden atayın.",
+    "assignActionAdd": "Ekle",
+    "assignActionRemove": "Kaldır",
+    "searchKeys": "API anahtarlarını ara",
+    "selectApiKey": "{name} API anahtarını seç",
+    "allModelsAccess": "Tüm modeller",
+    "allCombosAccess": "Tüm kombinasyonlar",
+    "modelAccessCount": "Modeller: {count}",
+    "comboAccessCount": "Kombinasyonlar: {count}",
+    "keyInactive": "Devre dışı",
+    "keyBanned": "Engellendi",
+    "keyRevoked": "İptal edildi",
+    "switchRestrictedConfirm": "Bu anahtarı kısıtlı erişime geçirin: yalnızca seçilen öğelere izin verilecektir",
+    "removeNoChangeHint": "Bu anahtar her şeye izin verir; seçilen öğeleri kaldırmak hiçbir şeyi değiştirmeyecektir",
+    "removeStaysAllowedHint": "{patterns} aracılığıyla bu anahtarda hâlâ izinli",
+    "resultChanged": "Değiştirildi",
+    "resultUnchanged": "Değişiklik yok",
+    "resultSkipped": "Atlandı",
+    "resultNeedsSwitch": "Kısıtlı erişime geçirilmesi gerekiyor"
   },
   "combos": {
     "title": "Kombolar",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Sağlayıcı (tüm hesaplar tek bir kesiciyi paylaşır)",
     "resilienceTokenRefreshScopeConnection": "Bağlantı (her hesabın kendi kesici devresi vardır)",
     "resilienceTokenRefreshThreshold": "Duraklatmadan önceki hatalar",
-    "resilienceTokenRefreshCooldown": "Tetiklendikten sonra duraklat"
+    "resilienceTokenRefreshCooldown": "Tetiklendikten sonra duraklat",
+    "compressionSettingsCavemanOutputMode": "Mağara adamı çıkış modu",
+    "compressionSettingsAutoClarityBypass": "Otomatik netlik bypass'ı"
   },
   "contextRtk": {
     "title": "RTK Motoru",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Sistem istemini koru"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Bundan daha kısa mesajlar sıkıştırılmaz. Daha düşük = daha fazla sıkıştırma.",
     "tooltipMinSavings": "Yalnızca en az bu kadar jeton tasarrufu sağlıyorsa sıkıştırın.",
     "ultraSettings": "Ultra Ayarlar",
-    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma"
+    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma",
+    "preview": {
+      "lite": "Kısa yanıt ver. Teknik terimleri, kodu, hataları, URL'leri ve tanımlayıcıları koru.",
+      "full": "Kısa ve öz yanıt ver. Tüm teknik içeriği koru.",
+      "ultra": "Yaygın teknik kısaltmalarla son derece kısa yanıt ver. Sembolleri aynen koru."
+    }
   },
   "translator": {
     "title": "Çeviri",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Ölçülmedi",
     "upstream4xx": "{count} upstream istemci hatası",
     "upstream5xx": "{count} upstream sunucu hatası",
-    "uniformEgressLine": "{exits} çıkışın {affected} tanesi {provider} üzerinde birlikte başarısız oluyor (son {hours} sa) — çıkış sorunu değil"
+    "uniformEgressLine": "{exits} çıkışın {affected} tanesi {provider} üzerinde birlikte başarısız oluyor (son {hours} sa) — çıkış sorunu değil",
+    "upstreamRefusals": "{count} yukarı akış reddi"
   },
   "playground": {
     "title": "Title",

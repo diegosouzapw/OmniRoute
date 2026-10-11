@@ -3381,7 +3381,44 @@
     "httpError": "Užklausa nepavyko su HTTP {status}",
     "testFailedNoDetail": "Testas nepavyko be klaidos pranešimo",
     "additionalCapabilities": "Papildomos galimybės: {list}",
-    "comboRefMember": "Derinys → {name}"
+    "comboRefMember": "Derinys → {name}",
+    "keyAccessButton": "API rakto prieiga",
+    "allowedInKeys": "Leidžiama: {count, plural, one {# rakte} few {# raktuose} other {# raktų}}",
+    "keysLoading": "Įkeliami API raktai…",
+    "keysRetry": "Bandyti įkelti raktus iš naujo",
+    "accessViaPattern": "per {pattern}",
+    "accessBlocked": "Užblokuota pagal {pattern}",
+    "editKeyAccess": "Redaguoti rakto prieigą",
+    "toggleKeyAccess": "Leisti {item} ties {name}",
+    "resultNetworkError": "Priskyrimas nepavyko",
+    "resultWouldEmptyModels": "Šis raktas liktų be leidžiamų modelių – verčiau redaguokite rakto prieigą",
+    "resultWouldEmptyCombos": "Šis raktas liktų be leidžiamų kombinacijų – verčiau redaguokite rakto prieigą",
+    "keyUpdatePending": "{name} vis dar atnaujinamas. Bandykite dar kartą po akimirkos.",
+    "assignToKeys": "Priskirti API raktams…",
+    "assignApply": "Taikyti pakeitimus",
+    "assignComplete": "API rakto prieiga atnaujinta",
+    "assignFailed": "Kai kurių API raktų atnaujinti nepavyko",
+    "assignNoChanges": "API rakto prieiga nepakeista",
+    "selectedAccessItems": "Pasirinkti elementai: {count}",
+    "assignExcludedCombos": "{count, plural, one {# pasirinkta kombinacijos eilutė nėra modelis ir čia bus praleista} few {# pasirinktos kombinacijų eilutės nėra modeliai ir čia bus praleistos} other {# pasirinktų kombinacijų eilučių nėra modeliai ir čia bus praleista}}. Priskirkite kombinacijas skirtuke „Combos“.",
+    "assignActionAdd": "Pridėti",
+    "assignActionRemove": "Pašalinti",
+    "searchKeys": "Ieškoti API raktų",
+    "selectApiKey": "Pasirinkti API raktą {name}",
+    "allModelsAccess": "Visi modeliai",
+    "allCombosAccess": "Visi deriniai",
+    "modelAccessCount": "Modeliai: {count}",
+    "comboAccessCount": "Deriniai: {count}",
+    "keyInactive": "Neaktyvus",
+    "keyBanned": "Užblokuotas",
+    "keyRevoked": "Atšaukta",
+    "switchRestrictedConfirm": "Perjungti šį raktą į ribotą prieigą: bus leidžiami tik pasirinkti elementai",
+    "removeNoChangeHint": "Šis raktas leidžia viską; pašalinus pasirinktus elementus niekas nepasikeis",
+    "removeStaysAllowedHint": "Vis dar leidžiama šiam raktui per {patterns}",
+    "resultChanged": "Pakeista",
+    "resultUnchanged": "Be pakeitimų",
+    "resultSkipped": "Praleista",
+    "resultNeedsSwitch": "Reikia perjungti į ribotą"
   },
   "combos": {
     "title": "Kombinacijos",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Tiekėjas (visos paskyros dalijasi vienu pertrauktuvu)",
     "resilienceTokenRefreshScopeConnection": "Ryšys (kiekviena paskyra turi savo pertraukiklį)",
     "resilienceTokenRefreshThreshold": "Nesėkmės prieš pristabdant",
-    "resilienceTokenRefreshCooldown": "Pauzė po suveikimo"
+    "resilienceTokenRefreshCooldown": "Pauzė po suveikimo",
+    "compressionSettingsCavemanOutputMode": "Urvinio žmogaus išvesties režimas",
+    "compressionSettingsAutoClarityBypass": "Automatinis aiškumo patikros praleidimas"
   },
   "contextRtk": {
     "title": "RTK variklis",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Išsaugoti sistemos raginimą"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Trumpesni pranešimai neglaudinami. Mažesnis = daugiau glaudinimo.",
     "tooltipMinSavings": "Glaudinti tik tada, jei sutaupoma bent tiek tokenų.",
     "ultraSettings": "„Ultra“ nustatymai",
-    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas"
+    "ultraSettingsDesc": "SLM grindžiamas semantinis glaudinimas",
+    "preview": {
+      "lite": "Atsakykite glaustai. Išsaugokite techninius terminus, kodą, klaidas, URL ir identifikatorius.",
+      "full": "Atsakykite labai glaustai ir kompaktiškai. Išsaugokite visą techninę esmę.",
+      "ultra": "Atsakykite itin glaustai, naudodami įprastas technines santrumpas. Išsaugokite tikslius simbolius."
+    }
   },
   "translator": {
     "title": "Vertėjas",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Neišmatuota",
     "upstream4xx": "{count} kliento klaidos",
     "upstream5xx": "{count} serverio klaidos",
-    "uniformEgressLine": "{affected} iš {exits} išėjimų genda kartu tinkle {provider} (per paskutines {hours}h) — ne išėjimo problema"
+    "uniformEgressLine": "{affected} iš {exits} išėjimų genda kartu tinkle {provider} (per paskutines {hours}h) — ne išėjimo problema",
+    "upstreamRefusals": "{count} aukštesnio lygio atmetimų"
   },
   "playground": {
     "title": "Modelių bandymų aplinka",

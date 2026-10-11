@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} ਨਾਲ ਬੇਨਤੀ ਅਸਫ਼ਲ ਰਹੀ",
     "testFailedNoDetail": "ਬਿਨਾਂ ਕਿਸੇ ਗਲਤੀ ਸੁਨੇਹੇ ਦੇ ਟੈਸਟ ਅਸਫ਼ਲ ਰਿਹਾ",
     "additionalCapabilities": "ਵਾਧੂ ਸਮਰੱਥਾਵਾਂ: {list}",
-    "comboRefMember": "ਕੰਬੋ → {name}"
+    "comboRefMember": "ਕੰਬੋ → {name}",
+    "keyAccessButton": "API ਕੁੰਜੀ ਪਹੁੰਚ",
+    "allowedInKeys": "ਇਹਨਾਂ ਵਿੱਚ ਇਜਾਜ਼ਤ ਹੈ: {count, plural, one {# ਕੁੰਜੀ} other {# ਕੁੰਜੀਆਂ}}",
+    "keysLoading": "API ਕੁੰਜੀਆਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…",
+    "keysRetry": "ਕੁੰਜੀਆਂ ਲੋਡ ਕਰਨ ਦੀ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "accessViaPattern": "{pattern} ਰਾਹੀਂ",
+    "accessBlocked": "{pattern} ਦੁਆਰਾ ਬਲੌਕ ਕੀਤਾ ਗਿਆ",
+    "editKeyAccess": "ਕੁੰਜੀ ਪਹੁੰਚ ਸੰਪਾਦਿਤ ਕਰੋ",
+    "toggleKeyAccess": "{name} 'ਤੇ {item} ਦੀ ਆਗਿਆ ਦਿਓ",
+    "resultNetworkError": "ਸੌਂਪਣਾ ਅਸਫਲ ਰਿਹਾ",
+    "resultWouldEmptyModels": "ਇਸ ਕੁੰਜੀ ਕੋਲ ਕੋਈ ਵੀ ਮਨਜ਼ੂਰਸ਼ੁਦਾ ਮਾਡਲ ਨਹੀਂ ਬਚੇਗਾ — ਇਸਦੀ ਬਜਾਏ ਕੁੰਜੀ ਪਹੁੰਚ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ",
+    "resultWouldEmptyCombos": "ਇਸ ਕੁੰਜੀ ਕੋਲ ਕੋਈ ਵੀ ਮਨਜ਼ੂਰਸ਼ੁਦਾ ਕੰਬੋ ਨਹੀਂ ਬਚੇਗਾ — ਇਸਦੀ ਬਜਾਏ ਕੁੰਜੀ ਪਹੁੰਚ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ",
+    "keyUpdatePending": "{name} ਨੂੰ ਅਜੇ ਵੀ ਅੱਪਡੇਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ। ਕੁਝ ਪਲਾਂ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "assignToKeys": "API ਕੁੰਜੀਆਂ ਨੂੰ ਸੌਂਪੋ…",
+    "assignApply": "ਤਬਦੀਲੀਆਂ ਲਾਗੂ ਕਰੋ",
+    "assignComplete": "API ਕੁੰਜੀ ਪਹੁੰਚ ਅੱਪਡੇਟ ਕੀਤੀ ਗਈ",
+    "assignFailed": "ਕੁਝ API ਕੁੰਜੀ ਅੱਪਡੇਟ ਅਸਫਲ ਰਹੇ",
+    "assignNoChanges": "ਕੋਈ API ਕੁੰਜੀ ਪਹੁੰਚ ਨਹੀਂ ਬਦਲੀ ਗਈ",
+    "selectedAccessItems": "ਚੁਣੀਆਂ ਆਈਟਮਾਂ: {count}",
+    "assignExcludedCombos": "{count, plural, one {# ਚੁਣੀ ਗਈ ਕੰਬੋ ਕਤਾਰ ਇੱਕ ਮਾਡਲ ਨਹੀਂ ਹੈ ਅਤੇ ਇਸਨੂੰ ਇੱਥੇ ਛੱਡ ਦਿੱਤਾ ਜਾਵੇਗਾ} other {# ਚੁਣੀਆਂ ਗਈਆਂ ਕੰਬੋ ਕਤਾਰਾਂ ਮਾਡਲ ਨਹੀਂ ਹਨ ਅਤੇ ਉਹਨਾਂ ਨੂੰ ਇੱਥੇ ਛੱਡ ਦਿੱਤਾ ਜਾਵੇਗਾ}}। Combos ਟੈਬ ਤੋਂ ਕੰਬੋ ਨਿਰਧਾਰਿਤ ਕਰੋ।",
+    "assignActionAdd": "ਜੋੜੋ",
+    "assignActionRemove": "ਹਟਾਓ",
+    "searchKeys": "API ਕੁੰਜੀਆਂ ਖੋਜੋ",
+    "selectApiKey": "API ਕੁੰਜੀ {name} ਚੁਣੋ",
+    "allModelsAccess": "ਸਾਰੇ ਮਾਡਲ",
+    "allCombosAccess": "ਸਾਰੇ ਕੰਬੋਜ਼",
+    "modelAccessCount": "ਮਾਡਲ: {count}",
+    "comboAccessCount": "ਕੰਬੋਜ਼: {count}",
+    "keyInactive": "ਅਕਿਰਿਆਸ਼ੀਲ",
+    "keyBanned": "ਪਾਬੰਦੀਸ਼ੁਦਾ",
+    "keyRevoked": "ਰੱਦ ਕੀਤਾ ਗਿਆ",
+    "switchRestrictedConfirm": "ਇਸ ਕੁੰਜੀ ਨੂੰ ਪ੍ਰਤਿਬੰਧਿਤ ਪਹੁੰਚ 'ਤੇ ਬਦਲੋ: ਸਿਰਫ਼ ਚੁਣੀਆਂ ਗਈਆਂ ਆਈਟਮਾਂ ਦੀ ਆਗਿਆ ਹੋਵੇਗੀ",
+    "removeNoChangeHint": "ਇਹ ਕੁੰਜੀ ਹਰ ਚੀਜ਼ ਦੀ ਆਗਿਆ ਦਿੰਦੀ ਹੈ; ਚੁਣੀਆਂ ਗਈਆਂ ਆਈਟਮਾਂ ਨੂੰ ਹਟਾਉਣ ਨਾਲ ਕੋਈ ਤਬਦੀਲੀ ਨਹੀਂ ਹੋਵੇਗੀ",
+    "removeStaysAllowedHint": "{patterns} ਰਾਹੀਂ ਅਜੇ ਵੀ ਇਸ ਕੁੰਜੀ 'ਤੇ ਇਜਾਜ਼ਤ ਹੈ",
+    "resultChanged": "ਬਦਲਿਆ ਗਿਆ",
+    "resultUnchanged": "ਕੋਈ ਤਬਦੀਲੀ ਨਹੀਂ",
+    "resultSkipped": "ਛੱਡਿਆ ਗਿਆ",
+    "resultNeedsSwitch": "ਪ੍ਰਤਿਬੰਧਿਤ 'ਤੇ ਬਦਲਣ ਦੀ ਲੋੜ ਹੈ"
   },
   "combos": {
     "title": "ਕੌਂਬੋ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "ਪ੍ਰੋਵਾਈਡਰ (ਸਾਰੇ ਖਾਤੇ ਇੱਕ ਬ੍ਰੇਕਰ ਸਾਂਝਾ ਕਰਦੇ ਹਨ)",
     "resilienceTokenRefreshScopeConnection": "ਕਨੈਕਸ਼ਨ (ਹਰ ਖਾਤੇ ਦਾ ਆਪਣਾ ਬ੍ਰੇਕਰ ਹੈ)",
     "resilienceTokenRefreshThreshold": "ਰੋਕਣ ਤੋਂ ਪਹਿਲਾਂ ਅਸਫਲਤਾਵਾਂ",
-    "resilienceTokenRefreshCooldown": "ਟ੍ਰਿੱਪ ਹੋਣ ਤੋਂ ਬਾਅਦ ਵਿਰਾਮ ਦਿਓ"
+    "resilienceTokenRefreshCooldown": "ਟ੍ਰਿੱਪ ਹੋਣ ਤੋਂ ਬਾਅਦ ਵਿਰਾਮ ਦਿਓ",
+    "compressionSettingsCavemanOutputMode": "ਕੇਵਮੈਨ ਆਉਟਪੁੱਟ ਮੋਡ",
+    "compressionSettingsAutoClarityBypass": "ਆਟੋ ਸਪਸ਼ਟਤਾ ਬਾਈਪਾਸ"
   },
   "contextRtk": {
     "title": "RTK ਇੰਜਣ",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "ਸਿਸਟਮ ਪ੍ਰਾਂਪਟ ਸੁਰੱਖਿਅਤ ਰੱਖੋ"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ਇਸ ਤੋਂ ਛੋਟੇ ਸੁਨੇਹੇ ਸੰਕੁਚਿਤ ਨਹੀਂ ਕੀਤੇ ਜਾਂਦੇ। ਘੱਟ = ਵਧੇਰੇ ਸੰਕੁਚਨ।",
     "tooltipMinSavings": "ਕੇਵਲ ਉਦੋਂ ਸੰਕੁਚਿਤ ਕਰੋ ਜੇ ਇਸ ਨਾਲ ਘੱਟੋ-ਘੱਟ ਇੰਨੇ ਟੋਕਨ ਬਚਦੇ ਹੋਣ।",
     "ultraSettings": "ਅਲਟਰਾ ਸੈਟਿੰਗਾਂ",
-    "ultraSettingsDesc": "SLM-ਸੰਚਾਲਿਤ ਅਰਥ-ਆਧਾਰਿਤ ਸੰਕੁਚਨ"
+    "ultraSettingsDesc": "SLM-ਸੰਚਾਲਿਤ ਅਰਥ-ਆਧਾਰਿਤ ਸੰਕੁਚਨ",
+    "preview": {
+      "lite": "ਸੰਖੇਪ ਜਵਾਬ ਦਿਓ। ਤਕਨੀਕੀ ਸ਼ਬਦਾਂ, ਕੋਡ, ਗਲਤੀਆਂ, URLs ਅਤੇ ਪਛਾਣਕਰਤਾਵਾਂ ਨੂੰ ਜਿਉਂ ਦਾ ਤਿਉਂ ਰੱਖੋ।",
+      "full": "ਬਹੁਤ ਸੰਖੇਪ ਅਤੇ ਸੰਕੁਚਿਤ ਜਵਾਬ ਦਿਓ। ਸਾਰੀ ਤਕਨੀਕੀ ਸਮੱਗਰੀ ਸੁਰੱਖਿਅਤ ਰੱਖੋ।",
+      "ultra": "ਆਮ ਤਕਨੀਕੀ ਸੰਖੇਪ-ਰੂਪਾਂ ਨਾਲ ਅਤਿਅੰਤ ਸੰਖੇਪ ਜਵਾਬ ਦਿਓ। ਸਟੀਕ ਚਿੰਨ੍ਹ ਸੁਰੱਖਿਅਤ ਰੱਖੋ।"
+    }
   },
   "translator": {
     "title": "ਅਨੁਵਾਦਕ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "ਮਾਪਿਆ ਨਹੀਂ ਗਿਆ",
     "upstream4xx": "{count} ਅੱਗੇ ਕਲਾਈਂਟ ਗਲਤੀਆਂ",
     "upstream5xx": "{count} ਅੱਗੇ ਸਰਵਰ ਗਲਤੀਆਂ",
-    "uniformEgressLine": "{exits} ਐਗਜ਼ਿਟਾਂ ਵਿੱਚੋਂ {affected} {provider} ਉੱਤੇ ਇਕੱਠੇ ਫੇਲ ਹੋ ਰਹੇ ਹਨ (ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ) — ਇਹ ਐਗਜ਼ਿਟ ਦੀ ਸਮੱਸਿਆ ਨਹੀਂ ਹੈ"
+    "uniformEgressLine": "{exits} ਐਗਜ਼ਿਟਾਂ ਵਿੱਚੋਂ {affected} {provider} ਉੱਤੇ ਇਕੱਠੇ ਫੇਲ ਹੋ ਰਹੇ ਹਨ (ਪਿਛਲੇ {hours} ਘੰਟਿਆਂ ਵਿੱਚ) — ਇਹ ਐਗਜ਼ਿਟ ਦੀ ਸਮੱਸਿਆ ਨਹੀਂ ਹੈ",
+    "upstreamRefusals": "{count} ਅੱਪਸਟ੍ਰੀਮ ਅਸਵੀਕਾਰ"
   },
   "playground": {
     "title": "ਮਾਡਲ ਪਲੇਗ੍ਰਾਊਂਡ",

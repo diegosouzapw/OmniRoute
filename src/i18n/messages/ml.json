@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} സഹിതം അഭ്യർത്ഥന പരാജയപ്പെട്ടു",
     "testFailedNoDetail": "പിശക് സന്ദേശമൊന്നുമില്ലാതെ ടെസ്റ്റ് പരാജയപ്പെട്ടു",
     "additionalCapabilities": "അധിക ശേഷികൾ: {list}",
-    "comboRefMember": "കോമ്പോ → {name}"
+    "comboRefMember": "കോമ്പോ → {name}",
+    "keyAccessButton": "API കീ ആക്സസ്",
+    "allowedInKeys": "ഇതിൽ അനുവദിച്ചിരിക്കുന്നു: {count, plural, one {# കീ} other {# കീകൾ}}",
+    "keysLoading": "API കീകൾ ലോഡ് ചെയ്യുന്നു…",
+    "keysRetry": "കീകൾ വീണ്ടും ലോഡ് ചെയ്യാൻ ശ്രമിക്കുക",
+    "accessViaPattern": "{pattern} വഴി",
+    "accessBlocked": "{pattern} മുഖേന തടഞ്ഞു",
+    "editKeyAccess": "കീ ആക്സസ് എഡിറ്റ് ചെയ്യുക",
+    "toggleKeyAccess": "{name}-ൽ {item} അനുവദിക്കുക",
+    "resultNetworkError": "അസൈൻ ചെയ്യുന്നത് പരാജയപ്പെട്ടു",
+    "resultWouldEmptyModels": "ഇത് ഈ കീയിൽ അനുവദനീയമായ മോഡലുകൾ ഒന്നും ഇല്ലാതാക്കും — പകരം കീ ആക്സസ് എഡിറ്റ് ചെയ്യുക",
+    "resultWouldEmptyCombos": "ഇത് ഈ കീയിൽ അനുവദനീയമായ കോമ്പോകൾ ഒന്നും ഇല്ലാതാക്കും — പകരം കീ ആക്സസ് എഡിറ്റ് ചെയ്യുക",
+    "keyUpdatePending": "{name} ഇപ്പോഴും അപ്‌ഡേറ്റ് ചെയ്തുകൊണ്ടിരിക്കുകയാണ്. അൽപ്പസമയത്തിനകം വീണ്ടും ശ്രമിക്കുക.",
+    "assignToKeys": "API കീകൾക്ക് അസൈൻ ചെയ്യുക…",
+    "assignApply": "മാറ്റങ്ങൾ ബാധകമാക്കുക",
+    "assignComplete": "API കീ ആക്സസ് അപ്‌ഡേറ്റ് ചെയ്തു",
+    "assignFailed": "ചില API കീ അപ്‌ഡേറ്റുകൾ പരാജയപ്പെട്ടു",
+    "assignNoChanges": "API കീ ആക്സസിലൊന്നും മാറ്റം വരുത്തിയിട്ടില്ല",
+    "selectedAccessItems": "തിരഞ്ഞെടുത്ത ഇനങ്ങൾ: {count}",
+    "assignExcludedCombos": "{count, plural, one {തിരഞ്ഞെടുത്ത # കോമ്പോ വരി ഒരു മോഡൽ അല്ല, അതിനാൽ ഇവിടെ ഒഴിവാക്കപ്പെടും} other {തിരഞ്ഞെടുത്ത # കോമ്പോ വരികൾ മോഡലുകൾ അല്ല, അതിനാൽ ഇവിടെ ഒഴിവാക്കപ്പെടും}}. Combos ടാബിൽ നിന്ന് കോമ്പോകൾ അസൈൻ ചെയ്യുക.",
+    "assignActionAdd": "ചേർക്കുക",
+    "assignActionRemove": "നീക്കം ചെയ്യുക",
+    "searchKeys": "API കീകൾ തിരയുക",
+    "selectApiKey": "API കീ {name} തിരഞ്ഞെടുക്കുക",
+    "allModelsAccess": "എല്ലാ മോഡലുകളും",
+    "allCombosAccess": "എല്ലാ കോംബോകളും",
+    "modelAccessCount": "മോഡലുകൾ: {count}",
+    "comboAccessCount": "കോംബോകൾ: {count}",
+    "keyInactive": "നിഷ്‌ക്രിയം",
+    "keyBanned": "നിരോധിച്ചത്",
+    "keyRevoked": "റദ്ദാക്കി",
+    "switchRestrictedConfirm": "ഈ കീ നിയന്ത്രിത ആക്സസിലേക്ക് മാറ്റുക: തിരഞ്ഞെടുത്ത ഇനങ്ങൾ മാത്രമേ അനുവദിക്കൂ",
+    "removeNoChangeHint": "ഈ കീ എല്ലാം അനുവദിക്കുന്നു; തിരഞ്ഞെടുത്ത ഇനങ്ങൾ നീക്കം ചെയ്യുന്നത് യാതൊരു മാറ്റവും ഉണ്ടാക്കില്ല",
+    "removeStaysAllowedHint": "{patterns} വഴി ഈ കീയിൽ ഇപ്പോഴും അനുവദിച്ചിരിക്കുന്നു",
+    "resultChanged": "മാറ്റി",
+    "resultUnchanged": "മാറ്റമില്ല",
+    "resultSkipped": "ഒഴിവാക്കി",
+    "resultNeedsSwitch": "നിയന്ത്രിത ആക്സസിലേക്ക് മാറ്റേണ്ടതുണ്ട്"
   },
   "combos": {
     "title": "കോംബോകൾ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "പ്രൊവൈഡർ (എല്ലാ അക്കൗണ്ടുകളും ഒരു ബ്രേക്കർ പങ്കിടുന്നു)",
     "resilienceTokenRefreshScopeConnection": "കണക്ഷൻ (രോ അക്കൗണ്ടിനും സ്വന്തം ബ്രേക്കർ ഉണ്ട്)",
     "resilienceTokenRefreshThreshold": "പരാജയങ്ങൾ താൽക്കാലികമായി നിർത്തുന്നതിന് മുമ്പുള്ളവ",
-    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക"
+    "resilienceTokenRefreshCooldown": "ട്രിപ്പ് ചെയ്തതിന് ശേഷം വിശ്രമിക്കുക",
+    "compressionSettingsCavemanOutputMode": "ഗുഹാമനുഷ്യ ഔട്ട്പുട്ട് മോഡ്",
+    "compressionSettingsAutoClarityBypass": "സ്വയമേവയുള്ള വ്യക്തത ബൈപാസ്"
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "സിസ്റ്റം പ്രോംപ്റ്റ് സംരക്ഷിക്കുക"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "ഇതിലും ചെറുതായ സന്ദേശങ്ങൾ കംപ്രസ് ചെയ്യില്ല. കുറഞ്ഞ മൂല്യം = കൂടുതൽ കംപ്രഷൻ.",
     "tooltipMinSavings": "കുറഞ്ഞത് ഇത്രയും ടോക്കണുകൾ ലാഭിക്കുമെങ്കിൽ മാത്രം കംപ്രസ് ചെയ്യുക.",
     "ultraSettings": "അൾട്രാ ക്രമീകരണങ്ങൾ",
-    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ"
+    "ultraSettingsDesc": "SLM അധിഷ്ഠിത സെമാന്റിക് കംപ്രഷൻ",
+    "preview": {
+      "lite": "സംക്ഷിപ്തമായി പ്രതികരിക്കുക. സാങ്കേതിക പദങ്ങൾ, കോഡ്, പിശകുകൾ, URLs, ഐഡന്റിഫയറുകൾ എന്നിവ മാറ്റമില്ലാതെ നിലനിർത്തുക.",
+      "full": "വളരെ ചുരുക്കമായും ഒതുക്കമായും പ്രതികരിക്കുക. എല്ലാ സാങ്കേതിക ഉള്ളടക്കവും നിലനിർത്തുക.",
+      "ultra": "സാധാരണ സാങ്കേതിക ചുരുക്കെഴുത്തുകൾ ഉപയോഗിച്ച് അത്യന്തം ചുരുക്കമായി പ്രതികരിക്കുക. കൃത്യമായ ചിഹ്നങ്ങൾ മാറ്റമില്ലാതെ നിലനിർത്തുക."
+    }
   },
   "translator": {
     "title": "പരിഭാഷകൻ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "അളന്നിട്ടില്ല",
     "upstream4xx": "{count} ഉപ്‌സ്‌ട്രീം ക്ലയന്റ് പിശകുകൾ",
     "upstream5xx": "{count} ഉപ്‌സ്‌ട്രീം സെർവർ പിശകുകൾ",
-    "uniformEgressLine": "{provider}-ൽ {exits} എക്സിറ്റുകളിൽ {affected} എണ്ണം ഒരുമിച്ച് പരാജയപ്പെടുന്നു (കഴിഞ്ഞ {hours} മണിക്കൂറിൽ) — ഇത് എക്സിറ്റ് പ്രശ്നമല്ല"
+    "uniformEgressLine": "{provider}-ൽ {exits} എക്സിറ്റുകളിൽ {affected} എണ്ണം ഒരുമിച്ച് പരാജയപ്പെടുന്നു (കഴിഞ്ഞ {hours} മണിക്കൂറിൽ) — ഇത് എക്സിറ്റ് പ്രശ്നമല്ല",
+    "upstreamRefusals": "{count} അപ്സ്ട്രീം നിരസിക്കലുകൾ"
   },
   "playground": {
     "title": "മോഡൽ പ്ലേഗ്രൗണ്ട്",

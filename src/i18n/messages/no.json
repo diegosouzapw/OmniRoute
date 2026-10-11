@@ -3381,7 +3381,44 @@
     "httpError": "Forespørselen mislyktes med HTTP {status}",
     "testFailedNoDetail": "Testen mislyktes uten en feilmelding",
     "additionalCapabilities": "Ytterligere funksjoner: {list}",
-    "comboRefMember": "Kombinasjon → {name}"
+    "comboRefMember": "Kombinasjon → {name}",
+    "keyAccessButton": "API-nøkkeltilgang",
+    "allowedInKeys": "Tillatt i: {count, plural, one {# nøkkel} other {# nøkler}}",
+    "keysLoading": "Laster API-nøkler…",
+    "keysRetry": "Prøv å laste inn nøkler på nytt",
+    "accessViaPattern": "via {pattern}",
+    "accessBlocked": "Blokkert av {pattern}",
+    "editKeyAccess": "Rediger nøkkeltilgang",
+    "toggleKeyAccess": "Tillat {item} på {name}",
+    "resultNetworkError": "Tilordning mislyktes",
+    "resultWouldEmptyModels": "Vil føre til at denne nøkkelen ikke har noen tillatte modeller — rediger nøkkeltilgang i stedet",
+    "resultWouldEmptyCombos": "Vil føre til at denne nøkkelen ikke har noen tillatte kombinasjoner — rediger nøkkeltilgang i stedet",
+    "keyUpdatePending": "{name} oppdateres fortsatt. Prøv igjen om et øyeblikk.",
+    "assignToKeys": "Tilordne til API-nøkler…",
+    "assignApply": "Bruk endringer",
+    "assignComplete": "API-nøkkeltilgang oppdatert",
+    "assignFailed": "Noen API-nøkkeloppdateringer mislyktes",
+    "assignNoChanges": "Ingen API-nøkkeltilgang endret",
+    "selectedAccessItems": "Valgte elementer: {count}",
+    "assignExcludedCombos": "{count, plural, one {# valgt kombinasjonsrad er ikke en modell og blir hoppet over her} other {# valgte kombinasjonsrader er ikke modeller og blir hoppet over her}}. Tilordne kombinasjoner fra Combos-fanen.",
+    "assignActionAdd": "Legg til",
+    "assignActionRemove": "Fjern",
+    "searchKeys": "Søk etter API-nøkler",
+    "selectApiKey": "Velg API-nøkkel {name}",
+    "allModelsAccess": "Alle modeller",
+    "allCombosAccess": "Alle kombinasjoner",
+    "modelAccessCount": "Modeller: {count}",
+    "comboAccessCount": "Kombinasjoner: {count}",
+    "keyInactive": "Inaktiv",
+    "keyBanned": "Utestengt",
+    "keyRevoked": "Tilbakekalt",
+    "switchRestrictedConfirm": "Bytt denne nøkkelen til begrenset tilgang: kun de valgte elementene vil være tillatt",
+    "removeNoChangeHint": "Denne nøkkelen tillater alt; å fjerne valgte elementer vil ikke medføre noen endring",
+    "removeStaysAllowedHint": "Fortsatt tillatt på denne nøkkelen via {patterns}",
+    "resultChanged": "Endret",
+    "resultUnchanged": "Ingen endring",
+    "resultSkipped": "Hoppet over",
+    "resultNeedsSwitch": "Må byttes til begrenset"
   },
   "combos": {
     "title": "Kombinasjoner",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (alle kontoer deler én breaker)",
     "resilienceTokenRefreshScopeConnection": "Tilkobling (hver konto har sin egen breaker)",
     "resilienceTokenRefreshThreshold": "Feil før pausing",
-    "resilienceTokenRefreshCooldown": "Pause etter utløsning"
+    "resilienceTokenRefreshCooldown": "Pause etter utløsning",
+    "compressionSettingsCavemanOutputMode": "Caveman utgangsmodus",
+    "compressionSettingsAutoClarityBypass": "Automatisk klarhetsbypass"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Bevar system-prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Meldinger som er kortere enn dette, komprimeres ikke. Lavere = mer kompresjon.",
     "tooltipMinSavings": "Komprimer bare hvis det sparer minst så mange tokens.",
     "ultraSettings": "Ultra-innstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
+    "preview": {
+      "lite": "Svar kortfattet. Bevar tekniske termer, kode, feil, URL-er og identifikatorer.",
+      "full": "Svar knapt og kompakt. Bevar alt teknisk innhold.",
+      "ultra": "Svar svært knapt med vanlige tekniske forkortelser. Bevar eksakte symboler."
+    }
   },
   "translator": {
     "title": "Oversetter",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Ikke målt",
     "upstream4xx": "{count} oppstrøms klientfeil",
     "upstream5xx": "{count} oppstrøms serverfeil",
-    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem"
+    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem",
+    "upstreamRefusals": "{count} upstream-avvisninger"
   },
   "playground": {
     "title": "Title",

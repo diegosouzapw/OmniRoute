@@ -3381,7 +3381,44 @@
     "httpError": "Pieprasījums neizdevās ar HTTP {status}",
     "testFailedNoDetail": "Tests neizdevās bez kļūdas ziņojuma",
     "additionalCapabilities": "Papildu iespējas: {list}",
-    "comboRefMember": "Kombinācija → {name}"
+    "comboRefMember": "Kombinācija → {name}",
+    "keyAccessButton": "API atslēgas piekļuve",
+    "allowedInKeys": "Atļauts: {count, plural, one {# atslēgā} other {# atslēgās}}",
+    "keysLoading": "Ielādē API atslēgas…",
+    "keysRetry": "Mēģināt vēlreiz ielādēt atslēgas",
+    "accessViaPattern": "izmantojot {pattern}",
+    "accessBlocked": "Bloķēts ar {pattern}",
+    "editKeyAccess": "Rediģēt atslēgas piekļuvi",
+    "toggleKeyAccess": "Atļaut {item} uz {name}",
+    "resultNetworkError": "Piešķiršana neizdevās",
+    "resultWouldEmptyModels": "Šai atslēgai neatliktu neviena atļauta modeļa — tā vietā rediģējiet atslēgas piekļuvi",
+    "resultWouldEmptyCombos": "Šai atslēgai neatliktu nevienas atļautas kombinācijas — tā vietā rediģējiet atslēgas piekļuvi",
+    "keyUpdatePending": "{name} joprojām tiek atjaunināts. Mēģiniet vēlreiz pēc brīža.",
+    "assignToKeys": "Piešķirt API atslēgām…",
+    "assignApply": "Lietot izmaiņas",
+    "assignComplete": "API atslēgas piekļuve atjaunināta",
+    "assignFailed": "Dažu API atslēgu atjaunināšana neizdevās",
+    "assignNoChanges": "API atslēgu piekļuve netika mainīta",
+    "selectedAccessItems": "Atlasītie vienumi: {count}",
+    "assignExcludedCombos": "{count, plural, one {# atlasītā kombināciju rinda nav modelis un šeit tiks izlaista} other {# atlasītās kombināciju rindas nav modeļi un šeit tiks izlaistas}}. Piešķiriet kombinācijas no cilnes Combos.",
+    "assignActionAdd": "Pievienot",
+    "assignActionRemove": "Noņemt",
+    "searchKeys": "Meklēt API atslēgas",
+    "selectApiKey": "Atlasīt API atslēgu {name}",
+    "allModelsAccess": "Visi modeļi",
+    "allCombosAccess": "Visas kombinācijas",
+    "modelAccessCount": "Modeļi: {count}",
+    "comboAccessCount": "Kombinācijas: {count}",
+    "keyInactive": "Neaktīvs",
+    "keyBanned": "Bloķēts",
+    "keyRevoked": "Atsaukts",
+    "switchRestrictedConfirm": "Pārslēgt šo atslēgu uz ierobežotu piekļuvi: būs atļauti tikai atlasītie vienumi",
+    "removeNoChangeHint": "Šī atslēga atļauj visu; atlasīto vienumu noņemšana neko nemainīs",
+    "removeStaysAllowedHint": "Joprojām atļauts šai atslēgai, izmantojot {patterns}",
+    "resultChanged": "Mainīts",
+    "resultUnchanged": "Nav izmaiņu",
+    "resultSkipped": "Izlaists",
+    "resultNeedsSwitch": "Nepieciešams pārslēgt uz ierobežotu"
   },
   "combos": {
     "title": "Kombinācijas",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Pakalpojuma sniedzējs (visi konti koplieto vienu pārtraucēju)",
     "resilienceTokenRefreshScopeConnection": "Savienojums (katram kontam ir sava pārtraucēja)",
     "resilienceTokenRefreshThreshold": "Neveiksmes pirms pauzes",
-    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas"
+    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas",
+    "compressionSettingsCavemanOutputMode": "Alu cilvēka izvades režīms",
+    "compressionSettingsAutoClarityBypass": "Automātiskā skaidrības apiešana"
   },
   "contextRtk": {
     "title": "RTK dzinējs",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Saglabāt sistēmas uzvedni"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Ziņas, kas īsākas par šo, netiek saspiestas. Zemāks = vairāk saspiešanas.",
     "tooltipMinSavings": "Saspiest tikai tad, ja tas ietaupa vismaz šo tokenu skaitu.",
     "ultraSettings": "Ultra iestatījumi",
-    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana"
+    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana",
+    "preview": {
+      "lite": "Atbildi kodolīgi. Saglabā tehniskos terminus, kodu, kļūdas, URL un identifikatorus.",
+      "full": "Atbildi lakoniski un kompakti. Saglabā visu tehnisko saturu.",
+      "ultra": "Atbildi īpaši lakoniski, izmantojot izplatītus tehniskos saīsinājumus. Saglabā precīzus simbolus."
+    }
   },
   "translator": {
     "title": "Tulkotājs",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Nav izmērīts",
     "upstream4xx": "{count} upstream klienta kļūdas",
     "upstream5xx": "{count} upstream servera kļūdas",
-    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma"
+    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma",
+    "upstreamRefusals": "{count} augšupējos noraidījumus"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",

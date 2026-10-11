@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} உடன் கோரிக்கை தோல்வியடைந்தது",
     "testFailedNoDetail": "பிழைச் செய்தி ஏதுமின்றி சோதனை தோல்வியடைந்தது",
     "additionalCapabilities": "கூடுதல் திறன்கள்: {list}",
-    "comboRefMember": "காம்போ → {name}"
+    "comboRefMember": "காம்போ → {name}",
+    "keyAccessButton": "API விசை அணுகல்",
+    "allowedInKeys": "இதில் அனுமதிக்கப்பட்டுள்ளது: {count, plural, one {# விசை} other {# விசைகள்}}",
+    "keysLoading": "API விசைகள் ஏற்றப்படுகின்றன…",
+    "keysRetry": "விசைகளை ஏற்றுவதை மீண்டும் முயலவும்",
+    "accessViaPattern": "{pattern} வழியாக",
+    "accessBlocked": "{pattern} ஆல் தடுக்கப்பட்டது",
+    "editKeyAccess": "விசை அணுகலைத் திருத்து",
+    "toggleKeyAccess": "{name}-இல் {item}-ஐ அனுமதி",
+    "resultNetworkError": "ஒதுக்கீடு தோல்வியடைந்தது",
+    "resultWouldEmptyModels": "இந்த விசையில் அனுமதிக்கப்பட்ட மாதிரிகள் எதுவும் இல்லாமல் போய்விடும் — அதற்குப் பதிலாக விசை அணுகலைத் திருத்தவும்",
+    "resultWouldEmptyCombos": "இந்த விசையில் அனுமதிக்கப்பட்ட காம்போக்கள் எதுவும் இல்லாமல் போய்விடும் — அதற்குப் பதிலாக விசை அணுகலைத் திருத்தவும்",
+    "keyUpdatePending": "{name} இன்னும் புதுப்பிக்கப்பட்டு வருகிறது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.",
+    "assignToKeys": "API விசைகளுக்கு ஒதுக்கு…",
+    "assignApply": "மாற்றங்களைப் பயன்படுத்து",
+    "assignComplete": "API விசை அணுகல் புதுப்பிக்கப்பட்டது",
+    "assignFailed": "சில API விசை புதுப்பிப்புகள் தோல்வியடைந்தன",
+    "assignNoChanges": "API விசை அணுகல் எதுவும் மாற்றப்படவில்லை",
+    "selectedAccessItems": "தேர்ந்தெடுக்கப்பட்ட உருப்படிகள்: {count}",
+    "assignExcludedCombos": "{count, plural, one {# தேர்ந்தெடுக்கப்பட்ட காம்போ வரிசை ஒரு மாதிரி அல்ல, எனவே இங்கே தவிர்க்கப்படும்} other {# தேர்ந்தெடுக்கப்பட்ட காம்போ வரிசைகள் மாதிரிகள் அல்ல, எனவே இங்கே தவிர்க்கப்படும்}}. Combos தாவலில் இருந்து காம்போக்களை ஒதுக்கவும்.",
+    "assignActionAdd": "சேர்",
+    "assignActionRemove": "நீக்கு",
+    "searchKeys": "API விசைகளைத் தேடு",
+    "selectApiKey": "API விசை {name}-ஐத் தேர்ந்தெடு",
+    "allModelsAccess": "அனைத்து மாடல்களும்",
+    "allCombosAccess": "அனைத்து சேர்க்கைகளும்",
+    "modelAccessCount": "மாடல்கள்: {count}",
+    "comboAccessCount": "சேர்க்கைகள்: {count}",
+    "keyInactive": "செயலற்றது",
+    "keyBanned": "தடைசெய்யப்பட்டது",
+    "keyRevoked": "ரத்து செய்யப்பட்டது",
+    "switchRestrictedConfirm": "இந்த விசையைக் கட்டுப்படுத்தப்பட்ட அணுகலுக்கு மாற்றவும்: தேர்ந்தெடுக்கப்பட்ட உருப்படிகள் மட்டுமே அனுமதிக்கப்படும்",
+    "removeNoChangeHint": "இந்த விசை அனைத்தையும் அனுமதிக்கிறது; தேர்ந்தெடுக்கப்பட்ட உருப்படிகளை நீக்குவது எந்த மாற்றத்தையும் ஏற்படுத்தாது",
+    "removeStaysAllowedHint": "{patterns} மூலம் இந்த விசையில் இன்னும் அனுமதிக்கப்படுகிறது",
+    "resultChanged": "மாற்றப்பட்டது",
+    "resultUnchanged": "மாற்றமில்லை",
+    "resultSkipped": "தவிர்க்கப்பட்டது",
+    "resultNeedsSwitch": "கட்டுப்படுத்தப்பட்ட முறைக்கு மாற வேண்டும்"
   },
   "combos": {
     "title": "காம்போக்கள்",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "வழங்குநர் (அனைத்து கணக்குகளும் ஒரே பிரேக்கரைப் பகிர்ந்துகொள்கின்றன)",
     "resilienceTokenRefreshScopeConnection": "இணைப்பு (ஒவ்வொரு கணக்கிற்கும் தனி பிரேக்கர் உள்ளது)",
     "resilienceTokenRefreshThreshold": "இடைநிறுத்துவதற்கு முன் தோல்விகள்",
-    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்"
+    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்",
+    "compressionSettingsCavemanOutputMode": "கேவ்மேன் வெளியீட்டு முறை",
+    "compressionSettingsAutoClarityBypass": "தானியங்கு தெளிவு பைபாஸ்"
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "சிஸ்டம் பிராம்ப்ட்டைப் பாதுகாக்கவும்"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "இதை விட குறைவான செய்திகள் சுருக்கப்படாது. கீழ் = அதிக சுருக்கம்.",
     "tooltipMinSavings": "குறைந்தபட்சம் இத்தனை டோக்கன்களைச் சேமித்தால் மட்டுமே சுருக்கவும்.",
     "ultraSettings": "அல்ட்ரா அமைப்புகள்",
-    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்"
+    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்",
+    "preview": {
+      "lite": "சுருக்கமாகப் பதிலளிக்கவும். தொழில்நுட்பச் சொற்கள், code, errors, URLs மற்றும் identifiers ஆகியவற்றை மாற்றாமல் வைத்திருக்கவும்.",
+      "full": "சுருக்கமாகவும் செறிவாகவும் பதிலளிக்கவும். அனைத்து தொழில்நுட்ப உள்ளடக்கத்தையும் பாதுகாக்கவும்.",
+      "ultra": "பொதுவான தொழில்நுட்பச் சுருக்கங்களைப் பயன்படுத்தி மிகச் சுருக்கமாகப் பதிலளிக்கவும். துல்லியமான குறியீடுகளைப் பாதுகாக்கவும்."
+    }
   },
   "translator": {
     "title": "மொழிபெயர்ப்பி",
@@ -11438,7 +11485,8 @@
     "notMeasured": "அளவிடப்படவில்லை",
     "upstream4xx": "{count} மேல்நிலை கிளையண்ட் பிழைகள்",
     "upstream5xx": "{count} மேல்நிலை சர்வர் பிழைகள்",
-    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல"
+    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல",
+    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",

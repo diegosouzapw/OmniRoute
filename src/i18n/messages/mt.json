@@ -3381,7 +3381,44 @@
     "httpError": "It-talba falliet b'HTTP {status}",
     "testFailedNoDetail": "It-test falla mingħajr messaġġ ta' żball",
     "additionalCapabilities": "Kapaċitajiet addizzjonali: {list}",
-    "comboRefMember": "Combo → {name}"
+    "comboRefMember": "Combo → {name}",
+    "keyAccessButton": "Aċċess għaċ-ċavetta tal-API",
+    "allowedInKeys": "Permess fi: {count, plural, one {# ċavetta} other {# ċwievet}}",
+    "keysLoading": "Qed jitgħabbew iċ-ċwievet tal-API…",
+    "keysRetry": "Erġa' pprova għabbi ċ-ċwievet",
+    "accessViaPattern": "permezz ta' {pattern}",
+    "accessBlocked": "Imblukkat minn {pattern}",
+    "editKeyAccess": "Editja l-aċċess taċ-ċavetta",
+    "toggleKeyAccess": "Ippermetti {item} fuq {name}",
+    "resultNetworkError": "L-assenjazzjoni ma rnexxietx",
+    "resultWouldEmptyModels": "Iħalli din iċ-ċavetta mingħajr l-ebda mudell permess — minflok editja l-aċċess taċ-ċavetta",
+    "resultWouldEmptyCombos": "Iħalli din iċ-ċavetta mingħajr l-ebda combo permessa — minflok editja l-aċċess taċ-ċavetta",
+    "keyUpdatePending": "{name} għadu qed jiġi aġġornat. Erġa' pprova fi ftit ħin.",
+    "assignToKeys": "Assenja lil ċwievet tal-API…",
+    "assignApply": "Applika l-bidliet",
+    "assignComplete": "L-aċċess għaċ-ċavetta tal-API ġie aġġornat",
+    "assignFailed": "Xi aġġornamenti taċ-ċwievet tal-API ma rnexxewx",
+    "assignNoChanges": "L-ebda aċċess għaċ-ċavetta tal-API ma nbidel",
+    "selectedAccessItems": "Oġġetti magħżula: {count}",
+    "assignExcludedCombos": "{count, plural, one {# ringiela tal-combo magħżula mhijiex mudell u se tinqabeż hawnhekk} other {# ringieli tal-combo magħżula mhumiex mudelli u se jinqabżu hawnhekk}}. Assenja combos mit-tab Combos.",
+    "assignActionAdd": "Żid",
+    "assignActionRemove": "Neħħi",
+    "searchKeys": "Fittex ċwievet tal-API",
+    "selectApiKey": "Agħżel iċ-ċavetta tal-API {name}",
+    "allModelsAccess": "Il-mudelli kollha",
+    "allCombosAccess": "Il-combos kollha",
+    "modelAccessCount": "Mudelli: {count}",
+    "comboAccessCount": "Combos: {count}",
+    "keyInactive": "Mhux attiv",
+    "keyBanned": "Ipprojbit",
+    "keyRevoked": "Revokat",
+    "switchRestrictedConfirm": "Aqleb din iċ-ċavetta għal aċċess ristrett: l-oġġetti magħżula biss se jkunu permessi",
+    "removeNoChangeHint": "Din iċ-ċavetta tippermetti kollox; it-tneħħija tal-oġġetti magħżula mhu se tagħmel l-ebda bidla",
+    "removeStaysAllowedHint": "Għadu permess fuq din iċ-ċavetta permezz ta' {patterns}",
+    "resultChanged": "Mibdul",
+    "resultUnchanged": "L-ebda bidla",
+    "resultSkipped": "Inqabeż",
+    "resultNeedsSwitch": "Jeħtieġ bidla għal ristrett"
   },
   "combos": {
     "title": "Kombinazzjonijiet",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
     "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
     "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
-    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab",
+    "compressionSettingsCavemanOutputMode": "Modalità tal-output tal-bniedem tal-għerien",
+    "compressionSettingsAutoClarityBypass": "Evitar awtomatiku abbażi taċ-ċarezza"
   },
   "contextRtk": {
     "title": "Magna RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Żomm il-prompt tas-sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Messaġġi iqsar minn dan ma jiġux ikkompressati. Inqas = aktar kompressjoni.",
     "tooltipMinSavings": "Ikkompressa biss jekk tiffranka mill-inqas dan l-għadd ta’ tokens.",
     "ultraSettings": "Konfigurazzjoni Ultra",
-    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM"
+    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM",
+    "preview": {
+      "lite": "Wieġeb fil-qosor. Ippreserva t-termini tekniċi, il-kodiċi, l-iżbalji, il-URLs, u l-identifikaturi.",
+      "full": "Wieġeb b’mod konċiż u kompatt. Ippreserva s-sustanza teknika kollha.",
+      "ultra": "Wieġeb bl-aktar mod konċiż possibbli b’abbrevjazzjonijiet tekniċi komuni. Ippreserva s-simboli eżatti."
+    }
   },
   "translator": {
     "title": "Traduttur",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Mhux imkejjel",
     "upstream4xx": "{count} għajn klijent erruri",
     "upstream5xx": "{count} għajnħa server errors",
-    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ"
+    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ",
+    "upstreamRefusals": "{count} rifjuti upstream"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",

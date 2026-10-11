@@ -56,6 +56,7 @@ export default function CatalogBulkActionBar({
   onTestFiltered,
   onCancel,
   onClearResults,
+  onAssign,
 }: {
   selectedCount: number;
   filteredCount: number;
@@ -66,12 +67,24 @@ export default function CatalogBulkActionBar({
   onTestFiltered: () => void;
   onCancel: () => void;
   onClearResults: () => void;
+  onAssign?: () => void;
 }) {
   const t = useTranslations("modelCatalog");
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-black/[0.01] px-4 py-2.5 dark:bg-white/[0.01]">
       <div className="flex flex-wrap items-center gap-2">
+        {onAssign && (
+          <Button
+            variant="secondary"
+            size="sm"
+            data-testid="assign-keys-btn"
+            disabled={selectedCount === 0 || running}
+            onClick={onAssign}
+          >
+            {t("assignToKeys")}
+          </Button>
+        )}
         <Button
           variant="secondary"
           size="sm"

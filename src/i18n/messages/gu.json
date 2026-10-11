@@ -3381,7 +3381,44 @@
     "httpError": "HTTP {status} સાથે વિનંતી નિષ્ફળ રહી",
     "testFailedNoDetail": "ભૂલ સંદેશ વિના પરીક્ષણ નિષ્ફળ ગયું",
     "additionalCapabilities": "વધારાની ક્ષમતાઓ: {list}",
-    "comboRefMember": "કૉમ્બો → {name}"
+    "comboRefMember": "કૉમ્બો → {name}",
+    "keyAccessButton": "API કી ઍક્સેસ",
+    "allowedInKeys": "આમાં મંજૂરી છે: {count, plural, one {# કી} other {# કીઓ}}",
+    "keysLoading": "API કી લોડ થઈ રહી છે…",
+    "keysRetry": "કી લોડ કરવાનો ફરી પ્રયાસ કરો",
+    "accessViaPattern": "{pattern} દ્વારા",
+    "accessBlocked": "{pattern} દ્વારા અવરોધિત",
+    "editKeyAccess": "કી ઍક્સેસ સંપાદિત કરો",
+    "toggleKeyAccess": "{name} પર {item} ને મંજૂરી આપો",
+    "resultNetworkError": "અસાઇનમેન્ટ નિષ્ફળ રહ્યું",
+    "resultWouldEmptyModels": "આનાથી આ કી પાસે કોઈ મંજૂર મૉડેલ રહેશે નહીં — તેના બદલે કી ઍક્સેસ સંપાદિત કરો",
+    "resultWouldEmptyCombos": "આનાથી આ કી પાસે કોઈ મંજૂર કૉમ્બો રહેશે નહીં — તેના બદલે કી ઍક્સેસ સંપાદિત કરો",
+    "keyUpdatePending": "{name} હજી અપડેટ થઈ રહ્યું છે. થોડીવાર પછી ફરી પ્રયાસ કરો.",
+    "assignToKeys": "API કી પર અસાઇન કરો…",
+    "assignApply": "ફેરફારો લાગુ કરો",
+    "assignComplete": "API કી ઍક્સેસ અપડેટ થઈ",
+    "assignFailed": "કેટલાક API કી અપડેટ્સ નિષ્ફળ રહ્યા",
+    "assignNoChanges": "API કી ઍક્સેસમાં કોઈ ફેરફાર થયો નથી",
+    "selectedAccessItems": "પસંદ કરેલી આઇટમ્સ: {count}",
+    "assignExcludedCombos": "{count, plural, one {# પસંદ કરેલી કૉમ્બો પંક્તિ મૉડેલ નથી અને તેને અહીં અવગણવામાં આવશે} other {# પસંદ કરેલી કૉમ્બો પંક્તિઓ મૉડેલ નથી અને તેમને અહીં અવગણવામાં આવશે}}. Combos ટૅબમાંથી કૉમ્બો સોંપો.",
+    "assignActionAdd": "ઉમેરો",
+    "assignActionRemove": "દૂર કરો",
+    "searchKeys": "API કી શોધો",
+    "selectApiKey": "API કી {name} પસંદ કરો",
+    "allModelsAccess": "બધા મૉડલ્સ",
+    "allCombosAccess": "બધા કોમ્બોઝ",
+    "modelAccessCount": "મૉડલ્સ: {count}",
+    "comboAccessCount": "કોમ્બોઝ: {count}",
+    "keyInactive": "નિષ્ક્રિય",
+    "keyBanned": "પ્રતિબંધિત",
+    "keyRevoked": "રદ કરેલ",
+    "switchRestrictedConfirm": "આ કીને પ્રતિબંધિત ઍક્સેસમાં બદલો: ફક્ત પસંદ કરેલી આઇટમ્સને મંજૂરી આપવામાં આવશે",
+    "removeNoChangeHint": "આ કી બધું જ મંજૂર કરે છે; પસંદ કરેલી આઇટમ્સ દૂર કરવાથી કોઈ ફેરફાર થશે નહીં",
+    "removeStaysAllowedHint": "{patterns} દ્વારા હજી પણ આ કી પર મંજૂરી છે",
+    "resultChanged": "બદલાયેલ",
+    "resultUnchanged": "કોઈ ફેરફાર નથી",
+    "resultSkipped": "છોડી દીધેલ",
+    "resultNeedsSwitch": "પ્રતિબંધિતમાં બદલવાની જરૂર છે"
   },
   "combos": {
     "title": "કોમ્બોઝ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "પ્રદાતા (બધા ખાતાઓ એક જ બ્રેકર શેર કરે છે)",
     "resilienceTokenRefreshScopeConnection": "કનેક્શન (દરેક એકાઉન્ટનું પોતાનું બ્રેકર છે)",
     "resilienceTokenRefreshThreshold": "થંભાવતા પહેલાં નિષ્ફળતાઓ",
-    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ"
+    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ",
+    "compressionSettingsCavemanOutputMode": "કેવમેન આઉટપુટ મોડ",
+    "compressionSettingsAutoClarityBypass": "સ્વતઃ સ્પષ્ટતા બાયપાસ"
   },
   "contextRtk": {
     "title": "RTK એન્જિન",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "આના કરતાં ટૂંકા સંદેશાઓ સંકુચિત નથી. લોઅર = વધુ સંકોચન.",
     "tooltipMinSavings": "માત્ર સંકુચિત કરો જો તે ઓછામાં ઓછા આટલા બધા ટોકન્સ બચાવે.",
     "ultraSettings": "અલ્ટ્રા સેટિંગ્સ",
-    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન"
+    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન",
+    "preview": {
+      "lite": "સંક્ષિપ્ત જવાબ આપો. તકનીકી શબ્દો, કોડ, ભૂલો, URLs અને ઓળખકર્તાઓ જાળવી રાખો.",
+      "full": "ટૂંકો અને સંક્ષિપ્ત જવાબ આપો. તમામ તકનીકી સામગ્રી જાળવી રાખો.",
+      "ultra": "સામાન્ય તકનીકી સંક્ષેપો સાથે અત્યંત સંક્ષિપ્ત જવાબ આપો. ચોક્કસ પ્રતીકો જાળવો."
+    }
   },
   "translator": {
     "title": "અનુવાદક",
@@ -11438,7 +11485,8 @@
     "notMeasured": "માપેલ નથી",
     "upstream4xx": "{count} અપસ્ટ્રીમ ક્લાયન્ટ ત્રુટિઓ",
     "upstream5xx": "{count} અપસ્ટ્રીમ સર્વર ત્રુટિઓ",
-    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી"
+    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી",
+    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",

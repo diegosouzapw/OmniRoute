@@ -3381,7 +3381,44 @@
     "httpError": "Anmodning mislykkedes med HTTP {status}",
     "testFailedNoDetail": "Test mislykkedes uden en fejlmeddelelse",
     "additionalCapabilities": "Yderligere funktioner: {list}",
-    "comboRefMember": "Kombination → {name}"
+    "comboRefMember": "Kombination → {name}",
+    "keyAccessButton": "API-nøgleadgang",
+    "allowedInKeys": "Tilladt i: {count, plural, one {# nøgle} other {# nøgler}}",
+    "keysLoading": "Indlæser API-nøgler…",
+    "keysRetry": "Prøv at indlæse nøgler igen",
+    "accessViaPattern": "via {pattern}",
+    "accessBlocked": "Blokeret af {pattern}",
+    "editKeyAccess": "Rediger nøgleadgang",
+    "toggleKeyAccess": "Tillad {item} på {name}",
+    "resultNetworkError": "Tildeling mislykkedes",
+    "resultWouldEmptyModels": "Vil efterlade denne nøgle uden tilladte modeller — rediger nøgleadgang i stedet",
+    "resultWouldEmptyCombos": "Vil efterlade denne nøgle uden tilladte combos — rediger nøgleadgang i stedet",
+    "keyUpdatePending": "{name} opdateres stadig. Prøv igen om et øjeblik.",
+    "assignToKeys": "Tildel til API-nøgler…",
+    "assignApply": "Anvend ændringer",
+    "assignComplete": "API-nøgleadgang opdateret",
+    "assignFailed": "Nogle opdateringer af API-nøgler mislykkedes",
+    "assignNoChanges": "Ingen API-nøgleadgang ændret",
+    "selectedAccessItems": "Valgte elementer: {count}",
+    "assignExcludedCombos": "{count, plural, one {# valgt combo-række er ikke en model og springes over her} other {# valgte combo-rækker er ikke modeller og springes over her}}. Tildel combos fra fanen Combos.",
+    "assignActionAdd": "Tilføj",
+    "assignActionRemove": "Fjern",
+    "searchKeys": "Søg efter API-nøgler",
+    "selectApiKey": "Vælg API-nøgle {name}",
+    "allModelsAccess": "Alle modeller",
+    "allCombosAccess": "Alle kombinationer",
+    "modelAccessCount": "Modeller: {count}",
+    "comboAccessCount": "Kombinationer: {count}",
+    "keyInactive": "Inaktiv",
+    "keyBanned": "Blokeret",
+    "keyRevoked": "Tilbagekaldt",
+    "switchRestrictedConfirm": "Skift denne nøgle til begrænset adgang: kun de valgte elementer vil være tilladt",
+    "removeNoChangeHint": "Denne nøgle tillader alt; fjernelse af valgte elementer vil ikke gøre nogen forskel",
+    "removeStaysAllowedHint": "Stadig tilladt på denne nøgle via {patterns}",
+    "resultChanged": "Ændret",
+    "resultUnchanged": "Ingen ændring",
+    "resultSkipped": "Sprunget over",
+    "resultNeedsSwitch": "Kræver skift til begrænset"
   },
   "combos": {
     "title": "Kombinationer",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "Udbyder (alle konti deler én afbryder)",
     "resilienceTokenRefreshScopeConnection": "Forbindelse (hver konto har sin egen afbryder)",
     "resilienceTokenRefreshThreshold": "Fejl før pause",
-    "resilienceTokenRefreshCooldown": "Pause efter udløsning"
+    "resilienceTokenRefreshCooldown": "Pause efter udløsning",
+    "compressionSettingsCavemanOutputMode": "Hulemands-outputtilstand",
+    "compressionSettingsAutoClarityBypass": "Automatisk klarhed bypass"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Bevar systemprompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "Beskeder, der er kortere end dette, komprimeres ikke. Lavere = mere kompression.",
     "tooltipMinSavings": "Komprimer kun, hvis det sparer mindst så mange tokens.",
     "ultraSettings": "Ultra-indstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
+    "preview": {
+      "lite": "Svar kortfattet. Bevar tekniske termer, kode, fejl, URLs og identifikatorer.",
+      "full": "Svar kort og kompakt. Bevar alt teknisk indhold.",
+      "ultra": "Svar ultrakort med almindelige tekniske forkortelser. Bevar de nøjagtige symboler."
+    }
   },
   "translator": {
     "title": "Oversætter",
@@ -11438,7 +11485,8 @@
     "notMeasured": "Ikke målt",
     "upstream4xx": "{count} opstrøms klientfejl",
     "upstream5xx": "{count} opstrøms serverfejl",
-    "uniformEgressLine": "{affected} af {exits} udgange fejler sammen på {provider} (seneste {hours} t) — ikke et udgangsproblem"
+    "uniformEgressLine": "{affected} af {exits} udgange fejler sammen på {provider} (seneste {hours} t) — ikke et udgangsproblem",
+    "upstreamRefusals": "{count} upstream-afvisninger"
   },
   "playground": {
     "title": "Title",

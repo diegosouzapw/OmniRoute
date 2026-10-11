@@ -3381,7 +3381,44 @@
     "httpError": "សំណើបានបរាជ័យជាមួយ HTTP {status}",
     "testFailedNoDetail": "ការធ្វើតេស្តបានបរាជ័យដោយគ្មានសារកំហុស",
     "additionalCapabilities": "សមត្ថភាពបន្ថែម៖ {list}",
-    "comboRefMember": "បន្សំ → {name}"
+    "comboRefMember": "បន្សំ → {name}",
+    "keyAccessButton": "ការចូលប្រើ API key",
+    "allowedInKeys": "បានអនុញ្ញាតក្នុង៖ {count, plural, one {# កូនសោ} other {# កូនសោ}}",
+    "keysLoading": "កំពុងផ្ទុក API keys…",
+    "keysRetry": "ព្យាយាមផ្ទុកកូនសោឡើងវិញ",
+    "accessViaPattern": "តាមរយៈ {pattern}",
+    "accessBlocked": "ត្រូវបានរារាំងដោយ {pattern}",
+    "editKeyAccess": "កែសម្រួលការចូលប្រើកូនសោ",
+    "toggleKeyAccess": "អនុញ្ញាត {item} នៅលើ {name}",
+    "resultNetworkError": "ការចាត់តាំងបានបរាជ័យ",
+    "resultWouldEmptyModels": "នឹងធ្វើឱ្យកូនសោនេះគ្មានម៉ូឌែលដែលបានអនុញ្ញាត — សូមកែសម្រួលសិទ្ធិចូលប្រើកូនសោជំនួសវិញ",
+    "resultWouldEmptyCombos": "នឹងធ្វើឱ្យកូនសោនេះគ្មាន combo ដែលបានអនុញ្ញាត — សូមកែសម្រួលសិទ្ធិចូលប្រើកូនសោជំនួសវិញ",
+    "keyUpdatePending": "{name} កំពុងត្រូវបានធ្វើបច្ចុប្បន្នភាពនៅឡើយ។ សូមព្យាយាមម្តងទៀតក្នុងពេលបន្តិចទៀត។",
+    "assignToKeys": "ចាត់តាំងទៅកាន់ API keys…",
+    "assignApply": "អនុវត្តការផ្លាស់ប្ដូរ",
+    "assignComplete": "បានធ្វើបច្ចុប្បន្នភាពការចូលប្រើ API key",
+    "assignFailed": "ការធ្វើបច្ចុប្បន្នភាព API key មួយចំនួនបានបរាជ័យ",
+    "assignNoChanges": "មិនមានការផ្លាស់ប្តូរសិទ្ធិចូលប្រើ API key ទេ",
+    "selectedAccessItems": "ធាតុដែលបានជ្រើសរើស៖ {count}",
+    "assignExcludedCombos": "{count, plural, one {ជួរដេក combo ដែលបានជ្រើសរើសចំនួន # មិនមែនជាម៉ូឌែលទេ ហើយនឹងត្រូវបានរំលងនៅទីនេះ} other {ជួរដេក combo ដែលបានជ្រើសរើសចំនួន # មិនមែនជាម៉ូឌែលទេ ហើយនឹងត្រូវបានរំលងនៅទីនេះ}}។ ចាត់ចែង combo ពីផ្ទាំង Combos។",
+    "assignActionAdd": "បន្ថែម",
+    "assignActionRemove": "លុបចេញ",
+    "searchKeys": "ស្វែងរក API keys",
+    "selectApiKey": "ជ្រើសរើស API key {name}",
+    "allModelsAccess": "ម៉ូដែលទាំងអស់",
+    "allCombosAccess": "បន្សំទាំងអស់",
+    "modelAccessCount": "ម៉ូដែល៖ {count}",
+    "comboAccessCount": "បន្សំ៖ {count}",
+    "keyInactive": "អសកម្ម",
+    "keyBanned": "ត្រូវបានហាមឃាត់",
+    "keyRevoked": "បានដកហូត",
+    "switchRestrictedConfirm": "ប្ដូរកូនសោនេះទៅការចូលប្រើកម្រិតកំណត់៖ អនុញ្ញាតតែធាតុដែលបានជ្រើសរើសប៉ុណ្ណោះ",
+    "removeNoChangeHint": "កូនសោនេះអនុញ្ញាតទាំងអស់ ការលុបធាតុដែលបានជ្រើសរើសចេញនឹងមិនធ្វើឱ្យមានការផ្លាស់ប្ដូរទេ",
+    "removeStaysAllowedHint": "នៅតែត្រូវបានអនុញ្ញាតនៅលើកូនសោនេះតាមរយៈ {patterns}",
+    "resultChanged": "បានផ្លាស់ប្ដូរ",
+    "resultUnchanged": "គ្មានការផ្លាស់ប្ដូរ",
+    "resultSkipped": "បានរំលង",
+    "resultNeedsSwitch": "ត្រូវការប្ដូរទៅកម្រិតកំណត់"
   },
   "combos": {
     "title": "បន្សំ",
@@ -8789,7 +8826,9 @@
     "resilienceTokenRefreshScopeProvider": "អ្នកផ្គត់ផ្គង់ (គណនីទាំងអស់ចែករំលែកប៊្រីកឃើរតែមួយ)",
     "resilienceTokenRefreshScopeConnection": "ការតភ្ជាប់ (គណនីនីមួយៗមានឧបករណ៍ផ្ទុះផ្ទាល់ខ្លួន)",
     "resilienceTokenRefreshThreshold": "ការបរាជ័យមុនពេលផ្អាក",
-    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ"
+    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ",
+    "compressionSettingsCavemanOutputMode": "របៀបលទ្ធផលបែបមនុស្សរូងភ្នំ",
+    "compressionSettingsAutoClarityBypass": "ការរំលងភាពច្បាស់ដោយស្វ័យប្រវត្តិ"
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",
@@ -9002,6 +9041,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "រក្សាទុកពាក្យបញ្ជាប្រព័ន្ធ"
       }
     },
     "engineFields": {
@@ -9361,7 +9403,12 @@
     "tooltipMinLength": "សារដែលខ្លីជាងនេះមិនត្រូវបានបង្ហាប់ទេ។ ទាបជាង = បង្ហាប់ច្រើនជាង។",
     "tooltipMinSavings": "បង្ហាប់តែក្នុងករណីដែលវាសន្សំបានយ៉ាងហោចណាស់ចំនួនថូខឹននេះ។",
     "ultraSettings": "ការកំណត់ Ultra",
-    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM"
+    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM",
+    "preview": {
+      "lite": "ឆ្លើយឱ្យខ្លី។ រក្សាពាក្យបច្ចេកទេស កូដ កំហុស URLs និងអត្តសញ្ញាណសម្គាល់។",
+      "full": "ឆ្លើយឱ្យខ្លី និងបង្រួម។ រក្សាខ្លឹមសារបច្ចេកទេសទាំងអស់។",
+      "ultra": "ឆ្លើយឱ្យខ្លីបំផុត ដោយប្រើអក្សរកាត់បច្ចេកទេសទូទៅ។ រក្សានិមិត្តសញ្ញាឱ្យដូចដើម។"
+    }
   },
   "translator": {
     "title": "កម្មវិធីបកប្រែ",
@@ -11438,7 +11485,8 @@
     "notMeasured": "មិនបានវាស់",
     "upstream4xx": "កំហុសអតិថិជន {count}",
     "upstream5xx": "កំហុសម៉ាស៊ីនមេ {count}",
-    "uniformEgressLine": "{affected} ក្នុងចំណោម {exits} ច្រកចេញបានបរាជ័យជាមួយគ្នានៅលើ {provider} (ក្នុង {hours}ម៉ោងចុងក្រោយ) — មិនមែនជាបញ្ហាច្រកចេញទេ"
+    "uniformEgressLine": "{affected} ក្នុងចំណោម {exits} ច្រកចេញបានបរាជ័យជាមួយគ្នានៅលើ {provider} (ក្នុង {hours}ម៉ោងចុងក្រោយ) — មិនមែនជាបញ្ហាច្រកចេញទេ",
+    "upstreamRefusals": "{count} ការបដិសេធ upstream"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",
