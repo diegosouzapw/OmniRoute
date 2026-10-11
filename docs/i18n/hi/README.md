@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                           | v3.8.49 |        **v3.8.50**        | `v3.8.51+`  |
-| ------------------------- | :-----: | :-----------------------: | :---------: |
-| 🌐 प्रदाता                |   290   |          **357**          | और कतार में |
-| 🧠 अद्वितीय चैट मॉडल IDs  |  1185   |         **1312**          |      —      |
-| 🖼️ मोडैलिटी ब्रिज         |    —    | 🆕 विज़न + ऑडियो + वीडियो |      —      |
-| 📡 रडार निःशुल्क कैटलॉग   |    —    |      🆕 वैकल्पिक चयन      |      —      |
-| ⚖️ कोटा-जागरूक शेड्यूलिंग |    —    |      🆕 Quota-Share       |      —      |
-| 📊 कोटा टेलीमेट्री        |    —    |          🆕 लाइव          |      —      |
+|                         |          v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| ----------------------- | :-----------------------: | :---------: | :-------------------: |
+| 🌐 प्रदाता              |            352            |   **358**   |          372          |
+| 🧠 विशिष्ट चैट मॉडल IDs |           1320            |  **1374**   |         1443          |
+| 🖼️ मोडैलिटी ब्रिज       | 🆕 विज़न + ऑडियो + वीडियो |      ✓      |           ✓           |
+| 📡 रडार मुफ़्त कैटलॉग   |        🆕 वैकल्पिक        |      ✓      |           ✓           |
+| ⚖️ कोटा-सजग शेड्यूलिंग  |      🆕 Quota-Share       |      ✓      |           ✓           |
+| 📊 कोटा टेलीमेट्री      |          🆕 लाइव          |      ✓      |           ✓           |
+| 🧰 हेडलेस मोड           |             —             |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS रेल इन्फ़्रा     |             —             |      —      |    🆕 रिलीज़ चैनल     |
 
-**→ [रोडमैप](ROADMAP.md) — `v3.9.0 LTS` की राह पर अग्रसर**
+**→ [रोडमैप](ROADMAP.md) — `v3.9.0 LTS` तक रेल की सवारी**
 
 </div>
 
@@ -90,7 +92,7 @@
 ![NPM मासिक](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![लाइसेंस: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Docker पुल](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Docker डाउनलोड](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron डाउनलोड](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
@@ -109,7 +111,7 @@
   <tr>
     <td align="right"><b>⚙️ सुविधाएँ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 कॉम्बो</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 प्रदाता</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 प्रदाता</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI और MCP</a></td>
   </tr>
   <tr>
@@ -120,7 +122,7 @@
   </tr>
   <tr>
     <td align="right"><b>👀 इसे देखें</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 क्रियाशील रूप में</a></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 कार्यरत रूप में</a></td>
     <td align="center"><a href="#-whats-new">✨ नया क्या है</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 संगत CLI</a></td>
   </tr>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 66 भाषाओं में</b>
+  <b>🌐 67 भाषाओं में</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -677,15 +680,15 @@ omniroute configure codex          # ये भी: claude opencode qwen aider g
 
 <div align="center">
 
-## 🌐 357 AI प्रदाता — 152 कैटलॉग में निःशुल्क के रूप में चिह्नित
+## 🌐 372 AI प्रदाता — 154 कैटलॉग में निःशुल्क के रूप में चिह्नित
 
 </div>
 
-> कैनोनिकल चैट, मीडिया, खोज, स्थानीय, क्लाउड-एजेंट और सिस्टम संग्रहों में **357 पंजीकृत प्रदाता** हैं, जिनमें **152 के पास `hasFree: true` डिस्कवरी मेटाडेटा** है। चैट मॉडल रजिस्ट्री में **229 प्रदाता / 2,554 अलग-अलग प्रदाता-मॉडल युग्म / 1,283 अपरिष्कृत मॉडल ID** शामिल हैं; अलग निःशुल्क-बजट कैटलॉग में **491 प्रति-मॉडल पंक्तियाँ**, **35 आवर्ती पूल** और **54 आवर्ती/बिना-कुंजी वाले हमेशा-निःशुल्क प्रदाता** हैं। ये डिज़ाइन के अनुसार अलग-अलग हर हैं; परिभाषाएँ और पूल-डीडुप्लिकेटेड गणनाएँ [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md) और [निःशुल्क टियर](docs/reference/FREE_TIERS.md) में उपलब्ध हैं।
+> कैनॉनिकल चैट, मीडिया, खोज, स्थानीय, क्लाउड-एजेंट और सिस्टम संग्रहों में **372 पंजीकृत प्रदाता**, जिनमें **154 के साथ `hasFree: true` डिस्कवरी मेटाडेटा** शामिल है। चैट मॉडल रजिस्ट्री में **237 प्रदाता / 3,009 विशिष्ट प्रदाता-मॉडल युग्म / 1,443 रॉ मॉडल ID** शामिल हैं; अलग निःशुल्क-बजट कैटलॉग में **491 प्रति-मॉडल पंक्तियाँ**, **35 आवर्ती पूल** और **54 आवर्ती/बिना-कुंजी वाले हमेशा-निःशुल्क प्रदाता** हैं। ये डिज़ाइन के अनुसार अलग-अलग भाजक हैं; परिभाषाएँ और पूल-डीडुप्लिकेटेड गणनाएँ [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md) और [निःशुल्क टियर](docs/reference/FREE_TIERS.md) में उपलब्ध हैं।
 
 <div align="center">
 
-### 🏢 प्रत्येक प्रमुख लैब — एक ही एंडपॉइंट के माध्यम से
+### 🏢 हर प्रमुख लैब — एक ही एंडपॉइंट के माध्यम से
 
 <table>
   <tr>
@@ -714,32 +717,32 @@ omniroute configure codex          # ये भी: claude opencode qwen aider g
   </tr>
 </table>
 
-<sub>…और 330+ अन्य — प्रत्येक आइकन डैशबोर्ड के प्रदाता कैटलॉग से लाइव प्राप्त होता है। 📖 [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…और 330+ — प्रत्येक आइकन डैशबोर्ड के प्रदाता कैटलॉग से लाइव प्राप्त होता है। 📖 [प्रदाता संदर्भ](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 हमेशा निःशुल्क — $0, किसी कार्ड की आवश्यकता नहीं
+### 🆓 हमेशा निःशुल्क — $0, कार्ड की आवश्यकता नहीं
 
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>कोई टोकन सीमा नहीं</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ऑटो-राउटर, Tencent Hy3<br/>हमेशा मुफ़्त</sub></td>
-    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>हमेशा मुफ़्त</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>मुफ़्त टियर</sub></td>
-    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>हमेशा मुफ़्त</sub></td>
-    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>हमेशा मुफ़्त</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ऑटो-राउटर, Tencent Hy3<br/>हमेशा के लिए निःशुल्क</sub></td>
+    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>हमेशा के लिए निःशुल्क</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>निःशुल्क स्तर</sub></td>
+    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>हमेशा के लिए निःशुल्क</sub></td>
+    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>हमेशा के लिए निःशुल्क</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>असीमित मुफ़्त</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>असीमित निःशुल्क</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>कुंजी की आवश्यकता नहीं</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ मॉडल<br/>10K न्यूरॉन/दिन</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM मुफ़्त</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>एक बार का $5 क्रेडिट; कार्ड आवश्यक</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM निःशुल्क</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>एकमुश्त $5 क्रेडिट; कार्ड आवश्यक</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free मॉडल<br/>+$10 → अधिक RPM</sub></td>
   </tr>
 </table>
 
-📖 पूरा मशीन-पठनीय कैटलॉग → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 पूर्ण मशीन-पठनीय कैटलॉग → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>

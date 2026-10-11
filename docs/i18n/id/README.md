@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                               | v3.8.49 |       **v3.8.50**       |    `v3.8.51+`     |
-| ----------------------------- | :-----: | :---------------------: | :---------------: |
-| 🌐 Penyedia                   |   290   |         **357**         | lainnya mengantre |
-| 🧠 ID model chat unik         |  1185   |        **1312**         |         —         |
-| 🖼️ Jembatan Modalitas         |    —    | 🆕 visi + audio + video |         —         |
-| 📡 Katalog gratis Radar       |    —    |      🆕 ikut serta      |         —         |
-| ⚖️ Penjadwalan berbasis kuota |    —    |     🆕 Quota-Share      |         —         |
-| 📊 Telemetri kuota            |    —    |     🆕 waktu nyata      |         —         |
+|                            |         v3.8.50         | **v3.8.51** |      `v3.8.52+`       |
+| -------------------------- | :---------------------: | :---------: | :-------------------: |
+| 🌐 Penyedia                |           352           |   **358**   |          372          |
+| 🧠 ID model chat unik      |          1320           |  **1374**   |         1443          |
+| 🖼️ Jembatan modalitas      | 🆕 visi + audio + video |      ✓      |           ✓           |
+| 📡 Katalog gratis Radar    |    🆕 keikutsertaan     |      ✓      |           ✓           |
+| ⚖️ Penjadwalan sadar kuota |     🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 Telemetri kuota         |     🆕 waktu nyata      |      ✓      |           ✓           |
+| 🧰 Mode headless           |            —            |      —      | 🆕 `serve --headless` |
+| 🛤️ Infrastruktur jalur LTS |            —            |      —      |    🆕 kanal rilis     |
 
-**→ [Peta Jalan](ROADMAP.md) — melaju menuju `v3.9.0 LTS`**
+**→ [Peta Jalan](ROADMAP.md) — melaju di jalur menuju `v3.9.0 LTS`**
 
 </div>
 
@@ -87,7 +89,7 @@
 ## 🧩 Tersedia
 
 [![versi npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM Bulanan](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![Bulanan NPM](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Lisensi: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Penarikan Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -98,24 +100,24 @@
     <td align="right"><b>🚀 Mulai</b></td>
     <td align="center"><a href="#-quick-start">🚀 Mulai Cepat</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalasi</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Tanpa Konfigurasi</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Tanpa konfigurasi</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Pelajari</b></td>
-    <td align="center"><a href="#-the-promise">💥 Janji</a></td>
+    <td align="center"><a href="#-the-promise">💥 Janji Kami</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Mengapa OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Yang Membedakannya</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Keunggulan Utama</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Fitur</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinasi</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Penyedia</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Penyedia</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Kompresi</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Tempat Menjalankannya</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Tempat Beroperasi</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Privat</a></td>
   </tr>
   <tr>
@@ -126,7 +128,7 @@
   </tr>
   <tr>
     <td align="right"><b>💚 Dukungan</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Dukungan / Donasi</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 Dukung / Donasi</a></td>
     <td align="center"><a href="#-community--help">💬 Komunitas</a></td>
     <td align="center"><a href="#-sponsors">💖 Sponsor</a></td>
   </tr>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 Dalam 66 bahasa</b>
+  <b>🌐 Dalam 67 bahasa</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ keluar dari riwayat shell Anda. → [Integrasi CLI](docs/guides/CLI-INTEGRATIONS
 
 <div align="center">
 
-## 🌐 357 Penyedia AI — 152 Ditandai Gratis dalam Katalog
+## 🌐 372 Penyedia AI — 154 Ditandai Gratis dalam Katalog
 
 </div>
 
-> **357 penyedia terdaftar** di seluruh koleksi kanonis untuk chat, media, pencarian, lokal, agen cloud, dan sistem, termasuk **152 yang memiliki metadata penemuan `hasFree: true`**. Registri model chat mencakup **229 penyedia / 2.554 pasangan penyedia-model yang berbeda / 1.283 ID model mentah**; katalog anggaran gratis yang terpisah memiliki **491 baris per model**, **35 kumpulan berulang**, dan **54 penyedia gratis selamanya yang berulang/tanpa kunci**. Penyebut ini sengaja berbeda; definisi dan perhitungan yang dideduplikasi berdasarkan kumpulan tersedia di [Referensi Penyedia](docs/reference/PROVIDER_REFERENCE.md) dan [Tingkat Gratis](docs/reference/FREE_TIERS.md).
+> **372 penyedia terdaftar** di seluruh koleksi kanonis untuk chat, media, pencarian, lokal, agen cloud, dan sistem, termasuk **154 yang memiliki metadata penemuan `hasFree: true`**. Registri model chat mencakup **237 penyedia / 3.009 pasangan penyedia-model unik / 1.443 ID model mentah**; katalog anggaran gratis yang terpisah memiliki **491 baris per model**, **35 pool berulang**, dan **54 penyedia gratis selamanya yang berulang/tanpa kunci**. Penyebut ini memang berbeda berdasarkan desain; definisi dan perhitungan dengan deduplikasi pool tersedia di [Referensi Penyedia](docs/reference/PROVIDER_REFERENCE.md) dan [Tingkat Gratis](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -705,7 +708,7 @@ keluar dari riwayat shell Anda. → [Integrasi CLI](docs/guides/CLI-INTEGRATIONS
   </tr>
 </table>
 
-<sub>…dan 330+ lainnya — setiap ikon dimuat langsung dari katalog penyedia dasbor. 📖 [Referensi Penyedia](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…dan 330+ lainnya — setiap ikon dimuat secara langsung dari katalog penyedia dasbor. 📖 [Referensi Penyedia](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -723,9 +726,9 @@ keluar dari riwayat shell Anda. → [Integrasi CLI](docs/guides/CLI-INTEGRATIONS
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>GRATIS tanpa batas</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Tidak memerlukan kunci</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ model<br/>10 ribu neuron/hari</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ model<br/>10K neuron/hari</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratis</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Kredit $5 satu kali; memerlukan kartu</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Kredit $5 satu kali; kartu diperlukan</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Model :free<br/>+$10 → RPM lebih tinggi</sub></td>
   </tr>
 </table>

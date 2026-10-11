@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 เกตเวย์ยังคงเติบโตอย่างต่อเนื่อง
+## 📈 เกตเวย์เติบโตอย่างต่อเนื่อง
 
 <div align="center">
 
-|                                | v3.8.49 |       **v3.8.50**       | `v3.8.51+` |
-| ------------------------------ | :-----: | :---------------------: | :--------: |
-| 🌐 ผู้ให้บริการ                |   290   |         **357**         | รอเพิ่มอีก |
-| 🧠 ID โมเดลแชตที่ไม่ซ้ำกัน     |  1185   |        **1312**         |     —      |
-| 🖼️ สะพานเชื่อมโมดาลิตี         |    —    | 🆕 ภาพ + เสียง + วิดีโอ |     —      |
-| 📡 แค็ตตาล็อกฟรีของ Radar      |    —    |    🆕 เลือกเข้าร่วม     |     —      |
-| ⚖️ การจัดตารางโดยคำนึงถึงโควตา |    —    |     🆕 Quota-Share      |     —      |
-| 📊 เทเลเมทรีโควตา              |    —    |     🆕 แบบเรียลไทม์     |     —      |
+|                            |         v3.8.50         | **v3.8.51** |      `v3.8.52+`       |
+| -------------------------- | :---------------------: | :---------: | :-------------------: |
+| 🌐 ผู้ให้บริการ            |           352           |   **358**   |          372          |
+| 🧠 ID โมเดลแชตที่ไม่ซ้ำกัน |          1320           |  **1374**   |         1443          |
+| 🖼️ สะพานเชื่อมโมดาลิตี     | 🆕 ภาพ + เสียง + วิดีโอ |      ✓      |           ✓           |
+| 📡 แค็ตตาล็อก Radar ฟรี    |     🆕 เลือกใช้ได้      |      ✓      |           ✓           |
+| ⚖️ การจัดกำหนดการตามโควตา  |     🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 ข้อมูลการวัดโควตา       |     🆕 แบบเรียลไทม์     |      ✓      |           ✓           |
+| 🧰 โหมด Headless           |            —            |      —      | 🆕 `serve --headless` |
+| 🛤️ โครงสร้างพื้นฐานสาย LTS |            —            |      —      | 🆕 ช่องทางการเผยแพร่  |
 
-**→ [แผนงาน](ROADMAP.md) — เดินหน้าตามเส้นทางสู่ `v3.9.0 LTS`**
+**→ [แผนงาน](ROADMAP.md) — มุ่งหน้าไปตามเส้นทางสู่ `v3.9.0 LTS`**
 
 </div>
 
@@ -104,25 +106,25 @@
     <td align="right"><b>💡 เรียนรู้</b></td>
     <td align="center"><a href="#-the-promise">💥 คำมั่นสัญญา</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 ทำไมต้อง OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 สิ่งที่ทำให้แตกต่าง</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 จุดเด่นที่แตกต่าง</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ คุณสมบัติ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 คอมโบ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ผู้ให้บริการ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ผู้ให้บริการ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI และ MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ การบีบอัด</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ใช้งานได้ที่ใด</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ทำงานได้ที่ใด</a></td>
     <td align="center"><a href="#-private--local-first">🔒 เป็นส่วนตัว</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 ดูการทำงาน</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 การทำงานจริง</a></td>
     <td align="center"><a href="#-whats-new">✨ มีอะไรใหม่</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLI ที่ใช้งานร่วมกันได้</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLI ที่เข้ากันได้</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 สนับสนุน</b></td>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 มีให้บริการใน 66 ภาษา</b>
+  <b>🌐 มีให้บริการใน 67 ภาษา</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ omniroute configure codex          # รองรับด้วย: claude open
 
 <div align="center">
 
-## 🌐 ผู้ให้บริการ AI 357 ราย — 152 รายถูกระบุในแค็ตตาล็อกว่าใช้ฟรี
+## 🌐 ผู้ให้บริการ AI 372 ราย — 154 รายถูกระบุในแค็ตตาล็อกว่าใช้ฟรี
 
 </div>
 
-> **ผู้ให้บริการที่ลงทะเบียนแล้ว 357 ราย** ครอบคลุมคอลเลกชันมาตรฐานสำหรับแชต สื่อ การค้นหา การทำงานภายในเครื่อง คลาวด์เอเจนต์ และระบบ โดยมี **152 รายที่มาพร้อมข้อมูลเมตาสำหรับการค้นพบ `hasFree: true`** รีจิสทรีโมเดลแชตครอบคลุม **ผู้ให้บริการ 229 ราย / คู่ผู้ให้บริการ-โมเดลที่ไม่ซ้ำกัน 2,554 คู่ / รหัสโมเดลดิบ 1,283 รหัส** ส่วนแค็ตตาล็อกงบประมาณฟรีที่แยกต่างหากมี **รายการต่อโมเดล 491 รายการ** **พูลแบบหมุนเวียน 35 พูล** และ **ผู้ให้บริการที่ให้ใช้ฟรีตลอดไปแบบหมุนเวียน/ไม่ต้องใช้คีย์ 54 ราย** ตัวหารเหล่านี้แตกต่างกันโดยตั้งใจ ดูคำจำกัดความและการคำนวณที่ขจัดรายการซ้ำตามพูลได้ใน [ข้อมูลอ้างอิงผู้ให้บริการ](docs/reference/PROVIDER_REFERENCE.md) และ [แพ็กเกจฟรี](docs/reference/FREE_TIERS.md)
+> **ผู้ให้บริการที่ลงทะเบียน 372 ราย** ครอบคลุมคอลเลกชันมาตรฐานสำหรับแชต สื่อ การค้นหา ระบบภายในเครื่อง เอเจนต์บนคลาวด์ และระบบ โดยมี **154 รายที่มีข้อมูลเมตาสำหรับการค้นพบ `hasFree: true`** รีจิสทรีโมเดลแชตครอบคลุม **ผู้ให้บริการ 237 ราย / คู่ผู้ให้บริการ-โมเดลที่แตกต่างกัน 3,009 คู่ / ID โมเดลดิบ 1,443 รายการ** ส่วนแค็ตตาล็อกงบประมาณฟรีที่แยกต่างหากมี **รายการต่อโมเดล 491 รายการ** **พูลแบบต่ออายุ 35 พูล** และ **ผู้ให้บริการที่ให้ใช้ฟรีตลอดไปแบบต่ออายุ/ไม่ต้องใช้คีย์ 54 ราย** ตัวหารเหล่านี้แตกต่างกันโดยเจตนา โปรดดูคำจำกัดความและการคำนวณที่ตัดรายการพูลซ้ำแล้วใน [ข้อมูลอ้างอิงผู้ให้บริการ](docs/reference/PROVIDER_REFERENCE.md) และ [ระดับการใช้งานฟรี](docs/reference/FREE_TIERS.md)
 
 <div align="center">
 
@@ -716,7 +719,7 @@ omniroute configure codex          # รองรับด้วย: claude open
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>ไม่จำกัดโทเค็น</sub></td>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>เราเตอร์อัตโนมัติ, Tencent Hy3<br/>ฟรีตลอดไป</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>ฟรีตลอดไป</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>ระดับฟรี</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>แพ็กเกจฟรี</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>ฟรีตลอดไป</sub></td>
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>ฟรีตลอดไป</sub></td>
   </tr>
@@ -724,8 +727,8 @@ omniroute configure codex          # รองรับด้วย: claude open
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>ฟรีไม่จำกัด</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>ไม่ต้องใช้คีย์</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>มากกว่า 50 โมเดล<br/>10K นิวรอน/วัน</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>ฟรีประมาณ 40 RPM</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>เครดิตฟรี $5 ครั้งเดียว; ต้องใช้บัตร</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>ฟรี ~40 RPM</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>เครดิต $5 แบบครั้งเดียว; ต้องใช้บัตร</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>โมเดล :free<br/>+$10 → RPM สูงขึ้น</sub></td>
   </tr>
 </table>

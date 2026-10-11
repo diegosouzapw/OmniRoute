@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                             | v3.8.49 |        **v3.8.50**        |       `v3.8.51+`       |
-| --------------------------- | :-----: | :-----------------------: | :--------------------: |
-| 🌐 ప్రొవైడర్లు              |   290   |          **357**          | మరిన్ని వరుసలో ఉన్నాయి |
-| 🧠 ప్రత్యేక చాట్ మోడల్ IDలు |  1185   |         **1312**          |           —            |
-| 🖼️ మోడాలిటీ బ్రిడ్జ్        |    —    | 🆕 విజన్ + ఆడియో + వీడియో |           —            |
-| 📡 Radar ఉచిత కేటలాగ్       |    —    |    🆕 ఎంపిక చేసుకుంటే     |           —            |
-| ⚖️ కోటా-ఆధారిత షెడ్యూలింగ్  |    —    |      🆕 Quota-Share       |           —            |
-| 📊 కోటా టెలిమెట్రీ          |    —    |       🆕 ప్రత్యక్షం       |           —            |
+|                             |          v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| --------------------------- | :-----------------------: | :---------: | :-------------------: |
+| 🌐 ప్రొవైడర్లు              |            352            |   **358**   |          372          |
+| 🧠 ప్రత్యేక చాట్ మోడల్ IDలు |           1320            |  **1374**   |         1443          |
+| 🖼️ మోడాలిటీ బ్రిడ్జ్        | 🆕 విజన్ + ఆడియో + వీడియో |      ✓      |           ✓           |
+| 📡 రాడార్ ఉచిత కేటలాగ్      |       🆕 ఆప్ట్-ఇన్        |      ✓      |           ✓           |
+| ⚖️ కోటా-ఆధారిత షెడ్యూలింగ్  |       🆕 కోటా-షేర్        |      ✓      |           ✓           |
+| 📊 కోటా టెలిమెట్రీ          |          🆕 లైవ్          |      ✓      |           ✓           |
+| 🧰 హెడ్లెస్ మోడ్            |             —             |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS రైల్ మౌలిక సదుపాయాలు |             —             |      —      |   🆕 విడుదల ఛానళ్లు   |
 
-**→ [రోడ్మ్యాప్](ROADMAP.md) — `v3.9.0 LTS` దిశగా ప్రయాణం**
+**→ [రోడ్మ్యాప్](ROADMAP.md) — `v3.9.0 LTS` వైపు రైల్పై ప్రయాణం**
 
 </div>
 
@@ -102,27 +104,27 @@
   </tr>
   <tr>
     <td align="right"><b>💡 తెలుసుకోండి</b></td>
-    <td align="center"><a href="#-the-promise">💥 వాగ్దానం</a></td>
+    <td align="center"><a href="#-the-promise">💥 హామీ</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 OmniRoute ఎందుకు</a></td>
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 ప్రత్యేకత ఏమిటి</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ ఫీచర్లు</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 కాంబోలు</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ప్రొవైడర్లు</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ప్రొవైడర్లు</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ కంప్రెషన్</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ఇది ఎక్కడ నడుస్తుంది</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ఇది ఎక్కడ రన్ అవుతుంది</a></td>
     <td align="center"><a href="#-private--local-first">🔒 ప్రైవేట్</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 దీన్ని చూడండి</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 పనిలో</a></td>
-    <td align="center"><a href="#-whats-new">✨ కొత్తవి ఏమిటి</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 అనుకూలమైన CLIలు</a></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 కార్యాచరణలో</a></td>
+    <td align="center"><a href="#-whats-new">✨ కొత్తగా ఏముంది</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 అనుకూల CLIలు</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 మద్దతు</b></td>
@@ -134,14 +136,14 @@
     <td align="right"><b>📦 ప్రాజెక్ట్</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ టెక్ స్టాక్</a></td>
     <td align="center"><a href="#-documentation">📖 డాక్యుమెంటేషన్</a></td>
-    <td align="center"><a href="#-600-contributors">👥 కంట్రిబ్యూటర్లు</a></td>
+    <td align="center"><a href="#-600-contributors">👥 సహకారులు</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 66 భాషల్లో</b>
+  <b>🌐 67 భాషల్లో</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,15 +671,15 @@ omniroute configure codex          # ఇవి కూడా: claude opencode qwe
 
 <div align="center">
 
-## 🌐 357 AI ప్రొవైడర్లు — 152 కేటలాగ్లో ఉచితంగా గుర్తించబడినవి
+## 🌐 372 AI ప్రొవైడర్లు — కేటలాగ్లో గుర్తించబడిన 154 ఉచిత ప్రొవైడర్లు
 
 </div>
 
-> కానానికల్ చాట్, మీడియా, శోధన, లోకల్, క్లౌడ్-ఏజెంట్ మరియు సిస్టమ్ సేకరణలలో **357 నమోదిత ప్రొవైడర్లు** ఉన్నాయి; వీటిలో **152 ప్రొవైడర్లు `hasFree: true` డిస్కవరీ మెటాడేటాను కలిగి ఉన్నాయి**. చాట్ మోడల్ రిజిస్ట్రీలో **229 ప్రొవైడర్లు / 2,554 ప్రత్యేక ప్రొవైడర్-మోడల్ జంటలు / 1,283 ముడి మోడల్ IDలు** ఉన్నాయి; ప్రత్యేక ఉచిత-బడ్జెట్ కేటలాగ్లో **491 ప్రతి-మోడల్ వరుసలు**, **35 పునరావృత పూల్లు** మరియు **54 పునరావృత/కీ అవసరం లేని శాశ్వత ఉచిత ప్రొవైడర్లు** ఉన్నాయి. ఇవి ఉద్దేశపూర్వకంగానే వేర్వేరు హారాలను ఉపయోగిస్తాయి; నిర్వచనాలు మరియు పూల్-డీడూప్ చేసిన గణనలు [ప్రొవైడర్ సూచిక](docs/reference/PROVIDER_REFERENCE.md) మరియు [ఉచిత టియర్లు](docs/reference/FREE_TIERS.md)లో ఉన్నాయి.
+> **372 నమోదిత ప్రొవైడర్లు** ప్రామాణిక చాట్, మీడియా, శోధన, లోకల్, క్లౌడ్-ఏజెంట్ మరియు సిస్టమ్ కలెక్షన్లలో ఉన్నాయి; వీటిలో **154 ప్రొవైడర్లు `hasFree: true` డిస్కవరీ మెటాడేటాను కలిగి ఉన్నాయి**. చాట్ మోడల్ రిజిస్ట్రీలో **237 ప్రొవైడర్లు / 3,009 విభిన్న ప్రొవైడర్-మోడల్ జంటలు / 1,443 ముడి మోడల్ IDలు** ఉన్నాయి; ప్రత్యేక ఉచిత-బడ్జెట్ కేటలాగ్లో **491 ఒక్కో-మోడల్ వరుసలు**, **35 పునరావృత పూల్లు** మరియు **54 పునరావృత/కీ అవసరం లేని ఎల్లప్పుడూ-ఉచిత ప్రొవైడర్లు** ఉన్నాయి. ఇవి ఉద్దేశపూర్వకంగానే వేర్వేరు హారాలను ఉపయోగిస్తాయి; నిర్వచనాలు మరియు పూల్-డీడూప్ చేసిన లెక్కలు [ప్రొవైడర్ సూచన](docs/reference/PROVIDER_REFERENCE.md) మరియు [ఉచిత టియర్లు](docs/reference/FREE_TIERS.md)లో ఉన్నాయి.
 
 <div align="center">
 
-### 🏢 ప్రతి ప్రధాన ల్యాబ్ — ఒకే ఎండ్పాయింట్ ద్వారా
+### 🏢 ప్రతి ప్రముఖ ల్యాబ్ — ఒకే ఎండ్పాయింట్ ద్వారా
 
 <table>
   <tr>
@@ -705,7 +708,7 @@ omniroute configure codex          # ఇవి కూడా: claude opencode qwe
   </tr>
 </table>
 
-<sub>…ఇంకా 330+ — ప్రతి ఐకాన్ డ్యాష్బోర్డ్ ప్రొవైడర్ కేటలాగ్ నుండి ప్రత్యక్షంగా లోడ్ అవుతుంది. 📖 [ప్రొవైడర్ సూచిక](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…మరియు 330+ ఇతర ప్రొవైడర్లు — ప్రతి ఐకాన్ డ్యాష్బోర్డ్ ప్రొవైడర్ కేటలాగ్ నుండి ప్రత్యక్షంగా లోడ్ అవుతుంది. 📖 [ప్రొవైడర్ సూచన](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -730,7 +733,7 @@ omniroute configure codex          # ఇవి కూడా: claude opencode qwe
   </tr>
 </table>
 
-📖 పూర్తి యంత్రం-చదవగల కేటలాగ్ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 పూర్తి మెషిన్-రీడబుల్ కేటలాగ్ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>

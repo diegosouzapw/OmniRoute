@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                             | v3.8.49 |      **v3.8.50**      | `v3.8.51+` |
-| --------------------------- | :-----: | :-------------------: | :--------: |
-| 🌐 Leverandører             |   290   |        **357**        | flere i kø |
-| 🧠 Unike chatmodell-ID-er   |  1185   |       **1312**        |     —      |
-| 🖼️ Modalitetsbro            |    —    | 🆕 syn + lyd + video  |     —      |
-| 📡 Radars gratiskatalog     |    —    | 🆕 valgfri aktivering |     —      |
-| ⚖️ Kvotebevisst planlegging |    —    |    🆕 Quota-Share     |     —      |
-| 📊 Kvotetelemetri           |    —    |      🆕 sanntid       |     —      |
+|                               |        v3.8.50         | **v3.8.51** |      `v3.8.52+`       |
+| ----------------------------- | :--------------------: | :---------: | :-------------------: |
+| 🌐 Leverandører               |          352           |   **358**   |          372          |
+| 🧠 Unike chatmodell-ID-er     |          1320          |  **1374**   |         1443          |
+| 🖼️ Modalitetsbro              | 🆕 bilde + lyd + video |      ✓      |           ✓           |
+| 📡 Radars gratiskatalog       | 🆕 valgfri aktivering  |      ✓      |           ✓           |
+| ⚖️ Kvoteorientert planlegging |     🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 Kvotetelemetri             |       🆕 sanntid       |      ✓      |           ✓           |
+| 🧰 Hodeløs modus              |           —            |      —      | 🆕 `serve --headless` |
+| 🛤️ Infrastruktur for LTS-spor |           —            |      —      | 🆕 utgivelseskanaler  |
 
-**→ [Veikart](ROADMAP.md) — på skinner mot `v3.9.0 LTS`**
+**→ [Veikart](ROADMAP.md) — følger sporet mot `v3.9.0 LTS`**
 
 </div>
 
@@ -95,7 +97,7 @@
 
 <table>
   <tr>
-    <td align="right"><b>🚀 Kom i gang</b></td>
+    <td align="right"><b>🚀 Start</b></td>
     <td align="center"><a href="#-quick-start">🚀 Hurtigstart</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installer</a></td>
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Ingen konfigurasjon</a></td>
@@ -104,12 +106,12 @@
     <td align="right"><b>💡 Lær</b></td>
     <td align="center"><a href="#-the-promise">💥 Løftet</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Hvorfor OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Hva som skiller det ut</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Det som skiller OmniRoute ut</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Funksjoner</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinasjoner</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Leverandører</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Leverandører</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI og MCP</a></td>
   </tr>
   <tr>
@@ -121,7 +123,7 @@
   <tr>
     <td align="right"><b>👀 Se det</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 I bruk</a></td>
-    <td align="center"><a href="#-whats-new">✨ Hva er nytt</a></td>
+    <td align="center"><a href="#-whats-new">✨ Nyheter</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Kompatible CLI-er</a></td>
   </tr>
   <tr>
@@ -132,7 +134,7 @@
   </tr>
   <tr>
     <td align="right"><b>📦 Prosjekt</b></td>
-    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Teknologistakk</a></td>
+    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Teknologistabel</a></td>
     <td align="center"><a href="#-documentation">📖 Dokumentasjon</a></td>
     <td align="center"><a href="#-600-contributors">👥 Bidragsytere</a></td>
   </tr>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 På 66 språk</b>
+  <b>🌐 På 67 språk</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -677,15 +680,15 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
 
 <div align="center">
 
-## 🌐 357 AI-leverandører — 152 katalogmerket som gratis
+## 🌐 372 KI-leverandører — 154 gratismerket i katalogen
 
 </div>
 
-> **357 registrerte leverandører** på tvers av de kanoniske samlingene for chat, medier, søk, lokale tjenester, skyagenter og systemer, inkludert **152 med oppdagelsesmetadataene `hasFree: true`**. Registeret over chatmodeller dekker **229 leverandører / 2 554 unike leverandør–modell-par / 1 283 rå modell-ID-er**; den separate katalogen over gratiskvoter har **491 rader per modell**, **35 gjentakende kvotepuljer** og **54 gjentakende/nøkkelfrie leverandører som er gratis for alltid**. Disse har ulike nevnere med hensikt; definisjoner og beregninger der dupliserte kvotepuljer er fjernet, finnes i [Leverandørreferansen](docs/reference/PROVIDER_REFERENCE.md) og [Gratisnivåer](docs/reference/FREE_TIERS.md).
+> **372 registrerte leverandører** på tvers av de kanoniske samlingene for chat, medier, søk, lokale modeller, skyagenter og systemer, inkludert **154 med søkemetadataene `hasFree: true`**. Registeret over chatmodeller dekker **237 leverandører / 3 009 unike leverandør–modell-par / 1 443 rå modell-ID-er**; den separate gratiskvote-katalogen har **491 rader per modell**, **35 gjentakende kvotepuljer** og **54 gjentakende/nøkkelfrie leverandører som er gratis for alltid**. Disse nevnerne er ulike med hensikt; definisjoner og beregninger der kvotepuljer er deduplisert, finnes i [Leverandørreferansen](docs/reference/PROVIDER_REFERENCE.md) og [Gratisnivåer](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Alle de store laboratoriene — gjennom ett endepunkt
+### 🏢 Alle store laboratorier — gjennom ett endepunkt
 
 <table>
   <tr>
@@ -714,7 +717,7 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
   </tr>
 </table>
 
-<sub>…og over 330 til — hvert ikon lastes direkte fra kontrollpanelets leverandørkatalog. 📖 [Leverandørreferanse](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…og over 330 flere — hvert ikon hentes direkte fra kontrollpanelets leverandørkatalog. 📖 [Leverandørreferanse](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -732,7 +735,7 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Ubegrenset og GRATIS</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Ingen nøkkel nødvendig</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Over 50 modeller<br/>10 000 nevroner/dag</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ modeller<br/>10K nevroner/dag</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratis</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Engangskreditt på $5; kort kreves</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free-modeller<br/>+$10 → høyere RPM</sub></td>

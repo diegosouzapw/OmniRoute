@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 গেটওয়ে ক্রমাগত সম্প্রসারিত হচ্ছে
+## 📈 গেটওয়ে ক্রমাগত বাড়ছে
 
 <div align="center">
 
-|                                  | v3.8.49 |      **v3.8.50**       |  `v3.8.51+`   |
-| -------------------------------- | :-----: | :--------------------: | :-----------: |
-| 🌐 প্রোভাইডার                    |   290   |        **357**         | আরও অপেক্ষমাণ |
-| 🧠 অনন্য চ্যাট মডেল ID           |  1185   |        **1312**        |       —       |
-| 🖼️ মোডালিটি ব্রিজ                |    —    | 🆕 ভিশন + অডিও + ভিডিও |       —       |
-| 📡 Radar-এর বিনামূল্যের ক্যাটালগ |    —    |       🆕 ঐচ্ছিক        |       —       |
-| ⚖️ কোটা-সচেতন সময়সূচি নির্ধারণ  |    —    |     🆕 Quota-Share     |       —       |
-| 📊 কোটা টেলিমেট্রি               |    —    |        🆕 লাইভ         |       —       |
+|                               |        v3.8.50         | **v3.8.51** |      `v3.8.52+`       |
+| ----------------------------- | :--------------------: | :---------: | :-------------------: |
+| 🌐 প্রোভাইডার                 |          352           |   **358**   |          372          |
+| 🧠 অনন্য চ্যাট মডেল ID        |          1320          |  **1374**   |         1443          |
+| 🖼️ মোডালিটি ব্রিজ             | 🆕 ভিশন + অডিও + ভিডিও |      ✓      |           ✓           |
+| 📡 Radar বিনামূল্যের ক্যাটালগ |       🆕 অপ্ট-ইন       |      ✓      |           ✓           |
+| ⚖️ কোটা-সচেতন শিডিউলিং        |     🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 কোটা টেলিমেট্রি            |        🆕 লাইভ         |      ✓      |           ✓           |
+| 🧰 হেডলেস মোড                 |           —            |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS রেল অবকাঠামো           |           —            |      —      |   🆕 রিলিজ চ্যানেল    |
 
-**→ [রোডম্যাপ](ROADMAP.md) — `v3.9.0 LTS`-এর পথে এগিয়ে চলেছে**
+**→ [রোডম্যাপ](ROADMAP.md) — `v3.9.0 LTS`-এর পথে রেলযাত্রা**
 
 </div>
 
@@ -90,7 +92,7 @@
 ![NPM মাসিক](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![লাইসেন্স: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Docker পুল](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Docker ডাউনলোড](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron ডাউনলোড](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
@@ -107,7 +109,7 @@
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 যা একে স্বতন্ত্র করে</a></td>
   </tr>
   <tr>
-    <td align="right"><b>⚙️ বৈশিষ্ট্য</b></td>
+    <td align="right"><b>⚙️ বৈশিষ্ট্যসমূহ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 কম্বোসমূহ</a></td>
     <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 প্রদানকারীরা</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ও MCP</a></td>
@@ -121,8 +123,8 @@
   <tr>
     <td align="right"><b>👀 দেখে নিন</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 কার্যরত অবস্থায়</a></td>
-    <td align="center"><a href="#-whats-new">✨ নতুন কী</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 সামঞ্জস্যপূর্ণ CLIসমূহ</a></td>
+    <td align="center"><a href="#-whats-new">✨ নতুন কী আছে</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 সামঞ্জস্যপূর্ণ CLI-সমূহ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 সহায়তা</b></td>
@@ -141,9 +143,9 @@
 </div>
 
 <div align="center">
-  <b>🌐 ৬৬টি ভাষায়</b>
+  <b>🌐 67টি ভাষায়</b>
   <br/><br/>
-  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
+  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="ইংরেজি (en)" title="ইংরেজি (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -672,7 +675,7 @@ omniroute configure codex          # আরও রয়েছে: claude openco
 
 </div>
 
-> ক্যানোনিক্যাল চ্যাট, মিডিয়া, সার্চ, লোকাল, ক্লাউড-এজেন্ট এবং সিস্টেম সংগ্রহজুড়ে **357টি নিবন্ধিত প্রদানকারী**, যার মধ্যে **152টির ডিসকভারি মেটাডেটায় `hasFree: true` রয়েছে**। চ্যাট মডেল রেজিস্ট্রিতে রয়েছে **229টি প্রদানকারী / 2,554টি স্বতন্ত্র প্রদানকারী-মডেল জোড়া / 1,283টি অপরিশোধিত মডেল ID**; পৃথক বিনামূল্যের-বাজেট ক্যাটালগে রয়েছে **প্রতি-মডেলের 491টি সারি**, **35টি পুনরাবৃত্ত পুল** এবং **54টি পুনরাবৃত্ত/কিবিহীন চিরকাল-বিনামূল্যের প্রদানকারী**। নকশাগতভাবেই এগুলোর হর ভিন্ন; সংজ্ঞা এবং পুল-ডিডুপ্লিকেটেড হিসাবগুলো [প্রদানকারী রেফারেন্স](docs/reference/PROVIDER_REFERENCE.md) এবং [বিনামূল্যের স্তরসমূহ](docs/reference/FREE_TIERS.md)-এ রয়েছে।
+> ক্যানোনিক্যাল চ্যাট, মিডিয়া, সার্চ, লোকাল, ক্লাউড-এজেন্ট ও সিস্টেম সংগ্রহজুড়ে **372টি নিবন্ধিত প্রদানকারী**, যার মধ্যে **154টির ডিসকভারি মেটাডেটায় `hasFree: true` রয়েছে**। চ্যাট মডেল রেজিস্ট্রিতে রয়েছে **237টি প্রদানকারী / 3,009টি স্বতন্ত্র প্রদানকারী-মডেল জোড়া / 1,443টি অপরিশোধিত মডেল ID**; পৃথক ফ্রি-বাজেট ক্যাটালগে রয়েছে **প্রতি-মডেলের 491টি সারি**, **35টি পুনরাবৃত্ত পুল** এবং **54টি পুনরাবৃত্ত/কিবিহীন চিরস্থায়ী বিনামূল্যের প্রদানকারী**। পরিকল্পিতভাবেই এগুলোর হর ভিন্ন; সংজ্ঞা ও পুল-ডিডুপ্লিকেটেড হিসাব [প্রদানকারী রেফারেন্স](docs/reference/PROVIDER_REFERENCE.md) এবং [বিনামূল্যের স্তরসমূহ](docs/reference/FREE_TIERS.md)-এ রয়েছে।
 
 <div align="center">
 
@@ -705,25 +708,25 @@ omniroute configure codex          # আরও রয়েছে: claude openco
   </tr>
 </table>
 
-<sub>…এবং আরও 330+টি — প্রতিটি আইকন ড্যাশবোর্ডের প্রদানকারী ক্যাটালগ থেকে লাইভ রিজলভ হয়। 📖 [প্রদানকারী রেফারেন্স](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…এবং আরও 330টির বেশি — প্রতিটি আইকন ড্যাশবোর্ডের প্রদানকারী ক্যাটালগ থেকে সরাসরি রিজলভ হয়। 📖 [প্রদানকারী রেফারেন্স](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 চিরকাল বিনামূল্যে — $0, কোনো কার্ড লাগবে না
+### 🆓 চিরকাল বিনামূল্যে — $0, কোনো কার্ড নয়
 
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>কোনো টোকেন সীমা নেই</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>অটো-রাউটার, Tencent Hy3<br/>চিরকাল বিনামূল্যে</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>স্বয়ংক্রিয় রাউটার, Tencent Hy3<br/>চিরকাল বিনামূল্যে</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>চিরকাল বিনামূল্যে</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>বিনামূল্যের স্তর</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>চিরকাল বিনামূল্যে</sub></td>
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>চিরকাল বিনামূল্যে</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>সীমাহীন বিনামূল্যে</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>সীমাহীনভাবে বিনামূল্যে</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>কোনো কী প্রয়োজন নেই</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+টি মডেল<br/>প্রতিদিন 10K নিউরন</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ মডেল<br/>10K নিউরন/দিন</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>বিনামূল্যে ~40 RPM</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>এককালীন $5 ক্রেডিট; কার্ড আবশ্যক</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free মডেল<br/>+$10 → উচ্চতর RPM</sub></td>

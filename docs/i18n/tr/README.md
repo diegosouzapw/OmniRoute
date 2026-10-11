@@ -69,14 +69,16 @@
 
 <div align="center">
 
-|                                       | v3.8.49 |       **v3.8.50**       |     `v3.8.51+`      |
-| ------------------------------------- | :-----: | :---------------------: | :-----------------: |
-| 🌐 Sağlayıcılar                       |   290   |         **357**         | daha fazlası sırada |
-| 🧠 Benzersiz sohbet modeli kimlikleri |  1185   |        **1312**         |          —          |
-| 🖼️ Modalite Köprüsü                   |    —    | 🆕 görsel + ses + video |          —          |
-| 📡 Radar ücretsiz kataloğu            |    —    |     🆕 isteğe bağlı     |          —          |
-| ⚖️ Kota duyarlı zamanlama             |    —    |     🆕 Quota-Share      |          —          |
-| 📊 Kota telemetrisi                   |    —    |        🆕 canlı         |          —          |
+|                                       |         v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------------------- | :----------------------: | :---------: | :-------------------: |
+| 🌐 Sağlayıcılar                       |           352            |   **358**   |          372          |
+| 🧠 Benzersiz sohbet modeli kimlikleri |           1320           |  **1374**   |         1443          |
+| 🖼️ Modalite Köprüsü                   | 🆕 görüntü + ses + video |      ✓      |           ✓           |
+| 📡 Radar ücretsiz kataloğu            |     🆕 isteğe bağlı      |      ✓      |           ✓           |
+| ⚖️ Kota duyarlı zamanlama             |      🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 Kota telemetrisi                   |         🆕 canlı         |      ✓      |           ✓           |
+| 🧰 Başsız mod                         |            —             |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS sürüm hattı altyapısı          |            —             |      —      |  🆕 sürüm kanalları   |
 
 **→ [Yol Haritası](ROADMAP.md) — `v3.9.0 LTS` sürümüne doğru ilerliyor**
 
@@ -98,28 +100,28 @@
     <td align="right"><b>🚀 Başlangıç</b></td>
     <td align="center"><a href="#-quick-start">🚀 Hızlı Başlangıç</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Kurulum</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Sıfır Yapılandırma</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Yapılandırma Gerektirmez</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💡 Öğrenin</b></td>
+    <td align="right"><b>💡 Öğren</b></td>
     <td align="center"><a href="#-the-promise">💥 Vaat</a></td>
-    <td align="center"><a href="#-why-omniroute">🤔 Neden OmniRoute?</a></td>
+    <td align="center"><a href="#-why-omniroute">🤔 Neden OmniRoute</a></td>
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Fark Yaratan Özellikler</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Özellikler</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombolar</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Sağlayıcılar</a></td>
-    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ve MCP</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Sağlayıcılar</a></td>
+    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Sıkıştırma</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Nerede Çalışır?</a></td>
-    <td align="center"><a href="#-private--local-first">🔒 Gizli</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Çalıştığı Yerler</a></td>
+    <td align="center"><a href="#-private--local-first">🔒 Gizlilik</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 Görün</b></td>
+    <td align="right"><b>👀 Görüntüle</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 Çalışırken</a></td>
     <td align="center"><a href="#-whats-new">✨ Yenilikler</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Uyumlu CLI'lar</a></td>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 66 dilde</b>
+  <b>🌐 67 dilde</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="İngilizce (en)" title="İngilizce (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Portekizce — Brezilya (pt-BR)" title="Portekizce — Brezilya (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Özbekçe (uz)" title="Özbekçe (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="Gürcüce (ka)" title="Gürcüce (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Ermenice (hy)" title="Ermenice (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Boşnakça (bs)" title="Boşnakça (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
 
 <div align="center">
 
-## 🌐 357 Yapay Zekâ Sağlayıcısı — 152'si Katalogda Ücretsiz Olarak İşaretli
+## 🌐 372 Yapay Zekâ Sağlayıcısı — 154'ü Katalogda Ücretsiz Olarak İşaretli
 
 </div>
 
-> Kanonik sohbet, medya, arama, yerel, bulut aracısı ve sistem koleksiyonlarında **357 kayıtlı sağlayıcı** bulunur; bunların **152'si `hasFree: true` keşif meta verisini taşır**. Sohbet modeli kayıt defteri **229 sağlayıcıyı / 2.554 farklı sağlayıcı-model çiftini / 1.283 ham model kimliğini** kapsar; ayrı ücretsiz bütçe kataloğunda ise **model başına 491 satır**, **35 yinelenen havuz** ve **54 yinelenen/API anahtarı gerektirmeyen sonsuza kadar ücretsiz sağlayıcı** bulunur. Bunlar tasarım gereği farklı paydalardır; tanımlar ve havuz tekilleştirmeli hesaplamalar [Sağlayıcı Referansı](docs/reference/PROVIDER_REFERENCE.md) ve [Ücretsiz Katmanlar](docs/reference/FREE_TIERS.md) belgelerinde yer alır.
+> Standart sohbet, medya, arama, yerel, bulut aracısı ve sistem koleksiyonlarında **372 kayıtlı sağlayıcı** bulunur; bunların **154'ü `hasFree: true` keşif meta verisini taşır**. Sohbet modeli kayıt defteri **237 sağlayıcıyı / 3.009 farklı sağlayıcı-model çiftini / 1.443 ham model kimliğini** kapsar; ayrı ücretsiz bütçe kataloğunda ise **model başına 491 satır**, **35 yenilenen havuz** ve **54 yenilenen/anahtarsız, sonsuza kadar ücretsiz sağlayıcı** bulunur. Bunların paydaları tasarım gereği farklıdır; tanımlar ve havuz tekilleştirmeli hesaplamalar [Sağlayıcı Referansı](docs/reference/PROVIDER_REFERENCE.md) ile [Ücretsiz Katmanlar](docs/reference/FREE_TIERS.md) belgelerinde yer alır.
 
 <div align="center">
 
@@ -705,7 +708,7 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
   </tr>
 </table>
 
-<sub>…ve 330'dan fazlası — her simge doğrudan kontrol panelinin sağlayıcı kataloğundan yüklenir. 📖 [Sağlayıcı Referansı](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…ve 330'dan fazlası — tüm simgeler doğrudan panonun sağlayıcı kataloğundan yüklenir. 📖 [Sağlayıcı Referansı](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -722,10 +725,10 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Sınırsız ÜCRETSİZ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Anahtar gerekmez</sub></td>
+    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Anahtar gerektirmez</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ model<br/>Günde 10 bin nöron</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>Ücretsiz ~40 RPM</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Tek seferlik 5 $ kredi; kart gereklidir</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM ücretsiz</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Tek seferlik 5 $ kredi; kart gerekli</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free modeller<br/>+10 $ → daha yüksek RPM</sub></td>
   </tr>
 </table>

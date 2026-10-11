@@ -69,25 +69,27 @@
 
 <div align="center">
 
-|                                     | v3.8.49 |        **v3.8.50**         |               `v3.8.51+`               |
-| ----------------------------------- | :-----: | :------------------------: | :------------------------------------: |
-| 🌐 ပံ့ပိုးသူများ                    |   290   |          **357**           | နောက်ထပ် စောင့်ဆိုင်းစာရင်းသွင်းထားသည် |
-| 🧠 သီးသန့် chat model ID များ       |  1185   |          **1312**          |                   —                    |
-| 🖼️ မုဒ်အမျိုးအစား ချိတ်ဆက်မှု       |    —    | 🆕 ရုပ်ပုံ + အသံ + ဗီဒီယို |                   —                    |
-| 📡 Radar အခမဲ့ catalog              |    —    |  🆕 စိတ်ကြိုက်ပါဝင်နိုင်   |                   —                    |
-| ⚖️ Quota သိရှိသော အချိန်ဇယားစီမံမှု |    —    |       🆕 Quota-Share       |                   —                    |
-| 📊 Quota တိုင်းတာစောင့်ကြည့်မှု     |    —    |       🆕 တိုက်ရိုက်        |                   —                    |
+|                                                   |          v3.8.50           | **v3.8.51** |       `v3.8.52+`        |
+| ------------------------------------------------- | :------------------------: | :---------: | :---------------------: |
+| 🌐 ဝန်ဆောင်မှုပေးသူများ                           |            352             |   **358**   |           372           |
+| 🧠 သီးသန့် chat model ID များ                     |            1320            |  **1374**   |          1443           |
+| 🖼️ Modality Bridge                                | 🆕 ရုပ်ပုံ + အသံ + ဗီဒီယို |      ✓      |            ✓            |
+| 📡 Radar အခမဲ့ကတ်တလောက်                           |  🆕 ရွေးချယ်ပါဝင်နိုင်မှု  |      ✓      |            ✓            |
+| ⚖️ Quota ကို ထည့်သွင်းစဉ်းစားသော အချိန်ဇယားဆွဲမှု |       🆕 Quota-Share       |      ✓      |            ✓            |
+| 📊 Quota တိုင်းတာမှုဒေတာ                          |       🆕 တိုက်ရိုက်        |      ✓      |            ✓            |
+| 🧰 Headless mode                                  |             —              |      —      |  🆕 `serve --headless`  |
+| 🛤️ LTS rail အခြေခံအဆောက်အအုံ                      |             —              |      —      | 🆕 ထုတ်ဝေမှုချန်နယ်များ |
 
-**→ [လမ်းပြမြေပုံ](ROADMAP.md) — `v3.9.0 LTS` သို့ လမ်းကြောင်းအတိုင်း ချီတက်နေသည်**
+**→ [လမ်းပြမြေပုံ](ROADMAP.md) — `v3.9.0 LTS` သို့ rail လမ်းကြောင်းအတိုင်း ချီတက်နေသည်**
 
 </div>
 
 <br/>
 
-## 🧩 ရရှိနိုင်မှု
+## 🧩 ရရှိနိုင်သည်
 
 [![npm ဗားရှင်း](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM လစဉ်](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![NPM လစဉ်ဒေါင်းလုဒ်များ](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![လိုင်စင်: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker ဆွဲယူမှုများ](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -103,45 +105,45 @@
   <tr>
     <td align="right"><b>💡 လေ့လာရန်</b></td>
     <td align="center"><a href="#-the-promise">💥 ကတိကဝတ်</a></td>
-    <td align="center"><a href="#-why-omniroute">🤔 OmniRoute ကို အဘယ်ကြောင့်ရွေးချယ်သင့်သနည်း</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 ထူးခြားစေသည့်အချက်များ</a></td>
+    <td align="center"><a href="#-why-omniroute">🤔 OmniRoute ကို ဘာကြောင့်ရွေးချယ်သင့်သလဲ</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 ထူးခြားစေသည့်အရာများ</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ လုပ်ဆောင်ချက်များ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 ပေါင်းစပ်မှုများ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ပံ့ပိုးသူများ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ပံ့ပိုးသူများ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ ချုံ့ခြင်း</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ အသုံးပြုနိုင်သည့်နေရာများ</a></td>
-    <td align="center"><a href="#-private--local-first">🔒 ကိုယ်ရေးကိုယ်တာလုံခြုံမှု</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ လည်ပတ်နိုင်သည့်နေရာများ</a></td>
+    <td align="center"><a href="#-private--local-first">🔒 ကိုယ်ရေးသီးသန့်</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 ကြည့်ရှုရန်</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 လက်တွေ့အသုံးပြုပုံ</a></td>
-    <td align="center"><a href="#-whats-new">✨ အသစ်ပါရှိလာသည်များ</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 တွဲဖက်အသုံးပြုနိုင်သော CLIs များ</a></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 လက်တွေ့လုပ်ဆောင်ပုံ</a></td>
+    <td align="center"><a href="#-whats-new">✨ အသစ်ပါဝင်လာသည့်အရာများ</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 ကိုက်ညီသော CLI များ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 ပံ့ပိုးရန်</b></td>
     <td align="center"><a href="#-support-omniroute">💚 ပံ့ပိုးရန် / လှူဒါန်းရန်</a></td>
     <td align="center"><a href="#-community--help">💬 အသိုင်းအဝိုင်း</a></td>
-    <td align="center"><a href="#-sponsors">💖 စပွန်ဆာများ</a></td>
+    <td align="center"><a href="#-sponsors">💖 ပံ့ပိုးကူညီသူများ</a></td>
   </tr>
   <tr>
     <td align="right"><b>📦 ပရောဂျက်</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ နည်းပညာအစုအဝေး</a></td>
     <td align="center"><a href="#-documentation">📖 စာရွက်စာတမ်းများ</a></td>
-    <td align="center"><a href="#-600-contributors">👥 ပါဝင်ကူညီသူများ</a></td>
+    <td align="center"><a href="#-600-contributors">👥 ပါဝင်ပံ့ပိုးသူများ</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 ဘာသာစကား ၆၆ မျိုးဖြင့်</b>
+  <b>🌐 ဘာသာစကား 67 မျိုးဖြင့်</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="အင်္ဂလိပ် (en)" title="အင်္ဂလိပ် (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="ပေါ်တူဂီ — ဘရာဇီး (pt-BR)" title="ပေါ်တူဂီ — ဘရာဇီး (pt-BR)"></a>
@@ -155,7 +157,7 @@
   <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="ယူကရိန်း (uk-UA)" title="ယူကရိန်း (uk-UA)"></a>
   <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="ပိုလန် (pl)" title="ပိုလန် (pl)"></a>
   <a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="30" alt="ချက် (cs)" title="ချက် (cs)"></a>
-  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="စလိုဗက် (sk)" title="စလိုဗက် (sk)"></a>
+  <a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="30" alt="ဆလိုဗက် (sk)" title="ဆလိုဗက် (sk)"></a>
   <a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="30" alt="ရိုမေးနီးယား (ro)" title="ရိုမေးနီးယား (ro)"></a>
   <a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="30" alt="ဟန်ဂေရီ (hu)" title="ဟန်ဂေရီ (hu)"></a>
   <a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="30" alt="ဘူလ်ဂေးရီးယား (bg)" title="ဘူလ်ဂေးရီးယား (bg)"></a>
@@ -163,8 +165,8 @@
   <a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="30" alt="ဖင်လန် (fi)" title="ဖင်လန် (fi)"></a>
   <a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="30" alt="နော်ဝေ (no)" title="နော်ဝေ (no)"></a>
   <a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="30" alt="ဆွီဒင် (sv)" title="ဆွီဒင် (sv)"></a>
-  <a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="30" alt="တရုတ် — ရိုးရှင်းစာလုံး (zh-CN)" title="တရုတ် — ရိုးရှင်းစာလုံး (zh-CN)"></a>
-  <a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="30" alt="တရုတ် — ရိုးရာစာလုံး (zh-TW)" title="တရုတ် — ရိုးရာစာလုံး (zh-TW)"></a>
+  <a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="30" alt="တရုတ် — ရိုးရှင်း (zh-CN)" title="တရုတ် — ရိုးရှင်း (zh-CN)"></a>
+  <a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="30" alt="တရုတ် — ရိုးရာ (zh-TW)" title="တရုတ် — ရိုးရာ (zh-TW)"></a>
   <a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="30" alt="ဂျပန် (ja)" title="ဂျပန် (ja)"></a>
   <a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="30" alt="ကိုရီးယား (ko)" title="ကိုရီးယား (ko)"></a>
   <a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="30" alt="ထိုင်း (th)" title="ထိုင်း (th)"></a>
@@ -175,8 +177,8 @@
   <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ဟိန္ဒီ (hi)" title="ဟိန္ဒီ (hi)"></a>
   <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ဂူဂျာရတ် (gu)" title="ဂူဂျာရတ် (gu)"></a>
   <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="မာရသီ (mr)" title="မာရသီ (mr)"></a>
-  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="တမီလ် (ta)" title="တမီလ် (ta)"></a>
-  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="တေလူဂူ (te)" title="တေလူဂူ (te)"></a>
+  <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="တမီးလ် (ta)" title="တမီးလ် (ta)"></a>
+  <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="တေလုဂူ (te)" title="တေလုဂူ (te)"></a>
   <a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="30" alt="ဘင်္ဂါလီ (bn)" title="ဘင်္ဂါလီ (bn)"></a>
   <a href="docs/i18n/ur/README.md"><img src="docs/assets/flags/pk.svg" width="30" alt="အူရဒူ (ur)" title="အူရဒူ (ur)"></a>
   <a href="docs/i18n/fa/README.md"><img src="docs/assets/flags/ir.svg" width="30" alt="ပါရှန်း (fa)" title="ပါရှန်း (fa)"></a>
@@ -191,8 +193,8 @@
   <a href="docs/i18n/lt/README.md"><img src="docs/assets/flags/lt.svg" width="30" alt="လစ်သူယေးနီးယား (lt)" title="လစ်သူယေးနီးယား (lt)"></a>
   <a href="docs/i18n/et/README.md"><img src="docs/assets/flags/ee.svg" width="30" alt="အက်စ်တိုးနီးယား (et)" title="အက်စ်တိုးနီးယား (et)"></a>
   <a href="docs/i18n/lv/README.md"><img src="docs/assets/flags/lv.svg" width="30" alt="လတ်ဗီးယား (lv)" title="လတ်ဗီးယား (lv)"></a>
-  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="စလိုဗေးနီးယား (sl)" title="စလိုဗေးနီးယား (sl)"></a>
-  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="မောလ်တီစ် (mt)" title="မောလ်တီစ် (mt)"></a>
+  <a href="docs/i18n/sl/README.md"><img src="docs/assets/flags/si.svg" width="30" alt="ဆလိုဗေးနီးယား (sl)" title="ဆလိုဗေးနီးယား (sl)"></a>
+  <a href="docs/i18n/mt/README.md"><img src="docs/assets/flags/mt.svg" width="30" alt="မော်လ်တာ (mt)" title="မော်လ်တာ (mt)"></a>
   <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="အိုင်ရစ် (ga)" title="အိုင်ရစ် (ga)"></a>
   <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="ကန်နာဒါ (kn)" title="ကန်နာဒါ (kn)"></a>
   <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="မလေယာလမ် (ml)" title="မလေယာလမ် (ml)"></a>
@@ -204,11 +206,12 @@
   <a href="docs/i18n/km/README.md"><img src="docs/assets/flags/kh.svg" width="30" alt="ခမာ (km)" title="ခမာ (km)"></a>
   <a href="docs/i18n/ha/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ဟာဥဆာ (ha)" title="ဟာဥဆာ (ha)"></a>
   <a href="docs/i18n/yo/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="ယိုရူဘာ (yo)" title="ယိုရူဘာ (yo)"></a>
-  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="အစ်ဂ်ဘို (ig)" title="အစ်ဂ်ဘို (ig)"></a>
+  <a href="docs/i18n/ig/README.md"><img src="docs/assets/flags/ng.svg" width="30" alt="အီဂ်ဘို (ig)" title="အီဂ်ဘို (ig)"></a>
   <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="အမ်ဟာရစ် (am)" title="အမ်ဟာရစ် (am)"></a>
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="ဥဇဘက် (uz)" title="ဥဇဘက် (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ဂျော်ဂျီယာ (ka)" title="ဂျော်ဂျီယာ (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="အာမေးနီးယား (hy)" title="အာမေးနီးယား (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="ဘော့စနီးယား (bs)" title="ဘော့စနီးယား (bs)"></a>
 </div>
 
 <br/>
@@ -670,11 +673,11 @@ command တိုင်းသည် လက်ရှိအသုံးပြု�
 
 <div align="center">
 
-## 🌐 AI ဝန်ဆောင်မှုပေးသူ 357 ခု — Catalog တွင် အခမဲ့ဟု သတ်မှတ်ထားသည့် 152 ခု
+## 🌐 AI ပံ့ပိုးသူ 372 ခု — ကတ်တလောက်တွင် အခမဲ့ဟု မှတ်သားထားသော 154 ခု
 
 </div>
 
-> canonical chat၊ media၊ search၊ local၊ cloud-agent နှင့် system စုစည်းမှုများတစ်လျှောက် **မှတ်ပုံတင်ထားသော ဝန်ဆောင်မှုပေးသူ 357 ခု** ရှိပြီး၊ ၎င်းတို့အနက် **152 ခုတွင် `hasFree: true` ရှာဖွေဖော်ထုတ်ရေး metadata ပါရှိသည်**။ chat model registry တွင် **ဝန်ဆောင်မှုပေးသူ 229 ခု / မတူညီသော provider-model အတွဲ 2,554 ခု / raw model ID 1,283 ခု** ပါဝင်ပြီး၊ သီးခြား free-budget catalog တွင် **model အလိုက် row 491 ခု**၊ **ထပ်တလဲလဲရရှိနိုင်သော pool 35 ခု** နှင့် **ထပ်တလဲလဲရရှိနိုင်သော/keyless အမြဲတမ်းအခမဲ့ ဝန်ဆောင်မှုပေးသူ 54 ခု** ပါဝင်သည်။ ရည်ရွယ်ချက်အရ ၎င်းတို့၏ ပိုင်းခြေများသည် မတူညီကြပါသည်။ အဓိပ္ပာယ်သတ်မှတ်ချက်များနှင့် pool ထပ်နေမှုဖယ်ရှားပြီး တွက်ချက်မှုများကို [ဝန်ဆောင်မှုပေးသူ ကိုးကားချက်](docs/reference/PROVIDER_REFERENCE.md) နှင့် [အခမဲ့အဆင့်များ](docs/reference/FREE_TIERS.md) တွင် ကြည့်ရှုနိုင်ပါသည်။
+> ပင်မ chat၊ media၊ search၊ local၊ cloud-agent နှင့် system စုစည်းမှုများတစ်လျှောက် **မှတ်ပုံတင်ထားသော ပံ့ပိုးသူ 372 ခု** ရှိပြီး၊ ၎င်းတို့အနက် **154 ခုတွင် `hasFree: true` ရှာဖွေတွေ့ရှိမှု metadata ပါရှိသည်**။ Chat model registry တွင် **ပံ့ပိုးသူ 237 ခု / မတူညီသော provider-model အတွဲ 3,009 တွဲ / မပြုပြင်ရသေးသော model ID 1,443 ခု** ပါဝင်သည်။ သီးခြား အခမဲ့ဘတ်ဂျက် ကတ်တလောက်တွင် **model အလိုက် row 491 ခု**၊ **ထပ်တလဲလဲရရှိသော pool 35 ခု** နှင့် **ထပ်တလဲလဲရရှိသော/ကီးမလိုသော ထာဝရအခမဲ့ ပံ့ပိုးသူ 54 ခု** ရှိသည်။ ၎င်းတို့သည် ရည်ရွယ်ချက်ရှိရှိ မတူညီသော ပိုင်းခြေများဖြစ်ပြီး၊ အဓိပ္ပာယ်သတ်မှတ်ချက်များနှင့် pool ထပ်နေမှုဖယ်ရှားထားသော တွက်ချက်မှုများကို [ပံ့ပိုးသူ ကိုးကားချက်](docs/reference/PROVIDER_REFERENCE.md) နှင့် [အခမဲ့အဆင့်များ](docs/reference/FREE_TIERS.md) တွင် ကြည့်ရှုနိုင်သည်။
 
 <div align="center">
 
@@ -707,7 +710,7 @@ command တိုင်းသည် လက်ရှိအသုံးပြု�
   </tr>
 </table>
 
-<sub>…ထို့အပြင် နောက်ထပ် 330+ ခု — icon တစ်ခုစီကို dashboard ၏ ဝန်ဆောင်မှုပေးသူ catalog မှ တိုက်ရိုက်ရယူပြသသည်။ 📖 [ဝန်ဆောင်မှုပေးသူ ကိုးကားချက်](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…နှင့် နောက်ထပ် 330 ကျော် — အိုင်ကွန်တိုင်းသည် dashboard ၏ ပံ့ပိုးသူကတ်တလောက်မှ တိုက်ရိုက်ရယူထားသည်။ 📖 [ပံ့ပိုးသူ ကိုးကားချက်](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -716,23 +719,23 @@ command တိုင်းသည် လက်ရှိအသုံးပြု�
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>တိုကင်ကန့်သတ်ချက်မရှိ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>အလိုအလျောက်ရောက်တာ၊ Tencent Hy3<br/>အမြဲတမ်းအခမဲ့</sub></td>
-    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>အမြဲတမ်းအခမဲ့</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>အလိုအလျောက်ရောက်တာ၊ Tencent Hy3<br/>အမြဲတမ်း အခမဲ့</sub></td>
+    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>အမြဲတမ်း အခမဲ့</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>အခမဲ့အဆင့်</sub></td>
-    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>အမြဲတမ်းအခမဲ့</sub></td>
-    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>အမြဲတမ်းအခမဲ့</sub></td>
+    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>အမြဲတမ်း အခမဲ့</sub></td>
+    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>အမြဲတမ်း အခမဲ့</sub></td>
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>အကန့်အသတ်မရှိ အခမဲ့</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>ကီးမလိုအပ်ပါ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>မော်ဒယ် 50 ကျော်<br/>တစ်ရက်လျှင် နျူရွန် 10K</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>မော်ဒယ် 50+ ခု<br/>တစ်ရက်လျှင် နျူရွန် 10K</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>အခမဲ့ ~40 RPM</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>တစ်ကြိမ်သုံး $5 ခရက်ဒစ်၊ ကတ်လိုအပ်သည်</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free မော်ဒယ်များ<br/>+$10 → ပိုမိုမြင့်မားသော RPM</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free မော်ဒယ်များ<br/>+$10 → ပိုမြင့်သော RPM</sub></td>
   </tr>
 </table>
 
-📖 စက်ဖြင့်ဖတ်ရှုနိုင်သော ကက်တလောက်အပြည့်အစုံ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 စက်ဖြင့်ဖတ်ရှုနိုင်သော ကတ်တလောက်အပြည့်အစုံ → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>

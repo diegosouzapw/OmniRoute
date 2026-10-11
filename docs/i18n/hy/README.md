@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 Դարպասը շարունակում է ընդլայնվել
+## 📈 Gateway-ը շարունակում է աճել
 
 <div align="center">
 
-|                                   | v3.8.49 |           **v3.8.50**            |   `v3.8.51+`    |
-| --------------------------------- | :-----: | :------------------------------: | :-------------: |
-| 🌐 Մատակարարներ                   |   290   |             **357**              | ավելին՝ հերթում |
-| 🧠 Զրույցի մոդելների եզակի ID-ներ |  1185   |             **1312**             |        —        |
-| 🖼️ Մոդալությունների կամուրջ       |    —    | 🆕 տեսողություն + աուդիո + վիդեո |        —        |
-| 📡 Radar-ի անվճար կատալոգ         |    —    |        🆕 ըստ ցանկության         |        —        |
-| ⚖️ Քվոտան հաշվի առնող պլանավորում |    —    |          🆕 Quota-Share          |        —        |
-| 📊 Քվոտայի հեռաչափություն         |    —    |       🆕 իրական ժամանակում       |        —        |
+|                                   |               v3.8.50                | **v3.8.51** |      `v3.8.52+`       |
+| --------------------------------- | :----------------------------------: | :---------: | :-------------------: |
+| 🌐 Մատակարարներ                   |                 352                  |   **358**   |          372          |
+| 🧠 Զրույցի մոդելների եզակի ID-ներ |                 1320                 |  **1374**   |         1443          |
+| 🖼️ Մոդալությունների կամուրջ       | 🆕 տեսողություն + աուդիո + տեսանյութ |      ✓      |           ✓           |
+| 📡 Radar-ի անվճար կատալոգ         |          🆕 ըստ ցանկության           |      ✓      |           ✓           |
+| ⚖️ Քվոտան հաշվի առնող պլանավորում |            🆕 Quota-Share            |      ✓      |           ✓           |
+| 📊 Քվոտայի հեռաչափություն         |         🆕 իրական ժամանակում         |      ✓      |           ✓           |
+| 🧰 Առանց ինտերֆեյսի ռեժիմ         |                  —                   |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS ուղու ենթակառուցվածք       |                  —                   |      —      | 🆕 թողարկման ալիքներ  |
 
-**→ [Ճանապարհային քարտեզ](ROADMAP.md) — ուղով դեպի `v3.9.0 LTS`**
+**→ [Ճանապարհային քարտեզ](ROADMAP.md) — շարժվելով ուղով դեպի `v3.9.0 LTS`**
 
 </div>
 
@@ -101,7 +103,7 @@
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Առանց կազմաձևման</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💡 Իմացեք</b></td>
+    <td align="right"><b>💡 Իմացեք ավելին</b></td>
     <td align="center"><a href="#-the-promise">💥 Խոստումը</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Ինչու OmniRoute</a></td>
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Ինչով է առանձնանում</a></td>
@@ -109,7 +111,7 @@
   <tr>
     <td align="right"><b>⚙️ Հնարավորություններ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Համակցություններ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Մատակարարներ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Մատակարարներ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI և MCP</a></td>
   </tr>
   <tr>
@@ -121,12 +123,12 @@
   <tr>
     <td align="right"><b>👀 Դիտեք</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 Գործողության մեջ</a></td>
-    <td align="center"><a href="#-whats-new">✨ Ինչ նորություն կա</a></td>
+    <td align="center"><a href="#-whats-new">✨ Ինչ կա նոր</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Համատեղելի CLI-ներ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 Աջակցություն</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Աջակցել / Նվիրաբերել</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 Աջակցել / նվիրաբերել</a></td>
     <td align="center"><a href="#-community--help">💬 Համայնք</a></td>
     <td align="center"><a href="#-sponsors">💖 Հովանավորներ</a></td>
   </tr>
@@ -134,14 +136,14 @@
     <td align="right"><b>📦 Նախագիծ</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Տեխնոլոգիական փաթեթ</a></td>
     <td align="center"><a href="#-documentation">📖 Փաստաթղթեր</a></td>
-    <td align="center"><a href="#-600-contributors">👥 Աջակիցներ</a></td>
+    <td align="center"><a href="#-600-contributors">👥 Մասնակիցներ</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 66 լեզվով</b>
+  <b>🌐 67 լեզվով</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Անգլերեն (en)" title="Անգլերեն (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Պորտուգալերեն — Բրազիլիա (pt-BR)" title="Պորտուգալերեն — Բրազիլիա (pt-BR)"></a>
@@ -150,7 +152,7 @@
   <a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="30" alt="Ֆրանսերեն (fr)" title="Ֆրանսերեն (fr)"></a>
   <a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="30" alt="Իտալերեն (it)" title="Իտալերեն (it)"></a>
   <a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="30" alt="Գերմաներեն (de)" title="Գերմաներեն (de)"></a>
-  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="Հոլանդերեն (nl)" title="Հոլանդերեն (nl)"></a>
+  <a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="30" alt="Նիդեռլանդերեն (nl)" title="Նիդեռլանդերեն (nl)"></a>
   <a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="30" alt="Ռուսերեն (ru)" title="Ռուսերեն (ru)"></a>
   <a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="30" alt="Ուկրաիներեն (uk-UA)" title="Ուկրաիներեն (uk-UA)"></a>
   <a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="30" alt="Լեհերեն (pl)" title="Լեհերեն (pl)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Ուզբեկերեն (uz)" title="Ուզբեկերեն (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="Վրացերեն (ka)" title="Վրացերեն (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Բոսնիերեն (bs)" title="Բոսնիերեն (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ omniroute configure codex          # նաև՝ claude opencode qwen aider goose g
 
 <div align="center">
 
-## 🌐 357 AI մատակարար — 152-ը կատալոգում նշված են որպես անվճար
+## 🌐 372 AI մատակարար — 154-ը կատալոգում նշված են որպես անվճար
 
 </div>
 
-> **357 գրանցված մատակարար**՝ կանոնական չատի, մեդիայի, որոնման, տեղային, ամպային գործակալների և համակարգային հավաքածուներում, որոնցից **152-ն ունեն `hasFree: true` հայտնաբերման մետատվյալներ**։ Չատի մոդելների ռեեստրն ընդգրկում է **229 մատակարար / մատակարար-մոդել 2,554 տարբեր զույգ / 1,283 չմշակված մոդելի ID**․ անվճար բյուջեների առանձին կատալոգն ունի **491 տող՝ ըստ մոդելի**, **35 պարբերական պուլ** և **54 պարբերական/առանց բանալու՝ ընդմիշտ անվճար մատակարար**։ Դրանք նախագծված են տարբեր հայտարարներով․ սահմանումները և պուլերի կրկնությունները բացառող հաշվարկները ներկայացված են [Մատակարարների տեղեկատուում](docs/reference/PROVIDER_REFERENCE.md) և [Անվճար մակարդակներում](docs/reference/FREE_TIERS.md)։
+> **372 գրանցված մատակարար**՝ զրույցի, մեդիայի, որոնման, տեղային, ամպային գործակալների և համակարգային կանոնական հավաքածուներում, որոնցից **154-ն ունեն `hasFree: true` հայտնաբերման մետատվյալներ**։ Զրույցի մոդելների ռեեստրը ներառում է **237 մատակարար / մատակարար-մոդել 3,009 տարբեր զույգ / մոդելների 1,443 չմշակված ID**․ անվճար բյուջեների առանձին կատալոգն ունի **491 տող՝ ըստ մոդելի**, **35 պարբերաբար թարմացվող ռեսուրսային ավազան** և **54 պարբերաբար հասանելի կամ առանց բանալու՝ ընդմիշտ անվճար մատակարար**։ Նախագծային նկատառումներով սրանք տարբեր հաշվարկային հիմքեր են․ սահմանումները և կրկնությունները բացառող՝ ըստ ավազանների հաշվարկները հասանելի են [Մատակարարների տեղեկատուում](docs/reference/PROVIDER_REFERENCE.md) և [Անվճար մակարդակներում](docs/reference/FREE_TIERS.md)։
 
 <div align="center">
 
@@ -705,7 +708,7 @@ omniroute configure codex          # նաև՝ claude opencode qwen aider goose g
   </tr>
 </table>
 
-<sub>…և ևս 330+՝ յուրաքանչյուր պատկերակ իրական ժամանակում բեռնվում է վահանակի մատակարարների կատալոգից։ 📖 [Մատակարարների տեղեկատու](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…և ևս 330+ մատակարար․ յուրաքանչյուր պատկերակ իրական ժամանակում բեռնվում է կառավարման վահանակի մատակարարների կատալոգից։ 📖 [Մատակարարների տեղեկատու](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -724,7 +727,7 @@ omniroute configure codex          # նաև՝ claude opencode qwen aider goose g
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>ԱՆՍԱՀՄԱՆԱՓԱԿ ԱՆՎՃԱՐ</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Բանալի անհրաժեշտ չէ</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ մոդել<br/>Օրական 10K նեյրոն</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM՝ անվճար</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>Անվճար՝ ~40 RPM</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Մեկանգամյա $5 վարկ․ քարտը պարտադիր է</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free մոդելներ<br/>+$10 → ավելի բարձր RPM</sub></td>
   </tr>

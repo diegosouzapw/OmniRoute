@@ -69,22 +69,24 @@
 
 <div align="center">
 
-|                                 | v3.8.49 |        **v3.8.50**         |    `v3.8.51+`     |
-| ------------------------------- | :-----: | :------------------------: | :---------------: |
-| 🌐 អ្នកផ្តល់សេវា                |   290   |          **357**           | កំពុងរង់ចាំបន្ថែម |
-| 🧠 លេខសម្គាល់ម៉ូដែលជជែកតែមួយគត់ |  1185   |          **1312**          |         —         |
-| 🖼️ ស្ពានម៉ូដាលីតេ               |    —    | 🆕 រូបភាព + សំឡេង + វីដេអូ |         —         |
-| 📡 កាតាឡុក Radar ឥតគិតថ្លៃ      |    —    |     🆕 តាមការជ្រើសរើស      |         —         |
-| ⚖️ ការកំណត់កាលវិភាគដោយគិតពីកូតា |    —    |       🆕 Quota-Share       |         —         |
-| 📊 ទិន្នន័យតេលេមេទ្រីកូតា       |    —    |         🆕 ផ្ទាល់          |         —         |
+|                                 |           v3.8.50            | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------------- | :--------------------------: | :---------: | :-------------------: |
+| 🌐 អ្នកផ្តល់សេវា                |             352              |   **358**   |          372          |
+| 🧠 ID ម៉ូដែលជជែកតែមួយគត់        |             1320             |  **1374**   |         1443          |
+| 🖼️ ស្ពានទម្រង់ទិន្នន័យ          | 🆕 រូបភាព + អូឌីយ៉ូ + វីដេអូ |      ✓      |           ✓           |
+| 📡 កាតាឡុក Radar ឥតគិតថ្លៃ      |        🆕 ជ្រើសរើសចូល        |      ✓      |           ✓           |
+| ⚖️ ការកំណត់កាលវិភាគដោយគិតពីកូតា |        🆕 Quota-Share        |      ✓      |           ✓           |
+| 📊 ទិន្នន័យតេឡេមេទ្រីនៃកូតា     |          🆕 ផ្ទាល់           |      ✓      |           ✓           |
+| 🧰 របៀបគ្មានចំណុចប្រទាក់        |              —               |      —      | 🆕 `serve --headless` |
+| 🛤️ ហេដ្ឋារចនាសម្ព័ន្ធផ្លូវ LTS  |              —               |      —      |   🆕 ឆានែលចេញផ្សាយ    |
 
-**→ [ផែនការអភិវឌ្ឍន៍](ROADMAP.md) — ធ្វើដំណើរតាមផ្លូវឆ្ពោះទៅកាន់ `v3.9.0 LTS`**
+**→ [ផែនទីបង្ហាញផ្លូវ](ROADMAP.md) — ធ្វើដំណើរតាមផ្លូវឆ្ពោះទៅកាន់ `v3.9.0 LTS`**
 
 </div>
 
 <br/>
 
-## 🧩 មានស្រាប់
+## 🧩 អាចប្រើបាន
 
 [![កំណែ npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 ![ការទាញយក NPM ប្រចាំខែ](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
@@ -98,30 +100,30 @@
     <td align="right"><b>🚀 ចាប់ផ្ដើម</b></td>
     <td align="center"><a href="#-quick-start">🚀 ចាប់ផ្ដើមរហ័ស</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 ដំឡើង</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 មិនបាច់កំណត់រចនាសម្ព័ន្ធ</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 មិនត្រូវការការកំណត់រចនាសម្ព័ន្ធ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 ស្វែងយល់</b></td>
     <td align="center"><a href="#-the-promise">💥 ការសន្យា</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 ហេតុអ្វីជ្រើសរើស OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 ចំណុចលេចធ្លោ</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 អ្វីដែលធ្វើឱ្យ OmniRoute ខុសប្លែក</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ មុខងារ</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 បន្សំ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 អ្នកផ្ដល់សេវា</a></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 ការរួមបញ្ចូល</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 អ្នកផ្ដល់សេវា</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ ការបង្ហាប់</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ទីតាំងដែលវាដំណើរការ</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ ទីកន្លែងដែលវាដំណើរការ</a></td>
     <td align="center"><a href="#-private--local-first">🔒 ឯកជន</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 មើលការបង្ហាញ</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 ការប្រើប្រាស់ជាក់ស្ដែង</a></td>
-    <td align="center"><a href="#-whats-new">✨ មានអ្វីថ្មី</a></td>
+    <td align="right"><b>👀 មើលវា</b></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 ការដំណើរការជាក់ស្ដែង</a></td>
+    <td align="center"><a href="#-whats-new">✨ អ្វីដែលថ្មី</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLI ដែលត្រូវគ្នា</a></td>
   </tr>
   <tr>
@@ -132,16 +134,16 @@
   </tr>
   <tr>
     <td align="right"><b>📦 គម្រោង</b></td>
-    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ បណ្ដុំបច្ចេកវិទ្យា</a></td>
+    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ បច្ចេកវិទ្យាដែលប្រើ</a></td>
     <td align="center"><a href="#-documentation">📖 ឯកសារ</a></td>
-    <td align="center"><a href="#-600-contributors">👥 អ្នកចូលរួមចំណែក</a></td>
+    <td align="center"><a href="#-600-contributors">👥 អ្នករួមចំណែក</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 មានជា 66 ភាសា</b>
+  <b>🌐 មានជា 67 ភាសា</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,15 +671,15 @@ omniroute configure codex          # ក៏មានផងដែរ៖ claude op
 
 <div align="center">
 
-## 🌐 អ្នកផ្តល់សេវា AI ចំនួន 357 — 152 ត្រូវបានសម្គាល់ថាឥតគិតថ្លៃក្នុងកាតាឡុក
+## 🌐 អ្នកផ្តល់សេវា AI ចំនួន 372 — 154 ត្រូវបានសម្គាល់ថាឥតគិតថ្លៃក្នុងកាតាឡុក
 
 </div>
 
-> **អ្នកផ្តល់សេវាដែលបានចុះបញ្ជីចំនួន 357** នៅទូទាំងបណ្តុំផ្លូវការសម្រាប់ការជជែក មេឌៀ ការស្វែងរក មូលដ្ឋាន ភ្នាក់ងារក្លោដ និងប្រព័ន្ធ រួមទាំង **152 ដែលមានទិន្នន័យមេតាសម្រាប់ការស្វែងរក `hasFree: true`**។ បញ្ជីចុះឈ្មោះម៉ូដែលជជែកគ្របដណ្តប់លើ **អ្នកផ្តល់សេវា 229 / គូអ្នកផ្តល់សេវា-ម៉ូដែលដាច់ដោយឡែក 2,554 / លេខសម្គាល់ម៉ូដែលដើម 1,283**; កាតាឡុកថវិកាឥតគិតថ្លៃដាច់ដោយឡែកមាន **ជួរទិន្នន័យតាមម៉ូដែលចំនួន 491** **កញ្ចប់កូតាកើតឡើងវិញចំនួន 35** និង **អ្នកផ្តល់សេវាឥតគិតថ្លៃជារៀងរហូតដែលមានកូតាកើតឡើងវិញ/មិនត្រូវការសោចំនួន 54**។ តួចែកទាំងនេះខុសគ្នាតាមការរចនា; និយមន័យ និងការគណនាដែលបានលុបការស្ទួនតាមកញ្ចប់ មាននៅក្នុង [ឯកសារយោងអ្នកផ្តល់សេវា](docs/reference/PROVIDER_REFERENCE.md) និង [កម្រិតប្រើប្រាស់ឥតគិតថ្លៃ](docs/reference/FREE_TIERS.md)។
+> **អ្នកផ្តល់សេវាដែលបានចុះបញ្ជីចំនួន 372** នៅទូទាំងបណ្តុំស្តង់ដារសម្រាប់ការជជែក មេឌៀ ការស្វែងរក មូលដ្ឋាន ភ្នាក់ងារក្លោដ និងប្រព័ន្ធ ដែលរួមមាន **154 ដែលមានទិន្នន័យមេតាសម្រាប់ការស្វែងរក `hasFree: true`**។ បញ្ជីចុះឈ្មោះម៉ូដែលជជែកគ្របដណ្តប់ **អ្នកផ្តល់សេវា 237 / គូអ្នកផ្តល់សេវា-ម៉ូដែលផ្សេងគ្នា 3,009 / លេខសម្គាល់ម៉ូដែលដើម 1,443**; កាតាឡុកថវិកាឥតគិតថ្លៃដាច់ដោយឡែកមាន **ទិន្នន័យតាមម៉ូដែល 491 ជួរ** **កញ្ចប់កូតាកើតឡើងវិញ 35** និង **អ្នកផ្តល់សេវាឥតគិតថ្លៃជារៀងរហូតបែបកើតឡើងវិញ/មិនត្រូវការសោចំនួន 54**។ តួចែកទាំងនេះខុសគ្នាដោយចេតនា; និយមន័យ និងការគណនាដែលបានលុបការស្ទួនតាមកញ្ចប់មាននៅក្នុង [ឯកសារយោងអ្នកផ្តល់សេវា](docs/reference/PROVIDER_REFERENCE.md) និង [កម្រិតប្រើប្រាស់ឥតគិតថ្លៃ](docs/reference/FREE_TIERS.md)។
 
 <div align="center">
 
-### 🏢 មន្ទីរពិសោធន៍ធំៗទាំងអស់ — តាមរយៈចំណុចចូលដំណើរការតែមួយ
+### 🏢 មន្ទីរពិសោធន៍ធំៗទាំងអស់ — តាមរយៈចំណុចចូលប្រើតែមួយ
 
 <table>
   <tr>
@@ -705,7 +708,7 @@ omniroute configure codex          # ក៏មានផងដែរ៖ claude op
   </tr>
 </table>
 
-<sub>…និងជាង 330 ទៀត — រូបតំណាងនីមួយៗត្រូវបានទាញយកផ្ទាល់ពីកាតាឡុកអ្នកផ្តល់សេវារបស់ផ្ទាំងគ្រប់គ្រង។ 📖 [ឯកសារយោងអ្នកផ្តល់សេវា](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…និង 330+ ទៀត — រូបតំណាងទាំងអស់ត្រូវបានទាញយកផ្ទាល់ពីកាតាឡុកអ្នកផ្តល់សេវារបស់ផ្ទាំងគ្រប់គ្រង។ 📖 [ឯកសារយោងអ្នកផ្តល់សេវា](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -714,9 +717,9 @@ omniroute configure codex          # ក៏មានផងដែរ៖ claude op
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>គ្មានដែនកំណត់ថូខឹន</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>រ៉ោតទ័រស្វ័យប្រវត្តិ, Tencent Hy3<br/>ឥតគិតថ្លៃជារៀងរហូត</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>ការកំណត់ផ្លូវស្វ័យប្រវត្តិ, Tencent Hy3<br/>ឥតគិតថ្លៃជារៀងរហូត</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>ឥតគិតថ្លៃជារៀងរហូត</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>កម្រិតប្រើប្រាស់ឥតគិតថ្លៃ</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>កម្រិតឥតគិតថ្លៃ</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>ឥតគិតថ្លៃជារៀងរហូត</sub></td>
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>ឥតគិតថ្លៃជារៀងរហូត</sub></td>
   </tr>
@@ -724,8 +727,8 @@ omniroute configure codex          # ក៏មានផងដែរ៖ claude op
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>ឥតគិតថ្លៃដោយគ្មានដែនកំណត់</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>មិនត្រូវការសោទេ</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>ម៉ូដែលជាង 50<br/>10K ណឺរ៉ូន/ថ្ងៃ</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>ឥតគិតថ្លៃប្រហែល 40 RPM</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>ឥណទាន $5 ម្តងប៉ុណ្ណោះ; តម្រូវឱ្យមានកាត</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>ប្រហែល 40 RPM ឥតគិតថ្លៃ</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>ឥណទាន $5 មួយលើក; តម្រូវឱ្យមានកាត</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>ម៉ូដែល :free<br/>+$10 → RPM ខ្ពស់ជាងមុន</sub></td>
   </tr>
 </table>

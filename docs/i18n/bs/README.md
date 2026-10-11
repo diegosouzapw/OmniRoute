@@ -69,14 +69,16 @@
 
 <div align="center">
 
-|                                    | v3.8.49 |         **v3.8.50**          |    `v3.8.51+`    |
-| ---------------------------------- | :-----: | :--------------------------: | :--------------: |
-| 🌐 Pružaoci usluga                 |   290   |           **357**            | još ih je u redu |
-| 🧠 Jedinstveni ID-jevi chat modela |  1185   |           **1312**           |        —         |
-| 🖼️ Most modaliteta                 |    —    | 🆕 slika + zvuk + videozapis |        —         |
-| 📡 Besplatni Radar katalog         |    —    |    🆕 po izboru korisnika    |        —         |
-| ⚖️ Raspoređivanje prema kvoti      |    —    |        🆕 Quota-Share        |        —         |
-| 📊 Telemetrija kvota               |    —    |           🆕 uživo           |        —         |
+|                                      |        v3.8.50        | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------------------ | :-------------------: | :---------: | :-------------------: |
+| 🌐 Pružatelji usluga                 |          352          |   **358**   |          372          |
+| 🧠 Jedinstveni ID-ovi modela za chat |         1320          |  **1374**   |         1443          |
+| 🖼️ Most modaliteta                   | 🆕 vid + zvuk + video |      ✓      |           ✓           |
+| 📡 Besplatni Radar katalog           |     🆕 uz prijavu     |      ✓      |           ✓           |
+| ⚖️ Raspoređivanje prema kvoti        |    🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 Telemetrija kvota                 |       🆕 uživo        |      ✓      |           ✓           |
+| 🧰 Bezinterfejsni način rada         |           —           |      —      | 🆕 `serve --headless` |
+| 🛤️ Infrastruktura LTS grane          |           —           |      —      |   🆕 kanali izdanja   |
 
 **→ [Plan razvoja](ROADMAP.md) — na putu prema `v3.9.0 LTS`**
 
@@ -87,7 +89,7 @@
 ## 🧩 Dostupno
 
 [![npm verzija](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM mjesečno](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![Mjesečno na NPM-u](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licenca: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker preuzimanja](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -104,18 +106,18 @@
     <td align="right"><b>💡 Saznajte više</b></td>
     <td align="center"><a href="#-the-promise">💥 Obećanje</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Zašto OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Šta ga izdvaja</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Po čemu se izdvaja</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Funkcionalnosti</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinacije</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pružaoci usluga</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pružatelji usluga</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI i MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Kompresija</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Gdje se izvršava</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Gdje se pokreće</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Privatnost</a></td>
   </tr>
   <tr>
@@ -126,12 +128,12 @@
   </tr>
   <tr>
     <td align="right"><b>💚 Podrška</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Podrška / Donacija</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 Podržite / Donirajte</a></td>
     <td align="center"><a href="#-community--help">💬 Zajednica</a></td>
     <td align="center"><a href="#-sponsors">💖 Sponzori</a></td>
   </tr>
   <tr>
-    <td align="right"><b>📦 Projekat</b></td>
+    <td align="right"><b>📦 Projekt</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Tehnološki skup</a></td>
     <td align="center"><a href="#-documentation">📖 Dokumentacija</a></td>
     <td align="center"><a href="#-600-contributors">👥 Doprinositelji</a></td>
@@ -196,7 +198,7 @@
   <a href="docs/i18n/ga/README.md"><img src="docs/assets/flags/ie.svg" width="30" alt="Irski (ga)" title="Irski (ga)"></a>
   <a href="docs/i18n/kn/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Kanada (kn)" title="Kanada (kn)"></a>
   <a href="docs/i18n/ml/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Malajalamski (ml)" title="Malajalamski (ml)"></a>
-  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Odijski (or)" title="Odijski (or)"></a>
+  <a href="docs/i18n/or/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Odija (or)" title="Odija (or)"></a>
   <a href="docs/i18n/pa/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Pandžapski (pa)" title="Pandžapski (pa)"></a>
   <a href="docs/i18n/ne/README.md"><img src="docs/assets/flags/np.svg" width="30" alt="Nepalski (ne)" title="Nepalski (ne)"></a>
   <a href="docs/i18n/si/README.md"><img src="docs/assets/flags/lk.svg" width="30" alt="Sinhalski (si)" title="Sinhalski (si)"></a>
@@ -677,11 +679,11 @@ da se tajne zabilježe u historiji komandne ljuske. → [CLI integracije](docs/g
 
 <div align="center">
 
-## 🌐 357 AI provajdera — 152 označena u katalogu kao besplatna
+## 🌐 372 AI pružaoca — 154 označena u katalogu kao besplatna
 
 </div>
 
-> **357 registrovanih provajdera** u kanonskim kolekcijama za razgovor, medije, pretragu, lokalne modele, agente u oblaku i sistemske funkcije, uključujući **152 s metapodacima za otkrivanje `hasFree: true`**. Registar modela za razgovor obuhvata **229 provajdera / 2.554 različita para provajder-model / 1.283 neobrađena ID-a modela**; zasebni katalog besplatnih budžeta sadrži **491 red po modelu**, **35 obnovljivih skupova** i **54 obnovljiva provajdera ili provajdera koji su trajno besplatni bez ključa**. Ovi nazivnici su namjerno različiti; definicije i izračuni s uklonjenim duplikatima među skupovima nalaze se u dokumentima [Referenca provajdera](docs/reference/PROVIDER_REFERENCE.md) i [Besplatni nivoi](docs/reference/FREE_TIERS.md).
+> **372 registrovana pružaoca** u kanonskim kolekcijama za razgovor, medije, pretragu, lokalne modele, agente u oblaku i sistem, uključujući **154 s metapodacima za otkrivanje `hasFree: true`**. Registar modela za razgovor obuhvata **237 pružalaca / 3.009 različitih parova pružalac-model / 1.443 izvorna ID-a modela**; zasebni katalog besplatnih kvota sadrži **491 red po modelu**, **35 obnavljajućih skupova** i **54 obnavljajuća pružaoca ili pružaoca koji su trajno besplatni bez ključa**. To su namjerno različiti nazivnici; definicije i proračuni s uklonjenim duplikatima skupova nalaze se u dokumentima [Referenca pružalaca](docs/reference/PROVIDER_REFERENCE.md) i [Besplatni nivoi](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -714,7 +716,7 @@ da se tajne zabilježe u historiji komandne ljuske. → [CLI integracije](docs/g
   </tr>
 </table>
 
-<sub>…i još 330+ — svaka ikona učitava se uživo iz kataloga provajdera na kontrolnoj ploči. 📖 [Referenca provajdera](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…i još 330+ — svaka ikona učitava se uživo iz kataloga pružalaca na kontrolnoj ploči. 📖 [Referenca pružalaca](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -723,14 +725,14 @@ da se tajne zabilježe u historiji komandne ljuske. → [CLI integracije](docs/g
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Bez ograničenja tokena</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automatski usmjerivač, Tencent Hy3<br/>Besplatno zauvijek</sub></td>
-    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Besplatno zauvijek</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automatsko usmjeravanje, Tencent Hy3<br/>Zauvijek besplatno</sub></td>
+    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Zauvijek besplatno</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Besplatni nivo</sub></td>
-    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Besplatno zauvijek</sub></td>
-    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Besplatno zauvijek</sub></td>
+    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Zauvijek besplatno</sub></td>
+    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Zauvijek besplatno</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>NEOGRANIČENO BESPLATNO</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Neograničeno BESPLATNO</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Ključ nije potreban</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ modela<br/>10K neurona/dan</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM besplatno</sub></td>

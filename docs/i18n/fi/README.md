@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                                     | v3.8.49 |      **v3.8.50**       |  `v3.8.51+`   |
-| ----------------------------------- | :-----: | :--------------------: | :-----------: |
-| 🌐 Palveluntarjoajat                |   290   |        **357**         | lisää jonossa |
-| 🧠 Yksilölliset chat-mallitunnukset |  1185   |        **1312**        |       —       |
-| 🖼️ Modaliteettisilta                |    —    | 🆕 näkö + ääni + video |       —       |
-| 📡 Radarin ilmainen luettelo        |    —    |     🆕 valinnainen     |       —       |
-| ⚖️ Kiintiöt huomioiva ajoitus       |    —    |     🆕 Quota-Share     |       —       |
-| 📊 Kiintiötelemetria                |    —    |   🆕 reaaliaikainen    |       —       |
+|                                       |            v3.8.50            | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------------------- | :---------------------------: | :---------: | :-------------------: |
+| 🌐 Palveluntarjoajat                  |              352              |   **358**   |          372          |
+| 🧠 Yksilölliset chat-mallitunnukset   |             1320              |  **1374**   |         1443          |
+| 🖼️ Modaliteettisilta                  |    🆕 näkö + ääni + video     |      ✓      |           ✓           |
+| 📡 Radarin ilmainen luettelo          | 🆕 erikseen käyttöön otettava |      ✓      |           ✓           |
+| ⚖️ Kiintiöt huomioiva ajoitus         |        🆕 Quota-Share         |      ✓      |           ✓           |
+| 📊 Kiintiötelemetria                  |       🆕 reaaliaikainen       |      ✓      |           ✓           |
+| 🧰 Päätön tila                        |               —               |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS-julkaisulinjan infrastruktuuri |               —               |      —      |  🆕 julkaisukanavat   |
 
-**→ [Kehityssuunnitelma](ROADMAP.md) — raiteilla kohti versiota `v3.9.0 LTS`**
+**→ [Etenemissuunnitelma](ROADMAP.md) — julkaisulinjaa pitkin kohti versiota `v3.9.0 LTS`**
 
 </div>
 
@@ -120,8 +122,8 @@
   </tr>
   <tr>
     <td align="right"><b>👀 Katso</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 Käytännössä</a></td>
-    <td align="center"><a href="#-whats-new">✨ Uutta</a></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 Toiminnassa</a></td>
+    <td align="center"><a href="#-whats-new">✨ Mitä uutta</a></td>
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Yhteensopivat CLI:t</a></td>
   </tr>
   <tr>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 66 kielellä</b>
+  <b>🌐 67 kielellä</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Englanti (en)" title="Englanti (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -677,15 +680,15 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
 
 <div align="center">
 
-## 🌐 372 tekoälypalveluntarjoajaa — 154 merkitty luettelossa ilmaisiksi
+## 🌐 372 tekoälypalveluntarjoajaa — 154 merkitty luettelossa maksuttomiksi
 
 </div>
 
-> **357 rekisteröityä palveluntarjoajaa** ensisijaisissa keskustelu-, media-, haku-, paikallis-, pilviagentti- ja järjestelmäkokoelmissa, joista **152 sisältää `hasFree: true` -löytämismetadatan**. Keskustelumallirekisteri kattaa **229 palveluntarjoajaa / 2 554 erillistä palveluntarjoaja–malli-paria / 1 283 käsittelemätöntä mallitunnusta**; erillisessä ilmaisen käyttöbudjetin luettelossa on **491 mallikohtaista riviä**, **35 uusiutuvaa resurssipoolia** ja **54 uusiutuvaa tai avaimetonta pysyvästi ilmaista palveluntarjoajaa**. Nimittäjät ovat tarkoituksella erilaisia; määritelmät ja resurssipoolien kaksoiskappaleet poistavat laskelmat löytyvät [palveluntarjoajaviitteestä](docs/reference/PROVIDER_REFERENCE.md) ja [ilmaiskäyttötasoista](docs/reference/FREE_TIERS.md).
+> **372 rekisteröityä palveluntarjoajaa** kanonisissa keskustelu-, media-, haku-, paikallis-, pilviagentti- ja järjestelmäkokoelmissa, joista **154 sisältää `hasFree: true` -löytämismetatiedon**. Keskustelumallirekisteri kattaa **237 palveluntarjoajaa / 3 009 yksilöllistä palveluntarjoajan ja mallin yhdistelmää / 1 443 käsittelemätöntä mallitunnusta**; erillisessä maksuttomien käyttökiintiöiden luettelossa on **491 mallikohtaista riviä**, **35 uusiutuvaa resurssipoolia** ja **54 uusiutuvan tai avaimettoman, pysyvästi maksuttoman käytön tarjoavaa palveluntarjoajaa**. Näissä käytetään tarkoituksella eri nimittäjiä; määritelmät ja resurssipoolien päällekkäisyydet poistavat laskelmat löytyvät [palveluntarjoajien viitteestä](docs/reference/PROVIDER_REFERENCE.md) ja [maksuttomista käyttökiintiöistä](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Kaikki merkittävät laboratoriot — yhden päätepisteen kautta
+### 🏢 Kaikki merkittävät laboratoriot — yhden rajapinnan kautta
 
 <table>
   <tr>
@@ -714,32 +717,32 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
   </tr>
 </table>
 
-<sub>…ja yli 330 muuta — jokainen kuvake haetaan reaaliaikaisesti hallintapaneelin palveluntarjoajaluettelosta. 📖 [Palveluntarjoajaviite](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…ja yli 330 muuta — jokainen kuvake haetaan reaaliaikaisesti hallintapaneelin palveluntarjoajaluettelosta. 📖 [Palveluntarjoajien viite](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 Pysyvästi ilmainen — 0 $, ei korttia
+### 🆓 Maksuton pysyvästi — $0, ei maksukorttia
 
 <table>
   <tr>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Ei tokenirajoitusta</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automaattinen reititin, Tencent Hy3<br/>Ilmainen ikuisesti</sub></td>
-    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Ilmainen ikuisesti</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Ilmaistaso</sub></td>
-    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Ilmainen ikuisesti</sub></td>
-    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Ilmainen ikuisesti</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Ei tokenirajaa</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automaattinen reititys, Tencent Hy3<br/>Aina ilmainen</sub></td>
+    <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Aina ilmainen</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Ilmainen taso</sub></td>
+    <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Aina ilmainen</sub></td>
+    <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Aina ilmainen</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>RAJATTOMASTI ILMAINEN</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Rajattomasti ILMAISEKSI</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Avainta ei tarvita</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Yli 50 mallia<br/>10 000 neuronia/päivä</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM ilmaiseksi</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Kertaluonteinen 5 $:n saldo; kortti vaaditaan</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free-mallit<br/>+10 $ → korkeampi RPM</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free-mallit<br/>+10 $ → suurempi RPM</sub></td>
   </tr>
 </table>
 
-📖 Täydellinen koneluettava luettelo → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 Kattava koneluettava luettelo → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>

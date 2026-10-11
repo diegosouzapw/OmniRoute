@@ -65,18 +65,20 @@
 
 <br/>
 
-## 📈 Brama wciąż się rozwija
+## 📈 Gateway stale się rozwija
 
 <div align="center">
 
-|                                         | v3.8.49 |        **v3.8.50**        |    `v3.8.51+`    |
-| --------------------------------------- | :-----: | :-----------------------: | :--------------: |
-| 🌐 Dostawcy                             |   290   |          **357**          | więcej w kolejce |
-| 🧠 Unikalne identyfikatory modeli czatu |  1185   |         **1312**          |        —         |
-| 🖼️ Most modalności                      |    —    | 🆕 obraz + dźwięk + wideo |        —         |
-| 📡 Bezpłatny katalog Radar              |    —    |       🆕 opcjonalny       |        —         |
-| ⚖️ Planowanie uwzględniające limity     |    —    |      🆕 Quota-Share       |        —         |
-| 📊 Telemetria limitów                   |    —    |        🆕 na żywo         |        —         |
+|                                         |          v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| --------------------------------------- | :-----------------------: | :---------: | :-------------------: |
+| 🌐 Dostawcy                             |            352            |   **358**   |          372          |
+| 🧠 Unikalne identyfikatory modeli czatu |           1320            |  **1374**   |         1443          |
+| 🖼️ Most modalności                      | 🆕 obraz + dźwięk + wideo |      ✓      |           ✓           |
+| 📡 Bezpłatny katalog Radar              |      🆕 opcjonalnie       |      ✓      |           ✓           |
+| ⚖️ Planowanie uwzględniające limity     |      🆕 Quota-Share       |      ✓      |           ✓           |
+| 📊 Telemetria limitów                   | 🆕 w czasie rzeczywistym  |      ✓      |           ✓           |
+| 🧰 Tryb bez interfejsu                  |             —             |      —      | 🆕 `serve --headless` |
+| 🛤️ Infrastruktura ścieżki LTS           |             —             |      —      |    🆕 kanały wydań    |
 
 **→ [Plan rozwoju](ROADMAP.md) — na torach do `v3.9.0 LTS`**
 
@@ -84,13 +86,13 @@
 
 <br/>
 
-## 🧩 Dostępność
+## 🧩 Dostępne
 
 [![wersja npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 ![Miesięczne pobrania NPM](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licencja: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Pobrania z Dockera](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Pobrania Dockera](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Pobrania Electrona](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
@@ -104,7 +106,7 @@
     <td align="right"><b>💡 Informacje</b></td>
     <td align="center"><a href="#-the-promise">💥 Obietnica</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Dlaczego OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Co wyróżnia OmniRoute</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Co nas wyróżnia</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Funkcje</b></td>
@@ -126,7 +128,7 @@
   </tr>
   <tr>
     <td align="right"><b>💚 Wsparcie</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Wsparcie / Darowizny</a></td>
+    <td align="center"><a href="#-support-omniroute">💚 Wesprzyj / Przekaż darowiznę</a></td>
     <td align="center"><a href="#-community--help">💬 Społeczność</a></td>
     <td align="center"><a href="#-sponsors">💖 Sponsorzy</a></td>
   </tr>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 W 66 językach</b>
+  <b>🌐 W 67 językach</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Angielski (en)" title="Angielski (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Portugalski — Brazylia (pt-BR)" title="Portugalski — Brazylia (pt-BR)"></a>
@@ -173,7 +175,7 @@
   <a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="30" alt="Malajski (ms)" title="Malajski (ms)"></a>
   <a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="30" alt="Filipiński (phi)" title="Filipiński (phi)"></a>
   <a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Hindi (hi)" title="Hindi (hi)"></a>
-  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Gudźarati (gu)" title="Gudźarati (gu)"></a>
+  <a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Gudżarati (gu)" title="Gudżarati (gu)"></a>
   <a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Marathi (mr)" title="Marathi (mr)"></a>
   <a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Tamilski (ta)" title="Tamilski (ta)"></a>
   <a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="30" alt="Telugu (te)" title="Telugu (te)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Uzbecki (uz)" title="Uzbecki (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="Gruziński (ka)" title="Gruziński (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Ormiański (hy)" title="Ormiański (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bośniacki (bs)" title="Bośniacki (bs)"></a>
 </div>
 
 <br/>
@@ -681,7 +684,7 @@ zapisywaniu sekretów w historii powłoki. → [Integracje CLI](docs/guides/CLI-
 
 </div>
 
-> **357 zarejestrowanych dostawców** w kanonicznych kolekcjach czatu, multimediów, wyszukiwania, modeli lokalnych, agentów chmurowych i systemowych, w tym **152 z metadanymi wykrywania `hasFree: true`**. Rejestr modeli czatu obejmuje **229 dostawców / 2 554 unikalne pary dostawca-model / 1 283 surowe identyfikatory modeli**; oddzielny katalog bezpłatnych limitów zawiera **491 wierszy dla poszczególnych modeli**, **35 odnawialnych pul** oraz **54 dostawców oferujących odnawialny lub bezkluczowy dostęp bezpłatny na zawsze**. Z założenia są to różne mianowniki; definicje i obliczenia z deduplikacją pul znajdują się w dokumentach [Dokumentacja dostawców](docs/reference/PROVIDER_REFERENCE.md) i [Bezpłatne plany](docs/reference/FREE_TIERS.md).
+> **372 zarejestrowanych dostawców** w kanonicznych kolekcjach czatu, multimediów, wyszukiwania, rozwiązań lokalnych, agentów chmurowych i systemowych, w tym **154 z metadanymi wykrywania `hasFree: true`**. Rejestr modeli czatu obejmuje **237 dostawców / 3 009 unikalnych par dostawca–model / 1 443 nieprzetworzone identyfikatory modeli**; osobny katalog bezpłatnych limitów zawiera **491 wierszy dla poszczególnych modeli**, **35 odnawialnych pul** oraz **54 dostawców oferujących odnawialny lub niewymagający klucza bezpłatny dostęp bezterminowy**. Są to celowo różne podstawy obliczeń; definicje i obliczenia z deduplikacją pul znajdują się w dokumentach [Dokumentacja dostawców](docs/reference/PROVIDER_REFERENCE.md) i [Bezpłatne poziomy](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -714,11 +717,11 @@ zapisywaniu sekretów w historii powłoki. → [Integracje CLI](docs/guides/CLI-
   </tr>
 </table>
 
-<sub>…oraz ponad 330 innych — każda ikona jest pobierana na żywo z katalogu dostawców panelu. 📖 [Dokumentacja dostawców](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…i ponad 330 innych — każda ikona jest pobierana na żywo z katalogu dostawców panelu. 📖 [Dokumentacja dostawców](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 Bezpłatnie na zawsze — $0, bez karty
+### 🆓 Bezpłatnie bezterminowo — $0, bez karty
 
 <table>
   <tr>
@@ -730,12 +733,12 @@ zapisywaniu sekretów w historii powłoki. → [Integracje CLI](docs/guides/CLI-
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Bezpłatnie na zawsze</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Bez ograniczeń i BEZPŁATNIE</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>BEZPŁATNIE bez ograniczeń</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Klucz nie jest wymagany</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Ponad 50 modeli<br/>10 tys. neuronów dziennie</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>Około 40 RPM bezpłatnie</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Jednorazowy kredyt w wysokości 5 USD; wymagana karta</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Modele :free<br/>+10 USD → wyższy limit RPM</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Ponad 50 modeli<br/>10 tys. neuronów/dzień</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM bezpłatnie</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Jednorazowy kredyt $5; wymagana karta</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Modele :free<br/>+$10 → wyższy limit RPM</sub></td>
   </tr>
 </table>
 

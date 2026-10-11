@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 Gateway Inaendelea Kukua
+## 📈 Lango Linaendelea Kukua
 
 <div align="center">
 
-|                                                 | v3.8.49 |         **v3.8.50**         |    `v3.8.51+`    |
-| ----------------------------------------------- | :-----: | :-------------------------: | :--------------: |
-| 🌐 Watoa huduma                                 |   290   |           **357**           | zaidi zinasubiri |
-| 🧠 Vitambulisho vya kipekee vya modeli za gumzo |  1185   |          **1312**           |        —         |
-| 🖼️ Daraja la Modali                             |    —    |  🆕 kuona + sauti + video   |        —         |
-| 📡 Katalogi ya bila malipo ya Radar             |    —    | 🆕 kwa kujisajili kwa hiari |        —         |
-| ⚖️ Upangaji unaozingatia mgao                   |    —    |       🆕 Quota-Share        |        —         |
-| 📊 Telemetria ya mgao                           |    —    |      🆕 moja kwa moja       |        —         |
+|                                                 |         v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| ----------------------------------------------- | :----------------------: | :---------: | :-------------------: |
+| 🌐 Watoa huduma                                 |           352            |   **358**   |          372          |
+| 🧠 Vitambulisho vya kipekee vya modeli za gumzo |           1320           |  **1374**   |         1443          |
+| 🖼️ Daraja la Aina za Data                       | 🆕 kuona + sauti + video |      ✓      |           ✓           |
+| 📡 Katalogi ya bure ya Radar                    |         🆕 hiari         |      ✓      |           ✓           |
+| ⚖️ Upangaji unaozingatia mgao                   |      🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 Telemetria ya mgao                           |     🆕 moja kwa moja     |      ✓      |           ✓           |
+| 🧰 Modi isiyo na kiolesura                      |            —             |      —      | 🆕 `serve --headless` |
+| 🛤️ Miundombinu ya mkondo wa LTS                 |            —             |      —      |  🆕 njia za matoleo   |
 
-**→ [Ramani ya Maendeleo](ROADMAP.md) — tukifuata mkondo kuelekea `v3.9.0 LTS`**
+**→ [Ramani ya Maendeleo](ROADMAP.md) — tukisafiri kwenye mkondo kuelekea `v3.9.0 LTS`**
 
 </div>
 
@@ -87,7 +89,7 @@
 ## 🧩 Inapatikana
 
 [![toleo la npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM kwa Mwezi](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![Upakuaji wa NPM kwa Mwezi](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Leseni: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Upakuaji wa Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -108,14 +110,14 @@
   </tr>
   <tr>
     <td align="right"><b>⚙️ Vipengele</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 Michanganyiko</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Watoa Huduma</a></td>
-    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 Mchanganyiko</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Watoa Huduma</a></td>
+    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI na MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Mfinyazo</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Mahali Inapoendeshwa</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Inapoendeshwa</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Faragha</a></td>
   </tr>
   <tr>
@@ -128,7 +130,7 @@
     <td align="right"><b>💚 Usaidizi</b></td>
     <td align="center"><a href="#-support-omniroute">💚 Saidia / Changia</a></td>
     <td align="center"><a href="#-community--help">💬 Jumuiya</a></td>
-    <td align="center"><a href="#-sponsors">💖 Wafadhili</a></td>
+    <td align="center"><a href="#-sponsors">💖 Wadhamini</a></td>
   </tr>
   <tr>
     <td align="right"><b>📦 Mradi</b></td>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 Katika lugha 66</b>
+  <b>🌐 Katika lugha 67</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Kiingereza (en)" title="Kiingereza (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Kireno — Brazili (pt-BR)" title="Kireno — Brazili (pt-BR)"></a>
@@ -183,7 +185,7 @@
   <a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="30" alt="Kiarabu (ar)" title="Kiarabu (ar)"></a>
   <a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="30" alt="Kiebrania (he)" title="Kiebrania (he)"></a>
   <a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="30" alt="Kituruki (tr)" title="Kituruki (tr)"></a>
-  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="Kiazabajani (az)" title="Kiazabajani (az)"></a>
+  <a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="30" alt="Kiazerbaijani (az)" title="Kiazerbaijani (az)"></a>
   <a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="30" alt="Kiswahili (sw)" title="Kiswahili (sw)"></a>
   <a href="docs/i18n/el/README.md"><img src="docs/assets/flags/gr.svg" width="30" alt="Kigiriki (el)" title="Kigiriki (el)"></a>
   <a href="docs/i18n/hr/README.md"><img src="docs/assets/flags/hr.svg" width="30" alt="Kikroatia (hr)" title="Kikroatia (hr)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Kiuzbeki (uz)" title="Kiuzbeki (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="Kijojia (ka)" title="Kijojia (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Kiarmenia (hy)" title="Kiarmenia (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Kibosnia (bs)" title="Kibosnia (bs)"></a>
 </div>
 
 <br/>
@@ -601,11 +604,11 @@ kwenye historia ya shell yako. → [Miunganisho ya CLI](docs/guides/CLI-INTEGRAT
 
 <div align="center">
 
-## 🌐 Watoa Huduma 357 wa AI — 152 Waliotiwa Alama kuwa Bure kwenye Katalogi
+## 🌐 Watoa Huduma 372 wa AI — 154 Wametambulishwa kwenye Katalogi kuwa Bila Malipo
 
 </div>
 
-> **Watoa huduma 357 waliosajiliwa** katika mikusanyo rasmi ya gumzo, midia, utafutaji, ya ndani, mawakala wa wingu na mfumo, ikijumuisha **152 wenye metadata ya ugunduzi ya `hasFree: true`**. Sajili ya modeli za gumzo inajumuisha **watoa huduma 229 / jozi 2,554 tofauti za mtoa huduma na modeli / vitambulisho 1,283 ghafi vya modeli**; katalogi tofauti ya bajeti ya bure ina **safu 491 za kila modeli**, **vikundi 35 vinavyojirudia** na **watoa huduma 54 wa bure milele wanaojirudia/wasiohitaji ufunguo**. Hizi ni denomineta tofauti kimakusudi; ufafanuzi na hesabu zilizoondolewa marudio kwa kila kikundi zinapatikana katika [Rejeleo la Watoa Huduma](docs/reference/PROVIDER_REFERENCE.md) na [Viwango vya Bure](docs/reference/FREE_TIERS.md).
+> **Watoa huduma 372 waliosajiliwa** katika mikusanyiko rasmi ya gumzo, midia, utafutaji, ya ndani, mawakala wa wingu na mfumo, ikijumuisha **154 wenye metadata ya ugunduzi ya `hasFree: true`**. Sajili ya modeli za gumzo inajumuisha **watoa huduma 237 / jozi 3,009 tofauti za mtoa huduma na modeli / vitambulisho 1,443 ghafi vya modeli**; katalogi tofauti ya bajeti isiyolipishwa ina **safu 491 kwa kila modeli**, **makundi 35 yanayojirudia** na **watoa huduma 54 wa kudumu bila malipo, wenye mgao unaojirudia/wasiohitaji ufunguo**. Hizi ni denomineta tofauti kimakusudi; ufafanuzi na hesabu zilizoondolewa urudufu wa makundi zinapatikana katika [Marejeleo ya Watoa Huduma](docs/reference/PROVIDER_REFERENCE.md) na [Viwango vya Matumizi Bila Malipo](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -638,11 +641,11 @@ kwenye historia ya shell yako. → [Miunganisho ya CLI](docs/guides/CLI-INTEGRAT
   </tr>
 </table>
 
-<sub>…na zaidi ya 330 — kila ikoni hupatikana moja kwa moja kutoka kwenye katalogi ya watoa huduma ya dashibodi. 📖 [Rejeleo la Watoa Huduma](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…na wengine 330+ — kila ikoni hupatikana moja kwa moja kutoka kwenye katalogi ya watoa huduma ya dashibodi. 📖 [Marejeleo ya Watoa Huduma](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 Bure Milele — $0, hakuna kadi
+### 🆓 Bila Malipo Milele — $0, hakuna kadi
 
 <table>
   <tr>
@@ -656,9 +659,9 @@ kwenye historia ya shell yako. → [Miunganisho ya CLI](docs/guides/CLI-INTEGRAT
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>BURE bila kikomo</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Hakuna ufunguo unaohitajika</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Miundo 50+<br/>Neuroni 10K/siku</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM bure</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Salio la $5 la mara moja; kadi inahitajika</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Miundo 50+<br/>Neuroni 10K kwa siku</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>Takriban RPM 40 bila malipo</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Salio la mara moja la $5; kadi inahitajika</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Miundo ya :free<br/>+$10 → RPM ya juu zaidi</sub></td>
   </tr>
 </table>

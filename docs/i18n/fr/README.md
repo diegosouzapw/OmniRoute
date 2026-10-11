@@ -65,18 +65,20 @@
 
 <br/>
 
-## 📈 La passerelle continue de s’agrandir
+## 📈 La passerelle continue de s'agrandir
 
 <div align="center">
 
-|                                   | v3.8.49 |         **v3.8.50**         |    `v3.8.51+`     |
-| --------------------------------- | :-----: | :-------------------------: | :---------------: |
-| 🌐 Fournisseurs                   |   290   |           **357**           | davantage à venir |
-| 🧠 ID uniques de modèles de chat  |  1185   |          **1312**           |         —         |
-| 🖼️ Passerelle multimodale         |    —    |  🆕 vision + audio + vidéo  |         —         |
-| 📡 Catalogue gratuit de Radar     |    —    | 🆕 participation volontaire |         —         |
-| ⚖️ Planification selon les quotas |    —    |       🆕 Quota-Share        |         —         |
-| 📊 Télémétrie des quotas          |    —    |        🆕 en direct         |         —         |
+|                                     |          v3.8.50          | **v3.8.51** |        `v3.8.52+`        |
+| ----------------------------------- | :-----------------------: | :---------: | :----------------------: |
+| 🌐 Fournisseurs                     |            352            |   **358**   |           372            |
+| 🧠 ID uniques de modèles de chat    |           1320            |  **1374**   |           1443           |
+| 🖼️ Pont de modalités                | 🆕 vision + audio + vidéo |      ✓      |            ✓             |
+| 📡 Catalogue gratuit de Radar       |    🆕 sur inscription     |      ✓      |            ✓             |
+| ⚖️ Planification selon les quotas   |      🆕 Quota-Share       |      ✓      |            ✓             |
+| 📊 Télémétrie des quotas            |       🆕 en direct        |      ✓      |            ✓             |
+| 🧰 Mode sans interface              |             —             |      —      |  🆕 `serve --headless`   |
+| 🛤️ Infrastructure de la branche LTS |             —             |      —      | 🆕 canaux de publication |
 
 **→ [Feuille de route](ROADMAP.md) — en route vers `v3.9.0 LTS`**
 
@@ -115,7 +117,7 @@
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Compression</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Où l’exécuter</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Environnements d’exécution</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Privé</a></td>
   </tr>
   <tr>
@@ -141,9 +143,9 @@
 </div>
 
 <div align="center">
-  <b>🌐 En 66 langues</b>
+  <b>🌐 En 67 langues</b>
   <br/><br/>
-  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
+  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Anglais (en)" title="Anglais (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,15 +671,15 @@ que les secrets figurent dans l’historique de votre shell. → [Intégrations 
 
 <div align="center">
 
-## 🌐 372 fournisseurs d’IA — 154 marqués comme gratuits dans le catalogue
+## 🌐 372 fournisseurs d'IA — 154 répertoriés comme gratuits
 
 </div>
 
-> **357 fournisseurs enregistrés** dans les collections canoniques de chat, de médias, de recherche, locales, d’agents cloud et système, dont **152 comportant la métadonnée de découverte `hasFree: true`**. Le registre des modèles de chat couvre **229 fournisseurs / 2 554 paires fournisseur-modèle distinctes / 1 283 identifiants de modèle bruts** ; le catalogue distinct des quotas gratuits contient **491 entrées par modèle**, **35 réserves récurrentes** et **54 fournisseurs gratuits à vie, récurrents ou sans clé**. Ces dénominateurs sont différents par conception ; les définitions et les calculs dédupliqués par réserve figurent dans la [Référence des fournisseurs](docs/reference/PROVIDER_REFERENCE.md) et les [Offres gratuites](docs/reference/FREE_TIERS.md).
+> **372 fournisseurs enregistrés** dans les collections canoniques de chat, de médias, de recherche, d'exécution locale, d'agents cloud et système, dont **154 comportant la métadonnée de découverte `hasFree: true`**. Le registre des modèles de chat couvre **237 fournisseurs / 3 009 paires fournisseur-modèle distinctes / 1 443 identifiants de modèle bruts** ; le catalogue distinct des budgets gratuits contient **491 entrées par modèle**, **35 réserves récurrentes** et **54 fournisseurs gratuits à vie, récurrents ou sans clé**. Ces dénominateurs sont différents par conception ; les définitions et les calculs dédupliqués par réserve figurent dans la [Référence des fournisseurs](docs/reference/PROVIDER_REFERENCE.md) et les [Offres gratuites](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Tous les grands laboratoires — via un seul point de terminaison
+### 🏢 Tous les grands laboratoires — via un point de terminaison unique
 
 <table>
   <tr>
@@ -714,7 +717,7 @@ que les secrets figurent dans l’historique de votre shell. → [Intégrations 
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Aucune limite de jetons</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Routeur automatique, Tencent Hy3<br/>Gratuit pour toujours</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Routage automatique, Tencent Hy3<br/>Gratuit pour toujours</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Gratuit pour toujours</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Offre gratuite</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Gratuit pour toujours</sub></td>

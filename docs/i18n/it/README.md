@@ -69,16 +69,18 @@
 
 <div align="center">
 
-|                                      | v3.8.49 |        **v3.8.50**         |  `v3.8.51+`   |
-| ------------------------------------ | :-----: | :------------------------: | :-----------: |
-| 🌐 Provider                          |   290   |          **357**           | altri in coda |
-| 🧠 ID univoci dei modelli di chat    |  1185   |          **1312**          |       —       |
-| 🖼️ Bridge di modalità                |    —    | 🆕 visione + audio + video |       —       |
-| 📡 Catalogo gratuito Radar           |    —    |       🆕 su adesione       |       —       |
-| ⚖️ Pianificazione basata sulle quote |    —    |       🆕 Quota-Share       |       —       |
-| 📊 Telemetria delle quote            |    —    |     🆕 in tempo reale      |       —       |
+|                                      |          v3.8.50           | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------------------ | :------------------------: | :---------: | :-------------------: |
+| 🌐 Provider                          |            352             |   **358**   |          372          |
+| 🧠 ID univoci dei modelli di chat    |            1320            |  **1374**   |         1443          |
+| 🖼️ Ponte tra modalità                | 🆕 visione + audio + video |      ✓      |           ✓           |
+| 📡 Catalogo gratuito Radar           |       🆕 su adesione       |      ✓      |           ✓           |
+| ⚖️ Pianificazione basata sulle quote |       🆕 Quota-Share       |      ✓      |           ✓           |
+| 📊 Telemetria delle quote            |     🆕 in tempo reale      |      ✓      |           ✓           |
+| 🧰 Modalità headless                 |             —              |      —      | 🆕 `serve --headless` |
+| 🛤️ Infrastruttura del ramo LTS       |             —              |      —      | 🆕 canali di rilascio |
 
-**→ [Roadmap](ROADMAP.md) — in viaggio verso `v3.9.0 LTS`**
+**→ [Roadmap](ROADMAP.md) — lungo il percorso verso `v3.9.0 LTS`**
 
 </div>
 
@@ -87,18 +89,18 @@
 ## 🧩 Disponibile
 
 [![versione npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![Download NPM mensili](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![Download mensili da NPM](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licenza: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Download Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Download Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Pull da Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Download di Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
   <tr>
     <td align="right"><b>🚀 Inizia</b></td>
     <td align="center"><a href="#-quick-start">🚀 Avvio rapido</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installazione</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Nessuna configurazione</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Configurazione zero</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Scopri</b></td>
@@ -108,14 +110,14 @@
   </tr>
   <tr>
     <td align="right"><b>⚙️ Funzionalità</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 Combo</a></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 Combinazioni</a></td>
     <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI e MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Compressione</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Dove funziona</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Dove viene eseguito</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Privato</a></td>
   </tr>
   <tr>
@@ -678,11 +680,11 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
 
 <div align="center">
 
-## 🌐 372 provider di IA — 154 contrassegnati come gratuiti nel catalogo
+## 🌐 372 provider di IA — 154 contrassegnati nel catalogo come gratuiti
 
 </div>
 
-> **357 provider registrati** nelle raccolte canoniche di chat, contenuti multimediali, ricerca, esecuzione locale, agenti cloud e sistema, inclusi **152 con metadati di rilevamento `hasFree: true`**. Il registro dei modelli di chat comprende **229 provider / 2.554 coppie provider-modello distinte / 1.283 ID di modello grezzi**; il catalogo separato dei budget gratuiti contiene **491 voci per singolo modello**, **35 pool ricorrenti** e **54 provider gratuiti per sempre, ricorrenti o senza chiave**. I denominatori sono intenzionalmente diversi; le definizioni e i calcoli con deduplicazione dei pool sono disponibili nella [Documentazione di riferimento dei provider](docs/reference/PROVIDER_REFERENCE.md) e nei [Piani gratuiti](docs/reference/FREE_TIERS.md).
+> **372 provider registrati** nelle raccolte canoniche di chat, contenuti multimediali, ricerca, servizi locali, agenti cloud e sistema, inclusi **154 con metadati di rilevamento `hasFree: true`**. Il registro dei modelli di chat comprende **237 provider / 3.009 coppie provider-modello distinte / 1.443 ID modello non elaborati**; il catalogo separato delle disponibilità gratuite contiene **491 voci per modello**, **35 pool ricorrenti** e **54 provider gratuiti per sempre, ricorrenti o senza chiave**. Questi denominatori sono diversi per scelta progettuale; le definizioni e i calcoli con deduplicazione dei pool sono disponibili nella [Guida di riferimento dei provider](docs/reference/PROVIDER_REFERENCE.md) e nei [Piani gratuiti](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -715,7 +717,7 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
   </tr>
 </table>
 
-<sub>…e oltre 330 altri — ogni icona viene caricata in tempo reale dal catalogo dei provider della dashboard. 📖 [Documentazione di riferimento dei provider](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…e oltre 330 altri — ogni icona viene caricata in tempo reale dal catalogo dei provider della dashboard. 📖 [Guida di riferimento dei provider](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -724,7 +726,7 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Nessun limite di token</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Router automatico, Tencent Hy3<br/>Gratis per sempre</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Auto-router, Tencent Hy3<br/>Gratis per sempre</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Gratis per sempre</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Piano gratuito</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Gratis per sempre</sub></td>
@@ -732,15 +734,15 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>GRATIS senza limiti</sub></td>
-    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Nessuna chiave richiesta</sub></td>
+    <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Nessuna chiave necessaria</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Oltre 50 modelli<br/>10.000 neuroni/giorno</sub></td>
-    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratuiti</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Credito una tantum di $5; carta richiesta</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Modelli :free<br/>+$10 → RPM più elevati</sub></td>
+    <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratis</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Credito una tantum di $5; carta obbligatoria</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Modelli :free<br/>+$10 → RPM più elevato</sub></td>
   </tr>
 </table>
 
-📖 Catalogo completo leggibile dalle macchine → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+📖 Catalogo completo leggibile automaticamente → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>

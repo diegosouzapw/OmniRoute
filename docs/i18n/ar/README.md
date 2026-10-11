@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 البوابة تواصل النمو
+## 📈 البوابة تواصل نموها
 
 <div align="center">
 
-|                                  | v3.8.49 |      **v3.8.50**      |     `v3.8.51+`      |
-| -------------------------------- | :-----: | :-------------------: | :-----------------: |
-| 🌐 المزوّدون                     |   290   |        **357**        | المزيد قيد الانتظار |
-| 🧠 معرّفات نماذج الدردشة الفريدة |  1185   |       **1312**        |          —          |
-| 🖼️ جسر الوسائط المتعددة          |    —    | 🆕 رؤية + صوت + فيديو |          —          |
-| 📡 كتالوج Radar المجاني          |    —    |   🆕 اشتراك اختياري   |          —          |
-| ⚖️ الجدولة المراعية للحصص        |    —    |    🆕 Quota-Share     |          —          |
-| 📊 قياس الحصص عن بُعد            |    —    |       🆕 مباشر        |          —          |
+|                                   |        v3.8.50        | **v3.8.51** |      `v3.8.52+`       |
+| --------------------------------- | :-------------------: | :---------: | :-------------------: |
+| 🌐 المزوّدون                      |          352          |   **358**   |          372          |
+| 🧠 معرّفات نماذج المحادثة الفريدة |         1320          |  **1374**   |         1443          |
+| 🖼️ جسر الوسائط المتعددة           | 🆕 رؤية + صوت + فيديو |      ✓      |           ✓           |
+| 📡 كتالوج Radar المجاني           |   🆕 اشتراك اختياري   |      ✓      |           ✓           |
+| ⚖️ الجدولة المراعية للحصة         |    🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 قياس الحصة عن بُعد             |       🆕 مباشر        |      ✓      |           ✓           |
+| 🧰 الوضع دون واجهة                |           —           |      —      | 🆕 `serve --headless` |
+| 🛤️ بنية مسار LTS التحتية          |           —           |      —      |   🆕 قنوات الإصدار    |
 
-**← [خارطة الطريق](ROADMAP.md) — على المسار نحو `v3.9.0 LTS`**
+**→ [خارطة الطريق](ROADMAP.md) — على المسار نحو `v3.9.0 LTS`**
 
 </div>
 
@@ -95,7 +97,7 @@
 
 <table>
   <tr>
-    <td align="right"><b>🚀 ابدأ</b></td>
+    <td align="right"><b>🚀 البدء</b></td>
     <td align="center"><a href="#-quick-start">🚀 البدء السريع</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 التثبيت</a></td>
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 بلا إعدادات</a></td>
@@ -109,13 +111,13 @@
   <tr>
     <td align="right"><b>⚙️ الميزات</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 التركيبات</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 المزوّدون</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 المزوّدون</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI وMCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ الضغط</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ أماكن تشغيله</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ أماكن التشغيل</a></td>
     <td align="center"><a href="#-private--local-first">🔒 خاص</a></td>
   </tr>
   <tr>
@@ -133,7 +135,7 @@
   <tr>
     <td align="right"><b>📦 المشروع</b></td>
     <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ الحزمة التقنية</a></td>
-    <td align="center"><a href="#-documentation">📖 التوثيق</a></td>
+    <td align="center"><a href="#-documentation">📖 الوثائق</a></td>
     <td align="center"><a href="#-600-contributors">👥 المساهمون</a></td>
   </tr>
 </table>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 متاح بـ 66 لغة</b>
+  <b>🌐 متاح بـ 67 لغة</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="الإنجليزية (en)" title="الإنجليزية (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="البرتغالية — البرازيل (pt-BR)" title="البرتغالية — البرازيل (pt-BR)"></a>
@@ -208,7 +210,8 @@
   <a href="docs/i18n/am/README.md"><img src="docs/assets/flags/et.svg" width="30" alt="الأمهرية (am)" title="الأمهرية (am)"></a>
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="الأوزبكية (uz)" title="الأوزبكية (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="الجورجية (ka)" title="الجورجية (ka)"></a>
-  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="الأرمنية (hy)" title="الأرمنية (hy)"></a>
+  <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="الأرمينية (hy)" title="الأرمينية (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="البوسنية (bs)" title="البوسنية (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ omniroute configure codex          # أيضًا: claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 مزوّدًا للذكاء الاصطناعي — 152 منها مُصنَّفة في الكتالوج كمجانية
+## 🌐 372 مزوّدًا للذكاء الاصطناعي — 154 منها مُصنَّفة في الكتالوج كمجانية
 
 </div>
 
-> **357 مزوّدًا مسجّلًا** عبر المجموعات الأساسية للدردشة والوسائط والبحث والتشغيل المحلي والوكلاء السحابيين والنظام، بما في ذلك **152 مزوّدًا يحمل بيانات تعريف الاكتشاف `hasFree: true`**. يغطي سجل نماذج الدردشة **229 مزوّدًا / 2,554 زوجًا مميزًا من المزوّدات والنماذج / 1,283 معرّف نموذج خامًا**؛ بينما يتضمن كتالوج الميزانيات المجانية المنفصل **491 صفًا خاصًا بالنماذج**، و**35 مجموعة موارد متجددة**، و**54 مزوّدًا مجانيًا بصورة دائمة بموارد متجددة أو دون مفتاح**. تختلف أسس الاحتساب هذه حسب التصميم؛ وتتوفر التعريفات والحسابات بعد إزالة تكرار مجموعات الموارد في [مرجع المزوّدين](docs/reference/PROVIDER_REFERENCE.md) و[الباقات المجانية](docs/reference/FREE_TIERS.md).
+> **372 مزوّدًا مسجّلًا** عبر مجموعات الدردشة والوسائط والبحث والمزوّدين المحليين ووكلاء السحابة والنظام الأساسية، منها **154 تحمل بيانات الاكتشاف الوصفية `hasFree: true`**. يغطي سجل نماذج الدردشة **237 مزوّدًا / 3,009 أزواج مميزة من المزوّد والنموذج / 1,443 معرّف نموذج أولي**؛ ويضم كتالوج الميزانية المجانية المنفصل **491 صفًا خاصًا بالنماذج**، و**35 حصة دورية**، و**54 مزوّدًا مجانيًا إلى الأبد بحصص دورية أو دون مفتاح**. صُممت هذه المقامات لتكون مختلفة؛ ويمكن الاطلاع على التعريفات والحسابات التي تزيل تكرار الحصص في [مرجع المزوّدين](docs/reference/PROVIDER_REFERENCE.md) و[المستويات المجانية](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -705,7 +708,7 @@ omniroute configure codex          # أيضًا: claude opencode qwen aider goos
   </tr>
 </table>
 
-<sub>…وأكثر من 330 مزوّدًا آخر — يُحمَّل كل رمز مباشرةً من كتالوج المزوّدين في لوحة المعلومات. 📖 [مرجع المزوّدين](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…و330+ مزوّدًا آخر — يُحمَّل كل رمز مباشرةً من كتالوج المزوّدين في لوحة المعلومات. 📖 [مرجع المزوّدين](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -713,7 +716,7 @@ omniroute configure codex          # أيضًا: claude opencode qwen aider goos
 
 <table>
   <tr>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4، Nemotron 3<br/>بلا حدّ للرموز</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4، Nemotron 3<br/>بلا حد أقصى للرموز</sub></td>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>موجّه تلقائي، Tencent Hy3<br/>مجاني إلى الأبد</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B، Nemotron<br/>مجاني إلى الأبد</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>فئة مجانية</sub></td>
@@ -723,10 +726,10 @@ omniroute configure codex          # أيضًا: claude opencode qwen aider goos
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max، Kimi-K2<br/>مجاني بلا حدود</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT، Llama، Claude<br/>لا حاجة إلى مفتاح</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>أكثر من 50 نموذجًا<br/>10 آلاف خلية عصبية/يوم</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>أكثر من 50 نموذجًا<br/>10 آلاف عصبون/يوم</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM، MiniMax<br/>نحو 40 طلبًا في الدقيقة مجانًا</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7، GPT-OSS<br/>رصيد لمرة واحدة بقيمة 5 دولارات؛ البطاقة مطلوبة</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>نماذج :free<br/>+10 دولارات ← معدل طلبات أعلى في الدقيقة</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7، GPT-OSS<br/>رصيد بقيمة 5 دولارات لمرة واحدة؛ البطاقة مطلوبة</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>نماذج :free<br/>إضافة 10 دولارات ← طلبات أكثر في الدقيقة</sub></td>
   </tr>
 </table>
 

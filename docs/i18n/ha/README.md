@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 Gateway na Ci Gaba da Faɗaɗa
+## 📈 Ƙofar Tana Ci Gaba da Faɗaɗa
 
 <div align="center">
 
-|                                             | v3.8.49 |       **v3.8.50**        |   `v3.8.51+`    |
-| ------------------------------------------- | :-----: | :----------------------: | :-------------: |
-| 🌐 Masu samarwa                             |   290   |         **357**          | ƙarin suna jira |
-| 🧠 ID na musamman na samfurin taɗi          |  1185   |         **1312**         |        —        |
-| 🖼️ Gadar nau'ikan bayanai                   |    —    | 🆕 gani + sauti + bidiyo |        —        |
-| 📡 Kundin Radar na kyauta                   |    —    |        🆕 na zaɓi        |        —        |
-| ⚖️ Tsarawa mai la'akari da ƙayyadadden kaso |    —    |      🆕 Quota-Share      |        —        |
-| 📊 Bayanan ƙayyadadden kaso                 |    —    |       🆕 kai tsaye       |        —        |
+|                                              |         v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| -------------------------------------------- | :----------------------: | :---------: | :-------------------: |
+| 🌐 Masu samarwa                              |           352            |   **358**   |          372          |
+| 🧠 ID na samfurin hira na musamman           |           1320           |  **1374**   |         1443          |
+| 🖼️ Gadar nau'in bayanai                      | 🆕 gani + sauti + bidiyo |      ✓      |           ✓           |
+| 📡 Kundin Radar na kyauta                    |      🆕 sai an zaɓa      |      ✓      |           ✓           |
+| ⚖️ Tsarawa bisa la'akari da ƙayyadadden kaso |      🆕 Quota-Share      |      ✓      |           ✓           |
+| 📊 Bayanan ma'aunin ƙayyadadden kaso         |       🆕 kai-tsaye       |      ✓      |           ✓           |
+| 🧰 Yanayin mara fuskar mai amfani            |            —             |      —      | 🆕 `serve --headless` |
+| 🛤️ Ababen more rayuwa na layin LTS           |            —             |      —      | 🆕 tashoshin fitarwa  |
 
-**→ [Taswirar Ci Gaba](ROADMAP.md) — muna bin turba zuwa `v3.9.0 LTS`**
+**→ [Taswirar ci gaba](ROADMAP.md) — bin layin zuwa `v3.9.0 LTS`**
 
 </div>
 
@@ -87,7 +89,7 @@
 ## 🧩 Akwai
 
 [![sigar npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM na Wata-wata](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![NPM na Kowane Wata](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Lasisi: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Sauke-sauken Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -98,7 +100,7 @@
     <td align="right"><b>🚀 Farawa</b></td>
     <td align="center"><a href="#-quick-start">🚀 Farawa Cikin Sauri</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Shigarwa</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Babu Saitawa</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Ba Sai Saita Komai ba</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Koyo</b></td>
@@ -108,8 +110,8 @@
   </tr>
   <tr>
     <td align="right"><b>⚙️ Fasali</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 Haɗaɗɗun Zaɓuɓɓuka</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Masu Bayarwa</a></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 Haɗe-haɗe</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Masu Bayar da Sabis</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -119,20 +121,20 @@
     <td align="center"><a href="#-private--local-first">🔒 Na Sirri</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 Duba shi</b></td>
+    <td align="right"><b>👀 Gani</b></td>
     <td align="center"><a href="#-omniroute-in-action">🎬 Yadda Yake Aiki</a></td>
     <td align="center"><a href="#-whats-new">✨ Sabbin Abubuwa</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLIs Masu Jituwa</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLI Masu Jituwa</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 Tallafi</b></td>
     <td align="center"><a href="#-support-omniroute">💚 Tallafawa / Ba da Gudummawa</a></td>
     <td align="center"><a href="#-community--help">💬 Al'umma</a></td>
-    <td align="center"><a href="#-sponsors">💖 Masu Tallafawa</a></td>
+    <td align="center"><a href="#-sponsors">💖 Masu Daukar Nauyi</a></td>
   </tr>
   <tr>
     <td align="right"><b>📦 Aiki</b></td>
-    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Tarin Fasahohi</a></td>
+    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Fasahohin da Aka Yi Amfani da Su</a></td>
     <td align="center"><a href="#-documentation">📖 Takardu</a></td>
     <td align="center"><a href="#-600-contributors">👥 Masu Ba da Gudummawa</a></td>
   </tr>
@@ -141,9 +143,9 @@
 </div>
 
 <div align="center">
-  <b>🌐 A cikin harsuna 66</b>
+  <b>🌐 A cikin harsuna 67</b>
   <br/><br/>
-  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Turanci (en)" title="Turanci (en)"></a>
+  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,15 +671,15 @@ shiga tarihin shell ɗinka. → [Haɗe-haɗen CLI](docs/guides/CLI-INTEGRATIONS.
 
 <div align="center">
 
-## 🌐 Masu Bayar da AI 357 — 152 Masu Alamar Kyauta a Kasida
+## 🌐 Masu Samar da AI 372 — 154 Masu Alamar Kyauta a Kundin Bayani
 
 </div>
 
-> **Masu bayarwa 357 da aka yi wa rajista** a cikin tarin tattaunawa, kafofin watsa labarai, bincike, na cikin gida, wakilin girgije da na tsarin da aka amince da su, ciki har da **152 masu ɗauke da bayanan gano `hasFree: true`**. Rijistar samfurin tattaunawa ta ƙunshi **masu bayarwa 229 / nau'i-nau'in haɗin mai bayarwa da samfuri guda 2,554 / ainihin ID na samfura 1,283**; keɓantacciyar kasidar kasafin kuɗi na kyauta tana da **layuka 491 na kowane samfuri**, **rukunin kaso masu maimaituwa 35** da kuma **masu bayar da kyauta na dindindin 54 masu maimaituwa/marasa buƙatar maɓalli**. An tsara waɗannan ne da mabambantan adadin tushe; ma'anoni da lissafe-lissafen da aka cire maimaituwar rukunin kaso suna cikin [Manazartar Masu Bayarwa](docs/reference/PROVIDER_REFERENCE.md) da [Matakan Kyauta](docs/reference/FREE_TIERS.md).
+> **Masu samarwa 372 da aka yi wa rajista** a cikin tarin hukuma na taɗi, kafofin watsa labarai, bincike, na gida, wakilan gajimare da tsarin aiki, ciki har da **154 masu ɗauke da metadata na gano `hasFree: true`**. Rajistar samfurin taɗi ta ƙunshi **masu samarwa 237 / haɗe-haɗen mai samarwa da samfuri guda 3,009 / ainihin ID na samfura 1,443**; kundin kasafin kyauta na daban yana da **layuka 491 na kowane samfuri**, **rukunin albarkatu masu sabuntawa 35** da kuma **masu samar da kyauta-har-abada masu sabuntawa/marasa buƙatar maɓalli 54**. Waɗannan ma'aunai ne daban bisa tsari; ma'anoni da lissafin da aka cire maimaituwar rukunin albarkatu suna cikin [Manunin Masu Samarwa](docs/reference/PROVIDER_REFERENCE.md) da [Matakan Kyauta](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Kowace babbar cibiyar bincike — ta hanyar maƙura guda ɗaya
+### 🏢 Kowane babban dakin bincike — ta wurin endpoint guda ɗaya
 
 <table>
   <tr>
@@ -705,28 +708,28 @@ shiga tarihin shell ɗinka. → [Haɗe-haɗen CLI](docs/guides/CLI-INTEGRATIONS.
   </tr>
 </table>
 
-<sub>…da wasu 330+ — kowane gunki yana samuwa kai tsaye daga kasidar masu bayarwa ta dashboard. 📖 [Manazartar Masu Bayarwa](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…da wasu 330+ — kowace alama tana ɗorawa kai tsaye daga kundin masu samarwa na dashboard. 📖 [Manunin Masu Samarwa](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 Kyauta Har Abada — $0, babu kati
+### 🆓 Kyauta Har Abada — $0, babu katin biyan kuɗi
 
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Babu iyakar token</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Na'ura mai zaɓar hanya ta atomatik, Tencent Hy3<br/>Kyauta har abada</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Mai zaɓar hanya ta atomatik, Tencent Hy3<br/>Kyauta har abada</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Kyauta har abada</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Matakin kyauta</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Kyauta har abada</sub></td>
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Kyauta har abada</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Kyauta MARA IYAKA</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>KYAUTA mara iyaka</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Ba a buƙatar maɓalli</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Samfura 50+<br/>Neurons 10K/rana</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Samfura 50+<br/>Neuron 10K/rana</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM kyauta</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Kiredit na $5 na lokaci ɗaya; ana buƙatar kati</sub></td>
-    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Samfuran :free<br/>+$10 → RPM mafi girma</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Kireditin $5 na sau ɗaya; ana buƙatar kati</sub></td>
+    <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>Samfuran :free<br/>+$10 → RPM mafi yawa</sub></td>
   </tr>
 </table>
 

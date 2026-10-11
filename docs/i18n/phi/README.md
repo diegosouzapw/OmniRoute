@@ -65,20 +65,22 @@
 
 <br/>
 
-## 📈 Patuloy na Lumalawak ang Gateway
+## 📈 Patuloy na Lumalago ang Gateway
 
 <div align="center">
 
-|                                                  | v3.8.49 |        **v3.8.50**        |      `v3.8.51+`      |
-| ------------------------------------------------ | :-----: | :-----------------------: | :------------------: |
-| 🌐 Mga Provider                                  |   290   |          **357**          | marami pang nakapila |
-| 🧠 Mga natatanging chat model ID                 |  1185   |         **1312**          |          —           |
-| 🖼️ Tulay ng Modalidad                            |    —    | 🆕 vision + audio + video |          —           |
-| 📡 Libreng katalogo ng Radar                     |    —    |  🆕 opsyonal na pagsali   |          —           |
-| ⚖️ Pag-iiskedyul na isinasaalang-alang ang quota |    —    |      🆕 Quota-Share       |          —           |
-| 📊 Telemetry ng quota                            |    —    |          🆕 live          |          —           |
+|                                                  |          v3.8.50          | **v3.8.51** |       `v3.8.52+`       |
+| ------------------------------------------------ | :-----------------------: | :---------: | :--------------------: |
+| 🌐 Mga Provider                                  |            352            |   **358**   |          372           |
+| 🧠 Mga natatanging chat model ID                 |           1320            |  **1374**   |          1443          |
+| 🖼️ Tulay ng Modalidad                            | 🆕 vision + audio + video |      ✓      |           ✓            |
+| 📡 Libreng katalogo ng Radar                     |     🆕 kusang pagsali     |      ✓      |           ✓            |
+| ⚖️ Pag-iiskedyul na isinasaalang-alang ang quota |      🆕 Quota-Share       |      ✓      |           ✓            |
+| 📊 Telemetriya ng quota                          |       🆕 real-time        |      ✓      |           ✓            |
+| 🧰 Headless mode                                 |             —             |      —      | 🆕 `serve --headless`  |
+| 🛤️ Imprastraktura ng LTS rail                    |             —             |      —      | 🆕 mga release channel |
 
-**→ [Roadmap](ROADMAP.md) — tumatahak sa landas patungong `v3.9.0 LTS`**
+**→ [Roadmap](ROADMAP.md) — tumatakbo sa riles patungo sa `v3.9.0 LTS`**
 
 </div>
 
@@ -104,25 +106,25 @@
     <td align="right"><b>💡 Matuto</b></td>
     <td align="center"><a href="#-the-promise">💥 Ang Pangako</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Bakit OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Ano ang Nagpapabukod-tangi</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Ang Nagbubukod Dito</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Mga Feature</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Mga Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Mga Provider</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Mga Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI at MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Compression</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Saan Ito Tumatakbo</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Kung Saan Ito Gumagana</a></td>
     <td align="center"><a href="#-private--local-first">🔒 Pribado</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 Tingnan</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 Aktuwal na Paggamit</a></td>
+    <td align="right"><b>👀 Tingnan ito</b></td>
+    <td align="center"><a href="#-omniroute-in-action">🎬 Aktuwal na Paggana</a></td>
     <td align="center"><a href="#-whats-new">✨ Ano ang Bago</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Mga Katugmang CLI</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Mga Compatible na CLI</a></td>
   </tr>
   <tr>
     <td align="right"><b>💚 Suporta</b></td>
@@ -141,7 +143,7 @@
 </div>
 
 <div align="center">
-  <b>🌐 Sa 66 na wika</b>
+  <b>🌐 Sa 67 wika</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,15 +671,15 @@ ng iyong shell history. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATION
 
 <div align="center">
 
-## 🌐 357 Provider ng AI — 152 ang Minarkahang Libre sa Catalog
+## 🌐 372 Provider ng AI — 154 ang Minarkahang Libre sa Catalog
 
 </div>
 
-> **357 nakarehistrong provider** sa mga canonical na koleksyon ng chat, media, search, local, cloud-agent, at system, kabilang ang **152 na may metadata sa pagtuklas na `hasFree: true`**. Saklaw ng registry ng chat model ang **229 na provider / 2,554 na natatanging pares ng provider-model / 1,283 raw na model ID**; ang hiwalay na catalog ng libreng budget ay may **491 row para sa bawat model**, **35 umuulit na pool**, at **54 umuulit/keyless na provider na libre magpakailanman**. Sadyang magkakaiba ang mga denominator na ito; makikita ang mga depinisyon at kalkulasyong na-deduplicate ayon sa pool sa [Sanggunian ng Provider](docs/reference/PROVIDER_REFERENCE.md) at [Mga Libreng Tier](docs/reference/FREE_TIERS.md).
+> **372 nakarehistrong provider** sa mga canonical na koleksyon ng chat, media, paghahanap, lokal, cloud-agent, at system, kabilang ang **154 na may metadata para sa pagtuklas na `hasFree: true`**. Saklaw ng registry ng modelo ng chat ang **237 provider / 3,009 natatanging pares ng provider-model / 1,443 raw na model ID**; ang hiwalay na catalog ng libreng badyet ay may **491 row kada modelo**, **35 umuulit na pool**, at **54 umuulit/keyless na provider na libre magpakailanman**. Sadyang magkakaiba ang mga denominator na ito; ang mga depinisyon at kalkulasyong inalisan ng duplikasyon batay sa pool ay nasa [Sanggunian ng Provider](docs/reference/PROVIDER_REFERENCE.md) at [Mga Libreng Tier](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Bawat pangunahing lab — sa pamamagitan ng iisang endpoint
+### 🏢 Bawat pangunahing laboratoryo — sa pamamagitan ng iisang endpoint
 
 <table>
   <tr>
@@ -721,7 +724,7 @@ ng iyong shell history. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATION
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Libre magpakailanman</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>WALANG LIMITASYON at LIBRE</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Walang limitasyon at LIBRE</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Hindi kailangan ng key</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ modelo<br/>10K neuron/araw</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM nang libre</sub></td>

@@ -69,14 +69,16 @@
 
 <div align="center">
 
-|                                         | v3.8.49 |       **v3.8.50**       | `v3.8.51+` |
-| --------------------------------------- | :-----: | :---------------------: | :--------: |
-| 🌐 Провајдери                           |   290   |         **357**         | још у реду |
-| 🧠 Јединствени ID-ови модела за ћаскање |  1185   |        **1312**         |     —      |
-| 🖼️ Мост модалитета                      |    —    | 🆕 слике + звук + видео |     —      |
-| 📡 Бесплатни Radar каталог              |    —    |  🆕 опционо укључивање  |     —      |
-| ⚖️ Распоређивање према квоти            |    —    |     🆕 Quota-Share      |     —      |
-| 📊 Телеметрија квота                    |    —    |  🆕 у реалном времену   |     —      |
+|                                         |        v3.8.50        | **v3.8.51** |      `v3.8.52+`       |
+| --------------------------------------- | :-------------------: | :---------: | :-------------------: |
+| 🌐 Провајдери                           |          352          |   **358**   |          372          |
+| 🧠 Јединствени ID-ови модела за ћаскање |         1320          |  **1374**   |         1443          |
+| 🖼️ Мост модалитета                      | 🆕 вид + звук + видео |      ✓      |           ✓           |
+| 📡 Бесплатни Radar каталог              |     🆕 уз пријаву     |      ✓      |           ✓           |
+| ⚖️ Распоређивање према квоти            |    🆕 Quota-Share     |      ✓      |           ✓           |
+| 📊 Телеметрија квоте                    |       🆕 уживо        |      ✓      |           ✓           |
+| 🧰 Режим без корисничког интерфејса     |           —           |      —      | 🆕 `serve --headless` |
+| 🛤️ Инфраструктура LTS гране             |           —           |      —      |   🆕 канали издања    |
 
 **→ [План развоја](ROADMAP.md) — на путу ка `v3.9.0 LTS`**
 
@@ -87,7 +89,7 @@
 ## 🧩 Доступно
 
 [![npm верзија](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![Месечна NPM преузимања](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+![NPM месечно](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Лиценца: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker преузимања](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
@@ -104,19 +106,19 @@
     <td align="right"><b>💡 Сазнајте више</b></td>
     <td align="center"><a href="#-the-promise">💥 Обећање</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Зашто OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Шта га издваја</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 По чему се издваја</a></td>
   </tr>
   <tr>
     <td align="right"><b>⚙️ Функције</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Провајдери</a></td>
-    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
+    <td align="center"><a href="#-combos--the-flagship">🎯 Комбинације</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Провајдери</a></td>
+    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI и MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Компресија</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Где ради</a></td>
-    <td align="center"><a href="#-private--local-first">🔒 Приватност</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Где се покреће</a></td>
+    <td align="center"><a href="#-private--local-first">🔒 Приватно</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 Погледајте</b></td>
@@ -677,11 +679,11 @@ omniroute configure codex          # такође: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 357 AI провајдера — 152 означена у каталогу као бесплатна
+## 🌐 372 добављача вештачке интелигенције — 154 означена у каталогу као бесплатна
 
 </div>
 
-> **357 регистрованих провајдера** у оквиру канонских колекција за ћаскање, медије, претрагу, локалне моделе, агенте у облаку и системске моделе, укључујући **152 са метаподацима за откривање `hasFree: true`**. Регистар модела за ћаскање обухвата **229 провајдера / 2.554 различита пара провајдер–модел / 1.283 изворна ID-а модела**; засебан каталог бесплатних квота садржи **491 ред по моделу**, **35 обновљивих скупова квота** и **54 обновљива провајдера или провајдера који су трајно бесплатни без кључа**. Ови имениоци су намерно различити; дефиниције и прорачуни са уклоњеним дупликатима скупова налазе се у одељцима [Референца провајдера](docs/reference/PROVIDER_REFERENCE.md) и [Бесплатни нивои](docs/reference/FREE_TIERS.md).
+> **372 регистрована добављача** у канонским колекцијама за ћаскање, медије, претрагу, локалне системе, агенте у облаку и системске услуге, укључујући **154 са метаподацима за откривање `hasFree: true`**. Регистар модела за ћаскање обухвата **237 добављача / 3.009 различитих парова добављач–модел / 1.443 необрађена ID-а модела**; засебни каталог бесплатних квота садржи **491 ред по моделу**, **35 периодично обновљивих група квота** и **54 добављача са периодично обновљивим или трајно бесплатним приступом без кључа**. Ови имениоци су намерно различити; дефиниције и прорачуни са уклоњеним дупликатима група квота налазе се у одељцима [Референца добављача](docs/reference/PROVIDER_REFERENCE.md) и [Бесплатни нивои](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -714,7 +716,7 @@ omniroute configure codex          # такође: claude opencode qwen aider go
   </tr>
 </table>
 
-<sub>…и још 330+ — свака икона се учитава уживо из каталога провајдера контролне табле. 📖 [Референца провајдера](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…и још 330+ — свака икона се учитава уживо из каталога добављача на контролној табли. 📖 [Референца добављача](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -732,7 +734,7 @@ omniroute configure codex          # такође: claude opencode qwen aider go
   <tr>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>НЕОГРАНИЧЕНО БЕСПЛАТНО</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Кључ није потребан</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ модела<br/>10K неурона/дневно</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ модела<br/>10K неурона/дан</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM бесплатно</sub></td>
     <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Једнократни кредит од $5; картица је обавезна</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free модели<br/>+$10 → већи RPM</sub></td>

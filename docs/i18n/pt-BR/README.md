@@ -69,14 +69,16 @@
 
 <div align="center">
 
-|                                  | v3.8.49 |       **v3.8.50**        |  `v3.8.51+`  |
-| -------------------------------- | :-----: | :----------------------: | :----------: |
-| 🌐 Provedores                    |   290   |         **357**          | mais na fila |
-| 🧠 IDs únicos de modelos de chat |  1185   |         **1312**         |      —       |
-| 🖼️ Ponte de modalidades          |    —    | 🆕 visão + áudio + vídeo |      —       |
-| 📡 Catálogo gratuito do Radar    |    —    |    🆕 adesão opcional    |      —       |
-| ⚖️ Agendamento ciente de cotas   |    —    |      🆕 Quota-Share      |      —       |
-| 📊 Telemetria de cotas           |    —    |        🆕 ao vivo        |      —       |
+|                                            |         v3.8.50          | **v3.8.51** |       `v3.8.52+`        |
+| ------------------------------------------ | :----------------------: | :---------: | :---------------------: |
+| 🌐 Provedores                              |           352            |   **358**   |           372           |
+| 🧠 IDs exclusivos de modelos de chat       |           1320           |  **1374**   |          1443           |
+| 🖼️ Ponte de modalidades                    | 🆕 visão + áudio + vídeo |      ✓      |            ✓            |
+| 📡 Catálogo gratuito do Radar              |    🆕 adesão opcional    |      ✓      |            ✓            |
+| ⚖️ Agendamento com reconhecimento de cotas |      🆕 Quota-Share      |      ✓      |            ✓            |
+| 📊 Telemetria de cotas                     |     🆕 em tempo real     |      ✓      |            ✓            |
+| 🧰 Modo headless                           |            —             |      —      |  🆕 `serve --headless`  |
+| 🛤️ Infraestrutura da linha LTS             |            —             |      —      | 🆕 canais de lançamento |
 
 **→ [Roteiro](ROADMAP.md) — seguindo nos trilhos rumo à `v3.9.0 LTS`**
 
@@ -86,11 +88,11 @@
 
 ## 🧩 Disponível
 
-[![versão npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
-![NPM mensal](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
+[![versão no npm](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
+![Downloads mensais no NPM](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licença: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-![Downloads do Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
+![Downloads no Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Downloads do Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
 <table>
@@ -101,7 +103,7 @@
     <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Configuração zero</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💡 Aprenda</b></td>
+    <td align="right"><b>💡 Saiba mais</b></td>
     <td align="center"><a href="#-the-promise">💥 A promessa</a></td>
     <td align="center"><a href="#-why-omniroute">🤔 Por que o OmniRoute</a></td>
     <td align="center"><a href="#-what-sets-omniroute-apart">🏆 O que o diferencia</a></td>
@@ -109,14 +111,14 @@
   <tr>
     <td align="right"><b>⚙️ Recursos</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provedores</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provedores</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI e MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
     <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Compressão</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Onde é executado</a></td>
-    <td align="center"><a href="#-private--local-first">🔒 Privado</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Onde ele é executado</a></td>
+    <td align="center"><a href="#-private--local-first">🔒 Privacidade</a></td>
   </tr>
   <tr>
     <td align="right"><b>👀 Veja</b></td>
@@ -125,8 +127,8 @@
     <td align="center"><a href="#-compatible-clis--coding-agents">🤖 CLIs compatíveis</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💚 Apoie</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Apoie / Doe</a></td>
+    <td align="right"><b>💚 Apoio</b></td>
+    <td align="center"><a href="#-support-omniroute">💚 Apoiar / Doar</a></td>
     <td align="center"><a href="#-community--help">💬 Comunidade</a></td>
     <td align="center"><a href="#-sponsors">💖 Patrocinadores</a></td>
   </tr>
@@ -141,9 +143,9 @@
 </div>
 
 <div align="center">
-  <b>🌐 Em 66 idiomas</b>
+  <b>🌐 Em 67 idiomas</b>
   <br/><br/>
-  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
+  <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="Inglês (en)" title="Inglês (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
   <a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="30" alt="Português (pt)" title="Português (pt)"></a>
   <a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="30" alt="Español (es)" title="Español (es)"></a>
@@ -209,6 +211,7 @@
   <a href="docs/i18n/uz/README.md"><img src="docs/assets/flags/uz.svg" width="30" alt="Oʻzbekcha (uz)" title="Oʻzbekcha (uz)"></a>
   <a href="docs/i18n/ka/README.md"><img src="docs/assets/flags/ge.svg" width="30" alt="ქართული (ka)" title="ქართული (ka)"></a>
   <a href="docs/i18n/hy/README.md"><img src="docs/assets/flags/am.svg" width="30" alt="Հայերեն (hy)" title="Հայերեն (hy)"></a>
+  <a href="docs/i18n/bs/README.md"><img src="docs/assets/flags/ba.svg" width="30" alt="Bosanski (bs)" title="Bosanski (bs)"></a>
 </div>
 
 <br/>
@@ -668,11 +671,11 @@ do histórico do seu shell. → [Integrações com CLIs](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 provedores de IA — 152 marcados no catálogo como gratuitos
+## 🌐 372 provedores de IA — 154 marcados no catálogo como gratuitos
 
 </div>
 
-> **357 provedores registrados** nas coleções canônicas de chat, mídia, pesquisa, execução local, agentes de nuvem e sistema, incluindo **152 com metadados de descoberta `hasFree: true`**. O registro de modelos de chat abrange **229 provedores / 2.554 pares distintos de provedor-modelo / 1.283 IDs brutos de modelos**; o catálogo separado de cotas gratuitas contém **491 entradas por modelo**, **35 pools recorrentes** e **54 provedores gratuitos para sempre, recorrentes/sem chave**. Esses denominadores são diferentes por definição; as definições e os cálculos com pools desduplicados estão na [Referência de Provedores](docs/reference/PROVIDER_REFERENCE.md) e nos [Níveis Gratuitos](docs/reference/FREE_TIERS.md).
+> **372 provedores registrados** nas coleções canônicas de chat, mídia, pesquisa, execução local, agentes de nuvem e sistema, incluindo **154 com metadados de descoberta `hasFree: true`**. O registro de modelos de chat abrange **237 provedores / 3.009 pares distintos de provedor-modelo / 1.443 IDs de modelo brutos**; o catálogo separado de orçamentos gratuitos tem **491 entradas por modelo**, **35 pools recorrentes** e **54 provedores gratuitos para sempre, recorrentes/sem necessidade de chave**. Esses denominadores são diferentes por definição; as definições e os cálculos com pools desduplicados estão na [Referência de Provedores](docs/reference/PROVIDER_REFERENCE.md) e nos [Níveis Gratuitos](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
@@ -709,7 +712,7 @@ do histórico do seu shell. → [Integrações com CLIs](docs/guides/CLI-INTEGRA
 
 <br/>
 
-### 🆓 Grátis para sempre — US$ 0, sem cartão
+### 🆓 Gratuito para sempre — US$ 0, sem cartão
 
 <table>
   <tr>
