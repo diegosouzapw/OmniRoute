@@ -128,7 +128,7 @@ import {
 import { markAntigravityMissingCloudCodeProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { wrapResponseWithOAuthSessionRelease } from "@omniroute/open-sse/services/oauthSessionOccupancy.ts";
-import { inheritProviderProbeResponse } from "@/shared/utils/providerProbeResult";
+import { inheritProviderProbeResponse, inheritResponsePolicies } from "./chat/responsePolicies.ts";
 import { resolveProviderId } from "@/shared/constants/providers";
 import {
   extractReasoningIntent,
@@ -2221,7 +2221,7 @@ async function handleSingleModelChat(
           credentials?.connectionId
         );
         if (requestBody.stream === true) {
-          return inheritProviderProbeResponse(
+          return inheritResponsePolicies(
             successResponse,
             wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession)
           );

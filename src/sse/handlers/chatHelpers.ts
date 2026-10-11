@@ -52,10 +52,8 @@ import { classify429FromError, type FailureKind } from "../../shared/utils/class
 import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
 import { resolveProviderId } from "../../shared/constants/providers";
 import { classifyProviderProbeResult } from "./providerProbeClassification";
-import {
-  inheritProviderProbeResponse,
-  markProviderProbeResponse,
-} from "../../shared/utils/providerProbeResult";
+import { markProviderProbeResponse } from "../../shared/utils/providerProbeResult";
+import { inheritResponsePolicies } from "./chat/responsePolicies.ts";
 import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
 import { noteProxyOutcome } from "./proxyOutcomeMemory";
@@ -1249,6 +1247,6 @@ export function withSelectedConnectionHeader(
     });
     cloned.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
     const trusted = inheritTrustedLocalRateLimitResponse(response, cloned);
-    return inheritProviderProbeResponse(response, trusted);
+    return inheritResponsePolicies(response, trusted);
   }
 }

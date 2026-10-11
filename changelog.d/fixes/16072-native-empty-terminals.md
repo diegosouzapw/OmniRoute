@@ -1,0 +1,1 @@
+- fix(streaming): preserve valid empty native completions through JSON, SSE, combos and deduplicated requests for official OpenAI, Anthropic, Codex, OpenRouter and documented Azure endpoints, while retaining unknown-origin, incomplete-stream and upstream-error guards (#16072).
