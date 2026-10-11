@@ -9,27 +9,30 @@ mga na-review na PR papunta sa `release/vX.Y.Z` ay ang **Mergify merge queue** (
 ang **manual merge-train** na nakadokumento sa ibaba ang FALLBACK — ginagamit sa panahon ng mga insidente,
 release freeze, o kung sakaling magbago ang Mergify Open Source plan.
 
-## Default na path: ang Mergify queue
+## Default na landas: ang pila ng Mergify
 
-1. Na-review/nakapasa ang PR sa mga campaign at inaprubahan ng pre-merge ⭐
-   gate ng may-ari (ang ulat + desisyon sa bawat item — tingnan ang `/merge-prs` Step 0.75).
-2. Ilalapat ng may-ari (o ng session na kumikilos batay sa desisyon ng may-ari) ang label na **`queue`**.
-   Ang label ANG merge approval; isinasagawa lamang ito ng Mergify.
-3. Pinagsasama-sama ng Mergify ang hanggang 10 nakapilang PR, bina-validate ang batch laban sa mga fast-gate,
-   at nagme-merge (squash). Ang pulang batch ay **awtomatikong bina-bisect** — ihihiwalay ang may-salang PR
-   sa ~log2(N) revalidation at aalisin sa queue; magpapatuloy ang iba.
-4. Pagkatapos ng merge, bina-validate ng tuloy-tuloy na release-green workflow ang bagong tip sa push
-   at nagbubukas ng attribution issue kung nagkaroon ng regression ang kumbinasyon (hindi kailanman awtomatikong nagre-revert).
+1. Sinusuri/nagiging green ang PR sa pamamagitan ng mga campaign at inaaprubahan ng ⭐
+   gate bago mag-merge ng may-ari (ang ulat + desisyon sa bawat item — tingnan ang `/merge-prs` Hakbang 0.75).
+2. Inilalapat ng may-ari (o ng session na kumikilos batay sa desisyon ng may-ari) ang label na **`queue`**.
+   Ang label MISMO ang pag-apruba sa pag-merge; isinasagawa lamang ito ng Mergify.
+3. **Sunud-sunod** na bina-validate ng Mergify ang mga nakapilang PR (paisa-isa) laban sa mga fast-gate
+   at mine-merge ang mga ito (squash). Ang batching + awtomatikong bisection ay nasa bayad na tier ng Mergify
+   ("Cannot use Merge Queue batch" sa libreng plan, #7220), kaya walang itinatakdang
+   `batch_size` ang `.mergify.yml`; nananatiling gawain ng manu-manong merge-train sa ibaba ang batching. Ang PR na
+   nakabinbin pa rin ang mga check pagkalipas ng `checks_timeout` (240 min = 2× ng nasukat na p95 ng
+   `quality.yml`) ay inaalis sa pila sa halip na patigilin ang pila.
+4. Pagkatapos ng pag-merge, bina-validate ng tuloy-tuloy na release-green workflow ang bagong tip sa pag-push
+   at nagbubukas ng attribution issue kung nagkaroon ng regression ang kombinasyon (hindi kailanman awtomatikong nagre-revert).
 
-Mga guardrail (katumbas ng `CLAUDE.md` Hard Rules #21/#22):
+Mga pananggalang (sumasalamin sa Mga Mahigpit na Panuntunan #21/#22 ng `CLAUDE.md`):
 
-- **Bukas ang release freeze** → HUWAG lagyan ng label ang mga PR na naka-target sa naka-freeze na branch; i-retarget muna sa
+- **Bukas ang release freeze** → HUWAG lagyan ng label ang mga PR na nagta-target sa naka-freeze na branch; i-retarget muna sa
   aktibong `release/vX+1`.
-- **In-flight na PR ng ibang session** → huwag kailanman itong lagyan ng label; ang nagmamay-aring session lamang ang pumipila
-  sa sarili nitong trabaho.
-- Ang mga diff na tests-only at mga PR na may label na `hotfix` ay nagpapatakbo na ng mas kaunting CI (tingnan ang
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); tinatanggap ng mga kondisyon ng queue ang anumang
-  set ng check na aktuwal na tumakbo (`#check-failure=0` + `#check-pending=0`).
+- **In-flight na PR ng ibang session** → huwag kailanman itong lagyan ng label; tanging ang nagmamay-aring session lamang ang
+  naglalagay sa pila ng sarili nitong gawain.
+- Ang mga diff na tests-only at mga PR na may label na `hotfix` ay nagpapatakbo na ng pinababang CI (tingnan ang
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); tinatanggap ng mga kondisyon ng pila ang anumang
+  hanay ng mga check na aktuwal na tumakbo (`#check-failure=0` + `#check-pending=0`).
 
 ## Fallback: ang manual merge-train
 

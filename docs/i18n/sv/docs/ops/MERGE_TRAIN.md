@@ -11,25 +11,28 @@ releasefrysningar eller om Mergifys Open Source-plan någon gång ändras.
 
 ## Standardsökväg: Mergify-kön
 
-1. PR:en granskas/får grönt ljus av kampanjerna och godkänns genom ägarens ⭐-kontroll
-   före sammanfogning (rapporten + beslut per punkt — se `/merge-prs` steg 0.75).
-2. Ägaren (eller sessionen som agerar utifrån ägarens beslut) tillämpar etiketten **`queue`**.
-   Etiketten ÄR godkännandet för sammanfogning; Mergify verkställer det bara.
-3. Mergify grupperar upp till 10 köade PR:er, validerar gruppen mot snabbkontrollerna
-   och sammanfogar (squash). En röd grupp **bisekteras automatiskt** — den felande PR:en
-   isoleras efter cirka log2(N) omvalideringar och tas bort ur kön; resten fortsätter.
-4. Efter sammanfogningen validerar det kontinuerliga release-green-arbetsflödet den nya spetsen vid push
-   och öppnar ett ärende för tillskrivning om kombinationen orsakade en regression (aldrig automatisk återställning).
+1. PR:en granskas/grönmarkeras av kampanjerna och godkänns av ägarens ⭐-kontroll före sammanslagning
+   (rapporten + beslutet per objekt – se `/merge-prs` steg 0.75).
+2. Ägaren (eller sessionen som agerar utifrån ägarens beslut) lägger till etiketten **`queue`**.
+   Etiketten ÄR godkännandet för sammanslagning; Mergify verkställer det bara.
+3. Mergify validerar köade PR:er **sekventiellt** (en i taget) mot snabbkontrollerna
+   och sammanfogar dem (squash). Buntning + automatisk bisektion kräver en betald Mergify-nivå
+   ("Cannot use Merge Queue batch" i gratisplanen, #7220), så `.mergify.yml` anger ingen
+   `batch_size`; buntning hanteras i stället av det manuella sammanslagningståget nedan. En PR vars
+   kontroller fortfarande väntar efter `checks_timeout` (240 min = 2× uppmätt p95 för
+   `quality.yml`) tas bort ur kön i stället för att blockera den.
+4. Efter sammanslagningen validerar det kontinuerliga arbetsflödet för grön release den nya spetsen vid push
+   och öppnar ett attribueringsärende om kombinationen har försämrats (återställ aldrig automatiskt).
 
-Skyddsräcken (speglar hårda regler #21/#22 i `CLAUDE.md`):
+Skyddsräcken (motsvarar de hårda reglerna #21/#22 i `CLAUDE.md`):
 
-- **Releasefrysning aktiv** → etikettera INTE PR:er som är riktade mot den frysta grenen; rikta först om dem till
-  den aktiva `release/vX+1`.
-- **En annan sessions pågående PR** → etikettera den aldrig; endast den ägande sessionen köar
+- **Releasefrysning pågår** → märk INTE PR:er som är riktade mot den frysta grenen; ändra först mål
+  till den aktiva `release/vX+1`.
+- **En annan sessions pågående PR** → märk den aldrig; endast den ägande sessionen köar
   sitt eget arbete.
 - Diffar som endast innehåller tester och PR:er med etiketten `hotfix` kör redan reducerad CI (se
-  `RELEASE_CHECKLIST.md` → Snabbspår för snabbkorrigeringar); kövillkoren accepterar den
-  uppsättning kontroller som faktiskt kördes (`#check-failure=0` + `#check-pending=0`).
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); kövillkoren accepterar den uppsättning
+  kontroller som faktiskt kördes (`#check-failure=0` + `#check-pending=0`).
 
 ## Reservlösning: det manuella sammanfogningståget
 

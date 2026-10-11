@@ -9,27 +9,30 @@ PRs da aka yi wa bita zuwa `release/vX.Y.Z` ita ce **layin jiran haɗawa na Merg
 **jirgin haɗawa na hannu** da aka rubuta a ƙasa shi ne MADADIN GAGGAWA — ana amfani da shi yayin matsaloli,
 dakatar da fitar da sigar, ko kuma idan shirin Mergify Open Source ya taɓa canzawa.
 
-## Hanyar tsohuwa: layin jiran Mergify
+## Tsohuwar hanya: jerin jiran Mergify
 
-1. Kamfen-kamfen sun yi wa PR bita/sun tabbatar da lafiyarsa, kuma an amince da shi ta ƙofar ⭐
-   kafin haɗawa ta mai shi (rahoton + shawarar kowane abu — duba `/merge-prs` Mataki na 0.75).
+1. Kamfen-kamfen sun duba/sun tabbatar da PR a matsayin mai kyau, kuma matakin ⭐
+   na kafin haɗewa na mai shi ya amince da shi (rahoton + shawarar kowane abu — duba `/merge-prs` Mataki na 0.75).
 2. Mai shi (ko zaman da ke aiki bisa shawarar mai shi) yana sanya alamar **`queue`**.
-   Alamar ITA ce amincewar haɗawa; Mergify kawai yake aiwatar da ita.
-3. Mergify yana haɗa har zuwa PRs 10 da ke layin jira cikin rukuni, yana tantance rukunin da fast-gates,
-   sannan ya haɗa su (squash). Rukuni mai ja ana **raba shi biyu kai tsaye** — ana ware PR
-   mai laifi cikin kusan sake-tantancewa log2(N), sannan a cire shi daga layin jira; sauran su ci gaba.
-4. Bayan haɗawa, tsarin aiki na ci gaba na release-green yana tantance sabon tip lokacin push
-   kuma yana buɗe issue na danganta alhaki idan haɗin ya haifar da koma baya (ba ya taɓa yin auto-revert).
+   Alamar ITA CE amincewar haɗewa; Mergify kawai yake aiwatar da ita.
+3. Mergify yana tantance PRs da ke cikin jerin jira **ɗaya bayan ɗaya** bisa ga matakan
+   bincike masu sauri, sannan ya haɗa su (squash). Haɗawa rukuni-rukuni + rarrabawa ta atomatik domin gano matsala fasali ne na matakin Mergify mai kuɗi
+   ("Cannot use Merge Queue batch" a tsarin kyauta, #7220), don haka `.mergify.yml` bai saita
+   `batch_size` ba; haɗawa rukuni-rukuni ya ci gaba da zama aikin jirgin haɗewa na hannu da ke ƙasa. PR wanda
+   bincikensa har yanzu bai kammala ba bayan `checks_timeout` (minti 240 = 2× p95 da aka auna na
+   `quality.yml`) ana cire shi daga jerin jira maimakon ya tsaida jerin.
+4. Bayan haɗewa, tsarin aiki na ci gaba da tabbatar da cewa sakin yana da kyau yana tantance sabon kan reshe yayin push
+   kuma yana buɗe batun danganta musabbabin matsala idan haɗin ya haifar da koma baya (ba ya taɓa mayar da canjin baya ta atomatik).
 
-Matakan kariya (sun yi daidai da `CLAUDE.md` Hard Rules #21/#22):
+Matakan kariya (sun yi daidai da `CLAUDE.md` Dokoki Masu Tsauri #21/#22):
 
-- **An buɗe dakatar da fitar da siga** → KAR a sanya wa PRs masu nufin reshen da aka dakatar alama; fara
-  karkatar da su zuwa `release/vX+1` mai aiki.
-- **PR na wani zaman da har yanzu ake aiki a kansa** → kada a taɓa sanya masa alama; zaman da ya mallake shi ne kaɗai
-  zai saka aikinsa a layin jira.
-- Diffs na gwaje-gwaje kawai da PRs masu alamar `hotfix` sun riga sun gudanar da CI da aka rage (duba
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); sharuɗɗan layin jira suna karɓar duk wani
-  rukunin gwaje-gwajen da aka gudanar a zahiri (`#check-failure=0` + `#check-pending=0`).
+- **An buɗe daskarewar sakin** → KAR a sanya alama ga PRs da ke nufin reshen da aka daskare; fara sauya
+  maƙasudinsu zuwa `release/vX+1` mai aiki.
+- **PR na wani zaman da har yanzu ake aiki a kansa** → kar a taɓa sanya masa alama; zaman da ya mallake shi kaɗai ne yake sanya
+  aikinsa a jerin jira.
+- Canje-canjen gwaje-gwaje kawai da PRs masu alamar `hotfix` tuni suna gudanar da rageccen CI (duba
+  `RELEASE_CHECKLIST.md` → Hanyar Gaggawa ta Hotfix); sharuɗɗan jerin jira suna karɓar duk wani
+  saitin bincike da aka gudanar a zahiri (`#check-failure=0` + `#check-pending=0`).
 
 ## Madadin gaggawa: jirgin haɗawa na hannu
 

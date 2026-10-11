@@ -9,23 +9,27 @@ aşağıda sənədləşdirilmiş **əl ilə birləşdirmə qatarı** isə EHTİY
 
 ## Standart yol: Mergify növbəsi
 
-1. PR kampaniyalar tərəfindən nəzərdən keçirilir/yaşıl status alır və sahibin birləşdirmədən əvvəlki ⭐
-   yoxlama mərhələsində təsdiqlənir (hesabat + hər element üzrə qərar — `/merge-prs` Addım 0.75-ə baxın).
+1. PR kampaniyalar tərəfindən nəzərdən keçirilir/yoxlamalardan uğurla keçir və sahibin birləşdirmədən əvvəlki ⭐
+   keçid mərhələsində təsdiqlənir (hesabat + hər element üzrə qərar — `/merge-prs` Addım 0.75-ə baxın).
 2. Sahib (və ya sahibin qərarı əsasında fəaliyyət göstərən sessiya) **`queue`**
-   etiketini tətbiq edir. Etiket birləşdirmə təsdiqinin ÖZÜDÜR; Mergify yalnız onu icra edir.
-3. Mergify növbədəki maksimum 10 PR-i paketləyir, paketi sürətli yoxlamalarla təsdiqləyir
-   və birləşdirir (squash). Qırmızı paket **avtomatik olaraq yarıya bölünür** — problemli PR
-   təxminən log2(N) təkrar yoxlama ilə təcrid edilir və növbədən çıxarılır; qalanları davam edir.
-4. Birləşdirmədən sonra davamlı release-green iş axını push zamanı yeni ucu yoxlayır
-   və kombinasiya reqressiyaya səbəb olubsa, aidiyyət məsələsi açır (heç vaxt avtomatik geri qaytarma etmir).
+   etiketini tətbiq edir. Etiket birləşdirmə təsdiqinin ÖZÜDÜR; Mergify sadəcə onu icra edir.
+3. Mergify növbədəki PR-ləri sürətli keçid yoxlamalarına qarşı **ardıcıl**
+   (bir dəfəyə birini) yoxlayır və birləşdirir (squash). Paketləmə + avtomatik biseksiya ödənişli Mergify səviyyəsidir
+   (pulsuz planda "Cannot use Merge Queue batch", #7220), buna görə `.mergify.yml` faylında
+   `batch_size` təyin edilmir; paketləmə aşağıdakı əl ilə idarə olunan birləşdirmə qatarının işi olaraq qalır. Yoxlamaları
+   `checks_timeout` müddətindən (240 dəq = `quality.yml` üçün ölçülmüş p95-in 2 qatı) sonra hələ də gözləmədə olan PR
+   növbəni ləngitmək əvəzinə növbədən çıxarılır.
+4. Birləşdirmədən sonra fasiləsiz buraxılışın uğurluluğunu yoxlayan iş axını push zamanı yeni son nöqtəni yoxlayır
+   və kombinasiya reqressiyaya səbəb olubsa, aidiyyət məsələsi açır (heç vaxt avtomatik geri qaytarmır).
 
 Qoruyucu qaydalar (`CLAUDE.md` Sərt Qaydalar #21/#22 ilə eynidir):
 
-- **Reliz dondurması aktivdir** → dondurulmuş budağı hədəfləyən PR-lərə etiket VURMAYIN; əvvəlcə
+- **Buraxılış dondurulması aktivdir** → dondurulmuş budağı hədəfləyən PR-ləri etiketləməyin; əvvəlcə
   aktiv `release/vX+1` budağına yönləndirin.
-- **Başqa sessiyanın icrada olan PR-i** → heç vaxt onu etiketləməyin; yalnız sahib sessiya
+- **Başqa sessiyanın icrada olan PR-i** → onu heç vaxt etiketləməyin; yalnız sahib sessiya
   öz işini növbəyə əlavə edir.
-- Yalnız testlərdən ibarət fərqlər və `hotfix` etiketli PR-lər artıq azaldılmış CI işlədir (`RELEASE_CHECKLIST.md` → Hotfix Fast-Lane bölməsinə baxın); növbə şərtləri faktiki icra edilmiş istənilən
+- Yalnız testlərdən ibarət fərqlər və `hotfix` etiketli PR-lər artıq azaldılmış CI yoxlamalarından keçir (bax:
+  `RELEASE_CHECKLIST.md` → Təcili Düzəliş üçün Sürətli Zolaq); növbə şərtləri faktiki olaraq işə salınmış istənilən
   yoxlama dəstini qəbul edir (`#check-failure=0` + `#check-pending=0`).
 
 ## Ehtiyat variantı: əl ilə birləşdirmə qatarı

@@ -11,25 +11,28 @@ các PR đã được đánh giá vào `release/vX.Y.Z` là **hàng đợi hợp
 
 ## Đường dẫn mặc định: hàng đợi Mergify
 
-1. PR được các chiến dịch đánh giá/vượt qua và được phê duyệt bởi cổng ⭐ trước hợp nhất
-   của chủ sở hữu (báo cáo + quyết định theo từng mục — xem `/merge-prs` Bước 0.75).
-2. Chủ sở hữu (hoặc phiên làm việc thực hiện theo quyết định của chủ sở hữu) áp dụng nhãn **`queue`**.
-   Nhãn này CHÍNH LÀ sự phê duyệt hợp nhất; Mergify chỉ thực thi quyết định đó.
-3. Mergify gom tối đa 10 PR trong hàng đợi thành một lô, xác thực lô đó qua các cổng kiểm tra nhanh
-   và hợp nhất (squash). Một lô đỏ được **chia đôi tự động** — PR gây lỗi
-   được cô lập sau khoảng ~log2(N) lần xác thực lại và bị loại khỏi hàng đợi; các PR còn lại tiếp tục.
-4. Sau khi hợp nhất, quy trình phát hành xanh liên tục xác thực đầu nhánh mới khi push
-   và mở một issue quy trách nhiệm nếu tổ hợp đó gây hồi quy (không bao giờ tự động hoàn tác).
+1. PR được các chiến dịch xem xét/xác nhận đạt yêu cầu và được cổng ⭐ trước khi hợp nhất của chủ sở hữu phê duyệt
+   (báo cáo + quyết định cho từng mục — xem `/merge-prs` Bước 0.75).
+2. Chủ sở hữu (hoặc phiên làm việc thực hiện quyết định của chủ sở hữu) áp dụng nhãn **`queue`**.
+   Nhãn này CHÍNH LÀ phê duyệt hợp nhất; Mergify chỉ thực thi quyết định đó.
+3. Mergify xác thực các PR trong hàng đợi **theo tuần tự** (mỗi lần một PR) dựa trên các cổng kiểm tra nhanh
+   rồi hợp nhất (squash). Xử lý theo lô + tự động chia đôi để xác định lỗi thuộc gói Mergify trả phí
+   ("Cannot use Merge Queue batch" trên gói miễn phí, #7220), vì vậy `.mergify.yml` không đặt
+   `batch_size`; việc xử lý theo lô vẫn là nhiệm vụ của quy trình merge-train thủ công bên dưới. Một PR có
+   các bước kiểm tra vẫn đang chờ sau `checks_timeout` (240 phút = 2× p95 đo được của
+   `quality.yml`) sẽ bị loại khỏi hàng đợi thay vì làm đình trệ hàng đợi.
+4. Sau khi hợp nhất, quy trình làm việc liên tục xác nhận trạng thái sẵn sàng phát hành sẽ kiểm tra đầu nhánh mới khi có push
+   và mở một issue ghi nhận trách nhiệm nếu tổ hợp đó gây hồi quy (không bao giờ tự động revert).
 
-Các biện pháp bảo vệ (phản ánh các Quy tắc Cứng #21/#22 trong `CLAUDE.md`):
+Các biện pháp bảo vệ (phản ánh `CLAUDE.md` Quy tắc Cứng #21/#22):
 
-- **Đang đóng băng phát hành** → KHÔNG gắn nhãn cho các PR nhắm đến nhánh bị đóng băng; trước tiên hãy đổi đích sang
+- **Đang đóng băng bản phát hành** → KHÔNG gắn nhãn cho các PR nhắm đến nhánh bị đóng băng; trước tiên hãy đổi đích sang
   `release/vX+1` đang hoạt động.
-- **PR đang được xử lý của một phiên khác** → không bao giờ gắn nhãn cho PR đó; chỉ phiên sở hữu mới đưa
+- **PR đang được xử lý của phiên khác** → không bao giờ gắn nhãn cho PR đó; chỉ phiên sở hữu mới đưa
   công việc của mình vào hàng đợi.
-- Các diff chỉ có kiểm thử và PR mang nhãn `hotfix` vốn đã chạy CI rút gọn (xem
-  `RELEASE_CHECKLIST.md` → Luồng Nhanh Hotfix); các điều kiện của hàng đợi chấp nhận bất kỳ
-  tập hợp kiểm tra nào thực sự đã chạy (`#check-failure=0` + `#check-pending=0`).
+- Các diff chỉ liên quan đến kiểm thử và các PR có nhãn `hotfix` đã chạy CI rút gọn (xem
+  `RELEASE_CHECKLIST.md` → Làn Nhanh Hotfix); các điều kiện của hàng đợi chấp nhận bất kỳ
+  tập kiểm tra nào thực sự đã chạy (`#check-failure=0` + `#check-pending=0`).
 
 ## Phương án dự phòng: đoàn tàu hợp nhất thủ công
 

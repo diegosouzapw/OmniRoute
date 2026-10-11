@@ -9,27 +9,30 @@ reviewte PRs nach `release/vX.Y.Z` die **Mergify-Merge-Queue** (`.mergify.yml`);
 der unten dokumentierte **manuelle Merge-Train** ist die RÜCKFALLEBENE — er wird bei Störungen,
 Release-Freezes oder dann verwendet, wenn sich der Mergify-Open-Source-Tarif jemals ändert.
 
-## Standardpfad: die Mergify-Queue
+## Standardpfad: die Mergify-Warteschlange
 
-1. Der PR wurde von den Kampagnen reviewt/auf Grün gesetzt und durch das ⭐-Gate des Owners
-   vor dem Merge genehmigt (der Bericht + die Entscheidung pro Element — siehe `/merge-prs`, Schritt 0.75).
-2. Der Owner (oder die Session, die gemäß der Entscheidung des Owners handelt) weist das Label **`queue`**
+1. Der PR wird von den Kampagnen geprüft/auf Grün gesetzt und durch die ⭐-Freigabe
+   des Eigentümers vor dem Merge genehmigt (der Bericht + die Entscheidung pro Element — siehe `/merge-prs`, Schritt 0.75).
+2. Der Eigentümer (oder die Sitzung, die gemäß der Entscheidung des Eigentümers handelt) weist das Label **`queue`**
    zu. Das Label IST die Merge-Genehmigung; Mergify führt sie lediglich aus.
-3. Mergify fasst bis zu 10 PRs aus der Queue zu einem Batch zusammen, validiert den Batch anhand der Fast-Gates
-   und mergt ihn (Squash). Ein roter Batch wird **automatisch halbiert** — der verursachende PR
-   wird in ~log2(N) erneuten Validierungen isoliert und aus der Queue entfernt; die übrigen werden fortgesetzt.
-4. Nach dem Merge validiert der kontinuierliche Release-Green-Workflow den neuen Tip bei jedem Push
-   und öffnet ein Issue zur Ursachenattribution, falls die Kombination eine Regression verursacht hat (niemals automatischer Revert).
+3. Mergify validiert die PRs in der Warteschlange **seriell** (jeweils einen) anhand der Schnellprüfungen
+   und führt den Merge durch (Squash). Batching + automatische Bisektion gehören zu einem kostenpflichtigen Mergify-Tarif
+   („Cannot use Merge Queue batch“ im kostenlosen Tarif, #7220), daher legt `.mergify.yml` keine
+   `batch_size` fest; Batching bleibt Aufgabe des unten beschriebenen manuellen Merge-Trains. Ein PR, dessen
+   Prüfungen nach Ablauf von `checks_timeout` (240 min = 2× der gemessene p95-Wert von
+   `quality.yml`) noch ausstehen, wird aus der Warteschlange entfernt, anstatt diese zu blockieren.
+4. Nach dem Merge validiert der kontinuierliche Release-Green-Workflow den neuen Stand bei einem Push
+   und eröffnet ein Issue zur Zuordnung, falls die Kombination eine Regression verursacht hat (niemals automatisches Revert).
 
-Leitplanken (entsprechen den festen Regeln Nr. 21/Nr. 22 in `CLAUDE.md`):
+Schutzmaßnahmen (entsprechen den harten Regeln #21/#22 in `CLAUDE.md`):
 
-- **Release-Freeze aktiv** → PRs, die auf den eingefrorenen Branch zielen, NICHT labeln; zuerst auf
+- **Release-Freeze aktiv** → PRs, die auf den eingefrorenen Branch abzielen, NICHT mit einem Label versehen; sie zuerst auf
   den aktiven `release/vX+1` umstellen.
-- **Laufender PR einer anderen Session** → niemals labeln; nur die zuständige Session stellt
-  ihre eigene Arbeit in die Queue.
-- Reine Test-Diffs und mit `hotfix` gelabelte PRs führen bereits reduzierte CI aus (siehe
-  `RELEASE_CHECKLIST.md` → Hotfix-Fast-Lane); die Queue-Bedingungen akzeptieren die tatsächlich
-  ausgeführte Check-Menge (`#check-failure=0` + `#check-pending=0`).
+- **Laufender PR einer anderen Sitzung** → niemals mit einem Label versehen; nur die besitzende Sitzung stellt
+  ihre eigene Arbeit in die Warteschlange.
+- Reine Test-Diffs und mit `hotfix` gekennzeichnete PRs durchlaufen bereits eine reduzierte CI (siehe
+  `RELEASE_CHECKLIST.md` → Hotfix-Schnellspur); die Bedingungen der Warteschlange akzeptieren den jeweils
+  tatsächlich ausgeführten Prüfsatz (`#check-failure=0` + `#check-pending=0`).
 
 ## Rückfallebene: der manuelle Merge-Train
 

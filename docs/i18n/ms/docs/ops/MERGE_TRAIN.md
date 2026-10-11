@@ -11,25 +11,33 @@ pembekuan keluaran, atau jika pelan Sumber Terbuka Mergify berubah.
 
 ## Laluan lalai: baris gilir Mergify
 
-1. PR disemak/diluluskan oleh kempen dan diluluskan oleh get ⭐ pragabungan pemilik
-   (laporan + keputusan setiap item — lihat `/merge-prs` Langkah 0.75).
+1. PR disemak/diluluskan oleh kempen dan diluluskan oleh gerbang ⭐ prapenggabungan
+   pemilik (laporan + keputusan setiap item — lihat `/merge-prs` Langkah 0.75).
 2. Pemilik (atau sesi yang bertindak berdasarkan keputusan pemilik) menggunakan label
-   **`queue`**. Label tersebut IALAH kelulusan gabungan; Mergify hanya melaksanakannya.
-3. Mergify mengumpulkan sehingga 10 PR dalam baris gilir, mengesahkan kelompok tersebut terhadap get pantas,
-   dan menggabungkannya (squash). Kelompok merah **dibahagi dua secara automatik** — PR yang bermasalah
-   diasingkan dalam ~log2(N) pengesahan semula dan dikeluarkan daripada baris gilir; yang lain diteruskan.
-4. Selepas gabungan, aliran kerja release-green berterusan mengesahkan tip baharu apabila ditolak
-   dan membuka isu atribusi jika gabungan tersebut mengalami regresi (tidak sekali-kali membuat auto-revert).
+   **`queue`**. Label tersebut MERUPAKAN kelulusan penggabungan; Mergify hanya
+   melaksanakannya.
+3. Mergify mengesahkan PR dalam baris gilir **secara bersiri** (satu demi satu)
+   berdasarkan gerbang pantas dan menggabungkannya (squash). Pengelompokan + pembahagian
+   dua automatik ialah ciri peringkat Mergify berbayar ("Cannot use Merge Queue batch"
+   pada pelan percuma, #7220), maka `.mergify.yml` tidak menetapkan `batch_size`;
+   pengelompokan kekal sebagai tugas tren penggabungan manual di bawah. PR yang
+   semakannya masih belum selesai selepas `checks_timeout` (240 min = 2× p95 terukur
+   bagi `quality.yml`) dikeluarkan daripada baris gilir dan bukannya menyekat baris
+   gilir.
+4. Selepas penggabungan, aliran kerja hijau keluaran berterusan mengesahkan tip baharu
+   ketika push dan membuka isu atribusi jika gabungan tersebut mengalami regresi
+   (tidak sekali-kali membuat pembalikan automatik).
 
-Pagar keselamatan (mencerminkan `CLAUDE.md` Peraturan Keras #21/#22):
+Langkah perlindungan (mencerminkan Peraturan Tegas #21/#22 dalam `CLAUDE.md`):
 
-- **Pembekuan keluaran dibuka** → JANGAN label PR yang menyasarkan cabang beku; sasarkan semula kepada
-  `release/vX+1` yang aktif terlebih dahulu.
-- **PR dalam proses milik sesi lain** → jangan sekali-kali melabelnya; hanya sesi pemilik memasukkan
-  kerja sendiri ke dalam baris gilir.
-- Perbezaan ujian sahaja dan PR berlabel `hotfix` sudah menjalankan CI yang dikurangkan (lihat
-  `RELEASE_CHECKLIST.md` → Laluan Pantas Hotfix); syarat baris gilir menerima apa-apa sahaja
-  set semakan yang benar-benar dijalankan (`#check-failure=0` + `#check-pending=0`).
+- **Pembekuan keluaran sedang berkuat kuasa** → JANGAN labelkan PR yang menyasarkan
+  cabang beku; sasarkan semula kepada `release/vX+1` yang aktif terlebih dahulu.
+- **PR sedang diproses milik sesi lain** → jangan sekali-kali melabelkannya; hanya sesi
+  pemilik boleh memasukkan kerjanya sendiri ke dalam baris gilir.
+- Perbezaan yang melibatkan ujian sahaja dan PR berlabel `hotfix` telah pun menjalankan
+  CI terhad (lihat `RELEASE_CHECKLIST.md` → Laluan Pantas Hotfix); syarat baris gilir
+  menerima apa-apa set semakan yang benar-benar dijalankan (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Pilihan sandaran: tren gabungan manual
 

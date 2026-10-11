@@ -7,27 +7,34 @@
 Alates versioonist v3.8.49 (kvaliteedi-/kiirusplaani WS3.2/WS3.4) on üle vaadatud PR-ide harusse `release/vX.Y.Z` liitmise vaikimisi tee **Mergify liitmisjärjekord** (`.mergify.yml`);
 allpool dokumenteeritud **käsitsi hallatav liitmisrong** on VARULAHENDUS — seda kasutatakse intsidentide ja väljalaske külmutamise ajal või juhul, kui Mergify avatud lähtekoodiga projektide pakett peaks kunagi muutuma.
 
-## Vaikimisi tee: Mergify järjekord
+## Vaiketee: Mergify järjekord
 
-1. Kampaaniad on PR-i üle vaadanud ja roheliseks tunnistanud ning omanik on selle liitmiseelse ⭐
-   kontrollvärava kaudu heaks kiitnud (aruanne + üksikotsus — vt `/merge-prs` samm 0.75).
+1. PR vaadatakse kampaaniate käigus üle / märgitakse roheliseks ning kinnitatakse omaniku liitmiseelse ⭐
+   kontrollvärava kaudu (aruanne + iga üksuse otsus — vt `/merge-prs` samm 0.75).
 2. Omanik (või omaniku otsuse alusel tegutsev seanss) lisab sildi **`queue`**.
-   See silt ON liitmise heakskiit; Mergify üksnes teostab selle.
-3. Mergify rühmitab kuni 10 järjekorras olevat PR-i, valideerib rühma kiirete kontrollväravate suhtes
-   ja liidab need (squash). Punane rühm **poolitatakse automaatselt** — probleemi põhjustav PR
-   eraldatakse ligikaudu log2(N) kordusvalideerimisega ja eemaldatakse järjekorrast; ülejäänud jätkavad.
-4. Pärast liitmist valideerib pidev väljalaske rohelisuse töövoog push'i järel uue tipu
-   ja kombinatsiooni regressiooni korral avab omistamisprobleemi (automaatset tagasipööramist ei tehta kunagi).
+   Silt ON liitmiskinnitus; Mergify üksnes teostab selle.
+3. Mergify valideerib järjekorras olevad PR-id **järjestikku** (ükshaaval) kiirkontrollide
+   suhtes ja liidab need (squash). Pakettidena töötlemine + automaatne poolitamine kuulub
+   Mergify tasulisse paketti („Cannot use Merge Queue batch“ tasuta paketis, #7220),
+   mistõttu `.mergify.yml` ei määra väärtust `batch_size`; pakettidena töötlemine jääb
+   allpool kirjeldatud käsitsi hallatava liitmisrongi ülesandeks. PR eemaldatakse järjekorrast,
+   kui selle kontrollid on pärast `checks_timeout` väärtuse täitumist endiselt ootel
+   (240 min = `quality.yml` mõõdetud p95 kahekordne väärtus), selle asemel et järjekord
+   seisma panna.
+4. Pärast liitmist valideerib pidev väljalaske rohelisuse töövoog saatmisel uue tipu
+   ja avab kombinatsiooni regressiooni korral omistamisprobleemi (automaatset tagasivõtmist
+   ei tehta kunagi).
 
 Kaitsepiirded (vastavad faili `CLAUDE.md` rangetele reeglitele #21/#22):
 
-- **Väljalaske külmutamine on aktiivne** → ära lisa silte külmutatud harule suunatud PR-idele; suuna need esmalt ümber
-  aktiivsele harule `release/vX+1`.
-- **Teise seansi pooleliolev PR** → ära lisa sellele kunagi silti; ainult omanikseanss lisab oma töö
-  järjekorda.
-- Ainult teste sisaldavad muudatused ja sildiga `hotfix` PR-id läbivad juba vähendatud CI (vt
-  `RELEASE_CHECKLIST.md` → kiirparanduste kiirrada); järjekorra tingimused aktsepteerivad tegelikult
-  käivitatud kontrollide komplekti (`#check-failure=0` + `#check-pending=0`).
+- **Väljalaske külmutamine on aktiivne** → ÄRGE lisage silte PR-idele, mille sihiks on
+  külmutatud haru; suunake need esmalt ümber aktiivsele harule `release/vX+1`.
+- **Teise seansi töös olev PR** → ärge kunagi lisage sellele silti; ainult omanikseanss
+  lisab oma töö järjekorda.
+- Ainult teste sisaldavad muudatused ja sildiga `hotfix` PR-id kasutavad juba vähendatud
+  CI-d (vt `RELEASE_CHECKLIST.md` → kiirparanduste kiirrada); järjekorra tingimused
+  aktsepteerivad tegelikult käivitatud kontrollikomplekti (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Varulahendus: käsitsi hallatav liitmisrong
 

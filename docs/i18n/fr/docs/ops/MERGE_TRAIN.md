@@ -9,27 +9,30 @@ PR examinées vers `release/vX.Y.Z` est la **file de fusion Mergify** (`.mergify
 le **train de fusion manuel** décrit ci-dessous est la SOLUTION DE REPLI — utilisée pendant les incidents,
 les gels de version, ou si jamais l’offre Open Source de Mergify venait à changer.
 
-## Chemin par défaut : la file Mergify
+## Chemin par défaut : la file d’attente Mergify
 
-1. La PR est examinée/validée par les campagnes et approuvée par le contrôle ⭐
+1. La PR est examinée/validée par les campagnes et approuvée par le garde-fou ⭐
    de pré-fusion du propriétaire (le rapport + la décision pour chaque élément — voir l’étape 0.75 de `/merge-prs`).
 2. Le propriétaire (ou la session agissant conformément à la décision du propriétaire) applique le label **`queue`**.
-   Ce label CONSTITUE l’approbation de fusion ; Mergify ne fait que l’exécuter.
-3. Mergify regroupe jusqu’à 10 PR en attente, valide le lot au moyen des contrôles rapides,
-   puis effectue leur fusion (squash). Un lot en échec est **divisé automatiquement par dichotomie** — la PR fautive
-   est isolée en environ log2(N) revalidations et retirée de la file ; les autres poursuivent leur traitement.
-4. Après la fusion, le workflow continu de validation de la version valide la nouvelle pointe lors du push
-   et ouvre une issue d’attribution si la combinaison introduit une régression (jamais de réversion automatique).
+   Ce label CONSTITUE l’approbation de la fusion ; Mergify ne fait que l’exécuter.
+3. Mergify valide les PR en file d’attente **séquentiellement** (une à la fois) par rapport aux garde-fous rapides
+   et les fusionne (squash). Le traitement par lots + la bissection automatique nécessitent une offre Mergify payante
+   (« Cannot use Merge Queue batch » avec l’offre gratuite, #7220) ; `.mergify.yml` ne définit donc aucun
+   `batch_size` ; le traitement par lots reste du ressort du train de fusion manuel ci-dessous. Une PR dont
+   les vérifications sont toujours en attente après `checks_timeout` (240 min = 2× le p95 mesuré de
+   `quality.yml`) est retirée de la file d’attente au lieu de la bloquer.
+4. Après la fusion, le workflow continu de validation de release vérifie la nouvelle pointe lors du push
+   et ouvre une issue d’attribution si la combinaison introduit une régression (aucun retour en arrière automatique).
 
-Garde-fous (reproduisant les règles strictes nº 21/22 de `CLAUDE.md`) :
+Garde-fous (reprennent les règles strictes #21/#22 de `CLAUDE.md`) :
 
-- **Gel de version en cours** → n’attribuez PAS de label aux PR ciblant la branche gelée ; reciblez-les
-  d’abord vers la branche `release/vX+1` active.
-- **PR en cours d’une autre session** → ne lui attribuez jamais de label ; seule la session propriétaire met
-  son propre travail en file.
-- Les diffs limités aux tests et les PR portant le label `hotfix` exécutent déjà une CI réduite (voir
-  `RELEASE_CHECKLIST.md` → Voie rapide des correctifs) ; les conditions de la file acceptent l’ensemble
-  de contrôles effectivement exécuté (`#check-failure=0` + `#check-pending=0`).
+- **Gel de release en cours** → n’appliquez PAS de label aux PR ciblant la branche gelée ; reciblez-les d’abord vers
+  la branche `release/vX+1` active.
+- **PR en cours d’une autre session** → ne lui appliquez jamais de label ; seule la session propriétaire place
+  son propre travail dans la file d’attente.
+- Les diffs portant uniquement sur les tests et les PR portant le label `hotfix` exécutent déjà une CI réduite (voir
+  `RELEASE_CHECKLIST.md` → Voie rapide des correctifs) ; les conditions de la file d’attente acceptent tout
+  ensemble de vérifications effectivement exécuté (`#check-failure=0` + `#check-pending=0`).
 
 ## Solution de repli : le train de fusion manuel
 

@@ -9,27 +9,30 @@ zrecenzowanych PR-ów do `release/vX.Y.Z` jest **kolejka scalania Mergify** (`.m
 opisany poniżej **ręczny merge train** stanowi ROZWIĄZANIE AWARYJNE — używane podczas incydentów,
 zamrożeń wydań lub w przypadku zmiany planu Mergify Open Source.
 
-## Ścieżka domyślna: kolejka Mergify
+## Domyślna ścieżka: kolejka Mergify
 
-1. PR zostaje zrecenzowany, uzyskuje zielony status w kampaniach i zostaje zatwierdzony przez należącą do właściciela
-   bramkę ⭐ przed scaleniem (raport + decyzja dla każdego elementu — zobacz krok 0.75 w `/merge-prs`).
-2. Właściciel (lub sesja działająca na podstawie decyzji właściciela) stosuje etykietę **`queue`**.
+1. PR zostaje sprawdzony/otrzymuje zielony status w ramach kampanii i zatwierdzony przez należącą do właściciela bramkę ⭐
+   przed scaleniem (raport + decyzja dla każdej pozycji — zobacz krok 0.75 w `/merge-prs`).
+2. Właściciel (lub sesja działająca na podstawie decyzji właściciela) nadaje etykietę **`queue`**.
    Etykieta JEST zgodą na scalenie; Mergify jedynie je wykonuje.
-3. Mergify grupuje maksymalnie 10 PR-ów z kolejki, sprawdza grupę względem szybkich bramek
-   i scala ją (squash). Grupa z czerwonym statusem jest **automatycznie dzielona na pół** — powodujący problem PR
-   zostaje wyizolowany po około log2(N) ponownych walidacjach i usunięty z kolejki; pozostałe są przetwarzane dalej.
-4. Po scaleniu ciągły workflow release-green sprawdza nowy wierzchołek po wypchnięciu zmian
-   i otwiera zgłoszenie z informacją o pochodzeniu problemu, jeśli dana kombinacja spowodowała regresję (bez automatycznego wycofywania).
+3. Mergify weryfikuje PR-y w kolejce **sekwencyjnie** (pojedynczo) względem szybkich bramek
+   i scala je (squash). Grupowanie + automatyczna bisekcja wymagają płatnego planu Mergify
+   („Cannot use Merge Queue batch” w bezpłatnym planie, #7220), dlatego `.mergify.yml` nie ustawia
+   `batch_size`; grupowanie pozostaje zadaniem ręcznego procesu merge-train opisanego poniżej. PR, którego
+   testy nadal oczekują po upływie `checks_timeout` (240 min = 2× zmierzony p95 dla
+   `quality.yml`), zostaje usunięty z kolejki, zamiast ją blokować.
+4. Po scaleniu ciągły workflow weryfikacji wydania sprawdza nowy najnowszy commit po pushu
+   i otwiera issue wskazujące źródło problemu, jeśli dana kombinacja spowodowała regresję (nigdy nie wykonuje automatycznego revertu).
 
-Zabezpieczenia (odzwierciedlają Hard Rules #21/#22 z `CLAUDE.md`):
+Zabezpieczenia (odzwierciedlają Twarde reguły #21/#22 z `CLAUDE.md`):
 
-- **Aktywne zamrożenie wydania** → NIE oznaczaj etykietą PR-ów wskazujących zamrożoną gałąź; najpierw zmień ich cel na
-  aktywną gałąź `release/vX+1`.
-- **PR w toku należący do innej sesji** → nigdy nie oznaczaj go etykietą; wyłącznie sesja będąca właścicielem dodaje
+- **Aktywne zamrożenie wydania** → NIE nadawaj etykiet PR-om kierowanym do zamrożonej gałęzi; najpierw
+  zmień ich gałąź docelową na aktywną `release/vX+1`.
+- **PR innej sesji będący w toku** → nigdy nie nadawaj mu etykiety; tylko sesja będąca właścicielem dodaje
   własną pracę do kolejki.
-- Zmiany obejmujące wyłącznie testy oraz PR-y z etykietą `hotfix` już uruchamiają ograniczone CI (zobacz
+- Zmiany obejmujące wyłącznie testy oraz PR-y z etykietą `hotfix` już korzystają z ograniczonego CI (zobacz
   `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); warunki kolejki akceptują dowolny zestaw
-  faktycznie uruchomionych testów (`#check-failure=0` + `#check-pending=0`).
+  testów, który faktycznie został uruchomiony (`#check-failure=0` + `#check-pending=0`).
 
 ## Rozwiązanie awaryjne: ręczny merge train
 

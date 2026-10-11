@@ -9,27 +9,30 @@ v3.8.49 पासून (quality/velocity योजनेतील WS3.2/WS3.4),
 आहे; खाली दस्तऐवजीकरण केलेली **manual merge-train** ही FALLBACK आहे — ती incidents,
 release freezes दरम्यान किंवा Mergify Open Source योजना कधी बदलल्यास वापरली जाते.
 
-## डीफॉल्ट मार्ग: Mergify queue
+## डीफॉल्ट मार्ग: Mergify रांग
 
-1. मोहिमांद्वारे PR चे पुनरावलोकन/green केले जाते आणि मालकाच्या pre-merge ⭐
-   gate द्वारे मंजुरी दिली जाते (अहवाल + प्रत्येक घटकावरील निर्णय — `/merge-prs` Step 0.75 पहा).
-2. मालक (किंवा मालकाच्या निर्णयावर कृती करणारे session) **`queue`**
-   label लावतो. हे label म्हणजेच merge approval आहे; Mergify फक्त त्याची अंमलबजावणी करते.
-3. Mergify queue मधील जास्तीत जास्त 10 PRs ची batch बनवते, fast-gates विरुद्ध batch चे प्रमाणीकरण
-   करते आणि merge (squash) करते. Red batch चे **आपोआप द्विभाजन** केले जाते — अडथळा आणणारा PR
-   सुमारे log2(N) पुनर्प्रमाणीकरणांमध्ये वेगळा करून queue मधून काढला जातो; उर्वरित पुढे जातात.
-4. Merge नंतर, continuous release-green workflow push झाल्यावर नवीन tip चे प्रमाणीकरण
-   करते आणि या संयोजनामुळे regression झाल्यास attribution issue उघडते (कधीही auto-revert करत नाही).
+1. PR चे campaigns द्वारे पुनरावलोकन केले जाते/त्याला हिरवा कंदील दिला जातो आणि मालकाच्या प्री-मर्ज ⭐
+   गेटद्वारे मंजुरी दिली जाते (अहवाल + प्रत्येक घटकासाठी निर्णय — `/merge-prs` मधील पायरी 0.75 पहा).
+2. मालक (किंवा मालकाच्या निर्णयानुसार कार्य करणारे सत्र) **`queue`**
+   लेबल लावतो. हे लेबल म्हणजेच मर्जची मंजुरी; Mergify केवळ तिची अंमलबजावणी करते.
+3. Mergify रांगेतील PRs ची fast-gates विरुद्ध **क्रमशः** (एका वेळी एक) पडताळणी
+   करते आणि मर्ज (squash) करते. बॅचिंग + स्वयंचलित द्विभाजन हे सशुल्क Mergify स्तराचे
+   वैशिष्ट्य आहे (मोफत योजनेवर "Cannot use Merge Queue batch", #7220), त्यामुळे `.mergify.yml` मध्ये
+   `batch_size` सेट केलेले नाही; बॅचिंगचे काम खालील मॅन्युअल merge-train कडेच राहते. ज्या PR च्या
+   तपासण्या `checks_timeout` नंतरही प्रलंबित असतात (240 मिनिटे = `quality.yml` च्या
+   मोजलेल्या p95 च्या 2×), तो रांग अडवण्याऐवजी रांगेतून काढला जातो.
+4. मर्जनंतर, सतत चालणारा release-green workflow push झाल्यावर नवीन tip ची पडताळणी
+   करतो आणि या संयोजनामुळे regression झाल्यास attribution issue उघडतो (कधीही आपोआप revert करत नाही).
 
-संरक्षक नियम (`CLAUDE.md` मधील Hard Rules #21/#22 प्रमाणे):
+सुरक्षानियम (`CLAUDE.md` मधील कठोर नियम #21/#22 चे प्रतिबिंब):
 
-- **Release freeze सुरू आहे** → frozen branch ला target करणाऱ्या PRs ना label लावू नका;
-  प्रथम active `release/vX+1` कडे retarget करा.
-- **दुसऱ्या session चा in-flight PR** → त्याला कधीही label लावू नका; केवळ मालकी असलेले session
-  स्वतःचे काम queue मध्ये टाकते.
-- केवळ tests असलेले diffs आणि `hotfix` label असलेले PRs आधीपासूनच कमी केलेले CI चालवतात
-  (`RELEASE_CHECKLIST.md` → Hotfix Fast-Lane पहा); प्रत्यक्षात चाललेल्या कोणत्याही check set ला
-  queue conditions स्वीकारतात (`#check-failure=0` + `#check-pending=0`).
+- **Release freeze सुरू आहे** → गोठवलेल्या branch ला लक्ष्य करणाऱ्या PRs ना लेबल लावू नका; प्रथम
+  सक्रिय `release/vX+1` कडे पुन्हा लक्ष्यित करा.
+- **दुसऱ्या सत्राचा प्रगतीपथावरील PR** → त्याला कधीही लेबल लावू नका; केवळ मालकी असलेले सत्र
+  स्वतःचे काम रांगेत लावते.
+- केवळ tests असलेले diffs आणि `hotfix` लेबल असलेले PRs आधीच कमी केलेले CI चालवतात (पहा
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); प्रत्यक्षात चाललेल्या कोणत्याही
+  check संचाला रांगेच्या अटी स्वीकारतात (`#check-failure=0` + `#check-pending=0`).
 
 ## पर्यायी मार्ग: manual merge-train
 

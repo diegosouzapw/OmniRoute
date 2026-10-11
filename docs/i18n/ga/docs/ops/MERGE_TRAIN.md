@@ -10,23 +10,26 @@ reoite eisiúna, nó má athraíonn plean Foinse Oscailte Mergify riamh.
 
 ## Conair réamhshocraithe: scuaine Mergify
 
-1. Déanann na feachtais athbhreithniú ar an PR agus tugann siad stádas glas dó, agus faigheann sé faomhadh ó gheata ⭐ réamhchumaiscthe an úinéara
-   (an tuairisc + cinneadh in aghaidh na míre — féach `/merge-prs` Céim 0.75).
+1. Déanann na feachtais athbhreithniú ar an PR agus tugann siad stádas glas dó, agus faigheann sé faomhadh ó gheata ⭐ réamhchumaisc an úinéara
+   (an tuairisc + cinneadh de réir míre — féach `/merge-prs` Céim 0.75).
 2. Cuireann an t-úinéir (nó an seisiún atá ag gníomhú de réir chinneadh an úinéara) an lipéad **`queue`**
-   i bhfeidhm. IS é an lipéad an faomhadh cumaiscthe; ní dhéanann Mergify ach é a chur i gcrích.
-3. Cuireann Mergify suas le 10 PR scuaineáilte i mbaisc, bailíochtaíonn sé an bhaisc i gcoinne na ngeataí tapa,
-   agus cumascann sé iad (squash). Déantar **déroinnt go huathoibríoch** ar bhaisc dhearg — leithlisítear an PR
-   is cúis leis i ~log2(N) athbhailíochtú agus baintear den scuaine é; leanann an chuid eile ar aghaidh.
-4. Tar éis an chumaiscthe, bailíochtaíonn sreabhadh oibre leanúnach glas na heisiúna an barr nua ar push
-   agus osclaíonn sé saincheist sannacháin má tharla cúlchéim de bharr an teaglaim (ní dhéantar auto-revert riamh).
+   i bhfeidhm. IS ionann an lipéad agus an faomhadh cumaisc; ní dhéanann Mergify ach é a chur i gcrích.
+3. Bailíochtaíonn Mergify PRanna sa scuaine **go srathach** (ceann amháin ag an am) i gcoinne na ngeataí tapa
+   agus cumascann sé iad (squash). Baineann baisceáil + déroinnt uathoibríoch le sraith íoctha Mergify
+   ("Cannot use Merge Queue batch" ar an bplean saor in aisce, #7220), mar sin ní shocraíonn `.mergify.yml`
+   aon `batch_size`; fanann an bhaisceáil mar chúram ar an traein chumaisc láimhe thíos. Baintear PR a bhfuil
+   a sheiceálacha fós ar feitheamh tar éis `checks_timeout` (240 nóim = 2× p95 tomhaiste
+   `quality.yml`) den scuaine seachas ligean dó an scuaine a stopadh.
+4. Tar éis an chumaisc, bailíochtaíonn sreabhadh oibre leanúnach stádas glas na heisiúna an barr nua nuair a bhrúitear é
+   agus osclaíonn sé saincheist leithdháilte má tharla cúlchéim sa teaglaim (ní dhéanann sé aisiompú uathoibríoch riamh).
 
 Ráillí cosanta (ar aon dul le Rialacha Dochta #21/#22 in `CLAUDE.md`):
 
-- **Reo eisiúna ar oscailt** → NÁ cuir lipéid ar PRanna atá dírithe ar an mbrainse reoite; athdhírigh ar
+- **Reo eisiúna i bhfeidhm** → NÁ cuir lipéad ar PRanna atá dírithe ar an mbrainse reoite; athdhírigh iad ar
   an `release/vX+1` gníomhach ar dtús.
-- **PR ar siúl ó sheisiún eile** → ná cuir lipéad air riamh; ní chuireann ach an seisiún ar leis an obair
+- **PR de chuid seisiúin eile atá ar siúl** → ná cuir lipéad air choíche; is é an seisiún ar leis é amháin a chuireann
   a chuid oibre féin sa scuaine.
-- Ritheann difríochtaí tástálacha amháin agus PRanna leis an lipéad `hotfix` CI laghdaithe cheana féin (féach
+- Ritheann difríochtaí tástálacha amháin agus PRanna a bhfuil an lipéad `hotfix` orthu CI laghdaithe cheana féin (féach
   `RELEASE_CHECKLIST.md` → Mearlána Hotfix); glacann coinníollacha na scuaine le cibé
   tacar seiceálacha a ritheadh i ndáiríre (`#check-failure=0` + `#check-pending=0`).
 

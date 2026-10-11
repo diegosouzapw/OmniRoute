@@ -11,25 +11,28 @@ release-freezes of als het Mergify Open Source-abonnement ooit verandert.
 
 ## Standaardpad: de Mergify-wachtrij
 
-1. De PR is beoordeeld/goedgekeurd door de campagnes en goedgekeurd via de pre-merge-⭐-poort
-   van de eigenaar (het rapport + de beslissing per item — zie `/merge-prs` stap 0.75).
-2. De eigenaar (of de sessie die handelt op basis van de beslissing van de eigenaar) past het label **`queue`**
-   toe. Het label IS de mergegoedkeuring; Mergify voert deze alleen uit.
-3. Mergify bundelt maximaal 10 PR's in de wachtrij, valideert de batch aan de hand van de snelle controles
-   en merget (squash). Een rode batch wordt **automatisch gebisect** — de veroorzakende PR
-   wordt in ~log2(N) hervalidaties geïsoleerd en uit de wachtrij verwijderd; de rest gaat door.
-4. Na de merge valideert de continue release-green-workflow de nieuwe tip bij een push
-   en opent deze een attributie-issue als de combinatie een regressie veroorzaakte (nooit automatisch terugdraaien).
+1. De PR wordt beoordeeld/goedgekeurd door de campagnes en goedgekeurd via de pre-merge-⭐
+   poort van de eigenaar (het rapport + de beslissing per item — zie `/merge-prs` Stap 0.75).
+2. De eigenaar (of de sessie die handelt op basis van de beslissing van de eigenaar) past het
+   **`queue`**-label toe. Het label IS de goedkeuring voor het samenvoegen; Mergify voert deze alleen uit.
+3. Mergify valideert PR's in de wachtrij **serieel** (één tegelijk) aan de hand van de snelle controles
+   en voegt ze samen (squash). Batching + automatische bisectie is onderdeel van een betaalde Mergify-laag
+   ("Cannot use Merge Queue batch" bij het gratis abonnement, #7220), dus stelt `.mergify.yml` geen
+   `batch_size` in; batching blijft de taak van de onderstaande handmatige merge train. Een PR waarvan
+   de controles na `checks_timeout` (240 min = 2× de gemeten p95 van
+   `quality.yml`) nog steeds in behandeling zijn, wordt uit de wachtrij verwijderd in plaats van deze te blokkeren.
+4. Na het samenvoegen valideert de continue release-green-workflow de nieuwe tip bij een push
+   en opent deze een attributie-issue als de combinatie een regressie heeft veroorzaakt (nooit automatisch terugdraaien).
 
-Beveiligingsregels (weerspiegelen de harde regels #21/#22 uit `CLAUDE.md`):
+Beveiligingsmaatregelen (conform de harde regels #21/#22 van `CLAUDE.md`):
 
-- **Release-freeze actief** → label GEEN PR's die op de bevroren branch zijn gericht; wijzig eerst het doel naar
+- **Release freeze actief** → label PR's die op de bevroren branch zijn gericht NIET; richt ze eerst opnieuw op
   de actieve `release/vX+1`.
-- **Lopende PR van een andere sessie** → label deze nooit; alleen de eigenaarsessie plaatst
+- **Lopende PR van een andere sessie** → label deze nooit; alleen de sessie die eigenaar is, zet
   het eigen werk in de wachtrij.
 - Diffs met alleen tests en PR's met het label `hotfix` voeren al gereduceerde CI uit (zie
   `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); de wachtrijvoorwaarden accepteren elke
-  set controles die daadwerkelijk is uitgevoerd (`#check-failure=0` + `#check-pending=0`).
+  daadwerkelijk uitgevoerde set controles (`#check-failure=0` + `#check-pending=0`).
 
 ## Terugvaloptie: de handmatige merge-train
 

@@ -11,27 +11,30 @@ zmrazení vydania alebo ak sa niekedy zmení plán Mergify Open Source.
 
 ## Predvolená cesta: front Mergify
 
-1. PR je skontrolovaný, kampane mu úspešne prešli a bol schválený kontrolnou bránou ⭐
-   vlastníka pred zlúčením (správa + rozhodnutie pre každú položku — pozrite `/merge-prs`, krok 0.75).
-2. Vlastník (alebo relácia konajúca na základe rozhodnutia vlastníka) pridá označenie **`queue`**.
-   Toto označenie JE schválením zlúčenia; Mergify ho iba vykoná.
-3. Mergify zoskupí až 10 PR vo fronte, overí dávku voči rýchlym kontrolným bránam
-   a zlúči ju (squash). Neúspešná dávka sa **automaticky rozdelí binárnym vyhľadávaním** —
-   problematický PR sa izoluje približne za log2(N) opakovaných overení a odstráni z frontu;
-   ostatné pokračujú.
-4. Po zlúčení pracovný postup priebežného overovania vydania pri odoslaní zmien overí
-   nový vrchol vetvy a pri regresii spôsobenej kombináciou otvorí problém s uvedením
-   pôvodu (nikdy nevykoná automatický revert).
+1. PR je skontrolovaný/schválený kampaňami a schválený vlastníkovou kontrolnou bránou ⭐
+   pred zlúčením (report + rozhodnutie pre každú položku — pozrite `/merge-prs`, krok 0.75).
+2. Vlastník (alebo relácia konajúca na základe rozhodnutia vlastníka) priradí označenie
+   **`queue`**. Toto označenie JE schválením zlúčenia; Mergify ho iba vykoná.
+3. Mergify overuje PR zaradené do frontu **sériovo** (po jednom) podľa rýchlych kontrolných
+   brán a zlučuje ich (squash). Dávkové spracovanie + automatická bisekcia sú súčasťou
+   platenej úrovne Mergify („Cannot use Merge Queue batch“ v bezplatnom pláne, #7220),
+   preto `.mergify.yml` nenastavuje žiadne `batch_size`; dávkové spracovanie zostáva úlohou
+   nižšie uvedeného manuálneho zlučovacieho vlaku. PR, ktorého kontroly stále čakajú po
+   uplynutí `checks_timeout` (240 min = 2× namerané p95 pre `quality.yml`), sa odstráni
+   z frontu namiesto toho, aby front zablokoval.
+4. Po zlúčení priebežný pracovný postup overovania vydania pri odoslaní zmien overí nový
+   vrchol vetvy a otvorí problém s určením pôvodu, ak kombinácia spôsobila regresiu
+   (nikdy nevykoná automatický revert).
 
 Ochranné pravidlá (zodpovedajú tvrdým pravidlám č. 21/22 v `CLAUDE.md`):
 
-- **Zmrazenie vydania je aktívne** → NEPRIDÁVAJTE označenia PR smerujúcim do zmrazenej vetvy;
+- **Aktívne zmrazenie vydania** → NEPRIRAĎUJTE označenie PR smerujúcim do zmrazenej vetvy;
   najprv ich presmerujte do aktívnej vetvy `release/vX+1`.
-- **Rozpracovaný PR inej relácie** → nikdy mu nepridávajte označenie; iba vlastnícka relácia
+- **Rozpracovaný PR inej relácie** → nikdy mu nepriraďujte označenie; iba vlastnícka relácia
   zaraďuje svoju vlastnú prácu do frontu.
-- Rozdiely obsahujúce iba testy a PR s označením `hotfix` už spúšťajú obmedzené CI
-  (pozrite `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); podmienky frontu akceptujú akúkoľvek
-  sadu kontrol, ktorá sa skutočne spustila (`#check-failure=0` + `#check-pending=0`).
+- Rozdiely obsahujúce iba testy a PR s označením `hotfix` už používajú obmedzené CI (pozrite
+  `RELEASE_CHECKLIST.md` → Rýchla cesta pre opravy hotfix); podmienky frontu akceptujú
+  ľubovoľnú sadu kontrol, ktorá sa skutočne spustila (`#check-failure=0` + `#check-pending=0`).
 
 ## Záložný postup: manuálny merge-train
 

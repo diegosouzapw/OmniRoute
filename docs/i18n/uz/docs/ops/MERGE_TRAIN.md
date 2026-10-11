@@ -9,24 +9,26 @@ quyida hujjatlashtirilgan **qoʻlda boshqariladigan birlashtirish poyezdi** esa 
 
 ## Standart yoʻl: Mergify navbati
 
-1. PR kampaniyalar tomonidan tekshiriladi/yashil holatga keltiriladi va egasining birlashtirishdan oldingi ⭐
-   nazoratidan tasdiq oladi (hisobot + har bir band boʻyicha qaror — `/merge-prs` dagi 0.75-qadamga qarang).
-2. Egasi (yoki egasining qarori asosida ishlayotgan sessiya) **`queue`**
-   yorligʻini qoʻllaydi. Yorliqning OʻZI birlashtirish tasdigʻidir; Mergify uni faqat bajaradi.
-3. Mergify navbatdagi 10 tagacha PRni paketlaydi, paketni tezkor nazoratlardan oʻtkazadi
-   va birlashtiradi (squash). Qizil paket **avtomatik ravishda ikkiga boʻlib tekshiriladi** — muammoli PR
-   taxminan log2(N) ta qayta tekshiruv orqali ajratiladi va navbatdan chiqariladi; qolganlari davom etadi.
-4. Birlashtirishdan keyin uzluksiz release-green ish jarayoni push paytida yangi uchni tekshiradi
-   va kombinatsiya regressiyaga olib kelgan boʻlsa, tegishlilik masalasini ochadi (hech qachon avtomatik qaytarmaydi).
+1. PR kampaniyalar tomonidan koʻrib chiqiladi/ijobiy holatga keltiriladi va egasining birlashtirishdan oldingi ⭐
+   nazorat bosqichida tasdiqlanadi (hisobot + har bir band boʻyicha qaror — `/merge-prs` dagi 0.75-bosqichga qarang).
+2. Egasi (yoki egasining qarori asosida ish yuritayotgan seans) **`queue`**
+   yorligʻini qoʻllaydi. Yorliqning OʻZI birlashtirishga ruxsatdir; Mergify uni faqat bajaradi.
+3. Mergify navbatdagi PRlarni tezkor nazorat bosqichlari boʻyicha **ketma-ket**
+   (bir vaqtning oʻzida bittadan) tekshiradi va birlashtiradi (squash). Toʻplamlash + avtomatik biseksiya pulli Mergify tarifiga
+   kiradi (bepul tarifda "Cannot use Merge Queue batch", #7220), shuning uchun `.mergify.yml` faylida
+   `batch_size` belgilanmagan; toʻplamlash quyidagi qoʻlda boshqariladigan birlashtirish poyezdining vazifasi boʻlib qoladi. Tekshiruvlari
+   `checks_timeout` dan (240 daqiqa = `quality.yml` uchun oʻlchangan p95 ning 2 baravari) keyin ham kutilayotgan PR
+   navbatni toʻxtatib qoʻymasligi uchun navbatdan chiqariladi.
+4. Birlashtirishdan keyin uzluksiz relizni ijobiy holatda saqlash ish jarayoni push paytida yangi uchni
+   tekshiradi va kombinatsiya regressiyaga olib kelgan boʻlsa, tegishlilik muammosini ochadi (hech qachon avtomatik qaytarmaydi).
 
-Himoya qoidalari (`CLAUDE.md` dagi 21/22-sonli qatʼiy qoidalarga mos):
+Himoya qoidalari (`CLAUDE.md` dagi 21/22-sonli qatʼiy qoidalarni takrorlaydi):
 
-- **Reliz muzlatilgan** → muzlatilgan shoxga yoʻnaltirilgan PRlarga yorliq QOʻYMANG; avval ularni
+- **Reliz muzlatilishi faol** → muzlatilgan branchga yoʻnaltirilgan PRlarga yorliq qoʻymang; avval
   faol `release/vX+1` ga qayta yoʻnaltiring.
-- **Boshqa sessiyaning jarayondagi PRi** → unga hech qachon yorliq qoʻymang; faqat egalik qiluvchi sessiya
+- **Boshqa seansning jarayondagi PRi** → unga hech qachon yorliq qoʻymang; faqat egasi boʻlgan seans
   oʻz ishini navbatga qoʻyadi.
-- Faqat testlardan iborat difflar va `hotfix` yorligʻidagi PRlar allaqachon qisqartirilgan CI jarayonidan oʻtadi (
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane ga qarang); navbat shartlari amalda ishga tushgan istalgan
+- Faqat testlardan iborat difflar va `hotfix` yorligʻi qoʻyilgan PRlar allaqachon qisqartirilgan CIʼni ishga tushiradi (`RELEASE_CHECKLIST.md` → Hotfix Fast-Lane boʻlimiga qarang); navbat shartlari amalda ishga tushgan istalgan
   tekshiruvlar toʻplamini qabul qiladi (`#check-failure=0` + `#check-pending=0`).
 
 ## Zaxira usul: qoʻlda boshqariladigan birlashtirish poyezdi

@@ -11,25 +11,28 @@ vipindi vya kusitisha matoleo, au ikiwa mpango wa Mergify Open Source utabadilik
 
 ## Njia chaguo-msingi: foleni ya Mergify
 
-1. PR inakaguliwa/inapitishwa na kampeni na kuidhinishwa na kizuizi cha ⭐ cha kabla ya
-   uunganishaji cha mmiliki (ripoti + uamuzi wa kila kipengee — tazama `/merge-prs` Hatua ya 0.75).
-2. Mmiliki (au kikao kinachotekeleza uamuzi wa mmiliki) anaweka lebo ya **`queue`**.
-   Lebo HIYO ndiyo idhini ya uunganishaji; Mergify inaitekeleza tu.
-3. Mergify huweka pamoja hadi PR 10 zilizo kwenye foleni, huhakiki kundi hilo dhidi ya fast-gates,
-   na kuunganisha (squash). Kundi jekundu **hugawanywa kiotomatiki** — PR inayosababisha tatizo
-   hutengwa kwa takriban uhakiki upya log2(N) na kuondolewa kwenye foleni; zilizobaki huendelea.
-4. Baada ya uunganishaji, mtiririko endelevu wa release-green huhakiki ncha mpya wakati wa push
-   na hufungua issue ya kuhusisha chanzo ikiwa mchanganyiko ulirejesha hitilafu (kamwe haurudishi kiotomatiki).
+1. PR hukaguliwa/huidhinishwa na kampeni na kuidhinishwa na lango la ⭐ la kabla ya kuunganisha
+   la mmiliki (ripoti + uamuzi wa kila kipengee — tazama `/merge-prs` Hatua ya 0.75).
+2. Mmiliki (au kikao kinachotekeleza uamuzi wa mmiliki) huweka lebo ya **`queue`**.
+   Lebo hiyo NDIYO idhini ya kuunganisha; Mergify huitekeleza tu.
+3. Mergify huthibitisha PR zilizo kwenye foleni **kwa mfululizo** (moja baada ya nyingine) dhidi ya malango ya haraka
+   na kuziunganisha (squash). Ujumuishaji wa mafungu + ugawaji wa kiotomatiki ni kiwango cha kulipia cha Mergify
+   ("Cannot use Merge Queue batch" kwenye mpango wa bila malipo, #7220), kwa hivyo `.mergify.yml` haiweki
+   `batch_size`; ujumuishaji wa mafungu unasalia kuwa jukumu la treni ya kuunganisha ya mkono iliyo hapa chini. PR ambayo
+   ukaguzi wake bado unasubiri baada ya `checks_timeout` (dakika 240 = mara 2 ya p95 iliyopimwa ya
+   `quality.yml`) huondolewa kwenye foleni badala ya kuzuia foleni.
+4. Baada ya kuunganisha, mtiririko endelevu wa kazi wa release-green huthibitisha ncha mpya wakati wa push
+   na hufungua suala la kuhusisha chanzo ikiwa mchanganyiko huo ulisababisha hitilafu mpya (kamwe haurejeshi kiotomatiki).
 
-Vizuizi vya usalama (vinaakisi `CLAUDE.md` Hard Rules #21/#22):
+Vizuizi vya usalama (vinaakisi `CLAUDE.md` Kanuni Kali #21/#22):
 
-- **Kusitishwa kwa toleo kumeanza** → USIWEKE lebo kwenye PR zinazolenga tawi lililositishwa; kwanza
-  elekeza upya kwenye `release/vX+1` inayotumika.
-- **PR inayoendelea ya kikao kingine** → usiiwekee lebo kamwe; ni kikao kinachoimiliki pekee
-  kinachoweka kazi yake kwenye foleni.
-- Tofauti za majaribio pekee na PR zenye lebo ya `hotfix` tayari huendesha CI iliyopunguzwa (tazama
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); masharti ya foleni hukubali seti yoyote ya ukaguzi
-  iliyotekelezwa (`#check-failure=0` + `#check-pending=0`).
+- **Kusitishwa kwa toleo kumeanza** → USIWEKE lebo kwenye PR zinazolenga tawi lililositishwa; elekeza upya kwenye
+  `release/vX+1` inayotumika kwanza.
+- **PR inayoendelea ya kikao kingine** → usiiwekee lebo kamwe; ni kikao kinachoimiliki pekee kinachoweka
+  kazi yake kwenye foleni.
+- Tofauti za majaribio pekee na PR zilizo na lebo ya `hotfix` tayari huendesha CI iliyopunguzwa (tazama
+  `RELEASE_CHECKLIST.md` → Njia ya Haraka ya Hotfix); masharti ya foleni hukubali seti yoyote ya
+  ukaguzi iliyotekelezwa (`#check-failure=0` + `#check-pending=0`).
 
 ## Njia mbadala: treni ya uunganishaji ya mikono
 

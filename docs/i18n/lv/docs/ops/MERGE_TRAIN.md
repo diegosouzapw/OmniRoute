@@ -11,24 +11,29 @@ laidiena iesaldēšanas laikā vai tad, ja Mergify Open Source plāns kādreiz m
 
 ## Noklusējuma ceļš: Mergify rinda
 
-1. Kampaņas ir pārskatījušas PR un devušas tam zaļo statusu, un īpašnieka pirmsapvienošanas ⭐
-   kontrole to ir apstiprinājusi (pārskats + lēmums par katru vienumu — skatiet `/merge-prs` 0.75. darbību).
+1. Kampaņas pārskata/apstiprina PR, un īpašnieks to apstiprina savā pirmsapvienošanas ⭐
+   kontrolpunktā (atskaite + lēmums par katru vienumu — skatiet `/merge-prs` 0.75. darbību).
 2. Īpašnieks (vai sesija, kas rīkojas saskaņā ar īpašnieka lēmumu) pievieno **`queue`**
    etiķeti. Šī etiķete IR apvienošanas apstiprinājums; Mergify to tikai izpilda.
-3. Mergify grupē rindā esošos PR pa ne vairāk kā 10, validē grupu ar ātrajām pārbaudēm
-   un apvieno (saspiežot). Neveiksmīga grupa tiek **automātiski sadalīta uz pusēm** — problemātiskais PR
-   tiek izolēts aptuveni log2(N) atkārtotās validācijās un izņemts no rindas; pārējie turpina procesu.
-4. Pēc apvienošanas nepārtrauktā laidiena zaļā statusa darbplūsma validē jauno zara galu pēc
-   izmaiņu nosūtīšanas un izveido attiecinājuma problēmu, ja kombinācija izraisījusi regresiju (nekad automātiski neatsauc izmaiņas).
+3. Mergify pārbauda rindā ievietotos PR **secīgi** (pa vienam), izmantojot ātrās pārbaudes,
+   un apvieno tos (`squash`). Pakešapstrāde + automātiska dalīšana ir pieejama maksas Mergify
+   līmenī ("Nevar izmantot apvienošanas rindas pakešapstrādi" bezmaksas plānā, #7220), tāpēc
+   `.mergify.yml` nenosaka `batch_size`; pakešapstrāde joprojām ir tālāk aprakstītā manuālā
+   apvienošanas vilciena uzdevums. PR, kura pārbaudes pēc `checks_timeout` (240 min = 2×
+   izmērītais `quality.yml` p95) joprojām nav pabeigtas, tiek izņemts no rindas, nevis
+   bloķē visu rindu.
+4. Pēc apvienošanas nepārtrauktā laidiena zaļā statusa darbplūsma `push` notikuma laikā
+   pārbauda jauno zara galu un, ja kombinācija izraisījusi regresiju, izveido problēmas
+   pieteikumu vainīgā noteikšanai (nekad neveic automātisku atsaukšanu).
 
-Drošības nosacījumi (atbilst `CLAUDE.md` stingrajiem noteikumiem #21/#22):
+Drošības ierobežojumi (atbilst `CLAUDE.md` stingrajiem noteikumiem #21/#22):
 
-- **Ir aktīva laidiena iesaldēšana** → NEPIEVIENOJIET etiķetes PR, kuru mērķis ir iesaldētais zars; vispirms
-  mainiet mērķi uz aktīvo `release/vX+1`.
-- **Citas sesijas izstrādē esošs PR** → nekad nepievienojiet tam etiķeti; tikai īpašnieka sesija ievieto
-  savu darbu rindā.
-- PR, kuros ir tikai testu izmaiņas, un PR ar `hotfix` etiķeti jau izpilda samazinātu CI apjomu (skatiet
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); rindas nosacījumi pieņem jebkuru
+- **Aktīva laidiena iesaldēšana** → NEPIEVIENOJIET etiķetes PR, kuru mērķis ir iesaldētais
+  zars; vispirms mainiet mērķi uz aktīvo `release/vX+1`.
+- **Citas sesijas procesā esošs PR** → nekad nepievienojiet tam etiķeti; tikai īpašnieka
+  sesija ievieto rindā savu darbu.
+- PR, kuros mainīti tikai testi, un PR ar `hotfix` etiķeti jau izmanto samazinātu CI pārbaužu
+  kopu (skatiet `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); rindas nosacījumi pieņem jebkuru
   faktiski izpildīto pārbaužu kopu (`#check-failure=0` + `#check-pending=0`).
 
 ## Rezerves risinājums: manuālais apvienošanas vilciens

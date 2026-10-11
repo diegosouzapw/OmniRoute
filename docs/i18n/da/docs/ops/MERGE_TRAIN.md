@@ -9,26 +9,30 @@ gennemgåede PR'er til `release/vX.Y.Z` **Mergify-flettekøen** (`.mergify.yml`)
 det **manuelle flettetog**, der er dokumenteret nedenfor, er RESERVELØSNINGEN — den bruges under hændelser,
 release-frysninger, eller hvis Mergifys Open Source-plan nogensinde ændres.
 
-## Standardvej: Mergify-køen
+## Standardforløb: Mergify-køen
 
-1. PR'en er gennemgået/grønmeldt af kampagnerne og godkendt via ejerens ⭐-kontrol
-   før fletning (rapporten + beslutning pr. element — se `/merge-prs` trin 0.75).
-2. Ejeren (eller sessionen, der handler på ejerens beslutning) tilføjer mærkatet **`queue`**.
-   Mærkatet ER flettegodkendelsen; Mergify udfører den blot.
-3. Mergify samler op til 10 PR'er i kø i en batch, validerer batchen mod de hurtige kontroller
-   og fletter (squash). En rød batch **halveres automatisk** — den fejlende PR
-   isoleres efter ~log2(N) genvalideringer og fjernes fra køen; resten fortsætter.
-4. Efter fletning validerer den kontinuerlige release-green-workflow den nye spids ved push
-   og opretter et problem til placering af ansvar, hvis kombinationen introducerede en regression (aldrig automatisk tilbageførsel).
+1. PR'en gennemgås/godkendes af kampagnerne og godkendes via ejerens ⭐-kontrol før fletning
+   (rapporten + beslutningen for hvert element — se `/merge-prs` trin 0.75).
+2. Ejeren (eller sessionen, der handler på ejerens beslutning) tilføjer etiketten **`queue`**.
+   Etiketten ER godkendelsen til fletning; Mergify udfører den blot.
+3. Mergify validerer PR'er i køen **sekventielt** (én ad gangen) mod de hurtige kontroller
+   og fletter dem (squash). Batchkørsel + automatisk bisektion kræver et betalt Mergify-niveau
+   ("Cannot use Merge Queue batch" på gratisabonnementet, #7220), så `.mergify.yml` angiver
+   ingen `batch_size`; batchkørsel håndteres fortsat af det manuelle fletningstog nedenfor. En PR,
+   hvis kontroller stadig afventer efter `checks_timeout` (240 min. = 2× den målte p95 for
+   `quality.yml`), fjernes fra køen i stedet for at blokere den.
+4. Efter fletning validerer den kontinuerlige release-green-arbejdsgang den nye spids ved push
+   og opretter en sag med angivelse af årsagen, hvis kombinationen er gået tilbage (automatisk
+   tilbagerulning udføres aldrig).
 
-Sikkerhedsregler (afspejler de faste regler #21/#22 i `CLAUDE.md`):
+Sikkerhedsforanstaltninger (afspejler de hårde regler #21/#22 i `CLAUDE.md`):
 
-- **Release-frysning aktiv** → mærk IKKE PR'er, der er målrettet den frosne gren; skift først mål til
-  den aktive `release/vX+1`.
-- **En anden sessions igangværende PR** → mærk den aldrig; kun den ejende session sætter
-  sit eget arbejde i kø.
-- Ændringer, der kun omfatter tests, og PR'er med mærkatet `hotfix` kører allerede reduceret CI (se
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); købetingelserne accepterer det sæt
+- **Releasefrysning aktiv** → tilføj IKKE etiketter til PR'er, der er målrettet den frosne gren;
+  omdiriger dem først til den aktive `release/vX+1`.
+- **En anden sessions igangværende PR** → tilføj aldrig en etiket til den; kun den ejende
+  session sætter sit eget arbejde i kø.
+- Ændringer, der kun omfatter tests, og PR'er med etiketten `hotfix` kører allerede reduceret CI
+  (se `RELEASE_CHECKLIST.md` → Hotfix-hurtigsporet); købetingelserne accepterer det sæt
   kontroller, der faktisk blev kørt (`#check-failure=0` + `#check-pending=0`).
 
 ## Reserveløsning: det manuelle flettetog

@@ -11,23 +11,26 @@ leidimo įšaldymo metu arba jei kada nors pasikeistų „Mergify“ atvirojo ko
 
 ## Numatytasis kelias: „Mergify“ eilė
 
-1. PR peržiūrimas / kampanijos patvirtina, kad jis sėkmingas, ir jį patvirtina savininko prieš sujungimą taikomas ⭐
-   kontrolinis etapas (ataskaita + kiekvieno elemento sprendimas — žr. `/merge-prs` 0.75 veiksmą).
-2. Savininkas (arba sesija, veikianti pagal savininko sprendimą) prideda **`queue`**
+1. PR peržiūrimas / patvirtinamas kampanijų ir gauna savininko patvirtinimą prieš sujungimą ⭐
+   kontroliniame etape (ataskaita + kiekvieno elemento sprendimas — žr. `/merge-prs` 0.75 veiksmą).
+2. Savininkas (arba sesija, vykdanti savininko sprendimą) pritaiko **`queue`**
    žymą. Ši žyma YRA sujungimo patvirtinimas; „Mergify“ tik jį įvykdo.
-3. „Mergify“ sugrupuoja iki 10 eilėje esančių PR, patikrina grupę pagal sparčiuosius kontrolinius etapus
-   ir sujungia (sutraukimo būdu). Nesėkminga grupė **automatiškai dalijama pusiau** — probleminis PR
-   izoliuojamas per maždaug log2(N) pakartotinių patikrų ir pašalinamas iš eilės; likusieji tęsiami.
-4. Po sujungimo nuolatinė leidimo tinkamumo patvirtinimo darbo eiga patikrina naują šakos viršūnę gavusi `push`
-   ir sukuria priskyrimo problemą, jei derinys sukėlė regresiją (niekada automatiškai neatšaukiama).
+3. „Mergify“ tikrina eilėje esančius PR **nuosekliai** (po vieną) pagal greituosius
+   kontrolinius etapus ir sujungia („squash“ būdu). Paketinis apdorojimas ir automatinė bisekcija priklauso mokamam „Mergify“ planui
+   („Cannot use Merge Queue batch“ nemokamame plane, #7220), todėl `.mergify.yml` nenustato
+   `batch_size`; paketinis apdorojimas paliekamas toliau aprašytam rankiniam sujungimo konvejeriui. PR, kurio
+   patikros vis dar nebaigtos pasibaigus `checks_timeout` (240 min. = 2× išmatuotas `quality.yml`
+   p95), pašalinamas iš eilės, užuot sustabdžius visą eilę.
+4. Po sujungimo nuolatinė leidimo tinkamumo darbo eiga patikrina naują viršūnę po „push“
+   ir sukuria priskyrimo problemą, jei derinys sukėlė regresiją (automatinis atšaukimas niekada nevykdomas).
 
 Apsaugos priemonės (atitinka `CLAUDE.md` griežtąsias taisykles #21/#22):
 
-- **Paskelbtas leidimo įšaldymas** → NEŽYMĖKITE PR, nukreiptų į įšaldytą šaką; pirmiausia nukreipkite į
-  aktyvią `release/vX+1`.
-- **Kitos sesijos vykdomas PR** → niekada jo nežymėkite; tik savininko sesija į eilę įtraukia
-  savo darbą.
-- PR, kurių skirtumai susiję tik su testais, ir `hotfix` pažymėti PR jau vykdo sumažintą CI (žr.
+- **Aktyvus leidimo įšaldymas** → NEŽYMĖKITE PR, nukreiptų į įšaldytą šaką; pirmiausia
+  nukreipkite juos į aktyvią `release/vX+1`.
+- **Kitos sesijos vykdomas PR** → niekada jo nežymėkite; tik jį valdanti sesija įtraukia
+  savo darbą į eilę.
+- Skirtumai, apimantys tik testus, ir `hotfix` žyma pažymėti PR jau vykdo sumažintą CI patikrų rinkinį (žr.
   `RELEASE_CHECKLIST.md` → „Hotfix Fast-Lane“); eilės sąlygos priima bet kokį
   faktiškai vykdytą patikrų rinkinį (`#check-failure=0` + `#check-pending=0`).
 

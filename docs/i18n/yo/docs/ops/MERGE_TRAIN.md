@@ -9,27 +9,30 @@ Láti v3.8.49 (WS3.2/WS3.4 ti ètò quality/velocity) ọ̀nà ìdarapọ̀ àì
 **ọkọ̀-ìdarapọ̀ afọwọ́ṣe** tí a ṣàkọsílẹ̀ rẹ̀ ní ìsàlẹ̀ ni Ọ̀NÀ ÀFẸ́YÌNTÌ — a máa ń lò ó nígbà ìṣẹ̀lẹ̀,
 ìdádúró ìtújáde, tàbí bí ètò Mergify Open Source bá yí padà láéláé.
 
-## Ọ̀nà àìròtẹ́lẹ̀: ìlà Mergify
+## Ọ̀nà àìyípadà: ìlà Mergify
 
-1. Àwọn campaigns ti ṣàyẹ̀wò PR náà/tí wọ́n sì ti fún un ní àwọ̀ ewé, olówó rẹ̀ sì ti fọwọ́ sí i ní ẹnu-ọ̀nà ⭐
-   ṣáájú ìdarapọ̀ (ìròyìn náà + ìpinnu fún ohun kọ̀ọ̀kan — wo `/merge-prs` Ìgbésẹ̀ 0.75).
-2. Olówó náà (tàbí session tó ń ṣiṣẹ́ lórí ìpinnu olówó náà) fi àmì **`queue`**
-   sí i. Àmì náà GAN-AN ni ìfọwọ́sí ìdarapọ̀; Mergify kàn ń mú un ṣẹ.
-3. Mergify kó tó àwọn PR 10 tí ó wà ní ìlà jọ, ó fìdí batch náà múlẹ̀ pẹ̀lú àwọn fast-gates,
-   ó sì darapọ̀ wọn (squash). Batch pupa kan ni a máa **pín sí méjì láìfọwọ́ṣe** — PR tó fa ìṣòro
-   ni a máa ya sọ́tọ̀ lẹ́yìn nǹkan bí ~log2(N) ìfìdímúlẹ̀-àtúnsẹ, a sì yọ ọ́ kúrò ní ìlà; àwọn yòókù á tẹ̀síwájú.
-4. Lẹ́yìn ìdarapọ̀, continuous release-green workflow máa fìdí tip tuntun múlẹ̀ nígbà push
-   yóò sì ṣí issue ìtọ́kasí ẹni tó ṣe é bí àkójọpọ̀ náà bá fa regression (kò ní auto-revert láéláé).
+1. Àwọn ìpolongo ṣe àyẹ̀wò PR, wọ́n sì jẹ́rìí pé ó kọjá; lẹ́yìn náà, ẹnu-ọ̀nà ⭐
+   ṣáájú ìdapọ̀ ti olùní fọwọ́ sí i (ìròyìn náà + ìpinnu lórí ohun kọ̀ọ̀kan — wo `/merge-prs` Ìgbésẹ̀ 0.75).
+2. Olùní (tàbí ìpàdé tó ń ṣiṣẹ́ lórí ìpinnu olùní) fi àmì **`queue`**
+   sí i. Àmì náà NI ìfọwọ́sí ìdapọ̀; Mergify kàn ń mú un ṣẹ.
+3. Mergify ń fìdí àwọn PR tó wà ní ìlà múlẹ̀ **lọ́kọ̀ọ̀kan** (ọ̀kan lẹ́ẹ̀kan) pẹ̀lú àwọn ẹnu-ọ̀nà yíyára,
+   ó sì ń darapọ̀ wọn (squash). Ṣíṣe ní àkójọpọ̀ + bisection aládàáṣiṣẹ́ jẹ́ ìpele Mergify tí a ń sanwó fún
+   ("Cannot use Merge Queue batch" lórí ètò ọ̀fẹ́, #7220), nítorí náà `.mergify.yml` kò ṣètò
+   `batch_size` kankan; ṣíṣe ní àkójọpọ̀ ṣì jẹ́ iṣẹ́ merge-train afọwọ́ṣe tó wà nísàlẹ̀. PR tí
+   àwọn àyẹ̀wò rẹ̀ ṣì ń dúró lẹ́yìn `checks_timeout` (240 min = 2× p95 tí a wọ̀n fún
+   `quality.yml`) ni a máa yọ kúrò ní ìlà dípò kí ó dí ìlà náà dúró.
+4. Lẹ́yìn ìdapọ̀, ìṣàn-iṣẹ́ continuous release-green máa ń fìdí tip tuntun múlẹ̀ nígbà push,
+   ó sì máa ń ṣí issue ìtọ́kasí-orísun tí àkójọpọ̀ náà bá fà á padà sẹ́yìn (kì í ṣe auto-revert láé).
 
-Àwọn ìṣọ́ra (wọ́n bá `CLAUDE.md` Hard Rules #21/#22 mu):
+Àwọn ìlànà ààbò (tó ṣe àfihàn àwọn Òfin Gíga `CLAUDE.md` #21/#22):
 
-- **Ìdádúró ìtújáde wà ní ṣíṣí** → MÁ ṣe fi àmì sí àwọn PR tó ń fojú sí branch tí a dá dúró; kọ́kọ́ yí àfojúsùn sí
-  `release/vX+1` tó ń ṣiṣẹ́.
-- **PR session mìíràn tó ṣì ń lọ lọ́wọ́** → má ṣe fi àmì sí i láéláé; session tó ni iṣẹ́ náà nìkan ló lè fi
+- **Ìdádúró release wà ní ṣiṣi** → má ṣe fi àmì sí àwọn PR tó ń dojú kọ branch tí a ti dá dúró; kọ́kọ́
+  yí ibi-afẹ́ wọn padà sí `release/vX+1` tó ń ṣiṣẹ́.
+- **PR ìpàdé mìíràn tó ṣì ń lọ lọ́wọ́** → má ṣe fi àmì sí i láé; ìpàdé tó ni í nìkan ló lè fi
   iṣẹ́ tirẹ̀ sínú ìlà.
-- Àwọn diff ìdánwò-nìkan àti àwọn PR tó ní àmì `hotfix` ti ń ṣiṣẹ́ CI tí a dín kù tẹ́lẹ̀ (wo
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); àwọn ipò ìlà náà gba èyíkéyìí
-  check set tó ṣiṣẹ́ gan-an (`#check-failure=0` + `#check-pending=0`).
+- Àwọn diff ti ìdánwò-nìkan àti àwọn PR tó ní àmì `hotfix` ti ń ṣiṣẹ́ CI tí a dín kù tẹ́lẹ̀ (wo
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); àwọn ipò ìlà náà máa ń gba èyíkéyìí
+  nínú àkójọpọ̀ àyẹ̀wò tó ṣiṣẹ́ ní ti gidi (`#check-failure=0` + `#check-pending=0`).
 
 ## Ọ̀nà àfẹ́yìntì: ọkọ̀-ìdarapọ̀ afọwọ́ṣe
 

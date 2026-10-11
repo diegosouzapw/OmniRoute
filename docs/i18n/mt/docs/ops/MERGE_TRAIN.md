@@ -9,27 +9,18 @@ PRs rieżaminati lejn `release/vX.Y.Z` huwa l-**kju tal-merge ta’ Mergify** (`
 il-**merge-train manwali** dokumentat hawn taħt huwa l-għażla ta’ RIŻERVA — jintuża waqt inċidenti,
 waqfiet tar-rilaxx, jew jekk il-pjan Open Source ta’ Mergify qatt jinbidel.
 
-## Perkors predefinit: il-kju ta’ Mergify
+## Mogħdija awtomatika: il-kju ta’ Mergify
 
-1. Il-PR jiġi rieżaminat/jingħata status aħdar mill-kampanji u approvat mill-gate ⭐
-   ta’ qabel il-merge tas-sid (ir-rapport + id-deċiżjoni għal kull element — ara `/merge-prs` Pass 0.75).
-2. Is-sid (jew is-sessjoni li taġixxi fuq id-deċiżjoni tas-sid) japplika t-tikketta **`queue`**.
-   It-tikketta HIJA l-approvazzjoni tal-merge; Mergify sempliċement jeżegwixxiha.
-3. Mergify jiġbor sa 10 PRs fil-kju f’lott, jivvalida l-lott kontra l-fast-gates,
-   u jagħmel merge (squash). Lott aħmar jiġi **maqsum binarjament awtomatikament** — il-PR
-   problematiku jiġi iżolat f’~log2(N) rivalidazzjonijiet u jitneħħa mill-kju; il-bqija jkomplu.
-4. Wara l-merge, il-workflow kontinwu ta’ release-green jivvalida t-tip il-ġdid mal-push
-   u jiftaħ issue ta’ attribuzzjoni jekk il-kombinazzjoni tkun marret lura (qatt ma jagħmel auto-revert).
+1. Il-PR jiġi rieżaminat/jingħata l-aħdar mill-kampanji u approvat mill-gate ⭐ ta’ qabel il-merge tas-sid (ir-rapport + id-deċiżjoni għal kull element — ara `/merge-prs` Pass 0.75).
+2. Is-sid (jew is-sessjoni li taġixxi fuq id-deċiżjoni tas-sid) japplika t-tikketta **`queue`**. It-tikketta HIJA l-approvazzjoni tal-merge; Mergify sempliċement jeżegwixxiha.
+3. Mergify jivvalida l-PRs fil-kju **b’mod sekwenzjali** (wieħed kull darba) kontra l-fast-gates u jagħmel il-merge (squash). Il-batching + il-bisection awtomatika huma parti minn livell imħallas ta’ Mergify ("Cannot use Merge Queue batch" fuq il-pjan bla ħlas, #7220), għalhekk `.mergify.yml` ma jistabbilixxi ebda `batch_size`; il-batching jibqa’ l-kompitu tal-merge-train manwali hawn taħt. PR li l-kontrolli tiegħu jkunu għadhom pendenti wara `checks_timeout` (240 min = 2× il-p95 imkejjel ta’ `quality.yml`) jitneħħa mill-kju minflok ma jwaqqaf il-kju.
+4. Wara l-merge, il-workflow kontinwu ta’ validazzjoni tal-istat aħdar tar-rilaxx jivvalida t-tip il-ġdid waqt il-push u jiftaħ issue ta’ attribuzzjoni jekk il-kombinazzjoni tkun marret lura (qatt ma jagħmel auto-revert).
 
-Miżuri ta’ protezzjoni (jirriflettu r-Regoli Stretti #21/#22 ta’ `CLAUDE.md`):
+Miżuri ta’ protezzjoni (jirriflettu `CLAUDE.md` Regoli Stretti #21/#22):
 
-- **Waqfa tar-rilaxx attiva** → TAPPLIKAX tikketti lil PRs immirati lejn il-branch iffriżat;
-  l-ewwel ibdel il-mira għall-`release/vX+1` attiv.
-- **PR ta’ sessjoni oħra li għadu għaddej** → qatt tapplikalu tikketta; is-sessjoni sid biss
-  tqiegħed ix-xogħol tagħha stess fil-kju.
-- Diffs ta’ testijiet biss u PRs bit-tikketta `hotfix` diġà jħaddmu CI mnaqqas (ara
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); il-kundizzjonijiet tal-kju jaċċettaw kwalunkwe
-  sett ta’ checks li fil-fatt tħaddem (`#check-failure=0` + `#check-pending=0`).
+- **Release freeze miftuħ** → TAPPLIKAX tikketti fuq PRs immirati lejn il-fergħa ffriżata; l-ewwel immirahom mill-ġdid lejn ir-`release/vX+1` attiv.
+- **PR in-flight ta’ sessjoni oħra** → qatt tapplikalu tikketta; hija biss is-sessjoni sid li tqiegħed ix-xogħol tagħha stess fil-kju.
+- Diffs tat-testijiet biss u PRs bit-tikketta `hotfix` diġà jħaddmu CI mnaqqas (ara `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); il-kundizzjonijiet tal-kju jaċċettaw kwalunkwe sett ta’ kontrolli li fil-fatt tħaddem (`#check-failure=0` + `#check-pending=0`).
 
 ## Għażla ta’ riżerva: il-merge-train manwali
 

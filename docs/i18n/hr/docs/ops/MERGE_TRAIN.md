@@ -9,28 +9,32 @@ pregledanih PR-ova u `release/vX.Y.Z` jest **Mergifyjev red za spajanje** (`.mer
 **ručni vlak za spajanje** dokumentiran u nastavku REZERVNA je opcija — koristi se tijekom incidenata,
 zamrzavanja izdanja ili ako se Mergifyjev plan Open Source ikada promijeni.
 
-## Zadani put: Mergifyjev red
+## Zadani put: Mergifyjev red čekanja
 
-1. Kampanje su pregledale PR i sve su provjere prošle, a PR je odobren putem vlasnikove ⭐
-   kontrole prije spajanja (izvješće + odluka za svaku stavku — pogledajte `/merge-prs`, korak 0.75).
-2. Vlasnik (ili sesija koja postupa prema vlasnikovoj odluci) primjenjuje oznaku **`queue`**.
-   Oznaka JEST odobrenje za spajanje; Mergify ga samo izvršava.
-3. Mergify grupira do 10 PR-ova u redu, provjerava grupu pomoću brzih kontrola
-   i spaja ih (squash). Neuspješna grupa **automatski se dijeli napola** — problematični PR
-   izolira se u približno log2(N) ponovnih provjera i uklanja iz reda; ostali nastavljaju.
-4. Nakon spajanja kontinuirani tijek rada za provjeru ispravnosti izdanja provjerava novi vrh pri
-   slanju promjena i otvara problem za atribuciju ako je kombinacija uzrokovala regresiju (nikad ne
-   vraća promjene automatski).
+1. Kampanje pregledavaju PR i daju mu zeleno svjetlo, a vlasnik ga odobrava putem svojeg ⭐
+   kontrolnog koraka prije spajanja (izvješće + odluka za svaku stavku — pogledajte `/merge-prs`, korak 0.75).
+2. Vlasnik (ili sesija koja postupa prema vlasnikovoj odluci) dodjeljuje oznaku **`queue`**.
+   Ta oznaka JEST odobrenje za spajanje; Mergify ga samo izvršava.
+3. Mergify provjerava PR-ove u redu čekanja **serijski** (jedan po jedan) prema brzim
+   kontrolama i spaja ih (squash). Grupiranje + automatska bisekcija dio su Mergifyjeve
+   plaćene razine ("Cannot use Merge Queue batch" u besplatnom planu, #7220), stoga
+   `.mergify.yml` ne postavlja `batch_size`; grupiranje ostaje zadatak ručnog niza spajanja
+   opisanog u nastavku. PR čije su provjere i dalje na čekanju nakon `checks_timeout`
+   (240 min = 2× izmjereni p95 za `quality.yml`) uklanja se iz reda umjesto da blokira red.
+4. Nakon spajanja, kontinuirani tijek rada za provjeru ispravnosti izdanja provjerava novi
+   vrh grane pri pushu i otvara problem za utvrđivanje odgovornosti ako je kombinacija
+   uzrokovala regresiju (bez automatskog vraćanja promjena).
 
-Zaštitne mjere (odražavaju stroga pravila #21/#22 iz `CLAUDE.md`):
+Zaštitna pravila (odražavaju stroga pravila #21/#22 iz `CLAUDE.md`):
 
-- **Aktivno zamrzavanje izdanja** → NEMOJTE označavati PR-ove usmjerene na zamrznutu granu;
-  najprije ih preusmjerite na aktivnu granu `release/vX+1`.
-- **PR druge sesije na kojem je rad u tijeku** → nikad ga nemojte označavati; samo vlasnička
-  sesija stavlja vlastiti rad u red.
-- Razlike koje obuhvaćaju samo testove i PR-ovi s oznakom `hotfix` već pokreću smanjeni skup CI
-  provjera (pogledajte `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); uvjeti reda prihvaćaju bilo koji
-  skup provjera koji se stvarno izvršio (`#check-failure=0` + `#check-pending=0`).
+- **Aktivno zamrzavanje izdanja** → NEMOJTE označavati PR-ove usmjerene na zamrznutu
+  granu; prvo ih preusmjerite na aktivnu granu `release/vX+1`.
+- **PR druge sesije koji je u tijeku** → nikada ga nemojte označiti; samo vlasnička
+  sesija stavlja vlastiti rad u red čekanja.
+- Razlike koje sadrže samo testove i PR-ovi s oznakom `hotfix` već pokreću smanjeni skup
+  CI provjera (pogledajte `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); uvjeti reda čekanja
+  prihvaćaju onaj skup provjera koji je stvarno pokrenut (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Rezervna opcija: ručni vlak za spajanje
 

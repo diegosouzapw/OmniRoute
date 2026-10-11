@@ -11,24 +11,27 @@ al înghețărilor de release sau dacă planul Mergify Open Source se modifică 
 
 ## Calea implicită: coada Mergify
 
-1. PR-ul este revizuit/validat de campanii și aprobat de poarta ⭐ de preintegrare
+1. PR-ul este revizuit/validat de campanii și aprobat prin poarta ⭐ de dinaintea îmbinării
    a proprietarului (raportul + decizia pentru fiecare element — consultați Pasul 0.75 din `/merge-prs`).
-2. Proprietarul (sau sesiunea care acționează pe baza deciziei proprietarului) aplică eticheta **`queue`**.
-   Eticheta REPREZINTĂ aprobarea integrării; Mergify doar o execută.
-3. Mergify grupează până la 10 PR-uri din coadă, validează lotul folosind verificările rapide
-   și le integrează (squash). Un lot cu erori este **împărțit automat prin bisecție** — PR-ul problematic
-   este izolat în aproximativ log2(N) revalidări și eliminat din coadă; restul continuă.
-4. După integrare, fluxul continuu release-green validează noul vârf la push
-   și deschide un tichet de atribuire dacă acea combinație a introdus o regresie (fără revenire automată).
+2. Proprietarul (sau sesiunea care acționează în baza deciziei proprietarului) aplică eticheta
+   **`queue`**. Eticheta REPREZINTĂ aprobarea îmbinării; Mergify doar o execută.
+3. Mergify validează PR-urile din coadă **secvențial** (unul câte unul) în raport cu verificările rapide
+   și le îmbină (squash). Procesarea în loturi + bisecția automată necesită un nivel Mergify cu plată
+   („Cannot use Merge Queue batch” în planul gratuit, #7220), astfel încât `.mergify.yml` nu setează
+   niciun `batch_size`; procesarea în loturi rămâne sarcina trenului de îmbinare manual de mai jos. Un PR ale cărui
+   verificări sunt încă în așteptare după `checks_timeout` (240 min = 2× valoarea p95 măsurată pentru
+   `quality.yml`) este eliminat din coadă în loc să blocheze coada.
+4. După îmbinare, fluxul de lucru continuu pentru validarea versiunii verifică noul vârf la push
+   și deschide un tichet de atribuire dacă această combinație a produs o regresie (nu efectuează niciodată revenirea automată).
 
 Măsuri de protecție (reflectă Regulile stricte #21/#22 din `CLAUDE.md`):
 
-- **Înghețarea release-ului este activă** → NU etichetați PR-uri care vizează ramura înghețată; redirecționați-le mai întâi către
+- **Înghețarea versiunii este activă** → NU etichetați PR-urile care vizează ramura înghețată; redirecționați-le mai întâi către
   ramura activă `release/vX+1`.
-- **PR în curs al altei sesiuni** → nu îl etichetați niciodată; doar sesiunea proprietară
-  își pune propria activitate în coadă.
-- Diferențele care conțin numai teste și PR-urile etichetate cu `hotfix` rulează deja un CI redus (consultați
-  `RELEASE_CHECKLIST.md` → Calea rapidă pentru remedieri urgente); condițiile cozii acceptă orice
+- **PR-ul în curs al altei sesiuni** → nu îl etichetați niciodată; numai sesiunea proprietară își adaugă
+  propria lucrare în coadă.
+- Diferențele care conțin doar teste și PR-urile etichetate cu `hotfix` rulează deja un CI redus (consultați
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); condițiile cozii acceptă orice
   set de verificări care a rulat efectiv (`#check-failure=0` + `#check-pending=0`).
 
 ## Soluția de rezervă: trenul de integrare manual

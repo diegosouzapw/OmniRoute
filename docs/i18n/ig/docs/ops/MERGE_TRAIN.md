@@ -9,27 +9,29 @@ PR ndị a nyochara n'ime `release/vX.Y.Z` bụ **ahịrị njikọta Mergify** 
 **ụgbọ-njikọta aka** e dere n'okpuru bụ ụzọ NDABERE — a na-eji ya n'oge nsogbu,
 mgbochi mwepụta, ma ọ bụ ọ bụrụ na atụmatụ Mergify Open Source agbanwe mgbe ọ bụla.
 
-## Ụzọ ndabara: ahịrị Mergify
+## Ụzọ ndabara: kwụ Mergify
 
-1. Mgbasa ozi ndị ahụ enyochala PR ahụ/mee ka ọ gafee, onye nwe ya wee kwado ya site na ⭐
-   ọnụ ụzọ tupu njikọta (akụkọ ahụ + mkpebi maka ihe ọ bụla — lee `/merge-prs` Nzọụkwụ 0.75).
-2. Onye nwe ya (ma ọ bụ nnọkọ na-eme ihe dabere na mkpebi onye nwe ya) na-etinye akara **`queue`**.
-   Akara ahụ BỤ nkwado njikọta; Mergify na-emezu ya naanị.
-3. Mergify na-achịkọta ruo PR 10 dị n'ahịrị, na-enyocha nchịkọta ahụ megide ọnụ ụzọ-ngwa-ngwa,
-   ma jikọta ha (squash). A na-**ekewa nchịkọta na-ada ada na-akpaghị aka** — a na-ekewapụ PR
-   kpatara nsogbu ahụ n'ihe dị ka nyocha ọzọ log2(N), wepụ ya n'ahịrị; ndị ọzọ aga n'ihu.
-4. Mgbe njikọta gasịrị, usoro ọrụ release-green na-aga n'ihu na-enyocha tip ọhụrụ ahụ mgbe a push
-   gasịrị ma mepee issue njirimara ma ọ bụrụ na ngwakọta ahụ wetara ndaghachi (ọ dịghị mgbe ọ na-eme auto-revert).
+1. Ndị campaign na-enyocha PR ma mee ka ọ bụrụ akwụkwọ ndụ akwụkwọ ndụ, onye nwe ya na-akwadokwa ya site n'ọnụ ụzọ ⭐ tupu njikọta
+   (akụkọ ahụ + mkpebi maka ihe ọ bụla — lee `/merge-prs` Nzọụkwụ 0.75).
+2. Onye nwe ya (ma ọ bụ session na-eme ihe dabere na mkpebi onye nwe ya) na-etinye akara **`queue`**.
+   Akara ahụ BỤ nkwado njikọta; Mergify na-emezu naanị ya.
+3. Mergify na-enyocha PR ndị nọ n'ahịrị **n'otu n'otu** (otu n'otu oge) site na fast-gates
+   wee jikọta ha (squash). Ịchịkọta n'ìgwè + nkewa akpaka iji chọpụta nsogbu bụ ọkwa Mergify a na-akwụ ụgwọ
+   ("Cannot use Merge Queue batch" na atụmatụ efu, #7220), ya mere `.mergify.yml` anaghị edobe
+   `batch_size`; ịchịkọta n'ìgwè ka bụ ọrụ nke manual merge-train dị n'okpuru. A ga-ewepụ PR nke
+   nyocha ya ka na-eche mgbe `checks_timeout` gafere (240 min = 2× p95 a tụrụ nke
+   `quality.yml`) n'ahịrị kama ikwe ka ọ kwụsị ahịrị ahụ.
+4. Mgbe njikọta gasịrị, continuous release-green workflow na-enyocha tip ọhụrụ ahụ mgbe a push
+   wee mepee issue attribution ma ọ bụrụ na ngwakọta ahụ laghachiri azụ (ọ dịghị mgbe ọ na-eme auto-revert).
 
-Ihe nchebe (na-egosipụta `CLAUDE.md` Iwu Siri Ike #21/#22):
+Ihe nchedo (na-egosipụta `CLAUDE.md` Hard Rules #21/#22):
 
-- **Mgbochi mwepụta ghe oghe** → ETINYELA akara na PR ndị na-elekwasị alaka ahụ a machibidoro anya; buru ụzọ
-  gbanwee ebe ha na-elekwasị anya gaa na `release/vX+1` na-arụ ọrụ.
-- **PR nke nnọkọ ọzọ ka na-arụ ọrụ** → etinyela ya akara ma ọlị; naanị nnọkọ nwe ya
-  na-etinye ọrụ nke ya n'ahịrị.
-- Mgbanwe nke ule naanị na PR ndị nwere akara `hotfix` na-agba CI e belatara (lee
-  `RELEASE_CHECKLIST.md` → Ụzọ-Ngwa-ngwa Hotfix); ọnọdụ ahịrị ahụ na-anabata usoro
-  nyocha ọ bụla gbara n'ezie (`#check-failure=0` + `#check-pending=0`).
+- **Release freeze emeghe** → etinyela akara na PR ndị na-ezube branch a kpọchiri akpọchi; buru ụzọ gbanwee ebumnuche ha gaa na
+  `release/vX+1` nke na-arụ ọrụ ugbu a.
+- **PR session ọzọ nke ka na-aga n'ihu** → etinyela akara na ya ma ọlị; naanị session nwe ya ga-etinye ọrụ nke ya n'ahịrị.
+- Diffs nke naanị tests na PR ndị nwere akara `hotfix` na-agba CI ebelatara (lee
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); ọnọdụ kwụ ahụ na-anabata ụdị checks ọ bụla
+  e mere n'ezie (`#check-failure=0` + `#check-pending=0`).
 
 ## Ụzọ ndabere: ụgbọ-njikọta aka
 

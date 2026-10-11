@@ -9,26 +9,29 @@ sammenslåing av gjennomgåtte PR-er til `release/vX.Y.Z` **Mergify-køen for sa
 det **manuelle sammenslåingstoget** som er dokumentert nedenfor, er RESERVELØSNINGEN — brukt ved hendelser,
 utgivelsesfrys eller dersom Mergifys Open Source-abonnement noen gang endres.
 
-## Standardbane: Mergify-køen
+## Standardflyt: Mergify-køen
 
-1. PR-en gjennomgås/får grønt lys av kampanjene og godkjennes av eierens ⭐-port
-   før sammenslåing (rapporten + avgjørelse per element — se `/merge-prs` trinn 0.75).
-2. Eieren (eller økten som handler på grunnlag av eierens avgjørelse) legger til etiketten **`queue`**.
+1. PR-en gjennomgås/godkjennes av kampanjene og godkjennes av eierens ⭐-port før sammenslåing
+   (rapporten + avgjørelsen per element — se `/merge-prs` trinn 0.75).
+2. Eieren (eller økten som handler på grunnlag av eierens avgjørelse) bruker etiketten **`queue`**.
    Etiketten ER godkjenningen for sammenslåing; Mergify utfører den bare.
-3. Mergify grupperer opptil 10 PR-er i kø, validerer gruppen mot hurtigportene
-   og slår dem sammen (squash). En rød gruppe **halveres automatisk** — den problematiske PR-en
-   isoleres etter ~log2(N) revalideringer og fjernes fra køen; resten fortsetter.
-4. Etter sammenslåing validerer den kontinuerlige arbeidsflyten for grønn utgivelse den nye spissen ved push
-   og oppretter en attribusjonssak dersom kombinasjonen medførte en regresjon (aldri automatisk tilbakestilling).
+3. Mergify validerer PR-er i køen **sekvensielt** (én om gangen) mot hurtigkontrollene
+   og slår dem sammen (squash). Batching + automatisk biseksjon krever et betalt Mergify-nivå
+   ("Cannot use Merge Queue batch" med gratisabonnementet, #7220), så `.mergify.yml` angir ingen
+   `batch_size`; batching er fortsatt oppgaven til det manuelle sammenslåingstoget nedenfor. En PR
+   der kontrollene fortsatt venter etter `checks_timeout` (240 min = 2× målt p95 for
+   `quality.yml`), tas ut av køen i stedet for å blokkere den.
+4. Etter sammenslåing validerer den kontinuerlige arbeidsflyten for utgivelsesgodkjenning den nye
+   spissen ved push og oppretter en attribusjonssak hvis kombinasjonen har regrediert (aldri
+   automatisk tilbakestilling).
 
-Sikkerhetsmekanismer (gjenspeiler `CLAUDE.md`, ufravikelige regler nr. 21/22):
+Sikkerhetsmekanismer (gjenspeiler de ufravikelige reglene #21/#22 i `CLAUDE.md`):
 
-- **Utgivelsesfrys aktiv** → IKKE sett etiketter på PR-er som har den fryste grenen som mål; endre først mål til
-  den aktive `release/vX+1`.
-- **En annen økts pågående PR** → sett aldri etikett på den; bare den eiende økten legger
-  sitt eget arbeid i kø.
-- Differ som bare gjelder tester, og PR-er med etiketten `hotfix`, kjører allerede redusert CI (se
-  `RELEASE_CHECKLIST.md` → Hurtigbane for hotfix); købetingelsene godtar det
+- **Aktiv utgivelsesfrys** → IKKE merk PR-er som retter seg mot den fryste grenen; endre først
+  mål til den aktive `release/vX+1`.
+- **En annen økts pågående PR** → merk den aldri; bare eierøkten setter sitt eget arbeid i kø.
+- Differanser som bare gjelder tester, og PR-er merket med `hotfix`, kjører allerede redusert CI
+  (se `RELEASE_CHECKLIST.md` → hurtigløp for hurtigrettinger); købetingelsene godtar det
   kontrollsettet som faktisk ble kjørt (`#check-failure=0` + `#check-pending=0`).
 
 ## Reserveløsning: det manuelle sammenslåingstoget

@@ -11,24 +11,27 @@ freeze delle release o nel caso in cui il piano Open Source di Mergify dovesse c
 
 ## Percorso predefinito: la coda di Mergify
 
-1. La PR viene revisionata/resa green dalle campagne e approvata dal gate ⭐
-   pre-merge del proprietario (il report + la decisione per ciascun elemento — vedere `/merge-prs` Passaggio 0.75).
+1. La PR viene esaminata/convalidata dalle campagne e approvata dal gate ⭐
+   pre-merge del proprietario (il report + la decisione per ogni elemento — vedere il passaggio 0.75 di `/merge-prs`).
 2. Il proprietario (o la sessione che agisce in base alla decisione del proprietario) applica
-   l'etichetta **`queue`**. L'etichetta È l'approvazione del merge; Mergify si limita a eseguirlo.
-3. Mergify raggruppa fino a 10 PR in coda, convalida il batch rispetto ai fast gate
-   ed esegue il merge (squash). Un batch rosso viene **suddiviso automaticamente tramite bisezione**:
-   la PR responsabile viene isolata in circa log2(N) riconvalide e rimossa dalla coda; le altre procedono.
+   l'etichetta **`queue`**. L'etichetta COSTITUISCE l'approvazione al merge; Mergify si limita a eseguirlo.
+3. Mergify convalida le PR in coda **in modo seriale** (una alla volta) rispetto ai fast gate
+   ed esegue il merge (squash). L'elaborazione in batch + la bisezione automatica richiedono un piano Mergify
+   a pagamento ("Cannot use Merge Queue batch" nel piano gratuito, #7220), quindi `.mergify.yml` non imposta alcun
+   `batch_size`; l'elaborazione in batch rimane compito del merge train manuale descritto di seguito. Una PR i cui
+   controlli sono ancora in sospeso dopo `checks_timeout` (240 min = 2× il p95 misurato di
+   `quality.yml`) viene rimossa dalla coda anziché bloccarla.
 4. Dopo il merge, il workflow continuo release-green convalida il nuovo tip al push
-   e apre una issue di attribuzione se la combinazione ha causato una regressione (senza mai eseguire un auto-revert).
+   e apre una issue di attribuzione se la combinazione ha introdotto una regressione (senza mai eseguire un revert automatico).
 
-Misure di protezione (rispecchiano le Regole rigide n. 21/n. 22 di `CLAUDE.md`):
+Misure di sicurezza (rispecchiano le regole inderogabili #21/#22 di `CLAUDE.md`):
 
-- **Freeze della release attivo** → NON etichettare PR destinate al branch congelato; effettuare prima il retargeting verso
-  il branch `release/vX+1` attivo.
+- **Release freeze attivo** → NON etichettare le PR destinate al branch bloccato; modificarne prima la destinazione
+  impostandola sul branch `release/vX+1` attivo.
 - **PR in corso di un'altra sessione** → non etichettarla mai; solo la sessione proprietaria mette in coda
   il proprio lavoro.
 - Le diff relative esclusivamente ai test e le PR con etichetta `hotfix` eseguono già una CI ridotta (vedere
-  `RELEASE_CHECKLIST.md` → Corsia rapida per hotfix); le condizioni della coda accettano qualsiasi
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); le condizioni della coda accettano qualsiasi
   insieme di controlli sia stato effettivamente eseguito (`#check-failure=0` + `#check-pending=0`).
 
 ## Fallback: il merge train manuale

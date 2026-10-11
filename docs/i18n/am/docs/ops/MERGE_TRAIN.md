@@ -9,28 +9,29 @@ v3.8.49 (የquality/velocity ዕቅድ WS3.2/WS3.4) ጀምሮ፣ የተገመገ
 ከታች የተመዘገበው **manual merge-train** የመጠባበቂያ አማራጭ ነው — በክስተቶች፣
 በrelease freezes ወቅት፣ ወይም የMergify Open Source ዕቅድ ከተቀየረ ጥቅም ላይ ይውላል።
 
-## ነባሪ መንገድ፦ የMergify queue
+## ነባሪ መንገድ፦ የMergify ወረፋ
 
-1. PR በcampaigns ተገምግሞ/አረንጓዴ ሆኖ እና በባለቤቱ የቅድመ-ውህደት ⭐
-   gate (ሪፖርቱ + የእያንዳንዱ ንጥል ውሳኔ — `/merge-prs` Step 0.75ን ይመልከቱ) ይፀድቃል።
-2. ባለቤቱ (ወይም በባለቤቱ ውሳኔ መሠረት የሚሠራው session) **`queue`**
-   labelን ይተገብራል። labelው ራሱ የውህደት ፈቃድ ነው፤ Mergify የሚያደርገው ማስፈጸም ብቻ ነው።
-3. Mergify እስከ 10 የተሰለፉ PRsን በአንድ batch ያደራጃል፣ batchውን በfast-gates ላይ
-   ያረጋግጣል፣ ከዚያም ያዋህዳል (squash)። ቀይ batch **በራስ-ሰር ለሁለት እየተከፈለ** ይመረመራል —
-   ችግሩን የፈጠረው PR በ~log2(N) የድጋሚ ማረጋገጫዎች ተለይቶ ከqueue ይወገዳል፤
-   የተቀሩት ይቀጥላሉ።
-4. ከውህደት በኋላ፣ continuous release-green workflow አዲሱን tip በpush ላይ
-   ያረጋግጣል፣ እና ጥምረቱ regression ካስከተለ attribution issue ይከፍታል (በራስ-ሰር revert ፈጽሞ አያደርግም)።
+1. PRው በዘመቻዎቹ ይገመገማል/አረንጓዴ ሁኔታ ያገኛል፣ እንዲሁም በባለቤቱ ቅድመ-ውህደት ⭐
+   መግቢያ መቆጣጠሪያ ይፀድቃል (ሪፖርቱ + የእያንዳንዱ ንጥል ውሳኔ — `/merge-prs` ደረጃ 0.75ን ይመልከቱ)።
+2. ባለቤቱ (ወይም በባለቤቱ ውሳኔ መሠረት የሚሠራው ክፍለ ጊዜ) የ**`queue`**
+   መለያን ይተገብራል። መለያው ራሱ የውህደት ፈቃድ ነው፤ Mergify የሚያደርገው መፈጸም ብቻ ነው።
+3. Mergify ወረፋ የገቡ PRዎችን በፈጣን መግቢያ መቆጣጠሪያዎቹ መሠረት **በተከታታይ** (አንድ በአንድ)
+   ያረጋግጣል እና ያዋህዳል (squash)። በቡድን ማስኬድ + ራስ-ሰር ሁለትዮሽ ክፍፍል የሚከፈልበት የMergify ደረጃ ነው
+   (በነፃው ዕቅድ ላይ "Cannot use Merge Queue batch"፣ #7220)፣ ስለዚህ `.mergify.yml` ምንም
+   `batch_size` አያስቀምጥም፤ በቡድን ማስኬድ ከታች ያለው በእጅ የሚከናወን merge-train ኃላፊነት ሆኖ ይቆያል። ከ`checks_timeout` (240 ደቂቃ = የተለካው
+   `quality.yml` p95 2×) በኋላም ምርመራዎቹ በመጠባበቅ ላይ ያሉበት PR ወረፋውን እንዳያቆም ከወረፋው ይወገዳል።
+4. ከውህደት በኋላ፣ ቀጣይነት ያለው release-green የሥራ ፍሰት በpush ጊዜ አዲሱን tip
+   ያረጋግጣል፣ እና ጥምረቱ ወደ ኋላ ከተመለሰ የአስተዋጽኦ ጉዳይ ይከፍታል (በራስ-ሰር ፈጽሞ አይመልስም)።
 
-የጥበቃ ደንቦች (`CLAUDE.md` Hard Rules #21/#22ን የሚያንጸባርቁ)፦
+የደኅንነት ገደቦች (`CLAUDE.md` ጥብቅ ደንቦች #21/#22ን የሚያንጸባርቁ)፦
 
-- **Release freeze ክፍት ነው** → frozen branchን የሚያነጣጥሩ PRs ላይ label አታድርጉ፤ መጀመሪያ
-  ወደ ንቁው `release/vX+1` retarget ያድርጉ።
-- **የሌላ session in-flight PR** → label ፈጽሞ አታድርጉበት፤ የራሱን ሥራ queue የሚያደርገው
-  ባለቤቱ session ብቻ ነው።
-- Tests-only diffs እና `hotfix` label ያላቸው PRs አስቀድመው የተቀነሰ CI ያስኬዳሉ
-  (`RELEASE_CHECKLIST.md` → Hotfix Fast-Laneን ይመልከቱ)፤ የqueue ሁኔታዎች በተግባር
-  የተካሄደውን ማንኛውንም check set ይቀበላሉ (`#check-failure=0` + `#check-pending=0`)።
+- **የልቀት እገዳ ክፍት ነው** → የታገደውን branch ዒላማ ላደረጉ PRዎች መለያ አትስጡ፤ መጀመሪያ ወደ
+  ንቁው `release/vX+1` እንደገና ዒላማ አድርጉ።
+- **በሌላ ክፍለ ጊዜ ሂደት ላይ ያለ PR** → ፈጽሞ መለያ አትስጡት፤ የራሱን ሥራ ወረፋ የሚያስገባው
+  ባለቤት ክፍለ ጊዜው ብቻ ነው።
+- የሙከራ-ብቻ ልዩነቶች እና `hotfix` መለያ ያላቸው PRዎች አስቀድመው የተቀነሰ CI ያስኬዳሉ (
+  `RELEASE_CHECKLIST.md` → Hotfix Fast-Laneን ይመልከቱ)፤ የወረፋው ሁኔታዎች በተጨባጭ የተካሄደውን
+  የምርመራ ስብስብ ይቀበላሉ (`#check-failure=0` + `#check-pending=0`)።
 
 ## የመጠባበቂያ አማራጭ፦ manual merge-train
 

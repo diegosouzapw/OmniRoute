@@ -10,25 +10,31 @@ julkaisujäädytysten aikana tai jos Mergifyn Open Source -paketti joskus muuttu
 
 ## Oletuspolku: Mergify-jono
 
-1. Kampanjat ovat katselmoineet PR:n ja merkinneet sen vihreäksi, ja omistajan yhdistämistä edeltävä ⭐
-   tarkistusportti on hyväksynyt sen (raportti + kohdekohtainen päätös — katso `/merge-prs` vaihe 0.75).
+1. Kampanjat tarkastavat PR:n ja varmistavat sen vihreän tilan, minkä jälkeen omistajan yhdistämistä edeltävä ⭐
+   portti hyväksyy sen (raportti + kohdekohtainen päätös — katso `/merge-prs`, vaihe 0.75).
 2. Omistaja (tai omistajan päätöksen perusteella toimiva istunto) lisää **`queue`**-tunnisteen.
-   Tunniste ON yhdistämishyväksyntä; Mergify vain suorittaa sen.
-3. Mergify ryhmittelee enintään 10 jonossa olevaa PR:ää, validoi erän nopeita tarkistusportteja vasten
-   ja yhdistää ne (squash). Punainen erä **puolitetaan automaattisesti** — ongelmallinen PR
-   eristetään noin log2(N) uudelleenvalidoinnilla ja poistetaan jonosta; muut jatkavat.
-4. Yhdistämisen jälkeen jatkuva julkaisun vihreyden työnkulku validoi uuden kärjen pushin yhteydessä
-   ja avaa kohdistusongelman, jos yhdistelmä aiheutti regression (ei koskaan automaattista palautusta).
+   Tunniste ON yhdistämishyväksyntä; Mergify vain toteuttaa sen.
+3. Mergify validoi jonossa olevat PR:t **sarjallisesti** (yhden kerrallaan) nopeita portteja
+   vasten ja yhdistää ne (squash). Eräkäsittely ja automaattinen puolitus edellyttävät maksullista
+   Mergify-tasoa ("Cannot use Merge Queue batch" ilmaisversiossa, #7220), joten `.mergify.yml`
+   ei määritä `batch_size`-asetusta; eräkäsittely jää alla olevan manuaalisen yhdistämisjunan
+   tehtäväksi. PR poistetaan jonosta sen sijaan, että se pysäyttäisi jonon, jos sen tarkistukset
+   ovat yhä kesken `checks_timeout`-ajan jälkeen (240 min = 2× tiedoston `quality.yml`
+   mitattu p95).
+4. Yhdistämisen jälkeen jatkuva julkaisun vihreän tilan työnkulku validoi uuden kärjen pushin
+   yhteydessä ja avaa attribuutiongelman, jos yhdistelmä aiheutti regression (ei koskaan
+   automaattista palautusta).
 
 Suojakaiteet (vastaavat tiedoston `CLAUDE.md` ehdottomia sääntöjä #21/#22):
 
-- **Julkaisujäädytys käynnissä** → älä lisää tunnisteita jäädytettyyn haaraan kohdistuviin PR:iin; kohdista ne ensin
-  aktiiviseen `release/vX+1`-haaraan.
-- **Toisen istunnon käsittelyssä oleva PR** → älä koskaan lisää siihen tunnistetta; vain omistava istunto lisää
-  oman työnsä jonoon.
-- Vain testejä sisältävät muutokset ja `hotfix`-tunnisteella merkityt PR:t suorittavat jo supistetun CI:n (katso
-  `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); jonon ehdot hyväksyvät sen tarkistusjoukon, joka
-  tosiasiassa suoritettiin (`#check-failure=0` + `#check-pending=0`).
+- **Julkaisujäädytys on voimassa** → ÄLÄ lisää tunnisteita jäädytettyyn haaraan kohdistuviin
+  PR:iin; kohdista ne ensin uudelleen aktiiviseen `release/vX+1`-haaraan.
+- **Toisen istunnon käsittelyssä oleva PR** → älä koskaan lisää siihen tunnistetta; vain
+  omistava istunto asettaa oman työnsä jonoon.
+- Vain testejä sisältävät muutokset ja `hotfix`-tunnisteella merkityt PR:t suorittavat jo
+  supistetun CI:n (katso `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); jonon ehdot hyväksyvät
+  minkä tahansa tosiasiassa suoritetun tarkistusjoukon (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Varajärjestely: manuaalinen yhdistämisjuna
 

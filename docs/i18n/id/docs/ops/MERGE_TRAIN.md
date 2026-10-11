@@ -12,24 +12,30 @@ pembekuan rilis, atau jika paket Open Source Mergify berubah.
 ## Jalur default: antrean Mergify
 
 1. PR ditinjau/dinyatakan hijau oleh kampanye dan disetujui melalui gerbang ⭐
-   prapenggabungan milik pemilik (laporan + keputusan per item — lihat `/merge-prs` Langkah 0.75).
+   pra-penggabungan milik pemilik (laporan + keputusan per item — lihat `/merge-prs` Langkah 0.75).
 2. Pemilik (atau sesi yang bertindak berdasarkan keputusan pemilik) menerapkan label **`queue`**.
    Label tersebut ADALAH persetujuan penggabungan; Mergify hanya mengeksekusinya.
-3. Mergify mengelompokkan hingga 10 PR yang diantrekan, memvalidasi batch terhadap fast-gates,
-   dan menggabungkannya (squash). Batch merah **dibagi dua secara otomatis** — PR yang bermasalah
-   diisolasi dalam ~log2(N) validasi ulang dan dikeluarkan dari antrean; sisanya tetap dilanjutkan.
-4. Setelah penggabungan, alur kerja release-green berkelanjutan memvalidasi tip baru saat push
-   dan membuka issue atribusi jika kombinasi tersebut mengalami regresi (tidak pernah melakukan auto-revert).
+3. Mergify memvalidasi PR yang masuk antrean **secara serial** (satu per satu) terhadap
+   gerbang cepat dan menggabungkannya (squash). Pemrosesan batch + biseksi otomatis merupakan
+   tingkat Mergify berbayar ("Cannot use Merge Queue batch" pada paket gratis, #7220),
+   sehingga `.mergify.yml` tidak menetapkan `batch_size`; pemrosesan batch tetap menjadi tugas
+   rangkaian penggabungan manual di bawah. PR yang pemeriksaannya masih tertunda setelah
+   `checks_timeout` (240 min = 2× p95 terukur dari `quality.yml`) dikeluarkan dari antrean
+   alih-alih menghambat antrean.
+4. Setelah penggabungan, alur kerja berkelanjutan untuk memastikan rilis tetap hijau
+   memvalidasi tip baru saat push dan membuka isu atribusi jika kombinasi tersebut
+   mengalami regresi (tidak pernah melakukan auto-revert).
 
 Pagar pengaman (mencerminkan Aturan Keras #21/#22 di `CLAUDE.md`):
 
-- **Pembekuan rilis aktif** → JANGAN memberi label pada PR yang menargetkan branch yang dibekukan;
-  ubah target terlebih dahulu ke `release/vX+1` yang aktif.
-- **PR dalam proses milik sesi lain** → jangan pernah memberinya label; hanya sesi pemilik yang
-  mengantrekan pekerjaannya sendiri.
-- Diff khusus pengujian dan PR berlabel `hotfix` sudah menjalankan CI yang dikurangi (lihat
-  `RELEASE_CHECKLIST.md` → Jalur Cepat Hotfix); kondisi antrean menerima set pemeriksaan apa pun
-  yang benar-benar dijalankan (`#check-failure=0` + `#check-pending=0`).
+- **Pembekuan rilis aktif** → JANGAN beri label pada PR yang menargetkan cabang yang
+  dibekukan; targetkan ulang terlebih dahulu ke `release/vX+1` yang aktif.
+- **PR dalam proses milik sesi lain** → jangan pernah memberinya label; hanya sesi
+  pemilik yang memasukkan pekerjaannya sendiri ke antrean.
+- Diff khusus pengujian dan PR berlabel `hotfix` sudah menjalankan CI yang dikurangi
+  (lihat `RELEASE_CHECKLIST.md` → Jalur Cepat Hotfix); kondisi antrean menerima kumpulan
+  pemeriksaan apa pun yang benar-benar dijalankan (`#check-failure=0` +
+  `#check-pending=0`).
 
 ## Jalur cadangan: merge-train manual
 

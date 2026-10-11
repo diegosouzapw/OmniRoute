@@ -11,25 +11,28 @@ congelamentos de release ou caso o plano Open Source do Mergify venha a mudar.
 
 ## Caminho padrão: a fila do Mergify
 
-1. O PR é revisado/aprovado pelas campanhas e aprovado pelo gate ⭐ de pré-merge do proprietário
-   (o relatório + a decisão por item — consulte `/merge-prs` Etapa 0.75).
-2. O proprietário (ou a sessão agindo conforme a decisão do proprietário) aplica o label **`queue`**.
-   O label É a aprovação do merge; o Mergify apenas a executa.
-3. O Mergify agrupa até 10 PRs enfileirados, valida o lote pelos fast-gates
-   e faz o merge (squash). Um lote vermelho é **dividido automaticamente** — o PR problemático
-   é isolado em ~log2(N) revalidações e removido da fila; os demais prosseguem.
-4. Após o merge, o workflow contínuo de release-green valida a nova ponta após o push
+1. O PR é revisado/aprovado pelas campanhas e aprovado pelo gate ⭐ de pré-merge
+   do responsável (o relatório + a decisão por item — consulte `/merge-prs`, Etapa 0.75).
+2. O responsável (ou a sessão agindo com base na decisão do responsável) aplica o
+   rótulo **`queue`**. O rótulo É a aprovação para merge; o Mergify apenas a executa.
+3. O Mergify valida os PRs enfileirados **serialmente** (um por vez) em relação aos fast-gates
+   e faz o merge (squash). Processamento em lote + bisseção automática fazem parte de um nível pago
+   do Mergify ("Cannot use Merge Queue batch" no plano gratuito, #7220), portanto `.mergify.yml` não define
+   `batch_size`; o processamento em lote continua sendo responsabilidade do merge-train manual abaixo. Um PR cujas
+   verificações ainda estejam pendentes após `checks_timeout` (240 min = 2× o p95 medido de
+   `quality.yml`) é removido da fila em vez de bloqueá-la.
+4. Após o merge, o workflow contínuo de validação da release verifica a nova ponta no push
    e abre uma issue de atribuição se a combinação tiver causado uma regressão (nunca faz auto-revert).
 
-Proteções (refletem as Regras Rígidas nº 21/nº 22 de `CLAUDE.md`):
+Proteções (espelham as Regras Rígidas nº 21/22 de `CLAUDE.md`):
 
-- **Congelamento de release ativo** → NÃO aplique labels a PRs direcionados à branch congelada; primeiro redirecione para
+- **Freeze de release aberto** → NÃO rotule PRs direcionados à branch congelada; redirecione-os primeiro para
   a `release/vX+1` ativa.
-- **PR em andamento de outra sessão** → nunca aplique o label; somente a sessão proprietária coloca
+- **PR em andamento de outra sessão** → nunca o rotule; somente a sessão responsável coloca
   seu próprio trabalho na fila.
-- Diffs somente de testes e PRs com o label `hotfix` já executam CI reduzida (consulte
+- Diffs somente de testes e PRs com o rótulo `hotfix` já executam CI reduzida (consulte
   `RELEASE_CHECKLIST.md` → Hotfix Fast-Lane); as condições da fila aceitam qualquer
-  conjunto de verificações que tenha sido realmente executado (`#check-failure=0` + `#check-pending=0`).
+  conjunto de verificações que tenha sido efetivamente executado (`#check-failure=0` + `#check-pending=0`).
 
 ## Fallback: o merge-train manual
 

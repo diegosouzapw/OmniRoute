@@ -11,25 +11,31 @@ congelaciones de versiones o si el plan Open Source de Mergify llegara a cambiar
 
 ## Ruta predeterminada: la cola de Mergify
 
-1. El PR es revisado/validado en verde por las campañas y aprobado por la compuerta ⭐
-   previa a la fusión del propietario (el informe + la decisión por elemento; consulta el paso 0.75 de `/merge-prs`).
-2. El propietario (o la sesión que actúe según la decisión del propietario) aplica la etiqueta **`queue`**.
-   La etiqueta ES la aprobación de la fusión; Mergify solo la ejecuta.
-3. Mergify agrupa hasta 10 PR en cola, valida el lote con las comprobaciones rápidas
-   y realiza la fusión (squash). Un lote en rojo se **bisecciona automáticamente**: el PR
-   infractor se aísla en ~log2(N) revalidaciones y se retira de la cola; el resto continúa.
-4. Después de la fusión, el flujo de trabajo continuo de validación de versiones comprueba el nuevo extremo tras el push
-   y abre una incidencia de atribución si la combinación introdujo una regresión (nunca revierte automáticamente).
+1. La PR es revisada/validada por las campañas y aprobada por la puerta ⭐ previa a la fusión
+   del propietario (el informe + la decisión por elemento; consulta el Paso 0.75 de `/merge-prs`).
+2. El propietario (o la sesión que actúa conforme a la decisión del propietario) aplica la
+   etiqueta **`queue`**. La etiqueta ES la aprobación de la fusión; Mergify solo la ejecuta.
+3. Mergify valida las PR en cola **en serie** (una a la vez) mediante las comprobaciones rápidas
+   y las fusiona (squash). El procesamiento por lotes + la bisección automática requieren un nivel
+   de pago de Mergify ("Cannot use Merge Queue batch" en el plan gratuito, #7220), por lo que
+   `.mergify.yml` no establece ningún `batch_size`; el procesamiento por lotes sigue siendo tarea
+   del tren de fusiones manual descrito a continuación. Una PR cuyas comprobaciones sigan pendientes
+   después de `checks_timeout` (240 min = 2× el p95 medido de `quality.yml`) se retira de la cola
+   en lugar de bloquearla.
+4. Después de la fusión, el flujo de trabajo continuo de validación de la versión comprueba el
+   nuevo extremo tras el push y abre una incidencia de atribución si la combinación ha introducido
+   una regresión (nunca realiza una reversión automática).
 
-Medidas de protección (reflejan las reglas estrictas n.º 21/n.º 22 de `CLAUDE.md`):
+Medidas de protección (reflejan las Reglas estrictas #21/#22 de `CLAUDE.md`):
 
-- **Congelación de versión activa** → NO etiquetes PR dirigidos a la rama congelada; cambia primero
-  su destino a la rama `release/vX+1` activa.
-- **PR en curso de otra sesión** → nunca lo etiquetes; solo la sesión propietaria pone en cola
+- **Congelación de la versión activa** → NO etiquetes las PR dirigidas a la rama congelada;
+  redirígelas primero a la rama `release/vX+1` activa.
+- **PR en curso de otra sesión** → nunca la etiquetes; solo la sesión propietaria pone en cola
   su propio trabajo.
-- Los diffs solo de pruebas y los PR con la etiqueta `hotfix` ya ejecutan una CI reducida (consulta
-  `RELEASE_CHECKLIST.md` → Vía rápida para hotfixes); las condiciones de la cola aceptan cualquier
-  conjunto de comprobaciones que se haya ejecutado realmente (`#check-failure=0` + `#check-pending=0`).
+- Las diferencias que solo afectan a pruebas y las PR con la etiqueta `hotfix` ya ejecutan una
+  CI reducida (consulta `RELEASE_CHECKLIST.md` → Vía rápida para hotfixes); las condiciones de
+  la cola aceptan cualquier conjunto de comprobaciones que se haya ejecutado realmente
+  (`#check-failure=0` + `#check-pending=0`).
 
 ## Alternativa: el tren de fusiones manual
 

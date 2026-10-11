@@ -11,26 +11,29 @@ olaylar, sürüm dondurmaları sırasında veya Mergify Açık Kaynak planı de�
 
 ## Varsayılan yol: Mergify kuyruğu
 
-1. PR, kampanyalar tarafından incelenir/yeşile döndürülür ve sahibin birleştirme öncesi ⭐
-   kapısından onay alır (rapor + öğe başına karar — `/merge-prs` Adım 0.75'e bakın).
-2. Sahip (veya sahibin kararı doğrultusunda hareket eden oturum) **`queue`**
+1. PR, kampanyalar tarafından incelenir/yeşil duruma getirilir ve sahibin birleştirme öncesi ⭐
+   geçidinde onaylanır (rapor + öğe bazında karar — bkz. `/merge-prs` Adım 0.75).
+2. Sahip (veya sahibin kararına göre hareket eden oturum) **`queue`**
    etiketini uygular. Etiket, birleştirme onayının KENDİSİDİR; Mergify yalnızca bunu yürütür.
-3. Mergify, kuyruktaki en fazla 10 PR'ı toplu hâle getirir, toplu grubu hızlı kapılara göre
-   doğrular ve birleştirir (squash). Kırmızı bir toplu grup **otomatik olarak ikiye bölünür** —
-   soruna neden olan PR yaklaşık log2(N) yeniden doğrulamayla izole edilip kuyruktan çıkarılır;
-   geri kalanlar devam eder.
-4. Birleştirme sonrasında, sürekli release-green iş akışı push üzerine yeni uç noktayı
-   doğrular ve kombinasyon gerilemeye yol açtıysa bir ilişkilendirme kaydı açar (asla otomatik geri almaz).
+3. Mergify, kuyruğa alınmış PR'ları hızlı geçitlere göre **seri olarak** (teker teker)
+   doğrular ve birleştirir (squash). Gruplama + otomatik ikiye bölme, ücretli bir Mergify
+   katmanıdır (ücretsiz planda "Cannot use Merge Queue batch", #7220); bu nedenle `.mergify.yml`
+   herhangi bir `batch_size` ayarlamaz; gruplama, aşağıdaki manuel birleştirme treninin görevi
+   olmaya devam eder. Denetimleri `checks_timeout` sonrasında hâlâ beklemede olan bir PR
+   (240 dk. = `quality.yml` için ölçülen p95'in 2 katı), kuyruğu durdurmak yerine kuyruktan çıkarılır.
+4. Birleştirme sonrasında, sürekli sürüm yeşil durum iş akışı push sırasında yeni uç noktayı
+   doğrular ve kombinasyon gerilemeye yol açtıysa bir ilişkilendirme kaydı açar (asla otomatik
+   olarak geri almaz).
 
-Korumalar (`CLAUDE.md` Kesin Kurallar #21/#22 ile aynıdır):
+Korkuluklar (`CLAUDE.md` Katı Kurallar #21/#22 ile aynıdır):
 
-- **Sürüm dondurması açık** → dondurulmuş dalı hedefleyen PR'ları ETİKETLEMEYİN; önce
-  etkin `release/vX+1` dalına yeniden hedefleyin.
+- **Sürüm dondurması açık** → dondurulmuş dalı hedefleyen PR'ları etiketlemeyin; önce
+  etkin `release/vX+1` dalını hedefleyecek şekilde değiştirin.
 - **Başka bir oturumun devam eden PR'ı** → asla etiketlemeyin; yalnızca sahibi olan oturum
   kendi çalışmasını kuyruğa alır.
-- Yalnızca test değişiklikleri içeren ve `hotfix` etiketi taşıyan PR'lar zaten azaltılmış CI çalıştırır
-  (`RELEASE_CHECKLIST.md` → Hotfix Fast-Lane bölümüne bakın); kuyruk koşulları fiilen çalıştırılmış
-  denetim kümesini kabul eder (`#check-failure=0` + `#check-pending=0`).
+- Yalnızca test değişiklikleri içeren ve `hotfix` etiketli PR'lar zaten azaltılmış CI'ı çalıştırır
+  (bkz. `RELEASE_CHECKLIST.md` → Düzeltme Hızlı Şeridi); kuyruk koşulları, gerçekte çalıştırılmış
+  olan denetim kümesini kabul eder (`#check-failure=0` + `#check-pending=0`).
 
 ## Yedek yöntem: manuel birleştirme treni
 

@@ -11,25 +11,32 @@ congelamentos de versões ou caso o plano Open Source do Mergify venha a mudar.
 
 ## Caminho predefinido: a fila do Mergify
 
-1. O PR é revisto/validado pelas campanhas e aprovado pela barreira ⭐ de pré-integração
-   do proprietário (o relatório + a decisão por item — consulte `/merge-prs`, Passo 0.75).
-2. O proprietário (ou a sessão que atua com base na decisão do proprietário) aplica a etiqueta **`queue`**.
-   A etiqueta É a aprovação da integração; o Mergify limita-se a executá-la.
-3. O Mergify agrupa até 10 PRs em fila, valida o lote com as verificações rápidas
-   e integra-o (squash). Um lote com falhas é **automaticamente dividido ao meio** — o PR problemático
-   é isolado em ~log2(N) revalidações e removido da fila; os restantes prosseguem.
-4. Após a integração, o fluxo de trabalho contínuo de validação da versão valida a nova ponta após o push
-   e abre um issue de atribuição se a combinação tiver causado uma regressão (nunca faz uma reversão automática).
+1. O PR é revisto/validado pelas campanhas e aprovado pela barreira ⭐ de pré-fusão
+   do proprietário (o relatório + a decisão por item — consulte o Passo 0.75 de `/merge-prs`).
+2. O proprietário (ou a sessão que atua com base na decisão do proprietário) aplica a
+   etiqueta **`queue`**. A etiqueta É a aprovação da fusão; o Mergify limita-se a executá-la.
+3. O Mergify valida os PRs em fila **sequencialmente** (um de cada vez) relativamente
+   às verificações rápidas e efetua a fusão (squash). O processamento em lotes + a
+   bisseção automática fazem parte de um nível pago do Mergify ("Cannot use Merge
+   Queue batch" no plano gratuito, #7220), pelo que `.mergify.yml` não define qualquer
+   `batch_size`; o processamento em lotes continua a ser tarefa do comboio de fusão
+   manual abaixo. Um PR cujas verificações ainda estejam pendentes após
+   `checks_timeout` (240 min = 2× o p95 medido de `quality.yml`) é removido da fila,
+   em vez de a bloquear.
+4. Após a fusão, o fluxo de trabalho contínuo de validação da versão valida a nova
+   ponta após o push e abre um issue de atribuição se a combinação tiver introduzido
+   uma regressão (nunca efetua uma reversão automática).
 
-Salvaguardas (refletem as Regras Rígidas n.º 21/n.º 22 de `CLAUDE.md`):
+Proteções (refletem as Regras Rígidas #21/#22 de `CLAUDE.md`):
 
-- **Congelamento de versão ativo** → NÃO aplique etiquetas a PRs que tenham como destino o ramo congelado; altere primeiro
-  o destino para o `release/vX+1` ativo.
-- **PR em curso de outra sessão** → nunca lhe aplique a etiqueta; apenas a sessão proprietária coloca
-  o seu próprio trabalho na fila.
-- Diffs apenas de testes e PRs com a etiqueta `hotfix` já executam CI reduzida (consulte
-  `RELEASE_CHECKLIST.md` → Via Rápida de Hotfix); as condições da fila aceitam qualquer
-  conjunto de verificações que tenha sido efetivamente executado (`#check-failure=0` + `#check-pending=0`).
+- **Congelamento da versão ativo** → NÃO aplique etiquetas a PRs destinados ao ramo
+  congelado; redirecione-os primeiro para o `release/vX+1` ativo.
+- **PR em curso de outra sessão** → nunca lhe aplique uma etiqueta; apenas a sessão
+  proprietária coloca o seu próprio trabalho na fila.
+- As alterações apenas a testes e os PRs com a etiqueta `hotfix` já executam CI
+  reduzida (consulte `RELEASE_CHECKLIST.md` → Via Rápida de Hotfix); as condições da
+  fila aceitam qualquer conjunto de verificações que tenha sido efetivamente
+  executado (`#check-failure=0` + `#check-pending=0`).
 
 ## Alternativa: o comboio de integração manual
 
