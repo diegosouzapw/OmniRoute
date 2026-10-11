@@ -53,7 +53,6 @@ narzędzia, maksymalny kontekst).
 | Dostawca         | Bezpłatny limit / środki                                      |
 | ---------------- | ------------------------------------------------------------- |
 | Kiro AI          | Bezpłatna warstwa Claude (hojne zasady uczciwego użytkowania) |
-| OpenCode Free    | Bez uwierzytelniania, hojne limity żądań                      |
 | Qoder            | Bezpłatny OAuth                                               |
 | Google Vertex AI | $300 środków dla nowych kont                                  |
 | Amazon Q         | Bezpłatna warstwa dla użytkowników AWS                        |

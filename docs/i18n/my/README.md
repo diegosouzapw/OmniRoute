@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ထည့်သွင်းပြီးသည်နှင့် ချက်ချင်းအလုပ်လုပ်သည် — စနစ်ထည့်သွင်းမှုမလို။ အဆင့်သုံးဆင့်- ၁။ ထည့်သွင်းပါ — npm i -g omniroute၊ ဆာဗာသည် localhost:20128 တွင် စတင်အလုပ်လုပ်ပါမည်။ ၂။ သင်၏ကိရိယာကို http://localhost:20128/v1 သို့ ညွှန်ပြပါ — မည်သည့် OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော ကိရိယာမဆို (Claude Code, Cursor, Cline)။ ၃။ ၎င်းက ပြန်ဖြေပါမည် — ချက်ချင်းပြန်ကြားရန် model auto ကို ခေါ်ဆိုပါ၊ API သော့မလို၊ စာရင်းသွင်းရန်မလို၊ စနစ်ထည့်သွင်းရန်မလိုပါ။ သော့မလိုသော ပံ့ပိုးပေးသူ OpenCode Free ကို auto ပေါင်းစပ်မှုတွင် ကြိုတင်ထည့်သွင်းထားပြီးဖြစ်သောကြောင့် အသစ်ထည့်သွင်းသည်နှင့် ချက်ချင်းအလုပ်လုပ်ပါသည်။"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ထည့်သွင်းပြီးသည်နှင့် ချက်ချင်းအလုပ်လုပ်သည် — စနစ်ထည့်သွင်းမှုမလို။ အဆင့်သုံးဆင့်- ၁။ ထည့်သွင်းပါ — npm i -g omniroute၊ ဆာဗာသည် localhost:20128 တွင် စတင်အလုပ်လုပ်ပါမည်။ ၂။ သင်၏ကိရိယာကို http://localhost:20128/v1 သို့ ညွှန်ပြပါ — မည်သည့် OpenAI-နှင့် တွဲဖက်အသုံးပြုနိုင်သော ကိရိယာမဆို (Claude Code, Cursor, Cline)။ ၃။ ၎င်းက ပြန်ဖြေပါမည် — ချက်ချင်းပြန်ကြားရန် model auto ကို ခေါ်ဆိုပါ၊ API သော့မလို၊ စာရင်းသွင်းရန်မလို၊ စနစ်ထည့်သွင်းရန်မလိုပါ။"/>
 
 ```bash
 # အသစ်ထည့်သွင်းမှု၊ အထောက်အထားမလို — `auto` သည် အလုပ်လုပ်ပြီးသားဖြစ်သည်။
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>သီးခြားအခမဲ့ backend တစ်ခုကို ပိုနှစ်သက်ပါသလား။ `oc/…` (OpenCode Free) ကို တိုက်ရိုက်ခေါ်ဆိုပါ။ ထို့နောက် `auto` သို့ ပြောင်းပြီး OmniRoute ကို ရွေးချယ်ခွင့်ပြုပါ။</sub>
 
 <sub>📦 **Python, Node.js, PHP, နှင့် cURL** တို့အတွက် အမြန်စတင်အသုံးပြုနိုင်သော script များကို ကူးယူကူးထည့်ပါ → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1010,7 +1008,7 @@ Dashboard ကို `http://localhost:20128` တွင် · API ကို `http
 
 **2) အခမဲ့ provider တစ်ခုကို ချိတ်ဆက်ပါ (စာရင်းသွင်းရန်မလို)**
 
-Dashboard → **Providers** → **Kiro AI** (အခမဲ့ Claude၊ account တစ်ခုလျှင် တစ်လ ~50 credits) သို့မဟုတ် **OpenCode Free** (auth မလို) ကို ချိတ်ဆက်ပါ → ပြီးပါပြီ။
+Dashboard → **Providers** → **Kiro AI** (အခမဲ့ Claude၊ account တစ်ခုလျှင် တစ်လ ~50 credits) ကို ချိတ်ဆက်ပါ → ပြီးပါပြီ။
 
 **3) သင်၏ coding tool ကို ချိတ်ဆက်ပါ**
 
@@ -1267,7 +1265,7 @@ port တစ်ခုတည်းရှိ process တစ်ခုတည်းက
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ဘာသာစကား</b></td><td>TypeScript 6.0 — <code>src/</code> နှင့် <code>open-sse/</code> တစ်လျှောက်လုံး <b>100% TypeScript</b> (v2.0 မှစ၍ core တွင် <code>any</code> လုံးဝမရှိပါ)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite၊ WAL journaling) + LowDB (JSON legacy) — domain module 137 ခု၊ migration 202 ခု</td></tr>
+  <tr><td nowrap><b>ဒေတာဘေ့စ်</b></td><td>better-sqlite3 (SQLite၊ WAL journaling) + LowDB (JSON legacy) — domain module 137 ခု၊ migration 203 ခု</td></tr>
   <tr><td nowrap><b>မှတ်ဉာဏ်</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings၊ typed decay</td></tr>
   <tr><td nowrap><b>Schema များ</b></td><td>Zod 4 — MCP tool I/O အတည်ပြုခြင်း + API contract များ</td></tr>
   <tr><td nowrap><b>Protocol များ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

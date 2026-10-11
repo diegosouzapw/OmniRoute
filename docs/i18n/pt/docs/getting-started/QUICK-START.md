@@ -59,15 +59,7 @@ Pode utilizar o OmniRoute **sem pagar nada**, ligando um fornecedor gratuito.
 4. Clique em **Ligar** (não é necessária uma chave de API!)
 5. Está feito! Agora tem acesso gratuito aos modelos Claude.
 
-### Opção B: OpenCode Free (Sem Autenticação)
-
-1. Abra o painel em `http://localhost:20128`
-2. Aceda a **Fornecedores** → **Adicionar Fornecedor**
-3. Selecione **OpenCode Free**
-4. Clique em **Ligar** (não é necessária uma chave de API!)
-5. Está feito! Agora tem acesso gratuito a vários modelos.
-
-### Opção C: Pollinations (Não É Necessária uma Chave)
+### Opção B: Pollinations (Não É Necessária uma Chave)
 
 1. Abra o painel em `http://localhost:20128`
 2. Aceda a **Fornecedores** → **Adicionar Fornecedor**
@@ -163,7 +155,7 @@ Pode ver os detalhes do pedido clicando em [Monitorização/Registos](http://loc
 
 ### "Preciso de uma chave de API?"
 
-**Não!** Pode utilizar fornecedores gratuitos (Kiro, OpenCode Free, Pollinations) sem qualquer chave de API. Basta ligá-los no painel.
+**Não!** Pode utilizar fornecedores gratuitos (Kiro, Pollinations) sem qualquer chave de API. Basta ligá-los no painel.
 
 ### "O que é `auto`?"
 

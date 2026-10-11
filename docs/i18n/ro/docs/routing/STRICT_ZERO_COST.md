@@ -145,13 +145,12 @@ lacuna în loc să pretindă că nu există.
 Pentru o comparație offline înainte/după, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` funcționează în continuare
 cu rezultatul candidaților unei instanțe active; acesta citește valoarea `connectionId` reală a fiecărui candidat, astfel încât
 testează și calea de siguranță a conexiunii. Candidații fără cheie trebuie să sosească având valoarea sintetică
-`connectionId` fără autentificare, niciodată o conexiune reală. Calea automată fără cheie integrată în prezent este OpenCode Free; numărul exact de candidați
+`connectionId` fără autentificare, niciodată o conexiune reală. numărul exact de candidați
 depinde în continuare de descoperirea în timp real a modelelor și trebuie măsurat în implementarea țintă, nu
 copiat dintr-o rulare mai veche. Un candidat `recurring-*` este acceptat numai când are atât un
 adaptor de utilizare înregistrat, cât și `hardStopGuaranteed: true`; metadatele incomplete continuă să determine oprirea în mod sigur.
 
-Cu `excludeTosAvoid: true`, fiecare candidat configurat cu `tos: "avoid"` este eliminat. OpenCode Free
-are în prezent acest verdict, astfel încât activarea protecției poate goli grupul de candidați fără cheie rămas al unei implementări.
+Cu `excludeTosAvoid: true`, fiecare candidat configurat cu `tos: "avoid"` este eliminat.
 Acesta este un compromis așteptat al activării protecției ToS, nu o eroare: protecția este `false`
 în mod implicit tocmai din acest motiv (consultați „Protecția ToS” de mai sus).
 

@@ -14,12 +14,12 @@ Pomyśl o dostawcy jak o **operatorze telefonicznym**. Tak jak potrzebujesz oper
 
 ### Typy dostawców
 
-| Typ            | Czym jest                  | Przykłady                         | Koszt                         |
-| -------------- | -------------------------- | --------------------------------- | ----------------------------- |
-| **Bezpłatny**  | Nie wymaga płatności       | Kiro, OpenCode Free, Pollinations | $0                            |
-| **Klucz API**  | Potrzebujesz klucza API    | OpenAI, Anthropic, Google         | Płatność według użycia        |
-| **OAuth**      | Logowanie za pomocą konta  | Claude Code, GitHub Copilot       | Subskrypcja                   |
-| **Web Cookie** | Używa sesji z przeglądarki | ChatGPT Web (Codex), Gemini Web   | $0 (korzysta z Twojego konta) |
+| Typ            | Czym jest                  | Przykłady                       | Koszt                         |
+| -------------- | -------------------------- | ------------------------------- | ----------------------------- |
+| **Bezpłatny**  | Nie wymaga płatności       | Kiro, Pollinations              | $0                            |
+| **Klucz API**  | Potrzebujesz klucza API    | OpenAI, Anthropic, Google       | Płatność według użycia        |
+| **OAuth**      | Logowanie za pomocą konta  | Claude Code, GitHub Copilot     | Subskrypcja                   |
+| **Web Cookie** | Używa sesji z przeglądarki | ChatGPT Web (Codex), Gemini Web | $0 (korzysta z Twojego konta) |
 
 ### Dostawcy korzystający z plików cookie
 
@@ -46,7 +46,6 @@ możesz bezpiecznie ponowić próbę tylko dla nieudanych konfiguracji.
 2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
 3. Wybierz jednego z następujących bezpłatnych dostawców:
    - **Kiro AI** — Bezpłatne modele Claude (uwierzytelnianie nie jest wymagane)
-   - **OpenCode Free** — Bezpłatne modele GPT (uwierzytelnianie nie jest wymagane)
    - **Pollinations** — Bezpłatne modele GPT-5, Claude i Gemini (klucz nie jest wymagany)
    - **LongCat** — 10 mln tokenów bezpłatnie (jednorazowy przydział, wymaga konta i weryfikacji KYC)
    - **Cloudflare AI** — Ponad 50 modeli, 10 tys. neuronów dziennie
@@ -176,7 +175,6 @@ Ci dostawcy oferują **bezpłatny dostęp** bez karty kredytowej:
 | Dostawca          | Bezpłatny limit              | Modele                                   | Sposób połączenia    |
 | ----------------- | ---------------------------- | ---------------------------------------- | -------------------- |
 | **Kiro AI**       | 50 kredytów/miesiąc          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Bez uwierzytelniania |
-| **OpenCode Free** | Bez limitu                   | GPT-4o, Claude, Gemini                   | Bez uwierzytelniania |
 | **Pollinations**  | Klucz nie jest wymagany      | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez uwierzytelniania |
 | **LongCat**       | Jednorazowo 10 mln           | LongCat-2.0                              | Klucz API + KYC      |
 | **Cloudflare AI** | 10 tys. neuronów/dzień       | Ponad 50 modeli                          | Bez uwierzytelniania |
@@ -250,7 +248,7 @@ OmniRoute działa najlepiej z **wieloma dostawcami**. Zapewnia to:
 
 Połącz co najmniej **3 dostawców**, aby uzyskać najlepsze rezultaty:
 
-1. **Jeden darmowy dostawca** (Kiro, OpenCode Free lub Pollinations) — zawsze dostępny
+1. **Jeden darmowy dostawca** (Kiro lub Pollinations) — zawsze dostępny
 2. **Jeden szybki dostawca** (Groq, Cerebras) — do szybkich odpowiedzi
 3. **Jeden dostawca wysokiej jakości** (OpenAI, Anthropic, Google) — do złożonych zadań
 
@@ -296,7 +294,7 @@ Następnie użyj `model: "auto"`, a OmniRoute automatycznie wybierze najlepszego
 
 ### „Czy muszę płacić za korzystanie z OmniRoute?”
 
-**Nie!** OmniRoute jest bezpłatnym oprogramowaniem typu open source. Możesz korzystać z bezpłatnych dostawców (Kiro, OpenCode Free, Pollinations), nic za to nie płacąc. Płacisz tylko wtedy, gdy zdecydujesz się korzystać z płatnych dostawców.
+**Nie!** OmniRoute jest bezpłatnym oprogramowaniem typu open source. Możesz korzystać z bezpłatnych dostawców (Kiro, Pollinations), nic za to nie płacąc. Płacisz tylko wtedy, gdy zdecydujesz się korzystać z płatnych dostawców.
 
 ### „Od którego dostawcy najlepiej zacząć?”
 

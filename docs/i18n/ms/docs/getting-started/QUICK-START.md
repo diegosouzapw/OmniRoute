@@ -59,15 +59,7 @@ Anda boleh menggunakan OmniRoute **tanpa perlu membayar apa-apa** dengan menyamb
 4. Klik **Sambung** (kunci API tidak diperlukan!)
 5. Selesai! Kini anda mempunyai akses percuma kepada model Claude.
 
-### Pilihan B: OpenCode Free (Tanpa Pengesahan)
-
-1. Buka papan pemuka di `http://localhost:20128`
-2. Pergi ke **Penyedia** → **Tambah Penyedia**
-3. Pilih **OpenCode Free**
-4. Klik **Sambung** (kunci API tidak diperlukan!)
-5. Selesai! Kini anda mempunyai akses percuma kepada berbilang model.
-
-### Pilihan C: Pollinations (Kunci Tidak Diperlukan)
+### Pilihan B: Pollinations (Kunci Tidak Diperlukan)
 
 1. Buka papan pemuka di `http://localhost:20128`
 2. Pergi ke **Penyedia** → **Tambah Penyedia**
@@ -163,7 +155,7 @@ Anda boleh melihat butiran permintaan dengan mengklik [Pemantauan/Log](http://lo
 
 ### "Adakah saya memerlukan kunci API?"
 
-**Tidak!** Anda boleh menggunakan penyedia percuma (Kiro, OpenCode Free, Pollinations) tanpa sebarang kunci API. Hanya sambungkan penyedia tersebut dalam papan pemuka.
+**Tidak!** Anda boleh menggunakan penyedia percuma (Kiro, Pollinations) tanpa sebarang kunci API. Hanya sambungkan penyedia tersebut dalam papan pemuka.
 
 ### "Apakah itu `auto`?"
 

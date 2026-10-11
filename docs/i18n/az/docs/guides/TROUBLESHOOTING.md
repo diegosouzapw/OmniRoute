@@ -39,7 +39,7 @@ OmniRoute üçün ümumi problemlər və həllər.
 
 ### Pulsuz provayderlərdə sorğu tezliyinin məhdudlaşdırılması (429 / 400 / 401)
 
-**Əlamət**: Pulsuz/autentifikasiya tələb etməyən provayderlərlə (opencode, auggie və s.) `model: "auto"` istifadə etdikdə cavab əvəzinə arabir `HTTP 429`, `400` və ya `401` xətası alırsınız. Eyni sorğunu bir neçə an sonra təkrar göndərdikdə sorğular uğurla tamamlanır, lakin avtomatlaşdırma (cron tapşırıqları, agentlər, skriptlər) ilk xətada dayanır.
+**Əlamət**: Pulsuz/autentifikasiya tələb etməyən provayderlərlə (auggie və s.) `model: "auto"` istifadə etdikdə cavab əvəzinə arabir `HTTP 429`, `400` və ya `401` xətası alırsınız. Eyni sorğunu bir neçə an sonra təkrar göndərdikdə sorğular uğurla tamamlanır, lakin avtomatlaşdırma (cron tapşırıqları, agentlər, skriptlər) ilk xətada dayanır.
 
 **Əsas səbəb**: Üç müstəqil xəta rejimi üst-üstə düşür:
 

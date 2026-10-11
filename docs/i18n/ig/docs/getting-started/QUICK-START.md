@@ -59,15 +59,7 @@ OmniRoute na-amalite na `http://localhost:20128`. Dashboard ga-emeghe na-akpagh�
 4. Pịa **Jikọọ** (achọghị API key!)
 5. Emechaala! Ị nwerezi ohere efu iji ụdị Claude.
 
-### Nhọrọ B: OpenCode Free (Achọghị Nyocha Njirimara)
-
-1. Mepee dashboard na `http://localhost:20128`
-2. Gaa na **Ndị Na-eweta Ọrụ** → **Tinye Onye Na-eweta Ọrụ**
-3. Họrọ **OpenCode Free**
-4. Pịa **Jikọọ** (achọghị API key!)
-5. Emechaala! Ị nwerezi ohere efu iji ọtụtụ ụdị.
-
-### Nhọrọ C: Pollinations (Achọghị Key)
+### Nhọrọ B: Pollinations (Achọghị Key)
 
 1. Mepee dashboard na `http://localhost:20128`
 2. Gaa na **Ndị Na-eweta Ọrụ** → **Tinye Onye Na-eweta Ọrụ**
@@ -163,7 +155,7 @@ Otu command a na-amalitekwa CLI ndị ọzọ site na generic launcher — `omni
 
 ### "Achọrọ m API key?"
 
-**Mba!** Ị nwere ike iji ndị na-eweta ọrụ efu (Kiro, OpenCode Free, Pollinations) na-enweghị API key ọ bụla. Naanị jikọọ ha na dashboard.
+**Mba!** Ị nwere ike iji ndị na-eweta ọrụ efu (Kiro, Pollinations) na-enweghị API key ọ bụla. Naanị jikọọ ha na dashboard.
 
 ### "Gịnị bụ `auto`?"
 

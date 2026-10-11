@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="即装即用 — 零配置。三步走：1. 安装 — npm i -g omniroute，服务器在 localhost:20128 启动。2. 将您的工具指向 http://localhost:20128/v1 — 任何兼容 OpenAI 的工具（Claude Code、Cursor、Cline）。3. 它会响应 — 调用 auto 模型即可获得即时回复，无需 API 密钥、无需注册、无需配置。无密钥提供者 OpenCode Free 已预置到 auto 组合中，因此全新安装即可开箱即用。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="即装即用 — 零配置。三步走：1. 安装 — npm i -g omniroute，服务器在 localhost:20128 启动。2. 将您的工具指向 http://localhost:20128/v1 — 任何兼容 OpenAI 的工具（Claude Code、Cursor、Cline）。3. 它会响应 — 调用 auto 模型即可获得即时回复，无需 API 密钥、无需注册、无需配置。"/>
 
 ```bash
 # 全新安装，零凭证 — `auto` 已可工作：
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>偏好特定的免费后端？直接调用 `oc/…` (OpenCode Free)。然后升级到 `auto`，让 OmniRoute 来选择。</sub>
 
 <sub>📦 复制粘贴快速启动脚本，适用于 **Python、Node.js、PHP 和 cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1007,7 +1005,7 @@ omniroute
 
 **2）连接一个免费提供者（无需注册）**
 
-控制面板 → **提供者** → 连接 **Kiro AI**（免费 Claude，每个账户每月约 50 个积分）或 **OpenCode Free**（无需身份验证）→ 完成。
+控制面板 → **提供者** → 连接 **Kiro AI**（免费 Claude，每个账户每月约 50 个积分）→ 完成。
 
 **3）配置你的编程工具**
 
@@ -1264,7 +1262,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 也会跳过
   <tr><td nowrap><b>运行时</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>语言</b></td><td>TypeScript 6.0 — <code>src/</code> 和 <code>open-sse/</code> 中使用 <b>100% TypeScript</b>（自 v2.0 起，核心中零 <code>any</code>）</td></tr>
   <tr><td nowrap><b>框架</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>数据库</b></td><td>better-sqlite3（SQLite、WAL 日志模式）+ LowDB（旧版 JSON）— 137 个领域模块，202 次迁移</td></tr>
+  <tr><td nowrap><b>数据库</b></td><td>better-sqlite3（SQLite、WAL 日志模式）+ LowDB（旧版 JSON）— 137 个领域模块，203 次迁移</td></tr>
   <tr><td nowrap><b>记忆</b></td><td>SQLite FTS5 全文检索 + int8 量化向量嵌入，类型化衰减</td></tr>
   <tr><td nowrap><b>模式</b></td><td>Zod 4 — MCP 工具输入/输出验证 + API 契约</td></tr>
   <tr><td nowrap><b>协议</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>

@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Darbojas uzreiz pēc instalēšanas — bez konfigurācijas. Trīs soļi: 1. Instalēt — npm i -g omniroute, serveris startējas uz localhost:20128. 2. Novirziet savu rīku uz http://localhost:20128/v1 — jebkurš ar OpenAI saderīgs rīks (Claude Code, Cursor, Cline). 3. Tas atbild — izsauciet modeli auto, lai saņemtu tūlītēju atbildi, bez API atslēgas, bez reģistrācijas, bez konfigurācijas. Bezatlēgu nodrošinātājs OpenCode Free ir iepriekš konfigurēts auto kombinācijā, tāpēc svaiga instalācija darbojas uzreiz."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Darbojas uzreiz pēc instalēšanas — bez konfigurācijas. Trīs soļi: 1. Instalēt — npm i -g omniroute, serveris startējas uz localhost:20128. 2. Novirziet savu rīku uz http://localhost:20128/v1 — jebkurš ar OpenAI saderīgs rīks (Claude Code, Cursor, Cline). 3. Tas atbild — izsauciet modeli auto, lai saņemtu tūlītēju atbildi, bez API atslēgas, bez reģistrācijas, bez konfigurācijas."/>
 
 ```bash
 # Svaiga instalācija, nulles akreditācijas dati — `auto` jau darbojas:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Dodat priekšroku konkrētam bezmaksas aizmugursistēmas risinājumam? Izsauciet `oc/…` (OpenCode Free) tieši. Pēc tam pārejiet uz `auto` un ļaujiet OmniRoute izvēlēties.</sub>
 
 <sub>📦 Kopēt-ielīmēt ātrās palaišanas skripti priekš **Python, Node.js, PHP un cURL** → [`examples/quickstart/`] (examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Informācijas panelis: `http://localhost:20128` · API: `http://localhost:20128/
 
 **2) Pievienojiet BEZMAKSAS pakalpojumu sniedzēju (bez reģistrācijas)**
 
-Informācijas panelis → **Pakalpojumu sniedzēji** → pievienojiet **Kiro AI** (bezmaksas Claude, ~50 kredītu mēnesī katram kontam) vai **OpenCode Free** (bez autentifikācijas) → gatavs.
+Informācijas panelis → **Pakalpojumu sniedzēji** → pievienojiet **Kiro AI** (bezmaksas Claude, ~50 kredītu mēnesī katram kontam) → gatavs.
 
 **3) Konfigurējiet savu programmēšanas rīku**
 
@@ -1265,7 +1263,7 @@ Kanoniskie rādītāji 2026-08-24: **1.029 unikāli videoklipi** · **11.132.922
   <tr><td nowrap><b>Izpildvide</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Valoda</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> visā <code>src/</code> un <code>open-sse/</code> (pamatkodā nav neviena <code>any</code> kopš v2.0)</td></tr>
   <tr><td nowrap><b>Ietvars</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Datubāze</b></td><td>better-sqlite3 (SQLite, WAL žurnalēšana) + LowDB (mantotais JSON formāts) — 137 domēna moduļi, 202 migrācijas</td></tr>
+  <tr><td nowrap><b>Datubāze</b></td><td>better-sqlite3 (SQLite, WAL žurnalēšana) + LowDB (mantotais JSON formāts) — 137 domēna moduļi, 203 migrācijas</td></tr>
   <tr><td nowrap><b>Atmiņa</b></td><td>SQLite FTS5 pilnteksta meklēšana + int8 kvantizēti vektoru iegultie attēlojumi, tipizēta vājināšanās</td></tr>
   <tr><td nowrap><b>Shēmas</b></td><td>Zod 4 — MCP rīku ievades/izvades validācija + API līgumi</td></tr>
   <tr><td nowrap><b>Protokoli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

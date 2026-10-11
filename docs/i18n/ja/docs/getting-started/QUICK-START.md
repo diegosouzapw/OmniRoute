@@ -59,15 +59,7 @@ OmniRoute は `http://localhost:20128` で起動します。ダッシュボー�
 4. **Connect** をクリックします（API キーは不要です！）
 5. 完了です！これで Claude モデルに無料でアクセスできます。
 
-### オプション B: OpenCode Free（認証不要）
-
-1. `http://localhost:20128` でダッシュボードを開きます
-2. **Providers** → **Add Provider** に移動します
-3. **OpenCode Free** を選択します
-4. **Connect** をクリックします（API キーは不要です！）
-5. 完了です！これで複数のモデルに無料でアクセスできます。
-
-### オプション C: Pollinations（キー不要）
+### オプション B: Pollinations（キー不要）
 
 1. `http://localhost:20128` でダッシュボードを開きます
 2. **Providers** → **Add Provider** に移動します
@@ -163,7 +155,7 @@ omniroute launch-codex --model auto
 
 ### 「API キーは必要ですか？」
 
-**いいえ！** 無料プロバイダー（Kiro、OpenCode Free、Pollinations）は、API キーなしで使用できます。ダッシュボードで接続するだけです。
+**いいえ！** 無料プロバイダー（Kiro、Pollinations）は、API キーなしで使用できます。ダッシュボードで接続するだけです。
 
 ### 「`auto` とは何ですか？」
 

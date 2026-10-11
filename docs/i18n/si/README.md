@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ඔබ ස්ථාපනය කළ විගස ක්රියා කරයි — වින්යාස කිරීමක් නැත. පියවර තුනක්: 1. ස්ථාපනය කරන්න — npm i -g omniroute, සර්වර් එක localhost:20128 හි ආරම්භ වේ. 2. ඔබේ මෙවලම http://localhost:20128/v1 වෙත යොමු කරන්න — ඕනෑම OpenAI-අනුකූල මෙවලමක් (Claude Code, Cursor, Cline). 3. එය පිළිතුරු දෙයි — ක්ෂණික පිළිතුරක් සඳහා auto මොඩලය අමතන්න, API යතුරක්, ලියාපදිංචියක් හෝ වින්යාස කිරීමක් අවශ්ය නොවේ. යතුරු රහිත සපයන්නා වන OpenCode Free, auto කොම්බෝවට පෙර-සම්බන්ධ කර ඇත, එබැවින් අලුතින් ස්ථාපනය කිරීමෙන් වහාම ප්රතිචාර ලැබේ."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ඔබ ස්ථාපනය කළ විගස ක්රියා කරයි — වින්යාස කිරීමක් නැත. පියවර තුනක්: 1. ස්ථාපනය කරන්න — npm i -g omniroute, සර්වර් එක localhost:20128 හි ආරම්භ වේ. 2. ඔබේ මෙවලම http://localhost:20128/v1 වෙත යොමු කරන්න — ඕනෑම OpenAI-අනුකූල මෙවලමක් (Claude Code, Cursor, Cline). 3. එය පිළිතුරු දෙයි — ක්ෂණික පිළිතුරක් සඳහා auto මොඩලය අමතන්න, API යතුරක්, ලියාපදිංචියක් හෝ වින්යාස කිරීමක් අවශ්ය නොවේ."/>
 
 ```bash
 # අලුත් ස්ථාපනයක්, කිසිදු අක්තපත්රයක් නැත — `auto` දැනටමත් ක්රියා කරයි:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>විශේෂිත නොමිලේ බැක්එන්ඩ් එකකට කැමතිද? `oc/…` (OpenCode Free) සෘජුවම අමතන්න. ඉන්පසු `auto` වෙත මාරු වී OmniRoute තෝරා ගැනීමට ඉඩ දෙන්න.</sub>
 
 <sub>📦 **Python, Node.js, PHP, සහ cURL** සඳහා ඉක්මන් ආරම්භක ස්ක්රිප්ට් පිටපත් කර අලවන්න → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard එක `http://localhost:20128` හි ඇත · API එක `http://lo
 
 **2) නොමිලේ සපයන්නෙකු සම්බන්ධ කරන්න (ලියාපදිංචිය අවශ්ය නොවේ)**
 
-Dashboard → **සපයන්නන්** → **Kiro AI** (නොමිලේ Claude, එක් ගිණුමකට මසකට credits ~50ක්) හෝ **OpenCode Free** (සත්යාපනය අවශ්ය නොවේ) සම්බන්ධ කරන්න → අවසන්.
+Dashboard → **සපයන්නන්** → **Kiro AI** (නොමිලේ Claude, එක් ගිණුමකට මසකට credits ~50ක්) සම්බන්ධ කරන්න → අවසන්.
 
 **3) ඔබේ coding මෙවලම යොමු කරන්න**
 
@@ -1265,7 +1263,7 @@ Dashboard රහිත, headless runtime එකක් සඳහා Docker `base`
   <tr><td nowrap><b>ධාවන පරිසරය</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>භාෂාව</b></td><td>TypeScript 6.0 — <code>src/</code> සහ <code>open-sse/</code> පුරා <b>100% TypeScript</b> (v2.0 සිට මූලික කොටසෙහි <code>any</code> කිසිවක් නැත)</td></tr>
   <tr><td nowrap><b>රාමුව</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL ජර්නලගත කිරීම) + LowDB (JSON උරුම පද්ධතිය) — වසම් මොඩියුල 137ක්, සංක්රමණ 202ක්</td></tr>
+  <tr><td nowrap><b>දත්ත සමුදාය</b></td><td>better-sqlite3 (SQLite, WAL ජර්නලගත කිරීම) + LowDB (JSON උරුම පද්ධතිය) — වසම් මොඩියුල 137ක්, සංක්රමණ 203ක්</td></tr>
   <tr><td nowrap><b>මතකය</b></td><td>SQLite FTS5 පූර්ණ-පෙළ + int8-ප්රමාණකරණය කළ දෛශික කාවැද්දීම්, වර්ගගත ක්ෂය වීම</td></tr>
   <tr><td nowrap><b>ක්රමානුරූප</b></td><td>Zod 4 — MCP මෙවලම් ආදාන/ප්රතිදාන වලංගුකරණය + API ගිවිසුම්</td></tr>
   <tr><td nowrap><b>ප්රොටෝකෝල</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

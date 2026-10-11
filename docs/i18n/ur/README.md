@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="انسٹال کرتے ہی کام کرتا ہے — زیرو کنفیگ۔ تین مراحل: 1. انسٹال کریں — npm i -g omniroute، سرور localhost:20128 پر بوٹ ہوتا ہے۔ 2. اپنے ٹول کو http://localhost:20128/v1 پر پوائنٹ کریں — کوئی بھی OpenAI-کمپیٹیبل ٹول (Claude Code, Cursor, Cline)۔ 3. یہ جواب دیتا ہے — فوری جواب کے لیے ماڈل آٹو کو کال کریں، بغیر کسی API کی، بغیر سائن اپ، بغیر کنفیگریشن کے۔ کی لیس فراہم کنندہ OpenCode Free آٹو کومبو میں پہلے سے وائرڈ ہے، لہذا ایک تازہ انسٹالیشن باکس سے باہر جواب دیتی ہے۔"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="انسٹال کرتے ہی کام کرتا ہے — زیرو کنفیگ۔ تین مراحل: 1. انسٹال کریں — npm i -g omniroute، سرور localhost:20128 پر بوٹ ہوتا ہے۔ 2. اپنے ٹول کو http://localhost:20128/v1 پر پوائنٹ کریں — کوئی بھی OpenAI-کمپیٹیبل ٹول (Claude Code, Cursor, Cline)۔ 3."/>
 
 ```bash
 # تازہ انسٹال، زیرو کریڈینشلز — `auto` پہلے ہی کام کرتا ہے:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ایک مخصوص مفت بیک اینڈ کو ترجیح دیتے ہیں؟ براہ راست `oc/…` (OpenCode Free) کو کال کریں۔ پھر `auto` پر گریجویٹ کریں اور OmniRoute کو منتخب کرنے دیں۔</sub>
 
 <sub>📦 **Python, Node.js, PHP, اور cURL** کے لیے کاپی پیسٹ کوئیک اسٹارٹ اسکرپٹس → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1011,7 +1009,7 @@ omniroute
 
 **2) ایک مفت فراہم کنندہ منسلک کریں (سائن اپ کے بغیر)**
 
-ڈیش بورڈ → **فراہم کنندگان** → **Kiro AI** (مفت Claude، فی اکاؤنٹ تقریباً 50 کریڈٹس/ماہ) یا **OpenCode Free** (بغیر تصدیق) منسلک کریں → مکمل۔
+ڈیش بورڈ → **فراہم کنندگان** → **Kiro AI** (مفت Claude، فی اکاؤنٹ تقریباً 50 کریڈٹس/ماہ) منسلک کریں → مکمل۔
 
 **3) اپنے کوڈنگ ٹول کو متعین کریں**
 
@@ -1268,7 +1266,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 بھی اسے چ�
   <tr><td nowrap><b>رن ٹائم</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>زبان</b></td><td>TypeScript 6.0 — <code>src/</code> اور <code>open-sse/</code> میں <b>100% TypeScript</b> (v2.0 سے کور میں ایک بھی <code>any</code> نہیں)</td></tr>
   <tr><td nowrap><b>فریم ورک</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ڈیٹابیس</b></td><td>better-sqlite3 (SQLite، WAL جرنلنگ) + LowDB (JSON لیگیسی) — 137 ڈومین ماڈیولز، 202 مائیگریشنز</td></tr>
+  <tr><td nowrap><b>ڈیٹابیس</b></td><td>better-sqlite3 (SQLite، WAL جرنلنگ) + LowDB (JSON لیگیسی) — 137 ڈومین ماڈیولز، 203 مائیگریشنز</td></tr>
   <tr><td nowrap><b>میموری</b></td><td>SQLite FTS5 مکمل متن + int8-کوانٹائزڈ ویکٹر ایمبیڈنگز، ٹائپ شدہ تنزل</td></tr>
   <tr><td nowrap><b>اسکیماز</b></td><td>Zod 4 — MCP ٹول I/O کی توثیق + API معاہدے</td></tr>
   <tr><td nowrap><b>پروٹوکولز</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

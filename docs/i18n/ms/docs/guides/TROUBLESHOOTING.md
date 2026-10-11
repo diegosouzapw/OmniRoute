@@ -39,7 +39,7 @@ Masalah lazim dan penyelesaian untuk OmniRoute.
 
 ### Pengehadan Kadar pada Penyedia Percuma (429 / 400 / 401)
 
-**Gejala**: Apabila menggunakan `model: "auto"` dengan penyedia percuma/tanpa pengesahan (opencode, auggie, dll.), anda sekali-sekala menerima `HTTP 429`, `400`, atau `401` dan bukannya jawapan. Permintaan berjaya apabila gesaan yang sama dicuba semula beberapa ketika kemudian, tetapi automasi (tugas cron, ejen, skrip) gagal pada kegagalan pertama.
+**Gejala**: Apabila menggunakan `model: "auto"` dengan penyedia percuma/tanpa pengesahan (auggie, dll.), anda sekali-sekala menerima `HTTP 429`, `400`, atau `401` dan bukannya jawapan. Permintaan berjaya apabila gesaan yang sama dicuba semula beberapa ketika kemudian, tetapi automasi (tugas cron, ejen, skrip) gagal pada kegagalan pertama.
 
 **Punca utama**: Tiga mod kegagalan bebas bertindan:
 

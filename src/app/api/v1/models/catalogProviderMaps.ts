@@ -105,9 +105,9 @@ export function resolveCanonicalProviderId(
  * providerId EXACTLY. Kept strict on purpose: this is the anti-collision
  * guard (catalog.ts, #11433/7db430a3) that stops the catalog from publishing
  * a provider-prefixed model id that would actually route to a DIFFERENT
- * provider at request time — loosening it here would let a self-aliased
- * no-auth provider (e.g. "opencode" -> "opencode-zen") pass a check that was
- * specifically built to fail for it (#13994).
+ * provider at request time — loosening it here would let a provider whose id
+ * collides with a manual alias override pass a check that was specifically
+ * built to fail for it (#13994).
  */
 export function prefixRoutesToProvider(prefix: string, providerId: string): boolean {
   const parsed = parseModel(`${prefix}/__omniroute_probe__`);

@@ -14,12 +14,12 @@ Aħseb f’fornitur bħal **operatur tat-telefonija**. Bħalma għandek bżonn o
 
 ### Tipi ta’ Fornituri
 
-| Tip            | X’Inhu                              | Eżempji                           | Spiża                    |
-| -------------- | ----------------------------------- | --------------------------------- | ------------------------ |
-| **B’xejn**     | Ma jeħtieġ ebda ħlas                | Kiro, OpenCode Free, Pollinations | $0                       |
-| **API Key**    | Għandek bżonn API key               | OpenAI, Anthropic, Google         | Ħallas skont l-użu       |
-| **OAuth**      | Idħol bil-kont tiegħek              | Claude Code, GitHub Copilot       | Abbonament               |
-| **Web Cookie** | Juża s-sessjoni tal-browser tiegħek | ChatGPT Web (Codex), Gemini Web   | $0 (juża l-kont tiegħek) |
+| Tip            | X’Inhu                              | Eżempji                         | Spiża                    |
+| -------------- | ----------------------------------- | ------------------------------- | ------------------------ |
+| **B’xejn**     | Ma jeħtieġ ebda ħlas                | Kiro, Pollinations              | $0                       |
+| **API Key**    | Għandek bżonn API key               | OpenAI, Anthropic, Google       | Ħallas skont l-użu       |
+| **OAuth**      | Idħol bil-kont tiegħek              | Claude Code, GitHub Copilot     | Abbonament               |
+| **Web Cookie** | Juża s-sessjoni tal-browser tiegħek | ChatGPT Web (Codex), Gemini Web | $0 (juża l-kont tiegħek) |
 
 ### Fornituri Web Cookie
 
@@ -46,7 +46,6 @@ terġa’ tipprova b’mod sikur dawk biss li fallew.
 2. Mur fuq **Fornituri** → **Żid Fornitur**
 3. Agħżel wieħed minn dawn il-fornituri b’xejn:
    - **Kiro AI** — Mudelli Claude b’xejn (ma jeħtieġ ebda awtentikazzjoni)
-   - **OpenCode Free** — Mudelli GPT b’xejn (ma jeħtieġ ebda awtentikazzjoni)
    - **Pollinations** — GPT-5, Claude, Gemini b’xejn (ma teħtieġ ebda key)
    - **LongCat** — 10M tokens b’xejn (għotja ta’ darba, teħtieġ kont + KYC)
    - **Cloudflare AI** — Aktar minn 50 mudell, 10K newroni kuljum
@@ -176,7 +175,6 @@ Dawn il-fornituri joffru **aċċess bla ħlas** mingħajr karta ta’ kreditu:
 | Fornitur          | Kwota Bla Ħlas                    | Mudelli                                  | Kif Tikkonnettja            |
 | ----------------- | --------------------------------- | ---------------------------------------- | --------------------------- |
 | **Kiro AI**       | 50 kreditu/xahar                  | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ma teħtieġx awtentikazzjoni |
-| **OpenCode Free** | Bla limitu                        | GPT-4o, Claude, Gemini                   | Ma teħtieġx awtentikazzjoni |
 | **Pollinations**  | Ma teħtieġx ċavetta               | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ma teħtieġx awtentikazzjoni |
 | **LongCat**       | 10M darba waħda                   | LongCat-2.0                              | Ċavetta API + KYC           |
 | **Cloudflare AI** | 10K newroni/kuljum                | Aktar minn 50 mudell                     | Ma teħtieġx awtentikazzjoni |
@@ -250,7 +248,7 @@ OmniRoute jaħdem l-aħjar ma’ **diversi fornituri**. Dan jagħtik:
 
 Ikkonnettja mill-inqas **3 fornituri** għall-aħjar esperjenza:
 
-1. **Fornitur wieħed bla ħlas** (Kiro, OpenCode Free, jew Pollinations) — Dejjem disponibbli
+1. **Fornitur wieħed bla ħlas** (Kiro, jew Pollinations) — Dejjem disponibbli
 2. **Fornitur wieħed veloċi** (Groq, Cerebras) — Għal tweġibiet malajr
 3. **Fornitur wieħed ta’ kwalità għolja** (OpenAI, Anthropic, Google) — Għal kompiti kumplessi
 
@@ -296,7 +294,7 @@ Imbagħad uża `model: "auto"` u OmniRoute jagħżel awtomatikament l-aħjar wie
 
 ### "Għandi bżonn inħallas biex nuża OmniRoute?"
 
-**Le!** OmniRoute huwa b'xejn u open-source. Tista' tuża fornituri bla ħlas (Kiro, OpenCode Free, Pollinations) mingħajr ma tħallas xejn. Tħallas biss jekk tagħżel li tuża fornituri bi ħlas.
+**Le!** OmniRoute huwa b'xejn u open-source. Tista' tuża fornituri bla ħlas (Kiro, Pollinations) mingħajr ma tħallas xejn. Tħallas biss jekk tagħżel li tuża fornituri bi ħlas.
 
 ### "B'liema fornitur għandi nibda?"
 

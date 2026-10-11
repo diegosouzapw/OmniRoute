@@ -146,14 +146,12 @@ puute nimetään sen sijaan, että teeskenneltäisiin, ettei sitä ole.
 Offline-tilassa tehtävää ennen/jälkeen-vertailua varten `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` toimii edelleen
 aktiivisen instanssin ehdokastulostetta vasten; se lukee jokaisen ehdokkaan todellisen `connectionId`-arvon, joten se
 testaa myös yhteyden turvallisuuspolun. Avaimettomien ehdokkaiden mukana on oltava synteettinen
-tunnistautumista käyttämätön `connectionId`, ei koskaan todellista yhteyttä. Nykyinen sisäänrakennettu avaimeton automaattinen polku on OpenCode Free; ehdokkaiden tarkat määrät
+tunnistautumista käyttämätön `connectionId`, ei koskaan todellista yhteyttä. ehdokkaiden tarkat määrät
 riippuvat edelleen reaaliaikaisesta mallien hausta, ja ne pitäisi mitata kohdeympäristössä sen sijaan, että
 ne kopioitaisiin vanhemmasta ajosta. `recurring-*`-ehdokas hyväksytään vain, kun sillä on sekä rekisteröity
 käytön sovitin että `hardStopGuaranteed: true`; puutteelliset metatiedot käsitellään edelleen estävästi.
 
-Kun `excludeTosAvoid: true`, kaikki ehdokkaat, joiden kuratoitu arvo on `tos: "avoid"`, poistetaan. OpenCode Free
-on tällä hetkellä saanut tämän arvion, joten suojauksen käyttöönotto voi tyhjentää käyttöönoton jäljellä olevan avaimettoman
-joukon. Tämä on ToS-suojauksen käyttöönoton odotettu kompromissi, ei ohjelmistovirhe: suojauksen oletusarvo on `false`
+Kun `excludeTosAvoid: true`, kaikki ehdokkaat, joiden kuratoitu arvo on `tos: "avoid"`, poistetaan. Tämä on ToS-suojauksen käyttöönoton odotettu kompromissi, ei ohjelmistovirhe: suojauksen oletusarvo on `false`
 juuri tästä syystä (katso yllä oleva kohta "ToS-suojaus").
 
 ## Käyttöönotto

@@ -58,8 +58,8 @@ const NO_THINKING_PREFIX = "no-think/";
  * contain a slash, so they were sent bare and rejected with
  * "Ambiguous model ... Use provider/model prefix" when the same id exists under
  * several providers (#3050). The routing prefix is normally the provider alias,
- * which can intentionally differ from the provider id (for example `oc` routes
- * OpenCode Free while `opencode` is reserved by the Zen executor).
+ * which can intentionally differ from the provider id (for example `unc` routes
+ * uncloseai).
  */
 export function qualifyPlaygroundModel(
   model: string | null | undefined,

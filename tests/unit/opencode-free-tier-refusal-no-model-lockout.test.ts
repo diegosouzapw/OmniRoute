@@ -28,7 +28,7 @@ const FREE_TIER_BODY =
 const FORBIDDEN_BODY = '{"error":{"message":"Model not available on your plan"}}';
 const MODEL = "nemotron-3.5-lightning-free";
 
-async function connection(provider = "opencode") {
+async function connection(provider = "opencode-zen") {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -50,10 +50,10 @@ test.after(() => {
 
 test("a free-tier refusal leaves the model usable on the account it landed on", async () => {
   const connId = await connection();
-  await auth.markAccountUnavailable(connId, 403, FREE_TIER_BODY, "opencode", MODEL);
+  await auth.markAccountUnavailable(connId, 403, FREE_TIER_BODY, "opencode-zen", MODEL);
 
   assert.equal(
-    accountFallback.getModelLockoutInfo("opencode", connId, MODEL),
+    accountFallback.getModelLockoutInfo("opencode-zen", connId, MODEL),
     null,
     "the refusal says nothing about this account and this model"
   );
@@ -84,10 +84,10 @@ test("the recognition is scoped to the opencode family", async () => {
 
 test("an unrelated 403 on the same provider still locks the model out", async () => {
   const connId = await connection();
-  await auth.markAccountUnavailable(connId, 403, FORBIDDEN_BODY, "opencode", MODEL);
+  await auth.markAccountUnavailable(connId, 403, FORBIDDEN_BODY, "opencode-zen", MODEL);
 
   assert.notEqual(
-    accountFallback.getModelLockoutInfo("opencode", connId, MODEL),
+    accountFallback.getModelLockoutInfo("opencode-zen", connId, MODEL),
     null,
     "the existing per-model arm must keep firing for a real per-model refusal"
   );
@@ -100,6 +100,6 @@ test("a 402 on the same provider still locks the model out", async () => {
   const connId = await connection();
   // Same body as the refusal, different status: if the recognition were ever widened to
   // 402, the early return would fire here and this case would fail.
-  await auth.markAccountUnavailable(connId, 402, FREE_TIER_BODY, "opencode", MODEL);
-  assert.notEqual(accountFallback.getModelLockoutInfo("opencode", connId, MODEL), null);
+  await auth.markAccountUnavailable(connId, 402, FREE_TIER_BODY, "opencode-zen", MODEL);
+  assert.notEqual(accountFallback.getModelLockoutInfo("opencode-zen", connId, MODEL), null);
 });

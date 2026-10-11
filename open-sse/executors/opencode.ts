@@ -27,7 +27,6 @@ import {
   noteStoredFallback,
 } from "./opencodeResilienceNotes.ts";
 import {
-  clientSuppliedOpencodeSession,
   forwardOpencodeClientHeaders,
   resolveOpencodeCliDefaults,
 } from "../utils/opencodeHeaders.ts";
@@ -45,12 +44,7 @@ import {
   extractChatcmplId,
   recordRotationSnapshot,
 } from "./accountRotation.ts";
-import {
-  markCooldown,
-  markOutcome,
-  markSuccess,
-  noteResponseServed,
-} from "./opencodeAccountHealth.ts";
+import { markCooldown, markOutcome, markSuccess } from "./opencodeAccountHealth.ts";
 import {
   isOpencodeGeoBlocked,
   proxyKeyOf,
@@ -58,32 +52,13 @@ import {
   isOpencodeUserBlocked,
 } from "./opencodeGeoBlock.ts";
 import {
-  attemptFor,
-  isGatedFreeTierRequest,
-  isPremiumOpencodeModel,
-  noteFreeTierOutcome,
-  prepareFreeTierRequest,
-  rebuildJsonFromForcedStream,
-  surfaceFromBaseUrl,
-} from "./opencodeFreeTierContract.ts";
-import {
   applyMuseSparkMinOutputTokens,
   createMuseSparkStreamFinishNormalizer,
   isResponsesTerminalLine,
   normalizeMuseSparkFinishReason,
 } from "./opencodeMuseSpark.ts";
 import { currentRequestContext, runInRequestContext } from "./opencodeRequestContext.ts";
-import {
-  handleLoopFreeTierRefusal,
-  isOwnToolsRetryableRefusal,
-  retryFreeTierRefusalWithObservedTools,
-} from "./opencodeFreeTierRetry.ts";
-import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 import { trimOversizedToolEnums } from "./opencodeEnumTrim.ts";
-
-// Re-exported: the free-model catalog moved to the contract module (it decides whether the
-// contract applies), and existing importers keep resolving it from the executor.
-export { isPremiumOpencodeModel };
 import {
   isResponsesFirstByteTimeout,
   makeStallGuardedCall,
@@ -118,11 +93,14 @@ import {
 } from "./opencodeParkResume.ts";
 
 /**
- * The main OpenCode Zen host, shared by the `opencode` and `opencode-zen`
- * registry entries. Used to scope the `x-api-key` auth override (#12633) away
- * from `opencode-go`, which serves a different upstream (`.../zen/go/v1`).
+ * The main OpenCode Zen host (the `opencode-zen` registry entry). Used to scope
+ * the `x-api-key` auth override (#12633) away from `opencode-go`, which serves a
+ * different upstream (`.../zen/go/v1`).
  */
 const ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+
+/** The OpenCode Go host (`opencode-go`), which keeps an agent's own User-Agent (#15311). */
+const GO_BASE_URL = "https://opencode.ai/zen/go/v1";
 
 /**
  * Per-account proxy configuration, persisted by NoAuthAccountCard under
@@ -189,8 +167,8 @@ export function parseEffortLevel(model: string): { baseModel: string; effort: st
 /**
  * Resolves the registry `targetFormat` for a model, aliasing `provider` first.
  *
- * `PROVIDER_MODELS` is keyed by the provider's public ALIAS (e.g. `"oc"`), not its
- * raw registry id (e.g. `"opencode"`) — mirrors `resolveChatCoreTargetFormat()`
+ * `PROVIDER_MODELS` is keyed by the provider's public ALIAS, not its raw registry
+ * id — mirrors `resolveChatCoreTargetFormat()`
  * (`handlers/chatCore/targetFormat.ts`), which already aliases before calling
  * `getModelTargetFormat()`. Calling it with the raw id here made every entry miss
  * silently (fell through to `"openai"`), while chatCore's own request-body
@@ -211,35 +189,13 @@ export {
 } from "./opencodeMuseSpark.ts";
 
 export class OpencodeExecutor extends BaseExecutor {
-  /** Delegates to `isPremiumOpencodeModel`. Exported for testability. */
-  static isPremiumModel(model: string, provider: string): boolean {
-    return isPremiumOpencodeModel(model, provider);
-  }
-
   /**
-   * Note the outcome of a forced-stream response without reading its body: a success
-   * confirms the borrowed shape, anything else carries no verdict (the paths that hold
-   * the verdict note it explicitly where they already read it).
-   */
-  private noteForcedStreamOutcome(input: ExecuteInput, result: ExecutorExecuteResult): void {
-    const attempt = attemptFor(input.body);
-    const response =
-      result instanceof Response ? result : "response" in result ? result.response : null;
-    noteFreeTierOutcome(attempt, {
-      ok: !!response?.ok,
-      status: response?.ok ? (response.status ?? null) : null,
-      bodyText: null,
-    });
-  }
-
-  /**
-   * The target format and the client session of the request being served. While `execute()`
-   * runs they live in that request's own context (this instance is shared and requests
-   * overlap); outside it they fall back to plain fields, which is how `buildHeaders`,
-   * `buildUrl` and `transformRequest` are exercised on their own.
+   * The target format of the request being served. While `execute()` runs it lives in that
+   * request's own context (this instance is shared and requests overlap); outside it it
+   * falls back to a plain field, which is how `buildHeaders`, `buildUrl` and
+   * `transformRequest` are exercised on their own.
    */
   private _formatFallback: string | null = null;
-  private _sessionFallback: string | undefined;
   get _requestFormat(): string | null {
     return currentRequestContext()?.format ?? this._formatFallback;
   }
@@ -248,31 +204,7 @@ export class OpencodeExecutor extends BaseExecutor {
     if (context) context.format = value;
     else this._formatFallback = value;
   }
-  private get _clientSession(): string | undefined {
-    const context = currentRequestContext();
-    return context ? context.session : this._sessionFallback;
-  }
-  private set _clientSession(value: string | undefined) {
-    const context = currentRequestContext();
-    if (context) context.session = value;
-    else this._sessionFallback = value;
-  }
-  private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
-
-  /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
-  private freeTierRetryCtx(input: ExecuteInput) {
-    // #14148 moved the contract attempt off the executor: it is keyed by the
-    // request body, so read it back from there instead of a shared field.
-    const attempt = attemptFor(input.body);
-    return {
-      surface: this._surface(),
-      provider: this.provider,
-      requestFormat: this._requestFormat,
-      clientSession: this._clientSession,
-      borrowed: attempt?.borrowed,
-      clientToolNames: attempt?.clientToolNames ?? [],
-    };
-  }
+  private _isGoSurface = () => this.config?.baseUrl === GO_BASE_URL;
 
   // Not `private`: passed as the shared pick cursor to
   // pickRotatableAccount(), which needs a plain `{ nextAccountIdx }` shape —
@@ -360,52 +292,6 @@ export class OpencodeExecutor extends BaseExecutor {
    * non-streaming success responses. Non-muse-spark models pass through
    * untouched.
    */
-  /**
-   * Hand a JSON caller a JSON body even though the free-tier contract forced the upstream
-   * request to stream. A streaming caller, a refusal and an already-JSON body pass through.
-   */
-  private finalizeForcedStream(
-    input: ExecuteInput,
-    result: ExecutorExecuteResult
-  ): ExecutorExecuteResult {
-    this.noteForcedStreamOutcome(input, result);
-    if (input.stream) return result;
-    if (!(result instanceof Response)) {
-      if (!("response" in result) || !result.response) return result;
-    }
-    // Non-null exactly when the contract applied: stands in for the old surface/model guard.
-    const model = attemptFor(input.body)?.model;
-    if (!model) return result;
-    if (result instanceof Response) {
-      const rebuilt = rebuildJsonFromForcedStream(result, this._requestFormat, model);
-      return rebuilt === result ? result : rebuilt;
-    }
-    const rebuilt = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
-    return rebuilt === result.response ? result : { ...result, response: rebuilt };
-  }
-
-  /**
-   * Count a refusal that says something about the borrowed tools, on a path
-   * that already holds the verdict. Only 403/451 carry that verdict, so only
-   * they pay for a body read — anything else leaves the store alone.
-   */
-  private async noteFreeTierRefusal(
-    input: ExecuteInput,
-    response: Response,
-    log: ExecuteInput["log"]
-  ): Promise<void> {
-    const attempt = attemptFor(input.body);
-    if (!attempt || !attempt.borrowed || attempt.probe) return;
-    if (response.status !== 403 && response.status !== 451) return;
-    let bodyText: string | null = null;
-    try {
-      bodyText = await response.clone().text();
-    } catch {
-      log?.debug?.("OPENCODE", "body read failed on borrowed-shape check");
-    }
-    noteFreeTierOutcome(attempt, { ok: false, status: response.status, bodyText });
-  }
-
   private normalizeMuseSparkResponse(
     input: ExecuteInput,
     result: ExecutorExecuteResult
@@ -527,7 +413,7 @@ export class OpencodeExecutor extends BaseExecutor {
         const reselect = currentAppliedProxySink()?.reselectPoolMember;
         const ctx = currentRequestContext();
         if (ctx && typeof reselect === "function") ctx.reselectPoolMember = reselect;
-        return withRequestShapeRetry(input, (i) => this.executeOnce(i));
+        return this.executeOnce(input);
       });
     } finally {
       releaseRequestList(input.body, this.accountHealth);
@@ -536,32 +422,6 @@ export class OpencodeExecutor extends BaseExecutor {
 
   private async executeOnce(input: ExecuteInput) {
     this._requestFormat = resolveOpencodeTargetFormat(this.provider, input.model);
-
-    // #8681: Gate premium opencode models behind a usable API key.
-    // When the connection is keyless (no apiKey, no accessToken) and the model
-    // is a premium model (not on the free tier), return a clear 402 error
-    // instead of proxying the raw upstream 401 "Missing API key" response.
-    const creds = input.credentials;
-    const isKeyless =
-      !creds?.apiKey && !creds?.accessToken && !creds?.providerSpecificData?.extraApiKeys;
-    if (isKeyless && isPremiumOpencodeModel(input.model, this.provider)) {
-      const bodyJson = JSON.stringify({
-        error: {
-          message: "This model requires an opencode API key — add one in Settings → Providers.",
-          type: "invalid_request_error",
-          code: "premium_model_requires_key",
-        },
-      });
-      return {
-        response: new Response(bodyJson, {
-          status: 402,
-          headers: { "Content-Type": "application/json" },
-        }),
-        url: "",
-        headers: {} as Record<string, string>,
-        transformedBody: null,
-      };
-    }
 
     try {
       // muse-spark reasoning models consume the entire output budget on hidden
@@ -636,29 +496,6 @@ export class OpencodeExecutor extends BaseExecutor {
         const single = (await guardStall(
           await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
         )) as HttpExecuteResult;
-        const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
-          this.freeTierRetryCtx(input),
-          input,
-          single,
-          log,
-          cid,
-          (retryInput) =>
-            guardStall(
-              hasAmbientProxyContext()
-                ? super.execute(retryInput)
-                : runWithDirectFetchContext(() => super.execute(retryInput))
-            ) as unknown as Promise<HttpExecuteResult>
-        );
-        if (retryAfterRefusal) {
-          await this.noteFreeTierRefusal(input, retryAfterRefusal.response, log);
-          return this.finalizeForcedStream(
-            input,
-            this.normalizeMuseSparkResponse(input, retryAfterRefusal)
-          );
-        }
-        if (single.response.status === 403 || single.response.status === 451) {
-          await this.noteFreeTierRefusal(input, single.response, log);
-        }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
           try {
@@ -673,9 +510,9 @@ export class OpencodeExecutor extends BaseExecutor {
                 "OPENCODE",
                 `${cid}upstream empty rejection on direct account (${chatcmplId}), retrying once…`
               );
-              return this.finalizeForcedStream(
+              return this.normalizeMuseSparkResponse(
                 input,
-                this.normalizeMuseSparkResponse(input, await guardStall(await super.execute(input)))
+                await guardStall(await super.execute(input))
               );
             }
             log?.debug?.(
@@ -684,7 +521,7 @@ export class OpencodeExecutor extends BaseExecutor {
             );
           }
         }
-        return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, single));
+        return this.normalizeMuseSparkResponse(input, single);
       }
 
       // This loop only ever dispatches through super.execute() (the HTTP request
@@ -1166,36 +1003,6 @@ export class OpencodeExecutor extends BaseExecutor {
               abandonedResponse = result.response;
               continue;
             }
-            // Free-tier refusal: upstream rejected the REQUEST (client identity or
-            // request shape), not this account. Handled in opencodeFreeTierRetry.ts
-            // (one bounded retry with observed tools appended, then unchanged return).
-            if (bodyText !== null && isOwnToolsRetryableRefusal(status, bodyText)) {
-              noteFreeTierOutcome(attemptFor(input.body), {
-                ok: false,
-                status,
-                bodyText,
-              });
-              if (attributionOn && skippedCooldown.size > 0) {
-                this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
-              }
-              return await handleLoopFreeTierRefusal(
-                (retried) =>
-                  this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, retried)),
-                input,
-                result,
-                this.freeTierRetryCtx(input),
-                { account, masked, proxyKey: proxyKeyOf(account.proxy) ?? "direct" },
-                log,
-                cid,
-                {
-                  dispatch: (retryInput) =>
-                    runWithProxyContext(account.proxy, () =>
-                      super.execute({ ...retryInput, skipUpstreamRetry: true })
-                    ) as Promise<HttpExecuteResult>,
-                  noteServed: (a) => noteResponseServed(a as typeof account),
-                }
-              );
-            }
           }
 
           // Empty upstream rejection (malformed 400: no error field, no real
@@ -1235,10 +1042,10 @@ export class OpencodeExecutor extends BaseExecutor {
           if (attributionOn && skippedCooldown.size > 0) {
             this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
           }
-          return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, result));
+          return this.normalizeMuseSparkResponse(input, result);
         } finally {
           // Single release point for every post-dispatch arm (5xx, 403/451,
-          // free-tier, 429, 400, success): the released-guard makes the 429
+          // 429, 400, success): the released-guard makes the 429
           // internal release a harmless no-op.
           egressPacing.releasePacingSlot(egressRelease);
         }
@@ -1258,12 +1065,9 @@ export class OpencodeExecutor extends BaseExecutor {
       if (attributionOn && skippedCooldown.size > 0) {
         this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
       }
-      return this.finalizeForcedStream(
+      return this.normalizeMuseSparkResponse(
         input,
-        this.normalizeMuseSparkResponse(
-          input,
-          lastResult ?? (await guardStall(await super.execute(input)))
-        )
+        lastResult ?? (await guardStall(await super.execute(input)))
       );
     } finally {
       this._requestFormat = null;
@@ -1298,7 +1102,7 @@ export class OpencodeExecutor extends BaseExecutor {
    * models) requires `x-api-key`, not `Authorization: Bearer` — unlike the
    * default `/chat/completions` endpoint on the same host, which accepts
    * Bearer. Scoped by baseUrl (not provider id/alias) so this only applies to
-   * the main Zen host (`opencode` / `opencode-zen`, both `https://opencode.ai/zen/v1`)
+   * the main Zen host (`opencode-zen`, `https://opencode.ai/zen/v1`)
    * and never to opencode-go, which serves Responses-format models from a
    * different upstream (`https://opencode.ai/zen/go/v1`) that expects Bearer.
    */
@@ -1333,14 +1137,7 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["anthropic-version"] = "2023-06-01";
     }
 
-    // The free tier only answers streamed requests (measured 2026-09-17: a non-streamed
-    // body answers 403 FreeTierError), so a JSON client is served by streaming upstream and
-    // rebuilding the JSON body from the event stream — the path chatCore already takes for
-    // any buffered event-stream response. Announcing the stream here keeps that buffering an
-    // expected outcome rather than a warning.
-    const gatedScope =
-      Boolean(model) && isGatedFreeTierRequest(this._surface(), this.provider, model);
-    if (stream || gatedScope) {
+    if (stream) {
       headers["Accept"] = "text/event-stream";
     }
 
@@ -1349,17 +1146,13 @@ export class OpencodeExecutor extends BaseExecutor {
     // OPENCODE_SYNTHESIZE_CLI_HEADERS=false. Client-supplied headers always win;
     // User-Agent is replaced with the CLI UA unless the client already sends one that
     // looks like the OpenCode CLI. Default values match 9router's proven defaults.
-    const cliDefaults = resolveOpencodeCliDefaults(
-      this.config?.id || this.provider || "opencode",
-      gatedScope
-    );
+    const cliDefaults = resolveOpencodeCliDefaults(this.config?.id || this.provider);
 
-    this._clientSession = clientSuppliedOpencodeSession(clientHeaders, body);
     if (clientHeaders || cliDefaults) {
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
         cliDefaults,
-        keepAgentUserAgent: this._surface() === "go" && !gatedScope, // #15311
+        keepAgentUserAgent: this._isGoSurface(), // #15311
         sessionBody: projectOpencodeSessionBody(body),
       });
     }
@@ -1375,16 +1168,13 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   /**
-   * OpenCode's free DeepSeek V4 Flash endpoint accepts json_object but
+   * OpenCode Zen's DeepSeek V4 Flash Free endpoint accepts json_object but
    * rejects json_schema response_format with HTTP 400. Preserve the schema
    * as an instruction and downgrade only this proven-incompatible route to
    * json_object so callers still receive structured JSON.
    */
   private applyDeepSeekJsonSchemaFallback<T>(model: string, body: T): T {
-    if (
-      model !== "deepseek-v4-flash-free" ||
-      (this.provider !== "opencode" && this.provider !== "opencode-zen")
-    ) {
+    if (model !== "deepseek-v4-flash-free" || this.provider !== "opencode-zen") {
       return body;
     }
 
@@ -1453,23 +1243,9 @@ export class OpencodeExecutor extends BaseExecutor {
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
     modifiedBody = this.applyDeepSeekJsonSchemaFallback(model, modifiedBody);
-    // Free-tier request contract (see opencodeFreeTierContract.ts): streaming plus a
-    // non-empty tools array, in the shape of the surface this model is served on. Paid
-    // models on the same host are not gated and stay untouched.
-    const prepared = prepareFreeTierRequest(
-      modifiedBody,
-      this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model),
-      this._surface(),
-      this.provider,
-      model,
-      this._clientSession,
-      body
-    );
-    modifiedBody = prepared.body;
     // OpenCode's upstream 400s a request when a single enum property carries
     // more than 250 values or 15000 combined characters (VSCode-shaped caller
-    // tools hit this). Cap oversized enums on every surface before dispatch —
-    // covers caller tools and contract-borrowed declarations alike.
+    // tools hit this). Cap oversized enums on every surface before dispatch.
     if (
       modifiedBody &&
       typeof modifiedBody === "object" &&

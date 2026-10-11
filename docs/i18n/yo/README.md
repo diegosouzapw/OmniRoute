@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ó máa ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi sori ẹrọ — kò sí ìṣètò. Ìgbésẹ̀ mẹ́ta: 1. Fífi sori ẹrọ — npm i -g omniroute, olupin náà bẹ̀rẹ̀ lori localhost:20128. 2. Tọ́ka ohun èlò rẹ sí http://localhost:20128/v1 — ohun èlò èyíkéyìí tí ó bá bá OpenAI mu (Claude Code, Cursor, Cline). 3. Ó dáhùn — pe àwòṣe auto fún ìdáhùn lẹ́sẹ̀kẹsẹ̀, láìsí kókó API, láìsí ìforúkọsílẹ̀, láìsí ìṣètò. Olùpèsè láìsí kókó OpenCode Free ti wà nínú àpapọ̀ auto tẹ́lẹ̀, nítorí náà, fífi sori ẹrọ tuntun máa ń dáhùn lẹ́sẹ̀kẹsẹ̀."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ó máa ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi sori ẹrọ — kò sí ìṣètò. Ìgbésẹ̀ mẹ́ta: 1. Fífi sori ẹrọ — npm i -g omniroute, olupin náà bẹ̀rẹ̀ lori localhost:20128. 2. Tọ́ka ohun èlò rẹ sí http://localhost:20128/v1 — ohun èlò èyíkéyìí tí ó bá bá OpenAI mu (Claude Code, Cursor, Cline). 3. Ó dáhùn — pe àwòṣe auto fún ìdáhùn lẹ́sẹ̀kẹsẹ̀, láìsí kókó API, láìsí ìforúkọsílẹ̀, láìsí ìṣètò."/>
 
 ```bash
 # Fífi sori ẹrọ tuntun, kò sí ìdánimọ̀ — auto ti ń ṣiṣẹ́ tẹ́lẹ̀:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Ṣé o fẹ́ àtìlẹ́yìn ọ̀fẹ́ kan pàtó? Pe `oc/…` (OpenCode Free) tààrà. Lẹ́yìn náà, lọ sí `auto` kí o sì jẹ́ kí OmniRoute yàn.</sub>
 
 <sub>📦 Da àwọn àkọsílẹ̀ ìbẹ̀rẹ̀-pẹ̀lú-kánkán kọ síbẹ̀ fún **Python, Node.js, PHP, àti cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1016,7 +1014,7 @@ Dashboard wà ní `http://localhost:20128` · API wà ní `http://localhost:2012
 
 **2) So provider Ọ̀FẸ́ kan pọ̀ (kò nílò signup)**
 
-Dashboard → **Providers** → so **Kiro AI** pọ̀ (Claude ọ̀fẹ́, ~50 credits/month fún account kọ̀ọ̀kan) tàbí **OpenCode Free** (kò nílò auth) → ó parí.
+Dashboard → **Providers** → so **Kiro AI** pọ̀ (Claude ọ̀fẹ́, ~50 credits/month fún account kọ̀ọ̀kan) → ó parí.
 
 **3) Darí coding tool rẹ sí i**
 
@@ -1273,7 +1271,7 @@ port kan, nítorí náà kò sí package CLI-nìkan lọ́tọ̀ ní báyìí.
   <tr><td nowrap><b>Àyíká ìṣiṣẹ́</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Èdè</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> káàkiri <code>src/</code> àti <code>open-sse/</code> (kò sí <code>any</code> nínú apá pàtàkì láti v2.0)</td></tr>
   <tr><td nowrap><b>Ètò-iṣẹ́</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Ìpamọ́ dátà</b></td><td>better-sqlite3 (SQLite, ìforúkọsílẹ̀ WAL) + LowDB (ogún JSON) — àwọn módù 137 fún àwọn àgbègbè iṣẹ́, àwọn ìṣíkiri 202</td></tr>
+  <tr><td nowrap><b>Ìpamọ́ dátà</b></td><td>better-sqlite3 (SQLite, ìforúkọsílẹ̀ WAL) + LowDB (ogún JSON) — àwọn módù 137 fún àwọn àgbègbè iṣẹ́, àwọn ìṣíkiri 203</td></tr>
   <tr><td nowrap><b>Ìrántí</b></td><td>Ìṣàwárí ọ̀rọ̀-kíkún SQLite FTS5 + àwọn àfihàn fekito tí a dín sí int8, ìdínkù onírú</td></tr>
   <tr><td nowrap><b>Àwọn àwòṣe</b></td><td>Zod 4 — ìfọwọ́sí I/O irinṣẹ́ MCP + àwọn àdéhùn API</td></tr>
   <tr><td nowrap><b>Àwọn ìlànà</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

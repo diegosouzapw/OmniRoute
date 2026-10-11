@@ -150,15 +150,12 @@ ekonomik güvenlikten ayrı bir konudur; bu sayfa, yokmuş gibi davranmak yerine
 Çevrimdışı bir önce/sonra karşılaştırması için `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`,
 çalışan bir örneğin aday çıktısına karşı hâlâ kullanılabilir; her adayın gerçek `connectionId`
 değerini okuduğundan bağlantı güvenliği yolunu da çalıştırır. Anahtarsız adaylar gerçek bir bağlantıyla
-değil, sentetik kimlik doğrulamasız `connectionId` ile gelmelidir. Mevcut yerleşik anahtarsız otomatik
-yol OpenCode Free'dir; kesin aday sayıları hâlâ canlı model keşfine bağlıdır ve eski bir çalıştırmadan
+değil, sentetik kimlik doğrulamasız `connectionId` ile gelmelidir. kesin aday sayıları hâlâ canlı model keşfine bağlıdır ve eski bir çalıştırmadan
 kopyalanmak yerine hedef dağıtımda ölçülmelidir. Bir `recurring-*` adayı yalnızca hem kayıtlı bir
 kullanım adaptörüne hem de `hardStopGuaranteed: true` değerine sahip olduğunda geçer; eksik meta
 verilerde güvenli biçimde başarısız olma davranışı korunur.
 
-`excludeTosAvoid: true` olduğunda, `tos: "avoid"` olarak düzenlenmiş her aday kaldırılır. OpenCode Free
-şu anda bu kararı taşıdığından korumanın etkinleştirilmesi, bir dağıtımın geriye kalan anahtarsız
-havuzunu boşaltabilir. Bu, bir hata değil, ToS korumasını açmanın beklenen bir ödünleşimidir: koruma
+`excludeTosAvoid: true` olduğunda, `tos: "avoid"` olarak düzenlenmiş her aday kaldırılır. Bu, bir hata değil, ToS korumasını açmanın beklenen bir ödünleşimidir: koruma
 tam olarak bu nedenle varsayılan olarak `false` değerindedir (yukarıdaki "ToS koruması" bölümüne bakın).
 
 ## Etkinleştirme

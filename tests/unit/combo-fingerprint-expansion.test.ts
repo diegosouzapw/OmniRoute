@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// #5521 — An opencode connection with multiple fingerprints in
+// #5521 — A fingerprint-provider connection with multiple fingerprints in
 // provider_specific_data.fingerprints was treated as a single combo target,
-// so only one fingerprint (one IP) was used per request.  The combo system
-// must now expand each fingerprint into its own target so all of them
-// participate in the round-robin.
+// so only one fingerprint (one IP) was used per request. The combo system
+// expands each fingerprint into its own target so all of them participate in
+// the round-robin. Its last member, the keyless OpenCode provider, was removed
+// (docs/reference/REMOVED_PROVIDERS.md), so only the provider-independent
+// helpers and the pass-through paths are exercised here.
 
 const {
   isFingerprintProvider,
@@ -17,9 +19,9 @@ const {
 
 // ── isFingerprintProvider ────────────────────────────────────────────────────
 
-
-test("isFingerprintProvider: opencode returns true", () => {
-  assert.equal(isFingerprintProvider("opencode"), true);
+test("isFingerprintProvider: the removed keyless opencode provider returns false", () => {
+  // OpenCode Free (its last member) was removed — docs/reference/REMOVED_PROVIDERS.md.
+  assert.equal(isFingerprintProvider("opencode"), false);
 });
 
 test("isFingerprintProvider: openai returns false", () => {
@@ -172,37 +174,6 @@ test("expandTargetsByFingerprints: single fingerprint passes through", () => {
   assert.equal(result[0].executionKey, "step-0");
 });
 
-test("expandTargetsByFingerprints: 10 fingerprints expands to 10 targets", () => {
-  const fps = Array.from({ length: 10 }, (_, i) => `fp-${String(i).padStart(2, "0")}`);
-  const conn = makeConnection(fps);
-  const targets = [makeTarget()];
-  const connById = new Map([["conn-1", conn]]);
-  const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
-  assert.equal(result.length, 10);
-  assert.equal(result[0].executionKey, "step-0");
-  for (let i = 1; i < 10; i++) {
-    assert.equal(result[i].executionKey, `step-0@fp:fp-${String(i).padStart(2, "0")}`);
-  }
-});
-
-test("expandTargetsByFingerprints: preserves all target properties across copies", () => {
-  const fps = ["fp-aaa", "fp-bbb", "fp-ccc"];
-  const conn = makeConnection(fps);
-  const targets = [
-    makeTarget({ connectionId: "conn-1", modelStr: "opencode/kimi-k2", weight: 5 }),
-  ];
-  const connById = new Map([["conn-1", conn]]);
-  const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
-  assert.equal(result.length, 3);
-  for (const r of result) {
-    assert.equal(r.kind, "model");
-    assert.equal(r.connectionId, "conn-1");
-    assert.equal(r.modelStr, "opencode/kimi-k2");
-    assert.equal(r.provider, "opencode");
-    assert.equal(r.weight, 5);
-  }
-});
-
 test("expandTargetsByFingerprints: connection not found in map passes through", () => {
   const targets = [makeTarget({ connectionId: "conn-missing" })];
   const connById = new Map<string, Record<string, unknown>>();
@@ -211,43 +182,8 @@ test("expandTargetsByFingerprints: connection not found in map passes through", 
   assert.equal(result[0].connectionId, "conn-missing");
 });
 
-test("expandTargetsByFingerprints: mixed providers expand only fingerprint ones", () => {
-  const fps = ["fp-1", "fp-2"];
-  const conn = makeConnection(fps);
-  const targets = [
-    makeTarget({ provider: "openai", modelStr: "openai/gpt-4o", connectionId: "conn-oai" }),
-    makeTarget({ connectionId: "conn-1" }),
-  ];
-  const connById = new Map([
-    ["conn-1", conn],
-    ["conn-oai", { id: "conn-oai", provider: "openai", providerSpecificData: {} }],
-  ]);
-  const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
-  assert.equal(result.length, 3);
-  assert.equal(result[0].executionKey, "step-0");
-  assert.equal(result[1].executionKey, "step-0");
-  assert.equal(result[2].executionKey, "step-0@fp:fp-2");
-});
-
 test("expandTargetsByFingerprints: empty input returns empty array", () => {
   const connById = new Map<string, Record<string, unknown>>();
   const result = expandTargetsByFingerprints([], connById, (t) => t.provider);
   assert.equal(result.length, 0);
-});
-
-
-test("expandTargetsByFingerprints: multiple targets each expand independently", () => {
-  const conn1 = makeConnection(["fp-a1", "fp-a2"]);
-  const conn2 = makeConnection(["fp-b1", "fp-b2", "fp-b3"]);
-  const targets = [
-    makeTarget({ stepId: "step-0", executionKey: "step-0", connectionId: "conn-1" }),
-    makeTarget({ stepId: "step-1", executionKey: "step-1", connectionId: "conn-1" }),
-  ];
-  const connById = new Map([["conn-1", conn1]]);
-  const result = expandTargetsByFingerprints(targets, connById, (t) => t.provider);
-  assert.equal(result.length, 4);
-  assert.equal(result[0].executionKey, "step-0");
-  assert.equal(result[1].executionKey, "step-0@fp:fp-a2");
-  assert.equal(result[2].executionKey, "step-1");
-  assert.equal(result[3].executionKey, "step-1@fp:fp-a2");
 });

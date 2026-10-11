@@ -16,12 +16,12 @@ const {
   settingsDb,
 } = harness;
 
-const MODEL = "nemotron-3.5-lightning-free";
+const MODEL = "Lorbus/Qwen3.6-27B-int4-AutoRound";
 const originalFetch = globalThis.fetch;
 
 function chatBody(text: string) {
   return {
-    model: `oc/${MODEL}`,
+    model: `unc/${MODEL}`,
     stream: false,
     messages: [{ role: "user", content: text }],
   };
@@ -140,7 +140,7 @@ test("a lock on one model leaves another model of the provider served immediatel
 
   const response = await handleChat(
     buildRequest({
-      body: { ...chatBody("other model"), model: "oc/big-pickle" },
+      body: { ...chatBody("other model"), model: "unc/other-passthrough-model" },
     })
   );
 
@@ -153,14 +153,14 @@ test("a combo skips a locked no-auth member at once, without waiting, and serves
     name: "noauth-locked-then-keyed",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: [`oc/${MODEL}`, "openai/gpt-4.1"],
+    models: [`unc/${MODEL}`, "openai/gpt-4.1"],
   });
   await lockModelWithAnUpstream502();
   await settingsDb.updateSettings({ requestRetry: 3, maxRetryIntervalSec: 10 });
   let noAuthCalls = 0;
   let keyedCalls = 0;
   globalThis.fetch = async (url) => {
-    if (String(url).includes("opencode.ai")) {
+    if (String(url).includes("unturf.com")) {
       noAuthCalls += 1;
       return new Response("{}", { status: 502 });
     }

@@ -150,15 +150,12 @@ reading එකකින් අදහස් වන්නේ lookup කිරී�
 offline before/after පරීක්ෂාවක් සඳහා, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` තවමත්
 සජීවී instance එකක candidates output එක සමඟ ක්රියා කරයි; එය එක් එක් candidate එකේ සැබෑ
 `connectionId` කියවන බැවින් connection-safety path එකද අභ්යාස කරයි. Keyless candidates පැමිණිය
-යුත්තේ synthetic no-auth `connectionId` සමඟ මිස කිසිවිටෙක සැබෑ connection එකක් සමඟ නොවේ. දැනට
-තිබෙන built-in keyless auto path එක OpenCode Free වේ; නිශ්චිත candidate ගණන තවමත් සජීවී model
+යුත්තේ synthetic no-auth `connectionId` සමඟ මිස කිසිවිටෙක සැබෑ connection එකක් සමඟ නොවේ. නිශ්චිත candidate ගණන තවමත් සජීවී model
 discovery මත රඳා පවතින අතර, පැරණි run එකකින් පිටපත් කිරීම වෙනුවට ඉලක්ක deployment එකේදී මැනිය
 යුතුය. `recurring-*` candidate එකක් සමත් වන්නේ එයට registered usage adapter එකක් සහ
 `hardStopGuaranteed: true` යන දෙකම ඇති විට පමණි; අසම්පූර්ණ metadata තවදුරටත් fail-closed වේ.
 
-`excludeTosAvoid: true` සමඟ, curated `tos: "avoid"` ලෙස ඇති සෑම candidate එකක්ම ඉවත් කෙරේ.
-OpenCode Free සතුව දැනට එම තීන්දුව ඇති බැවින්, ආරක්ෂකය සක්රිය කිරීමෙන් deployment එකක ඉතිරි
-keyless pool එක හිස් විය හැක. මෙය ToS ආරක්ෂකය සක්රිය කිරීමේදී අපේක්ෂිත trade-off එකක් මිස bug
+`excludeTosAvoid: true` සමඟ, curated `tos: "avoid"` ලෙස ඇති සෑම candidate එකක්ම ඉවත් කෙරේ. මෙය ToS ආරක්ෂකය සක්රිය කිරීමේදී අපේක්ෂිත trade-off එකක් මිස bug
 එකක් නොවේ: හරියටම මෙම හේතුව නිසා ආරක්ෂකයේ පෙරනිමිය `false` වේ (ඉහත "ToS ආරක්ෂකය" බලන්න).
 
 ## සක්රීය කිරීම

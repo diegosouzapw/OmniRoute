@@ -14,12 +14,12 @@
 
 ### 提供者類型
 
-| 類型            | 說明                   | 範例                              | 費用               |
-| --------------- | ---------------------- | --------------------------------- | ------------------ |
-| **免費**        | 無須付款               | Kiro、OpenCode Free、Pollinations | $0                 |
-| **API 金鑰**    | 需要 API 金鑰          | OpenAI、Anthropic、Google         | 按使用量付費       |
-| **OAuth**       | 使用你的帳戶登入       | Claude Code、GitHub Copilot       | 訂閱制             |
-| **網頁 Cookie** | 使用你的瀏覽器工作階段 | ChatGPT Web (Codex)、Gemini Web   | $0（使用你的帳戶） |
+| 類型            | 說明                   | 範例                            | 費用               |
+| --------------- | ---------------------- | ------------------------------- | ------------------ |
+| **免費**        | 無須付款               | Kiro、Pollinations              | $0                 |
+| **API 金鑰**    | 需要 API 金鑰          | OpenAI、Anthropic、Google       | 按使用量付費       |
+| **OAuth**       | 使用你的帳戶登入       | Claude Code、GitHub Copilot     | 訂閱制             |
+| **網頁 Cookie** | 使用你的瀏覽器工作階段 | ChatGPT Web (Codex)、Gemini Web | $0（使用你的帳戶） |
 
 ### 網頁 Cookie 提供者
 
@@ -46,7 +46,6 @@
 2. 前往**提供者** → **新增提供者**
 3. 選取下列其中一個免費提供者：
    - **Kiro AI** — 免費 Claude 模型（無須驗證）
-   - **OpenCode Free** — 免費 GPT 模型（無須驗證）
    - **Pollinations** — 免費 GPT-5、Claude、Gemini（無須金鑰）
    - **LongCat** — 免費 10M 個權杖（一次性額度，需要帳戶及 KYC）
    - **Cloudflare AI** — 50+ 個模型，每日 10K 個神經元
@@ -176,7 +175,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | 提供者            | 免費額度          | 模型                                     | 連線方式          |
 | ----------------- | ----------------- | ---------------------------------------- | ----------------- |
 | **Kiro AI**       | 每月 50 點額度    | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 無須驗證          |
-| **OpenCode Free** | 無限              | GPT-4o, Claude, Gemini                   | 無須驗證          |
 | **Pollinations**  | 無須金鑰          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | 無須驗證          |
 | **LongCat**       | 一次性 10M        | LongCat-2.0                              | API 金鑰 + KYC    |
 | **Cloudflare AI** | 每日 10K 個神經元 | 50+ 個模型                               | 無須驗證          |
@@ -250,7 +248,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 請至少連接 **3 個提供者**，以獲得最佳體驗：
 
-1. **一個免費提供者**（Kiro、OpenCode Free 或 Pollinations）— 隨時可用
+1. **一個免費提供者**（Kiro 或 Pollinations）— 隨時可用
 2. **一個快速提供者**（Groq、Cerebras）— 用於快速回應
 3. **一個高品質提供者**（OpenAI、Anthropic、Google）— 用於複雜工作
 
@@ -296,7 +294,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ### 「我需要付費才能使用 OmniRoute 嗎？」
 
-**不需要！** OmniRoute 是免費且開放原始碼的。你可以使用免費提供者（Kiro、OpenCode Free、Pollinations），完全無須付費。只有在你選擇使用付費提供者時才需要付費。
+**不需要！** OmniRoute 是免費且開放原始碼的。你可以使用免費提供者（Kiro、Pollinations），完全無須付費。只有在你選擇使用付費提供者時才需要付費。
 
 ### 「我應該從哪個提供者開始？」
 

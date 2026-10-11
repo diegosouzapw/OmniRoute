@@ -146,14 +146,12 @@ luckan i stället för att låtsas att den inte finns.
 För en lokal jämförelse före och efter fungerar `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` fortfarande
 mot kandidatresultatet från en aktiv instans; skriptet läser varje kandidats verkliga `connectionId`, så det
 testar även sökvägen för anslutningssäkerhet. Nyckellösa kandidater måste levereras med det syntetiska
-`connectionId` för avsaknad av autentisering, aldrig med en verklig anslutning. Den nuvarande inbyggda nyckellösa automatiska sökvägen är OpenCode Free; det exakta antalet kandidater
+`connectionId` för avsaknad av autentisering, aldrig med en verklig anslutning. det exakta antalet kandidater
 beror fortfarande på den aktiva modellidentifieringen och bör mätas i måldistributionen i stället för att
 kopieras från en äldre körning. En `recurring-*`-kandidat godkänns endast när den både har en registrerad
 användningsadapter och `hardStopGuaranteed: true`; ofullständiga metadata fortsätter att stängas ute.
 
-Med `excludeTosAvoid: true` tas alla kandidater som har den granskade bedömningen `tos: "avoid"` bort. OpenCode Free
-har för närvarande den bedömningen, så en aktivering av spärren kan tömma en distributions återstående nyckellösa
-pool. Detta är en förväntad kompromiss när användarvillkorsspärren aktiveras, inte ett fel: spärrens standardvärde är `false`
+Med `excludeTosAvoid: true` tas alla kandidater som har den granskade bedömningen `tos: "avoid"` bort. Detta är en förväntad kompromiss när användarvillkorsspärren aktiveras, inte ett fel: spärrens standardvärde är `false`
 av just denna anledning (se ”Användarvillkorsspärr” ovan).
 
 ## Aktivering

@@ -145,14 +145,12 @@ jurang tersebut dan bukannya berpura-pura bahawa ia tidak wujud.
 Untuk perbandingan sebelum/selepas secara luar talian, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` masih berfungsi
 dengan output calon daripada tika langsung; ia membaca `connectionId` sebenar bagi setiap calon, jadi ia
 turut menguji laluan keselamatan sambungan. Calon `keyless` mesti disertakan dengan
-`connectionId` tanpa pengesahan sintetik, bukan sambungan sebenar. Laluan automatik `keyless` terbina dalam semasa ialah OpenCode Free; bilangan calon yang tepat
+`connectionId` tanpa pengesahan sintetik, bukan sambungan sebenar. bilangan calon yang tepat
 masih bergantung pada penemuan model secara langsung dan hendaklah diukur pada pengerahan sasaran dan bukannya
 disalin daripada pelaksanaan lama. Calon `recurring-*` hanya lulus apabila ia mempunyai kedua-dua penyesuai
 penggunaan yang berdaftar dan `hardStopGuaranteed: true`; metadata yang tidak lengkap kekal gagal secara tertutup.
 
-Dengan `excludeTosAvoid: true`, setiap calon yang dipilih susun sebagai `tos: "avoid"` akan disingkirkan. OpenCode Free
-pada masa ini mempunyai keputusan tersebut, jadi menghidupkan pengadang boleh mengosongkan kelompok `keyless`
-yang masih ada dalam sesuatu pengerahan. Ini ialah kompromi yang dijangkakan apabila menghidupkan pengadang ToS, bukannya pepijat: pengadang tersebut ialah `false`
+Dengan `excludeTosAvoid: true`, setiap calon yang dipilih susun sebagai `tos: "avoid"` akan disingkirkan. Ini ialah kompromi yang dijangkakan apabila menghidupkan pengadang ToS, bukannya pepijat: pengadang tersebut ialah `false`
 secara lalai tepat atas sebab ini (lihat "Pengadang ToS" di atas).
 
 ## Pengaktifan

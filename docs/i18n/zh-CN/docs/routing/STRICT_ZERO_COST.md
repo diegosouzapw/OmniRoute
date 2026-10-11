@@ -138,12 +138,11 @@ _下一次_读取使用——候选池构建路径中的任何部分都不会等
 
 如需进行离线前后对比，`npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` 仍可针对运行中实例的候选项输出使用；
 它会读取每个候选项的真实 `connectionId`，因此也会覆盖连接安全路径。无密钥候选项必须使用合成的无需身份验证
-`connectionId`，绝不能使用真实连接。目前内置的无密钥自动路径是 OpenCode Free；确切的候选项数量仍取决于实时模型发现，
+`connectionId`，绝不能使用真实连接。确切的候选项数量仍取决于实时模型发现，
 应在目标部署上进行测量，而不应从旧的运行结果中复制。`recurring-*` 候选项仅在同时具有已注册的用量适配器和
 `hardStopGuaranteed: true` 时才会通过；元数据不完整时仍按失败关闭处理。
 
-启用 `excludeTosAvoid: true` 后，所有人工审核为 `tos: "avoid"` 的候选项都会被移除。OpenCode Free
-目前带有该结论，因此启用此防护可能会清空某个部署中剩余的无密钥候选池。这是启用 ToS 防护时预期的权衡，而不是错误：
+启用 `excludeTosAvoid: true` 后，所有人工审核为 `tos: "avoid"` 的候选项都会被移除。这是启用 ToS 防护时预期的权衡，而不是错误：
 正因如此，该防护默认设置为 `false`（请参阅上文的“ToS 防护”）。
 
 ## 启用

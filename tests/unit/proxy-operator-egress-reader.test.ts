@@ -58,7 +58,7 @@ function push(host: string, port: number, addresses: string[], observedAt: strin
 function logEgress(host: string, port: number, egressIp: string | null) {
   proxyLogger.logProxyEvent({
     status: "success",
-    provider: "opencode",
+    provider: "opencode-go",
     targetUrl: "https://api.opencode.ai/chat",
     proxy: { type: "http", host, port },
     egressIp,
@@ -165,7 +165,7 @@ test("the predicate fires on any shared operator address", async () => {
     const candidate = member("203.0.113.7", 8186);
     noteProxyRefusal(proxyEgressKey(avoided), "ip_quota_429");
     const predicate = rotation.buildHotEgressPredicate(
-      "opencode",
+      "opencode-go",
       [avoided, candidate],
       undefined,
       now
@@ -192,7 +192,7 @@ test("the journal contributes to the predicate only when non-opaque", async () =
     logEgress("203.0.113.9", 8188, "198.51.100.71");
     const opaque = member("203.0.113.9", 8188);
     noteProxyRefusal(proxyEgressKey(opaque), "ip_quota_429");
-    const predicate = rotation.buildHotEgressPredicate("opencode", [opaque], undefined, now);
+    const predicate = rotation.buildHotEgressPredicate("opencode-go", [opaque], undefined, now);
     // Empty hot set (opaque journal, no operator rows) -> predicate false for all.
     assert.equal(predicate(opaque), false);
   } finally {

@@ -59,15 +59,7 @@ Bạn có thể sử dụng OmniRoute **mà không phải trả bất kỳ kho�
 4. Nhấp vào **Kết nối** (không cần API key!)
 5. Xong! Giờ đây bạn có quyền truy cập miễn phí vào các mô hình Claude.
 
-### Tùy chọn B: OpenCode Free (Không cần xác thực)
-
-1. Mở bảng điều khiển tại `http://localhost:20128`
-2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
-3. Chọn **OpenCode Free**
-4. Nhấp vào **Kết nối** (không cần API key!)
-5. Xong! Giờ đây bạn có quyền truy cập miễn phí vào nhiều mô hình.
-
-### Tùy chọn C: Pollinations (Không cần khóa)
+### Tùy chọn B: Pollinations (Không cần khóa)
 
 1. Mở bảng điều khiển tại `http://localhost:20128`
 2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
@@ -163,7 +155,7 @@ Bạn có thể xem chi tiết yêu cầu bằng cách nhấp vào [Giám sát/N
 
 ### "Tôi có cần API key không?"
 
-**Không!** Bạn có thể sử dụng các nhà cung cấp miễn phí (Kiro, OpenCode Free, Pollinations) mà không cần API key. Chỉ cần kết nối chúng trong bảng điều khiển.
+**Không!** Bạn có thể sử dụng các nhà cung cấp miễn phí (Kiro, Pollinations) mà không cần API key. Chỉ cần kết nối chúng trong bảng điều khiển.
 
 ### "`auto` là gì?"
 

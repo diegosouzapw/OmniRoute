@@ -49,15 +49,14 @@ uchun yoki 1-daraja kvotalari limitga yetganidan keyin foydalanish uchun ajratil
 
 **Nol xarajatli provayderlar** — bepul tariflar, kredit dasturlari, kunlik OAuth kvotalari.
 
-| Provayder        | Bepul kvota / kreditlar                                   |
-| ---------------- | --------------------------------------------------------- |
-| Kiro AI          | Bepul Claude tarifi (saxiy adolatli foydalanish)          |
-| OpenCode Free    | Autentifikatsiya talab qilinmaydi, saxiy tezlik limitlari |
-| Qoder            | Bepul OAuth                                               |
-| Google Vertex AI | Yangi hisob uchun $300 kredit                             |
-| Amazon Q         | AWS foydalanuvchilari uchun bepul tarif                   |
-| Pollinations     | Ochiq ommaviy API                                         |
-| Cloudflare AI    | Workers AI bepul tarifi                                   |
+| Provayder        | Bepul kvota / kreditlar                          |
+| ---------------- | ------------------------------------------------ |
+| Kiro AI          | Bepul Claude tarifi (saxiy adolatli foydalanish) |
+| Qoder            | Bepul OAuth                                      |
+| Google Vertex AI | Yangi hisob uchun $300 kredit                    |
+| Amazon Q         | AWS foydalanuvchilari uchun bepul tarif          |
+| Pollinations     | Ochiq ommaviy API                                |
+| Cloudflare AI    | Workers AI bepul tarifi                          |
 
 **Strategiya**: budjet chekloviga ega `auto` kombinatsiyasi 1+2-darajalar ishlamaganda
 yoki `useFreeOnly=true` oʻrnatilganda soʻrovlarni shu yerga yoʻnaltiradi. Bepul provayderlarda koʻpincha

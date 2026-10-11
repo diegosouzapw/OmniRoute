@@ -40,13 +40,13 @@ test("an account no-auth banner includes the stored notice beside the account me
       NextIntlClientProvider,
       { locale: "en", timeZone: "UTC", messages: { noAuthProvider: enMessages.noAuthProvider } },
       React.createElement(NoAuthAccountCard, {
-        providerId: "opencode",
-        providerName: "OpenCode",
+        providerId: "uncloseai",
+        providerName: "UncloseAI",
         generateAccountId: () => "account-1",
       })
     )
   );
 
   assert.match(html, /Ready to use/);
-  assert.match(html, /requests that do not match the OpenCode client contract/);
+  assert.match(html, /UncloseAI needs no API key/);
 });

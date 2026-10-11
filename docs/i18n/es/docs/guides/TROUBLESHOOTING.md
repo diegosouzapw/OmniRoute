@@ -39,7 +39,7 @@ Problemas comunes y soluciones para OmniRoute.
 
 ### Limitación de tasa en proveedores gratuitos (429 / 400 / 401)
 
-**Síntoma**: Al usar `model: "auto"` con proveedores gratuitos o sin autenticación (opencode, auggie, etc.), se obtienen de forma intermitente respuestas `HTTP 429`, `400` o `401` en lugar de resultados. Las solicitudes tienen éxito al volver a intentar la misma consulta unos instantes después, pero la automatización (tareas cron, agentes, scripts) falla en el primer error.
+**Síntoma**: Al usar `model: "auto"` con proveedores gratuitos o sin autenticación (auggie, etc.), se obtienen de forma intermitente respuestas `HTTP 429`, `400` o `401` en lugar de resultados. Las solicitudes tienen éxito al volver a intentar la misma consulta unos instantes después, pero la automatización (tareas cron, agentes, scripts) falla en el primer error.
 
 **Causa raíz**: Se acumulan tres modos de fallo independientes:
 

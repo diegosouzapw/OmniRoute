@@ -14,12 +14,12 @@ Considérez un fournisseur comme un **opérateur téléphonique**. Tout comme vo
 
 ### Types de fournisseurs
 
-| Type           | Description                         | Exemples                          | Coût                       |
-| -------------- | ----------------------------------- | --------------------------------- | -------------------------- |
-| **Gratuit**    | Aucun paiement requis               | Kiro, OpenCode Free, Pollinations | 0 $                        |
-| **Clé API**    | Une clé API est nécessaire          | OpenAI, Anthropic, Google         | Paiement à l’utilisation   |
-| **OAuth**      | Connexion avec votre compte         | Claude Code, GitHub Copilot       | Abonnement                 |
-| **Cookie Web** | Utilise votre session de navigateur | ChatGPT Web (Codex), Gemini Web   | 0 $ (utilise votre compte) |
+| Type           | Description                         | Exemples                        | Coût                       |
+| -------------- | ----------------------------------- | ------------------------------- | -------------------------- |
+| **Gratuit**    | Aucun paiement requis               | Kiro, Pollinations              | 0 $                        |
+| **Clé API**    | Une clé API est nécessaire          | OpenAI, Anthropic, Google       | Paiement à l’utilisation   |
+| **OAuth**      | Connexion avec votre compte         | Claude Code, GitHub Copilot     | Abonnement                 |
+| **Cookie Web** | Utilise votre session de navigateur | ChatGPT Web (Codex), Gemini Web | 0 $ (utilise votre compte) |
 
 ### Fournisseurs utilisant des cookies Web
 
@@ -40,7 +40,6 @@ Cette action est facultative : terminer l’assistant ne crée jamais silencieus
 2. Accédez à **Fournisseurs** → **Ajouter un fournisseur**
 3. Sélectionnez l’un de ces fournisseurs gratuits :
    - **Kiro AI** — Modèles Claude gratuits (aucune authentification nécessaire)
-   - **OpenCode Free** — Modèles GPT gratuits (aucune authentification nécessaire)
    - **Pollinations** — GPT-5, Claude et Gemini gratuits (aucune clé nécessaire)
    - **LongCat** — 10 millions de jetons gratuits (allocation unique, compte et vérification d’identité requis)
    - **Cloudflare AI** — Plus de 50 modèles, 10 000 neurones/jour
@@ -170,7 +169,6 @@ Ces fournisseurs offrent un **accès gratuit** sans carte bancaire :
 | Fournisseur       | Quota gratuit                 | Modèles                                  | Méthode de connexion            |
 | ----------------- | ----------------------------- | ---------------------------------------- | ------------------------------- |
 | **Kiro AI**       | 50 crédits/mois               | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Aucune authentification requise |
-| **OpenCode Free** | Illimité                      | GPT-4o, Claude, Gemini                   | Aucune authentification requise |
 | **Pollinations**  | Aucune clé requise            | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Aucune authentification requise |
 | **LongCat**       | 10M en une seule fois         | LongCat-2.0                              | Clé API + KYC                   |
 | **Cloudflare AI** | 10K neurones/jour             | Plus de 50 modèles                       | Aucune authentification requise |
@@ -244,7 +242,7 @@ OmniRoute fonctionne de manière optimale avec **plusieurs fournisseurs**. Cela 
 
 Connectez au moins **3 fournisseurs** pour une expérience optimale :
 
-1. **Un fournisseur gratuit** (Kiro, OpenCode Free ou Pollinations) — toujours disponible
+1. **Un fournisseur gratuit** (Kiro ou Pollinations) — toujours disponible
 2. **Un fournisseur rapide** (Groq, Cerebras) — pour des réponses rapides
 3. **Un fournisseur de qualité** (OpenAI, Anthropic, Google) — pour les tâches complexes
 
@@ -290,7 +288,7 @@ Utilisez ensuite `model: "auto"` et OmniRoute choisira automatiquement le meille
 
 ### « Dois-je payer pour utiliser OmniRoute ? »
 
-**Non !** OmniRoute est gratuit et open source. Vous pouvez utiliser des fournisseurs gratuits (Kiro, OpenCode Free, Pollinations) sans rien payer. Vous ne payez que si vous choisissez d'utiliser des fournisseurs payants.
+**Non !** OmniRoute est gratuit et open source. Vous pouvez utiliser des fournisseurs gratuits (Kiro, Pollinations) sans rien payer. Vous ne payez que si vous choisissez d'utiliser des fournisseurs payants.
 
 ### « Par quel fournisseur devrais-je commencer ? »
 

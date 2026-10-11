@@ -18,27 +18,13 @@ process.env.API_KEY_SECRET = "test-noauth-pause-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const auth = await import("../../src/sse/services/auth.ts");
-const { handleNoCredentials } = await import("../../src/sse/handlers/chatHelpers.ts");
 const { noteOpencodeFreeTierSkip, clearOpencodeFreeTierSkips, getOpencodeFreeTierSkipRemainingMs } =
   await import("../../open-sse/services/opencodeFreeTierSkip.ts");
 const { pauseCooldownIfPaused } = await import("../../src/sse/services/noAuthModelCooldown.ts");
 const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
-const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
 
 const PROVIDER = "opencode";
 const MODEL = "muse-spark-1.3-contributor-free";
-
-type SelectionOutcome = {
-  allRateLimited?: boolean;
-  cooldownScope?: string;
-  cooldownModel?: string | null;
-  lastErrorCode?: number;
-  lastError?: string | null;
-  retryAfter: string;
-  retryAfterHuman?: string;
-  connectionsCount?: number;
-  connectionId?: string;
-} | null;
 
 beforeEach(() => {
   clearOpencodeFreeTierSkips();
@@ -92,47 +78,6 @@ test("builder returns a connection-scoped 429 envelope near the end of the pause
   );
 });
 
-test("active pause returns a cooldown whose retryAfter lands near the pause end", async () => {
-  noteOpencodeFreeTierSkip(PROVIDER);
-  const result = (await auth.getProviderCredentials(
-    PROVIDER,
-    null,
-    null,
-    MODEL
-  )) as SelectionOutcome;
-  assert.ok(result, "an active pause must not collapse to null");
-  if (!result) return;
-  assert.equal(result.allRateLimited, true);
-  assert.equal(result.lastErrorCode, 429);
-  assert.notEqual(result.cooldownScope, "model");
-  const remainingMs = Date.parse(result.retryAfter) - Date.now();
-  assert.ok(
-    remainingMs > 0 && remainingMs <= 3 * 60 * 1000 + 2000,
-    `retryAfter near end (${remainingMs}ms)`
-  );
-});
-
-test("no pause returns the synthetic connection", async () => {
-  const result = (await auth.getProviderCredentials(
-    PROVIDER,
-    null,
-    null,
-    MODEL
-  )) as SelectionOutcome;
-  assert.equal(result?.connectionId, "noauth");
-});
-
-test("expired pause returns the synthetic connection", async () => {
-  noteOpencodeFreeTierSkip(PROVIDER, Date.now() - 200_000, 60_000);
-  const result = (await auth.getProviderCredentials(
-    PROVIDER,
-    null,
-    null,
-    MODEL
-  )) as SelectionOutcome;
-  assert.equal(result?.connectionId, "noauth");
-});
-
 test("excluded noauth connection keeps returning null during a pause", async () => {
   noteOpencodeFreeTierSkip(PROVIDER);
   const result = await auth.getProviderCredentials(PROVIDER, "noauth", null, MODEL);
@@ -149,109 +94,6 @@ test("another provider is unchanged during a pause", async () => {
   noteOpencodeFreeTierSkip(PROVIDER);
   const result = await auth.getProviderCredentials("groq", null, null, MODEL);
   assert.equal(result, null);
-});
-
-test("pause cooldown maps to a 429 with Retry-After on a fresh attempt", async () => {
-  noteOpencodeFreeTierSkip(PROVIDER);
-  const credentials = await auth.getProviderCredentials(PROVIDER, null, null, MODEL);
-  const res = handleNoCredentials(credentials, null, PROVIDER, MODEL, null, null);
-  assert.equal(res.status, 429);
-  assert.ok(res.headers.get("Retry-After"), "429 carries Retry-After");
-  const body = (await res.json()) as { error: { code?: string } };
-  assert.notEqual(body.error.code, "model_cooldown");
-});
-
-test("pause cooldown on a retried attempt documents the inherited status", async () => {
-  noteOpencodeFreeTierSkip(PROVIDER);
-  const credentials = await auth.getProviderCredentials(PROVIDER, null, null, MODEL);
-  const res = handleNoCredentials(credentials, null, PROVIDER, MODEL, null, 500);
-  assert.equal(res.status, 500);
-});
-
-test("a refusal arms the pause and the next selection answers the retryable cooldown", async () => {
-  const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-  const { getExecutor } = await import("../../open-sse/executors/index.ts");
-  const originalFetch = globalThis.fetch;
-  const credentials = await auth.getProviderCredentials(PROVIDER, null, null, MODEL);
-  assert.equal((credentials as SelectionOutcome)?.connectionId, "noauth");
-  const executor = await getExecutor(PROVIDER);
-  const originalRefresh = executor.refreshCredentials;
-  executor.refreshCredentials = async () => null;
-  globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({
-        type: "error",
-        error: {
-          type: "FreeTierError",
-          message:
-            "Error from provider (Console): OpenCode's free tier can only be used from within OpenCode",
-        },
-      }),
-      { status: 403, headers: { "content-type": "application/json" } }
-    );
-  try {
-    const requestBody = {
-      model: MODEL,
-      messages: [{ role: "user", content: "hi" }],
-      stream: false,
-    };
-    await handleChatCore({
-      body: structuredClone(requestBody),
-      modelInfo: { provider: PROVIDER, model: MODEL, extendedContext: false },
-      credentials,
-      log: { debug() {}, info() {}, warn() {}, error() {} },
-      clientRawRequest: {
-        endpoint: "/v1/chat/completions",
-        body: structuredClone(requestBody),
-        headers: new Headers({ accept: "application/json" }),
-      },
-      connectionId: (credentials as SelectionOutcome)?.connectionId ?? null,
-    });
-  } finally {
-    executor.refreshCredentials = originalRefresh;
-    globalThis.fetch = originalFetch;
-  }
-  const next = (await auth.getProviderCredentials(PROVIDER, null, null, MODEL)) as SelectionOutcome;
-  assert.ok(next?.allRateLimited, "the armed pause must answer a cooldown, not null");
-  assert.equal(next?.lastErrorCode, 429);
-  const res = handleNoCredentials(next, null, PROVIDER, MODEL, null, null);
-  assert.equal(res.status, 429);
-  assert.ok(res.headers.get("Retry-After"), "429 carries Retry-After");
-});
-
-test("combo: paused target answers a retryable 429 and selection passes to the next target", async () => {
-  noteOpencodeFreeTierSkip(PROVIDER);
-  const pausedTarget = (await auth.getProviderCredentials(
-    PROVIDER,
-    null,
-    null,
-    MODEL
-  )) as SelectionOutcome;
-  assert.ok(pausedTarget?.allRateLimited, "paused combo target must answer a cooldown, not null");
-  assert.equal(pausedTarget?.lastErrorCode, 429);
-  const pausedRes = handleNoCredentials(pausedTarget, null, PROVIDER, MODEL, null, null, [], true);
-  assert.equal(pausedRes.status, 429);
-  assert.ok(pausedRes.headers.get("Retry-After"), "paused combo target carries Retry-After");
-  const pausedBody = (await pausedRes.json()) as { error?: { message?: string } };
-  assert.ok(
-    typeof pausedBody.error?.message === "string" &&
-      pausedBody.error.message.includes("refusal pause"),
-    "paused combo target names the refusal pause"
-  );
-  const retryAfterMs = Date.parse(pausedTarget?.retryAfter ?? "") - Date.now();
-  assert.ok(
-    retryAfterMs > 0 && retryAfterMs <= 3 * 60 * 1000 + 2000,
-    `paused combo target Retry-After near the pause end, not a full 180 s wait (${retryAfterMs}ms)`
-  );
-  const fallback = checkFallbackError(
-    pausedRes.status,
-    pausedBody.error?.message ?? "",
-    0,
-    null,
-    PROVIDER,
-    pausedRes.headers
-  );
-  assert.equal(fallback.shouldFallback, true);
 });
 
 test("storage returns to its starting size after pauses expire", () => {

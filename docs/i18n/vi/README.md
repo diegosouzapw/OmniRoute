@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hoạt động ngay khi bạn cài đặt — không cần cấu hình. Ba bước: 1. Cài đặt — npm i -g omniroute, máy chủ khởi động trên localhost:20128. 2. Trỏ công cụ của bạn đến http://localhost:20128/v1 — bất kỳ công cụ nào tương thích với OpenAI (Claude Code, Cursor, Cline). 3. Nó trả lời — gọi model auto để nhận phản hồi tức thì, không cần khóa API, không cần đăng ký, không cần cấu hình. Nhà cung cấp không khóa OpenCode Free được tích hợp sẵn vào combo auto, vì vậy một bản cài đặt mới sẽ phản hồi ngay lập tức."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hoạt động ngay khi bạn cài đặt — không cần cấu hình. Ba bước: 1. Cài đặt — npm i -g omniroute, máy chủ khởi động trên localhost:20128. 2. Trỏ công cụ của bạn đến http://localhost:20128/v1 — bất kỳ công cụ nào tương thích với OpenAI (Claude Code, Cursor, Cline). 3. Nó trả lời — gọi model auto để nhận phản hồi tức thì, không cần khóa API, không cần đăng ký, không cần cấu hình."/>
 
 ```bash
 # Cài đặt mới, không cần thông tin đăng nhập — `auto` đã hoạt động:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Bạn muốn một backend miễn phí cụ thể? Gọi `oc/…` (OpenCode Free) trực tiếp. Sau đó chuyển sang `auto` và để OmniRoute chọn.</sub>
 
 <sub>📦 Các script khởi động nhanh copy-paste cho **Python, Node.js, PHP và cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Bảng điều khiển tại `http://localhost:20128` · API tại `http://local
 
 **2) Kết nối một nhà cung cấp MIỄN PHÍ (không cần đăng ký)**
 
-Bảng điều khiển → **Nhà cung cấp** → kết nối **Kiro AI** (Claude miễn phí, ~50 tín dụng/tháng cho mỗi tài khoản) hoặc **OpenCode Free** (không cần xác thực) → hoàn tất.
+Bảng điều khiển → **Nhà cung cấp** → kết nối **Kiro AI** (Claude miễn phí, ~50 tín dụng/tháng cho mỗi tài khoản) → hoàn tất.
 
 **3) Cấu hình công cụ lập trình của bạn**
 
@@ -1265,7 +1263,7 @@ Số liệu chuẩn vào 2026-08-24: **1.029 video duy nhất** · **11.132.922 
   <tr><td nowrap><b>Môi trường chạy</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên toàn bộ <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong phần lõi kể từ v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, ghi nhật ký WAL) + LowDB (JSON cũ) — 137 mô-đun miền, 202 bản di chuyển</td></tr>
+  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, ghi nhật ký WAL) + LowDB (JSON cũ) — 137 mô-đun miền, 203 bản di chuyển</td></tr>
   <tr><td nowrap><b>Bộ nhớ</b></td><td>Tìm kiếm toàn văn SQLite FTS5 + vector embedding lượng tử hóa int8, cơ chế suy giảm có kiểu</td></tr>
   <tr><td nowrap><b>Lược đồ</b></td><td>Zod 4 — xác thực đầu vào/đầu ra của công cụ MCP + hợp đồng API</td></tr>
   <tr><td nowrap><b>Giao thức</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

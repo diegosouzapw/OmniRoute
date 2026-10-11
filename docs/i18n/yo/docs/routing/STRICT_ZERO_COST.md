@@ -145,13 +145,12 @@ gan-an tí abala yìí ṣẹ̀ṣẹ̀ yanjú fún ìdábòbò aláìnáwó. T�
 Fún àfiwé offline ṣáájú/lẹ́yìn, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` ṣì ń ṣiṣẹ́
 lórí candidates output ti instance tó ń ṣiṣẹ́; ó máa ń ka `connectionId` gidi ti olùdíje kọ̀ọ̀kan, nítorí náà ó
 tún máa ń dán ipa-ọ̀nà ààbò connection wò. Àwọn olùdíje keyless gbọ́dọ̀ dé pẹ̀lú
-`connectionId` no-auth àfọwọ́ṣe, kì í ṣe connection gidi láé. Ipa-ọ̀nà auto keyless tí a kọ sínú rẹ̀ lọ́wọ́lọ́wọ́ ni OpenCode Free; iye àwọn olùdíje gan-an
+`connectionId` no-auth àfọwọ́ṣe, kì í ṣe connection gidi láé. iye àwọn olùdíje gan-an
 ṣì sinmi lórí ìṣàwárí model ní àsìkò gidi, ó sì yẹ kí a wọn án lórí deployment tí a fẹ́ lò dípò
 dídà á kọ láti inú ìṣiṣẹ́ àtijọ́. Olùdíje `recurring-*` máa ń kọjá nìkan nígbà tí ó bá ní
 usage adapter tí a forúkọ rẹ̀ sílẹ̀ àti `hardStopGuaranteed: true`; metadata tí kò pé ṣì máa ń fa ìkọ̀sílẹ̀.
 
-Pẹ̀lú `excludeTosAvoid: true`, a máa yọ gbogbo olùdíje tí a ti ṣàkóso gẹ́gẹ́ bí `tos: "avoid"` kúrò. OpenCode Free
-ní ìdájọ́ yẹn lọ́wọ́lọ́wọ́, nítorí náà títan ìdábòbò náà lè sọ pool keyless tó ṣẹ́ kù nínú deployment di òfo.
+Pẹ̀lú `excludeTosAvoid: true`, a máa yọ gbogbo olùdíje tí a ti ṣàkóso gẹ́gẹ́ bí `tos: "avoid"` kúrò.
 Èyí jẹ́ pàṣípààrọ̀ tí a retí nígbà títan ìdábòbò ToS, kì í ṣe àṣìṣe: ìdábòbò náà jẹ́ `false`
 ní àìyípadà fún ìdí yìí gan-an (wo "Ìdábòbò ToS" lókè).
 

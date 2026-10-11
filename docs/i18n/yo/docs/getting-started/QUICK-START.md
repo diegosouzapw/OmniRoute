@@ -59,15 +59,7 @@ O lè lo OmniRoute **láìsan owó kankan** nípa sísopọ̀ olùpèsè ọ̀f�
 4. Tẹ **Sopọ̀** (kò nílò kọ́kọ́rọ́ API!)
 5. Ó parí! O ti lè wọ àwọn model Claude lọ́fẹ̀ẹ́ báyìí.
 
-### Àṣàyàn B: OpenCode Ọ̀fẹ́ (Kò Nílò Ìfàṣẹsí)
-
-1. Ṣí pátákó ìdarí náà ní `http://localhost:20128`
-2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
-3. Yan **OpenCode Free**
-4. Tẹ **Sopọ̀** (kò nílò kọ́kọ́rọ́ API!)
-5. Ó parí! O ti lè wọ ọ̀pọ̀ model lọ́fẹ̀ẹ́ báyìí.
-
-### Àṣàyàn C: Pollinations (Kò Nílò Kọ́kọ́rọ́)
+### Àṣàyàn B: Pollinations (Kò Nílò Kọ́kọ́rọ́)
 
 1. Ṣí pátákó ìdarí náà ní `http://localhost:20128`
 2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
@@ -163,7 +155,7 @@ O lè rí àwọn kúlẹ̀kúlẹ̀ ìbéèrè náà nípa títẹ [Àbójútó
 
 ### "Ṣé mo nílò kọ́kọ́rọ́ API?"
 
-**Rárá!** O lè lo àwọn olùpèsè ọ̀fẹ́ (Kiro, OpenCode Free, Pollinations) láìsí kọ́kọ́rọ́ API kankan. Kàn so wọ́n pọ̀ nínú pátákó ìdarí.
+**Rárá!** O lè lo àwọn olùpèsè ọ̀fẹ́ (Kiro, Pollinations) láìsí kọ́kọ́rọ́ API kankan. Kàn so wọ́n pọ̀ nínú pátákó ìdarí.
 
 ### "Kí ni `auto`?"
 

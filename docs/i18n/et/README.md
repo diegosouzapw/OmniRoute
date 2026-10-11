@@ -219,7 +219,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Töötab kohe pärast installimist — nullseadistus. Kolm sammu: 1. Installige — npm i -g omniroute, server käivitub aadressil localhost:20128. 2. Suunake oma tööriist aadressile http://localhost:20128/v1 — sobib iga OpenAI-ga ühilduv tööriist (Claude Code, Cursor, Cline). 3. See vastab — kohese vastuse saamiseks kasutage mudelit auto, ilma API-võtme, registreerumise või seadistamiseta. Võtmeta teenusepakkuja OpenCode Free on juba auto-kombinatsiooniga ühendatud, seega vastab värske install kohe."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Töötab kohe pärast installimist — nullseadistus. Kolm sammu: 1. Installige — npm i -g omniroute, server käivitub aadressil localhost:20128. 2. Suunake oma tööriist aadressile http://localhost:20128/v1 — sobib iga OpenAI-ga ühilduv tööriist (Claude Code, Cursor, Cline). 3. See vastab — kohese vastuse saamiseks kasutage mudelit auto, ilma API-võtme, registreerumise või seadistamiseta."/>
 
 ```bash
 # Värske install, ilma sisselogimisandmeteta — `auto` juba töötab:
@@ -227,8 +227,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Eelistate kindlat tasuta taustateenust? Kasutage otse `oc/…` (OpenCode Free). Seejärel minge üle mudelile `auto` ja laske OmniRoute'il valida.</sub>
 
 <sub>📦 Kopeeritavad kiirstardiskriptid **Pythonile, Node.js-ile, PHP-le ja cURL-ile** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1022,7 +1020,7 @@ Juhtpaneel asub aadressil `http://localhost:20128` · API aadressil `http://loca
 
 **2) Ühenda TASUTA pakkuja (registreerimiseta)**
 
-Juhtpaneel → **Pakkujad** → ühenda **Kiro AI** (tasuta Claude, ~50 krediiti kuus konto kohta) või **OpenCode Free** (autentimist pole vaja) → valmis.
+Juhtpaneel → **Pakkujad** → ühenda **Kiro AI** (tasuta Claude, ~50 krediiti kuus konto kohta) → valmis.
 
 **3) Suuna oma programmeerimistööriist**
 
@@ -1282,7 +1280,7 @@ Kanoonilised mõõdikud seisuga 2026-08-24: **1.029 unikaalset videot** · **11.
   <tr><td nowrap><b>Käituskeskkond</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Keel</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kataloogides <code>src/</code> ja <code>open-sse/</code> (alates versioonist v2.0 pole tuumas ühtegi <code>any</code> tüüpi)</td></tr>
   <tr><td nowrap><b>Raamistik</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL-logimine) + LowDB (pärand-JSON) — 137 domeenimoodulit, 202 migratsiooni</td></tr>
+  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL-logimine) + LowDB (pärand-JSON) — 137 domeenimoodulit, 203 migratsiooni</td></tr>
   <tr><td nowrap><b>Mälu</b></td><td>SQLite FTS5 täistekstiotsing + int8-kvanditud vektormanused, tüübitud hääbumine</td></tr>
   <tr><td nowrap><b>Skeemid</b></td><td>Zod 4 — MCP-tööriistade sisendi/väljundi valideerimine + API-lepingud</td></tr>
   <tr><td nowrap><b>Protokollid</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

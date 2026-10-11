@@ -14,12 +14,12 @@ Hãy hình dung nhà cung cấp giống như một **nhà mạng di động**. C
 
 ### Các loại nhà cung cấp
 
-| Loại           | Mô tả                             | Ví dụ                             | Chi phí                        |
-| -------------- | --------------------------------- | --------------------------------- | ------------------------------ |
-| **Miễn phí**   | Không yêu cầu thanh toán          | Kiro, OpenCode Free, Pollinations | $0                             |
-| **Khóa API**   | Bạn cần có khóa API               | OpenAI, Anthropic, Google         | Trả phí theo mức sử dụng       |
-| **OAuth**      | Đăng nhập bằng tài khoản          | Claude Code, GitHub Copilot       | Gói đăng ký                    |
-| **Cookie web** | Sử dụng phiên trình duyệt của bạn | ChatGPT Web (Codex), Gemini Web   | $0 (sử dụng tài khoản của bạn) |
+| Loại           | Mô tả                             | Ví dụ                           | Chi phí                        |
+| -------------- | --------------------------------- | ------------------------------- | ------------------------------ |
+| **Miễn phí**   | Không yêu cầu thanh toán          | Kiro, Pollinations              | $0                             |
+| **Khóa API**   | Bạn cần có khóa API               | OpenAI, Anthropic, Google       | Trả phí theo mức sử dụng       |
+| **OAuth**      | Đăng nhập bằng tài khoản          | Claude Code, GitHub Copilot     | Gói đăng ký                    |
+| **Cookie web** | Sử dụng phiên trình duyệt của bạn | ChatGPT Web (Codex), Gemini Web | $0 (sử dụng tài khoản của bạn) |
 
 ### Nhà cung cấp sử dụng cookie web
 
@@ -46,7 +46,6 @@ thử lại một cách an toàn chỉ đối với những mục bị lỗi sau
 2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
 3. Chọn một trong các nhà cung cấp miễn phí sau:
    - **Kiro AI** — Các mô hình Claude miễn phí (không cần xác thực)
-   - **OpenCode Free** — Các mô hình GPT miễn phí (không cần xác thực)
    - **Pollinations** — GPT-5, Claude, Gemini miễn phí (không cần khóa)
    - **LongCat** — 10M token miễn phí (cấp một lần, yêu cầu tài khoản + KYC)
    - **Cloudflare AI** — Hơn 50 mô hình, 10K neuron/ngày
@@ -176,7 +175,6 @@ Các nhà cung cấp này cho phép **truy cập miễn phí** mà không cần 
 | Nhà cung cấp      | Hạn mức miễn phí    | Mô hình                                  | Cách kết nối       |
 | ----------------- | ------------------- | ---------------------------------------- | ------------------ |
 | **Kiro AI**       | 50 tín dụng/tháng   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Không cần xác thực |
-| **OpenCode Free** | Không giới hạn      | GPT-4o, Claude, Gemini                   | Không cần xác thực |
 | **Pollinations**  | Không cần khóa      | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Không cần xác thực |
 | **LongCat**       | 10M một lần         | LongCat-2.0                              | Khóa API + KYC     |
 | **Cloudflare AI** | 10K neuron/ngày     | Hơn 50 mô hình                           | Không cần xác thực |
@@ -250,7 +248,7 @@ OmniRoute hoạt động hiệu quả nhất với **nhiều nhà cung cấp**. 
 
 Kết nối ít nhất **3 nhà cung cấp** để có trải nghiệm tốt nhất:
 
-1. **Một nhà cung cấp miễn phí** (Kiro, OpenCode Free hoặc Pollinations) — Luôn sẵn dùng
+1. **Một nhà cung cấp miễn phí** (Kiro hoặc Pollinations) — Luôn sẵn dùng
 2. **Một nhà cung cấp nhanh** (Groq, Cerebras) — Cho phản hồi nhanh
 3. **Một nhà cung cấp chất lượng cao** (OpenAI, Anthropic, Google) — Cho các tác vụ phức tạp
 
@@ -296,7 +294,7 @@ Sau đó, sử dụng `model: "auto"` và OmniRoute sẽ tự động chọn nh�
 
 ### "Tôi có cần trả phí để sử dụng OmniRoute không?"
 
-**Không!** OmniRoute miễn phí và có mã nguồn mở. Bạn có thể sử dụng các nhà cung cấp miễn phí (Kiro, OpenCode Free, Pollinations) mà không phải trả bất kỳ khoản phí nào. Bạn chỉ phải trả phí nếu chọn sử dụng các nhà cung cấp trả phí.
+**Không!** OmniRoute miễn phí và có mã nguồn mở. Bạn có thể sử dụng các nhà cung cấp miễn phí (Kiro, Pollinations) mà không phải trả bất kỳ khoản phí nào. Bạn chỉ phải trả phí nếu chọn sử dụng các nhà cung cấp trả phí.
 
 ### "Tôi nên bắt đầu với nhà cung cấp nào?"
 

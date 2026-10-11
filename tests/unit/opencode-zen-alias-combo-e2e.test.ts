@@ -126,21 +126,6 @@ after(async () => {
 // ─── Tests ──────────────────────────────────────────────────────────────
 
 describe("opencode-zen ↔ opencode alias fix (end-to-end)", () => {
-  it("getSyncedCapability('opencode', 'big-pickle') finds data stored under 'opencode-zen'", () => {
-    // Pre-fix: returns null (the bug)
-    // Post-fix: returns the opencode-zen row
-    const cap = modelsDevSync.getSyncedCapability("opencode", "big-pickle");
-    assert.ok(cap, "expected the alias fallback to find the opencode-zen row");
-    assert.equal(cap?.limit_context, 200000);
-    assert.equal(cap?.limit_output, 128000);
-  });
-
-  it("getSyncedCapability('opencode', 'gpt-5-nano') finds the 400K context row", () => {
-    const cap = modelsDevSync.getSyncedCapability("opencode", "gpt-5-nano");
-    assert.ok(cap);
-    assert.equal(cap?.limit_context, 400000);
-  });
-
   it("getCanonicalModelMetadata({provider:'opencode', model:'big-pickle'}) returns full metadata", () => {
     const md = registry.getCanonicalModelMetadata({
       provider: "opencode",

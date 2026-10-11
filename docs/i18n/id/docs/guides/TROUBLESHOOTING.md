@@ -39,7 +39,7 @@ Masalah umum dan solusi untuk OmniRoute.
 
 ### Pembatasan Laju pada Penyedia Gratis (429 / 400 / 401)
 
-**Gejala**: Saat menggunakan `model: "auto"` dengan penyedia gratis/tanpa autentikasi (opencode, auggie, dll.), Anda terkadang mendapatkan `HTTP 429`, `400`, atau `401`, bukan jawaban. Permintaan berhasil saat perintah yang sama dicoba kembali beberapa saat kemudian, tetapi otomatisasi (cron job, agen, skrip) terhenti pada kegagalan pertama.
+**Gejala**: Saat menggunakan `model: "auto"` dengan penyedia gratis/tanpa autentikasi (auggie, dll.), Anda terkadang mendapatkan `HTTP 429`, `400`, atau `401`, bukan jawaban. Permintaan berhasil saat perintah yang sama dicoba kembali beberapa saat kemudian, tetapi otomatisasi (cron job, agen, skrip) terhenti pada kegagalan pertama.
 
 **Penyebab utama**: Tiga mode kegagalan independen terjadi secara bersamaan:
 

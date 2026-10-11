@@ -23,7 +23,7 @@ test.after(() => {
 });
 
 test("a received refusal from an in-scope provider sets the member aside", () => {
-  for (const provider of [...egressBucketedLockProviders(), "OpenCode"]) {
+  for (const provider of [...egressBucketedLockProviders(), "OpenCode-Go"]) {
     memory.__resetProxyRefusalMemoryForTesting();
     noteProxyOutcome(provider, { proxy: PROXY, upstreamStatus: 429 });
     assert.equal(memory.isProxyAvoided(KEY), true, provider);
@@ -38,25 +38,25 @@ test("a refusal from a provider outside the scope writes nothing", () => {
 });
 
 test("no received status, no proxy or no proxyInfo writes nothing", () => {
-  noteProxyOutcome("opencode", { proxy: PROXY });
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: null });
-  noteProxyOutcome("opencode", { proxy: null, upstreamStatus: 429 });
-  noteProxyOutcome("opencode", null);
-  noteProxyOutcome("opencode", undefined);
+  noteProxyOutcome("opencode-go", { proxy: PROXY });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: null });
+  noteProxyOutcome("opencode-go", { proxy: null, upstreamStatus: 429 });
+  noteProxyOutcome("opencode-go", null);
+  noteProxyOutcome("opencode-go", undefined);
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
 });
 
 test("a success from an in-scope provider clears the member, other outcomes leave it", () => {
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: 429 });
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: 403 });
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: 500 });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 429 });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 403 });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 500 });
   assert.equal(memory.isProxyAvoided(KEY), true);
   noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 200 });
   assert.equal(memory.isProxyAvoided(KEY), false);
 });
 
 test("a success from another provider only ends an unreachable period, not a refusal one", () => {
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: 429 });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 429 });
   noteProxyOutcome("openai", { proxy: PROXY, upstreamStatus: 200 });
   assert.equal(
     memory.isProxyAvoided(KEY),
@@ -71,11 +71,11 @@ test("a success from another provider only ends an unreachable period, not a ref
 });
 
 test("an edge relay is ignored: its status is the relay's", () => {
-  noteProxyOutcome("opencode", {
+  noteProxyOutcome("opencode-go", {
     proxy: { type: "vercel", host: "relay.example.vercel.app", port: 443 },
     upstreamStatus: 429,
   });
-  noteProxyOutcome("opencode", {
+  noteProxyOutcome("opencode-go", {
     proxy: { type: "Vercel", host: "relay.example.vercel.app", port: 443 },
     upstreamStatus: 429,
   });
@@ -85,7 +85,7 @@ test("an edge relay is ignored: its status is the relay's", () => {
 test("a second note while the proxy is already set aside changes nothing", () => {
   const start = Date.now();
   const periodMs = memory.noteProxyRefusal(KEY, "ip_quota_429", start) ?? 0;
-  noteProxyOutcome("opencode", { proxy: PROXY, upstreamStatus: 429 });
+  noteProxyOutcome("opencode-go", { proxy: PROXY, upstreamStatus: 429 });
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 1);
   assert.equal(memory.isProxyAvoided(KEY, start + periodMs - 1000), true);
   assert.equal(memory.isProxyAvoided(KEY, start + periodMs + 1000), false);

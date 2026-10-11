@@ -216,7 +216,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="მუშაობს ინსტალაციისთანავე — ნულოვანი კონფიგურაცია. სამი ნაბიჯი: 1. ინსტალაცია — npm i -g omniroute, სერვერი ირთვება localhost:20128-ზე. 2. მიმართეთ თქვენი ხელსაწყო http://localhost:20128/v1-ზე — ნებისმიერი OpenAI-თან თავსებადი ხელსაწყო (Claude Code, Cursor, Cline). 3. ის პასუხობს — გამოიძახეთ model auto მყისიერი პასუხისთვის, API გასაღების, რეგისტრაციის, კონფიგურაციის გარეშე. Keyless პროვაიდერი OpenCode Free წინასწარ არის ჩართული auto კომბინაციაში, ასე რომ ახალი ინსტალაცია მუშაობს ყუთიდანვე."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="მუშაობს ინსტალაციისთანავე — ნულოვანი კონფიგურაცია. სამი ნაბიჯი: 1. ინსტალაცია — npm i -g omniroute, სერვერი ირთვება localhost:20128-ზე. 2. მიმართეთ თქვენი ხელსაწყო http://localhost:20128/v1-ზე — ნებისმიერი OpenAI-თან თავსებადი ხელსაწყო (Claude Code, Cursor, Cline). 3. ის პასუხობს — გამოიძახეთ model auto მყისიერი პასუხისთვის, API გასაღების, რეგისტრაციის, კონფიგურაციის გარეშე."/>
 
 ```bash
 # Fresh install, zero credentials — `auto` already works:
@@ -224,8 +224,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>გირჩევნიათ კონკრეტული უფასო ბექენდი? გამოიძახეთ `oc/…` (OpenCode Free) პირდაპირ. შემდეგ გადადით `auto`-ზე და მიეცით OmniRoute-ს არჩევის საშუალება.</sub>
 
 <sub>📦 დააკოპირეთ და ჩასვით სწრაფი დაწყების სკრიპტები **Python-ისთვის, Node.js-ისთვის, PHP-სთვის და cURL-ისთვის** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1006,7 +1004,7 @@ omniroute
 
 **2) დააკავშირეთ უფასო პროვაიდერი (რეგისტრაციის გარეშე)**
 
-მართვის პანელი → **პროვაიდერები** → დააკავშირეთ **Kiro AI** (უფასო Claude, ~50 კრედიტი თვეში თითო ანგარიშზე) ან **OpenCode Free** (ავტორიზაციის გარეშე) → მზადაა.
+მართვის პანელი → **პროვაიდერები** → დააკავშირეთ **Kiro AI** (უფასო Claude, ~50 კრედიტი თვეში თითო ანგარიშზე) → მზადაა.
 
 **3) მიუთითეთ მისამართი თქვენს პროგრამირების ხელსაწყოში**
 
@@ -1263,7 +1261,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-იც გამ�
   <tr><td nowrap><b>შესრულების გარემო</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ენა</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> <code>src/</code>-სა და <code>open-sse/</code>-ში (ბირთვში არცერთი <code>any</code> v2.0-ის შემდეგ)</td></tr>
   <tr><td nowrap><b>ფრეიმვორკი</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>მონაცემთა ბაზა</b></td><td>better-sqlite3 (SQLite, WAL-ჟურნალირება) + LowDB (მემკვიდრეობითი JSON) — 137 დომენური მოდული, 202 მიგრაცია</td></tr>
+  <tr><td nowrap><b>მონაცემთა ბაზა</b></td><td>better-sqlite3 (SQLite, WAL-ჟურნალირება) + LowDB (მემკვიდრეობითი JSON) — 137 დომენური მოდული, 203 მიგრაცია</td></tr>
   <tr><td nowrap><b>მეხსიერება</b></td><td>SQLite FTS5 სრული ტექსტით ძიება + int8-კვანტიზებული ვექტორული ჩადგმები, ტიპიზებული დაღმავალი წონადობა</td></tr>
   <tr><td nowrap><b>სქემები</b></td><td>Zod 4 — MCP ხელსაწყოების I/O ვალიდაცია + API კონტრაქტები</td></tr>
   <tr><td nowrap><b>პროტოკოლები</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

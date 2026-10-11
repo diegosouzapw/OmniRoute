@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funciona assim que o instala — configuração zero. Três passos: 1. Instalar — npm i -g omniroute, o servidor arranca em localhost:20128. 2. Aponte a sua ferramenta para http://localhost:20128/v1 — qualquer ferramenta compatível com OpenAI (Claude Code, Cursor, Cline). 3. Responde — chame o modelo auto para uma resposta instantânea, sem chave API, sem registo, sem configuração. O fornecedor sem chave OpenCode Free está pré-configurado no combo auto, para que uma instalação nova responda de imediato."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funciona assim que o instala — configuração zero. Três passos: 1. Instalar — npm i -g omniroute, o servidor arranca em localhost:20128. 2. Aponte a sua ferramenta para http://localhost:20128/v1 — qualquer ferramenta compatível com OpenAI (Claude Code, Cursor, Cline). 3. Responde — chame o modelo auto para uma resposta instantânea, sem chave API, sem registo, sem configuração."/>
 
 ```bash
 # Instalação nova, zero credenciais — `auto` já funciona:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Prefere um backend gratuito específico? Chame `oc/…` (OpenCode Free) diretamente. Depois, passe para `auto` e deixe o OmniRoute escolher.</sub>
 
 <sub>📦 Scripts de início rápido para copiar e colar para **Python, Node.js, PHP e cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Painel em `http://localhost:20128` · API em `http://localhost:20128/v1`.
 
 **2) Ligar um fornecedor GRATUITO (sem registo)**
 
-Painel → **Fornecedores** → ligue o **Kiro AI** (Claude gratuito, ~50 créditos/mês por conta) ou o **OpenCode Free** (sem autenticação) → concluído.
+Painel → **Fornecedores** → ligue o **Kiro AI** (Claude gratuito, ~50 créditos/mês por conta) → concluído.
 
 **3) Configurar a sua ferramenta de programação**
 
@@ -1265,7 +1263,7 @@ Métricas canónicas em 2026-08-24: **1.029 vídeos únicos** · **11.132.922 vi
   <tr><td nowrap><b>Ambiente de execução</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Linguagem</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> em <code>src/</code> e <code>open-sse/</code> (zero <code>any</code> no núcleo desde a v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Base de dados</b></td><td>better-sqlite3 (SQLite, registo WAL) + LowDB (JSON legado) — 137 módulos de domínio, 202 migrações</td></tr>
+  <tr><td nowrap><b>Base de dados</b></td><td>better-sqlite3 (SQLite, registo WAL) + LowDB (JSON legado) — 137 módulos de domínio, 203 migrações</td></tr>
   <tr><td nowrap><b>Memória</b></td><td>Texto integral SQLite FTS5 + embeddings vetoriais quantizados em int8, decaimento tipado</td></tr>
   <tr><td nowrap><b>Esquemas</b></td><td>Zod 4 — validação de E/S de ferramentas MCP + contratos de API</td></tr>
   <tr><td nowrap><b>Protocolos</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

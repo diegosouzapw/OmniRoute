@@ -39,7 +39,7 @@ OmniRouten yleisiä ongelmia ja niiden ratkaisuja.
 
 ### Ilmaispalveluntarjoajien nopeusrajoitukset (429 / 400 / 401)
 
-**Oire**: Kun käytät asetusta `model: "auto"` ilmaisten tai tunnistautumista vaatimattomien palveluntarjoajien (opencode, auggie jne.) kanssa, saat ajoittain vastausten sijaan virheen `HTTP 429`, `400` tai `401`. Pyynnöt onnistuvat, kun sama kehote lähetetään uudelleen hetkeä myöhemmin, mutta automaatio (cron-työt, agentit ja komentosarjat) keskeytyy ensimmäiseen virheeseen.
+**Oire**: Kun käytät asetusta `model: "auto"` ilmaisten tai tunnistautumista vaatimattomien palveluntarjoajien (auggie jne.) kanssa, saat ajoittain vastausten sijaan virheen `HTTP 429`, `400` tai `401`. Pyynnöt onnistuvat, kun sama kehote lähetetään uudelleen hetkeä myöhemmin, mutta automaatio (cron-työt, agentit ja komentosarjat) keskeytyy ensimmäiseen virheeseen.
 
 **Perimmäinen syy**: Kolme toisistaan riippumatonta vikatilaa kasautuu:
 

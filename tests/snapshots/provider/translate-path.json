@@ -4716,29 +4716,6 @@
       "stream": "https://api.openai.com/v1/chat/completions"
     }
   },
-  "opencode": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://opencode.ai/zen/v1",
-      "stream": "https://opencode.ai/zen/v1"
-    }
-  },
   "opencode-go": {
     "format": "openai",
     "headers": {

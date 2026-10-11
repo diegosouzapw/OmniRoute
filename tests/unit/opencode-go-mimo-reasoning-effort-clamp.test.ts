@@ -159,28 +159,6 @@ describe("OpenCode provider family shares the clamp", () => {
     assert.deepEqual(sent, chatBody("mimo-v2.6-pro", "high"));
   });
 
-  it("opencode (noauth) + mimo-v2.5-free clamps max to high on the wire", async (t) => {
-    const sent = await captureOutbound(
-      t,
-      "opencode",
-      "mimo-v2.5-free",
-      chatBody("mimo-v2.5-free", "max")
-    );
-    // The free-tier contract also forces stream:true and a placeholder tool.
-    // Those fields are unrelated to the effort clamp; the effort itself is high.
-    assert.equal(sent.model, "mimo-v2.5-free");
-    assert.equal(sent.reasoning_effort, "high");
-    assert.equal(sent.stream, true);
-    assert.ok(Array.isArray(sent.tools));
-    assert.deepEqual(Object.keys(sent).sort(), [
-      "messages",
-      "model",
-      "reasoning_effort",
-      "stream",
-      "tools",
-    ]);
-  });
-
   it("opencode_go alias is in the same provider family", () => {
     const out = sanitizeReasoningEffortForProvider(
       chatBody("mimo-v2.6-flash", "xhigh"),

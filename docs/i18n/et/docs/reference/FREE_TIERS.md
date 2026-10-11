@@ -116,7 +116,6 @@ Enamik "tasuta märke kuus" numbreid selles valdkonnas on mudelipõhiste siltide
 | `modal`          | Kasutustingimuste jaotis 1.3 keelab selgesõnaliselt "rentida, edasi müüa või muul viisil lubada kolmandal osapoolel teenusele otse juurde pääseda või seda kasutada" – isemajutatava…                       |
 | `muse-spark-web` | Meta kasutustingimused keelavad selgesõnaliselt automatiseeritud juurdepääsu ilma eelneva loata, pöördprojekteerimise ilma kirjaliku loata ja tehnoloogiate möödahiilimise…                                 |
 | `nlpcloud`       | Kasutustingimused keelavad selgesõnaliselt "puhverserveri või muu seadme seadistamise, mis võimaldab teistel teenusele selle kaudu juurde pääseda" ja annavad ainult mitteülekantava,…                      |
-| `opencode`       | Kasutustingimused (Anomaly Innovations, Inc.) piiravad selgesõnaliselt kasutamist "oma sisemiseks kasutamiseks, mitte kolmanda osapoole nimel või kasuks" – ope…                                            |
 | `t3-web`         | Kasutustingimused piiravad selgesõnaliselt kontosid ainult isiklikuks kasutamiseks, keelavad mandaatide jagamise kolmandate osapooltega ja keelavad automatiseeritud/robotite/kraapimise juurdepääsu – a s… |
 
 ### ✅ Üldiselt lubav – ettevaatust / ebaselge / ok (ülejäänud)
@@ -258,7 +257,6 @@ Enamik "tasuta märke kuus" numbreid selles valdkonnas on mudelipõhiste siltide
 | `nlpcloud`       | võtmeta               | —                  | —                   | vältida           | 1       |
 | `nous-research`  | võtmeta               | —                  | —                   | kahemõtteline     | 2       |
 | `nvidia`         | võtmeta               | —                  | —                   | ettevaatust       | 13      |
-| `opencode`       | võtmeta               | —                  | —                   | vältida           | 7       |
 | `pollinations`   | võtmeta               | —                  | —                   | ettevaatust       | 31      |
 | `publicai`       | keyless               | —                  | —                   | hoiatus           | 3       |
 | `reka`           | keyless               | —                  | —                   | hoiatus           | 2       |
@@ -269,10 +267,6 @@ Enamik "tasuta märke kuus" numbreid selles valdkonnas on mudelipõhiste siltide
 | `uncloseai`      | keyless               | —                  | —                   | hoiatus           | 3       |
 
 ---
-
-## OpenCode Free: kliendilepingu piirang (#14313)
-
-Võtmeta `opencode` pakkuja (avalik `https://opencode.ai/zen/v1`) keeldub igast päringust, mis ei vasta OpenCode'i kliendilepingule, vastates **403 `FreeTierError`** veateatega ja lausega _"OpenCode'i tasuta taset saab kasutada ainult OpenCode'i seest"_. See on päringupõhine keeldumine (sama otsus iga konto puhul sama päringu kuju korral), mitte mudeli keeld ega ühenduse jahtumine — OmniRoute klassifitseerib selle kui `project_route_error`, jätab vahele mudeli lukustuse / jahtumise ja (sünteetilisel `noauth` teel) peatab automaatse kombineeritud uuestivaliku lühikeseks TTL-iks. Saatke päringud, mis sisaldavad mittetühja tööriistade loendit, `stream: true` ja OpenCode'i seansi/UA päiseid (`opencodeFreeTierContract.ts`), või oodake 403 veateadet.
 
 ## Mis muutus alates tarnitud kataloogist (`freeNote`)
 

@@ -48,15 +48,14 @@ oppgavens funksjonsfilter (bildestøtte, JSON-modus, verktøy, maksimal kontekst
 
 **Kostnadsfrie leverandører** — gratisnivåer, kredittprogrammer og daglige OAuth-kvoter.
 
-| Leverandør       | Gratis kvote / kreditter                        |
-| ---------------- | ----------------------------------------------- |
-| Kiro AI          | Gratis Claude-nivå (romslig rimelig bruk)       |
-| OpenCode Free    | Ingen autentisering, romslige hastighetsgrenser |
-| Qoder            | Gratis OAuth                                    |
-| Google Vertex AI | $300 i kreditter for nye kontoer                |
-| Amazon Q         | Gratisnivå for AWS-brukere                      |
-| Pollinations     | Åpent offentlig API                             |
-| Cloudflare AI    | Gratisnivå for Workers AI                       |
+| Leverandør       | Gratis kvote / kreditter                  |
+| ---------------- | ----------------------------------------- |
+| Kiro AI          | Gratis Claude-nivå (romslig rimelig bruk) |
+| Qoder            | Gratis OAuth                              |
+| Google Vertex AI | $300 i kreditter for nye kontoer          |
+| Amazon Q         | Gratisnivå for AWS-brukere                |
+| Pollinations     | Åpent offentlig API                       |
+| Cloudflare AI    | Gratisnivå for Workers AI                 |
 
 **Strategi**: kombinasjonen `auto` med budsjettgrense ruter hit når nivå 1+2 mislykkes,
 eller når `useFreeOnly=true` er angitt. Gratisleverandører har ofte strengere

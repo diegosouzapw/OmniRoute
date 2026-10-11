@@ -3,7 +3,7 @@
  * fallback (`noAuthFallbackDisabledProviders`).
  *
  * API-key gateway providers whose static definition declares
- * `anonymousFallback: true` (opencode-go, opencode-zen, pollinations, …) get a
+ * `anonymousFallback: true` (pollinations, kilocode, …) get a
  * synthetic "noauth" connection whenever all real configured connections are
  * terminal (expired/banned/credits_exhausted) or all unavailable. Upstream
  * endpoints now reject anonymous requests with 401 Missing API key, so operators
@@ -12,7 +12,7 @@
  *
  * The gate applies ONLY to `anonymousFallback: true` API-key providers. True
  * no-auth providers (NOAUTH_PROVIDERS / WEB_COOKIE_PROVIDERS entries with
- * `noAuth: true`, e.g. opencode, mimocode) are NOT affected — for them the
+ * `noAuth: true`, e.g. duckduckgo-web) are NOT affected — for them the
  * synthetic credential is the only credential path and `blockedProviders` is
  * the disable mechanism.
  */
@@ -58,11 +58,11 @@ function assertSyntheticNoAuth(creds: unknown, providerId: string): void {
   assert.equal((creds as { apiKey?: unknown }).apiKey, null, "anonymous access carries no api key");
 }
 
-test("a. backward compat default: no setting → terminal opencode-go falls back to noauth", async () => {
+test("a. backward compat default: no setting → terminal pollinations falls back to noauth", async () => {
   await setNoAuthFallbackDisabledProviders(null);
-  await deleteProviderConnectionsByProvider("opencode-go");
+  await deleteProviderConnectionsByProvider("pollinations");
   await createProviderConnection({
-    provider: "opencode-go",
+    provider: "pollinations",
     authType: "apikey",
     name: "expired-key-default",
     apiKey: "sk-expired-default",
@@ -70,15 +70,15 @@ test("a. backward compat default: no setting → terminal opencode-go falls back
     testStatus: "expired",
   });
 
-  const creds = await getProviderCredentials("opencode-go");
-  assertSyntheticNoAuth(creds, "opencode-go");
+  const creds = await getProviderCredentials("pollinations");
+  assertSyntheticNoAuth(creds, "pollinations");
 });
 
 test("b. disabled + all terminal → allExpired result, never noauth", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode-go"]);
-  await deleteProviderConnectionsByProvider("opencode-go");
+  await setNoAuthFallbackDisabledProviders(["pollinations"]);
+  await deleteProviderConnectionsByProvider("pollinations");
   await createProviderConnection({
-    provider: "opencode-go",
+    provider: "pollinations",
     authType: "apikey",
     name: "expired-key-disabled",
     apiKey: "sk-expired-disabled",
@@ -86,7 +86,7 @@ test("b. disabled + all terminal → allExpired result, never noauth", async () 
     testStatus: "expired",
   });
 
-  const result = (await getProviderCredentials("opencode-go")) as Record<string, unknown> | null;
+  const result = (await getProviderCredentials("pollinations")) as Record<string, unknown> | null;
   assert.ok(result, "must return a structured result (allExpired), not null");
   assert.equal(result.allExpired, true, "terminal connections should surface as allExpired");
   assert.notEqual(
@@ -97,46 +97,49 @@ test("b. disabled + all terminal → allExpired result, never noauth", async () 
 });
 
 test("c. disabled + zero connections → null, never noauth", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode-go", "opencode-zen"]);
-  await deleteProviderConnectionsByProvider("opencode-zen");
+  await setNoAuthFallbackDisabledProviders(["pollinations", "kilocode"]);
+  await deleteProviderConnectionsByProvider("kilocode");
 
-  const result = await getProviderCredentials("opencode-zen");
+  const result = await getProviderCredentials("kilocode");
   assert.equal(result, null, "disabled provider with no connections must not fall back to noauth");
 });
 
 test("d. disabled + healthy real connection → real credentials still selected", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode-go"]);
-  await deleteProviderConnectionsByProvider("opencode-go");
+  await setNoAuthFallbackDisabledProviders(["pollinations"]);
+  await deleteProviderConnectionsByProvider("pollinations");
   const created = await createProviderConnection({
-    provider: "opencode-go",
+    provider: "pollinations",
     authType: "apikey",
     name: "healthy-key",
-    apiKey: "sk-opencode-go-live",
+    apiKey: "sk-pollinations-live",
     isActive: true,
     testStatus: "active",
   });
 
-  const result = (await getProviderCredentials("opencode-go")) as Record<string, unknown> | null;
+  const result = (await getProviderCredentials("pollinations")) as Record<string, unknown> | null;
   assert.ok(result, "healthy keyed connection must still resolve to credentials");
   assert.equal(result.connectionId, created.id, "must select the real DB connection");
-  assert.equal(result.apiKey, "sk-opencode-go-live", "real api key must be returned");
+  assert.equal(result.apiKey, "sk-pollinations-live", "real api key must be returned");
   assert.notEqual(result.connectionId, "noauth");
 });
 
 test("e. recovery: rate-limited → allRateLimited; quota recovered → real connection again", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode-go"]);
-  await deleteProviderConnectionsByProvider("opencode-go");
+  await setNoAuthFallbackDisabledProviders(["pollinations"]);
+  await deleteProviderConnectionsByProvider("pollinations");
   const created = await createProviderConnection({
-    provider: "opencode-go",
+    provider: "pollinations",
     authType: "apikey",
     name: "recovering-key",
-    apiKey: "sk-opencode-go-recover",
+    apiKey: "sk-pollinations-recover",
     isActive: true,
     testStatus: "active",
     rateLimitedUntil: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
   });
 
-  const exhausted = (await getProviderCredentials("opencode-go")) as Record<string, unknown> | null;
+  const exhausted = (await getProviderCredentials("pollinations")) as Record<
+    string,
+    unknown
+  > | null;
   assert.ok(exhausted, "rate-limited connection must produce a structured result");
   assert.equal(
     exhausted.allRateLimited,
@@ -147,28 +150,31 @@ test("e. recovery: rate-limited → allRateLimited; quota recovered → real con
 
   await updateProviderConnection(created.id as string, { rateLimitedUntil: null });
 
-  const recovered = (await getProviderCredentials("opencode-go")) as Record<string, unknown> | null;
+  const recovered = (await getProviderCredentials("pollinations")) as Record<
+    string,
+    unknown
+  > | null;
   assert.ok(recovered, "recovered connection must resolve to credentials again");
   assert.equal(
     recovered.connectionId,
     created.id,
     "once quota recovers the real connection must be selected again"
   );
-  assert.equal(recovered.apiKey, "sk-opencode-go-recover");
+  assert.equal(recovered.apiKey, "sk-pollinations-recover");
 });
 
-test("f. true no-auth provider unaffected: opencode still returns synthetic noauth", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode", "opencode-go", "opencode-zen"]);
+test("f. true no-auth provider unaffected: duckduckgo-web still returns synthetic noauth", async () => {
+  await setNoAuthFallbackDisabledProviders(["duckduckgo-web", "pollinations", "kilocode"]);
 
-  const creds = await getProviderCredentials("opencode");
-  assertSyntheticNoAuth(creds, "opencode");
+  const creds = await getProviderCredentials("duckduckgo-web");
+  assertSyntheticNoAuth(creds, "duckduckgo-web");
 });
 
 test("g. re-enable: removing provider from the list restores the fallback", async () => {
-  await setNoAuthFallbackDisabledProviders(["opencode-zen"]);
-  await deleteProviderConnectionsByProvider("opencode-go");
+  await setNoAuthFallbackDisabledProviders(["kilocode"]);
+  await deleteProviderConnectionsByProvider("pollinations");
   await createProviderConnection({
-    provider: "opencode-go",
+    provider: "pollinations",
     authType: "apikey",
     name: "expired-key-reenabled",
     apiKey: "sk-expired-reenabled",
@@ -176,6 +182,6 @@ test("g. re-enable: removing provider from the list restores the fallback", asyn
     testStatus: "expired",
   });
 
-  const creds = await getProviderCredentials("opencode-go");
-  assertSyntheticNoAuth(creds, "opencode-go");
+  const creds = await getProviderCredentials("pollinations");
+  assertSyntheticNoAuth(creds, "pollinations");
 });

@@ -33,8 +33,8 @@ type SelectionOutcome = {
   connectionId?: string;
 } | null;
 
-const PROVIDER = "opencode";
-const MODEL = "muse-spark-1.3-contributor-free";
+const PROVIDER = "uncloseai";
+const MODEL = "locked-passthrough-model";
 
 beforeEach(() => clearAllModelLockouts());
 after(() => {

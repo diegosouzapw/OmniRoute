@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل بمجرد تثبيته — بلا إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، يبدأ الخادم على localhost:20128. 2. وجه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI (Claude Code, Cursor, Cline). 3. يجيب — استدعِ النموذج التلقائي للحصول على رد فوري، بدون مفتاح API، بدون تسجيل، بدون إعدادات. مزود OpenCode Free بلا مفتاح مدمج مسبقًا في التوليفة التلقائية، لذا يستجيب التثبيت الجديد فورًا."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="يعمل بمجرد تثبيته — بلا إعدادات. ثلاث خطوات: 1. التثبيت — npm i -g omniroute، يبدأ الخادم على localhost:20128. 2. وجه أداتك إلى http://localhost:20128/v1 — أي أداة متوافقة مع OpenAI (Claude Code, Cursor, Cline). 3. يجيب — استدعِ النموذج التلقائي للحصول على رد فوري، بدون مفتاح API، بدون تسجيل، بدون إعدادات."/>
 
 ```bash
 # تثبيت جديد، بلا بيانات اعتماد — `auto` يعمل بالفعل:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>هل تفضل واجهة خلفية مجانية محددة؟ استدعِ `oc/…` (OpenCode Free) مباشرة. ثم انتقل إلى `auto` ودع OmniRoute يختار.</sub>
 
 <sub>📦 نصوص بدء سريعة للنسخ واللصق لـ **Python و Node.js و PHP و cURL** ← [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) وصّل مزوّدًا مجانيًا (بلا تسجيل)**
 
-لوحة التحكم ← **المزوّدون** ← وصّل **Kiro AI** (Claude مجاني، نحو 50 رصيدًا شهريًا لكل حساب) أو **OpenCode Free** (بلا مصادقة) ← تم.
+لوحة التحكم ← **المزوّدون** ← وصّل **Kiro AI** (Claude مجاني، نحو 50 رصيدًا شهريًا لكل حساب) ← تم.
 
 **3) وجّه أداة البرمجة لديك**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # يؤدي CI=1 أيضً
   <tr><td nowrap><b>بيئة التشغيل</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>اللغة</b></td><td>TypeScript 6.0 — <b>TypeScript بنسبة 100%</b> عبر <code>src/</code> و<code>open-sse/</code> (دون أي استخدام لـ <code>any</code> في النواة منذ v2.0)</td></tr>
   <tr><td nowrap><b>إطار العمل</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>قاعدة البيانات</b></td><td>better-sqlite3 (SQLite، تسجيل WAL) + LowDB (نظام JSON قديم) — 137 وحدة نطاق، و202 عملية ترحيل</td></tr>
+  <tr><td nowrap><b>قاعدة البيانات</b></td><td>better-sqlite3 (SQLite، تسجيل WAL) + LowDB (نظام JSON قديم) — 137 وحدة نطاق، و203 عملية ترحيل</td></tr>
   <tr><td nowrap><b>الذاكرة</b></td><td>بحث نصي كامل باستخدام SQLite FTS5 + تضمينات متجهية مكمّمة بدقة int8، مع اضمحلال محدد النوع</td></tr>
   <tr><td nowrap><b>المخططات</b></td><td>Zod 4 — التحقق من مدخلات/مخرجات أدوات MCP + عقود API</td></tr>
   <tr><td nowrap><b>البروتوكولات</b></td><td>MCP‏ (stdio / HTTP / SSE) + A2A v0.3‏ (JSON-RPC 2.0 + SSE)</td></tr>

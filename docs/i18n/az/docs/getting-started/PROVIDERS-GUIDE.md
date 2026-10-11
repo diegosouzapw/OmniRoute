@@ -14,12 +14,12 @@ Provayderi **mobil operator** kimi düşünün. Zəng etmək üçün mobil opera
 
 ### Provayder növləri
 
-| Növ            | Nədir                               | Nümunələr                         | Qiymət                          |
-| -------------- | ----------------------------------- | --------------------------------- | ------------------------------- |
-| **Pulsuz**     | Ödəniş tələb olunmur                | Kiro, OpenCode Free, Pollinations | $0                              |
-| **API açarı**  | API açarına ehtiyacınız var         | OpenAI, Anthropic, Google         | İstifadəyə görə ödəniş          |
-| **OAuth**      | Hesabınızla daxil olursunuz         | Claude Code, GitHub Copilot       | Abunəlik                        |
-| **Veb kukisi** | Brauzer sessiyanızdan istifadə edir | ChatGPT Web (Codex), Gemini Web   | $0 (hesabınızdan istifadə edir) |
+| Növ            | Nədir                               | Nümunələr                       | Qiymət                          |
+| -------------- | ----------------------------------- | ------------------------------- | ------------------------------- |
+| **Pulsuz**     | Ödəniş tələb olunmur                | Kiro, Pollinations              | $0                              |
+| **API açarı**  | API açarına ehtiyacınız var         | OpenAI, Anthropic, Google       | İstifadəyə görə ödəniş          |
+| **OAuth**      | Hesabınızla daxil olursunuz         | Claude Code, GitHub Copilot     | Abunəlik                        |
+| **Veb kukisi** | Brauzer sessiyanızdan istifadə edir | ChatGPT Web (Codex), Gemini Web | $0 (hesabınızdan istifadə edir) |
 
 ### Veb kukisi provayderləri
 
@@ -46,7 +46,6 @@ yalnız uğursuz olanları təhlükəsiz şəkildə yenidən sınaya bilərsiniz
 2. **Provayderlər** → **Provayder əlavə edin** bölməsinə keçin
 3. Bu pulsuz provayderlərdən birini seçin:
    - **Kiro AI** — Pulsuz Claude modelləri (autentifikasiya tələb olunmur)
-   - **OpenCode Free** — Pulsuz GPT modelləri (autentifikasiya tələb olunmur)
    - **Pollinations** — Pulsuz GPT-5, Claude, Gemini (açar tələb olunmur)
    - **LongCat** — 10M pulsuz token (birdəfəlik təqdim olunur, hesab + KYC tələb edir)
    - **Cloudflare AI** — 50-dən çox model, gündə 10K neyron
@@ -176,7 +175,6 @@ Bu provayderlər kredit kartı tələb etmədən **pulsuz giriş** təklif edir:
 | Provayder         | Pulsuz Kvota             | Modellər                                 | Qoşulma Üsulu                 |
 | ----------------- | ------------------------ | ---------------------------------------- | ----------------------------- |
 | **Kiro AI**       | Ayda 50 kredit           | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikasiya tələb olunmur |
-| **OpenCode Free** | Limitsiz                 | GPT-4o, Claude, Gemini                   | Autentifikasiya tələb olunmur |
 | **Pollinations**  | Açar tələb olunmur       | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikasiya tələb olunmur |
 | **LongCat**       | Birdəfəlik 10M           | LongCat-2.0                              | API açarı + KYC               |
 | **Cloudflare AI** | Gündə 10K neyron         | 50-dən çox model                         | Autentifikasiya tələb olunmur |
@@ -250,7 +248,7 @@ OmniRoute **bir neçə provayderlə** ən yaxşı şəkildə işləyir. Bu, siz�
 
 Ən yaxşı təcrübə üçün ən azı **3 provayder** qoşun:
 
-1. **Bir pulsuz provayder** (Kiro, OpenCode Free və ya Pollinations) — Həmişə əlçatandır
+1. **Bir pulsuz provayder** (Kiro və ya Pollinations) — Həmişə əlçatandır
 2. **Bir sürətli provayder** (Groq, Cerebras) — Sürətli cavablar üçün
 3. **Bir yüksək keyfiyyətli provayder** (OpenAI, Anthropic, Google) — Mürəkkəb tapşırıqlar üçün
 
@@ -296,7 +294,7 @@ Daha sonra `model: "auto"` istifadə edin və OmniRoute hər sorğu üçün ən 
 
 ### "OmniRoute-dan istifadə etmək üçün ödəniş etməliyəm?"
 
-**Xeyr!** OmniRoute pulsuz və açıq mənbəlidir. Heç bir ödəniş etmədən pulsuz provayderlərdən (Kiro, OpenCode Free, Pollinations) istifadə edə bilərsiniz. Yalnız ödənişli provayderlərdən istifadə etməyi seçsəniz, ödəniş edəcəksiniz.
+**Xeyr!** OmniRoute pulsuz və açıq mənbəlidir. Heç bir ödəniş etmədən pulsuz provayderlərdən (Kiro, Pollinations) istifadə edə bilərsiniz. Yalnız ödənişli provayderlərdən istifadə etməyi seçsəniz, ödəniş edəcəksiniz.
 
 ### "Hansı provayderlə başlamalıyam?"
 

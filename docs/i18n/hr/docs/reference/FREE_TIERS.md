@@ -116,7 +116,6 @@ Većina brojki "besplatnih tokena mjesečno" u ovom prostoru su zbrojevi oznaka 
 | `modal`          | ToS Odjeljak 1.3 izričito zabranjuje "iznajmljivanje, preprodaju ili na drugi način dopuštanje bilo kojoj trećoj strani izravan pristup ili korištenje Usluge" — izgradnja samostalno hostiranog… |
 | `muse-spark-web` | Meta ToS izričito zabranjuje automatizirani pristup bez prethodnog dopuštenja, obrnuti inženjering bez pismenog dopuštenja i zaobilaženje tehnologi…                                              |
 | `nlpcloud`       | ToS izričito zabranjuje "postavljanje proxyja ili drugog uređaja koji drugima omogućuje pristup Usluzi putem njega" i dodjeljuje samo neprenosivo,…                                               |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) izričito ograničava korištenje na "vlastitu internu upotrebu, a ne u ime ili za dobrobit bilo koje treće strane" — ope…                                           |
 | `t3-web`         | ToS izričito ograničava račune samo na osobnu upotrebu, zabranjuje dijeljenje vjerodajnica s trećim stranama i zabranjuje automatizirani/bot/scraping pristup — a s…                              |
 
 ### ✅ Općenito dopušteno — oprez / dvosmisleno / ok (ostalo)
@@ -258,7 +257,6 @@ Većina brojki "besplatnih tokena mjesečno" u ovom prostoru su zbrojevi oznaka 
 | `nlpcloud`       | bez ključa             | —                  | —                     | izbjegavati       | 1      |
 | `nous-research`  | bez ključa             | —                  | —                     | dvosmisleno       | 2      |
 | `nvidia`         | bez ključa             | —                  | —                     | oprez             | 13     |
-| `opencode`       | bez ključa             | —                  | —                     | izbjegavati       | 7      |
 | `pollinations`   | bez ključa             | —                  | —                     | oprez             | 31     |
 | `publicai`       | keyless                | —                  | —                     | oprez             | 3      |
 | `reka`           | keyless                | —                  | —                     | oprez             | 2      |
@@ -269,17 +267,6 @@ Većina brojki "besplatnih tokena mjesečno" u ovom prostoru su zbrojevi oznaka 
 | `uncloseai`      | keyless                | —                  | —                     | oprez             | 3      |
 
 ---
-
-## OpenCode Free: ograničenje klijent-ugovora (#14313)
-
-Davatelj usluga `opencode` bez ključa (javni `https://opencode.ai/zen/v1`) odbija svaki zahtjev
-koji ne odgovara OpenCode klijentskom ugovoru s **403 `FreeTierError`** i
-rečenicom _"OpenCode's free tier can only be used from within OpenCode"_. Ovo je
-odbijanje na razini zahtjeva (ista presuda za svaki račun za isti oblik zahtjeva), a ne
-zabrana modela ili hlađenje veze — OmniRoute to klasificira kao `project_route_error`, preskače
-zaključavanje/hlađenje modela i (na sintetičkoj `noauth` putanji) pauzira automatski ponovni odabir kombinacije
-na kratko TTL razdoblje. Pošaljite zahtjeve koji sadrže neprazan popis alata, `stream: true` i
-OpenCode session/UA zaglavlja (`opencodeFreeTierContract.ts`) ili očekujte 403.
 
 ## Što se promijenilo od isporučenog kataloga (`freeNote`)
 

@@ -2,7 +2,7 @@
 
 // Issue #8935 — per-provider opt-out for the synthetic anonymous (no-auth)
 // credential fallback on API-key providers whose static definition declares
-// anonymousFallback: true (opencode-go, opencode-zen, pollinations, kilocode).
+// anonymousFallback: true (pollinations, kilocode).
 // Default ON (fallback enabled) when the setting is absent, so existing
 // behavior is preserved for everyone who does not opt out. True no-auth
 // providers (NOAUTH_PROVIDERS / WEB_COOKIE_PROVIDERS) never see this control —

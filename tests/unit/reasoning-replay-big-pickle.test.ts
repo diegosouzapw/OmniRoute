@@ -2,7 +2,7 @@
  * Issue #2900 — OpenCode `big-pickle` fails DeepSeek thinking-mode
  * reasoning_content replay.
  *
- * `big-pickle` (OpenCode free / Zen, endpoint https://opencode.ai/zen/v1) is
+ * `big-pickle` (OpenCode Zen, endpoint https://opencode.ai/zen/v1) is
  * backed by DeepSeek thinking mode upstream, so follow-up/tool-use turns must
  * replay `reasoning_content` or DeepSeek returns:
  *   [400]: The reasoning_content in the thinking mode must be passed back to the API.
@@ -18,8 +18,8 @@
  * The real trigger is an explicit `interleavedField: "reasoning_content"` on the
  * registry entry, surfaced by getResolvedModelCapabilities.
  *
- * This test asserts the end-to-end wiring for both OpenCode registrations
- * (`opencode`/alias `oc` and `opencode-zen`).
+ * This test asserts the end-to-end wiring for the `opencode-zen` registration
+ * (the keyless `opencode`/`oc` registration was removed).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -40,7 +40,7 @@ function getModel(providerId: string, modelId: string): ModelEntry | undefined {
   return provider?.models?.find((m) => m.id === modelId);
 }
 
-for (const providerId of ["opencode", "opencode-zen"]) {
+for (const providerId of ["opencode-zen"]) {
   test(`#2900 ${providerId}/big-pickle registry declares interleavedField reasoning_content`, () => {
     const model = getModel(providerId, "big-pickle");
     assert.ok(model, `big-pickle must be registered in ${providerId}`);

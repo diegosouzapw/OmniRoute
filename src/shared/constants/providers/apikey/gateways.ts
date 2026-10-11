@@ -766,7 +766,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/zen",
-    anonymousFallback: true,
     // One credential fronts many upstream models (deepseek, glm, qwen, grok,
     // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
     // account is out of credit", so it must reach the per-model lockout branch
@@ -781,7 +780,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "opencode",
     color: "#6366f1",
     website: "https://opencode.ai/go",
-    anonymousFallback: true,
     // One credential fronts many upstream models (deepseek, glm, qwen, grok,
     // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
     // account is out of credit", so it must reach the per-model lockout branch

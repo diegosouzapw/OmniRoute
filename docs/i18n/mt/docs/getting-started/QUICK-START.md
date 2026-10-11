@@ -59,15 +59,7 @@ Tista' tuża OmniRoute **mingħajr ma tħallas xejn** billi tqabbad fornitur bla
 4. Ikklikkja **Qabbad** (ma teħtieġ l-ebda ċavetta tal-API!)
 5. Lest! Issa għandek aċċess bla ħlas għall-mudelli Claude.
 
-### Għażla B: OpenCode Free (Mingħajr Awtentikazzjoni)
-
-1. Iftaħ id-dashboard fuq `http://localhost:20128`
-2. Mur f'**Fornituri** → **Żid Fornitur**
-3. Agħżel **OpenCode Free**
-4. Ikklikkja **Qabbad** (ma teħtieġ l-ebda ċavetta tal-API!)
-5. Lest! Issa għandek aċċess bla ħlas għal diversi mudelli.
-
-### Għażla C: Pollinations (Ma Teħtieġx Ċavetta)
+### Għażla B: Pollinations (Ma Teħtieġx Ċavetta)
 
 1. Iftaħ id-dashboard fuq `http://localhost:20128`
 2. Mur f'**Fornituri** → **Żid Fornitur**
@@ -163,7 +155,7 @@ Tista' tara d-dettalji tat-talba billi tikklikkja [Monitoraġġ/Logs](http://loc
 
 ### "Għandi bżonn ċavetta tal-API?"
 
-**Le!** Tista' tuża fornituri bla ħlas (Kiro, OpenCode Free, Pollinations) mingħajr l-ebda ċavetta tal-API. Sempliċement qabbadhom fid-dashboard.
+**Le!** Tista' tuża fornituri bla ħlas (Kiro, Pollinations) mingħajr l-ebda ċavetta tal-API. Sempliċement qabbadhom fid-dashboard.
 
 ### "X'inhu `auto`?"
 

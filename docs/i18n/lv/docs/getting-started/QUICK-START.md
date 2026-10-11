@@ -59,15 +59,7 @@ Varat izmantot OmniRoute, **neko nemaksājot**, ja pievienojat bezmaksas pakalpo
 4. Noklikšķiniet uz **Savienot** (API atslēga nav nepieciešama!)
 5. Gatavs! Tagad jums ir bezmaksas piekļuve Claude modeļiem.
 
-### B variants: OpenCode Free (bez autentifikācijas)
-
-1. Atveriet informācijas paneli adresē `http://localhost:20128`
-2. Dodieties uz **Pakalpojumu sniedzēji** → **Pievienot pakalpojumu sniedzēju**
-3. Atlasiet **OpenCode Free**
-4. Noklikšķiniet uz **Savienot** (API atslēga nav nepieciešama!)
-5. Gatavs! Tagad jums ir bezmaksas piekļuve vairākiem modeļiem.
-
-### C variants: Pollinations (atslēga nav nepieciešama)
+### B variants: Pollinations (atslēga nav nepieciešama)
 
 1. Atveriet informācijas paneli adresē `http://localhost:20128`
 2. Dodieties uz **Pakalpojumu sniedzēji** → **Pievienot pakalpojumu sniedzēju**
@@ -163,7 +155,7 @@ Pieprasījuma informāciju varat apskatīt, kreisajā sānjoslā noklikšķinot 
 
 ### „Vai man ir nepieciešama API atslēga?”
 
-**Nē!** Varat izmantot bezmaksas pakalpojumu sniedzējus (Kiro, OpenCode Free, Pollinations) bez API atslēgas. Vienkārši pievienojiet tos informācijas panelī.
+**Nē!** Varat izmantot bezmaksas pakalpojumu sniedzējus (Kiro, Pollinations) bez API atslēgas. Vienkārši pievienojiet tos informācijas panelī.
 
 ### „Kas ir `auto`?”
 

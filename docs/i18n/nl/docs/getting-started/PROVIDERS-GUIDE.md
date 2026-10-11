@@ -14,12 +14,12 @@ Zie een provider als een **telecomprovider**. Net zoals je een telecomprovider n
 
 ### Typen providers
 
-| Type            | Wat het is                    | Voorbeelden                       | Kosten                   |
-| --------------- | ----------------------------- | --------------------------------- | ------------------------ |
-| **Gratis**      | Geen betaling vereist         | Kiro, OpenCode Free, Pollinations | $0                       |
-| **API-sleutel** | Je hebt een API-sleutel nodig | OpenAI, Anthropic, Google         | Betalen naar gebruik     |
-| **OAuth**       | Inloggen met je account       | Claude Code, GitHub Copilot       | Abonnement               |
-| **Webcookie**   | Gebruikt je browsersessie     | ChatGPT Web (Codex), Gemini Web   | $0 (gebruikt je account) |
+| Type            | Wat het is                    | Voorbeelden                     | Kosten                   |
+| --------------- | ----------------------------- | ------------------------------- | ------------------------ |
+| **Gratis**      | Geen betaling vereist         | Kiro, Pollinations              | $0                       |
+| **API-sleutel** | Je hebt een API-sleutel nodig | OpenAI, Anthropic, Google       | Betalen naar gebruik     |
+| **OAuth**       | Inloggen met je account       | Claude Code, GitHub Copilot     | Abonnement               |
+| **Webcookie**   | Gebruikt je browsersessie     | ChatGPT Web (Codex), Gemini Web | $0 (gebruikt je account) |
 
 ### Providers met webcookies
 
@@ -46,7 +46,6 @@ veilig alleen de mislukte providers opnieuw proberen.
 2. Ga naar **Providers** → **Provider toevoegen**
 3. Selecteer een van deze gratis providers:
    - **Kiro AI** — Gratis Claude-modellen (geen authenticatie nodig)
-   - **OpenCode Free** — Gratis GPT-modellen (geen authenticatie nodig)
    - **Pollinations** — Gratis GPT-5, Claude en Gemini (geen sleutel nodig)
    - **LongCat** — 10 miljoen tokens gratis (eenmalige toekenning, account + KYC vereist)
    - **Cloudflare AI** — Meer dan 50 modellen, 10.000 neuronen per dag
@@ -176,7 +175,6 @@ Deze providers bieden **gratis toegang** zonder creditcard:
 | Provider          | Gratis quotum      | Modellen                                 | Verbinding maken         |
 | ----------------- | ------------------ | ---------------------------------------- | ------------------------ |
 | **Kiro AI**       | 50 credits/maand   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Geen authenticatie nodig |
-| **OpenCode Free** | Onbeperkt          | GPT-4o, Claude, Gemini                   | Geen authenticatie nodig |
 | **Pollinations**  | Geen sleutel nodig | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Geen authenticatie nodig |
 | **LongCat**       | Eenmalig 10M       | LongCat-2.0                              | API-sleutel + KYC        |
 | **Cloudflare AI** | 10K neuronen/dag   | Meer dan 50 modellen                     | Geen authenticatie nodig |
@@ -250,7 +248,7 @@ OmniRoute werkt het beste met **meerdere providers**. Dit biedt je:
 
 Verbind ten minste **3 providers** voor de beste ervaring:
 
-1. **Eén gratis provider** (Kiro, OpenCode Free of Pollinations) — Altijd beschikbaar
+1. **Eén gratis provider** (Kiro of Pollinations) — Altijd beschikbaar
 2. **Eén snelle provider** (Groq, Cerebras) — Voor snelle antwoorden
 3. **Eén hoogwaardige provider** (OpenAI, Anthropic, Google) — Voor complexe taken
 
@@ -296,7 +294,7 @@ Gebruik vervolgens `model: "auto"`, waarna OmniRoute automatisch voor elk verzoe
 
 ### "Moet ik betalen om OmniRoute te gebruiken?"
 
-**Nee!** OmniRoute is gratis en opensource. Je kunt gratis providers (Kiro, OpenCode Free, Pollinations) gebruiken zonder iets te betalen. Je betaalt alleen als je ervoor kiest om betaalde providers te gebruiken.
+**Nee!** OmniRoute is gratis en opensource. Je kunt gratis providers (Kiro, Pollinations) gebruiken zonder iets te betalen. Je betaalt alleen als je ervoor kiest om betaalde providers te gebruiken.
 
 ### "Met welke provider kan ik het beste beginnen?"
 

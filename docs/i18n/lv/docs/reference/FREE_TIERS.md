@@ -122,7 +122,6 @@ Lielākā daļa šajā jomā norādīto „bezmaksas marķieru mēnesī” skait
 | `modal`               | ToS 1.3 sadaļa nepārprotami aizliedz „iznomāt, tālākpārdot vai citādi ļaut jebkurai trešajai pusei tieši piekļūt Pakalpojumam vai to izmantot” — pašmitināta…                                       |
 | `muse-spark-web`      | Meta ToS nepārprotami aizliedz automatizētu piekļuvi bez iepriekšējas atļaujas, reverso inženieriju bez rakstiskas atļaujas un tehnoloģisku līdzekļu apiešanu…                                      |
 | `nlpcloud`            | ToS nepārprotami aizliedz „izveidot starpniekserveri vai citu ierīci, kas ļauj citiem caur to piekļūt Pakalpojumam”, un piešķir tikai nenododamu,…                                                  |
-| `opencode`            | ToS (Anomaly Innovations, Inc.) nepārprotami ierobežo izmantošanu līdz „jūsu pašu iekšējai lietošanai, nevis jebkuras trešās puses vārdā vai labā” — ope…                                           |
 | `t3-web`              | ToS nepārprotami ierobežo kontus tikai personiskai lietošanai, aizliedz piekļuves datu kopīgošanu ar trešajām pusēm un automatizētu/robotu/datu izgūšanas piekļuvi — a s…                           |
 
 ### ✅ Kopumā atļaujoši — piesardzība / neskaidrs / atļauts (pārējie)
@@ -266,7 +265,6 @@ Lielākā daļa šajā jomā norādīto „bezmaksas marķieru mēnesī” skait
 | `nlpcloud`            | bez atslēgas          | —                     | —                    | izvairīties          | 1      |
 | `nous-research`       | bez atslēgas          | —                     | —                    | neskaidri            | 2      |
 | `nvidia`              | bez atslēgas          | —                     | —                    | piesardzība          | 13     |
-| `opencode`            | bez atslēgas          | —                     | —                    | izvairīties          | 7      |
 | `pollinations`        | bez atslēgas          | —                     | —                    | piesardzība          | 31     |
 | `publicai`            | `keyless`             | —                     | —                    | piesardzība          | 3      |
 | `reka`                | `keyless`             | —                     | —                    | piesardzība          | 2      |
@@ -277,17 +275,6 @@ Lielākā daļa šajā jomā norādīto „bezmaksas marķieru mēnesī” skait
 | `uncloseai`           | `keyless`             | —                     | —                    | piesardzība          | 3      |
 
 ---
-
-## OpenCode Free: klienta līguma ierobežojums (#14313)
-
-Bezatslēgas `opencode` nodrošinātājs (publiskais `https://opencode.ai/zen/v1`) noraida jebkuru pieprasījumu,
-kas neatbilst OpenCode klienta līgumam, ar **403 `FreeTierError`** un teikumu
-_"OpenCode bezmaksas līmeni var izmantot tikai no OpenCode"_. Šis ir
-konkrētam pieprasījumam piemērots atteikums (vienāds rezultāts katrā kontā pie vienādas pieprasījuma struktūras), nevis
-modeļa bloķēšana vai savienojuma uzgaidīšanas periods — OmniRoute to klasificē kā `project_route_error`, izlaiž
-modeļa bloķēšanu / uzgaidīšanas periodu un (sintētiskajā `noauth` ceļā) uz īsu TTL aptur
-automātiskās kombinācijas atkārtotu atlasi. Nosūtiet pieprasījumus, kuros ir netukšs rīku saraksts, `stream: true` un
-OpenCode sesijas/UA galvenes (`opencodeFreeTierContract.ts`), vai arī sagaidiet 403.
 
 ## Kas ir mainījies kopš piegādātā kataloga (`freeNote`)
 

@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yana aiki da zarar ka shigar da shi — babu saiti. Matakai uku: 1. Shigar — npm i -g omniroute, sabar tana tashi a localhost:20128. 2. Nuna kayan aikin ka zuwa http://localhost:20128/v1 — kowane kayan aiki mai dacewa da OpenAI (Claude Code, Cursor, Cline). 3. Yana amsawa — kira model auto don amsa nan take, ba tare da maɓallin API ba, babu rajista, babu saiti. Mai ba da sabis na kyauta na OpenCode Free an riga an haɗa shi cikin haɗin auto, don haka sabon shigarwa yana amsawa nan take."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yana aiki da zarar ka shigar da shi — babu saiti. Matakai uku: 1. Shigar — npm i -g omniroute, sabar tana tashi a localhost:20128. 2. Nuna kayan aikin ka zuwa http://localhost:20128/v1 — kowane kayan aiki mai dacewa da OpenAI (Claude Code, Cursor, Cline). 3. Yana amsawa — kira model auto don amsa nan take, ba tare da maɓallin API ba, babu rajista, babu saiti."/>
 
 ```bash
 # Sabon shigarwa, babu takardun shaida — `auto` yana aiki:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Ka fi son takamaiman backend na kyauta? Kira `oc/…` (OpenCode Free) kai tsaye. Sannan ka koma `auto` kuma ka bar OmniRoute ya zaɓa.</sub>
 
 <sub>📦 Kwafi-liƙa rubutun farawa mai sauri don **Python, Node.js, PHP, da cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard yana `http://localhost:20128` · API yana `http://localhost:20128/v1`.
 
 **2) Haɗa provider na KYAUTA (ba sai an yi signup ba)**
 
-Dashboard → **Providers** → haɗa **Kiro AI** (Claude kyauta, kusan credit 50/wata ga kowane account) ko **OpenCode Free** (ba ya buƙatar auth) → an gama.
+Dashboard → **Providers** → haɗa **Kiro AI** (Claude kyauta, kusan credit 50/wata ga kowane account) → an gama.
 
 **3) Nuna wa coding tool ɗinka inda zai haɗu**
 
@@ -1265,7 +1263,7 @@ Ma'aunai na asali a 2026-08-24: **bidiyoyi na musamman 1.029** · **sanannun kal
   <tr><td nowrap><b>Mahallin aiki</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Harshe</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a duk faɗin <code>src/</code> da <code>open-sse/</code> (babu <code>any</code> a cikin ginshiƙin tsarin tun daga v2.0)</td></tr>
   <tr><td nowrap><b>Tsarin aiki</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Rumbun bayanai</b></td><td>better-sqlite3 (SQLite, ajiyar mujallar WAL) + LowDB (tsohon tsarin JSON) — manhajojin yanki 137, ƙaura 202</td></tr>
+  <tr><td nowrap><b>Rumbun bayanai</b></td><td>better-sqlite3 (SQLite, ajiyar mujallar WAL) + LowDB (tsohon tsarin JSON) — manhajojin yanki 137, ƙaura 203</td></tr>
   <tr><td nowrap><b>Ƙwaƙwalwa</b></td><td>Binciken cikakken rubutu na SQLite FTS5 + haɗaɗɗun vector masu ƙididdigar int8, raguwar daraja mai nau'i</td></tr>
   <tr><td nowrap><b>Tsarukan bayanai</b></td><td>Zod 4 — tantance shigarwa/fitarwar kayan aikin MCP + yarjejeniyoyin API</td></tr>
   <tr><td nowrap><b>Ka'idoji</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

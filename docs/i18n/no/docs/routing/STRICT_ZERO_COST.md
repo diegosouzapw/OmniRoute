@@ -145,14 +145,12 @@ denne siden beskriver mangelen i stedet for å late som om den ikke finnes.
 For en frakoblet før-/etter-sammenligning fungerer `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` fortsatt
 mot kandidatutdataene fra en kjørende instans; skriptet leser hver kandidats faktiske `connectionId`, så det
 tester også sikkerhetsflyten for tilkoblinger. Nøkkelløse kandidater må leveres med den syntetiske
-`connectionId`-verdien for ingen autentisering, aldri en ekte tilkobling. Den nåværende innebygde nøkkelløse automatiske flyten er OpenCode Free; det nøyaktige kandidatantallet
+`connectionId`-verdien for ingen autentisering, aldri en ekte tilkobling. det nøyaktige kandidatantallet
 avhenger fortsatt av aktiv modelloppdagelse og bør måles i måldistribusjonen i stedet for å
 kopieres fra en eldre kjøring. En `recurring-*`-kandidat godkjennes bare når den både har en registrert
 bruksadapter og `hardStopGuaranteed: true`; ufullstendige metadata avvises fortsatt.
 
-Med `excludeTosAvoid: true` fjernes alle kandidater som er kuratert med `tos: "avoid"`. OpenCode Free
-har for øyeblikket denne vurderingen, så aktivering av beskyttelsen kan tømme en distribusjons gjenværende nøkkelløse
-utvalg. Dette er en forventet avveining ved å slå på ToS-beskyttelsen, ikke en feil: Beskyttelsen er `false`
+Med `excludeTosAvoid: true` fjernes alle kandidater som er kuratert med `tos: "avoid"`. Dette er en forventet avveining ved å slå på ToS-beskyttelsen, ikke en feil: Beskyttelsen er `false`
 som standard nettopp av denne grunnen (se «ToS-beskyttelse» ovenfor).
 
 ## Aktivering

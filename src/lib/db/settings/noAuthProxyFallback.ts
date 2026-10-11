@@ -1,7 +1,7 @@
 /**
  * db/settings/noAuthProxyFallback.ts
  *
- * #6272 — no-auth providers (mimocode, opencode, ...) are dispatched with a single
+ * #6272 — no-auth providers are dispatched with a single
  * hardcoded, provider-agnostic connectionId ("noauth" — SYNTHETIC_NOAUTH_CONNECTION_ID
  * in src/sse/services/auth.ts). No `provider_connections` row ever has id="noauth", so
  * `resolveProxyForConnection()` in ../settings.ts can never populate `connectionRecord`

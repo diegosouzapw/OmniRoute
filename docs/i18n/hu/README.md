@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Azonnal működik a telepítés után — nulla konfiguráció. Három lépés: 1. Telepítés — npm i -g omniroute, a szerver elindul a localhost:20128 címen. 2. Irányítsa eszközét a http://localhost:20128/v1 címre — bármely OpenAI-kompatibilis eszköz (Claude Code, Cursor, Cline). 3. Válaszol — hívja meg az auto modellt azonnali válaszért, API kulcs, regisztráció és konfiguráció nélkül. A kulcs nélküli OpenCode Free szolgáltató előre be van kötve az auto kombinációba, így egy friss telepítés azonnal válaszol."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Azonnal működik a telepítés után — nulla konfiguráció. Három lépés: 1. Telepítés — npm i -g omniroute, a szerver elindul a localhost:20128 címen. 2. Irányítsa eszközét a http://localhost:20128/v1 címre — bármely OpenAI-kompatibilis eszköz (Claude Code, Cursor, Cline). 3. Válaszol — hívja meg az auto modellt azonnali válaszért, API kulcs, regisztráció és konfiguráció nélkül."/>
 
 ```bash
 # Friss telepítés, nulla hitelesítő adat — az `auto` már működik:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Inkább egy specifikus ingyenes backendet szeretne? Hívja közvetlenül az `oc/…` (OpenCode Free) szolgáltatót. Ezután térjen át az `auto` módra, és hagyja, hogy az OmniRoute válasszon.</sub>
 
 <sub>📦 Másolható-beilleszthető gyorsindító szkriptek **Pythonhoz, Node.js-hez, PHP-hoz és cURL-hez** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ A vezérlőpult címe: `http://localhost:20128` · Az API címe: `http://localho
 
 **2) Csatlakoztass egy INGYENES szolgáltatót (regisztráció nélkül)**
 
-Vezérlőpult → **Szolgáltatók** → csatlakoztasd a **Kiro AI** szolgáltatást (ingyenes Claude, fiókonként ~50 kredit/hónap) vagy az **OpenCode Free** szolgáltatást (nincs hitelesítés) → kész.
+Vezérlőpult → **Szolgáltatók** → csatlakoztasd a **Kiro AI** szolgáltatást (ingyenes Claude, fiókonként ~50 kredit/hónap) → kész.
 
 **3) Állítsd be a programozási eszközödet**
 
@@ -1265,7 +1263,7 @@ Kanonikus mérőszámok 2026-08-24-én: **1.029 egyedi videó** · **11.132.922 
   <tr><td nowrap><b>Futtatókörnyezet</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Nyelv</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> a <code>src/</code> és az <code>open-sse/</code> teljes területén (a v2.0 óta nulla <code>any</code> a magban)</td></tr>
   <tr><td nowrap><b>Keretrendszer</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL-naplózás) + LowDB (örökölt JSON) — 137 tartománymodul, 202 migráció</td></tr>
+  <tr><td nowrap><b>Adatbázis</b></td><td>better-sqlite3 (SQLite, WAL-naplózás) + LowDB (örökölt JSON) — 137 tartománymodul, 203 migráció</td></tr>
   <tr><td nowrap><b>Memória</b></td><td>SQLite FTS5 teljes szöveges keresés + int8-kvantált vektoros beágyazások, típusos lecsengés</td></tr>
   <tr><td nowrap><b>Sémák</b></td><td>Zod 4 — MCP-eszközök be- és kimenetének validálása + API-szerződések</td></tr>
   <tr><td nowrap><b>Protokollok</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

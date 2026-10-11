@@ -59,15 +59,7 @@ Du kan bruge OmniRoute **helt gratis** ved at tilslutte en gratis udbyder.
 4. Klik på **Tilslut** (ingen API-nøgle nødvendig!)
 5. Færdig! Du har nu gratis adgang til Claude-modeller.
 
-### Mulighed B: OpenCode Free (ingen godkendelse)
-
-1. Åbn dashboardet på `http://localhost:20128`
-2. Gå til **Udbydere** → **Tilføj udbyder**
-3. Vælg **OpenCode Free**
-4. Klik på **Tilslut** (ingen API-nøgle nødvendig!)
-5. Færdig! Du har nu gratis adgang til flere modeller.
-
-### Mulighed C: Pollinations (ingen nøgle nødvendig)
+### Mulighed B: Pollinations (ingen nøgle nødvendig)
 
 1. Åbn dashboardet på `http://localhost:20128`
 2. Gå til **Udbydere** → **Tilføj udbyder**
@@ -163,7 +155,7 @@ Du kan se oplysningerne om anmodningen ved at klikke på [Overvågning/logfiler]
 
 ### "Har jeg brug for en API-nøgle?"
 
-**Nej!** Du kan bruge gratis udbydere (Kiro, OpenCode Free, Pollinations) uden en API-nøgle. Du skal blot tilslutte dem i dashboardet.
+**Nej!** Du kan bruge gratis udbydere (Kiro, Pollinations) uden en API-nøgle. Du skal blot tilslutte dem i dashboardet.
 
 ### "Hvad er `auto`?"
 

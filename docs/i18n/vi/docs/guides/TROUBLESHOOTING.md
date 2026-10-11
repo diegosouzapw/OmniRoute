@@ -39,7 +39,7 @@ Các sự cố thường gặp và giải pháp cho OmniRoute.
 
 ### Giới hạn tốc độ trên các nhà cung cấp miễn phí (429 / 400 / 401)
 
-**Triệu chứng**: Khi sử dụng `model: "auto"` với các nhà cung cấp miễn phí/không yêu cầu xác thực (opencode, auggie, v.v.), thỉnh thoảng bạn nhận được `HTTP 429`, `400` hoặc `401` thay vì câu trả lời. Các yêu cầu thành công khi thử lại cùng một lời nhắc sau đó ít phút, nhưng quy trình tự động hóa (tác vụ cron, tác tử, tập lệnh) bị gián đoạn ngay khi gặp lỗi đầu tiên.
+**Triệu chứng**: Khi sử dụng `model: "auto"` với các nhà cung cấp miễn phí/không yêu cầu xác thực (auggie, v.v.), thỉnh thoảng bạn nhận được `HTTP 429`, `400` hoặc `401` thay vì câu trả lời. Các yêu cầu thành công khi thử lại cùng một lời nhắc sau đó ít phút, nhưng quy trình tự động hóa (tác vụ cron, tác tử, tập lệnh) bị gián đoạn ngay khi gặp lỗi đầu tiên.
 
 **Nguyên nhân gốc rễ**: Có ba chế độ lỗi độc lập chồng lên nhau:
 

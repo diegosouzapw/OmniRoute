@@ -146,14 +146,13 @@ the gap rather than pretending it is not there.
 For an offline before/after, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` still works
 against a live instance's candidates output; it reads each candidate's real `connectionId`, so it
 also exercises the connection-safety path. Keyless candidates must arrive with the synthetic
-no-auth `connectionId`, never a real connection. The current built-in keyless auto path is OpenCode Free; exact candidate counts
+no-auth `connectionId`, never a real connection. Exact candidate counts
 still depend on live model discovery and should be measured on the target deployment instead of
 copied from an older run. A `recurring-*` candidate passes only when it has both a registered
 usage adapter and `hardStopGuaranteed: true`; incomplete metadata remains fail-closed.
 
-With `excludeTosAvoid: true`, every candidate curated as `tos: "avoid"` is removed. OpenCode Free
-currently carries that verdict, so enabling the guard can empty a deployment's remaining keyless
-pool. This is an expected trade-off of turning the ToS guard on, not a bug: the guard is `false`
+With `excludeTosAvoid: true`, every candidate curated as `tos: "avoid"` is removed, so enabling
+the guard can empty a deployment's remaining keyless pool. This is an expected trade-off of turning the ToS guard on, not a bug: the guard is `false`
 by default for exactly this reason (see "ToS guard" above).
 
 ## Enabling

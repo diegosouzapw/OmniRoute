@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hufanya kazi mara tu unapoipakia — usanidi sifuri. Hatua tatu: 1. Sakinisha — npm i -g omniroute, seva inaanza kwenye localhost:20128. 2. Elekeza zana yako kwenye http://localhost:20128/v1 — zana yoyote inayooana na OpenAI (Claude Code, Cursor, Cline). 3. Inajibu — piga model auto kwa jibu la papo hapo, bila ufunguo wa API, bila kujisajili, bila usanidi. Mtoa huduma asiye na ufunguo OpenCode Free tayari amewekwa kwenye mchanganyiko wa auto, kwa hivyo usakinishaji mpya unajibu mara moja."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hufanya kazi mara tu unapoipakia — usanidi sifuri. Hatua tatu: 1. Sakinisha — npm i -g omniroute, seva inaanza kwenye localhost:20128. 2. Elekeza zana yako kwenye http://localhost:20128/v1 — zana yoyote inayooana na OpenAI (Claude Code, Cursor, Cline). 3. Inajibu — piga model auto kwa jibu la papo hapo, bila ufunguo wa API, bila kujisajili, bila usanidi."/>
 
 ```bash
 # Usakinishaji mpya, sifa sifuri — `auto` tayari inafanya kazi:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Unapendelea backend maalum isiyolipishwa? Piga `oc/…` (OpenCode Free) moja kwa moja. Kisha panda hadi `auto` na umruhusu OmniRoute achague.</sub>
 
 <sub>📦 Nakili-bandika hati za kuanza haraka kwa **Python, Node.js, PHP, na cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -941,7 +939,7 @@ Dashibodi iko `http://localhost:20128` · API iko `http://localhost:20128/v1`.
 
 **2) Unganisha mtoa huduma wa BURE (bila kujisajili)**
 
-Dashibodi → **Watoa Huduma** → unganisha **Kiro AI** (Claude ya bure, takriban salio 50/mwezi kwa kila akaunti) au **OpenCode Free** (bila uthibitishaji) → tayari.
+Dashibodi → **Watoa Huduma** → unganisha **Kiro AI** (Claude ya bure, takriban salio 50/mwezi kwa kila akaunti) → tayari.
 
 **3) Elekeza zana yako ya kuandika msimbo**
 
@@ -1198,7 +1196,7 @@ Vipimo kanuni vya 2026-08-24: **video 1.029 za kipekee** · **mitazamo 11.132.92
   <tr><td nowrap><b>Mazingira ya utekelezaji</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Lugha</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> katika <code>src/</code> na <code>open-sse/</code> (hakuna <code>any</code> katika kiini tangu v2.0)</td></tr>
   <tr><td nowrap><b>Mfumo</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, uandishi wa jarida wa WAL) + LowDB (urithi wa JSON) — moduli 137 za kikoa, uhamishaji 202</td></tr>
+  <tr><td nowrap><b>Hifadhidata</b></td><td>better-sqlite3 (SQLite, uandishi wa jarida wa WAL) + LowDB (urithi wa JSON) — moduli 137 za kikoa, uhamishaji 203</td></tr>
   <tr><td nowrap><b>Kumbukumbu</b></td><td>Utafutaji wa matini kamili wa SQLite FTS5 + upachikaji wa vekta uliokadiriwa kwa int8, ufifishaji wenye aina</td></tr>
   <tr><td nowrap><b>Skima</b></td><td>Zod 4 — uthibitishaji wa I/O wa zana za MCP + mikataba ya API</td></tr>
   <tr><td nowrap><b>Itifaki</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

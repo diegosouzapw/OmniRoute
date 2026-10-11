@@ -116,7 +116,6 @@ A legtöbb „ingyenes token havonta” adat ezen a területen modellenkénti c�
 | `modal`          | Az ÁSZF 1.3. szakasza kifejezetten tiltja a „szolgáltatás bérbeadását, viszonteladását vagy bármely harmadik fél számára történő közvetlen hozzáférés vagy használat engedélyezését” – egy saját üzemeltetésű…           |
 | `muse-spark-web` | A Meta ÁSZF kifejezetten tiltja az automatizált hozzáférést előzetes engedély nélkül, a visszafejtést írásos engedély nélkül, és a technológiai megkerülést…                                                             |
 | `nlpcloud`       | Az ÁSZF kifejezetten tiltja „proxy vagy más olyan eszköz beállítását, amely lehetővé teszi mások számára a Szolgáltatáshoz való hozzáférést rajta keresztül”, és csak nem átruházható…                                   |
-| `opencode`       | Az ÁSZF (Anomaly Innovations, Inc.) kifejezetten „saját belső használatra, és nem harmadik fél nevében vagy javára” korlátozza a használatot – ope…                                                                      |
 | `t3-web`         | Az ÁSZF kifejezetten csak személyes használatra korlátozza a fiókokat, tiltja a hitelesítő adatok megosztását harmadik felekkel, és tiltja az automatizált/bot/scraping hozzáférést – egy s…                             |
 
 ### ✅ Általában megengedő — caution / ambiguous / ok (a többi)
@@ -258,7 +257,6 @@ A legtöbb „ingyenes token havonta” adat ezen a területen modellenkénti c�
 | `nlpcloud`       | kulcs nélküli          | —                  | —                  | kerülendő  | 1        |
 | `nous-research`  | kulcs nélküli          | —                  | —                  | kétértelmű | 2        |
 | `nvidia`         | kulcs nélküli          | —                  | —                  | óvatosság  | 13       |
-| `opencode`       | kulcs nélküli          | —                  | —                  | kerülendő  | 7        |
 | `pollinations`   | kulcs nélküli          | —                  | —                  | óvatosság  | 31       |
 | `publicai`       | kulcs nélküli          | —                  | —                  | óvatosság  | 3        |
 | `reka`           | kulcs nélküli          | —                  | —                  | óvatosság  | 2        |
@@ -269,18 +267,6 @@ A legtöbb „ingyenes token havonta” adat ezen a területen modellenkénti c�
 | `uncloseai`      | kulcs nélküli          | —                  | —                  | óvatosság  | 3        |
 
 ---
-
-## OpenCode Free: kliens-szerződés korlátozás (#14313)
-
-A kulcs nélküli `opencode` szolgáltató (nyilvános `https://opencode.ai/zen/v1`) elutasít minden olyan kérést,
-amely nem felel meg az OpenCode kliens-szerződésnek, **403 `FreeTierError`** hibával és a
-_"OpenCode's free tier can only be used from within OpenCode"_ mondattal. Ez egy
-kérés-specifikus elutasítás (ugyanaz a döntés minden fiókra ugyanazon kérésforma esetén), nem
-modell tiltás vagy kapcsolat hűtés — az OmniRoute `project_route_error` kategóriába sorolja,
-kihagyja a modell zárolását / hűtését, és (a szintetikus `noauth` útvonalon) rövid TTL-re
-szünetelteti az automatikus kombináció újra kiválasztását. Küldjön olyan kéréseket, amelyek
-nem üres eszköztárat, `stream: true` paramétert és az OpenCode session/UA fejléceket
-(`opencodeFreeTierContract.ts`) tartalmaznak, vagy számítson a 403-as hibára.
 
 ## Mi változott a szállított katalógus (`freeNote`) óta
 

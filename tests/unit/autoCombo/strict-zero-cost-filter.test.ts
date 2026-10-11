@@ -41,11 +41,11 @@ const BASE_OPTIONS = { minRemainingAllowance: 1, maxStateAgeMs: 180_000, now: no
 
 const REAL_CONN = "conn-real-1";
 
-// A real keyless entry from the catalog (OpenCode Free, all models keyless/tos=avoid),
+// A real keyless entry from the catalog (DuckDuckGo AI Chat, keyless/tos=avoid),
 // as a genuine no-auth candidate (the only shape that legitimately gets the shortcut).
 const KEYLESS = {
-  provider: "opencode",
-  model: "big-pickle",
+  provider: "duckduckgo-web",
+  model: "gpt-5.4-mini",
   connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
 };
 // A real quota-based entry with hardStopGuaranteed: true (added by this feature),
@@ -82,20 +82,20 @@ test("sanity: fixtures exist in the real catalog with the metadata these tests a
     "agentrouter must NOT carry hardStopGuaranteed: true (no documented hard-stop guarantee)"
   );
   const keylessEntry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "opencode" && m.modelId === "big-pickle"
+    (m) => m.provider === "duckduckgo-web" && m.modelId === "gpt-5.4-mini"
   );
   assert.equal(keylessEntry?.freeType, "keyless");
   assert.equal(
     keylessEntry?.tos,
     "avoid",
-    "opencode must be tos=avoid for the ToS-guard tests below"
+    "duckduckgo-web must be tos=avoid for the ToS-guard tests below"
   );
 });
 
 // 1. keyless SAFE (genuine no-auth candidate) → PASS
 test("keyless candidate from the genuine no-auth path passes with no state at all", () => {
   const entry = FREE_MODEL_BUDGETS.find(
-    (m) => m.provider === "opencode" && m.modelId === "big-pickle"
+    (m) => m.provider === "duckduckgo-web" && m.modelId === "gpt-5.4-mini"
   );
   assert.deepEqual(
     evaluateCandidateConnections(KEYLESS, entry, () => undefined, BASE_OPTIONS),
@@ -215,7 +215,7 @@ test("hardStopGuaranteed explicitly false excludes", () => {
 // 12 & 13. ToS guard, independent of economic evaluation
 test("tos=avoid + excludeTosAvoid=true excludes a keyless-safe candidate", () => {
   const result = filterTosAvoidCandidates([KEYLESS], true);
-  assert.deepEqual(result, [], "opencode (tos=avoid) must be dropped when the guard is on");
+  assert.deepEqual(result, [], "duckduckgo-web (tos=avoid) must be dropped when the guard is on");
 });
 
 test("tos=avoid + excludeTosAvoid=false leaves normal economic evaluation untouched", () => {

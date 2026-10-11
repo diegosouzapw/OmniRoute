@@ -29,13 +29,13 @@ const { USAGE_SUPPORTED_PROVIDERS } =
 /**
  * Has a usage fetcher, deliberately not offered to the dashboard.
  *
- * These three predate this test and I could not establish intent from the tree,
+ * These predate this test and I could not establish intent from the tree,
  * so they are pinned rather than "corrected" — the set may not grow silently,
  * and converting any entry into a real dashboard listing is a call for someone
  * who knows why it was left out. `xai-oauth`/`xao` *are* listed while the
  * API-key `xai` is not, which reads like it could be deliberate.
  */
-const FETCHER_WITHOUT_DASHBOARD_ENTRY = new Set(["opencode", "opencode-zen", "xai"]);
+const FETCHER_WITHOUT_DASHBOARD_ENTRY = new Set(["opencode-zen", "xai"]);
 
 /**
  * Offered to the dashboard with no fetcher behind it.

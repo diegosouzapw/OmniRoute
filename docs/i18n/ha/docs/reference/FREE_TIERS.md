@@ -122,7 +122,6 @@ Yawancin adadin "alamomin kyauta a kowane wata" a wannan fannin jimlar alamomin 
 | `modal`          | Sashi na 1.3 na Sharuɗɗan Sabis ya hana a fili "haya, sake siyarwa ko kuma ba da damar kowane ɓangare na uku kai tsaye ya shiga ko amfani da Sabis ɗin" — gina mai masaukin kansa…                   |
 | `muse-spark-web` | Sharuɗɗan Sabis na Meta sun hana a fili samun damar atomatik ba tare da izini na farko ba, injiniyan baya ba tare da rubutaccen izini ba, da kuma kaucewa fasahohi…                                  |
 | `nlpcloud`       | Sharuɗɗan Sabis sun hana a fili "kafa wakili ko wata na'ura da ke ba da damar wasu su shiga Sabis ɗin ta hanyar sa" kuma yana ba da izini kawai wanda ba za a iya canjawa wuri ba,…                  |
-| `opencode`       | Sharuɗɗan Sabis (Anomaly Innovations, Inc.) sun iyakance amfani a fili zuwa "amfani na ciki naka, kuma ba a madadin ko don amfanin kowane ɓangare na uku ba" — buɗe…                                 |
 | `t3-web`         | Sharuɗɗan Sabis sun iyakance asusu a fili zuwa amfani na sirri kawai, sun hana raba takardun shaidar tare da ɓangarori na uku, kuma sun hana samun damar atomatik/bot/scrapping — a s…               |
 
 ### ✅ Gabaɗaya mai izini — gargadi / ba a bayyana ba / ok (sauran)
@@ -264,7 +263,6 @@ Yawancin adadin "alamomin kyauta a kowane wata" a wannan fannin jimlar alamomin 
 | `nlpcloud`       | ba tare da maɓalli ba | —                      | —                        | gujewa        | 1       |
 | `nous-research`  | ba tare da maɓalli ba | —                      | —                        | mai ruɗani    | 2       |
 | `nvidia`         | ba tare da maɓalli ba | —                      | —                        | taka tsantsan | 13      |
-| `opencode`       | ba tare da maɓalli ba | —                      | —                        | gujewa        | 7       |
 | `pollinations`   | ba tare da maɓalli ba | —                      | —                        | taka tsantsan | 31      |
 | `publicai`       | keyless               | —                      | —                        | taka tsantsan | 3       |
 | `reka`           | keyless               | —                      | —                        | taka tsantsan | 2       |
@@ -275,10 +273,6 @@ Yawancin adadin "alamomin kyauta a kowane wata" a wannan fannin jimlar alamomin 
 | `uncloseai`      | keyless               | —                      | —                        | taka tsantsan | 3       |
 
 ---
-
-## OpenCode Free: takura kwangilar abokin ciniki (#14313)
-
-Mai bada sabis na `opencode` mara maɓalli (na jama'a `https://opencode.ai/zen/v1`) yana ƙin duk wata buƙata wadda bata dace da kwangilar abokin ciniki na OpenCode ba tare da **403 `FreeTierError`** da kuma jumlar _"Ana iya amfani da matakin kyauta na OpenCode ne kawai daga cikin OpenCode"_. Wannan ƙin yarda ne mai iyakance ga buƙata (hukunci ɗaya akan kowane asusu don irin buƙatar), ba hana samfuri bane ko sanyaya haɗi — OmniRoute yana rarraba shi a matsayin `project_route_error`, yana tsallake kulle samfuri / sanyaya, kuma (akan hanyar `noauth` ta roba) yana dakatar da sake zaɓin haɗin kai tsaye na ɗan gajeren lokaci (TTL). Aika buƙatun da ke ɗauke da jerin kayan aiki marasa komai, `stream: true`, da kuma kanun zaman OpenCode/UA (`opencodeFreeTierContract.ts`) ko kuma ku yi tsammanin 403.
 
 ## Me ya canza tun lokacin da aka fitar da kasidar (`freeNote`)
 

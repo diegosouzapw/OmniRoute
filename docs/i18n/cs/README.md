@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funguje ihned po instalaci — nulová konfigurace. Tři kroky: 1. Instalace — npm i -g omniroute, server se spustí na localhost:20128. 2. Nasměrujte svůj nástroj na http://localhost:20128/v1 — jakýkoli nástroj kompatibilní s OpenAI (Claude Code, Cursor, Cline). 3. Odpovídá — zavolejte model auto pro okamžitou odpověď, bez API klíče, bez registrace, bez konfigurace. Poskytovatel bez klíče OpenCode Free je předem zapojen do kombinace auto, takže čerstvá instalace reaguje ihned po vybalení."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funguje ihned po instalaci — nulová konfigurace. Tři kroky: 1. Instalace — npm i -g omniroute, server se spustí na localhost:20128. 2. Nasměrujte svůj nástroj na http://localhost:20128/v1 — jakýkoli nástroj kompatibilní s OpenAI (Claude Code, Cursor, Cline). 3. Odpovídá — zavolejte model auto pro okamžitou odpověď, bez API klíče, bez registrace, bez konfigurace."/>
 
 ```bash
 # Čerstvá instalace, nulové přihlašovací údaje — auto již funguje:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Preferujete konkrétní bezplatný backend? Zavolejte přímo `oc/…` (OpenCode Free). Poté přejděte na `auto` a nechte OmniRoute vybrat.</sub>
 
 <sub>📦 Skripty pro rychlý start ke zkopírování a vložení pro **Python, Node.js, PHP a cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1016,7 +1014,7 @@ Ovládací panel je na adrese `http://localhost:20128` · API na adrese `http://
 
 **2) Připojení BEZPLATNÉHO poskytovatele (bez registrace)**
 
-Ovládací panel → **Poskytovatelé** → připojte **Kiro AI** (Claude zdarma, ~50 kreditů měsíčně na účet) nebo **OpenCode Free** (bez ověřování) → hotovo.
+Ovládací panel → **Poskytovatelé** → připojte **Kiro AI** (Claude zdarma, ~50 kreditů měsíčně na účet) → hotovo.
 
 **3) Nastavení vašeho programovacího nástroje**
 
@@ -1273,7 +1271,7 @@ Kanonické metriky k 2026-08-24: **1.029 jedinečných videí** · **11.132.922 
   <tr><td nowrap><b>Běhové prostředí</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Jazyk</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> v celých adresářích <code>src/</code> a <code>open-sse/</code> (od v2.0 žádné <code>any</code> v jádře)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Databáze</b></td><td>better-sqlite3 (SQLite, žurnálování WAL) + LowDB (starší formát JSON) — 137 doménových modulů, 202 migrací</td></tr>
+  <tr><td nowrap><b>Databáze</b></td><td>better-sqlite3 (SQLite, žurnálování WAL) + LowDB (starší formát JSON) — 137 doménových modulů, 203 migrací</td></tr>
   <tr><td nowrap><b>Paměť</b></td><td>Fulltextové vyhledávání SQLite FTS5 + vektorové reprezentace kvantované na int8, typovaný útlum</td></tr>
   <tr><td nowrap><b>Schémata</b></td><td>Zod 4 — validace vstupů a výstupů nástrojů MCP + kontrakty API</td></tr>
   <tr><td nowrap><b>Protokoly</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

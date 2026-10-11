@@ -39,7 +39,7 @@ OmniRoute uchun keng tarqalgan muammolar va ularning yechimlari.
 
 ### Bepul provayderlarda soʻrovlar tezligini cheklash (429 / 400 / 401)
 
-**Alomat**: Bepul/autentifikatsiyasiz provayderlar (opencode, auggie va boshqalar) bilan `model: "auto"` ishlatilganda, javoblar oʻrniga vaqti-vaqti bilan `HTTP 429`, `400` yoki `401` xatolari olinadi. Bir ozdan soʻng ayni soʻrovni qayta yuborishda u muvaffaqiyatli bajariladi, ammo avtomatlashtirish (cron vazifalari, agentlar, skriptlar) birinchi xatolikdayoq buziladi.
+**Alomat**: Bepul/autentifikatsiyasiz provayderlar (auggie va boshqalar) bilan `model: "auto"` ishlatilganda, javoblar oʻrniga vaqti-vaqti bilan `HTTP 429`, `400` yoki `401` xatolari olinadi. Bir ozdan soʻng ayni soʻrovni qayta yuborishda u muvaffaqiyatli bajariladi, ammo avtomatlashtirish (cron vazifalari, agentlar, skriptlar) birinchi xatolikdayoq buziladi.
 
 **Asosiy sabab**: Uchta mustaqil nosozlik holati bir-birining ustiga keladi:
 

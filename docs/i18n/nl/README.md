@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, zonder aanmelding, zonder configuratie. Sleutelloze provider OpenCode Free is vooraf bedraad in de auto-combinatie, dus een verse installatie reageert direct."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, zonder aanmelding, zonder configuratie."/>
 
 ```bash
 # Verse installatie, nul referenties — `auto` werkt al:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Liever een specifieke gratis backend? Roep `oc/…` (OpenCode Free) direct aan. Stap dan over op `auto` en laat OmniRoute kiezen.</sub>
 
 <sub>📦 Kopieer-plak quickstart scripts voor **Python, Node.js, PHP, en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard op `http://localhost:20128` · API op `http://localhost:20128/v1`.
 
 **2) Verbind een GRATIS provider (geen registratie nodig)**
 
-Dashboard → **Providers** → verbind **Kiro AI** (gratis Claude, ~50 credits/maand per account) of **OpenCode Free** (geen authenticatie) → klaar.
+Dashboard → **Providers** → verbind **Kiro AI** (gratis Claude, ~50 credits/maand per account) → klaar.
 
 **3) Stel je programmeertool in**
 
@@ -1265,7 +1263,7 @@ Canonieke statistieken op 2026-08-24: **1.029 unieke video's** · **11.132.922 b
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Taal</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> en <code>open-sse/</code> (geen enkele <code>any</code> in de kern sinds v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journaling) + LowDB (verouderde JSON-opslag) — 137 domeinmodules, 202 migraties</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journaling) + LowDB (verouderde JSON-opslag) — 137 domeinmodules, 203 migraties</td></tr>
   <tr><td nowrap><b>Geheugen</b></td><td>SQLite FTS5-volledige-tekstzoekfunctie + int8-gekwantiseerde vectorembeddings, getypeerd verval</td></tr>
   <tr><td nowrap><b>Schema's</b></td><td>Zod 4 — validatie van MCP-tool-I/O + API-contracten</td></tr>
   <tr><td nowrap><b>Protocollen</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

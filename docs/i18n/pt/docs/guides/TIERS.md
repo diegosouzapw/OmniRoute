@@ -55,7 +55,6 @@ diárias OAuth.
 | Fornecedor       | Quota gratuita / créditos                            |
 | ---------------- | ---------------------------------------------------- |
 | Kiro AI          | Plano Claude gratuito (utilização razoável generosa) |
-| OpenCode Free    | Sem autenticação, limites de utilização generosos    |
 | Qoder            | OAuth gratuito                                       |
 | Google Vertex AI | $300 em créditos para novas contas                   |
 | Amazon Q         | Plano gratuito para utilizadores da AWS              |

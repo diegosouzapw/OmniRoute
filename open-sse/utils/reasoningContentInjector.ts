@@ -20,7 +20,7 @@ type JsonRecord = Record<string, unknown>;
 /**
  * Model-id predicates for thinking-mode families that need the echo.
  * Matched case-insensitively against the resolved model id (post upstream
- * routing, e.g. `oc/deepseek-v4-flash-free` for the OpenCode meta-provider).
+ * routing, e.g. `opencode-zen/deepseek-v4-flash-free` for OpenCode Zen).
  */
 const THINKING_MODEL_PATTERNS: RegExp[] = [
   /deepseek/i,

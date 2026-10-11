@@ -15,8 +15,8 @@ describe("isOpencodeGoProvider", () => {
     assert.equal(isOpencodeGoProvider("opencode-go"), true);
   });
 
-  it("returns true for opencode", () => {
-    assert.equal(isOpencodeGoProvider("opencode"), true);
+  it("returns false for the removed keyless opencode provider", () => {
+    assert.equal(isOpencodeGoProvider("opencode"), false);
   });
 
   it("returns true for opencode-zen", () => {

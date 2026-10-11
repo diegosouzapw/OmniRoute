@@ -39,7 +39,7 @@ Typowe problemy i rozwiązania dotyczące OmniRoute.
 
 ### Ograniczanie częstotliwości żądań u bezpłatnych dostawców (429 / 400 / 401)
 
-**Objaw**: Podczas używania `model: "auto"` z bezpłatnymi dostawcami lub dostawcami niewymagającymi uwierzytelnienia (opencode, auggie itp.) sporadycznie zamiast odpowiedzi pojawiają się błędy `HTTP 429`, `400` lub `401`. Ponowienie tego samego promptu kilka chwil później kończy się powodzeniem, ale automatyzacja (zadania cron, agenci, skrypty) przerywa działanie przy pierwszym błędzie.
+**Objaw**: Podczas używania `model: "auto"` z bezpłatnymi dostawcami lub dostawcami niewymagającymi uwierzytelnienia (auggie itp.) sporadycznie zamiast odpowiedzi pojawiają się błędy `HTTP 429`, `400` lub `401`. Ponowienie tego samego promptu kilka chwil później kończy się powodzeniem, ale automatyzacja (zadania cron, agenci, skrypty) przerywa działanie przy pierwszym błędzie.
 
 **Główna przyczyna**: Nakładają się trzy niezależne tryby awarii:
 

@@ -14,12 +14,12 @@ Mõelge teenusepakkujast kui **mobiilioperaatorist**. Nii nagu helistamiseks on 
 
 ### Teenusepakkujate tüübid
 
-| Tüüp            | Mis see on                   | Näited                            | Maksumus                 |
-| --------------- | ---------------------------- | --------------------------------- | ------------------------ |
-| **Tasuta**      | Makse pole vajalik           | Kiro, OpenCode Free, Pollinations | $0                       |
-| **API-võti**    | Vajate API-võtit             | OpenAI, Anthropic, Google         | Maksate kasutuse järgi   |
-| **OAuth**       | Logite sisse oma kontoga     | Claude Code, GitHub Copilot       | Tellimus                 |
-| **Veebiküpsis** | Kasutab teie brauseriseanssi | ChatGPT Web (Codex), Gemini Web   | $0 (kasutab teie kontot) |
+| Tüüp            | Mis see on                   | Näited                          | Maksumus                 |
+| --------------- | ---------------------------- | ------------------------------- | ------------------------ |
+| **Tasuta**      | Makse pole vajalik           | Kiro, Pollinations              | $0                       |
+| **API-võti**    | Vajate API-võtit             | OpenAI, Anthropic, Google       | Maksate kasutuse järgi   |
+| **OAuth**       | Logite sisse oma kontoga     | Claude Code, GitHub Copilot     | Tellimus                 |
+| **Veebiküpsis** | Kasutab teie brauseriseanssi | ChatGPT Web (Codex), Gemini Web | $0 (kasutab teie kontot) |
 
 ### Veebiküpsiseid kasutavad teenusepakkujad
 
@@ -46,7 +46,6 @@ ohutult uuesti proovida ainult ebaõnnestunud teenusepakkujate ühendamist.
 2. Valige **Teenusepakkujad** → **Lisa teenusepakkuja**
 3. Valige üks järgmistest tasuta teenusepakkujatest:
    - **Kiro AI** — tasuta Claude'i mudelid (autentimist pole vaja)
-   - **OpenCode Free** — tasuta GPT mudelid (autentimist pole vaja)
    - **Pollinations** — tasuta GPT-5, Claude, Gemini (võtit pole vaja)
    - **LongCat** — 10M tasuta tokenit (ühekordne toetus, nõuab kontot ja KYC-d)
    - **Cloudflare AI** — üle 50 mudeli, 10K neuronit päevas
@@ -176,7 +175,6 @@ Need teenusepakkujad pakuvad **tasuta juurdepääsu** ilma krediitkaardita:
 | Teenusepakkuja    | Tasuta kvoot        | Mudelid                                  | Ühendamisviis         |
 | ----------------- | ------------------- | ---------------------------------------- | --------------------- |
 | **Kiro AI**       | 50 krediiti kuus    | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentimist pole vaja |
-| **OpenCode Free** | Piiramatu           | GPT-4o, Claude, Gemini                   | Autentimist pole vaja |
 | **Pollinations**  | Võtit pole vaja     | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentimist pole vaja |
 | **LongCat**       | Ühekordselt 10M     | LongCat-2.0                              | API-võti + KYC        |
 | **Cloudflare AI** | 10K neuronit päevas | 50+ mudelit                              | Autentimist pole vaja |
@@ -250,7 +248,7 @@ OmniRoute töötab kõige paremini **mitme teenusepakkujaga**. See annab teile j
 
 Parima kasutuskogemuse saamiseks ühendage vähemalt **3 teenusepakkujat**:
 
-1. **Üks tasuta teenusepakkuja** (Kiro, OpenCode Free või Pollinations) — alati saadaval
+1. **Üks tasuta teenusepakkuja** (Kiro või Pollinations) — alati saadaval
 2. **Üks kiire teenusepakkuja** (Groq, Cerebras) — kiirete vastuste jaoks
 3. **Üks kvaliteetne teenusepakkuja** (OpenAI, Anthropic, Google) — keerukate ülesannete jaoks
 
@@ -296,7 +294,7 @@ Seejärel kasutage väärtust `model: "auto"` ja OmniRoute valib iga päringu ja
 
 ### "Kas OmniRoute'i kasutamise eest tuleb maksta?"
 
-**Ei!** OmniRoute on tasuta ja avatud lähtekoodiga. Tasuta teenusepakkujaid (Kiro, OpenCode Free, Pollinations) saab kasutada ilma midagi maksmata. Maksate ainult siis, kui otsustate kasutada tasulisi teenusepakkujaid.
+**Ei!** OmniRoute on tasuta ja avatud lähtekoodiga. Tasuta teenusepakkujaid (Kiro, Pollinations) saab kasutada ilma midagi maksmata. Maksate ainult siis, kui otsustate kasutada tasulisi teenusepakkujaid.
 
 ### "Millisest teenusepakkujast peaksin alustama?"
 

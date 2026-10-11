@@ -59,15 +59,7 @@ OmniRoute သည် `http://localhost:20128` တွင် စတင်ပါမ�
 4. **Connect** ကို နှိပ်ပါ (API key မလိုပါ!)
 5. ပြီးပါပြီ! ယခု Claude model များကို အခမဲ့ အသုံးပြုနိုင်ပါပြီ။
 
-### ရွေးချယ်မှု B: OpenCode Free (Authentication မလိုပါ)
-
-1. `http://localhost:20128` တွင် dashboard ကို ဖွင့်ပါ
-2. **Providers** → **Add Provider** သို့ သွားပါ
-3. **OpenCode Free** ကို ရွေးချယ်ပါ
-4. **Connect** ကို နှိပ်ပါ (API key မလိုပါ!)
-5. ပြီးပါပြီ! ယခု model အများအပြားကို အခမဲ့ အသုံးပြုနိုင်ပါပြီ။
-
-### ရွေးချယ်မှု C: Pollinations (Key မလိုပါ)
+### ရွေးချယ်မှု B: Pollinations (Key မလိုပါ)
 
 1. `http://localhost:20128` တွင် dashboard ကို ဖွင့်ပါ
 2. **Providers** → **Add Provider** သို့ သွားပါ
@@ -163,7 +155,7 @@ Endpoint နှင့် API key ကို သတ်မှတ်ရန် `codex
 
 ### "API key လိုအပ်ပါသလား?"
 
-**မလိုပါ!** API key မပါဘဲ အခမဲ့ provider များ (Kiro၊ OpenCode Free၊ Pollinations) ကို အသုံးပြုနိုင်ပါသည်။ ၎င်းတို့ကို dashboard တွင် ချိတ်ဆက်လိုက်ရုံသာ ဖြစ်သည်။
+**မလိုပါ!** API key မပါဘဲ အခမဲ့ provider များ (Kiro၊ Pollinations) ကို အသုံးပြုနိုင်ပါသည်။ ၎င်းတို့ကို dashboard တွင် ချိတ်ဆက်လိုက်ရုံသာ ဖြစ်သည်။
 
 ### "`auto` ဆိုတာ ဘာလဲ?"
 

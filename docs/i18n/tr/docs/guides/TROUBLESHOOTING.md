@@ -39,7 +39,7 @@ OmniRoute için yaygın sorunlar ve çözümleri.
 
 ### Ücretsiz Sağlayıcılarda Hız Sınırlaması (429 / 400 / 401)
 
-**Belirti**: Ücretsiz/kimlik doğrulamasız sağlayıcılarla (opencode, auggie vb.) `model: "auto"` kullanırken yanıtlar yerine aralıklı olarak `HTTP 429`, `400` veya `401` hataları alırsınız. Aynı istem kısa bir süre sonra yeniden denendiğinde istekler başarılı olur, ancak otomasyon (cron görevleri, aracılar, betikler) ilk hatada kesintiye uğrar.
+**Belirti**: Ücretsiz/kimlik doğrulamasız sağlayıcılarla (auggie vb.) `model: "auto"` kullanırken yanıtlar yerine aralıklı olarak `HTTP 429`, `400` veya `401` hataları alırsınız. Aynı istem kısa bir süre sonra yeniden denendiğinde istekler başarılı olur, ancak otomasyon (cron görevleri, aracılar, betikler) ilk hatada kesintiye uğrar.
 
 **Temel neden**: Birbirinden bağımsız üç hata modu üst üste gelir:
 

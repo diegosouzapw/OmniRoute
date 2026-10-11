@@ -54,7 +54,6 @@ instrumente, context maxim).
 | Furnizor         | Cotă gratuită / credite                               |
 | ---------------- | ----------------------------------------------------- |
 | Kiro AI          | Nivel Claude gratuit (utilizare rezonabilă generoasă) |
-| OpenCode Free    | Fără autentificare, limite de rată generoase          |
 | Qoder            | OAuth gratuit                                         |
 | Google Vertex AI | Credite de 300 USD pentru conturi noi                 |
 | Amazon Q         | Nivel gratuit pentru utilizatorii AWS                 |

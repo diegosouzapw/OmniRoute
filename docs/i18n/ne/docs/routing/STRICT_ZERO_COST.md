@@ -146,13 +146,12 @@ usage adapter सहित, `hardStopGuaranteed: true`) OmniRoute लाई त�
 Offline before/after का लागि, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` ले अझै पनि
 live instance को candidates output विरुद्ध काम गर्छ; यसले प्रत्येक candidate को वास्तविक `connectionId`
 पढ्ने भएकाले connection-safety path पनि परीक्षण गर्छ। Keyless candidate हरू synthetic no-auth
-`connectionId` सहित आउनुपर्छ, वास्तविक connection सहित कहिल्यै होइन। हालको built-in keyless auto path OpenCode Free हो; candidate को ठ्याक्कै सङ्ख्या
+`connectionId` सहित आउनुपर्छ, वास्तविक connection सहित कहिल्यै होइन। candidate को ठ्याक्कै सङ्ख्या
 अझै पनि live model discovery मा निर्भर हुन्छ र पुरानो run बाट सार्नुको सट्टा target deployment मा
 मापन गर्नुपर्छ। कुनै `recurring-*` candidate सँग दर्ता गरिएको usage adapter र
 `hardStopGuaranteed: true` दुवै हुँदा मात्र त्यो पास हुन्छ; अपूर्ण metadata fail-closed नै रहन्छ।
 
-`excludeTosAvoid: true` हुँदा, `tos: "avoid"` भनेर curated गरिएको हरेक candidate हटाइन्छ। OpenCode Free
-मा हाल त्यो निर्णय भएकाले सुरक्षा सक्रिय गर्दा deployment को बाँकी keyless pool खाली हुन सक्छ।
+`excludeTosAvoid: true` हुँदा, `tos: "avoid"` भनेर curated गरिएको हरेक candidate हटाइन्छ।
 यो ToS सुरक्षा सक्रिय गर्दाको अपेक्षित सम्झौता हो, bug होइन: ठ्याक्कै यही कारणले सुरक्षा पूर्वनिर्धारित
 रूपमा `false` हुन्छ (माथिको "ToS सुरक्षा" हेर्नुहोस्)।
 

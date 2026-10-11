@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ഇൻസ്റ്റാൾ ചെയ്യുന്ന നിമിഷം മുതൽ പ്രവർത്തിക്കുന്നു — സീറോ കോൺഫിഗറേഷൻ. മൂന്ന് ഘട്ടങ്ങൾ: 1. ഇൻസ്റ്റാൾ ചെയ്യുക — npm i -g omniroute, സെർവർ localhost:20128-ൽ ബൂട്ട് ചെയ്യുന്നു. 2. നിങ്ങളുടെ ടൂൾ http://localhost:20128/v1-ലേക്ക് പോയിന്റ് ചെയ്യുക — ഏതൊരു OpenAI-അനുയോജ്യമായ ടൂളും (Claude Code, Cursor, Cline). 3. ഇത് മറുപടി നൽകുന്നു — തൽക്ഷണ മറുപടിക്കായി model auto എന്ന് വിളിക്കുക, API കീകളില്ലാതെ, സൈൻഅപ്പ് ഇല്ലാതെ, കോൺഫിഗറേഷൻ ഇല്ലാതെ. കീലെസ് പ്രൊവൈഡറായ OpenCode Free, auto കോംബോയിൽ മുൻകൂട്ടി വയർ ചെയ്തിരിക്കുന്നു, അതിനാൽ ഒരു പുതിയ ഇൻസ്റ്റാളേഷൻ ഉടൻ തന്നെ പ്രതികരിക്കും."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ഇൻസ്റ്റാൾ ചെയ്യുന്ന നിമിഷം മുതൽ പ്രവർത്തിക്കുന്നു — സീറോ കോൺഫിഗറേഷൻ. മൂന്ന് ഘട്ടങ്ങൾ: 1. ഇൻസ്റ്റാൾ ചെയ്യുക — npm i -g omniroute, സെർവർ localhost:20128-ൽ ബൂട്ട് ചെയ്യുന്നു. 2. നിങ്ങളുടെ ടൂൾ http://localhost:20128/v1-ലേക്ക് പോയിന്റ് ചെയ്യുക — ഏതൊരു OpenAI-അനുയോജ്യമായ ടൂളും (Claude Code, Cursor, Cline). 3. ഇത് മറുപടി നൽകുന്നു — തൽക്ഷണ മറുപടിക്കായി model auto എന്ന് വിളിക്കുക, API കീകളില്ലാതെ, സൈൻഅപ്പ് ഇല്ലാതെ, കോൺഫിഗറേഷൻ ഇല്ലാതെ."/>
 
 ```bash
 # പുതിയ ഇൻസ്റ്റാളേഷൻ, സീറോ ക്രെഡൻഷ്യലുകൾ — auto ഇതിനകം പ്രവർത്തിക്കുന്നു:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ഒരു പ്രത്യേക സൗജന്യ ബാക്കെൻഡ് ആണോ നിങ്ങൾ ഇഷ്ടപ്പെടുന്നത്? `oc/…` (OpenCode Free) നേരിട്ട് വിളിക്കുക. തുടർന്ന് `auto`-ലേക്ക് മാറുകയും OmniRoute തിരഞ്ഞെടുക്കാൻ അനുവദിക്കുകയും ചെയ്യുക.</sub>
 
 <sub>📦 **Python, Node.js, PHP, cURL** എന്നിവയ്ക്കായുള്ള ക്വിക്ക്സ്റ്റാർട്ട് സ്ക്രിപ്റ്റുകൾ കോപ്പി-പേസ്റ്റ് ചെയ്യുക → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) ഒരു സൗജന്യ പ്രൊവൈഡർ കണക്റ്റ് ചെയ്യുക (സൈൻ അപ്പ് ആവശ്യമില്ല)**
 
-ഡാഷ്ബോർഡ് → **Providers** → **Kiro AI** (സൗജന്യ Claude, ഓരോ അക്കൗണ്ടിനും ~50 ക്രെഡിറ്റുകൾ/മാസം) അല്ലെങ്കിൽ **OpenCode Free** (ഓതന്റിക്കേഷൻ ആവശ്യമില്ല) കണക്റ്റ് ചെയ്യുക → പൂർത്തിയായി.
+ഡാഷ്ബോർഡ് → **Providers** → **Kiro AI** (സൗജന്യ Claude, ഓരോ അക്കൗണ്ടിനും ~50 ക്രെഡിറ്റുകൾ/മാസം) കണക്റ്റ് ചെയ്യുക → പൂർത്തിയായി.
 
 **3) നിങ്ങളുടെ കോഡിംഗ് ടൂളിനെ ചൂണ്ടിക്കാണിക്കുക**
 
@@ -1266,7 +1264,7 @@ port-ൽ ഒരേ process വഴിയാണ് ലഭ്യമാക്കു�
   <tr><td nowrap><b>റൺടൈം</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ഭാഷ</b></td><td>TypeScript 6.0 — <code>src/</code>, <code>open-sse/</code> എന്നിവയിലുടനീളം <b>100% TypeScript</b> (v2.0 മുതൽ കോറിൽ <code>any</code> ഒന്നുമില്ല)</td></tr>
   <tr><td nowrap><b>ഫ്രെയിംവർക്ക്</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേണലിംഗ്) + LowDB (JSON ലെഗസി) — 137 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 202 മൈഗ്രേഷനുകൾ</td></tr>
+  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേണലിംഗ്) + LowDB (JSON ലെഗസി) — 137 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 203 മൈഗ്രേഷനുകൾ</td></tr>
   <tr><td nowrap><b>മെമ്മറി</b></td><td>SQLite FTS5 പൂർണ്ണ-ടെക്സ്റ്റ് + int8-ക്വാണ്ടൈസ്ഡ് വെക്റ്റർ എംബെഡ്ഡിംഗുകൾ, ടൈപ്പ് ചെയ്ത ഡികേ</td></tr>
   <tr><td nowrap><b>സ്കീമകൾ</b></td><td>Zod 4 — MCP ടൂൾ I/O സാധൂകരണം + API കരാറുകൾ</td></tr>
   <tr><td nowrap><b>പ്രോട്ടോക്കോളുകൾ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

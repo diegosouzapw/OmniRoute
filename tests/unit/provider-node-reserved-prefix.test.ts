@@ -216,7 +216,9 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // SYNTX.ai (#14269) registers id "syntx" and alias "stx" — two more.
   // CodeBuddy International (#15173) adds id "codebuddy-intl" plus alias "cbai" (429 -> 431).
   // Measured on the merged tree: RESERVED_PROVIDER_PREFIXES.size = 431.
-  assert.equal(RESERVED_PREFIX_COUNT, 431);
+  // The keyless OpenCode Free provider was removed (docs/reference/REMOVED_PROVIDERS.md),
+  // taking its id "opencode" and alias "oc" out of the REGISTRY walk (431 -> 429).
+  assert.equal(RESERVED_PREFIX_COUNT, 429);
 });
 
 test("notrack-web registry id and alias stay reserved", () => {

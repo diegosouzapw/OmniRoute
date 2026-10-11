@@ -14,12 +14,12 @@ Isipin ang provider na parang isang **kumpanya ng telekomunikasyon**. Kung paano
 
 ### Mga Uri ng Provider
 
-| Uri            | Ano Ito                          | Mga Halimbawa                     | Gastos                        |
-| -------------- | -------------------------------- | --------------------------------- | ----------------------------- |
-| **Libre**      | Walang kinakailangang bayad      | Kiro, OpenCode Free, Pollinations | $0                            |
-| **API Key**    | Kailangan mo ng API key          | OpenAI, Anthropic, Google         | Magbayad batay sa paggamit    |
-| **OAuth**      | Mag-login gamit ang account      | Claude Code, GitHub Copilot       | Subscription                  |
-| **Web Cookie** | Ginagamit ang browser session mo | ChatGPT Web (Codex), Gemini Web   | $0 (ginagamit ang account mo) |
+| Uri            | Ano Ito                          | Mga Halimbawa                   | Gastos                        |
+| -------------- | -------------------------------- | ------------------------------- | ----------------------------- |
+| **Libre**      | Walang kinakailangang bayad      | Kiro, Pollinations              | $0                            |
+| **API Key**    | Kailangan mo ng API key          | OpenAI, Anthropic, Google       | Magbayad batay sa paggamit    |
+| **OAuth**      | Mag-login gamit ang account      | Claude Code, GitHub Copilot     | Subscription                  |
+| **Web Cookie** | Ginagamit ang browser session mo | ChatGPT Web (Codex), Gemini Web | $0 (ginagamit ang account mo) |
 
 ### Mga Web Cookie Provider
 
@@ -46,7 +46,6 @@ ligtas na subukang muli ang mga nabigo lamang pagkatapos ng bahagyang resulta.
 2. Pumunta sa **Mga Provider** → **Magdagdag ng Provider**
 3. Pumili ng isa sa mga libreng provider na ito:
    - **Kiro AI** — Mga libreng Claude model (walang kinakailangang authentication)
-   - **OpenCode Free** — Mga libreng GPT model (walang kinakailangang authentication)
    - **Pollinations** — Libreng GPT-5, Claude, Gemini (walang kinakailangang key)
    - **LongCat** — 10M libreng token (isang beses na grant, nangangailangan ng account + KYC)
    - **Cloudflare AI** — 50+ model, 10K neuron/araw
@@ -176,7 +175,6 @@ Nag-aalok ang mga provider na ito ng **libreng access** nang hindi nangangailang
 | Provider          | Libreng Quota            | Mga Model                                | Paano Kumonekta        |
 | ----------------- | ------------------------ | ---------------------------------------- | ---------------------- |
 | **Kiro AI**       | 50 credit/buwan          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Walang kailangang auth |
-| **OpenCode Free** | Walang limitasyon        | GPT-4o, Claude, Gemini                   | Walang kailangang auth |
 | **Pollinations**  | Walang kailangang key    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Walang kailangang auth |
 | **LongCat**       | 10M nang isang beses     | LongCat-2.0                              | API key + KYC          |
 | **Cloudflare AI** | 10K neuron/araw          | 50+ model                                | Walang kailangang auth |
@@ -250,7 +248,7 @@ Pinakamahusay na gumagana ang OmniRoute kapag may **maraming provider**. Binibig
 
 Kumonekta sa hindi bababa sa **3 provider** para sa pinakamahusay na karanasan:
 
-1. **Isang libreng provider** (Kiro, OpenCode Free, o Pollinations) — Palaging available
+1. **Isang libreng provider** (Kiro, o Pollinations) — Palaging available
 2. **Isang mabilis na provider** (Groq, Cerebras) — Para sa mabilis na mga tugon
 3. **Isang de-kalidad na provider** (OpenAI, Anthropic, Google) — Para sa mga komplikadong gawain
 
@@ -296,7 +294,7 @@ Pagkatapos, gamitin ang `model: "auto"` at awtomatikong pipiliin ng OmniRoute an
 
 ### "Kailangan ko bang magbayad para magamit ang OmniRoute?"
 
-**Hindi!** Libre at open-source ang OmniRoute. Maaari kang gumamit ng mga libreng provider (Kiro, OpenCode Free, Pollinations) nang walang anumang bayad. Magbabayad ka lang kung pipiliin mong gumamit ng mga may bayad na provider.
+**Hindi!** Libre at open-source ang OmniRoute. Maaari kang gumamit ng mga libreng provider (Kiro, Pollinations) nang walang anumang bayad. Magbabayad ka lang kung pipiliin mong gumamit ng mga may bayad na provider.
 
 ### "Aling provider ang dapat kong unang gamitin?"
 

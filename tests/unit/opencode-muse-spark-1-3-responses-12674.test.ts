@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { opencode_zenProvider } from "../../open-sse/config/providers/registry/opencode/zen/index.ts";
-import { opencodeProvider } from "../../open-sse/config/providers/registry/opencode/index.ts";
 import { getTokenLimit } from "../../open-sse/services/contextManager.ts";
 import {
   OpencodeExecutor,
@@ -12,10 +11,7 @@ import {
 // Issue 12674: Muse Spark 1.3 is served on the Responses API with a 1M
 // context window. These entries only set the wire format; without the
 // explicit window the limit fell back to the 200000 provider default.
-const PROVIDERS = [
-  { id: "opencode-zen", entry: opencode_zenProvider },
-  { id: "opencode", entry: opencodeProvider },
-] as const;
+const PROVIDERS = [{ id: "opencode-zen", entry: opencode_zenProvider }] as const;
 const MODEL_IDS = ["muse-spark-1.3", "muse-spark-1.3-contributor-free"] as const;
 
 test("muse-spark-1.3 models target the Responses API with reasoning enabled", () => {

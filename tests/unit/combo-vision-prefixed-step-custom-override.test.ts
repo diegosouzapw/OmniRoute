@@ -204,14 +204,6 @@ test("a provider whose native ids carry its own name keeps resolving (#12112)", 
   assert.equal(caps.supportsVision, true);
 });
 
-test("a step provider whose alias chain stops early (#2901) resolves like its bare id", () => {
-  const prefixed = getResolvedModelCapabilities({ provider: "opencode", model: "oc/big-pickle" });
-  const bare = getResolvedModelCapabilities({ provider: "opencode", model: "big-pickle" });
-  assert.equal(prefixed.provider, bare.provider);
-  assert.equal(prefixed.model, bare.model);
-  assert.equal(prefixed.supportsThinking, bare.supportsThinking);
-});
-
 test("a custom row stored under the verbatim prefixed id keeps matching", async () => {
   // Operators worked around this bug by declaring the exact step string as the
   // custom model id. That row must keep resolving after the prefix is stripped.

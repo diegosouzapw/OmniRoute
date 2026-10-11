@@ -6,7 +6,7 @@ const { egressIpLockProvidersFromEnv } =
 
 test("#9611-paid: unset env yields the default free-tier egress-lock family", () => {
   const set = egressIpLockProvidersFromEnv(undefined);
-  assert.deepEqual([...set].sort(), ["opencode", "opencode-cli", "opencode-go"]);
+  assert.deepEqual([...set].sort(), ["opencode-cli", "opencode-go"]);
 });
 
 test("#9611-paid: 'none' disables the egress-IP lockout entirely (paid plans)", () => {
@@ -17,15 +17,11 @@ test("#9611-paid: 'none' disables the egress-IP lockout entirely (paid plans)", 
 });
 
 test("#9611-paid: comma-separated list replaces the default family exactly", () => {
-  const set = egressIpLockProvidersFromEnv("opencode, OpenCode-CLI ,agentrouter");
-  assert.deepEqual([...set].sort(), ["agentrouter", "opencode", "opencode-cli"]);
+  const set = egressIpLockProvidersFromEnv("opencode-go, OpenCode-CLI ,agentrouter");
+  assert.deepEqual([...set].sort(), ["agentrouter", "opencode-cli", "opencode-go"]);
 });
 
 test("#9611-paid: blank/whitespace env falls back to the default family", () => {
-  assert.deepEqual([...egressIpLockProvidersFromEnv("")].sort(), [
-    "opencode",
-    "opencode-cli",
-    "opencode-go",
-  ]);
-  assert.equal(egressIpLockProvidersFromEnv("   ").size, 3);
+  assert.deepEqual([...egressIpLockProvidersFromEnv("")].sort(), ["opencode-cli", "opencode-go"]);
+  assert.equal(egressIpLockProvidersFromEnv("   ").size, 2);
 });

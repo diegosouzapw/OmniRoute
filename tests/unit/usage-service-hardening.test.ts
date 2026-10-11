@@ -1427,7 +1427,7 @@ test("usage service opencode happy path returns plan and three quota windows", a
     );
 
   const result: any = await usageService.getUsageForProvider({
-    provider: "opencode",
+    provider: "opencode-zen",
     apiKey: "oc-happy-key",
   });
 
@@ -1441,7 +1441,7 @@ test("usage service opencode happy path returns plan and three quota windows", a
 
 test("usage service opencode no-key returns missing-key message", async () => {
   const result: any = await usageService.getUsageForProvider({
-    provider: "opencode",
+    provider: "opencode-zen",
     apiKey: "",
   });
 

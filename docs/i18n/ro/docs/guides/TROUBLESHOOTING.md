@@ -39,7 +39,7 @@ Probleme frecvente și soluții pentru OmniRoute.
 
 ### Limitarea ratei la furnizorii gratuiți (429 / 400 / 401)
 
-**Simptom**: Când utilizați `model: "auto"` cu furnizori gratuiți/care nu necesită autentificare (opencode, auggie etc.), primiți intermitent `HTTP 429`, `400` sau `401` în locul răspunsurilor. Solicitările reușesc când reîncercați aceeași cerere câteva momente mai târziu, dar automatizarea (sarcini cron, agenți, scripturi) se întrerupe la prima eroare.
+**Simptom**: Când utilizați `model: "auto"` cu furnizori gratuiți/care nu necesită autentificare (auggie etc.), primiți intermitent `HTTP 429`, `400` sau `401` în locul răspunsurilor. Solicitările reușesc când reîncercați aceeași cerere câteva momente mai târziu, dar automatizarea (sarcini cron, agenți, scripturi) se întrerupe la prima eroare.
 
 **Cauza principală**: Trei moduri independente de eșec se cumulează:
 

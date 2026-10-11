@@ -19,7 +19,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-refresh-guard-secret";
 
 const core = await import("../../src/lib/db/core.ts");
-const auth = await import("../../src/sse/services/auth.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
@@ -82,31 +81,6 @@ async function refreshAttemptsFor({ provider, model, credentials, status, body }
     globalThis.fetch = originalFetch;
   }
 }
-
-test("a request-scoped refusal on the no-auth connection starts no refresh", async () => {
-  const credentials = await auth.getProviderCredentials("opencode", null, null, "big-pickle");
-  assert.equal(credentials?.connectionId, "noauth");
-  const attempts = await refreshAttemptsFor({
-    provider: "opencode",
-    model: "big-pickle",
-    credentials,
-    status: 403,
-    body: REFUSAL_BODY,
-  });
-  assert.equal(attempts, 0);
-});
-
-test("a plain 401 on the no-auth connection starts no refresh (nothing to refresh)", async () => {
-  const credentials = await auth.getProviderCredentials("opencode", null, null, "big-pickle");
-  const attempts = await refreshAttemptsFor({
-    provider: "opencode",
-    model: "big-pickle",
-    credentials,
-    status: 401,
-    body: AUTH_BODY,
-  });
-  assert.equal(attempts, 0);
-});
 
 test("a request-scoped refusal on a keyed OpenCode connection starts no refresh", async () => {
   const attempts = await refreshAttemptsFor({

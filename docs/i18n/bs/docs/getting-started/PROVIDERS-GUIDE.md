@@ -16,12 +16,12 @@ Zamislite provajdera kao **telefonskog operatera**. Baš kao što vam je potreba
 
 ### Vrste provajdera
 
-| Vrsta           | Šta je to                         | Primjeri                          | Cijena                 |
-| --------------- | --------------------------------- | --------------------------------- | ---------------------- |
-| **Besplatno**   | Nije potrebno plaćanje            | Kiro, OpenCode Free, Pollinations | $0                     |
-| **API ključ**   | Potreban vam je API ključ         | OpenAI, Anthropic, Google         | Plaćanje po korišćenju |
-| **OAuth**       | Prijavite se svojim nalogom       | Claude Code, GitHub Copilot       | Pretplata              |
-| **Web kolačić** | Koristi sesiju vašeg pretraživača | ChatGPT Web (Codex), Gemini Web   | $0 (koristi vaš nalog) |
+| Vrsta           | Šta je to                         | Primjeri                        | Cijena                 |
+| --------------- | --------------------------------- | ------------------------------- | ---------------------- |
+| **Besplatno**   | Nije potrebno plaćanje            | Kiro, Pollinations              | $0                     |
+| **API ključ**   | Potreban vam je API ključ         | OpenAI, Anthropic, Google       | Plaćanje po korišćenju |
+| **OAuth**       | Prijavite se svojim nalogom       | Claude Code, GitHub Copilot     | Pretplata              |
+| **Web kolačić** | Koristi sesiju vašeg pretraživača | ChatGPT Web (Codex), Gemini Web | $0 (koristi vaš nalog) |
 
 ### Provajderi sa web kolačićima
 
@@ -42,7 +42,6 @@ Ova radnja je opciona: završetak čarobnjaka nikada ne kreira veze sa besplatni
 2. Idite na **Providers** → **Add Provider**
 3. Izaberite jednog od ovih besplatnih provajdera:
    - **Kiro AI** — Besplatni Claude modeli (nije potrebna autentifikacija)
-   - **OpenCode Free** — Besplatni GPT modeli (nije potrebna autentifikacija)
    - **Pollinations** — Besplatni GPT-5, Claude, Gemini (nije potreban ključ)
    - **LongCat** — 10M tokena besplatno (jednokratna dodjela, zahtijeva nalog + KYC)
    - **Cloudflare AI** — 50+ modela, 10K neurona/dan
@@ -172,7 +171,6 @@ Ovi provajderi nude **besplatan pristup** bez kreditne kartice:
 | Provajder         | Besplatna kvota     | Modeli                                   | Kako se povezati           |
 | ----------------- | ------------------- | ---------------------------------------- | -------------------------- |
 | **Kiro AI**       | 50 kredita/mj       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nije potrebna autorizacija |
-| **OpenCode Free** | Neograničeno        | GPT-4o, Claude, Gemini                   | Nije potrebna autorizacija |
 | **Pollinations**  | Nije potreban ključ | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Nije potrebna autorizacija |
 | **LongCat**       | 10M jednokratno     | LongCat-2.0                              | API ključ + KYC            |
 | **Cloudflare AI** | 10K neurona/dan     | 50+ modela                               | Nije potrebna autorizacija |
@@ -246,7 +244,7 @@ OmniRoute najbolje radi sa **više provajdera**. Ovo vam omogućava:
 
 Povežite najmanje **3 provajdera** za najbolje iskustvo:
 
-1. **Jedan besplatni provajder** (Kiro, OpenCode Free ili Pollinations) — Uvijek dostupan
+1. **Jedan besplatni provajder** (Kiro ili Pollinations) — Uvijek dostupan
 2. **Jedan brzi provajder** (Groq, Cerebras) — Za brze odgovore
 3. **Jedan kvalitetni provajder** (OpenAI, Anthropic, Google) — Za složene zadatke
 
@@ -292,7 +290,7 @@ Zatim koristite `model: "auto"` i OmniRoute će automatski odabrati najboljeg za
 
 ### "Da li moram platiti za korištenje OmniRoute-a?"
 
-**Ne!** OmniRoute je besplatan i otvorenog koda. Možete koristiti besplatne provajdere (Kiro, OpenCode Free, Pollinations) bez ikakvog plaćanja. Plaćate samo ako odlučite koristiti plaćene provajdere.
+**Ne!** OmniRoute je besplatan i otvorenog koda. Možete koristiti besplatne provajdere (Kiro, Pollinations) bez ikakvog plaćanja. Plaćate samo ako odlučite koristiti plaćene provajdere.
 
 ### "S kojim provajderom trebam početi?"
 

@@ -14,7 +14,7 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
 // Manual alias overrides — maps slug-style prefixes to canonical provider IDs.
 // These live outside the registry because they represent multiple providers
 // or backward-compatible slug changes, not a single provider's display name.
-// opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
+// opencode/ → opencode-zen (OpenCode Zen; opencode-go is a separate tier)
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // xiaomi/ is the user-visible prefix for MiMo models; register it so
 // parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
@@ -39,10 +39,9 @@ export function resolveProviderAlias(aliasOrId: string | null | undefined): stri
   if (typeof aliasOrId !== "string") return null;
   // Follow the alias chain transitively so intermediate alias-only hops resolve
   // to the final target, but STOP as soon as a hop lands on a registered
-  // provider id (#2901): "oc" must resolve to the no-auth "opencode" provider,
-  // NOT continue through the manual "opencode" → "opencode-zen" slug override —
-  // that override is for user-typed `opencode/` prefixes only. Without this
-  // boundary the no-auth provider becomes unreachable by any prefix.
+  // provider id (#2901): an alias that names a registered provider must not
+  // continue through a manual slug override meant for user-typed prefixes only.
+  // Without this boundary such a provider becomes unreachable by any prefix.
   // Guarded against infinite loops with both a depth limit and a seen-set.
   let current = aliasOrId;
   const seen = new Set<string>();

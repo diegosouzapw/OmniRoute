@@ -14,12 +14,12 @@ Samhlaigh soláthraí mar **oibreoir teileafóin**. Díreach mar a theastaíonn 
 
 ### Cineálacha Soláthraithe
 
-| Cineál              | Cad atá ann                         | Samplaí                           | Costas                       |
-| ------------------- | ----------------------------------- | --------------------------------- | ---------------------------- |
-| **Saor in aisce**   | Ní theastaíonn íocaíocht            | Kiro, OpenCode Free, Pollinations | $0                           |
-| **Eochair API**     | Teastaíonn eochair API uait         | OpenAI, Anthropic, Google         | Íoc de réir úsáide           |
-| **OAuth**           | Logáil isteach le do chuntas        | Claude Code, GitHub Copilot       | Síntiús                      |
-| **Fianán Gréasáin** | Úsáideann sé do sheisiún brabhsálaí | ChatGPT Web (Codex), Gemini Web   | $0 (úsáideann sé do chuntas) |
+| Cineál              | Cad atá ann                         | Samplaí                         | Costas                       |
+| ------------------- | ----------------------------------- | ------------------------------- | ---------------------------- |
+| **Saor in aisce**   | Ní theastaíonn íocaíocht            | Kiro, Pollinations              | $0                           |
+| **Eochair API**     | Teastaíonn eochair API uait         | OpenAI, Anthropic, Google       | Íoc de réir úsáide           |
+| **OAuth**           | Logáil isteach le do chuntas        | Claude Code, GitHub Copilot     | Síntiús                      |
+| **Fianán Gréasáin** | Úsáideann sé do sheisiún brabhsálaí | ChatGPT Web (Codex), Gemini Web | $0 (úsáideann sé do chuntas) |
 
 ### Soláthraithe Fianán Gréasáin
 
@@ -46,7 +46,6 @@ triail eile a bhaint go sábháilte as na cinn ar theip orthu amháin.
 2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
 3. Roghnaigh ceann de na soláthraithe saor in aisce seo:
    - **Kiro AI** — Samhlacha Claude saor in aisce (ní theastaíonn fíordheimhniú)
-   - **OpenCode Free** — Samhlacha GPT saor in aisce (ní theastaíonn fíordheimhniú)
    - **Pollinations** — GPT-5, Claude, Gemini saor in aisce (ní theastaíonn eochair)
    - **LongCat** — 10M comhartha saor in aisce (deontas aonuaire, teastaíonn cuntas + KYC)
    - **Cloudflare AI** — 50+ samhail, 10K néarón/lá
@@ -176,7 +175,6 @@ Cuireann na soláthraithe seo **rochtain saor in aisce** ar fáil gan cárta cre
 | Soláthraí         | Cuóta Saor in Aisce      | Samhlacha                                | Conas Ceangal              |
 | ----------------- | ------------------------ | ---------------------------------------- | -------------------------- |
 | **Kiro AI**       | 50 creidmheas/mí         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Níl fíordheimhniú de dhíth |
-| **OpenCode Free** | Gan teorainn             | GPT-4o, Claude, Gemini                   | Níl fíordheimhniú de dhíth |
 | **Pollinations**  | Níl eochair de dhíth     | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Níl fíordheimhniú de dhíth |
 | **LongCat**       | 10M aonuaire             | LongCat-2.0                              | Eochair API + KYC          |
 | **Cloudflare AI** | 10K néarón/lá            | 50+ samhail                              | Níl fíordheimhniú de dhíth |
@@ -250,7 +248,7 @@ Is fearr a oibríonn OmniRoute le **hil-soláthraithe**. Tugann sé seo duit:
 
 Ceangail **3 sholáthraí** ar a laghad chun an t-eispéireas is fearr a fháil:
 
-1. **Soláthraí amháin saor in aisce** (Kiro, OpenCode Free, nó Pollinations) — Ar fáil i gcónaí
+1. **Soláthraí amháin saor in aisce** (Kiro, nó Pollinations) — Ar fáil i gcónaí
 2. **Soláthraí tapa amháin** (Groq, Cerebras) — Le haghaidh freagraí gasta
 3. **Soláthraí ardchaighdeáin amháin** (OpenAI, Anthropic, Google) — Le haghaidh tascanna casta
 
@@ -296,7 +294,7 @@ Ansin úsáid `model: "auto"` agus roghnóidh OmniRoute an ceann is fearr do gac
 
 ### "An gá dom íoc chun OmniRoute a úsáid?"
 
-**Ní gá!** Tá OmniRoute saor in aisce agus foinse oscailte. Is féidir leat soláthraithe saor in aisce (Kiro, OpenCode Free, Pollinations) a úsáid gan aon íocaíocht a dhéanamh. Ní íocann tú ach amháin má roghnaíonn tú soláthraithe íoctha a úsáid.
+**Ní gá!** Tá OmniRoute saor in aisce agus foinse oscailte. Is féidir leat soláthraithe saor in aisce (Kiro, Pollinations) a úsáid gan aon íocaíocht a dhéanamh. Ní íocann tú ach amháin má roghnaíonn tú soláthraithe íoctha a úsáid.
 
 ### "Cén soláthraí ar cheart dom tosú leis?"
 

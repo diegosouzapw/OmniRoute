@@ -122,7 +122,6 @@ Karamihan sa mga bilang na "libreng token kada buwan" sa larangang ito ay mga ka
 | `modal`          | Tahasang ipinagbabawal ng Seksyon 1.3 ng ToS ang "pagpapaupa, muling pagbebenta, o kung hindi man ay pagpapahintulot sa anumang third party ng direktang access sa o paggamit ng Serbisyo" — ang pagbuo ng self-hoste… |
 | `muse-spark-web` | Tahasang ipinagbabawal ng ToS ng Meta ang awtomatikong access nang walang paunang pahintulot, reverse engineering nang walang nakasulat na pahintulot, at pag-iwas sa mga teknolo…                                     |
 | `nlpcloud`       | Tahasang ipinagbabawal ng ToS ang "pag-set up ng proxy o iba pang device na nagpapahintulot sa iba na i-access ang Serbisyo sa pamamagitan nito" at nagbibigay lamang ng hindi naililipat na,…                         |
-| `opencode`       | Tahasang nililimitahan ng ToS (Anomaly Innovations, Inc.) ang paggamit sa "sarili mong panloob na paggamit, at hindi sa ngalan o para sa kapakinabangan ng anumang third party" — ope…                                 |
 | `t3-web`         | Tahasang nililimitahan ng ToS ang mga account sa personal na paggamit lamang, ipinagbabawal ang pagbabahagi ng credential sa mga third party, at ipinagbabawal ang automated/bot/scraping access — isang s…            |
 
 ### ✅ Karaniwang maluwag — pag-iingat / hindi malinaw / ok (ang iba pa)
@@ -266,7 +265,6 @@ Karamihan sa mga bilang na "libreng token kada buwan" sa larangang ito ay mga ka
 | `nlpcloud`       | walang key             | —                     | —                      | iwasan       | 1          |
 | `nous-research`  | walang key             | —                     | —                      | malabo       | 2          |
 | `nvidia`         | walang key             | —                     | —                      | mag-ingat    | 13         |
-| `opencode`       | walang key             | —                     | —                      | iwasan       | 7          |
 | `pollinations`   | walang key             | —                     | —                      | mag-ingat    | 31         |
 | `publicai`       | walang key             | —                     | —                      | mag-ingat    | 3          |
 | `reka`           | walang key             | —                     | —                      | mag-ingat    | 2          |
@@ -277,17 +275,6 @@ Karamihan sa mga bilang na "libreng token kada buwan" sa larangang ito ay mga ka
 | `uncloseai`      | walang key             | —                     | —                      | mag-ingat    | 3          |
 
 ---
-
-## OpenCode Free: paghihigpit sa kontrata ng client (#14313)
-
-Tinatanggihan ng keyless na provider na `opencode` (pampublikong `https://opencode.ai/zen/v1`) ang anumang request
-na hindi tumutugma sa kontrata ng OpenCode client gamit ang **403 `FreeTierError`** at ang
-pangungusap na _"Magagamit lamang ang libreng tier ng OpenCode mula sa loob ng OpenCode"_. Isa itong
-pagtangging nakabatay sa request (parehong pasya sa bawat account para sa parehong anyo ng request), hindi
-pag-ban sa modelo o cooldown ng koneksyon — inuuri ito ng OmniRoute bilang `project_route_error`, nilalaktawan
-ang lockout / cooldown ng modelo, at (sa synthetic na `noauth` path) pansamantalang ihinihinto ang muling pagpili
-ng auto-combo sa loob ng maikling TTL. Magpadala ng mga request na may hindi bakanteng listahan ng tool, `stream: true`, at mga
-header ng session/UA ng OpenCode (`opencodeFreeTierContract.ts`), o asahan ang 403.
 
 ## Ano ang nagbago mula sa inilabas na catalog (`freeNote`)
 

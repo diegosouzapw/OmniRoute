@@ -51,7 +51,6 @@ bộ lọc năng lực của tác vụ (thị giác, chế độ JSON, công c�
 | Nhà cung cấp     | Hạn mức miễn phí / tín dụng                               |
 | ---------------- | --------------------------------------------------------- |
 | Kiro AI          | Gói Claude miễn phí (chính sách sử dụng hợp lý hào phóng) |
-| OpenCode Free    | Không cần xác thực, giới hạn tốc độ hào phóng             |
 | Qoder            | OAuth miễn phí                                            |
 | Google Vertex AI | $300 tín dụng cho tài khoản mới                           |
 | Amazon Q         | Gói miễn phí cho người dùng AWS                           |

@@ -50,15 +50,14 @@ $/token più basso che soddisfa il filtro delle funzionalità dell'attività
 
 **Provider a costo zero** — piani gratuiti, programmi di credito, quote giornaliere OAuth.
 
-| Provider         | Quota gratuita / crediti                             |
-| ---------------- | ---------------------------------------------------- |
-| Kiro AI          | Piano Claude gratuito (uso corretto generoso)        |
-| OpenCode Free    | Nessuna autenticazione, limiti di frequenza generosi |
-| Qoder            | OAuth gratuito                                       |
-| Google Vertex AI | $300 di crediti per i nuovi account                  |
-| Amazon Q         | Piano gratuito per gli utenti AWS                    |
-| Pollinations     | API pubblica aperta                                  |
-| Cloudflare AI    | Piano gratuito Workers AI                            |
+| Provider         | Quota gratuita / crediti                      |
+| ---------------- | --------------------------------------------- |
+| Kiro AI          | Piano Claude gratuito (uso corretto generoso) |
+| Qoder            | OAuth gratuito                                |
+| Google Vertex AI | $300 di crediti per i nuovi account           |
+| Amazon Q         | Piano gratuito per gli utenti AWS             |
+| Pollinations     | API pubblica aperta                           |
+| Cloudflare AI    | Piano gratuito Workers AI                     |
 
 **Strategia**: la combinazione `auto` con limite di budget instrada qui quando
 le Fasce 1 e 2 falliscono o quando è impostato `useFreeOnly=true`. I provider

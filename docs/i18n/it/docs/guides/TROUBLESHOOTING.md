@@ -39,7 +39,7 @@ Problemi comuni e relative soluzioni per OmniRoute.
 
 ### Limitazione della frequenza sui provider gratuiti (429 / 400 / 401)
 
-**Sintomo**: quando si utilizza `model: "auto"` con provider gratuiti/senza autenticazione (opencode, auggie, ecc.), si ricevono a intermittenza errori `HTTP 429`, `400` o `401` anziché risposte. Le richieste riescono se si riprova con lo stesso prompt pochi istanti dopo, ma l'automazione (job cron, agenti, script) si interrompe al primo errore.
+**Sintomo**: quando si utilizza `model: "auto"` con provider gratuiti/senza autenticazione (auggie, ecc.), si ricevono a intermittenza errori `HTTP 429`, `400` o `401` anziché risposte. Le richieste riescono se si riprova con lo stesso prompt pochi istanti dopo, ma l'automazione (job cron, agenti, script) si interrompe al primo errore.
 
 **Causa principale**: si sommano tre modalità di errore indipendenti:
 

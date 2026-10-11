@@ -151,14 +151,12 @@ pitanje od ekonomske sigurnosti; ova stranica navodi nedostatak umjesto da se pr
 Za izvanmrežnu usporedbu prije i poslije, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` i dalje radi
 s izlazom kandidata aktivne instance; čita stvarni `connectionId` svakog kandidata, pa
 ujedno provjerava put sigurnosti veze. Kandidati bez ključa moraju dolaziti sa sintetičkim
-`connectionId` bez autentifikacije, nikada sa stvarnom vezom. Trenutačni ugrađeni automatski put bez ključa jest OpenCode Free; točan broj kandidata
+`connectionId` bez autentifikacije, nikada sa stvarnom vezom. točan broj kandidata
 i dalje ovisi o otkrivanju aktivnih modela i treba ga izmjeriti na ciljnoj implementaciji umjesto
 prepisivanja iz starijeg pokretanja. Kandidat `recurring-*` prolazi samo kada ima i registrirani
 prilagodnik za praćenje potrošnje i `hardStopGuaranteed: true`; nepotpuni metapodaci i dalje uzrokuju odbijanje.
 
-Uz `excludeTosAvoid: true` uklanja se svaki kandidat s ručno postavljenim `tos: "avoid"`. OpenCode Free
-trenutačno ima tu procjenu, pa uključivanje zaštite može isprazniti preostali skup kandidata bez ključa
-u implementaciji. To je očekivani kompromis pri uključivanju zaštite za Uvjete pružanja usluge, a ne pogreška: zaštita je zadano postavljena na `false`
+Uz `excludeTosAvoid: true` uklanja se svaki kandidat s ručno postavljenim `tos: "avoid"`. To je očekivani kompromis pri uključivanju zaštite za Uvjete pružanja usluge, a ne pogreška: zaštita je zadano postavljena na `false`
 upravo zbog toga (pogledajte „Zaštita za Uvjete pružanja usluge” iznad).
 
 ## Omogućavanje

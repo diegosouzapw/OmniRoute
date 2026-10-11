@@ -144,14 +144,12 @@ nepilnība tiek nosaukta, nevis izlikts, ka tās nav.
 Lai bezsaistē salīdzinātu stāvokli pirms un pēc izmaiņām, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` joprojām darbojas
 ar aktīvas instances kandidātu izvadi; tas nolasa katra kandidāta īsto `connectionId`, tāpēc
 pārbauda arī savienojuma drošības ceļu. Kandidātiem bez atslēgas ir jāsaņem sintētiskais
-bezautentifikācijas `connectionId`, nevis īsts savienojums. Pašreizējais iebūvētais automātiskais ceļš bez atslēgas ir OpenCode Free; precīzs kandidātu skaits
+bezautentifikācijas `connectionId`, nevis īsts savienojums. precīzs kandidātu skaits
 joprojām ir atkarīgs no aktīvās modeļu atklāšanas, un tas jāmēra mērķa izvietojumā, nevis
 jākopē no vecākas izpildes. `recurring-*` kandidāts tiek pieņemts tikai tad, ja tam ir gan reģistrēts
 lietojuma adapteris, gan `hardStopGuaranteed: true`; nepilnīgu metadatu gadījumā piekļuve joprojām pēc noklusējuma tiek liegta.
 
-Ja `excludeTosAvoid: true`, tiek noņemts katrs kandidāts, kas pārvaldītajos datos atzīmēts ar `tos: "avoid"`. OpenCode Free
-pašlaik ir šāds verdikts, tāpēc aizsardzības iespējošana var iztukšot visu izvietojumā atlikušo bezatslēgas
-kopumu. Tas ir paredzams kompromiss, ieslēdzot ToS aizsardzību, nevis kļūda: tieši šī iemesla dēļ aizsardzības noklusējuma vērtība ir `false`
+Ja `excludeTosAvoid: true`, tiek noņemts katrs kandidāts, kas pārvaldītajos datos atzīmēts ar `tos: "avoid"`. Tas ir paredzams kompromiss, ieslēdzot ToS aizsardzību, nevis kļūda: tieši šī iemesla dēļ aizsardzības noklusējuma vērtība ir `false`
 (skatiet iepriekš sadaļu „ToS aizsardzība”).
 
 ## Iespējošana

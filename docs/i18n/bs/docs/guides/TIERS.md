@@ -43,7 +43,6 @@ OmniRoute organizuje 352 podržana provajdera u 3 ekonomska nivoa. Svaki zahtjev
 | Provajder        | Besplatna kvota / krediti                        |
 | ---------------- | ------------------------------------------------ |
 | Kiro AI          | Besplatan Claude nivo (velikodušna fer upotreba) |
-| OpenCode Free    | Bez autorizacije, velikodušni limiti brzine      |
 | Qoder            | Besplatan OAuth                                  |
 | Google Vertex AI | $300 kredita za nove naloge                      |
 | Amazon Q         | Besplatan nivo za AWS korisnike                  |

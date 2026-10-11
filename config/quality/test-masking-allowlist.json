@@ -229,6 +229,121 @@
     "tests/unit/qwen-web-models-discovery-3931.test.ts": {
       "replacement": "tests/unit/provider-models-discovery-split.test.ts",
       "reason": "v3.8.51 #11713 Qwen Web provenance HOLD: the retired chat.qwen.ai discovery integration no longer has a positive model-discovery contract. The replacement asserts qwen-web is absent from PROVIDER_MODELS_CONFIG while the remaining discovery providers retain their mappings; tests/unit/qwen-web-retirement.test.ts supplies the end-to-end retirement guard. Feature retirement, not masking."
+    },
+    "tests/unit/7993-noauth-proxy-routing.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the opencode-zen -> opencode no-auth sibling hydration (#7993); the keyless provider and the sibling map entry are gone."
+    },
+    "tests/unit/auth-opencode-zen-noauth-fallback.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the opencode-zen keyless anonymous fallback (#2962), i.e. OpenCode Free served under the zen id; removed with the provider."
+    },
+    "tests/unit/combo-builder-opencode-prefix.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the oc/ routing prefix of the keyless provider in the combo builder (#2901); the provider and alias are gone."
+    },
+    "tests/unit/issue-11912-opencode-roundrobin-collapse.test.ts": {
+      "sourceRemoved": ["open-sse/services/combo/opencodeTargetAlias.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the opencode/ -> oc/ combo-target rewrite (#11912), deleted with the keyless provider."
+    },
+    "tests/unit/noauth-autocombo-exclude-7622.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): exercised the auto-combo no-auth pool through its only allowlisted member (opencode); the allowlist is now empty so nothing reaches that filter."
+    },
+    "tests/unit/noauth-autocombo-hidden-7620.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): same as the #7622 file: the no-auth auto-combo pool had opencode as its only member."
+    },
+    "tests/unit/noauth-autocombo-lockout-7623.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): same as the #7622 file: the no-auth auto-combo pool had opencode as its only member."
+    },
+    "tests/unit/noauth-sibling-compat-override-7620.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the opencode-zen <-> opencode compat-override sibling merge; the sibling pair is gone."
+    },
+    "tests/unit/opencode-autocombo-search-pair.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the [opencode, opencode-zen] connection search pair, removed with the keyless provider."
+    },
+    "tests/unit/opencode-free-tier-catalog-stale-6998.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): asserted the model list of the deleted keyless registry entry."
+    },
+    "tests/unit/opencode-free-tier-refusal-rotation.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the free-tier refusal branch of the rotation loop and the tool-observation store, both part of the removed contract."
+    },
+    "tests/unit/opencode-free-tier-request-contract.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): dedicated to the removed free-tier request contract."
+    },
+    "tests/unit/opencode-noauth-copy-freetier-14313.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): asserted the catalog copy of the deleted keyless provider and the removed FREE_TIERS.md section."
+    },
+    "tests/unit/opencode-premium-keyless-gate-8681.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the keyless premium-model gate driven by the free-model catalog of the removed contract module."
+    },
+    "tests/unit/opencode-quota-retry-own-tools.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the observed-tool retry of the removed contract."
+    },
+    "tests/unit/opencode-request-shape-retry.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the tool-shape replay of the removed contract."
+    },
+    "tests/unit/opencode-shape-replay-insufficient-quota.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the tool-shape replay of the removed contract."
+    },
+    "tests/unit/opencode-shape-replay-verdict-reread.test.ts": {
+      "sourceRemoved": [
+        "open-sse/executors/opencodeFreeTierContract.ts",
+        "open-sse/executors/opencodeFreeTierRetry.ts",
+        "open-sse/executors/opencodeRequestShape.ts",
+        "open-sse/executors/opencodeToolObservation.ts"
+      ],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): pinned the tool-shape replay of the removed contract."
+    },
+    "tests/unit/repro-6557-noauth-connection-disable-ignored.test.ts": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): needed opencode as an auto-combo no-auth candidate; the allowlist's only member is gone."
+    },
+    "tests/unit/ui/hermes-agent-opencode-free.test.tsx": {
+      "sourceRemoved": ["open-sse/config/providers/registry/opencode/index.ts"],
+      "reason": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): asserted OpenCode Free as the Hermes Agent zero-config provider, removed with it."
     }
   },
   "tests/unit/catalog-updates-v3x.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — os 5 asserts removidos pinavam specs de modelos mimo-v2-* que deixaram de existir no catálogo (54→49). Asserts seguem a remoção dos modelos, não enfraquecimento. Verificado legítimo. Prune após v3.8.45 mergear para main.",
@@ -268,5 +383,26 @@
   "tests/unit/8134-github-t5-fallback-filter.test.ts": "v3.8.50 #11280: #10952 adicionou claude-opus-4.6 ao catálogo do github, então o papel de 'tier provadamente ausente' migrou para claude-opus-4-6-thinking. Os asserts desenrolados de 2 hops viraram um LOOP de 3 hops (cada hop assere pertencimento ao catálogo + ausência do tier morto) mais uma igualdade exata no hop final — cobertura ESTRITAMENTE MAIOR com contagem estática menor (10→9). Verificado legítimo. Prune após v3.8.50 mergear para main.",
   "tests/unit/model-capabilities-registry.test.ts": "v3.8.50 2764812ee4 (eliminate Gemini 3.5 Flash): os IDs gemini-3.5-flash{,-extra-low,-low} e gemini-3-flash-agent foram RETIRADOS do MODEL_SPECS, então os 6 asserts de capabilities por ID (contextWindow/maxOutputTokens/supportsThinking/Tools/Vision) deixaram de ter objeto e foram substituídos pelo assert da ausência (MODEL_SPECS[id] === undefined), net 77→72. Superfície aposentada, não mascaramento. Prune após v3.8.50 mergear para main.",
   "tests/unit/openrouter-free-model-credits-exhausted.test.ts": "v3.8.52 #15436: serve only catalogued free-access models on credits-exhausted connections — the positive `:free` assert moved to tests/unit/openrouter-credits-exhausted-catalog-access.test.ts (a catalogued free-access model is still served); net 5→4 is a split, not masking.",
-  "tests/unit/build/check-workflows.test.ts": "v3.8.52 #14497: fix(ci) fail closed on incomplete workflow audits — os asserts de fallback graceful do parseZizmorOutput (empty/invalid/unknown output → count=0) foram substituídos por assert.throws fail-closed, e o bloco de pinning do build advisory da quality.yml foi substituído pelo contrato de admission-delegation. Asserts migrados ao contrato fail-closed novo, não enfraquecidos (net 73→67). Verificado legítimo. Prune após v3.8.52 mergear para main."
+  "tests/unit/build/check-workflows.test.ts": "v3.8.52 #14497: fix(ci) fail closed on incomplete workflow audits — os asserts de fallback graceful do parseZizmorOutput (empty/invalid/unknown output → count=0) foram substituídos por assert.throws fail-closed, e o bloco de pinning do build advisory da quality.yml foi substituído pelo contrato de admission-delegation. Asserts migrados ao contrato fail-closed novo, não enfraquecidos (net 73→67). Verificado legítimo. Prune após v3.8.52 mergear para main.",
+  "tests/unit/autoCombo/suffixComposition-4517.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the opencode keyless-model assertions were replaced by one uncloseai assertion (16->15).",
+  "tests/unit/combo-catalog-max-input-tokens.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the `oc` alias assertion for the removed provider was dropped; the prefix checks now target opencode-zen (18->17).",
+  "tests/unit/combo-fingerprint-expansion.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): fingerprint expansion had opencode as its only member; the expansion cases that needed a member were removed, the helper and pass-through cases stay (46->28).",
+  "tests/unit/combo-fingerprint-pin-6696.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the |fp| pin split only applies to fingerprint providers, whose only member (opencode) was removed; the two cases that needed it were dropped (9->3).",
+  "tests/unit/combo-pin-implicit-allowlist.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the two fingerprint-expansion allowlist cases needed the removed opencode fingerprint provider (28->24).",
+  "tests/unit/combo-system-prompt-templates-5501.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the two resolveTargetFingerprint cases needed the removed opencode fingerprint provider (23->21).",
+  "tests/unit/combo-vision-prefixed-step-custom-override.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the #2901 oc-alias-chain case targeted the removed provider (24->21).",
+  "tests/unit/first-run-catalog-15059.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the fresh-auto-pool ToS case relied on opencode being the only no-auth auto candidate (10->9); the ToS filter cases now use duckduckgo-web.",
+  "tests/unit/issue-12633-opencode-zen-responses-auth.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the case for the removed base opencode (oc) provider was dropped; zen/go cases stay (8->6).",
+  "tests/unit/issue-12681-opencode-muse-spark-context.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the assertions on the deleted opencode registry entry were dropped; the opencode-zen ones stay (6->3).",
+  "tests/unit/minimax-m3-model-registry.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the case on the deleted opencode registry entry was dropped (33->31).",
+  "tests/unit/noauth-pause-retryable-cooldown.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the selection cases needed the synthetic credentials of the removed keyless opencode provider (the #14313 pause store only covers opencode* ids); the store and envelope cases stay (41->18).",
+  "tests/unit/noauth-refresh-guard.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the two cases on the removed keyless opencode connection were dropped; the keyed opencode-zen and keyed-provider cases stay (5->2).",
+  "tests/unit/opencode-executor.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the free-tier forced-stream Accept case belonged to the removed contract (118->117).",
+  "tests/unit/opencode-go-mimo-reasoning-effort-clamp.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the case for the removed keyless opencode provider (which also asserted the contract's forced stream and tools) was dropped (30->25).",
+  "tests/unit/opencode-mimo-v2.6-context.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the assertions on the deleted opencode registry entry were dropped (6->4).",
+  "tests/unit/opencode-native-session-identity.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the client-session field fed only the removed contract's tool cache and was removed with it (12->11).",
+  "tests/unit/opencode-request-format-race.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the JSON-rebuild race case and the session-field assertions belonged to the removed contract; the format-isolation cases stay (8->4).",
+  "tests/unit/opencode-zen-alias-combo-e2e.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the getSyncedCapability('opencode', ...) cases pinned the removed opencode -> opencode-zen synced-capability fallback (20->15).",
+  "tests/unit/provider-alias-transitive-5918.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the oc -> opencode chain-stop case targeted the removed provider (8->7).",
+  "tests/unit/virtual-auto-combo.test.ts": "v3.8.52 OpenCode Free removal (docs/reference/REMOVED_PROVIDERS.md, PR a definir): the OpenCode Free auto-pool cases were replaced by an empty-allowlist assertion (42->37)."
 }

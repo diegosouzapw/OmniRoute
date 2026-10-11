@@ -14,12 +14,12 @@ Sağlayıcıyı bir **telefon operatörü** gibi düşünün. Arama yapmak için
 
 ### Sağlayıcı Türleri
 
-| Tür              | Nedir                                 | Örnekler                          | Maliyet                  |
-| ---------------- | ------------------------------------- | --------------------------------- | ------------------------ |
-| **Ücretsiz**     | Ödeme gerekmez                        | Kiro, OpenCode Free, Pollinations | $0                       |
-| **API Anahtarı** | Bir API anahtarına ihtiyacınız vardır | OpenAI, Anthropic, Google         | Kullanım başına ödeme    |
-| **OAuth**        | Hesabınızla oturum açarsınız          | Claude Code, GitHub Copilot       | Abonelik                 |
-| **Web Çerezi**   | Tarayıcı oturumunuzu kullanır         | ChatGPT Web (Codex), Gemini Web   | $0 (hesabınızı kullanır) |
+| Tür              | Nedir                                 | Örnekler                        | Maliyet                  |
+| ---------------- | ------------------------------------- | ------------------------------- | ------------------------ |
+| **Ücretsiz**     | Ödeme gerekmez                        | Kiro, Pollinations              | $0                       |
+| **API Anahtarı** | Bir API anahtarına ihtiyacınız vardır | OpenAI, Anthropic, Google       | Kullanım başına ödeme    |
+| **OAuth**        | Hesabınızla oturum açarsınız          | Claude Code, GitHub Copilot     | Abonelik                 |
+| **Web Çerezi**   | Tarayıcı oturumunuzu kullanır         | ChatGPT Web (Codex), Gemini Web | $0 (hesabınızı kullanır) |
 
 ### Web Çerezi Sağlayıcıları
 
@@ -46,7 +46,6 @@ yalnızca başarısız olanları güvenle yeniden deneyebilirsiniz.
 2. **Sağlayıcılar** → **Sağlayıcı Ekle** bölümüne gidin
 3. Şu ücretsiz sağlayıcılardan birini seçin:
    - **Kiro AI** — Ücretsiz Claude modelleri (kimlik doğrulaması gerekmez)
-   - **OpenCode Free** — Ücretsiz GPT modelleri (kimlik doğrulaması gerekmez)
    - **Pollinations** — Ücretsiz GPT-5, Claude, Gemini (anahtar gerekmez)
    - **LongCat** — 10M ücretsiz token (tek seferlik tahsis; hesap + KYC gerektirir)
    - **Cloudflare AI** — 50'den fazla model, günde 10K nöron
@@ -176,7 +175,6 @@ Bu sağlayıcılar, kredi kartı gerektirmeden **ücretsiz erişim** sunar:
 | Sağlayıcı         | Ücretsiz Kota    | Modeller                                 | Nasıl Bağlanılır          |
 | ----------------- | ---------------- | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | Ayda 50 kredi    | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Kimlik doğrulama gerekmez |
-| **OpenCode Free** | Sınırsız         | GPT-4o, Claude, Gemini                   | Kimlik doğrulama gerekmez |
 | **Pollinations**  | Anahtar gerekmez | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Kimlik doğrulama gerekmez |
 | **LongCat**       | Tek seferlik 10M | LongCat-2.0                              | API anahtarı + KYC        |
 | **Cloudflare AI** | Günde 10K nöron  | 50+ model                                | Kimlik doğrulama gerekmez |
@@ -250,7 +248,7 @@ OmniRoute, **birden fazla sağlayıcıyla** en iyi şekilde çalışır. Bu size
 
 En iyi deneyim için en az **3 sağlayıcı** bağlayın:
 
-1. **Bir ücretsiz sağlayıcı** (Kiro, OpenCode Free veya Pollinations) — Her zaman kullanılabilir
+1. **Bir ücretsiz sağlayıcı** (Kiro veya Pollinations) — Her zaman kullanılabilir
 2. **Bir hızlı sağlayıcı** (Groq, Cerebras) — Hızlı yanıtlar için
 3. **Bir yüksek kaliteli sağlayıcı** (OpenAI, Anthropic, Google) — Karmaşık görevler için
 
@@ -296,7 +294,7 @@ Ardından `model: "auto"` kullanın; OmniRoute her istek için en uygun sağlay�
 
 ### "OmniRoute'u kullanmak için ödeme yapmam gerekiyor mu?"
 
-**Hayır!** OmniRoute ücretsiz ve açık kaynaklıdır. Hiçbir ödeme yapmadan ücretsiz sağlayıcıları (Kiro, OpenCode Free, Pollinations) kullanabilirsiniz. Yalnızca ücretli sağlayıcıları kullanmayı tercih ederseniz ödeme yaparsınız.
+**Hayır!** OmniRoute ücretsiz ve açık kaynaklıdır. Hiçbir ödeme yapmadan ücretsiz sağlayıcıları (Kiro, Pollinations) kullanabilirsiniz. Yalnızca ücretli sağlayıcıları kullanmayı tercih ederseniz ödeme yaparsınız.
 
 ### "Hangi sağlayıcıyla başlamalıyım?"
 

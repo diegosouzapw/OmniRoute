@@ -122,7 +122,6 @@ Hầu hết các số liệu về "token miễn phí mỗi tháng" trong lĩnh v
 | `modal`          | Mục 1.3 của ToS nghiêm cấm rõ ràng việc "cho thuê, bán lại hoặc bằng cách khác cho phép bất kỳ bên thứ ba nào trực tiếp truy cập hay sử dụng Dịch vụ" — việc xây dựng một dịch vụ tự lưu trữ… |
 | `muse-spark-web` | ToS của Meta nghiêm cấm rõ ràng việc truy cập tự động khi chưa được cho phép trước, thiết kế ngược khi chưa có văn bản cho phép và vượt qua các biện pháp công nghệ…                          |
 | `nlpcloud`       | ToS nghiêm cấm rõ ràng việc "thiết lập proxy hoặc thiết bị khác cho phép người khác truy cập Dịch vụ thông qua đó" và chỉ cấp quyền không thể chuyển nhượng,…                                 |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) giới hạn rõ ràng việc sử dụng cho "mục đích sử dụng nội bộ của riêng bạn, không thay mặt hoặc vì lợi ích của bất kỳ bên thứ ba nào" — ope…                    |
 | `t3-web`         | ToS giới hạn rõ ràng tài khoản chỉ dành cho mục đích sử dụng cá nhân, cấm chia sẻ thông tin xác thực với bên thứ ba và cấm truy cập tự động/bot/scraping — một…                               |
 
 ### ✅ Nhìn chung được cho phép — thận trọng / không rõ ràng / ổn (phần còn lại)
@@ -266,7 +265,6 @@ Hầu hết các số liệu về "token miễn phí mỗi tháng" trong lĩnh v
 | `nlpcloud`       | không cần khóa   | —                   | —                  | nên tránh          | 1       |
 | `nous-research`  | không cần khóa   | —                   | —                  | không rõ ràng      | 2       |
 | `nvidia`         | không cần khóa   | —                   | —                  | thận trọng         | 13      |
-| `opencode`       | không cần khóa   | —                   | —                  | nên tránh          | 7       |
 | `pollinations`   | không cần khóa   | —                   | —                  | thận trọng         | 31      |
 | `publicai`       | không cần khóa   | —                   | —                  | thận trọng         | 3       |
 | `reka`           | không cần khóa   | —                   | —                  | thận trọng         | 2       |
@@ -277,17 +275,6 @@ Hầu hết các số liệu về "token miễn phí mỗi tháng" trong lĩnh v
 | `uncloseai`      | không cần khóa   | —                   | —                  | thận trọng         | 3       |
 
 ---
-
-## OpenCode Free: hạn chế về giao ước máy khách (#14313)
-
-Nhà cung cấp `opencode` không cần khóa (dịch vụ công khai `https://opencode.ai/zen/v1`) từ chối mọi yêu cầu
-không tuân thủ giao ước máy khách OpenCode bằng mã **403 `FreeTierError`** và thông báo
-_"Gói miễn phí của OpenCode chỉ có thể được sử dụng từ bên trong OpenCode"_. Đây là một
-từ chối theo từng yêu cầu (cùng một kết quả cho mọi tài khoản với cùng cấu trúc yêu cầu), không phải
-lệnh cấm mô hình hay thời gian chờ kết nối — OmniRoute phân loại trường hợp này là `project_route_error`, bỏ qua
-việc khóa mô hình / thời gian chờ và (trên luồng `noauth` tổng hợp) tạm dừng tự động chọn lại tổ hợp
-trong một TTL ngắn. Hãy gửi các yêu cầu có danh sách công cụ không rỗng, `stream: true` và các
-header phiên/UA của OpenCode (`opencodeFreeTierContract.ts`), nếu không sẽ nhận lỗi 403.
 
 ## Những thay đổi so với danh mục đã phát hành (`freeNote`)
 

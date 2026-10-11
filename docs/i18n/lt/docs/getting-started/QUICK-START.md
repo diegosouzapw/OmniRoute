@@ -59,15 +59,7 @@ OmniRoute galite naudoti **visiškai nemokamai**, prijungę nemokamą teikėją.
 4. Spustelėkite **Prisijungti** (API rakto nereikia!)
 5. Baigta! Dabar galite nemokamai naudotis Claude modeliais.
 
-### B parinktis: OpenCode Free (nereikia autentifikuotis)
-
-1. Atidarykite valdymo skydelį adresu `http://localhost:20128`
-2. Eikite į **Teikėjai** → **Pridėti teikėją**
-3. Pasirinkite **OpenCode Free**
-4. Spustelėkite **Prisijungti** (API rakto nereikia!)
-5. Baigta! Dabar galite nemokamai naudotis keliais modeliais.
-
-### C parinktis: Pollinations (rakto nereikia)
+### B parinktis: Pollinations (rakto nereikia)
 
 1. Atidarykite valdymo skydelį adresu `http://localhost:20128`
 2. Eikite į **Teikėjai** → **Pridėti teikėją**
@@ -163,7 +155,7 @@ Užklausos informaciją galite peržiūrėti kairėje šoninėje juostoje spuste
 
 ### „Ar man reikia API rakto?“
 
-**Ne!** Nemokamais teikėjais (Kiro, OpenCode Free, Pollinations) galite naudotis be jokio API rakto. Tiesiog prijunkite juos valdymo skydelyje.
+**Ne!** Nemokamais teikėjais (Kiro, Pollinations) galite naudotis be jokio API rakto. Tiesiog prijunkite juos valdymo skydelyje.
 
 ### „Kas yra `auto`?“
 

@@ -2,7 +2,7 @@
  * Unit tests for MiniMax M3 model registration (#3110)
  *
  * Verifies that MiniMax-M3 is present in the provider registry across
- * all relevant provider entries (minimax, minimax-cn, opencode, opencode-go,
+ * all relevant provider entries (minimax, minimax-cn, opencode-go,
  * opencode-zen, kiro, ollama, nvidia).
  */
 
@@ -27,13 +27,6 @@ describe("MiniMax M3 model registration (#3110)", () => {
     assert.ok(m3, "MiniMax-M3 must be in minimax-cn models");
     assert.equal(m3.name, "MiniMax M3");
     assert.equal(m3.contextLength, 1_048_576);
-  });
-
-  it("opencode provider does NOT list minimax-m3-free (#6998 — delisted upstream, 401)", () => {
-    const entry = REGISTRY.opencode;
-    assert.ok(entry, "opencode registry entry must exist");
-    const m3 = entry.models.find((m) => m.id === "minimax-m3-free");
-    assert.equal(m3, undefined, "minimax-m3-free was delisted from OpenCode Zen's free tier (#6998)");
   });
 
   it("opencode-go provider has minimax-m3 with Claude targetFormat", () => {

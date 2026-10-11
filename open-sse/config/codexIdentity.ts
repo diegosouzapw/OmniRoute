@@ -666,7 +666,7 @@ export function isVerifiedNativeCodexRequest(
 /**
  * Detect the Claude Code CLI as the request *client* from request headers.
  * Used to auto-enable model echo so session restores work when the resolved
- * upstream model (e.g. `oc/nemotron-3-ultra-free`) is not recognized by the
+ * upstream model (e.g. `opencode-zen/nemotron-3-ultra-free`) is not recognized by the
  * Claude Code client on `--resume`.
  */
 export function isClaudeCodeOriginatedHeaders(

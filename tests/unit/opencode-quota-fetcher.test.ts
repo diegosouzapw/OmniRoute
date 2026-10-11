@@ -246,7 +246,7 @@ test("fetchOpencodeQuota caches for 60 seconds but not across API key changes", 
 test("registerOpencodeQuotaFetcher registers every OpenCode provider and quota window", () => {
   registerOpencodeQuotaFetcher();
 
-  for (const provider of ["opencode-go", "opencode", "opencode-zen"]) {
+  for (const provider of ["opencode-go", "opencode-zen"]) {
     assert.equal(getQuotaFetcher(provider), fetchOpencodeQuota);
     assert.deepEqual(getQuotaWindows(provider), ["window_5h", "window_weekly", "window_monthly"]);
   }

@@ -14,12 +14,12 @@ Ponudnika si predstavljajte kot **mobilnega operaterja**. Tako kot za opravljanj
 
 ### Vrste ponudnikov
 
-| Vrsta                | Kaj pomeni                       | Primeri                           | Strošek                  |
-| -------------------- | -------------------------------- | --------------------------------- | ------------------------ |
-| **Brezplačni**       | Plačilo ni potrebno              | Kiro, OpenCode Free, Pollinations | $0                       |
-| **Ključ API**        | Potrebujete ključ API            | OpenAI, Anthropic, Google         | Plačilo glede na uporabo |
-| **OAuth**            | Prijava z vašim računom          | Claude Code, GitHub Copilot       | Naročnina                |
-| **Spletni piškotek** | Uporablja sejo vašega brskalnika | ChatGPT Web (Codex), Gemini Web   | $0 (uporablja vaš račun) |
+| Vrsta                | Kaj pomeni                       | Primeri                         | Strošek                  |
+| -------------------- | -------------------------------- | ------------------------------- | ------------------------ |
+| **Brezplačni**       | Plačilo ni potrebno              | Kiro, Pollinations              | $0                       |
+| **Ključ API**        | Potrebujete ključ API            | OpenAI, Anthropic, Google       | Plačilo glede na uporabo |
+| **OAuth**            | Prijava z vašim računom          | Claude Code, GitHub Copilot     | Naročnina                |
+| **Spletni piškotek** | Uporablja sejo vašega brskalnika | ChatGPT Web (Codex), Gemini Web | $0 (uporablja vaš račun) |
 
 ### Ponudniki s spletnimi piškotki
 
@@ -46,7 +46,6 @@ varno znova poskusite samo z neuspešnimi ponudniki.
 2. Pojdite na **Ponudniki** → **Dodaj ponudnika**
 3. Izberite enega od naslednjih brezplačnih ponudnikov:
    - **Kiro AI** — Brezplačni modeli Claude (preverjanje pristnosti ni potrebno)
-   - **OpenCode Free** — Brezplačni modeli GPT (preverjanje pristnosti ni potrebno)
    - **Pollinations** — Brezplačni modeli GPT-5, Claude in Gemini (ključ ni potreben)
    - **LongCat** — 10 milijonov brezplačnih žetonov (enkratna dodelitev, zahteva račun in preverjanje KYC)
    - **Cloudflare AI** — Več kot 50 modelov, 10.000 nevronov na dan
@@ -176,7 +175,6 @@ Ti ponudniki omogočajo **brezplačen dostop** brez kreditne kartice:
 | Ponudnik          | Brezplačna kvota               | Modeli                                   | Način povezave        |
 | ----------------- | ------------------------------ | ---------------------------------------- | --------------------- |
 | **Kiro AI**       | 50 kreditov/mesec              | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Brez avtentikacije    |
-| **OpenCode Free** | Neomejeno                      | GPT-4o, Claude, Gemini                   | Brez avtentikacije    |
 | **Pollinations**  | Ključ ni potreben              | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Brez avtentikacije    |
 | **LongCat**       | Enkratno 10M                   | LongCat-2.0                              | Ključ API + KYC       |
 | **Cloudflare AI** | 10K nevronov/dan               | Več kot 50 modelov                       | Brez avtentikacije    |
@@ -250,7 +248,7 @@ OmniRoute najbolje deluje z **več ponudniki**. To vam omogoča:
 
 Za najboljšo izkušnjo povežite vsaj **3 ponudnike**:
 
-1. **En brezplačni ponudnik** (Kiro, OpenCode Free ali Pollinations) — Vedno na voljo
+1. **En brezplačni ponudnik** (Kiro ali Pollinations) — Vedno na voljo
 2. **En hiter ponudnik** (Groq, Cerebras) — Za hitre odgovore
 3. **En kakovosten ponudnik** (OpenAI, Anthropic, Google) — Za zahtevna opravila
 
@@ -296,7 +294,7 @@ Nato uporabite `model: "auto"` in OmniRoute bo za vsako zahtevo samodejno izbral
 
 ### "Ali moram za uporabo OmniRoute plačati?"
 
-**Ne!** OmniRoute je brezplačen in odprtokoden. Brez kakršnega koli plačila lahko uporabljate brezplačne ponudnike (Kiro, OpenCode Free, Pollinations). Plačate samo, če se odločite uporabljati plačljive ponudnike.
+**Ne!** OmniRoute je brezplačen in odprtokoden. Brez kakršnega koli plačila lahko uporabljate brezplačne ponudnike (Kiro, Pollinations). Plačate samo, če se odločite uporabljati plačljive ponudnike.
 
 ### "S katerim ponudnikom naj začnem?"
 

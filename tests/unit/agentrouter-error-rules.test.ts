@@ -24,12 +24,10 @@ import assert from "node:assert/strict";
  * (markAccountUnavailable / combo target exhaustion).
  */
 
-const { providerRuleRegistry, getProviderErrorRuleMatch } = await import(
-  "../../open-sse/config/providerErrorRules.ts"
-);
-const { classifyError, checkFallbackError } = await import(
-  "../../open-sse/services/accountFallback.ts"
-);
+const { providerRuleRegistry, getProviderErrorRuleMatch } =
+  await import("../../open-sse/config/providerErrorRules.ts");
+const { classifyError, checkFallbackError } =
+  await import("../../open-sse/services/accountFallback.ts");
 const { RateLimitReason } = await import("../../open-sse/config/constants.ts");
 
 test("A1: agentrouter is registered in providerRuleRegistry", () => {
@@ -38,9 +36,14 @@ test("A1: agentrouter is registered in providerRuleRegistry", () => {
 });
 
 test("A2: quota body → quota_exhausted scope connection (restated 429)", () => {
-  const match = getProviderErrorRuleMatch("agentrouter", 429, {}, {
-    error: { message: "用户额度不足，请充值" },
-  });
+  const match = getProviderErrorRuleMatch(
+    "agentrouter",
+    429,
+    {},
+    {
+      error: { message: "用户额度不足，请充值" },
+    }
+  );
   assert.ok(match, "quota body must match");
   assert.equal(match.reason, "quota_exhausted");
   assert.equal(match.scope, "connection");
@@ -53,9 +56,14 @@ test("A3: quota body also matches the raw (pre-restatement) 403", () => {
 });
 
 test("A4: 无权访问模型 → auth_error scope model, at the RULE layer (getProviderErrorRuleMatch directly) — since #10334 this rule DOES receive production traffic for agentrouter via the honorsRuleLockScope pre-check in checkFallbackError (see A12)", () => {
-  const match = getProviderErrorRuleMatch("agentrouter", 403, {}, {
-    error: { message: "无权访问模型 claude-sonnet-4" },
-  });
+  const match = getProviderErrorRuleMatch(
+    "agentrouter",
+    403,
+    {},
+    {
+      error: { message: "无权访问模型 claude-sonnet-4" },
+    }
+  );
   assert.ok(match);
   assert.equal(match.reason, "auth_error");
   assert.equal(match.scope, "model");
@@ -105,12 +113,13 @@ test("A8: plain agentrouter 403 (no quota text) keeps the default apikey auth pa
 });
 
 test("A9: resolveRuleMatchBody hands full text ONLY to allowlisted providers", async () => {
-  const { resolveRuleMatchBody } = await import(
-    "../../open-sse/config/providerErrorRules.ts"
-  );
+  const { resolveRuleMatchBody } = await import("../../open-sse/config/providerErrorRules.ts");
   const structured = { code: "rate_limited", type: "requests" };
   assert.equal(resolveRuleMatchBody("agentrouter", structured, "用户额度不足"), "用户额度不足");
-  assert.equal(resolveRuleMatchBody("opencode", structured, "monthly usage limit reached"), structured);
+  assert.equal(
+    resolveRuleMatchBody("opencode-zen", structured, "monthly usage limit reached"),
+    structured
+  );
   assert.equal(resolveRuleMatchBody("openrouter", null, "some error text"), null);
   assert.equal(resolveRuleMatchBody("agentrouter", structured, ""), structured);
 });
@@ -132,7 +141,7 @@ test("A10: other providers' checkFallbackError behavior is unchanged (exclusivit
     '{"error":{"message":"organization_quota_exceeded"}}',
     0,
     null,
-    "opencode",
+    "opencode-zen",
     null
   );
   assert.ok(result.shouldFallback);
@@ -148,7 +157,14 @@ test("A11: checkFallbackError surfaces ruleScope=connection for agentrouter quot
 });
 
 test("A12: checkFallbackError 403 无权访问模型 carries the rule's scope + cooldown", () => {
-  const result = checkFallbackError(403, "无权访问模型 claude-opus-5", 0, null, "agentrouter", null);
+  const result = checkFallbackError(
+    403,
+    "无权访问模型 claude-opus-5",
+    0,
+    null,
+    "agentrouter",
+    null
+  );
   assert.equal(result.ruleScope, "model");
   assert.equal(result.reason, "auth_error");
   assert.equal(result.baseCooldownMs, 6 * 60 * 60 * 1000);
@@ -160,7 +176,7 @@ test("A13: exclusivity — ruleScope stays undefined for other providers", () =>
     '{"error":{"message":"organization_quota_exceeded"}}',
     0,
     null,
-    "opencode",
+    "opencode-zen",
     null
   );
   assert.equal(opencode.ruleScope, undefined);
@@ -172,7 +188,8 @@ test("A14: honorsRuleLockScope allowlist is agentrouter + opencode family", asyn
   const { honorsRuleLockScope } = await import("../../open-sse/config/providerErrorRules.ts");
   assert.equal(honorsRuleLockScope("agentrouter"), true);
   assert.equal(honorsRuleLockScope("AgentRouter"), true);
-  assert.equal(honorsRuleLockScope("opencode"), true);
+  // The keyless `opencode` provider was removed (docs/reference/REMOVED_PROVIDERS.md).
+  assert.equal(honorsRuleLockScope("opencode"), false);
   assert.equal(honorsRuleLockScope("opencode-zen"), true);
   assert.equal(honorsRuleLockScope("opencode-go"), true);
   assert.equal(honorsRuleLockScope("opencode-cli"), true);

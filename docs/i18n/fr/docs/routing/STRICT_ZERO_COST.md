@@ -145,13 +145,12 @@ la lacune au lieu de prétendre qu’elle n’existe pas.
 Pour une comparaison hors ligne avant/après, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` fonctionne toujours
 avec la sortie des candidats d’une instance active ; le script lit le véritable `connectionId` de chaque candidat et
 teste donc également le chemin de sécurisation des connexions. Les candidats sans clé doivent arriver avec le
-`connectionId` synthétique sans authentification, jamais avec une véritable connexion. Le chemin automatique sans clé intégré actuel est OpenCode Free ; le nombre exact de candidats
+`connectionId` synthétique sans authentification, jamais avec une véritable connexion. le nombre exact de candidats
 dépend toujours de la découverte des modèles en temps réel et doit être mesuré sur le déploiement cible plutôt que
 copié depuis une exécution antérieure. Un candidat `recurring-*` n’est accepté que s’il dispose à la fois d’un
 adaptateur d’utilisation enregistré et de `hardStopGuaranteed: true` ; les métadonnées incomplètes entraînent toujours un rejet par défaut.
 
-Avec `excludeTosAvoid: true`, tout candidat sélectionné comme `tos: "avoid"` est supprimé. OpenCode Free
-porte actuellement ce verdict ; activer le garde-fou peut donc vider le pool de candidats sans clé restant d’un déploiement.
+Avec `excludeTosAvoid: true`, tout candidat sélectionné comme `tos: "avoid"` est supprimé. activer le garde-fou peut donc vider le pool de candidats sans clé restant d’un déploiement.
 Il s’agit d’un compromis attendu lors de l’activation du garde-fou des conditions d’utilisation, et non d’un bug : le garde-fou vaut `false`
 par défaut précisément pour cette raison (voir « Garde-fou des conditions d’utilisation » ci-dessus).
 

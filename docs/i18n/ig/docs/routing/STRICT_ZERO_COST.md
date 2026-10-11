@@ -145,14 +145,12 @@ oghere ahụ aha kama ime ka à ga-asị na ọ dịghị.
 Maka nnwale offline tupu/mgbe e mesịrị, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` ka na-arụ ọrụ
 megide mmepụta candidates nke instance dị ndụ; ọ na-agụ `connectionId` nke onye ndoro-ndoro ọ bụla n'ezie, ya mere ọ
 na-anwalekwa ụzọ nchekwa njikọ ahụ. Ndị ndoro-ndoro keyless ga-eji `connectionId` no-auth nke e mepụtara
-bịa, ọ bụghị ezigbo njikọ. Ugbu a, ụzọ auto keyless arụnyere n'ime sistemụ bụ OpenCode Free; ọnụ ọgụgụ ndị ndoro-ndoro kpọmkwem
+bịa, ọ bụghị ezigbo njikọ. ọnụ ọgụgụ ndị ndoro-ndoro kpọmkwem
 ka na-adabere na nchọpụta model dị ndụ, e kwesịkwara ịtụ ya na deployment e lekwasịrị anya kama
 iṅomi ya site na nnwale ochie. Onye ndoro-ndoro `recurring-*` na-agafe naanị mgbe o nwere ma
 usage adapter e debanyere aha ma `hardStopGuaranteed: true`; metadata ezughị ezu ka na-eme ka usoro mechie.
 
-Mgbe `excludeTosAvoid: true`, a na-ewepụ onye ndoro-ndoro ọ bụla ahaziri ka `tos: "avoid"`. OpenCode Free
-nwere mkpebi ahụ ugbu a, ya mere ịgbanye nchedo ahụ nwere ike ime ka pool keyless fọdụrụ na deployment ghọọ
-ihe tọgbọ chakoo. Nke a bụ mgbanwe a tụrụ anya ya mgbe a gbanyere nchedo ToS, ọ bụghị ntụpọ: nchedo ahụ bụ `false`
+Mgbe `excludeTosAvoid: true`, a na-ewepụ onye ndoro-ndoro ọ bụla ahaziri ka `tos: "avoid"`. Nke a bụ mgbanwe a tụrụ anya ya mgbe a gbanyere nchedo ToS, ọ bụghị ntụpọ: nchedo ahụ bụ `false`
 na ndabara kpọmkwem n'ihi nke a (lee "Nchedo ToS" n'elu).
 
 ## Ịgbalite

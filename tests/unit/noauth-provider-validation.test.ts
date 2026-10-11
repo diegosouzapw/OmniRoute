@@ -14,7 +14,7 @@ import {
 import { hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 
 // Bug 1: all noAuth providers should allow optional API key
-for (const provider of ["cloudflare-playground", "opencode", "duckduckgo-web", "veoaifree-web"]) {
+for (const provider of ["cloudflare-playground", "uncloseai", "duckduckgo-web", "veoaifree-web"]) {
   test(`${provider} allows optional API key (noAuth provider)`, () => {
     assert.equal(providerAllowsOptionalApiKey(provider), true);
   });
@@ -35,11 +35,11 @@ test("kimi-coding-apikey still has specialized executor", () => {
 });
 
 test("provider proxy controls use a centralized no-auth capability allowlist", () => {
-  assert.equal(supportsNoAuthProviderProxy("opencode"), true);
+  // The allowlist's only member, the keyless OpenCode provider, was removed
+  // (docs/reference/REMOVED_PROVIDERS.md): no current no-auth provider qualifies.
+  assert.equal(supportsNoAuthProviderProxy("opencode"), false);
 
   for (const providerId of Object.keys(NOAUTH_PROVIDERS)) {
-    if (providerId !== "opencode") {
-      assert.equal(supportsNoAuthProviderProxy(providerId), false, providerId);
-    }
+    assert.equal(supportsNoAuthProviderProxy(providerId), false, providerId);
   }
 });

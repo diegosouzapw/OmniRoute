@@ -153,14 +153,12 @@ medzeru pomenúva namiesto toho, aby predstierala, že neexistuje.
 Na offline porovnanie stavu pred a po zmene naďalej funguje `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 s výstupom kandidátov zo spustenej inštancie; číta skutočné `connectionId` každého kandidáta, takže
 overuje aj postup zabezpečenia pripojenia. Kandidáti `keyless` musia prichádzať so syntetickým
-`connectionId` bez autentifikácie, nikdy nie so skutočným pripojením. Aktuálnou vstavanou automatickou cestou `keyless` je OpenCode Free; presné počty kandidátov
+`connectionId` bez autentifikácie, nikdy nie so skutočným pripojením. presné počty kandidátov
 naďalej závisia od aktuálneho zisťovania modelov a mali by sa merať v cieľovom nasadení, nie
 kopírovať zo staršieho spustenia. Kandidát `recurring-*` prejde iba vtedy, keď má zaregistrovaný
 adaptér využitia aj `hardStopGuaranteed: true`; neúplné metadáta sa naďalej bezpečne zamietajú.
 
-Pri `excludeTosAvoid: true` sa odstráni každý kandidát, ktorý má ručne nastavené `tos: "avoid"`. OpenCode Free
-momentálne nesie tento verdikt, takže zapnutie ochrany môže vyprázdniť zostávajúci fond `keyless`
-daného nasadenia. Ide o očakávaný kompromis pri zapnutí ochrany ToS, nie o chybu: ochrana je predvolene nastavená na `false`
+Pri `excludeTosAvoid: true` sa odstráni každý kandidát, ktorý má ručne nastavené `tos: "avoid"`. Ide o očakávaný kompromis pri zapnutí ochrany ToS, nie o chybu: ochrana je predvolene nastavená na `false`
 práve z tohto dôvodu (pozrite si časť „Ochrana ToS“ vyššie).
 
 ## Povolenie

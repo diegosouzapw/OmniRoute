@@ -122,7 +122,6 @@ OmniRoute одговара на питање „да ли је бесплатн�
 | `modal`          | Одељак 1.3 услова коришћења изричито забрањује „изнајмљивање, препродају или омогућавање било којој трећој страни директног приступа Услузи или њеног коришћења на други начин“ — израда решења са сопственим хостингом… |
 | `muse-spark-web` | Услови коришћења компаније Meta изричито забрањују аутоматизовани приступ без претходне дозволе, обрнути инжењеринг без писмене дозволе и заобилажење технолошких…                                                       |
 | `nlpcloud`       | Услови коришћења изричито забрањују „постављање проксија или другог уређаја који другима омогућава приступ Услузи преко њега“ и дају само непреносиво,…                                                                  |
-| `opencode`       | Услови коришћења (Anomaly Innovations, Inc.) изричито ограничавају употребу на „вашу сопствену интерну употребу, а не у име или у корист било које треће стране“ — ope…                                                  |
 | `t3-web`         | Услови коришћења изричито ограничавају налоге искључиво на личну употребу, забрањују дељење акредитива са трећим странама и аутоматизовани/bot/scraping приступ — а с…                                                   |
 
 ### ✅ Углавном дозвољено — опрез / нејасно / у реду (остало)
@@ -266,7 +265,6 @@ OmniRoute одговара на питање „да ли је бесплатн�
 | `nlpcloud`       | без кључа               | —                  | —                    | избегавати       | 1      |
 | `nous-research`  | без кључа               | —                  | —                    | нејасно          | 2      |
 | `nvidia`         | без кључа               | —                  | —                    | опрез            | 13     |
-| `opencode`       | без кључа               | —                  | —                    | избегавати       | 7      |
 | `pollinations`   | без кључа               | —                  | —                    | опрез            | 31     |
 | `publicai`       | без кључа               | —                  | —                    | опрез            | 3      |
 | `reka`           | без кључа               | —                  | —                    | опрез            | 2      |
@@ -277,17 +275,6 @@ OmniRoute одговара на питање „да ли је бесплатн�
 | `uncloseai`      | без кључа               | —                  | —                    | опрез            | 3      |
 
 ---
-
-## OpenCode Free: ograničenje klijentskog ugovora (#14313)
-
-`opencode` provajder bez ključa (javni `https://opencode.ai/zen/v1`) odbija svaki zahtev
-koji nije usklađen sa OpenCode klijentskim ugovorom uz **403 `FreeTierError`** i
-rečenicu _„OpenCode-ov besplatni nivo može da se koristi samo iz OpenCode-a“_. Ovo je
-odbijanje na nivou zahteva (ista odluka za svaki nalog pri istom obliku zahteva), a ne
-zabrana modela ili period hlađenja veze — OmniRoute ga klasifikuje kao `project_route_error`, preskače
-zaključavanje modela / period hlađenja i (na sintetičkoj `noauth` putanji) pauzira automatski ponovni izbor kombinacije
-tokom kratkog TTL-a. Šaljite zahteve koji sadrže nepraznu listu alata, `stream: true` i
-OpenCode zaglavlja sesije/UA (`opencodeFreeTierContract.ts`) ili očekujte 403.
 
 ## Šta se promenilo u odnosu na isporučeni katalog (`freeNote`)
 

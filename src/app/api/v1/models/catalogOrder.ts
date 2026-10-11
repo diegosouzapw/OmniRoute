@@ -10,7 +10,7 @@
  * Group key = owned_by (the public owner identity), NOT the model-id prefix.
  * Built-in providers use their canonical id as owned_by; compatible nodes use the
  * configured node prefix. A single routable public prefix can differ from its owner:
- * no-auth OpenCode publishes `oc/<model>` while retaining owned_by "opencode".
+ * a no-auth provider publishes `<alias>/<model>` while retaining its id as owned_by.
  * Grouping by the prefix would split one provider's models; grouping by owned_by
  * keeps them contiguous.
  *

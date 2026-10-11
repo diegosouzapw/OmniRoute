@@ -151,14 +151,12 @@ die Lücke, anstatt vorzugeben, sie existiere nicht.
 Für einen Offline-Vorher-nachher-Vergleich funktioniert `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` weiterhin
 mit der Kandidatenausgabe einer laufenden Instanz; das Skript liest die tatsächliche `connectionId` jedes Kandidaten und
 prüft somit auch den Verbindungssicherheitspfad. Schlüssellose Kandidaten müssen mit der synthetischen
-No-Auth-`connectionId` eintreffen, niemals mit einer echten Verbindung. Der derzeit integrierte schlüssellose automatische Pfad ist OpenCode Free; die genauen Kandidatenzahlen
+No-Auth-`connectionId` eintreffen, niemals mit einer echten Verbindung. die genauen Kandidatenzahlen
 hängen weiterhin von der Live-Modellerkennung ab und sollten in der Zielbereitstellung gemessen werden, anstatt
 aus einem älteren Durchlauf übernommen zu werden. Ein `recurring-*`-Kandidat besteht die Prüfung nur, wenn sowohl ein registrierter
 Nutzungsadapter als auch `hardStopGuaranteed: true` vorhanden sind; unvollständige Metadaten führen weiterhin standardmäßig zur Ablehnung.
 
-Mit `excludeTosAvoid: true` wird jeder als `tos: "avoid"` kuratierte Kandidat entfernt. OpenCode Free
-weist derzeit dieses Urteil auf, sodass das Aktivieren des Schutzmechanismus den verbleibenden schlüssellosen
-Pool einer Bereitstellung leeren kann. Dies ist eine erwartete Abwägung beim Aktivieren des ToS-Schutzmechanismus und kein Fehler: Der Schutzmechanismus ist
+Mit `excludeTosAvoid: true` wird jeder als `tos: "avoid"` kuratierte Kandidat entfernt. Dies ist eine erwartete Abwägung beim Aktivieren des ToS-Schutzmechanismus und kein Fehler: Der Schutzmechanismus ist
 genau aus diesem Grund standardmäßig auf `false` gesetzt (siehe „ToS-Schutzmechanismus“ oben).
 
 ## Aktivierung

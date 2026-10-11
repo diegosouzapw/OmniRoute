@@ -52,7 +52,6 @@ koji zadovoljava filtar mogućnosti zadatka (slike, JSON način rada, alati, mak
 | Pružatelj usluga | Besplatna kvota / krediti                                         |
 | ---------------- | ----------------------------------------------------------------- |
 | Kiro AI          | Besplatna razina za Claude (velikodušna politika poštene uporabe) |
-| OpenCode Free    | Bez autentifikacije, velikodušna ograničenja učestalosti          |
 | Qoder            | Besplatni OAuth                                                   |
 | Google Vertex AI | 300 USD kredita za nove račune                                    |
 | Amazon Q         | Besplatna razina za korisnike AWS-a                               |

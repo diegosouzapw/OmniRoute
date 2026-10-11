@@ -145,13 +145,12 @@ celah tersebut alih-alih berpura-pura bahwa celah itu tidak ada.
 Untuk perbandingan sebelum/sesudah secara offline, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` tetap dapat digunakan
 terhadap output kandidat dari instans aktif; skrip tersebut membaca `connectionId` aktual setiap kandidat, sehingga
 juga menguji jalur keamanan koneksi. Kandidat keyless harus disertai
-`connectionId` tanpa autentikasi sintetis, bukan koneksi aktual. Jalur otomatis keyless bawaan saat ini adalah OpenCode Free; jumlah kandidat yang tepat
+`connectionId` tanpa autentikasi sintetis, bukan koneksi aktual. jumlah kandidat yang tepat
 tetap bergantung pada penemuan model secara langsung dan sebaiknya diukur pada deployment target, bukan
 disalin dari proses yang lebih lama. Kandidat `recurring-*` hanya lolos jika memiliki adaptor
 penggunaan yang terdaftar dan `hardStopGuaranteed: true`; metadata yang tidak lengkap tetap ditutup secara aman.
 
-Dengan `excludeTosAvoid: true`, setiap kandidat yang dikurasi sebagai `tos: "avoid"` akan dihapus. OpenCode Free
-saat ini memiliki putusan tersebut, sehingga mengaktifkan pelindung dapat mengosongkan pool keyless yang tersisa dalam suatu deployment.
+Dengan `excludeTosAvoid: true`, setiap kandidat yang dikurasi sebagai `tos: "avoid"` akan dihapus.
 Ini merupakan konsekuensi yang memang diharapkan saat mengaktifkan pelindung ToS, bukan bug: pelindung tersebut bernilai `false`
 secara default tepat karena alasan ini (lihat "Pelindung ToS" di atas).
 

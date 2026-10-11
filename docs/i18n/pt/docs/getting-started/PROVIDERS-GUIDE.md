@@ -14,12 +14,12 @@ Pense num fornecedor como um **operador de telecomunicações**. Tal como precis
 
 ### Tipos de fornecedores
 
-| Tipo             | O que é                             | Exemplos                          | Custo                    |
-| ---------------- | ----------------------------------- | --------------------------------- | ------------------------ |
-| **Gratuito**     | Não é necessário qualquer pagamento | Kiro, OpenCode Free, Pollinations | $0                       |
-| **Chave de API** | Precisa de uma chave de API         | OpenAI, Anthropic, Google         | Pagamento por utilização |
-| **OAuth**        | Inicia sessão com a sua conta       | Claude Code, GitHub Copilot       | Subscrição               |
-| **Cookie Web**   | Utiliza a sessão do seu navegador   | ChatGPT Web (Codex), Gemini Web   | $0 (utiliza a sua conta) |
+| Tipo             | O que é                             | Exemplos                        | Custo                    |
+| ---------------- | ----------------------------------- | ------------------------------- | ------------------------ |
+| **Gratuito**     | Não é necessário qualquer pagamento | Kiro, Pollinations              | $0                       |
+| **Chave de API** | Precisa de uma chave de API         | OpenAI, Anthropic, Google       | Pagamento por utilização |
+| **OAuth**        | Inicia sessão com a sua conta       | Claude Code, GitHub Copilot     | Subscrição               |
+| **Cookie Web**   | Utiliza a sessão do seu navegador   | ChatGPT Web (Codex), Gemini Web | $0 (utiliza a sua conta) |
 
 ### Fornecedores com cookies Web
 
@@ -46,7 +46,6 @@ pode voltar a tentar em segurança apenas os que falharam.
 2. Aceda a **Fornecedores** → **Adicionar fornecedor**
 3. Selecione um destes fornecedores gratuitos:
    - **Kiro AI** — Modelos Claude gratuitos (sem necessidade de autenticação)
-   - **OpenCode Free** — Modelos GPT gratuitos (sem necessidade de autenticação)
    - **Pollinations** — GPT-5, Claude e Gemini gratuitos (sem necessidade de chave)
    - **LongCat** — 10 milhões de tokens gratuitos (oferta única, requer conta + KYC)
    - **Cloudflare AI** — Mais de 50 modelos, 10 mil neurónios/dia
@@ -176,7 +175,6 @@ Estes fornecedores oferecem **acesso gratuito** sem cartão de crédito:
 | Fornecedor        | Quota Gratuita           | Modelos                                  | Como Ligar              |
 | ----------------- | ------------------------ | ---------------------------------------- | ----------------------- |
 | **Kiro AI**       | 50 créditos/mês          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Sem autenticação        |
-| **OpenCode Free** | Ilimitada                | GPT-4o, Claude, Gemini                   | Sem autenticação        |
 | **Pollinations**  | Sem chave necessária     | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Sem autenticação        |
 | **LongCat**       | 10M uma única vez        | LongCat-2.0                              | Chave de API + KYC      |
 | **Cloudflare AI** | 10K neurónios/dia        | 50+ modelos                              | Sem autenticação        |
@@ -250,7 +248,7 @@ O OmniRoute funciona melhor com **vários fornecedores**. Isto proporciona-lhe:
 
 Ligue pelo menos **3 fornecedores** para obter a melhor experiência:
 
-1. **Um fornecedor gratuito** (Kiro, OpenCode Free ou Pollinations) — Sempre disponível
+1. **Um fornecedor gratuito** (Kiro ou Pollinations) — Sempre disponível
 2. **Um fornecedor rápido** (Groq, Cerebras) — Para respostas rápidas
 3. **Um fornecedor de qualidade** (OpenAI, Anthropic, Google) — Para tarefas complexas
 
@@ -296,7 +294,7 @@ Em seguida, utilize `model: "auto"` e o OmniRoute escolherá automaticamente o m
 
 ### "Tenho de pagar para utilizar o OmniRoute?"
 
-**Não!** O OmniRoute é gratuito e de código aberto. Pode utilizar fornecedores gratuitos (Kiro, OpenCode Free, Pollinations) sem pagar nada. Só paga se optar por utilizar fornecedores pagos.
+**Não!** O OmniRoute é gratuito e de código aberto. Pode utilizar fornecedores gratuitos (Kiro, Pollinations) sem pagar nada. Só paga se optar por utilizar fornecedores pagos.
 
 ### "Com que fornecedor devo começar?"
 

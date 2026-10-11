@@ -59,15 +59,7 @@ Bepul provayderni ulash orqali OmniRoute’dan **hech qanday toʻlovsiz** foydal
 4. **Ulash** tugmasini bosing (API kaliti kerak emas!)
 5. Tayyor! Endi Claude modellaridan bepul foydalanishingiz mumkin.
 
-### B variant: OpenCode Free (Autentifikatsiyasiz)
-
-1. `http://localhost:20128` manzilidagi boshqaruv panelini oching
-2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
-3. **OpenCode Free**’ni tanlang
-4. **Ulash** tugmasini bosing (API kaliti kerak emas!)
-5. Tayyor! Endi bir nechta modeldan bepul foydalanishingiz mumkin.
-
-### C variant: Pollinations (Kalit talab qilinmaydi)
+### B variant: Pollinations (Kalit talab qilinmaydi)
 
 1. `http://localhost:20128` manzilidagi boshqaruv panelini oching
 2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
@@ -163,7 +155,7 @@ Chap yon paneldagi [Monitoring/Jurnallar](http://localhost:20128/dashboard/logs)
 
 ### "Menga API kaliti kerakmi?"
 
-**Yoʻq!** Bepul provayderlardan (Kiro, OpenCode Free, Pollinations) hech qanday API kalitisiz foydalanishingiz mumkin. Ularni shunchaki boshqaruv panelida ulang.
+**Yoʻq!** Bepul provayderlardan (Kiro, Pollinations) hech qanday API kalitisiz foydalanishingiz mumkin. Ularni shunchaki boshqaruv panelida ulang.
 
 ### "`auto` nima?"
 

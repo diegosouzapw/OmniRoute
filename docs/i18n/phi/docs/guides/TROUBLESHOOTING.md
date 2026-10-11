@@ -39,7 +39,7 @@ Mga karaniwang problema at solusyon para sa OmniRoute.
 
 ### Paglilimita sa Rate sa mga Libreng Provider (429 / 400 / 401)
 
-**Sintomas**: Kapag gumagamit ng `model: "auto"` sa mga libre/walang-auth na provider (opencode, auggie, atbp.), paminsan-minsan ay makakatanggap ka ng `HTTP 429`, `400`, o `401` sa halip na mga sagot. Nagiging matagumpay ang mga request kapag muling sinubukan ang parehong prompt makalipas ang ilang sandali, ngunit humihinto ang automation (mga cron job, agent, script) sa unang pagkabigo.
+**Sintomas**: Kapag gumagamit ng `model: "auto"` sa mga libre/walang-auth na provider (auggie, atbp.), paminsan-minsan ay makakatanggap ka ng `HTTP 429`, `400`, o `401` sa halip na mga sagot. Nagiging matagumpay ang mga request kapag muling sinubukan ang parehong prompt makalipas ang ilang sandali, ngunit humihinto ang automation (mga cron job, agent, script) sa unang pagkabigo.
 
 **Ugat ng problema**: Nagsasabay-sabay ang tatlong magkakahiwalay na uri ng pagkabigo:
 

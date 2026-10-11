@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ઇન્સ્ટોલ કરતાની સાથે જ કામ કરે છે — ઝીરો કન્ફિગ. ત્રણ પગલાં: 1. ઇન્સ્ટોલ કરો — npm i -g omniroute, સર્વર localhost:20128 પર બૂટ થાય છે. 2. તમારા ટૂલને http://localhost:20128/v1 પર નિર્દેશિત કરો — કોઈપણ OpenAI-સુસંગત ટૂલ (Claude Code, Cursor, Cline). 3. તે જવાબ આપે છે — તાત્કાલિક જવાબ માટે મોડેલ auto ને કૉલ કરો, કોઈ API કી, કોઈ સાઇનઅપ, કોઈ કન્ફિગરેશન વિના. કીલેસ પ્રદાતા OpenCode Free auto કોમ્બોમાં પ્રી-વાયર્ડ છે, તેથી તાજી ઇન્સ્ટોલેશન તરત જ પ્રતિસાદ આપે છે."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ઇન્સ્ટોલ કરતાની સાથે જ કામ કરે છે — ઝીરો કન્ફિગ. ત્રણ પગલાં: 1. ઇન્સ્ટોલ કરો — npm i -g omniroute, સર્વર localhost:20128 પર બૂટ થાય છે. 2. તમારા ટૂલને http://localhost:20128/v1 પર નિર્દેશિત કરો — કોઈપણ OpenAI-સુસંગત ટૂલ (Claude Code, Cursor, Cline). 3. તે જવાબ આપે છે — તાત્કાલિક જવાબ માટે મોડેલ auto ને કૉલ કરો, કોઈ API કી, કોઈ સાઇનઅપ, કોઈ કન્ફિગરેશન વિના."/>
 
 ```bash
 # તાજી ઇન્સ્ટોલેશન, શૂન્ય ઓળખપત્રો — `auto` પહેલેથી જ કામ કરે છે:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>કોઈ ચોક્કસ મફત બેકએન્ડ પસંદ કરો છો? `oc/…` (OpenCode Free) ને સીધો કૉલ કરો. પછી `auto` પર અપગ્રેડ કરો અને OmniRoute ને પસંદ કરવા દો.</sub>
 
 <sub>📦 **Python, Node.js, PHP, અને cURL** માટે ક્વિકસ્ટાર્ટ સ્ક્રિપ્ટ્સ કોપી-પેસ્ટ કરો → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) મફત પ્રદાતા જોડો (સાઇનઅપની જરૂર નથી)**
 
-ડૅશબોર્ડ → **પ્રદાતાઓ** → **Kiro AI** (મફત Claude, દરેક એકાઉન્ટ દીઠ ~50 ક્રેડિટ/મહિનો) અથવા **OpenCode Free** (ઑથેન્ટિકેશનની જરૂર નથી) જોડો → પૂર્ણ.
+ડૅશબોર્ડ → **પ્રદાતાઓ** → **Kiro AI** (મફત Claude, દરેક એકાઉન્ટ દીઠ ~50 ક્રેડિટ/મહિનો) જોડો → પૂર્ણ.
 
 **3) તમારા કોડિંગ ટૂલને નિર્દેશિત કરો**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 પણ તેન�
   <tr><td nowrap><b>રનટાઇમ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ભાષા</b></td><td>TypeScript 6.0 — <code>src/</code> અને <code>open-sse/</code>માં સર્વત્ર <b>100% TypeScript</b> (v2.0થી કોરમાં એકપણ <code>any</code> નથી)</td></tr>
   <tr><td nowrap><b>ફ્રેમવર્ક</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ડેટાબેઝ</b></td><td>better-sqlite3 (SQLite, WAL જર્નલિંગ) + LowDB (જૂનું JSON) — 137 ડોમેન મોડ્યુલ, 202 માઇગ્રેશન</td></tr>
+  <tr><td nowrap><b>ડેટાબેઝ</b></td><td>better-sqlite3 (SQLite, WAL જર્નલિંગ) + LowDB (જૂનું JSON) — 137 ડોમેન મોડ્યુલ, 203 માઇગ્રેશન</td></tr>
   <tr><td nowrap><b>મેમરી</b></td><td>SQLite FTS5 પૂર્ણ-ટેક્સ્ટ + int8-ક્વોન્ટાઇઝ્ડ વેક્ટર એમ્બેડિંગ્સ, ટાઇપ્ડ ડિકે</td></tr>
   <tr><td nowrap><b>સ્કીમા</b></td><td>Zod 4 — MCP ટૂલ I/O માન્યતા + API કોન્ટ્રાક્ટ</td></tr>
   <tr><td nowrap><b>પ્રોટોકોલ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

@@ -80,8 +80,8 @@ export function getProviderModels(aliasOrId: string): RegistryModel[] {
   // provider id (e.g. "github") and resolve id→alias before reading the namespace
   // map — so callers don't need to know which form they hold. We resolve here rather
   // than mirroring raw-id keys into PROVIDER_MODELS, whose keys ARE the public
-  // prefixes (a raw id like "opencode" would collide with the opencode-zen route —
-  // see #2798/#3870).
+  // prefixes (a raw id could collide with another provider's route — see
+  // #2798/#3870).
   const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
   return PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId] || [];
 }
@@ -215,10 +215,10 @@ export function findModelName(aliasOrId: string, modelId: string): string {
 // OpenCode's Muse Spark family is Responses-only. Keep this rule provider-scoped
 // and version-agnostic so a newly published Muse Spark model is routed correctly
 // before the static catalog is refreshed.
-const OPENCODE_MUSE_SPARK_ALIASES = new Set(["oc", "opencode-zen", "opencode-go"]);
+const OPENCODE_MUSE_SPARK_ALIASES = new Set(["opencode-zen", "opencode-go"]);
 const MUSE_SPARK_MODEL_PATTERN = /^muse-spark(?:-|$)/i;
 
-const OPENCODE_MODEL_PREFIXES = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"] as const;
+const OPENCODE_MODEL_PREFIXES = ["opencode/", "opencode-zen/", "opencode-go/"] as const;
 
 /**
  * OpenCode Zen's Responses endpoint accepts the upstream model id only. The
@@ -243,9 +243,9 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   const bareModelId = prefix ? modelId.slice(prefix.length) : modelId;
   const found = PROVIDER_MODELS[alias]?.find((m) => m.id === bareModelId);
   if (found?.targetFormat) return found.targetFormat;
-  // Resolved models can still carry the raw provider id (for example
-  // "opencode/muse-spark-1.3-contributor-free") even when the public alias is
-  // "oc". Match the family against the final model segment so both forms work.
+  // Resolved models can still carry an extra provider segment (for example
+  // "opencode/muse-spark-1.3-contributor-free" under opencode-zen). Match the
+  // family against the final model segment so both forms work.
   const modelFamilyId = bareModelId.split("/").pop() || bareModelId;
   if (OPENCODE_MUSE_SPARK_ALIASES.has(alias) && MUSE_SPARK_MODEL_PATTERN.test(modelFamilyId)) {
     return "openai-responses";

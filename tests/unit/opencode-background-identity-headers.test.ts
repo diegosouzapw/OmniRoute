@@ -9,7 +9,7 @@
  *    synthesizes the OpenCode CLI identity (UA + x-opencode-client/project/
  *    request/session) for non-chat fetches, with a STABLE per-caller session
  *    fingerprint seeded by the calling connection/workspace.
- * 2. `PROVIDER_MODELS_CONFIG` entries for opencode / opencode-zen /
+ * 2. `PROVIDER_MODELS_CONFIG` entries for opencode-zen /
  *    opencode-go (src/app/api/providers/[id]/models/discovery/
  *    providerModelsConfig.ts) route discovery through that helper, and the
  *    seed prefers the connection's `opencodeGoWorkspaceId` so connections
@@ -64,8 +64,8 @@ test("explicit userAgent override wins over the CLI default", () => {
   assert.equal(headers["User-Agent"], "opencode-cli/9.9.9");
 });
 
-test("discovery entries for opencode / opencode-zen / opencode-go attach the session header", () => {
-  for (const provider of ["opencode", "opencode-zen", "opencode-go"] as const) {
+test("discovery entries for opencode-zen / opencode-go attach the session header", () => {
+  for (const provider of ["opencode-zen", "opencode-go"] as const) {
     const entry = PROVIDER_MODELS_CONFIG[provider];
     assert.ok(entry, `PROVIDER_MODELS_CONFIG missing ${provider}`);
     assert.equal(typeof entry.buildHeaders, "function", `${provider} must use buildHeaders`);

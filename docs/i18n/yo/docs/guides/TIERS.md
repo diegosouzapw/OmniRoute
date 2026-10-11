@@ -48,15 +48,14 @@ tàbí lẹ́yìn tí àwọn ìpín Ìpele 1 bá dé òpin.
 
 **Àwọn olùpèsè aláìlówó** — àwọn ìpele ọ̀fẹ́, àwọn ètò kírẹ́díìtì, àwọn ìpín OAuth ojoojúmọ́.
 
-| Olùpèsè          | Ìpín ọ̀fẹ́ / àwọn kírẹ́díìtì                  |
-| ---------------- | ------------------------------------------ |
-| Kiro AI          | Ìpele Claude ọ̀fẹ́ (lílò tó bọ́gbọ́n mu lọ́pọ̀)  |
-| OpenCode Free    | Kò nílò ìfàṣẹsí, àwọn òpin ìwọ̀n lílò tó pọ̀ |
-| Qoder            | OAuth ọ̀fẹ́                                  |
-| Google Vertex AI | Kírẹ́díìtì $300 fún àkọọ́lẹ̀ tuntun           |
-| Amazon Q         | Ìpele ọ̀fẹ́ fún àwọn aṣàmúlò AWS             |
-| Pollinations     | API gbogbogbò tó ṣí sílẹ̀                   |
-| Cloudflare AI    | Ìpele Workers AI ọ̀fẹ́                       |
+| Olùpèsè          | Ìpín ọ̀fẹ́ / àwọn kírẹ́díìtì                 |
+| ---------------- | ----------------------------------------- |
+| Kiro AI          | Ìpele Claude ọ̀fẹ́ (lílò tó bọ́gbọ́n mu lọ́pọ̀) |
+| Qoder            | OAuth ọ̀fẹ́                                 |
+| Google Vertex AI | Kírẹ́díìtì $300 fún àkọọ́lẹ̀ tuntun          |
+| Amazon Q         | Ìpele ọ̀fẹ́ fún àwọn aṣàmúlò AWS            |
+| Pollinations     | API gbogbogbò tó ṣí sílẹ̀                  |
+| Cloudflare AI    | Ìpele Workers AI ọ̀fẹ́                      |
 
 **Ìlànà**: àpapọ̀ `auto` pẹ̀lú òpin ìnáwó máa ń darí síbí nígbà tí Ìpele 1+2 bá kùnà
 tàbí nígbà tí a bá ṣètò `useFreeOnly=true`. Àwọn olùpèsè ọ̀fẹ́ sábà máa ń ní

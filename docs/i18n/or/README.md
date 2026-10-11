@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ଆପଣ ଏହାକୁ ଇନଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — ଶୂନ୍ୟ କନଫିଗ୍। ତିନୋଟି ପଦକ୍ଷେପ: 1. ଇନଷ୍ଟଲ୍ କରନ୍ତୁ — npm i -g omniroute, ସର୍ଭର localhost:20128 ରେ ବୁଟ୍ ହୁଏ। 2. ଆପଣଙ୍କ ଟୁଲ୍ କୁ http://localhost:20128/v1 କୁ ପଏଣ୍ଟ କରନ୍ତୁ — ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍ (Claude Code, Cursor, Cline)। 3. ଏହା ଉତ୍ତର ଦିଏ — ତୁରନ୍ତ ଉତ୍ତର ପାଇଁ ମଡେଲ୍ auto କୁ କଲ୍ କରନ୍ତୁ, କୌଣସି API କି' ନାହିଁ, କୌଣସି ସାଇନ୍ ଅପ୍ ନାହିଁ, କୌଣସି କନଫିଗରେସନ୍ ନାହିଁ। କି'ଲେସ୍ ପ୍ରୋଭାଇଡର୍ OpenCode Free auto କମ୍ବୋରେ ପୂର୍ବରୁ ୱାୟାର୍ ହୋଇଛି, ତେଣୁ ଏକ ନୂତନ ଇନଷ୍ଟଲ୍ ବାକ୍ସରୁ ହିଁ ପ୍ରତିକ୍ରିୟା ଦିଏ।"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ଆପଣ ଏହାକୁ ଇନଷ୍ଟଲ୍ କରିବା ମାତ୍ରେ କାମ କରେ — ଶୂନ୍ୟ କନଫିଗ୍। ତିନୋଟି ପଦକ୍ଷେପ: 1. ଇନଷ୍ଟଲ୍ କରନ୍ତୁ — npm i -g omniroute, ସର୍ଭର localhost:20128 ରେ ବୁଟ୍ ହୁଏ। 2. ଆପଣଙ୍କ ଟୁଲ୍ କୁ http://localhost:20128/v1 କୁ ପଏଣ୍ଟ କରନ୍ତୁ — ଯେକୌଣସି OpenAI-ସୁସଙ୍ଗତ ଟୁଲ୍ (Claude Code, Cursor, Cline)। 3. ଏହା ଉତ୍ତର ଦିଏ — ତୁରନ୍ତ ଉତ୍ତର ପାଇଁ ମଡେଲ୍ auto କୁ କଲ୍ କରନ୍ତୁ, କୌଣସି API କି' ନାହିଁ, କୌଣସି ସାଇନ୍ ଅପ୍ ନାହିଁ, କୌଣସି କନଫିଗରେସନ୍ ନାହିଁ।"/>
 
 ```bash
 # ନୂତନ ଇନଷ୍ଟଲ୍, ଶୂନ୍ୟ କ୍ରେଡେନ୍ସିଆଲ୍ — `auto` ପୂର୍ବରୁ କାମ କରେ:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ଏକ ନିର୍ଦ୍ଦିଷ୍ଟ ମାଗଣା ବ୍ୟାକେଣ୍ଡ୍ ପସନ୍ଦ କରନ୍ତି କି? ସିଧାସଳଖ `oc/…` (OpenCode Free) କୁ କଲ୍ କରନ୍ତୁ। ତାପରେ `auto` କୁ ଅପଗ୍ରେଡ୍ କରନ୍ତୁ ଏବଂ OmniRoute କୁ ବାଛିବାକୁ ଦିଅନ୍ତୁ।</sub>
 
 <sub>📦 **Python, Node.js, PHP, ଏବଂ cURL** ପାଇଁ କପି-ପେଷ୍ଟ କୁଇକଷ୍ଟାର୍ଟ ସ୍କ୍ରିପ୍ଟଗୁଡ଼ିକ → [`examples/quickstart/`]</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard: `http://localhost:20128` · API: `http://localhost:20128/v1`।
 
 **2) ଏକ ମାଗଣା provider ସଂଯୋଗ କରନ୍ତୁ (signup ଆବଶ୍ୟକ ନାହିଁ)**
 
-Dashboard → **Providers** → **Kiro AI** (ମାଗଣା Claude, ପ୍ରତ୍ୟେକ account ପାଇଁ ~50 credits/month) କିମ୍ବା **OpenCode Free** (auth ଆବଶ୍ୟକ ନାହିଁ) ସଂଯୋଗ କରନ୍ତୁ → ସମ୍ପୂର୍ଣ୍ଣ।
+Dashboard → **Providers** → **Kiro AI** (ମାଗଣା Claude, ପ୍ରତ୍ୟେକ account ପାଇଁ ~50 credits/month) ସଂଯୋଗ କରନ୍ତୁ → ସମ୍ପୂର୍ଣ୍ଣ।
 
 **3) ଆପଣଙ୍କ coding toolକୁ ନିର୍ଦ୍ଦେଶ କରନ୍ତୁ**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
   <tr><td nowrap><b>ରନ୍ଟାଇମ୍</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ଭାଷା</b></td><td>TypeScript 6.0 — <code>src/</code> ଏବଂ <code>open-sse/</code> ସମଗ୍ରରେ <b>100% TypeScript</b> (v2.0 ପରଠାରୁ କୋର୍ରେ ଶୂନ୍ୟ <code>any</code>)</td></tr>
   <tr><td nowrap><b>ଫ୍ରେମ୍ୱର୍କ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ଣ୍ଣାଲିଂ) + LowDB (JSON ଲିଗାସି) — 137 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 202 ମାଇଗ୍ରେସନ୍</td></tr>
+  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ଣ୍ଣାଲିଂ) + LowDB (JSON ଲିଗାସି) — 137 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 203 ମାଇଗ୍ରେସନ୍</td></tr>
   <tr><td nowrap><b>ମେମୋରି</b></td><td>SQLite FTS5 ପୂର୍ଣ୍ଣ-ଟେକ୍ସ୍ଟ + int8-କ୍ୱାଣ୍ଟାଇଜ୍ଡ ଭେକ୍ଟର ଏମ୍ବେଡିଂ, ଟାଇପ୍ଡ ଡିକେ</td></tr>
   <tr><td nowrap><b>ସ୍କିମା</b></td><td>Zod 4 — MCP ଟୁଲ୍ I/O ବୈଧତା ଯାଞ୍ଚ + API ଚୁକ୍ତି</td></tr>
   <tr><td nowrap><b>ପ୍ରୋଟୋକଲ୍</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

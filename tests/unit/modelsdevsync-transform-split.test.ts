@@ -24,7 +24,7 @@ describe("modelsDevSync/transform split-guard", () => {
     assert.deepEqual(mapProviderId("anthropic"), ["anthropic", "cc"]);
     assert.deepEqual(mapProviderId("zai"), ["zai", "glm"]);
     assert.deepEqual(mapProviderId("bedrock"), ["kiro", "kr"]);
-    assert.deepEqual(mapProviderId("opencode"), ["opencode", "opencode-zen"]);
+    assert.deepEqual(mapProviderId("opencode"), ["opencode-zen"]);
   });
 
   it("falls back to the raw id for unmapped providers", () => {

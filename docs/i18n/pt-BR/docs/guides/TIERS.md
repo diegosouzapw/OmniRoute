@@ -52,15 +52,14 @@ ferramentas, contexto máximo).
 **Provedores sem custo** — níveis gratuitos, programas de créditos e cotas
 diárias via OAuth.
 
-| Provedor         | Cota gratuita / créditos                           |
-| ---------------- | -------------------------------------------------- |
-| Kiro AI          | Nível gratuito do Claude (uso justo generoso)      |
-| OpenCode Free    | Sem autenticação, limites de requisições generosos |
-| Qoder            | OAuth gratuito                                     |
-| Google Vertex AI | US$ 300 em créditos para novas contas              |
-| Amazon Q         | Nível gratuito para usuários da AWS                |
-| Pollinations     | API pública aberta                                 |
-| Cloudflare AI    | Nível gratuito do Workers AI                       |
+| Provedor         | Cota gratuita / créditos                      |
+| ---------------- | --------------------------------------------- |
+| Kiro AI          | Nível gratuito do Claude (uso justo generoso) |
+| Qoder            | OAuth gratuito                                |
+| Google Vertex AI | US$ 300 em créditos para novas contas         |
+| Amazon Q         | Nível gratuito para usuários da AWS           |
+| Pollinations     | API pública aberta                            |
+| Cloudflare AI    | Nível gratuito do Workers AI                  |
 
 **Estratégia**: a combinação `auto` com limite de orçamento roteia para este
 nível quando os Níveis 1 e 2 falham ou quando `useFreeOnly=true` está definido.

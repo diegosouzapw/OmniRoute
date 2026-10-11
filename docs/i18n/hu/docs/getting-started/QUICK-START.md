@@ -59,15 +59,7 @@ Az OmniRoute-ot **fizetés nélkül** is használhatod egy ingyenes szolgáltat�
 4. Kattints a **Connect** gombra (nincs szükség API-kulcsra!)
 5. Kész! Mostantól ingyenesen hozzáférhetsz a Claude-modellekhez.
 
-### B lehetőség: OpenCode Free (hitelesítés nélkül)
-
-1. Nyisd meg az irányítópultot a `http://localhost:20128` címen
-2. Lépj a **Providers** → **Add Provider** menüpontra
-3. Válaszd az **OpenCode Free** lehetőséget
-4. Kattints a **Connect** gombra (nincs szükség API-kulcsra!)
-5. Kész! Mostantól ingyenesen hozzáférhetsz több modellhez.
-
-### C lehetőség: Pollinations (nincs szükség kulcsra)
+### B lehetőség: Pollinations (nincs szükség kulcsra)
 
 1. Nyisd meg az irányítópultot a `http://localhost:20128` címen
 2. Lépj a **Providers** → **Add Provider** menüpontra
@@ -163,7 +155,7 @@ A kérés részleteit a bal oldali oldalsáv [Monitoring/Logs](http://localhost:
 
 ### „Szükségem van API-kulcsra?”
 
-**Nem!** Az ingyenes szolgáltatókat (Kiro, OpenCode Free, Pollinations) API-kulcs nélkül is használhatod. Egyszerűen csatlakoztasd őket az irányítópulton.
+**Nem!** Az ingyenes szolgáltatókat (Kiro, Pollinations) API-kulcs nélkül is használhatod. Egyszerűen csatlakoztasd őket az irányítópulton.
 
 ### „Mi az az `auto`?”
 

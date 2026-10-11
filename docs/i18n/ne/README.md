@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="तपाईंले स्थापना गर्ने बित्तिकै काम गर्छ — शून्य कन्फिगरेसन। तीन चरणहरू: १. स्थापना गर्नुहोस् — npm i -g omniroute, सर्भर localhost:20128 मा बुट हुन्छ। २. आफ्नो उपकरणलाई http://localhost:20128/v1 मा देखाउनुहोस् — कुनै पनि OpenAI-कम्प्याटिबल उपकरण (Claude Code, Cursor, Cline)। ३. यसले जवाफ दिन्छ — तत्काल जवाफको लागि auto मोडेललाई कल गर्नुहोस्, कुनै API कुञ्जी, कुनै साइनअप, कुनै कन्फिगरेसन बिना। कुञ्जीविहीन प्रदायक OpenCode Free auto कम्बोमा पहिले नै तार जोडिएको छ, त्यसैले नयाँ स्थापनाले तुरुन्तै प्रतिक्रिया दिन्छ।"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="तपाईंले स्थापना गर्ने बित्तिकै काम गर्छ — शून्य कन्फिगरेसन। तीन चरणहरू: १. स्थापना गर्नुहोस् — npm i -g omniroute, सर्भर localhost:20128 मा बुट हुन्छ। २. आफ्नो उपकरणलाई http://localhost:20128/v1 मा देखाउनुहोस् — कुनै पनि OpenAI-कम्प्याटिबल उपकरण (Claude Code, Cursor, Cline)। ३. यसले जवाफ दिन्छ — तत्काल जवाफको लागि auto मोडेललाई कल गर्नुहोस्, कुनै API कुञ्जी, कुनै साइनअप, कुनै कन्फिगरेसन बिना।"/>
 
 ```bash
 # नयाँ स्थापना, शून्य प्रमाणहरू — `auto` पहिले नै काम गर्छ:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>कुनै विशेष नि:शुल्क ब्याकएन्ड मनपर्छ? `oc/…` (OpenCode Free) लाई सिधै कल गर्नुहोस्। त्यसपछि `auto` मा अपग्रेड गर्नुहोस् र OmniRoute लाई छनोट गर्न दिनुहोस्।</sub>
 
 <sub>📦 **Python, Node.js, PHP, र cURL** का लागि द्रुत सुरुवात स्क्रिप्टहरू प्रतिलिपि-पेस्ट गर्नुहोस् → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1016,7 +1014,7 @@ Dashboard `http://localhost:20128` मा · API `http://localhost:20128/v1` म
 
 **2) निःशुल्क provider जडान गर्नुहोस् (signup आवश्यक छैन)**
 
-Dashboard → **Providers** → **Kiro AI** (निःशुल्क Claude, प्रत्येक account मा ~50 credits/month) वा **OpenCode Free** (auth आवश्यक छैन) जडान गर्नुहोस् → सकियो।
+Dashboard → **Providers** → **Kiro AI** (निःशुल्क Claude, प्रत्येक account मा ~50 credits/month) जडान गर्नुहोस् → सकियो।
 
 **3) आफ्नो coding tool लाई निर्देशित गर्नुहोस्**
 
@@ -1273,7 +1271,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ले पनि 
   <tr><td nowrap><b>रनटाइम</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <code>src/</code> र <code>open-sse/</code> भरि <b>100% TypeScript</b> (v2.0 देखि कोरमा शून्य <code>any</code>)</td></tr>
   <tr><td nowrap><b>फ्रेमवर्क</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 137 डोमेन मोड्युल, 202 माइग्रेसन</td></tr>
+  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 137 डोमेन मोड्युल, 203 माइग्रेसन</td></tr>
   <tr><td nowrap><b>मेमोरी</b></td><td>SQLite FTS5 पूर्ण-पाठ + int8-क्वान्टाइज्ड भेक्टर एम्बेडिङ, टाइपयुक्त क्षय</td></tr>
   <tr><td nowrap><b>स्किमा</b></td><td>Zod 4 — MCP उपकरण I/O प्रमाणीकरण + API सम्झौताहरू</td></tr>
   <tr><td nowrap><b>प्रोटोकल</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

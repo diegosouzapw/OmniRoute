@@ -52,7 +52,6 @@ užduoties galimybių filtrą (vaizdai, JSON režimas, įrankiai, maksimalus kon
 | Teikėjas         | Nemokama kvota / kreditai                             |
 | ---------------- | ----------------------------------------------------- |
 | Kiro AI          | Nemokamas Claude planas (dosnaus sąžiningo naudojimo) |
-| OpenCode Free    | Nereikia autentifikuotis, dosnūs dažnio apribojimai   |
 | Qoder            | Nemokamas OAuth                                       |
 | Google Vertex AI | $300 kreditų naujai paskyrai                          |
 | Amazon Q         | Nemokamas planas AWS naudotojams                      |

@@ -116,7 +116,6 @@ Bu sahədəki əksər "aylıq pulsuz tokenlər" rəqəmləri model başına etik
 | `modal`          | Xidmət Şərtləri Bölmə 1.3 "xidməti icarəyə vermək, yenidən satmaq və ya hər hansı üçüncü tərəfə birbaşa girişə və ya istifadəyə icazə vermək"i açıq şəkildə qadağan edir — öz-özünə host edilmiş qurmaq…           |
 | `muse-spark-web` | Meta Xidmət Şərtləri əvvəlcədən icazə olmadan avtomatlaşdırılmış girişi, yazılı icazə olmadan əks mühəndisliyi və texnologiyaları yan keçməyi açıq şəkildə qadağan edir…                                           |
 | `nlpcloud`       | Xidmət Şərtləri "başqalarına onun vasitəsilə Xidmətə daxil olmağa imkan verən proksi və ya digər cihaz qurmağı" açıq şəkildə qadağan edir və yalnız ötürülməyən…                                                   |
-| `opencode`       | Xidmət Şərtləri (Anomaly Innovations, Inc.) istifadəni açıq şəkildə "öz daxili istifadəniz üçün, üçüncü tərəfin adından və ya xeyrinə deyil" məhdudlaşdırır — açıq…                                                |
 | `t3-web`         | Xidmət Şərtləri hesabları açıq şəkildə yalnız şəxsi istifadə ilə məhdudlaşdırır, üçüncü tərəflərlə etimadnamə mübadiləsini qadağan edir və avtomatlaşdırılmış/bot/skrapinq girişini qadağan edir — a s…            |
 
 ### ✅ Ümumiyyətlə icazə verən — diqqət / qeyri-müəyyən / ok (qalanları)
@@ -260,7 +259,6 @@ Bu sahədəki əksər "aylıq pulsuz tokenlər" rəqəmləri model başına etik
 | `nlpcloud`       | açarsız           | —                 | —              | çəkinin         | 1        |
 | `nous-research`  | açarsız           | —                 | —              | qeyri-müəyyən   | 2        |
 | `nvidia`         | açarsız           | —                 | —              | diqqət          | 13       |
-| `opencode`       | açarsız           | —                 | —              | çəkinin         | 7        |
 | `pollinations`   | açarsız           | —                 | —              | diqqət          | 31       |
 | `publicai`       | keyless           | —                 | —              | caution         | 3        |
 | `reka`           | keyless           | —                 | —              | caution         | 2        |
@@ -271,10 +269,6 @@ Bu sahədəki əksər "aylıq pulsuz tokenlər" rəqəmləri model başına etik
 | `uncloseai`      | keyless           | —                 | —              | caution         | 3        |
 
 ---
-
-## OpenCode Free: müştəri-müqavilə məhdudiyyəti (#14313)
-
-Açarsız `opencode` provayderi (ictimai `https://opencode.ai/zen/v1`) OpenCode müştəri müqaviləsinə uyğun gəlməyən istənilən sorğunu **403 `FreeTierError`** ilə və _"OpenCode-un pulsuz səviyyəsi yalnız OpenCode daxilindən istifadə edilə bilər"_ cümləsi ilə rədd edir. Bu, sorğuya əsaslanan bir rədddir (eyni sorğu forması üçün hər hesabda eyni qərar), model qadağası və ya əlaqənin soyuması deyil — OmniRoute bunu `project_route_error` olaraq təsnif edir, modelin kilidlənməsini / soyumasını atlayır və (sintetik `noauth` yolunda) qısa bir TTL üçün avtomatik-kombo yenidən seçimi dayandırır. Boş olmayan alət siyahısı, `stream: true` və OpenCode sessiya/UA başlıqları (`opencodeFreeTierContract.ts`) daşıyan sorğuları göndərin və ya 403 gözləyin.
 
 ## Göndərilmiş kataloqdan bəri nə dəyişdi (`freeNote`)
 

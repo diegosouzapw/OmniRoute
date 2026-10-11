@@ -95,8 +95,7 @@ test("nothing is declared that the dispatcher would not handle", () => {
 const ACCEPTED_DIVERGENCE: Record<string, string> = {
   // Aggregators: a usage fetcher exists, but a connection to them is not itself
   // presented as a usage-reporting account in the UI.
-  opencode: "aggregator — fetcher exists, not surfaced as a usage-reporting connection",
-  "opencode-zen": "aggregator — same as opencode",
+  "opencode-zen": "aggregator — fetcher exists, not surfaced as a usage-reporting connection",
   xai: "reached through xai-oauth for connection purposes",
 };
 

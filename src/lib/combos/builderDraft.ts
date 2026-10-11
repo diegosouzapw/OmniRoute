@@ -93,9 +93,9 @@ export function buildPrecisionComboModelStep({
   allowedConnectionIds?: string[] | null;
   weight?: number;
   /**
-   * #11433: the routing-prefix segment to serialize into `model` (e.g. "oc"
-   * for the no-auth OpenCode Free provider), when it differs from the
-   * canonical `providerId`. Some canonical provider ids collide with an
+   * #11433: the routing-prefix segment to serialize into `model` (e.g. a
+   * no-auth provider's alias), when it differs from the canonical
+   * `providerId`. Some canonical provider ids collide with an
    * unrelated manual `ALIAS_TO_PROVIDER_ID` routing override (`opencode` →
    * `opencode-zen`), so reconstructing `model` from the raw `providerId`
    * alone can round-trip to the wrong provider on request routing. Falls
@@ -174,10 +174,10 @@ export function buildManualComboModelStep({
   const providerId = resolveComboBuilderProviderId(parsed.providerId, providers);
   if (!providerId) return null;
 
-  // #11433: preserve the user-typed prefix (e.g. "oc") as the routing prefix
-  // instead of letting buildPrecisionComboModelStep rebuild `model` from the
-  // resolved canonical providerId, which can collide with an unrelated
-  // manual alias override (e.g. "opencode" -> "opencode-zen").
+  // #11433: preserve the user-typed prefix as the routing prefix instead of
+  // letting buildPrecisionComboModelStep rebuild `model` from the resolved
+  // canonical providerId, which can collide with an unrelated manual alias
+  // override (e.g. "opencode" -> "opencode-zen").
   return buildPrecisionComboModelStep({
     providerId,
     modelId: parsed.modelId,
@@ -272,7 +272,7 @@ export function buildGlobalModelList(
       if (!modelId) return;
       const modelName = toTrimmedString(model?.name) || modelId;
       // #11433: derive the routing prefix from the model's already-corrected
-      // `qualifiedModel` (e.g. "oc/<model>" for the OpenCode Free provider)
+      // `qualifiedModel` (e.g. "<alias>/<model>" for a no-auth provider)
       // instead of defaulting to the raw providerId, which can collide with
       // an unrelated manual alias override.
       const modelPrefix = parseQualifiedModel(model?.qualifiedModel)?.providerId || providerId;

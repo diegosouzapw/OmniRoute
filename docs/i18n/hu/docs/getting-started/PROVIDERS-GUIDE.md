@@ -14,12 +14,12 @@ Gondoljon a szolgáltatóra úgy, mint egy **mobilszolgáltatóra**. Ahogyan a t
 
 ### Szolgáltatótípusok
 
-| Típus          | Mit jelent                        | Példák                            | Költség                      |
-| -------------- | --------------------------------- | --------------------------------- | ---------------------------- |
-| **Ingyenes**   | Nem szükséges fizetés             | Kiro, OpenCode Free, Pollinations | $0                           |
-| **API-kulcs**  | API-kulcsra van szüksége          | OpenAI, Anthropic, Google         | Használat alapján fizetendő  |
-| **OAuth**      | Bejelentkezés a saját fiókjával   | Claude Code, GitHub Copilot       | Előfizetés                   |
-| **Webes süti** | A böngésző-munkamenetét használja | ChatGPT Web (Codex), Gemini Web   | $0 (az Ön fiókját használja) |
+| Típus          | Mit jelent                        | Példák                          | Költség                      |
+| -------------- | --------------------------------- | ------------------------------- | ---------------------------- |
+| **Ingyenes**   | Nem szükséges fizetés             | Kiro, Pollinations              | $0                           |
+| **API-kulcs**  | API-kulcsra van szüksége          | OpenAI, Anthropic, Google       | Használat alapján fizetendő  |
+| **OAuth**      | Bejelentkezés a saját fiókjával   | Claude Code, GitHub Copilot     | Előfizetés                   |
+| **Webes süti** | A böngésző-munkamenetét használja | ChatGPT Web (Codex), Gemini Web | $0 (az Ön fiókját használja) |
 
 ### Webes sütit használó szolgáltatók
 
@@ -40,7 +40,6 @@ Ez a művelet opcionális: a varázsló befejezése soha nem hoz létre észrev�
 2. Lépjen a **Szolgáltatók** → **Szolgáltató hozzáadása** menüpontra
 3. Válasszon egyet az alábbi ingyenes szolgáltatók közül:
    - **Kiro AI** — Ingyenes Claude-modellek (nem szükséges hitelesítés)
-   - **OpenCode Free** — Ingyenes GPT-modellek (nem szükséges hitelesítés)
    - **Pollinations** — Ingyenes GPT-5, Claude és Gemini (nem szükséges kulcs)
    - **LongCat** — 10M ingyenes token (egyszeri keret, fiók és KYC szükséges)
    - **Cloudflare AI** — Több mint 50 modell, napi 10K neuron
@@ -170,7 +169,6 @@ Ezek a szolgáltatók **ingyenes hozzáférést** biztosítanak, bankkártya né
 | Szolgáltató       | Ingyenes kvóta          | Modellek                                 | Csatlakozás módja           |
 | ----------------- | ----------------------- | ---------------------------------------- | --------------------------- |
 | **Kiro AI**       | 50 kredit/hónap         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nincs szükség hitelesítésre |
-| **OpenCode Free** | Korlátlan               | GPT-4o, Claude, Gemini                   | Nincs szükség hitelesítésre |
 | **Pollinations**  | Nincs szükség kulcsra   | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Nincs szükség hitelesítésre |
 | **LongCat**       | Egyszeri 10M            | LongCat-2.0                              | API-kulcs + KYC             |
 | **Cloudflare AI** | 10K neuron/nap          | Több mint 50 modell                      | Nincs szükség hitelesítésre |
@@ -244,7 +242,7 @@ Az OmniRoute **több szolgáltatóval** működik a legjobban. Ez a következő 
 
 A legjobb élmény érdekében csatlakoztass legalább **3 szolgáltatót**:
 
-1. **Egy ingyenes szolgáltató** (Kiro, OpenCode Free vagy Pollinations) — Mindig elérhető
+1. **Egy ingyenes szolgáltató** (Kiro vagy Pollinations) — Mindig elérhető
 2. **Egy gyors szolgáltató** (Groq, Cerebras) — A gyors válaszokhoz
 3. **Egy minőségi szolgáltató** (OpenAI, Anthropic, Google) — Az összetett feladatokhoz
 
@@ -290,7 +288,7 @@ Ezután használd a `model: "auto"` beállítást, és az OmniRoute automatikusa
 
 ### „Kell fizetnem az OmniRoute használatáért?”
 
-**Nem!** Az OmniRoute ingyenes és nyílt forráskódú. Az ingyenes szolgáltatókat (Kiro, OpenCode Free, Pollinations) fizetés nélkül használhatja. Csak akkor kell fizetnie, ha fizetős szolgáltatók használata mellett dönt.
+**Nem!** Az OmniRoute ingyenes és nyílt forráskódú. Az ingyenes szolgáltatókat (Kiro, Pollinations) fizetés nélkül használhatja. Csak akkor kell fizetnie, ha fizetős szolgáltatók használata mellett dönt.
 
 ### „Melyik szolgáltatóval kezdjek?”
 

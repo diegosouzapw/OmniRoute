@@ -59,15 +59,7 @@ Pulsuz provayder qoşaraq OmniRoute-dan **heç bir ödəniş etmədən** istifad
 4. **Connect** düyməsinə klikləyin (API açarı tələb olunmur!)
 5. Hazırdır! İndi Claude modellərinə pulsuz girişiniz var.
 
-### Seçim B: OpenCode Free (Autentifikasiya tələb olunmur)
-
-1. `http://localhost:20128` ünvanında idarə panelini açın
-2. **Providers** → **Add Provider** bölməsinə keçin
-3. **OpenCode Free** seçin
-4. **Connect** düyməsinə klikləyin (API açarı tələb olunmur!)
-5. Hazırdır! İndi bir neçə modelə pulsuz girişiniz var.
-
-### Seçim C: Pollinations (Açar tələb olunmur)
+### Seçim B: Pollinations (Açar tələb olunmur)
 
 1. `http://localhost:20128` ünvanında idarə panelini açın
 2. **Providers** → **Add Provider** bölməsinə keçin
@@ -163,7 +155,7 @@ Sol yan paneldə [Monitoring/Logs](http://localhost:20128/dashboard/logs) bölm�
 
 ### "API açarına ehtiyacım varmı?"
 
-**Xeyr!** Pulsuz provayderlərdən (Kiro, OpenCode Free, Pollinations) heç bir API açarı olmadan istifadə edə bilərsiniz. Sadəcə onları idarə panelində qoşun.
+**Xeyr!** Pulsuz provayderlərdən (Kiro, Pollinations) heç bir API açarı olmadan istifadə edə bilərsiniz. Sadəcə onları idarə panelində qoşun.
 
 ### "`auto` nədir?"
 

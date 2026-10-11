@@ -51,7 +51,6 @@ kichujio cha uwezo wa kazi (maono, hali ya JSON, zana, muktadha wa juu zaidi).
 | Mtoa huduma      | Kiwango cha bure / salio                                  |
 | ---------------- | --------------------------------------------------------- |
 | Kiro AI          | Kiwango cha bure cha Claude (matumizi ya haki ya ukarimu) |
-| OpenCode Free    | Hakuna uthibitishaji, vikomo vikubwa vya kasi             |
 | Qoder            | OAuth bila malipo                                         |
 | Google Vertex AI | Salio la $300 kwa akaunti mpya                            |
 | Amazon Q         | Kiwango cha bure kwa watumiaji wa AWS                     |

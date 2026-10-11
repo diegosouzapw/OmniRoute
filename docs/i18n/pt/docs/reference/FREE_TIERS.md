@@ -122,7 +122,6 @@ A maioria dos valores de «tokens gratuitos por mês» neste espaço corresponde
 | `modal`          | A Secção 1.3 dos ToS proíbe explicitamente «alugar, revender ou permitir de qualquer outra forma o acesso direto ou a utilização do Serviço por terceiros» — criar um serviço autoalojado…             |
 | `muse-spark-web` | Os ToS da Meta proíbem explicitamente o acesso automatizado sem autorização prévia, a engenharia inversa sem autorização por escrito e contornar medidas tecnológicas…                                 |
 | `nlpcloud`       | Os ToS proíbem explicitamente «configurar um proxy ou outro dispositivo que permita a terceiros aceder ao Serviço através dele» e concedem apenas um direito intransmissível,…                         |
-| `opencode`       | Os ToS (Anomaly Innovations, Inc.) restringem explicitamente a utilização ao «seu próprio uso interno, e não em nome ou em benefício de terceiros» — ope…                                              |
 | `t3-web`         | Os ToS restringem explicitamente as contas apenas a uso pessoal, proíbem a partilha de credenciais com terceiros e vedam o acesso automatizado/por bots/para recolha de dados — um p…                  |
 
 ### ✅ Geralmente permissivo — cuidado / ambíguo / permitido (os restantes)
@@ -266,7 +265,6 @@ A maioria dos valores de «tokens gratuitos por mês» neste espaço corresponde
 | `nlpcloud`       | sem chave          | —                   | —                       | evitar            | 1       |
 | `nous-research`  | sem chave          | —                   | —                       | ambíguo           | 2       |
 | `nvidia`         | sem chave          | —                   | —                       | cautela           | 13      |
-| `opencode`       | sem chave          | —                   | —                       | evitar            | 7       |
 | `pollinations`   | sem chave          | —                   | —                       | cautela           | 31      |
 | `publicai`       | sem chave          | —                   | —                       | precaução         | 3       |
 | `reka`           | sem chave          | —                   | —                       | precaução         | 2       |
@@ -277,17 +275,6 @@ A maioria dos valores de «tokens gratuitos por mês» neste espaço corresponde
 | `uncloseai`      | sem chave          | —                   | —                       | precaução         | 3       |
 
 ---
-
-## OpenCode Free: restrição do contrato do cliente (#14313)
-
-O fornecedor `opencode` sem chave (o serviço público `https://opencode.ai/zen/v1`) recusa qualquer pedido
-que não corresponda ao contrato do cliente OpenCode com **403 `FreeTierError`** e a
-frase _"O nível gratuito do OpenCode só pode ser utilizado a partir do OpenCode"_. Esta é uma
-recusa ao nível do pedido (o mesmo veredicto em todas as contas para o mesmo formato de pedido), não um
-bloqueio do modelo nem um período de espera da ligação — o OmniRoute classifica-a como `project_route_error`, ignora
-o bloqueio / período de espera do modelo e (no caminho sintético `noauth`) pausa a nova seleção automática
-de combinações durante um TTL curto. Envie pedidos que incluam uma lista de ferramentas não vazia, `stream: true` e os
-cabeçalhos de sessão/UA do OpenCode (`opencodeFreeTierContract.ts`), ou espere receber o erro 403.
 
 ## O que mudou desde o catálogo publicado (`freeNote`)
 

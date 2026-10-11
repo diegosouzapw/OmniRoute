@@ -16,12 +16,12 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 
 ### Types of Providers
 
-| Type           | What It Is                | Examples                          | Cost                   |
-| -------------- | ------------------------- | --------------------------------- | ---------------------- |
-| **Free**       | No payment required       | Kiro, OpenCode Free, Pollinations | $0                     |
-| **API Key**    | You need an API key       | OpenAI, Anthropic, Google         | Pay per use            |
-| **OAuth**      | Login with your account   | Claude Code, GitHub Copilot       | Subscription           |
-| **Web Cookie** | Uses your browser session | ChatGPT Web (Codex), Gemini Web   | $0 (uses your account) |
+| Type           | What It Is                | Examples                        | Cost                   |
+| -------------- | ------------------------- | ------------------------------- | ---------------------- |
+| **Free**       | No payment required       | Kiro, Pollinations              | $0                     |
+| **API Key**    | You need an API key       | OpenAI, Anthropic, Google       | Pay per use            |
+| **OAuth**      | Login with your account   | Claude Code, GitHub Copilot     | Subscription           |
+| **Web Cookie** | Uses your browser session | ChatGPT Web (Codex), Gemini Web | $0 (uses your account) |
 
 ### Web Cookie Providers
 
@@ -48,7 +48,6 @@ safely retry only the failures after a partial result.
 2. Go to **Providers** → **Add Provider**
 3. Select one of these free providers:
    - **Kiro AI** — Free Claude models (no auth needed)
-   - **OpenCode Free** — Free GPT models (no auth needed)
    - **Pollinations** — Free GPT-5, Claude, Gemini (no key needed)
    - **LongCat** — 10M tokens free (one-time grant, requires account + KYC)
    - **Cloudflare AI** — 50+ models, 10K neurons/day
@@ -178,7 +177,6 @@ These providers offer **free access** with no credit card:
 | Provider          | Free Quota       | Models                                   | How to Connect |
 | ----------------- | ---------------- | ---------------------------------------- | -------------- |
 | **Kiro AI**       | 50 credits/month | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | No auth needed |
-| **OpenCode Free** | Unlimited        | GPT-4o, Claude, Gemini                   | No auth needed |
 | **Pollinations**  | No key needed    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No auth needed |
 | **LongCat**       | 10M one-time     | LongCat-2.0                              | API key + KYC  |
 | **Cloudflare AI** | 10K neurons/day  | 50+ models                               | No auth needed |
@@ -251,7 +249,7 @@ OmniRoute works best with **multiple providers**. This gives you:
 
 Connect at least **3 providers** for the best experience:
 
-1. **One free provider** (Kiro, OpenCode Free, or Pollinations) — Always available
+1. **One free provider** (Kiro or Pollinations) — Always available
 2. **One fast provider** (Groq, Cerebras) — For quick responses
 3. **One quality provider** (OpenAI, Anthropic, Google) — For complex tasks
 
@@ -337,7 +335,7 @@ and a configurable timeout are separate enhancements; this behavior does not pro
 
 ### "Do I need to pay to use OmniRoute?"
 
-**No!** OmniRoute is free and open-source. You can use free providers (Kiro, OpenCode Free, Pollinations) without paying anything. You only pay if you choose to use paid providers.
+**No!** OmniRoute is free and open-source. You can use free providers (Kiro, Pollinations) without paying anything. You only pay if you choose to use paid providers.
 
 ### "Which provider should I start with?"
 

@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί αμέσως μόλις το εγκαταστήσετε — μηδενική ρύθμιση. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινεί στο localhost:20128. 2. Στρέψτε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή, χωρίς ρύθμιση. Ο πάροχος χωρίς κλειδί OpenCode Free είναι προ-συνδεδεμένος στην αυτόματη σύνθεση, οπότε μια νέα εγκατάσταση ανταποκρίνεται αμέσως."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Λειτουργεί αμέσως μόλις το εγκαταστήσετε — μηδενική ρύθμιση. Τρία βήματα: 1. Εγκατάσταση — npm i -g omniroute, ο διακομιστής εκκινεί στο localhost:20128. 2. Στρέψτε το εργαλείο σας στο http://localhost:20128/v1 — οποιοδήποτε εργαλείο συμβατό με το OpenAI (Claude Code, Cursor, Cline). 3. Απαντά — καλέστε το μοντέλο auto για άμεση απάντηση, χωρίς κλειδί API, χωρίς εγγραφή, χωρίς ρύθμιση."/>
 
 ```bash
 # Νέα εγκατάσταση, μηδενικά διαπιστευτήρια — το `auto` ήδη λειτουργεί:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Προτιμάτε ένα συγκεκριμένο δωρεάν backend; Καλέστε το `oc/…` (OpenCode Free) απευθείας. Στη συνέχεια, αναβαθμίστε σε `auto` και αφήστε το OmniRoute να επιλέξει.</sub>
 
 <sub>📦 Σενάρια γρήγορης εκκίνησης με αντιγραφή-επικόλληση για **Python, Node.js, PHP, και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1017,7 +1015,7 @@ omniroute
 
 **2) Σύνδεση ΔΩΡΕΑΝ παρόχου (χωρίς εγγραφή)**
 
-Πίνακας εργαλείων → **Providers** → σύνδεση **Kiro AI** (δωρεάν Claude, ~50 credits/μήνα ανά λογαριασμό) ή **OpenCode Free** (χωρίς auth) → έτοιμο.
+Πίνακας εργαλείων → **Providers** → σύνδεση **Kiro AI** (δωρεάν Claude, ~50 credits/μήνα ανά λογαριασμό) → έτοιμο.
 
 **3) Ρύθμιση εργαλείου coding**
 
@@ -1274,7 +1272,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b>Περιβάλλον εκτέλεσης</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση <code>any</code> στον πυρήνα από την έκδοση v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 137 αρθρώματα τομέα, 202 μεταβιβάσεις</td></tr>
+  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 137 αρθρώματα τομέα, 203 μεταβιβάσεις</td></tr>
   <tr><td nowrap><b>Μνήμη</b></td><td>Αναζήτηση πλήρους κειμένου SQLite FTS5 + διανυσματικές ενσωματώσεις κβαντισμένες σε int8, τυποποιημένη εξασθένηση</td></tr>
   <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — επικύρωση εισόδου/εξόδου εργαλείων MCP + συμβάσεις API</td></tr>
   <tr><td nowrap><b>Πρωτόκολλα</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oʻrnatishingiz bilanoq ishlaydi — nol konfiguratsiya. Uch qadam: 1. Oʻrnatish — npm i -g omniroute, server localhost:20128 da ishga tushadi. 2. Asbobingizni http://localhost:20128/v1 ga yoʻnaltiring — har qanday OpenAI-mos asbob (Claude Code, Cursor, Cline). 3. U javob beradi — API kalitisiz, roʻyxatdan oʻtmasdan, konfiguratsiyasiz tezkor javob olish uchun model auto ni chaqiring. Kalitsiz provayder OpenCode Free auto kombinatsiyasiga oldindan ulangan, shuning uchun yangi oʻrnatish qutidan tashqarida javob beradi."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oʻrnatishingiz bilanoq ishlaydi — nol konfiguratsiya. Uch qadam: 1. Oʻrnatish — npm i -g omniroute, server localhost:20128 da ishga tushadi. 2. Asbobingizni http://localhost:20128/v1 ga yoʻnaltiring — har qanday OpenAI-mos asbob (Claude Code, Cursor, Cline). 3. U javob beradi — API kalitisiz, roʻyxatdan oʻtmasdan, konfiguratsiyasiz tezkor javob olish uchun model auto ni chaqiring."/>
 
 ```bash
 # Yangi oʻrnatish, nol hisobga olish maʼlumotlari — `auto` allaqachon ishlaydi:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Maʼlum bir bepul backendni afzal koʻrasizmi? `oc/…` (OpenCode Free) ni toʻgʻridan-toʻgʻri chaqiring. Keyin `auto` ga oʻting va OmniRoute tanlashiga ruxsat bering.</sub>
 
 <sub>📦 **Python, Node.js, PHP va cURL** uchun tezkor ishga tushirish skriptlarini nusxalash-joylashtirish → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Boshqaruv paneli: `http://localhost:20128` · API: `http://localhost:20128/v1`.
 
 **2) BEPUL provayderni ulang (roʻyxatdan oʻtish shart emas)**
 
-Boshqaruv paneli → **Provayderlar** → **Kiro AI**ni (bepul Claude, har bir hisob uchun oyiga ~50 kredit) yoki **OpenCode Free**ni (autentifikatsiyasiz) ulang → tayyor.
+Boshqaruv paneli → **Provayderlar** → **Kiro AI**ni (bepul Claude, har bir hisob uchun oyiga ~50 kredit) ulang → tayyor.
 
 **3) Kodlash vositangizni sozlang**
 
@@ -1265,7 +1263,7 @@ bitta jarayon xizmat koʻrsatadi, shu sababli hozircha faqat CLI uchun alohida p
   <tr><td nowrap><b>Ishlash muhiti</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Til</b></td><td>TypeScript 6.0 — <code>src/</code> va <code>open-sse/</code> bo‘ylab <b>100% TypeScript</b> (v2.0 dan beri yadroda <code>any</code> umuman yo‘q)</td></tr>
   <tr><td nowrap><b>Freymvork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Ma’lumotlar bazasi</b></td><td>better-sqlite3 (SQLite, WAL jurnallash) + LowDB (eski JSON) — 137 ta domen moduli, 202 ta migratsiya</td></tr>
+  <tr><td nowrap><b>Ma’lumotlar bazasi</b></td><td>better-sqlite3 (SQLite, WAL jurnallash) + LowDB (eski JSON) — 137 ta domen moduli, 203 ta migratsiya</td></tr>
   <tr><td nowrap><b>Xotira</b></td><td>SQLite FTS5 to‘liq matnli qidiruv + int8-kvantlangan vektorli embeddinglar, tiplashtirilgan susayish</td></tr>
   <tr><td nowrap><b>Sxemalar</b></td><td>Zod 4 — MCP vositalarining kirish/chiqishini tekshirish + API shartnomalari</td></tr>
   <tr><td nowrap><b>Protokollar</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

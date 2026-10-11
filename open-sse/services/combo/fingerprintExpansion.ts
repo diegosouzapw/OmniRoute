@@ -1,7 +1,7 @@
 /**
  * Fingerprint-based target expansion for combo routing.
  *
- * Some providers (MiMoCode, MiCode, OpenCode) store multiple device
+ * Some no-auth providers can store multiple device
  * fingerprints inside a single connection's `providerSpecificData.fingerprints`.
  * Without expansion the combo system treats the connection as one account,
  * so only one fingerprint is used per request.  This module splits such
@@ -14,8 +14,11 @@
 
 import type { ResolvedComboTarget } from "./types.ts";
 
-/** Providers whose `providerSpecificData.fingerprints` array should be expanded. */
-const FINGERPRINT_PROVIDERS: ReadonlySet<string> = new Set(["opencode"]);
+/**
+ * Providers whose `providerSpecificData.fingerprints` array should be expanded.
+ * Empty since the keyless OpenCode provider (its last member) was removed.
+ */
+const FINGERPRINT_PROVIDERS: ReadonlySet<string> = new Set<string>();
 
 /** Separator the combo builder UI uses to encode an account pin (#6087). */
 const FP_PIN_SEPARATOR = "|fp|";

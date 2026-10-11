@@ -6,12 +6,12 @@
  *
  *   1. The provider prefix was used verbatim against `provider_connections`
  *      (an exact SQL `provider = ?` match), so alias-keyed model ids like
- *      `oc/mimo-v2.5-free` queried `provider = "oc"` — but the row is stored
- *      under the canonical id `opencode` — returning zero rows and excluding
+ *      `cmd/<model>` queried `provider = "cmd"` — but the row is stored
+ *      under the canonical id `command-code` — returning zero rows and excluding
  *      every candidate, which surfaced as
  *      "No vision-capable provider connected, cannot process image request".
  *
- *   2. No-auth providers (`oc`/`opencode`, `ddgw`/`duckduckgo-web`, ...) were
+ *   2. No-auth providers (`unc`/`uncloseai`, `ddgw`/`duckduckgo-web`, ...) were
  *      judged by the same "must have a usable stored API key" bar as keyed
  *      providers, even though their effective credential is the synthetic
  *      "noauth" connection (src/sse/services/auth.ts) and they carry no key.
@@ -72,13 +72,13 @@ test("alias-keyed noauth model is usable with NO stored row (#10702)", async () 
   await resetStorage();
   // No `provider_connections` row at all — the noauth provider is served by
   // the synthetic "noauth" connection, so it must still be usable.
-  const usable = await hasUsableCredentialsForModel("oc/mimo-v2.5-free");
+  const usable = await hasUsableCredentialsForModel("unc/some-model");
   assert.equal(usable, true, "noauth provider must not require a stored connection row");
 });
 
 test("canonical-id noauth model is usable with NO stored row", async () => {
   await resetStorage();
-  const usable = await hasUsableCredentialsForModel("opencode/mimo-v2.5-free");
+  const usable = await hasUsableCredentialsForModel("uncloseai/some-model");
   assert.equal(usable, true);
 });
 
@@ -87,26 +87,26 @@ test("canonical-id noauth model is usable with NO stored row", async () => {
 test("noauth provider is NOT usable when a row carries a terminal status", async () => {
   await resetStorage();
   await providersDb.createProviderConnection({
-    provider: "opencode",
+    provider: "uncloseai",
     authType: "no-auth",
-    name: "opencode-account",
+    name: "uncloseai-account",
     isActive: true,
     testStatus: "banned",
   });
-  const usable = await hasUsableCredentialsForModel("oc/mimo-v2.5-free");
+  const usable = await hasUsableCredentialsForModel("unc/some-model");
   assert.equal(usable, false, "a banned noauth row must block the provider");
 });
 
 test("noauth provider with a healthy row is usable", async () => {
   await resetStorage();
   await providersDb.createProviderConnection({
-    provider: "opencode",
+    provider: "uncloseai",
     authType: "no-auth",
-    name: "opencode-account",
+    name: "uncloseai-account",
     isActive: true,
     testStatus: "active",
   });
-  const usable = await hasUsableCredentialsForModel("oc/mimo-v2.5-free");
+  const usable = await hasUsableCredentialsForModel("unc/some-model");
   assert.equal(usable, true);
 });
 

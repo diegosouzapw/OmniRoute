@@ -700,9 +700,9 @@ function mergeNoAuthProviderSpecificData(
  * and resolve by-id Proxy Pool references to live records (./noAuthProxyResolution)
  * so the executor gets a resolved inline `proxy`. Best-effort: failures → empty.
  *
- * #7993: also checks sibling ids (e.g. "opencode-zen" -> "opencode") so a
- * proxy/fingerprint row saved under the no-auth id is still found when
- * credentials are hydrated for the apikey-gateway id that shares its public
+ * #7993: also checks sibling ids (see noAuthProviderSiblings.ts) so a
+ * proxy/fingerprint row saved under a no-auth id is still found when
+ * credentials are hydrated for an apikey-gateway id that shares its public
  * endpoint.
  */
 async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonRecord> {
@@ -771,7 +771,7 @@ async function maybeSyntheticNoAuthFallback(
   requestedModelForPause?: string | null
 ) {
   if (!providerCanUseSyntheticNoAuthFallback(providerId)) return null;
-  // #9057: a restricted key must NOT reach free providers (OpenCode Free, etc.) through the
+  // #9057: a restricted key must NOT reach free no-auth providers through the
   // synthetic "noauth" connection unless its allowedConnections names it.
   if (!allowlistPermitsSyntheticNoAuth(allowedConnections)) return null;
   if (excludedConnectionIds.has(SYNTHETIC_NOAUTH_CONNECTION_ID)) return null;
@@ -794,7 +794,7 @@ async function maybeSyntheticNoAuthFallback(
     return null;
   }
   // #4954: hydrate per-account proxy/rotation config off the connection row so
-  // no-auth executors (opencode, mimocode) actually honor configured proxies.
+  // no-auth executors actually honor configured proxies.
   const providerSpecificData = await loadNoAuthProviderSpecificData(providerId);
   return buildSyntheticNoAuthCredentials(providerSpecificData);
 }
@@ -1079,7 +1079,7 @@ export async function getProviderCredentials(
   try {
     await selectionLock?.wait;
 
-    // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
+    // No-auth providers need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
     const providerMaps: Record<string, { noAuth?: boolean } | undefined>[] = [

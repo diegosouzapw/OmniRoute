@@ -14,12 +14,12 @@ Bayangkan penyedia seperti **syarikat telekomunikasi**. Sebagaimana anda memerlu
 
 ### Jenis Penyedia
 
-| Jenis         | Apakah Ia                     | Contoh                            | Kos                         |
-| ------------- | ----------------------------- | --------------------------------- | --------------------------- |
-| **Percuma**   | Tiada bayaran diperlukan      | Kiro, OpenCode Free, Pollinations | $0                          |
-| **Kunci API** | Anda memerlukan kunci API     | OpenAI, Anthropic, Google         | Bayar mengikut penggunaan   |
-| **OAuth**     | Log masuk dengan akaun anda   | Claude Code, GitHub Copilot       | Langganan                   |
-| **Kuki Web**  | Menggunakan sesi pelayar anda | ChatGPT Web (Codex), Gemini Web   | $0 (menggunakan akaun anda) |
+| Jenis         | Apakah Ia                     | Contoh                          | Kos                         |
+| ------------- | ----------------------------- | ------------------------------- | --------------------------- |
+| **Percuma**   | Tiada bayaran diperlukan      | Kiro, Pollinations              | $0                          |
+| **Kunci API** | Anda memerlukan kunci API     | OpenAI, Anthropic, Google       | Bayar mengikut penggunaan   |
+| **OAuth**     | Log masuk dengan akaun anda   | Claude Code, GitHub Copilot     | Langganan                   |
+| **Kuki Web**  | Menggunakan sesi pelayar anda | ChatGPT Web (Codex), Gemini Web | $0 (menggunakan akaun anda) |
 
 ### Penyedia Kuki Web
 
@@ -46,7 +46,6 @@ mencuba semula hanya penyedia yang gagal dengan selamat selepas mendapat hasil s
 2. Pergi ke **Penyedia** → **Tambah Penyedia**
 3. Pilih salah satu penyedia percuma berikut:
    - **Kiro AI** — Model Claude percuma (tiada pengesahan diperlukan)
-   - **OpenCode Free** — Model GPT percuma (tiada pengesahan diperlukan)
    - **Pollinations** — GPT-5, Claude, Gemini percuma (tiada kunci diperlukan)
    - **LongCat** — 10M token percuma (pemberian sekali sahaja, memerlukan akaun + KYC)
    - **Cloudflare AI** — 50+ model, 10K neuron/hari
@@ -176,7 +175,6 @@ Penyedia ini menawarkan **akses percuma** tanpa kad kredit:
 | Penyedia          | Kuota Percuma          | Model                                    | Cara Menyambung             |
 | ----------------- | ---------------------- | ---------------------------------------- | --------------------------- |
 | **Kiro AI**       | 50 kredit/bulan        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Tiada pengesahan diperlukan |
-| **OpenCode Free** | Tanpa had              | GPT-4o, Claude, Gemini                   | Tiada pengesahan diperlukan |
 | **Pollinations**  | Tiada kunci diperlukan | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Tiada pengesahan diperlukan |
 | **LongCat**       | 10J sekali sahaja      | LongCat-2.0                              | Kunci API + KYC             |
 | **Cloudflare AI** | 10K neuron/hari        | 50+ model                                | Tiada pengesahan diperlukan |
@@ -250,7 +248,7 @@ OmniRoute berfungsi paling baik dengan **berbilang penyedia**. Ini memberikan an
 
 Sambungkan sekurang-kurangnya **3 penyedia** untuk pengalaman terbaik:
 
-1. **Satu penyedia percuma** (Kiro, OpenCode Free, atau Pollinations) — Sentiasa tersedia
+1. **Satu penyedia percuma** (Kiro, atau Pollinations) — Sentiasa tersedia
 2. **Satu penyedia pantas** (Groq, Cerebras) — Untuk respons pantas
 3. **Satu penyedia berkualiti** (OpenAI, Anthropic, Google) — Untuk tugas kompleks
 
@@ -296,7 +294,7 @@ Kemudian gunakan `model: "auto"` dan OmniRoute akan memilih penyedia terbaik sec
 
 ### "Adakah saya perlu membayar untuk menggunakan OmniRoute?"
 
-**Tidak!** OmniRoute adalah percuma dan bersumber terbuka. Anda boleh menggunakan penyedia percuma (Kiro, OpenCode Free, Pollinations) tanpa membayar apa-apa. Anda hanya perlu membayar jika memilih untuk menggunakan penyedia berbayar.
+**Tidak!** OmniRoute adalah percuma dan bersumber terbuka. Anda boleh menggunakan penyedia percuma (Kiro, Pollinations) tanpa membayar apa-apa. Anda hanya perlu membayar jika memilih untuk menggunakan penyedia berbayar.
 
 ### "Penyedia manakah yang patut saya gunakan terlebih dahulu?"
 

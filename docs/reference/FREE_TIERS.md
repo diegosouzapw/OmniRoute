@@ -26,7 +26,7 @@ These figures describe separate third-party accounts and eligibility conditions 
 | **+ behind a regional identity check**      | **+~6M**          | `modelscope` (Alibaba Cloud binding + mainland-China real-name verification). Real recurring quota, exposed as `gatedRecurringTokens` / `gatedProviders` and on the dashboard. Never summed into the headline: +~6M behind regional identity verification.                       |
 | Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                                                       |
 
-**Honest headline:** _OmniRoute aggregates **~1.62B documented free tokens per month** (up to ~2.22B in your first month with signup credits) across 35 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
+**Honest headline:** _OmniRoute aggregates **~1.62B documented free tokens per month** (up to ~2.22B in your first month with signup credits) across 34 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
 
 > **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`chutes`/`phind`/`kluster` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 >
@@ -38,7 +38,7 @@ These figures describe separate third-party accounts and eligibility conditions 
 >
 > **Corrected on 2026-09-03 (#11773):** `cerebras` was reclassified from a 30M/mo recurring grant (old no-card 1M tokens/day trial) to a one-time $5 signup credit that requires a payment method. Same honesty rule as LongCat.
 >
-> **Plus xKiro (2026-09-03):** the new `xkiro-free` pool (150M/mo) adds a 35th recurring pool key. Felo Web stays excluded while its GPL-derived provenance/licensing remains on HOLD. The source now reports **35 recurring pool keys** and **~1.62B steady** — the live, CI-gated number (`check:docs-counts` fails the build if this drifts from `computeFreeModelTotals()`).
+> **Plus xKiro (2026-09-03):** the new `xkiro-free` pool (150M/mo) adds a 35th recurring pool key. Felo Web stays excluded while its GPL-derived provenance/licensing remains on HOLD. The source now reports **34 recurring pool keys** and **~1.62B steady** — the live, CI-gated number (`check:docs-counts` fails the build if this drifts from `computeFreeModelTotals()`).
 
 Biggest **documented** contributors: `mistral` 1.00B, `nara` 210M, `llm7` 150M, `xkiro` 150M, `groq` 30M (five per-model caps), `cloudflare-ai` 30M, `api-airforce` 24M. (`longcat` is excluded — its 10M LongCat-2.0 grant is a one-time, KYC-gated signup credit, not a recurring monthly budget.)
 
@@ -128,7 +128,6 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 | `modal`          | ToS Section 1.3 explicitly prohibits "rent, resell or otherwise allow any third party direct access to or use of the Service" — building a self-hoste… |
 | `muse-spark-web` | Meta ToS explicitly prohibits automated access without prior permission, reverse engineering without written permission, and circumventing technologi… |
 | `nlpcloud`       | ToS explicitly prohibits "setting up a proxy or other device that allows others to access the Service through it" and grants only a non-transferable,… |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) explicitly restricts use to "your own internal use, and not on behalf of or for the benefit of any third party" — ope… |
 | `t3-web`         | ToS explicitly restricts accounts to personal use only, prohibits credential sharing with third parties, and bans automated/bot/scraping access — a s… |
 
 ### ✅ Generally permissive — caution / ambiguous / ok (the rest)
@@ -272,7 +271,6 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 | `nlpcloud`       | keyless       | —                | —                  | avoid     | 1      |
 | `nous-research`  | keyless       | —                | —                  | ambiguous | 2      |
 | `nvidia`         | keyless       | —                | —                  | caution   | 13     |
-| `opencode`       | keyless       | —                | —                  | avoid     | 7      |
 | `pollinations`   | keyless       | —                | —                  | caution   | 31     |
 | `publicai`       | keyless       | —                | —                  | caution   | 3      |
 | `reka`           | keyless       | —                | —                  | caution   | 2      |
@@ -283,17 +281,6 @@ Most "free tokens per month" figures in this space are sums of per-model labels.
 | `uncloseai`      | keyless       | —                | —                  | caution   | 3      |
 
 ---
-
-## OpenCode Free: client-contract restriction (#14313)
-
-The keyless `opencode` provider (public `https://opencode.ai/zen/v1`) refuses any request
-that does not match the OpenCode client contract with **403 `FreeTierError`** and the
-sentence _"OpenCode's free tier can only be used from within OpenCode"_. This is a
-request-scoped refusal (same verdict on every account for the same request shape), not a
-model ban or connection cooldown — OmniRoute classifies it as `project_route_error`, skips
-model lockout / cooldown, and (on the synthetic `noauth` path) pauses auto-combo re-selection
-for a short TTL. Ship requests that carry a non-empty tool list, `stream: true`, and the
-OpenCode session/UA headers (`opencodeFreeTierContract.ts`) or expect the 403.
 
 ## What changed since the shipped catalog (`freeNote`)
 

@@ -145,14 +145,12 @@ spraga įvardijama, užuot apsimetus, kad jos nėra.
 Norint neprisijungus palyginti būseną prieš ir po pakeitimo, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` vis dar veikia
 su veikiančio egzemplioriaus kandidatų išvestimi; jis nuskaito tikrąjį kiekvieno kandidato `connectionId`, todėl
 taip pat patikrina ryšio saugumo kelią. Kandidatai be rakto turi būti pateikiami su sintetiniu
-autentifikavimo nereikalaujančiu `connectionId`, o ne su tikru ryšiu. Dabartinis integruotas automatinis kelias be rakto yra OpenCode Free; tikslus kandidatų skaičius
+autentifikavimo nereikalaujančiu `connectionId`, o ne su tikru ryšiu. tikslus kandidatų skaičius
 vis tiek priklauso nuo tiesiogiai aptinkamų modelių, todėl jį reikia išmatuoti tiksliniame diegime, o ne
 kopijuoti iš ankstesnio vykdymo. `recurring-*` kandidatas patvirtinamas tik tada, kai turi ir užregistruotą
 naudojimo adapterį, ir `hardStopGuaranteed: true`; jei metaduomenys neišsamūs, jis ir toliau saugiai atmetamas.
 
-Kai `excludeTosAvoid: true`, pašalinamas kiekvienas kandidatas, kurio kuruojamas įvertinimas yra `tos: "avoid"`. Šiuo metu OpenCode Free
-turi tokį įvertinimą, todėl įjungus apsaugą gali būti ištuštintas diegime likęs
-kandidatų be rakto telkinys. Tai yra numatytas kompromisas įjungus ToS apsaugą, o ne klaida: būtent dėl šios priežasties numatytoji
+Kai `excludeTosAvoid: true`, pašalinamas kiekvienas kandidatas, kurio kuruojamas įvertinimas yra `tos: "avoid"`. Tai yra numatytas kompromisas įjungus ToS apsaugą, o ne klaida: būtent dėl šios priežasties numatytoji
 apsaugos reikšmė yra `false` (žr. pirmiau esantį skyrių „ToS apsauga“).
 
 ## Įjungimas

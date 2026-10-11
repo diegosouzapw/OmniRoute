@@ -14,12 +14,12 @@
 
 ### 공급자 유형
 
-| 유형        | 설명                 | 예시                              | 비용                  |
-| ----------- | -------------------- | --------------------------------- | --------------------- |
-| **무료**    | 결제가 필요하지 않음 | Kiro, OpenCode Free, Pollinations | $0                    |
-| **API 키**  | API 키가 필요함      | OpenAI, Anthropic, Google         | 사용량에 따라 결제    |
-| **OAuth**   | 계정으로 로그인      | Claude Code, GitHub Copilot       | 구독                  |
-| **웹 쿠키** | 브라우저 세션을 사용 | ChatGPT Web (Codex), Gemini Web   | $0 (사용자 계정 사용) |
+| 유형        | 설명                 | 예시                            | 비용                  |
+| ----------- | -------------------- | ------------------------------- | --------------------- |
+| **무료**    | 결제가 필요하지 않음 | Kiro, Pollinations              | $0                    |
+| **API 키**  | API 키가 필요함      | OpenAI, Anthropic, Google       | 사용량에 따라 결제    |
+| **OAuth**   | 계정으로 로그인      | Claude Code, GitHub Copilot     | 구독                  |
+| **웹 쿠키** | 브라우저 세션을 사용 | ChatGPT Web (Codex), Gemini Web | $0 (사용자 계정 사용) |
 
 ### 웹 쿠키 공급자
 
@@ -46,7 +46,6 @@ OmniRoute는 공급자의 주의 사항과 해당 사이트 링크를 표시하�
 2. **공급자** → **공급자 추가**로 이동합니다
 3. 다음 무료 공급자 중 하나를 선택합니다:
    - **Kiro AI** — 무료 Claude 모델(인증 불필요)
-   - **OpenCode Free** — 무료 GPT 모델(인증 불필요)
    - **Pollinations** — 무료 GPT-5, Claude, Gemini(키 불필요)
    - **LongCat** — 10M 토큰 무료(일회성 제공, 계정 + KYC 필요)
    - **Cloudflare AI** — 50개 이상의 모델, 일일 10K 뉴런
@@ -176,7 +175,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | 제공업체          | 무료 할당량       | 모델                                     | 연결 방법     |
 | ----------------- | ----------------- | ---------------------------------------- | ------------- |
 | **Kiro AI**       | 월 50크레딧       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 인증 불필요   |
-| **OpenCode Free** | 무제한            | GPT-4o, Claude, Gemini                   | 인증 불필요   |
 | **Pollinations**  | 키 불필요         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | 인증 불필요   |
 | **LongCat**       | 일회성 10M        | LongCat-2.0                              | API 키 + KYC  |
 | **Cloudflare AI** | 일일 10K뉴런      | 50개 이상의 모델                         | 인증 불필요   |
@@ -250,7 +248,7 @@ OmniRoute는 **여러 제공업체**와 함께 사용할 때 가장 효과적입
 
 최상의 경험을 위해 최소 **3개의 제공업체**를 연결하세요:
 
-1. **무료 제공업체 1개**(Kiro, OpenCode Free 또는 Pollinations) — 항상 사용 가능
+1. **무료 제공업체 1개**(Kiro 또는 Pollinations) — 항상 사용 가능
 2. **빠른 제공업체 1개**(Groq, Cerebras) — 빠른 응답용
 3. **고품질 제공업체 1개**(OpenAI, Anthropic, Google) — 복잡한 작업용
 
@@ -296,7 +294,7 @@ OmniRoute는 **여러 제공업체**와 함께 사용할 때 가장 효과적입
 
 ### "OmniRoute를 사용하려면 비용을 지불해야 하나요?"
 
-**아니요!** OmniRoute는 무료 오픈 소스입니다. 무료 제공업체(Kiro, OpenCode Free, Pollinations)는 비용을 전혀 지불하지 않고 사용할 수 있습니다. 유료 제공업체를 사용하기로 선택한 경우에만 비용을 지불하면 됩니다.
+**아니요!** OmniRoute는 무료 오픈 소스입니다. 무료 제공업체(Kiro, Pollinations)는 비용을 전혀 지불하지 않고 사용할 수 있습니다. 유료 제공업체를 사용하기로 선택한 경우에만 비용을 지불하면 됩니다.
 
 ### "어떤 제공업체로 시작하는 것이 좋나요?"
 

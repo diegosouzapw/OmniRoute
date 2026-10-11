@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Gumagana agad pagka-install mo — zero config. Tatlong hakbang: 1. I-install — npm i -g omniroute, ang server ay magbubukas sa localhost:20128. 2. Ituro ang iyong tool sa http://localhost:20128/v1 — anumang tool na compatible sa OpenAI (Claude Code, Cursor, Cline). 3. Sumasagot ito — tawagan ang model auto para sa agarang tugon, nang walang API key, walang pagpaparehistro, walang configuration. Ang keyless provider na OpenCode Free ay pre-wired sa auto combo, kaya ang isang bagong install ay tumutugon agad."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Gumagana agad pagka-install mo — zero config. Tatlong hakbang: 1. I-install — npm i -g omniroute, ang server ay magbubukas sa localhost:20128. 2. Ituro ang iyong tool sa http://localhost:20128/v1 — anumang tool na compatible sa OpenAI (Claude Code, Cursor, Cline). 3. Sumasagot ito — tawagan ang model auto para sa agarang tugon, nang walang API key, walang pagpaparehistro, walang configuration."/>
 
 ```bash
 # Bagong install, zero credentials — gumagana na ang `auto`:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Mas gusto mo ba ang isang partikular na libreng backend? Direktang tawagan ang `oc/…` (OpenCode Free). Pagkatapos ay lumipat sa `auto` at hayaan ang OmniRoute na pumili.</sub>
 
 <sub>📦 Kopyahin-i-paste ang mga quickstart script para sa **Python, Node.js, PHP, at cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard sa `http://localhost:20128` · API sa `http://localhost:20128/v1`.
 
 **2) Kumonekta sa isang LIBRENG provider (walang signup)**
 
-Dashboard → **Mga Provider** → ikonekta ang **Kiro AI** (libreng Claude, ~50 credit/buwan bawat account) o **OpenCode Free** (walang auth) → tapos na.
+Dashboard → **Mga Provider** → ikonekta ang **Kiro AI** (libreng Claude, ~50 credit/buwan bawat account) → tapos na.
 
 **3) Ituro rito ang iyong coding tool**
 
@@ -1265,7 +1263,7 @@ Mga canonical na sukatan noong 2026-08-24: **1.029 natatanging video** · **11.1
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Wika</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> sa buong <code>src/</code> at <code>open-sse/</code> (walang <code>any</code> sa core mula noong v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (legacy na JSON) — 137 domain module, 202 migration</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (legacy na JSON) — 137 domain module, 203 migration</td></tr>
   <tr><td nowrap><b>Memory</b></td><td>SQLite FTS5 full-text + int8-quantized vector embedding, typed decay</td></tr>
   <tr><td nowrap><b>Mga Schema</b></td><td>Zod 4 — pagpapatunay ng I/O ng MCP tool + mga kontrata ng API</td></tr>
   <tr><td nowrap><b>Mga Protocol</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

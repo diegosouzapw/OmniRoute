@@ -219,7 +219,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ради чим га инсталирате — без конфигурације. Три корака: 1. Инсталирајте — npm i -g omniroute, сервер се покреће на localhost:20128. 2. Усмерите свој алат на http://localhost:20128/v1 — било који алат компатибилан са OpenAI-јем (Claude Code, Cursor, Cline). 3. Добијате одговор — позовите модел auto за тренутни одговор, без API кључа, регистрације или конфигурације. Провајдер без кључа OpenCode Free унапред је повезан са комбинацијом auto, тако да свежа инсталација одмах одговара."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ради чим га инсталирате — без конфигурације. Три корака: 1. Инсталирајте — npm i -g omniroute, сервер се покреће на localhost:20128. 2. Усмерите свој алат на http://localhost:20128/v1 — било који алат компатибилан са OpenAI-јем (Claude Code, Cursor, Cline). 3. Добијате одговор — позовите модел auto за тренутни одговор, без API кључа, регистрације или конфигурације."/>
 
 ```bash
 # Свежа инсталација, без акредитива — `auto` већ ради:
@@ -227,8 +227,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Желите одређени бесплатни позадински сервис? Позовите `oc/…` (OpenCode Free) директно. Затим пређите на `auto` и препустите OmniRoute-у да изабере.</sub>
 
 <sub>📦 Скрипте за брзи почетак које можете копирати и налепити за **Python, Node.js, PHP и cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1021,7 +1019,7 @@ omniroute
 
 **2) Повежите БЕСПЛАТНОГ добављача (без регистрације)**
 
-Контролна табла → **Добављачи** → повежите **Kiro AI** (бесплатан Claude, ~50 кредита месечно по налогу) или **OpenCode Free** (без аутентификације) → готово.
+Контролна табла → **Добављачи** → повежите **Kiro AI** (бесплатан Claude, ~50 кредита месечно по налогу) → готово.
 
 **3) Усмерите свој алат за програмирање**
 
@@ -1280,7 +1278,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 такође га
   <tr><td nowrap><b>Извршно окружење</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Језик</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> у оквиру <code>src/</code> и <code>open-sse/</code> (без иједног <code>any</code> у језгру од v2.0)</td></tr>
   <tr><td nowrap><b>Радни оквир</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База података</b></td><td>better-sqlite3 (SQLite, WAL вођење дневника) + LowDB (наслеђени JSON) — 137 доменских модула, 202 миграције</td></tr>
+  <tr><td nowrap><b>База података</b></td><td>better-sqlite3 (SQLite, WAL вођење дневника) + LowDB (наслеђени JSON) — 137 доменских модула, 203 миграције</td></tr>
   <tr><td nowrap><b>Меморија</b></td><td>SQLite FTS5 претрага целог текста + векторска угнежђења квантизована у int8 формату, типизирано опадање</td></tr>
   <tr><td nowrap><b>Шеме</b></td><td>Zod 4 — валидација улаза/излаза MCP алата + API уговори</td></tr>
   <tr><td nowrap><b>Протоколи</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

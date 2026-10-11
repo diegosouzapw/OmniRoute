@@ -153,15 +153,12 @@ om det ikke findes.
 Til en offline før/efter-sammenligning fungerer `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 stadig mod kandidatoutputtet fra en aktiv instans; det læser hver kandidats faktiske `connectionId`,
 så det afprøver også stien for forbindelsessikkerhed. Kandidater uden nøgle skal leveres med det
-syntetiske `connectionId` for ingen godkendelse, aldrig en rigtig forbindelse. Den nuværende indbyggede
-automatiske sti uden nøgle er OpenCode Free; de nøjagtige kandidatantal afhænger stadig af aktiv
+syntetiske `connectionId` for ingen godkendelse, aldrig en rigtig forbindelse. de nøjagtige kandidatantal afhænger stadig af aktiv
 modelregistrering og bør måles på målimplementeringen i stedet for at blive kopieret fra en ældre
 kørsel. En `recurring-*`-kandidat godkendes kun, når den både har en registreret forbrugsadapter og
 `hardStopGuaranteed: true`; ufuldstændige metadata medfører fortsat sikkerhedsafvisning.
 
-Med `excludeTosAvoid: true` fjernes alle kandidater, der er kurateret som `tos: "avoid"`. OpenCode Free
-har i øjeblikket denne vurdering, så aktivering af værnet kan tømme en implementerings resterende
-pulje uden nøgle. Dette er en forventet afvejning ved at slå ToS-værnet til, ikke en fejl: Værnet er
+Med `excludeTosAvoid: true` fjernes alle kandidater, der er kurateret som `tos: "avoid"`. Dette er en forventet afvejning ved at slå ToS-værnet til, ikke en fejl: Værnet er
 som standard `false` netop af denne grund (se "ToS-værn" ovenfor).
 
 ## Aktivering

@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Працює одразу після встановлення — нульова конфігурація. Три кроки: 1. Встановіть — npm i -g omniroute, сервер запускається на localhost:20128. 2. Направте свій інструмент на http://localhost:20128/v1 — будь-який сумісний з OpenAI інструмент (Claude Code, Cursor, Cline). 3. Він відповідає — викличте модель auto для миттєвої відповіді, без ключа API, без реєстрації, без конфігурації. Безключовий провайдер OpenCode Free попередньо вбудований в комбінацію auto, тому свіжа установка відповідає одразу після розпакування."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Працює одразу після встановлення — нульова конфігурація. Три кроки: 1. Встановіть — npm i -g omniroute, сервер запускається на localhost:20128. 2. Направте свій інструмент на http://localhost:20128/v1 — будь-який сумісний з OpenAI інструмент (Claude Code, Cursor, Cline). 3. Він відповідає — викличте модель auto для миттєвої відповіді, без ключа API, без реєстрації, без конфігурації."/>
 
 ```bash
 # Свіжа установка, нульові облікові дані — `auto` вже працює:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Віддаєте перевагу конкретному безкоштовному бекенду? Викличте `oc/…` (OpenCode Free) безпосередньо. Потім перейдіть на `auto` і дозвольте OmniRoute вибрати.</sub>
 
 <sub>📦 Скрипти швидкого старту для копіювання та вставки для **Python, Node.js, PHP та cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) Підключіть БЕЗКОШТОВНОГО провайдера (без реєстрації)**
 
-Панель керування → **Провайдери** → підключіть **Kiro AI** (безкоштовний Claude, ~50 кредитів на місяць для кожного облікового запису) або **OpenCode Free** (без автентифікації) → готово.
+Панель керування → **Провайдери** → підключіть **Kiro AI** (безкоштовний Claude, ~50 кредитів на місяць для кожного облікового запису) → готово.
 
 **3) Налаштуйте свій інструмент програмування**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 також про
   <tr><td nowrap><b>Середовище виконання</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Мова</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> у <code>src/</code> та <code>open-sse/</code> (без жодного <code>any</code> у ядрі, починаючи з v2.0)</td></tr>
   <tr><td nowrap><b>Фреймворк</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База даних</b></td><td>better-sqlite3 (SQLite, журналювання WAL) + LowDB (застарілий формат JSON) — 137 доменних модулів, 202 міграції</td></tr>
+  <tr><td nowrap><b>База даних</b></td><td>better-sqlite3 (SQLite, журналювання WAL) + LowDB (застарілий формат JSON) — 137 доменних модулів, 203 міграції</td></tr>
   <tr><td nowrap><b>Пам’ять</b></td><td>Повнотекстовий пошук SQLite FTS5 + векторні вбудовування з квантуванням int8, типізоване згасання</td></tr>
   <tr><td nowrap><b>Схеми</b></td><td>Zod 4 — валідація вводу/виводу інструментів MCP + контракти API</td></tr>
   <tr><td nowrap><b>Протоколи</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

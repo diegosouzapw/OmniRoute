@@ -51,7 +51,6 @@ uzdevuma spēju filtram (attēlu apstrāde, JSON režīms, rīki, maksimālais k
 | Pakalpojumu sniedzējs | Bezmaksas kvota/kredīti                                      |
 | --------------------- | ------------------------------------------------------------ |
 | Kiro AI               | Bezmaksas Claude līmenis (dāsna godīgas lietošanas politika) |
-| OpenCode Free         | Nav nepieciešama autentifikācija, augsti ātruma ierobežojumi |
 | Qoder                 | Bezmaksas OAuth                                              |
 | Google Vertex AI      | $300 kredīti jauniem kontiem                                 |
 | Amazon Q              | Bezmaksas līmenis AWS lietotājiem                            |

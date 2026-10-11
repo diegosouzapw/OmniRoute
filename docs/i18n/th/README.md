@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ใช้งานได้ทันทีที่ติดตั้ง — ไม่ต้องตั้งค่าใดๆ สามขั้นตอน: 1. ติดตั้ง — npm i -g omniroute, เซิร์ฟเวอร์จะเริ่มทำงานที่ localhost:20128 2. ชี้เครื่องมือของคุณไปที่ http://localhost:20128/v1 — เครื่องมือใดๆ ที่เข้ากันได้กับ OpenAI (Claude Code, Cursor, Cline) 3. มันจะตอบกลับ — เรียกใช้โมเดล auto เพื่อรับการตอบกลับทันที โดยไม่ต้องใช้ API key, ไม่ต้องลงทะเบียน, ไม่ต้องตั้งค่า ผู้ให้บริการแบบไม่ต้องใช้คีย์ OpenCode Free ถูกตั้งค่าไว้ล่วงหน้าในชุด auto ดังนั้นการติดตั้งใหม่จึงสามารถตอบกลับได้ทันที"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ใช้งานได้ทันทีที่ติดตั้ง — ไม่ต้องตั้งค่าใดๆ สามขั้นตอน: 1. ติดตั้ง — npm i -g omniroute, เซิร์ฟเวอร์จะเริ่มทำงานที่ localhost:20128 2. ชี้เครื่องมือของคุณไปที่ http://localhost:20128/v1 — เครื่องมือใดๆ ที่เข้ากันได้กับ OpenAI (Claude Code, Cursor, Cline) 3."/>
 
 ```bash
 # Fresh install, zero credentials — `auto` already works:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ต้องการแบ็กเอนด์ฟรีที่เฉพาะเจาะจงหรือไม่? เรียกใช้ `oc/…` (OpenCode Free) โดยตรง จากนั้นอัปเกรดเป็น `auto` และให้ OmniRoute เลือก</sub>
 
 <sub>📦 สคริปต์เริ่มต้นอย่างรวดเร็วแบบคัดลอกและวางสำหรับ **Python, Node.js, PHP และ cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) เชื่อมต่อผู้ให้บริการฟรี (ไม่ต้องสมัคร)**
 
-แดชบอร์ด → **ผู้ให้บริการ** → เชื่อมต่อ **Kiro AI** (Claude ฟรี ประมาณ 50 เครดิต/เดือนต่อบัญชี) หรือ **OpenCode Free** (ไม่ต้องยืนยันตัวตน) → เสร็จเรียบร้อย
+แดชบอร์ด → **ผู้ให้บริการ** → เชื่อมต่อ **Kiro AI** (Claude ฟรี ประมาณ 50 เครดิต/เดือนต่อบัญชี) → เสร็จเรียบร้อย
 
 **3) กำหนดค่าเครื่องมือเขียนโค้ดของคุณ**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 จะข้า�
   <tr><td nowrap><b>รันไทม์</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ภาษา</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> ครอบคลุมทั้ง <code>src/</code> และ <code>open-sse/</code> (ไม่มี <code>any</code> ในส่วนแกนหลักตั้งแต่ v2.0)</td></tr>
   <tr><td nowrap><b>เฟรมเวิร์ก</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, การบันทึกแบบ WAL) + LowDB (JSON แบบดั้งเดิม) — โมดูลโดเมน 137 รายการ, การย้ายข้อมูล 202 รายการ</td></tr>
+  <tr><td nowrap><b>ฐานข้อมูล</b></td><td>better-sqlite3 (SQLite, การบันทึกแบบ WAL) + LowDB (JSON แบบดั้งเดิม) — โมดูลโดเมน 137 รายการ, การย้ายข้อมูล 203 รายการ</td></tr>
   <tr><td nowrap><b>หน่วยความจำ</b></td><td>การค้นหาข้อความแบบเต็มด้วย SQLite FTS5 + เวกเตอร์เอ็มเบดดิงที่ควอนไทซ์เป็น int8, การลดทอนแบบมีชนิดข้อมูล</td></tr>
   <tr><td nowrap><b>สคีมา</b></td><td>Zod 4 — การตรวจสอบ I/O ของเครื่องมือ MCP + ข้อตกลง API</td></tr>
   <tr><td nowrap><b>โปรโตคอล</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

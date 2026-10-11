@@ -219,7 +219,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé ón nóiméad a shuiteálann tú é — gan aon chumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírigh d’uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto chun freagra láithreach a fháil, gan eochair API, gan chlárú, gan chumraíocht. Tá an soláthraí gan eochair OpenCode Free réamhshreangaithe sa teaglaim auto, mar sin freagraíonn suiteáil úr láithreach."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé ón nóiméad a shuiteálann tú é — gan aon chumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírigh d’uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto chun freagra láithreach a fháil, gan eochair API, gan chlárú, gan chumraíocht."/>
 
 ```bash
 # Suiteáil úr, gan aon dintiúir — oibríonn `auto` cheana féin:
@@ -227,8 +227,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>An fearr leat inneall sonrach saor in aisce? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin aistrigh go `auto` agus lig do OmniRoute an rogha a dhéanamh.</sub>
 
 <sub>📦 Scripteanna mearthosaithe le cóipeáil agus greamú do **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1022,7 +1020,7 @@ An deais ag `http://localhost:20128` · An API ag `http://localhost:20128/v1`.
 
 **2) Ceangail soláthraí SAOR IN AISCE (gan chlárú)**
 
-Deais → **Soláthraithe** → ceangail **Kiro AI** (Claude saor in aisce, ~50 creidmheas/mí in aghaidh an chuntais) nó **OpenCode Free** (gan fíordheimhniú) → déanta.
+Deais → **Soláthraithe** → ceangail **Kiro AI** (Claude saor in aisce, ~50 creidmheas/mí in aghaidh an chuntais) → déanta.
 
 **3) Dírigh d'uirlis códaithe**
 
@@ -1281,7 +1279,7 @@ Méadrachtaí canónacha ar 2026-08-24: **1.029 físeán uathúil** · **11.132.
   <tr><td nowrap><b>Timpeallacht rite</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Teanga</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> ar fud <code>src/</code> agus <code>open-sse/</code> (gan aon <code>any</code> sa chroílár ó v2.0 i leith)</td></tr>
   <tr><td nowrap><b>Creat</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bunachar sonraí</b></td><td>better-sqlite3 (SQLite, iriseoireacht WAL) + LowDB (oidhreacht JSON) — 137 modúl fearainn, 202 aistriú</td></tr>
+  <tr><td nowrap><b>Bunachar sonraí</b></td><td>better-sqlite3 (SQLite, iriseoireacht WAL) + LowDB (oidhreacht JSON) — 137 modúl fearainn, 203 aistriú</td></tr>
   <tr><td nowrap><b>Cuimhne</b></td><td>Téacs iomlán SQLite FTS5 + leabúcháin veicteora cainníochtaithe go int8, meath clóscríofa</td></tr>
   <tr><td nowrap><b>Scéimeanna</b></td><td>Zod 4 — bailíochtú ionchuir/aschuir uirlisí MCP + conarthaí API</td></tr>
   <tr><td nowrap><b>Prótacail</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

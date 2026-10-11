@@ -39,7 +39,7 @@ Matatizo ya kawaida na suluhisho za OmniRoute.
 
 ### Ukomo wa Kasi kwa Watoa Huduma wa Bure (429 / 400 / 401)
 
-**Dalili**: Unapotumia `model: "auto"` pamoja na watoa huduma wa bure/wasiohitaji uthibitishaji (opencode, auggie, n.k.), mara kwa mara unapata `HTTP 429`, `400`, au `401` badala ya majibu. Maombi hufaulu unapojaribu tena ombi lilelile muda mfupi baadaye, lakini uendeshaji otomatiki (kazi za cron, maajenti, hati) hukatizwa hitilafu ya kwanza inapotokea.
+**Dalili**: Unapotumia `model: "auto"` pamoja na watoa huduma wa bure/wasiohitaji uthibitishaji (auggie, n.k.), mara kwa mara unapata `HTTP 429`, `400`, au `401` badala ya majibu. Maombi hufaulu unapojaribu tena ombi lilelile muda mfupi baadaye, lakini uendeshaji otomatiki (kazi za cron, maajenti, hati) hukatizwa hitilafu ya kwanza inapotokea.
 
 **Chanzo kikuu**: Aina tatu huru za hitilafu hujikusanya:
 

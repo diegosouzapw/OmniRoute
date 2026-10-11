@@ -262,46 +262,24 @@ test("createVirtualAutoCombo includes clean-room ChatGPT Web and excludes its le
   assert.equal(combo.autoConfig.candidatePool.includes("cgpt-web"), false);
 });
 
-test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_connections rows", async () => {
-  // #15059: opencode models are tos:avoid and excluded by default; opt out explicitly.
-  await settingsDb.updateSettings({ excludeTosAvoid: false });
-  const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
-
-  const opencode = combo.models.find((model) => model.providerId === "opencode");
-  assert.ok(
-    opencode,
-    "OpenCode Free should appear in auto/* even when it has no provider_connections row"
-  );
-  assert.equal(opencode.connectionId, "noauth");
-  assert.equal(opencode.model, "oc/big-pickle");
-  assert.ok(combo.autoConfig.candidatePool.includes("opencode"));
-});
-
 test("createVirtualAutoCombo restricts the no-auth pool to the allowlist", async () => {
-  // Policy: the no-auth (keyless) auto-combo allowlist is narrowed to `opencode`
-  // (open-sse/services/autoCombo/virtualFactory.ts::AUTO_COMBO_NOAUTH_ALLOWLIST) —
-  // the keyless backend verified to work without configuration on our reference
-  // egress. The others stay usable via direct `<alias>/<model>` calls but must
-  // NOT be auto-routed to. Dedicated guard:
-  // tests/unit/noauth-autocombo-allowlist.test.ts.
-  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` is ON by default and
-  // uncataloged models now inherit the provider's curated `tos: "avoid"` verdict, so every
-  // opencode model is ToS-filtered out by default. Opt out explicitly so this test keeps
-  // asserting the no-auth allowlist, not the ToS filter (covered by
-  // tests/unit/issue-15059-tos-avoid-auto-default.test.ts and tos-provider-alias-15059).
+  // Policy: the no-auth (keyless) auto-combo allowlist
+  // (open-sse/services/autoCombo/virtualFactory.ts::AUTO_COMBO_NOAUTH_ALLOWLIST) is
+  // currently empty — its only member, the keyless `opencode` provider, was removed
+  // (docs/reference/REMOVED_PROVIDERS.md). Keyless providers stay usable via direct
+  // `<alias>/<model>` calls but must NOT be auto-routed to. Dedicated guard:
+  // tests/unit/noauth-autocombo-allowlist.test.ts. ToS filtering is opted out so this
+  // test keeps asserting the allowlist, not the ToS filter.
   await settingsDb.updateSettings({ excludeTosAvoid: false });
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
-  for (const allowed of ["opencode"]) {
-    const models = combo.models.filter((m) => m.providerId === allowed);
-    assert.ok(models.length >= 1, `${allowed} should have at least one model`);
-    assert.ok(
-      models.every((m) => m.connectionId === "noauth"),
-      `all ${allowed} models should use noauth connection`
-    );
-  }
+  assert.equal(
+    combo.models.some((model) => model.connectionId === "noauth"),
+    false,
+    "no synthetic no-auth candidate may enter the pool while the allowlist is empty"
+  );
 
-  for (const excluded of ["duckduckgo-web", "aihorde"]) {
+  for (const excluded of ["duckduckgo-web", "aihorde", "opencode"]) {
     assert.equal(
       combo.models.some((model) => model.providerId === excluded),
       false,

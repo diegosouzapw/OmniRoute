@@ -52,7 +52,6 @@ ki ustreza filtru zmogljivosti opravila (vid, način JSON, orodja, največji kon
 | Ponudnik         | Brezplačna kvota/dobropisi                          |
 | ---------------- | --------------------------------------------------- |
 | Kiro AI          | Brezplačni paket Claude (radodarna poštena uporaba) |
-| OpenCode Free    | Brez avtentikacije, radodarne omejitve hitrosti     |
 | Qoder            | Brezplačni OAuth                                    |
 | Google Vertex AI | 300 USD dobropisa za nove račune                    |
 | Amazon Q         | Brezplačni paket za uporabnike AWS                  |

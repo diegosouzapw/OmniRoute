@@ -84,12 +84,7 @@ export function isOllamaCloudProvider(provider: string): boolean {
 }
 
 export function isOpencodeGoProvider(provider: string): boolean {
-  return (
-    provider === "opencode-go" ||
-    provider === "opencode-zen" ||
-    provider === "opencode" ||
-    provider === "opencode_go"
-  );
+  return provider === "opencode-go" || provider === "opencode-zen" || provider === "opencode_go";
 }
 
 export function isSenseNovaDeepSeekV4Flash(provider: string, model: string | undefined): boolean {

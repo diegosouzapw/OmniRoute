@@ -14,12 +14,12 @@ Bayangkan penyedia seperti **operator seluler**. Sama seperti Anda memerlukan op
 
 ### Jenis Penyedia
 
-| Jenis          | Pengertiannya                 | Contoh                            | Biaya                      |
-| -------------- | ----------------------------- | --------------------------------- | -------------------------- |
-| **Gratis**     | Tidak memerlukan pembayaran   | Kiro, OpenCode Free, Pollinations | $0                         |
-| **Kunci API**  | Anda memerlukan kunci API     | OpenAI, Anthropic, Google         | Bayar sesuai pemakaian     |
-| **OAuth**      | Masuk dengan akun Anda        | Claude Code, GitHub Copilot       | Langganan                  |
-| **Cookie Web** | Menggunakan sesi browser Anda | ChatGPT Web (Codex), Gemini Web   | $0 (menggunakan akun Anda) |
+| Jenis          | Pengertiannya                 | Contoh                          | Biaya                      |
+| -------------- | ----------------------------- | ------------------------------- | -------------------------- |
+| **Gratis**     | Tidak memerlukan pembayaran   | Kiro, Pollinations              | $0                         |
+| **Kunci API**  | Anda memerlukan kunci API     | OpenAI, Anthropic, Google       | Bayar sesuai pemakaian     |
+| **OAuth**      | Masuk dengan akun Anda        | Claude Code, GitHub Copilot     | Langganan                  |
+| **Cookie Web** | Menggunakan sesi browser Anda | ChatGPT Web (Codex), Gemini Web | $0 (menggunakan akun Anda) |
 
 ### Penyedia Cookie Web
 
@@ -46,7 +46,6 @@ mencoba kembali hanya penyedia yang gagal setelah memperoleh hasil sebagian.
 2. Buka **Penyedia** → **Tambahkan Penyedia**
 3. Pilih salah satu penyedia gratis berikut:
    - **Kiro AI** — Model Claude gratis (tidak memerlukan autentikasi)
-   - **OpenCode Free** — Model GPT gratis (tidak memerlukan autentikasi)
    - **Pollinations** — GPT-5, Claude, dan Gemini gratis (tidak memerlukan kunci)
    - **LongCat** — 10 juta token gratis (hibah satu kali, memerlukan akun + KYC)
    - **Cloudflare AI** — Lebih dari 50 model, 10 ribu neuron/hari
@@ -176,7 +175,6 @@ Penyedia berikut menawarkan **akses gratis** tanpa kartu kredit:
 | Penyedia          | Kuota Gratis          | Model                                    | Cara Menghubungkan      |
 | ----------------- | --------------------- | ---------------------------------------- | ----------------------- |
 | **Kiro AI**       | 50 kredit/bulan       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Tidak perlu autentikasi |
-| **OpenCode Free** | Tanpa batas           | GPT-4o, Claude, Gemini                   | Tidak perlu autentikasi |
 | **Pollinations**  | Tidak perlu kunci     | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Tidak perlu autentikasi |
 | **LongCat**       | 10 juta satu kali     | LongCat-2.0                              | Kunci API + KYC         |
 | **Cloudflare AI** | 10 ribu neuron/hari   | 50+ model                                | Tidak perlu autentikasi |
@@ -250,7 +248,7 @@ OmniRoute berfungsi paling baik dengan **beberapa penyedia**. Hal ini memberikan
 
 Hubungkan setidaknya **3 penyedia** untuk pengalaman terbaik:
 
-1. **Satu penyedia gratis** (Kiro, OpenCode Free, atau Pollinations) — Selalu tersedia
+1. **Satu penyedia gratis** (Kiro, atau Pollinations) — Selalu tersedia
 2. **Satu penyedia cepat** (Groq, Cerebras) — Untuk respons cepat
 3. **Satu penyedia berkualitas** (OpenAI, Anthropic, Google) — Untuk tugas kompleks
 
@@ -296,7 +294,7 @@ Kemudian gunakan `model: "auto"` dan OmniRoute akan secara otomatis memilih peny
 
 ### "Apakah saya perlu membayar untuk menggunakan OmniRoute?"
 
-**Tidak!** OmniRoute gratis dan bersumber terbuka. Anda dapat menggunakan penyedia gratis (Kiro, OpenCode Free, Pollinations) tanpa membayar apa pun. Anda hanya membayar jika memilih untuk menggunakan penyedia berbayar.
+**Tidak!** OmniRoute gratis dan bersumber terbuka. Anda dapat menggunakan penyedia gratis (Kiro, Pollinations) tanpa membayar apa pun. Anda hanya membayar jika memilih untuk menggunakan penyedia berbayar.
 
 ### "Penyedia mana yang sebaiknya saya gunakan terlebih dahulu?"
 
