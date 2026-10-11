@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Njirimara</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Ngwakọta</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Ndị Na-enye Ọrụ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Ndị Na-enye Ọrụ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ na-egosi env/args kpọmkwem tupu emee ha, ebe `--api-key-env NAME` na-eme ka ih
 
 <div align="center">
 
-## 🌐 Ndị Na-enye AI 357 — Ndị Katalọgụ Kara 152 Dị Ka N'efu
+## 🌐 Ndị Na-enye AI 372 — Ndị Katalọgụ Kara 154 Dị Ka N'efu
 
 </div>
 
@@ -1265,7 +1265,7 @@ Metrik izizi na 2026-08-24: **vidiyo pụrụ iche 1.029** · **nlele amaara 11.
   <tr><td nowrap><b>Oge ịrụ ọrụ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Asụsụ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> n’ime <code>src/</code> na <code>open-sse/</code> niile (enweghị <code>any</code> n’ime isi sistemụ kemgbe v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Ebe nchekwa data</b></td><td>better-sqlite3 (SQLite, ndekọ WAL) + LowDB (ihe nketa JSON) — modulu ngalaba 137, mbugharị 193</td></tr>
+  <tr><td nowrap><b>Ebe nchekwa data</b></td><td>better-sqlite3 (SQLite, ndekọ WAL) + LowDB (ihe nketa JSON) — modulu ngalaba 137, mbugharị 202</td></tr>
   <tr><td nowrap><b>Ncheta</b></td><td>Ọchụchọ ederede zuru ezu nke SQLite FTS5 + ntinye vektọ e mere int8-quantization, mbelata nwere ụdị</td></tr>
   <tr><td nowrap><b>Atụmatụ</b></td><td>Zod 4 — nkwado I/O nke ngwa MCP + nkwekọrịta API</td></tr>
   <tr><td nowrap><b>Usoro nkwukọrịta</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

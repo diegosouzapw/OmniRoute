@@ -1,0 +1,1 @@
+- fix(db): publish durable pre-migration snapshots when hard links are denied, while preserving complete backups and backup listing, restore, and retention (#16035).

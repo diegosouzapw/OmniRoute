@@ -334,7 +334,6 @@ Oder legen Sie es an einem erkannten Speicherort ab:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Benutzerebene
-<project>/.compression/rules/hi/filler.json   # Projektebene
 ```
 
 ### Bewährte Vorgehensweisen für Sprachpakete

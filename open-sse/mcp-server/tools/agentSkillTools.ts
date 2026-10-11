@@ -32,6 +32,7 @@ export const agentSkillTools = {
     description:
       "List OmniRoute agent skills with optional filtering by category (api/cli/config) or area. Returns skill metadata including id, name, description, endpoints/commands, and URLs.",
     inputSchema: AgentSkillsListSchema,
+    scopes: ["read:catalog"],
     handler: async (args: z.infer<typeof AgentSkillsListSchema>) => {
       const skills: AgentSkill[] =
         args.category || args.area
@@ -64,6 +65,7 @@ export const agentSkillTools = {
     description:
       "Get detailed metadata and SKILL.md markdown for a single agent skill by its canonical ID. Returns all skill fields plus the raw markdown content.",
     inputSchema: AgentSkillsGetSchema,
+    scopes: ["read:catalog"],
     handler: async (args: z.infer<typeof AgentSkillsGetSchema>) => {
       const skill: AgentSkill | null = getSkillById(args.id);
       if (!skill) {
@@ -84,6 +86,7 @@ export const agentSkillTools = {
     description:
       "Returns the current SKILL.md coverage stats: how many of the 23 API, 21 CLI, and 1 config skill have generated SKILL.md files on the filesystem vs the catalog total.",
     inputSchema: AgentSkillsCoverageSchema,
+    scopes: ["read:catalog"],
     handler: async (_args: z.infer<typeof AgentSkillsCoverageSchema>) => {
       const coverage: SkillCoverage = computeCoverage();
       return coverage;

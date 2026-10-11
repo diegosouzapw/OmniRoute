@@ -254,6 +254,7 @@
     "log": "Server jurnallarini bevosita ko‘rsatish",
     "no_recovery": "Nosozlikdan keyin avtomatik qayta ishga tushirishni o‘chirish (nosozliklarni tuzatish rejimi)",
     "max_restarts": "Taslim bo‘lishdan oldin 30 soniya ichidagi nosozlikdan keyingi qayta ishga tushirishlarning maksimal soni (standart: 2)",
+    "headless": "Faqat proksi dvigatelini ishga tushirish: boshqaruv paneli o'chirilgan (404), ixtiyoriy quyi tizimlar o'tkazib yuboriladi (OMNIROUTE_HEADLESS=1 o'rnatadi)",
     "tray": "Tizim treyida ishga tushirish (faqat ish stoli versiyasida, ixtiyoriy)",
     "no_tray": "Tizim treyi belgisini o‘chirish",
     "ready_timeout": "Tayyorlik tekshiruvi uchun kutish vaqti, ms (shuningdek OMNIROUTE_READY_TIMEOUT_MS, standart qiymat 60000)",

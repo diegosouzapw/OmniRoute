@@ -65,12 +65,10 @@ export async function POST(
   } catch (error) {
     if (error instanceof KeyAllowsAllModelsError || error instanceof KeyAllowsAllCombosError) {
       return NextResponse.json(
-        {
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-        },
+        buildErrorBody(409, error.message, null, {
+          type: "invalid_request_error",
+          code: error.code,
+        }),
         { status: 409 }
       );
     }

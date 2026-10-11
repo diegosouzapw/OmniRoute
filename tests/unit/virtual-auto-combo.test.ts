@@ -11,6 +11,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 
 type VirtualComboResult = Awaited<ReturnType<typeof virtualFactory.createVirtualAutoCombo>>;
@@ -262,6 +263,8 @@ test("createVirtualAutoCombo includes clean-room ChatGPT Web and excludes its le
 });
 
 test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_connections rows", async () => {
+  // #15059: opencode models are tos:avoid and excluded by default; opt out explicitly.
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
   const opencode = combo.models.find((model) => model.providerId === "opencode");
@@ -281,6 +284,12 @@ test("createVirtualAutoCombo restricts the no-auth pool to the allowlist", async
   // egress. The others stay usable via direct `<alias>/<model>` calls but must
   // NOT be auto-routed to. Dedicated guard:
   // tests/unit/noauth-autocombo-allowlist.test.ts.
+  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` is ON by default and
+  // uncataloged models now inherit the provider's curated `tos: "avoid"` verdict, so every
+  // opencode model is ToS-filtered out by default. Opt out explicitly so this test keeps
+  // asserting the no-auth allowlist, not the ToS filter (covered by
+  // tests/unit/issue-15059-tos-avoid-auto-default.test.ts and tos-provider-alias-15059).
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
   for (const allowed of ["opencode"]) {

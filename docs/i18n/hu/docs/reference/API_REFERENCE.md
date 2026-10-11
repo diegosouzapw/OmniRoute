@@ -393,6 +393,12 @@ mezővel, amely az elsődleges azonosítóra mutat.
 A modellválasztót megjelenítő klienseknek a `?prefix=alias` paramétert kell használniuk — ezt teszi az
 [OmniCopilot VS Code-bővítmény](../guides/VSCODE-COPILOT.md) is.
 
+### Egyenként elrejtett csevegőmodellek
+
+A szolgáltató oldalán **Rejtettként** megjelölt modell kimarad a katalógusból, és kifejezett kérése HTTP `404` / `model_not_found` hibával elutasításra kerül. Az ellenőrzés a feloldott szolgáltatót és modellt használja, figyelembe véve a szolgáltatói aliasokat, a kompatibilis szolgáltatói csomópontok előtagjait és a kapcsolat alapértékeit. A combo kihagyja a rejtett célokat, és másik látható célt használhat; ha nem marad végrehajtható cél, ugyanazt a hibakódot adja vissza. Az újbóli megjelenítés a következő kéréstől érvényes. A kizárólag képekre vonatkozó láthatósági felülbírálások nem rejtik el az azonos ID-jű csevegőmodellt.
+
+Ez a modellenkénti beállítás különbözik a [modellek közzétételi engedélyezési és tiltási listáitól](../routing/MODEL_EXPOSURE_LIST.md). Ezek a katalógusban megjelenő modelleket és az automatikus útválasztás jelöltjeit szűrik, miközben megtartják a kifejezett továbbítást. Az API-kulcs modellengedélyei továbbra is függetlenül érvényesülnek. A katalógus alapértelmezett előtagmódja továbbra is `dual`.
+
 ### Gondolkodás nélküli modellváltozatok
 
 A gondolkodásra képes Claude-modellek esetében a `/v1/models` egy **gondolkodás nélküli** változatot is meghirdet, amelynek azonosítója a `claude-3-omniroute-no-thinking/` előtaggal kezdődik:

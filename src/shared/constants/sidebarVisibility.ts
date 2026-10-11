@@ -1,6 +1,7 @@
 export * from "./sidebarVisibility/types";
 export { COMPRESSION_CONTEXT_GROUP, SIDEBAR_SECTIONS } from "./sidebarVisibility/sections";
 
+import { SIDEBAR_SECTIONS } from "./sidebarVisibility/sections";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "./sidebarVisibility/types";
 import { parseRadarAdminUrl } from "../validation/radarAdminUrl";
 import type {
@@ -152,6 +153,75 @@ export function getSectionItems(
   return section.children.flatMap((child) =>
     "type" in child && child.type === "group" ? child.items : [child as SidebarItemDefinition]
   );
+}
+
+// ─── Section master toggle ────────────────────────────────────────────────────
+
+/**
+ * Items that must always remain visible (safety guard). Shared by the settings
+ * UI so the item-level and section-level toggles agree on what can be hidden.
+ */
+export const PROTECTED_SIDEBAR_ITEM_IDS: ReadonlySet<SidebarItemId> = new Set<SidebarItemId>([
+  "proxy",
+  "settings-sidebar",
+]);
+
+export const HIDDEN_SIDEBAR_SECTIONS_SETTING_KEY = "hiddenSidebarSections";
+
+/**
+ * Sections the master toggle may hide: every section that does NOT contain a
+ * protected item (hiding those would hide the protected entry with it).
+ */
+export const HIDEABLE_SIDEBAR_SECTION_IDS: readonly SidebarSectionId[] = SIDEBAR_SECTIONS.filter(
+  (section) =>
+    !getSectionItems(section).some((item) =>
+      PROTECTED_SIDEBAR_ITEM_IDS.has(item.id as SidebarItemId)
+    )
+).map((section) => section.id);
+
+/** A section is hideable iff none of its (flattened) items is protected. */
+export function isSidebarSectionHideable(
+  section: Pick<SidebarSectionDefinition, "id" | "children">
+): boolean {
+  return HIDEABLE_SIDEBAR_SECTION_IDS.includes(section.id as SidebarSectionId);
+}
+
+export function normalizeHiddenSidebarSections(value: unknown): SidebarSectionId[] {
+  if (!Array.isArray(value)) return [];
+
+  const hidden = new Set<SidebarSectionId>();
+  for (const id of value) {
+    if (typeof id === "string" && HIDEABLE_SIDEBAR_SECTION_IDS.includes(id as SidebarSectionId)) {
+      hidden.add(id as SidebarSectionId);
+    }
+  }
+  return HIDEABLE_SIDEBAR_SECTION_IDS.filter((id) => hidden.has(id));
+}
+
+/** A section is hidden when its id is on the section-level hidden list. */
+export function isSidebarSectionHidden(
+  sectionId: SidebarSectionId,
+  hiddenSections: readonly SidebarSectionId[]
+): boolean {
+  return hiddenSections.includes(sectionId);
+}
+
+/**
+ * Show/hide a whole section in one click. Independent of the per-item hidden
+ * list: child item states are preserved untouched ("隔断"). Hiding a section
+ * that contains a protected item is refused.
+ */
+export function toggleSidebarSectionVisibility(
+  hiddenSections: readonly SidebarSectionId[],
+  sectionId: SidebarSectionId,
+  show: boolean
+): SidebarSectionId[] {
+  const next = hiddenSections.filter((id) => id !== sectionId);
+  if (!show) {
+    if (!HIDEABLE_SIDEBAR_SECTION_IDS.includes(sectionId)) return [...hiddenSections];
+    next.push(sectionId);
+  }
+  return next;
 }
 
 const RADAR_ADMIN_ITEM: SidebarItemDefinition = {

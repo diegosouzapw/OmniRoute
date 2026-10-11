@@ -93,7 +93,9 @@ test("reports a member with no traffic as a null member instead of hiding it", a
   const body = (await response.json()) as {
     members: Array<{ host: string; port: number; egressIp: string | null; at: string | null }>;
   };
-  assert.deepEqual(body.members, [{ host: "10.8.2.2", port: 22002, egressIp: null, at: null }]);
+  assert.deepEqual(body.members, [
+    { host: "10.8.2.2", port: 22002, egressIp: null, at: null, source: null },
+  ]);
 });
 
 test("excludes stale rows older than the window", async () => {

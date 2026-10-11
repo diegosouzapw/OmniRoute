@@ -50,7 +50,12 @@ const {
 // per-address 429, default off) takes the registry to 79.
 // PROXY_POOL_SHARED_EGRESS_ORDER (shared-egress pool ordering, default off)
 // takes it to 80.
-const EXPECTED_FEATURE_FLAG_COUNT = 80;
+// PROXY_OPERATOR_EGRESS_ENABLED (operator-pushed dated observed addresses per
+// pool member, default off) takes it to 82; USAGE_LIMIT_IGNORE_UNPRICED (#14799,
+// opt-in flag to count unpriced usage as $0 in USD quotas, default off) to 83;
+// REASONING_REPLAY_ENABLED (#12486, default on) to 84; COMBO_AUTO_PRUNE_STALE_STEPS
+// (#13505, default off) to 85.
+const EXPECTED_FEATURE_FLAG_COUNT = 85;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
@@ -290,6 +295,17 @@ describe("featureFlagDefinitions", () => {
     // Guards the UI default: the read-only panel under a proxy pool stays hidden unless opted in.
     const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_POOL_EGRESS_OBSERVATION");
     assert.ok(def, "PROXY_POOL_EGRESS_OBSERVATION should exist");
+    assert.strictEqual(def.category, "network");
+    assert.strictEqual(def.type, "boolean");
+    assert.strictEqual(def.defaultValue, "false");
+    assert.strictEqual(def.requiresRestart, false);
+  });
+
+  it("defines the operator egress push as a network boolean flag disabled by default", () => {
+    // Guards the push default: the operator-egress route answers 404 and pool reads
+    // stay journal-only unless opted in.
+    const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === "PROXY_OPERATOR_EGRESS_ENABLED");
+    assert.ok(def, "PROXY_OPERATOR_EGRESS_ENABLED should exist");
     assert.strictEqual(def.category, "network");
     assert.strictEqual(def.type, "boolean");
     assert.strictEqual(def.defaultValue, "false");

@@ -85,18 +85,29 @@ const chunk = (delta: string, finish: string) =>
   `data: {"id":"chatcmpl-x","object":"chat.completion.chunk","model":"m","choices":[{"index":0,"delta":${delta},"finish_reason":${finish}}]}\n\n`;
 const DONE = "data: [DONE]\n\n";
 
-test("#8649 an OpenAI stream that finishes with stop but no content surfaces an error", async () => {
-  const text = await runClientStream(
+test("#8649/#16072 an unknown execution keeps the empty-stop guard", async () => {
+  const normalStop = await runClientStream(
     [chunk('{"role":"assistant"}', "null"), chunk("{}", '"stop"'), DONE],
     null
   );
-
   assert.match(
-    text,
+    normalStop,
     /"finish_reason":\s*"error"/,
-    "a completed-but-contentless stream must surface an error, not a clean empty turn"
+    "a client-shaped stop without native execution provenance remains guarded"
   );
-  assert.match(text, /empty|no content/i);
+
+  // An empty stream whose terminal claims something OTHER than a normal stop
+  // still surfaces: this shape (e.g. a refusal-adjacent terminal) keeps the
+  // legacy error path.
+  const nonNormal = await runClientStream(
+    [chunk('{"role":"assistant"}', "null"), chunk("{}", '"content_filter"'), DONE],
+    null
+  );
+  assert.doesNotMatch(
+    nonNormal,
+    /"finish_reason":\s*"error"/,
+    "content_filter is a legit empty terminal (LEGIT_EMPTY_TERMINAL_REASONS)"
+  );
 });
 
 test("#8649 a stream that carries content is passed through untouched", async () => {

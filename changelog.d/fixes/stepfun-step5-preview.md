@@ -1,0 +1,1 @@
+- providers: add StepFun `step-5-preview` (1M context, vision + reasoning, verified against the live api.stepfun.ai catalog) and a `modelsUrl` for live model discovery; document the China vs international platform split (`api.stepfun.com` vs `api.stepfun.ai` keys are not interchangeable).

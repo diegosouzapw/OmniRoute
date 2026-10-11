@@ -1,5 +1,6 @@
 import type { RegistryEntry, RegistryModel } from "../../shared.ts";
 import { CURSOR_REGISTRY_VERSION, getCursorRegistryHeaders } from "../../shared.ts";
+import { CURSOR_GROK_47_MODELS } from "./grok47.ts";
 
 const CLAUDE_FABLE_5_1_CAPABILITIES = {
   maxOutputTokens: 128_000,
@@ -49,6 +50,7 @@ export const cursorProvider: RegistryEntry = {
     { id: "auto-cost", name: "Auto (cost)" },
     { id: "auto-balance", name: "Auto (balance)" },
     { id: "auto-intelligence", name: "Auto (intelligence)" },
+    ...CURSOR_GROK_47_MODELS,
     { id: "cursor-grok-4.6-xhigh-fast", name: "Cursor Grok 4.6 Xhigh Fast" },
     { id: "cursor-grok-4.6-xhigh", name: "Cursor Grok 4.6 Xhigh" },
     { id: "cursor-grok-4.6-high-fast", name: "Cursor Grok 4.6 High Fast" },
@@ -90,6 +92,25 @@ export const cursorProvider: RegistryEntry = {
       "Claude Fable 5.1",
       300_000,
       "claude-fable-5-1"
+    ),
+    ...withOneMillionContext(
+      [
+        { id: "claude-opus-5-5-max-fast", name: "Claude Opus 5.5 Max Fast" },
+        { id: "claude-opus-5-5-max", name: "Claude Opus 5.5 Max" },
+        { id: "claude-opus-5-5-xhigh-fast", name: "Claude Opus 5.5 Xhigh Fast" },
+        { id: "claude-opus-5-5-xhigh", name: "Claude Opus 5.5 Xhigh" },
+        { id: "claude-opus-5-5-high-fast", name: "Claude Opus 5.5 High Fast" },
+        { id: "claude-opus-5-5-high", name: "Claude Opus 5.5 High" },
+        { id: "claude-opus-5-5-medium-fast", name: "Claude Opus 5.5 Medium Fast" },
+        { id: "claude-opus-5-5-medium", name: "Claude Opus 5.5 Medium" },
+        { id: "claude-opus-5-5-low-fast", name: "Claude Opus 5.5 Low Fast" },
+        { id: "claude-opus-5-5-low", name: "Claude Opus 5.5 Low" },
+      ],
+      "Claude Opus 5.5",
+      300_000,
+      "claude-opus-5-5",
+      // No `-1m` wire mapping exists for this family in requestedModelParameters yet.
+      () => false
     ),
     ...withOneMillionContext(
       [

@@ -1,9 +1,13 @@
+import { isAdaptiveThinkingOnly } from "../../src/shared/constants/modelSpecs.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Models that reject `thinking.type:"adaptive"` and `output_config.effort` —
-// today, all Claude Haiku-tier models (4.5 / 3.5 / dated and aliased). Adaptive
-// thinking + the effort knob landed on Sonnet 4.6 / Opus 4.5+ only; sending
-// either on Haiku is a hard 400 from the Messages API.
+// Claude Haiku-tier models that predate adaptive thinking (4.5 / 3.5 / dated and
+// aliased). Haiku 5.5+ is adaptive-only (spec `adaptiveThinkingOnly`), so it
+// must NOT be rewritten here: the family regex alone wrongly downgrades it.
+// Adaptive thinking + the effort knob landed on Sonnet 4.6 / Opus 4.5+ and
+// Haiku 5.5; sending `enabled` to those is a hard 400 from the Messages API.
 const HAIKU_CONSTRAINT_PATTERN = /haiku/i;
 
 // Default budget when collapsing `thinking.type:"adaptive"` to a manual shape
@@ -18,6 +22,9 @@ function asRecord(value: unknown): JsonRecord | null {
 
 function modelRejectsAdaptiveAndEffort(modelId: string | null | undefined): boolean {
   if (typeof modelId !== "string" || modelId.length === 0) return false;
+  // Spec is authoritative: an adaptive-only model accepts adaptive+effort, so
+  // it is never rejected here regardless of its family name.
+  if (isAdaptiveThinkingOnly(modelId)) return false;
   return HAIKU_CONSTRAINT_PATTERN.test(modelId);
 }
 

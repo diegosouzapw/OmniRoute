@@ -139,12 +139,46 @@ konstruere meldinger som avslører topologi i utgangspunktet.
 `tests/unit/error-message-sanitization.test.ts` håndhever:
 
 - Hver rute under `/api/model-combo-mappings/*` returnerer sanerte svartekster ved 4xx/5xx.
-- `sanitizeErrorMessage` fjerner stakkspor over flere linjer.
-- `sanitizeErrorMessage` erstatter absolutte POSIX- og Windows-stier med `<path>`.
-- `sanitizeErrorMessage` håndterer inndata som `null`/`undefined`/`Error`-forekomster på en sikker måte.
-- `buildErrorBody` eksponerer aldri stakkspor i `message`-feltet sitt.
+- `sanitizeErrorMessage` fjerner flerlinjede stakkspor.
+- `sanitizeErrorMessage` erstatter absolutte POSIX- og Windows-baner med `<path>`.
+- `sanitizeErrorMessage` håndterer inndata av typen `null`/`undefined`/`Error` på en trygg måte.
+- `buildErrorBody` eksponerer aldri stakkspor i `message`-feltet.
 
-Når du legger til en ny rute eller eksekveringskomponent, kopierer du kontrollmønsteret fra denne filen. Dekningskravet (`npm run test:coverage`) håndhever ≥60 % setninger/linjer/funksjoner/grener — feilforløp må dekkes.
+Når du legger til en ny rute eller eksekveringskomponent, kopierer du kontrollmønsteret fra denne filen. Dekningsporten (`npm run test:coverage`) håndhever ≥60 % dekning for setninger/linjer/funksjoner/grener — feilbaner må være dekket.
+
+### Den statiske porten: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` skanner `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` og hver `src/app/api/**/route.ts` etter en rå fanget feil (`err.message` / `err.stack`) eller en rå oppstrøms `body.error.message` som når en klientvendt svartekst.
+
+**Tillit gjelder per kall, aldri per fil** (G-03, #15159). Porten pleide å hoppe over en hel fil så snart den oppdaget en import fra en `utils/error`-bane — et unntak på filnivå anvendt på en fare på kallnivå. Én korrekt `import { sanitizeErrorMessage }` fritok permanent alle andre utgangspunkter i filen, og det var slik en reell lekkasje ble sendt ut med grønn status. Nå er en linje bare klarert når den faktisk går gjennom en godkjent bygger eller saneringsfunksjon:
+
+| Linjeform                                                                                                             | Klarert?        |
+| --------------------------------------------------------------------------------------------------------------------- | --------------- |
+| kaller `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                  | ja              |
+| kaller en kanonisk bygger **som denne filen importerer** fra `open-sse/utils/error` eller `src/lib/api/errorResponse` | ja              |
+| en godkjent bygger kalles over **flere linjer**, slik at `message:`-feltet står på en senere linje                    | ja              |
+| kaller en fillokal `function errorResponse(...)` som sanerer i sin egen funksjonskropp                                | ja              |
+| videresender `err.message` / `err.stack` noe annet sted                                                               | **nei — brudd** |
+
+To konsekvenser det er verdt å kjenne til:
+
+- Import av `errorResponse` gir _ikke_ generell tillit. En fil som definerer sin egen `errorResponse`, blir fortsatt markert ved kallstedet, fordi porten avgjør tillit per symbol, ikke per fil. Det samme gjelder `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` etterfulgt av `error: body.error.message` er det **sanerte** mønsteret som brukes i `*-fetch.ts`-eksekveringskomponentene, og blir ikke markert.
+
+Begge de godkjente byggermodulene teller: `open-sse/utils/error.ts` og `src/lib/api/errorResponse.ts`. Den andre er den som brukes av de ~54 rutebehandlerne utenfor `open-sse`, og den sanerer begge eksportene sine.
+
+To former som **ikke** er brudd, men som porten tidligere rapporterte som lekkasjer:
+
+- en rå feil i en **revisjonsrad** — `saveCallLog({ error: err.message })`, `logToolCall(...)` eller en logger som tar en melding først (`log.error("BATCHES", "sweep failed", { error: err.message })`). Det klientvendte svaret på de neste linjene kan godt være en statisk `buildErrorBody`.
+- et **flerlinjet** kall til en godkjent bygger, der `message:`-feltet ikke nevner noen bygger:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` fryser eksisterende brudd, slik at porten bare blokkerer _nye_ brudd. `assertNoStale` fjerner en oppføring automatisk når bruddet er rettet, slik at frysingen ikke kan stivne. Regresjonsvern: `tests/unit/check-error-helper.test.ts` og `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Relaterte kontroller
 

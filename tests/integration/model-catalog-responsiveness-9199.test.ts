@@ -42,6 +42,16 @@ test(
       requireAuthForModels: true,
       password: "",
     });
+    // Auto-combos are published only when they have an eligible connected target.
+    await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: "openai-catalog-heartbeat-9199",
+      apiKey: "sk-catalog-heartbeat-fixture",
+      isActive: true,
+      testStatus: "active",
+      providerSpecificData: {},
+    });
     const apiKey = await apiKeysDb.createApiKey("catalog responsiveness", "machine-9199");
 
     let catalogSettled = false;

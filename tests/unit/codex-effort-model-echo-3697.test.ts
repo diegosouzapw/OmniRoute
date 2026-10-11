@@ -88,6 +88,14 @@ test("OpenAI -> Responses translator emits response.in_progress with output: [],
       model: "gpt-5.5",
       choices: [{ index: 0, delta: { content: "hi" }, finish_reason: null }],
     },
+    // contract changed by #15310: EOF without a finish_reason is a premature upstream
+    // EOF and now terminates as response.failed (stream_early_eof). A real completion
+    // carries a terminal chunk, so supply it to keep exercising response.completed.
+    {
+      id: "chatcmpl-1",
+      model: "gpt-5.5",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    },
     null,
   ]);
 

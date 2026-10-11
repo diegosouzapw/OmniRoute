@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktsioonid</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombod</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pakkujad</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pakkujad</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ja MCP</a></td>
   </tr>
   <tr>
@@ -675,7 +675,7 @@ teie shell’i ajaloost eemal. → [CLI-integratsioonid](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 tehisintellekti pakkujat — 152 kataloogis tasuta märgitud
+## 🌐 372 tehisintellekti pakkujat — 154 kataloogis tasuta märgitud
 
 </div>
 
@@ -1282,7 +1282,7 @@ Kanoonilised mõõdikud seisuga 2026-08-24: **1.029 unikaalset videot** · **11.
   <tr><td nowrap><b>Käituskeskkond</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Keel</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> kataloogides <code>src/</code> ja <code>open-sse/</code> (alates versioonist v2.0 pole tuumas ühtegi <code>any</code> tüüpi)</td></tr>
   <tr><td nowrap><b>Raamistik</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL-logimine) + LowDB (pärand-JSON) — 137 domeenimoodulit, 193 migratsiooni</td></tr>
+  <tr><td nowrap><b>Andmebaas</b></td><td>better-sqlite3 (SQLite, WAL-logimine) + LowDB (pärand-JSON) — 137 domeenimoodulit, 202 migratsiooni</td></tr>
   <tr><td nowrap><b>Mälu</b></td><td>SQLite FTS5 täistekstiotsing + int8-kvanditud vektormanused, tüübitud hääbumine</td></tr>
   <tr><td nowrap><b>Skeemid</b></td><td>Zod 4 — MCP-tööriistade sisendi/väljundi valideerimine + API-lepingud</td></tr>
   <tr><td nowrap><b>Protokollid</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

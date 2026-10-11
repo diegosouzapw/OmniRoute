@@ -1,0 +1,1 @@
+- KIE image generation now selects Flux Kontext Pro/Max through explicit catalog metadata and maps legacy Z-Image picker IDs to the documented `z-image` upstream ID. Existing Flux Kontext requests retain their dedicated API contract; the canonical Z-Image model is also selectable.

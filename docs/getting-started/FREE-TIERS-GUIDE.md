@@ -1,6 +1,6 @@
 # Free Tiers Guide: Understand and Combine Free AI Access
 
-> **TL;DR**: OmniRoute registers 357 provider IDs, with **152 provider-catalog entries marked `hasFree`**. The stricter audited free-model catalog covers **35 recurring pool keys / 482 entries** (475 active + 7 discontinued). Connect several suitable providers for broader fallback capacity; every quota, approval rule, privacy policy, and paid-overage condition still applies.
+> **TL;DR**: Bring your own eligible provider accounts. OmniRoute combines the connections you configure; it does not issue the advertised aggregate token budget. Free access can require signup, an API key, approval, or a payment method. Provider limits, privacy policies, and terms still apply.
 
 ---
 
@@ -11,7 +11,7 @@ mean a no-auth endpoint, recurring quota, rate-limited uncapped access, a signup
 manual approval, or a temporary promotion. Some options require an account, API key,
 credit card, KYC, or acceptance of provider-specific terms.
 
-OmniRoute **aggregates** these free tiers into one endpoint. Instead of signing up for 10 different services, you connect them all to OmniRoute and use `model: "auto"` to automatically pick the best free option for each request.
+OmniRoute **aggregates** configured connections into one endpoint. You still sign up separately for each provider that requires an account. Connect those accounts and use `model: "auto"` to route among eligible targets. A fresh installation can have no eligible keyless target; installing OmniRoute alone does not guarantee a successful chat response.
 
 ---
 
@@ -28,16 +28,16 @@ These providers have a recurring, keyless, or uncapped free-access path in the a
 | **Pollinations**  | Current keyless model set; some former models are discontinued or key-required | Keyless; no published token cap                                                                                  | No provider credential for the keyless models                                            |
 | **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, and more          | Free API key (no rate limits, no card); **every request is logged** for research (opt out at logfare.ai/consent) | Instant key at logfare.ai/register; ToS/privacy at logfare.ai/tos and logfare.ai/privacy |
 | **Cloudflare AI** | Workers AI catalog                                                             | Audited pool estimates ~30M tokens/month from published usage units                                              | Cloudflare account and API credentials                                                   |
-| **Gemini**        | Gemini Flash family                                                            | Audited pool estimates ~60M tokens/month                                                                         | Google AI Studio API key; rate limits apply                                              |
+| **Gemini**        | Gemini Flash family                                                            | Variable project/model rate limits; no fixed monthly token grant is included in the headline                     | Google AI Studio API key; check the project’s active limits                              |
 | **Groq**          | Llama, GPT-OSS, and Qwen models                                                | Audited pool estimates ~15M tokens/month                                                                         | Groq API key; rate limits apply                                                          |
-| **Cerebras**      | GLM 4.7 and GPT-OSS 120B                                                       | Audited pool estimates ~30M tokens/month                                                                         | Cerebras API key; rate limits apply                                                      |
 
 ### Signup Grants and Provider-Specific Credits
 
-These providers give you **free credits** when you sign up:
+These providers offer signup grants or promotional credits, subject to their eligibility rules. As verified on 2026-10-08, [Cerebras pricing](https://www.cerebras.ai/pricing) requires a payment method for a one-time $5 credit that expires after 30 days; it is not a recurring token quota. [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) vary by project, model, and tier, so they are not converted into a guaranteed monthly token grant.
 
 | Provider      | Free Credits                                                       | Models                    | How to Get                                                |
 | ------------- | ------------------------------------------------------------------ | ------------------------- | --------------------------------------------------------- |
+| **Cerebras**  | One-time $5 promotional credit; expires after 30 days              | Current inference catalog | Account and valid payment method                          |
 | **DeepSeek**  | 5M free tokens                                                     | DeepSeek V4               | Sign up at platform.deepseek.com                          |
 | **LongCat**   | 10M-token one-time grant                                           | LongCat 2.0               | API key + KYC; pay-as-you-go after the grant              |
 | **Vertex AI** | $300 signup credit represented as ~300M tokens in the budget model | Gemini and partner models | Google Cloud account; billing and eligibility rules apply |
@@ -73,7 +73,7 @@ Then use `model: "auto"` and OmniRoute will:
 - Try the highest-ranked eligible connection first
 - If its quota or health check fails → try the next configured provider
 - If the keyless provider is unavailable → continue through the remaining targets
-- If all fail → use LongCat as backup
+- If no eligible connection succeeds → return an error; signup credits are only usable while valid and available
 
 **Result**: broader free-tier coverage with automatic fallback — not a guarantee of unlimited capacity.
 
@@ -102,8 +102,7 @@ uncapped/keyless access, signup credits, discontinued entries, and higher-risk s
 
 ### Step 5: Click Connect
 
-For a `NOAUTH` provider, no credential is required. OAuth and API-key providers must be
-connected through their documented account flow.
+For a `NOAUTH` provider, OmniRoute does not request an upstream credential. This does not guarantee that the upstream accepts third-party clients or has available capacity. OAuth and API-key providers must be connected through their documented account flow. Your client still uses the OmniRoute API key shown in **Dashboard → Endpoints** when router authentication is enabled.
 
 ### Step 6: Repeat
 
@@ -120,7 +119,7 @@ Connect several providers whose terms and privacy model fit your use case.
 - `recurring-uncapped` means no published token ceiling was available; rate and
   concurrency limits still apply.
 - `one-time-initial` does not recur after the signup grant is consumed.
-- `tos: avoid` is a warning to review provider terms and account risk before use.
+- `tos: avoid` providers are excluded from automatic routing by default (`excludeTosAvoid`). Connecting an account does not bypass this filter. Any operator override should follow a review of provider terms and account risk.
 - Entries marked `discontinued` remain historical evidence and must not be presented as
   currently free.
 
@@ -158,15 +157,12 @@ provider's quota or access policy.
 
 The live, pool-deduplicated catalog currently reports:
 
-| Metric                                               |                            Current audited value | Interpretation                                                                                                             |
-| ---------------------------------------------------- | -----------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------- |
-| Recurring quantified grant                           |                          **~1.62B tokens/month** | Shared pools counted once; excludes uncapped providers from the sum                                                        |
-| First month with signup grants                       |                                **~2.22B tokens** | Recurring total plus one-time and recurring credits                                                                        |
-| Audited free-model inventory                         | **35 recurring pool keys / 482 catalog entries** | 475 active + 7 discontinued; distinct from the 357-provider catalog                                                        |
-| Recurring/keyless free-forever providers represented |                                           **53** | Unique providers across recurring daily/monthly/credit/uncapped and keyless catalog types, eligibility-gated rows excluded |
-| Provider catalog entries marked `hasFree`            |                                    **152 / 357** | Broader provider metadata; not all have a quantifiable recurring quota                                                     |
+| Metric                         |   Current audited value | Interpretation                                                      |
+| ------------------------------ | ----------------------: | ------------------------------------------------------------------- |
+| Recurring quantified grant     | **~1.62B tokens/month** | Shared pools counted once; excludes uncapped providers from the sum |
+| First month with signup grants |       **~2.22B tokens** | Recurring total plus one-time and recurring credits                 |
 
-These values are computed from `open-sse/config/freeModelCatalog.ts`; see the
+These are catalog-wide estimates across separate eligible accounts, not an allowance supplied by OmniRoute or a prediction for a fresh installation. Your usable capacity depends on the providers you connect and their current conditions. The values are computed from `open-sse/config/freeModelCatalog.ts`; see the
 [Free Tiers Reference](../reference/FREE_TIERS.md) for pool deduplication, ToS flags,
 discontinued entries, and signup-credit methodology.
 

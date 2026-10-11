@@ -32,6 +32,12 @@ import { replaceSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import { GET as getProviderModels } from "../models/route";
 import { isDegradedDiscovery } from "./degradedLocalCatalog";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { findStaleComboModelRefs, type StaleComboModelRef } from "@/lib/combos/staleModelRefs";
+import {
+  isStaleComboAutoPruneEnabled,
+  pruneStaleComboModelRefs,
+} from "@/lib/combos/staleModelPrune";
+import { logAuditEvent } from "@/lib/compliance/index";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -713,6 +719,55 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
+    // #13505: flag combo steps pinned to models this sync dropped. Failed and
+    // degraded syncs returned above; a free-only import is a deliberate subset,
+    // so it never prunes. Errors must not fail the sync, so they are swallowed.
+    let staleComboRefs: StaleComboModelRef[] = [];
+    let prunedComboRefs: StaleComboModelRef[] = [];
+    try {
+      staleComboRefs = await findStaleComboModelRefs(logProvider);
+      if (
+        staleComboRefs.length > 0 &&
+        !importFreeOnly &&
+        !freeFilterEmpty &&
+        isStaleComboAutoPruneEnabled()
+      ) {
+        prunedComboRefs = await pruneStaleComboModelRefs(staleComboRefs);
+        for (const ref of prunedComboRefs) {
+          logAuditEvent({
+            action: "combo.stale_model_ref.pruned",
+            actor: "system",
+            target: ref.comboName,
+            resourceType: "combo",
+            details: { connectionId: id, provider: logProvider, ...ref },
+          });
+        }
+        staleComboRefs = staleComboRefs.filter((ref) => !prunedComboRefs.includes(ref));
+      }
+      if (staleComboRefs.length > 0) {
+        if (!quiet) {
+          log.warn(
+            "SYNC",
+            `${staleComboRefs.length} combo step(s) pin models missing from the ${logProvider} catalog: ${staleComboRefs.map((ref) => `${ref.comboName} -> ${ref.model}`).join(", ")}`
+          );
+        }
+        // Audit only when the catalog changed, so periodic syncs don't repeat it.
+        if (shouldLog) {
+          logAuditEvent({
+            action: "combo.stale_model_refs.flagged",
+            actor: "system",
+            target: logProvider,
+            resourceType: "combo",
+            details: { connectionId: id, staleComboRefs },
+          });
+        }
+      }
+    } catch (error) {
+      if (!quiet) {
+        log.warn("SYNC", `stale combo ref check failed for ${logProvider}: ${String(error)}`);
+      }
+    }
+
     if (shouldLog) {
       await saveCallLog({
         method: "GET",
@@ -756,6 +811,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       logged: shouldLog,
       models: persistedModels,
       importedModels,
+      staleComboRefs,
+      prunedComboRefs,
     });
   } catch (error: any) {
     // Log error

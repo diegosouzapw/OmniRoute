@@ -19,6 +19,8 @@ import {
   errorResponseWithComboDiagnostics,
   unavailableResponse,
 } from "../../utils/error.ts";
+import { estimateSizeFast } from "../../utils/estimateSize.ts";
+import { jsonLength } from "../../utils/jsonSize.ts";
 import { COMBO_FAILURE_THRESHOLD, recordComboFailure } from "./failureTracker.ts";
 import {
   buildAllTargetsCoolingDownResponse,
@@ -60,6 +62,26 @@ import { collectCircuitOpenExclusions, evaluateExecuteTargetGates } from "./exec
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
 import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
+
+/** A second in-flight copy of a body larger than this sits in the TLS send buffer. */
+const HEDGE_MAX_BODY_BYTES = 256 * 1024;
+
+/**
+ * Hedging sends the body twice. The fast estimate rejects oversized values
+ * without allocating a JSON string. `jsonLength` then confirms the exact
+ * serialized size; a cycle or BigInt makes it throw, and that unknown size
+ * must not hedge — recording 0 bytes would send the body twice anyway.
+ */
+function isBodySmallEnoughToHedge(body: unknown): boolean {
+  try {
+    const estimated = estimateSizeFast(body, HEDGE_MAX_BODY_BYTES);
+    if (!Number.isFinite(estimated) || estimated > HEDGE_MAX_BODY_BYTES) return false;
+    return jsonLength(body) <= HEDGE_MAX_BODY_BYTES;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Resolve the earliest known connection cooldown across every target's eligible
@@ -250,8 +272,12 @@ export async function dispatchWithCooldownRetry(opts: {
       state.abortControllers = new Map<number, AbortController>();
       const rejectedModelKeys = (state.requestScopedRejectedModelKeys ??= new Set<string>());
       const zeroLatencyOptimizationsEnabled = deps.config.zeroLatencyOptimizationsEnabled === true;
+      // A hedged target sends the same body a second time. Bodies past this
+      // size sit in the native TLS send buffer until the network drains them,
+      // and a slow upstream holds both copies for the whole headers wait.
+      const bodySmallEnoughToHedge = isBodySmallEnoughToHedge(deps.body);
       const hasProtectedPriorityTarget =
-        deps.strategy === "priority" &&
+        getStrategyTraits(deps.strategy).honorsFallbackOnlyTargets &&
         state.orderedTargets.some((target) => target.fallbackOnlyOnQuotaExhaustion === true);
 
       const executeTarget = async (i: number): Promise<ExecuteTargetResult> => {
@@ -323,6 +349,7 @@ export async function dispatchWithCooldownRetry(opts: {
         if (
           zeroLatencyOptimizationsEnabled &&
           deps.config.hedging &&
+          bodySmallEnoughToHedge &&
           !hasProtectedPriorityTarget &&
           i + 1 < state.orderedTargets.length
         ) {
@@ -403,9 +430,9 @@ export async function dispatchWithCooldownRetry(opts: {
         );
       }
 
-      // #10681: finalize the decision trace (success).
+      // A resolved fatal response also sets anySuccess to stop dispatching.
+      // Record its actual HTTP status, not an unconditional success.
       finalizeComboTrace(deps.traceInvocationId, state.orderedTargets);
-      finishComboTrace(deps.traceInvocationId, { status: 200 });
       if (anySuccess) {
         // G1: clear the safety timer on the happy path so a successful combo does
         // not leave a 10-minute timer alive per request.
@@ -413,7 +440,9 @@ export async function dispatchWithCooldownRetry(opts: {
           clearTimeout(loopSafetyTimer);
           loopSafetyTimer = null;
         }
-        return await globalPromise;
+        const response = await globalPromise;
+        finishComboTrace(deps.traceInvocationId, { status: response.status });
+        return response;
       }
 
       // #10681: finalize the decision trace (global timeout).

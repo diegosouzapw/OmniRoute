@@ -199,14 +199,14 @@ test("#7694 catalog: GET /api/v1/models advertises a <model>-<tier> alias id per
 // shouldExposeSyncedEffortVariants / appendSyncedEffortVariants — pure unit tests.
 // ---------------------------------------------------------------------------
 
-test("shouldExposeSyncedEffortVariants: skips codex/kimi-owned models (own suffix mechanism) — Kimi/codex regression guard", () => {
+test("shouldExposeSyncedEffortVariants: exposes declared Codex tiers and skips Kimi native suffixes", () => {
   assert.equal(
     shouldExposeSyncedEffortVariants({
       id: "codex/gpt-5.5",
       owned_by: "codex",
       capabilities: { effort_tiers: ["low", "high"] },
     }),
-    false
+    true
   );
   assert.equal(
     shouldExposeSyncedEffortVariants({
@@ -224,7 +224,7 @@ test("shouldExposeSyncedEffortVariants: skips codex/kimi-owned models (own suffi
     }),
     false
   );
-  assert.ok(SYNCED_EFFORT_SKIP_PROVIDERS.has("codex"));
+  assert.ok(!SYNCED_EFFORT_SKIP_PROVIDERS.has("codex"));
 });
 
 test("shouldExposeSyncedEffortVariants: skips a model id that already ends in a token matching a canonical effort value (collision guard)", () => {

@@ -62,8 +62,13 @@ test("R5: an empty list admits nothing; an empty name is never admitted", () => 
 });
 
 test("R6: the catalog gates combo rows on allowedCombos, exempting auto/*", () => {
-  const catalog = fs.readFileSync(
+  const catalogSource = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/v1/models/catalog.ts"),
+    "utf8"
+  );
+  assert.ok(catalogSource.includes("finalModels = await filterCatalogModelsForKey("));
+  const catalog = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/v1/models/catalogKeyFilter.ts"),
     "utf8"
   );
   assert.ok(

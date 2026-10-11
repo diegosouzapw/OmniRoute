@@ -333,7 +333,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # მომხმარებლის დონე
-<project>/.compression/rules/hi/filler.json   # პროექტის დონე
 ```
 
 ### ენის პაკეტების საუკეთესო პრაქტიკები

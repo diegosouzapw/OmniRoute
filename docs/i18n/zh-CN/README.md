@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ 功能</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 组合</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 提供者</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 提供者</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI 和 MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # 还支持：claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 家 AI 提供者 — 其中 152 家标记为免费
+## 🌐 372 家 AI 提供者 — 其中 154 家标记为免费
 
 </div>
 
@@ -1264,7 +1264,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 也会跳过
   <tr><td nowrap><b>运行时</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>语言</b></td><td>TypeScript 6.0 — <code>src/</code> 和 <code>open-sse/</code> 中使用 <b>100% TypeScript</b>（自 v2.0 起，核心中零 <code>any</code>）</td></tr>
   <tr><td nowrap><b>框架</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>数据库</b></td><td>better-sqlite3（SQLite、WAL 日志模式）+ LowDB（旧版 JSON）— 137 个领域模块，193 次迁移</td></tr>
+  <tr><td nowrap><b>数据库</b></td><td>better-sqlite3（SQLite、WAL 日志模式）+ LowDB（旧版 JSON）— 137 个领域模块，202 次迁移</td></tr>
   <tr><td nowrap><b>记忆</b></td><td>SQLite FTS5 全文检索 + int8 量化向量嵌入，类型化衰减</td></tr>
   <tr><td nowrap><b>模式</b></td><td>Zod 4 — MCP 工具输入/输出验证 + API 契约</td></tr>
   <tr><td nowrap><b>协议</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>

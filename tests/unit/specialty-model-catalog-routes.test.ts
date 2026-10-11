@@ -65,9 +65,17 @@ test("image catalog GET uses the unified active-credential model list", async ()
 
   const ids = await listedIds(imageRoute, "/v1/images/generations");
 
+  // #14976 added the Codex GPT Image models (dedicated Codex Images API route)
+  // after the GPT-5.6 hosted-tool ids; see tests/unit/image-registry-gpt56.test.ts.
   assert.deepEqual(
     ids.filter((id) => id.startsWith("codex/")),
-    ["codex/gpt-5.6-sol-image", "codex/gpt-5.6-terra-image", "codex/gpt-5.6-luna-image"]
+    [
+      "codex/gpt-5.6-sol-image",
+      "codex/gpt-5.6-terra-image",
+      "codex/gpt-5.6-luna-image",
+      "codex/gpt-image-2.5-flare",
+      "codex/gpt-image-2",
+    ]
   );
   assert.ok(!ids.includes("openai/gpt-image-2"));
 });

@@ -1,3 +1,4 @@
+import { inheritEmptyTurnPolicy } from "../../utils/emptyTurnPolicy.ts";
 import {
   attachOmniRouteMetaHeaders,
   buildOmniRouteResponseMetaHeaders,
@@ -370,11 +371,14 @@ export function materializeDeduplicatedExecutionResult<T extends Record<string, 
 
   return {
     ...result,
-    response: new Response(snapshot.payload, {
-      status: snapshot.status,
-      statusText: snapshot.statusText,
-      headers: snapshot.headers,
-    }),
+    response: inheritEmptyTurnPolicy(
+      result.response as Response,
+      new Response(snapshot.payload, {
+        status: snapshot.status,
+        statusText: snapshot.statusText,
+        headers: snapshot.headers,
+      })
+    ),
   } as T;
 }
 

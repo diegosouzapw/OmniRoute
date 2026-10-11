@@ -333,7 +333,6 @@ Hoặc đặt gói vào một vị trí được nhận diện:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Cấp người dùng
-<project>/.compression/rules/hi/filler.json   # Cấp dự án
 ```
 
 ### Các Phương pháp Tốt nhất cho Gói Ngôn ngữ

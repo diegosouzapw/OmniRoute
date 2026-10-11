@@ -71,8 +71,34 @@ function placeholders(message: string): Set<string> {
   };
 
   // Text with arguments; stops at the `}` that closes the enclosing sub-message.
+  // A straight quote before `{` or `<` opens a literal run (ICU quoting):
+  // text up to the next lone quote is literal, not a placeholder. A doubled
+  // quote is an escaped quote, inside a run as well as outside.
   const readMessage = () => {
     while (i < message.length && message[i] !== "}") {
+      if (message[i] === "'") {
+        if (message[i + 1] === "'") {
+          i += 2;
+          continue;
+        }
+        if (message[i + 1] === "{" || message[i + 1] === "<") {
+          i += 2;
+          while (i < message.length) {
+            if (message[i] === "'") {
+              if (message[i + 1] === "'") {
+                i += 2;
+                continue;
+              }
+              i++;
+              break;
+            }
+            i++;
+          }
+          continue;
+        }
+        i++;
+        continue;
+      }
       if (message[i] === "{") {
         i++;
         readArgument();
@@ -184,4 +210,17 @@ test("the checker itself recognises the drift it is meant to catch", () => {
     [...placeholders("{count, plural, one {one {name}} other {many {name}}}")],
     ["count", "name"]
   );
+  // A straight quote before syntax opens a literal run: the name inside is
+  // text, not a placeholder.
+  assert.deepEqual([...placeholders("f'{providers}")], []);
+  assert.deepEqual([...placeholders("'{model}'")], []);
+  // A quote before ordinary text is just a character: the name stays visible.
+  assert.deepEqual([...placeholders("l'utilisateur {name}")], ["name"]);
+  // A wanted literal reads empty on both sides, so no drift is reported.
+  assert.deepEqual([...placeholders("'<name>'")], []);
+  assert.deepEqual([...placeholders("'<nom>'")], []);
+  // A doubled quote is an escaped quote, not a literal run opener.
+  assert.deepEqual([...placeholders("f''{providers}")], ["providers"]);
+  // A closing quote ends the literal run: later names are visible again.
+  assert.deepEqual([...placeholders("selector='<name>' for {field}")], ["field"]);
 });

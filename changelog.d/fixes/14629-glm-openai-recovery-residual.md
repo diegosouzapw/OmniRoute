@@ -1,0 +1,1 @@
+- **GLM OpenAI recovery:** Keep the returned request body aligned with reasoning retries, retry a known unsupported field once after a 400, and reuse learned effort limits on later OpenAI requests. Unknown first attempts and the Anthropic transport retain their existing behavior. Refs #14629.

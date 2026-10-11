@@ -1,0 +1,1 @@
+- **fix(proxies):** a member refused for the request region (403/451 with a region signal) is set aside briefly instead of retried first by every following request ([#15383](https://github.com/diegosouzapw/OmniRoute/pull/15383)) — thanks @maxmad64bis

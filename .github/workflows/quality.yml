@@ -36,6 +36,8 @@ jobs:
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
       testsOnly: ${{ steps.classify.outputs.testsOnly }}
+      # Exposure only (one-CI-policy step 1, RFC #8084): no job depends on it yet.
+      domains: ${{ steps.classify.outputs.domains }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -60,6 +62,7 @@ jobs:
               echo "i18n=true"
               echo "workflow=true"
               echo "testsOnly=false"
+              echo "domains=build,catalog,cli,core,db,docs,i18n,provider,routing,tests,ui,workflow"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -230,7 +233,7 @@ jobs:
             route-guard-membership test-discovery test-runner-api
             mutation-test-coverage any-budget:t11 build-scope pack-policy
             complexity-ratchets model-lifecycle
-            cycles lockfile duplication dead-code type-coverage compression-budget
+            lockfile duplication dead-code type-coverage compression-budget
             # #8781: open-sse workspace typecheck gate — the workspace imports @/ which
             # escapes to src/ via undeclared path aliases. See check-open-sse-typecheck.mjs.
             open-sse-typecheck
@@ -238,8 +241,12 @@ jobs:
             # from GITHUB_EVENT_PATH; no-op on non-PR events. ci.yml only runs on PRs to main.
             ai-attribution
           )
+          # Ratchet-mode gates append --ratchet. `cycles` belongs here since #15281
+          # (69cb18dca8): check-cycles.mjs exits 1 on ANY cycle without --ratchet, and
+          # the frozen ceiling lives in quality-baseline.json → metrics.cycles — same
+          # `check:cycles:ratchet` semantics ci.yml runs (base-red #15306).
           ratchet_gates=(
-            secrets vuln-ratchet workflows openapi-breaking
+            secrets vuln-ratchet workflows openapi-breaking cycles
           )
           failed=()
           for g in "${gates[@]}"; do
@@ -405,7 +412,7 @@ jobs:
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
-        uses: trunk-io/analytics-uploader@817e1a2ec58d888825699ee15ea172809bb3f226 # v2.1.3
+        uses: trunk-io/analytics-uploader@14c0f18990953eecd01c9c5afe3cc63a73b6c371 # v2.1.5
         with:
           junit-paths: trunk-junit/**/*.xml
           org-slug: omniroute

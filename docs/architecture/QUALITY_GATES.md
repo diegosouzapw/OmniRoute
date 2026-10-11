@@ -115,7 +115,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | `check:tracked-artifacts`         | No build artifacts / committed `node_modules` symlinks (also runs in husky pre-commit; pre-push is intentionally light — #6716)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Yes                                      |
 | `check:ai-attribution`            | No AI/bot `Co-Authored-By` trailer or AI-generation footer in PR commits, title or body — Hard Rule #16 (in the `quality.yml` fast-gates loop for PR→`release/**` — reads the event payload, no-op off PRs — and a PR-only step in `ci.yml` lint for PR→`main`; also the husky `commit-msg` hook; human co-authors allowed; #14436)                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `check:vitest-exclusions`         | Every Vitest exclusion names a tracking issue and appears in `config/quality/vitest-exclusions.json` (#13204)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Yes                                      |
-| `check:file-size`                 | No source file exceeds the per-extension cap (ratchet: frozen large files in `frozen` list)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Yes                                      |
+| `check:file-size`                 | Source files (`.ts`/`.tsx` in `src/`, `open-sse/`, `electron/`, `bin/`) stay within `cap` and test files (`*.test.ts(x)`) within `testCap`; files frozen in `file-size-baseline.json` (`frozen` / `testFrozen`) must not grow past their recorded size                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Yes                                      |
 | `check:error-helper`              | Error responses in executors/handlers use `buildErrorBody()` / `sanitizeErrorMessage()` (Hard Rule #12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Yes                                      |
 | `check:migration-numbering`       | Migration SQL files are sequentially numbered, no gaps or duplicates                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Yes                                      |
 | `check:public-creds`              | No literal OAuth `client_id`/`client_secret` or Firebase Web keys outside `publicCreds.ts` (Hard Rule #11)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Yes                                      |
@@ -274,6 +274,8 @@ These run on a cron schedule (and `workflow_dispatch`), never on PRs. All are ad
 | `nightly-mutation`     | Stryker mutation-testing score over the fast unit lane — surviving mutants surface weak asserts                                                     | **Advisory** |
 | `nightly-compat`       | Node engine compatibility matrix across the supported `engines.node` ranges                                                                         | **Advisory** |
 
+Performance baselines (heap, TTFB, build time) are recorded, not gated: see [`PERF_BASELINE.md`](../ops/PERF_BASELINE.md) (`npm run perf:lts-baseline`).
+
 ---
 
 ## Velocity phase (2026-08-30 → v4.0 LTS): every baseline loosened by 20%
@@ -308,24 +310,31 @@ docs/env contract, i18n parity, unit tests) are unchanged — a red test is stil
   same note.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
   measures every numeric gate the way CI does and prints the remaining headroom per gate
-  (`scripts/quality/baseline-headroom.mjs`). The nightly `baseline-headroom` job posts the
-  table to the living issue **📈 Baseline headroom (velocity phase)** and adds the
-  `headroom-alert` label when any gate is within 10% of its cap or already over it. That issue
-  is the early warning: a budget that fills in days means the relaxation is being consumed by
-  a few PRs, not by the whole team — look at the offending gate's `_rebaseline_*` notes.
+  (`scripts/quality/baseline-headroom.mjs`). The nightly `baseline-headroom` job publishes
+  the table in the workflow run summary and uploads its JSON/Markdown report as
+  `baseline-headroom-<run_id>`, retained for 90 days. Warning and critical rows identify gates
+  within 10% of their cap or already over it. Review these reports as the early warning for
+  budgets being consumed; inspect the offending gate's `_rebaseline_*` notes. The job no
+  longer creates or updates a permanent issue; #12149 preserves the earlier report history.
 
 **New-code mode (Clean-as-You-Code) — since 2026-08-30, PR fast-path only**
 
 On `pull_request` events `quality.yml` passes `--base-ref <PR base SHA>` to `check:file-size`,
-`check:complexity-ratchets` and `check:dead-code`. In that mode the gate compares HEAD with the
-merge-base **restricted to the files the PR touched** (`scripts/check/newCodeMode.mjs`: the
-merge-base is materialized in a throwaway `git worktree`, ESLint/knip run there and on HEAD, the
-per-file counts are diffed):
+`check:complexity-ratchets` and `check:dead-code`. For `check:complexity-ratchets` and
+`check:dead-code` the gate compares HEAD with the merge-base **restricted to the files the PR
+touched** (`scripts/check/newCodeMode.mjs`: the merge-base is materialized in a throwaway
+`git worktree`, ESLint/knip run there and on HEAD, the per-file counts are diffed):
 
 - **blocking** — the PR added cyclomatic/cognitive violations or dead exports in files it changed
   (`complexityNewCode=`, `cognitiveComplexityNewCode=`, `deadExportsNewCode=` in the log);
 - **advisory** — the global total vs. the frozen baseline. Inherited drift never reds an
   innocent PR; the drift is re-frozen at release reconciliation and watched by the headroom job.
+
+`check:file-size` uses the base ref on its own terms (`scripts/check/check-file-size.mjs`, #8522):
+it checks every source and test file in the tree, reads each one's line count at the PR base
+with `git show`, and fails a file only when it grows past the larger of its baseline ceiling
+(`frozen` / `testFrozen`, or `cap` / `testCap` for a file outside the baseline) and its base
+size. A file that already drifted on the base therefore never reds an innocent PR.
 
 `workflow_dispatch` runs, the release-green sweep and the nightly headroom job have no PR base
 and keep the absolute (global) comparison. Coverage, duplication and type-coverage stay global

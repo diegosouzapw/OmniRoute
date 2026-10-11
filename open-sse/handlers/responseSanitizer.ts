@@ -13,6 +13,8 @@ import {
   applyCacheHitTokensToResponsesUsage,
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
+import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
+import { assignAliasCacheWrite } from "../utils/pickCacheCreationTokens.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -73,7 +75,6 @@ function toRecord(value: unknown): JsonRecord | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as JsonRecord;
 }
-
 function toString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
@@ -594,9 +595,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   ) {
     inputDetails.cache_creation_tokens = normalized.cache_creation_input_tokens;
   }
-  if (Object.keys(inputDetails).length > 0) {
-    normalized.input_tokens_details = inputDetails;
-  }
+  assignAliasCacheWrite(normalized, inputDetails);
 
   const outputDetails = toRecord(normalized.output_tokens_details) || {};
   if (normalized.reasoning_tokens !== undefined && outputDetails.reasoning_tokens === undefined) {
@@ -846,7 +845,6 @@ function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
     .map((item, index) => sanitizeResponsesOutputItem(item, index))
     .filter((item): item is JsonRecord => item !== null);
 }
-
 function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord | null {
   const itemRecord = toRecord(item);
   if (!itemRecord) return null;
@@ -855,11 +853,12 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "message") {
     const content = sanitizeResponsesMessageContent(itemRecord.content);
+    // prettier-ignore
     const sanitized: JsonRecord = {
       id: toString(itemRecord.id) || `msg_${index}`,
       type: "message",
       role: toString(itemRecord.role) || "assistant",
-      content,
+      content, ...(itemRecord.phase ? { phase: toString(itemRecord.phase) } : {}),
     };
     return sanitized;
   }
@@ -888,12 +887,18 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "function_call") {
     const callId = toString(itemRecord.call_id) || toString(itemRecord.id) || `call_${index}`;
+    const namespace = toString(itemRecord.namespace);
     return {
       id: toString(itemRecord.id) || `fc_${callId}`,
       type: "function_call",
       call_id: callId,
       name: toString(itemRecord.name) || "",
       arguments: stripZeroWidthToolArgumentJson(itemRecord.arguments),
+      ...(namespace ? { namespace } : {}),
+      ...(itemRecord.status !== undefined ? { status: itemRecord.status } : {}),
+      ...(itemRecord.encrypted_function_args !== undefined
+        ? { encrypted_function_args: itemRecord.encrypted_function_args }
+        : {}),
     };
   }
 
@@ -1103,6 +1108,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
     return parsed;
   }
 
+  // Fold typed content-part arrays (Mistral thinking chunks) into the string
+  // `content` / `reasoning_content` the chat-chunk contract requires.
+  normalizeArrayContentChunk(parsedRecord);
+
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization
   const needsIdNormalization =
@@ -1143,7 +1152,8 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
         const deltaRecord = toRecord(choiceRecord.delta);
         if (deltaRecord) {
           const delta: JsonRecord = {};
-          if (deltaRecord.role !== undefined) delta.role = deltaRecord.role;
+          // prettier-ignore
+          { if (deltaRecord.role !== undefined) delta.role = deltaRecord.role; if (typeof deltaRecord.refusal === "string") delta.refusal = deltaRecord.refusal; }
           if (deltaRecord.content !== undefined) {
             delta.content =
               typeof deltaRecord.content === "string"

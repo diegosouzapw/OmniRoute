@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
+import { fireEvent } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ENGINE_IDS } from "../../../open-sse/services/compression/engineCatalog.ts";
 
@@ -65,7 +66,7 @@ interface CapturedPut {
   body: Record<string, unknown>;
 }
 
-function setupFetchMock(): { puts: CapturedPut[] } {
+function setupFetchMock(storedOverrides?: Record<string, unknown>): { puts: CapturedPut[] } {
   const puts: CapturedPut[] = [];
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
@@ -91,6 +92,8 @@ function setupFetchMock(): { puts: CapturedPut[] } {
     enginesExplicit: true,
     cavemanOutputMode: { enabled: false, intensity: "full", autoClarity: true },
   };
+  // The stored row the mock's settings GET serves; each PUT merges into it before answering.
+  let stored: Record<string, unknown> = { ...initialConfig, ...storedOverrides };
 
   vi.spyOn(globalThis, "fetch").mockImplementation(
     async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -109,17 +112,25 @@ function setupFetchMock(): { puts: CapturedPut[] } {
         if (method === "PUT") {
           const body = JSON.parse(String(init?.body ?? "{}"));
           puts.push({ url, body });
-          // Echo a merged config so the panel keeps a coherent state.
-          return json({ ...initialConfig, ...body });
+          // Store each PUT before answering, like the route does, so a GET that arrives
+          // after an ack reflects it.
+          stored = { ...stored, ...body };
+          return json({ ...stored });
         }
-        return json(initialConfig);
+        return json(stored);
       }
 
       return json({}, 404);
     }
   );
 
-  return { puts };
+  // Lets a test that answers PUTs itself record what the server would have stored, so a
+  // later GET reflects the ack.
+  const storePut = (body: Record<string, unknown>) => {
+    stored = { ...stored, ...body };
+  };
+
+  return { puts, storePut };
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -194,8 +205,8 @@ describe("CompressionPanel", () => {
       .pop();
     expect(lastEngines).toBeTruthy();
     expect(lastEngines!.caveman.enabled).toBe(true);
-    // Full engines map is sent (whole-row persistence), so rtk is not dropped.
-    expect(lastEngines!.rtk.enabled).toBe(true);
+    // The server merges engines by id, so only the toggled engine is sent.
+    expect(lastEngines!.rtk).toBeUndefined();
   });
 
   it("derived-pipeline preview reflects the enabled engines", async () => {
@@ -218,5 +229,648 @@ describe("CompressionPanel", () => {
     expect(preview?.textContent).toContain("session-dedup → lite");
     expect(preview?.textContent).not.toContain("rtk");
     expect(preview?.textContent).not.toContain("caveman");
+  });
+
+  async function renderPanel() {
+    const { default: CompressionPanel } =
+      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<CompressionPanel />);
+    });
+    await flush();
+    return container;
+  }
+
+  // Settings PUTs wait until the test answers them, so several saves stay in flight together
+  // and can answer in any order. Only PUTs to the settings endpoint are held — anything else
+  // falls through to the base mock, so `puts` and `answer` indices stay settings-only.
+  function holdSettingsPuts(storedOverrides?: Record<string, unknown>) {
+    const { storePut } = setupFetchMock(storedOverrides);
+    const respond = vi.mocked(globalThis.fetch).getMockImplementation()!;
+    const puts: Array<Record<string, unknown>> = [];
+    const answers: Array<(status: number) => void> = [];
+    let nextGet: Record<string, unknown> | null = null;
+    vi.mocked(globalThis.fetch).mockImplementation((input, init) => {
+      const url = String(input);
+      const method = (init?.method ?? "GET").toUpperCase();
+      if (
+        nextGet &&
+        method === "GET" &&
+        url.includes("/api/settings/compression") &&
+        !url.includes("mcp-accessibility")
+      ) {
+        const payload = nextGet;
+        nextGet = null;
+        return Promise.resolve(
+          new Response(JSON.stringify(payload), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }
+      if (
+        method !== "PUT" ||
+        !url.includes("/api/settings/compression") ||
+        url.includes("mcp-accessibility")
+      ) {
+        return respond(input, init);
+      }
+      const body = JSON.parse(String(init.body));
+      puts.push(body);
+      return new Promise<Response>((resolve, reject) => {
+        answers.push((status) => {
+          // A 2xx answer means the server stored this save before answering.
+          if (status >= 200 && status < 300) storePut(body);
+          resolve(new Response("{}", { status }));
+        });
+        init.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+      });
+    });
+    const answer = async (index: number, status: number) => {
+      await act(async () => answers[index](status));
+      await flush();
+    };
+    // Serves the panel's next settings GET (the post-failure resync) a stored row of our
+    // choosing, once.
+    const setNextGet = (payload: Record<string, unknown>) => {
+      nextGet = payload;
+    };
+    return { puts, answer, setNextGet };
+  }
+
+  async function commitAutoTrigger(input: HTMLInputElement, value: string) {
+    await act(async () => {
+      fireEvent.change(input, { target: { value } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(input, { key: "Enter" });
+    });
+  }
+
+  // The ultra-engine select is disabled while a save is in flight, but the auto-trigger input
+  // never is, so a value committed there goes out while the ultra-engine save still waits.
+  async function changeUltraEngineThenAutoTrigger(container: HTMLElement) {
+    const ultraEngine = container.querySelector(
+      `[data-testid="ultra-engine-select"]`
+    ) as HTMLSelectElement;
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(ultraEngine, { target: { value: "slm" } });
+    });
+    await commitAutoTrigger(autoTrigger, "500");
+    return { ultraEngine, autoTrigger };
+  }
+
+  it("a failed save rolls back its own field and keeps a later save", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const { ultraEngine, autoTrigger } = await changeUltraEngineThenAutoTrigger(container);
+    // Each PUT carries only its own field, so the server never stored ultraEngine "slm".
+    expect(puts).toEqual([{ ultraEngine: "slm" }, { autoTriggerTokens: 500 }]);
+
+    await answer(0, 500);
+    await answer(1, 200);
+    expect(ultraEngine.value).toBe("heuristic");
+    expect(autoTrigger.value).toBe("500");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("a failed later save rolls back its own field and keeps the earlier save", async () => {
+    const { answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const { ultraEngine, autoTrigger } = await changeUltraEngineThenAutoTrigger(container);
+
+    await answer(0, 200);
+    await answer(1, 500);
+    expect(ultraEngine.value).toBe("slm");
+    expect(autoTrigger.value).toBe("0");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("saves the auto-trigger value once, on Enter or when the field loses focus", async () => {
+    const { puts } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+
+    for (const value of ["8", "80", "8000"]) {
+      await act(async () => {
+        fireEvent.change(autoTrigger, { target: { value } });
+      });
+    }
+    expect(puts, "typing alone saves nothing").toEqual([]);
+    await act(async () => {
+      fireEvent.keyDown(autoTrigger, { key: "Enter" });
+    });
+    await act(async () => {
+      fireEvent.blur(autoTrigger);
+    });
+    expect(puts, "the blur after Enter has nothing new to save").toEqual([
+      { autoTriggerTokens: 8000 },
+    ]);
+
+    await act(async () => {
+      fireEvent.change(autoTrigger, { target: { value: "9000" } });
+    });
+    await act(async () => {
+      fireEvent.blur(autoTrigger);
+    });
+    expect(puts).toEqual([{ autoTriggerTokens: 8000 }, { autoTriggerTokens: 9000 }]);
+  });
+
+  it("rolls the auto-trigger box back when a cleared or zero-padded value fails to save", async () => {
+    const { answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+    await commitAutoTrigger(autoTrigger, "500");
+    await answer(0, 200);
+
+    await commitAutoTrigger(autoTrigger, "");
+    await answer(1, 500);
+    expect(autoTrigger.value, "a cleared box comes back to the saved value").toBe("500");
+
+    await commitAutoTrigger(autoTrigger, "0700");
+    await answer(2, 500);
+    expect(autoTrigger.value, "a zero-padded value comes back to the saved value").toBe("500");
+  });
+
+  it("shows the value of the save that answered last when saves of one field overlap", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+    await commitAutoTrigger(autoTrigger, "1");
+    await commitAutoTrigger(autoTrigger, "100");
+    expect(puts).toEqual([{ autoTriggerTokens: 1 }, { autoTriggerTokens: 100 }]);
+
+    // The server stores each save just before it answers, so the save that answers last holds
+    // the stored value.
+    await answer(1, 200);
+    await answer(0, 200);
+    expect(autoTrigger.value).toBe("1");
+  });
+
+  it("shows Saved again once a save succeeds after an earlier failure settled", async () => {
+    const { answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const ultraEngine = container.querySelector(
+      `[data-testid="ultra-engine-select"]`
+    ) as HTMLSelectElement;
+
+    await act(async () => {
+      fireEvent.change(ultraEngine, { target: { value: "slm" } });
+    });
+    await answer(0, 500);
+    expect(container.textContent).toContain("saveFailed");
+
+    await act(async () => {
+      fireEvent.change(ultraEngine, { target: { value: "slm" } });
+    });
+    await answer(1, 200);
+    expect(ultraEngine.value).toBe("slm");
+    expect(container.textContent).toContain("saved");
+    expect(container.textContent).not.toContain("saveFailed");
+  });
+
+  it("shows Save failed at once and keeps it while other saves are in flight", async () => {
+    const { answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const { autoTrigger } = await changeUltraEngineThenAutoTrigger(container);
+
+    // The auto-trigger save fails while the ultra-engine save still waits on the server.
+    await answer(1, 500);
+    expect(container.textContent, "the failure shows at once").toContain("saveFailed");
+    await commitAutoTrigger(autoTrigger, "700");
+    expect(container.textContent, "a new save does not hide it").toContain("saveFailed");
+
+    await answer(2, 200);
+    await answer(0, 200);
+    expect(autoTrigger.value).toBe("700");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("fails a PUT that outlives the save timeout", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const timeouts: AbortController[] = [];
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      timeouts.push(controller);
+      return controller.signal;
+    });
+    const container = await renderPanel();
+    const { ultraEngine, autoTrigger } = await changeUltraEngineThenAutoTrigger(container);
+    expect(puts, "the auto-trigger save does not wait").toEqual([
+      { ultraEngine: "slm" },
+      { autoTriggerTokens: 500 },
+    ]);
+    await answer(1, 200);
+    expect(ultraEngine.disabled, "controls stay disabled while a PUT is in flight").toBe(true);
+
+    // The first PUT never answers; its timeout signal ends it.
+    await act(async () => timeouts[0].abort());
+    for (let i = 0; i < 5; i++) await flush();
+
+    expect(timeoutSpy).toHaveBeenCalledWith(15_000);
+    expect(ultraEngine.disabled).toBe(false);
+    expect(ultraEngine.value).toBe("heuristic");
+    expect(autoTrigger.value).toBe("500");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("keeps an unsaved auto-trigger edit when an overlapping save of it fails", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+    await commitAutoTrigger(autoTrigger, "100");
+    await commitAutoTrigger(autoTrigger, "200");
+    await act(async () => {
+      fireEvent.change(autoTrigger, { target: { value: "100" } });
+    });
+
+    // The 200 save answers first; the 100 save then fails, which rolls the value back to 200.
+    await answer(1, 200);
+    await answer(0, 500);
+    expect(autoTrigger.value, "the unsaved edit stays in the box").toBe("100");
+    await act(async () => {
+      fireEvent.blur(autoTrigger);
+    });
+    expect(puts).toEqual([
+      { autoTriggerTokens: 100 },
+      { autoTriggerTokens: 200 },
+      { autoTriggerTokens: 100 },
+    ]);
+  });
+
+  it("delivers a click that ends an auto-trigger edit to the control it lands on", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const { puts } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+    const cavemanToggle = container.querySelector(
+      `[data-testid="engine-toggle-caveman"] button`
+    ) as HTMLButtonElement;
+    const user = userEvent.setup();
+    await user.clear(autoTrigger);
+    await user.type(autoTrigger, "500");
+
+    // Pressing the toggle blurs the box, which saves 500 before the click lands.
+    await user.click(cavemanToggle);
+    expect(puts).toHaveLength(2);
+    expect(puts[0]).toEqual({ autoTriggerTokens: 500 });
+    expect((puts[1].engines as Record<string, { enabled: boolean }>).caveman.enabled).toBe(true);
+  });
+
+  it("picks up a save the server stored after the panel gave up on it", async () => {
+    const { setNextGet } = holdSettingsPuts();
+    const timeouts: AbortController[] = [];
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      timeouts.push(controller);
+      return controller.signal;
+    });
+    const container = await renderPanel();
+    const ultraEngine = container.querySelector(
+      `[data-testid="ultra-engine-select"]`
+    ) as HTMLSelectElement;
+    await act(async () => {
+      fireEvent.change(ultraEngine, { target: { value: "slm" } });
+    });
+
+    // The PUT never answers; the timeout gives up on it. The server stores the save anyway,
+    // and the panel's re-read picks the stored value up.
+    setNextGet({
+      enabled: true,
+      autoTriggerTokens: 0,
+      preserveSystemPrompt: true,
+      engines: { rtk: { enabled: true, level: "standard" }, caveman: { enabled: false } },
+      enginesExplicit: true,
+      ultraEngine: "slm",
+    });
+    await act(async () => timeouts[0].abort());
+    for (let i = 0; i < 5; i++) await flush();
+
+    expect(ultraEngine.value, "the resync shows the value the server stored").toBe("slm");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("a resync answer does not clobber saves started after the failure", async () => {
+    const { puts, answer, setNextGet } = holdSettingsPuts();
+    const timeouts: AbortController[] = [];
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      timeouts.push(controller);
+      return controller.signal;
+    });
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+
+    await commitAutoTrigger(autoTrigger, "500");
+    setNextGet({ enabled: true, autoTriggerTokens: 999 });
+    await act(async () => timeouts[0].abort());
+    // A new save starts while the resync is on its way; its value must survive the resync.
+    await commitAutoTrigger(autoTrigger, "700");
+    for (let i = 0; i < 5; i++) await flush();
+
+    expect(autoTrigger.value, "the newer save stays in the box").toBe("700");
+    await answer(1, 200);
+    expect(autoTrigger.value).toBe("700");
+    // The newer save started after the failed one had settled, so it clears the banner.
+    expect(container.textContent).toContain("saved");
+    expect(puts).toEqual([{ autoTriggerTokens: 500 }, { autoTriggerTokens: 700 }]);
+  });
+
+  it("does not let the re-read clobber a key a newer save acked", async () => {
+    const { puts, answer, setNextGet } = holdSettingsPuts();
+    const timeouts: AbortController[] = [];
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      timeouts.push(controller);
+      return controller.signal;
+    });
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+
+    await commitAutoTrigger(autoTrigger, "500");
+    setNextGet({ autoTriggerTokens: 999 });
+    await act(async () => timeouts[0].abort());
+    // A newer save of the same field acks before the re-read answers; the re-read's
+    // snapshot for that field is older than the ack and must be dropped.
+    await commitAutoTrigger(autoTrigger, "700");
+    await answer(1, 200);
+    for (let i = 0; i < 5; i++) await flush();
+
+    expect(autoTrigger.value, "the acked value stays").toBe("700");
+    expect(puts).toEqual([{ autoTriggerTokens: 500 }, { autoTriggerTokens: 700 }]);
+  });
+
+  it("keeps Save failed when a stale saved-timer fires", async () => {
+    vi.useFakeTimers();
+    try {
+      const { answer } = holdSettingsPuts();
+      const container = await renderPanel();
+      const ultraEngine = container.querySelector(
+        `[data-testid="ultra-engine-select"]`
+      ) as HTMLSelectElement;
+
+      await act(async () => {
+        fireEvent.change(ultraEngine, { target: { value: "slm" } });
+      });
+      await answer(0, 200);
+      expect(container.textContent).toContain("saved");
+
+      await act(async () => {
+        fireEvent.change(ultraEngine, { target: { value: "heuristic" } });
+      });
+      await answer(1, 500);
+      expect(container.textContent).toContain("saveFailed");
+
+      // The first save's 2s clear timer fires after the failure settled; it must not wipe
+      // the failure banner the user still needs to see.
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(container.textContent, "the failure banner survives the stale timer").toContain(
+        "saveFailed"
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("carries the whole contextBudget object so a pending mode change is not lost", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const modeSelect = container.querySelector(
+      `[data-testid="context-budget-mode-select"]`
+    ) as HTMLSelectElement;
+    await act(async () => {
+      fireEvent.change(modeSelect, { target: { value: "floor" } });
+    });
+    const policySelect = container.querySelector(
+      `[data-testid="context-budget-policy-select"]`
+    ) as HTMLSelectElement;
+    await act(async () => {
+      fireEvent.change(policySelect, { target: { value: "percentage" } });
+    });
+
+    // Each PUT carries the full merged object (the persistence layer stores it as one row),
+    // so the second save re-carries the still-unsaved mode change.
+    expect(puts[0].contextBudget).toMatchObject({ mode: "floor" });
+    expect(puts[1].contextBudget).toMatchObject({ mode: "floor", policy: "percentage" });
+
+    await answer(0, 500);
+    await answer(1, 200);
+    expect(modeSelect.value).toBe("floor");
+    expect(policySelect.value).toBe("percentage");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("keeps both contextBudget fields when mode and policy change in one turn", async () => {
+    // The policy select mounts only while mode is not off. Start on a different mode so
+    // both selects exist before the turn, and a stale spread cannot already be mode floor.
+    const { puts } = holdSettingsPuts({
+      contextBudget: { mode: "replace-autotrigger", policy: "reserve-output" },
+    });
+    const container = await renderPanel();
+    const modeSelect = container.querySelector(
+      `[data-testid="context-budget-mode-select"]`
+    ) as HTMLSelectElement;
+    const policySelect = container.querySelector(
+      `[data-testid="context-budget-policy-select"]`
+    ) as HTMLSelectElement;
+    expect(policySelect, "policy select is mounted while mode is not off").toBeTruthy();
+
+    // A controlled select commits at the end of each native event, so two fireEvents
+    // re-render even inside one act() and never share a stale closure. Call both
+    // handlers in that act before the commit — that is the turn that drops the first field.
+    type SelectChange = (event: { target: { value: string } }) => void;
+    const selectOnChange = (node: HTMLElement): SelectChange => {
+      const key = Object.keys(node).find((name) => name.startsWith("__reactProps$"));
+      const props = key
+        ? (node as unknown as Record<string, { onChange?: SelectChange }>)[key]
+        : undefined;
+      if (!props?.onChange) throw new Error("select has no onChange");
+      return props.onChange;
+    };
+    const changeMode = selectOnChange(modeSelect);
+    const changePolicy = selectOnChange(policySelect);
+    await act(async () => {
+      changeMode({ target: { value: "floor" } });
+      changePolicy({ target: { value: "percentage" } });
+    });
+
+    expect(puts[0].contextBudget).toMatchObject({ mode: "floor" });
+    expect(puts[1].contextBudget).toMatchObject({ mode: "floor", policy: "percentage" });
+  });
+
+  it("rolls an engine toggle back when its engines save fails", async () => {
+    const { puts, answer } = holdSettingsPuts();
+    const container = await renderPanel();
+    const toggle = container.querySelector(
+      `[data-testid="engine-toggle-caveman"] button`
+    ) as HTMLButtonElement;
+    await act(async () => {
+      toggle.click();
+    });
+    expect(puts).toHaveLength(1);
+    expect(puts[0].engines).toBeTruthy();
+
+    await answer(0, 500);
+    expect(toggle.getAttribute("aria-checked"), "the toggle reverts").toBe("false");
+    expect(container.textContent).toContain("saveFailed");
+  });
+
+  it("commits 1e3 as 1000 and keeps a value the field rejects", async () => {
+    const { puts } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+
+    await commitAutoTrigger(autoTrigger, "1e3");
+    expect(puts, "e-notation commits its real value").toEqual([{ autoTriggerTokens: 1000 }]);
+    expect(autoTrigger.value).toBe("1000");
+
+    await commitAutoTrigger(autoTrigger, "2.5");
+    expect(puts, "a decimal is not truncated into a save").toEqual([{ autoTriggerTokens: 1000 }]);
+    expect(autoTrigger.value, "the rejected edit stays in the box").toBe("2.5");
+
+    await commitAutoTrigger(autoTrigger, "200000");
+    expect(puts, "a value over the field's own max saves nothing").toHaveLength(1);
+    expect(autoTrigger.value).toBe("200000");
+  });
+
+  it("Escape cancels the draft instead of saving it", async () => {
+    const { puts } = holdSettingsPuts();
+    const container = await renderPanel();
+    const autoTrigger = container.querySelector(`input[type="number"]`) as HTMLInputElement;
+
+    await act(async () => {
+      fireEvent.change(autoTrigger, { target: { value: "500" } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(autoTrigger, { key: "Escape" });
+    });
+    expect(puts, "Escape saves nothing").toEqual([]);
+    expect(autoTrigger.value, "the box returns to the current value").toBe("0");
+
+    await act(async () => {
+      fireEvent.blur(autoTrigger);
+    });
+    expect(puts, "the blur after Escape has nothing to save").toEqual([]);
+  });
+});
+
+describe("CompressionPanel when the settings GET fails", () => {
+  // The panel's first request is the settings GET, and it fails as it does while the server
+  // restarts. Later requests, including a retried GET, reach the stored config.
+  const FAILURES = {
+    "a 500": async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 }),
+    "a network error": async () => {
+      throw new TypeError("Failed to fetch");
+    },
+  };
+
+  function failFirstSettingsGet(failure: keyof typeof FAILURES = "a 500") {
+    const { puts } = setupFetchMock();
+    vi.mocked(globalThis.fetch).mockImplementationOnce(FAILURES[failure]);
+    // The mcp-accessibility toggle writes its own store, not the settings row.
+    return () => puts.filter((p) => !p.url.includes("mcp-accessibility")).map((p) => p.body);
+  }
+
+  // Holds the next request open until the returned function lets `answer` reply to it.
+  function holdNextRequest(answer: typeof fetch) {
+    let release!: () => Promise<void>;
+    vi.mocked(globalThis.fetch).mockImplementationOnce(
+      (input, init) =>
+        new Promise<Response>((resolve) => {
+          release = async () => {
+            await act(async () => resolve(answer(input, init)));
+            await flush();
+          };
+        })
+    );
+    return () => release();
+  }
+
+  async function mountPanel() {
+    const { default: CompressionPanel } =
+      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mount(<CompressionPanel />);
+    });
+    await flush();
+    return container;
+  }
+
+  function retryButton(container: HTMLElement) {
+    return Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "retry"
+    );
+  }
+
+  it.each(Object.keys(FAILURES) as Array<keyof typeof FAILURES>)(
+    "offers no control that would save defaults over the stored settings after %s",
+    async (failure) => {
+      const settingsPuts = failFirstSettingsGet(failure);
+      const container = await mountPanel();
+
+      // Without a loaded config the panel holds defaults: engines {}, outputStyles [], and the
+      // default contextBudget. A switch it still offers would PUT those defaults over the
+      // stored row, so press every one in page order.
+      for (const control of container.querySelectorAll<HTMLButtonElement>('[role="switch"]')) {
+        await act(async () => control.click());
+        await flush();
+      }
+
+      expect(settingsPuts(), "a save before any GET succeeds overwrites stored settings").toEqual(
+        []
+      );
+      expect(container.querySelectorAll("select, input")).toHaveLength(0);
+      expect(retryButton(container), "the load error offers a retry").toBeTruthy();
+    }
+  );
+
+  it("shows a retry that loads the stored settings before the controls return", async () => {
+    const settingsPuts = failFirstSettingsGet();
+    const container = await mountPanel();
+    expect(container.textContent).toContain("failedToLoad");
+
+    // The retried GET stays open, and the controls stay back until it answers.
+    const release = holdNextRequest(vi.mocked(globalThis.fetch).getMockImplementation()!);
+    await act(async () => retryButton(container)!.click());
+    await flush();
+    expect(container.textContent).toContain("loading");
+    expect(container.querySelectorAll('[role="switch"], select, input')).toHaveLength(0);
+
+    await release();
+    const rtkLevel = container.querySelector(
+      `[data-testid="engine-row-rtk"] select`
+    ) as HTMLSelectElement | null;
+    expect(rtkLevel?.value, "the retried GET loads the stored rtk level").toBe("standard");
+    // Saves go out again once a GET has succeeded.
+    const master = container.querySelector(
+      `[data-testid="compression-panel"] [role="switch"]`
+    ) as HTMLButtonElement;
+    await act(async () => master.click());
+    await flush();
+    expect(settingsPuts()).toEqual([{ enabled: false }]);
+  });
+
+  it("ignores an answer from the load that a retry superseded", async () => {
+    failFirstSettingsGet();
+    // The first load's mcp-accessibility GET answers only after the retried load finished.
+    const answerStale = holdNextRequest(
+      async () => new Response(JSON.stringify({ enabled: false }), { status: 200 })
+    );
+    const container = await mountPanel();
+    await act(async () => retryButton(container)!.click());
+    await flush();
+
+    await answerStale();
+    const mcpToggle = container.querySelector(
+      `[data-testid="mcp-accessibility-toggle"] [role="switch"]`
+    );
+    expect(mcpToggle?.getAttribute("aria-checked"), "the retried load reported enabled").toBe(
+      "true"
+    );
   });
 });

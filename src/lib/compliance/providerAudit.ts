@@ -78,6 +78,7 @@ export function summarizeProviderConnectionForAudit(connection: unknown) {
     delete sanitizedProviderSpecificData.consoleApiKey;
     delete sanitizedProviderSpecificData.alibabaConsoleCookie;
     delete sanitizedProviderSpecificData.alibabaConsoleSecToken;
+    delete sanitizedProviderSpecificData.xiaomiMimoConsoleCookie;
     sanitized.providerSpecificData = sanitizedProviderSpecificData;
   }
 

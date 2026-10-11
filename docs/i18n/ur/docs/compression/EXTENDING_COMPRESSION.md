@@ -336,7 +336,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # صارف کی سطح
-<project>/.compression/rules/hi/filler.json   # پروجیکٹ کی سطح
 ```
 
 ### لینگویج پیکس کے لیے بہترین طریقۂ کار

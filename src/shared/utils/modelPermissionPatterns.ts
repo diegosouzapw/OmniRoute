@@ -1,9 +1,25 @@
+import { getProviderByAlias, resolveProviderId } from "@/shared/constants/providers";
+
 export function modelPatternMatches(pattern: string, candidates: string[]): boolean {
   return candidates.some((candidate) => {
     if (pattern === candidate) return true;
-    if (pattern.endsWith("/*")) return candidate.startsWith(pattern.slice(0, -1));
+    if (pattern.endsWith("/*")) return providerWildcardMatches(pattern, candidate);
     return pattern.includes("*") && matchesWildcardPattern(pattern, candidate);
   });
+}
+
+function providerWildcardMatches(pattern: string, candidate: string): boolean {
+  const prefix = pattern.slice(0, -2);
+  if (!candidate.startsWith(prefix + "/")) return false;
+  const rest = candidate.slice(prefix.length + 1);
+  const nested = rest.indexOf("/");
+  if (nested > 0 && rest.slice(nested + 1).includes("/")) {
+    // A gateway wildcard must not grant a different provider nested beneath it.
+    const nestedProvider = getProviderByAlias(rest.slice(0, nested));
+    const namedProvider = resolveProviderId(prefix.split("/")[0]);
+    if (nestedProvider && nestedProvider.id !== namedProvider) return false;
+  }
+  return true;
 }
 
 export function matchesWildcardPattern(pattern: string, candidate: string): boolean {

@@ -37,12 +37,34 @@ function git(args, opts = {}) {
   }).trim();
 }
 
-/** Merge-base between the PR base ref and HEAD (falls back to the ref itself). */
-export function resolveMergeBase(baseRef) {
+/**
+ * Merge-base between the PR base ref and HEAD (falls back to the ref itself).
+ *
+ * GitHub checks PRs out at `refs/pull/N/merge`: a merge commit whose FIRST parent
+ * is the live base tip at job time. `github.event.pull_request.base.sha` stays at
+ * the commit the PR was OPENED against, so once the base moves,
+ * `merge-base(ref, HEAD)` silently diffs the base's own newer commits onto the PR
+ * (#15346/#15322 — a #12740 base change blamed on unrelated PRs). When HEAD is a
+ * merge commit and `baseRef` is an ancestor of HEAD^1, compare against HEAD^1:
+ * that diff is exactly the PR's new code, matching GitHub's "Files changed" view.
+ */
+export function resolveMergeBase(baseRef, { cwd = ROOT } = {}) {
   try {
-    return git(["merge-base", baseRef, "HEAD"]);
+    const parents = git(["rev-list", "--parents", "-n", "1", "HEAD"], { cwd }).split(/\s+/);
+    const firstParent = parents[1];
+    if (parents.length > 2 && firstParent) {
+      // Throws (exit 1) when baseRef is NOT an ancestor of the live base tip —
+      // i.e. a local diverged branch, where merge-base semantics still apply.
+      git(["merge-base", "--is-ancestor", baseRef, firstParent], { cwd });
+      return firstParent;
+    }
   } catch {
-    return git(["rev-parse", baseRef]);
+    /* not a merge commit, or baseRef not an ancestor — fall through */
+  }
+  try {
+    return git(["merge-base", baseRef, "HEAD"], { cwd });
+  } catch {
+    return git(["rev-parse", baseRef], { cwd });
   }
 }
 

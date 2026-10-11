@@ -98,6 +98,28 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Anti-thundering-herd guard:** prevents concurrent failures from over-extending cooldown or double-incrementing `backoffLevel`.
 
+**Stream content stalls do not cool the account.** When the content-stall watchdog
+(`open-sse/utils/streamHandler.ts`) gives up on a stream that sent no model output in
+time, `markAccountUnavailable()` records the error on the connection but sets no
+cooldown: the stall belongs to that request, most often a long reasoning turn with no
+output yet. Operators can opt back in with `resilienceSettings.streamStallCooldown.enabled`
+(default `false`).
+
+**Reasoning frames restart the content-stall budget.** A reasoning model can think for
+minutes before its first visible token: Claude streams `thinking_delta` frames whose
+thinking text may be empty, and the Responses API streams one reasoning item after
+another. `isReasoningProgressFrame()` (`open-sse/utils/streamReadiness.ts`) recognises
+these frames, and the watchdog restarts its budget on each one instead of cancelling the
+turn. They are still not model output, so a turn that ends with reasoning only is still
+reported as empty, and a turn that stops reasoning and only sends heartbeats still trips
+the watchdog.
+
+Kiro's binary `reasoningContentEvent` frames with a non-empty signature preserve this
+reasoning activity through the executor as an empty `reasoning_content` delta. The signature is
+not forwarded. Metadata, incomplete frames and empty signatures do not restart the
+content budget; the independent active-stream timeout and client cancellation still
+apply (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminal states (NOT cooldowns):**
 
 - `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down
@@ -262,6 +284,25 @@ Lists active lockouts with: provider, connection, model, reason, expiresAt. Oper
 - `GET /api/resilience/model-cooldowns` — list active lockouts
 - `DELETE /api/resilience/model-cooldowns` — manual re-enable. Body: `{provider, connection, model}`. Auth: management.
 
+### Cooldown Manager
+
+UI: Monitoring → Cooldown Manager (`src/app/(dashboard)/dashboard/resilience/cooldowns/`).
+
+One page for every connection that is out of routing for a transient reason, instead of
+opening each provider page. It lists connection cooldowns, model lockouts and terminal
+states, clears them per connection, for a selection, or for all connections of a provider,
+and edits the most-tuned cooldown rules: `streamStallCooldown.enabled` and the OAuth / API-key
+`connectionCooldown` base cooldown and maximum backoff steps (saved through
+`PATCH /api/resilience`). Terminal states (`banned`, `expired`, `credits_exhausted`) are
+listed but never cleared here.
+
+**REST API** (`src/lib/resilience/cooldownManager.ts`, auth: management):
+
+- `GET /api/resilience/cooldowns[?provider=]` — connections with status, remaining cooldown,
+  backoff level, last error type and model lockouts (no credentials)
+- `POST /api/resilience/cooldowns` — body `{connectionIds: string[]}` or
+  `{all: true, provider?}`; returns `{cleared, unchanged, skippedTerminal, lockoutsCleared}`
+
 ### Lockout settings UI + success-decay recovery (v3.8.23)
 
 Model lockout went from always-on hardcoded behavior to a fully configurable,
@@ -319,6 +360,52 @@ Each provider connection can declare a `max_concurrent` ceiling
 (`provider_connections.max_concurrent`, set in the connection modal / API / DB).
 Leave it empty for no limit. This is the single knob that drives the serialization
 layer below — set it to the account's real concurrency (e.g. GLM ~1, MiniMax ~2).
+
+### Per-model concurrency caps (`modelConcurrency`)
+
+A connection can additionally declare exact per-model concurrency ceilings
+inside its `rateLimitOverrides` map:
+
+```json
+{
+  "rateLimitOverrides": {
+    "maxConcurrent": 4,
+    "modelConcurrency": { "glm-5": 1, "glm-4.7": 3 }
+  }
+}
+```
+
+Set it in the connection modal (**Rate limit overrides → Per-model
+concurrency caps**, one `model=cap` per line) or via
+`PATCH /api/providers/[id]` with the same JSON shape. Key semantics:
+
+- **Connection-wide vs model-specific:** `maxConcurrent` remains the shared
+  connection-wide ceiling. When both apply, both gates are acquired
+  atomically in the same composite gate
+  (`global → provider → account → model`); the effective behavior is the
+  stricter applicable limit.
+- **Exact model-key match:** the key is the model string passed to the
+  executor after routing resolution — normally the bare upstream model id
+  (`glm-5`), not a client-side `provider/model` alias (`zai/glm-5` does not
+  match `glm-5`). Values are positive-integer concurrent-request ceilings.
+- **Local queueing, no discovery:** excess requests queue locally with the
+  existing queue/timeout semantics (typed `SEMAPHORE_TIMEOUT` /
+  `SEMAPHORE_QUEUE_FULL` admission errors). OmniRoute does not discover or
+  infer upstream policy — it enforces the exact ceilings the operator
+  configured. A saturated model gate never disables the provider and never
+  creates a permanent model lockout; upstream 429/cooldown/fallback behavior
+  remains the error backstop.
+- **Per-connection, per-process scope:** caps are per database connection
+  and held in-memory, so two connections reusing the same upstream API key
+  do not coordinate with each other.
+- **Unconfigured means unchanged:** omitting the map (or leaving the
+  dashboard field blank) adds no model gate. Example configuration without
+  asserting any universal provider limit:
+
+```text
+glm-5=1
+glm-4.7=3
+```
 
 ### Quota-share request serialization
 
