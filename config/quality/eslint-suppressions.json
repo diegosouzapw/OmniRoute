@@ -2543,11 +2543,6 @@
       "count": 10
     }
   },
-  "tests/unit/chat-cooldown-aware-retry.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    }
-  },
   "tests/unit/chat-rate-limit-body-lock.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
