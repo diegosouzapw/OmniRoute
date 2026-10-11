@@ -27,7 +27,6 @@ const OPENCODE_GO_PROVIDERS = new Set([
   "ollama_cloud",
   "opencode-go",
   "opencode_go",
-  "opencode",
   "opencode-zen",
 ]);
 

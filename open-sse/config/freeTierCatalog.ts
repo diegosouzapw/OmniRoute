@@ -38,7 +38,6 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
  * non-personal use. Source: ToS attention table in docs/reference/FREE_TIERS.md.
  */
 export const FREE_TIER_TOS: Record<string, TosVerdict> = {
-  opencode: "avoid",
   "duckduckgo-web": "avoid",
   agy: "avoid",
   antigravity: "avoid", // Both registered IDs use the same Antigravity integration.

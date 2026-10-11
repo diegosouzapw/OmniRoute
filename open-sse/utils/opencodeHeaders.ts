@@ -61,15 +61,11 @@ export function clientSuppliedOpencodeSession(
  * The CLI identity defaults the upstream expects, or `undefined` when synthesis is off.
  *
  * Lives here rather than in the executor because this module already owns the default
- * user-agent and the contract that validates one. `gated` says the free tier will inspect
- * this request: outside the gate a configured user-agent is honoured as-is (the #5997
- * contract, which `opencode-go` and paid models rely on), while on a gated request one
- * that does not satisfy the version rule is replaced — an operator still carrying the
- * previous unversioned default would otherwise be refused.
+ * user-agent. A configured user-agent is honoured as-is (the #5997 contract, which
+ * `opencode-zen` and `opencode-go` rely on).
  */
 export function resolveOpencodeCliDefaults(
-  providerId: string,
-  gated: boolean
+  providerId: string
 ): { userAgent: string; client: string; project: string } | undefined {
   if (/^(0|false|no|off)$/i.test(process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS?.trim() ?? "")) {
     return undefined;
@@ -84,10 +80,7 @@ export function resolveOpencodeCliDefaults(
     void refreshOpencodeCliVersion();
   }
   return {
-    userAgent:
-      configuredUA && (!gated || satisfiesOpencodeUserAgentContract(configuredUA))
-        ? configuredUA
-        : `opencode/${getCachedOpencodeCliVersion()}`,
+    userAgent: configuredUA || `opencode/${getCachedOpencodeCliVersion()}`,
     client: process.env.OPENCODE_CLIENT?.trim() || "desktop",
     project: process.env.OPENCODE_PROJECT?.trim() || "global",
   };
@@ -162,8 +155,8 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  *   UUIDs, but ONLY for keys the client did not already supply. Client values always
  *   win; these defaults only fill gaps. User-Agent is the one exception: a client UA
  *   that is not already the OpenCode CLI (e.g. curl/8.5.0) is REPLACED with the
- *   synthesized CLI UA, because opencode.ai's free tier rejects generic client UAs
- *   from datacenter IPs with FreeUsageLimitError 429. (#5997, follow-up #10229)
+ *   synthesized CLI UA, because opencode.ai rejects generic client UAs from
+ *   datacenter IPs with a 429. (#5997, follow-up #10229)
  * @param options.keepAgentUserAgent - OpenCode Go (#15311): keep a client User-Agent that
  *   names the agent itself, as Go's client requirements ask. A generic SDK / HTTP-library
  *   UA is still replaced, and a missing one is still filled.
@@ -245,15 +238,14 @@ function applySessionFallback(
  * Fill the OpenCode CLI identity headers Cloudflare requires on VPS egress. For
  * x-opencode-* headers, client values always win (defaults only fill gaps). The
  * User-Agent is the exception: a non-CLI client UA (curl, python, SDKs) is replaced
- * with the synthesized CLI UA, because opencode.ai's free tier flags generic client
- * UAs from datacenter IPs (FreeUsageLimitError 429). A client UA that already looks
+ * with the synthesized CLI UA, because opencode.ai flags generic client UAs from
+ * datacenter IPs (429). A client UA that already looks
  * like the OpenCode CLI (opencode-cli/...) is preserved so the real CLI's versioned
  * identity stays intact. (#5997, follow-up)
  */
 /**
- * Whether the client's User-Agent survives CLI synthesis. A UA that satisfies the upstream
- * contract is always kept; the previous rule kept anything starting with `opencode-cli/`,
- * which carries no parsable version and is refused by the free tier. With
+ * Whether the client's User-Agent survives CLI synthesis. A versioned OpenCode CLI UA
+ * (`opencode/<major>.<minor>`, >= 1.17) is always kept. With
  * `keepAgentUserAgent` (OpenCode Go, #15311) an agent's own UA is kept too, because Go asks
  * third-party agents to identify themselves — but never a generic SDK / HTTP-library UA.
  */

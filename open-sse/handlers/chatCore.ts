@@ -929,7 +929,7 @@ async function handleChatCoreInner({
 
   // Detect Claude Code CLI so we can auto-enable model echo — this prevents
   // session restore failures when the resolved upstream model (e.g.
-  // `oc/nemotron-3-ultra-free`) is not recognized by the client on `--resume`.
+  // `opencode-zen/nemotron-3-ultra-free`) is not recognized by the client on `--resume`.
   const isClaudeCodeClient = isClaudeCodeOriginatedHeaders(clientRawRequest?.headers);
 
   let echoModel =

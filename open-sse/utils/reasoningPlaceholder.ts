@@ -54,6 +54,6 @@ export function requiresReasoningContentPresence(provider: unknown, model: unkno
   return (
     normalizedProvider === "xiaomi-mimo" ||
     /(^|\/)mimo/i.test(normalizedModel) ||
-    ["opencode", "opencode-go", "opencode-zen"].includes(normalizedProvider)
+    ["opencode-go", "opencode-zen"].includes(normalizedProvider)
   );
 }

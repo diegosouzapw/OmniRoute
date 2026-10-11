@@ -147,17 +147,8 @@ export const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   kilo: ["kilocode", "kc", "kilo-gateway"],
   kilocode: ["kilocode", "kc", "kilo-gateway"],
   "kimi-for-coding": ["kimi-coding", "kmc", "kimi-coding-apikey", "kmca"],
-  // The `opencode` models.dev entry used to map only to "opencode-zen" because
-  // that is the historical alias pair. But OmniRoute's catalog & combo targets
-  // reference models under BOTH provider IDs:
-  //   - `opencode-zen/big-pickle` (alias form)
-  //   - `opencode/big-pickle`    (canonical id form, used by live API catalog
-  //                               and by combos like "Opencode FREE Omni")
-  // If we only store synced capabilities under "opencode-zen", the canonical
-  // `opencode/<model>` lookup in getCanonicalModelMetadata returns null and
-  // any combo that targets `opencode/...` ends up with no computed context.
-  // Symmetric mapping keeps both lookup paths populated.
-  opencode: ["opencode", "opencode-zen"],
+  // The `opencode` models.dev entry is OpenCode Zen.
+  opencode: ["opencode-zen"],
   "opencode-go": ["opencode-go", "opencode-zen"],
   // Additional providers that may overlap with OmniRoute
   alibaba: ["ali", "alibaba"],
@@ -240,9 +231,7 @@ export function transformModelsDevToPricing(raw: ModelsDevData): PricingByProvid
 
 // models.dev lists tiers as reasoning_options: [{ type: "effort", values }].
 // Only the effort option is a reasoning tier; anything else is unrelated.
-function modelsDevEffortValues(
-  options: ModelsDevReasoningOption[] | undefined
-): string[] | null {
+function modelsDevEffortValues(options: ModelsDevReasoningOption[] | undefined): string[] | null {
   if (!Array.isArray(options)) return null;
   const values = options.flatMap((option) =>
     option?.type === "effort" && Array.isArray(option.values) ? option.values : []

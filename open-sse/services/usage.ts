@@ -222,7 +222,6 @@ export async function getUsageForProvider(
       return await getLlmgatewayUsage(id || "", apiKey || "");
     case "lyceum":
       return await getLyceumUsage(id || "", apiKey || "");
-    case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
     case "xiaomi-mimo":

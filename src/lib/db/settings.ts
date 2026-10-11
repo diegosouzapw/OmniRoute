@@ -796,7 +796,7 @@ export async function resolveProxyForConnection(
     }
   }
 
-  // Step 8.5 (#6272): no-auth providers (mimocode, opencode, ...) share a single
+  // Step 8.5 (#6272): no-auth providers share a single
   // synthetic connectionId that never matches a `provider_connections` row, so
   // `connectionRecord` above is null and Steps 5-8 (which require it) never run for
   // them — a provider-level proxy assigned to a no-auth provider was silently

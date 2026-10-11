@@ -38,11 +38,11 @@ function loadCandidates(path: string): Candidate[] {
   const list = Array.isArray(raw) ? raw : raw.candidates;
   // The candidates endpoint's `model` field is the FULL "<providerOrAlias>/<modelId>"
   // string (`modelStr` — the leading segment is sometimes the provider id,
-  // e.g. "groq/...", sometimes its short alias, e.g. "oc/..." for opencode);
+  // e.g. "groq/...", sometimes its short alias, e.g. "agy/..." for antigravity);
   // FREE_MODEL_BUDGETS.modelId is always bare. Strip exactly the first "/"
   // segment (whichever form it is) so e.g. "groq/meta-llama/llama-4-scout..."
-  // becomes "meta-llama/llama-4-scout..." and "oc/big-pickle" becomes
-  // "big-pickle", matching the catalog's modelId either way.
+  // becomes "meta-llama/llama-4-scout..." and "agy/gemini-3-flash" becomes
+  // "gemini-3-flash", matching the catalog's modelId either way.
   return list.map((c: { provider: string; model: string; connectionId?: string }) => {
     const slash = c.model.indexOf("/");
     return {

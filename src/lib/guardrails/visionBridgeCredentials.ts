@@ -134,8 +134,8 @@ async function getPrefixToNode(): Promise<Map<string, string> | null> {
  * Returns `null` when the credential store is unavailable (unit tests / early boot).
  *
  * Two-step resolve before querying `provider_connections`:
- *   1. alias→canonical id (#10702: the column stores the id, e.g. "opencode"
- *      for the "oc" alias — an alias-keyed query returned zero rows);
+ *   1. alias→canonical id (#10702: the column stores the id, not the alias —
+ *      an alias-keyed query returned zero rows);
  *   2. public prefix→node id via the provider-prefix index (#re-land 932002580:
  *      a compatible node's rows are stored under its generated
  *      `openai-compatible-chat-<uuid>` id while the operator-facing model id

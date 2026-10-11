@@ -321,7 +321,7 @@ function buildAgentrouterRules(): ProviderErrorRule[] {
 }
 
 /** Providers sharing the opencode upstream envelope, hence the opencode catalog rules. */
-const OPENCODE_RULE_FAMILY = ["opencode", "opencode-zen", "opencode-go", "opencode-cli"];
+const OPENCODE_RULE_FAMILY = ["opencode-zen", "opencode-go", "opencode-cli"];
 
 /**
  * Global registry. Provider name → ordered list of rules (first match wins).
@@ -383,7 +383,6 @@ export function honorsRuleLockScope(provider: string | null | undefined): boolea
 // Static default as a plain lookup table; the runtime set is env-derived
 // (dynamic membership), so a Set is the right structure there.
 const EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT: Record<string, true> = {
-  opencode: true,
   "opencode-go": true,
   "opencode-cli": true,
 };

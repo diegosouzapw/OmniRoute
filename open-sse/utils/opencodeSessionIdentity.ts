@@ -72,7 +72,7 @@ export function preserveOpencodeSessionIdentity(
   headers: Record<string, string>,
   request?: { provider?: string; body?: unknown }
 ): void {
-  if (request?.provider !== "opencode" && request?.provider !== "opencode-go") return;
+  if (request?.provider !== "opencode-go") return;
   const sessionId = resolveOpencodeSessionIdentity(headers, request.body);
   if (sessionId) headers["x-opencode-session"] = sessionId;
 }

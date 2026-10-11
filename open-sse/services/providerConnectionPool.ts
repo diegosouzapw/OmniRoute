@@ -15,8 +15,6 @@ const PROVIDER_SEARCH_PAIRS: string[][] = [
   // The model layer canonicalizes `agy/` to `antigravity`, but the Antigravity
   // CLI card stores its connection under `agy`. Same account, either id serves.
   ["antigravity", "agy"],
-  // OpenCode connection card stores under `opencode`, but model alias resolves to `opencode-zen`.
-  ["opencode", "opencode-zen"],
   // One Jina token works on api.jina.ai, r.jina.ai, and s.jina.ai.
   // Requested id stays first so embed/rerank do not silently pick a
   // Reader-only row when both cards are filled. jina-search has no

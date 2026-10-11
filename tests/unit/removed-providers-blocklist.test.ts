@@ -22,7 +22,16 @@ interface RemovedProvider {
   id: string;
   alias: string;
   domains: string[];
-  removalPr: number;
+  /** Removal PR number; `null` while the PR is still being opened. */
+  removalPr: number | null;
+  /**
+   * Source needles to scan for instead of the bare quoted id/alias. Needed when the
+   * id is also a token shared by providers that stay (e.g. `opencode` is the executor
+   * family of `opencode-zen`/`opencode-go`, their icon key, and the name of the OpenCode
+   * client integration): the guard then looks for the shapes a reintroduction takes —
+   * a catalog/registry declaration or an executor-map key — rather than any mention.
+   */
+  sourceNeedles?: string[];
 }
 
 export const REMOVED_PROVIDERS: readonly RemovedProvider[] = [
@@ -44,6 +53,26 @@ export const REMOVED_PROVIDERS: readonly RemovedProvider[] = [
     alias: "suno",
     domains: ["studio-api.suno.ai", "studio-api-prod.suno.com"],
     removalPr: 14468,
+  },
+  {
+    // Keyless "OpenCode Free". Its upstream host (opencode.ai/zen) is shared with the
+    // paid `opencode-zen`/`opencode-go` providers, which stay, so no domain is guarded.
+    id: "opencode",
+    alias: "oc",
+    domains: [],
+    removalPr: null,
+    sourceNeedles: [
+      'id: "opencode"',
+      'alias: "oc"',
+      '"oc"',
+      "opencode: opencodeProvider",
+      "opencode: {",
+      "opencode: () =>",
+      "registry/opencode/index.ts",
+      "opencodeFreeTierContract",
+      "OPENCODE_FREE_TIER_REQUEST_CONTRACT",
+      "OPENCODE_FREE_TIER_PLACEHOLDER_TOOLS",
+    ],
   },
 ];
 
@@ -68,7 +97,7 @@ const ROOT = process.cwd();
 const scannedFiles = SCANNED_DIRS.flatMap((dir) => walk(path.join(ROOT, dir)));
 
 for (const removed of REMOVED_PROVIDERS) {
-  test(`removed provider "${removed.id}" (PR #${removed.removalPr}) stays out of the chat registry`, () => {
+  test(`removed provider "${removed.id}" (PR #${removed.removalPr ?? "pending"}) stays out of the chat registry`, () => {
     assert.equal(REGISTRY[removed.id], undefined, `${removed.id} must not be in REGISTRY`);
     assert.equal(REGISTRY[removed.alias], undefined, `${removed.alias} must not be in REGISTRY`);
   });
@@ -104,7 +133,9 @@ for (const removed of REMOVED_PROVIDERS) {
   });
 
   test(`removed provider "${removed.id}" identifiers and domains are absent from registry/executor sources`, () => {
-    const needles = [`"${removed.id}"`, `"${removed.alias}"`, ...removed.domains];
+    const needles = removed.sourceNeedles
+      ? [...removed.sourceNeedles, ...removed.domains]
+      : [`"${removed.id}"`, `"${removed.alias}"`, ...removed.domains];
     const offenders: string[] = [];
     for (const file of scannedFiles) {
       const text = fs.readFileSync(file, "utf8");
@@ -124,6 +155,32 @@ test("the REMOVED_PROVIDERS doc lists every guarded id", () => {
   const doc = fs.readFileSync(path.join(ROOT, "docs/reference/REMOVED_PROVIDERS.md"), "utf8");
   for (const removed of REMOVED_PROVIDERS) {
     assert.ok(doc.includes(`\`${removed.id}\``), `${removed.id} must have a row in the doc`);
-    assert.ok(doc.includes(`#${removed.removalPr}`), `PR #${removed.removalPr} must be linked`);
+    if (removed.removalPr !== null) {
+      assert.ok(doc.includes(`#${removed.removalPr}`), `PR #${removed.removalPr} must be linked`);
+    }
+  }
+});
+
+test("the opencode guard leaves the paid OpenCode providers and the client integration alone", () => {
+  // opencode-zen / opencode-go stay registered, with their own executors.
+  assert.ok(REGISTRY["opencode-zen"], "opencode-zen must stay in REGISTRY");
+  assert.ok(REGISTRY["opencode-go"], "opencode-go must stay in REGISTRY");
+  assert.ok(getProviderById("opencode-zen"), "opencode-zen must stay a provider");
+  assert.ok(getProviderById("opencode-go"), "opencode-go must stay a provider");
+  assert.equal(hasSpecializedExecutor("opencode-zen"), true);
+  assert.equal(hasSpecializedExecutor("opencode-go"), true);
+  // The needles never match the kept declarations.
+  const opencode = REMOVED_PROVIDERS.find((r) => r.id === "opencode");
+  assert.ok(opencode?.sourceNeedles);
+  for (const kept of [
+    'id: "opencode-zen"',
+    'alias: "opencode-go"',
+    '"opencode-zen": () =>',
+    'executor: "opencode"',
+    'icon: "opencode"',
+  ]) {
+    for (const needle of opencode.sourceNeedles) {
+      assert.equal(kept.includes(needle), false, `needle ${needle} must not match ${kept}`);
+    }
   }
 });

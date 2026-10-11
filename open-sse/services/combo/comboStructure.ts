@@ -26,7 +26,6 @@ import { containsMediaKind } from "../../utils/mediaParts.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel, stripContextWindowSuffix } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
-import { resolveComboTargetModelStr } from "./opencodeTargetAlias.ts";
 import { isComboModelVisible } from "./comboVisibility.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
 import { evaluateContextLimit, getModelContextOverrideValue } from "./contextOverrideGate.ts";
@@ -123,13 +122,8 @@ function normalizeRuntimeStep(
     };
   }
 
-  const declaredModelStr = getComboModelString(step);
-  if (!declaredModelStr) return null;
-  // #11912: rewrite an ambiguous "opencode/<model>" target to the "oc/" alias
-  // so it stays distinct from an explicit "opencode-zen/<model>" sibling
-  // instead of both collapsing onto the same provider — see
-  // opencodeTargetAlias.ts for the full rationale.
-  const modelStr = resolveComboTargetModelStr(declaredModelStr);
+  const modelStr = getComboModelString(step);
+  if (!modelStr) return null;
 
   const connectionId = toTrimmedString(step.connectionId);
   const allowedConnectionIds = implicitPinAllowlist(connectionId, step.allowedConnectionIds);
