@@ -50,6 +50,8 @@ export type ModelCompatSavePatchPassthrough = {
 export interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
+  /** model id → combo names that reference it, for the "used in combo" badge. */
+  comboUsage?: Record<string, string[]>;
   catalogModels?: CompatModelRow[];
   availableModels?: CompatModelRow[];
   syncedCatalogAuthoritative?: boolean;
@@ -96,6 +98,7 @@ function getDefaultModelAlias(model: CompatModelRow): string | null {
 export default function PassthroughModelsSection({
   providerAlias,
   modelAliases,
+  comboUsage,
   catalogModels = [],
   availableModels = [],
   syncedCatalogAuthoritative = false,
@@ -455,6 +458,7 @@ export default function PassthroughModelsSection({
                 source={source}
                 isFree={isFree}
                 isHidden={isHidden}
+                combos={comboUsage?.[modelId]}
                 copied={copied}
                 onCopy={onCopy}
                 onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}

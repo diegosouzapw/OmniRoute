@@ -16,6 +16,7 @@ import {
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { providerText } from "../providerPageHelpers";
+import ModelComboBadge from "./ModelComboBadge";
 import ModelCompatPopover from "./ModelCompatPopover";
 
 // ---------------------------------------------------------------------------
@@ -264,6 +265,8 @@ export interface ModelRowProps {
   fullModel: string;
   provider: string;
   alias?: string;
+  /** Combo names that reference this model, for the "used in combo" badge. */
+  combos?: string[];
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias?: (alias: string) => void;
@@ -287,6 +290,7 @@ export default function ModelRow({
   fullModel,
   provider,
   alias,
+  combos,
   copied,
   onCopy,
   onSetAlias,
@@ -359,6 +363,7 @@ export default function ModelRow({
           {fullModel}
         </code>
         <ModelSourceBadge source={model.source} />
+        {combos && combos.length > 0 && <ModelComboBadge combos={combos} t={t} />}
         {onSetAlias && (
           <span className="flex min-w-0 items-center text-[9px] gap-1">
             {editing ? (
