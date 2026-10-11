@@ -31,8 +31,7 @@ function uniqueName(prefix: string) {
   return `${prefix}-${randomUUID().slice(0, 8)}`;
 }
 
-// Short executor timeout so the timeout case runs fast. NOTE: executeWithTimeout never
-// clears its timer, so every execution leaves a pending timer of this length behind.
+// Short executor timeout so the timeout case runs fast.
 skillExecutor.setTimeout(200);
 
 skillExecutor.registerHandler("char-echo", async (input) => ({ echoed: String(input.text) }));
@@ -323,7 +322,7 @@ test("execute: a failure-shaped output and a throwing handler both resolve with 
   assert.equal(hardRun.output, null);
 });
 
-test("characterization: a timed-out skill is currently recorded as status error, never timeout", async () => {
+test("a timed-out skill is recorded as status timeout", async () => {
   const name = uniqueName("char-slow");
   await skillRegistry.register({
     name,
@@ -332,9 +331,8 @@ test("characterization: a timed-out skill is currently recorded as status error,
     apiKeyId: "char-slow",
   });
   const run = await skillExecutor.execute(name, {}, { apiKeyId: "char-slow" });
-  // SkillStatus.TIMEOUT exists and the DB CHECK allows 'timeout', but the executor maps a
-  // timeout to ERROR with this message.
-  assert.equal(run.status, SkillStatus.ERROR);
+  // A timeout is recorded as SkillStatus.TIMEOUT (#16187), not as a generic handler error.
+  assert.equal(run.status, SkillStatus.TIMEOUT);
   assert.equal(run.errorMessage, "Skill execution timed out");
 });
 

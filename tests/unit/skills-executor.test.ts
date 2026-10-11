@@ -242,7 +242,7 @@ test("skillExecutor records disabled skills and missing skills as direct failure
   assert.equal(skillExecutor.listExecutions("key-a").length, 0);
 });
 
-test("skillExecutor turns handler errors and timeouts into error executions", async () => {
+test("skillExecutor records handler errors as error and timeouts as timeout", async () => {
   await registerEchoSkill();
 
   skillExecutor.registerHandler("echo-handler", async () => {
@@ -289,7 +289,7 @@ test("skillExecutor turns handler errors and timeouts into error executions", as
   );
 
   assert.equal(skillExecutor["maxRetries"], 7);
-  assert.equal(timedOut.status, "error");
+  assert.equal(timedOut.status, "timeout");
   assert.equal(timedOut.output, null);
   assert.match(timedOut.errorMessage, /timed out/i);
 });
