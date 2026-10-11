@@ -54027,9 +54027,17 @@
           "updated_at": "2026-10-11T01:52:18.031Z"
         },
         "or": {
-          "source_hash": "c2e19e8fc37c85ff85c24c4d638066e86bcf1eb784b06a1cc52c4ad2b51c063c",
-          "target_hash": "1d9caf24b1297e7c8839f7323bb3e6aa0284dd9087c442847bb47ef39cbe2ae4",
-          "updated_at": "2026-10-07T21:19:14.074Z"
+          "source_hash": "b01563e4f328bde084f786c31ebdea8b2a8a7e0f46d73b5fb129a78fcda798c5",
+          "target_hash": "cf89b40c6824045b2d8e2440398214177bc004932f7a5a3ffef795ba10abaa70",
+          "section_hashes": [
+            "41e6275b825c",
+            "cddf3b39ce03",
+            "46c074972100",
+            "ec101f69e805",
+            "0e1c707b80db",
+            "c0414f8ead81"
+          ],
+          "updated_at": "2026-10-11T02:03:26.652Z"
         },
         "ru": {
           "source_hash": "b01563e4f328bde084f786c31ebdea8b2a8a7e0f46d73b5fb129a78fcda798c5",
