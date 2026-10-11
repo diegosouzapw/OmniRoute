@@ -55,6 +55,17 @@ test("migration 206 removes stale OpenCode Free provider state, keeps opencode-z
       "INSERT INTO key_value (namespace, key, value) " + "VALUES ('customModels', ?, '[]')"
     ).run(provider);
 
+    for (const namespace of ["modelCompatOverrides", "providerAliases"]) {
+      db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, '{}')").run(
+        namespace,
+        provider
+      );
+    }
+
+    db.prepare(
+      "INSERT INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, '[]')"
+    ).run(`${provider}:conn-1`);
+
     db.prepare(
       "INSERT INTO usage_history (provider, model, timestamp) " +
         "VALUES (?, 'legacy-model', datetime('now'))"
@@ -89,6 +100,11 @@ test("migration 206 removes stale OpenCode Free provider state, keeps opencode-z
   db.prepare(
     "INSERT INTO key_value (namespace, key, value) " +
       "VALUES ('customModels', 'opencode-zen', '[]')"
+  ).run();
+
+  db.prepare(
+    "INSERT INTO key_value (namespace, key, value) " +
+      "VALUES ('modelCompatOverrides', 'opencode-zen', '{}')"
   ).run();
 
   const sql = fs.readFileSync(
@@ -132,6 +148,24 @@ test("migration 206 removes stale OpenCode Free provider state, keeps opencode-z
       `${provider} custom models must be deleted`
     );
 
+    for (const namespace of ["modelCompatOverrides", "providerAliases"]) {
+      assert.equal(
+        db
+          .prepare("SELECT key FROM key_value WHERE namespace = ? AND key = ?")
+          .get(namespace, provider),
+        undefined,
+        `${provider} ${namespace} rows must be deleted so they cannot leak onto opencode-zen`
+      );
+    }
+
+    assert.equal(
+      db
+        .prepare("SELECT key FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?")
+        .get(`${provider}:conn-1`),
+      undefined,
+      `${provider} synced model rows must be deleted`
+    );
+
     assert.ok(
       db.prepare("SELECT id FROM usage_history WHERE provider = ?").get(provider),
       `${provider} historical usage must be preserved`
@@ -161,6 +195,14 @@ test("migration 206 removes stale OpenCode Free provider state, keeps opencode-z
     db
       .prepare(
         "SELECT key FROM key_value WHERE namespace = 'customModels' AND key = 'opencode-zen'"
+      )
+      .get()
+  );
+
+  assert.ok(
+    db
+      .prepare(
+        "SELECT key FROM key_value WHERE namespace = 'modelCompatOverrides' AND key = 'opencode-zen'"
       )
       .get()
   );

@@ -132,12 +132,14 @@ test("combo visibility refreshes after unhide instead of reusing another invocat
   assert.deepEqual(calls, ["github/claude-opus-4-5-20251101"]);
 });
 
-test("hiding canonical no-auth opencode never hides the independent opencode-zen provider", async () => {
-  models.mergeModelCompatOverride("opencode", "shared-model", { isHidden: true });
-  const independent = await dispatch(["opencode-zen/shared-model"]);
-  assert.equal(independent.response.status, 200);
-  assert.deepEqual(independent.calls, ["opencode-zen/shared-model"]);
-  const hidden = await dispatch(["oc/shared-model"]);
+test("opencode-zen hidden state is keyed by its own provider id", async () => {
+  // OpenCode Free (`opencode`, alias `oc`) was removed and `opencode` now resolves
+  // to opencode-zen; migration 206 drops overrides stored under the removed id.
+  const visible = await dispatch(["opencode-zen/shared-model"]);
+  assert.equal(visible.response.status, 200);
+  assert.deepEqual(visible.calls, ["opencode-zen/shared-model"]);
+  models.mergeModelCompatOverride("opencode-zen", "shared-model", { isHidden: true });
+  const hidden = await dispatch(["opencode-zen/shared-model"]);
   assert.equal(hidden.response.status, 404);
   assert.deepEqual(hidden.calls, []);
 });

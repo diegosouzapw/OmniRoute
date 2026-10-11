@@ -19,6 +19,14 @@ WHERE provider IN ('opencode', 'oc');
 DELETE FROM discovery_results
 WHERE provider_id IN ('opencode', 'oc');
 
+-- `opencode` now resolves to `opencode-zen` as a user-typed alias, so a stale
+-- hidden/compat override or alias stored under the old id would leak onto the
+-- paid Zen provider. Drop every per-provider row keyed by the removed ids.
 DELETE FROM key_value
-WHERE namespace = 'customModels'
+WHERE namespace IN ('customModels', 'modelCompatOverrides', 'providerAliases')
   AND key IN ('opencode', 'oc');
+
+DELETE FROM key_value
+WHERE namespace = 'syncedAvailableModels'
+  AND (substr(key, 1, length('opencode:')) = 'opencode:'
+    OR substr(key, 1, length('oc:')) = 'oc:');
