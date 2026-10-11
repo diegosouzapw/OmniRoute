@@ -1559,11 +1559,6 @@
       "count": 1
     }
   },
-  "src/lib/usage/apiKeySelfService.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/lib/usage/apiKeyUsageLimits.ts": {
     "no-restricted-syntax": {
       "count": 1
