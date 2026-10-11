@@ -5793,7 +5793,7 @@
     "cliVersionSaveError": "Không lưu được phiên bản CLI: {error}",
     "cliVersionLoadFailed": "Không thể tải cài đặt phiên bản CLI hiện tại.",
     "cliVersionHintClaude": "Anthropic giới hạn các mô hình Claude mới hơn theo phiên bản Claude Code client mà họ thấy. Đây là phiên bản OmniRoute quảng bá trên mọi yêu cầu gửi tới Anthropic.",
-    "cliVersionCaveatClaude": "Lưu ý về billing: phiên bản billing có dạng <version>.<build-revision>, và build revision là một hằng số đã ghi nhận riêng. Quảng bá 2.1.260 sẽ báo 2.1.260.1e2, không giống những gì một binary 2.1.260 thật gửi đi.",
+    "cliVersionCaveatClaude": "Lưu ý về billing: phiên bản billing có dạng '<version>'.'<build-revision>', và build revision là một hằng số đã ghi nhận riêng. Quảng bá 2.1.260 sẽ báo 2.1.260.1e2, không giống những gì một binary 2.1.260 thật gửi đi.",
     "cliVersionHintCodex": "OpenAI giới hạn các mô hình mới hơn theo phiên bản Codex client mà họ thấy, ví dụ lỗi: The 'gpt-6-astra' model requires a newer version of Codex.",
     "cliVersionCaveatCodex": "Lưu ý về inference: phiên bản do chính caller của bạn báo vẫn được ưu tiên hơn biến môi trường CODEX_CLIENT_VERSION, nhưng ghi đè này được ưu tiên hơn cả hai, vì đó là ý định rõ ràng của người vận hành.",
     "compatUpstreamHeadersLabel": "Các header upstream bổ sung",

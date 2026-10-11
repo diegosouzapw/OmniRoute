@@ -5793,7 +5793,7 @@
     "cliVersionSaveError": "Failed to save CLI version: {error}",
     "cliVersionLoadFailed": "Could not load the current CLI version settings.",
     "cliVersionHintClaude": "Anthropic gates newer Claude models on the Claude Code client version it sees. This is the version OmniRoute advertises on every Anthropic-bound request.",
-    "cliVersionCaveatClaude": "Billing caveat: the billing version is <version>.<build-revision>, and the build revision is a separate captured constant. Advertising 2.1.260 reports 2.1.260.1e2, which is not what a real 2.1.260 binary sends.",
+    "cliVersionCaveatClaude": "Billing caveat: the billing version is '<version>'.'<build-revision>', and the build revision is a separate captured constant. Advertising 2.1.260 reports 2.1.260.1e2, which is not what a real 2.1.260 binary sends.",
     "cliVersionHintCodex": "OpenAI gates newer models on the Codex client version it sees, for example the error: The 'gpt-6-astra' model requires a newer version of Codex.",
     "cliVersionCaveatCodex": "Inference caveat: a version your own caller reports still beats the CODEX_CLIENT_VERSION env var, but this override beats both, because it is explicit operator intent.",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
