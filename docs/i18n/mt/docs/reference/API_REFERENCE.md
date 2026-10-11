@@ -838,47 +838,46 @@ X-OmniRoute-No-Cache: true
 
 ## Dashboard u Ġestjoni
 
-Ir-rotot ta’ ġestjoni (`/api/*` ħlief l-awtentikazzjoni/login pubblika) **mhumiex** awtorizzati minn
-ċwievet API ordinarji għall-inferenza. Għall-familji tal-kredenzjali, l-ambiti, u eżempji ta’ curl:
+Ir-rotot tal-ġestjoni (`/api/*` ħlief l-awtentikazzjoni pubblika/l-illoggjar) **mhumiex** awtorizzati minn ċwievet API ordinarji għall-inferenza. Għall-familji tal-kredenzjali, l-ambiti u l-eżempji ta’ curl, ara:
 [Awtentikazzjoni tal-Ġestjoni](../guides/MANAGEMENT-AUTH.md).
 
 ### Awtentikazzjoni
 
-| Endpoint                      | Metodu  | Deskrizzjoni                              |
-| ----------------------------- | ------- | ----------------------------------------- |
-| `/api/auth/login`             | POST    | Idħol                                     |
-| `/api/auth/logout`            | POST    | Oħroġ                                     |
-| `/api/settings/require-login` | GET/PUT | Attiva jew iddiżattiva l-ħtieġa tal-login |
+| Endpoint                      | Metodu  | Deskrizzjoni                                  |
+| ----------------------------- | ------- | --------------------------------------------- |
+| `/api/auth/login`             | POST    | Illoggja                                      |
+| `/api/auth/logout`            | POST    | Oħroġ                                         |
+| `/api/settings/require-login` | GET/PUT | Attiva jew iddiżattiva l-ħtieġa tal-illoggjar |
 
 ### Ġestjoni tal-Fornituri
 
-| Endpoint                                | Metodu                    | Deskrizzjoni                                                                                                                                                                                     |
-| --------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/providers`                        | GET/POST                  | Elenka / oħloq fornituri                                                                                                                                                                         |
-| `/api/providers/[id]`                   | GET/PUT/DELETE            | Immaniġġja fornitur                                                                                                                                                                              |
-| `/api/providers/[id]/test`              | POST                      | Ittestja l-konnessjoni tal-fornitur                                                                                                                                                              |
-| `/api/providers/[id]/models`            | GET                       | Elenka l-mudelli tal-fornitur                                                                                                                                                                    |
-| `/api/providers/validate`               | POST                      | Ivvalida l-konfigurazzjoni tal-fornitur                                                                                                                                                          |
-| `/api/providers/bulk`                   | POST                      | Żid bl-ingrossa ċwievet API għal fornitur WIEĦED                                                                                                                                                 |
-| `/api/providers/import`                 | POST                      | Importa LISTA eteroġenja ta’ fornituri minn fajl CSV/JSON analizzat (#6836); riżultati ta’ falliment parzjali għal kull ringiela                                                                 |
-| `/api/provider-nodes*`                  | Diversi                   | Ġestjoni tan-nodi tal-fornituri                                                                                                                                                                  |
-| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Mudelli personalizzati u sostituzzjonijiet għal kull mudell (żid, aġġorna, aħbi/uri, ħassar)                                                                                                     |
-| `/api/provider-models/validate-and-add` | POST                      | Validazzjoni stretta tal-konnessjoni, awtentikata mill-ġestjoni u fakultattiva, u reġistrazzjoni atomika ta’ mudell personalizzat; ara [Validazzjoni tal-mudelli](../guides/MODEL-VALIDATION.md) |
+| Endpoint                                | Metodu                    | Deskrizzjoni                                                                                                                                                                                          |
+| --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Elenka / oħloq fornituri                                                                                                                                                                              |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Immaniġġja fornitur                                                                                                                                                                                   |
+| `/api/providers/[id]/test`              | POST                      | Ittestja l-konnessjoni tal-fornitur                                                                                                                                                                   |
+| `/api/providers/[id]/models`            | GET                       | Elenka l-mudelli tal-fornitur                                                                                                                                                                         |
+| `/api/providers/validate`               | POST                      | Ivvalida l-konfigurazzjoni tal-fornitur                                                                                                                                                               |
+| `/api/providers/bulk`                   | POST                      | Żid f’daqqa ċwievet API għal fornitur WIEĦED                                                                                                                                                          |
+| `/api/providers/import`                 | POST                      | Importa LISTA eteroġenja ta’ fornituri minn fajl CSV/JSON analizzat (#6836); riżultati ta’ falliment parzjali għal kull ringiela                                                                      |
+| `/api/provider-nodes*`                  | Diversi                   | Ġestjoni tan-nodi tal-fornitur                                                                                                                                                                        |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Mudelli personalizzati u sostituzzjonijiet għal kull mudell (żid, aġġorna, aħbi/uri, ħassar)                                                                                                          |
+| `/api/provider-models/validate-and-add` | POST                      | Validazzjoni stretta tal-konnessjoni, awtentikata mill-ġestjoni u b’għażla espliċita, u reġistrazzjoni atomika ta’ mudell personalizzat; ara [Validazzjoni tal-mudell](../guides/MODEL-VALIDATION.md) |
 
-Għal mudelli ssinkronizzati/importati, `PUT /api/provider-models` jaċċetta `provider`, `modelId`, u
-`maxOutputTokenOverride`: numru sħiħ pożittiv jistabbilixxi l-limitu manwali tat-tokens tal-output, filwaqt li `null`
-ineħħih biex jirrestawra l-valur predefinit. `GET /api/provider-models?provider=<provider>` jirritorna dawn
+Għall-mudelli sinkronizzati/importati, `PUT /api/provider-models` jaċċetta `provider`, `modelId`, u
+`maxOutputTokenOverride`: numru sħiħ pożittiv jistabbilixxi l-limitu manwali tat-tokens tal-output, u `null`
+ineħħih biex jerġa’ jġib il-valur predefinit. `GET /api/provider-models?provider=<provider>` jirritorna dawn
 il-valuri f’`modelOutputOverrides`, inklużi mudelli mingħajr ringiela ta’ mudell personalizzat. Is-sostituzzjoni
 tuża l-kapaċità `max_output_tokens` waqt it-tħaddim u tibqa’ fis-seħħ wara sinkronizzazzjoni mill-ġdid tal-mudell. Il-paġna tal-fornitur
 kompatibbli ma’ OpenAI toffri l-istess kontrolli għall-editjar/tneħħija u timmarka l-mudelli b’appoġġ espliċitu għall-viżjoni.
 
-Nodi personalizzati ta’ Chat Completions jadattaw rinunzji espliċiti għar-raġunament għall-backend upstream. Test
+In-nodi personalizzati ta’ Chat Completions jadattaw ir-rifjuti espliċiti tar-raġunament għall-backend upstream. Test
 tal-konnessjoni li jirnexxi jagħżel awtomatikament il-kontrolli tal-mudell taċ-chat għal kull ID eżatt tal-mudell
-li l-entrata tiegħu f’`/models` tagħti prova ta’ valur `owned_by` rikonoxxut: `vllm`, `sglang`, jew `llamacpp`.
-Wrappers trasparenti kompatibbli ma’ OpenAI jistgħu jżommu l-entrata oriġinali tal-mudell ġewwa oġġett
-`openai` annidat; l-individwazzjoni ssegwi sa tliet livelli bħal dawn. Mudelli bi sjieda nieqsa, mhux magħrufa, jew
-kunflittwali jżommu l-imġiba ordinarja ta’ OpenAI. L-individwazzjoni terġa’ tuża t-talba eżistenti tal-katalgu,
-ma tiġġenera l-ebda token ta’ tlestija, u tiġi invalidata meta jinbidel l-endpoint tal-konnessjoni.
+li l-entrata tiegħu f’`/models` tipprova valur rikonoxxut ta’ `owned_by`: `vllm`, `sglang`, jew `llamacpp`.
+Wrappers trasparenti kompatibbli ma’ OpenAI jistgħu jżommu l-entrata oriġinali tal-mudell ġo oġġett
+`openai` annidat; l-iskoperta ssegwi sa tliet envelops bħal dawn. Mudelli bi sjieda nieqsa, mhux magħrufa, jew
+kunfliġġenti jżommu l-imġiba ordinarja ta’ OpenAI. L-iskoperta terġa’ tuża t-talba eżistenti tal-katalgu,
+ma tiġġenera l-ebda token ta’ completion, u tiġi invalidata meta jinbidel l-endpoint tal-konnessjoni.
 
 Biex tiffissa l-imġiba għal backend li ma jesponix dik il-metadata, uża l-API eżistenti għall-aġġornament
 parzjali tal-fornitur:
@@ -891,20 +890,15 @@ parzjali tal-fornitur:
 }
 ```
 
-Ibgħat dak il-body permezz ta’ `PUT /api/providers/<connection-id>`. Fuq dik il-konnessjoni, livell espliċitu
-ta’ sforz ta’ raġunament ta’ `none` jintbagħat bħala `chat_template_kwargs.thinking=false` u
-`chat_template_kwargs.enable_thinking=false`. Valuri espliċiti nattivi tal-mudell jibqgħu awtoritattivi
-sakemm regola tar-raġunament fuq in-naħa tas-server ma timponix livell ta’ sforz. Is-setting japplika biss meta konnessjoni
-personalizzata kompatibbli ma’ OpenAI tibgħat body ta’ Chat Completions; talbiet Responses u fornituri ordinarji
-jżommu l-forma nattiva tat-talba tagħhom. Issettja `reasoningControl` għal `openai` biex timponi t-trasmissjoni diretta ordinarja ta’
-`reasoning_effort` ta’ OpenAI, jew ħallih barra/issettjah għal `null` biex tuża l-individwazzjoni awtomatika.
+Ibgħat dak il-body b’`PUT /api/providers/<connection-id>`. Fuq dik il-konnessjoni, sforz espliċitu
+ta’ raġunament ta’ `none` jintbagħat bħala `chat_template_kwargs.thinking=false` u
+`chat_template_kwargs.enable_thinking=false`. Il-valuri espliċiti tal-mudell nattiv jibqgħu awtoritattivi
+sakemm regola ta’ raġunament min-naħa tas-server ma timponix sforz. Is-setting japplika biss meta konnessjoni
+personalizzata kompatibbli ma’ OpenAI tibgħat body ta’ Chat Completions; it-talbiet Responses u l-fornituri
+ordinarji jżommu l-istruttura nattiva tat-talba tagħhom. Issettja `reasoningControl` għal `openai` biex timponi
+l-mogħdija ordinarja ta’ `reasoning_effort` ta’ OpenAI, jew ħallih barra/issettjah għal `null` biex tuża l-iskoperta awtomatika.
 
-It-talbiet tal-klassifikatur tal-modalità awtomatika ta’ Claude Code jissettjaw il-ħsieb nattiv bħala diżattivat b’mod predefinit meta
-ma jkun fihom l-ebda kontroll espliċitu tar-raġunament. Id-detezzjoni tuża l-markatur tas-sistema tal-klassifikatur fit-talbiet
-bil-format ta’ Claude, mhux l-ismijiet tal-mudelli jew il-limiti tal-kompletament. Il-kontrolli espliċiti fil-body, l-intestaturi
-appoġġjati tal-isforz/tal-ħsieb, ir-regoli tar-routing, u l-isforz riżolt tal-mudell iżommu l-prijorità eżistenti tagħhom. Iż-żewġ stadji
-tal-klassifikatur iżommu l-prompts, il-limiti tal-kompletament, is-sekwenzi ta’ waqfien, u l-verdettijiet reali tal-permessi upstream
-tagħhom; it-tieni stadju xorta jista’ jipproduċi r-raġunament viżibbli mitlub tiegħu bħala test ordinarju.
+It-talbiet tal-klassifikatur tal-modalità awtomatika ta’ Claude Code jitolbu li l-ħsieb nattiv ikun diżattivat b’mod awtomatiku meta ma jkun fihom l-ebda kontroll espliċitu tar-raġunament. Is-sejbien juża l-markatur tas-sistema tal-klassifikatur fit-talbiet fil-format Claude, mhux l-ismijiet tal-mudelli jew il-limiti tal-kompletament. Il-kontrolli espliċiti fil-korp, l-intestaturi appoġġjati tal-isforz/tal-ħsieb, ir-regoli tar-routing, u l-isforz riżolt tal-mudell iżommu l-prijorità eżistenti tagħhom. Iż-żewġ stadji tal-klassifikatur iżommu l-prompts, il-limiti tal-kompletament, is-sekwenzi ta’ waqfien, u l-verdett reali tal-permessi upstream tagħhom; it-tieni stadju xorta jista’ jipproduċi r-raġunament viżibbli mitlub tiegħu bħala test ordinarju.
 
 ### Flussi OAuth
 
@@ -916,7 +910,7 @@ tagħhom; it-tieni stadju xorta jista’ jipproduċi r-raġunament viżibbli mit
 
 | Endpoint              | Metodu   | Deskrizzjoni                                 |
 | --------------------- | -------- | -------------------------------------------- |
-| `/api/models/alias`   | GET/POST | Psewdonimi tal-mudelli                       |
+| `/api/models/alias`   | GET/POST | Aliasijiet tal-mudelli                       |
 | `/api/models/catalog` | GET      | Il-mudelli kollha skont il-fornitur + it-tip |
 | `/api/combos*`        | Diversi  | Ġestjoni tal-kombinazzjonijiet               |
 | `/api/keys*`          | Diversi  | Ġestjoni taċ-ċwievet tal-API                 |
@@ -926,66 +920,107 @@ tagħhom; it-tieni stadju xorta jista’ jipproduċi r-raġunament viżibbli mit
 
 | Endpoint                         | Metodu          | Deskrizzjoni                                                                                                                                                                                                                                                                                                                                                     |
 | -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Kronoloġija tal-użu                                                                                                                                                                                                                                                                                                                                              |
+| `/api/usage/history`             | GET             | Storja tal-użu                                                                                                                                                                                                                                                                                                                                                   |
 | `/api/usage/logs`                | GET             | Reġistri tal-użu                                                                                                                                                                                                                                                                                                                                                 |
 | `/api/usage/request-logs`        | GET             | Reġistri fil-livell tat-talba                                                                                                                                                                                                                                                                                                                                    |
 | `/api/usage/[connectionId]`      | GET             | Użu għal kull konnessjoni                                                                                                                                                                                                                                                                                                                                        |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Baġits tal-limitu tat-tokens għal kull ċavetta tal-API                                                                                                                                                                                                                                                                                                           |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Baġits tal-limiti tat-tokens għal kull ċavetta tal-API                                                                                                                                                                                                                                                                                                           |
 | `/api/usage/model-latency-stats` | GET             | Aggregat kontinwu tal-latenza għal kull fornitur/mudell (medja/p50/p95/p99, rata ta’ suċċess); filtri: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                           |
-| `/api/usage/cache-health`        | GET             | Sommarju tal-istat tal-cache tal-prompts fuq `call_logs` — proporzjon ta’ kitba/qari, distribuzzjoni p50/p90/p99 tad-daqs tal-kitba, konċentrazzjoni ta’ kitbiet kbar, tqassim għal kull mudell, u verdett `healthy`/`degraded`/`thrash`/`no-data`; parametri tal-query `range` (`1h`\|`24h`\|`7d`\|`30d`, valur predefinit `24h`) u `model` fakultattiv (#8827) |
+| `/api/usage/cache-health`        | GET             | Sommarju tas-saħħa tal-cache tal-prompts fuq `call_logs` — proporzjon ta’ kitba/qari, distribuzzjoni p50/p90/p99 tad-daqs tal-kitba, konċentrazzjoni ta’ kitbiet kbar, tqassim għal kull mudell, u verdett `healthy`/`degraded`/`thrash`/`no-data`; parametri tal-query `range` (`1h`\|`24h`\|`7d`\|`30d`, valur awtomatiku `24h`) u `model` fakultattiv (#8827) |
+
+### Permessi taċ-ċavetta tal-API
+
+`PATCH /api/keys/{id}` jaġġorna l-permessi ta’ ċavetta eżistenti. Bħal kull rotta `/api/keys*`, jeħtieġ awtorizzazzjoni ta’ ġestjoni (ara [Awtentikazzjoni tal-Ġestjoni](../guides/MANAGEMENT-AUTH.md)), mhux ċavetta tal-inferenza. Ibgħat biss l-oqsma li trid tibdel; talba li ma jkun fiha l-ebda wieħed minnhom tiġi miċħuda b’`No valid fields to update`. L-oqsma aċċettati huma definiti minn `updateKeyPermissionsSchema` f’`src/shared/validation/schemas/keys.ts`.
+
+| Qasam                                       | Tip                                                                    | Noti                                                                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | sekwenza ta' karattri, 1-200 karattru                                  |                                                                                                                                       |
+| `isActive`                                  | valur Boolean                                                          |                                                                                                                                       |
+| `isBanned`                                  | valur Boolean                                                          |                                                                                                                                       |
+| `expiresAt`                                 | data u ħin ISO 8601 jew `null`                                         | `null` ineħħi l-iskadenza                                                                                                             |
+| `modelAccessMode`                           | `all` \| `restricted`                                                  | `allowedModels` trid tkun vojta meta l-modalità tkun `all`                                                                            |
+| `allowedModels`, `blockedModels`            | firxa ta' sekwenzi ta' karattri, sa 1000                               |                                                                                                                                       |
+| `allowedCombos`                             | firxa ta' sekwenzi ta' karattri, sa 500                                | Jikkontrolla liema combos tista' ssejjaħ iċ-ċavetta; il-mudelli diretti huma rregolati minn `modelAccessMode` / `allowedModels`       |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                  | `allowedConnections` ma tridx tkun vojta meta tkun `restricted` u trid tkun vojta meta tkun `all`                                     |
+| `allowedConnections`                        | firxa ta' UUIDs, sa 100                                                |                                                                                                                                       |
+| `allowAutoCombos`                           | valur Boolean                                                          | `false` jirrifjuta talbiet għal mudelli `auto/*` b'din iċ-ċavetta; ċwievet li qatt ma ssettjawh huma permessi                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                          | X'jelenka `GET /v1/models` għal din iċ-ċavetta (combos biss, mudelli biss, jew it-tnejn); dan ma jbiddilx x'tista' ssejjaħ iċ-ċavetta |
+| `noLog`, `autoResolve`                      | valur Boolean                                                          |                                                                                                                                       |
+| `throttleDelayMs`                           | numru sħiħ, 0-300000                                                   |                                                                                                                                       |
+| `maxSessions`                               | numru sħiħ, 0-10000                                                    |                                                                                                                                       |
+| `rateLimits`                                | firxa ta' `{ limit, window }` (numri sħaħ pożittivi, sa 50) jew `null` | `null` ineħħi l-limiti                                                                                                                |
+| `accessSchedule`                            | oġġett tal-iskeda jew `null`                                           | `null` ineħħi l-iskeda                                                                                                                |
+| `scopes`                                    | firxa ta' sekwenzi ta' karattri, sa 32                                 |                                                                                                                                       |
+| `allowedEndpoints`                          | firxa ta' sekwenzi ta' karattri, sa 20                                 |                                                                                                                                       |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                     |                                                                                                                                       |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                   | Ara [Il-qbiż tal-cache għal kull ċavetta](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | valur Boolean                                                          |                                                                                                                                       |
+| `codexServiceMode`                          | waħda mill-modalitajiet tas-servizz Codex                              |                                                                                                                                       |
+| `disableNonPublicModels`                    | valur Boolean                                                          |                                                                                                                                       |
+| `allowUsageCommand`                         | boolean                                                                |                                                                                                                                       |
+| `usageLimitEnabled`                         | boolean                                                                |                                                                                                                                       |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 jew `null`                                                 |                                                                                                                                       |
+| `chaosModeEnabled`                          | boolean                                                                |                                                                                                                                       |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Settings
 
-| Endpoint                              | Metodu        | Deskrizzjoni                                                                                                                                                                                                        |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Settings ġenerali                                                                                                                                                                                                   |
-| `/api/settings/proxy`                 | GET/PUT       | Konfigurazzjoni tal-proxy tan-network                                                                                                                                                                               |
-| `/api/settings/proxy/test`            | POST          | Ittestja l-konnessjoni tal-proxy                                                                                                                                                                                    |
-| `/api/settings/ip-filter`             | GET/PUT       | Lista ta' permessi/imblukkar tal-IP                                                                                                                                                                                 |
-| `/api/settings/thinking-budget`       | GET/PUT       | Modalità ta' kitba mill-ġdid tat-**talba** għall-baġit tal-ħsieb/raġunament (passthrough / auto-strip / custom / adaptive). Indipendenti mill-kompressjoni. Ara [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Prompt tas-sistema globali                                                                                                                                                                                          |
-| `/api/settings/compression`           | GET/PUT       | Konfigurazzjoni globali tal-kompressjoni                                                                                                                                                                            |
-| `/api/settings/purge-request-history` | POST          | Neħħi r-ringieli tar-reġistru tat-talbiet u l-artefatti lokali tar-reġistru tas-sejħiet                                                                                                                             |
+| Endpoint                              | Metodu        | Deskrizzjoni                                                                                                                                                                                         |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Settings ġenerali                                                                                                                                                                                    |
+| `/api/settings/proxy`                 | GET/PUT       | Konfigurazzjoni tal-proxy tan-network                                                                                                                                                                |
+| `/api/settings/proxy/test`            | POST          | Ittestja l-konnessjoni tal-proxy                                                                                                                                                                     |
+| `/api/settings/ip-filter`             | GET/PUT       | Lista ta’ permessi/lista ta’ mblukkar tal-IP                                                                                                                                                         |
+| `/api/settings/thinking-budget`       | GET/PUT       | Mod ta’ kitba mill-ġdid tat-**talba** għall-ħsieb/raġunament (passthrough / auto-strip / custom / adaptive). Indipendenti mill-kompressjoni. Ara [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Prompt globali tas-sistema                                                                                                                                                                           |
+| `/api/settings/compression`           | GET/PUT       | Konfigurazzjoni globali tal-kompressjoni                                                                                                                                                             |
+| `/api/settings/purge-request-history` | POST          | Ħassar ir-ringieli tar-reġistru tat-talbiet u l-artefatti lokali tar-reġistru tas-sejħiet                                                                                                            |
 
 ### Kuntest u Kompressjoni
 
 | Endpoint                               | Metodu         | Deskrizzjoni                                                                                     |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| `/api/compression/preview`             | POST           | Uri minn qabel il-kompressjoni off/lite/standard/aggressive/ultra/RTK/stacked                    |
+| `/api/compression/preview`             | POST           | Ara minn qabel il-kompressjoni off/lite/standard/aggressive/ultra/RTK/stacked                    |
 | `/api/compression/language-packs`      | GET            | Elenka l-pakketti lingwistiċi Caveman disponibbli                                                |
 | `/api/compression/rules`               | GET            | Elenka l-metadata tar-regoli Caveman                                                             |
 | `/api/context/caveman/config`          | GET/PUT        | Alias tas-settings speċifiċi għal Caveman                                                        |
 | `/api/context/rtk/config`              | GET/PUT        | Settings speċifiċi għal RTK, inklużi filtri personalizzati u ż-żamma tal-output mhux ipproċessat |
-| `/api/context/rtk/filters`             | GET            | Katalgu tal-filtri RTK u dijanjostiċi tal-filtri personalizzati                                  |
-| `/api/context/rtk/test`                | POST           | Ħaddem preview/test ta' RTK fuq payload ta' test                                                 |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Aqra l-output mhux ipproċessat u redatt miżmum permezz tal-id tal-pointer                        |
+| `/api/context/rtk/filters`             | GET            | Katalgu tal-filtri RTK u dijanjostika tal-filtri personalizzati                                  |
+| `/api/context/rtk/test`                | POST           | Ħaddem previżjoni/test ta’ RTK fuq payload ta’ test                                              |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Aqra l-output mhux ipproċessat u redatt miżmum permezz tal-ID tal-pointer                        |
 | `/api/context/combos`                  | GET/POST       | Elenka/oħloq kombinazzjonijiet tal-kompressjoni                                                  |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Dettalji/aġġornament/tħassir tal-kombinazzjoni tal-kompressjoni                                  |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Dettalji/aġġornament/tħassir ta’ kombinazzjoni tal-kompressjoni                                  |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | Assenja kombinazzjonijiet tal-kompressjoni lil kombinazzjonijiet tar-routing                     |
 | `/api/context/analytics`               | GET            | Alias tal-analitika tal-kompressjoni                                                             |
 
 ### Monitoraġġ
 
-| Endpoint                             | Metodu     | Deskrizzjoni                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Traċċar tas-sessjonijiet attivi                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `/api/rate-limits`                   | GET        | Limiti tar-rata għal kull kont                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `/api/monitoring/health`             | GET        | Verifika tal-integrità + sommarju tal-fornitur (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Il-veduta tal-ġestjoni tinkludi `credentialHealth`: valuri skalari tal-cache tas-sonda, `failedConnections` meta `failed>0`, u `staleDbNonOkCount` (`test_status` persistenti ta’ SQLite, mhux il-kejl). Ara [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Statistika tal-cache / tneħħija tal-cache                                                                                                                                                                                                                                                                                                                                                                                               |
-| `/api/modality-bridge/stats`         | GET        | `attempts` fil-memorja, suċċessi/`bridged`, fallimenti, aċċessi milħuqa mill-cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` iddenominata skont il-kampjuni, u l-ħin tal-aħħar użu (jiġi ssettjat mill-ġdid meta jerġa’ jibda; awtentikazzjoni tal-ġestjoni)                                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | Verifika stretta tal-loopback fdat qabel l-awtentikazzjoni/sonda tal-ġestjoni; disponibbiltà u verżjonijiet sanitizzati ta’ FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/video/extract` | POST       | Sensar intern awtentikat ta’ bytes permezz ta’ loopback fdat; input ta’ 50 MiB, kju limitat/output ta’ 32 MiB, kapaċità `503`, skonnessjoni `499`, skadenza `504`; mhijiex API pubblika għat-tlugħ ta’ fajls                                                                                                                                                                                                                            |
+| Endpoint                             | Metodu     | Deskrizzjoni                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Traċċar tas-sessjonijiet attivi                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `/api/rate-limits`                   | GET        | Limiti tar-rata għal kull kont                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/monitoring/health`             | GET        | Kontroll tal-istat tas-saħħa + sommarju tal-fornituri (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Il-veduta tal-ġestjoni tinkludi `credentialHealth`: valuri skalari tal-cache tas-sonda, `failedConnections` meta `failed>0`, u `staleDbNonOkCount` (`test_status` persistenti ta’ SQLite, mhux l-indikatur). Ara [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Statistika tal-cache / tindif                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/modality-bridge/stats`         | GET        | `attempts` fil-memorja, suċċessi/`bridged`, fallimenti, aċċessi mill-cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` ibbażata fuq in-numru ta’ kampjuni, u l-ħin tal-aħħar użu (jiġi ssettjat mill-ġdid meta jerġa’ jibda; awtentikazzjoni tal-ġestjoni)                                                                                                                                                                             |
+| `/api/modality-bridge/video/runtime` | GET        | Kontroll strett ta’ loopback fdat qabel l-awtentikazzjoni/sonda tal-ġestjoni; disponibbiltà u verżjonijiet sanitizzati ta’ FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                                               |
+| `/api/modality-bridge/video/extract` | POST       | Sensar intern awtentikat tal-bytes b’loopback fdat; input ta’ 50 MiB, kju limitat/output ta’ 32 MiB, kapaċità `503`, skonnessjoni `499`, skadenza `504`; mhuwiex API pubbliku għat-tlugħ ta’ fajls                                                                                                                                                                                                                                                 |
 
-### Backup u Esportazzjoni/Importazzjoni
+### Kopji ta’ Riżerva u Esportazzjoni/Importazzjoni
 
-| Endpoint                    | Metodu | Deskrizzjoni                                       |
-| --------------------------- | ------ | -------------------------------------------------- |
-| `/api/db-backups`           | GET    | Elenka l-backups disponibbli                       |
-| `/api/db-backups`           | PUT    | Oħloq backup manwali                               |
-| `/api/db-backups`           | POST   | Irrestawra minn backup speċifiku                   |
-| `/api/db-backups/export`    | GET    | Niżżel id-database bħala fajl .sqlite              |
-| `/api/db-backups/import`    | POST   | Tella’ fajl .sqlite biex tissostitwixxi d-database |
-| `/api/db-backups/exportAll` | GET    | Niżżel backup sħiħ bħala arkivju .tar.gz           |
+| Endpoint                    | Metodu | Deskrizzjoni                                         |
+| --------------------------- | ------ | ---------------------------------------------------- |
+| `/api/db-backups`           | GET    | Elenka l-kopji ta’ riżerva disponibbli               |
+| `/api/db-backups`           | PUT    | Oħloq kopja ta’ riżerva manwali                      |
+| `/api/db-backups`           | POST   | Irrestawra minn kopja ta’ riżerva speċifika          |
+| `/api/db-backups/export`    | GET    | Niżżel id-database bħala fajl .sqlite                |
+| `/api/db-backups/import`    | POST   | Tella’ fajl .sqlite biex tissostitwixxi d-database   |
+| `/api/db-backups/exportAll` | GET    | Niżżel kopja ta’ riżerva sħiħa bħala arkivju .tar.gz |
 
 ### Sinkronizzazzjoni mal-Cloud
 
@@ -995,14 +1030,14 @@ tagħhom; it-tieni stadju xorta jista’ jipproduċi r-raġunament viżibbli mit
 | `/api/sync/initialize` | POST    | Inizjalizza s-sinkronizzazzjoni                 |
 | `/api/cloud/*`         | Diversi | Ġestjoni tal-cloud                              |
 
-### Tunnels
+### Mini
 
-| Endpoint                   | Metodu | Deskrizzjoni                                                                           |
-| -------------------------- | ------ | -------------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET    | Aqra l-istat tal-installazzjoni/eżekuzzjoni tal-Cloudflare Quick Tunnel għad-dashboard |
-| `/api/tunnels/cloudflared` | POST   | Attiva jew iddiżattiva l-Cloudflare Quick Tunnel (`action=enable/disable`)             |
-| `/api/tunnels/ngrok`       | GET    | Aqra l-istat tal-eżekuzzjoni tan-ngrok Tunnel għad-dashboard                           |
-| `/api/tunnels/ngrok`       | POST   | Attiva jew iddiżattiva n-ngrok Tunnel (`action=enable/disable`)                        |
+| Endpoint                   | Metodu | Deskrizzjoni                                                                             |
+| -------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Aqra l-istatus tal-installazzjoni/eżekuzzjoni ta’ Cloudflare Quick Tunnel għad-dashboard |
+| `/api/tunnels/cloudflared` | POST   | Attiva jew iddiżattiva l-Cloudflare Quick Tunnel (`action=enable/disable`)               |
+| `/api/tunnels/ngrok`       | GET    | Aqra l-istatus tal-eżekuzzjoni ta’ ngrok Tunnel għad-dashboard                           |
+| `/api/tunnels/ngrok`       | POST   | Attiva jew iddiżattiva l-ngrok Tunnel (`action=enable/disable`)                          |
 
 ### Għodod tas-CLI
 
@@ -1018,11 +1053,11 @@ It-tweġibiet tas-CLI jinkludu: `installed`, `runnable`, `command`, `commandPath
 
 ### Aġenti ACP
 
-| Endpoint          | Metodu | Deskrizzjoni                                                                |
-| ----------------- | ------ | --------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Elenka l-aġenti kollha identifikati (integrati + personalizzati) bl-istatus |
-| `/api/acp/agents` | POST   | Żid aġent personalizzat jew aġġorna l-cache tal-identifikazzjoni            |
-| `/api/acp/agents` | DELETE | Neħħi aġent personalizzat permezz tal-parametru tal-query `id`              |
+| Endpoint          | Metodu | Deskrizzjoni                                                           |
+| ----------------- | ------ | ---------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Elenka l-aġenti kollha misjuba (integrati + personalizzati) bl-istatus |
+| `/api/acp/agents` | POST   | Żid aġent personalizzat jew aġġorna l-cache tal-kxif                   |
+| `/api/acp/agents` | DELETE | Neħħi aġent personalizzat permezz tal-parametru tal-query `id`         |
 
 It-tweġiba GET tinkludi `agents[]` (id, name, binary, version, installed, protocol, isCustom) u `summary` (total, installed, notFound, builtIn, custom).
 
@@ -1030,20 +1065,20 @@ It-tweġiba GET tinkludi `agents[]` (id, name, binary, version, installed, proto
 
 | Endpoint                          | Metodu    | Deskrizzjoni                                                                                                                  |
 | --------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Ikseb/aġġorna l-kju tat-talbiet, il-perjodu ta' stennija tal-konnessjoni, il-breaker tal-fornitur, u s-settings tal-istennija |
+| `/api/resilience`                 | GET/PATCH | Ikseb/aġġorna l-kju tat-talbiet, il-perjodu ta’ stennija tal-konnessjoni, il-breaker tal-fornitur, u s-settings tal-istennija |
 | `/api/resilience/reset`           | POST      | Irrisettja s-circuit breakers tal-fornituri                                                                                   |
 | `/api/resilience/model-cooldowns` | GET       | Elenka l-lockouts attivi għal kull (fornitur, konnessjoni, mudell), magħżula skont il-ħin li fadal                            |
-| `/api/resilience/model-cooldowns` | DELETE    | Neħħi lockout ta' mudell — body `{provider, model}` jew `{all: true}` biex tħassar kollox                                     |
+| `/api/resilience/model-cooldowns` | DELETE    | Neħħi lockout ta’ mudell — body `{provider, model}` jew `{all: true}` biex tħassar kollox                                     |
 | `/api/rate-limits`                | GET       | Status tal-limitu tar-rata għal kull kont                                                                                     |
 | `/api/rate-limit`                 | GET       | Konfigurazzjoni globali tal-limitu tar-rata                                                                                   |
 
-> L-erba' rotot `/api/resilience/*` kollha jeħtieġu **awtentikazzjoni tal-ġestjoni** (`requireManagementAuth`). Ara [Reżiljenza (estiża)](#resilience-extended) għal analiżi sħiħa tad-differenza bejn il-breaker tal-fornitur, il-perjodu ta' stennija tal-konnessjoni, u l-lockout tal-mudell.
+> L-erba’ routes kollha `/api/resilience/*` jeħtieġu **awtentikazzjoni tal-ġestjoni** (`requireManagementAuth`). Ara [Reżiljenza (estiża)](#resilience-extended) għal analiżi sħiħa tal-breaker tal-fornitur meta mqabbel mal-perjodu ta’ stennija tal-konnessjoni u mal-lockout tal-mudell.
 
 ### Evalwazzjonijiet
 
-| Endpoint     | Metodu   | Deskrizzjoni                                              |
-| ------------ | -------- | --------------------------------------------------------- |
-| `/api/evals` | GET/POST | Elenka s-settijiet ta' evalwazzjoni / wettaq evalwazzjoni |
+| Endpoint     | Metodu   | Deskrizzjoni                                           |
+| ------------ | -------- | ------------------------------------------------------ |
+| `/api/evals` | GET/POST | Elenka s-suites tal-evalwazzjoni / wettaq evalwazzjoni |
 
 ### Politiki
 
@@ -1057,24 +1092,26 @@ It-tweġiba GET tinkludi `agents[]` (id, name, binary, version, installed, proto
 | --------------------------- | ------ | ------------------------------------------------ |
 | `/api/compliance/audit-log` | GET    | Reġistru tal-awditjar tal-konformità (l-aħħar N) |
 
-### v1beta (Kompatibbli ma' Gemini)
+### v1beta (Kompatibbli ma’ Gemini)
 
-| Endpoint                   | Metodu | Deskrizzjoni                           |
-| -------------------------- | ------ | -------------------------------------- |
-| `/v1beta/models`           | GET    | Elenka l-mudelli fil-format ta' Gemini |
-| `/v1beta/models/{...path}` | POST   | Endpoint `generateContent` ta' Gemini  |
+| Endpoint                   | Metodu | Deskrizzjoni                       |
+| -------------------------- | ------ | ---------------------------------- |
+| `/v1beta/models`           | GET    | Elenka l-mudelli fil-format Gemini |
+| `/v1beta/models/{...path}` | POST   | Endpoint Gemini `generateContent`  |
 
-Dawn l-endpoints jirriflettu l-format tal-API ta' Gemini għal klijenti li jistennew kompatibbiltà nattiva mal-SDK ta' Gemini.
+Dawn l-endpoints jirriflettu l-format tal-API ta’ Gemini għal klijenti li jistennew kompatibbiltà nattiva mal-SDK ta’ Gemini.
 
 ### APIs Interni / tas-Sistema
 
 | Endpoint                 | Metodu | Deskrizzjoni                                                              |
 | ------------------------ | ------ | ------------------------------------------------------------------------- |
 | `/api/init`              | GET    | Verifika tal-inizjalizzazzjoni tal-applikazzjoni (użata fl-ewwel tħaddim) |
-| `/api/tags`              | GET    | Tags tal-mudelli kompatibbli ma' Ollama (għall-klijenti Ollama)           |
-| `/api/restart`           | POST   | Attiva ristartjar gradwali tas-server                                     |
-| `/api/shutdown`          | POST   | Attiva għeluq gradwali tas-server                                         |
+| `/api/tags`              | GET    | Tags tal-mudelli kompatibbli ma’ Ollama (għall-klijenti Ollama)           |
+| `/api/restart`           | POST   | Skatta ristartjar gradwali tas-server                                     |
+| `/api/shutdown`          | POST   | Skatta għeluq gradwali tas-server                                         |
 | `/api/system/env/repair` | POST   | Sewwi l-varjabbli tal-ambjent tal-fornitur OAuth                          |
+| `/api/system/version`    | GET    | Verżjoni attwali/l-aħħar, status tal-aġġornament, kanal tar-rilaxx        |
+| `/api/system/version`    | POST   | Ibda aġġornament konxju tad-deployment għall-aħħar verżjoni               |
 
 > **Nota:** Dawn l-endpoints jintużaw internament mis-sistema jew għall-kompatibbiltà mal-klijenti Ollama. Tipikament ma jissejħux mill-utenti finali.
 
@@ -1098,6 +1135,43 @@ Isewwi varjabbli tal-ambjent OAuth neqsin jew korrotti għal fornitur speċifiku
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Verżjoni u Kanal tar-Rilaxx
+
+```bash
+GET /api/system/version
+```
+
+Route ta’ ġestjoni għal loopback biss (awtentikazzjoni tal-amministratur). Jirritorna l-verżjoni li qed taħdem, l-aħħar
+verżjoni ppubblikata u l-istatus tal-aġġornament awtomatiku. `releaseChannel` u `channels` huma fields addittivi
+(rail 3.8.54); `channel` iżomm it-tifsira tiegħu — il-modalità tad-deployment li juża l-updater
+tad-dashboard (`npm`, `source` jew `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — il-kanal npm tal-build li qed jitħaddem: `nightly` għall-verżjonijiet `-nightly.*`,
+  `next` għal pre-rilaxxi oħra (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` għal verżjoni stabbli ta’
+  verżjoni ewlenija eqdem minn `channels.latest`, inkella `latest`. L-istess regoli bħal
+  `scripts/release/dist-tag.mjs`, li jagħżel l-npm dist-tag waqt il-pubblikazzjoni.
+- `channels` — l-aħħar verżjoni ppubblikata ta’ kull dist-tag, minn `npm view omniroute dist-tags` (b’riżerva
+  HTTP għar-reġistru), maħżuna fil-cache bl-istess TTL ta’ 10 minuti bħal `latest`. `latest` ikun dejjem preżenti
+  (jirrikorri għall-kamp `latest`, imbagħad għal `"unavailable"`); `next`, `nightly` u `lts` jidhru
+  biss meta dak id-dist-tag ikun jeżisti. Talba `Cache-Control: no-cache` taġġorna ż-żewġ tfittxijiet.
+
+Il-mudell tal-kanali (`latest` = v3 sal-4.0 GA, `next` = rc, `nightly` = builds ta’ `develop`,
+`lts` = patches ta’ v3 wara l-4.0 GA) huwa deskritt f’`docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

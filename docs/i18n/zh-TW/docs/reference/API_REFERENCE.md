@@ -811,7 +811,7 @@ X-OmniRoute-No-Cache: true
 
 ## 儀表板與管理
 
-管理路由（`/api/*`，公開的驗證/登入路由除外）**不會**授權給一般的推論 API 金鑰。憑證類型、權限範圍及 curl 範例請參閱：
+管理路由（`/api/*`，公開的驗證/登入路由除外）**不會**授權一般的推論 API 金鑰。憑證類型、範圍與 curl 範例：
 [管理驗證](../guides/MANAGEMENT-AUTH.md)。
 
 ### 驗證
@@ -824,35 +824,36 @@ X-OmniRoute-No-Cache: true
 
 ### 提供者管理
 
-| 端點                                    | 方法                      | 說明                                                                                                      |
-| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST                  | 列出／建立提供者                                                                                          |
-| `/api/providers/[id]`                   | GET/PUT/DELETE            | 管理提供者                                                                                                |
-| `/api/providers/[id]/test`              | POST                      | 測試提供者連線                                                                                            |
-| `/api/providers/[id]/models`            | GET                       | 列出提供者模型                                                                                            |
-| `/api/providers/validate`               | POST                      | 驗證提供者設定                                                                                            |
-| `/api/providers/bulk`                   | POST                      | 為單一提供者批次新增 API 金鑰                                                                             |
-| `/api/providers/import`                 | POST                      | 從已剖析的 CSV/JSON 檔案匯入異質提供者清單（#6836）；提供逐列的部分失敗結果                               |
-| `/api/provider-nodes*`                  | 多種                      | 提供者節點管理                                                                                            |
-| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | 自訂模型與各模型覆寫設定（新增、更新、隱藏／顯示、刪除）                                                  |
-| `/api/provider-models/validate-and-add` | POST                      | 經管理驗證、選擇性啟用的嚴格連線驗證與原子化自訂模型註冊；請參閱[模型驗證](../guides/MODEL-VALIDATION.md) |
+| 端點                                    | 方法                      | 說明                                                                                                          |
+| --------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | 列出／建立提供者                                                                                              |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | 管理提供者                                                                                                    |
+| `/api/providers/[id]/test`              | POST                      | 測試提供者連線                                                                                                |
+| `/api/providers/[id]/models`            | GET                       | 列出提供者模型                                                                                                |
+| `/api/providers/validate`               | POST                      | 驗證提供者設定                                                                                                |
+| `/api/providers/bulk`                   | POST                      | 為單一提供者批次新增 API 金鑰                                                                                 |
+| `/api/providers/import`                 | POST                      | 從已剖析的 CSV/JSON 檔案匯入異質提供者清單 (#6836)；提供逐列的部分失敗結果                                    |
+| `/api/provider-nodes*`                  | 各種                      | 提供者節點管理                                                                                                |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | 自訂模型與個別模型覆寫（新增、更新、隱藏／顯示、刪除）                                                        |
+| `/api/provider-models/validate-and-add` | POST                      | 經管理驗證、選擇性啟用的嚴格連線驗證與不可分割的自訂模型註冊；請參閱[模型驗證](../guides/MODEL-VALIDATION.md) |
 
-對於同步／匯入的模型，`PUT /api/provider-models` 接受 `provider`、`modelId` 和
+對於已同步／匯入的模型，`PUT /api/provider-models` 接受 `provider`、`modelId` 與
 `maxOutputTokenOverride`：正整數會設定手動輸出權杖上限，而 `null`
-會清除該設定以還原預設值。`GET /api/provider-models?provider=<provider>` 會在
-`modelOutputOverrides` 中傳回這些值，包括沒有自訂模型資料列的模型。此覆寫設定
-使用執行階段的 `max_output_tokens` 功能，並會在重新同步模型後保留。OpenAI 相容
+會清除該上限以還原預設值。`GET /api/provider-models?provider=<provider>` 會在
+`modelOutputOverrides` 中傳回這些值，包括沒有自訂模型資料列的模型。此覆寫
+使用執行階段的 `max_output_tokens` 能力，並會在重新同步模型後保留。OpenAI 相容的
 提供者頁面提供相同的編輯／清除控制項，並標示明確支援視覺功能的模型。
 
-自訂 Chat Completions 節點會將明確停用推理的設定調整為上游後端可用的格式。連線
-測試成功後，系統會為 `/models` 項目證明具有可辨識 `owned_by` 值的每個確切模型 ID，
-自動選擇聊天範本控制項：`vllm`、`sglang` 或 `llamacpp`。
-透明的 OpenAI 相容包裝器可能會將原始模型項目保留在巢狀
-`openai` 物件中；偵測最多會追蹤三層此類封裝。擁有權資訊缺失、未知或互相衝突的模型
-會維持一般 OpenAI 行為。偵測會重複使用現有的目錄請求，
-不會產生任何完成權杖，並會在連線端點變更時失效。
+自訂 Chat Completions 節點會將明確停用推理的選項調整為上游後端所需的格式。
+成功的連線測試會自動為每個模型 ID 完全相符，且其 `/models` 項目能證明具有已識別
+`owned_by` 值的模型選取聊天範本控制項：`vllm`、`sglang` 或 `llamacpp`。
+透明的 OpenAI 相容包裝器可能會將原始模型項目保留在巢狀的
+`openai` 物件中；偵測最多會沿著三層此類封裝進行。擁有權資訊缺漏、未知或
+互相衝突的模型會維持一般 OpenAI 行為。偵測會重複使用現有的目錄請求，
+不會產生任何補全權杖，並會在連線端點變更時失效。
 
-若後端未公開該中繼資料，可使用現有的部分提供者更新 API 固定此行為：
+若後端未公開該中繼資料，若要固定此行為，請使用現有的部分
+提供者更新 API：
 
 ```json
 {
@@ -862,112 +863,153 @@ X-OmniRoute-No-Cache: true
 }
 ```
 
-使用 `PUT /api/providers/<connection-id>` 傳送該主體。在該連線上，明確設定為
+請使用 `PUT /api/providers/<connection-id>` 傳送該主體。在該連線上，明確設定為
 `none` 的推理強度會以 `chat_template_kwargs.thinking=false` 和
 `chat_template_kwargs.enable_thinking=false` 傳送。除非伺服器端推理規則強制指定推理強度，
-否則明確的原生範本值仍具有最高優先權。此設定僅在自訂
-OpenAI 相容連線分派 Chat Completions 主體時適用；Responses 請求與一般
+否則明確的原生範本值仍具有最高優先權。此設定僅會在自訂
+OpenAI 相容連線分派 Chat Completions 主體時套用；Responses 請求與一般
 提供者會維持其原生請求格式。將 `reasoningControl` 設為 `openai` 可強制直接傳遞一般 OpenAI
-`reasoning_effort`，或省略此設定／將其設為 `null` 以使用自動偵測。
+`reasoning_effort`，或省略該欄位／將其設為 `null` 以使用自動偵測。
 
-當 Claude Code 自動模式分類器請求未包含明確的推理控制時，預設會停用原生思考。偵測使用 Claude 格式請求中的分類器系統標記，而非模型名稱或完成長度限制。明確的請求主體控制、支援的投入程度／思考標頭、路由規則，以及解析後的模型投入程度，均維持其現有優先順序。兩個分類器階段都會保留其提示詞、完成長度限制、停止序列，以及真實的上游權限判定；第二階段仍可將其要求的可見推理作為一般文字輸出。
+當 Claude Code 自動模式分類器請求未包含明確的推理控制時，預設會停用原生思考。偵測會使用 Claude 格式請求中的分類器系統標記，而非模型名稱或完成上限。明確的請求主體控制、支援的 effort/thinking 標頭、路由規則，以及解析後的模型 effort，仍維持其既有優先順序。兩個分類器階段都會保留其提示詞、完成上限、停止序列，以及真實的上游權限判定；第二階段仍可將其要求的可見推理作為一般文字輸出。
 
 ### OAuth 流程
 
 | 端點                             | 方法 | 說明                    |
 | -------------------------------- | ---- | ----------------------- |
-| `/api/oauth/[provider]/[action]` | 各種 | 提供者特定的 OAuth 流程 |
+| `/api/oauth/[provider]/[action]` | 多種 | 提供者特定的 OAuth 流程 |
 
 ### 路由與設定
 
 | 端點                  | 方法     | 說明                         |
 | --------------------- | -------- | ---------------------------- |
 | `/api/models/alias`   | GET/POST | 模型別名                     |
-| `/api/models/catalog` | GET      | 依提供者與類型分類的所有模型 |
-| `/api/combos*`        | 各種     | 組合管理                     |
-| `/api/keys*`          | 各種     | API 金鑰管理                 |
+| `/api/models/catalog` | GET      | 依提供者與類型列出的所有模型 |
+| `/api/combos*`        | 多種     | 組合管理                     |
+| `/api/keys*`          | 多種     | API 金鑰管理                 |
 | `/api/pricing`        | GET      | 模型定價                     |
 
 ### 使用量與分析
 
-| 端點                             | 方法            | 說明                                                                                                                                                                                                                                                          |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | 使用量歷史記錄                                                                                                                                                                                                                                                |
-| `/api/usage/logs`                | GET             | 使用量日誌                                                                                                                                                                                                                                                    |
-| `/api/usage/request-logs`        | GET             | 請求層級日誌                                                                                                                                                                                                                                                  |
-| `/api/usage/[connectionId]`      | GET             | 各連線的使用量                                                                                                                                                                                                                                                |
-| `/api/usage/token-limits`        | GET/POST/DELETE | 各 API 金鑰的 token 限額預算                                                                                                                                                                                                                                  |
-| `/api/usage/model-latency-stats` | GET             | 持續彙總各提供者／模型的延遲統計資料（平均值／p50／p95／p99、成功率）；篩選條件：`windowHours`／`minSamples`／`maxRows`／`provider`／`model` (#6873)                                                                                                          |
-| `/api/usage/cache-health`        | GET             | 根據 `call_logs` 彙整提示詞快取健康狀況——寫入／讀取比率、p50／p90／p99 寫入大小分布、大量寫入集中度、各模型明細，以及 `healthy`／`degraded`／`thrash`／`no-data` 判定；查詢參數為 `range`（`1h`\|`24h`\|`7d`\|`30d`，預設為 `24h`）以及選用的 `model` (#8827) |
+| 端點                             | 方法            | 說明                                                                                                                                                                                                                                                 |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | 使用量歷史記錄                                                                                                                                                                                                                                       |
+| `/api/usage/logs`                | GET             | 使用量日誌                                                                                                                                                                                                                                           |
+| `/api/usage/request-logs`        | GET             | 請求層級日誌                                                                                                                                                                                                                                         |
+| `/api/usage/[connectionId]`      | GET             | 各連線的使用量                                                                                                                                                                                                                                       |
+| `/api/usage/token-limits`        | GET/POST/DELETE | 各 API 金鑰的 Token 上限預算                                                                                                                                                                                                                         |
+| `/api/usage/model-latency-stats` | GET             | 依提供者／模型彙總的滾動延遲統計資料（avg/p50/p95/p99、成功率）；篩選條件：`windowHours`/`minSamples`/`maxRows`/`provider`/`model`（#6873）                                                                                                          |
+| `/api/usage/cache-health`        | GET             | `call_logs` 的提示詞快取健康狀況摘要——寫入／讀取比率、p50/p90/p99 寫入大小分布、大量寫入集中度、各模型細分，以及 `healthy`/`degraded`/`thrash`/`no-data` 判定；查詢參數為 `range`（`1h`\|`24h`\|`7d`\|`30d`，預設為 `24h`）及選用的 `model`（#8827） |
+
+### API 金鑰權限
+
+`PATCH /api/keys/{id}` 會更新現有金鑰的權限。與每個 `/api/keys*` 路由一樣，它需要管理授權（請參閱[管理驗證](../guides/MANAGEMENT-AUTH.md)），而非推論金鑰。請僅傳送要變更的欄位；未包含任何這些欄位的請求將遭到拒絕，並回傳 `No valid fields to update`。可接受的欄位由 `src/shared/validation/schemas/keys.ts` 中的 `updateKeyPermissionsSchema` 定義。
+
+| 欄位                                        | 類型                                                      | 備註                                                                                                   |
+| ------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `name`                                      | 字串，1-200 個字元                                        |                                                                                                        |
+| `isActive`                                  | 布林值                                                    |                                                                                                        |
+| `isBanned`                                  | 布林值                                                    |                                                                                                        |
+| `expiresAt`                                 | ISO 8601 日期時間或 `null`                                | `null` 會清除到期時間                                                                                  |
+| `modelAccessMode`                           | `all` \| `restricted`                                     | 當模式為 `all` 時，`allowedModels` 必須為空                                                            |
+| `allowedModels`, `blockedModels`            | 字串陣列，最多 1000 個                                    |                                                                                                        |
+| `allowedCombos`                             | 字串陣列，最多 500 個                                     | 控制此金鑰可呼叫哪些組合；直接模型則由 `modelAccessMode` / `allowedModels` 管控                        |
+| `connectionAccessMode`                      | `all` \| `restricted`                                     | 當設為 `restricted` 時，`allowedConnections` 不得為空；當設為 `all` 時則必須為空                       |
+| `allowedConnections`                        | UUID 陣列，最多 100 個                                    |                                                                                                        |
+| `allowAutoCombos`                           | 布林值                                                    | 設為 `false` 時，會拒絕使用此金鑰對 `auto/*` 模型提出的請求；從未設定此欄位的金鑰則允許此類請求        |
+| `catalogScope`                              | `all` \| `combos` \| `models`                             | 指定 `GET /v1/models` 針對此金鑰列出的內容（僅組合、僅模型，或兩者）；此設定不會變更該金鑰可呼叫的項目 |
+| `noLog`, `autoResolve`                      | 布林值                                                    |                                                                                                        |
+| `throttleDelayMs`                           | 整數，0-300000                                            |                                                                                                        |
+| `maxSessions`                               | 整數，0-10000                                             |                                                                                                        |
+| `rateLimits`                                | `{ limit, window }` 的陣列（正整數，最多 50 個）或 `null` | `null` 會清除限制                                                                                      |
+| `accessSchedule`                            | 排程物件或 `null`                                         | `null` 會清除排程                                                                                      |
+| `scopes`                                    | 字串陣列，最多 32 個                                      |                                                                                                        |
+| `allowedEndpoints`                          | 字串陣列，最多 20 個                                      |                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                        |                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                      | 請參閱[依金鑰略過快取](#per-key-cache-bypass)                                                          |
+| `compressionEnabled`                        | 布林值                                                    |                                                                                                        |
+| `codexServiceMode`                          | Codex 服務模式之一                                        |                                                                                                        |
+| `disableNonPublicModels`                    | 布林值                                                    |                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                   |                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                   |                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | 大於或等於 0 的 number 或 `null`                          |                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                   |                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### 設定
 
-| 端點                                  | 方法          | 說明                                                                                                                                        |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | 一般設定                                                                                                                                    |
-| `/api/settings/proxy`                 | GET/PUT       | 網路代理設定                                                                                                                                |
-| `/api/settings/proxy/test`            | POST          | 測試代理連線                                                                                                                                |
-| `/api/settings/ip-filter`             | GET/PUT       | IP 允許清單／封鎖清單                                                                                                                       |
-| `/api/settings/thinking-budget`       | GET/PUT       | 思考／推理**請求**重寫模式（直接傳遞／自動移除／自訂／自適應）。獨立於壓縮功能。請參閱 [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)。 |
-| `/api/settings/system-prompt`         | GET/PUT       | 全域系統提示詞                                                                                                                              |
-| `/api/settings/compression`           | GET/PUT       | 全域壓縮設定                                                                                                                                |
-| `/api/settings/purge-request-history` | POST          | 清除請求日誌資料列與本機呼叫日誌成品                                                                                                        |
+| 端點                                  | 方法          | 說明                                                                                                                                    |
+| ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | 一般設定                                                                                                                                |
+| `/api/settings/proxy`                 | GET/PUT       | 網路代理設定                                                                                                                            |
+| `/api/settings/proxy/test`            | POST          | 測試代理連線                                                                                                                            |
+| `/api/settings/ip-filter`             | GET/PUT       | IP 允許清單／封鎖清單                                                                                                                   |
+| `/api/settings/thinking-budget`       | GET/PUT       | 思考／推理**請求**改寫模式（直通／自動移除／自訂／自適應）。獨立於壓縮功能。請參閱 [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md)。 |
+| `/api/settings/system-prompt`         | GET/PUT       | 全域系統提示詞                                                                                                                          |
+| `/api/settings/compression`           | GET/PUT       | 全域壓縮設定                                                                                                                            |
+| `/api/settings/purge-request-history` | POST          | 清除請求日誌資料列與本機呼叫日誌產物                                                                                                    |
 
 ### 上下文與壓縮
 
-| 端點                                   | 方法           | 說明                                            |
-| -------------------------------------- | -------------- | ----------------------------------------------- |
-| `/api/compression/preview`             | POST           | 預覽關閉／輕量／標準／積極／極致／RTK／堆疊壓縮 |
-| `/api/compression/language-packs`      | GET            | 列出可用的 Caveman 語言套件                     |
-| `/api/compression/rules`               | GET            | 列出 Caveman 規則中繼資料                       |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman 專用設定的別名                          |
-| `/api/context/rtk/config`              | GET/PUT        | RTK 專用設定，包括自訂篩選器與原始輸出保留      |
-| `/api/context/rtk/filters`             | GET            | RTK 篩選器目錄與自訂篩選器診斷                  |
-| `/api/context/rtk/test`                | POST           | 對文字承載資料執行 RTK 預覽／測試               |
-| `/api/context/rtk/raw-output/[id]`     | GET            | 依指標 ID 讀取已保留且經遮蔽處理的原始輸出      |
-| `/api/context/combos`                  | GET/POST       | 列出／建立壓縮組合                              |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | 壓縮組合的詳細資料／更新／刪除                  |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | 將壓縮組合指派給路由組合                        |
-| `/api/context/analytics`               | GET            | 壓縮分析的別名                                  |
+| 端點                                   | 方法           | 說明                                              |
+| -------------------------------------- | -------------- | ------------------------------------------------- |
+| `/api/compression/preview`             | POST           | 預覽關閉／輕量／標準／積極／超高／RTK／堆疊式壓縮 |
+| `/api/compression/language-packs`      | GET            | 列出可用的 Caveman 語言套件                       |
+| `/api/compression/rules`               | GET            | 列出 Caveman 規則中繼資料                         |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman 專用設定別名                              |
+| `/api/context/rtk/config`              | GET/PUT        | RTK 專用設定，包括自訂篩選器與原始輸出保留設定    |
+| `/api/context/rtk/filters`             | GET            | RTK 篩選器目錄與自訂篩選器診斷資訊                |
+| `/api/context/rtk/test`                | POST           | 對文字酬載執行 RTK 預覽／測試                     |
+| `/api/context/rtk/raw-output/[id]`     | GET            | 依指標 ID 讀取已保留且經遮蔽的原始輸出            |
+| `/api/context/combos`                  | GET/POST       | 壓縮組合清單／建立                                |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | 壓縮組合詳細資料／更新／刪除                      |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | 將壓縮組合指派給路由組合                          |
+| `/api/context/analytics`               | GET            | 壓縮分析別名                                      |
 
 ### 監控
 
-| 端點                                 | 方法       | 說明                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | 追蹤作用中的工作階段                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/rate-limits`                   | GET        | 各帳戶的速率限制                                                                                                                                                                                                                                                                                                                                                       |
-| `/api/monitoring/health`             | GET        | 健康狀態檢查與提供者摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`）。管理檢視包含 `credentialHealth`：探測快取純量、`failed>0` 時的 `failedConnections`，以及 `staleDbNonOkCount`（SQLite 黏滯性 `test_status`，而非儀表值）。請參閱 [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)。 |
-| `/api/cache/stats`                   | GET/DELETE | 快取統計資料／清除快取                                                                                                                                                                                                                                                                                                                                                 |
-| `/api/modality-bridge/stats`         | GET        | 記憶體內的 `attempts`、成功次數／`bridged`、失敗次數、快取命中次數、`totalLatencyMs`、`latencySamples`、以樣本數為分母的 `averageLatencyMs`，以及最後使用時間（重新啟動時重設；需要管理驗證）                                                                                                                                                                          |
-| `/api/modality-bridge/video/runtime` | GET        | 在管理驗證／探測前進行嚴格的受信任回送位址檢查；經過清理的 FFmpeg/ffprobe 可用性與版本資訊（不儲存）                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/video/extract` | POST       | 供內部使用、需驗證且限制為受信任回送位址的位元組代理程式；輸入上限為 50 MiB、佇列有界限／輸出上限為 32 MiB、容量不足時回傳 `503`、連線中斷時回傳 `499`、超過期限時回傳 `504`；並非公開的上傳 API                                                                                                                                                                       |
+| 端點                                 | 方法       | 說明                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | 追蹤作用中的工作階段                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/rate-limits`                   | GET        | 各帳戶的速率限制                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/monitoring/health`             | GET        | 健康狀態檢查與提供者摘要（`catalogCount`、`configuredCount`、`activeCount`、`monitoredCount`）。管理檢視包含 `credentialHealth`：探測快取純量、當 `failed>0` 時的 `failedConnections`，以及 `staleDbNonOkCount`（SQLite 黏滯性 `test_status`，而非儀表值）。請參閱 [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)。 |
+| `/api/cache/stats`                   | GET/DELETE | 快取統計資料／清除快取                                                                                                                                                                                                                                                                                                                                                    |
+| `/api/modality-bridge/stats`         | GET        | 記憶體內的 `attempts`、成功次數／`bridged`、失敗次數、快取命中次數、`totalLatencyMs`、`latencySamples`、以樣本數為分母的 `averageLatencyMs`，以及上次使用時間（重新啟動時重設；需要管理驗證）                                                                                                                                                                             |
+| `/api/modality-bridge/video/runtime` | GET        | 在管理驗證／探測前執行嚴格的受信任回送位址檢查；經過清理的 FFmpeg/ffprobe 可用性與版本資訊（不儲存）                                                                                                                                                                                                                                                                      |
+| `/api/modality-bridge/video/extract` | POST       | 供內部使用、經驗證且僅限受信任回送位址的位元組代理；輸入上限為 50 MiB、佇列受限／輸出上限為 32 MiB、容量不足時回傳 `503`、中斷連線時回傳 `499`、超過期限時回傳 `504`；並非公開的上傳 API                                                                                                                                                                                  |
 
 ### 備份與匯出／匯入
 
-| 端點                        | 方法 | 說明                          |
-| --------------------------- | ---- | ----------------------------- |
-| `/api/db-backups`           | GET  | 列出可用的備份                |
-| `/api/db-backups`           | PUT  | 建立手動備份                  |
-| `/api/db-backups`           | POST | 從特定備份還原                |
-| `/api/db-backups/export`    | GET  | 以 .sqlite 檔案下載資料庫     |
-| `/api/db-backups/import`    | POST | 上傳 .sqlite 檔案以取代資料庫 |
-| `/api/db-backups/exportAll` | GET  | 以 .tar.gz 封存檔下載完整備份 |
+| 端點                        | 方法 | 說明                              |
+| --------------------------- | ---- | --------------------------------- |
+| `/api/db-backups`           | GET  | 列出可用的備份                    |
+| `/api/db-backups`           | PUT  | 建立手動備份                      |
+| `/api/db-backups`           | POST | 從指定備份還原                    |
+| `/api/db-backups/export`    | GET  | 將資料庫下載為 .sqlite 檔案       |
+| `/api/db-backups/import`    | POST | 上傳 .sqlite 檔案以取代資料庫     |
+| `/api/db-backups/exportAll` | GET  | 將完整備份下載為 .tar.gz 封存檔案 |
 
 ### 雲端同步
 
-| 端點                   | 方法 | 說明         |
-| ---------------------- | ---- | ------------ |
-| `/api/sync/cloud`      | 多種 | 雲端同步作業 |
-| `/api/sync/initialize` | POST | 初始化同步   |
-| `/api/cloud/*`         | 多種 | 雲端管理     |
+| 端點                   | 方法     | 說明         |
+| ---------------------- | -------- | ------------ |
+| `/api/sync/cloud`      | 多種方法 | 雲端同步操作 |
+| `/api/sync/initialize` | POST     | 初始化同步   |
+| `/api/cloud/*`         | 多種方法 | 雲端管理     |
 
 ### 通道
 
 | 端點                       | 方法 | 說明                                                          |
 | -------------------------- | ---- | ------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET  | 讀取儀表板所需的 Cloudflare Quick Tunnel 安裝／執行狀態       |
+| `/api/tunnels/cloudflared` | GET  | 讀取儀表板所需的 Cloudflare Quick Tunnel 安裝／執行階段狀態   |
 | `/api/tunnels/cloudflared` | POST | 啟用或停用 Cloudflare Quick Tunnel（`action=enable/disable`） |
-| `/api/tunnels/ngrok`       | GET  | 讀取儀表板所需的 ngrok Tunnel 執行狀態                        |
+| `/api/tunnels/ngrok`       | GET  | 讀取儀表板所需的 ngrok Tunnel 執行階段狀態                    |
 | `/api/tunnels/ngrok`       | POST | 啟用或停用 ngrok Tunnel（`action=enable/disable`）            |
 
 ### CLI 工具
@@ -990,20 +1032,20 @@ CLI 回應包含：`installed`、`runnable`、`command`、`commandPath`、`runti
 | `/api/acp/agents` | POST   | 新增自訂代理程式或重新整理偵測快取              |
 | `/api/acp/agents` | DELETE | 依 `id` 查詢參數移除自訂代理程式                |
 
-GET 回應包含 `agents[]`（id、name、binary、version、installed、protocol、isCustom）和 `summary`（total、installed、notFound、builtIn、custom）。
+GET 回應包含 `agents[]`（id、name、binary、version、installed、protocol、isCustom）以及 `summary`（total、installed、notFound、builtIn、custom）。
 
 ### 韌性與速率限制
 
-| 端點                              | 方法      | 說明                                                                          |
-| --------------------------------- | --------- | ----------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | 取得／更新請求佇列、連線冷卻、提供者斷路器及等待設定                          |
-| `/api/resilience/reset`           | POST      | 重設提供者斷路器                                                              |
-| `/api/resilience/model-cooldowns` | GET       | 列出有效的各（提供者、連線、模型）鎖定，並依剩餘時間排序                      |
-| `/api/resilience/model-cooldowns` | DELETE    | 清除模型鎖定——本文使用 `{provider, model}`，或使用 `{all: true}` 清除所有項目 |
-| `/api/rate-limits`                | GET       | 各帳戶的速率限制狀態                                                          |
-| `/api/rate-limit`                 | GET       | 全域速率限制設定                                                              |
+| 端點                              | 方法      | 說明                                                                           |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `/api/resilience`                 | GET/PATCH | 取得／更新請求佇列、連線冷卻、提供者斷路器及等待設定                           |
+| `/api/resilience/reset`           | POST      | 重設提供者斷路器                                                               |
+| `/api/resilience/model-cooldowns` | GET       | 列出有效的各個（提供者、連線、模型）鎖定，並依剩餘時間排序                     |
+| `/api/resilience/model-cooldowns` | DELETE    | 清除模型鎖定 — 主體使用 `{provider, model}`，或使用 `{all: true}` 清除所有項目 |
+| `/api/rate-limits`                | GET       | 各帳戶的速率限制狀態                                                           |
+| `/api/rate-limit`                 | GET       | 全域速率限制設定                                                               |
 
-> 所有四個 `/api/resilience/*` 路由都需要**管理驗證**（`requireManagementAuth`）。如需提供者斷路器、連線冷卻與模型鎖定之間差異的完整說明，請參閱[韌性（延伸）](#resilience-extended)。
+> 所有四個 `/api/resilience/*` 路由都需要**管理驗證**（`requireManagementAuth`）。如需提供者斷路器、連線冷卻與模型鎖定的完整說明，請參閱[韌性（延伸）](#resilience-extended)。
 
 ### 評估
 
@@ -1011,38 +1053,40 @@ GET 回應包含 `agents[]`（id、name、binary、version、installed、protoco
 | ------------ | -------- | ---------------------- |
 | `/api/evals` | GET/POST | 列出評估套件／執行評估 |
 
-### 政策
+### 原則
 
 | 端點            | 方法            | 說明         |
 | --------------- | --------------- | ------------ |
-| `/api/policies` | GET/POST/DELETE | 管理路由政策 |
+| `/api/policies` | GET/POST/DELETE | 管理路由原則 |
 
 ### 合規性
 
-| 端點                        | 方法 | 說明                        |
-| --------------------------- | ---- | --------------------------- |
-| `/api/compliance/audit-log` | GET  | 合規性稽核記錄（最近 N 筆） |
+| 端點                        | 方法 | 說明                      |
+| --------------------------- | ---- | ------------------------- |
+| `/api/compliance/audit-log` | GET  | 合規稽核記錄（最近 N 筆） |
 
-### v1beta（相容 Gemini）
+### v1beta（Gemini 相容）
 
 | 端點                       | 方法 | 說明                          |
 | -------------------------- | ---- | ----------------------------- |
 | `/v1beta/models`           | GET  | 以 Gemini 格式列出模型        |
 | `/v1beta/models/{...path}` | POST | Gemini `generateContent` 端點 |
 
-這些端點會鏡像 Gemini 的 API 格式，供需要原生 Gemini SDK 相容性的用戶端使用。
+這些端點會仿照 Gemini 的 API 格式，以支援需要原生 Gemini SDK 相容性的用戶端。
 
 ### 內部／系統 API
 
-| 端點                     | 方法 | 說明                                             |
-| ------------------------ | ---- | ------------------------------------------------ |
-| `/api/init`              | GET  | 應用程式初始化檢查（首次執行時使用）             |
-| `/api/tags`              | GET  | 與 Ollama 相容的模型標籤（供 Ollama 用戶端使用） |
-| `/api/restart`           | POST | 觸發伺服器正常重新啟動                           |
-| `/api/shutdown`          | POST | 觸發伺服器正常關閉                               |
-| `/api/system/env/repair` | POST | 修復 OAuth 提供者環境變數                        |
+| 端點                     | 方法 | 說明                                          |
+| ------------------------ | ---- | --------------------------------------------- |
+| `/api/init`              | GET  | 應用程式初始化檢查（首次執行時使用）          |
+| `/api/tags`              | GET  | Ollama 相容的模型標籤（供 Ollama 用戶端使用） |
+| `/api/restart`           | POST | 觸發伺服器正常重新啟動                        |
+| `/api/shutdown`          | POST | 觸發伺服器正常關閉                            |
+| `/api/system/env/repair` | POST | 修復 OAuth 提供者環境變數                     |
+| `/api/system/version`    | GET  | 目前／最新版本、更新狀態、發布頻道            |
+| `/api/system/version`    | POST | 啟動可感知部署方式的最新版本更新              |
 
-> **注意：**這些端點由系統內部使用，或用於提供 Ollama 用戶端相容性。一般使用者通常不會呼叫它們。
+> **注意：**這些端點由系統內部使用，或用於提供 Ollama 用戶端相容性。一般不會由終端使用者呼叫。
 
 ### OAuth 環境修復 _(v3.6.1+)_
 
@@ -1055,7 +1099,7 @@ Content-Type: application/json
 }
 ```
 
-修復特定提供者缺失或損毀的 OAuth 環境變數。回傳：
+修復特定提供者遺失或損毀的 OAuth 環境變數。回傳：
 
 ```json
 {
@@ -1064,6 +1108,43 @@ Content-Type: application/json
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### 版本與發布頻道
+
+```bash
+GET /api/system/version
+```
+
+僅限回送介面的管理路由（管理員驗證）。回傳執行中的版本、最新
+發布版本以及自動更新狀態。`releaseChannel` 和 `channels` 是新增
+欄位（3.8.54 軌）；`channel` 保留原有含義，即儀表板更新程式
+所使用的部署模式（`npm`、`source` 或 `docker-compose`）。
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — 執行中建置版本的 npm 頻道：`-nightly.*` 版本為 `nightly`，
+  其他預發行版本（`-rc.*`、`-beta.*`、`-alpha.*`）為 `next`，主要版本早於
+  `channels.latest` 的穩定版本為 `lts`，其他情況則為 `latest`。規則與
+  `scripts/release/dist-tag.mjs` 相同，該指令碼會在發佈時選擇 npm dist-tag。
+- `channels` — 各 dist-tag 已發佈的最新版本，取自 `npm view omniroute dist-tags`（registry
+  HTTP 備援），並使用與 `latest` 相同的 10 分鐘 TTL 進行快取。`latest` 一定存在
+  （依序回退至 `latest` 欄位，然後是 `"unavailable"`）；`next`、`nightly` 和 `lts` 僅在
+  對應的 dist-tag 存在時才會出現。帶有 `Cache-Control: no-cache` 的請求會重新整理這兩項查詢。
+
+頻道模型（`latest` = v3，直到 4.0 GA；`next` = rc；`nightly` = `develop` 建置版本；
+`lts` = 4.0 GA 之後的 v3 修補版本）記載於 `docs/ops/RELEASE_STRATEGY.md`。
 
 ---
 
@@ -1195,7 +1276,7 @@ Content-Type: application/json
 }
 ```
 
-> **結構描述注意事項** (`setBudgetSchema`)：`apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一項必須大於零。選填欄位：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。舊版 `{keyId, limit, period}` 格式會傳回 `400 Bad Request`。
+> **結構描述附註** (`setBudgetSchema`)：`apiKeyId` 為必填；`dailyLimitUsd`、`weeklyLimitUsd` 或 `monthlyLimitUsd` 中至少一項必須大於零。選填欄位：`warningThreshold`（0–1）、`resetInterval`（`daily` | `weekly` | `monthly`）、`resetTime`（`HH:MM`）。舊版的 `{keyId, limit, period}` 格式會傳回 `400 Bad Request`。
 
 ## Token 限制
 
