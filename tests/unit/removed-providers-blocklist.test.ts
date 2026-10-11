@@ -60,7 +60,7 @@ export const REMOVED_PROVIDERS: readonly RemovedProvider[] = [
     id: "opencode",
     alias: "oc",
     domains: [],
-    removalPr: null,
+    removalPr: 16310,
     sourceNeedles: [
       'id: "opencode"',
       'alias: "oc"',
