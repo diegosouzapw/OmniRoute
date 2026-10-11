@@ -1,0 +1,1 @@
+- **fix(routing):** scope `expiry-first` account rotation to the requested quota family and use plan/burn telemetry when available. Gemini and Claude windows no longer compete across families, detected plan tiers weight remaining quota, and observed reset-window burn discounts accounts already consuming their quota. Accounts without burn history retain quota/reset scoring.

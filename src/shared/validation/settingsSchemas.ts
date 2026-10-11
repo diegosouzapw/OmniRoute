@@ -305,6 +305,9 @@ export const updateSettingsSchema = z.object({
       z.object({
         fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
         stickyRoundRobinLimit: z.number().int().min(1).max(1000).optional(),
+        planWeights: z
+          .record(z.string().trim().min(1).max(40), z.number().finite().min(0.01).max(100))
+          .optional(),
       })
     )
     .optional(),
@@ -504,7 +507,9 @@ export const updateSettingsSchema = z.object({
   // holding a worker for hours.
   searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
   // Per-provider timeout overrides in ms, keyed by search provider id.
-  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
+  searchProviderTimeoutsMs: z
+    .record(z.string().max(60), z.number().int().min(1).max(120_000))
+    .optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings

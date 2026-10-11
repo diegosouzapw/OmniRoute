@@ -58,6 +58,7 @@ import {
   isQuotaHealthy,
 } from "./quotaCacheState";
 import { isCodexPaidCreditsEnabled } from "@/lib/providers/codexPaidCredits";
+import { updateQuotaBurnMetrics } from "./quotaBurnMetrics";
 
 // Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
@@ -731,6 +732,13 @@ export function setQuotaCache(
     exhausted,
     // #14359 — cap the park; keep the prior deadline while the streak continues (monitor rewrites must not extend it).
     nextResetAt: exhausted ? preserveParkDeadline(earliestResetAt(quotas), prior) : null,
+    burnMetrics: updateQuotaBurnMetrics(
+      prior?.quotas,
+      prior?.fetchedAt,
+      prior?.burnMetrics,
+      quotas,
+      Date.now()
+    ),
   };
   getState().cache.set(connectionId, entry);
 

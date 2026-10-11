@@ -8,6 +8,7 @@ import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStra
 type ProviderStrategyOverride = {
   fallbackStrategy?: string;
   stickyRoundRobinLimit?: number;
+  planWeights?: Record<string, number>;
 };
 
 type Props = {
@@ -86,6 +87,8 @@ function useProviderAccountRoutingState(providerKey: string) {
         if (nextStrategy === "round-robin" && nextSticky !== "") {
           override.stickyRoundRobinLimit = clampProviderStickyLimit(nextSticky);
         }
+        if (current[providerKey]?.planWeights)
+          override.planWeights = current[providerKey].planWeights;
         const updated = { ...current };
         if (Object.keys(override).length === 0) delete updated[providerKey];
         else updated[providerKey] = override;
