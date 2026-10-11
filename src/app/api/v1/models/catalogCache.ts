@@ -194,6 +194,7 @@ type InFlightBuild = {
   promise: Promise<CachedCatalog>;
   lastKeptAt?: number;
   timeoutCount?: number;
+  lastTimeoutCountedAt?: number;
 };
 const catalogInFlight = new Map<string, InFlightBuild>();
 
@@ -376,12 +377,21 @@ async function awaitCatalogInFlight(
         lastGood.status
       );
     }
+    const boundMs = catalogBuildTimeoutMs();
     const shared = catalogInFlight.get(cacheKey);
     if (shared && shared.promise === inflight.promise) {
-      shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
-      shared.lastKeptAt = Date.now();
+      const now = Date.now();
+      // Concurrent waiters observe one expired build window. Counting each
+      // waiter would replace a live build after just one busy timeout wave.
+      if (
+        shared.lastTimeoutCountedAt === undefined ||
+        now - shared.lastTimeoutCountedAt >= boundMs
+      ) {
+        shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
+        shared.lastTimeoutCountedAt = now;
+      }
+      shared.lastKeptAt = now;
     }
-    const boundMs = catalogBuildTimeoutMs();
     const retryAfterSec = Math.max(1, Math.ceil((2 * boundMs) / 1000));
     const body = JSON.stringify(
       buildErrorBody(503, "catalog_build_timeout", undefined, {
