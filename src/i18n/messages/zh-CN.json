@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "提供程序（所有帐户共享一个断路器）",
     "resilienceTokenRefreshScopeConnection": "连接（每个账户都有自己的熔断器）",
     "resilienceTokenRefreshThreshold": "暂停前的失败次数",
-    "resilienceTokenRefreshCooldown": "触发后暂停"
+    "resilienceTokenRefreshCooldown": "触发后暂停",
+    "compressionSettingsCavemanOutputMode": "穴居人输出模式",
+    "compressionSettingsAutoClarityBypass": "自动清晰度旁路"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "最大工具结果长度",
         "description": "主动截断工具结果的字符上限。默认 2000。该字段未设置时可用 OMNIROUTE_LITE_MAX_TOOL_LENGTH 覆盖。"
+      },
+      "preserveSystemPrompt": {
+        "label": "保留系统提示词"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "比这短的消息不会被压缩。更低=更多压缩。",
     "tooltipMinSavings": "仅当至少保存这么多令牌时才进行压缩。",
     "ultraSettings": "超级设置",
-    "ultraSettingsDesc": "SLM 支持的语义压缩"
+    "ultraSettingsDesc": "SLM 支持的语义压缩",
+    "preview": {
+      "lite": "回复要简洁。保留技术术语、代码、错误、URL 和标识符。",
+      "full": "回复要简短紧凑。保留所有技术实质。",
+      "ultra": "用常见技术缩写进行极简回复。保留精确符号。"
+    }
   },
   "translator": {
     "title": "翻译器",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude 限额重置",
+    "confirmRedeemClaudeResetCredit": "兑换将立即重置符合条件的 Claude 使用限额，并永久消耗此点数。",
+    "claudeResetCreditsModalTitle": "Claude 重置点数",
+    "claudeResetCreditsModalExplainer": "此账户可用的 Claude 重置点数和每周会话重置次数。"
   },
   "modals": {
     "waitingAuth": "等待授权",
@@ -11438,7 +11452,8 @@
     "notMeasured": "未测量",
     "upstream4xx": "{count} 上游客户端错误",
     "upstream5xx": "{count} 上游服务器错误",
-    "uniformEgressLine": "{affected}/{exits} 个出口在 {provider} 上同时失败（最近 {hours} 小时）—— 不是出口问题"
+    "uniformEgressLine": "{affected}/{exits} 个出口在 {provider} 上同时失败（最近 {hours} 小时）—— 不是出口问题",
+    "upstreamRefusals": "{count}次上游拒绝"
   },
   "playground": {
     "title": "模型演练场",

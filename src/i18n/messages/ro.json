@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Furnizor (toate conturile împart un singur întrerupător)",
     "resilienceTokenRefreshScopeConnection": "Conexiune (fiecare cont are propriul său întrerupător)",
     "resilienceTokenRefreshThreshold": "Eșecuri înainte de pauză",
-    "resilienceTokenRefreshCooldown": "Pauză după declanșare"
+    "resilienceTokenRefreshCooldown": "Pauză după declanșare",
+    "compressionSettingsCavemanOutputMode": "Modul de ieșire Caveman",
+    "compressionSettingsAutoClarityBypass": "Ocolire automată a clarității"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Păstrează promptul de sistem"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Mesajele mai scurte decât aceasta nu sunt comprimate. Mai jos = compresie mai mare.",
     "tooltipMinSavings": "Comprimați doar dacă salvează cel puțin atât de multe jetoane.",
     "ultraSettings": "Setări Ultra",
-    "ultraSettingsDesc": "Compresie semantică alimentată de SLM"
+    "ultraSettingsDesc": "Compresie semantică alimentată de SLM",
+    "preview": {
+      "lite": "Răspundeți concis. Păstrați termenii tehnici, codul, erorile, URL-urile și identificatorii.",
+      "full": "Răspundeți succint și compact. Păstrați integral conținutul tehnic.",
+      "ultra": "Răspundeți extrem de succint, folosind abrevieri tehnice uzuale. Păstrați simbolurile exacte."
+    }
   },
   "translator": {
     "title": "Traducător",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Resetare limită Claude",
+    "confirmRedeemClaudeResetCredit": "Revendicarea resetează imediat limitele de utilizare Claude eligibile și consumă definitiv acest credit.",
+    "claudeResetCreditsModalTitle": "Credite de resetare Claude",
+    "claudeResetCreditsModalExplainer": "Credite de resetare Claude disponibile și resetări săptămânale ale sesiunilor pentru acest cont."
   },
   "modals": {
     "waitingAuth": "În așteptarea autorizației",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Nemăsurat",
     "upstream4xx": "{count} erori de client upstream",
     "upstream5xx": "{count} erori de server upstream",
-    "uniformEgressLine": "{affected} din {exits} exit-uri eșuează împreună pe {provider} (ultimele {hours}h) — nu este o problemă de exit"
+    "uniformEgressLine": "{affected} din {exits} exit-uri eșuează împreună pe {provider} (ultimele {hours}h) — nu este o problemă de exit",
+    "upstreamRefusals": "{count} refuzuri upstream"
   },
   "playground": {
     "title": "Title",

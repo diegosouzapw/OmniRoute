@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "પ્રદાતા (બધા ખાતાઓ એક જ બ્રેકર શેર કરે છે)",
     "resilienceTokenRefreshScopeConnection": "કનેક્શન (દરેક એકાઉન્ટનું પોતાનું બ્રેકર છે)",
     "resilienceTokenRefreshThreshold": "થંભાવતા પહેલાં નિષ્ફળતાઓ",
-    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ"
+    "resilienceTokenRefreshCooldown": "ટ્રિપ થયા પછી વિરામ",
+    "compressionSettingsCavemanOutputMode": "કેવમેન આઉટપુટ મોડ",
+    "compressionSettingsAutoClarityBypass": "સ્વતઃ સ્પષ્ટતા બાયપાસ"
   },
   "contextRtk": {
     "title": "RTK એન્જિન",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "સિસ્ટમ પ્રોમ્પ્ટ સાચવો"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "આના કરતાં ટૂંકા સંદેશાઓ સંકુચિત નથી. લોઅર = વધુ સંકોચન.",
     "tooltipMinSavings": "માત્ર સંકુચિત કરો જો તે ઓછામાં ઓછા આટલા બધા ટોકન્સ બચાવે.",
     "ultraSettings": "અલ્ટ્રા સેટિંગ્સ",
-    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન"
+    "ultraSettingsDesc": "SLM-સંચાલિત સિમેન્ટીક કમ્પ્રેશન",
+    "preview": {
+      "lite": "સંક્ષિપ્ત જવાબ આપો. તકનીકી શબ્દો, કોડ, ભૂલો, URLs અને ઓળખકર્તાઓ જાળવી રાખો.",
+      "full": "ટૂંકો અને સંક્ષિપ્ત જવાબ આપો. તમામ તકનીકી સામગ્રી જાળવી રાખો.",
+      "ultra": "સામાન્ય તકનીકી સંક્ષેપો સાથે અત્યંત સંક્ષિપ્ત જવાબ આપો. ચોક્કસ પ્રતીકો જાળવો."
+    }
   },
   "translator": {
     "title": "અનુવાદક",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude મર્યાદા રીસેટ",
+    "confirmRedeemClaudeResetCredit": "રીડીમ કરવાથી પાત્ર Claude વપરાશ મર્યાદાઓ તરત જ રીસેટ થઈ જાય છે અને આ ક્રેડિટ કાયમી ધોરણે વપરાઈ જાય છે.",
+    "claudeResetCreditsModalTitle": "Claude રીસેટ ક્રેડિટ્સ",
+    "claudeResetCreditsModalExplainer": "આ એકાઉન્ટ માટે ઉપલબ્ધ Claude રીસેટ ક્રેડિટ્સ અને સાપ્તાહિક સત્ર રીસેટ્સ."
   },
   "modals": {
     "waitingAuth": "અધિકૃતતાની રાહ જોઈ રહ્યું છે",
@@ -11438,7 +11452,8 @@
     "notMeasured": "માપેલ નથી",
     "upstream4xx": "{count} અપસ્ટ્રીમ ક્લાયન્ટ ત્રુટિઓ",
     "upstream5xx": "{count} અપસ્ટ્રીમ સર્વર ત્રુટિઓ",
-    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી"
+    "uniformEgressLine": "{affected} માંથી {exits} એક્સિટ્સ એકસાથે {provider} પર નિષ્ફળ થાય છે (છેલ્લા {hours} કલાક) — એ એક્સિટનો સમસ્યા નથી",
+    "upstreamRefusals": "{count} અપસ્ટ્રીમ અસ્વીકાર"
   },
   "playground": {
     "title": "મોડેલ પ્લેગ્રાઉન્ડ",

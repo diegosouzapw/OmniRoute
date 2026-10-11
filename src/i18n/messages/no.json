@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (alle kontoer deler én breaker)",
     "resilienceTokenRefreshScopeConnection": "Tilkobling (hver konto har sin egen breaker)",
     "resilienceTokenRefreshThreshold": "Feil før pausing",
-    "resilienceTokenRefreshCooldown": "Pause etter utløsning"
+    "resilienceTokenRefreshCooldown": "Pause etter utløsning",
+    "compressionSettingsCavemanOutputMode": "Caveman utgangsmodus",
+    "compressionSettingsAutoClarityBypass": "Automatisk klarhetsbypass"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Bevar system-prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Meldinger som er kortere enn dette, komprimeres ikke. Lavere = mer kompresjon.",
     "tooltipMinSavings": "Komprimer bare hvis det sparer minst så mange tokens.",
     "ultraSettings": "Ultra-innstillinger",
-    "ultraSettingsDesc": "SLM-drevet semantisk komprimering"
+    "ultraSettingsDesc": "SLM-drevet semantisk komprimering",
+    "preview": {
+      "lite": "Svar kortfattet. Bevar tekniske termer, kode, feil, URL-er og identifikatorer.",
+      "full": "Svar knapt og kompakt. Bevar alt teknisk innhold.",
+      "ultra": "Svar svært knapt med vanlige tekniske forkortelser. Bevar eksakte symboler."
+    }
   },
   "translator": {
     "title": "Oversetter",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Tilbakestilling av Claude-grense",
+    "confirmRedeemClaudeResetCredit": "Innløsing tilbakestiller umiddelbart de kvalifiserte Claude-bruksgrensene og forbruker denne kreditten permanent.",
+    "claudeResetCreditsModalTitle": "Claude-tilbakestillingskreditter",
+    "claudeResetCreditsModalExplainer": "Tilgjengelige Claude-tilbakestillingskreditter og ukentlige økttilbakestillinger for denne kontoen."
   },
   "modals": {
     "waitingAuth": "Venter på autorisasjon",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Ikke målt",
     "upstream4xx": "{count} oppstrøms klientfeil",
     "upstream5xx": "{count} oppstrøms serverfeil",
-    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem"
+    "uniformEgressLine": "{affected} av {exits} utganger feiler sammen på {provider} (siste {hours}t) — ikke et utgangsproblem",
+    "upstreamRefusals": "{count} upstream-avvisninger"
   },
   "playground": {
     "title": "Title",

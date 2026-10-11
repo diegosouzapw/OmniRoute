@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Mtoaji (akaunti zote zinashiriki kipochi kimoja)",
     "resilienceTokenRefreshScopeConnection": "Muunganisho (kila akaunti ina kipochi chake cha kuzima)",
     "resilienceTokenRefreshThreshold": "Kushindwa kabla ya kusimamisha",
-    "resilienceTokenRefreshCooldown": "Mapumziko baada ya kuamilishwa"
+    "resilienceTokenRefreshCooldown": "Mapumziko baada ya kuamilishwa",
+    "compressionSettingsCavemanOutputMode": "Njia ya pato la Caveman",
+    "compressionSettingsAutoClarityBypass": "Njia ya uwazi wa kiotomatiki"
   },
   "contextRtk": {
     "title": "Injini ya RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Hifadhi kidokezo cha mfumo"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Ujumbe mfupi kuliko huu haujabanwa. Chini = compression zaidi.",
     "tooltipMinSavings": "Finyaza tu ikiwa itaokoa angalau ishara hizi nyingi.",
     "ultraSettings": "Mipangilio ya Juu",
-    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM"
+    "ultraSettingsDesc": "Mfinyazo wa kisemantiki unaoendeshwa na SLM",
+    "preview": {
+      "lite": "Jibu kwa ufupi. Hifadhi istilahi za kiufundi, msimbo, hitilafu, URLs na vitambulisho.",
+      "full": "Jibu kwa maneno machache na kwa ufupi. Hifadhi maudhui yote ya kiufundi.",
+      "ultra": "Jibu kwa ufupi sana ukitumia vifupisho vya kawaida vya kiufundi. Hifadhi alama halisi."
+    }
   },
   "translator": {
     "title": "Mtafsiri",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Uwekaji upya wa kikomo cha Claude",
+    "confirmRedeemClaudeResetCredit": "Kukomboa kunaweka upya mara moja vikomo vinavyostahiki vya matumizi ya Claude na kutumia salio hili kabisa.",
+    "claudeResetCreditsModalTitle": "Masalio ya kuweka upya ya Claude",
+    "claudeResetCreditsModalExplainer": "Masalio ya kuweka upya ya Claude yanayopatikana na uwekaji upya wa vipindi vya kila wiki kwa akaunti hii."
   },
   "modals": {
     "waitingAuth": "Inasubiri Uidhinishaji",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Haijapimwa",
     "upstream4xx": "{count} makosa ya mteja kaskazini",
     "upstream5xx": "{count} makosa ya server kaskazini",
-    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango"
+    "uniformEgressLine": "{affected} kati ya {exits} milango yanashindwa pamoja kwenye {provider} (masaa {hours} yaliyopita) — si shida la kilango",
+    "upstreamRefusals": "{count} kukataliwa kwa upstream"
   },
   "playground": {
     "title": "Mazingira ya Majaribio ya Modeli",

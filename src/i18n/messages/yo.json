@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Olùpese (gbogbo àkàǹtì pín kan pàtàkì kan)",
     "resilienceTokenRefreshScopeConnection": "Isopọ (ọ̀kọ̀ọ̀kọ̀ àkàǹtì ní breaker ti ara rẹ̀)",
     "resilienceTokenRefreshThreshold": "Àìṣẹ́ ṣáájì kí a dúró dẹ́",
-    "resilienceTokenRefreshCooldown": "Duro nigba to ba din"
+    "resilienceTokenRefreshCooldown": "Duro nigba to ba din",
+    "compressionSettingsCavemanOutputMode": "Ìpo àbájáde ọkùnrin inú ihò",
+    "compressionSettingsAutoClarityBypass": "Fífo nígbà tí ó bá ṣe kedere láìfọwọ́yí"
   },
   "contextRtk": {
     "title": "Ẹ́ńjìnnì RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Pa ìtọ́nisọ́nà ètò mọ́"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "A kì í fún àwọn ìfiránṣẹ́ tó kúrú ju èyí lọ pọ̀. Tó bá kéré = ìfúnpọ̀ púpọ̀ sí i.",
     "tooltipMinSavings": "Fún un pọ̀ nìkan bí ó bá fi iye token yìí tàbí jù bẹ́ẹ̀ lọ pamọ́.",
     "ultraSettings": "Àwọn Ààtò Ultra",
-    "ultraSettingsDesc": "Ìfúnpọ̀ ìtumọ̀ tí SLM ń ṣe"
+    "ultraSettingsDesc": "Ìfúnpọ̀ ìtumọ̀ tí SLM ń ṣe",
+    "preview": {
+      "lite": "Dáhùn ní ṣókí. Pa àwọn ọ̀rọ̀ ìmọ̀ ẹ̀rọ, code, àwọn àṣìṣe, URLs, àti identifiers mọ́.",
+      "full": "Dáhùn ní kúkúrú àti ní ṣókí. Pa gbogbo àkóónú ìmọ̀ ẹ̀rọ mọ́.",
+      "ultra": "Dáhùn ní kúkúrú gan-an pẹ̀lú àwọn àkótán ìmọ̀ ẹ̀rọ tó wọ́pọ̀. Pa àwọn àmì gangan mọ́."
+    }
   },
   "translator": {
     "title": "Olùtumọ̀",
@@ -10126,7 +10136,11 @@
     "updatedShort": "Ti sọ di tuntun",
     "lastRefreshed": "Ìgbà tí a sọ di tuntun kẹ́yìn",
     "providerQuota": "Ìpín Olùpèsè",
-    "providerQuotaHomeHint": "Ipò lọ́wọ́lọ́wọ́ lórí gbogbo àwọn àkọọ́lẹ̀ tí a so pọ̀"
+    "providerQuotaHomeHint": "Ipò lọ́wọ́lọ́wọ́ lórí gbogbo àwọn àkọọ́lẹ̀ tí a so pọ̀",
+    "claudeResetCreditDefaultTitle": "Àtúntò ààlà Claude",
+    "confirmRedeemClaudeResetCredit": "Rírapadà lẹ́sẹ̀kẹsẹ̀ ń tún àwọn ààlà ìlò Claude tí ó yẹ ṣe, yóò sì lo kírẹ́dìtì yìí run pátápátá.",
+    "claudeResetCreditsModalTitle": "Àwọn kírẹ́dìtì àtúntò Claude",
+    "claudeResetCreditsModalExplainer": "Àwọn kírẹ́dìtì àtúntò Claude tí ó wà àti àwọn àtúntò àkókò ìlò ọ̀sọ̀ọ̀sẹ̀ fún àkọọ́lẹ̀ yìí."
   },
   "modals": {
     "waitingAuth": "Ń dúró de Àṣẹ",
@@ -11438,7 +11452,8 @@
     "notMeasured": "A ko wọn",
     "upstream4xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
     "upstream5xx": "{count} ìwà àwọn àkàntà ní àwọn àkàntà",
-    "uniformEgressLine": "{affected} ya ka {exits} ẹjọ kò rí nipa {provider} (lẹhin {hours}h) — kò si ẹjọ"
+    "uniformEgressLine": "{affected} ya ka {exits} ẹjọ kò rí nipa {provider} (lẹhin {hours}h) — kò si ẹjọ",
+    "upstreamRefusals": "{count} kikọ upstream"
   },
   "playground": {
     "title": "Pápá Ìdánwò Àwòṣe",

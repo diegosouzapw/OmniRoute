@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "प्रोभाइडर (सबै खाताहरूले एउटै ब्रेकर साझा गर्छन्)",
     "resilienceTokenRefreshScopeConnection": "जडान (प्रत्येक खातासँग आफ्नै ब्रेकर हुन्छ)",
     "resilienceTokenRefreshThreshold": "रोक्नु अघिको असफलताहरू",
-    "resilienceTokenRefreshCooldown": "ट्रिप भएपछि विश्राम गर्नुहोस्"
+    "resilienceTokenRefreshCooldown": "ट्रिप भएपछि विश्राम गर्नुहोस्",
+    "compressionSettingsCavemanOutputMode": "केभम्यान आउटपुट मोड",
+    "compressionSettingsAutoClarityBypass": "स्वतः स्पष्टता बाइपास"
   },
   "contextRtk": {
     "title": "RTK इन्जिन",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "प्रणाली प्रम्प्ट सुरक्षित राख्नुहोस्"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "यसभन्दा छोटा सन्देशहरू सङ्कुचित गरिँदैनन्। कम = बढी सङ्कुचन।",
     "tooltipMinSavings": "कम्तीमा यति टोकन बचत हुने भए मात्र सङ्कुचित गर्नुहोस्।",
     "ultraSettings": "अल्ट्रा सेटिङहरू",
-    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन"
+    "ultraSettingsDesc": "SLM-सञ्चालित अर्थगत सङ्कुचन",
+    "preview": {
+      "lite": "संक्षिप्त रूपमा जवाफ दिनुहोस्। प्राविधिक शब्दहरू, code, errors, URLs, र identifiers जस्ताको तस्तै राख्नुहोस्।",
+      "full": "अत्यन्त छोटो र सङ्क्षिप्त जवाफ दिनुहोस्। सबै प्राविधिक सार सुरक्षित राख्नुहोस्।",
+      "ultra": "प्रचलित प्राविधिक संक्षिप्त रूपहरू प्रयोग गरी अत्यन्त छोटो जवाफ दिनुहोस्। ठ्याक्कै उही चिह्नहरू सुरक्षित राख्नुहोस्।"
+    }
   },
   "translator": {
     "title": "अनुवादक",
@@ -10126,7 +10136,11 @@
     "updatedShort": "अद्यावधिक गरिएको",
     "lastRefreshed": "पछिल्लो पटक रिफ्रेस गरिएको",
     "providerQuota": "प्रदायक कोटा",
-    "providerQuotaHomeHint": "जडान गरिएका खाताहरूको प्रत्यक्ष स्थिति"
+    "providerQuotaHomeHint": "जडान गरिएका खाताहरूको प्रत्यक्ष स्थिति",
+    "claudeResetCreditDefaultTitle": "Claude सीमा रिसेट",
+    "confirmRedeemClaudeResetCredit": "रिडिम गर्नाले योग्य Claude उपयोग सीमाहरू तुरुन्तै रिसेट हुन्छ र यो क्रेडिट स्थायी रूपमा खपत हुन्छ।",
+    "claudeResetCreditsModalTitle": "Claude रिसेट क्रेडिटहरू",
+    "claudeResetCreditsModalExplainer": "यस खाताका लागि उपलब्ध Claude रिसेट क्रेडिटहरू र साप्ताहिक सत्र रिसेटहरू।"
   },
   "modals": {
     "waitingAuth": "प्राधिकरणको प्रतीक्षामा",
@@ -11438,7 +11452,8 @@
     "notMeasured": "मापन गरिएको छैन",
     "upstream4xx": "{count} अपस्ट्रीम क्लाइन्ट त्रुटिहरू",
     "upstream5xx": "{count} अपस्ट्रीम सर्भर त्रुटिहरू",
-    "uniformEgressLine": "{provider} मा {exits} एक्जिटहरूमध्ये {affected} वटा सँगै असफल (पछिल्लो {hours}h) — एक्जिट समस्या होइन"
+    "uniformEgressLine": "{provider} मा {exits} एक्जिटहरूमध्ये {affected} वटा सँगै असफल (पछिल्लो {hours}h) — एक्जिट समस्या होइन",
+    "upstreamRefusals": "{count} अपस्ट्रीम अस्वीकृति"
   },
   "playground": {
     "title": "मोडेल प्लेग्राउन्ड",

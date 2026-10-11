@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ప్రొవైడర్ (అన్ని ఖాతాలు ఒకే బ్రేకర్‌ను పంచుకుంటాయి)",
     "resilienceTokenRefreshScopeConnection": "కనెక్షన్ (ప్రతి ఖాతాకు దాని సొంత బ్రేకర్ ఉంటుంది)",
     "resilienceTokenRefreshThreshold": "నిలిపివేయడానికి ముందు వైఫల్యాలు",
-    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం"
+    "resilienceTokenRefreshCooldown": "తావు తర్వాత విరామం",
+    "compressionSettingsCavemanOutputMode": "కేవ్‌మ్యాన్ అవుట్‌పుట్ మోడ్",
+    "compressionSettingsAutoClarityBypass": "ఆటో క్లారిటీ బైపాస్"
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "సిస్టమ్ ప్రాంప్ట్‌ను భద్రపరచండి"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "దీని కంటే చిన్న సందేశాలు కుదించబడవు. దిగువ = మరింత కుదింపు.",
     "tooltipMinSavings": "ఇది కనీసం ఇన్ని టోకెన్లను ఆదా చేస్తే మాత్రమే కుదించండి.",
     "ultraSettings": "అల్ట్రా సెట్టింగ్‌లు",
-    "ultraSettingsDesc": "SLM-శక్తితో కూడిన సెమాంటిక్ కంప్రెషన్"
+    "ultraSettingsDesc": "SLM-శక్తితో కూడిన సెమాంటిక్ కంప్రెషన్",
+    "preview": {
+      "lite": "క్లుప్తంగా స్పందించండి. సాంకేతిక పదాలు, కోడ్, లోపాలు, URLs మరియు ఐడెంటిఫైయర్లను యథాతథంగా ఉంచండి.",
+      "full": "అతి సంక్షిప్తంగా, కుదింపుగా స్పందించండి. సాంకేతిక విషయమంతటినీ పరిరక్షించండి.",
+      "ultra": "సాధారణ సాంకేతిక సంక్షిప్తాలతో అతి క్లుప్తంగా స్పందించండి. ఖచ్చితమైన చిహ్నాలను అలాగే ఉంచండి."
+    }
   },
   "translator": {
     "title": "అనువాదకం",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude పరిమితి రీసెట్",
+    "confirmRedeemClaudeResetCredit": "రీడీమ్ చేయడం వలన అర్హత ఉన్న Claude వినియోగ పరిమితులు తక్షణమే రీసెట్ చేయబడతాయి మరియు ఈ క్రెడిట్ శాశ్వతంగా వినియోగించబడుతుంది.",
+    "claudeResetCreditsModalTitle": "Claude రీసెట్ క్రెడిట్‌లు",
+    "claudeResetCreditsModalExplainer": "ఈ ఖాతా కోసం అందుబాటులో ఉన్న Claude రీసెట్ క్రెడిట్‌లు మరియు వారపు సెషన్ రీసెట్‌లు."
   },
   "modals": {
     "waitingAuth": "అనుమతి కోసం వేచి ఉంది",
@@ -11438,7 +11452,8 @@
     "notMeasured": "కొలవబడలేదు",
     "upstream4xx": "{count} అప్స్ట్రీమ్ క్లయింట్ పొరపాట్లు",
     "upstream5xx": "{count} అప్స్ట్రీమ్ సర్వర్ పొరపాట్లు",
-    "uniformEgressLine": "{provider}లో {exits} ఎగ్జిట్లలో {affected} కలిసి విఫలమవుతున్నాయి (గత {hours} గంటల్లో) — ఎగ్జిట్ సమస్య కాదు"
+    "uniformEgressLine": "{provider}లో {exits} ఎగ్జిట్లలో {affected} కలిసి విఫలమవుతున్నాయి (గత {hours} గంటల్లో) — ఎగ్జిట్ సమస్య కాదు",
+    "upstreamRefusals": "{count} అప్‌స్ట్రీమ్ నిరాకరణలు"
   },
   "playground": {
     "title": "మోడల్ ప్లేగ్రౌండ్",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (alle accounts delen één breaker)",
     "resilienceTokenRefreshScopeConnection": "Verbinding (elk account heeft zijn eigen breaker)",
     "resilienceTokenRefreshThreshold": "Mislukkingen vóór pauzeren",
-    "resilienceTokenRefreshCooldown": "Pauzeer na het uitschakelen"
+    "resilienceTokenRefreshCooldown": "Pauzeer na het uitschakelen",
+    "compressionSettingsCavemanOutputMode": "Holbewoner-uitvoermodus",
+    "compressionSettingsAutoClarityBypass": "Automatische helderheidsbypass"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximale toolresultaatlengte",
         "description": "Tekenlimiet voor proactief inkorten. Standaard 2000. Overschrijf met OMNIROUTE_LITE_MAX_TOOL_LENGTH als het veld leeg is."
+      },
+      "preserveSystemPrompt": {
+        "label": "Systeemprompt behouden"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Berichten die korter zijn dan dit, worden niet gecomprimeerd. Lager = meer compressie.",
     "tooltipMinSavings": "Alleen comprimeren als het minstens zoveel tokens bespaart.",
     "ultraSettings": "Ultra-instellingen",
-    "ultraSettingsDesc": "SLM-aangedreven semantische compressie"
+    "ultraSettingsDesc": "SLM-aangedreven semantische compressie",
+    "preview": {
+      "lite": "Antwoord bondig. Behoud technische termen, code, fouten, URLs en identificatiecodes.",
+      "full": "Antwoord beknopt en compact. Behoud alle technische inhoud.",
+      "ultra": "Antwoord uiterst beknopt met gangbare technische afkortingen. Behoud exacte symbolen."
+    }
   },
   "translator": {
     "title": "Vertaler",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude-limietreset",
+    "confirmRedeemClaudeResetCredit": "Inwisselen reset direct de in aanmerking komende Claude-gebruikslimieten en verbruikt dit tegoed definitief.",
+    "claudeResetCreditsModalTitle": "Claude-resetcredits",
+    "claudeResetCreditsModalExplainer": "Beschikbare Claude-resetcredits en wekelijkse sessieresets voor dit account."
   },
   "modals": {
     "waitingAuth": "Wachten op toestemming",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Niet gemeten",
     "upstream4xx": "{count} upstream clientfouten",
     "upstream5xx": "{count} upstream serverfouten",
-    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem"
+    "uniformEgressLine": "{affected} van {exits} exits falen tegelijk op {provider} (laatste {hours}u) — geen exit-probleem",
+    "upstreamRefusals": "{count} upstream-weigeringen"
   },
   "playground": {
     "title": "Title",

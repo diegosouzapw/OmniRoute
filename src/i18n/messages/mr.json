@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "प्रोव्हाइडर (सर्व खाती एकाच ब्रेकर शेअर करतात)",
     "resilienceTokenRefreshScopeConnection": "कनेक्शन (प्रत्येक खात्याला स्वतःचा ब्रेकर असतो)",
     "resilienceTokenRefreshThreshold": "थांबवण्यापूर्वी अपयशी",
-    "resilienceTokenRefreshCooldown": "ट्रिप झाल्यानंतर थांबा"
+    "resilienceTokenRefreshCooldown": "ट्रिप झाल्यानंतर थांबा",
+    "compressionSettingsCavemanOutputMode": "केव्हमॅन आउटपुट मोड",
+    "compressionSettingsAutoClarityBypass": "स्वयं स्पष्टता बायपास"
   },
   "contextRtk": {
     "title": "RTK इंजिन",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "सिस्टम प्रॉम्प्ट जतन करा"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "यापेक्षा लहान संदेश संकुचित केले जात नाहीत. लोअर = अधिक कॉम्प्रेशन.",
     "tooltipMinSavings": "कमीत कमी इतके टोकन वाचवले तरच संकुचित करा.",
     "ultraSettings": "अल्ट्रा सेटिंग्ज",
-    "ultraSettingsDesc": "SLM-चालित सिमेंटिक कॉम्प्रेशन"
+    "ultraSettingsDesc": "SLM-चालित सिमेंटिक कॉम्प्रेशन",
+    "preview": {
+      "lite": "संक्षिप्त उत्तर द्या. तांत्रिक संज्ञा, कोड, त्रुटी, URLs आणि आयडेंटिफायर्स जसेच्या तसे ठेवा.",
+      "full": "अतिशय थोडक्यात आणि नेमके उत्तर द्या. सर्व तांत्रिक आशय जतन करा.",
+      "ultra": "सामान्य तांत्रिक संक्षेप वापरून अत्यंत थोडक्यात उत्तर द्या. अचूक चिन्हे जशीच्या तशी ठेवा."
+    }
   },
   "translator": {
     "title": "भाषांतरक",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude मर्यादा रीसेट",
+    "confirmRedeemClaudeResetCredit": "रिडीम केल्याने पात्र Claude वापर मर्यादा त्वरित रीसेट होतात आणि हे क्रेडिट कायमस्वरूपी वापरले जाते.",
+    "claudeResetCreditsModalTitle": "Claude रीसेट क्रेडिट्स",
+    "claudeResetCreditsModalExplainer": "या खात्यासाठी उपलब्ध Claude रीसेट क्रेडिट्स आणि साप्ताहिक सत्र रीसेट."
   },
   "modals": {
     "waitingAuth": "अधिकृततेची प्रतीक्षा करत आहे",
@@ -11438,7 +11452,8 @@
     "notMeasured": "मोजले नाही",
     "upstream4xx": "{count} अपस्ट्रीम क्लायंट त्रुटी",
     "upstream5xx": "{count} अपस्ट्रीम सर्व्हर त्रुटी",
-    "uniformEgressLine": "{provider} वर {exits} पैकी {affected} एक्झिट्स एकत्र अयशस्वी (गेल्या {hours} तासांत) — ही एक्झिट समस्या नाही"
+    "uniformEgressLine": "{provider} वर {exits} पैकी {affected} एक्झिट्स एकत्र अयशस्वी (गेल्या {hours} तासांत) — ही एक्झिट समस्या नाही",
+    "upstreamRefusals": "{count} अपस्ट्रीम नकार"
   },
   "playground": {
     "title": "मॉडेल प्लेग्राउंड",

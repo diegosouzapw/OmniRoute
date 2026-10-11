@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (all accounts share one breaker)",
     "resilienceTokenRefreshScopeConnection": "Connection (each account has its own breaker)",
     "resilienceTokenRefreshThreshold": "Failures before pausing",
-    "resilienceTokenRefreshCooldown": "Pause after tripping"
+    "resilienceTokenRefreshCooldown": "Pause after tripping",
+    "compressionSettingsCavemanOutputMode": "Caveman output mode",
+    "compressionSettingsAutoClarityBypass": "Auto clarity bypass"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Preserve system prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Messages shorter than this are not compressed. Lower = more compression.",
     "tooltipMinSavings": "Only compress if it saves at least this many tokens.",
     "ultraSettings": "Ultra Settings",
-    "ultraSettingsDesc": "SLM-powered semantic compression"
+    "ultraSettingsDesc": "SLM-powered semantic compression",
+    "preview": {
+      "lite": "Respond concise. Preserve technical terms, code, errors, URLs, and identifiers.",
+      "full": "Respond terse and compact. Preserve all technical substance.",
+      "ultra": "Respond ultra terse with common technical abbreviations. Preserve exact symbols."
+    }
   },
   "translator": {
     "title": "Translator",
@@ -10126,7 +10136,11 @@
     "updatedShort": "Updated",
     "lastRefreshed": "Last refreshed",
     "providerQuota": "Provider Quota",
-    "providerQuotaHomeHint": "Live status across connected accounts"
+    "providerQuotaHomeHint": "Live status across connected accounts",
+    "claudeResetCreditDefaultTitle": "Claude limit reset",
+    "confirmRedeemClaudeResetCredit": "Redeeming immediately resets the eligible Claude usage limits and permanently consumes this credit.",
+    "claudeResetCreditsModalTitle": "Claude reset credits",
+    "claudeResetCreditsModalExplainer": "Available Claude reset credits and weekly session resets for this account."
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Not measured",
     "upstream4xx": "{count} upstream client errors",
     "upstream5xx": "{count} upstream server errors",
-    "uniformEgressLine": "{affected} of {exits} exits fail together on {provider} (last {hours}h) — not an exit problem"
+    "uniformEgressLine": "{affected} of {exits} exits fail together on {provider} (last {hours}h) — not an exit problem",
+    "upstreamRefusals": "{count} upstream refusals"
   },
   "playground": {
     "title": "Model Playground",

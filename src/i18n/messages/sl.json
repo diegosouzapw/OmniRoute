@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Ponudnik (vsi računi si delijo eno stikalo)",
     "resilienceTokenRefreshScopeConnection": "Povezava (vsak račun ima svoj odklopnik)",
     "resilienceTokenRefreshThreshold": "Neuspehi pred začasnim zaustavitvijo",
-    "resilienceTokenRefreshCooldown": "Pavza po sprožitvi"
+    "resilienceTokenRefreshCooldown": "Pavza po sprožitvi",
+    "compressionSettingsCavemanOutputMode": "Jamski način izpisa",
+    "compressionSettingsAutoClarityBypass": "Samodejni obvod jasnosti"
   },
   "contextRtk": {
     "title": "Pogon RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Ohrani sistemski poziv"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Sporočila, krajša od te vrednosti, se ne stisnejo. Nižja vrednost = več stiskanja.",
     "tooltipMinSavings": "Stisni le, če se prihrani vsaj toliko žetonov.",
     "ultraSettings": "Nastavitve Ultra",
-    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM"
+    "ultraSettingsDesc": "Semantično stiskanje, ki ga poganja SLM",
+    "preview": {
+      "lite": "Odgovarjaj jedrnato. Ohrani tehnične izraze, kodo, napake, URL-je in identifikatorje.",
+      "full": "Odgovarjaj skopo in zgoščeno. Ohrani vso tehnično vsebino.",
+      "ultra": "Odgovarjaj izjemno skopo z običajnimi tehničnimi okrajšavami. Ohrani natančne simbole."
+    }
   },
   "translator": {
     "title": "Prevajalnik",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Ponastavitev omejitve Claude",
+    "confirmRedeemClaudeResetCredit": "Vnovčenje takoj ponastavi veljavne omejitve uporabe Claude in trajno porabi ta kredit.",
+    "claudeResetCreditsModalTitle": "Krediti za ponastavitev Claude",
+    "claudeResetCreditsModalExplainer": "Razpoložljivi krediti za ponastavitev Claude in tedenske ponastavitve sej za ta račun."
   },
   "modals": {
     "waitingAuth": "Čakanje na avtorizacijo",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Ni izmerjeno",
     "upstream4xx": "{count} napake stranke na gornjem",
     "upstream5xx": "{count} napake strežnika na gornjem",
-    "uniformEgressLine": "Sočasen izpad {affected} od {exits} izhodov pri {provider} (zadnjih {hours}h) — ni težava izhoda"
+    "uniformEgressLine": "Sočasen izpad {affected} od {exits} izhodov pri {provider} (zadnjih {hours}h) — ni težava izhoda",
+    "upstreamRefusals": "{count} zavrnitev upstream"
   },
   "playground": {
     "title": "Preizkusno okolje za modele",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "வழங்குநர் (அனைத்து கணக்குகளும் ஒரே பிரேக்கரைப் பகிர்ந்துகொள்கின்றன)",
     "resilienceTokenRefreshScopeConnection": "இணைப்பு (ஒவ்வொரு கணக்கிற்கும் தனி பிரேக்கர் உள்ளது)",
     "resilienceTokenRefreshThreshold": "இடைநிறுத்துவதற்கு முன் தோல்விகள்",
-    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்"
+    "resilienceTokenRefreshCooldown": "தாவல் பின் இடைநிறுத்தம்",
+    "compressionSettingsCavemanOutputMode": "கேவ்மேன் வெளியீட்டு முறை",
+    "compressionSettingsAutoClarityBypass": "தானியங்கு தெளிவு பைபாஸ்"
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "சிஸ்டம் பிராம்ப்ட்டைப் பாதுகாக்கவும்"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "இதை விட குறைவான செய்திகள் சுருக்கப்படாது. கீழ் = அதிக சுருக்கம்.",
     "tooltipMinSavings": "குறைந்தபட்சம் இத்தனை டோக்கன்களைச் சேமித்தால் மட்டுமே சுருக்கவும்.",
     "ultraSettings": "அல்ட்ரா அமைப்புகள்",
-    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்"
+    "ultraSettingsDesc": "SLM-இயங்கும் சொற்பொருள் சுருக்கம்",
+    "preview": {
+      "lite": "சுருக்கமாகப் பதிலளிக்கவும். தொழில்நுட்பச் சொற்கள், code, errors, URLs மற்றும் identifiers ஆகியவற்றை மாற்றாமல் வைத்திருக்கவும்.",
+      "full": "சுருக்கமாகவும் செறிவாகவும் பதிலளிக்கவும். அனைத்து தொழில்நுட்ப உள்ளடக்கத்தையும் பாதுகாக்கவும்.",
+      "ultra": "பொதுவான தொழில்நுட்பச் சுருக்கங்களைப் பயன்படுத்தி மிகச் சுருக்கமாகப் பதிலளிக்கவும். துல்லியமான குறியீடுகளைப் பாதுகாக்கவும்."
+    }
   },
   "translator": {
     "title": "மொழிபெயர்ப்பி",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude வரம்பு மீட்டமைப்பு",
+    "confirmRedeemClaudeResetCredit": "மீட்பதன் மூலம் தகுதியுள்ள Claude பயன்பாட்டு வரம்புகள் உடனடியாக மீட்டமைக்கப்படும் மற்றும் இந்தக் கிரெடிட் நிரந்தரமாகப் பயன்படுத்தப்படும்.",
+    "claudeResetCreditsModalTitle": "Claude மீட்டமைப்பு கிரெடிட்கள்",
+    "claudeResetCreditsModalExplainer": "இந்தக் கணக்கிற்குக் கிடைக்கும் Claude மீட்டமைப்பு கிரெடிட்கள் மற்றும் வாராந்திர அமர்வு மீட்டமைப்புகள்."
   },
   "modals": {
     "waitingAuth": "அங்கீகாரத்திற்காகக் காத்திருக்கிறது",
@@ -11438,7 +11452,8 @@
     "notMeasured": "அளவிடப்படவில்லை",
     "upstream4xx": "{count} மேல்நிலை கிளையண்ட் பிழைகள்",
     "upstream5xx": "{count} மேல்நிலை சர்வர் பிழைகள்",
-    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல"
+    "uniformEgressLine": "{provider} இல் {exits} வெளியேற்றங்களில் {affected} ஒன்றாகத் தோல்வியடைகின்றன (கடந்த {hours} மணிநேரம்) — வெளியேற்றப் பிரச்சினை அல்ல",
+    "upstreamRefusals": "{count} அப்ஸ்ட்ரீம் மறுப்புகள்"
   },
   "playground": {
     "title": "மாதிரி சோதனைக்களம்",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Pakkuja (kõik kontod jagavad ühte piirajat)",
     "resilienceTokenRefreshScopeConnection": "Ühendus (igal kontol on oma katkesti)",
     "resilienceTokenRefreshThreshold": "Tõrgete arv enne peatamist",
-    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist"
+    "resilienceTokenRefreshCooldown": "Paus pärast käivitumist",
+    "compressionSettingsCavemanOutputMode": "Koopainimese väljundrežiim",
+    "compressionSettingsAutoClarityBypass": "Automaatne selgusekontrollist möödahiilimine"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Säilita süsteemiviip"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Sellest lühemaid sõnumeid ei tihendata. Väiksem = rohkem tihendamist.",
     "tooltipMinSavings": "Tihenda ainult siis, kui see säästab vähemalt nii palju tokeneid.",
     "ultraSettings": "Ultraseaded",
-    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine"
+    "ultraSettingsDesc": "SLM-il põhinev semantiline tihendamine",
+    "preview": {
+      "lite": "Vasta lühidalt. Säilita tehnilised terminid, kood, vead, URL-id ja identifikaatorid.",
+      "full": "Vasta napilt ja kompaktselt. Säilita kogu tehniline sisu.",
+      "ultra": "Vasta ülilühidalt, kasutades levinud tehnilisi lühendeid. Säilita täpsed sümbolid."
+    }
   },
   "translator": {
     "title": "Tõlkija",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude'i limiidi lähtestamine",
+    "confirmRedeemClaudeResetCredit": "Lunastamine lähtestab kohe kohaldatavad Claude'i kasutuslimiidid ja kulutab selle krediidi jäädavalt.",
+    "claudeResetCreditsModalTitle": "Claude'i lähtestuskrediidid",
+    "claudeResetCreditsModalExplainer": "Selle konto saadaolevad Claude'i lähtestuskrediidid ja iganädalased seansilähtestused."
   },
   "modals": {
     "waitingAuth": "Autoriseerimise ootel",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Mõõtmata",
     "upstream4xx": "{count} ülespoole kliendivigad",
     "upstream5xx": "{count} ülespoole serverivigad",
-    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem"
+    "uniformEgressLine": "{affected} {exits} väljumistest ebaõnnestuvad koos {provider} (viimased {hours}h) — mitte väljumisprobleem",
+    "upstreamRefusals": "{count} upstream-keeldumist"
   },
   "playground": {
     "title": "Mudelite testkeskkond",

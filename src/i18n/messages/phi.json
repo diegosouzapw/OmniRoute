@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (lahat ng mga account ay nagbabahagi ng iisang breaker)",
     "resilienceTokenRefreshScopeConnection": "Koneksyon (bawat account ay may sariling breaker)",
     "resilienceTokenRefreshThreshold": "Mga kabiguan bago magpahinto",
-    "resilienceTokenRefreshCooldown": "Magpahinga pagkatapos ma-trigger"
+    "resilienceTokenRefreshCooldown": "Magpahinga pagkatapos ma-trigger",
+    "compressionSettingsCavemanOutputMode": "Output mode ng Caveman",
+    "compressionSettingsAutoClarityBypass": "Awtomatikong pag-bypass batay sa kalinawan"
   },
   "contextRtk": {
     "title": "Engine ng RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Panatilihin ang system prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Ang mga mensaheng mas maikli kaysa dito ay hindi na-compress. Mas mababa = mas maraming compression.",
     "tooltipMinSavings": "I-compress lamang kung nakakatipid ito ng kahit gaano karaming token.",
     "ultraSettings": "Mga Ultra Setting",
-    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM"
+    "ultraSettingsDesc": "Semantic compression na pinapagana ng SLM",
+    "preview": {
+      "lite": "Sumagot nang maikli. Panatilihin ang mga teknikal na termino, code, error, URL, at identifier.",
+      "full": "Sumagot nang maigsi at siksik. Panatilihin ang lahat ng teknikal na nilalaman.",
+      "ultra": "Sumagot nang napakaigsi gamit ang mga karaniwang teknikal na daglat. Panatilihin ang eksaktong mga simbolo."
+    }
   },
   "translator": {
     "title": "Tagasalin",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Mga bayad na kredito sa Codex",
     "codexPaidCreditsAvailable": "Magagamit (hindi iniulat ang balanse)",
     "codexPaidCreditsUnavailable": "Hindi magagamit o naabot na ang limitasyon sa paggastos",
-    "codexPaidCreditsUnlimited": "Walang limitasyon"
+    "codexPaidCreditsUnlimited": "Walang limitasyon",
+    "claudeResetCreditDefaultTitle": "Pag-reset ng limit ng Claude",
+    "confirmRedeemClaudeResetCredit": "Ang pag-redeem ay agad na nagre-reset ng mga kwalipikadong limitasyon sa paggamit ng Claude at permanenteng gagamitin ang credit na ito.",
+    "claudeResetCreditsModalTitle": "Mga credit sa pag-reset ng Claude",
+    "claudeResetCreditsModalExplainer": "Mga available na credit sa pag-reset ng Claude at lingguhang pag-reset ng session para sa account na ito."
   },
   "modals": {
     "waitingAuth": "Naghihintay ng Awtorisasyon",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Hindi nasukat",
     "upstream4xx": "{count} mga error ng upstream client",
     "upstream5xx": "{count} mga error ng upstream server",
-    "uniformEgressLine": "{affected} sa {exits} na mga exit ay sabay-sabay na nabigo sa {provider} (huling {hours}h) — hindi problema ng exit"
+    "uniformEgressLine": "{affected} sa {exits} na mga exit ay sabay-sabay na nabigo sa {provider} (huling {hours}h) — hindi problema ng exit",
+    "upstreamRefusals": "{count} pagtanggi ng upstream"
   },
   "playground": {
     "title": "Title",

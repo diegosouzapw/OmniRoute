@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ספק (כל החשבונות חולקים מפסק אחד)",
     "resilienceTokenRefreshScopeConnection": "חיבור (לכל חשבון יש מפסיק משלו)",
     "resilienceTokenRefreshThreshold": "כשלים לפני השהיה",
-    "resilienceTokenRefreshCooldown": "השהיה לאחר הפעלה"
+    "resilienceTokenRefreshCooldown": "השהיה לאחר הפעלה",
+    "compressionSettingsCavemanOutputMode": "מצב פלט איש מערות",
+    "compressionSettingsAutoClarityBypass": "מעקף בהירות אוטומטי"
   },
   "contextRtk": {
     "title": "מנוע RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "שמור על הנחיית המערכת"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "הודעות קצרות מזה אינן דחוסות. נמוך יותר = יותר דחיסה.",
     "tooltipMinSavings": "דחוס רק אם זה חוסך לפחות כל כך הרבה אסימונים.",
     "ultraSettings": "הגדרות אולטרה",
-    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM"
+    "ultraSettingsDesc": "דחיסה סמנטית המופעלת על ידי SLM",
+    "preview": {
+      "lite": "השב בקצרה. שמור על מונחים טכניים, קוד, שגיאות, כתובות URL ומזהים.",
+      "full": "השב בתמציתיות ובקיצור. שמור על כל התוכן הטכני.",
+      "ultra": "השב בקיצור מרבי עם קיצורים טכניים נפוצים. שמור על הסמלים המדויקים."
+    }
   },
   "translator": {
     "title": "מתרגם",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "איפוס מגבלת Claude",
+    "confirmRedeemClaudeResetCredit": "מימוש מאפס מיידית את מגבלות השימוש הזכאיות של Claude ומנצל קרדיט זה לצמיתות.",
+    "claudeResetCreditsModalTitle": "קרדיטים לאיפוס Claude",
+    "claudeResetCreditsModalExplainer": "קרדיטים זמינים לאיפוס Claude ואיפוסי סשן שבועיים עבור חשבון זה."
   },
   "modals": {
     "waitingAuth": "ממתין לאישור",
@@ -11438,7 +11452,8 @@
     "notMeasured": "לא נמדד",
     "upstream4xx": "{count} שגיאות קליינט עליון",
     "upstream5xx": "{count} שגיאות שרת עליון",
-    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה"
+    "uniformEgressLine": "{affected} מתוך {exits} יציאות נכשלות יחד ב-{provider} (ב-({hours}h)) — אינו בעיית יציאה",
+    "upstreamRefusals": "{count} דחיות upstream"
   },
   "playground": {
     "title": "Title",

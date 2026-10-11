@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ಪೂರೈಕೆದಾರ (ಎಲ್ಲಾ ಖಾತೆಗಳು ಒಂದೇ ಬ್ರೇಕರ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳುತ್ತವೆ)",
     "resilienceTokenRefreshScopeConnection": "ಸಂಪರ್ಕ (ಪ್ರತಿ ಖಾತೆಗೂ ತನ್ನದೇ ಆದ ಬ್ರೇಕರ್ ಇದೆ)",
     "resilienceTokenRefreshThreshold": "ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳುವ ಮೊದಲು ವಿಫಲತೆಗಳು",
-    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ"
+    "resilienceTokenRefreshCooldown": "ಟ್ರಿಪ್ ಆದ ನಂತರ ವಿರಾಮ",
+    "compressionSettingsCavemanOutputMode": "ಕೇವ್ಮ್ಯಾನ್ ಔಟ್ಪುಟ್ ಮೋಡ್",
+    "compressionSettingsAutoClarityBypass": "ಸ್ವಯಂ ಸ್ಪಷ್ಟತೆ ಬೈಪಾಸ್"
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "ಸಿಸ್ಟಮ್ ಪ್ರಾಂಪ್ಟ್ ಅನ್ನು ಸಂರಕ್ಷಿಸಿ"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ಇದಕ್ಕಿಂತ ಚಿಕ್ಕ ಸಂದೇಶಗಳನ್ನು ಸಂಕುಚಿಸಲಾಗುವುದಿಲ್ಲ. ಕಡಿಮೆ = ಹೆಚ್ಚು ಸಂಕುಚನ.",
     "tooltipMinSavings": "ಕನಿಷ್ಠ ಇಷ್ಟು ಟೋಕನ್ಗಳನ್ನು ಉಳಿಸಿದರೆ ಮಾತ್ರ ಸಂಕುಚಿಸಿ.",
     "ultraSettings": "ಅಲ್ಟ್ರಾ ಸೆಟ್ಟಿಂಗ್ಗಳು",
-    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ"
+    "ultraSettingsDesc": "SLM-ಚಾಲಿತ ಅರ್ಥಾಧಾರಿತ ಸಂಕುಚನ",
+    "preview": {
+      "lite": "ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ತಾಂತ್ರಿಕ ಪದಗಳು, code, errors, URLs ಮತ್ತು identifiers ಅನ್ನು ಉಳಿಸಿ.",
+      "full": "ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಮತ್ತು ಸಾಂದ್ರವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ಎಲ್ಲ ತಾಂತ್ರಿಕ ವಿಷಯವನ್ನು ಉಳಿಸಿ.",
+      "ultra": "ಸಾಮಾನ್ಯ ತಾಂತ್ರಿಕ ಸಂಕ್ಷೇಪಣಗಳೊಂದಿಗೆ ಅತ್ಯಂತ ಸಂಕ್ಷಿಪ್ತವಾಗಿ ಪ್ರತಿಕ್ರಿಯಿಸಿ. ನಿಖರ ಚಿಹ್ನೆಗಳನ್ನು ಉಳಿಸಿ."
+    }
   },
   "translator": {
     "title": "ಅನುವಾದಕ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "ನವೀಕರಿಸಲಾಗಿದೆ",
     "lastRefreshed": "ಕೊನೆಯದಾಗಿ ರಿಫ್ರೆಶ್ ಮಾಡಲಾಗಿದೆ",
     "providerQuota": "ಪೂರೈಕೆದಾರರ ಕೋಟಾ",
-    "providerQuotaHomeHint": "ಸಂಪರ್ಕಿತ ಖಾತೆಗಳಾದ್ಯಂತ ಲೈವ್ ಸ್ಥಿತಿ"
+    "providerQuotaHomeHint": "ಸಂಪರ್ಕಿತ ಖಾತೆಗಳಾದ್ಯಂತ ಲೈವ್ ಸ್ಥಿತಿ",
+    "claudeResetCreditDefaultTitle": "Claude ಮಿತಿ ಮರುಹೊಂದಿಕೆ",
+    "confirmRedeemClaudeResetCredit": "ರಿಡೀಮ್ ಮಾಡುವುದು ಅರ್ಹ Claude ಬಳಕೆಯ ಮಿತಿಗಳನ್ನು ತಕ್ಷಣವೇ ಮರುಹೊಂದಿಸುತ್ತದೆ ಮತ್ತು ಈ ಕ್ರೆಡಿಟ್ ಅನ್ನು ಶಾಶ್ವತವಾಗಿ ಬಳಸಿಕೊಳ್ಳುತ್ತದೆ.",
+    "claudeResetCreditsModalTitle": "Claude ಮರುಹೊಂದಿಕೆ ಕ್ರೆಡಿಟ್‌ಗಳು",
+    "claudeResetCreditsModalExplainer": "ಈ ಖಾತೆಗೆ ಲಭ್ಯವಿರುವ Claude ಮರುಹೊಂದಿಕೆ ಕ್ರೆಡಿಟ್‌ಗಳು ಮತ್ತು ಸಾಪ್ತಾಹಿಕ ಸೆಶನ್ ಮರುಹೊಂದಿಕೆಗಳು."
   },
   "modals": {
     "waitingAuth": "ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ",
@@ -11438,7 +11452,8 @@
     "notMeasured": "ಅಳೆಯಲಾಗಿಲ್ಲ",
     "upstream4xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಕ್ಲೈಂಟ್ ದೋಷಗಳು",
     "upstream5xx": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ಸರ್ವರ್ ದೋಷಗಳು",
-    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ"
+    "uniformEgressLine": "{provider} ನಲ್ಲಿ {exits} ಎಕ್ಸಿಟ್‌ಗಳ ಪೈಕಿ {affected} ಒಟ್ಟಿಗೆ ವಿಫಲವಾಗಿವೆ (ಕಳೆದ {hours}ಗಂ) — ಎಕ್ಸಿಟ್ ಸಮಸ್ಯೆಯಲ್ಲ",
+    "upstreamRefusals": "{count} ಅಪ್‌ಸ್ಟ್ರೀಮ್ ನಿರಾಕರಣೆಗಳು"
   },
   "playground": {
     "title": "ಮಾದರಿ ಪ್ರಯೋಗಾಂಗಣ",

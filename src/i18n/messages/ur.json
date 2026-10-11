@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "فراہم کنندہ (تمام اکاؤنٹس ایک ہی بریکر کا اشتراک کرتے ہیں)",
     "resilienceTokenRefreshScopeConnection": "کنکشن (ہر اکاؤنٹ کا اپنا بریکر ہوتا ہے)",
     "resilienceTokenRefreshThreshold": "روکنے سے پہلے ناکامیاں",
-    "resilienceTokenRefreshCooldown": "ٹرپ ہونے کے بعد وقفہ"
+    "resilienceTokenRefreshCooldown": "ٹرپ ہونے کے بعد وقفہ",
+    "compressionSettingsCavemanOutputMode": "کیو مین آؤٹ پٹ موڈ",
+    "compressionSettingsAutoClarityBypass": "آٹو کلیئرٹی بائی پاس"
   },
   "contextRtk": {
     "title": "RTK انجن",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "سسٹم پرامپٹ کو محفوظ رکھیں"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "اس سے چھوٹے پیغامات کو کمپریس نہیں کیا جاتا ہے۔ کم = زیادہ کمپریشن۔",
     "tooltipMinSavings": "صرف اس صورت میں کمپریس کریں جب یہ کم از کم اتنے ٹوکن بچاتا ہے۔",
     "ultraSettings": "الٹرا سیٹنگز",
-    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن"
+    "ultraSettingsDesc": "SLM سے چلنے والا سیمنٹک کمپریشن",
+    "preview": {
+      "lite": "مختصر جواب دیں۔ تکنیکی اصطلاحات، کوڈ، خرابیوں، URLs اور شناخت کنندگان کو برقرار رکھیں۔",
+      "full": "انتہائی مختصر اور جامع جواب دیں۔ تمام تکنیکی مواد برقرار رکھیں۔",
+      "ultra": "عام تکنیکی مخففات کے ساتھ انتہائی مختصر جواب دیں۔ علامات کو جوں کا توں برقرار رکھیں۔"
+    }
   },
   "translator": {
     "title": "مترجم",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude لمٹ ری سیٹ",
+    "confirmRedeemClaudeResetCredit": "ریڈیم کرنے سے فوری طور پر اہل Claude کے استعمال کی حدود ری سیٹ ہو جاتی ہیں اور یہ کریڈٹ مستقل طور پر خرچ ہو جاتا ہے۔",
+    "claudeResetCreditsModalTitle": "Claude ری سیٹ کریڈٹس",
+    "claudeResetCreditsModalExplainer": "اس اکاؤنٹ کے لیے دستیاب Claude ری سیٹ کریڈٹس اور ہفتہ وار سیشن ری سیٹس۔"
   },
   "modals": {
     "waitingAuth": "اجازت کا انتظار ہے",
@@ -11438,7 +11452,8 @@
     "notMeasured": "پیمائش نہیں ہوئی",
     "upstream4xx": "{count} اپسٹریم کلائنٹ کی خرابیاں",
     "upstream5xx": "{count} اپسٹریم سرور کی خرابیاں",
-    "uniformEgressLine": "{affected} آؤٹ میں سے {exits} آؤٹ {provider} پر ایک ساتھ ناکام ہو جاتے ہیں (آخری {hours} گھنٹے) — ایک آؤٹ مسئلہ نہیں ہے"
+    "uniformEgressLine": "{affected} آؤٹ میں سے {exits} آؤٹ {provider} پر ایک ساتھ ناکام ہو جاتے ہیں (آخری {hours} گھنٹے) — ایک آؤٹ مسئلہ نہیں ہے",
+    "upstreamRefusals": "{count} اپ اسٹریم مسترد"
   },
   "playground": {
     "title": "ماڈل پلے گراؤنڈ",

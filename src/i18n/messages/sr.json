@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Провајдер (сви налогови деле један прекидач)",
     "resilienceTokenRefreshScopeConnection": "Веза (сваки налог има свој прекидач)",
     "resilienceTokenRefreshThreshold": "Неуспеси пре паузирања",
-    "resilienceTokenRefreshCooldown": "Пауза после активирања"
+    "resilienceTokenRefreshCooldown": "Пауза после активирања",
+    "compressionSettingsCavemanOutputMode": "Режим Caveman излаза",
+    "compressionSettingsAutoClarityBypass": "Аутоматско заобилажење јасности"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Очувај системски промпт"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Поруке краће од овога се не компримују. Мање = више компресије.",
     "tooltipMinSavings": "Компримуј само ако се уштеди бар оволико токена.",
     "ultraSettings": "Ултра подешавања",
-    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM"
+    "ultraSettingsDesc": "Семантичка компресија коју покреће SLM",
+    "preview": {
+      "lite": "Одговарај сажето. Сачувај техничке термине, код, грешке, URL адресе и идентификаторе.",
+      "full": "Одговарај кратко и сажето. Задржи сву техничку суштину.",
+      "ultra": "Одговарај изузетно кратко уз уобичајене техничке скраћенице. Задржи тачне симболе."
+    }
   },
   "translator": {
     "title": "Преводилац",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Ресетовање Claude ограничења",
+    "confirmRedeemClaudeResetCredit": "Искоришћавање одмах ресетује одговарајућа Claude ограничења коришћења и трајно троши овај кредит.",
+    "claudeResetCreditsModalTitle": "Claude кредити за ресетовање",
+    "claudeResetCreditsModalExplainer": "Доступни Claude кредити за ресетовање и недељна ресетовања сесија за овај налог."
   },
   "modals": {
     "waitingAuth": "Чекање на овлашћење",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Није мерено",
     "upstream4xx": "{count} grešaka klijenta na upstream-u",
     "upstream5xx": "{count} grešaka servera na upstream-u",
-    "uniformEgressLine": "{affected} od {exits} izlaza padaju zajedno na {provider} (poslednjih {hours} сати) — nije problem izlaza"
+    "uniformEgressLine": "{affected} od {exits} izlaza padaju zajedno na {provider} (poslednjih {hours} сати) — nije problem izlaza",
+    "upstreamRefusals": "{count} upstream одбијања"
   },
   "playground": {
     "title": "Окружење за тестирање модела",

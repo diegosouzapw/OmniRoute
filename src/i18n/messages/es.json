@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Proveedor (todas las cuentas comparten un cortacircuitos)",
     "resilienceTokenRefreshScopeConnection": "Conexión (cada cuenta tiene su propio disyuntor)",
     "resilienceTokenRefreshThreshold": "Fallos antes de pausar",
-    "resilienceTokenRefreshCooldown": "Pausa tras activarse"
+    "resilienceTokenRefreshCooldown": "Pausa tras activarse",
+    "compressionSettingsCavemanOutputMode": "Modo de salida cavernícola",
+    "compressionSettingsAutoClarityBypass": "Bypass de claridad automática"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Longitud máxima del resultado de herramienta",
         "description": "Tope de caracteres para el recorte proactivo. Predeterminado 2000. Se puede sustituir con OMNIROUTE_LITE_MAX_TOOL_LENGTH si el campo está vacío."
+      },
+      "preserveSystemPrompt": {
+        "label": "Conservar el prompt del sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Los mensajes más cortos que esto no se comprimen. Más bajo = más compresión.",
     "tooltipMinSavings": "Comprima solo si guarda al menos esta cantidad de tokens.",
     "ultraSettings": "Configuración ultra",
-    "ultraSettingsDesc": "Compresión semántica impulsada por SLM"
+    "ultraSettingsDesc": "Compresión semántica impulsada por SLM",
+    "preview": {
+      "lite": "Responde de forma concisa. Conserva los términos técnicos, el código, los errores, las URL y los identificadores.",
+      "full": "Responde de forma escueta y compacta. Conserva todo el contenido técnico.",
+      "ultra": "Responde de forma extremadamente escueta usando abreviaturas técnicas comunes. Conserva los símbolos exactos."
+    }
   },
   "translator": {
     "title": "Traductor",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Restablecimiento del límite de Claude",
+    "confirmRedeemClaudeResetCredit": "Canjear restablece de inmediato los límites de uso de Claude aplicables y consume este crédito de forma permanente.",
+    "claudeResetCreditsModalTitle": "Créditos de restablecimiento de Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de restablecimiento de Claude disponibles y restablecimientos semanales de sesión para esta cuenta."
   },
   "modals": {
     "waitingAuth": "Esperando autorización",
@@ -11438,7 +11452,8 @@
     "notMeasured": "No medido",
     "upstream4xx": "{count} errores de cliente upstream",
     "upstream5xx": "{count} errores de servidor upstream",
-    "uniformEgressLine": "{affected} de {exits} salidas fallan juntas en {provider} (últimas {hours}h) — no es un problema de salida"
+    "uniformEgressLine": "{affected} de {exits} salidas fallan juntas en {provider} (últimas {hours}h) — no es un problema de salida",
+    "upstreamRefusals": "{count} rechazos aguas arriba"
   },
   "playground": {
     "title": "Title",

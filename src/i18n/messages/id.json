@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Penyedia (semua akun berbagi satu pemutus)",
     "resilienceTokenRefreshScopeConnection": "Koneksi (setiap akun memiliki pemutusnya sendiri)",
     "resilienceTokenRefreshThreshold": "Kegagalan sebelum dijeda",
-    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu"
+    "resilienceTokenRefreshCooldown": "Jeda setelah terpicu",
+    "compressionSettingsCavemanOutputMode": "Mode keluaran manusia gua",
+    "compressionSettingsAutoClarityBypass": "Bypass kejelasan otomatis"
   },
   "contextRtk": {
     "title": "Mesin RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Pertahankan prompt sistem"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Pesan yang lebih pendek dari ini tidak dikompresi. Lebih rendah = lebih banyak kompresi.",
     "tooltipMinSavings": "Hanya kompres jika menyimpan setidaknya token sebanyak ini.",
     "ultraSettings": "Pengaturan Ultra",
-    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM"
+    "ultraSettingsDesc": "Kompresi semantik bertenaga SLM",
+    "preview": {
+      "lite": "Berikan respons ringkas. Pertahankan istilah teknis, kode, kesalahan, URL, dan pengidentifikasi.",
+      "full": "Berikan respons singkat dan padat. Pertahankan seluruh substansi teknis.",
+      "ultra": "Berikan respons sangat singkat dengan singkatan teknis umum. Pertahankan simbol secara persis."
+    }
   },
   "translator": {
     "title": "Penerjemah",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Reset batas Claude",
+    "confirmRedeemClaudeResetCredit": "Menukarkan akan langsung mereset batas penggunaan Claude yang memenuhi syarat dan menghabiskan kredit ini secara permanen.",
+    "claudeResetCreditsModalTitle": "Kredit reset Claude",
+    "claudeResetCreditsModalExplainer": "Kredit reset Claude dan reset sesi mingguan yang tersedia untuk akun ini."
   },
   "modals": {
     "waitingAuth": "Menunggu Otorisasi",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Belum diukur",
     "upstream4xx": "{count} kesalahan klien upstream",
     "upstream5xx": "{count} kesalahan server upstream",
-    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit"
+    "uniformEgressLine": "{affected} dari {exits} exit gagal bersamaan di {provider} ({hours} jam terakhir) — bukan masalah exit",
+    "upstreamRefusals": "{count} penolakan upstream"
   },
   "playground": {
     "title": "Title",

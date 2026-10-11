@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Palveluntarjoaja (kaikki tilit jakavat yhden katkaisijan)",
     "resilienceTokenRefreshScopeConnection": "Yhteys (jokaisella tilillä on oma katkaisija)",
     "resilienceTokenRefreshThreshold": "Virheitä ennen tauottamista",
-    "resilienceTokenRefreshCooldown": "Tauko laukeamisen jälkeen"
+    "resilienceTokenRefreshCooldown": "Tauko laukeamisen jälkeen",
+    "compressionSettingsCavemanOutputMode": "Caveman-lähtötila",
+    "compressionSettingsAutoClarityBypass": "Automaattinen selkeyden ohitus"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Säilytä järjestelmäkehote"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Tätä lyhyempiä viestejä ei pakata. Alempi = enemmän pakkausta.",
     "tooltipMinSavings": "Pakkaa vain, jos se säästää vähintään näin monta merkkiä.",
     "ultraSettings": "Ultra-asetukset",
-    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus"
+    "ultraSettingsDesc": "SLM-käyttöinen semanttinen pakkaus",
+    "preview": {
+      "lite": "Vastaa ytimekkäästi. Säilytä tekniset termit, koodi, virheet, URL-osoitteet ja tunnisteet.",
+      "full": "Vastaa lyhyesti ja tiiviisti. Säilytä kaikki tekninen asiasisältö.",
+      "ultra": "Vastaa erittäin lyhyesti käyttäen yleisiä teknisiä lyhenteitä. Säilytä symbolit täsmälleen."
+    }
   },
   "translator": {
     "title": "Kääntäjä",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude-rajojen nollaus",
+    "confirmRedeemClaudeResetCredit": "Lunastaminen nollaa soveltuvat Claude-käyttörajat välittömästi ja kuluttaa tämän krediitin pysyvästi.",
+    "claudeResetCreditsModalTitle": "Claude-nollauskrediitit",
+    "claudeResetCreditsModalExplainer": "Käytettävissä olevat Claude-nollauskrediitit ja viikoittaiset istunnon nollaukset tälle tilille."
   },
   "modals": {
     "waitingAuth": "Odotetaan valtuutusta",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Ei mitattu",
     "upstream4xx": "{count} ylävirta-asiakasvirheet",
     "upstream5xx": "{count} ylävirta-palvelinvirheet",
-    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema"
+    "uniformEgressLine": "{affected} kpl {exits} poistoa epäonnistuu yhdessä {provider} (viimeisen {hours}h) — ei ole poistoprobleema",
+    "upstreamRefusals": "{count} upstream-hylkäystä"
   },
   "playground": {
     "title": "Title",

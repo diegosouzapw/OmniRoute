@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "አቅራቢ (ሁሉም መለያዎች አንድ መበረታች ይጋራሉ)",
     "resilienceTokenRefreshScopeConnection": "አገናኝ (እያንዳንዱ መለያ የራሱ መበረታቸው አለው)",
     "resilienceTokenRefreshThreshold": "ማቆሚያዎ ከመጠበቅ በፊት የሚደረጉ መሳሮች",
-    "resilienceTokenRefreshCooldown": "ከመዘጋት በኋላ ይታቀኑ"
+    "resilienceTokenRefreshCooldown": "ከመዘጋት በኋላ ይታቀኑ",
+    "compressionSettingsCavemanOutputMode": "የCaveman ውጤት ሁነታ",
+    "compressionSettingsAutoClarityBypass": "ራስ-ሰር የግልጽነት ማለፊያ"
   },
   "contextRtk": {
     "title": "RTK ሞተር",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "የስርዓት መመሪያውን ጠብቅ"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ከዚህ ያጠሩ መልዕክቶች አይጨመቁም። ዝቅተኛ = የበለጠ ማመቂያ።",
     "tooltipMinSavings": "ቢያንስ ይህን ያህል ቶከኖች የሚቆጥብ ከሆነ ብቻ ይጨመቃል።",
     "ultraSettings": "እጅግ የላቁ ቅንብሮች",
-    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ"
+    "ultraSettingsDesc": "በSLM የሚከናወን የፍቺ ማመቅ",
+    "preview": {
+      "lite": "አጠር አድርገው ይመልሱ። ቴክኒካዊ ቃላትን፣ code፣ errors፣ URLs እና identifiers ሳይቀይሩ ያቆዩ።",
+      "full": "እጅግ አጭርና የታመቀ ምላሽ ይስጡ። ሁሉንም ቴክኒካዊ ይዘት ያቆዩ።",
+      "ultra": "የተለመዱ ቴክኒካዊ አህጽሮተ ቃላትን በመጠቀም እጅግ በጣም አጭር ምላሽ ይስጡ። ትክክለኛ ምልክቶችን ሳይቀይሩ ያቆዩ።"
+    }
   },
   "translator": {
     "title": "ተርጓሚ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "ተዘምኗል",
     "lastRefreshed": "ለመጨረሻ ጊዜ የታደሰው",
     "providerQuota": "የአቅራቢ ኮታ",
-    "providerQuotaHomeHint": "በተገናኙ መለያዎች ላይ ያለው የቀጥታ ሁኔታ"
+    "providerQuotaHomeHint": "በተገናኙ መለያዎች ላይ ያለው የቀጥታ ሁኔታ",
+    "claudeResetCreditDefaultTitle": "የClaude ገደብ ዳግም ማስጀመሪያ",
+    "confirmRedeemClaudeResetCredit": "መዋጀት ወዲያውኑ ብቁ የClaude የአጠቃቀም ገደቦችን ዳግም ያስጀምራል እና ይህን ክሬዲት በቋሚነት ይጨርሳል።",
+    "claudeResetCreditsModalTitle": "የClaude ዳግም ማስጀመሪያ ክሬዲቶች",
+    "claudeResetCreditsModalExplainer": "ለዚህ መለያ የሚገኙ የClaude ዳግም ማስጀመሪያ ክሬዲቶች እና ሳምንታዊ የክፍለ-ጊዜ ዳግም ማስጀመሪያዎች።"
   },
   "modals": {
     "waitingAuth": "ፈቃድ በመጠበቅ ላይ",
@@ -11438,7 +11452,8 @@
     "notMeasured": "አልተለካም",
     "upstream4xx": "{count} ከላይ ደንበኛ ስህተቶች",
     "upstream5xx": "{count} የላይ ሰርቨር ስህተቶች",
-    "uniformEgressLine": "{affected} የ{exits} ውጦች በ{provider} ላይ በአንድ ጊዜ ይተፋሉ (የቅርብ {hours}h) — የውጤት ችግኝ አይደለም"
+    "uniformEgressLine": "{affected} የ{exits} ውጦች በ{provider} ላይ በአንድ ጊዜ ይተፋሉ (የቅርብ {hours}h) — የውጤት ችግኝ አይደለም",
+    "upstreamRefusals": "{count} upstream ውድቅዎች"
   },
   "playground": {
     "title": "የሞዴል መሞከሪያ",

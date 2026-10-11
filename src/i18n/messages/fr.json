@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Fournisseur (tous les comptes partagent un seul disjoncteur)",
     "resilienceTokenRefreshScopeConnection": "Connexion (chaque compte a son propre disjoncteur)",
     "resilienceTokenRefreshThreshold": "Échecs avant la mise en pause",
-    "resilienceTokenRefreshCooldown": "Pause après déclenchement"
+    "resilienceTokenRefreshCooldown": "Pause après déclenchement",
+    "compressionSettingsCavemanOutputMode": "Mode de sortie homme des cavernes",
+    "compressionSettingsAutoClarityBypass": "Contournement automatique de la clarté"
   },
   "contextRtk": {
     "title": "Moteur RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Longueur maximale des résultats d'outil",
         "description": "Plafond de caractères pour la troncature proactive des résultats d'outil. Défaut 2000. Surcharge via OMNIROUTE_LITE_MAX_TOOL_LENGTH si le champ est vide."
+      },
+      "preserveSystemPrompt": {
+        "label": "Préserver le prompt système"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Les messages plus courts ne sont pas compressés. Plus faible = plus de compression.",
     "tooltipMinSavings": "Compressez uniquement si vous enregistrez au moins autant de jetons.",
     "ultraSettings": "Paramètres ultra",
-    "ultraSettingsDesc": "Compression sémantique basée sur SLM"
+    "ultraSettingsDesc": "Compression sémantique basée sur SLM",
+    "preview": {
+      "lite": "Répondez de manière concise. Préservez les termes techniques, le code, les erreurs, les URLs et les identifiants.",
+      "full": "Répondez de manière laconique et compacte. Préservez tout le contenu technique.",
+      "ultra": "Répondez de manière ultra-laconique avec des abréviations techniques courantes. Préservez les symboles exacts."
+    }
   },
   "translator": {
     "title": "Traducteur",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Crédits payants Codex",
     "codexPaidCreditsAvailable": "Disponibles (solde non communiqué)",
     "codexPaidCreditsUnavailable": "Indisponibles ou limite de dépenses atteinte",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Réinitialisation des limites Claude",
+    "confirmRedeemClaudeResetCredit": "L'utilisation réinitialise immédiatement les limites d'utilisation Claude éligibles et consomme définitivement ce crédit.",
+    "claudeResetCreditsModalTitle": "Crédits de réinitialisation Claude",
+    "claudeResetCreditsModalExplainer": "Crédits de réinitialisation Claude disponibles et réinitialisations de session hebdomadaires pour ce compte."
   },
   "modals": {
     "waitingAuth": "En attente d'autorisation",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Non mesuré",
     "upstream4xx": "{count} erreurs client en amont",
     "upstream5xx": "{count} erreurs de serveur en amont",
-    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie"
+    "uniformEgressLine": "{affected} sur {exits} sorties échouent simultanément sur {provider} (dernières {hours}h) — pas un problème de sortie",
+    "upstreamRefusals": "{count} refus en amont"
   },
   "playground": {
     "title": "Title",

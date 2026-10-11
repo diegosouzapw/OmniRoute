@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Sağlayıcı (tüm hesaplar tek bir kesiciyi paylaşır)",
     "resilienceTokenRefreshScopeConnection": "Bağlantı (her hesabın kendi kesici devresi vardır)",
     "resilienceTokenRefreshThreshold": "Duraklatmadan önceki hatalar",
-    "resilienceTokenRefreshCooldown": "Tetiklendikten sonra duraklat"
+    "resilienceTokenRefreshCooldown": "Tetiklendikten sonra duraklat",
+    "compressionSettingsCavemanOutputMode": "Mağara adamı çıkış modu",
+    "compressionSettingsAutoClarityBypass": "Otomatik netlik bypass'ı"
   },
   "contextRtk": {
     "title": "RTK Motoru",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Sistem istemini koru"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Bundan daha kısa mesajlar sıkıştırılmaz. Daha düşük = daha fazla sıkıştırma.",
     "tooltipMinSavings": "Yalnızca en az bu kadar jeton tasarrufu sağlıyorsa sıkıştırın.",
     "ultraSettings": "Ultra Ayarlar",
-    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma"
+    "ultraSettingsDesc": "SLM destekli anlamsal sıkıştırma",
+    "preview": {
+      "lite": "Kısa yanıt ver. Teknik terimleri, kodu, hataları, URL'leri ve tanımlayıcıları koru.",
+      "full": "Kısa ve öz yanıt ver. Tüm teknik içeriği koru.",
+      "ultra": "Yaygın teknik kısaltmalarla son derece kısa yanıt ver. Sembolleri aynen koru."
+    }
   },
   "translator": {
     "title": "Çeviri",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude limit sıfırlama",
+    "confirmRedeemClaudeResetCredit": "Kullanmak, uygun Claude kullanım limitlerini anında sıfırlar ve bu krediyi kalıcı olarak tüketir.",
+    "claudeResetCreditsModalTitle": "Claude sıfırlama kredileri",
+    "claudeResetCreditsModalExplainer": "Bu hesap için kullanılabilir Claude sıfırlama kredileri ve haftalık oturum sıfırlamaları."
   },
   "modals": {
     "waitingAuth": "Yetkilendirme bekleniyor",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Ölçülmedi",
     "upstream4xx": "{count} upstream istemci hatası",
     "upstream5xx": "{count} upstream sunucu hatası",
-    "uniformEgressLine": "{exits} çıkışın {affected} tanesi {provider} üzerinde birlikte başarısız oluyor (son {hours} sa) — çıkış sorunu değil"
+    "uniformEgressLine": "{exits} çıkışın {affected} tanesi {provider} üzerinde birlikte başarısız oluyor (son {hours} sa) — çıkış sorunu değil",
+    "upstreamRefusals": "{count} yukarı akış reddi"
   },
   "playground": {
     "title": "Title",

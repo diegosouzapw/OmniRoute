@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ผู้ให้บริการ (บัญชีทั้งหมดใช้ตัวเบรกเกอร์เดียวกัน)",
     "resilienceTokenRefreshScopeConnection": "การเชื่อมต่อ (แต่ละบัญชีมีตัวเบรกเกอร์ของตัวเอง)",
     "resilienceTokenRefreshThreshold": "ความล้มเหลวก่อนหยุดชั่วคราว",
-    "resilienceTokenRefreshCooldown": "หยุดชั่วคราวหลังจากกระตุ้น"
+    "resilienceTokenRefreshCooldown": "หยุดชั่วคราวหลังจากกระตุ้น",
+    "compressionSettingsCavemanOutputMode": "โหมดเอาท์พุตมนุษย์ถ้ำ",
+    "compressionSettingsAutoClarityBypass": "บายพาสความคมชัดอัตโนมัติ"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "คงพรอมต์ระบบไว้"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ข้อความที่สั้นกว่านี้จะไม่ถูกบีบอัด ต่ำ = บีบอัดมากขึ้น",
     "tooltipMinSavings": "บีบอัดเฉพาะในกรณีที่บันทึกโทเค็นได้อย่างน้อยเท่านี้",
     "ultraSettings": "การตั้งค่าอัลตร้า",
-    "ultraSettingsDesc": "การบีบอัดความหมายที่ขับเคลื่อนด้วย SLM"
+    "ultraSettingsDesc": "การบีบอัดความหมายที่ขับเคลื่อนด้วย SLM",
+    "preview": {
+      "lite": "ตอบอย่างกระชับ คงคำศัพท์ทางเทคนิค โค้ด ข้อผิดพลาด URL และตัวระบุไว้",
+      "full": "ตอบให้สั้นและกะทัดรัด คงสาระสำคัญทางเทคนิคทั้งหมดไว้",
+      "ultra": "ตอบให้สั้นที่สุดโดยใช้คำย่อทางเทคนิคทั่วไป คงสัญลักษณ์ต่าง ๆ ไว้ตามต้นฉบับ"
+    }
   },
   "translator": {
     "title": "นักแปล",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "รีเซ็ตขีดจำกัด Claude",
+    "confirmRedeemClaudeResetCredit": "การแลกรับจะรีเซ็ตขีดจำกัดการใช้งาน Claude ที่เข้าเกณฑ์ทันที และจะใช้เครดิตนี้ไปอย่างถาวร",
+    "claudeResetCreditsModalTitle": "เครดิตรีเซ็ต Claude",
+    "claudeResetCreditsModalExplainer": "เครดิตรีเซ็ต Claude ที่มีอยู่และการรีเซ็ตเซสชันรายสัปดาห์สำหรับบัญชีนี้"
   },
   "modals": {
     "waitingAuth": "รอการอนุญาต",
@@ -11438,7 +11452,8 @@
     "notMeasured": "ยังไม่ได้วัด",
     "upstream4xx": "{count} ข้อผิดพลาดไคลเอนต์ต้นทาง",
     "upstream5xx": "{count} ข้อผิดพลาดเซิร์ฟเวอร์ต้นทาง",
-    "uniformEgressLine": "{affected} จาก {exits} ช่องทางออก ล้มเหลวพร้อมกันบน {provider} (ในช่วง {hours} ชั่วโมงที่ผ่านมา) — ไม่ใช่ปัญหาของช่องทางออก"
+    "uniformEgressLine": "{affected} จาก {exits} ช่องทางออก ล้มเหลวพร้อมกันบน {provider} (ในช่วง {hours} ชั่วโมงที่ผ่านมา) — ไม่ใช่ปัญหาของช่องทางออก",
+    "upstreamRefusals": "{count} การปฏิเสธต้นน้ำ"
   },
   "playground": {
     "title": "Title",

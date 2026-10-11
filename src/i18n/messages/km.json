@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "អ្នកផ្គត់ផ្គង់ (គណនីទាំងអស់ចែករំលែកប៊្រីកឃើរតែមួយ)",
     "resilienceTokenRefreshScopeConnection": "ការតភ្ជាប់ (គណនីនីមួយៗមានឧបករណ៍ផ្ទុះផ្ទាល់ខ្លួន)",
     "resilienceTokenRefreshThreshold": "ការបរាជ័យមុនពេលផ្អាក",
-    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ"
+    "resilienceTokenRefreshCooldown": "ផ្អាកបន្ទាប់ពីដំណើរការ",
+    "compressionSettingsCavemanOutputMode": "របៀបលទ្ធផលបែបមនុស្សរូងភ្នំ",
+    "compressionSettingsAutoClarityBypass": "ការរំលងភាពច្បាស់ដោយស្វ័យប្រវត្តិ"
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "រក្សាទុកពាក្យបញ្ជាប្រព័ន្ធ"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "សារដែលខ្លីជាងនេះមិនត្រូវបានបង្ហាប់ទេ។ ទាបជាង = បង្ហាប់ច្រើនជាង។",
     "tooltipMinSavings": "បង្ហាប់តែក្នុងករណីដែលវាសន្សំបានយ៉ាងហោចណាស់ចំនួនថូខឹននេះ។",
     "ultraSettings": "ការកំណត់ Ultra",
-    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM"
+    "ultraSettingsDesc": "ការបង្ហាប់តាមអត្ថន័យដែលដំណើរការដោយ SLM",
+    "preview": {
+      "lite": "ឆ្លើយឱ្យខ្លី។ រក្សាពាក្យបច្ចេកទេស កូដ កំហុស URLs និងអត្តសញ្ញាណសម្គាល់។",
+      "full": "ឆ្លើយឱ្យខ្លី និងបង្រួម។ រក្សាខ្លឹមសារបច្ចេកទេសទាំងអស់។",
+      "ultra": "ឆ្លើយឱ្យខ្លីបំផុត ដោយប្រើអក្សរកាត់បច្ចេកទេសទូទៅ។ រក្សានិមិត្តសញ្ញាឱ្យដូចដើម។"
+    }
   },
   "translator": {
     "title": "កម្មវិធីបកប្រែ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "បានធ្វើបច្ចុប្បន្នភាព",
     "lastRefreshed": "បានធ្វើឱ្យស្រស់ចុងក្រោយ",
     "providerQuota": "កូតារបស់អ្នកផ្តល់សេវា",
-    "providerQuotaHomeHint": "ស្ថានភាពផ្ទាល់នៅទូទាំងគណនីដែលបានភ្ជាប់"
+    "providerQuotaHomeHint": "ស្ថានភាពផ្ទាល់នៅទូទាំងគណនីដែលបានភ្ជាប់",
+    "claudeResetCreditDefaultTitle": "ការកំណត់ដែនកំណត់ Claude ឡើងវិញ",
+    "confirmRedeemClaudeResetCredit": "ការប្តូរយកនឹងកំណត់ដែនកំណត់នៃការប្រើប្រាស់ Claude ដែលមានសិទ្ធិឡើងវិញភ្លាមៗ និងប្រើប្រាស់ក្រេឌីតនេះជាអចិន្ត្រៃយ៍។",
+    "claudeResetCreditsModalTitle": "ក្រេឌីតកំណត់ Claude ឡើងវិញ",
+    "claudeResetCreditsModalExplainer": "ក្រេឌីតកំណត់ Claude ឡើងវិញដែលមាន និងការកំណត់វគ្គឡើងវិញប្រចាំសប្តាហ៍សម្រាប់គណនីនេះ។"
   },
   "modals": {
     "waitingAuth": "កំពុងរង់ចាំការផ្តល់សិទ្ធិ",
@@ -11438,7 +11452,8 @@
     "notMeasured": "មិនបានវាស់",
     "upstream4xx": "កំហុសអតិថិជន {count}",
     "upstream5xx": "កំហុសម៉ាស៊ីនមេ {count}",
-    "uniformEgressLine": "{affected} ក្នុងចំណោម {exits} ច្រកចេញបានបរាជ័យជាមួយគ្នានៅលើ {provider} (ក្នុង {hours}ម៉ោងចុងក្រោយ) — មិនមែនជាបញ្ហាច្រកចេញទេ"
+    "uniformEgressLine": "{affected} ក្នុងចំណោម {exits} ច្រកចេញបានបរាជ័យជាមួយគ្នានៅលើ {provider} (ក្នុង {hours}ម៉ោងចុងក្រោយ) — មិនមែនជាបញ្ហាច្រកចេញទេ",
+    "upstreamRefusals": "{count} ការបដិសេធ upstream"
   },
   "playground": {
     "title": "កន្លែងសាកល្បងម៉ូដែល",

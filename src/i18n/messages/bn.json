@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "প্রদানকারী (সমস্ত অ্যাকাউন্ট একটি ব্রেকার ভাগ করে নেয়)",
     "resilienceTokenRefreshScopeConnection": "সংযোগ (প্রতিটি অ্যাকাউন্টের নিজস্ব ব্রেকার আছে)",
     "resilienceTokenRefreshThreshold": "বিরতি নেওয়ার আগে ব্যর্থতা",
-    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি"
+    "resilienceTokenRefreshCooldown": "ট্রিপ হওয়ার পরে বিরতি",
+    "compressionSettingsCavemanOutputMode": "গুহামানব আউটপুট মোড",
+    "compressionSettingsAutoClarityBypass": "স্বয়ংক্রিয় স্বচ্ছতা বাইপাস"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "সিস্টেম প্রম্পট সংরক্ষণ করুন"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "এর চেয়ে ছোট বার্তাগুলি সংকুচিত হয় না। নিম্ন = আরও সংকোচন।",
     "tooltipMinSavings": "শুধুমাত্র সংকুচিত করুন যদি এটি অন্তত এতগুলো টোকেন সংরক্ষণ করে।",
     "ultraSettings": "আল্ট্রা সেটিংস",
-    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন"
+    "ultraSettingsDesc": "SLM-চালিত শব্দার্থিক কম্প্রেশন",
+    "preview": {
+      "lite": "সংক্ষেপে উত্তর দিন। প্রযুক্তিগত পরিভাষা, কোড, ত্রুটি, URLs এবং শনাক্তকারী অপরিবর্তিত রাখুন।",
+      "full": "সংক্ষিপ্ত ও আঁটসাঁটভাবে উত্তর দিন। সব প্রযুক্তিগত তথ্য অক্ষুণ্ণ রাখুন।",
+      "ultra": "প্রচলিত প্রযুক্তিগত সংক্ষিপ্ত রূপ ব্যবহার করে অত্যন্ত সংক্ষেপে উত্তর দিন। প্রতীকগুলো হুবহু অপরিবর্তিত রাখুন।"
+    }
   },
   "translator": {
     "title": "অনুবাদক",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude সীমা রিসেট",
+    "confirmRedeemClaudeResetCredit": "রিডিম করার সাথে সাথে উপযুক্ত Claude ব্যবহারের সীমা রিসেট হয়ে যায় এবং এই ক্রেডিটটি স্থায়ীভাবে ব্যবহৃত হয়।",
+    "claudeResetCreditsModalTitle": "Claude রিসেট ক্রেডিট",
+    "claudeResetCreditsModalExplainer": "এই অ্যাকাউন্টের জন্য উপলব্ধ Claude রিসেট ক্রেডিট এবং সাপ্তাহিক সেশন রিসেট।"
   },
   "modals": {
     "waitingAuth": "অনুমোদনের জন্য অপেক্ষা করা হচ্ছে",
@@ -11438,7 +11452,8 @@
     "notMeasured": "পরিমাপ করা হয়নি",
     "upstream4xx": "{count} উপস্ট্রিম ক্লায়েন্ট ত্রুটি",
     "upstream5xx": "{count} উপস্ট্রিম সার্ভার ত্রুটি",
-    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়"
+    "uniformEgressLine": "{affected} টি {exits} এক্সিট একসাথে ব্যর্থ হয়েছে {provider} এ (শেষ {hours} ঘন্টা) — এটি এক্সিট সমস্যা নয়",
+    "upstreamRefusals": "{count} আপস্ট্রিম প্রত্যাখ্যান"
   },
   "playground": {
     "title": "মডেল প্লেগ্রাউন্ড",

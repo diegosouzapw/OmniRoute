@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provedor (todas as contas compartilham um único disjuntor)",
     "resilienceTokenRefreshScopeConnection": "Conexão (cada conta tem seu próprio disjuntor)",
     "resilienceTokenRefreshThreshold": "Falhas antes de pausar",
-    "resilienceTokenRefreshCooldown": "Pausa após acionamento"
+    "resilienceTokenRefreshCooldown": "Pausa após acionamento",
+    "compressionSettingsCavemanOutputMode": "Modo de saída do homem das cavernas",
+    "compressionSettingsAutoClarityBypass": "Desvio de clareza automática"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Comprimento máximo do resultado da ferramenta",
         "description": "Limite de caracteres para o recorte proativo. Padrão 2000. Substitua com OMNIROUTE_LITE_MAX_TOOL_LENGTH se o campo estiver vazio."
+      },
+      "preserveSystemPrompt": {
+        "label": "Preservar prompt de sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
+    "preview": {
+      "lite": "Responda conciso. Preserve termos tecnicos, codigo, erros, URLs e identificadores.",
+      "full": "Responda seco e compacto. Preserve todo conteudo tecnico.",
+      "ultra": "Responda ultra compacto com abreviacoes tecnicas comuns. Preserve simbolos exatos."
+    }
   },
   "translator": {
     "title": "Tradutor",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Créditos pagos do Codex",
     "codexPaidCreditsAvailable": "Disponível (saldo não informado)",
     "codexPaidCreditsUnavailable": "Indisponível ou limite de gastos atingido",
-    "codexPaidCreditsUnlimited": "Ilimitado"
+    "codexPaidCreditsUnlimited": "Ilimitado",
+    "claudeResetCreditDefaultTitle": "Redefinição de limite do Claude",
+    "confirmRedeemClaudeResetCredit": "O resgate redefine imediatamente os limites de uso elegíveis do Claude e consome este crédito permanentemente.",
+    "claudeResetCreditsModalTitle": "Créditos de redefinição do Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de redefinição do Claude disponíveis e redefinições semanais de sessão para esta conta."
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Não medido",
     "upstream4xx": "{count} erros de cliente upstream",
     "upstream5xx": "{count} erros de servidor upstream",
-    "uniformEgressLine": "{affected} de {exits} saídas falham juntas em {provider} (últimas {hours}h) — não é um problema de saída"
+    "uniformEgressLine": "{affected} de {exits} saídas falham juntas em {provider} (últimas {hours}h) — não é um problema de saída",
+    "upstreamRefusals": "{count} recusas upstream"
   },
   "playground": {
     "title": "Title",

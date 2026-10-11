@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "プロバイダー（すべてのアカウントが1つのブレーカーを共有）",
     "resilienceTokenRefreshScopeConnection": "接続（各アカウントにはそれぞれのブレーカーがあります）",
     "resilienceTokenRefreshThreshold": "一時停止までの失敗回数",
-    "resilienceTokenRefreshCooldown": "トリップ後の一時停止"
+    "resilienceTokenRefreshCooldown": "トリップ後の一時停止",
+    "compressionSettingsCavemanOutputMode": "穴居人出力モード",
+    "compressionSettingsAutoClarityBypass": "自動明瞭度バイパス"
   },
   "contextRtk": {
     "title": "RTKエンジン",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "最大ツール結果長",
         "description": "ツール結果の先行切り捨て文字数上限。デフォルト 2000。未設定時は OMNIROUTE_LITE_MAX_TOOL_LENGTH で上書きできます。"
+      },
+      "preserveSystemPrompt": {
+        "label": "システムプロンプトを保持"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "これより短いメッセージは圧縮されません。低い = 圧縮が高くなります。",
     "tooltipMinSavings": "少なくともこの数のトークンを保存する場合にのみ圧縮してください。",
     "ultraSettings": "ウルトラ設定",
-    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮"
+    "ultraSettingsDesc": "SLM を利用したセマンティック圧縮",
+    "preview": {
+      "lite": "簡潔に回答してください。技術用語、コード、エラー、URL、識別子は保持してください。",
+      "full": "簡潔かつコンパクトに回答してください。技術的な内容はすべて保持してください。",
+      "ultra": "一般的な技術略語を使用して、極めて簡潔に回答してください。記号は正確に保持してください。"
+    }
   },
   "translator": {
     "title": "翻訳者",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude 制限のリセット",
+    "confirmRedeemClaudeResetCredit": "引き換えると、対象となる Claude の利用制限が即座にリセットされ、このクレジットは完全に消費されます。",
+    "claudeResetCreditsModalTitle": "Claude リセットクレジット",
+    "claudeResetCreditsModalExplainer": "このアカウントで利用可能な Claude リセットクレジットおよび週次セッションリセット。"
   },
   "modals": {
     "waitingAuth": "承認を待っています",
@@ -11438,7 +11452,8 @@
     "notMeasured": "未測定",
     "upstream4xx": "{count}件の上流クライアントエラー",
     "upstream5xx": "{count}件の上流サーバーエラー",
-    "uniformEgressLine": "{affected}個の{exits}エグジットが、過去{hours}時間に{provider}上で同時に障害を起こしています — エグジット側の問題ではありません"
+    "uniformEgressLine": "{affected}個の{exits}エグジットが、過去{hours}時間に{provider}上で同時に障害を起こしています — エグジット側の問題ではありません",
+    "upstreamRefusals": "{count}件のアップストリーム拒否"
   },
   "playground": {
     "title": "Title",

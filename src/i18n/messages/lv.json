@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Pakalpojuma sniedzējs (visi konti koplieto vienu pārtraucēju)",
     "resilienceTokenRefreshScopeConnection": "Savienojums (katram kontam ir sava pārtraucēja)",
     "resilienceTokenRefreshThreshold": "Neveiksmes pirms pauzes",
-    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas"
+    "resilienceTokenRefreshCooldown": "Pauze pēc darbības sākšanas",
+    "compressionSettingsCavemanOutputMode": "Alu cilvēka izvades režīms",
+    "compressionSettingsAutoClarityBypass": "Automātiskā skaidrības apiešana"
   },
   "contextRtk": {
     "title": "RTK dzinējs",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Saglabāt sistēmas uzvedni"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Ziņas, kas īsākas par šo, netiek saspiestas. Zemāks = vairāk saspiešanas.",
     "tooltipMinSavings": "Saspiest tikai tad, ja tas ietaupa vismaz šo tokenu skaitu.",
     "ultraSettings": "Ultra iestatījumi",
-    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana"
+    "ultraSettingsDesc": "SLM darbināta semantiskā saspiešana",
+    "preview": {
+      "lite": "Atbildi kodolīgi. Saglabā tehniskos terminus, kodu, kļūdas, URL un identifikatorus.",
+      "full": "Atbildi lakoniski un kompakti. Saglabā visu tehnisko saturu.",
+      "ultra": "Atbildi īpaši lakoniski, izmantojot izplatītus tehniskos saīsinājumus. Saglabā precīzus simbolus."
+    }
   },
   "translator": {
     "title": "Tulkotājs",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude limitu atiestatīšana",
+    "confirmRedeemClaudeResetCredit": "Izmantošana nekavējoties atiestata atbilstošos Claude lietojuma limitus un neatgriezeniski iztērē šo kredītu.",
+    "claudeResetCreditsModalTitle": "Claude atiestatīšanas kredīti",
+    "claudeResetCreditsModalExplainer": "Šim kontam pieejamie Claude atiestatīšanas kredīti un iknedēļas sesiju atiestatīšanas."
   },
   "modals": {
     "waitingAuth": "Tiek gaidīta autorizācija",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Nav izmērīts",
     "upstream4xx": "{count} upstream klienta kļūdas",
     "upstream5xx": "{count} upstream servera kļūdas",
-    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma"
+    "uniformEgressLine": "{affected} no {exits} izejām neizdodas vienlaikus pie {provider} (pēdējo {hours} h laikā) — tā nav izejas problēma",
+    "upstreamRefusals": "{count} augšupējos noraidījumus"
   },
   "playground": {
     "title": "Modeļu testēšanas vide",

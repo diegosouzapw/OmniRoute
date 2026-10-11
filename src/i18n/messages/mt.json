@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Provider (l-kontijiet kollha jaqsmu breaker wieħed)",
     "resilienceTokenRefreshScopeConnection": "Konnessjoni (kull kont għandu l-breaker tiegħu)",
     "resilienceTokenRefreshThreshold": "Fallimenti qabel ma jieqaf",
-    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab"
+    "resilienceTokenRefreshCooldown": "Waqqaf wara li tinstab",
+    "compressionSettingsCavemanOutputMode": "Modalità tal-output tal-bniedem tal-għerien",
+    "compressionSettingsAutoClarityBypass": "Evitar awtomatiku abbażi taċ-ċarezza"
   },
   "contextRtk": {
     "title": "Magna RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Żomm il-prompt tas-sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Messaġġi iqsar minn dan ma jiġux ikkompressati. Inqas = aktar kompressjoni.",
     "tooltipMinSavings": "Ikkompressa biss jekk tiffranka mill-inqas dan l-għadd ta’ tokens.",
     "ultraSettings": "Konfigurazzjoni Ultra",
-    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM"
+    "ultraSettingsDesc": "Kompressjoni semantika mħaddma minn SLM",
+    "preview": {
+      "lite": "Wieġeb fil-qosor. Ippreserva t-termini tekniċi, il-kodiċi, l-iżbalji, il-URLs, u l-identifikaturi.",
+      "full": "Wieġeb b’mod konċiż u kompatt. Ippreserva s-sustanza teknika kollha.",
+      "ultra": "Wieġeb bl-aktar mod konċiż possibbli b’abbrevjazzjonijiet tekniċi komuni. Ippreserva s-simboli eżatti."
+    }
   },
   "translator": {
     "title": "Traduttur",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Irrisettjar tal-limitu ta' Claude",
+    "confirmRedeemClaudeResetCredit": "It-tifdija tirrisettja immedjatament il-limiti eliġibbli tal-użu ta' Claude u tikkonsma dan il-kreditu b'mod permanenti.",
+    "claudeResetCreditsModalTitle": "Krediti għall-irrisettjar ta' Claude",
+    "claudeResetCreditsModalExplainer": "Krediti disponibbli għall-irrisettjar ta' Claude u rrisettjar ta' sessjonijiet ta' kull ġimgħa għal dan il-kont."
   },
   "modals": {
     "waitingAuth": "Stennija għall-Awtorizzazzjoni",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Mhux imkejjel",
     "upstream4xx": "{count} għajn klijent erruri",
     "upstream5xx": "{count} għajnħa server errors",
-    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ"
+    "uniformEgressLine": "{affected} minn {exits} ħruġijiet ifallu flimkien fuq {provider} (l-aħħar {hours}h) — mhix problema tal-ħruġ",
+    "upstreamRefusals": "{count} rifjuti upstream"
   },
   "playground": {
     "title": "Żona tal-Ittestjar tal-Mudelli",

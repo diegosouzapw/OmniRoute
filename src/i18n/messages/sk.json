@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Poskytovateľ (všetky účty zdieľajú jeden istič)",
     "resilienceTokenRefreshScopeConnection": "Pripojenie (každý účet má vlastný vypínač)",
     "resilienceTokenRefreshThreshold": "Zlyhania pred pozastavením",
-    "resilienceTokenRefreshCooldown": "Pauza po spustení"
+    "resilienceTokenRefreshCooldown": "Pauza po spustení",
+    "compressionSettingsCavemanOutputMode": "Výstupný režim Caveman",
+    "compressionSettingsAutoClarityBypass": "Obtok automatického jasu"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Zachovať systémový prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Správy kratšie ako toto nie sú komprimované. Nižšia = väčšia kompresia.",
     "tooltipMinSavings": "Komprimujte iba vtedy, ak uložíte aspoň toľko tokenov.",
     "ultraSettings": "Ultra nastavenia",
-    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM"
+    "ultraSettingsDesc": "Sémantická kompresia poháňaná SLM",
+    "preview": {
+      "lite": "Odpovedaj stručne. Zachovaj technické termíny, kód, chyby, adresy URL a identifikátory.",
+      "full": "Odpovedaj úsečne a kompaktne. Zachovaj všetok technický obsah.",
+      "ultra": "Odpovedaj maximálne úsečne s použitím bežných technických skratiek. Zachovaj presné symboly."
+    }
   },
   "translator": {
     "title": "Prekladateľ",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Reset limitu Claude",
+    "confirmRedeemClaudeResetCredit": "Uplatnenie okamžite resetuje príslušné limity využitia Claude a natrvalo spotrebuje tento kredit.",
+    "claudeResetCreditsModalTitle": "Kredity na reset Claude",
+    "claudeResetCreditsModalExplainer": "Dostupné kredity na reset Claude a týždenné resety relácií pre tento účet."
   },
   "modals": {
     "waitingAuth": "Čaká sa na autorizáciu",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Nemerané",
     "upstream4xx": "{count} chyby klienta",
     "upstream5xx": "{count} chyby servera",
-    "uniformEgressLine": "{affected} z {exits} exitov zlyhávajú súčasne na {provider} (za posledných {hours} h) — nejde o problém exitu"
+    "uniformEgressLine": "{affected} z {exits} exitov zlyhávajú súčasne na {provider} (za posledných {hours} h) — nejde o problém exitu",
+    "upstreamRefusals": "{count} odmietnutí upstream"
   },
   "playground": {
     "title": "Title",

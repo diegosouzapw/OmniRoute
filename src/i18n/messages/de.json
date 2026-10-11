@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Anbieter (alle Konten teilen sich einen Unterbrecher)",
     "resilienceTokenRefreshScopeConnection": "Verbindung (jedes Konto hat eigenen Schutzschalter)",
     "resilienceTokenRefreshThreshold": "Fehler vor der Pause",
-    "resilienceTokenRefreshCooldown": "Pause nach Auslösung"
+    "resilienceTokenRefreshCooldown": "Pause nach Auslösung",
+    "compressionSettingsCavemanOutputMode": "Caveman-Ausgabemodus",
+    "compressionSettingsAutoClarityBypass": "Umgehung der automatischen Klarheit"
   },
   "contextRtk": {
     "title": "RTK-Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximale Tool-Ergebnis-Länge",
         "description": "Zeichenobergrenze für die vorausschauende Kürzung von Tool-Ergebnissen. Standard 2000. Überschreiben mit OMNIROUTE_LITE_MAX_TOOL_LENGTH, wenn das Feld leer ist."
+      },
+      "preserveSystemPrompt": {
+        "label": "System-Prompt beibehalten"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Nachrichten, die kürzer sind, werden nicht komprimiert. Niedriger = mehr Komprimierung.",
     "tooltipMinSavings": "Komprimieren Sie nur, wenn dadurch mindestens so viele Token eingespart werden.",
     "ultraSettings": "Ultra-Einstellungen",
-    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung"
+    "ultraSettingsDesc": "SLM-gestützte semantische Komprimierung",
+    "preview": {
+      "lite": "Antworte prägnant. Behalte technische Begriffe, Code, Fehler, URLs und Bezeichner bei.",
+      "full": "Antworte knapp und kompakt. Behalte alle technischen Inhalte bei.",
+      "ultra": "Antworte extrem knapp und verwende gängige technische Abkürzungen. Behalte alle Symbole exakt bei."
+    }
   },
   "translator": {
     "title": "Übersetzer",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Kostenpflichtige Codex-Credits",
     "codexPaidCreditsAvailable": "Verfügbar (Guthaben nicht gemeldet)",
     "codexPaidCreditsUnavailable": "Nicht verfügbar oder Ausgabenlimit erreicht",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude-Limit-Reset",
+    "confirmRedeemClaudeResetCredit": "Das Einlösen setzt die berechtigten Claude-Nutzungslimits sofort zurück und verbraucht dieses Guthaben dauerhaft.",
+    "claudeResetCreditsModalTitle": "Claude-Reset-Guthaben",
+    "claudeResetCreditsModalExplainer": "Verfügbares Claude-Reset-Guthaben und wöchentliche Sitzungs-Resets für dieses Konto."
   },
   "modals": {
     "waitingAuth": "Warten auf Autorisierung",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Nicht gemessen",
     "upstream4xx": "{count} Upstream-Client-Fehler",
     "upstream5xx": "{count} Upstream-Server-Fehler",
-    "uniformEgressLine": "{affected} von {exits} Ausgängen fallen gemeinsam auf {provider} aus (letzte {hours}h) — kein Ausgangsproblem"
+    "uniformEgressLine": "{affected} von {exits} Ausgängen fallen gemeinsam auf {provider} aus (letzte {hours}h) — kein Ausgangsproblem",
+    "upstreamRefusals": "{count} Upstream-Ablehnungen"
   },
   "playground": {
     "title": "Title",

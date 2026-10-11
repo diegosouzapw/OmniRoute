@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Leverantör (alla konton delar en enda strömbrytare)",
     "resilienceTokenRefreshScopeConnection": "Anslutning (varje konto har egen strömbrytare)",
     "resilienceTokenRefreshThreshold": "Misslyckanden innan paus",
-    "resilienceTokenRefreshCooldown": "Paus efter utlösnings"
+    "resilienceTokenRefreshCooldown": "Paus efter utlösnings",
+    "compressionSettingsCavemanOutputMode": "Grottmansutgångsläge",
+    "compressionSettingsAutoClarityBypass": "Automatisk förbikoppling av klarhet"
   },
   "contextRtk": {
     "title": "RTK-motor",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Bevara systemprompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Meddelanden kortare än detta komprimeras inte. Lägre = mer kompression.",
     "tooltipMinSavings": "Komprimera bara om det sparar åtminstone så många tokens.",
     "ultraSettings": "Ultrainställningar",
-    "ultraSettingsDesc": "SLM-driven semantisk komprimering"
+    "ultraSettingsDesc": "SLM-driven semantisk komprimering",
+    "preview": {
+      "lite": "Svara kortfattat. Bevara tekniska termer, kod, fel, URL:er och identifierare.",
+      "full": "Svara koncist och kompakt. Bevara allt tekniskt innehåll.",
+      "ultra": "Svara extremt kortfattat med vanliga tekniska förkortningar. Bevara exakta symboler."
+    }
   },
   "translator": {
     "title": "Översättare",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Återställning av Claude-gräns",
+    "confirmRedeemClaudeResetCredit": "Inlösen återställer omedelbart de berättigade Claude-användningsgränserna och förbrukar denna kredit permanent.",
+    "claudeResetCreditsModalTitle": "Claude-återställningskrediter",
+    "claudeResetCreditsModalExplainer": "Tillgängliga Claude-återställningskrediter och veckovisa sessionsåterställningar för detta konto."
   },
   "modals": {
     "waitingAuth": "Väntar på auktorisering",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Inte mätt",
     "upstream4xx": "{count} uppströms klientfel",
     "upstream5xx": "{count} uppströms serverfel",
-    "uniformEgressLine": "{affected} av {exits} utgångar fallerar samtidigt hos {provider} (senaste {hours}h) — inte ett utgångsproblem"
+    "uniformEgressLine": "{affected} av {exits} utgångar fallerar samtidigt hos {provider} (senaste {hours}h) — inte ett utgångsproblem",
+    "upstreamRefusals": "{count} upstream-avvisningar"
   },
   "playground": {
     "title": "Title",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Penyedia (semua akaun berkongsi satu pemutus)",
     "resilienceTokenRefreshScopeConnection": "Sambungan (setiap akaun mempunyai pemutus litar sendiri)",
     "resilienceTokenRefreshThreshold": "Kegagalan sebelum menjeda",
-    "resilienceTokenRefreshCooldown": "Jeda selepas terpicu"
+    "resilienceTokenRefreshCooldown": "Jeda selepas terpicu",
+    "compressionSettingsCavemanOutputMode": "Mod keluaran manusia gua",
+    "compressionSettingsAutoClarityBypass": "Pintasan kejelasan automatik"
   },
   "contextRtk": {
     "title": "Enjin RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Kekalkan gesaan sistem"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Mesej yang lebih pendek daripada ini tidak dimampatkan. Rendah = lebih mampatan.",
     "tooltipMinSavings": "Hanya mampatkan jika ia menjimatkan sekurang-kurangnya token sebanyak ini.",
     "ultraSettings": "Tetapan Ultra",
-    "ultraSettingsDesc": "Pemampatan semantik berkuasa SLM"
+    "ultraSettingsDesc": "Pemampatan semantik berkuasa SLM",
+    "preview": {
+      "lite": "Berikan respons ringkas. Kekalkan istilah teknikal, kod, ralat, URL dan pengecam.",
+      "full": "Berikan respons padat dan ringkas. Kekalkan semua kandungan teknikal.",
+      "ultra": "Berikan respons amat ringkas dengan singkatan teknikal lazim. Kekalkan simbol yang tepat."
+    }
   },
   "translator": {
     "title": "Penterjemah",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Tetapan semula had Claude",
+    "confirmRedeemClaudeResetCredit": "Penebusan akan menetapkan semula had penggunaan Claude yang layak dengan serta-merta dan menggunakan kredit ini secara kekal.",
+    "claudeResetCreditsModalTitle": "Kredit tetapan semula Claude",
+    "claudeResetCreditsModalExplainer": "Kredit tetapan semula Claude yang tersedia dan tetapan semula sesi mingguan untuk akaun ini."
   },
   "modals": {
     "waitingAuth": "Menunggu Keizinan",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Belum diukur",
     "upstream4xx": "{count} kesalahan klien atas aliran",
     "upstream5xx": "{count} kesalahan pelayan atas aliran",
-    "uniformEgressLine": "{affected} daripada {exits} exit gagal serentak pada {provider} ({hours}j terakhir) — bukan masalah exit"
+    "uniformEgressLine": "{affected} daripada {exits} exit gagal serentak pada {provider} ({hours}j terakhir) — bukan masalah exit",
+    "upstreamRefusals": "{count} penolakan huluan"
   },
   "playground": {
     "title": "Title",

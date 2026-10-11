@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Mai bayarwa (duk asusuna raba ɗaya mai katsewa)",
     "resilienceTokenRefreshScopeConnection": "Muhuji (kowane asusu na da na'sa na musu)",
     "resilienceTokenRefreshThreshold": "Kuskuren kafin tsayawa",
-    "resilienceTokenRefreshCooldown": "Huta bayan kuskuro"
+    "resilienceTokenRefreshCooldown": "Huta bayan kuskuro",
+    "compressionSettingsCavemanOutputMode": "Yanayin fitowar Caveman",
+    "compressionSettingsAutoClarityBypass": "Tsallake fayyacewa ta atomatik"
   },
   "contextRtk": {
     "title": "Injin RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Kiyaye umarnin tsarin"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Ba a matse saƙonnin da suka fi wannan gajarta. Ƙasa = ƙarin matsewa.",
     "tooltipMinSavings": "A matse kawai idan zai adana aƙalla wannan adadin token.",
     "ultraSettings": "Saitunan Ultra",
-    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM"
+    "ultraSettingsDesc": "Matsewar ma'ana mai amfani da SLM",
+    "preview": {
+      "lite": "Ba da amsa a taƙaice. Kiyaye kalmomin fasaha, code, kurakurai, URLs, da alamomin ganewa.",
+      "full": "Ba da amsa a taƙaice kuma a dunƙule. Kiyaye dukkan muhimman bayanan fasaha.",
+      "ultra": "Ba da amsa mai matuƙar taƙaitawa tare da gajerun kalmomin fasaha da aka saba amfani da su. Kiyaye ainihin alamomi."
+    }
   },
   "translator": {
     "title": "Mai Fassara",
@@ -10126,7 +10136,11 @@
     "updatedShort": "An sabunta",
     "lastRefreshed": "Sabuntawa ta ƙarshe",
     "providerQuota": "Ƙayyadadden kason mai bayarwa",
-    "providerQuotaHomeHint": "Matsayi na ainihin lokaci a duk asusun da aka haɗa"
+    "providerQuotaHomeHint": "Matsayi na ainihin lokaci a duk asusun da aka haɗa",
+    "claudeResetCreditDefaultTitle": "Sake saitin iyakar Claude",
+    "confirmRedeemClaudeResetCredit": "Karɓa nan take yana sake saita iyakokin amfani da Claude da suka cancanta kuma yana cinye wannan kiredit ɗin dindindin.",
+    "claudeResetCreditsModalTitle": "Kiredit ɗin sake saitin Claude",
+    "claudeResetCreditsModalExplainer": "Kiredit ɗin sake saitin Claude da sake saitin zama na mako-mako da ke akwai don wannan asusun."
   },
   "modals": {
     "waitingAuth": "Ana Jiran Izini",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Ba a auna ba",
     "upstream4xx": "{count} kudin kudin kliyenti",
     "upstream5xx": "{count} kudin kudin siriya",
-    "uniformEgressLine": "{affected} da {exits} exits sakawa suna na {provider} (suna {hours} saa) — suna sakawa"
+    "uniformEgressLine": "{affected} da {exits} exits sakawa suna na {provider} (suna {hours} saa) — suna sakawa",
+    "upstreamRefusals": "{count} kin amincewa daga sama"
   },
   "playground": {
     "title": "Filin Gwajin Model",

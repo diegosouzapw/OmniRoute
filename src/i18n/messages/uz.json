@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Taʼminotchi (barcha hisoblar bitta kesgichni ulashadi)",
     "resilienceTokenRefreshScopeConnection": "Ulanish (har bir hisobning o'z uzgichi bor)",
     "resilienceTokenRefreshThreshold": "To'xtatishdan oldingi xatolar",
-    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza"
+    "resilienceTokenRefreshCooldown": "Ishga tushgach pauza",
+    "compressionSettingsCavemanOutputMode": "Caveman chiqish rejimi",
+    "compressionSettingsAutoClarityBypass": "Aniqlikni avtomatik chetlab o‘tish"
   },
   "contextRtk": {
     "title": "RTK mexanizmi",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Tizim ko‘rsatmasini saqlash"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Bundan qisqa xabarlar siqilmaydi. Pastroq = ko‘proq siqish.",
     "tooltipMinSavings": "Faqat kamida shuncha token tejalsa, siqiladi.",
     "ultraSettings": "Ultra sozlamalar",
-    "ultraSettingsDesc": "SLM asosidagi semantik siqish"
+    "ultraSettingsDesc": "SLM asosidagi semantik siqish",
+    "preview": {
+      "lite": "Qisqa javob bering. Texnik atamalar, kod, xatolar, URL manzillar va identifikatorlarni saqlang.",
+      "full": "Juda qisqa va ixcham javob bering. Barcha texnik mazmunni saqlang.",
+      "ultra": "Keng tarqalgan texnik qisqartmalardan foydalanib, o‘ta qisqa javob bering. Belgilarni aynan saqlang."
+    }
   },
   "translator": {
     "title": "Tarjimon",
@@ -10126,7 +10136,11 @@
     "updatedShort": "Yangilangan",
     "lastRefreshed": "Oxirgi yangilanish",
     "providerQuota": "Provayder kvotasi",
-    "providerQuotaHomeHint": "Ulangan hisoblar bo‘yicha joriy holat"
+    "providerQuotaHomeHint": "Ulangan hisoblar bo‘yicha joriy holat",
+    "claudeResetCreditDefaultTitle": "Claude limitini tiklash",
+    "confirmRedeemClaudeResetCredit": "Faollashtirish mos keluvchi Claude foydalanish limitlarini darhol tiklaydi va ushbu kreditni butunlay sarflaydi.",
+    "claudeResetCreditsModalTitle": "Claude tiklash kreditlari",
+    "claudeResetCreditsModalExplainer": "Ushbu hisob uchun mavjud Claude tiklash kreditlari va haftalik sessiya tiklashlari."
   },
   "modals": {
     "waitingAuth": "Avtorizatsiya kutilmoqda",
@@ -11438,7 +11452,8 @@
     "notMeasured": "O‘lchanmagan",
     "upstream4xx": "{count} murojaat tashqarisidagi xatolar",
     "upstream5xx": "{count} server tashqarisidagi xatolar",
-    "uniformEgressLine": "{provider} da {exits} ta chiqishdan {affected} tasi birga ishlamayapti (soʻnggi {hours} soat) — chiqish muammosi emas"
+    "uniformEgressLine": "{provider} da {exits} ta chiqishdan {affected} tasi birga ishlamayapti (soʻnggi {hours} soat) — chiqish muammosi emas",
+    "upstreamRefusals": "{count} ta yuqori rad etish"
   },
   "playground": {
     "title": "Model sinov maydoni",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Πάροχος (όλοι οι λογαριασμοί μοιράζονται έναν διακόπτη)",
     "resilienceTokenRefreshScopeConnection": "Σύνδεση (κάθε λογαριασμός έχει τον δικό του διακόπτη)",
     "resilienceTokenRefreshThreshold": "Αποτυχίες πριν από την παύση",
-    "resilienceTokenRefreshCooldown": "Παύση μετά την ενεργοποίηση"
+    "resilienceTokenRefreshCooldown": "Παύση μετά την ενεργοποίηση",
+    "compressionSettingsCavemanOutputMode": "Λειτουργία εξόδου Caveman",
+    "compressionSettingsAutoClarityBypass": "Αυτόματη παράκαμψη σαφήνειας"
   },
   "contextRtk": {
     "title": "Μηχανή RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Διατήρηση του system prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Τα μηνύματα που είναι μικρότερα από αυτό το μήκος δεν συμπιέζονται. Χαμηλότερο = περισσότερη συμπίεση.",
     "tooltipMinSavings": "Συμπίεση μόνο αν εξοικονομείται τουλάχιστον αυτός ο αριθμός tokens.",
     "ultraSettings": "Ultra ρυθμίσεις",
-    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM"
+    "ultraSettingsDesc": "Σημασιολογική συμπίεση με τεχνολογία SLM",
+    "preview": {
+      "lite": "Απαντήστε συνοπτικά. Διατηρήστε τεχνικούς όρους, κώδικα, σφάλματα, URLs και αναγνωριστικά.",
+      "full": "Απαντήστε σύντομα και περιεκτικά. Διατηρήστε ακέραιο όλο το τεχνικό περιεχόμενο.",
+      "ultra": "Απαντήστε εξαιρετικά συνοπτικά με κοινές τεχνικές συντομογραφίες. Διατηρήστε τα ακριβή σύμβολα."
+    }
   },
   "translator": {
     "title": "Μεταφραστής",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Επαναφορά ορίων Claude",
+    "confirmRedeemClaudeResetCredit": "Η εξαργύρωση επαναφέρει άμεσα τα επιλέξιμα όρια χρήσης Claude και καταναλώνει οριστικά αυτήν την πίστωση.",
+    "claudeResetCreditsModalTitle": "Πιστώσεις επαναφοράς Claude",
+    "claudeResetCreditsModalExplainer": "Διαθέσιμες πιστώσεις επαναφοράς Claude και εβδομαδιαίες επαναφορές συνεδριών για αυτόν τον λογαριασμό."
   },
   "modals": {
     "waitingAuth": "Αναμονή εξουσιοδότησης",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Δεν μετρήθηκε",
     "upstream4xx": "{count} σφάλματα πελάτη πάνω από",
     "upstream5xx": "{count} σφάλματα διακομιστή πάνω από",
-    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου"
+    "uniformEgressLine": "{affected} από {exits} εξόδους αποτυγχάνουν μαζί στο {provider} (τις τελευταίες {hours} ώρες) — όχι πρόβλημα εξόδου",
+    "upstreamRefusals": "{count} απορρίψεις upstream"
   },
   "playground": {
     "title": "Περιβάλλον δοκιμών μοντέλων",

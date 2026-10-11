@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Доставчик (всички акаунти споделят един прекъсвач)",
     "resilienceTokenRefreshScopeConnection": "Връзка (всеки акаунт има собствен прекъсвач)",
     "resilienceTokenRefreshThreshold": "Неуспехи преди пауза",
-    "resilienceTokenRefreshCooldown": "Пауза след задействане"
+    "resilienceTokenRefreshCooldown": "Пауза след задействане",
+    "compressionSettingsCavemanOutputMode": "Режим на изход Caveman",
+    "compressionSettingsAutoClarityBypass": "Автоматично заобикаляне на яснотата"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Запазване на системната подкана"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Съобщенията, по-кратки от това, не се компресират. По-ниска = повече компресия.",
     "tooltipMinSavings": "Компресирайте само ако спестява поне толкова токени.",
     "ultraSettings": "Ултра настройки",
-    "ultraSettingsDesc": "Захранвана от SLM семантична компресия"
+    "ultraSettingsDesc": "Захранвана от SLM семантична компресия",
+    "preview": {
+      "lite": "Отговаряй кратко. Запазвай техническите термини, кода, грешките, URL адресите и идентификаторите.",
+      "full": "Отговаряй лаконично и стегнато. Запазвай цялото техническо съдържание.",
+      "ultra": "Отговаряй свръхлаконично с общоприети технически съкращения. Запазвай точните символи."
+    }
   },
   "translator": {
     "title": "Преводач",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Нулиране на лимита на Claude",
+    "confirmRedeemClaudeResetCredit": "Активирането незабавно нулира отговарящите на условията лимити за използване на Claude и окончателно изразходва този кредит.",
+    "claudeResetCreditsModalTitle": "Кредити за нулиране на Claude",
+    "claudeResetCreditsModalExplainer": "Налични кредити за нулиране на Claude и седмични нулирания на сесиите за този акаунт."
   },
   "modals": {
     "waitingAuth": "Изчакване на разрешение",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Не е измерено",
     "upstream4xx": "{count} грешки от клиентски заявки",
     "upstream5xx": "{count} грешки от горния сървър",
-    "uniformEgressLine": "{affected} от {exits} изхода не успяват заедно на {provider} (последните {hours}ч) — не е проблем с изхода"
+    "uniformEgressLine": "{affected} от {exits} изхода не успяват заедно на {provider} (последните {hours}ч) — не е проблем с изхода",
+    "upstreamRefusals": "{count} отказа от upstream"
   },
   "playground": {
     "title": "Title",

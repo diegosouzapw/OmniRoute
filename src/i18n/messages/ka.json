@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "პროვაიდერი (ყველა ანგარიში იყენებს ერთ გამთიშელს)",
     "resilienceTokenRefreshScopeConnection": "კავშირი (თითოეულ ანგარიშს აქვს საკუთარი გამთიშელი)",
     "resilienceTokenRefreshThreshold": "შეჩერებამდე დაშვებული მარცხების რაოდენობა",
-    "resilienceTokenRefreshCooldown": "შეჩერება გამორთვის შემდეგ"
+    "resilienceTokenRefreshCooldown": "შეჩერება გამორთვის შემდეგ",
+    "compressionSettingsCavemanOutputMode": "Caveman-ის გამოტანის რეჟიმი",
+    "compressionSettingsAutoClarityBypass": "სიცხადის ავტომატური გამოტოვება"
   },
   "contextRtk": {
     "title": "RTK ძრავა",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "სისტემური მითითების შენარჩუნება"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ამაზე მოკლე შეტყობინებები არ იკუმშება. ნაკლები = მეტი შეკუმშვა.",
     "tooltipMinSavings": "შეკუმშვა მხოლოდ იმ შემთხვევაში, თუ მინიმუმ ამდენ ტოკენს დაზოგავს.",
     "ultraSettings": "ულტრა პარამეტრები",
-    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა"
+    "ultraSettingsDesc": "SLM-ზე დაფუძნებული სემანტიკური შეკუმშვა",
+    "preview": {
+      "lite": "უპასუხეთ მოკლედ. უცვლელად შეინარჩუნეთ ტექნიკური ტერმინები, კოდი, შეცდომები, URLs და იდენტიფიკატორები.",
+      "full": "უპასუხეთ ლაკონიურად და კომპაქტურად. შეინარჩუნეთ სრული ტექნიკური შინაარსი.",
+      "ultra": "უპასუხეთ უკიდურესად ლაკონიურად, გავრცელებული ტექნიკური აბრევიატურებით. ზუსტი სიმბოლოები უცვლელად შეინარჩუნეთ."
+    }
   },
   "translator": {
     "title": "მთარგმნელი",
@@ -10126,7 +10136,11 @@
     "updatedShort": "განახლებულია",
     "lastRefreshed": "ბოლო განახლება",
     "providerQuota": "პროვაიდერის კვოტა",
-    "providerQuotaHomeHint": "დაკავშირებული ანგარიშების მიმდინარე სტატუსი"
+    "providerQuotaHomeHint": "დაკავშირებული ანგარიშების მიმდინარე სტატუსი",
+    "claudeResetCreditDefaultTitle": "Claude-ის ლიმიტის განულება",
+    "confirmRedeemClaudeResetCredit": "გააქტიურება დაუყოვნებლივ ანულებს Claude-ის გამოყენების შესაბამის ლიმიტებს და სამუდამოდ ხარჯავს ამ კრედიტს.",
+    "claudeResetCreditsModalTitle": "Claude-ის განულების კრედიტები",
+    "claudeResetCreditsModalExplainer": "Claude-ის განულების ხელმისაწვდომი კრედიტები და სესიის ყოველკვირეული განულებები ამ ანგარიშისთვის."
   },
   "modals": {
     "waitingAuth": "ავტორიზაციის მოლოდინი",
@@ -11438,7 +11452,8 @@
     "notMeasured": "არ არის გაზომილი",
     "upstream4xx": "{count} ზედა კლიენტის შეცდომები",
     "upstream5xx": "{count} ზემოდან მომავალი სერვერის შეცდომები",
-    "uniformEgressLine": "{affected} {exits} ეგზიტიდან {provider}-ზე ერთად ვარდება (ბოლო {hours}სთ) — ეს ეგზიტის პრობლემა არ არის"
+    "uniformEgressLine": "{affected} {exits} ეგზიტიდან {provider}-ზე ერთად ვარდება (ბოლო {hours}სთ) — ეს ეგზიტის პრობლემა არ არის",
+    "upstreamRefusals": "{count} upstream უარყოფა"
   },
   "playground": {
     "title": "მოდელების სატესტო გარემო",

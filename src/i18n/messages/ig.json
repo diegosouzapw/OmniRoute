@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Onye nnye (akkaunt niile dabere na otu breaker)",
     "resilienceTokenRefreshScopeConnection": "Njikọ (ọ bụrụ na ngwaọrụ ọ bụla nwere ya nke ya)",
     "resilienceTokenRefreshThreshold": "Njefọ n'ihu ka a ga-egbu oge",
-    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere"
+    "resilienceTokenRefreshCooldown": "Egwu mgbe e tinyere",
+    "compressionSettingsCavemanOutputMode": "Ụdị mmepụta onye ọgba",
+    "compressionSettingsAutoClarityBypass": "Ngafe idoanya akpaka"
   },
   "contextRtk": {
     "title": "Injin RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Chekwaa system prompt"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "A naghị eme mkpakọ n’ozi ndị dị mkpụmkpụ karịa nke a. Nke dị ala = mkpakọ karịa.",
     "tooltipMinSavings": "Mee mkpakọ naanị ma ọ bụrụ na ọ na-echekwa opekata mpe token ole a.",
     "ultraSettings": "Ntọala Ultra",
-    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado"
+    "ultraSettingsDesc": "Mkpakọ semantiki nke SLM na-akwado",
+    "preview": {
+      "lite": "Zaa nkenke. Debe okwu teknụzụ, code, njehie, URLs, na ihe njirimara.",
+      "full": "Zaa nkenke ma dị mkpụmkpụ. Debe ọdịnaya teknụzụ niile.",
+      "ultra": "Zaa n’ụzọ dị nnọọ nkenke site na iji ndebiri teknụzụ ndị a na-ahụkarị. Debe akara niile otu ha dị."
+    }
   },
   "translator": {
     "title": "Onye Ntụgharị",
@@ -10126,7 +10136,11 @@
     "updatedShort": "Emelitere",
     "lastRefreshed": "Oge ikpeazụ emere ka ọ dị ọhụrụ",
     "providerQuota": "Oke ojiji onye na-eweta ọrụ",
-    "providerQuotaHomeHint": "Ọnọdụ ozugbo n'ofe akaụntụ ejikọrọ"
+    "providerQuotaHomeHint": "Ọnọdụ ozugbo n'ofe akaụntụ ejikọrọ",
+    "claudeResetCreditDefaultTitle": "Ntọgharị oke Claude",
+    "confirmRedeemClaudeResetCredit": "Ịgbapụta na-atọgharị oke ojiji Claude ruru eru ozugbo ma na-emefu kredit a kpamkpam.",
+    "claudeResetCreditsModalTitle": "Kredit ntọgharị Claude",
+    "claudeResetCreditsModalExplainer": "Kredit ntọgharị Claude dịnụ na ntọgharị nnọkọ nke izu ụka maka akaụntụ a."
   },
   "modals": {
     "waitingAuth": "Na-eche maka ikike",
@@ -11438,7 +11452,8 @@
     "notMeasured": "A tụghị",
     "upstream4xx": "{count} njehie onye ahịa n'elu",
     "upstream5xx": "{count} njehie sava n'elu",
-    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ"
+    "uniformEgressLine": "{affected} n'ime {exits} ụzọ ọpụpụ na-ada ọnụ na {provider} (n'ime {hours}h gara aga) — ọ bụghị nsogbu ụzọ ọpụpụ",
+    "upstreamRefusals": "{count} ọjụjụ upstream"
   },
   "playground": {
     "title": "Ebe Nnwale Model",

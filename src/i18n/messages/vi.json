@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Nhà cung cấp (tất cả tài khoản dùng chung một cầu chì)",
     "resilienceTokenRefreshScopeConnection": "Kết nối (mỗi tài khoản có cầu chì riêng)",
     "resilienceTokenRefreshThreshold": "Lỗi trước khi tạm dừng",
-    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt"
+    "resilienceTokenRefreshCooldown": "Tạm dừng sau khi kích hoạt",
+    "compressionSettingsCavemanOutputMode": "Chế độ đầu ra Caveman",
+    "compressionSettingsAutoClarityBypass": "Bỏ qua tính năng tự động làm rõ"
   },
   "contextRtk": {
     "title": "Công cụ RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Giữ nguyên prompt hệ thống"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Tin nhắn ngắn hơn mức này sẽ không được nén. Thấp hơn = nén nhiều hơn.",
     "tooltipMinSavings": "Chỉ nén nếu tiết kiệm được ít nhất ngần này token.",
     "ultraSettings": "Cài đặt tối đa",
-    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM"
+    "ultraSettingsDesc": "Nén ngữ nghĩa sử dụng SLM",
+    "preview": {
+      "lite": "Phản hồi ngắn gọn. Giữ nguyên thuật ngữ kỹ thuật, mã, lỗi, URL và mã định danh.",
+      "full": "Phản hồi cực ngắn và gọn. Giữ nguyên toàn bộ nội dung kỹ thuật.",
+      "ultra": "Phản hồi siêu ngắn gọn với các từ viết tắt kỹ thuật phổ biến. Giữ nguyên các ký hiệu chính xác."
+    }
   },
   "translator": {
     "title": "Trình dịch",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Tín dụng trả phí Codex",
     "codexPaidCreditsAvailable": "Khả dụng (không báo cáo số dư)",
     "codexPaidCreditsUnavailable": "Không khả dụng hoặc đã đạt giới hạn chi tiêu",
-    "codexPaidCreditsUnlimited": "Không giới hạn"
+    "codexPaidCreditsUnlimited": "Không giới hạn",
+    "claudeResetCreditDefaultTitle": "Đặt lại giới hạn Claude",
+    "confirmRedeemClaudeResetCredit": "Việc quy đổi sẽ ngay lập tức đặt lại các giới hạn sử dụng Claude đủ điều kiện và tiêu hao vĩnh viễn khoản tín dụng này.",
+    "claudeResetCreditsModalTitle": "Tín dụng đặt lại Claude",
+    "claudeResetCreditsModalExplainer": "Tín dụng đặt lại Claude khả dụng và lượt đặt lại phiên hàng tuần cho tài khoản này."
   },
   "modals": {
     "waitingAuth": "Đang chờ ủy quyền",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Chưa đo",
     "upstream4xx": "{count} lỗi phía client",
     "upstream5xx": "{count} lỗi máy chủ",
-    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit"
+    "uniformEgressLine": "{affected} trên {exits} exit cùng lỗi trên {provider} (trong {hours} giờ qua) — không phải vấn đề exit",
+    "upstreamRefusals": "{count} từ chối từ máy chủ"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",

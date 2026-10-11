@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Fornecedor (todas as contas partilham um único disjuntor)",
     "resilienceTokenRefreshScopeConnection": "Ligação (cada conta tem o seu próprio disjuntor)",
     "resilienceTokenRefreshThreshold": "Falhas antes de pausar",
-    "resilienceTokenRefreshCooldown": "Pausa após ativação"
+    "resilienceTokenRefreshCooldown": "Pausa após ativação",
+    "compressionSettingsCavemanOutputMode": "Modo de saída do homem das cavernas",
+    "compressionSettingsAutoClarityBypass": "Desvio de clareza automática"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Comprimento máximo do resultado da ferramenta",
         "description": "Limite de caracteres para o recorte proativo. Padrão 2000. Substitua com OMNIROUTE_LITE_MAX_TOOL_LENGTH se o campo estiver vazio."
+      },
+      "preserveSystemPrompt": {
+        "label": "Preservar prompt do sistema"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Mensagens menores que isso não são compactadas. Menor = mais compressão.",
     "tooltipMinSavings": "Compacte apenas se salvar pelo menos esse número de tokens.",
     "ultraSettings": "Configurações Ultra",
-    "ultraSettingsDesc": "Compressão semântica alimentada por SLM"
+    "ultraSettingsDesc": "Compressão semântica alimentada por SLM",
+    "preview": {
+      "lite": "Responde de forma concisa. Preserva termos técnicos, código, erros, URLs e identificadores.",
+      "full": "Responde de forma curta e compacta. Preserva toda a substância técnica.",
+      "ultra": "Responde de forma ultra curta com abreviaturas técnicas comuns. Preserva símbolos exatos."
+    }
   },
   "translator": {
     "title": "Tradutor",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Créditos pagos do Codex",
     "codexPaidCreditsAvailable": "Disponíveis (saldo não indicado)",
     "codexPaidCreditsUnavailable": "Indisponíveis ou limite de gastos atingido",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Reposição do limite do Claude",
+    "confirmRedeemClaudeResetCredit": "O resgate repõe imediatamente os limites de utilização elegíveis do Claude e consome permanentemente este crédito.",
+    "claudeResetCreditsModalTitle": "Créditos de reposição do Claude",
+    "claudeResetCreditsModalExplainer": "Créditos de reposição do Claude disponíveis e reposições semanais de sessão para esta conta."
   },
   "modals": {
     "waitingAuth": "Aguardando autorização",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Não medido",
     "upstream4xx": "{count} erros de cliente upstream",
     "upstream5xx": "{count} erros de servidor upstream",
-    "uniformEgressLine": "{affected} de {exits} saídas falham em conjunto em {provider} (últimas {hours}h) — não é um problema de saída"
+    "uniformEgressLine": "{affected} de {exits} saídas falham em conjunto em {provider} (últimas {hours}h) — não é um problema de saída",
+    "upstreamRefusals": "{count} recusas upstream"
   },
   "playground": {
     "title": "Title",

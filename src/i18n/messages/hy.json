@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Մատակարար (բոլոր հաշիվները կիսում են մեկ ընդհատիչ)",
     "resilienceTokenRefreshScopeConnection": "Կապ (յուրաքանչյուր հաշիվ ունի իր ընդհատիչը)",
     "resilienceTokenRefreshThreshold": "Հաջողությունից առաջ կանգնեցնելու համար պարտություններ",
-    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո"
+    "resilienceTokenRefreshCooldown": "Կանգ առնել անջատվելուց հետո",
+    "compressionSettingsCavemanOutputMode": "Քարանձավային ոճի ելքային ռեժիմ",
+    "compressionSettingsAutoClarityBypass": "Հստակության ավտոմատ շրջանցում"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "Պահպանել համակարգային հուշումը"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Սրանից կարճ հաղորդագրությունները չեն սեղմվում։ Ավելի ցածր = ավելի շատ սեղմում։",
     "tooltipMinSavings": "Սեղմել միայն այն դեպքում, եթե խնայվում է առնվազն այսքան տոկեն։",
     "ultraSettings": "Ultra կարգավորումներ",
-    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում"
+    "ultraSettingsDesc": "SLM-ով աշխատող իմաստային սեղմում",
+    "preview": {
+      "lite": "Պատասխանեք հակիրճ։ Պահպանեք տեխնիկական եզրույթները, կոդը, սխալները, URL-ները և նույնացուցիչները։",
+      "full": "Պատասխանել շատ հակիրճ և սեղմ։ Պահպանել ամբողջ տեխնիկական բովանդակությունը։",
+      "ultra": "Պատասխանել ծայրահեղ հակիրճ՝ օգտագործելով տարածված տեխնիկական հապավումներ։ Պահպանել ճշգրիտ նշանները։"
+    }
   },
   "translator": {
     "title": "Թարգմանիչ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "Թարմացվել է",
     "lastRefreshed": "Վերջին թարմացումը",
     "providerQuota": "Մատակարարի քվոտա",
-    "providerQuotaHomeHint": "Միացված հաշիվների ընթացիկ կարգավիճակը"
+    "providerQuotaHomeHint": "Միացված հաշիվների ընթացիկ կարգավիճակը",
+    "claudeResetCreditDefaultTitle": "Claude սահմանաչափի զրոյացում",
+    "confirmRedeemClaudeResetCredit": "Ակտիվացումն անմիջապես զրոյացնում է Claude-ի օգտագործման համապատասխան սահմանաչափերը և անվերադարձ սպառում է այս կրեդիտը:",
+    "claudeResetCreditsModalTitle": "Claude զրոյացման կրեդիտներ",
+    "claudeResetCreditsModalExplainer": "Այս հաշվի համար հասանելի Claude զրոյացման կրեդիտներ և շաբաթական սեանսների զրոյացումներ:"
   },
   "modals": {
     "waitingAuth": "Սպասում է լիազորմանը",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Չի չափվել",
     "upstream4xx": "{count} վերահոսքային հաճախորդի սխալներ",
     "upstream5xx": "{count} վերահոսքային սերվերի սխալներ",
-    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ"
+    "uniformEgressLine": "{affected}-ը {exits} ելքերից միասին ձախողվում են {provider}-ում (վերջին {hours}ժ) — ելքի խնդիր չէ",
+    "upstreamRefusals": "{count} upstream մերժում"
   },
   "playground": {
     "title": "Մոդելների փորձարկման հարթակ",

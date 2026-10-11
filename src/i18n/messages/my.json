@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ပေးသွင်းသူ (အကောင့်အားလုံးသည် တစ်ခုတည်းသော ပြတ်တောက်စက်ကို မျှဝေသည်)",
     "resilienceTokenRefreshScopeConnection": "ချိတ်ဆက်မှု (အကောင့်တိုင်းတွင် ၎င်း၏ breaker ရှိသည်)",
     "resilienceTokenRefreshThreshold": "ရပ်တန့်မှုမပြုမီ မအောင်မြင်မှုများ",
-    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ"
+    "resilienceTokenRefreshCooldown": "ချောင်းဆိုးပြီးနောက် အနားယူပါ",
+    "compressionSettingsCavemanOutputMode": "Caveman အထွက်မုဒ်",
+    "compressionSettingsAutoClarityBypass": "အလိုအလျောက် ရှင်းလင်းမှု ကျော်လွှားခြင်း"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "စနစ်ညွှန်ကြားချက်ကို ထိန်းသိမ်းပါ"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ဤအရွယ်အစားထက်တိုသော မက်ဆေ့ချ်များကို မချုံ့ပါ။ နိမ့်လေလေ = ပိုမိုချုံ့လေလေ။",
     "tooltipMinSavings": "အနည်းဆုံး ဤမျှသော token အရေအတွက်ကို ချွေတာနိုင်မှသာ ချုံ့ပါ။",
     "ultraSettings": "အလွန်ပြင်းထန်သော ဆက်တင်များ",
-    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း"
+    "ultraSettingsDesc": "SLM ဖြင့် လုပ်ဆောင်သော အဓိပ္ပာယ်အခြေပြု ချုံ့ခြင်း",
+    "preview": {
+      "lite": "တိုတိုတုတ်တုတ် တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ ဝေါဟာရများ၊ code၊ error များ၊ URLs နှင့် identifiers များကို မပြောင်းလဲဘဲ ထိန်းသိမ်းပါ။",
+      "full": "အလွန်တိုတောင်းကျစ်လျစ်စွာ တုံ့ပြန်ပါ။ နည်းပညာဆိုင်ရာ အကြောင်းအရာအားလုံးကို ထိန်းသိမ်းပါ။",
+      "ultra": "အသုံးများသော နည်းပညာဆိုင်ရာ အတိုကောက်များဖြင့် အလွန်တိုတောင်းစွာ တုံ့ပြန်ပါ။ သင်္ကေတအတိအကျကို ထိန်းသိမ်းပါ။"
+    }
   },
   "translator": {
     "title": "ဘာသာပြန်ကိရိယာ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "အပ်ဒိတ်လုပ်ထားသည်",
     "lastRefreshed": "နောက်ဆုံး ပြန်လည်ရယူခဲ့ချိန်",
     "providerQuota": "ဝန်ဆောင်မှုပေးသူ၏ ခွဲတမ်း",
-    "providerQuotaHomeHint": "ချိတ်ဆက်ထားသောအကောင့်များအားလုံး၏ လက်ရှိအခြေအနေ"
+    "providerQuotaHomeHint": "ချိတ်ဆက်ထားသောအကောင့်များအားလုံး၏ လက်ရှိအခြေအနေ",
+    "claudeResetCreditDefaultTitle": "Claude ကန့်သတ်ချက် ပြန်လည်သတ်မှတ်ခြင်း",
+    "confirmRedeemClaudeResetCredit": "လဲလှယ်အသုံးပြုခြင်းသည် သတ်မှတ်အရည်အချင်းပြည့်မီသော Claude အသုံးပြုမှုကန့်သတ်ချက်များကို ချက်ချင်း ပြန်လည်သတ်မှတ်ပေးပြီး ဤခရက်ဒစ်ကို အပြီးတိုင် သုံးစွဲသွားမည်ဖြစ်သည်။",
+    "claudeResetCreditsModalTitle": "Claude ပြန်လည်သတ်မှတ်ခြင်း ခရက်ဒစ်များ",
+    "claudeResetCreditsModalExplainer": "ဤအကောင့်အတွက် ရရှိနိုင်သော Claude ပြန်လည်သတ်မှတ်ခြင်း ခရက်ဒစ်များနှင့် အပတ်စဉ် session ပြန်လည်သတ်မှတ်မှုများ။"
   },
   "modals": {
     "waitingAuth": "ခွင့်ပြုချက်ကို စောင့်ဆိုင်းနေသည်",
@@ -11438,7 +11452,8 @@
     "notMeasured": "မတိုင်းတာရသေးပါ",
     "upstream4xx": "{count} ကလိန်းအတွက် အမှားအယွင်းများ",
     "upstream5xx": "{count} ဆာဗာအတွက် အမှားအယွင်းများ",
-    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ"
+    "uniformEgressLine": "{provider} ပေါ်ရှိ exit {exits} ခုအနက် {affected} ခု တစ်ပြိုင်နက် ကျရှုံးနေသည် (နောက်ဆုံး {hours} နာရီအတွင်း) — exit ပြဿနာ မဟုတ်ပါ",
+    "upstreamRefusals": "{count} upstream ငြင်းပယ်မှုများ"
   },
   "playground": {
     "title": "မော်ဒယ် စမ်းသပ်ခန်း",

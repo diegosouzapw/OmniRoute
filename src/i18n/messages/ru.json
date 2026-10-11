@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "Провайдер (все аккаунты используют один предохранитель)",
     "resilienceTokenRefreshScopeConnection": "Подключение (у каждого аккаунта свой автоматический выключатель)",
     "resilienceTokenRefreshThreshold": "Количество сбоев до приостановки",
-    "resilienceTokenRefreshCooldown": "Пауза после срабатывания"
+    "resilienceTokenRefreshCooldown": "Пауза после срабатывания",
+    "compressionSettingsCavemanOutputMode": "Режим вывода «Пещерный человек»",
+    "compressionSettingsAutoClarityBypass": "Автоматический обход четкости"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Максимальная длина результата инструмента",
         "description": "Лимит символов для упреждающего обрезания. По умолчанию 2000. Переопределяется OMNIROUTE_LITE_MAX_TOOL_LENGTH, если поле не задано."
+      },
+      "preserveSystemPrompt": {
+        "label": "Сохранять системный промпт"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "Сообщения короче этого значения не сжимаются. Ниже = больше сжатия.",
     "tooltipMinSavings": "Сжимайте только в том случае, если при этом сохраняется хотя бы столько же токенов.",
     "ultraSettings": "Ультра настройки",
-    "ultraSettingsDesc": "Семантическое сжатие на основе SLM"
+    "ultraSettingsDesc": "Семантическое сжатие на основе SLM",
+    "preview": {
+      "lite": "Отвечайте кратко. Сохраняйте технические термины, код, ошибки, URL-адреса и идентификаторы.",
+      "full": "Отвечайте лаконично и компактно. Сохраняйте всю техническую суть.",
+      "ultra": "Отвечайте предельно кратко, используя общепринятые технические сокращения. Сохраняйте символы без изменений."
+    }
   },
   "translator": {
     "title": "Переводчик",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Сброс лимитов Claude",
+    "confirmRedeemClaudeResetCredit": "Активация мгновенно сбрасывает применимые лимиты использования Claude и безвозвратно расходует этот кредит.",
+    "claudeResetCreditsModalTitle": "Кредиты на сброс Claude",
+    "claudeResetCreditsModalExplainer": "Доступные кредиты на сброс Claude и еженедельные сбросы сессий для этого аккаунта."
   },
   "modals": {
     "waitingAuth": "Ожидание авторизации",
@@ -11438,7 +11452,8 @@
     "notMeasured": "Не измерено",
     "upstream4xx": "{count} ошибки клиента вверху",
     "upstream5xx": "{count} ошибки сервера вверху",
-    "uniformEgressLine": "{affected} из {exits} выходов одновременно дают сбой у {provider} (за последние {hours} ч) — проблема не в выходе"
+    "uniformEgressLine": "{affected} из {exits} выходов одновременно дают сбой у {provider} (за последние {hours} ч) — проблема не в выходе",
+    "upstreamRefusals": "{count} отказов апстрима"
   },
   "playground": {
     "title": "Title",

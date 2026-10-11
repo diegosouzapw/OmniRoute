@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "공급자(모든 계정이 하나의 차단기를 공유)",
     "resilienceTokenRefreshScopeConnection": "연결(각 계정마다 고유한 차단기가 있습니다)",
     "resilienceTokenRefreshThreshold": "일시 중지 전 실패 횟수",
-    "resilienceTokenRefreshCooldown": "작동 후 일시 중지"
+    "resilienceTokenRefreshCooldown": "작동 후 일시 중지",
+    "compressionSettingsCavemanOutputMode": "케이브맨 출력 모드",
+    "compressionSettingsAutoClarityBypass": "자동 명확성 우회"
   },
   "contextRtk": {
     "title": "RTK 엔진",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "최대 도구 결과 길이",
         "description": "도구 결과 선행 잘라내기 문자 상한. 기본값 2000. 이 필드를 비우면 OMNIROUTE_LITE_MAX_TOOL_LENGTH로 덮어씁니다."
+      },
+      "preserveSystemPrompt": {
+        "label": "시스템 프롬프트 유지"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "이보다 짧은 메시지는 압축되지 않습니다. 낮음 = 더 많은 압축.",
     "tooltipMinSavings": "최소한 이만큼의 토큰을 절약할 수 있는 경우에만 압축합니다.",
     "ultraSettings": "울트라 설정",
-    "ultraSettingsDesc": "SLM 기반 의미 압축"
+    "ultraSettingsDesc": "SLM 기반 의미 압축",
+    "preview": {
+      "lite": "간결하게 응답하세요. 기술 용어, 코드, 오류, URL 및 식별자는 그대로 유지하세요.",
+      "full": "짧고 압축적으로 응답하세요. 모든 기술적 내용을 유지하세요.",
+      "ultra": "일반적인 기술 약어를 사용해 극도로 짧게 응답하세요. 정확한 기호를 그대로 유지하세요."
+    }
   },
   "translator": {
     "title": "번역기",
@@ -10126,7 +10136,11 @@
     "codexPaidCreditsLabel": "Paid Codex credits",
     "codexPaidCreditsAvailable": "Available (balance not reported)",
     "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsUnlimited": "Unlimited",
+    "claudeResetCreditDefaultTitle": "Claude 한도 초기화",
+    "confirmRedeemClaudeResetCredit": "사용 시 대상 Claude 사용 한도가 즉시 초기화되며 이 크레딧은 영구적으로 소진됩니다.",
+    "claudeResetCreditsModalTitle": "Claude 초기화 크레딧",
+    "claudeResetCreditsModalExplainer": "이 계정에서 사용 가능한 Claude 초기화 크레딧 및 주간 세션 초기화입니다."
   },
   "modals": {
     "waitingAuth": "승인을 기다리는 중",
@@ -11438,7 +11452,8 @@
     "notMeasured": "측정되지 않음",
     "upstream4xx": "{count} 상류 클라이언트 오류",
     "upstream5xx": "{count}개의 업스트림 서버 오류",
-    "uniformEgressLine": "{provider}에서 {exits}개 exit 중 {affected}개가 함께 실패함 (최근 {hours}시간) — exit 문제가 아님"
+    "uniformEgressLine": "{provider}에서 {exits}개 exit 중 {affected}개가 함께 실패함 (최근 {hours}시간) — exit 문제가 아님",
+    "upstreamRefusals": "{count}개 업스트림 거부"
   },
   "playground": {
     "title": "모델 플레이그라운드",

@@ -8789,7 +8789,9 @@
     "resilienceTokenRefreshScopeProvider": "ପ୍ରୋଭାଇଡର (ସମସ୍ତ ଖାତା ଗୋଟିଏ ବ୍ରେକର ଅଂଶୀଦାର କରନ୍ତି)",
     "resilienceTokenRefreshScopeConnection": "ସଂଯୋଗ (ପ୍ରତ୍ୟେକ ଖାତା ନିଜର ଏକ ବ୍ରେକର ରଖେ)",
     "resilienceTokenRefreshThreshold": "ବିରତି ଦେବା ପୂର୍ବରୁ ବିଫଳତା",
-    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ"
+    "resilienceTokenRefreshCooldown": "ଟ୍ରିପ୍ ପରେ ବିରତି ନିଅନ୍ତୁ",
+    "compressionSettingsCavemanOutputMode": "ଗୁହାମାନବ ଆଉଟପୁଟ୍ ମୋଡ୍",
+    "compressionSettingsAutoClarityBypass": "ସ୍ୱୟଂଚାଳିତ ସ୍ପଷ୍ଟତା ବାଇପାସ୍"
   },
   "contextRtk": {
     "title": "RTK ଇଞ୍ଜିନ୍",
@@ -9002,6 +9004,9 @@
       "maxToolLength": {
         "label": "Maximum tool-result length",
         "description": "Character cap for proactive tool-result truncation. Default 2000. Override with OMNIROUTE_LITE_MAX_TOOL_LENGTH when this field is unset."
+      },
+      "preserveSystemPrompt": {
+        "label": "ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ସଂରକ୍ଷଣ କରନ୍ତୁ"
       }
     },
     "engineFields": {
@@ -9361,7 +9366,12 @@
     "tooltipMinLength": "ଏହାଠାରୁ ଛୋଟ ସନ୍ଦେଶଗୁଡ଼ିକ ସଙ୍କୁଚିତ ହୁଏ ନାହିଁ। କମ୍ = ଅଧିକ ସଙ୍କୋଚନ।",
     "tooltipMinSavings": "ଅତି କମ୍ରେ ଏତିକି ଟୋକେନ୍ ସଞ୍ଚୟ ହେଲେ ମାତ୍ର ସଙ୍କୁଚିତ କରନ୍ତୁ।",
     "ultraSettings": "ଅଲ୍ଟ୍ରା ସେଟିଂସ୍",
-    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ"
+    "ultraSettingsDesc": "SLM-ଚାଳିତ ଅର୍ଥଗତ ସଙ୍କୋଚନ",
+    "preview": {
+      "lite": "ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରାଯୁକ୍ତିକ ଶବ୍ଦ, କୋଡ୍, ତ୍ରୁଟି, URLs ଏବଂ ପରିଚୟକଗୁଡ଼ିକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
+      "full": "ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଓ ସୁସଂହତ ଉତ୍ତର ଦିଅନ୍ତୁ। ସମସ୍ତ ପ୍ରାଯୁକ୍ତିକ ସାରବସ୍ତୁକୁ ଅପରିବର୍ତ୍ତିତ ରଖନ୍ତୁ।",
+      "ultra": "ସାଧାରଣ ପ୍ରାଯୁକ୍ତିକ ସଂକ୍ଷିପ୍ତ ରୂପ ବ୍ୟବହାର କରି ଅତ୍ୟନ୍ତ ସଂକ୍ଷିପ୍ତ ଉତ୍ତର ଦିଅନ୍ତୁ। ପ୍ରତୀକଗୁଡ଼ିକୁ ଠିକ୍ ସେହିପରି ରଖନ୍ତୁ।"
+    }
   },
   "translator": {
     "title": "ଅନୁବାଦକ",
@@ -10126,7 +10136,11 @@
     "updatedShort": "ଅଦ୍ୟତନ କରାଯାଇଛି",
     "lastRefreshed": "ଶେଷ ଥର ସତେଜ କରାଯାଇଛି",
     "providerQuota": "ପ୍ରଦାନକାରୀ କୋଟା",
-    "providerQuotaHomeHint": "ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟଗୁଡ଼ିକର ଲାଇଭ୍ ସ୍ଥିତି"
+    "providerQuotaHomeHint": "ସଂଯୁକ୍ତ ଆକାଉଣ୍ଟଗୁଡ଼ିକର ଲାଇଭ୍ ସ୍ଥିତି",
+    "claudeResetCreditDefaultTitle": "Claude ସୀମା ରିସେଟ୍",
+    "confirmRedeemClaudeResetCredit": "ରିଡିମ୍ କରିବା ଦ୍ୱାରା ଯୋଗ୍ୟ Claude ବ୍ୟବହାର ସୀମା ତୁରନ୍ତ ରିସେଟ୍ ହୋଇଥାଏ ଏବଂ ଏହି କ୍ରେଡିଟ୍ ସ୍ଥାୟୀ ଭାବରେ ଖର୍ଚ୍ଚ ହୋଇଯାଏ।",
+    "claudeResetCreditsModalTitle": "Claude ରିସେଟ୍ କ୍ରେଡିଟ୍",
+    "claudeResetCreditsModalExplainer": "ଏହି ଆକାଉଣ୍ଟ ପାଇଁ ଉପଲବ୍ଧ Claude ରିସେଟ୍ କ୍ରେଡିଟ୍ ଏବଂ ସାପ୍ତାହିକ ସେସନ୍ ରିସେଟ୍।"
   },
   "modals": {
     "waitingAuth": "ଅନୁମୋଦନ ପାଇଁ ଅପେକ୍ଷାରତ",
@@ -11438,7 +11452,8 @@
     "notMeasured": "ମାପ କରାଯାଇନାହିଁ",
     "upstream4xx": "{count} ଉପରି ଗ୍ରାହକ ତ୍ରୁଟିଗୁଡ଼ିକ",
     "upstream5xx": "{count} ଉପରି ସର୍ଭର ତ୍ରୁଟିଗୁଡ଼ିକ",
-    "uniformEgressLine": "{provider}ରେ {exits}ଟି ଏକ୍ଜିଟ୍ ମଧ୍ୟରୁ {affected}ଟି ଏକାଠି ବିଫଳ ହେଉଛି (ଗତ {hours}ଘଣ୍ଟା) — ଏହା ଏକ୍ଜିଟ୍ ସମସ୍ୟା ନୁହେଁ"
+    "uniformEgressLine": "{provider}ରେ {exits}ଟି ଏକ୍ଜିଟ୍ ମଧ୍ୟରୁ {affected}ଟି ଏକାଠି ବିଫଳ ହେଉଛି (ଗତ {hours}ଘଣ୍ଟା) — ଏହା ଏକ୍ଜିଟ୍ ସମସ୍ୟା ନୁହେଁ",
+    "upstreamRefusals": "{count} ଅପଷ୍ଟ୍ରିମ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ"
   },
   "playground": {
     "title": "ମଡେଲ୍ ପ୍ଲେଗ୍ରାଉଣ୍ଡ",
