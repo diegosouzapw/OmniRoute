@@ -1266,7 +1266,7 @@ port-ൽ ഒരേ process വഴിയാണ് ലഭ്യമാക്കു�
   <tr><td nowrap><b>റൺടൈം</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ഭാഷ</b></td><td>TypeScript 6.0 — <code>src/</code>, <code>open-sse/</code> എന്നിവയിലുടനീളം <b>100% TypeScript</b> (v2.0 മുതൽ കോറിൽ <code>any</code> ഒന്നുമില്ല)</td></tr>
   <tr><td nowrap><b>ഫ്രെയിംവർക്ക്</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേണലിംഗ്) + LowDB (JSON ലെഗസി) — 137 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 202 മൈഗ്രേഷനുകൾ</td></tr>
+  <tr><td nowrap><b>ഡാറ്റാബേസ്</b></td><td>better-sqlite3 (SQLite, WAL ജേണലിംഗ്) + LowDB (JSON ലെഗസി) — 137 ഡൊമെയ്ൻ മൊഡ്യൂളുകൾ, 203 മൈഗ്രേഷനുകൾ</td></tr>
   <tr><td nowrap><b>മെമ്മറി</b></td><td>SQLite FTS5 പൂർണ്ണ-ടെക്സ്റ്റ് + int8-ക്വാണ്ടൈസ്ഡ് വെക്റ്റർ എംബെഡ്ഡിംഗുകൾ, ടൈപ്പ് ചെയ്ത ഡികേ</td></tr>
   <tr><td nowrap><b>സ്കീമകൾ</b></td><td>Zod 4 — MCP ടൂൾ I/O സാധൂകരണം + API കരാറുകൾ</td></tr>
   <tr><td nowrap><b>പ്രോട്ടോക്കോളുകൾ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
