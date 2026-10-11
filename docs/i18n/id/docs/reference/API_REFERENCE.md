@@ -381,6 +381,12 @@ yang menunjuk ke id utama.
 Klien yang menampilkan pemilih model sebaiknya meminta `?prefix=alias` — inilah yang dilakukan oleh
 [ekstensi OmniCopilot VS Code](../guides/VSCODE-COPILOT.md).
 
+### Model chat yang disembunyikan satu per satu
+
+Model yang ditandai **Tersembunyi** di halaman penyedianya dikeluarkan dari katalog dan ditolak dengan HTTP `404` / `model_not_found` saat diminta secara eksplisit. Pemeriksaan menggunakan penyedia dan model yang telah ditentukan, termasuk alias penyedia, prefiks node penyedia yang kompatibel, dan nilai bawaan koneksi. Combo melewati target tersembunyi dan dapat menggunakan target lain yang terlihat; jika tidak ada target yang dapat dijalankan, kode kesalahan yang sama dikembalikan. Menampilkan kembali model berlaku mulai permintaan berikutnya. Pengaturan visibilitas khusus gambar tidak menyembunyikan model chat dengan ID yang sama.
+
+Pengaturan per model ini terpisah dari [daftar izin dan larangan penayangan model](../routing/MODEL_EXPOSURE_LIST.md), yang menyaring penayangan di katalog dan kandidat perutean otomatis sambil tetap mengizinkan pengiriman eksplisit. Izin model pada kunci API tetap berlaku secara independen. Mode prefiks bawaan katalog tetap `dual`.
+
 ### Varian model tanpa thinking
 
 Untuk model Claude yang mendukung thinking, `/v1/models` juga menampilkan varian **tanpa thinking** dengan id yang diawali `claude-3-omniroute-no-thinking/`:

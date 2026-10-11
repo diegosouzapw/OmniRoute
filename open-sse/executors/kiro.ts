@@ -20,6 +20,7 @@ import {
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { readKiroReasoningText } from "./kiro/reasoning.ts";
 import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 import {
   KIRO_TOOL_CALL_WRAPPER,
@@ -273,6 +274,14 @@ const KIRO_ENDPOINT_FALLBACK_STATUSES = new Set([401, 403, 404]);
 const KIRO_PROFILE_ARN_REQUIRED_MESSAGE = "profileArn is required for this request";
 
 /**
+ * The branded gateway's path-style GenerateAssistantResponse is deprecated: it now answers
+ * valid payloads with 400 {"message":"Improperly formed request.","reason":"REQUEST_BODY_INVALID"}
+ * (#15621). The same body is accepted by the CodeWhisperer host, so this shape also falls back
+ * (only while a next candidate exists; the final host's 400 is returned untouched).
+ */
+const KIRO_IMPROPERLY_FORMED_MESSAGE = "Improperly formed request";
+
+/**
  * Whether `response` is the branded gateway's profileArn-required rejection
  * described above. Reads a clone of the body so the original response stream
  * is left untouched for the caller (the success path, and the final
@@ -282,7 +291,10 @@ async function isBrandedGatewayProfileArnRejection(response: Response): Promise<
   if (response.status !== 400) return false;
   try {
     const text = await response.clone().text();
-    return text.includes(KIRO_PROFILE_ARN_REQUIRED_MESSAGE);
+    return (
+      text.includes(KIRO_PROFILE_ARN_REQUIRED_MESSAGE) ||
+      text.includes(KIRO_IMPROPERLY_FORMED_MESSAGE)
+    );
   } catch {
     return false;
   }
@@ -670,22 +682,9 @@ export class KiroExecutor extends BaseExecutor {
               const rp = event.payload as Record<string, unknown> | undefined;
               const rt = rp?.reasoningText;
               if (eventType === "reasoningContentEvent" || rt !== undefined) {
-                let nativeReasoning = "";
-                if (rt && typeof rt === "object") {
-                  const rto = rt as { text?: unknown; Text?: unknown };
-                  nativeReasoning =
-                    typeof rto.text === "string"
-                      ? rto.text
-                      : typeof rto.Text === "string"
-                        ? rto.Text
-                        : "";
-                } else if (typeof rt === "string") {
-                  nativeReasoning = rt;
-                } else if (typeof rp?.text === "string") {
-                  nativeReasoning = rp.text as string;
-                }
-                if (nativeReasoning) {
-                  state.hasReasoningContent = true;
+                const nativeReasoning = readKiroReasoningText(eventType, rp);
+                if (nativeReasoning !== undefined) {
+                  if (nativeReasoning) state.hasReasoningContent = true;
                   const reasoningDelta: JsonRecord =
                     (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
                       ? { role: "assistant", reasoning_content: nativeReasoning }

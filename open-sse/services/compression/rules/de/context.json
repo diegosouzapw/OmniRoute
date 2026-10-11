@@ -20,19 +20,21 @@
     },
     {
       "name": "de_question_directive",
-      "pattern": "\\b(?:kannst du erklaeren warum|kannst du erklären warum|kannst du zeigen wie)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:kannst du erklaeren warum|kannst du erklären warum|kannst du zeigen wie)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Erklaere ",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_background",
-      "pattern": "\\b(?:wie du weisst|wie du weißt|wie bereits erwaehnt|wie bereits erwähnt)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:wie du weisst|wie du weißt|wie bereits erwaehnt|wie bereits erwähnt)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "",
       "context": "all",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

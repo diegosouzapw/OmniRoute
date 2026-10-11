@@ -42,6 +42,7 @@ export {
 };
 
 import { HTTP_STATUS } from "../../config/constants.ts";
+import { buildMalformedResponseDiagnostic } from "../../utils/responseShapeDiagnostic.ts";
 
 import { lockModel } from "../../services/accountFallback.ts";
 
@@ -64,6 +65,7 @@ import {
 } from "../../executors/antigravityUpstreamError.ts";
 import { routingFinishReason } from "../chatCore/routingFinishReason.ts";
 import { resolveSessionTurn } from "./agentContext.ts";
+import { hasTrustedEmptyTurn, inheritEmptyTurnPolicy } from "../../utils/emptyTurnPolicy.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
 import { extractFacts } from "@/lib/memory/extraction";
 // The leaf body is unchanged from the barrel, so its closed-over values keep
@@ -837,8 +839,17 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     // this check runs after translation + sanitization + tool-call execution to catch
     // cases where a provider returns a structurally valid raw body that translates into
     // choices:[] or output:[] with no usable content (Responses API shape included).
-    const malformedTranslatedReason = detectMalformedNonStream(translatedResponse, provider);
+    const malformedTranslatedReason = detectMalformedNonStream(
+      translatedResponse,
+      provider,
+      hasTrustedEmptyTurn(providerResponse)
+    );
     if (malformedTranslatedReason) {
+      const malformedDiagnostic = buildMalformedResponseDiagnostic(
+        malformedTranslatedReason,
+        responseBody,
+        translatedResponse
+      );
       const totalLatency = Date.now() - startTime;
       const rawBytes = (() => {
         try {
@@ -880,6 +891,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
         : sanitizedMalformedResponse;
       persistAttemptLogs({
         status: HTTP_STATUS.BAD_GATEWAY,
+        error: malformedDiagnostic,
         tokens: usage,
         responseBody: sanitizedMalformedResponse,
         providerRequest: finalBody || translatedBody,
@@ -1068,11 +1080,14 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     return {
       response: {
         success: true,
-        response: maybeWrapForcedNonStreamingResponsesJson({
-          clientRequestedResponsesStream,
-          body: translatedResponse,
-          headers: responseHeaders,
-        }),
+        response: inheritEmptyTurnPolicy(
+          providerResponse,
+          maybeWrapForcedNonStreamingResponsesJson({
+            clientRequestedResponsesStream,
+            body: translatedResponse,
+            headers: responseHeaders,
+          })
+        ),
       },
       carry: {
         translatedBody,

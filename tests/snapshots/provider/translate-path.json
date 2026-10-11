@@ -349,20 +349,20 @@
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
       },
       "nonStream": {
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
       },
       "oauth": {
         "Accept": "text/event-stream",
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
@@ -1393,6 +1393,47 @@
     "url": {
       "nonStream": "https://copilot.tencent.com/v2/chat/completions",
       "stream": "https://copilot.tencent.com/v2/chat/completions"
+    }
+  },
+  "codebuddy-intl": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.codebuddy.ai/v2/chat/completions",
+      "stream": "https://www.codebuddy.ai/v2/chat/completions"
     }
   },
   "codestral": {

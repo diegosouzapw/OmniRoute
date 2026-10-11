@@ -39,14 +39,14 @@ const SEVEN_DAYS_MS = 7 * 24 * 3600_000;
 export function parseSyntxTokenBalance(raw: unknown): number {
   if (typeof raw === "number" && Number.isFinite(raw)) return raw;
   if (typeof raw !== "string") return 0;
-  const n = Number.parseFloat(raw.replace(",", ".").trim());
+  const n = Number.parseFloat(raw.replaceAll(",", ".").trim());
   return Number.isFinite(n) ? n : 0;
 }
 
 export function parseSyntxPercentLeft(raw: unknown): number {
   if (typeof raw === "number" && Number.isFinite(raw)) return raw;
   if (typeof raw !== "string") return 0;
-  const n = Number.parseFloat(raw.replace("%", "").replace(",", ".").trim());
+  const n = Number.parseFloat(raw.replaceAll("%", "").replaceAll(",", ".").trim());
   return Number.isFinite(n) ? n : 0;
 }
 

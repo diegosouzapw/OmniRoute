@@ -1,0 +1,1 @@
+- Imported and synced provider models now expose an editable maximum output-token limit that persists through model sync and is enforced by request output budgeting. Clearing the value restores the discovered default. The provider model list also preserves discovered vision support and shows its badge only when explicitly supported.

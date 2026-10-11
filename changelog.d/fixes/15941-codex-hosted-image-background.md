@@ -1,0 +1,1 @@
+- **fix(images):** the Codex hosted `image_generation` path now forwards `background` (e.g. `"transparent"`) to the tool and downscales inline reference images above 400 KB to a 1024px long edge, which the backend otherwise rejects with 503 — thanks @HDBR

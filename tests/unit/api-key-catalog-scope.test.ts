@@ -77,7 +77,9 @@ test("R4: the route forwards catalogScope into the payload", () => {
 });
 
 test("R5: the catalog skips exactly the rows the scope excludes", () => {
-  const catalog = read("src/app/api/v1/models/catalog.ts");
+  const catalogSource = read("src/app/api/v1/models/catalog.ts");
+  assert.ok(catalogSource.includes("finalModels = await filterCatalogModelsForKey("));
+  const catalog = read("src/app/api/v1/models/catalogKeyFilter.ts");
   assert.ok(
     catalog.includes('const catalogScope = keyMeta.catalogScope ?? "all"'),
     "the filter must read the key's scope, defaulting to all"

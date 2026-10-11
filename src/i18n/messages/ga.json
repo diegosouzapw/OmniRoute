@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Réamhshocrú (uathoibríoch)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Uasmhéid Tóicíní Aschuir",
+    "maxOutputTokenOverrideHint": "Iontráil líon slánuimhreach dearfach comharthaí. Fág bán chun an réamhshocrú a úsáid.",
     "contextWindowOverrideLabel": "Sárú ar Fhuinneog an Chomhthéacs",
     "contextWindowOverridePlaceholder": "m.sh. 131072",
     "contextWindowOverrideHint": "Socraigh fíorfhuinneog chomhthéacs na samhla seo de láimh (comharthaí) nuair a thuairiscíonn an soláthraí go mícheart í. Tugtar tús áite di ar luachanna uathbhraite nó ar luachanna catalóige agus cuireann sí cosc ar ródú comhcheangailte an tsamhail a fhágáil ar lár.",

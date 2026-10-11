@@ -5,6 +5,7 @@ import {
   createApiKey,
   updateApiKeyPermissions,
 } from "@/lib/db/apiKeys";
+import { getApiKeySelfServiceSettings } from "@/lib/db/apiKeySelfServiceSettings";
 import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
     const keys = await getApiKeys(dbLimit, offset);
     const maskedKeys = keys.map((k) => ({
       ...k,
+      ...getApiKeySelfServiceSettings(typeof k.id === "string" ? k.id : ""),
       key: maskStoredApiKey(k.key),
     }));
 

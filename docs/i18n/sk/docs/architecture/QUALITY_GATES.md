@@ -311,12 +311,14 @@ kontrakt dokumentácie/premenných prostredia, zhoda i18n, jednotkové testy) zo
   uvoľnenie (`scripts/quality/relax-baselines.mjs`); odmietne sa spustiť dvakrát s rovnakou
   poznámkou.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  meria každú číselnú bránu rovnakým spôsobom ako CI a vypíše zostávajúcu rezervu pre každú bránu
-  (`scripts/quality/baseline-headroom.mjs`). Nočná úloha `baseline-headroom` pridáva tabuľku
-  do priebežne aktualizovaného problému **📈 Rezerva základných hodnôt (fáza velocity)** a pridá
-  označenie `headroom-alert`, keď je ktorákoľvek brána do 10 % od svojho limitu alebo ho už prekročila. Tento problém
-  slúži ako včasné varovanie: rozpočet, ktorý sa vyčerpá za niekoľko dní, znamená, že uvoľnenie spotrebovalo
-  niekoľko PR, nie celý tím — pozrite si poznámky `_rebaseline_*` príslušnej brány.
+  meria každú číselnú kontrolu kvality rovnako ako CI a vypisuje zostávajúcu rezervu pre každú kontrolu
+  (`scripts/quality/baseline-headroom.mjs`). Nočná úloha `baseline-headroom` zverejňuje tabuľku
+  v súhrne behu pracovného postupu a nahráva správu vo formáte JSON/Markdown pod názvom
+  `baseline-headroom-<run_id>`, uchovávanú 90 dní. Varovné a kritické riadky označujú
+  kontroly, ktorým do limitu zostáva najviac 10% alebo ktoré ho už prekročili.
+  Sledujte tieto správy ako včasné upozornenie na čerpanie rozpočtov; prečítajte si poznámky
+  `_rebaseline_*` príslušnej kontroly. Úloha už nevytvára ani neaktualizuje trvalé hlásenie;
+  #12149 uchováva históriu predchádzajúcich správ.
 
 **Režim nového kódu (Clean-as-You-Code) — od 2026-08-30, iba zrýchlená cesta pre PR**
 

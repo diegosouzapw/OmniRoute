@@ -332,7 +332,6 @@ Yoki uni tan olinadigan joyga joylashtiring:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Foydalanuvchi darajasida
-<project>/.compression/rules/hi/filler.json   # Loyiha darajasida
 ```
 
 ### Til paketlari uchun eng yaxshi amaliyotlar

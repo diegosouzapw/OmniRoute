@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "काहीतरी चुकलं आहे",
+      "description": "एक अनपेक्षित त्रुटी झाली. हे लॉग केले गेले आहे आणि आमची टीम तपासणी करेल.",
+      "detailsAriaLabel": "त्रुटी तपशील",
+      "retryAriaLabel": "पृष्ठ लोड करण्याचा प्रयत्न करा",
+      "tryAgain": "पुन्हा प्रयत्न करा",
+      "statusAriaLabel": "सिस्टम स्थिती उघडा",
+      "systemStatus": "सिस्टम स्थिती"
+    }
+  }
+}

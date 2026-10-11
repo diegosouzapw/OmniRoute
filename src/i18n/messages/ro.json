@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Implicit (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Jetoane de ieșire maximă",
+    "maxOutputTokenOverrideHint": "Introduceți un număr întreg pozitiv de tokenuri. Lăsați gol pentru valoarea implicită.",
     "contextWindowOverrideLabel": "Suprascriere fereastră de context",
     "contextWindowOverridePlaceholder": "de ex. 131072",
     "contextWindowOverrideHint": "Setați manual fereastra de context reală a acestui model (tokeni) atunci când furnizorul o raportează greșit. Are prioritate față de valorile detectate automat/din catalog și previne eliminarea modelului de către rutarea combo.",

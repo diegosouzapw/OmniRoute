@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Alapértelmezett (automatikus)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravitáció",
+    "maxOutputTokenOverrideLabel": "Max kimeneti tokenek",
+    "maxOutputTokenOverrideHint": "Adjon meg pozitív egész tokenszámot. Az alapérték használatához hagyja üresen.",
     "contextWindowOverrideLabel": "Kontextusablak felülírása",
     "contextWindowOverridePlaceholder": "pl. 131072",
     "contextWindowOverrideHint": "Állítsa be manuálisan a modell valós kontextusablakát (tokenekben), ha a szolgáltató hibásan jelenti azt. Elsőbbséget élvez az automatikusan észlelt/katalógusértékekkel szemben, és megakadályozza, hogy a kombinált útvonalválasztás eldobja a modellt.",

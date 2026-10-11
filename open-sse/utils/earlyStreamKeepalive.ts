@@ -33,6 +33,7 @@
 
 import { recordEarlyKeepaliveBytes } from "./earlyKeepaliveByteBuffer.ts";
 import { SYNTHETIC_RESPONSES_SEQUENCE_NUMBER } from "./responsesSequence.ts";
+import { withUpstreamErrorDetail } from "./upstreamErrorDetail.ts";
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": keepalive\n\n");
@@ -87,6 +88,12 @@ export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
     code: null,
     message: "Upstream stream failed before completion.",
     param: null,
+    error: {
+      type: "stream_error",
+      code: "stream_error",
+      message: "Upstream stream failed before completion.",
+      param: null,
+    },
     // #14330: was hardcoded to 0, colliding with the real per-stream emitter's
     // first event (also numbered 1 from its own `state.seq` base of 0) — this
     // frame is synthesized outside that counter, so it uses the shared seed.
@@ -144,11 +151,13 @@ function buildResponsesErrorDataLine(
     parsed && typeof parsed.error === "object" && parsed.error !== null
       ? (parsed.error as Record<string, unknown>)
       : null;
-  const message =
+  const message = withUpstreamErrorDetail(
     (typeof errorObj?.message === "string" && errorObj.message) ||
-    (typeof parsed?.message === "string" && parsed.message) ||
-    trimmed ||
-    "Upstream stream failed before completion.";
+      (typeof parsed?.message === "string" && parsed.message) ||
+      trimmed ||
+      "Upstream stream failed before completion.",
+    parsed?.upstream_details
+  );
   const code = (typeof errorObj?.code === "string" && errorObj.code) || null;
   const param = (typeof errorObj?.param === "string" && errorObj.param) || null;
   // The HTTP status and retry hint are already lost once the stream committed to 200;
@@ -169,6 +178,12 @@ function buildResponsesErrorDataLine(
     code,
     message,
     param,
+    error: {
+      type: errorType || "stream_error",
+      code: code || errorType || "stream_error",
+      message,
+      param,
+    },
     // #14330: was hardcoded to 0 — see OPENAI_RESPONSES_ERROR_FRAME above.
     sequence_number: SYNTHETIC_RESPONSES_SEQUENCE_NUMBER,
     ...statusFields,

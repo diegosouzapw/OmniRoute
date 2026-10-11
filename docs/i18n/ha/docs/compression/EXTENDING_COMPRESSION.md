@@ -336,7 +336,6 @@ Ko kuma a sanya shi a wani sanannen wuri:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Matakin mai amfani
-<project>/.compression/rules/hi/filler.json   # Matakin aikin
 ```
 
 ### Kyawawan Hanyoyin Aiki don Kunshin Harsuna

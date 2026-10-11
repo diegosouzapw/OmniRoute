@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ ବୈଶିଷ୍ଟ୍ୟଗୁଡ଼ିକ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 କମ୍ବୋଗୁଡ଼ିକ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ପ୍ରଦାନକାରୀମାନେ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ପ୍ରଦାନକାରୀମାନେ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # ଏଗୁଡ଼ିକ ମଧ୍ୟ: claude 
 
 <div align="center">
 
-## 🌐 357 AI ପ୍ରଦାନକାରୀ — 152ଟି କ୍ୟାଟାଲଗ୍ରେ ମାଗଣା ଭାବେ ଚିହ୍ନିତ
+## 🌐 372 AI ପ୍ରଦାନକାରୀ — 154ଟି କ୍ୟାଟାଲଗ୍ରେ ମାଗଣା ଭାବେ ଚିହ୍ନିତ
 
 </div>
 
@@ -1265,7 +1265,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ମଧ୍ୟ ଏ�
   <tr><td nowrap><b>ରନ୍ଟାଇମ୍</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ଭାଷା</b></td><td>TypeScript 6.0 — <code>src/</code> ଏବଂ <code>open-sse/</code> ସମଗ୍ରରେ <b>100% TypeScript</b> (v2.0 ପରଠାରୁ କୋର୍ରେ ଶୂନ୍ୟ <code>any</code>)</td></tr>
   <tr><td nowrap><b>ଫ୍ରେମ୍ୱର୍କ</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ଣ୍ଣାଲିଂ) + LowDB (JSON ଲିଗାସି) — 137 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 193 ମାଇଗ୍ରେସନ୍</td></tr>
+  <tr><td nowrap><b>ଡାଟାବେସ୍</b></td><td>better-sqlite3 (SQLite, WAL ଜର୍ଣ୍ଣାଲିଂ) + LowDB (JSON ଲିଗାସି) — 137 ଡୋମେନ୍ ମଡ୍ୟୁଲ୍, 202 ମାଇଗ୍ରେସନ୍</td></tr>
   <tr><td nowrap><b>ମେମୋରି</b></td><td>SQLite FTS5 ପୂର୍ଣ୍ଣ-ଟେକ୍ସ୍ଟ + int8-କ୍ୱାଣ୍ଟାଇଜ୍ଡ ଭେକ୍ଟର ଏମ୍ବେଡିଂ, ଟାଇପ୍ଡ ଡିକେ</td></tr>
   <tr><td nowrap><b>ସ୍କିମା</b></td><td>Zod 4 — MCP ଟୁଲ୍ I/O ବୈଧତା ଯାଞ୍ଚ + API ଚୁକ୍ତି</td></tr>
   <tr><td nowrap><b>ପ୍ରୋଟୋକଲ୍</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

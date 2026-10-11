@@ -51,4 +51,11 @@ test("opencode 400/429 endpoint-unavailable", async (t) => {
     assert.equal(r.reason, "quota_exhausted");
     assert.equal((r as { ruleScope?: string }).ruleScope, "connection");
   });
+
+  await t.test("generic 429 without headers keeps rotating accounts", () => {
+    const r = checkFallbackError(429, "Rate limit exceeded", 0, null, "opencode");
+    assert.equal(r.shouldFallback, true);
+    assert.equal(r.reason, "rate_limit_exceeded");
+    assert.equal((r as { ruleScope?: string }).ruleScope ?? null, null);
+  });
 });

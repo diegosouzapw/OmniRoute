@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "இயல்புநிலை (தானியங்கி)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "அதிகபட்ச வெளியீட்டு டோக்கன்கள்",
+    "maxOutputTokenOverrideHint": "நேர்மறை முழு எண் டோக்கன்களை உள்ளிடவும். இயல்புநிலை மதிப்பிற்கு காலியாக விடவும்.",
     "contextWindowOverrideLabel": "சூழல் சாளர மேலெழுதல்",
     "contextWindowOverridePlaceholder": "எ.கா. 131072",
     "contextWindowOverrideHint": "வழங்குநர் தவறாகப் புகாரளிக்கும் போது, இந்த மாடலின் உண்மையான சூழல் சாளரத்தை (டோக்கன்கள்) கைமுறையாக அமைக்கவும். இது தானாகக் கண்டறியப்பட்ட/கேட்டலாக் மதிப்புகளை விட முன்னுரிமை பெறும் மற்றும் காம்போ ரூட்டிங் மாடலை கைவிடுவதைத் தடுக்கும்.",

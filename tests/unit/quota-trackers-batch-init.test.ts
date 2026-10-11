@@ -38,7 +38,11 @@ test("chat route calls the batch registrar after imports, before generic", () =>
 
 test("node instrumentation calls the batch registrar after the dynamic import resolves", () => {
   const source = read("src/instrumentation-node.ts");
-  const imported = source.indexOf('await import(\n    "@omniroute/open-sse/services/quotaTrackersBatch.ts"');
+  // contract changed by #13330: Prettier reflowed the dynamic import onto one line, so match
+  // the awaited import independent of whitespace instead of a hard-coded line break.
+  const importMatch =
+    /await\s+import\(\s*"@omniroute\/open-sse\/services\/quotaTrackersBatch\.ts"/.exec(source);
+  const imported = importMatch ? importMatch.index : -1;
   const called = source.indexOf("registerQuotaTrackersBatch()");
   assert.ok(imported >= 0, "instrumentation must await the batch module");
   assert.ok(called > imported, "the call must follow the resolved import");

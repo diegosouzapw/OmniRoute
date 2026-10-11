@@ -254,6 +254,7 @@
     "log": "Prikaži logove servera direktno",
     "no_recovery": "Onemogući automatski ponovni pokretanje pri padu (režim za otklanjanje grešaka)",
     "max_restarts": "Maksimalan broj ponovnih pokretanja pri padu u toku 30s pre odustajanja (podrazumevano: 2)",
+    "headless": "Покрени само прокси механизам: контролна табла онемогућена (404), опциони подсистеми прескочени (поставља OMNIROUTE_HEADLESS=1)",
     "tray": "Покретање у системској траци (само десктоп, опционо)",
     "no_tray": "Онемогући икону у системској траци",
     "ready_timeout": "Временско ограничење провере спремности у ms (такође OMNIROUTE_READY_TIMEOUT_MS, подразумевано 60000)",

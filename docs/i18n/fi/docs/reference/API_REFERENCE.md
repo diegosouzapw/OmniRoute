@@ -405,6 +405,12 @@ tunnukseen osoittavan `parent`-kentän.
 Mallivalitsimen näyttävien asiakkaiden kannattaa pyytää `?prefix=alias` — näin toimii myös
 [OmniCopilotin VS Code -laajennus](../guides/VSCODE-COPILOT.md).
 
+### Yksitellen piilotetut keskustelumallit
+
+Palveluntarjoajansa sivulla **Piilotetuksi** merkitty malli poistetaan luettelosta, ja sen nimenomainen pyyntö hylätään vastauksella HTTP `404` / `model_not_found`. Tarkistus käyttää ratkaistua palveluntarjoajaa ja mallia sekä huomioi palveluntarjoajan aliakset, yhteensopivien palveluntarjoajasolmujen etuliitteet ja yhteyden oletusarvot. Combo ohittaa piilotetut kohteet ja voi käyttää toista näkyvää kohdetta; jos suoritettavia kohteita ei jää, se palauttaa saman virhekoodin. Mallin näyttäminen uudelleen tulee voimaan seuraavasta pyynnöstä. Vain kuvia koskevat näkyvyyden ohitukset eivät piilota samalla tunnuksella olevaa keskustelumallia.
+
+Tämä mallikohtainen asetus on erillinen [mallien julkaisun sallimis- ja estolistoista](../routing/MODEL_EXPOSURE_LIST.md), jotka suodattavat luettelossa esitettäviä malleja ja automaattisen reitityksen ehdokkaita mutta säilyttävät nimenomaisen kutsumisen. API-avaimen mallioikeuksia sovelletaan edelleen itsenäisesti. Luettelon etuliitteiden oletustila on yhä `dual`.
+
 ### Ajatteluttomat mallivariantit
 
 Ajattelukykyisille Claude-malleille `/v1/models` julkaisee myös **ajatteluttoman** variantin, jonka tunnuksen etuliite on `claude-3-omniroute-no-thinking/`:

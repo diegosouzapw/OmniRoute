@@ -300,12 +300,14 @@ yarjejeniyar docs/env, daidaiton i18n, gwaje-gwajen unit) ba su canza ba — gwa
   sassautawa na sau ɗaya (`scripts/quality/relax-baselines.mjs`); yana ƙin sake gudana sau biyu da
   wannan note ɗin.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  yana auna kowace ƙofar lamba kamar yadda CI ke yi kuma yana nuna ragowar sarari ga kowace ƙofa
-  (`scripts/quality/baseline-headroom.mjs`). Aikin dare na `baseline-headroom` yana tura
-  jadawalin zuwa batun da ake ci gaba da sabuntawa mai suna **📈 Baseline headroom (velocity phase)** kuma yana ƙara
-  alamar `headroom-alert` idan wata ƙofa ta kai cikin 10% na iyakarta ko ta riga ta wuce ta. Wannan batu
-  shi ne gargadin farko: kasafin iyaka da ya cika cikin 'yan kwanaki yana nufin wasu 'yan PR ne ke cinye
-  sassautawar, ba dukan ƙungiyar ba — duba bayanan `_rebaseline_*` na ƙofar da ta jawo matsalar.
+  yana auna kowane binciken inganci na lambobi kamar yadda CI yake yi, kuma yana nuna tazarar da ta rage ga kowane bincike
+  (`scripts/quality/baseline-headroom.mjs`). Aikin dare na `baseline-headroom` yana wallafa teburin
+  a taƙaitaccen sakamakon gudanar da tsarin aiki, yana kuma loda rahoton JSON/Markdown da sunan
+  `baseline-headroom-<run_id>`, wanda ake adanawa na kwanaki 90. Layukan gargaɗi da na yanayi mai tsanani suna nuna
+  binciken da ya rage masa 10% ko ƙasa da haka kafin iyakarsa, ko wanda ya riga ya wuce iyakar.
+  Duba waɗannan rahotanni a matsayin gargaɗin farko cewa ana amfani da kasafin da aka ware; karanta bayanan
+  `_rebaseline_*` na binciken da abin ya shafa. Aikin ba ya ƙirƙira ko sabunta batun dindindin kuma;
+  #12149 yana adana tarihin rahotannin da suka gabata.
 
 **Yanayin sabon code (Clean-as-You-Code) — tun daga 2026-08-30, hanya mai sauri ta PR kaɗai**
 

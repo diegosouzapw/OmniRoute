@@ -254,6 +254,7 @@
     "log": "Exibir logs do servidor inline",
     "no_recovery": "Desabilitar reinício automático em crash (modo debug)",
     "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)",
+    "headless": "Executa só o motor de proxy: dashboard desativado (404), subsistemas opcionais ignorados (define OMNIROUTE_HEADLESS=1)",
     "tray": "Mostrar ícone na bandeja do sistema (apenas desktop, opt-in)",
     "no_tray": "Desabilitar ícone na bandeja do sistema",
     "ready_timeout": "Tempo limite da verificação de prontidão em ms (também OMNIROUTE_READY_TIMEOUT_MS, padrão 60000)",

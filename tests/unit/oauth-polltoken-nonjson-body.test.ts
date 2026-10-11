@@ -37,7 +37,11 @@ const providers = [
 
 for (const { id, config } of providers) {
   test(`${id} pollToken returns invalid_response (not a rejection) on non-JSON body`, async () => {
-    const restore = stubFetch("<html><body>502 Bad Gateway</body></html>", {
+    const upstreamBody =
+      id === "muse-code"
+        ? "<html><body>502 Bad Gateway: muse-sensitive-fixture-15869</body></html>"
+        : "<html><body>502 Bad Gateway</body></html>";
+    const restore = stubFetch(upstreamBody, {
       status: 502,
       headers: { "content-type": "text/html" },
     });
@@ -45,7 +49,15 @@ for (const { id, config } of providers) {
       const result = await PROVIDERS_MAP[id].pollToken(config, "device-code-stub");
       assert.equal(result.ok, false);
       assert.equal(result.data.error, "invalid_response");
-      assert.match(result.data.error_description, /502 Bad Gateway/);
+      if (id === "muse-code") {
+        // Muse's fixed-error contract must not expose an arbitrary upstream body (#15869).
+        assert.doesNotMatch(
+          JSON.stringify(result),
+          /502 Bad Gateway|muse-sensitive-fixture-15869|<html>/
+        );
+      } else {
+        assert.match(result.data.error_description, /502 Bad Gateway/);
+      }
     } finally {
       restore();
     }

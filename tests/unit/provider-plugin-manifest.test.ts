@@ -124,21 +124,23 @@ test("manifest does not export OAuth client secrets or dynamic functions", () =>
 });
 
 test("manifest advertises usage-fetch for providers with a wired usage fetcher (#11722)", () => {
-  const claude = getProviderPluginManifestEntryFromRegistry(registryFixture, "claude");
+  for (const providerId of ["claude", "anthropic"]) {
+    const entry = getProviderPluginManifestEntryFromRegistry(registryFixture, providerId);
 
-  assert.ok(claude);
-  assert.ok(
-    (USAGE_FETCHER_PROVIDERS as readonly string[]).includes("claude"),
-    "fixture guard: claude must stay in USAGE_FETCHER_PROVIDERS for this test to mean anything"
-  );
-  assert.ok(
-    claude.capabilities.includes("usage-fetch"),
-    "claude has a wired usage fetcher, so the manifest must advertise usage-fetch"
-  );
+    assert.ok(entry, `fixture guard: ${providerId} must resolve`);
+    assert.ok(
+      (USAGE_FETCHER_PROVIDERS as readonly string[]).includes(entry.id),
+      `fixture guard: ${entry.id} must stay in USAGE_FETCHER_PROVIDERS for this test to mean anything`
+    );
+    assert.ok(
+      entry.capabilities.includes("usage-fetch"),
+      `${entry.id} has a wired usage fetcher, so the manifest must advertise usage-fetch`
+    );
+  }
 });
 
 test("manifest omits usage-fetch for providers without a usage fetcher (#11722)", () => {
-  for (const providerId of ["openai", "anthropic", "claude-web"]) {
+  for (const providerId of ["openai", "claude-web"]) {
     const entry = getProviderPluginManifestEntryFromRegistry(registryFixture, providerId);
 
     assert.ok(entry, `fixture guard: ${providerId} must resolve`);
@@ -186,23 +188,23 @@ test("usage-fetch matches the fetcher list by alias too (#11722)", () => {
 });
 
 test("manifest advertises usage-supported for providers whose usage API is accepted (#10078)", () => {
-  // claude is in USAGE_SUPPORTED_PROVIDERS, openai is not — assert against the real
-  // list so the test cannot drift silently if the list moves.
-  const claude = getProviderPluginManifestEntryFromRegistry(registryFixture, "claude");
+  for (const providerId of ["claude", "anthropic"]) {
+    const entry = getProviderPluginManifestEntryFromRegistry(registryFixture, providerId);
 
-  assert.ok(claude);
-  assert.ok(
-    (USAGE_SUPPORTED_PROVIDERS as readonly string[]).includes("claude"),
-    "fixture guard: claude must stay in USAGE_SUPPORTED_PROVIDERS for this test to mean anything"
-  );
-  assert.ok(
-    claude.capabilities.includes("usage-supported"),
-    "claude is in USAGE_SUPPORTED_PROVIDERS, so the manifest must advertise usage-supported"
-  );
+    assert.ok(entry, `fixture guard: ${providerId} must resolve`);
+    assert.ok(
+      (USAGE_SUPPORTED_PROVIDERS as readonly string[]).includes(entry.id),
+      `fixture guard: ${entry.id} must stay in USAGE_SUPPORTED_PROVIDERS for this test to mean anything`
+    );
+    assert.ok(
+      entry.capabilities.includes("usage-supported"),
+      `${entry.id} is in USAGE_SUPPORTED_PROVIDERS, so the manifest must advertise usage-supported`
+    );
+  }
 });
 
 test("manifest omits usage-supported for providers outside USAGE_SUPPORTED_PROVIDERS (#10078)", () => {
-  for (const providerId of ["openai", "anthropic", "claude-web"]) {
+  for (const providerId of ["openai", "claude-web"]) {
     const entry = getProviderPluginManifestEntryFromRegistry(registryFixture, providerId);
 
     assert.ok(entry, `fixture guard: ${providerId} must resolve`);

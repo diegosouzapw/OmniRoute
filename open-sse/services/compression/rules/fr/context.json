@@ -12,11 +12,12 @@
     },
     {
       "name": "fr_intent",
-      "pattern": "\\b(?:mon objectif est|ce dont j'ai besoin est|j'essaie de|l'idee est|l'idée est)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:mon objectif est|ce dont j'ai besoin est|j'essaie de|l'idee est|l'idée est)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Objectif:",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "fr_question_directive",
@@ -28,11 +29,12 @@
     },
     {
       "name": "fr_background",
-      "pattern": "\\b(?:comme tu le sais|comme mentionne avant|comme mentionné avant)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:comme tu le sais|comme mentionne avant|comme mentionné avant)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "",
       "context": "all",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

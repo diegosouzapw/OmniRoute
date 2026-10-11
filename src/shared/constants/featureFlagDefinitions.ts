@@ -874,6 +874,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "caution",
   },
+  {
+    key: "COMBO_AUTO_PRUNE_STALE_STEPS",
+    label: "Auto-Prune Stale Combo Steps",
+    description:
+      "After a successful model sync against an authoritative live catalog, remove combo steps pinned to models the catalog no longer lists, with one audit entry per removed step. Never prunes on a failed, degraded or free-only sync, and never empties a combo. Off by default: stale steps are only flagged.",
+    descriptionI18nKey: "featureFlagComboAutoPruneStaleStepsDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
 
   // ──────────────── CLI (5) ────────────────
   {

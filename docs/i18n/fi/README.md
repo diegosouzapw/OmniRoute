@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Ominaisuudet</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Yhdistelmät</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Palveluntarjoajat</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Palveluntarjoajat</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
 
 <div align="center">
 
-## 🌐 357 tekoälypalveluntarjoajaa — 152 merkitty luettelossa ilmaisiksi
+## 🌐 372 tekoälypalveluntarjoajaa — 154 merkitty luettelossa ilmaisiksi
 
 </div>
 
@@ -1274,7 +1274,7 @@ Kanoniset mittarit 2026-08-24: **1.029 yksilöllistä videota** · **11.132.922 
   <tr><td nowrap><b>Ajoympäristö</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Kieli</b></td><td>TypeScript 6.0 — <b>100 % TypeScriptiä</b> hakemistoissa <code>src/</code> ja <code>open-sse/</code> (ei yhtään <code>any</code>-tyyppiä ytimessä versiosta v2.0 lähtien)</td></tr>
   <tr><td nowrap><b>Sovelluskehys</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Tietokanta</b></td><td>better-sqlite3 (SQLite, WAL-lokikirjaus) + LowDB (vanha JSON-ratkaisu) — 137 toimialuemoduulia, 193 migraatiota</td></tr>
+  <tr><td nowrap><b>Tietokanta</b></td><td>better-sqlite3 (SQLite, WAL-lokikirjaus) + LowDB (vanha JSON-ratkaisu) — 137 toimialuemoduulia, 202 migraatiota</td></tr>
   <tr><td nowrap><b>Muisti</b></td><td>SQLite FTS5 -kokotekstihaku + int8-kvantisoidut vektoriupotukset, tyypitetty vaimeneminen</td></tr>
   <tr><td nowrap><b>Skeemat</b></td><td>Zod 4 — MCP-työkalujen I/O-validointi + API-sopimukset</td></tr>
   <tr><td nowrap><b>Protokollat</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

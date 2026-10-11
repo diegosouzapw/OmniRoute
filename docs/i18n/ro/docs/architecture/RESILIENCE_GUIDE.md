@@ -95,6 +95,8 @@ Test de protecție împotriva regresiilor: `tests/unit/provider-cooldown-window-
 
 **Protecție anti-thundering-herd:** împiedică erorile concurente să prelungească excesiv perioada de așteptare sau să incrementeze de două ori `backoffLevel`.
 
+Cadrele binare `reasoningContentEvent` Kiro cu o semnătură nevidă păstrează activitatea de raționament prin executor ca deltă `reasoning_content` goală. Semnătura nu este transmisă mai departe. Metadatele, cadrele incomplete și semnăturile goale nu repornesc limita de timp pentru conținut; limita independentă a duratei fluxului activ și anularea de către client rămân în vigoare. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Stări terminale (NU perioade de așteptare):**
 
 - `banned` — setată prin detectarea cuvintelor-cheie asociate interdicției/detectarea blocării contului (consultați [BAN_DETECTION](../security/BAN_DETECTION.md)) și prin trei refuzuri consecutive per solicitare din amonte (`request_rejected`, de exemplu, răspunsul Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); un singur refuz doar plasează conexiunea în perioada de așteptare
