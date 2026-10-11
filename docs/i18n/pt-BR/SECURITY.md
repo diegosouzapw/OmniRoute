@@ -6,7 +6,7 @@
 
 ## Relato de Vulnerabilidades
 
-Se você descobrir uma vulnerabilidade de segurança no OmniRoute, relate-a de maneira responsável:
+Se você descobrir uma vulnerabilidade de segurança no OmniRoute, relate-a de forma responsável:
 
 1. **NÃO** abra uma issue pública no GitHub
 2. Use os [Avisos de Segurança do GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
@@ -22,92 +22,112 @@ Se você descobrir uma vulnerabilidade de segurança no OmniRoute, relate-a de m
 
 ## Versões Compatíveis
 
-| Versão  | Status do Suporte |
-| ------- | ----------------- |
-| 3.8.x   | ✅ Ativo          |
-| 3.7.x   | ✅ Segurança      |
-| < 3.7.0 | ❌ Sem suporte    |
+| Versão  | Status do Suporte                                   |
+| ------- | --------------------------------------------------- |
+| 3.9.x   | 🗓️ Planejado — linha LTS (`stable/v3`), veja abaixo |
+| 3.8.x   | ✅ Ativo                                            |
+| 3.7.x   | ✅ Segurança                                        |
+| < 3.7.0 | ❌ Sem suporte                                      |
+
+## Janela de suporte LTS (v3.9.x)
+
+Após a 3.8.59, a próxima versão será a **3.9.0**, que inaugura a linha de suporte de longo prazo na
+branch `stable/v3` (consulte [`ROADMAP.md`](ROADMAP.md) → "Fase 3 — v3.9.0 LTS").
+
+- **O que `stable/v3` recebe:** correções de bugs, patches de segurança e atualizações de provedores. Novos
+  recursos seguem para o canal v4; a linha LTS prioriza a estabilidade. `npm install omniroute`
+  (a dist-tag `latest`) permanece na v3 durante todo o ciclo da v4.
+- **Duração da janela:** `<T-GAP-3: decisão do responsável pendente — consulte ROADMAP.md>`. A duração
+  da janela após a disponibilidade geral da v4.0 (quando `latest` muda para a v4) **ainda não foi decidida**; esta
+  seção será atualizada quando o mantenedor anunciá-la. Até lá, não presuma uma data de término.
+- **Relato de vulnerabilidade na linha LTS:** use o mesmo canal que para qualquer outra versão —
+  um [Aviso de Segurança do GitHub](https://github.com/diegosouzapw/OmniRoute/security/advisories/new) privado,
+  nunca uma issue pública. Informe qual versão você testou (por exemplo, `3.9.2`); as correções são aplicadas à
+  `stable/v3` e encaminhadas para a v4.
+- **Linha de base de segurança no corte da LTS:** o estado medido pelo scanner, o guardião de rotas e
+  as comprovações de credenciais públicas estão registrados em
+  [`docs/security/LTS_SECURITY_BASELINE.md`](docs/security/LTS_SECURITY_BASELINE.md).
 
 ---
 
 ## Arquitetura de Segurança
 
-O OmniRoute implementa um modelo de segurança em múltiplas camadas:
+O OmniRoute implementa um modelo de segurança em várias camadas:
 
 ```
-Requisição → CORS → Pipeline de autorização (classificar → políticas → aplicar)
+Requisição → CORS → Pipeline de Authz (classificar → políticas → aplicar)
            → Proteções (mascarador de PII, injeção de prompt, ponte de visão)
-           → Limitador de Taxa → Disjuntor → Tempo de Espera → Bloqueio do Modelo → Provedor
+           → Limitador de Taxa → Disjuntor → Tempo de Espera → Bloqueio de Modelo → Provedor
 ```
 
 ### 🔐 Autenticação e Autorização
 
-| Recurso                             | Implementação                                                                                                                                                              |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Login no Painel**                 | Autenticação baseada em senha com tokens JWT (cookies HttpOnly)                                                                                                            |
-| **Autenticação por Chave de API**   | Chaves assinadas com HMAC e validação CRC                                                                                                                                  |
-| **OAuth 2.0 + PKCE**                | O OAuth específico do provedor via navegador/dispositivo usa PKCE quando compatível; credenciais Devin somente para importação são tratadas separadamente.                 |
-| **Renovação de Token**              | Renovação automática do token OAuth antes da expiração                                                                                                                     |
-| **Cookies Seguros**                 | `AUTH_COOKIE_SECURE=true` para ambientes HTTPS                                                                                                                             |
-| **Pipeline de Autorização**         | Classificação de rotas (PUBLIC / CLIENT_API / MANAGEMENT) — consulte `docs/architecture/AUTHZ_GUIDE.md`                                                                    |
-| **Níveis de Proteção de Rotas**     | Modelo de 3 níveis para rotas de gerenciamento (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — consulte `docs/security/ROUTE_GUARD_TIERS.md`                                |
-| **MCP com Escopo de Gerenciamento** | O acesso remoto a `/api/mcp/*` é controlado por chaves de API com o escopo `manage`; `/api/cli-tools/runtime/*` permanece restrito ao loopback. Consulte ROUTE_GUARD_TIERS |
-| **Escopos MCP**                     | 32 escopos granulares (read:health, write:combos, execute:completions etc.) — consulte `docs/frameworks/MCP-SERVER.md`                                                     |
+| Recurso                             | Implementação                                                                                                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Login no Painel**                 | Autenticação por senha com tokens JWT (cookies HttpOnly)                                                                                                              |
+| **Autenticação por Chave de API**   | Chaves assinadas com HMAC e validação CRC                                                                                                                             |
+| **OAuth 2.0 + PKCE**                | O OAuth específico do provedor via navegador/dispositivo usa PKCE quando compatível; credenciais Devin somente para importação são tratadas separadamente.            |
+| **Atualização de Token**            | Atualização automática do token OAuth antes da expiração                                                                                                              |
+| **Cookies Seguros**                 | `AUTH_COOKIE_SECURE=true` para ambientes HTTPS                                                                                                                        |
+| **Pipeline de Authz**               | Classificação de rotas (PUBLIC / CLIENT_API / MANAGEMENT) — consulte `docs/architecture/AUTHZ_GUIDE.md`                                                               |
+| **Níveis de Proteção de Rotas**     | Modelo de 3 níveis para rotas de gerenciamento (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — consulte `docs/security/ROUTE_GUARD_TIERS.md`                           |
+| **MCP com Escopo de Gerenciamento** | Acesso remoto a `/api/mcp/*` protegido por chaves de API com o escopo `manage`; `/api/cli-tools/runtime/*` permanece restrito ao loopback. Consulte ROUTE_GUARD_TIERS |
+| **Escopos MCP**                     | 32 escopos granulares (read:health, write:combos, execute:completions etc.) — consulte `docs/frameworks/MCP-SERVER.md`                                                |
 
-### 🛡️ Criptografia em Repouso
+### 🛡️ Criptografia de Dados em Repouso
 
 Todos os dados confidenciais armazenados no SQLite são criptografados usando **AES-256-GCM** com derivação de chave scrypt:
 
 - Chaves de API, tokens de acesso, tokens de atualização e tokens de ID
 - Formato versionado: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Modo de passagem direta (texto simples) quando `STORAGE_ENCRYPTION_KEY` não está definida
+- Modo passthrough (texto simples) quando `STORAGE_ENCRYPTION_KEY` não está definida
 
 ```bash
-# Gerar chave de criptografia:
+# Gere a chave de criptografia:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
 ### 🛡️ Framework de Proteções
 
-O OmniRoute inclui um **registro de proteções** com recarregamento dinâmico (`src/lib/guardrails/`), com 3 proteções integradas ordenadas por prioridade:
+O OmniRoute inclui um **registro de proteções** com recarregamento dinâmico (`src/lib/guardrails/`) e 3 proteções integradas ordenadas por prioridade:
 
-| Proteção           | Prioridade | Finalidade                                                                                                       |
-| ------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------- |
-| `vision-bridge`    | 5          | Conecta modelos sem recursos de visão a descrições cientes de imagens; proteção contra SSRF para URLs de imagens |
-| `pii-masker`       | 10         | Ocultação de PII antes e depois da chamada (e-mails, telefone, CPF, CNPJ, cartões de crédito, SSN)               |
-| `prompt-injection` | 20         | Detecta padrões de substituição de instruções/sequestro de função/jailbreak/vazamento                            |
+| Proteção           | Prioridade | Finalidade                                                                                                      |
+| ------------------ | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5          | Conecta modelos sem visão a descrições com reconhecimento de imagens; proteção contra SSRF para URLs de imagens |
+| `pii-masker`       | 10         | Ocultação de PII antes e depois da chamada (e-mails, telefone, CPF, CNPJ, cartões de crédito, SSN)              |
+| `prompt-injection` | 20         | Detecta padrões de sobrescrita/sequestro de função/jailbreak/vazamento                                          |
 
-Proteções personalizadas são registradas por meio de `registerGuardrail(new MyGuardrail())`. O modelo permite o tráfego em caso de falha (exceções nunca bloqueiam o tráfego). Desativação por requisição por meio do cabeçalho `x-omniroute-disabled-guardrails`. → Consulte [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+Proteções personalizadas são registradas por meio de `registerGuardrail(new MyGuardrail())`. O modelo é fail-open (exceções nunca bloqueiam o tráfego). A desativação por requisição é feita pelo cabeçalho `x-omniroute-disabled-guardrails`. → Consulte [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Proteção contra Injeção de Prompt
+### 🧠 Proteção Contra Injeção de Prompt
 
 Middleware heurístico de melhor esforço que detecta padrões de injeção de prompt em requisições a LLMs.
-**Não é um firewall completo contra injeção de prompt** — pode produzir falsos positivos (prompts benignos
-de persona/RPG) e falsos negativos (leetspeak, espaçamento, padrões em outros idiomas).
+**Não é um firewall completo contra injeção de prompt** — pode produzir falsos positivos (prompts
+inofensivos de persona/RPG) e falsos negativos (leetspeak, espaçamento, padrões em outros idiomas).
 
-| Tipo de Padrão          | Gravidade | Exemplo                                                      |
-| ----------------------- | --------- | ------------------------------------------------------------ |
-| Substituição do Sistema | Alta      | "ignore todas as instruções anteriores"                      |
-| Sequestro de Função     | Média     | "agora você é DAN, você pode fazer qualquer coisa"           |
-| Injeção de Delimitador  | Alta      | Separadores codificados para romper os limites do contexto   |
-| DAN/Jailbreak           | Média     | Padrões conhecidos de prompts de jailbreak                   |
-| Vazamento de Instruções | Alta      | "mostre-me seu prompt do sistema"                            |
-| Evasão por Codificação  | Média     | decodificação base64/rot13/hex + palavras-chave de instrução |
+| Tipo de padrão          | Severidade | Exemplo                                                      |
+| ----------------------- | ---------- | ------------------------------------------------------------ |
+| Sobrescrita de sistema  | Alta       | "ignore todas as instruções anteriores"                      |
+| Sequestro de função     | Média      | "agora você é o DAN, você pode fazer qualquer coisa"         |
+| Injeção de delimitador  | Alta       | Separadores codificados para romper limites de contexto      |
+| DAN/Jailbreak           | Média      | Padrões conhecidos de prompts de jailbreak                   |
+| Vazamento de instruções | Alta       | "mostre seu prompt de sistema"                               |
+| Evasão por codificação  | Média      | decodificação base64/rot13/hex + palavras-chave de instrução |
 
-Somente detecções de gravidade **Alta** são bloqueadas no modo `block`. Famílias de gravidade
+Somente detecções de severidade **Alta** são bloqueadas no modo `block`. Famílias de severidade
 média são registradas, mas nunca bloqueadas por `sanitizeRequest`.
 
 Configure pelo painel (Configurações → Segurança) ou pelo `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block (política de injeção; o modo legado "redact" não remove texto de injeção)
-INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (padrão) | medium | low — gravidades iguais ou superiores a esta são bloqueadas no modo block
+INPUT_SANITIZER_MODE=block    # warn | block (política de injeção; o "redact" legado não remove o texto da injeção)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (padrão) | medium | low — severidades iguais ou superiores a esta são bloqueadas no modo block
 ```
 
-### 🔒 Ocultação de PII
+### 🔒 Redação de PII
 
-Detecção automática e ocultação opcional de informações de identificação pessoal:
+Detecção automática e redação opcional de informações de identificação pessoal:
 
 | Tipo de PII       | Padrão                | Substituição       |
 | ----------------- | --------------------- | ------------------ |
@@ -119,20 +139,20 @@ Detecção automática e ocultação opcional de informações de identificaçã
 | SSN (EUA)         | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true   # solicita a reescrita de PII; independente de INPUT_SANITIZER_MODE
-PII_RESPONSE_SANITIZATION=true  # opcional: oculta PII nas respostas do provedor retornadas aos clientes
+PII_REDACTION_ENABLED=true   # reescrever PII da requisição; independente de INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # opcional: redigir PII nas respostas dos provedores retornadas aos clientes
 ```
 
 ### 🌐 Segurança de rede
 
-| Recurso                      | Descrição                                                                                          |
-| ---------------------------- | -------------------------------------------------------------------------------------------------- |
-| **CORS**                     | Lista explícita de origens permitidas entre origens (`CORS_ALLOWED_ORIGINS`; legado `CORS_ORIGIN`) |
-| **Filtragem de IP**          | Intervalos de IP permitidos/bloqueados no painel                                                   |
-| **Limitação de taxa**        | Limites de taxa por provedor com recuo automático                                                  |
-| **Anti-Thundering Herd**     | Mutex + bloqueio por conexão evitam erros 502 em cascata                                           |
-| **Impressão digital TLS**    | Falsificação de impressão digital TLS semelhante à de navegadores para reduzir a detecção de bots  |
-| **Impressão digital da CLI** | Ordenação de cabeçalhos/corpo por provedor para corresponder às assinaturas nativas da CLI         |
+| Recurso                      | Descrição                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| **CORS**                     | Lista explícita de origens permitidas (`CORS_ALLOWED_ORIGINS`; `CORS_ORIGIN` legado)              |
+| **Filtragem de IP**          | Faixas de IP permitidas/bloqueadas no painel                                                      |
+| **Limitação de taxa**        | Limites de taxa por provedor com recuo automático                                                 |
+| **Anti-Thundering Herd**     | Mutex + bloqueio por conexão evitam erros 502 em cascata                                          |
+| **Impressão digital TLS**    | Falsificação de impressão digital TLS semelhante à de navegadores para reduzir a detecção de bots |
+| **Impressão digital de CLI** | Ordenação de cabeçalhos/corpo por provedor para corresponder às assinaturas nativas da CLI        |
 
 ### 🔌 Resiliência e disponibilidade
 
@@ -141,30 +161,30 @@ PII_RESPONSE_SANITIZATION=true  # opcional: oculta PII nas respostas do provedor
 | **Disjuntor**                   | 3 estados (Fechado → Aberto → Semiaberto) por provedor, persistido no SQLite |
 | **Idempotência de requisições** | Janela de desduplicação de 5 segundos para requisições duplicadas            |
 | **Recuo exponencial**           | Nova tentativa automática com atrasos crescentes                             |
-| **Painel de integridade**       | Monitoramento da integridade dos provedores em tempo real                    |
+| **Painel de integridade**       | Monitoramento em tempo real da integridade dos provedores                    |
 
 ### 📋 Conformidade
 
-| Recurso                    | Descrição                                                                         |
-| -------------------------- | --------------------------------------------------------------------------------- |
-| **Retenção de logs**       | Limpeza automática após `CALL_LOG_RETENTION_DAYS`                                 |
-| **Opção de não registrar** | A flag `noLog` por chave de API desativa o registro de requisições                |
-| **Log de auditoria**       | Ações administrativas rastreadas na tabela `audit_log`                            |
-| **Auditoria MCP**          | Registro de auditoria baseado em SQLite para todas as chamadas de ferramentas MCP |
-| **Validação com Zod**      | Todas as entradas da API são validadas com esquemas Zod v4 ao carregar o módulo   |
+| Recurso                         | Descrição                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| **Retenção de logs**            | Limpeza automática após `CALL_LOG_RETENTION_DAYS`                                    |
+| **Opção de não registrar logs** | A flag `noLog` por chave de API desativa o registro de requisições                   |
+| **Log de auditoria**            | Ações administrativas rastreadas na tabela `audit_log`                               |
+| **Auditoria MCP**               | Registro de auditoria baseado em SQLite para todas as chamadas de ferramentas MCP    |
+| **Validação com Zod**           | Todas as entradas da API são validadas com esquemas Zod v4 no carregamento do módulo |
 
 ---
 
-## Variáveis de ambiente obrigatórias
+## Variáveis de Ambiente Obrigatórias
 
 Todos os segredos devem ser definidos antes de iniciar o servidor. O servidor **falhará imediatamente** se eles estiverem ausentes ou forem fracos.
 
 ```bash
-# OBRIGATÓRIO — o servidor não será iniciado sem estas variáveis:
-JWT_SECRET=$(openssl rand -base64 48)     # mínimo de 32 caracteres
-API_KEY_SECRET=$(openssl rand -hex 32)    # mínimo de 16 caracteres
+# OBRIGATÓRIO — o servidor não será iniciado sem estes:
+JWT_SECRET=$(openssl rand -base64 48)     # mín. de 32 caracteres
+API_KEY_SECRET=$(openssl rand -hex 32)    # mín. de 16 caracteres
 
-# RECOMENDADO — habilita a criptografia de dados em repouso:
+# RECOMENDADO — habilita a criptografia de dados armazenados:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
@@ -197,61 +217,51 @@ docker run -d \
 
 ## Dependências
 
-- Execute `npm audit` regularmente (`npm run audit:deps` abrange o projeto principal + electron)
+- Execute `npm audit` regularmente (`npm run audit:deps` abrange main + electron)
 - Mantenha as dependências atualizadas
 - O projeto usa `husky` + `lint-staged` para verificações de pré-commit (lint-staged + check-docs-sync + check:any-budget:t11)
-- O pipeline de CI executa regras de segurança do ESLint a cada push (`no-eval`, `no-implied-eval`, `no-new-func` = erro)
-- As constantes dos provedores são validadas no carregamento do módulo por meio do Zod (`src/shared/validation/schemas.ts`)
-- Bibliotecas seguras por padrão utilizadas: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (sem risco de SQLi devido a consultas parametrizadas), `bcryptjs` (hash de senhas)
+- O pipeline de CI executa regras de segurança do ESLint em cada push (`no-eval`, `no-implied-eval`, `no-new-func` = erro)
+- As constantes de provedores são validadas no carregamento do módulo por meio do Zod (`src/shared/validation/schemas.ts`)
+- Bibliotecas seguras por padrão utilizadas: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (sem risco de SQLi por meio de consultas parametrizadas), `bcryptjs` (hash de senhas)
 
-## Regras rígidas de segurança
+## Regras Rígidas de Segurança
 
-Estas regras são aplicadas pelas ferramentas e pelos revisores:
+Estas regras são aplicadas por ferramentas e revisores:
 
-1. **Nunca faça commit de segredos** — `.env` é ignorado pelo Git; `.env.example` é o modelo (sem literais, apenas comentários — consulte PUBLIC_CREDS.md abaixo)
-2. **Nunca use `eval()`, `new Function()` ou avaliação implícita** — o ESLint garante o cumprimento dessa regra
+1. **Nunca faça commit de segredos** — `.env` é ignorado pelo Git; `.env.example` é o modelo (sem literais, somente comentários — consulte PUBLIC_CREDS.md abaixo)
+2. **Nunca use `eval()`, `new Function()` ou eval implícito** — o ESLint impõe essa regra
 3. **Nunca ignore os hooks do Husky** (`--no-verify`, `--no-gpg-sign`) sem a aprovação explícita do operador
 4. **Nunca escreva SQL bruto nas rotas** — sempre use `src/lib/db/` (parametrizado)
-5. **Sempre valide as entradas com o Zod** — `src/shared/validation/schemas.ts`
-6. **Sempre sanitize os cabeçalhos upstream** — lista de bloqueio em `src/shared/constants/upstreamHeaders.ts`
-7. **Criptografe as credenciais em repouso** — AES-256-GCM por meio de `src/lib/db/encryption.ts`
-8. **Identificadores OAuth upstream públicos por meio de `resolvePublicCred()`** — nunca incorpore literais `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` no código-fonte. Consulte [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Respostas de erro por meio de `buildErrorBody()` / `sanitizeErrorMessage()`** — nunca inclua `err.stack` / `err.message` brutos nos corpos das respostas HTTP / SSE / executor / MCP. Consulte [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **Valores de tempo de execução de `exec()` / `spawn()` por meio da opção `env`** — nunca interpole como string caminhos externos ou valores não confiáveis em scripts passados ao shell. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Prefira bibliotecas seguras por padrão** — consulte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Recorra a elas antes de desenvolver sua própria solução.
+5. **Sempre valide as entradas com Zod** — `src/shared/validation/schemas.ts`
+6. **Sempre higienize os cabeçalhos upstream** — lista de bloqueio em `src/shared/constants/upstreamHeaders.ts`
+7. **Criptografe as credenciais armazenadas** — AES-256-GCM por meio de `src/lib/db/encryption.ts`
+8. **Identificadores OAuth públicos de upstream por meio de `resolvePublicCred()`** — nunca incorpore literais `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` no código-fonte. Consulte [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Respostas de erro por meio de `buildErrorBody()` / `sanitizeErrorMessage()`** — nunca inclua `err.stack` / `err.message` brutos nos corpos de respostas HTTP / SSE / executor / MCP. Consulte [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **Valores de runtime de `exec()` / `spawn()` por meio da opção `env`** — nunca interpole caminhos externos ou valores não confiáveis em scripts passados ao shell. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefira bibliotecas seguras por padrão** — consulte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Dê preferência a elas antes de criar sua própria solução.
 
-## Descobertas do scanner de cadeia de suprimentos (Socket.dev / Snyk / similares)
+## Achados do scanner de cadeia de suprimentos (Socket.dev / Snyk / similares)
 
-> **Nota de escopo:** o `socket.yml` na raiz do repositório apenas configura `projectIgnorePaths` para a análise pós-publicação, no lado do registro, realizada pelo Socket.dev sobre o artefato npm publicado — ele não é um bloqueio obrigatório para integração contínua/mesclagem de PRs. Nenhum fluxo de trabalho em `.github/workflows`, nenhum script de `package.json` e nenhum alvo de `Makefile` invoca o Socket.dev.
+> **Nota de escopo:** o arquivo `socket.yml` na raiz do repositório apenas configura `projectIgnorePaths` para a análise pós-publicação, executada no lado do registro pelo Socket.dev, do artefato npm publicado — ele não é uma verificação obrigatória para integração contínua (CI) nem para mesclagem de solicitações de pull (PRs). Nenhum fluxo de trabalho em `.github/workflows`, script em `package.json` ou alvo em `Makefile` invoca o Socket.dev.
 
-O artefato npm publicado do `omniroute` inclui o build do Next.js com `output: "standalone"`,
-o que significa que cada manipulador de rota — incluindo recursos privilegiados
-documentados (MITM, importação do Zed, Cloud Sync, supervisor de serviço integrado) — acaba
-em chunks minificados em `.next/server/*.js`. Scanners heurísticos de cadeia de suprimentos
-frequentemente comparam esses chunks com padrões de assinaturas de malware.
+O artefato npm publicado do `omniroute` inclui a compilação Next.js com `output: "standalone"`, o que significa que todos os manipuladores de rota — incluindo funcionalidades privilegiadas documentadas (MITM, importação do Zed, Cloud Sync e supervisor de serviços integrado) — acabam em blocos minificados `.next/server/*.js`. Scanners heurísticos de cadeia de suprimentos frequentemente comparam esses blocos a padrões de assinaturas de malware.
 
-A configuração do scanner que usamos fica em [`socket.yml`](socket.yml) na
-raiz do repositório (formato v2 do GitHub App do Socket.dev — consulte
-<https://docs.socket.dev/docs/socket-yml>). Ela exclui explicitamente
-diretórios não distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
-`_mono_repo/`, `docs/` etc.), para que o scanner reporte apenas caminhos de código que
-realmente chegam aos usuários do pacote publicado — a própria análise é acionada pelo GitHub
-App do Socket ao ler esse arquivo, e não por um fluxo de trabalho deste repositório.
+A configuração do scanner que usamos está em [`socket.yml`](socket.yml), na raiz do repositório (formato v2 do aplicativo Socket.dev para GitHub — consulte <https://docs.socket.dev/docs/socket-yml>). Ela exclui explicitamente diretórios não distribuídos (`tests/`, `_tasks/`, `_references/`, `_ideia/`, `_mono_repo/`, `docs/` etc.), para que o scanner reporte apenas caminhos de código que realmente chegam aos usuários do pacote publicado — a análise propriamente dita é acionada pelo aplicativo Socket para GitHub, que lê esse arquivo, e não por um fluxo de trabalho neste repositório.
 
-Para cada categoria de descoberta, mantemos uma declaração por descoberta feita pelos mantenedores:
+Para cada categoria de achado, mantemos uma declaração do mantenedor específica para cada achado:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mapa por descoberta: arquivo-fonte ↔ chunk sinalizado ↔ comportamento ↔ mitigação
+  mapa por achado: arquivo-fonte ↔ bloco sinalizado ↔ comportamento ↔ mitigação
   aplicada na v3.8.6.
 - Blocos `SECURITY-AUDITOR-NOTE:` no código-fonte, em cada função sinalizada,
-  remetem ao mesmo documento.
+  apontam para o mesmo documento.
 
 Para usuários cujo pipeline não permite flexibilizar o alerta: compile com
 `OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Isso substitui os quatro
-módulos sensíveis por stubs que retornam HTTP 503 `feature-disabled` em
-tempo de execução, de modo que os caminhos de código privilegiados ficam fisicamente ausentes do bundle.
+módulos sensíveis por stubs que retornam HTTP 503 `feature-disabled` em tempo
+de execução, de modo que os caminhos de código privilegiados fiquem fisicamente ausentes do pacote compilado.
 Consulte [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-para ver o procedimento de publicação.
+para obter o procedimento de publicação.
 
 ## Referências
 
@@ -260,8 +270,8 @@ para ver o procedimento de publicação.
 - [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — log de auditoria e retenção
 - [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — padrão **obrigatório** para credenciais públicas de serviços upstream
 - [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — padrão **obrigatório** para respostas de erro
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — declaração do mantenedor sobre achados de scanners da cadeia de suprimentos
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — fingerprinting TLS (aviso legal/ético)
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — declaração do mantenedor sobre os achados do scanner de cadeia de suprimentos
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — disjuntor + período de espera + bloqueio
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — impressão digital de TLS (aviso jurídico/ético)
 - [`CLAUDE.md`](CLAUDE.md) — regras rígidas para agentes de IA
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — bibliotecas selecionadas com configurações padrão seguras
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — bibliotecas selecionadas com padrões seguros por padrão

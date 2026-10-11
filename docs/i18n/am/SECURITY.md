@@ -4,29 +4,49 @@
 
 ---
 
-## የደህንነት ተጋላጭነቶችን ሪፖርት ማድረግ
+## የተጋላጭነት ሪፖርት ማድረግ
 
-በOmniRoute ውስጥ የደህንነት ተጋላጭነት ካገኙ፣ እባክዎ ኃላፊነት በተሞላበት መንገድ ሪፖርት ያድርጉት፦
+በOmniRoute ውስጥ የደህንነት ተጋላጭነት ካገኙ፣ እባክዎ በኃላፊነት ሪፖርት ያድርጉት፦
 
 1. ይፋዊ የGitHub ጉዳይ **አይክፈቱ**
 2. [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)ን ይጠቀሙ
-3. መግለጫ፣ የመድገሚያ ደረጃዎች እና ሊያስከትል የሚችለውን ተጽዕኖ ያካትቱ
+3. የሚከተሉትን ያካትቱ፦ መግለጫ፣ እንደገና ለማሳየት የሚያስችሉ ደረጃዎች እና ሊኖር የሚችል ተፅዕኖ
 
-## የምላሽ የጊዜ ሰሌዳ
+## የምላሽ ጊዜ ሰሌዳ
 
 | ደረጃ         | ዒላማ              |
 | ----------- | ---------------- |
-| ደረሰኝ ማረጋገጫ  | 48 ሰዓታት          |
+| ማረጋገጫ       | 48 ሰዓታት          |
 | ምደባ እና ግምገማ | 5 የሥራ ቀናት        |
 | የማስተካከያ ልቀት | 14 የሥራ ቀናት (ወሳኝ) |
 
 ## የሚደገፉ ስሪቶች
 
-| ስሪት     | የድጋፍ ሁኔታ  |
-| ------- | --------- |
-| 3.8.x   | ✅ ንቁ     |
-| 3.7.x   | ✅ የደህንነት |
-| < 3.7.0 | ❌ የማይደገፍ |
+| ስሪት     | የድጋፍ ሁኔታ                                    |
+| ------- | ------------------------------------------- |
+| 3.9.x   | 🗓️ የታቀደ — LTS መስመር (`stable/v3`)፣ ከታች ይመልከቱ |
+| 3.8.x   | ✅ ንቁ                                       |
+| 3.7.x   | ✅ የደህንነት                                   |
+| < 3.7.0 | ❌ የማይደገፍ                                   |
+
+## የLTS ድጋፍ ጊዜ መስኮት (v3.9.x)
+
+ከ3.8.59 በኋላ ቀጣዩ ስሪት **3.9.0** ሲሆን፣ ይህም በ
+`stable/v3` ቅርንጫፍ ላይ የረጅም ጊዜ ድጋፍ መስመሩን ይከፍታል ([`ROADMAP.md`](ROADMAP.md) → "ደረጃ 3 — v3.9.0 LTS"ን ይመልከቱ)።
+
+- **`stable/v3` የሚቀበለው፦** የሳንካ ማስተካከያዎች፣ የደህንነት ማስተካከያዎች እና የአቅራቢ ዝማኔዎች። አዳዲስ
+  ባህሪያት ወደ v4 ቻናል ይሄዳሉ፤ የLTS መስመሩ ለመረጋጋት ቅድሚያ ይሰጣል። `npm install omniroute`
+  (የ`latest` dist-tag) በጠቅላላው የv4 ዑደት ውስጥ በv3 ላይ ይቆያል።
+- **የጊዜ መስኮቱ ቆይታ፦** `<T-GAP-3: የባለቤቱ ውሳኔ በመጠባበቅ ላይ — ROADMAP.mdን ይመልከቱ>`። ከv4.0 GA በኋላ
+  (`latest` ወደ v4 ሲቀየር) ያለው የጊዜ መስኮት ርዝመት **እስካሁን አልተወሰነም**፤ ጠባቂው
+  ሲያሳውቀው ይህ ክፍል ይዘምናል። እስከዚያ ድረስ የማብቂያ ቀን አለው ብለው አያስቡ።
+- **በLTS መስመር ውስጥ ተጋላጭነትን ሪፖርት ማድረግ፦** እንደማንኛውም ሌላ ስሪት ተመሳሳይ ቻናል —
+  የግል [GitHub Security Advisory](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)ን ይጠቀሙ፣
+  ይፋዊ ጉዳይን ፈጽሞ አይጠቀሙ። የትኛውን ስሪት እንደፈተኑ ይግለጹ (ለምሳሌ `3.9.2`)፤ ማስተካከያዎች በ
+  `stable/v3` ላይ ይገባሉ እና ወደ v4 ይተላለፋሉ።
+- **በLTS መቁረጫ ጊዜ ያለው የደህንነት መነሻ መስፈርት፦** የተለካው የስካነር ሁኔታ፣ የመስመር ጠባቂ እና
+  የይፋዊ ማረጋገጫ መረጃ ማስረጃዎች በ
+  [`docs/security/LTS_SECURITY_BASELINE.md`](docs/security/LTS_SECURITY_BASELINE.md) ውስጥ ተመዝግበዋል።
 
 ---
 
@@ -35,132 +55,132 @@
 OmniRoute ባለብዙ ንብርብር የደህንነት ሞዴልን ተግባራዊ ያደርጋል፦
 
 ```
-ጥያቄ → CORS → የAuthz ቧንቧ መስመር (መመደብ → ፖሊሲዎች → ማስፈጸም)
-       → መከላከያዎች (የPII ደባቂ፣ የጥያቄ መርፌ፣ የእይታ ድልድይ)
-       → የመጠን ገዳቢ → የወረዳ ሰባሪ → የማቀዝቀዣ ጊዜ → የሞዴል መቆለፊያ → አቅራቢ
+ጥያቄ → CORS → የAuthz ሂደት (መመደብ → ፖሊሲዎች → ማስፈጸም)
+       → መከላከያዎች (የPII ሸፋኝ፣ የፕሮምፕት ጣልቃ ገብነት፣ የምስል ድልድይ)
+       → የፍጥነት ገዳቢ → የወረዳ ቆራጭ → የማቀዝቀዣ ጊዜ → የሞዴል እገዳ → አቅራቢ
 ```
 
-### 🔐 ማንነትን ማረጋገጥ እና ፈቃድ መስጠት
+### 🔐 ማንነት ማረጋገጥ እና ፈቃድ መስጠት
 
-| ባህሪ                    | አተገባበር                                                                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **የዳሽቦርድ መግቢያ**        | JWT ቶከኖችን (HttpOnly ኩኪዎች) የሚጠቀም በይለፍ ቃል ላይ የተመሠረተ የማንነት ማረጋገጫ                                                                              |
-| **የAPI ቁልፍ ማረጋገጫ**     | CRC ማረጋገጫ ያላቸው በHMAC የተፈረሙ ቁልፎች                                                                                                            |
-| **OAuth 2.0 + PKCE**   | የአቅራቢ-ተኮር የአሳሽ/መሣሪያ OAuth፣ በሚደገፍበት ቦታ PKCEን ይጠቀማል፤ ለማስመጣት ብቻ የሚያገለግሉ የDevin ምስክርነቶች በተናጠል ይከናወናሉ።                                          |
-| **ቶከን ማደስ**            | OAuth ቶከን ከማብቃቱ በፊት በራስ-ሰር ማደስ                                                                                                             |
-| **ደህንነታቸው የተጠበቁ ኩኪዎች** | ለHTTPS አካባቢዎች `AUTH_COOKIE_SECURE=true`                                                                                                    |
-| **የAuthz ቧንቧ መስመር**    | የመንገድ ምደባ (PUBLIC / CLIENT_API / MANAGEMENT) — `docs/architecture/AUTHZ_GUIDE.md`ን ይመልከቱ                                                   |
-| **የመንገድ ጥበቃ ደረጃዎች**    | ለአስተዳደር መንገዶች ባለ3-ደረጃ ሞዴል (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — `docs/security/ROUTE_GUARD_TIERS.md`ን ይመልከቱ                       |
-| **የManage-Scope MCP**  | የርቀት `/api/mcp/*` መዳረሻ `manage` scope ባላቸው API ቁልፎች ይገደባል፤ `/api/cli-tools/runtime/*` በጥብቅ የloopback ገደብ ላይ ይቆያል። ROUTE_GUARD_TIERSን ይመልከቱ |
-| **የMCP ወሰኖች**          | 32 ዝርዝር ወሰኖች (read:health፣ write:combos፣ execute:completions፣ ወዘተ) — `docs/frameworks/MCP-SERVER.md`ን ይመልከቱ                                |
+| ባህሪ                    | አተገባበር                                                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **የዳሽቦርድ መግቢያ**        | የይለፍ ቃልን መሠረት ያደረገ ማንነት ማረጋገጫ ከJWT ቶከኖች (HttpOnly ኩኪዎች) ጋር                                                                          |
+| **የAPI ቁልፍ ማረጋገጫ**     | በHMAC የተፈረሙ ቁልፎች ከCRC ማረጋገጫ ጋር                                                                                                      |
+| **OAuth 2.0 + PKCE**   | ለአቅራቢ የተለየ የአሳሽ/መሣሪያ OAuth፣ በሚደገፍበት ቦታ PKCEን ይጠቀማል፤ ለማስመጣት ብቻ የሚያገለግሉ የDevin ማረጋገጫዎች ለየብቻ ይስተናገዳሉ።                                  |
+| **ቶከን ማደስ**            | ከማብቂያው በፊት ራስ-ሰር የOAuth ቶከን ማደስ                                                                                                     |
+| **ደህንነታቸው የተጠበቁ ኩኪዎች** | ለHTTPS አካባቢዎች `AUTH_COOKIE_SECURE=true`                                                                                             |
+| **የAuthz ሂደት**         | የመስመር ምደባ (PUBLIC / CLIENT_API / MANAGEMENT) — `docs/architecture/AUTHZ_GUIDE.md`ን ይመልከቱ                                            |
+| **የመስመር ጠባቂ ደረጃዎች**    | ለአስተዳደር መስመሮች ባለ3-ደረጃ ሞዴል (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — `docs/security/ROUTE_GUARD_TIERS.md`ን ይመልከቱ                |
+| **የManage-Scope MCP**  | የርቀት `/api/mcp/*` መዳረሻ `manage` ወሰን ባላቸው የAPI ቁልፎች የተገደበ ነው፤ `/api/cli-tools/runtime/*` በጥብቅ ሉፕባክ ላይ ይቆያል። ROUTE_GUARD_TIERSን ይመልከቱ |
+| **የMCP ወሰኖች**          | 32 ዝርዝር ወሰኖች (read:health, write:combos, execute:completions, ወዘተ) — `docs/frameworks/MCP-SERVER.md`ን ይመልከቱ                         |
 
-### 🛡️ የተከማቸ ውሂብ ምስጠራ
+### 🛡️ በማከማቻ ጊዜ ምስጠራ
 
-በSQLite ውስጥ የሚከማች ሁሉም ሚስጥራዊ ውሂብ ከscrypt ቁልፍ ማመንጨት ጋር **AES-256-GCM**ን በመጠቀም ይመሰጠራል፦
+በSQLite ውስጥ የተከማቸው ሁሉም ስሱ ውሂብ፣ ከscrypt ቁልፍ ማመንጫ ጋር **AES-256-GCM**ን በመጠቀም ይመሰጠራል፦
 
-- API ቁልፎች፣ የመዳረሻ ቶከኖች፣ የማደሻ ቶከኖች እና ID ቶከኖች
+- የAPI ቁልፎች፣ የመዳረሻ ቶከኖች፣ የማደሻ ቶከኖች እና የመታወቂያ ቶከኖች
 - ስሪት ያለው ቅርጸት፦ `enc:v1:<iv>:<ciphertext>:<authTag>`
-- `STORAGE_ENCRYPTION_KEY` ካልተዋቀረ የቀጥታ ማሳለፊያ ሁነታ (ግልጽ ጽሑፍ)
+- `STORAGE_ENCRYPTION_KEY` ካልተዋቀረ የማለፊያ ሁነታ (ያልተመሰጠረ ጽሑፍ)
 
 ```bash
-# የምስጠራ ቁልፍ ያመንጩ፦
+# የምስጠራ ቁልፍ ይፍጠሩ፦
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
 ### 🛡️ የመከላከያዎች ማዕቀፍ
 
-OmniRoute በቅድሚያ ቅደም ተከተል የተደረደሩ 3 አብሮገነብ መከላከያዎች ያሉት፣ ዳግም ሳይጀመር ሊጫን የሚችል **የመከላከያዎች መዝገብ** (`src/lib/guardrails/`) ይዞ ይመጣል፦
+OmniRoute በቅድሚያ የተደረደሩ 3 አብረው የተካተቱ መከላከያዎች ያሉት፣ በቀጥታ ዳግም ሊጫን የሚችል **የመከላከያዎች መዝገብ** (`src/lib/guardrails/`) ይዞ ይመጣል፦
 
-| መከላከያ              | ቅድሚያ | ዓላማ                                                                  |
-| ------------------ | ---- | -------------------------------------------------------------------- |
-| `vision-bridge`    | 5    | ምስልን ሊረዱ በሚችሉ መግለጫዎች የእይታ ድጋፍ የሌላቸውን ሞዴሎች ያገናኛል፤ ለምስል URLs የSSRF ጥበቃ |
-| `pii-masker`       | 10   | ከጥሪ በፊትና በኋላ የPII ማደብዘዝ (ኢሜይሎች፣ ስልክ፣ CPF፣ CNPJ፣ ክሬዲት ካርዶች፣ SSN)      |
-| `prompt-injection` | 20   | የመሻር/ሚና ጠለፋ/jailbreak/መረጃ ማፍሰስ ንድፎችን ይለያል                            |
+| መከላከያ              | ቅድሚያ | ዓላማ                                                                   |
+| ------------------ | ---- | --------------------------------------------------------------------- |
+| `vision-bridge`    | 5    | ምስልን የማያስተናግዱ ሞዴሎችን ምስል-አዋቂ ከሆኑ መግለጫዎች ጋር ያገናኛል፤ ለምስል URLዎች የSSRF ጥበቃ |
+| `pii-masker`       | 10   | ከጥሪ በፊት+በኋላ የPII ማደብዘዝ (ኢሜይሎች፣ ስልክ፣ CPF፣ CNPJ፣ ክሬዲት ካርዶች፣ SSN)        |
+| `prompt-injection` | 20   | የመሻር/ሚና-መጥለፍ/እገዳ-ማለፍ/መረጃ-ማፍሰስ ጥለቶችን ይለያል                              |
 
-ብጁ መከላከያዎች በ`registerGuardrail(new MyGuardrail())` በኩል ይመዘገባሉ። ሞዴሉ fail-open ነው (ልዩ ሁኔታዎች ትራፊክን ፈጽሞ አያግዱም)። በእያንዳንዱ ጥያቄ `x-omniroute-disabled-guardrails` ራስጌን በመጠቀም ማሰናከል ይቻላል። → [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)ን ይመልከቱ።
+ብጁ መከላከያዎች በ`registerGuardrail(new MyGuardrail())` በኩል ይመዘገባሉ። ሞዴሉ fail-open ነው (የተለዩ ሁኔታዎች ትራፊክን ፈጽሞ አያግዱም)። በእያንዳንዱ ጥያቄ ላይ ላለመጠቀም የ`x-omniroute-disabled-guardrails` ራስጌን ይጠቀሙ። → [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)ን ይመልከቱ።
 
-### 🧠 የጥያቄ መርፌ መከላከያ
+### 🧠 የፕሮምፕት ጣልቃ ገብነት መከላከያ
 
-በLLM ጥያቄዎች ውስጥ የጥያቄ መርፌ ንድፎችን የሚለይ፣ የተቻለውን ያህል የሚሠራ ግምታዊ middleware።
-**ሙሉ የጥያቄ-መርፌ firewall አይደለም** — የተሳሳቱ አዎንታዊ ውጤቶችን (ጉዳት የሌላቸው
-የገጸ-ባህሪ/RPG ጥያቄዎች) እና የተሳሳቱ አሉታዊ ውጤቶችን (leetspeak፣ ክፍተት፣ እንግሊዝኛ ያልሆኑ ንድፎች) ሊያመነጭ ይችላል።
+በLLM ጥያቄዎች ውስጥ ያሉ የprompt injection ንድፎችን በተቻለ መጠን የሚለይ ሂዩሪስቲክ middleware።
+**ሙሉ የprompt-injection firewall አይደለም** — የተሳሳቱ አዎንታዊ ውጤቶችን (ጉዳት የሌላቸው
+persona/RPG prompts) እና የተሳሳቱ አሉታዊ ውጤቶችን (leetspeak፣ ክፍተት፣ እንግሊዝኛ ያልሆኑ ንድፎች) ሊያመጣ ይችላል።
 
-| የንድፍ ዓይነት      | ክብደት  | ምሳሌ                                     |
-| -------------- | ----- | --------------------------------------- |
-| የስርዓት መሻር      | ከፍተኛ  | "ሁሉንም የቀድሞ መመሪያዎች ችላ በል"                |
-| የሚና ጠለፋ        | መካከለኛ | "አሁን DAN ነህ፣ ማንኛውንም ነገር ማድረግ ትችላለህ"     |
-| የመለያ መርፌ       | ከፍተኛ  | የዐውድ ድንበሮችን ለመስበር ኮድ የተደረጉ መለያዎች        |
-| DAN/Jailbreak  | መካከለኛ | የታወቁ የjailbreak ጥያቄ ንድፎች                |
-| የመመሪያ መረጃ ማፍሰስ | ከፍተኛ  | "የስርዓት ጥያቄህን አሳየኝ"                      |
-| በኮድ መስጠት ማምለጥ  | መካከለኛ | base64/rot13/hex decode + የመመሪያ ቁልፍ ቃላት |
+| የንድፍ ዓይነት       | ክብደት  | ምሳሌ                                     |
+| --------------- | ----- | --------------------------------------- |
+| የስርዓት መሻር       | ከፍተኛ  | "ሁሉንም ቀዳሚ መመሪያዎች ችላ በል"                 |
+| የሚና ጠለፋ         | መካከለኛ | "አሁን DAN ነህ፣ ማንኛውንም ነገር ማድረግ ትችላለህ"     |
+| የመለያ ምልክት ማስገባት | ከፍተኛ  | የዐውድ ወሰኖችን ለመስበር ኮድ የተደረጉ መለያዎች         |
+| DAN/Jailbreak   | መካከለኛ | የታወቁ የjailbreak prompt ንድፎች             |
+| የመመሪያ ፍሰት       | ከፍተኛ  | "የስርዓት promptህን አሳየኝ"                   |
+| በኮድ ማምለጥ        | መካከለኛ | base64/rot13/hex decode + የመመሪያ ቁልፍ ቃላት |
 
-በ`block` ሁነታ የሚታገዱት **ከፍተኛ** ክብደት ያላቸው ማግኘቶች ብቻ ናቸው። መካከለኛ-ክብደት ያላቸው
-ቤተሰቦች በምዝግብ ይመዘገባሉ፣ ነገር ግን በ`sanitizeRequest` ፈጽሞ አይታገዱም።
+በ`block` ሁነታ የሚታገዱት **ከፍተኛ** ክብደት ያላቸው ማግኘቶች ብቻ ናቸው። መካከለኛ ክብደት ያላቸው
+ምድቦች በምዝግብ ይመዘገባሉ፣ ነገር ግን በ`sanitizeRequest` ፈጽሞ አይታገዱም።
 
-በዳሽቦርድ (Settings → Security) ወይም `.env` በኩል ያዋቅሩ፦
+በdashboard (Settings → Security) ወይም `.env` በኩል ያዋቅሩ፦
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block (የመርፌ ፖሊሲ፤ የቆየው "redact" የመርፌ ጽሑፍን አያስወግድም)
+INPUT_SANITIZER_MODE=block    # warn | block (የinjection ፖሊሲ፤ የቆየው "redact" የinjection ጽሑፍን አያስወግድም)
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (ነባሪ) | medium | low — በዚህ ደረጃ ወይም ከዚያ በላይ ያሉ ክብደቶች በblock ሁነታ ይታገዳሉ
 ```
 
-### 🔒 የPII ማደብዘዝ
+### 🔒 PII ማደብዘዝ
 
-በራስ-ሰር ሊለይ የሚችል መረጃን ማግኘት እና እንደ አማራጭ ማደብዘዝ፦
+በግል ሊለይ የሚችል መረጃን በራስ-ሰር መለየት እና እንደ አማራጭ ማደብዘዝ፦
 
-| የPII ዓይነት   | ስርዓተ-ጥለት              | መተኪያ               |
+| የPII ዓይነት   | ንድፍ                   | ምትክ                |
 | ----------- | --------------------- | ------------------ |
 | ኢሜይል        | `user@domain.com`     | `[EMAIL_REDACTED]` |
 | CPF (ብራዚል)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
 | CNPJ (ብራዚል) | `12.345.678/0001-00`  | `[CNPJ_REDACTED]`  |
-| ክሬዲት ካርድ    | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
+| የክሬዲት ካርድ   | `4111-1111-1111-1111` | `[CC_REDACTED]`    |
 | ስልክ         | `+55 11 99999-9999`   | `[PHONE_REDACTED]` |
 | SSN (አሜሪካ)  | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true   # የPII ዳግም መጻፍን ይጠይቃል፤ ከINPUT_SANITIZER_MODE ነፃ ነው
-PII_RESPONSE_SANITIZATION=true  # አማራጭ፦ ለደንበኞች በሚመለሱ የአቅራቢ ምላሾች ውስጥ PIIን ይደብቃል
+PII_REDACTION_ENABLED=true   # በጥያቄ ውስጥ PIIን እንደገና ይጽፋል፤ ከINPUT_SANITIZER_MODE ነጻ ነው
+PII_RESPONSE_SANITIZATION=true  # አማራጭ፦ ወደclients በሚመለሱ የprovider ምላሾች ውስጥ PIIን ያደበዝዛል
 ```
 
-### 🌐 የአውታረ መረብ ደህንነት
+### 🌐 የኔትወርክ ደህንነት
 
-| ባህሪ                  | መግለጫ                                                                      |
-| -------------------- | ------------------------------------------------------------------------- |
-| **CORS**             | ግልጽ የcross-origin የተፈቀዱ ዝርዝር (`CORS_ALLOWED_ORIGINS`፤ የቆየው `CORS_ORIGIN`) |
-| **የIP ማጣሪያ**         | በዳሽቦርድ ውስጥ የተፈቀዱ/የታገዱ የIP ክልሎች                                            |
-| **የፍጥነት ገደብ**        | ለእያንዳንዱ አቅራቢ የፍጥነት ገደቦች ከራስ-ሰር የኋላ ማፈግፈግ ጋር                               |
-| **የተጨናነቀ ጥያቄ መከላከያ** | Mutex + በእያንዳንዱ ግንኙነት መቆለፍ ተከታታይ የ502 ስህተቶችን ይከላከላል                       |
-| **TLS አሻራ**          | የቦት ማወቂያን ለመቀነስ አሳሽ-መሰል የTLS አሻራን ማስመሰል                                   |
-| **CLI አሻራ**          | ከተፈጥሯዊ CLI ፊርማዎች ጋር እንዲዛመድ ለእያንዳንዱ አቅራቢ የራስጌ/የይዘት ቅደም ተከተል                |
+| ባህሪ                           | መግለጫ                                                                    |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| **CORS**                      | ግልጽ የcross-origin የፈቃድ ዝርዝር (`CORS_ALLOWED_ORIGINS`፤ የቆየ `CORS_ORIGIN`) |
+| **IP ማጣሪያ**                   | በdashboard ውስጥ የፈቃድ ዝርዝር/የእገዳ ዝርዝር IP ክልሎች                              |
+| **የጥያቄ መጠን ገደብ**              | ለእያንዳንዱ provider የጥያቄ መጠን ገደቦች፣ ከራስ-ሰር backoff ጋር                       |
+| **የAnti-Thundering Herd ጥበቃ** | Mutex + ለእያንዳንዱ connection መቆለፍ ተከታታይ 502 ስህተቶችን ይከላከላል                 |
+| **TLS Fingerprint**           | የbot ልየታን ለመቀነስ አሳሽ መሰል TLS fingerprint spoofing                        |
+| **CLI Fingerprint**           | ከnative CLI signatures ጋር ለማዛመድ ለእያንዳንዱ provider የheader/body ቅደም ተከተል  |
 
-### 🔌 የመቋቋም ብቃት እና ተገኝነት
+### 🔌 የመቋቋም አቅም እና ተደራሽነት
 
-| ባህሪ                | መግለጫ                                                         |
-| ------------------ | ------------------------------------------------------------ |
-| **የወረዳ መቆራረጫ**     | ለእያንዳንዱ አቅራቢ ባለ3-ሁኔታ (ዝግ → ክፍት → ከፊል-ክፍት)፣ በSQLite ውስጥ የሚቀመጥ |
-| **የጥያቄ ኢድምፖተንሲ**   | ለተደጋጋሚ ጥያቄዎች የ5-ሰከንድ የተመሳሳይነት ማስወገጃ ጊዜ                       |
-| **ኤክስፖነንሻል ማፈግፈግ** | እየጨመረ በሚሄድ መዘግየት ራስ-ሰር ዳግም መሞከር                              |
-| **የጤንነት ዳሽቦርድ**    | ቅጽበታዊ የአቅራቢ ጤንነት ክትትል                                        |
+| ባህሪ                     | መግለጫ                                                        |
+| ----------------------- | ----------------------------------------------------------- |
+| **Circuit Breaker**     | ለእያንዳንዱ provider ባለ3-ሁኔታ (ዝግ → ክፍት → ግማሽ-ክፍት)፣ በSQLite የሚቆይ |
+| **የጥያቄ Idempotency**    | ለተደጋጋሚ ጥያቄዎች የ5 ሰከንድ የብዜት ማስወገጃ መስኮት                        |
+| **Exponential Backoff** | እየጨመረ በሚሄድ መዘግየት ራስ-ሰር ዳግም ሙከራ                              |
+| **የጤና Dashboard**       | የprovider ጤናን በቅጽበት መከታተል                                   |
 
 ### 📋 ተገዢነት
 
-| ባህሪ            | መግለጫ                                              |
-| -------------- | ------------------------------------------------- |
-| **የምዝግብ ማቆያ**  | ከ`CALL_LOG_RETENTION_DAYS` በኋላ ራስ-ሰር ማጽዳት         |
-| **ከምዝግብ መውጣት** | ለእያንዳንዱ API ቁልፍ ያለው `noLog` ጠቋሚ የጥያቄ ምዝገባን ያሰናክላል |
-| **የኦዲት ምዝግብ**  | የአስተዳደር ድርጊቶች በ`audit_log` ሰንጠረዥ ውስጥ ይከታተላሉ       |
-| **MCP ኦዲት**    | ለሁሉም የMCP መሣሪያ ጥሪዎች በSQLite የተደገፈ የኦዲት ምዝገባ       |
-| **Zod ማረጋገጫ**  | ሁሉም የAPI ግብዓቶች ሞጁሉ ሲጫን በZod v4 ንድፎች ይረጋገጣሉ        |
+| ባህሪ              | መግለጫ                                                   |
+| ---------------- | ------------------------------------------------------ |
+| **የምዝግብ ማቆያ**    | ከ`CALL_LOG_RETENTION_DAYS` በኋላ ራስ-ሰር ማጽዳት              |
+| **ምዝግብ-አልባ መውጫ** | ለእያንዳንዱ API key ያለው `noLog` flag የጥያቄ ምዝገባን ያሰናክላል     |
+| **የኦዲት ምዝግብ**    | አስተዳደራዊ ድርጊቶች በ`audit_log` table ውስጥ ይከታተላሉ            |
+| **MCP ኦዲት**      | ለሁሉም MCP tool calls በSQLite የተደገፈ የኦዲት ምዝገባ            |
+| **Zod ማረጋገጫ**    | ሁሉም የAPI ግብዓቶች module በሚጫንበት ጊዜ በZod v4 schemas ይረጋገጣሉ |
 
 ---
 
 ## አስፈላጊ የአካባቢ ተለዋዋጮች
 
-ሰርቨሩን ከማስጀመርዎ በፊት ሁሉም ሚስጥሮች መዋቀር አለባቸው። ከጎደሉ ወይም ደካማ ከሆኑ ሰርቨሩ **ወዲያውኑ ይቋረጣል**።
+ሰርቨሩን ከማስጀመርዎ በፊት ሁሉም ሚስጥራዊ እሴቶች መዘጋጀት አለባቸው። ከጎደሉ ወይም ደካማ ከሆኑ ሰርቨሩ **ወዲያውኑ አይሰራም**።
 
 ```bash
-# አስፈላጊ — ያለእነዚህ ሰርቨሩ አይጀምርም፦
+# አስፈላጊ — እነዚህ ከሌሉ ሰርቨሩ አይጀምርም፦
 JWT_SECRET=$(openssl rand -base64 48)     # ቢያንስ 32 ቁምፊዎች
 API_KEY_SECRET=$(openssl rand -hex 32)    # ቢያንስ 16 ቁምፊዎች
 
@@ -168,17 +188,17 @@ API_KEY_SECRET=$(openssl rand -hex 32)    # ቢያንስ 16 ቁምፊዎች
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-ሰርቨሩ እንደ `changeme`፣ `secret` ወይም `password` ያሉ ደካማ መሆናቸው የታወቁ እሴቶችን በንቃት ውድቅ ያደርጋል።
+ሰርቨሩ እንደ `changeme`፣ `secret` ወይም `password` ያሉ ደካማ መሆናቸው የሚታወቅ እሴቶችን በቀጥታ ውድቅ ያደርጋል።
 
 ---
 
 ## የDocker ደህንነት
 
-- በምርት አካባቢ non-root ተጠቃሚ ይጠቀሙ
-- ሚስጥሮችን ለንባብ-ብቻ እንደተፈቀዱ volumes ያያይዙ
-- የ`.env` ፋይሎችን ወደ Docker images በፍጹም አይቅዱ
-- ስሱ ፋይሎችን ለማስቀረት `.dockerignore` ይጠቀሙ
-- ከHTTPS በስተጀርባ ሲሆኑ `AUTH_COOKIE_SECURE=true` ያዘጋጁ
+- በምርት አካባቢ non-root ተጠቃሚን ይጠቀሙ
+- ሚስጥራዊ እሴቶችን ለንባብ ብቻ እንደሚፈቀድ ቮልዩም ያገናኙ
+- `.env` ፋይሎችን ወደ Docker ምስሎች በፍጹም አይቅዱ
+- ሚስጥራዊ ፋይሎችን ለማግለል `.dockerignore`ን ይጠቀሙ
+- ከHTTPS በስተጀርባ ሲጠቀሙ `AUTH_COOKIE_SECURE=true`ን ያዘጋጁ
 
 ```bash
 docker run -d \
@@ -195,73 +215,74 @@ docker run -d \
 
 ---
 
-## ጥገኛ ጥቅሎች
+## ጥገኞች
 
-- `npm audit`ን በመደበኛነት ያስኪዱ (`npm run audit:deps` ዋናውን + electronን ይሸፍናል)
-- ጥገኛ ጥቅሎችን የተዘመኑ አድርገው ያቆዩ
-- ፕሮጀክቱ ከcommit በፊት ለሚደረጉ ማረጋገጫዎች `husky` + `lint-staged`ን ይጠቀማል (lint-staged + check-docs-sync + check:any-budget:t11)
-- የCI pipeline በእያንዳንዱ push ላይ የESLint ደህንነት ደንቦችን ያስኬዳል (`no-eval`፣ `no-implied-eval`፣ `no-new-func` = ስህተት)
-- የProvider constants ሞጁሉ ሲጫን በZod ይረጋገጣሉ (`src/shared/validation/schemas.ts`)
-- በነባሪነት ደህንነታቸው የተጠበቀ ላይብረሪዎች ጥቅም ላይ ውለዋል፦ `dompurify` / `isomorphic-dompurify` (XSS)፣ `jose` (JWT)፣ `better-sqlite3` (በparameterized queries ምክንያት የSQLi ስጋት የለም)፣ `bcryptjs` (የይለፍ ቃል hashing)
+- `npm audit`ን በመደበኛነት ያሂዱ (`npm run audit:deps` ዋናውን + electronን ይሸፍናል)
+- ጥገኞችን ወቅታዊ አድርገው ይያዙ
+- ፕሮጀክቱ ለቅድመ-commit ማረጋገጫዎች `husky` + `lint-staged`ን ይጠቀማል (lint-staged + check-docs-sync + check:any-budget:t11)
+- የCI ሂደቱ በእያንዳንዱ push ላይ የESLint ደህንነት ደንቦችን ያስኬዳል (`no-eval`፣ `no-implied-eval`፣ `no-new-func` = ስህተት)
+- የአቅራቢ ቋሚ እሴቶች ሞጁሉ ሲጫን በZod በኩል ይረጋገጣሉ (`src/shared/validation/schemas.ts`)
+- በነባሪነት ደህንነታቸው የተጠበቀ ቤተ-መጻሕፍት ጥቅም ላይ ይውላሉ፦ `dompurify` / `isomorphic-dompurify` (XSS)፣ `jose` (JWT)፣ `better-sqlite3` (በመለኪያ የተደረጉ ጥያቄዎች ስለሚጠቀሙ የSQLi ስጋት የለም)፣ `bcryptjs` (የይለፍ ቃል hashing)
 
 ## ጥብቅ የደህንነት ደንቦች
 
-እነዚህ ደንቦች በመሳሪያዎችና በገምጋሚዎች ተግባራዊ ይደረጋሉ፦
+እነዚህ ደንቦች በመሳሪያዎችና በገምጋሚዎች ይተገበራሉ፦
 
-1. **ሚስጥሮችን በፍጹም commit አያድርጉ** — `.env` በgitignore ውስጥ ተካትቷል፤ `.env.example` አብነቱ ነው (ቀጥተኛ እሴቶች የሉም፣ አስተያየቶች ብቻ — ከታች PUBLIC_CREDS.mdን ይመልከቱ)
-2. **`eval()`፣ `new Function()` ወይም implied evalን በፍጹም አይጠቀሙ** — ESLint ይህን ያስፈጽማል
-3. የኦፕሬተሩ ግልጽ ፈቃድ ሳይኖር **የHusky hooksን በፍጹም አያልፉ** (`--no-verify`፣ `--no-gpg-sign`)
-4. **በroutes ውስጥ raw SQLን በፍጹም አይጻፉ** — ሁልጊዜ በ`src/lib/db/` በኩል ያሳልፉ (parameterized)
+1. **ሚስጥራዊ እሴቶችን በፍጹም commit አያድርጉ** — `.env` በgitignore ውስጥ ተካትቷል፤ `.env.example` አብነቱ ነው (ቀጥተኛ እሴቶች የሉትም፣ አስተያየቶች ብቻ — ከታች PUBLIC_CREDS.mdን ይመልከቱ)
+2. **`eval()`፣ `new Function()` ወይም implied evalን በፍጹም አይጠቀሙ** — ESLint ያስገድዳል
+3. **ያለግልጽ የኦፕሬተር ፈቃድ የHusky hooksን በፍጹም አያልፉ** (`--no-verify`፣ `--no-gpg-sign`)
+4. **በroutes ውስጥ raw SQL በፍጹም አይጻፉ** — ሁልጊዜ በ`src/lib/db/` በኩል ያሳልፉ (በመለኪያ የተደረገ)
 5. **ግብዓቶችን ሁልጊዜ በZod ያረጋግጡ** — `src/shared/validation/schemas.ts`
 6. **የupstream headersን ሁልጊዜ ያጽዱ** — denylist በ`src/shared/constants/upstreamHeaders.ts`
-7. **የተከማቹ ማረጋገጫዎችን ያመስጥሩ** — AES-256-GCM በ`src/lib/db/encryption.ts` በኩል
-8. **ይፋዊ የupstream OAuth መለያዎችን በ`resolvePublicCred()` በኩል ይጠቀሙ** — `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` ቀጥተኛ እሴቶችን በsource ውስጥ በፍጹም አያካትቱ። [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)ን ይመልከቱ።
-9. **የስህተት ምላሾችን በ`buildErrorBody()` / `sanitizeErrorMessage()` በኩል ያቅርቡ** — raw `err.stack` / `err.message`ን በHTTP / SSE / executor / MCP የምላሽ bodies ውስጥ በፍጹም አያስገቡ። [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)ን ይመልከቱ።
-10. **የ`exec()` / `spawn()` runtime እሴቶችን በ`env` option በኩል ያስተላልፉ** — ውጫዊ pathsን ወይም የማይታመኑ እሴቶችን ወደ shell በሚላኩ scripts ውስጥ በstring-interpolation በፍጹም አያስገቡ። ማጣቀሻ፦ `src/mitm/cert/install.ts::updateNssDatabases`።
-11. **በነባሪነት ደህንነታቸው የተጠበቀ ላይብረሪዎችን ይምረጡ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)ን ይመልከቱ (Helmet.js፣ DOMPurify፣ ssrf-req-filter፣ safe-regex፣ Google Tink)። የራስዎን ከመፍጠርዎ በፊት እነዚህን ይጠቀሙ።
+7. **የተከማቹ የማረጋገጫ መረጃዎችን ያመስጥሩ** — AES-256-GCM በ`src/lib/db/encryption.ts` በኩል
+8. **ይፋዊ upstream OAuth መለያዎችን በ`resolvePublicCred()` በኩል ይጠቀሙ** — `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` የሚሉ ቀጥተኛ እሴቶችን በምንጭ ኮድ ውስጥ በፍጹም አያካትቱ። [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)ን ይመልከቱ።
+9. **የስህተት ምላሾችን በ`buildErrorBody()` / `sanitizeErrorMessage()` በኩል ያሳልፉ** — raw `err.stack` / `err.message`ን በHTTP / SSE / executor / MCP የምላሽ bodyዎች ውስጥ በፍጹም አያስገቡ። [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)ን ይመልከቱ።
+10. **የ`exec()` / `spawn()` runtime እሴቶችን በ`env` አማራጭ በኩል ያስተላልፉ** — ውጫዊ paths ወይም የማይታመኑ እሴቶችን ወደ shell በሚላኩ scripts ውስጥ በstring interpolation በፍጹም አያስገቡ። ማጣቀሻ፦ `src/mitm/cert/install.ts::updateNssDatabases`።
+11. **በነባሪነት ደህንነታቸው የተጠበቀ ቤተ-መጻሕፍትን ይምረጡ** — [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)ን ይመልከቱ (Helmet.js፣ DOMPurify፣ ssrf-req-filter፣ safe-regex፣ Google Tink)። የራስዎን መፍትሔ ከመፍጠርዎ በፊት እነዚህን ይጠቀሙ።
 
-## የሶፍትዌር አቅርቦት ሰንሰለት ስካነር ግኝቶች (Socket.dev / Snyk / ተመሳሳይ)
+## የአቅርቦት ሰንሰለት ስካነር ግኝቶች (Socket.dev / Snyk / ተመሳሳይ)
 
-> **የወሰን ማስታወሻ፦** በማከማቻው ሥር ያለው `socket.yml`፣ ለታተመው npm አርቲፋክት በSocket.dev ሬጂስትሪ በኩል ከህትመት በኋላ በሚደረገው ቅኝት ውስጥ `projectIgnorePaths`ን ብቻ ይቀርጻል — በCI/PR ውህደት ላይ ተፈጻሚ የሆነ መግቢያ በር አይደለም። በ`.github/workflows` ውስጥ ያለ ምንም የሥራ ፍሰት፣ ምንም የ`package.json` ስክሪፕት፣ እና ምንም የ`Makefile` ዒላማ Socket.devን አይጠራም።
+> **የወሰን ማስታወሻ፦** በማከማቻው ሥር ያለው `socket.yml` የሚያዋቅረው የSocket.dev ከህትመት በኋላ በሬጅስትሪው በኩል ለሚደረገው የታተመው npm አርቲፋክት ቅኝት `projectIgnorePaths`ን ብቻ ነው፤ ይህ በግዴታ የሚፈጸም የCI/PR ውህደት መግቢያ መቆጣጠሪያ አይደለም። በ`.github/workflows` ውስጥ ያለ ምንም የሥራ ፍሰት፣ ምንም የ`package.json` ስክሪፕት እና ምንም የ`Makefile` ዒላማ Socket.devን አይጠራም።
 
 የታተመው `omniroute` npm አርቲፋክት የNext.js `output: "standalone"`
-ግንባታን አቅፎ ይዟል፤ ይህም እያንዳንዱ የመንገድ መቆጣጠሪያ — በሰነድ የተገለጹ ልዩ ፈቃድ የሚጠይቁ
-ባህሪያትን (MITM፣ Zed import፣ Cloud Sync፣ የተካተተ የአገልግሎት ተቆጣጣሪ) ጨምሮ — በመጨረሻ
-በ`.next/server/*.js` ውስጥ ወደሚገኙ የተጨመቁ ቁርጥራጮች ይገባል ማለት ነው። በሂዩሪስቲክ ላይ የተመሠረቱ የሶፍትዌር አቅርቦት ሰንሰለት ስካነሮች
+ግንባታን ይጠቀልላል፤ ይህም ማለት ሁሉም የመስመር ጥያቄ አስተናጋጆች—በሰነድ የተገለጹ ልዩ መብት
+የሚጠይቁ ባህሪያትን (MITM፣ Zed import፣ Cloud Sync፣ ውስጠ-ገብ የአገልግሎት ተቆጣጣሪ) ጨምሮ—
+በተቀነሱ `.next/server/*.js` ቁርጥራጮች ውስጥ ይገባሉ። በግምታዊ ዘዴ የሚሰሩ የአቅርቦት ሰንሰለት ስካነሮች
 እነዚያን ቁርጥራጮች ከማልዌር ፊርማዎች ጋር በተደጋጋሚ በስርዓተ-ጥለት ያዛምዳሉ።
 
-የምንጠቀመው የስካነር ውቅር በማከማቻው ሥር ባለው
-[`socket.yml`](socket.yml) ውስጥ ይገኛል (የSocket.dev GitHub App ቅርጸት v2 — ይመልከቱ
-<https://docs.socket.dev/docs/socket-yml>)። ስካነሩ በትክክል ወደታተሙ ተጠቃሚዎች
-የሚደርሱ የኮድ መንገዶችን ብቻ እንዲዘግብ፣ ያልተላኩ ማውጫዎችን (`tests/`፣ `_tasks/`፣ `_references/`፣ `_ideia/`፣
-`_mono_repo/`፣ `docs/`፣ ወዘተ) በግልጽ ያገላል — ቅኝቱ ራሱ በዚህ ማከማቻ ውስጥ ባለ
-የሥራ ፍሰት ሳይሆን ፋይሉን በሚያነበው Socket
-GitHub App ይከናወናል።
+የምንጠቀመው የስካነር ውቅር በማከማቻው ሥር ባለው [`socket.yml`](socket.yml) ውስጥ ይገኛል
+(Socket.dev GitHub App format v2 — ይመልከቱ
+<https://docs.socket.dev/docs/socket-yml>)። ስካነሩ ለታተሙ ተጠቃሚዎች በእውነት
+በሚደርሱ የኮድ መንገዶች ላይ ብቻ ሪፖርት እንዲያደርግ፣ የማይላኩ ማውጫዎችን
+(`tests/`፣ `_tasks/`፣ `_references/`፣ `_ideia/`፣
+`_mono_repo/`፣ `docs/`፣ ወዘተ) በግልጽ ሁኔታ ያስወግዳል፤ ቅኝቱ ራሱ
+በዚህ ማከማቻ ውስጥ ባለ የሥራ ፍሰት ሳይሆን፣ ያንን ፋይል በሚያነበው Socket
+GitHub App ነው የሚካሄደው።
 
-ለእያንዳንዱ የግኝት ምድብ፣ በግኝት ደረጃ የተዘጋጀ የጥገና ኃላፊ ማረጋገጫ እናቆያለን፦
+ለእያንዳንዱ የግኝት ምድብ፣ የእያንዳንዱን ግኝት የጥገና ኃላፊ ማረጋገጫ እንይዛለን፦
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  የእያንዳንዱ ግኝት ካርታ፦ ምንጭ ፋይል ↔ ምልክት የተደረገበት ቁርጥራጭ ↔ ባህሪ ↔ በv3.8.6 ውስጥ
+  የእያንዳንዱ ግኝት ካርታ፦ የምንጭ ፋይል ↔ ምልክት የተደረገበት ቁርጥራጭ ↔ ባህሪ ↔ በv3.8.6
   የተተገበረ የአደጋ ቅነሳ።
-- በምንጭ ኮዱ ውስጥ በእያንዳንዱ ምልክት በተደረገበት ፈንክሽን ላይ ያሉ `SECURITY-AUDITOR-NOTE:` ብሎኮች
-  ወደዚያው ሰነድ ይጠቁማሉ።
+- ምልክት በተደረገበት እያንዳንዱ ፋንክሽን ላይ ያሉ በምንጭ ውስጥ የሚገኙ `SECURITY-AUDITOR-NOTE:` ብሎኮች
+  ወደዚያው ሰነድ ይመልሳሉ።
 
 የሥራ ፍሰታቸው ማንቂያውን ማላላት ለማይችል ተጠቃሚዎች፦
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`ን በመጠቀም ይገንቡ። ይህም አራቱን
-ስሱ ሞጁሎች በአሂድ ጊዜ HTTP 503 `feature-disabled`ን በሚመልሱ
-ተተኪዎች ይተካቸዋል፤ በዚህም ልዩ ፈቃድ የሚጠይቁ የኮድ መንገዶች በቁሳዊ ሁኔታ ከጥቅሉ ውስጥ አይኖሩም።
-የህትመት አሠራሩን ለማየት [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)ን
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`ን በመጠቀም ይገንቡ። ይህ አራቱን
+ስሱ ሞጁሎች በማስኬጃ ጊዜ HTTP 503 `feature-disabled` በሚመልሱ ምትክ ባዶ ትግበራዎች
+ይተካቸዋል፤ ስለዚህ ልዩ መብት የሚጠይቁት የኮድ መንገዶች በአካል ከቅርቅቡ ውስጥ አይኖሩም።
+የህትመት ዘዴውን ለማየት [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)ን
 ይመልከቱ።
 
 ## ማጣቀሻዎች
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — የፈቃድ ማረጋገጫ ሂደት
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — የመከላከያ ድንበሮች ማዕቀፍ
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — የኦዲት ምዝግብ እና ማቆያ
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — ለይፋዊ የወደላይ አገልግሎት ምስክርነቶች **አስገዳጅ** ስርዓተ-ጥለት
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — የፈቃድ አሰጣጥ የሥራ ፍሰት
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — የመከላከያ ገደቦች ማዕቀፍ
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — የኦዲት መዝገብ እና የመያዣ ጊዜ
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — ለይፋዊ የላይኛው ምንጭ ማረጋገጫዎች **አስገዳጅ** ስርዓተ-ጥለት
 - [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — ለስህተት ምላሾች **አስገዳጅ** ስርዓተ-ጥለት
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — ለአቅርቦት ሰንሰለት ስካነር ግኝቶች የአስተዳዳሪ ማረጋገጫ
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — ሰርኪውት ብሬከር + የማቀዝቀዣ ጊዜ + መቆለፍ
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS የጣት አሻራ መለየት (ሕጋዊ/ሥነ-ምግባራዊ ማስታወቂያ)
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — ለአቅርቦት ሰንሰለት ስካነር ግኝቶች የጥገና ኃላፊ ማረጋገጫ
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (የሕግ/ሥነ-ምግባር ማስታወቂያ)
 - [`CLAUDE.md`](CLAUDE.md) — ለAI ወኪሎች ጥብቅ ደንቦች
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — በነባሪነት ደህንነታቸው የተጠበቀ የተመረጡ ላይብረሪዎች
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — በነባሪ ደህንነታቸው የተጠበቀ በጥንቃቄ የተመረጡ ላይብረሪዎች
