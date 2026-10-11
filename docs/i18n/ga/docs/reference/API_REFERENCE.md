@@ -395,6 +395,12 @@ ann a dhíríonn ar an bpríomhaitheantas.
 Ba cheart do chliaint a thaispeánann roghnóir samhla `?prefix=alias` a iarraidh — is é seo a dhéanann an
 [síneadh OmniCopilot do VS Code](../guides/VSCODE-COPILOT.md).
 
+### Samhlacha comhrá atá folaithe ina n-aonar
+
+Má tá samhail marcáilte mar **Folaithe** ar leathanach a soláthraí, fágtar amach as an gcatalóg í agus diúltaítear d’iarratas sainráite uirthi le HTTP `404` / `model_not_found`. Úsáideann an tseiceáil an soláthraí agus an tsamhail a aithníodh, agus ailiasanna soláthraí, réimíreanna nóid soláthraithe comhoiriúnacha agus réamhshocruithe an naisc á gcur san áireamh. Scipeálann combo spriocanna folaithe agus féadann sé sprioc infheicthe eile a úsáid; mura mbíonn aon sprioc inrite fágtha, tugann sé an cód earráide céanna ar ais. Bíonn éifeacht le hath-thaispeáint na samhla ón gcéad iarratas eile. Ní fholaíonn socruithe infheictheachta a sháraíonn na gnáthshocruithe d’íomhánna amháin samhail chomhrá a bhfuil an ID céanna aici.
+
+Tá an socrú seo do gach samhail ar leithligh ó na [liostaí ceadaithe agus blocála maidir le nochtadh samhlacha](../routing/MODEL_EXPOSURE_LIST.md). Scagann na liostaí sin taispeáint sa chatalóg agus iarrthóirí don ródú uathoibríoch, ach coinníonn siad seoladh sainráite ar fáil. Leanann ceadanna samhlacha na heochrach API de bheith i bhfeidhm go neamhspleách. Fanann mód réamhshocraithe réimíreanna na catalóige mar `dual`.
+
 ### Leaganacha samhla gan smaointeoireacht
 
 I gcás samhlacha Claude atá in ann smaointeoireacht a dhéanamh, fógraíonn `/v1/models` leagan **gan smaointeoireacht** freisin a bhfuil `claude-3-omniroute-no-thinking/` mar réim ar a aitheantas:

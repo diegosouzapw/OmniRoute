@@ -1646,7 +1646,7 @@ async function handleSingleModelChat(
     if (modelStr.startsWith(runtimeOptions.providerId + "/")) return resolvedProvider;
     return runtimeOptions.providerId;
   })();
-  const resolvedModelGate = resolvedPolicy.createResolvedModelGate({
+  const resolvedModelGate = resolvedPolicy.createVisibleResolvedModelGate({
     apiKeyInfo,
     apiKey: extractApiKey(request),
     contextModel: runtimeOptions.authorizationContextModel,
