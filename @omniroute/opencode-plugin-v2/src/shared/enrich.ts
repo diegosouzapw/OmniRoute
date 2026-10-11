@@ -76,6 +76,16 @@ export function buildCanonicalToAliasMap(
 }
 
 /**
+ * Sentinel key under which the fetcher records a generic-adapter prefix's
+ * authoritative label (from the connection registry's
+ * `providerSpecificData.prefix` / `nodeName`). Not a real model id — the
+ * gateway never publishes `__omniroute_node__` — so `get(rawId)` can never
+ * collide with a catalog entry, while the alias index and the known-alias
+ * tables still see the prefix and keep treating it as provisioned.
+ */
+export const GENERIC_ADAPTER_NODE_SENTINEL = "__omniroute_node__";
+
+/**
  * Enrichment lookup with alias-fallback chain.
  *
  * Resolution order (first hit wins):
@@ -86,8 +96,15 @@ export function buildCanonicalToAliasMap(
  *      a mapping for `canonical`, try `<alias>/<modelId>`. This rescues
  *      duplicate rows like `claude/claude-opus-4-7` (canonical) when
  *      enrichment only indexed under `cc/claude-opus-4-7` (alias).
- *   3. Bare `<modelId>` as a last resort. Already covered by step 1 in
- *      practice (fetcher writes bare keys), but kept defensive.
+ *   3. If `prefix` is a registered generic-adapter prefix (the connection
+ *      registry sentinel), its node label IS the authoritative provider —
+ *      return it instead of falling through to the bare key (#14966).
+ *   4. Bare `<modelId>` as a last resort. Already covered by step 1 in
+ *      practice (fetcher writes bare keys), but kept defensive. For a prefix
+ *      that the connection registry identified as a generic adapter, only the
+ *      model name may be borrowed from the bare entry; its provider metadata
+ *      belongs to whoever owns the bare key. Unregistered prefixes retain the
+ *      legacy bare-key behavior.
  *
  * Returns `undefined` when no lookup hits.
  */
@@ -109,6 +126,14 @@ export function lookupEnrichment(
       if (viaAlias) return viaAlias;
     }
     const bare = enrichment.get(modelId);
+    const nodeLabel = enrichment.get(`${prefix}/${GENERIC_ADAPTER_NODE_SENTINEL}`);
+    if (nodeLabel?.providerDisplayName) {
+      return {
+        ...(typeof bare?.name === "string" && bare.name.length > 0 ? { name: bare.name } : {}),
+        providerAlias: prefix,
+        providerDisplayName: nodeLabel.providerDisplayName,
+      };
+    }
     if (bare) return bare;
   }
   return undefined;
@@ -521,6 +546,59 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
     report("/api/free-tier/summary", `HTTP ${freeStatus}`);
   }
 
+  const hasModelMetadata = out.size > 0;
+
+  // 4. Generic-adapter prefix labels from /api/providers (best-effort, #14966).
+  // A generic `openai-compatible-chat-*` connection is the only place that
+  // knows its `providerSpecificData.prefix` maps to e.g. "InferHub" — without
+  // this, ids under that prefix fall to the bare-key lookup and inherit an
+  // unrelated provider's label, free tier and budget. Fail-open: a refused or
+  // empty registry only means no labels, never a smaller catalog.
+  const providersAc = new AbortController();
+  const providersTimer = setTimeout(() => providersAc.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${root}/api/providers`, {
+      method: "GET",
+      headers,
+      signal: providersAc.signal,
+    });
+    if (!res.ok) {
+      report("/api/providers", `HTTP ${res.status}`);
+    } else {
+      const body = (await res.json()) as unknown;
+      const list = Array.isArray(body)
+        ? body
+        : Array.isArray((body as { connections?: unknown[] })?.connections)
+          ? ((body as { connections: unknown[] }).connections as unknown[])
+          : Array.isArray((body as { data?: unknown[] })?.data)
+            ? ((body as { data: unknown[] }).data as unknown[])
+            : [];
+      for (const raw of list) {
+        if (!raw || typeof raw !== "object") continue;
+        const provider = (raw as { provider?: unknown }).provider;
+        if (typeof provider !== "string" || !provider.startsWith("openai-compatible-chat-")) {
+          continue;
+        }
+        const psd = (raw as { providerSpecificData?: unknown }).providerSpecificData;
+        if (!psd || typeof psd !== "object") continue;
+        const prefix = (psd as { prefix?: unknown }).prefix;
+        const nodeName = (psd as { nodeName?: unknown }).nodeName;
+        if (typeof prefix !== "string" || prefix.length === 0) continue;
+        if (typeof nodeName !== "string" || nodeName.trim().length === 0) continue;
+        out.set(`${prefix}/${GENERIC_ADAPTER_NODE_SENTINEL}`, {
+          providerAlias: prefix,
+          providerCanonical: provider,
+          providerDisplayName: nodeName.trim(),
+        });
+      }
+    }
+  } catch (err) {
+    // Same soft-fail contract as the free-tier source: labels are optional.
+    report("/api/providers", err);
+  } finally {
+    clearTimeout(providersTimer);
+  }
+
   // A source that failed contributes nothing — but the overlay keeps its own
   // memory per source: names collected while the catalog endpoint answered
   // survive a later pricing outage, and prices collected while pricing
@@ -534,7 +612,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
   const sourceFailed = (status: number): boolean =>
     status === -1 || (status !== 0 && (status < 200 || status >= 300));
   const catalogFailed = sourceFailed(catalogStatus);
-  const pricingBroughtSomething = !sourceFailed(priceStatus) && out.size > 0;
+  const pricingBroughtSomething = !sourceFailed(priceStatus) && hasModelMetadata;
   if (catalogFailed && !pricingBroughtSomething) {
     throw new Error(
       `enrichment catalog source failed (pricing/models: ${catalogStatus}, pricing: ${priceStatus})`
