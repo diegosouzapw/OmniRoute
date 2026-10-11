@@ -34,6 +34,7 @@
 import { createHmac, randomUUID } from "node:crypto";
 import {
   createAgenticConversation,
+  findAgenticConversationsByContent,
   findAgenticConversationsByFingerprint,
   getConversationTurnIndex,
   insertConversationTurnNodes,
@@ -65,6 +66,13 @@ export interface ResolveConversationIdInput {
   apiKeyId: string | null;
   /** Raw `x-omniroute-session-id` header value, if the client supplied one. */
   clientSessionIdHeader: string | null;
+  /**
+   * The client's own session id (`x-claude-code-session-id`, `session_id`, Claude's
+   * `metadata.user_id` session, ...), when it sends one. Unlike the header above it
+   * is not used as the conversation id; it only narrows the reconnect candidate
+   * bucket (see computeFingerprintHash).
+   */
+  clientSessionId?: string | null;
   /**
    * call_logs.correlation_id for this request (109_call_logs_correlation_id)
    * — generated earlier in the request lifecycle, well before this request's
@@ -234,11 +242,23 @@ function extractToolNames(body: JsonRecord | null | undefined): string[] {
 // stable across a whole session and still narrow in practice; actual
 // identity is decided by the turn-chain walk (real content overlap), not by
 // this bucket, so widening it here cannot cause a false merge on its own.
+//
+// When the client sends its own session id, the bucket is apiKeyId + that session
+// instead. Every parallel agent behind one API key otherwise shares one bucket, and
+// resolveConversationId only walks the bucket's most recently seen conversations:
+// with more agents than that window, a session's own conversation dropped out of it,
+// its next request minted a new conversation, and its whole history was inserted again
+// (~1.3M turn nodes a day on one deployment). The session bucket also survives a model
+// switch or a tool list that grows mid-session (deferred tool loading).
 export function computeFingerprintHash(input: {
   apiKeyId: string | null;
   model: string | null;
   toolNames: string[];
+  clientSessionId?: string | null;
 }): string {
+  if (input.clientSessionId) {
+    return hashHex(["session", input.apiKeyId ?? "", input.clientSessionId].join("|"));
+  }
   const parts = [input.apiKeyId ?? "", input.model ?? "", input.toolNames.join(",")];
   // NOTE: no connectionId — conversation identity must not depend on which
   // upstream connection this particular turn happened to be routed to.
@@ -452,46 +472,66 @@ export function findReconnectMatch(
 
 const MAX_STORED_ID_LENGTH = 128;
 
-export async function resolveConversationId(
-  input: ResolveConversationIdInput
-): Promise<ResolveConversationIdResult> {
-  if (process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING === "1") {
-    return { conversationId: null, isNewConversation: false };
+// Only identifiers known to stay the same for a whole client session. A per-request id
+// here would put every request in its own bucket and mint a conversation each time.
+const CLIENT_SESSION_HEADERS = ["x-claude-code-session-id", "x-opencode-session", "session_id"];
+
+/** Claude Code's `metadata.user_id` is a JSON string carrying the session id. */
+function claudeMetadataSessionId(body: unknown): string | null {
+  const metadata = (body as JsonRecord | null | undefined)?.metadata as JsonRecord | undefined;
+  const userId = metadata?.user_id;
+  if (typeof userId !== "string" || userId.length > 4096) return null;
+  try {
+    const sessionId = (JSON.parse(userId) as JsonRecord | null)?.session_id;
+    return typeof sessionId === "string" && sessionId.trim() ? sessionId.trim() : null;
+  } catch {
+    return null;
   }
+}
 
-  // Client override wins outright — deterministic, zero heuristic risk.
-  // Same header feature #8249 already reads (chatCore.ts); we don't invent a
-  // new prefix so the existing header's contract/format stays unchanged.
-  if (input.clientSessionIdHeader && input.clientSessionIdHeader.trim()) {
-    const id = input.clientSessionIdHeader.trim().slice(0, MAX_STORED_ID_LENGTH);
-    touchOrCreateExternalConversation(id, { apiKeyId: input.apiKeyId });
-    return { conversationId: id, isNewConversation: false };
+/** The client's own session id from its request headers or body, if it sends one. */
+export function resolveClientSessionId(
+  headers: Headers | null | undefined,
+  body: unknown
+): string | null {
+  for (const name of CLIENT_SESSION_HEADERS) {
+    const value = headers?.get(name)?.trim();
+    if (value) return value.slice(0, MAX_STORED_ID_LENGTH);
   }
+  return claudeMetadataSessionId(body)?.slice(0, MAX_STORED_ID_LENGTH) ?? null;
+}
 
-  const turns = extractCanonicalTurns(input.body);
-  const toolNames = extractToolNames(input.body);
-  const fingerprintHash = computeFingerprintHash({
-    apiKeyId: input.apiKeyId,
-    model: input.model,
-    toolNames,
-  });
+/**
+ * A few of this request's turns that a continued conversation already holds: the first,
+ * the middle and the third-to-last (the newest turns are usually new). A sliding-window
+ * client may have dropped the first, so the later probes still find the conversation.
+ */
+function probeTurnHashes(turnHashes: string[]): string[] {
+  const n = turnHashes.length;
+  if (n === 0) return [];
+  const indexes = [0, Math.floor((n - 1) / 2), Math.max(0, n - 3)];
+  return [...new Set(indexes.map((i) => turnHashes[i]))];
+}
 
-  // The turn CHAIN excludes the system message entirely, same reasoning as
-  // extractFirstNonSystemText above: real coding-agent CLIs regenerate the
-  // system prompt (timestamp/cwd/git status...) on every single request, so
-  // treating it as an ordinary chained turn would make turn-0 (or wherever
-  // it sits) fail to match on every request — reintroducing the exact
-  // always-new-conversation bug this chain design exists to fix.
-  const chainTurns = turns.filter((t) => t.role !== "system");
-  // #7847-class stall fix: hash each turn's content exactly once per request
-  // and bound the reconnect walk across ALL candidates with one shared budget
-  // — previously every (start × anchor × walk-step) re-hashed the turn's full
-  // text twice, which on long duplicate-heavy coding-agent histories blocked
-  // the pre-routing request path for 10-130 s.
-  const turnHashes = chainTurns.map(hashTurnContent);
-  const walkBudget: ReconnectWalkBudget = { stepsLeft: DEFAULT_RECONNECT_MAX_STEPS, stepsUsed: 0 };
+/** Bucket candidates holding some of this request's turns; recency only when there are none. */
+function findCandidates(fingerprintHash: string, probes: string[]) {
+  return probes.length > 0
+    ? findAgenticConversationsByContent(fingerprintHash, probes)
+    : findAgenticConversationsByFingerprint(fingerprintHash);
+}
 
-  const candidates = findAgenticConversationsByFingerprint(fingerprintHash);
+interface ReconnectContext {
+  chainTurns: CanonicalTurn[];
+  turnHashes: string[];
+  walkBudget: ReconnectWalkBudget;
+  correlationId: string | null;
+}
+
+/** Continue the first candidate whose chain this request extends; null when none does. */
+function reconnectToCandidates(
+  candidates: ReturnType<typeof findAgenticConversationsByFingerprint>,
+  { chainTurns, turnHashes, walkBudget, correlationId }: ReconnectContext
+): ResolveConversationIdResult | null {
   for (const candidate of candidates) {
     const index = getConversationTurnIndex(candidate.id);
     if (index.nodeIds.size === 0) continue;
@@ -530,7 +570,7 @@ export async function resolveConversationId(
         candidate.id,
         turnHashes
       );
-      insertConversationTurnNodes(candidate.id, input.correlationId, newNodes);
+      insertConversationTurnNodes(candidate.id, correlationId, newNodes);
       updateAgenticConversation(candidate.id, { turnCount: candidate.turnCount + 1 });
       return { conversationId: candidate.id, isNewConversation: false };
     }
@@ -542,7 +582,7 @@ export async function resolveConversationId(
     // branch inside this conversation's own chain — every OmniRoute
     // conversation is now a single straight line, never a tree. The
     // diverging history becomes its own independent conversation instead
-    // (built fresh below, from this request's full turn list) — distinct
+    // (built fresh by resolveConversationId from this request's full turn list) — distinct
     // conversation ids for `a b c d` and `a b c' d'`, not one tree with two
     // branches. This is both simpler to store/query and fixes a real UX
     // problem the branching model had: real OpenClaw traffic accumulates
@@ -553,6 +593,72 @@ export async function resolveConversationId(
     // (e.g. a repeated retry of the edited turn), which should continue
     // that one rather than minting yet another new id for it.
   }
+  return null;
+}
+
+export async function resolveConversationId(
+  input: ResolveConversationIdInput
+): Promise<ResolveConversationIdResult> {
+  if (process.env.OMNIROUTE_DISABLE_CONVERSATION_TRACKING === "1") {
+    return { conversationId: null, isNewConversation: false };
+  }
+
+  // Client override wins outright — deterministic, zero heuristic risk.
+  // Same header feature #8249 already reads (chatCore.ts); we don't invent a
+  // new prefix so the existing header's contract/format stays unchanged.
+  if (input.clientSessionIdHeader && input.clientSessionIdHeader.trim()) {
+    const id = input.clientSessionIdHeader.trim().slice(0, MAX_STORED_ID_LENGTH);
+    touchOrCreateExternalConversation(id, { apiKeyId: input.apiKeyId });
+    return { conversationId: id, isNewConversation: false };
+  }
+
+  const turns = extractCanonicalTurns(input.body);
+  const toolNames = extractToolNames(input.body);
+  const legacyFingerprintHash = computeFingerprintHash({
+    apiKeyId: input.apiKeyId,
+    model: input.model,
+    toolNames,
+  });
+  const clientSessionId = input.clientSessionId?.trim().slice(0, MAX_STORED_ID_LENGTH) || null;
+  const fingerprintHash = clientSessionId
+    ? computeFingerprintHash({
+        apiKeyId: input.apiKeyId,
+        model: null,
+        toolNames: [],
+        clientSessionId,
+      })
+    : legacyFingerprintHash;
+
+  // The turn CHAIN excludes the system message entirely, same reasoning as
+  // extractFirstNonSystemText above: real coding-agent CLIs regenerate the
+  // system prompt (timestamp/cwd/git status...) on every single request, so
+  // treating it as an ordinary chained turn would make turn-0 (or wherever
+  // it sits) fail to match on every request — reintroducing the exact
+  // always-new-conversation bug this chain design exists to fix.
+  const chainTurns = turns.filter((t) => t.role !== "system");
+  // #7847-class stall fix: hash each turn's content exactly once per request
+  // and bound the reconnect walk across ALL candidates with one shared budget
+  // — previously every (start × anchor × walk-step) re-hashed the turn's full
+  // text twice, which on long duplicate-heavy coding-agent histories blocked
+  // the pre-routing request path for 10-130 s.
+  const turnHashes = chainTurns.map(hashTurnContent);
+  const walkBudget: ReconnectWalkBudget = { stepsLeft: DEFAULT_RECONNECT_MAX_STEPS, stepsUsed: 0 };
+
+  const context: ReconnectContext = {
+    chainTurns,
+    turnHashes,
+    walkBudget,
+    correlationId: input.correlationId,
+  };
+  // The apiKeyId + model + toolNames bucket keeps conversations recorded before session
+  // bucketing, or before this client started sending a session id, reachable.
+  const probes = probeTurnHashes(turnHashes);
+  const reconnected =
+    reconnectToCandidates(findCandidates(fingerprintHash, probes), context) ??
+    (fingerprintHash !== legacyFingerprintHash
+      ? reconnectToCandidates(findCandidates(legacyFingerprintHash, probes), context)
+      : null);
+  if (reconnected) return reconnected;
 
   const id = `conv_${randomUUID()}`;
   createAgenticConversation({ id, apiKeyId: input.apiKeyId, fingerprintHash });
