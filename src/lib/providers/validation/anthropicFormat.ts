@@ -15,6 +15,7 @@ import {
   normalizeAnthropicBaseUrl,
   normalizeClaudeCodeCompatibleBaseUrl,
 } from "./urlHelpers";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { applyCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 
@@ -97,6 +98,10 @@ export async function validateAnthropicLikeProvider({
       requestHeaders["anthropic-version"] = "2023-06-01";
     }
 
+    // The chat path sends the connection's custom headers (#8369); the probe must too, or a
+    // key that needs one (e.g. anthropic-workspace-id) is tested without it.
+    mergeConnectionCustomHeaders(requestHeaders, providerSpecificData);
+
     const testModelId =
       providerSpecificData?.validationModelId || modelId || "claude-3-5-sonnet-20241022";
 
@@ -118,9 +123,92 @@ export async function validateAnthropicLikeProvider({
       return { valid: false, error: "Invalid API key" };
     }
 
+    // A 400 usually means the key passed auth and the probe payload was refused (relays reject
+    // the probe model or max_tokens:1), so it stays valid. Two Anthropic 400s are about the
+    // key itself, though: every real request would fail the same way.
+    const keyError = await anthropicKeyErrorFrom400(chatResponse);
+    if (keyError) return { valid: false, error: keyError, statusCode: 400 };
+
     return { valid: true, error: null };
   } catch (error: any) {
     return toValidationErrorResult(error);
+  }
+}
+
+const CREDIT_BALANCE_TOO_LOW = /credit balance is too low|credit_balance_too_low/i;
+const WORKSPACE_REQUIRED = /not scoped to a workspace/i;
+const KEY_ERROR_BODY_MAX_BYTES = 8 * 1024;
+const KEY_ERROR_BODY_TIMEOUT_MS = 3000;
+
+/**
+ * For a 400 probe answer, return a message when the body is one of the two Anthropic errors
+ * about the key itself, else null. The body read is bounded in size and time: the fetch
+ * timeout stops at the headers, and a relay could trickle or never close a 400 body.
+ */
+async function anthropicKeyErrorFrom400(response: Response): Promise<string | null> {
+  if (response.status !== 400) return null;
+  const body = await readBodyPrefix(response, KEY_ERROR_BODY_MAX_BYTES, KEY_ERROR_BODY_TIMEOUT_MS);
+  if (CREDIT_BALANCE_TOO_LOW.test(body)) {
+    return "Upstream reports the credit balance is too low for this key";
+  }
+  if (WORKSPACE_REQUIRED.test(body)) {
+    return "This key is not scoped to a workspace: add an anthropic-workspace-id custom header to the connection";
+  }
+  return null;
+}
+
+async function readBodyPrefix(
+  response: Response,
+  maxBytes: number,
+  timeoutMs: number
+): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let text = "";
+  let received = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), timeoutMs);
+  });
+  try {
+    while (received < maxBytes) {
+      const chunk = await Promise.race([reader.read(), timedOut]);
+      if (!chunk || chunk.done) break;
+      received += chunk.value.byteLength;
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+  } catch {
+    // a broken body is just "not a recognised key error"
+  } finally {
+    clearTimeout(timer);
+    reader.cancel().catch(() => {});
+  }
+  return text.slice(0, maxBytes);
+}
+
+/**
+ * Add the connection's `providerSpecificData.customHeaders` the way the chat path does
+ * (open-sse/handlers/chatCore/upstreamExecuteHeaders.ts): auth and hop-by-hop names are
+ * skipped, CR/LF/NUL is dropped, and a header already set is never replaced.
+ */
+function mergeConnectionCustomHeaders(
+  headers: Record<string, string>,
+  providerSpecificData: unknown
+): void {
+  const customHeaders =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as { customHeaders?: unknown }).customHeaders
+      : undefined;
+  if (!customHeaders || typeof customHeaders !== "object" || Array.isArray(customHeaders)) return;
+  for (const [name, value] of Object.entries(customHeaders as Record<string, unknown>)) {
+    const trimmed = name.trim();
+    if (!trimmed || typeof value !== "string") continue;
+    if (isForbiddenCustomHeaderName(trimmed)) continue;
+    if (/[\r\n\0]/.test(trimmed) || /[\r\n\0]/.test(value)) continue;
+    const lower = trimmed.toLowerCase();
+    if (Object.keys(headers).some((existing) => existing.toLowerCase() === lower)) continue;
+    headers[trimmed] = value;
   }
 }
 
@@ -225,6 +313,11 @@ export async function validateAnthropicCompatibleProvider({
     if (messagesRes.status === 401 || messagesRes.status === 403) {
       return { valid: false, error: "Invalid API key" };
     }
+
+    // Same two key-level Anthropic 400s as validateAnthropicLikeProvider (a compatible node
+    // can point at api.anthropic.com itself).
+    const keyError = await anthropicKeyErrorFrom400(messagesRes);
+    if (keyError) return { valid: false, error: keyError, statusCode: 400 };
 
     // Any other response (200, 400, 422, etc.) means auth passed
     return { valid: true, error: null };

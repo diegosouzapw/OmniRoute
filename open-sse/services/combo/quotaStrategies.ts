@@ -10,7 +10,7 @@
  * State cohesion: `resetAwareQuotaCache` and
  * `MAX_RESET_AWARE_CACHE` MUST remain single instances defined once here,
  * alongside their only readers/writers (`fetchResetAwareQuotaWithCache`).
- * Connection lists go through `getCachedProviderConnections` (5s TTL,
+ * Connection lists go through `getCachedProviderPoolConnections` (5s TTL,
  * invalidated on connection writes). Do not add a second connection cache.
  *
  * Cross-module state: the tie-band round-robin in orderTargetsByResetAwareQuota
@@ -32,7 +32,7 @@ import {
 import { PRE_SCREEN_CONCURRENCY } from "../comboConfig.ts";
 import { getQuotaFetcher } from "../quotaPreflight.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
-import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
+import { getCachedProviderPoolConnections } from "../providerConnectionPool.ts";
 import { MAX_RR_COUNTERS, rrCounters } from "./rrState.ts";
 import type { ResolvedComboTarget, IsModelAvailable } from "./types.ts";
 import {
@@ -91,7 +91,10 @@ async function getQuotaAwareConnectionsForTarget(
         provider,
         (async () => {
           try {
-            const connections = await getCachedProviderConnections({ provider, isActive: true });
+            const connections = await getCachedProviderPoolConnections({
+              provider,
+              isActive: true,
+            });
             let activeConnections = Array.isArray(connections)
               ? (connections as Array<Record<string, unknown>>).filter(
                   (connection) =>
@@ -222,10 +225,11 @@ export async function expandTargetsByQuotaAwareConnections(
       continue;
     }
 
+    const poolIds = new Set(connections.map((connection) => connection.id));
     for (const connectionId of connectionIds) {
       const provider = getResetAwareProvider(target);
       const connection = connectionById.get(connectionId);
-      if (provider && getQuotaFetcher(provider) && connection?.provider !== provider) continue;
+      if (provider && getQuotaFetcher(provider) && !poolIds.has(connectionId)) continue;
       if (
         connection &&
         typeof connection.rateLimitedUntil === "string" &&
@@ -806,7 +810,9 @@ export async function orderTargetsByQuotaWeighted(
   const now = Date.now();
   const withSnapshot = scoredTargets.map((entry) => {
     const connectionId = entry.target.connectionId ?? "";
-    const marked = connectionId ? getQuotaWeightedRemainingPercent(connectionId) : null;
+    const marked = connectionId
+      ? getQuotaWeightedRemainingPercent(connectionId, entry.target.modelStr)
+      : null;
     const fetchedAt = connectionId ? getQuotaSnapshotFetchedAt(connectionId) : null;
     return {
       ...entry,

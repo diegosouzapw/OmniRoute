@@ -23,7 +23,7 @@ export const deepseek_webProvider: RegistryEntry = {
       toolCalling: true,
       supportsReasoning: true,
     },
-    { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", toolCalling: true },
+    { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", toolCalling: true, supportsVision: true },
     {
       id: "deepseek-v4-flash-think",
       name: "DeepSeek V4 Flash Think",

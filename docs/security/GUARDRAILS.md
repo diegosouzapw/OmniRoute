@@ -495,6 +495,8 @@ body sent upstream to the model is unchanged. An observed request also populates
 no durable Memory (both request- and response-derived extraction are skipped),
 so the model's own reply cannot echo transcript text into Memory.
 
+**Raw video fields (#12430).** When the bridge is enabled and native video support is unknown or absent, defined `transcript`/`audioTranscript` fields also activate `videoBridgeObserved`, even after description failure or a `maxVideos` limit. `null` and empty strings count; absent fields and non-video metadata do not. Retained copies redact these fields or omit the request, and caches/Memory are bypassed. The provider payload stays unchanged.
+
 Additional retained copies use the same observed-request signal. The raw
 pre-guardrail client-request snapshot, in-memory pending request, and early
 rejected-request log structurally replace transcript fields in video parts;

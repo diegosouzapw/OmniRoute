@@ -12,9 +12,10 @@
  * The command is idempotent: re-running updates existing profile files in place.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
+import { parse, stringify } from "smol-toml";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 import { t } from "../i18n.mjs";
@@ -222,7 +223,7 @@ export function fallbackCodexProfile(modelId, model) {
 }
 
 /** Build the TOML content for a single profile. */
-function buildProfileToml(modelId, cfg) {
+function buildProfileToml(modelId, cfg, modelProviders) {
   const lines = [
     `# codex --profile ${cfg.name}`,
     `# ${modelId}`,
@@ -243,7 +244,30 @@ function buildProfileToml(modelId, cfg) {
     `tool_output_token_limit        = ${cfg.toolLimit}`
   );
 
+  if (modelProviders) {
+    lines.push("", stringify({ model_providers: modelProviders }));
+  }
   return lines.join("\n") + "\n";
+}
+
+// Explicit setup can bootstrap a missing provider without rewriting the user's
+// base configuration or changing an existing provider's authentication contract.
+function missingProviderDefinition(codexHome, baseUrl, requiresApiKey) {
+  const configPath = join(codexHome, "config.toml");
+  const config = existsSync(configPath) ? parse(readFileSync(configPath, "utf8")) : {};
+  if (config.model_providers?.omniroute) return undefined;
+  return {
+    name: "OmniRoute",
+    base_url: `${baseUrl}/v1`,
+    wire_api: "responses",
+    requires_openai_auth: false,
+    ...(requiresApiKey ? { env_key: "OMNIROUTE_API_KEY" } : {}),
+  };
+}
+
+function existingProfileProviders(filePath) {
+  if (!existsSync(filePath)) return undefined;
+  return parse(readFileSync(filePath, "utf8")).model_providers;
 }
 
 export async function syncCodexProfilesFromModels(models, opts = {}) {
@@ -277,11 +301,21 @@ export async function syncCodexProfilesFromModels(models, opts = {}) {
     }
 
     const filePath = join(codexHome, `${cfg.name}.config.toml`);
-    const content = buildProfileToml(id, cfg);
+    const existingProviders = existingProfileProviders(filePath);
+    const modelProviders = opts.providerDefinition
+      ? { omniroute: opts.providerDefinition, ...existingProviders }
+      : existingProviders;
+    const content = buildProfileToml(id, cfg, modelProviders);
 
     if (dryRun) {
       console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
+      // Existing provider tables can contain operator-managed credentials.
+      console.log(
+        existingProviders
+          ? buildProfileToml(id, cfg) +
+              "# Existing provider settings preserved; omitted from preview.\n"
+          : content
+      );
     } else {
       writeFileSync(filePath, content, "utf8");
     }
@@ -342,11 +376,27 @@ export async function runSetupCodexCommand(opts = {}) {
   printInfo(`Received ${models.length} models from ${baseUrl}`);
 
   // ── Generate profiles ─────────────────────────────────────────────────────
-  const { written, skipped, profiles } = await syncCodexProfilesFromModels(models, {
-    codexHome,
-    dryRun,
-    only: opts.only,
-  });
+  let result;
+  try {
+    const providerDefinition = missingProviderDefinition(codexHome, baseUrl, Boolean(apiKey));
+    result = await syncCodexProfilesFromModels(models, {
+      codexHome,
+      dryRun,
+      only: opts.only,
+      providerDefinition,
+    });
+    if (providerDefinition?.env_key) {
+      printInfo(
+        "Set OMNIROUTE_API_KEY in the environment where you run Codex; the key is not saved in profiles."
+      );
+    }
+  } catch {
+    printError(
+      "Unable to generate Codex profiles. Check the target directory and existing config.toml syntax."
+    );
+    return 1;
+  }
+  const { written, skipped, profiles } = result;
 
   if (!dryRun) {
     for (const profile of profiles) {

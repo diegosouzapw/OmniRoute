@@ -416,6 +416,12 @@ GET /v1/models?prefix=canonical    # yalnız tam provayder id-si prefiksi
 
 Model seçicisini göstərən klientlər `?prefix=alias` sorğulamalıdır — [OmniCopilot VS Code genişləndirməsi](../guides/VSCODE-COPILOT.md) də məhz bunu edir.
 
+### Ayrı-ayrılıqda gizlədilən söhbət modelləri
+
+Provayder səhifəsində **Gizli** kimi işarələnən model kataloqdan çıxarılır və açıq şəkildə istənildikdə HTTP `404` / `model_not_found` ilə rədd edilir. Yoxlama provayder ləqəbləri, uyğun provayder qovşaqlarının prefiksləri və bağlantının standart dəyərləri nəzərə alınaraq müəyyənləşdirilmiş provayder və modeldən istifadə edir. Combo gizli hədəfləri ötürür və başqa görünən hədəfdən istifadə edə bilər; icra edilə bilən hədəf qalmadıqda eyni xəta kodunu qaytarır. Modelin yenidən göstərilməsi növbəti sorğudan qüvvəyə minir. Yalnız şəkillər üçün görünmə tənzimləmələri eyni ID-li söhbət modelini gizlətmir.
+
+Bu fərdi model ayarı [model nümayişi üçün icazə və qadağa siyahılarından](../routing/MODEL_EXPOSURE_LIST.md) ayrıdır. Həmin siyahılar birbaşa göndərişi saxlayaraq kataloqda təqdim olunan modelləri və avtomatik yönləndirmə namizədlərini süzgəcdən keçirir. API açarının model icazələri müstəqil şəkildə tətbiq olunmağa davam edir. Kataloqun standart prefiks rejimi `dual` olaraq qalır.
+
 ### Düşünməsiz model variantları
 
 Düşünmə qabiliyyətli Claude modelləri üçün `/v1/models`, id-si `claude-3-omniroute-no-thinking/` prefiksi ilə başlayan **düşünməsiz** variantı da təqdim edir:

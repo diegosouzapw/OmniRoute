@@ -87,8 +87,9 @@ export function resolveResponsesStallWindowMs(
 /**
  * Shadow first-byte counters: occurrences and cumulative silent time measured
  * while the guard stays off, plus shadow-only failures (clone or watch
- * errors, read through the shared debug sink). Three module scalars,
- * constant size by construction — nothing grows per request.
+ * errors, counted silently and read back through the next hit warn line).
+ * Three module scalars, constant size by construction — nothing grows per
+ * request.
  */
 let shadowOccurrences = 0;
 let shadowTotalMs = 0;
@@ -143,9 +144,12 @@ function reportShadowHit(
   );
 }
 
-function reportShadowMiss(log: StallShadowOptions["log"], cid: string): void {
+function reportShadowMiss(_log: StallShadowOptions["log"], _cid: string): void {
+  // A miss is counted silently: the count is read back through the next hit
+  // warn line. At most one clone floats per shadowed request; once the watch
+  // settles the watchdog has cleared its timer and abort listener, so nothing
+  // module-held grows per request and the clone is garbage collected.
   shadowFailures += 1;
-  log?.debug?.("OPENCODE", `${cid}silent stream shadow watch ended`);
 }
 
 /**

@@ -95,6 +95,8 @@ OmniRoute에는 서로 구분되지만 관련성이 있는 세 가지 복원력 
 
 **동시 재시도 폭주 방지 가드:** 동시 실패로 인해 쿨다운이 과도하게 연장되거나 `backoffLevel`이 중복 증가하는 것을 방지합니다.
 
+비어 있지 않은 서명이 있는 Kiro의 바이너리 `reasoningContentEvent` 프레임은 실행기를 통과할 때 빈 `reasoning_content` 델타로 추론 활동을 유지합니다. 서명은 전달되지 않습니다. 메타데이터, 불완전한 프레임, 빈 서명은 콘텐츠 대기 시간을 다시 시작하지 않으며, 활성 스트림의 독립적인 시간 제한과 클라이언트 취소는 계속 적용됩니다. (`open-sse/executors/kiro/reasoning.ts`).
+
 **종료 상태(쿨다운 아님):**
 
 - `banned` — 차단 키워드/계정 차단 감지([BAN_DETECTION](../security/BAN_DETECTION.md) 참조) 및 업스트림의 요청별 거부가 3회 연속 발생하면 설정됩니다(`request_rejected`, 예: Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`). 한 번의 거부는 연결을 쿨다운 상태로만 전환합니다.

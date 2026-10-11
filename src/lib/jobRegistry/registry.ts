@@ -180,19 +180,26 @@ export class JobRegistry {
     const startedAt = new Date().toISOString();
     const start = Date.now();
     try {
-      const result = await handler();
-      await recordRun(jobId, result.success ? "success" : "failure", {
-        startedAt,
-        durationMs: Date.now() - start,
-        errorMessage: result.error ? sanitizeErrorMessage(result.error) : undefined,
-        recordsAffected: result.recordsAffected,
-      });
-    } catch (err) {
-      await recordRun(jobId, "failure", {
-        startedAt,
-        durationMs: Date.now() - start,
-        errorMessage: sanitizeErrorMessage(errMessage(err)),
-      });
+      let result: HandlerResult;
+      let errorMessage: string | undefined;
+      try {
+        result = await handler();
+        errorMessage = result.error ? sanitizeErrorMessage(result.error) : undefined;
+      } catch (err) {
+        result = { success: false };
+        errorMessage = sanitizeErrorMessage(errMessage(err));
+      }
+      try {
+        await recordRun(jobId, result.success ? "success" : "failure", {
+          startedAt,
+          durationMs: Date.now() - start,
+          errorMessage,
+          recordsAffected: result.recordsAffected,
+        });
+      } catch (err) {
+        // History persistence must not turn a completed handler into a failed job.
+        console.error(`[JobRegistry] Failed to record run for ${jobId}:`, errMessage(err));
+      }
     } finally {
       this.running.delete(jobId);
       const ws = this.waiters.get(jobId);
@@ -200,7 +207,12 @@ export class JobRegistry {
         this.waiters.delete(jobId);
         for (const resolve of ws) resolve();
       }
-      await pruneRuns(jobId);
+      try {
+        await pruneRuns(jobId);
+      } catch (err) {
+        // Timer dispatch is fire-and-forget; pruning errors must not escape it.
+        console.error(`[JobRegistry] Failed to prune runs for ${jobId}:`, errMessage(err));
+      }
     }
   }
 

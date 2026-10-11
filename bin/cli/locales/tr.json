@@ -254,6 +254,7 @@
     "log": "Sunucu günlüklerini satır içinde göster",
     "no_recovery": "Çökme durumunda otomatik yeniden başlatmayı devre dışı bırak (hata ayıklama modu)",
     "max_restarts": "Vazgeçmeden önce 30 saniye içinde izin verilen en fazla çökme sonrası yeniden başlatma sayısı (varsayılan: 2)",
+    "headless": "Yalnızca proxy motorunu çalıştır: kontrol paneli devre dışı (404), isteğe bağlı alt sistemler atlanır (OMNIROUTE_HEADLESS=1 ayarlar)",
     "tray": "Sistem tepsisinde başlat (yalnızca masaüstü, isteğe bağlı)",
     "no_tray": "Sistem tepsisi simgesini devre dışı bırak",
     "ready_timeout": "Hazır olma denetimi zaman aşımı, ms cinsinden (ayrıca OMNIROUTE_READY_TIMEOUT_MS, varsayılan 60000)",

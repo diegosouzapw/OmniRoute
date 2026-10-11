@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Возможности</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Комбинации</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Провайдеры</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Провайдеры</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI и MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # также: claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 поставщиков ИИ — 152 отмечены в каталоге как бесплатные
+## 🌐 372 поставщиков ИИ — 154 отмечены в каталоге как бесплатные
 
 </div>
 
@@ -1265,7 +1265,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 также про
   <tr><td nowrap><b>Среда выполнения</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Язык</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> в <code>src/</code> и <code>open-sse/</code> (начиная с v2.0 в ядре нет ни одного <code>any</code>)</td></tr>
   <tr><td nowrap><b>Фреймворк</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>База данных</b></td><td>better-sqlite3 (SQLite, журналирование WAL) + LowDB (устаревший формат JSON) — 137 доменных модулей, 193 миграции</td></tr>
+  <tr><td nowrap><b>База данных</b></td><td>better-sqlite3 (SQLite, журналирование WAL) + LowDB (устаревший формат JSON) — 137 доменных модулей, 202 миграции</td></tr>
   <tr><td nowrap><b>Память</b></td><td>Полнотекстовый поиск SQLite FTS5 + векторные эмбеддинги с квантованием int8, типизированное затухание</td></tr>
   <tr><td nowrap><b>Схемы</b></td><td>Zod 4 — валидация ввода-вывода инструментов MCP + контракты API</td></tr>
   <tr><td nowrap><b>Протоколы</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

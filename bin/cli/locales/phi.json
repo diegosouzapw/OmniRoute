@@ -254,6 +254,7 @@
     "log": "Ipakita ang mga log ng server nang inline",
     "no_recovery": "I-disable ang awtomatikong pag-restart kapag nag-crash (debugging mode)",
     "max_restarts": "Pinakamataas na bilang ng pag-restart dahil sa pag-crash sa loob ng 30s bago sumuko (default: 2)",
+    "headless": "Patakbuhin lamang ang proxy engine: naka-disable ang dashboard (404), nilalaktawan ang mga opsyonal na subsystem (nagse-set ng OMNIROUTE_HEADLESS=1)",
     "tray": "Magsimula sa system tray (desktop lang, kailangang i-enable)",
     "no_tray": "I-disable ang icon sa system tray",
     "ready_timeout": "Timeout ng readiness probe sa ms (OMNIROUTE_READY_TIMEOUT_MS din, default na 60000)",

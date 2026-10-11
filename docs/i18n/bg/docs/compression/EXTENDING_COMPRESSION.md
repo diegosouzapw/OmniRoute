@@ -333,7 +333,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # На ниво потребител
-<project>/.compression/rules/hi/filler.json   # На ниво проект
 ```
 
 ### Добри практики за езикови пакети

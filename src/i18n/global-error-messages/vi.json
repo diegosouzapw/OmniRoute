@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Đã xảy ra sự cố",
+      "description": "Đã xảy ra lỗi không mong muốn. Lỗi đã được ghi lại và nhóm của chúng tôi sẽ kiểm tra.",
+      "detailsAriaLabel": "Chi tiết lỗi",
+      "retryAriaLabel": "Thử tải lại trang",
+      "tryAgain": "Thử lại",
+      "statusAriaLabel": "Mở trạng thái hệ thống",
+      "systemStatus": "Trạng thái hệ thống"
+    }
+  }
+}

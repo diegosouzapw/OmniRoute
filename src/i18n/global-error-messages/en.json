@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. This has been logged and our team will investigate.",
+      "detailsAriaLabel": "Error details",
+      "retryAriaLabel": "Retry loading the page",
+      "tryAgain": "Try Again",
+      "statusAriaLabel": "Open system status",
+      "systemStatus": "System Status"
+    }
+  }
+}

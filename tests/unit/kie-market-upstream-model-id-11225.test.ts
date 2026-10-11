@@ -119,6 +119,14 @@ test("KIE Market resolver changes exactly the documented mismatched ids in the l
       upstreamModelId: "seedream/5-lite-image-to-image",
     },
     {
+      publicModelId: "z-image/4.0-text-to-image",
+      upstreamModelId: "z-image",
+    },
+    {
+      publicModelId: "z-image/4.5-text-to-image",
+      upstreamModelId: "z-image",
+    },
+    {
       publicModelId: "google-imagen/nano-banana-2",
       upstreamModelId: "nano-banana-2",
     },
@@ -178,6 +186,8 @@ test("KIE Market resolver changes exactly the documented mismatched ids in the l
 });
 
 const REWRITTEN_MARKET_IDS = new Set([
+  "z-image/4.0-text-to-image",
+  "z-image/4.5-text-to-image",
   "google-imagen/nano-banana",
   "google-imagen/nano-banana-2",
   "google-imagen/nano-banana-pro",
@@ -209,7 +219,7 @@ test("KIE Market resolver preserves every other live market catalog id byte-iden
 });
 
 test("KIE Market resolver keeps exactly the explicit upstream id mappings (#11296)", () => {
-  assert.equal(KIE_MARKET_UPSTREAM_MODEL_IDS.size, 16);
+  assert.equal(KIE_MARKET_UPSTREAM_MODEL_IDS.size, 18);
 });
 
 test("KIE Market resolver passes an unknown namespaced id through byte-identically", () => {
@@ -411,12 +421,9 @@ test("KIE direct image routing keeps the gpt4o-image endpoint and payload shape"
   }
 });
 
-// #11296 — flux/kontext is catalogued with `isMarket: true`, but KIE does not
-// expose it through the Market catalog: it lives under a dedicated API tree
-// (POST /api/v1/flux/kontext/generate, GET /api/v1/flux/kontext/record-info).
-// Sending it through the Market createTask flow gets rejected with "model
-// name not supported" -- these tests lock in the dedicated-endpoint reroute
-// and guard against a future regression back to the Market flow.
+// #11296/#14335: preserve the dedicated Flux Kontext API contract for existing
+// public ids. Current KIE docs also expose a separate Market variant; switching
+// endpoints is not implicit in this compatibility path.
 
 test("KIE flux/kontext routes to the dedicated Flux Kontext endpoint, never the Market createTask endpoint (#11296)", async () => {
   const originalFetch = globalThis.fetch;

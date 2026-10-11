@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Wani abu ya faru ba daidai ba",
+      "description": "An sami kuskuren da ba a yi tsammani ba. An rubuta wannan kuma ƙungiyarmu za ta bincika.",
+      "detailsAriaLabel": "Bayanan kuskure",
+      "retryAriaLabel": "Sake gwada loda shafin",
+      "tryAgain": "Sake Gwadawa",
+      "statusAriaLabel": "Buɗe matsayin tsarin",
+      "systemStatus": "Matsayin Tsarin"
+    }
+  }
+}

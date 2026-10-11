@@ -336,7 +336,6 @@ Ou coloque-o em um local reconhecido:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Nível do usuário
-<project>/.compression/rules/hi/filler.json   # Nível do projeto
 ```
 
 ### Práticas recomendadas para pacotes de idioma

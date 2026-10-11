@@ -124,6 +124,12 @@ function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 }
 
+function appServerThreadId(result: { thread?: { id?: unknown }; threadId?: unknown }): string {
+  // Codex returns thread.id; retain the legacy top-level threadId fallback.
+  if (result && typeof result.thread?.id === "string") return result.thread.id;
+  return result && typeof result.threadId === "string" ? result.threadId : "";
+}
+
 /**
  * Build the bridge tool maps + the codex dynamicTools specs from the harness's
  * Responses `tools` array. This mirrors chatgpt-web-codex.ts:toolMaps() /
@@ -280,7 +286,17 @@ export class CodexAppServerExecutor extends BaseExecutor {
         markTerminated();
       };
       try {
+        // Setup responses and socket closure can arrive in the same frame batch.
+        client.onNotification((method, params) => {
+          if (terminated) return;
+          const isTerminal = translateNotification(method, params, (event) => events.push(event));
+          if (isTerminal) {
+            events.close();
+            markTerminated();
+          }
+        });
         await client.connect(config.url, config.token);
+        if (terminated) return;
         await client.request("initialize", {
           clientInfo: {
             name: "omniroute-codex-app-server",
@@ -292,6 +308,7 @@ export class CodexAppServerExecutor extends BaseExecutor {
           // codex accepts it (and can emit the item/tool/call ServerRequest).
           capabilities: hasTools ? { experimentalApi: true, requestAttestation: false } : null,
         });
+        if (terminated) return;
         const threadResult = (await client.request("thread/start", {
           cwd: config.cwd,
           // OmniRoute is a router: the HARNESS that consumes OmniRoute owns tool
@@ -314,24 +331,8 @@ export class CodexAppServerExecutor extends BaseExecutor {
           // to the client (DynamicToolCallParams), which we PASS THROUGH.
           ...(hasTools ? { dynamicTools: toolMaps.specs } : {}),
         })) as { thread?: { id?: unknown }; threadId?: unknown };
-        // The live app-server (codex 0.149.0) returns the thread under
-        // result.thread.id — NOT a top-level threadId (verified against the real
-        // binary 2026-08-22). Keep the top-level fallback for forward/back compat.
-        const threadId =
-          threadResult && typeof threadResult.thread?.id === "string"
-            ? threadResult.thread.id
-            : threadResult && typeof threadResult.threadId === "string"
-              ? threadResult.threadId
-              : "";
-
-        client.onNotification((method, params) => {
-          if (terminated) return;
-          const isTerminal = translateNotification(method, params, (event) => events.push(event));
-          if (isTerminal) {
-            events.close();
-            markTerminated();
-          }
-        });
+        if (terminated) return;
+        const threadId = appServerThreadId(threadResult);
 
         // OUTBOUND codex tool call → harness. codex asks us to execute a harness
         // tool via the `item/tool/call` ServerRequest. OmniRoute is a STATELESS

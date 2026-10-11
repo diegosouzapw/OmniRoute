@@ -182,8 +182,13 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   if (body.temperature === undefined && body.top_p !== undefined) {
     result.top_p = body.top_p;
   }
-  if (body.stop !== undefined) {
-    result.stop_sequences = Array.isArray(body.stop) ? body.stop : [body.stop];
+  // `stop: null` is how many OpenAI-compatible clients serialize "no stop"; wrapping it
+  // would send `stop_sequences: [null]`, which Anthropic rejects with a 400.
+  const stopSequences = (Array.isArray(body.stop) ? body.stop : [body.stop]).filter(
+    (value) => typeof value === "string" && value !== ""
+  );
+  if (stopSequences.length > 0) {
+    result.stop_sequences = stopSequences;
   }
 
   // Thinking configuration
