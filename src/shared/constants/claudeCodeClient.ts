@@ -9,9 +9,11 @@
  * advertise the version on the wire must go through getClaudeCodeClientVersion()
  * so operators can bump past Anthropic's model gate without a rebuild (#12417).
  * The getter also reads a 6h cache of `@anthropic-ai/claude-code` on npm and
- * uses that version when it is newer than the pin. The env override wins over
- * both. The lookup is fire-and-forget; a cold or failed fetch stays on the pin.
+ * uses that version when it is newer than the pin. The dashboard override
+ * (`cliVersions.ts`) wins over everything, then the env override. The lookup is fire-and-forget; a cold or failed fetch stays on the pin.
  */
+import { getCliVersionOverride, type CliVersionSource } from "./cliVersions.ts";
+
 export const CLAUDE_CODE_CLIENT_VERSION = "2.1.280";
 export const CLAUDE_CODE_CLIENT_BUILD_REVISION = "1e2";
 export const CLAUDE_CODE_CLIENT_BILLING_VERSION = `${CLAUDE_CODE_CLIENT_VERSION}.${CLAUDE_CODE_CLIENT_BUILD_REVISION}`;
@@ -84,7 +86,9 @@ function shouldAutoRefreshClaudeCodeVersion(): boolean {
  * background refresh; this call itself never waits on the network.
  */
 export function getClaudeCodeClientVersion(): string {
-  const override = getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
+  const override =
+    getCliVersionOverride("claude") ||
+    getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
   if (override) return override;
   if (shouldAutoRefreshClaudeCodeVersion() && !readFreshCache() && !inFlight) {
     void refreshClaudeCodeClientVersion();
@@ -93,12 +97,26 @@ export function getClaudeCodeClientVersion(): string {
 }
 
 /**
+ * Which layer produced `getClaudeCodeClientVersion()` right now. Resolution is
+ * dashboard override -> `CLAUDE_CODE_CLIENT_VERSION` env -> a fresh npm-registry
+ * cache newer than the pin ("discovered") -> the captured pin.
+ */
+export function getClaudeCodeClientVersionSource(): CliVersionSource {
+  if (getCliVersionOverride("claude")) return "settings";
+  if (getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN)) return "env";
+  if (pickAtLeastPin(readFreshCache()) !== CLAUDE_CODE_CLIENT_VERSION) return "discovered";
+  return "default";
+}
+
+/**
  * Warm the npm cache (5s timeout, 6h TTL, coalesced, never rejects).
  * Any failure — network, non-2xx, or a payload that is not a dotted triple —
  * leaves the pin (or the previous fresh cache) in place.
  */
 export function refreshClaudeCodeClientVersion(fetchImpl: FetchLike = fetch): Promise<string> {
-  const override = getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
+  const override =
+    getCliVersionOverride("claude") ||
+    getSafeEnvValue(CLAUDE_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN);
   if (override) return Promise.resolve(override);
 
   const fresh = readFreshCache();
