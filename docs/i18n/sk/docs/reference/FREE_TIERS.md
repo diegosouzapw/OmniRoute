@@ -121,7 +121,6 @@ Väčšina údajov o „bezplatných tokenoch za mesiac“ v tejto oblasti preds
 | `modal`          | Časť 1.3 ToS výslovne zakazuje „prenajímať, ďalej predávať alebo inak umožniť akejkoľvek tretej strane priamy prístup k službe alebo jej používanie“ — vytvorenie používateľom hostovaného…            |
 | `muse-spark-web` | ToS spoločnosti Meta výslovne zakazujú automatizovaný prístup bez predchádzajúceho povolenia, spätné inžinierstvo bez písomného povolenia a obchádzanie technologických…                               |
 | `nlpcloud`       | ToS výslovne zakazujú „nastaviť proxy server alebo iné zariadenie, ktoré cezň umožní ostatným prístup k službe“, a udeľujú iba neprenosné,…                                                            |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) výslovne obmedzujú používanie na „vaše vlastné interné použitie, a nie v mene ani v prospech akejkoľvek tretej strany“ — ope…                                          |
 | `t3-web`         | ToS výslovne obmedzujú účty iba na osobné použitie, zakazujú zdieľanie prihlasovacích údajov s tretími stranami a automatizovaný/botový/scrapingový prístup — a s…                                     |
 
 ### ✅ Vo všeobecnosti povoľujúce — upozornenie / nejasné / povolené (ostatní)
@@ -265,7 +264,6 @@ Väčšina údajov o „bezplatných tokenoch za mesiac“ v tejto oblasti preds
 | `nlpcloud`       | bez kľúča             | —                           | —                     | vyhnúť sa            | 1      |
 | `nous-research`  | bez kľúča             | —                           | —                     | nejednoznačné        | 2      |
 | `nvidia`         | bez kľúča             | —                           | —                     | opatrnosť            | 13     |
-| `opencode`       | bez kľúča             | —                           | —                     | vyhnúť sa            | 7      |
 | `pollinations`   | bez kľúča             | —                           | —                     | opatrnosť            | 31     |
 | `publicai`       | bez kľúča             | —                           | —                     | opatrnosť            | 3      |
 | `reka`           | bez kľúča             | —                           | —                     | opatrnosť            | 2      |
@@ -276,17 +274,6 @@ Väčšina údajov o „bezplatných tokenoch za mesiac“ v tejto oblasti preds
 | `uncloseai`      | bez kľúča             | —                           | —                     | opatrnosť            | 3      |
 
 ---
-
-## OpenCode Free: obmedzenie klientskej zmluvy (#14313)
-
-Poskytovateľ `opencode` bez kľúča (verejný `https://opencode.ai/zen/v1`) odmietne každú požiadavku,
-ktorá nezodpovedá klientskej zmluve OpenCode, s chybou **403 `FreeTierError`** a vetou
-_"Bezplatnú úroveň OpenCode možno používať iba v rámci OpenCode"_. Ide o odmietnutie
-viazané na požiadavku (rovnaký výsledok na každom účte pri rovnakom tvare požiadavky), nie o
-zákaz modelu ani čakaciu dobu pripojenia — OmniRoute ho klasifikuje ako `project_route_error`, preskočí
-uzamknutie modelu / čakaciu dobu a (na syntetickej ceste `noauth`) na krátky čas TTL pozastaví
-opätovný automatický výber kombinácie. Odosielajte požiadavky, ktoré obsahujú neprázdny zoznam nástrojov, `stream: true` a
-hlavičky relácie/UA OpenCode (`opencodeFreeTierContract.ts`), inak očakávajte chybu 403.
 
 ## Čo sa zmenilo od vydaného katalógu (`freeNote`)
 

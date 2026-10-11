@@ -116,7 +116,6 @@ Die meisten Angaben zu "kostenlosen Token pro Monat" in diesem Bereich sind Summ
 | `modal`          | ToS Abschnitt 1.3 verbietet ausdrücklich "das Mieten, Weiterverkaufen oder anderweitige Ermöglichen des direkten Zugriffs oder der Nutzung des Dienstes durch Dritte" – der Aufbau eines selbst gehosteten…     |
 | `muse-spark-web` | Die Meta ToS verbieten ausdrücklich den automatisierten Zugriff ohne vorherige Genehmigung, das Reverse Engineering ohne schriftliche Genehmigung und das Umgehen von Technologien…                             |
 | `nlpcloud`       | Die ToS verbieten ausdrücklich "das Einrichten eines Proxys oder einer anderen Vorrichtung, die es anderen ermöglicht, über diesen auf den Dienst zuzugreifen" und gewähren nur eine nicht übertragbare,…       |
-| `opencode`       | Die ToS (Anomaly Innovations, Inc.) beschränken die Nutzung ausdrücklich auf "Ihre eigene interne Nutzung und nicht im Namen oder zum Nutzen Dritter" – offen…                                                  |
 | `t3-web`         | Die ToS beschränken Konten ausdrücklich auf die persönliche Nutzung, verbieten die Weitergabe von Anmeldeinformationen an Dritte und verbieten den automatisierten/Bot-/Scraping-Zugriff – ein s…               |
 
 ### ✅ Allgemein permissiv – Vorsicht / zweideutig / ok (der Rest)
@@ -258,7 +257,6 @@ Die meisten Angaben zu "kostenlosen Token pro Monat" in diesem Bereich sind Summ
 | `nlpcloud`       | schlüssellos    | —                    | —                        | vermeiden  | 1       |
 | `nous-research`  | schlüssellos    | —                    | —                        | zweideutig | 2       |
 | `nvidia`         | schlüssellos    | —                    | —                        | Vorsicht   | 13      |
-| `opencode`       | schlüssellos    | —                    | —                        | vermeiden  | 7       |
 | `pollinations`   | schlüssellos    | —                    | —                        | Vorsicht   | 31      |
 | `publicai`       | keyless         | —                    | —                        | Vorsicht   | 3       |
 | `reka`           | keyless         | —                    | —                        | Vorsicht   | 2       |
@@ -269,17 +267,6 @@ Die meisten Angaben zu "kostenlosen Token pro Monat" in diesem Bereich sind Summ
 | `uncloseai`      | keyless         | —                    | —                        | Vorsicht   | 3       |
 
 ---
-
-## OpenCode Free: Client-Contract-Einschränkung (#14313)
-
-Der schlüssellose `opencode`-Anbieter (öffentlich `https://opencode.ai/zen/v1`) lehnt jede Anfrage,
-die nicht dem OpenCode-Client-Contract entspricht, mit **403 `FreeTierError`** und dem
-Satz _"OpenCode's free tier can only be used from within OpenCode"_ ab. Dies ist eine
-anfragebezogene Ablehnung (gleiches Urteil für jedes Konto bei gleicher Anfrageform), keine
-Modellsperre oder Verbindungspause – OmniRoute klassifiziert dies als `project_route_error`, überspringt
-Modellsperre / Cooldown und pausiert (auf dem synthetischen `noauth`-Pfad) die Auto-Combo-Neuauswahl
-für eine kurze TTL. Versenden Sie Anfragen, die eine nicht-leere Tool-Liste, `stream: true` und die
-OpenCode-Sitzungs-/UA-Header (`opencodeFreeTierContract.ts`) enthalten, oder erwarten Sie den 403.
 
 ## Was sich seit dem ausgelieferten Katalog geändert hat (`freeNote`)
 

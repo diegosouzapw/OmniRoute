@@ -39,7 +39,7 @@ Problemi komuni u soluzzjonijiet għal OmniRoute.
 
 ### Limitazzjoni tar-Rata fuq Fornituri Bla Ħlas (429 / 400 / 401)
 
-**Sintomu**: Meta tuża `model: "auto"` ma’ fornituri bla ħlas/li ma jeħtiġux awtentikazzjoni (opencode, auggie, eċċ.), kultant tirċievi `HTTP 429`, `400`, jew `401` minflok tweġibiet. It-talbiet jirnexxu meta terġa’ tipprova l-istess prompt ftit mumenti wara, iżda l-awtomazzjoni (kompiti cron, aġenti, scripts) tieqaf mal-ewwel falliment.
+**Sintomu**: Meta tuża `model: "auto"` ma’ fornituri bla ħlas/li ma jeħtiġux awtentikazzjoni (auggie, eċċ.), kultant tirċievi `HTTP 429`, `400`, jew `401` minflok tweġibiet. It-talbiet jirnexxu meta terġa’ tipprova l-istess prompt ftit mumenti wara, iżda l-awtomazzjoni (kompiti cron, aġenti, scripts) tieqaf mal-ewwel falliment.
 
 **Kawża ewlenija**: Hemm tliet modi indipendenti ta’ falliment li jakkumulaw:
 

@@ -160,14 +160,12 @@ qayd etadi.
 Oflayn oldin/keyin taqqoslash uchun `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` hali ham
 ishlayotgan instansiyaning nomzodlar chiqishiga nisbatan ishlaydi; u har bir nomzodning haqiqiy `connectionId` qiymatini o‘qiydi, shu sabab
 ulanish xavfsizligi yo‘lini ham sinaydi. `keyless` nomzodlar haqiqiy ulanish bilan emas, sun’iy
-autentifikatsiyasiz `connectionId` bilan kelishi shart. Joriy ichki `keyless` avtomatik yo‘li — OpenCode Free; nomzodlarning aniq soni
+autentifikatsiyasiz `connectionId` bilan kelishi shart. nomzodlarning aniq soni
 hali ham modellarning jonli aniqlanishiga bog‘liq va eski ishga tushirishdan ko‘chirish o‘rniga
 maqsadli joylashtirishda o‘lchanishi kerak. `recurring-*` nomzod faqat unda ham ro‘yxatdan o‘tgan
 foydalanish adapteri, ham `hardStopGuaranteed: true` mavjud bo‘lganda o‘tadi; to‘liq bo‘lmagan metadata yopiq tarzda rad etilishda davom etadi.
 
-`excludeTosAvoid: true` bo‘lganda, `tos: "avoid"` sifatida saralangan har bir nomzod olib tashlanadi. OpenCode Free
-hozirda shu hukmga ega, shu sabab himoyani yoqish joylashtirishdagi qolgan `keyless`
-pulni bo‘shatib qo‘yishi mumkin. Bu xato emas, balki ToS himoyasini yoqishning kutilgan murosasidir: aynan shu
+`excludeTosAvoid: true` bo‘lganda, `tos: "avoid"` sifatida saralangan har bir nomzod olib tashlanadi. Bu xato emas, balki ToS himoyasini yoqishning kutilgan murosasidir: aynan shu
 sababli himoyaning standart qiymati `false` (yuqoridagi "ToS himoyasi"ga qarang).
 
 ## Faollashtirish

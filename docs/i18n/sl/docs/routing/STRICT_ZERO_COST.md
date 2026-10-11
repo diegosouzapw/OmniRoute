@@ -144,14 +144,12 @@ varnosti; ta stran vrzel poimenuje, namesto da bi se pretvarjala, da je ni.
 Za primerjavo pred in po spremembi brez povezave ukaz `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` še vedno deluje
 z izhodom kandidatov delujočega primerka; prebere dejanski `connectionId` vsakega kandidata, zato
 preveri tudi pot varnosti povezave. Kandidati brez ključa morajo prispeti s sintetičnim
-`connectionId` brez preverjanja pristnosti, nikoli z resnično povezavo. Trenutna vgrajena samodejna pot brez ključa je OpenCode Free; natančno število kandidatov
+`connectionId` brez preverjanja pristnosti, nikoli z resnično povezavo. natančno število kandidatov
 je še vedno odvisno od sprotnega odkrivanja modelov in ga je treba izmeriti v ciljni postavitvi,
 namesto da bi ga prekopirali iz starejšega zagona. Kandidat `recurring-*` je sprejet le, če ima
 registriran vmesnik za uporabo in `hardStopGuaranteed: true`; pri nepopolnih metapodatkih se dostop še vedno zavrne.
 
-Ko je `excludeTosAvoid: true`, se odstrani vsak kandidat s skrbniško določenim `tos: "avoid"`. OpenCode Free
-ima trenutno tak rezultat, zato lahko omogočanje varovala izprazni preostali nabor kandidatov brez ključa
-v postavitvi. To je pričakovan kompromis ob vklopu varovala ToS in ne napaka: varovalo je privzeto nastavljeno na `false`
+Ko je `excludeTosAvoid: true`, se odstrani vsak kandidat s skrbniško določenim `tos: "avoid"`. To je pričakovan kompromis ob vklopu varovala ToS in ne napaka: varovalo je privzeto nastavljeno na `false`
 prav iz tega razloga (glejte »Varovalo ToS« zgoraj).
 
 ## Omogočanje

@@ -122,7 +122,6 @@ Majoritatea cifrelor privind „tokenurile gratuite pe lună” din acest domeni
 | `modal`          | Secțiunea 1.3 din ToS interzice în mod explicit „închirierea, revânzarea sau permiterea în alt mod a accesului direct ori a utilizării Serviciului de către orice terț” — crearea unui proxy autogăzduit… |
 | `muse-spark-web` | ToS Meta interzice în mod explicit accesul automatizat fără permisiune prealabilă, ingineria inversă fără permisiune scrisă și eludarea măsurilor tehnologice…                                            |
 | `nlpcloud`       | ToS interzice în mod explicit „configurarea unui proxy sau a altui dispozitiv care permite altora să acceseze Serviciul prin intermediul acestuia” și acordă doar un drept netransferabil,…               |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) limitează în mod explicit utilizarea la „propriul uz intern și nu în numele sau în beneficiul vreunui terț” — ope…                                                        |
 | `t3-web`         | ToS limitează în mod explicit conturile la uz personal, interzice partajarea acreditărilor cu terți și interzice accesul automatizat/prin boți/pentru extragerea datelor — un…                            |
 
 ### ✅ În general permisiv — atenție / ambiguu / în regulă (restul)
@@ -266,7 +265,6 @@ Majoritatea cifrelor privind „tokenurile gratuite pe lună” din acest domeni
 | `nlpcloud`       | fără cheie          | —                       | —                    | de evitat           | 1      |
 | `nous-research`  | fără cheie          | —                       | —                    | ambiguu             | 2      |
 | `nvidia`         | fără cheie          | —                       | —                    | precauție           | 13     |
-| `opencode`       | fără cheie          | —                       | —                    | de evitat           | 7      |
 | `pollinations`   | fără cheie          | —                       | —                    | precauție           | 31     |
 | `publicai`       | fără cheie          | —                       | —                    | atenție             | 3      |
 | `reka`           | fără cheie          | —                       | —                    | atenție             | 2      |
@@ -277,17 +275,6 @@ Majoritatea cifrelor privind „tokenurile gratuite pe lună” din acest domeni
 | `uncloseai`      | fără cheie          | —                       | —                    | atenție             | 3      |
 
 ---
-
-## OpenCode Free: restricție privind contractul clientului (#14313)
-
-Furnizorul `opencode` fără cheie (serviciul public `https://opencode.ai/zen/v1`) refuză orice solicitare
-care nu respectă contractul clientului OpenCode, returnând **403 `FreeTierError`** și propoziția
-_"Nivelul gratuit OpenCode poate fi utilizat numai din OpenCode"_. Acesta este un refuz
-specific solicitării (același verdict pentru fiecare cont în cazul aceleiași structuri a solicitării), nu o
-interdicție a modelului sau o perioadă de așteptare a conexiunii — OmniRoute îl clasifică drept `project_route_error`, omite
-blocarea modelului / perioada de așteptare și (pe ruta sintetică `noauth`) întrerupe temporar reselectarea automată
-a combinației pentru un TTL scurt. Trimiteți solicitări care includ o listă de instrumente nevidă, `stream: true` și
-antetele de sesiune/UA OpenCode (`opencodeFreeTierContract.ts`) sau așteptați-vă la răspunsul 403.
 
 ## Ce s-a schimbat față de catalogul livrat (`freeNote`)
 

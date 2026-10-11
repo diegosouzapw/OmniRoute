@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="インストール後すぐに動作 — 設定不要。3つのステップ：1. インストール — npm i -g omniroute、サーバーはlocalhost:20128で起動します。2. ツールをhttp://localhost:20128/v1にポイントします — OpenAI互換ツール（Claude Code、Cursor、Cline）なら何でも。3. 応答します — APIキー、サインアップ、設定なしで、即座に返信を得るためにモデルautoを呼び出します。キーレスプロバイダーOpenCode Freeはautoコンボに事前に配線されているため、新規インストールで箱から出してすぐに応答します。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="インストール後すぐに動作 — 設定不要。3つのステップ：1. インストール — npm i -g omniroute、サーバーはlocalhost:20128で起動します。2. ツールをhttp://localhost:20128/v1にポイントします — OpenAI互換ツール（Claude Code、Cursor、Cline）なら何でも。3. 応答します — APIキー、サインアップ、設定なしで、即座に返信を得るためにモデルautoを呼び出します。"/>
 
 ```bash
 # 新規インストール、認証情報ゼロ — `auto`はすでに動作します：
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>特定の無料バックエンドをご希望ですか？`oc/…` (OpenCode Free) を直接呼び出してください。その後、`auto`に移行してOmniRouteに選択させましょう。</sub>
 
 <sub>📦 **Python、Node.js、PHP、cURL** のクイックスタートスクリプトをコピー＆ペースト → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) 無料プロバイダーに接続（登録不要）**
 
-ダッシュボード → **プロバイダー** → **Kiro AI**（無料のClaude、アカウントごとに月約50クレジット）または **OpenCode Free**（認証不要）に接続 → 完了。
+ダッシュボード → **プロバイダー** → **Kiro AI**（無料のClaude、アカウントごとに月約50クレジット）に接続 → 完了。
 
 **3) コーディングツールの接続先を設定**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 でも省略さ�
   <tr><td nowrap><b>ランタイム</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>言語</b></td><td>TypeScript 6.0 — <code>src/</code>および<code>open-sse/</code>の全体で<b>100% TypeScript</b>（v2.0以降、コアでの<code>any</code>使用はゼロ）</td></tr>
   <tr><td nowrap><b>フレームワーク</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>データベース</b></td><td>better-sqlite3（SQLite、WALジャーナリング）+ LowDB（従来のJSON）— 137個のドメインモジュール、202件のマイグレーション</td></tr>
+  <tr><td nowrap><b>データベース</b></td><td>better-sqlite3（SQLite、WALジャーナリング）+ LowDB（従来のJSON）— 137個のドメインモジュール、203件のマイグレーション</td></tr>
   <tr><td nowrap><b>メモリ</b></td><td>SQLite FTS5全文検索 + int8量子化ベクトル埋め込み、型付き減衰</td></tr>
   <tr><td nowrap><b>スキーマ</b></td><td>Zod 4 — MCPツールの入出力検証 + APIコントラクト</td></tr>
   <tr><td nowrap><b>プロトコル</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>

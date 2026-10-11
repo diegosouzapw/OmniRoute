@@ -14,12 +14,12 @@ Tenk på en leverandør som en **mobiloperatør**. På samme måte som du trenge
 
 ### Typer leverandører
 
-| Type                            | Hva det er                | Eksempler                         | Kostnad                 |
-| ------------------------------- | ------------------------- | --------------------------------- | ----------------------- |
-| **Gratis**                      | Ingen betaling kreves     | Kiro, OpenCode Free, Pollinations | $0                      |
-| **API-nøkkel**                  | Du trenger en API-nøkkel  | OpenAI, Anthropic, Google         | Betaling per bruk       |
-| **OAuth**                       | Logg inn med kontoen din  | Claude Code, GitHub Copilot       | Abonnement              |
-| **Nettleserinformasjonskapsel** | Bruker nettleserøkten din | ChatGPT Web (Codex), Gemini Web   | $0 (bruker kontoen din) |
+| Type                            | Hva det er                | Eksempler                       | Kostnad                 |
+| ------------------------------- | ------------------------- | ------------------------------- | ----------------------- |
+| **Gratis**                      | Ingen betaling kreves     | Kiro, Pollinations              | $0                      |
+| **API-nøkkel**                  | Du trenger en API-nøkkel  | OpenAI, Anthropic, Google       | Betaling per bruk       |
+| **OAuth**                       | Logg inn med kontoen din  | Claude Code, GitHub Copilot     | Abonnement              |
+| **Nettleserinformasjonskapsel** | Bruker nettleserøkten din | ChatGPT Web (Codex), Gemini Web | $0 (bruker kontoen din) |
 
 ### Leverandører med nettleserinformasjonskapsler
 
@@ -46,7 +46,6 @@ trygt prøve bare de mislykkede leverandørene på nytt.
 2. Gå til **Leverandører** → **Legg til leverandør**
 3. Velg én av disse gratisleverandørene:
    - **Kiro AI** – Gratis Claude-modeller (ingen autentisering nødvendig)
-   - **OpenCode Free** – Gratis GPT-modeller (ingen autentisering nødvendig)
    - **Pollinations** – Gratis GPT-5, Claude og Gemini (ingen nøkkel nødvendig)
    - **LongCat** – 10M tokens gratis (engangstildeling, krever konto + KYC)
    - **Cloudflare AI** – Over 50 modeller, 10K nevroner/dag
@@ -176,7 +175,6 @@ Disse leverandørene tilbyr **gratis tilgang** uten kredittkort:
 | Leverandør        | Gratiskvote               | Modeller                                 | Slik kobler du til            |
 | ----------------- | ------------------------- | ---------------------------------------- | ----------------------------- |
 | **Kiro AI**       | 50 kreditter/måned        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ingen autentisering nødvendig |
-| **OpenCode Free** | Ubegrenset                | GPT-4o, Claude, Gemini                   | Ingen autentisering nødvendig |
 | **Pollinations**  | Ingen nøkkel nødvendig    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ingen autentisering nødvendig |
 | **LongCat**       | 10M én gang               | LongCat-2.0                              | API-nøkkel + KYC              |
 | **Cloudflare AI** | 10K nevroner/dag          | 50+ modeller                             | Ingen autentisering nødvendig |
@@ -250,7 +248,7 @@ OmniRoute fungerer best med **flere leverandører**. Dette gir deg:
 
 Koble til minst **3 leverandører** for å få den beste opplevelsen:
 
-1. **Én gratisleverandør** (Kiro, OpenCode Free eller Pollinations) — Alltid tilgjengelig
+1. **Én gratisleverandør** (Kiro eller Pollinations) — Alltid tilgjengelig
 2. **Én rask leverandør** (Groq, Cerebras) — For raske svar
 3. **Én kvalitetsleverandør** (OpenAI, Anthropic, Google) — For komplekse oppgaver
 
@@ -296,7 +294,7 @@ Bruk deretter `model: "auto"`, så velger OmniRoute automatisk den beste leveran
 
 ### «Må jeg betale for å bruke OmniRoute?»
 
-**Nei!** OmniRoute er gratis og har åpen kildekode. Du kan bruke gratisleverandører (Kiro, OpenCode Free, Pollinations) uten å betale noe. Du betaler bare hvis du velger å bruke betalte leverandører.
+**Nei!** OmniRoute er gratis og har åpen kildekode. Du kan bruke gratisleverandører (Kiro, Pollinations) uten å betale noe. Du betaler bare hvis du velger å bruke betalte leverandører.
 
 ### «Hvilken leverandør bør jeg starte med?»
 

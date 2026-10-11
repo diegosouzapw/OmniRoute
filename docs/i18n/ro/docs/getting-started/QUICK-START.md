@@ -59,15 +59,7 @@ Puteți utiliza OmniRoute **fără să plătiți nimic**, conectând un furnizor
 4. Faceți clic pe **Conectare** (nu este necesară nicio cheie API!)
 5. Gata! Acum aveți acces gratuit la modelele Claude.
 
-### Opțiunea B: OpenCode Free (Fără autentificare)
-
-1. Deschideți panoul de control la `http://localhost:20128`
-2. Accesați **Furnizori** → **Adăugați un furnizor**
-3. Selectați **OpenCode Free**
-4. Faceți clic pe **Conectare** (nu este necesară nicio cheie API!)
-5. Gata! Acum aveți acces gratuit la mai multe modele.
-
-### Opțiunea C: Pollinations (Nu este necesară nicio cheie)
+### Opțiunea B: Pollinations (Nu este necesară nicio cheie)
 
 1. Deschideți panoul de control la `http://localhost:20128`
 2. Accesați **Furnizori** → **Adăugați un furnizor**
@@ -163,7 +155,7 @@ Puteți vedea detaliile solicitării făcând clic pe [Monitorizare/Jurnale](htt
 
 ### „Am nevoie de o cheie API?”
 
-**Nu!** Puteți utiliza furnizori gratuiți (Kiro, OpenCode Free, Pollinations) fără nicio cheie API. Trebuie doar să îi conectați în panoul de control.
+**Nu!** Puteți utiliza furnizori gratuiți (Kiro, Pollinations) fără nicio cheie API. Trebuie doar să îi conectați în panoul de control.
 
 ### „Ce este `auto`?”
 

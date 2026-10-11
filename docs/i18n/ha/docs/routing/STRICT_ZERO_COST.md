@@ -145,14 +145,12 @@ gibin maimakon ya yi kamar babu shi.
 Don gwajin kafin/bayan ba tare da layi ba, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` har yanzu yana aiki
 da fitarwar 'yan takara ta wata instance mai aiki; yana karanta ainihin `connectionId` na kowane ɗan takara, don haka yana
 kuma gwada hanyar amincin haɗi. Dole ne 'yan takara na `keyless` su zo da `connectionId` na no-auth na roba,
-ba ainihin haɗi ba. Hanyar keyless auto da ke cikin tsarin a halin yanzu ita ce OpenCode Free; ainihin adadin 'yan takara
+ba ainihin haɗi ba. ainihin adadin 'yan takara
 har yanzu ya dogara da gano samfura kai tsaye kuma ya kamata a auna shi a deployment ɗin da ake nufi maimakon
 a kwafe shi daga tsohon gwaji. Ɗan takarar `recurring-*` yana wucewa ne kawai idan yana da duka adaftar
 amfani da aka yi wa rajista da kuma `hardStopGuaranteed: true`; metadata marasa cikawa suna ci gaba da haifar da rufewa.
 
-Tare da `excludeTosAvoid: true`, ana cire kowane ɗan takara da aka tantance a matsayin `tos: "avoid"`. OpenCode Free
-a halin yanzu yana da wannan hukuncin, don haka kunna kariyar na iya zubar da sauran tarin keyless na wani deployment
-gaba ɗaya. Wannan sakamakon musaya ne da ake tsammani daga kunna kariyar ToS, ba matsalar software ba ce: kariyar tana `false`
+Tare da `excludeTosAvoid: true`, ana cire kowane ɗan takara da aka tantance a matsayin `tos: "avoid"`. Wannan sakamakon musaya ne da ake tsammani daga kunna kariyar ToS, ba matsalar software ba ce: kariyar tana `false`
 ta tsohuwa saboda wannan dalilin kai tsaye (duba "Kariyar ToS" a sama).
 
 ## Kunnawa

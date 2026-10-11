@@ -59,15 +59,7 @@ OmniRoute, `http://localhost:20128` adresinde başlatılır. Kontrol paneli otom
 4. **Connect** düğmesine tıklayın (API anahtarı gerekmez!)
 5. Tamamdır! Artık Claude modellerine ücretsiz erişiminiz var.
 
-### Seçenek B: OpenCode Free (Kimlik Doğrulama Gerektirmez)
-
-1. `http://localhost:20128` adresindeki kontrol panelini açın
-2. **Providers** → **Add Provider** bölümüne gidin
-3. **OpenCode Free** seçeneğini belirleyin
-4. **Connect** düğmesine tıklayın (API anahtarı gerekmez!)
-5. Tamamdır! Artık birden fazla modele ücretsiz erişiminiz var.
-
-### Seçenek C: Pollinations (Anahtar Gerektirmez)
+### Seçenek B: Pollinations (Anahtar Gerektirmez)
 
 1. `http://localhost:20128` adresindeki kontrol panelini açın
 2. **Providers** → **Add Provider** bölümüne gidin
@@ -163,7 +155,7 @@ Sol kenar çubuğundaki [Monitoring/Logs](http://localhost:20128/dashboard/logs)
 
 ### "Bir API anahtarına ihtiyacım var mı?"
 
-**Hayır!** Ücretsiz sağlayıcıları (Kiro, OpenCode Free, Pollinations) herhangi bir API anahtarı olmadan kullanabilirsiniz. Bunları kontrol panelinden bağlamanız yeterlidir.
+**Hayır!** Ücretsiz sağlayıcıları (Kiro, Pollinations) herhangi bir API anahtarı olmadan kullanabilirsiniz. Bunları kontrol panelinden bağlamanız yeterlidir.
 
 ### "`auto` nedir?"
 

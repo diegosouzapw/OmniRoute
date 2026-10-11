@@ -55,7 +55,6 @@ päevakvoodid.
 | Teenusepakkuja   | Tasuta kvoot / krediit                                  |
 | ---------------- | ------------------------------------------------------- |
 | Kiro AI          | Tasuta Claude'i tase (helde mõistliku kasutuse piirang) |
-| OpenCode Free    | Autentimist pole, helded päringusageduse piirangud      |
 | Qoder            | Tasuta OAuth                                            |
 | Google Vertex AI | $300 krediiti uuele kontole                             |
 | Amazon Q         | Tasuta tase AWS-i kasutajatele                          |

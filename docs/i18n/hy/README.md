@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Աշխատում է տեղադրելուց անմիջապես հետո՝ առանց բանալիների, առանց կոնֆիգուրացիայի։ Երեք քայլ՝ 1. Տեղադրել — npm i -g omniroute, սերվերը գործարկվում է localhost:20128-ում։ 2. Ձեր գործիքը ուղղեք դեպի http://localhost:20128/v1 — ցանկացած OpenAI-համատեղելի գործիք (Claude Code, Cursor, Cline)։ 3. Այն պատասխանում է — կանչեք model auto՝ անմիջական պատասխան ստանալու համար, առանց API բանալու, առանց գրանցման, առանց կոնֆիգուրացիայի։ Առանց բանալու մատակարար OpenCode Free-ն նախապես միացված է auto կոմբինացիային, այնպես որ նոր տեղադրումը պատասխանում է անմիջապես։"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Աշխատում է տեղադրելուց անմիջապես հետո՝ առանց բանալիների, առանց կոնֆիգուրացիայի։ Երեք քայլ՝ 1. Տեղադրել — npm i -g omniroute, սերվերը գործարկվում է localhost:20128-ում։ 2. Ձեր գործիքը ուղղեք դեպի http://localhost:20128/v1 — ցանկացած OpenAI-համատեղելի գործիք (Claude Code, Cursor, Cline)։ 3."/>
 
 ```bash
 # Նոր տեղադրում, զրո հավատարմագրեր — `auto`-ն արդեն աշխատում է։
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Նախընտրում եք կոնկրետ անվճար backend՞ Ուղղակիորեն կանչեք `oc/…` (OpenCode Free)։ Այնուհետև անցեք `auto`-ի և թույլ տվեք OmniRoute-ին ընտրել։</sub>
 
 <sub>📦 Արագ մեկնարկի սկրիպտներ **Python-ի, Node.js-ի, PHP-ի և cURL-ի** համար → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) Միացրեք ԱՆՎՃԱՐ մատակարար (առանց գրանցման)**
 
-Կառավարման վահանակ → **Մատակարարներ** → միացրեք **Kiro AI**-ը (անվճար Claude, յուրաքանչյուր հաշվի համար ամսական ~50 կրեդիտ) կամ **OpenCode Free**-ը (նույնականացում չի պահանջվում) → պատրաստ է։
+Կառավարման վահանակ → **Մատակարարներ** → միացրեք **Kiro AI**-ը (անվճար Claude, յուրաքանչյուր հաշվի համար ամսական ~50 կրեդիտ) → պատրաստ է։
 
 **3) Ուղղեք ձեր կոդավորման գործիքը**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ը նույնպե
   <tr><td nowrap><b>Կատարման միջավայր</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Լեզու</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b>՝ ամբողջ <code>src/</code>-ում և <code>open-sse/</code>-ում (հիմնական մասում՝ զրո <code>any</code>՝ սկսած v2.0-ից)</td></tr>
   <tr><td nowrap><b>Ֆրեյմվորք</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Տվյալների բազա</b></td><td>better-sqlite3 (SQLite, WAL մատենավարում) + LowDB (ժառանգական JSON) — 137 տիրույթային մոդուլ, 202 միգրացիա</td></tr>
+  <tr><td nowrap><b>Տվյալների բազա</b></td><td>better-sqlite3 (SQLite, WAL մատենավարում) + LowDB (ժառանգական JSON) — 137 տիրույթային մոդուլ, 203 միգրացիա</td></tr>
   <tr><td nowrap><b>Հիշողություն</b></td><td>SQLite FTS5 ամբողջական տեքստային որոնում + int8-քվանտացված վեկտորային ներդրումներ, տիպավորված մարում</td></tr>
   <tr><td nowrap><b>Սխեմաներ</b></td><td>Zod 4 — MCP գործիքների մուտքի/ելքի վավերացում + API պայմանագրեր</td></tr>
   <tr><td nowrap><b>Արձանագրություններ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

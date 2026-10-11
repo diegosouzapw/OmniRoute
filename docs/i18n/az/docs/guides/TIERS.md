@@ -51,15 +51,14 @@ $/token qiymətli modeli seçir.
 
 **Sıfır xərcli provayderlər** — pulsuz səviyyələr, kredit proqramları, gündəlik OAuth kvotaları.
 
-| Provayder        | Pulsuz kvota / kreditlər                                        |
-| ---------------- | --------------------------------------------------------------- |
-| Kiro AI          | Pulsuz Claude səviyyəsi (səxavətli ədalətli istifadə)           |
-| OpenCode Free    | Autentifikasiya tələb olunmur, səxavətli sorğu sürəti limitləri |
-| Qoder            | Pulsuz OAuth                                                    |
-| Google Vertex AI | Yeni hesablar üçün $300 kredit                                  |
-| Amazon Q         | AWS istifadəçiləri üçün pulsuz səviyyə                          |
-| Pollinations     | Açıq ictimai API                                                |
-| Cloudflare AI    | Workers AI pulsuz səviyyəsi                                     |
+| Provayder        | Pulsuz kvota / kreditlər                              |
+| ---------------- | ----------------------------------------------------- |
+| Kiro AI          | Pulsuz Claude səviyyəsi (səxavətli ədalətli istifadə) |
+| Qoder            | Pulsuz OAuth                                          |
+| Google Vertex AI | Yeni hesablar üçün $300 kredit                        |
+| Amazon Q         | AWS istifadəçiləri üçün pulsuz səviyyə                |
+| Pollinations     | Açıq ictimai API                                      |
+| Cloudflare AI    | Workers AI pulsuz səviyyəsi                           |
 
 **Strategiya**: büdcə limiti olan `auto` kombinasiyası Səviyyə 1+2 uğursuz
 olduqda və ya `useFreeOnly=true` təyin edildikdə sorğuları buraya yönləndirir.

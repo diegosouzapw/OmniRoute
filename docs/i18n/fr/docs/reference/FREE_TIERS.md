@@ -116,7 +116,6 @@ La plupart des chiffres de « jetons gratuits par mois » dans ce domaine corres
 | `modal`          | La section 1.3 des CGU interdit explicitement de « louer, revendre ou permettre de toute autre manière à un tiers d’accéder directement au Service ou de l’utiliser » — la création d’un service auto-hébergé…         |
 | `muse-spark-web` | Les CGU de Meta interdisent explicitement l’accès automatisé sans autorisation préalable, l’ingénierie inverse sans autorisation écrite et le contournement de mesures technologiques…                                 |
 | `nlpcloud`       | Les CGU interdisent explicitement « la mise en place d’un proxy ou de tout autre dispositif permettant à d’autres personnes d’accéder au Service par son intermédiaire » et n’accordent qu’un droit non transférable,… |
-| `opencode`       | Les CGU (Anomaly Innovations, Inc.) limitent explicitement l’utilisation à « votre propre usage interne, et non pour le compte ou au bénéfice d’un tiers » — ope…                                                      |
 | `t3-web`         | Les CGU limitent explicitement les comptes à un usage personnel, interdisent le partage d’identifiants avec des tiers ainsi que les accès automatisés, par bot ou par scraping — un…                                   |
 
 ### ✅ Généralement permissif — attention / ambigu / acceptable (tous les autres)
@@ -260,7 +259,6 @@ La plupart des chiffres de « jetons gratuits par mois » dans ce domaine corres
 | `nlpcloud`       | sans clé             | —                     | —                      | à éviter  | 1       |
 | `nous-research`  | sans clé             | —                     | —                      | ambiguës  | 2       |
 | `nvidia`         | sans clé             | —                     | —                      | prudence  | 13      |
-| `opencode`       | sans clé             | —                     | —                      | à éviter  | 7       |
 | `pollinations`   | sans clé             | —                     | —                      | prudence  | 31      |
 | `publicai`       | sans clé             | —                     | —                      | prudence  | 3       |
 | `reka`           | sans clé             | —                     | —                      | prudence  | 2       |
@@ -271,17 +269,6 @@ La plupart des chiffres de « jetons gratuits par mois » dans ce domaine corres
 | `uncloseai`      | sans clé             | —                     | —                      | prudence  | 3       |
 
 ---
-
-## OpenCode Free : restriction liée au contrat client (#14313)
-
-Le fournisseur sans clé `opencode` (adresse publique `https://opencode.ai/zen/v1`) refuse toute requête
-qui ne respecte pas le contrat client OpenCode avec une erreur **403 `FreeTierError`** et la
-phrase _« L’offre gratuite d’OpenCode ne peut être utilisée que depuis OpenCode »_. Il s’agit d’un
-refus propre à la requête (même verdict pour tous les comptes lorsque la requête présente la même structure), et non d’un
-bannissement du modèle ou d’un délai de récupération de la connexion — OmniRoute le classe comme `project_route_error`, ignore
-le verrouillage / délai de récupération du modèle et (sur le chemin synthétique `noauth`) suspend la resélection automatique
-des combinaisons pendant une courte durée de vie (TTL). Envoyez des requêtes contenant une liste d’outils non vide, `stream: true` et les
-en-têtes de session/UA d’OpenCode (`opencodeFreeTierContract.ts`), sinon attendez-vous à recevoir l’erreur 403.
 
 ## Modifications depuis le catalogue livré (`freeNote`)
 

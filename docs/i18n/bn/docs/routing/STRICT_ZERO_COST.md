@@ -148,14 +148,12 @@ TTL শেষ হওয়া পর্যন্ত অপেক্ষা কর
 অফলাইনে আগে/পরের তুলনার জন্য, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` এখনো একটি চালু instance-এর
 candidates output-এর বিপরীতে কাজ করে; এটি প্রতিটি প্রার্থীর প্রকৃত `connectionId` পড়ে, তাই
 connection-safety path-টিও পরীক্ষা করে। Keyless প্রার্থীদের অবশ্যই synthetic
-no-auth `connectionId`-সহ আসতে হবে, কখনোই প্রকৃত connection-সহ নয়। বর্তমান built-in keyless auto path হলো OpenCode Free; সঠিক candidate count
+no-auth `connectionId`-সহ আসতে হবে, কখনোই প্রকৃত connection-সহ নয়। সঠিক candidate count
 এখনো live model discovery-এর ওপর নির্ভর করে এবং পুরোনো কোনো run থেকে কপি না করে লক্ষ্য deployment-এ
 পরিমাপ করা উচিত। একটি `recurring-*` প্রার্থী কেবল তখনই পাস করে, যখন সেটির নিবন্ধিত
 usage adapter এবং `hardStopGuaranteed: true`—দুটিই থাকে; অসম্পূর্ণ metadata fail-closed-ই থাকে।
 
-`excludeTosAvoid: true` থাকলে, `tos: "avoid"` হিসেবে কিউরেট করা প্রতিটি প্রার্থী সরিয়ে দেওয়া হয়। OpenCode Free
-বর্তমানে এই রায় বহন করে, তাই সুরক্ষাটি চালু করলে কোনো deployment-এর অবশিষ্ট keyless
-pool খালি হয়ে যেতে পারে। এটি ToS সুরক্ষা চালু করার প্রত্যাশিত আপস, কোনো bug নয়: ঠিক এই কারণেই সুরক্ষাটির ডিফল্ট
+`excludeTosAvoid: true` থাকলে, `tos: "avoid"` হিসেবে কিউরেট করা প্রতিটি প্রার্থী সরিয়ে দেওয়া হয়। এটি ToS সুরক্ষা চালু করার প্রত্যাশিত আপস, কোনো bug নয়: ঠিক এই কারণেই সুরক্ষাটির ডিফল্ট
 হলো `false` (উপরের "ToS সুরক্ষা" দেখুন)।
 
 ## সক্রিয়করণ

@@ -59,15 +59,7 @@ Za ka iya amfani da OmniRoute **ba tare da biyan komai ba** ta hanyar haɗa mai 
 4. Danna **Haɗa** (ba a buƙatar API key!)
 5. An gama! Yanzu kana da damar amfani da models na Claude kyauta.
 
-### Zaɓi na B: OpenCode Free (Ba a Buƙatar Tantancewa)
-
-1. Buɗe dashboard a `http://localhost:20128`
-2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
-3. Zaɓi **OpenCode Free**
-4. Danna **Haɗa** (ba a buƙatar API key!)
-5. An gama! Yanzu kana da damar amfani da models da yawa kyauta.
-
-### Zaɓi na C: Pollinations (Ba a Buƙatar Key)
+### Zaɓi na B: Pollinations (Ba a Buƙatar Key)
 
 1. Buɗe dashboard a `http://localhost:20128`
 2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
@@ -163,7 +155,7 @@ Za ka iya ganin bayanan buƙatar ta hanyar danna [Sa-ido/Logs](http://localhost:
 
 ### "Ina buƙatar API key?"
 
-**A'a!** Za ka iya amfani da masu samarwa na kyauta (Kiro, OpenCode Free, Pollinations) ba tare da wani API key ba. Kawai haɗa su a cikin dashboard.
+**A'a!** Za ka iya amfani da masu samarwa na kyauta (Kiro, Pollinations) ba tare da wani API key ba. Kawai haɗa su a cikin dashboard.
 
 ### "Mene ne `auto`?"
 

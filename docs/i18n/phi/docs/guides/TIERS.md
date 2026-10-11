@@ -51,7 +51,6 @@ sa capability filter ng gawain (vision, JSON mode, mga tool, max-context).
 | Provider         | Libreng quota / mga credit                |
 | ---------------- | ----------------------------------------- |
 | Kiro AI          | Libreng Claude tier (maluwag na fair-use) |
-| OpenCode Free    | Walang auth, maluluwag na rate limit      |
 | Qoder            | Libreng OAuth                             |
 | Google Vertex AI | $300 na credit para sa bagong account     |
 | Amazon Q         | Libreng tier para sa mga user ng AWS      |

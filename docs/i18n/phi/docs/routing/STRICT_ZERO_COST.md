@@ -156,14 +156,12 @@ ang puwang sa halip na magkunwaring wala ito.
 Para sa offline na paghahambing ng bago at pagkatapos, gumagana pa rin ang `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 gamit ang candidates output ng isang live instance; binabasa nito ang tunay na `connectionId` ng bawat kandidato, kaya
 sinusubukan din nito ang landas ng kaligtasan ng connection. Dapat dumating ang mga keyless na kandidato na may synthetic na
-no-auth na `connectionId`, at hindi kailanman isang tunay na connection. OpenCode Free ang kasalukuyang built-in na keyless auto path; nakadepende pa rin ang eksaktong bilang ng mga kandidato
+no-auth na `connectionId`, at hindi kailanman isang tunay na connection. nakadepende pa rin ang eksaktong bilang ng mga kandidato
 sa live model discovery at dapat itong sukatin sa target na deployment sa halip na
 kopyahin mula sa mas lumang run. Papasa lamang ang isang kandidatong `recurring-*` kapag mayroon itong parehong nakarehistrong
 usage adapter at `hardStopGuaranteed: true`; mananatiling fail-closed ang hindi kumpletong metadata.
 
-Kapag `excludeTosAvoid: true`, inaalis ang bawat kandidatong pinili bilang `tos: "avoid"`. Kasalukuyang
-taglay ng OpenCode Free ang hatol na iyon, kaya maaaring maubos ang natitirang keyless
-pool ng isang deployment kapag in-enable ang proteksyon. Inaasahang trade-off ito ng pag-on sa proteksyon sa ToS, at hindi bug: `false`
+Kapag `excludeTosAvoid: true`, inaalis ang bawat kandidatong pinili bilang `tos: "avoid"`. Inaasahang trade-off ito ng pag-on sa proteksyon sa ToS, at hindi bug: `false`
 ang default ng proteksyon dahil mismo sa dahilang ito (tingnan ang "Proteksyon sa ToS" sa itaas).
 
 ## Pag-enable

@@ -14,12 +14,12 @@ Piensa en un proveedor como una **compañía telefónica**. Del mismo modo que n
 
 ### Tipos de proveedores
 
-| Tipo             | Qué es                        | Ejemplos                          | Coste              |
-| ---------------- | ----------------------------- | --------------------------------- | ------------------ |
-| **Gratuito**     | No requiere pago              | Kiro, OpenCode Free, Pollinations | $0                 |
-| **Clave de API** | Necesitas una clave de API    | OpenAI, Anthropic, Google         | Pago por uso       |
-| **OAuth**        | Inicias sesión con tu cuenta  | Claude Code, GitHub Copilot       | Suscripción        |
-| **Cookie web**   | Usa la sesión de tu navegador | ChatGPT Web (Codex), Gemini Web   | $0 (usa tu cuenta) |
+| Tipo             | Qué es                        | Ejemplos                        | Coste              |
+| ---------------- | ----------------------------- | ------------------------------- | ------------------ |
+| **Gratuito**     | No requiere pago              | Kiro, Pollinations              | $0                 |
+| **Clave de API** | Necesitas una clave de API    | OpenAI, Anthropic, Google       | Pago por uso       |
+| **OAuth**        | Inicias sesión con tu cuenta  | Claude Code, GitHub Copilot     | Suscripción        |
+| **Cookie web**   | Usa la sesión de tu navegador | ChatGPT Web (Codex), Gemini Web | $0 (usa tu cuenta) |
 
 ### Proveedores mediante cookies web
 
@@ -40,7 +40,6 @@ Esta acción es opcional: completar el asistente nunca crea conexiones con prove
 2. Ve a **Proveedores** → **Añadir proveedor**
 3. Selecciona uno de estos proveedores gratuitos:
    - **Kiro AI** — Modelos Claude gratuitos (no requieren autenticación)
-   - **OpenCode Free** — Modelos GPT gratuitos (no requieren autenticación)
    - **Pollinations** — GPT-5, Claude y Gemini gratuitos (no requieren clave)
    - **LongCat** — 10 millones de tokens gratuitos (concesión única; requiere cuenta y KYC)
    - **Cloudflare AI** — Más de 50 modelos, 10 000 neuronas/día
@@ -170,7 +169,6 @@ Estos proveedores ofrecen **acceso gratuito** sin tarjeta de crédito:
 | Proveedor         | Cuota gratuita               | Modelos                                  | Cómo conectarse           |
 | ----------------- | ---------------------------- | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | 50 créditos/mes              | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | No requiere autenticación |
-| **OpenCode Free** | Ilimitada                    | GPT-4o, Claude, Gemini                   | No requiere autenticación |
 | **Pollinations**  | No requiere clave            | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | No requiere autenticación |
 | **LongCat**       | 10M por única vez            | LongCat-2.0                              | Clave de API + KYC        |
 | **Cloudflare AI** | 10K neuronas/día             | Más de 50 modelos                        | No requiere autenticación |
@@ -244,7 +242,7 @@ OmniRoute funciona mejor con **varios proveedores**. Esto te ofrece:
 
 Conecta al menos **3 proveedores** para obtener la mejor experiencia:
 
-1. **Un proveedor gratuito** (Kiro, OpenCode Free o Pollinations) — Siempre disponible
+1. **Un proveedor gratuito** (Kiro o Pollinations) — Siempre disponible
 2. **Un proveedor rápido** (Groq, Cerebras) — Para obtener respuestas rápidas
 3. **Un proveedor de alta calidad** (OpenAI, Anthropic, Google) — Para tareas complejas
 
@@ -290,7 +288,7 @@ Después, usa `model: "auto"` y OmniRoute elegirá automáticamente el mejor par
 
 ### "¿Necesito pagar para usar OmniRoute?"
 
-**¡No!** OmniRoute es gratuito y de código abierto. Puedes usar proveedores gratuitos (Kiro, OpenCode Free, Pollinations) sin pagar nada. Solo pagas si decides utilizar proveedores de pago.
+**¡No!** OmniRoute es gratuito y de código abierto. Puedes usar proveedores gratuitos (Kiro, Pollinations) sin pagar nada. Solo pagas si decides utilizar proveedores de pago.
 
 ### "¿Con qué proveedor debería empezar?"
 

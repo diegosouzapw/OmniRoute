@@ -53,7 +53,6 @@ OAuth günlük kotaları.
 | Sağlayıcı        | Ücretsiz kota / krediler                        |
 | ---------------- | ----------------------------------------------- |
 | Kiro AI          | Ücretsiz Claude kademesi (cömert adil kullanım) |
-| OpenCode Free    | Kimlik doğrulama yok, cömert hız sınırları      |
 | Qoder            | Ücretsiz OAuth                                  |
 | Google Vertex AI | Yeni hesaplar için $300 kredi                   |
 | Amazon Q         | AWS kullanıcıları için ücretsiz kademe          |

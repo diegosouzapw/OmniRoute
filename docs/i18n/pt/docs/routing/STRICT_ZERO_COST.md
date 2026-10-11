@@ -152,13 +152,12 @@ a lacuna em vez de fingir que não existe.
 Para uma comparação offline do antes e do depois, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` continua a funcionar
 com a saída de candidatos de uma instância em execução; lê o `connectionId` real de cada candidato, pelo que
 também testa o percurso de segurança da ligação. Os candidatos `keyless` têm de chegar com o `connectionId`
-sintético sem autenticação, nunca com uma ligação real. O atual percurso automático `keyless` incorporado é o OpenCode Free; as contagens exatas de candidatos
+sintético sem autenticação, nunca com uma ligação real. as contagens exatas de candidatos
 continuam a depender da descoberta de modelos em tempo real e devem ser medidas na implementação de destino, em vez de
 serem copiadas de uma execução anterior. Um candidato `recurring-*` só é aceite quando tem simultaneamente um
 adaptador de utilização registado e `hardStopGuaranteed: true`; metadados incompletos continuam a resultar numa falha segura.
 
-Com `excludeTosAvoid: true`, todos os candidatos selecionados como `tos: "avoid"` são removidos. Atualmente, o OpenCode Free
-tem esse veredicto, pelo que ativar a proteção pode esvaziar o conjunto `keyless` restante de uma implementação.
+Com `excludeTosAvoid: true`, todos os candidatos selecionados como `tos: "avoid"` são removidos.
 Esta é uma contrapartida esperada da ativação da proteção dos ToS, não um erro: a proteção é `false`
 por predefinição precisamente por este motivo (consulte «Proteção dos ToS» acima).
 

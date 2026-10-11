@@ -39,7 +39,7 @@
 
 ### Ìdínwọ̀n Oṣùwọ̀n lórí Àwọn Olùpèsè Ọ̀fẹ́ (429 / 400 / 401)
 
-**Àmì ìṣòro**: Nígbà tí o bá ń lo `model: "auto"` pẹ̀lú àwọn olùpèsè ọ̀fẹ́/tí kò nílò ìfàṣẹsí (opencode, auggie, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), lẹ́ẹ̀kọ̀ọ̀kan o máa ń gba `HTTP 429`, `400`, tàbí `401` dípò àwọn ìdáhùn. Àwọn ìbéèrè náà máa ń ṣàṣeyọrí tí o bá tún ìtọ́kasí kan náà gbìyànjú ní ìṣẹ́jú díẹ̀ lẹ́yìn náà, ṣùgbọ́n àìṣọwọ́ṣe aládàáṣiṣẹ́ (àwọn iṣẹ́ cron, àwọn agent, àwọn script) máa ń dáwọ́ dúró ní ìkùnà àkọ́kọ́.
+**Àmì ìṣòro**: Nígbà tí o bá ń lo `model: "auto"` pẹ̀lú àwọn olùpèsè ọ̀fẹ́/tí kò nílò ìfàṣẹsí (auggie, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), lẹ́ẹ̀kọ̀ọ̀kan o máa ń gba `HTTP 429`, `400`, tàbí `401` dípò àwọn ìdáhùn. Àwọn ìbéèrè náà máa ń ṣàṣeyọrí tí o bá tún ìtọ́kasí kan náà gbìyànjú ní ìṣẹ́jú díẹ̀ lẹ́yìn náà, ṣùgbọ́n àìṣọwọ́ṣe aládàáṣiṣẹ́ (àwọn iṣẹ́ cron, àwọn agent, àwọn script) máa ń dáwọ́ dúró ní ìkùnà àkọ́kọ́.
 
 **Ohun tó fa ìṣòro náà gan-an**: Àwọn ọ̀nà ìkùnà mẹ́ta tí kò sinmi lé ara wọn ni ó parapọ̀:
 

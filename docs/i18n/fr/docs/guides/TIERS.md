@@ -48,15 +48,14 @@ le filtre de capacités de la tâche (vision, mode JSON, outils, contexte maxima
 
 **Fournisseurs sans frais** — offres gratuites, programmes de crédits, quotas OAuth quotidiens.
 
-| Fournisseur      | Quota gratuit / crédits                              |
-| ---------------- | ---------------------------------------------------- |
-| Kiro AI          | Offre Claude gratuite (usage raisonnable généreux)   |
-| OpenCode Free    | Aucune authentification, limites de débit généreuses |
-| Qoder            | OAuth gratuit                                        |
-| Google Vertex AI | 300 $ de crédits pour les nouveaux comptes           |
-| Amazon Q         | Offre gratuite pour les utilisateurs AWS             |
-| Pollinations     | API publique ouverte                                 |
-| Cloudflare AI    | Offre gratuite Workers AI                            |
+| Fournisseur      | Quota gratuit / crédits                            |
+| ---------------- | -------------------------------------------------- |
+| Kiro AI          | Offre Claude gratuite (usage raisonnable généreux) |
+| Qoder            | OAuth gratuit                                      |
+| Google Vertex AI | 300 $ de crédits pour les nouveaux comptes         |
+| Amazon Q         | Offre gratuite pour les utilisateurs AWS           |
+| Pollinations     | API publique ouverte                               |
+| Cloudflare AI    | Offre gratuite Workers AI                          |
 
 **Stratégie** : la combinaison `auto` avec un plafond budgétaire achemine les requêtes ici lorsque les niveaux 1 et 2 échouent
 ou lorsque `useFreeOnly=true` est défini. Les fournisseurs gratuits ont souvent des

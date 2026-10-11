@@ -14,12 +14,12 @@ Fikiria mtoa huduma kama **kampuni ya simu**. Kama vile unavyohitaji kampuni ya 
 
 ### Aina za Watoa Huduma
 
-| Aina                    | Maana Yake                          | Mifano                            | Gharama                    |
-| ----------------------- | ----------------------------------- | --------------------------------- | -------------------------- |
-| **Bila Malipo**         | Hakuna malipo yanayohitajika        | Kiro, OpenCode Free, Pollinations | $0                         |
-| **Ufunguo wa API**      | Unahitaji ufunguo wa API            | OpenAI, Anthropic, Google         | Lipa kulingana na matumizi |
-| **OAuth**               | Ingia ukitumia akaunti yako         | Claude Code, GitHub Copilot       | Usajili                    |
-| **Kidakuzi cha Wavuti** | Hutumia kipindi cha kivinjari chako | ChatGPT Web (Codex), Gemini Web   | $0 (hutumia akaunti yako)  |
+| Aina                    | Maana Yake                          | Mifano                          | Gharama                    |
+| ----------------------- | ----------------------------------- | ------------------------------- | -------------------------- |
+| **Bila Malipo**         | Hakuna malipo yanayohitajika        | Kiro, Pollinations              | $0                         |
+| **Ufunguo wa API**      | Unahitaji ufunguo wa API            | OpenAI, Anthropic, Google       | Lipa kulingana na matumizi |
+| **OAuth**               | Ingia ukitumia akaunti yako         | Claude Code, GitHub Copilot     | Usajili                    |
+| **Kidakuzi cha Wavuti** | Hutumia kipindi cha kivinjari chako | ChatGPT Web (Codex), Gemini Web | $0 (hutumia akaunti yako)  |
 
 ### Watoa Huduma wa Kidakuzi cha Wavuti
 
@@ -46,7 +46,6 @@ kujaribu tena kwa usalama zile zilizoshindwa pekee baada ya kupata matokeo yasiy
 2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
 3. Chagua mmoja wa watoa huduma hawa wasiolipishwa:
    - **Kiro AI** — Modeli za Claude bila malipo (uthibitishaji hauhitajiki)
-   - **OpenCode Free** — Modeli za GPT bila malipo (uthibitishaji hauhitajiki)
    - **Pollinations** — GPT-5, Claude, Gemini bila malipo (ufunguo hauhitajiki)
    - **LongCat** — Tokeni milioni 10 bila malipo (ruzuku ya mara moja, inahitaji akaunti + KYC)
    - **Cloudflare AI** — Modeli 50+, neuroni 10K kwa siku
@@ -176,7 +175,6 @@ Watoa huduma hawa hutoa **ufikiaji wa bure** bila kadi ya mkopo:
 | Mtoa Huduma       | Kiasi cha Bure            | Miundo                                   | Jinsi ya Kuunganisha       |
 | ----------------- | ------------------------- | ---------------------------------------- | -------------------------- |
 | **Kiro AI**       | credits 50/mwezi          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Uthibitishaji hauhitajiki  |
-| **OpenCode Free** | Bila kikomo               | GPT-4o, Claude, Gemini                   | Uthibitishaji hauhitajiki  |
 | **Pollinations**  | Ufunguo hauhitajiki       | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Uthibitishaji hauhitajiki  |
 | **LongCat**       | 10M mara moja             | LongCat-2.0                              | Ufunguo wa API + KYC       |
 | **Cloudflare AI** | neurons 10K/siku          | Miundo 50+                               | Uthibitishaji hauhitajiki  |
@@ -250,7 +248,7 @@ OmniRoute hufanya kazi vizuri zaidi ikiwa na **watoa huduma wengi**. Hii hukupa:
 
 Unganisha angalau **watoa huduma 3** ili kupata matumizi bora zaidi:
 
-1. **Mtoa huduma mmoja wa bure** (Kiro, OpenCode Free, au Pollinations) — Anapatikana kila wakati
+1. **Mtoa huduma mmoja wa bure** (Kiro, au Pollinations) — Anapatikana kila wakati
 2. **Mtoa huduma mmoja mwenye kasi** (Groq, Cerebras) — Kwa majibu ya haraka
 3. **Mtoa huduma mmoja wa ubora wa juu** (OpenAI, Anthropic, Google) — Kwa kazi ngumu
 
@@ -296,7 +294,7 @@ Kisha tumia `model: "auto"` na OmniRoute itamchagua kiotomatiki mtoa huduma bora
 
 ### "Je, ninahitaji kulipa ili kutumia OmniRoute?"
 
-**Hapana!** OmniRoute ni ya bure na ina msimbo huria. Unaweza kutumia watoa huduma wa bure (Kiro, OpenCode Free, Pollinations) bila kulipa chochote. Unalipa tu ukiamua kutumia watoa huduma wanaolipiwa.
+**Hapana!** OmniRoute ni ya bure na ina msimbo huria. Unaweza kutumia watoa huduma wa bure (Kiro, Pollinations) bila kulipa chochote. Unalipa tu ukiamua kutumia watoa huduma wanaolipiwa.
 
 ### "Nianze na mtoa huduma gani?"
 

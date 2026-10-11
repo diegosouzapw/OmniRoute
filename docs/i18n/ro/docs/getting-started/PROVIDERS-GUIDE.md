@@ -14,12 +14,12 @@ Gândiți-vă la un furnizor ca la un **operator de telefonie**. Așa cum aveți
 
 ### Tipuri de furnizori
 
-| Tip            | Ce reprezintă                        | Exemple                           | Cost                          |
-| -------------- | ------------------------------------ | --------------------------------- | ----------------------------- |
-| **Gratuit**    | Nu este necesară nicio plată         | Kiro, OpenCode Free, Pollinations | $0                            |
-| **Cheie API**  | Aveți nevoie de o cheie API          | OpenAI, Anthropic, Google         | Plată în funcție de utilizare |
-| **OAuth**      | Autentificare folosind contul dvs.   | Claude Code, GitHub Copilot       | Abonament                     |
-| **Cookie web** | Utilizează sesiunea dvs. din browser | ChatGPT Web (Codex), Gemini Web   | $0 (utilizează contul dvs.)   |
+| Tip            | Ce reprezintă                        | Exemple                         | Cost                          |
+| -------------- | ------------------------------------ | ------------------------------- | ----------------------------- |
+| **Gratuit**    | Nu este necesară nicio plată         | Kiro, Pollinations              | $0                            |
+| **Cheie API**  | Aveți nevoie de o cheie API          | OpenAI, Anthropic, Google       | Plată în funcție de utilizare |
+| **OAuth**      | Autentificare folosind contul dvs.   | Claude Code, GitHub Copilot     | Abonament                     |
+| **Cookie web** | Utilizează sesiunea dvs. din browser | ChatGPT Web (Codex), Gemini Web | $0 (utilizează contul dvs.)   |
 
 ### Furnizori bazați pe cookie-uri web
 
@@ -46,7 +46,6 @@ reîncerca în siguranță doar conexiunile eșuate după un rezultat parțial.
 2. Accesați **Furnizori** → **Adăugați un furnizor**
 3. Selectați unul dintre acești furnizori gratuiți:
    - **Kiro AI** — Modele Claude gratuite (nu este necesară autentificarea)
-   - **OpenCode Free** — Modele GPT gratuite (nu este necesară autentificarea)
    - **Pollinations** — GPT-5, Claude și Gemini gratuite (nu este necesară nicio cheie)
    - **LongCat** — 10 milioane de tokenuri gratuite (acordare unică, necesită cont + KYC)
    - **Cloudflare AI** — Peste 50 de modele, 10.000 de neuroni/zi
@@ -176,7 +175,6 @@ Acești furnizori oferă **acces gratuit**, fără card de credit:
 | Furnizor          | Cotă gratuită             | Modele                                   | Cum vă conectați          |
 | ----------------- | ------------------------- | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | 50 de credite/lună        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nu necesită autentificare |
-| **OpenCode Free** | Nelimitat                 | GPT-4o, Claude, Gemini                   | Nu necesită autentificare |
 | **Pollinations**  | Nu necesită cheie         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Nu necesită autentificare |
 | **LongCat**       | 10M, o singură dată       | LongCat-2.0                              | Cheie API + KYC           |
 | **Cloudflare AI** | 10K neuroni/zi            | Peste 50 de modele                       | Nu necesită autentificare |
@@ -250,7 +248,7 @@ OmniRoute funcționează cel mai bine cu **mai mulți furnizori**. Acest lucru v
 
 Conectați cel puțin **3 furnizori** pentru cea mai bună experiență:
 
-1. **Un furnizor gratuit** (Kiro, OpenCode Free sau Pollinations) — Disponibil permanent
+1. **Un furnizor gratuit** (Kiro sau Pollinations) — Disponibil permanent
 2. **Un furnizor rapid** (Groq, Cerebras) — Pentru răspunsuri rapide
 3. **Un furnizor de calitate** (OpenAI, Anthropic, Google) — Pentru sarcini complexe
 
@@ -296,7 +294,7 @@ Apoi utilizați `model: "auto"`, iar OmniRoute îl va alege automat pe cel mai b
 
 ### „Trebuie să plătesc pentru a utiliza OmniRoute?”
 
-**Nu!** OmniRoute este gratuit și open-source. Puteți utiliza furnizori gratuiți (Kiro, OpenCode Free, Pollinations) fără să plătiți nimic. Plătiți doar dacă alegeți să utilizați furnizori cu plată.
+**Nu!** OmniRoute este gratuit și open-source. Puteți utiliza furnizori gratuiți (Kiro, Pollinations) fără să plătiți nimic. Plătiți doar dacă alegeți să utilizați furnizori cu plată.
 
 ### „Cu ce furnizor ar trebui să încep?”
 

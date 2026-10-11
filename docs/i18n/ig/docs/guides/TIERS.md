@@ -39,15 +39,14 @@ OmniRoute na-ahazi ndị na-eweta ọrụ 352 ọ na-akwado n'ọkwa akụ na �
 
 **Ndị na-eweta ọrụ na-enweghị ụgwọ** — ọkwa efu, mmemme kredit, oke OAuth kwa ụbọchị.
 
-| Onye na-eweta ọrụ | Oke efu / kredit                            |
-| ----------------- | ------------------------------------------- |
-| Kiro AI           | Ọkwa Claude efu (ojiji ziri ezi buru ibu)   |
-| OpenCode Free     | Enweghị nkwenye njirimara, oke ọsọ buru ibu |
-| Qoder             | OAuth efu                                   |
-| Google Vertex AI  | Kredit $300 maka akaụntụ ọhụrụ              |
-| Amazon Q          | Ọkwa efu maka ndị ọrụ AWS                   |
-| Pollinations      | API ọha mepere emepe                        |
-| Cloudflare AI     | Ọkwa efu Workers AI                         |
+| Onye na-eweta ọrụ | Oke efu / kredit                          |
+| ----------------- | ----------------------------------------- |
+| Kiro AI           | Ọkwa Claude efu (ojiji ziri ezi buru ibu) |
+| Qoder             | OAuth efu                                 |
+| Google Vertex AI  | Kredit $300 maka akaụntụ ọhụrụ            |
+| Amazon Q          | Ọkwa efu maka ndị ọrụ AWS                 |
+| Pollinations      | API ọha mepere emepe                      |
+| Cloudflare AI     | Ọkwa efu Workers AI                       |
 
 **Atụmatụ**: ngwakọta `auto` nwere oke mmefu na-eduga arịrịọ n'ebe a mgbe Ọkwa 1+2 dara ma ọ bụ mgbe edobere `useFreeOnly=true`. Ndị na-eweta ọrụ efu na-enwekarị oke ọsọ adịghị ike — circuit breaker na-eweghachi ha mgbe oge nchere gasịrị.
 

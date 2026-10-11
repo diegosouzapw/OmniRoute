@@ -143,14 +143,12 @@ an bhearna seachas ligean air nach bhfuil sí ann.
 Le haghaidh comparáid as líne roimh agus i ndiaidh, oibríonn `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` fós
 le haschur iarrthóirí ó ásc beo; léann sé fíor-`connectionId` gach iarrthóra, mar sin
 déanann sé an chonair sábháilteachta naisc a thástáil freisin. Ní mór d'iarrthóirí `keyless` teacht leis an
-`connectionId` sintéiseach gan fíordheimhniú, agus ní le fíornasc riamh. Is é OpenCode Free an chonair uathoibríoch `keyless` ionsuite atá ann faoi láthair; braitheann líon beacht na n-iarrthóirí
+`connectionId` sintéiseach gan fíordheimhniú, agus ní le fíornasc riamh. braitheann líon beacht na n-iarrthóirí
 fós ar aimsiú beo samhlacha agus ba cheart é a thomhas ar an imscaradh sprice seachas é a
 chóipeáil ó rith níos sine. Ní éiríonn le hiarrthóir `recurring-*` ach amháin nuair atá cuibheoir
 úsáide cláraithe aige agus `hardStopGuaranteed: true`; diúltaítear do mheiteashonraí neamhiomlána de réir réamhshocraithe fós.
 
-Le `excludeTosAvoid: true`, baintear gach iarrthóir a bhfuil `tos: "avoid"` coimeádta aige. Tá an breithiúnas
-sin ag OpenCode Free faoi láthair, mar sin d'fhéadfadh cumasú na cosanta an linn `keyless` atá fágtha ag imscaradh a
-fholmhú. Is comhréiteach ionchais é seo a bhaineann le cosaint ToS a chasadh air, agus ní fabht é: tá an chosaint socraithe mar `false`
+Le `excludeTosAvoid: true`, baintear gach iarrthóir a bhfuil `tos: "avoid"` coimeádta aige. Is comhréiteach ionchais é seo a bhaineann le cosaint ToS a chasadh air, agus ní fabht é: tá an chosaint socraithe mar `false`
 de réir réamhshocraithe ar an gcúis sin go díreach (féach "Cosaint ToS" thuas).
 
 ## Cumasú

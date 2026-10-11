@@ -150,16 +150,13 @@ Para realizar una comparación sin conexión del antes y el después,
 `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` sigue funcionando con la salida de candidatos
 de una instancia activa; lee el `connectionId` real de cada candidato, por lo que también ejercita
 la ruta de seguridad de las conexiones. Los candidatos sin clave deben llegar con el `connectionId`
-sintético sin autenticación, nunca con una conexión real. La ruta automática sin clave integrada
-actualmente es OpenCode Free; los recuentos exactos de candidatos siguen dependiendo del
+sintético sin autenticación, nunca con una conexión real. los recuentos exactos de candidatos siguen dependiendo del
 descubrimiento de modelos en tiempo real y deben medirse en el despliegue de destino en lugar de
 copiarse de una ejecución anterior. Un candidato `recurring-*` solo se acepta cuando dispone tanto
 de un adaptador de uso registrado como de `hardStopGuaranteed: true`; los metadatos incompletos
 siguen provocando un cierre seguro.
 
-Con `excludeTosAvoid: true`, se eliminan todos los candidatos seleccionados como `tos: "avoid"`.
-Actualmente, OpenCode Free tiene ese veredicto, por lo que activar la protección puede vaciar el
-grupo restante de candidatos sin clave de un despliegue. Es una contrapartida esperada al activar
+Con `excludeTosAvoid: true`, se eliminan todos los candidatos seleccionados como `tos: "avoid"`. Es una contrapartida esperada al activar
 la protección de ToS, no un error: la protección es `false` de forma predeterminada precisamente
 por este motivo (consulta «Protección de ToS» más arriba).
 

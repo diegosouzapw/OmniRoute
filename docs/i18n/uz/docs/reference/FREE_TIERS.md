@@ -121,7 +121,6 @@ Bu sohadagi aksariyat «oyiga bepul tokenlar» ko‘rsatkichlari har bir model u
 | `modal`          | ToS 1.3-bo‘limi «xizmatni ijaraga berish, qayta sotish yoki boshqa tarzda har qanday uchinchi tomonga xizmatdan bevosita foydalanish yoki unga kirish imkonini berish»ni aniq taqiqlaydi — mustaqil joylashtirilgan…   |
 | `muse-spark-web` | Meta ToS oldindan ruxsatsiz avtomatlashtirilgan kirishni, yozma ruxsatsiz teskari muhandislikni va texnologik cheklovlarni chetlab o‘tishni aniq taqiqlaydi…                                                           |
 | `nlpcloud`       | ToS «boshqalarga u orqali Xizmatga kirish imkonini beradigan proksi yoki boshqa qurilmani o‘rnatish»ni aniq taqiqlaydi va faqat boshqalarga o‘tkazib bo‘lmaydigan…                                                     |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) foydalanishni aniq ravishda «faqat o‘zingizning ichki foydalanishingiz uchun, har qanday uchinchi tomon nomidan yoki uning manfaati uchun emas» deb cheklaydi — ope…                   |
 | `t3-web`         | ToS hisoblarni faqat shaxsiy foydalanish bilan aniq cheklaydi, hisob ma’lumotlarini uchinchi tomonlar bilan ulashishni taqiqlaydi va avtomatlashtirilgan/bot/scraping orqali kirishni man etadi —…                     |
 
 ### ✅ Umuman olganda ruxsat beruvchi — ehtiyotkorlik / noaniq / maqbul (qolganlari)
@@ -265,7 +264,6 @@ Bu sohadagi aksariyat «oyiga bepul tokenlar» ko‘rsatkichlari har bir model u
 | `nlpcloud`       | kalitsiz                  | —                    | —                   | saqlaning             | 1        |
 | `nous-research`  | kalitsiz                  | —                    | —                   | noaniq                | 2        |
 | `nvidia`         | kalitsiz                  | —                    | —                   | ehtiyotkorlik         | 13       |
-| `opencode`       | kalitsiz                  | —                    | —                   | saqlaning             | 7        |
 | `pollinations`   | kalitsiz                  | —                    | —                   | ehtiyotkorlik         | 31       |
 | `publicai`       | keyless                   | —                    | —                   | caution               | 3        |
 | `reka`           | keyless                   | —                    | —                   | caution               | 2        |
@@ -276,10 +274,6 @@ Bu sohadagi aksariyat «oyiga bepul tokenlar» ko‘rsatkichlari har bir model u
 | `uncloseai`      | keyless                   | —                    | —                   | caution               | 3        |
 
 ---
-
-## OpenCode Free: mijoz shartnomasi cheklovi (#14313)
-
-Kalitsiz `opencode` provayderi (ommaviy `https://opencode.ai/zen/v1`) OpenCode mijoz shartnomasiga mos kelmaydigan har qanday soʻrovni **403 `FreeTierError`** bilan va _"OpenCode bepul tarifidan faqat OpenCode ichida foydalanish mumkin"_ degan jumla bilan rad etadi. Bu model taqiqi yoki ulanishning sovush davri emas, balki soʻrov doirasidagi rad etishdir (bir xil soʻrov tuzilmasi uchun har bir hisobda bir xil natija) — OmniRoute uni `project_route_error` sifatida tasniflaydi, model blokirovkasi / sovush davrini oʻtkazib yuboradi va (sunʼiy `noauth` yoʻlida) qisqa TTL davomida avtomatik kombinatsiyani qayta tanlashni pauza qiladi. Boʻsh boʻlmagan vositalar roʻyxati, `stream: true` va OpenCode sessiya/UA sarlavhalarini (`opencodeFreeTierContract.ts`) oʻz ichiga olgan soʻrovlarni yuboring, aks holda 403 javobini kuting.
 
 ## Chiqarilgan katalogdan (`freeNote`) keyin nimalar oʻzgardi
 

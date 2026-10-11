@@ -116,7 +116,6 @@ Is suimeanna lipéad in aghaidh an mhúnla iad an chuid is mó de na figiúirí 
 | `modal`          | ToS Roinn 1.3 toirmisceann sé go sainráite "cíos, athdhíol nó ceadú go díreach d'aon tríú páirtí rochtain dhíreach a fháil ar an tSeirbhís nó í a úsáid" — tógáil féin-óstáilte…                          |
 | `muse-spark-web` | ToS Meta toirmisceann sé go sainráite rochtain uathoibrithe gan cead roimh ré, innealtóireacht droim ar ais gan cead i scríbhinn, agus teicneolaíochtaí a sheachaint…                                     |
 | `nlpcloud`       | ToS toirmisceann sé go sainráite "seachfhreastalaí nó gléas eile a chur ar bun a ligeann do dhaoine eile rochtain a fháil ar an tSeirbhís tríd" agus ní dheonaíonn sé ach neamh-inaistrithe,…             |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) cuireann sé teorainn go sainráite le húsáid le "d'úsáid inmheánach féin, agus ní thar ceann nó chun tairbhe aon tríú páirtí" — ope…                                       |
 | `t3-web`         | ToS cuireann sé teorainn go sainráite le cuntais le húsáid phearsanta amháin, toirmisceann sé comhroinnt dintiúir le tríú páirtithe, agus cuireann sé cosc ar rochtain uathoibrithe/róbat/scrapála — a s… |
 
 ### ✅ Go ginearálta ceadaitheach — rabhadh / débhríoch / ceart go leor (an chuid eile)
@@ -258,7 +257,6 @@ Is suimeanna lipéad in aghaidh an mhúnla iad an chuid is mó de na figiúirí 
 | `nlpcloud`       | gan eochair           | —                    | —                        | seachain      | 1         |
 | `nous-research`  | gan eochair           | —                    | —                        | débhríoch     | 2         |
 | `nvidia`         | gan eochair           | —                    | —                        | rabhadh       | 13        |
-| `opencode`       | gan eochair           | —                    | —                        | seachain      | 7         |
 | `pollinations`   | gan eochair           | —                    | —                        | rabhadh       | 31        |
 | `publicai`       | keyless               | —                    | —                        | rabhadh       | 3         |
 | `reka`           | keyless               | —                    | —                        | rabhadh       | 2         |
@@ -269,10 +267,6 @@ Is suimeanna lipéad in aghaidh an mhúnla iad an chuid is mó de na figiúirí 
 | `uncloseai`      | keyless               | —                    | —                        | rabhadh       | 3         |
 
 ---
-
-## OpenCode Free: srian conartha cliant (#14313)
-
-Diúltaíonn an soláthraí gan eochair `opencode` (poiblí `https://opencode.ai/zen/v1`) d'aon iarratas nach ionann é agus conradh cliant OpenCode le **403 `FreeTierError`** agus an abairt _"Ní féidir sraith saor in aisce OpenCode a úsáid ach amháin laistigh de OpenCode"_. Is diúltú scóip iarratais é seo (an breithiúnas céanna ar gach cuntas don chruth iarratais céanna), ní toirmeasc samhail nó fuarú ceangail — Aicmíonn OmniRoute é mar `project_route_error`, scipeálann sé glasáil samhail / fuarú, agus (ar an gcosán sintéiseach `noauth`) cuireann sé sos ar athroghnú uathoibríoch-teaglama ar feadh TTL gearr. Seol iarratais a bhfuil liosta uirlisí neamh-fholamh acu, `stream: true`, agus na ceanntásca seisiúin/UA OpenCode (`opencodeFreeTierContract.ts`) nó bí ag súil leis an 403.
 
 ## Cad a athraigh ó bhí an catalóg seolta (`freeNote`)
 

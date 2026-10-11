@@ -122,7 +122,6 @@ n'ebumnuche.
 | `modal`          | Nkebi 1.3 nke ToS machibidoro n’ụzọ doro anya “ịgbazinye, iregharị, ma ọ bụ ikwe n’ụzọ ọzọ ka onye ọ bụla ọzọ nweta ma ọ bụ jiri Ọrụ ahụ ozugbo” — iwulite ọrụ a na-akwado n’onwe ya… |
 | `muse-spark-web` | ToS Meta machibidoro n’ụzọ doro anya ohere akpaaka na-enweghị ikike tupu oge eruo, reverse engineering na-enweghị ikike e dere ede, na ịgafe teknụzụ…                                 |
 | `nlpcloud`       | ToS machibidoro n’ụzọ doro anya “ịtọlite proxy ma ọ bụ ngwaọrụ ọzọ nke na-enye ndị ọzọ ohere ịnweta Ọrụ ahụ site na ya” ma na-enye naanị ikike a na-apụghị ibufe,…                    |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) na-amachi ojiji n’ụzọ doro anya ka ọ bụrụ “ojiji ime ụlọ nke gị, ọ bụghịkwa n’aha ma ọ bụ maka uru onye ọ bụla ọzọ” — ope…                            |
 | `t3-web`         | ToS na-amachi akaụntụ n’ụzọ doro anya maka naanị ojiji onwe onye, machibido ịkekọrịta credential na ndị ọzọ, ma gbochie ohere akpaaka/bot/scraping — a s…                             |
 
 ### ✅ N’ozuzu, usoro ha anaghị esiri ike — kpachara anya / edoghị anya / enyere ikike (ndị fọdụrụ)
@@ -266,7 +265,6 @@ n'ebumnuche.
 | `nlpcloud`       | enweghị igodo   | —                     | —               | zere          | 1     |
 | `nous-research`  | enweghị igodo   | —                     | —               | edoghị anya   | 2     |
 | `nvidia`         | enweghị igodo   | —                     | —               | kpachara anya | 13    |
-| `opencode`       | enweghị igodo   | —                     | —               | zere          | 7     |
 | `pollinations`   | enweghị igodo   | —                     | —               | kpachara anya | 31    |
 | `publicai`       | enweghị igodo   | —                     | —               | kpachara anya | 3     |
 | `reka`           | enweghị igodo   | —                     | —               | kpachara anya | 2     |
@@ -277,17 +275,6 @@ n'ebumnuche.
 | `uncloseai`      | enweghị igodo   | —                     | —               | kpachara anya | 3     |
 
 ---
-
-## OpenCode Free: mmachi nkwekọrịta client (#14313)
-
-Provider `opencode` na-enweghị key (nke ọha `https://opencode.ai/zen/v1`) na-ajụ arịrịọ ọ bụla
-na-adabaghị na nkwekọrịta client OpenCode site na **403 `FreeTierError`** na ahịrịokwu
-_"Enwere ike iji free tier OpenCode naanị site n'ime OpenCode"_. Nke a bụ ọjụjụ dabere
-n'otu arịrịọ (otu mkpebi ahụ na akaụntụ niile maka otu nhazi arịrịọ ahụ), ọ bụghị mmachibido
-model ma ọ bụ oge nchere njikọ — OmniRoute na-ekewa ya dịka `project_route_error`, na-amafe
-mkpọchi model / oge nchere, ma (n'ụzọ `noauth` arụrụ arụ) na-akwụsị nwa oge ịhọrọgharị auto-combo
-maka TTL dị mkpụmkpụ. Zipụ arịrịọ nwere ndepụta tool na-adịghị efu, `stream: true`, yana
-headers session/UA nke OpenCode (`opencodeFreeTierContract.ts`), ma ọ bụghị ya tụọ anya 403.
 
 ## Ihe gbanwere kemgbe catalog e zipụrụ (`freeNote`)
 

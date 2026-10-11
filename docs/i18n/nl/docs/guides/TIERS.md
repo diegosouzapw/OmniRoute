@@ -54,7 +54,6 @@ OAuth-quota.
 | Provider         | Gratis quotum / tegoeden                     |
 | ---------------- | -------------------------------------------- |
 | Kiro AI          | Gratis Claude-niveau (ruim redelijk gebruik) |
-| OpenCode Free    | Geen authenticatie, ruime frequentielimieten |
 | Qoder            | Gratis OAuth                                 |
 | Google Vertex AI | $300 tegoed voor nieuwe accounts             |
 | Amazon Q         | Gratis niveau voor AWS-gebruikers            |

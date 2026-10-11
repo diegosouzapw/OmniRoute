@@ -219,7 +219,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Deluje takoj po namestitvi — brez konfiguracije. Trije koraki: 1. Namestite — npm i -g omniroute, strežnik se zažene na localhost:20128. 2. Svoje orodje usmerite na http://localhost:20128/v1 — katero koli orodje, združljivo z OpenAI (Claude Code, Cursor, Cline). 3. Odgovori — za takojšen odgovor pokličite model auto, brez ključa API, registracije ali konfiguracije. Ponudnik brez ključev OpenCode Free je vnaprej povezan s kombinacijo auto, zato sveža namestitev deluje takoj."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Deluje takoj po namestitvi — brez konfiguracije. Trije koraki: 1. Namestite — npm i -g omniroute, strežnik se zažene na localhost:20128. 2. Svoje orodje usmerite na http://localhost:20128/v1 — katero koli orodje, združljivo z OpenAI (Claude Code, Cursor, Cline). 3. Odgovori — za takojšen odgovor pokličite model auto, brez ključa API, registracije ali konfiguracije."/>
 
 ```bash
 # Sveža namestitev, brez poverilnic — `auto` že deluje:
@@ -227,8 +227,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Želite določen brezplačen zaledni sistem? Pokličite `oc/…` (OpenCode Free) neposredno. Nato preidite na `auto` in prepustite izbiro OmniRoute.</sub>
 
 <sub>📦 Skripti za hiter začetek s kopiranjem in lepljenjem za **Python, Node.js, PHP in cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1021,7 +1019,7 @@ Nadzorna plošča je na `http://localhost:20128` · API je na `http://localhost:
 
 **2) Povežite BREZPLAČNEGA ponudnika (brez registracije)**
 
-Nadzorna plošča → **Ponudniki** → povežite **Kiro AI** (brezplačni Claude, ~50 kreditov/mesec na račun) ali **OpenCode Free** (brez preverjanja pristnosti) → končano.
+Nadzorna plošča → **Ponudniki** → povežite **Kiro AI** (brezplačni Claude, ~50 kreditov/mesec na račun) → končano.
 
 **3) Usmerite svoje orodje za programiranje**
 
@@ -1280,7 +1278,7 @@ Kanonične metrike na dan 2026-08-24: **1.029 edinstvenih videoposnetkov** · **
   <tr><td nowrap><b>Izvajalno okolje</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Jezik</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> v <code>src/</code> in <code>open-sse/</code> (brez uporabe <code>any</code> v jedru od v2.0)</td></tr>
   <tr><td nowrap><b>Ogrodje</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Podatkovna zbirka</b></td><td>better-sqlite3 (SQLite, beleženje WAL) + LowDB (starejši JSON) — 137 domenskih modulov, 202 migracij</td></tr>
+  <tr><td nowrap><b>Podatkovna zbirka</b></td><td>better-sqlite3 (SQLite, beleženje WAL) + LowDB (starejši JSON) — 137 domenskih modulov, 203 migracij</td></tr>
   <tr><td nowrap><b>Pomnilnik</b></td><td>SQLite FTS5 za iskanje po celotnem besedilu + vektorske vložitve, kvantizirane v int8, tipizirano pojemanje</td></tr>
   <tr><td nowrap><b>Sheme</b></td><td>Zod 4 — preverjanje vhodov/izhodov orodij MCP + pogodbe API</td></tr>
   <tr><td nowrap><b>Protokoli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

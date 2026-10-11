@@ -122,7 +122,6 @@ Takwimu nyingi za "tokeni za bila malipo kwa mwezi" katika eneo hili ni jumla ya
 | `modal`          | Sehemu ya 1.3 ya ToS inakataza waziwazi "kukodisha, kuuza tena au vinginevyo kuruhusu mhusika yeyote mwingine kufikia moja kwa moja au kutumia Huduma" — kujenga proksi inayopangishwa yenyewe…            |
 | `muse-spark-web` | ToS ya Meta inakataza waziwazi ufikiaji wa kiotomatiki bila ruhusa ya awali, uhandisi wa kinyume bila ruhusa iliyoandikwa na kukwepa teknolo…                                                              |
 | `nlpcloud`       | ToS inakataza waziwazi "kuanzisha proksi au kifaa kingine kinachowaruhusu wengine kufikia Huduma kupitia kifaa hicho" na inatoa tu haki isiyoweza kuhamishwa,…                                             |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) inaweka wazi kikomo cha matumizi kuwa "matumizi yako mwenyewe ya ndani, na si kwa niaba ya au kwa manufaa ya mhusika mwingine yeyote" — ope…                               |
 | `t3-web`         | ToS inaweka wazi kikomo cha akaunti kwa matumizi binafsi pekee, inakataza kushiriki vitambulisho vya kuingia na wahusika wengine na inapiga marufuku ufikiaji wa kiotomatiki/boti/uchotaji — proksi inayo… |
 
 ### ✅ Kwa ujumla zinaruhusu — tahadhari / haiko wazi / sawa (zilizosalia)
@@ -266,7 +265,6 @@ Takwimu nyingi za "tokeni za bila malipo kwa mwezi" katika eneo hili ni jumla ya
 | `nlpcloud`       | bila ufunguo        | —                    | —                        | epuka              | 1      |
 | `nous-research`  | bila ufunguo        | —                    | —                        | tata               | 2      |
 | `nvidia`         | bila ufunguo        | —                    | —                        | tahadhari          | 13     |
-| `opencode`       | bila ufunguo        | —                    | —                        | epuka              | 7      |
 | `pollinations`   | bila ufunguo        | —                    | —                        | tahadhari          | 31     |
 | `publicai`       | bila ufunguo        | —                    | —                        | tahadhari          | 3      |
 | `reka`           | bila ufunguo        | —                    | —                        | tahadhari          | 2      |
@@ -277,17 +275,6 @@ Takwimu nyingi za "tokeni za bila malipo kwa mwezi" katika eneo hili ni jumla ya
 | `uncloseai`      | bila ufunguo        | —                    | —                        | tahadhari          | 3      |
 
 ---
-
-## OpenCode Free: kizuizi cha mkataba wa kiteja (#14313)
-
-Mtoa huduma wa `opencode` asiyehitaji ufunguo (`https://opencode.ai/zen/v1` ya umma) hukataa ombi lolote
-ambalo halilingani na mkataba wa kiteja wa OpenCode kwa **403 `FreeTierError`** na sentensi
-_"Kiwango cha bila malipo cha OpenCode kinaweza kutumiwa tu ndani ya OpenCode"_. Huu ni
-ukataaji unaohusu ombi husika (uamuzi uleule kwa kila akaunti kwa muundo uleule wa ombi), si
-marufuku ya modeli wala muda wa kusubiri wa muunganisho — OmniRoute huainisha hali hii kama `project_route_error`, huruka
-kufungiwa kwa modeli / muda wa kusubiri, na (kwenye njia bandia ya `noauth`) husitisha uteuzi upya wa auto-combo
-kwa TTL fupi. Tuma maombi yaliyo na orodha isiyo tupu ya zana, `stream: true`, na
-vijajuu vya kipindi/UA vya OpenCode (`opencodeFreeTierContract.ts`), vinginevyo tarajia 403.
 
 ## Kilichobadilika tangu katalogi iliyotolewa (`freeNote`)
 

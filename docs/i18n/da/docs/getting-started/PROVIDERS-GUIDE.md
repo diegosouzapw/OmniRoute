@@ -14,12 +14,12 @@ Tænk på en udbyder som et **teleselskab**. Ligesom du skal have et teleselskab
 
 ### Typer af udbydere
 
-| Type          | Hvad det er                | Eksempler                         | Pris                   |
-| ------------- | -------------------------- | --------------------------------- | ---------------------- |
-| **Gratis**    | Ingen betaling påkrævet    | Kiro, OpenCode Free, Pollinations | $0                     |
-| **API-nøgle** | Du skal bruge en API-nøgle | OpenAI, Anthropic, Google         | Betaling efter forbrug |
-| **OAuth**     | Log ind med din konto      | Claude Code, GitHub Copilot       | Abonnement             |
-| **Webcookie** | Bruger din browsersession  | ChatGPT Web (Codex), Gemini Web   | $0 (bruger din konto)  |
+| Type          | Hvad det er                | Eksempler                       | Pris                   |
+| ------------- | -------------------------- | ------------------------------- | ---------------------- |
+| **Gratis**    | Ingen betaling påkrævet    | Kiro, Pollinations              | $0                     |
+| **API-nøgle** | Du skal bruge en API-nøgle | OpenAI, Anthropic, Google       | Betaling efter forbrug |
+| **OAuth**     | Log ind med din konto      | Claude Code, GitHub Copilot     | Abonnement             |
+| **Webcookie** | Bruger din browsersession  | ChatGPT Web (Codex), Gemini Web | $0 (bruger din konto)  |
 
 ### Udbydere med webcookies
 
@@ -46,7 +46,6 @@ uden risiko prøve igen udelukkende for de mislykkede udbydere.
 2. Gå til **Udbydere** → **Tilføj udbyder**
 3. Vælg en af disse gratis udbydere:
    - **Kiro AI** — Gratis Claude-modeller (ingen godkendelse påkrævet)
-   - **OpenCode Free** — Gratis GPT-modeller (ingen godkendelse påkrævet)
    - **Pollinations** — Gratis GPT-5, Claude og Gemini (ingen nøgle påkrævet)
    - **LongCat** — 10M gratis tokens (engangstildeling, kræver konto + KYC)
    - **Cloudflare AI** — Mere end 50 modeller, 10K neuroner/dag
@@ -176,7 +175,6 @@ Disse udbydere tilbyder **gratis adgang** uden kreditkort:
 | Udbyder           | Gratis kvote       | Modeller                                 | Sådan opretter du forbindelse |
 | ----------------- | ------------------ | ---------------------------------------- | ----------------------------- |
 | **Kiro AI**       | 50 kreditter/måned | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ingen godkendelse nødvendig   |
-| **OpenCode Free** | Ubegrænset         | GPT-4o, Claude, Gemini                   | Ingen godkendelse nødvendig   |
 | **Pollinations**  | Ingen nøgle kræves | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ingen godkendelse nødvendig   |
 | **LongCat**       | 10M én gang        | LongCat-2.0                              | API-nøgle + KYC               |
 | **Cloudflare AI** | 10K neuroner/dag   | Mere end 50 modeller                     | Ingen godkendelse nødvendig   |
@@ -250,7 +248,7 @@ OmniRoute fungerer bedst med **flere udbydere**. Det giver dig:
 
 Forbind mindst **3 udbydere** for at få den bedste oplevelse:
 
-1. **Én gratis udbyder** (Kiro, OpenCode Free eller Pollinations) — Altid tilgængelig
+1. **Én gratis udbyder** (Kiro eller Pollinations) — Altid tilgængelig
 2. **Én hurtig udbyder** (Groq, Cerebras) — Til hurtige svar
 3. **Én kvalitetsudbyder** (OpenAI, Anthropic, Google) — Til komplekse opgaver
 
@@ -296,7 +294,7 @@ Brug derefter `model: "auto"`, så vælger OmniRoute automatisk den bedste til h
 
 ### "Skal jeg betale for at bruge OmniRoute?"
 
-**Nej!** OmniRoute er gratis og open source. Du kan bruge gratis udbydere (Kiro, OpenCode Free, Pollinations) uden at betale noget. Du betaler kun, hvis du vælger at bruge betalingsudbydere.
+**Nej!** OmniRoute er gratis og open source. Du kan bruge gratis udbydere (Kiro, Pollinations) uden at betale noget. Du betaler kun, hvis du vælger at bruge betalingsudbydere.
 
 ### "Hvilken udbyder skal jeg starte med?"
 

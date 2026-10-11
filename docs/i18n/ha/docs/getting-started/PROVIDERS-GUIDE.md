@@ -14,12 +14,12 @@ Ka ɗauki mai samarwa kamar **kamfanin sadarwar waya**. Kamar yadda kake buƙata
 
 ### Nau'ikan Masu Samarwa
 
-| Nau'i                | Mene Ne                         | Misalai                           | Farashi                      |
-| -------------------- | ------------------------------- | --------------------------------- | ---------------------------- |
-| **Kyauta**           | Ba a buƙatar biyan kuɗi         | Kiro, OpenCode Free, Pollinations | $0                           |
-| **Maɓallin API**     | Kana buƙatar maɓallin API       | OpenAI, Anthropic, Google         | Biya gwargwadon amfani       |
-| **OAuth**            | Shiga da asusunka               | Claude Code, GitHub Copilot       | Kuɗin rajista                |
-| **Kukin Yanar Gizo** | Yana amfani da zaman burauzarka | ChatGPT Web (Codex), Gemini Web   | $0 (yana amfani da asusunka) |
+| Nau'i                | Mene Ne                         | Misalai                         | Farashi                      |
+| -------------------- | ------------------------------- | ------------------------------- | ---------------------------- |
+| **Kyauta**           | Ba a buƙatar biyan kuɗi         | Kiro, Pollinations              | $0                           |
+| **Maɓallin API**     | Kana buƙatar maɓallin API       | OpenAI, Anthropic, Google       | Biya gwargwadon amfani       |
+| **OAuth**            | Shiga da asusunka               | Claude Code, GitHub Copilot     | Kuɗin rajista                |
+| **Kukin Yanar Gizo** | Yana amfani da zaman burauzarka | ChatGPT Web (Codex), Gemini Web | $0 (yana amfani da asusunka) |
 
 ### Masu Samarwa Ta Kukin Yanar Gizo
 
@@ -46,7 +46,6 @@ sake gwada waɗanda suka gaza kawai cikin aminci bayan sakamako na wani ɓangare
 2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
 3. Zaɓi ɗaya daga cikin waɗannan masu samarwa na kyauta:
    - **Kiro AI** — Samfurorin Claude na kyauta (ba a buƙatar tabbatar da sahihanci)
-   - **OpenCode Free** — Samfurorin GPT na kyauta (ba a buƙatar tabbatar da sahihanci)
    - **Pollinations** — GPT-5, Claude, Gemini na kyauta (ba a buƙatar maɓalli)
    - **LongCat** — Token miliyan 10 kyauta (kyauta sau ɗaya, yana buƙatar asusu + KYC)
    - **Cloudflare AI** — Samfura sama da 50, neuron 10K/rana
@@ -176,7 +175,6 @@ Waɗannan masu bayar da sabis suna ba da **damar amfani kyauta** ba tare da kati
 | Mai Bayar da Sabis | Adadin Kyauta         | Samfura                                  | Yadda Ake Haɗawa         |
 | ------------------ | --------------------- | ---------------------------------------- | ------------------------ |
 | **Kiro AI**        | kiredit 50/wata       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ba a buƙatar tantancewa  |
-| **OpenCode Free**  | Mara iyaka            | GPT-4o, Claude, Gemini                   | Ba a buƙatar tantancewa  |
 | **Pollinations**   | Ba a buƙatar maɓalli  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ba a buƙatar tantancewa  |
 | **LongCat**        | 10M sau ɗaya          | LongCat-2.0                              | Maɓallin API + KYC       |
 | **Cloudflare AI**  | neuron 10K/rana       | samfura 50+                              | Ba a buƙatar tantancewa  |
@@ -250,7 +248,7 @@ OmniRoute yana aiki mafi kyau tare da **masu bayar da sabis da yawa**. Wannan ya
 
 Haɗa aƙalla **masu bayar da sabis 3** domin samun ƙwarewa mafi kyau:
 
-1. **Mai bayar da sabis kyauta ɗaya** (Kiro, OpenCode Free, ko Pollinations) — Kullum yana samuwa
+1. **Mai bayar da sabis kyauta ɗaya** (Kiro, ko Pollinations) — Kullum yana samuwa
 2. **Mai bayar da sabis mai sauri ɗaya** (Groq, Cerebras) — Domin samun amsoshi cikin sauri
 3. **Mai bayar da sabis mai inganci ɗaya** (OpenAI, Anthropic, Google) — Domin ayyuka masu sarƙaƙiya
 
@@ -296,7 +294,7 @@ Sannan yi amfani da `model: "auto"` kuma OmniRoute zai zaɓi mafi dacewa ta atom
 
 ### "Shin sai na biya kafin in yi amfani da OmniRoute?"
 
-**A'a!** OmniRoute kyauta ne kuma buɗaɗɗen tushe ne. Za ka iya amfani da masu bayarwa na kyauta (Kiro, OpenCode Free, Pollinations) ba tare da biyan komai ba. Za ka biya ne kawai idan ka zaɓi amfani da masu bayarwa na biyan kuɗi.
+**A'a!** OmniRoute kyauta ne kuma buɗaɗɗen tushe ne. Za ka iya amfani da masu bayarwa na kyauta (Kiro, Pollinations) ba tare da biyan komai ba. Za ka biya ne kawai idan ka zaɓi amfani da masu bayarwa na biyan kuɗi.
 
 ### "Wane mai bayarwa ya kamata in fara da shi?"
 

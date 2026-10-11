@@ -43,7 +43,6 @@ combo နည်းဗျူဟာက ၎င်းနှင့်အညီ ဦး
 | Provider         | အခမဲ့ quota / credit များ                      |
 | ---------------- | ---------------------------------------------- |
 | Kiro AI          | အခမဲ့ Claude အဆင့် (အသုံးပြုခွင့် များပြားသည်) |
-| OpenCode Free    | Auth မလိုအပ်ဘဲ rate limit များ များပြားသည်     |
 | Qoder            | အခမဲ့ OAuth                                    |
 | Google Vertex AI | Account အသစ်အတွက် $300 credit                  |
 | Amazon Q         | AWS အသုံးပြုသူများအတွက် အခမဲ့အဆင့်             |

@@ -39,7 +39,7 @@ Matsalolin da aka fi samu da hanyoyin magance su na OmniRoute.
 
 ### Iyakance Yawan Buƙatu a Masu Bayar da Sabis na Kyauta (429 / 400 / 401)
 
-**Alama**: Lokacin amfani da `model: "auto"` tare da masu bayar da sabis na kyauta/waɗanda ba sa buƙatar tantancewa (opencode, auggie, da sauransu), lokaci-lokaci za ka samu `HTTP 429`, `400`, ko `401` maimakon amsoshi. Buƙatun suna yin nasara idan aka sake gwada saƙon nan kaɗan bayan haka, amma aiki ta atomatik (ayyukan cron, agents, scripts) yana yankewa a gazawar farko.
+**Alama**: Lokacin amfani da `model: "auto"` tare da masu bayar da sabis na kyauta/waɗanda ba sa buƙatar tantancewa (auggie, da sauransu), lokaci-lokaci za ka samu `HTTP 429`, `400`, ko `401` maimakon amsoshi. Buƙatun suna yin nasara idan aka sake gwada saƙon nan kaɗan bayan haka, amma aiki ta atomatik (ayyukan cron, agents, scripts) yana yankewa a gazawar farko.
 
 **Asalin matsalar**: Hanyoyin gazawa guda uku masu zaman kansu suna haɗuwa:
 

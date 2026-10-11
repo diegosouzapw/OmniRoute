@@ -14,12 +14,12 @@ Provayderni **mobil aloqa operatori** kabi tasavvur qiling. Qoʻngʻiroq qilish 
 
 ### Provayder turlari
 
-| Tur            | Bu nima                           | Misollar                          | Narxi                          |
-| -------------- | --------------------------------- | --------------------------------- | ------------------------------ |
-| **Bepul**      | Toʻlov talab qilinmaydi           | Kiro, OpenCode Free, Pollinations | $0                             |
-| **API kaliti** | Sizga API kaliti kerak            | OpenAI, Anthropic, Google         | Foydalanish boʻyicha toʻlov    |
-| **OAuth**      | Hisobingiz bilan kirasiz          | Claude Code, GitHub Copilot       | Obuna                          |
-| **Veb cookie** | Brauzer seansingizdan foydalanadi | ChatGPT Web (Codex), Gemini Web   | $0 (hisobingizdan foydalanadi) |
+| Tur            | Bu nima                           | Misollar                        | Narxi                          |
+| -------------- | --------------------------------- | ------------------------------- | ------------------------------ |
+| **Bepul**      | Toʻlov talab qilinmaydi           | Kiro, Pollinations              | $0                             |
+| **API kaliti** | Sizga API kaliti kerak            | OpenAI, Anthropic, Google       | Foydalanish boʻyicha toʻlov    |
+| **OAuth**      | Hisobingiz bilan kirasiz          | Claude Code, GitHub Copilot     | Obuna                          |
+| **Veb cookie** | Brauzer seansingizdan foydalanadi | ChatGPT Web (Codex), Gemini Web | $0 (hisobingizdan foydalanadi) |
 
 ### Veb cookie provayderlari
 
@@ -47,7 +47,6 @@ xavfsiz tarzda qayta bajarishingiz mumkin.
 2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
 3. Quyidagi bepul provayderlardan birini tanlang:
    - **Kiro AI** — Bepul Claude modellari (autentifikatsiya talab qilinmaydi)
-   - **OpenCode Free** — Bepul GPT modellari (autentifikatsiya talab qilinmaydi)
    - **Pollinations** — Bepul GPT-5, Claude, Gemini (kalit talab qilinmaydi)
    - **LongCat** — 10M token bepul (bir martalik grant, hisob + KYC talab qilinadi)
    - **Cloudflare AI** — 50+ model, kuniga 10K neyron
@@ -177,7 +176,6 @@ Bu provayderlar kredit kartasiz **bepul foydalanish imkonini** beradi:
 | Provayder         | Bepul kvota                       | Modellar                                 | Ulanish usuli                     |
 | ----------------- | --------------------------------- | ---------------------------------------- | --------------------------------- |
 | **Kiro AI**       | Oyiga 50 kredit                   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikatsiya talab qilinmaydi |
-| **OpenCode Free** | Cheklanmagan                      | GPT-4o, Claude, Gemini                   | Autentifikatsiya talab qilinmaydi |
 | **Pollinations**  | Kalit talab qilinmaydi            | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikatsiya talab qilinmaydi |
 | **LongCat**       | Bir martalik 10M                  | LongCat-2.0                              | API kaliti + KYC                  |
 | **Cloudflare AI** | Kuniga 10K neyron                 | 50+ model                                | Autentifikatsiya talab qilinmaydi |
@@ -251,7 +249,7 @@ OmniRoute **bir nechta provayder** bilan eng yaxshi ishlaydi. Bu sizga quyidagi 
 
 Eng yaxshi natija uchun kamida **3 ta provayderni** ulang:
 
-1. **Bitta bepul provayder** (Kiro, OpenCode Free yoki Pollinations) — Har doim mavjud
+1. **Bitta bepul provayder** (Kiro yoki Pollinations) — Har doim mavjud
 2. **Bitta tezkor provayder** (Groq, Cerebras) — Tezkor javoblar uchun
 3. **Bitta yuqori sifatli provayder** (OpenAI, Anthropic, Google) — Murakkab vazifalar uchun
 
@@ -297,7 +295,7 @@ Soʻng `model: "auto"` parametridan foydalaning va OmniRoute har bir soʻrov uch
 
 ### "OmniRoute xizmatidan foydalanish uchun pul toʻlashim kerakmi?"
 
-**Yoʻq!** OmniRoute bepul va ochiq manbali. Bepul provayderlardan (Kiro, OpenCode Free, Pollinations) hech qanday toʻlovsiz foydalanishingiz mumkin. Faqat pulli provayderlardan foydalanishni tanlasangizgina toʻlov qilasiz.
+**Yoʻq!** OmniRoute bepul va ochiq manbali. Bepul provayderlardan (Kiro, Pollinations) hech qanday toʻlovsiz foydalanishingiz mumkin. Faqat pulli provayderlardan foydalanishni tanlasangizgina toʻlov qilasiz.
 
 ### "Qaysi provayderdan boshlashim kerak?"
 

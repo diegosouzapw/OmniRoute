@@ -59,15 +59,7 @@ Je kunt OmniRoute **geheel kosteloos gebruiken** door een gratis provider te ver
 4. Klik op **Verbinden** (geen API-sleutel nodig!)
 5. Klaar! Je hebt nu gratis toegang tot Claude-modellen.
 
-### Optie B: OpenCode Free (geen authenticatie)
-
-1. Open het dashboard op `http://localhost:20128`
-2. Ga naar **Providers** → **Provider toevoegen**
-3. Selecteer **OpenCode Free**
-4. Klik op **Verbinden** (geen API-sleutel nodig!)
-5. Klaar! Je hebt nu gratis toegang tot meerdere modellen.
-
-### Optie C: Pollinations (geen sleutel nodig)
+### Optie B: Pollinations (geen sleutel nodig)
 
 1. Open het dashboard op `http://localhost:20128`
 2. Ga naar **Providers** → **Provider toevoegen**
@@ -163,7 +155,7 @@ Je kunt de details van het verzoek bekijken door in de linkerzijbalk op [Monitor
 
 ### "Heb ik een API-sleutel nodig?"
 
-**Nee!** Je kunt gratis providers (Kiro, OpenCode Free en Pollinations) zonder API-sleutel gebruiken. Verbind ze eenvoudig via het dashboard.
+**Nee!** Je kunt gratis providers (Kiro en Pollinations) zonder API-sleutel gebruiken. Verbind ze eenvoudig via het dashboard.
 
 ### "Wat is `auto`?"
 

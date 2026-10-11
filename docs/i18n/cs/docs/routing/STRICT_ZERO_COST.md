@@ -144,14 +144,12 @@ na mezeru upozorňuje, místo aby předstírala, že neexistuje.
 Pro offline porovnání stavu před a po lze stále použít `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 proti výstupu kandidátů živé instance; skript čte skutečné `connectionId` každého kandidáta, takže
 prověřuje také cestu zabezpečení připojení. Kandidáti `keyless` musí přicházet se syntetickým
-`connectionId` bez ověření, nikdy se skutečným připojením. Aktuální vestavěnou automatickou cestou `keyless` je OpenCode Free; přesné počty kandidátů
+`connectionId` bez ověření, nikdy se skutečným připojením. přesné počty kandidátů
 stále závisejí na živém zjišťování modelů a měly by být změřeny v cílovém nasazení, nikoli
 zkopírovány ze staršího spuštění. Kandidát `recurring-*` projde pouze tehdy, pokud má zaregistrovaný
 adaptér využití a zároveň `hardStopGuaranteed: true`; neúplná metadata zůstávají ve výchozím stavu zamítnuta.
 
-Při `excludeTosAvoid: true` je odstraněn každý kandidát se spravovaným `tos: "avoid"`. OpenCode Free
-má v současnosti právě tento verdikt, takže zapnutí ochrany může vyprázdnit zbývající fond kandidátů `keyless`
-v daném nasazení. Jde o očekávaný kompromis spojený se zapnutím ochrany ToS, nikoli o chybu: právě
+Při `excludeTosAvoid: true` je odstraněn každý kandidát se spravovaným `tos: "avoid"`. Jde o očekávaný kompromis spojený se zapnutím ochrany ToS, nikoli o chybu: právě
 z tohoto důvodu je výchozí hodnotou ochrany `false` (viz „Ochrana ToS“ výše).
 
 ## Povolení

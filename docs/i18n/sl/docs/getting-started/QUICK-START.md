@@ -59,15 +59,7 @@ OmniRoute lahko uporabljate **popolnoma brezplačno**, tako da povežete brezpla
 4. Kliknite **Poveži** (ključ API ni potreben!)
 5. Končano! Zdaj imate brezplačen dostop do modelov Claude.
 
-### Možnost B: OpenCode Free (brez preverjanja pristnosti)
-
-1. Odprite nadzorno ploščo na naslovu `http://localhost:20128`
-2. Pojdite na **Ponudniki** → **Dodaj ponudnika**
-3. Izberite **OpenCode Free**
-4. Kliknite **Poveži** (ključ API ni potreben!)
-5. Končano! Zdaj imate brezplačen dostop do več modelov.
-
-### Možnost C: Pollinations (ključ ni potreben)
+### Možnost B: Pollinations (ključ ni potreben)
 
 1. Odprite nadzorno ploščo na naslovu `http://localhost:20128`
 2. Pojdite na **Ponudniki** → **Dodaj ponudnika**
@@ -163,7 +155,7 @@ Podrobnosti zahteve si lahko ogledate tako, da v levi stranski vrstici kliknete 
 
 ### »Ali potrebujem ključ API?«
 
-**Ne!** Brezplačne ponudnike (Kiro, OpenCode Free, Pollinations) lahko uporabljate brez ključa API. Preprosto jih povežite na nadzorni plošči.
+**Ne!** Brezplačne ponudnike (Kiro, Pollinations) lahko uporabljate brez ključa API. Preprosto jih povežite na nadzorni plošči.
 
 ### »Kaj je `auto`?«
 

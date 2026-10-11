@@ -14,12 +14,12 @@ Ronú nípa olùpèsè bí **ilé-iṣẹ́ nẹ́tíwọ́ọ̀kì fóònù**. 
 
 ### Àwọn Oríṣi Olùpèsè
 
-| Oríṣi          | Ohun Tí Ó Jẹ́            | Àwọn Àpẹẹrẹ                       | Iye Owó               |
-| -------------- | ----------------------- | --------------------------------- | --------------------- |
-| **Ọ̀fẹ́**        | Kò nílò ìsanwó          | Kiro, OpenCode Free, Pollinations | $0                    |
-| **Kọ́kọ́rọ́ API** | O nílò kọ́kọ́rọ́ API kan   | OpenAI, Anthropic, Google         | Sanwó fún ìlò kọ̀ọ̀kan  |
-| **OAuth**      | Wọlé pẹ̀lú àkọọ́lẹ̀ rẹ     | Claude Code, GitHub Copilot       | Ìforúkọsílẹ̀           |
-| **Kúkì Wẹ́ẹ̀bù** | Ó ń lo sáà aṣàwákiri rẹ | ChatGPT Web (Codex), Gemini Web   | $0 (ó ń lo àkọọ́lẹ̀ rẹ) |
+| Oríṣi          | Ohun Tí Ó Jẹ́            | Àwọn Àpẹẹrẹ                     | Iye Owó               |
+| -------------- | ----------------------- | ------------------------------- | --------------------- |
+| **Ọ̀fẹ́**        | Kò nílò ìsanwó          | Kiro, Pollinations              | $0                    |
+| **Kọ́kọ́rọ́ API** | O nílò kọ́kọ́rọ́ API kan   | OpenAI, Anthropic, Google       | Sanwó fún ìlò kọ̀ọ̀kan  |
+| **OAuth**      | Wọlé pẹ̀lú àkọọ́lẹ̀ rẹ     | Claude Code, GitHub Copilot     | Ìforúkọsílẹ̀           |
+| **Kúkì Wẹ́ẹ̀bù** | Ó ń lo sáà aṣàwákiri rẹ | ChatGPT Web (Codex), Gemini Web | $0 (ó ń lo àkọọ́lẹ̀ rẹ) |
 
 ### Àwọn Olùpèsè Kúkì Wẹ́ẹ̀bù
 
@@ -40,7 +40,6 @@ Olùrànlọ́wọ́ ìṣiṣẹ́ àkọ́kọ́ ń pèsè káàdì **Ṣètò
 2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
 3. Yan ọ̀kan lára àwọn olùpèsè ọ̀fẹ́ wọ̀nyí:
    - **Kiro AI** — Àwọn àwòṣe Claude ọ̀fẹ́ (kò nílò ìfàṣẹsí)
-   - **OpenCode Free** — Àwọn àwòṣe GPT ọ̀fẹ́ (kò nílò ìfàṣẹsí)
    - **Pollinations** — GPT-5, Claude, Gemini ọ̀fẹ́ (kò nílò kọ́kọ́rọ́)
    - **LongCat** — Ààmì 10M lọ́fẹ̀ẹ́ (ẹ̀bùn ẹ̀ẹ̀kan ṣoṣo, ó nílò àkọọ́lẹ̀ + KYC)
    - **Cloudflare AI** — Àwọn àwòṣe 50+, àwọn neuron 10K/lọ́jọ́
@@ -170,7 +169,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | Olùpèsè           | Ìpín Ọ̀fẹ́                | Àwọn Módẹ́lì                              | Bí A Ṣe Lè Sopọ̀      |
 | ----------------- | ----------------------- | ---------------------------------------- | -------------------- |
 | **Kiro AI**       | Kirẹditi 50/òsù         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Kò nílò ìfàṣẹsí      |
-| **OpenCode Free** | Àìlópin                 | GPT-4o, Claude, Gemini                   | Kò nílò ìfàṣẹsí      |
 | **Pollinations**  | Kò nílò kọ́kọ́rọ́          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Kò nílò ìfàṣẹsí      |
 | **LongCat**       | 10M lẹ́ẹ̀kan ṣoṣo         | LongCat-2.0                              | Kọ́kọ́rọ́ API + KYC     |
 | **Cloudflare AI** | Neuron 10K/ọjọ́          | Módẹ́lì 50+                               | Kò nílò ìfàṣẹsí      |
@@ -244,7 +242,7 @@ OmniRoute máa ń ṣiṣẹ́ dáradára jù pẹ̀lú **ọ̀pọ̀ olùpèsè
 
 So ó kéré tán **olùpèsè 3** pọ̀ fún ìrírí tó dára jù:
 
-1. **Olùpèsè ọ̀fẹ́ kan** (Kiro, OpenCode Free, tàbí Pollinations) — Wà nígbà gbogbo
+1. **Olùpèsè ọ̀fẹ́ kan** (Kiro, tàbí Pollinations) — Wà nígbà gbogbo
 2. **Olùpèsè tó yára kan** (Groq, Cerebras) — Fún àwọn ìdáhùn kánkán
 3. **Olùpèsè tó ní dídára kan** (OpenAI, Anthropic, Google) — Fún àwọn iṣẹ́ tó díjú
 
@@ -290,7 +288,7 @@ Lẹ́yìn náà, lo `model: "auto"` OmniRoute yóò sì yan èyí tó dára jù
 
 ### "Ṣé mo ní láti sanwó láti lo OmniRoute?"
 
-**Rárá!** OmniRoute jẹ́ ọ̀fẹ́, ó sì jẹ́ orísun-ṣíṣí. O lè lo àwọn olùpèsè ọ̀fẹ́ (Kiro, OpenCode Free, Pollinations) láìsan ohunkóhun. O máa sanwó nìkan bí o bá yàn láti lo àwọn olùpèsè tó gba owó.
+**Rárá!** OmniRoute jẹ́ ọ̀fẹ́, ó sì jẹ́ orísun-ṣíṣí. O lè lo àwọn olùpèsè ọ̀fẹ́ (Kiro, Pollinations) láìsan ohunkóhun. O máa sanwó nìkan bí o bá yàn láti lo àwọn olùpèsè tó gba owó.
 
 ### "Olùpèsè wo ni mo yẹ kí n bẹ̀rẹ̀ pẹ̀lú?"
 

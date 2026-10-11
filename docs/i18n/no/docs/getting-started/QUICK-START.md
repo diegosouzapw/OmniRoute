@@ -59,15 +59,7 @@ Du kan bruke OmniRoute **uten å betale noe** ved å koble til en gratis leveran
 4. Klikk på **Koble til** (ingen API-nøkkel kreves!)
 5. Ferdig! Du har nå gratis tilgang til Claude-modeller.
 
-### Alternativ B: OpenCode Free (ingen autentisering)
-
-1. Åpne kontrollpanelet på `http://localhost:20128`
-2. Gå til **Leverandører** → **Legg til leverandør**
-3. Velg **OpenCode Free**
-4. Klikk på **Koble til** (ingen API-nøkkel kreves!)
-5. Ferdig! Du har nå gratis tilgang til flere modeller.
-
-### Alternativ C: Pollinations (ingen nøkkel kreves)
+### Alternativ B: Pollinations (ingen nøkkel kreves)
 
 1. Åpne kontrollpanelet på `http://localhost:20128`
 2. Gå til **Leverandører** → **Legg til leverandør**
@@ -163,7 +155,7 @@ Du kan se detaljene for forespørselen ved å klikke på [Overvåking/Logger](ht
 
 ### «Trenger jeg en API-nøkkel?»
 
-**Nei!** Du kan bruke gratisleverandører (Kiro, OpenCode Free, Pollinations) uten noen API-nøkkel. Bare koble dem til i kontrollpanelet.
+**Nei!** Du kan bruke gratisleverandører (Kiro, Pollinations) uten noen API-nøkkel. Bare koble dem til i kontrollpanelet.
 
 ### «Hva er `auto`?»
 

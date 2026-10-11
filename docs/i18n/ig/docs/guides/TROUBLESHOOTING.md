@@ -39,7 +39,7 @@ Nsogbu ndị a na-ahụkarị na ngwọta ha maka OmniRoute.
 
 ### Mmachi Ọsọ n’aka Ndị Na-eweta Ọrụ Efughị Ego (429 / 400 / 401)
 
-**Mgbaàmà**: Mgbe ị na-eji `model: "auto"` na ndị na-eweta ọrụ efughị ego/na-achọghị nkwenye njirimara (opencode, auggie, wdg.), ị na-enweta `HTTP 429`, `400`, ma ọ bụ `401` mgbe ụfọdụ kama azịza. Arịrịọ ndị ahụ na-aga nke ọma mgbe e zigara otu ntụziaka ahụ ọzọ obere oge gachara, mana akpaaka (ọrụ cron, ndị agent, script) na-akwụsị na ọdịda mbụ.
+**Mgbaàmà**: Mgbe ị na-eji `model: "auto"` na ndị na-eweta ọrụ efughị ego/na-achọghị nkwenye njirimara (auggie, wdg.), ị na-enweta `HTTP 429`, `400`, ma ọ bụ `401` mgbe ụfọdụ kama azịza. Arịrịọ ndị ahụ na-aga nke ọma mgbe e zigara otu ntụziaka ahụ ọzọ obere oge gachara, mana akpaaka (ọrụ cron, ndị agent, script) na-akwụsị na ọdịda mbụ.
 
 **Isi ihe kpatara ya**: Ụdị ọdịda atọ dị iche iche na-agbakọta:
 

@@ -147,14 +147,12 @@ candidate အားလုံးကို စာရင်းပြုပြီး
 offline before/after စစ်ဆေးမှုအတွက် `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` သည် live instance တစ်ခု၏
 candidates output နှင့် အလုပ်လုပ်နေဆဲဖြစ်သည်။ ၎င်းသည် candidate တစ်ခုချင်းစီ၏ အမှန်တကယ် `connectionId` ကို ဖတ်သောကြောင့်
 connection-safety path ကိုလည်း စမ်းသပ်သည်။ Keyless candidate များသည် connection အစစ်မဟုတ်ဘဲ ပုံတူဖန်တီးထားသော
-no-auth `connectionId` ဖြင့်သာ ရောက်ရှိရမည်။ လက်ရှိ ထည့်သွင်းပေးထားသော keyless auto path သည် OpenCode Free ဖြစ်သည်။ candidate အရေအတွက်အတိအကျသည်
+no-auth `connectionId` ဖြင့်သာ ရောက်ရှိရမည်။ candidate အရေအတွက်အတိအကျသည်
 live model discovery အပေါ် မူတည်နေဆဲဖြစ်ပြီး run အဟောင်းတစ်ခုမှ ကူးယူမည့်အစား ပစ်မှတ် deployment တွင် တိုင်းတာသင့်သည်။
 `recurring-*` candidate တစ်ခုသည် စာရင်းသွင်းထားသော usage adapter နှင့် `hardStopGuaranteed: true` နှစ်ခုစလုံးရှိမှသာ
 အောင်မြင်သည်။ မပြည့်စုံသော metadata သည် fail-closed အဖြစ် ဆက်လက်ရှိနေသည်။
 
-`excludeTosAvoid: true` ဖြင့် `tos: "avoid"` ဟု စိစစ်သတ်မှတ်ထားသော candidate တိုင်းကို ဖယ်ရှားသည်။ OpenCode Free
-တွင် လက်ရှိ ထိုဆုံးဖြတ်ချက် ရှိနေသောကြောင့် အကာအကွယ်ကို ဖွင့်ခြင်းသည် deployment တစ်ခု၏ ကျန်ရှိသော keyless
-pool ကို ဗလာဖြစ်စေနိုင်သည်။ ဤသည်မှာ bug မဟုတ်ဘဲ ToS အကာအကွယ်ကို ဖွင့်ခြင်းကြောင့် မျှော်လင့်ထားသည့် အလဲအလှယ်တစ်ခုဖြစ်သည်။
+`excludeTosAvoid: true` ဖြင့် `tos: "avoid"` ဟု စိစစ်သတ်မှတ်ထားသော candidate တိုင်းကို ဖယ်ရှားသည်။ ဤသည်မှာ bug မဟုတ်ဘဲ ToS အကာအကွယ်ကို ဖွင့်ခြင်းကြောင့် မျှော်လင့်ထားသည့် အလဲအလှယ်တစ်ခုဖြစ်သည်။
 အတိအကျ ဤအကြောင်းပြချက်ကြောင့် အကာအကွယ်၏ မူလတန်ဖိုးသည် `false` ဖြစ်သည် (အထက်ရှိ "ToS အကာအကွယ်" ကို ကြည့်ပါ)။
 
 ## ဖွင့်ထားခြင်း

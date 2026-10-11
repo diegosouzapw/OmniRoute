@@ -122,7 +122,6 @@ De meeste cijfers voor „gratis tokens per maand” op dit gebied zijn optelsom
 | `modal`          | Sectie 1.3 van de ToS verbiedt expliciet „het verhuren, doorverkopen of anderszins toestaan dat derden directe toegang tot of gebruik van de Dienst hebben” — het bouwen van een zelfgehoste…                 |
 | `muse-spark-web` | De ToS van Meta verbieden expliciet geautomatiseerde toegang zonder voorafgaande toestemming, reverse-engineering zonder schriftelijke toestemming en het omzeilen van technologi…                            |
 | `nlpcloud`       | De ToS verbieden expliciet „het opzetten van een proxy of ander apparaat waarmee anderen via die proxy of dat apparaat toegang tot de Dienst kunnen krijgen” en verlenen uitsluitend een niet-overdraagbare,… |
-| `opencode`       | De ToS (Anomaly Innovations, Inc.) beperken het gebruik expliciet tot „jouw eigen interne gebruik, en niet namens of ten behoeve van derden” — ope…                                                           |
 | `t3-web`         | De ToS beperken accounts expliciet tot uitsluitend persoonlijk gebruik, verbieden het delen van inloggegevens met derden en verbieden geautomatiseerde/bot-/scrapingtoegang — een z…                          |
 
 ### ✅ Over het algemeen ruimhartig — let op / onduidelijk / ok (de rest)
@@ -266,7 +265,6 @@ De meeste cijfers voor „gratis tokens per maand” op dit gebied zijn optelsom
 | `nlpcloud`       | zonder sleutel  | —                | —                   | vermijden    | 1        |
 | `nous-research`  | zonder sleutel  | —                | —                   | dubbelzinnig | 2        |
 | `nvidia`         | zonder sleutel  | —                | —                   | voorzichtig  | 13       |
-| `opencode`       | zonder sleutel  | —                | —                   | vermijden    | 7        |
 | `pollinations`   | zonder sleutel  | —                | —                   | voorzichtig  | 31       |
 | `publicai`       | zonder sleutel  | —                | —                   | voorzichtig  | 3        |
 | `reka`           | zonder sleutel  | —                | —                   | voorzichtig  | 2        |
@@ -277,17 +275,6 @@ De meeste cijfers voor „gratis tokens per maand” op dit gebied zijn optelsom
 | `uncloseai`      | zonder sleutel  | —                | —                   | voorzichtig  | 3        |
 
 ---
-
-## OpenCode Free: beperking van het clientcontract (#14313)
-
-De sleutelloze `opencode`-provider (openbare `https://opencode.ai/zen/v1`) weigert elk verzoek
-dat niet voldoet aan het OpenCode-clientcontract met **403 `FreeTierError`** en de
-zin _"De gratis versie van OpenCode kan alleen vanuit OpenCode worden gebruikt"_. Dit is een
-verzoekgebonden weigering (hetzelfde oordeel voor elk account bij dezelfde verzoekstructuur), geen
-modelblokkering of afkoelperiode voor de verbinding — OmniRoute classificeert dit als `project_route_error`, slaat
-modelblokkering / afkoeling over en onderbreekt (op het synthetische `noauth`-pad) de automatische herselectie van combinaties
-gedurende een korte TTL. Verstuur verzoeken met een niet-lege lijst van tools, `stream: true` en de
-OpenCode-sessie-/UA-headers (`opencodeFreeTierContract.ts`), of verwacht de 403.
 
 ## Wat er is gewijzigd sinds de uitgebrachte catalogus (`freeNote`)
 

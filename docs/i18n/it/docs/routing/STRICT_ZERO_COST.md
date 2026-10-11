@@ -148,16 +148,14 @@ Per un confronto offline prima/dopo, `npx tsx scripts/ad-hoc/dry-run-strict-zero
 a funzionare con l'output dei candidati di un'istanza attiva; legge il vero `connectionId` di ogni
 candidato, pertanto verifica anche il percorso di sicurezza della connessione. I candidati
 `keyless` devono essere forniti con il `connectionId` sintetico senza autenticazione, mai con una
-connessione reale. L'attuale percorso automatico `keyless` integrato è OpenCode Free; il numero
+connessione reale. il numero
 esatto di candidati dipende comunque dal rilevamento dei modelli in tempo reale e deve essere
 misurato nella distribuzione di destinazione anziché copiato da un'esecuzione precedente. Un
 candidato `recurring-*` viene accettato solo quando dispone sia di un adattatore di utilizzo
 registrato sia di `hardStopGuaranteed: true`; metadati incompleti continuano a comportare
 l'esclusione per sicurezza.
 
-Con `excludeTosAvoid: true`, viene rimosso ogni candidato curato come `tos: "avoid"`. OpenCode Free
-ha attualmente questo verdetto, quindi l'attivazione della protezione può svuotare il restante pool
-`keyless` di una distribuzione. È un compromesso previsto dell'attivazione della protezione ToS,
+Con `excludeTosAvoid: true`, viene rimosso ogni candidato curato come `tos: "avoid"`. È un compromesso previsto dell'attivazione della protezione ToS,
 non un bug: proprio per questo la protezione è impostata su `false` per impostazione predefinita
 (vedere «Protezione ToS» sopra).
 

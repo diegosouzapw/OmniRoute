@@ -116,7 +116,6 @@ Useimmat "ilmaiset tokenit kuukaudessa" -luvut tällä alalla ovat mallikohtaist
 | `modal`          | Käyttöehtojen kohta 1.3 kieltää nimenomaisesti "palvelun vuokraamisen, jälleenmyynnin tai muun kolmannen osapuolen suoran pääsyn tai käytön sallimisen" – itse isännöidyn rakentamisen…                          |
 | `muse-spark-web` | Metan käyttöehdot kieltävät nimenomaisesti automaattisen pääsyn ilman ennakkolupaa, käänteissuunnittelun ilman kirjallista lupaa ja teknologioiden kiertämisen…                                                  |
 | `nlpcloud`       | Käyttöehdot kieltävät nimenomaisesti "välityspalvelimen tai muun laitteen perustamisen, joka sallii muiden pääsyn palveluun sen kautta" ja myöntävät vain ei-siirrettävän,…                                      |
-| `opencode`       | Käyttöehdot (Anomaly Innovations, Inc.) rajoittavat nimenomaisesti käytön "omaan sisäiseen käyttöön, eikä kolmannen osapuolen puolesta tai hyödyksi" – ope…                                                      |
 | `t3-web`         | Käyttöehdot rajoittavat tilit nimenomaisesti vain henkilökohtaiseen käyttöön, kieltävät tunnistetietojen jakamisen kolmansien osapuolten kanssa ja kieltävät automaattisen/botin/kaavinnan pääsyn – s…           |
 
 ### ✅ Yleisesti salliva – varoitus / epäselvä / ok (loput)
@@ -258,7 +257,6 @@ Useimmat "ilmaiset tokenit kuukaudessa" -luvut tällä alalla ovat mallikohtaist
 | `nlpcloud`       | avaimeton                | —                 | —                               | vältä         | 1      |
 | `nous-research`  | avaimeton                | —                 | —                               | epäselvä      | 2      |
 | `nvidia`         | avaimeton                | —                 | —                               | varovaisuutta | 13     |
-| `opencode`       | avaimeton                | —                 | —                               | vältä         | 7      |
 | `pollinations`   | avaimeton                | —                 | —                               | varovaisuutta | 31     |
 | `publicai`       | keyless                  | —                 | —                               | varovaisuus   | 3      |
 | `reka`           | keyless                  | —                 | —                               | varovaisuus   | 2      |
@@ -269,10 +267,6 @@ Useimmat "ilmaiset tokenit kuukaudessa" -luvut tällä alalla ovat mallikohtaist
 | `uncloseai`      | keyless                  | —                 | —                               | varovaisuus   | 3      |
 
 ---
-
-## OpenCode Free: asiakassopimusrajoitus (#14313)
-
-Avaimeton `opencode`-palveluntarjoaja (julkinen `https://opencode.ai/zen/v1`) hylkää kaikki pyynnöt, jotka eivät vastaa OpenCoden asiakassopimusta **403 `FreeTierError`** -virheellä ja lauseella _"OpenCoden ilmaisversiota voi käyttää vain OpenCoden sisältä"_. Tämä on pyyntökohtainen hylkäys (sama tuomio jokaiselle tilille samasta pyynnön muodosta), ei mallikielto tai yhteysviilennys — OmniRoute luokittelee sen `project_route_error`:iksi, ohittaa mallin lukituksen / viilennyksen ja (synteettisellä `noauth`-polulla) keskeyttää automaattisen yhdistelmävalinnan lyhyeksi TTL-ajaksi. Lähetä pyynnöt, jotka sisältävät ei-tyhjän työkalulistan, `stream: true`:n ja OpenCoden istunto-/UA-otsakkeet (`opencodeFreeTierContract.ts`) tai odota 403-virhettä.
 
 ## Mitä muuttui toimitetun luettelon (`freeNote`) jälkeen
 

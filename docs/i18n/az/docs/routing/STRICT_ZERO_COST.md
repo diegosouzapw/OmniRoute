@@ -156,14 +156,12 @@ yoxmuş kimi davranmaq əvəzinə onu açıq şəkildə qeyd edir.
 Oflayn əvvəl/sonra müqayisəsi üçün `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` canlı instansiyanın
 namizəd çıxışı ilə hələ də işləyir; o, hər namizədin real `connectionId` dəyərini oxuyur, buna görə
 bağlantı təhlükəsizliyi yolunu da sınaqdan keçirir. `keyless` namizədlər real bağlantı ilə deyil, sintetik
-autentifikasiyasız `connectionId` ilə gəlməlidir. Hazırkı daxili `keyless` avtomatik yolu OpenCode Free-dır; dəqiq namizəd sayları
+autentifikasiyasız `connectionId` ilə gəlməlidir. dəqiq namizəd sayları
 hələ də canlı model aşkarlanmasından asılıdır və köhnə icradan köçürülmək əvəzinə hədəf yerləşdirmədə
 ölçülməlidir. `recurring-*` namizədi yalnız həm qeydiyyatdan keçirilmiş istifadə adapterinə, həm də
 `hardStopGuaranteed: true` dəyərinə malik olduqda keçir; natamam metadata təhlükəsizlik məqsədilə rədd edilməyə davam edir.
 
-`excludeTosAvoid: true` olduqda, seçilmiş `tos: "avoid"` dəyərinə malik hər namizəd çıxarılır. OpenCode Free
-hazırda bu qərarı daşıyır, buna görə qoruyucunun aktivləşdirilməsi yerləşdirmədə qalan `keyless`
-hovuzu boşalda bilər. Bu, xəta deyil, ToS qoruyucusunu aktivləşdirməyin gözlənilən güzəştidir: məhz bu səbəbdən qoruyucu standart olaraq `false`
+`excludeTosAvoid: true` olduqda, seçilmiş `tos: "avoid"` dəyərinə malik hər namizəd çıxarılır. Bu, xəta deyil, ToS qoruyucusunu aktivləşdirməyin gözlənilən güzəştidir: məhz bu səbəbdən qoruyucu standart olaraq `false`
 dəyərinə malikdir (yuxarıdakı "ToS qoruyucusu" bölməsinə baxın).
 
 ## Aktivləşdirmə

@@ -139,14 +139,10 @@ STRICT_ZERO_COST በዚያ ፈቃድ ዝርዝር ውስጥ ያለውን የ**�
 ከመስመር ውጭ የቅድመ/ድህረ ንጽጽር ለማድረግ፣ `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` አሁንም
 በቀጥታ እየሰራ ካለ instance የcandidates output ጋር ይሰራል፤ የእያንዳንዱን እጩ እውነተኛ `connectionId` ስለሚያነብ
 የconnection-safety መንገዱንም ይፈትሻል። Keyless እጩዎች ከአንድ እውነተኛ connection ጋር ሳይሆን
-ከሰው ሠራሽ no-auth `connectionId` ጋር መድረስ አለባቸው። አሁን ያለው አብሮ የተሰራ keyless auto path OpenCode Free ነው፤ ትክክለኛ የእጩዎች ብዛት
-አሁንም በቀጥታ በሚደረግ model discovery ላይ የተመሰረተ ስለሆነ ከቀድሞ ሩጫ ከመቅዳት ይልቅ በታለመው deployment ላይ
-መለካት አለበት። አንድ `recurring-*` እጩ የሚያልፈው ሁለቱም የተመዘገበ
+ከሰው ሠራሽ no-auth `connectionId` ጋር መድረስ አለባቸው። አንድ `recurring-*` እጩ የሚያልፈው ሁለቱም የተመዘገበ
 usage adapter እና `hardStopGuaranteed: true` ሲኖሩት ብቻ ነው፤ ያልተሟላ metadata fail-closed ሆኖ ይቀጥላል።
 
-`excludeTosAvoid: true` ሲሆን፣ `tos: "avoid"` ተብሎ የተመረጠ እያንዳንዱ እጩ ይወገዳል። OpenCode Free
-በአሁኑ ጊዜ ያንን ውሳኔ ስለሚይዝ፣ መከላከያውን ማብራት በdeployment ውስጥ የቀረውን keyless
-pool ባዶ ሊያደርግ ይችላል። ይህ የToS መከላከያውን የማብራት የሚጠበቅ trade-off እንጂ bug አይደለም፦ በዚህ ምክንያት መከላከያው
+`excludeTosAvoid: true` ሲሆን፣ `tos: "avoid"` ተብሎ የተመረጠ እያንዳንዱ እጩ ይወገዳል። ይህ የToS መከላከያውን የማብራት የሚጠበቅ trade-off እንጂ bug አይደለም፦ በዚህ ምክንያት መከላከያው
 በነባሪ `false` ነው (ከላይ "የToS መከላከያ" የሚለውን ይመልከቱ)።
 
 ## ማንቃት

@@ -14,12 +14,12 @@ Iztēlojieties pakalpojumu sniedzēju kā **mobilo sakaru operatoru**. Tāpat k�
 
 ### Pakalpojumu sniedzēju veidi
 
-| Veids                | Kas tas ir                           | Piemēri                           | Izmaksas                    |
-| -------------------- | ------------------------------------ | --------------------------------- | --------------------------- |
-| **Bezmaksas**        | Maksājums nav nepieciešams           | Kiro, OpenCode Free, Pollinations | $0                          |
-| **API atslēga**      | Nepieciešama API atslēga             | OpenAI, Anthropic, Google         | Maksa atbilstoši lietojumam |
-| **OAuth**            | Pieteikšanās ar savu kontu           | Claude Code, GitHub Copilot       | Abonements                  |
-| **Tīmekļa sīkfails** | Izmanto jūsu pārlūkprogrammas sesiju | ChatGPT Web (Codex), Gemini Web   | $0 (izmanto jūsu kontu)     |
+| Veids                | Kas tas ir                           | Piemēri                         | Izmaksas                    |
+| -------------------- | ------------------------------------ | ------------------------------- | --------------------------- |
+| **Bezmaksas**        | Maksājums nav nepieciešams           | Kiro, Pollinations              | $0                          |
+| **API atslēga**      | Nepieciešama API atslēga             | OpenAI, Anthropic, Google       | Maksa atbilstoši lietojumam |
+| **OAuth**            | Pieteikšanās ar savu kontu           | Claude Code, GitHub Copilot     | Abonements                  |
+| **Tīmekļa sīkfails** | Izmanto jūsu pārlūkprogrammas sesiju | ChatGPT Web (Codex), Gemini Web | $0 (izmanto jūsu kontu)     |
 
 ### Tīmekļa sīkfailu pakalpojumu sniedzēji
 
@@ -46,7 +46,6 @@ droši atkārtoti mēģināt izveidot tikai neveiksmīgos savienojumus.
 2. Dodieties uz **Pakalpojumu sniedzēji** → **Pievienot pakalpojumu sniedzēju**
 3. Atlasiet kādu no šiem bezmaksas pakalpojumu sniedzējiem:
    - **Kiro AI** — Bezmaksas Claude modeļi (autentifikācija nav nepieciešama)
-   - **OpenCode Free** — Bezmaksas GPT modeļi (autentifikācija nav nepieciešama)
    - **Pollinations** — Bezmaksas GPT-5, Claude un Gemini (atslēga nav nepieciešama)
    - **LongCat** — 10M bezmaksas marķieru (vienreizējs piešķīrums, nepieciešams konts un KYC)
    - **Cloudflare AI** — Vairāk nekā 50 modeļu, 10K neironu dienā
@@ -176,7 +175,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | Pakalpojumu sniedzējs | Bezmaksas kvota          | Modeļi                                   | Kā izveidot savienojumu          |
 | --------------------- | ------------------------ | ---------------------------------------- | -------------------------------- |
 | **Kiro AI**           | 50 kredīti mēnesī        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikācija nav nepieciešama |
-| **OpenCode Free**     | Neierobežoti             | GPT-4o, Claude, Gemini                   | Autentifikācija nav nepieciešama |
 | **Pollinations**      | Atslēga nav nepieciešama | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikācija nav nepieciešama |
 | **LongCat**           | 10M vienreizēji          | LongCat-2.0                              | API atslēga + KYC                |
 | **Cloudflare AI**     | 10K neironu dienā        | Vairāk nekā 50 modeļu                    | Autentifikācija nav nepieciešama |
@@ -250,7 +248,7 @@ OmniRoute vislabāk darbojas ar **vairākiem pakalpojumu sniedzējiem**. Tas sni
 
 Lai iegūtu vislabāko pieredzi, savienojiet vismaz **3 pakalpojumu sniedzējus**:
 
-1. **Vienu bezmaksas pakalpojumu sniedzēju** (Kiro, OpenCode Free vai Pollinations) — vienmēr pieejams
+1. **Vienu bezmaksas pakalpojumu sniedzēju** (Kiro vai Pollinations) — vienmēr pieejams
 2. **Vienu ātru pakalpojumu sniedzēju** (Groq, Cerebras) — ātrām atbildēm
 3. **Vienu augstas kvalitātes pakalpojumu sniedzēju** (OpenAI, Anthropic, Google) — sarežģītiem uzdevumiem
 
@@ -296,7 +294,7 @@ Pēc tam izmantojiet `model: "auto"`, un OmniRoute katram pieprasījumam automā
 
 ### "Vai man ir jāmaksā par OmniRoute izmantošanu?"
 
-**Nē!** OmniRoute ir bezmaksas atvērtā pirmkoda programmatūra. Varat izmantot bezmaksas pakalpojumu sniedzējus (Kiro, OpenCode Free, Pollinations), neko nemaksājot. Jums jāmaksā tikai tad, ja izvēlaties izmantot maksas pakalpojumu sniedzējus.
+**Nē!** OmniRoute ir bezmaksas atvērtā pirmkoda programmatūra. Varat izmantot bezmaksas pakalpojumu sniedzējus (Kiro, Pollinations), neko nemaksājot. Jums jāmaksā tikai tad, ja izvēlaties izmantot maksas pakalpojumu sniedzējus.
 
 ### "Ar kuru pakalpojumu sniedzēju man vajadzētu sākt?"
 

@@ -39,7 +39,7 @@ Biežāk sastopamās OmniRoute problēmas un to risinājumi.
 
 ### Bezmaksas pakalpojumu sniedzēju pieprasījumu biežuma ierobežošana (429 / 400 / 401)
 
-**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas/autentifikāciju neprasošiem pakalpojumu sniedzējiem (opencode, auggie u.c.), atbilžu vietā periodiski tiek saņemts `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc neilga brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārtrauc darbību jau pēc pirmās kļūmes.
+**Simptoms**: Izmantojot `model: "auto"` ar bezmaksas/autentifikāciju neprasošiem pakalpojumu sniedzējiem (auggie u.c.), atbilžu vietā periodiski tiek saņemts `HTTP 429`, `400` vai `401`. Atkārtoti nosūtot to pašu uzvedni pēc neilga brīža, pieprasījumi izdodas, taču automatizācija (cron uzdevumi, aģenti, skripti) pārtrauc darbību jau pēc pirmās kļūmes.
 
 **Pamatcēlonis**: Vienlaikus pārklājas trīs neatkarīgi kļūmju režīmi:
 

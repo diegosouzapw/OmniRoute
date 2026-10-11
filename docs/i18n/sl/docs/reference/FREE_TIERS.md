@@ -122,7 +122,6 @@ Večina podatkov o »brezplačnih žetonih na mesec« na tem področju je sešte
 | `modal`          | Razdelek 1.3 pogojev uporabe izrecno prepoveduje »oddajanje v najem, nadaljnjo prodajo ali kakršno koli drugačno omogočanje neposrednega dostopa tretjim osebam do storitve oziroma njene uporabe« — izdelava samostojno gostova… |
 | `muse-spark-web` | Pogoji uporabe družbe Meta izrecno prepovedujejo avtomatiziran dostop brez predhodnega dovoljenja, obratno inženirstvo brez pisnega dovoljenja ter izogibanje tehnološkim…                                                        |
 | `nlpcloud`       | Pogoji uporabe izrecno prepovedujejo »vzpostavitev posredniškega strežnika ali druge naprave, ki drugim omogoča dostop do storitve prek nje«, in podeljujejo samo neprenosljivo,…                                                 |
-| `opencode`       | Pogoji uporabe (Anomaly Innovations, Inc.) izrecno omejujejo uporabo na »vašo lastno interno uporabo in ne v imenu ali v korist katere koli tretje osebe« — ope…                                                                  |
 | `t3-web`         | Pogoji uporabe izrecno omejujejo račune samo na osebno uporabo, prepovedujejo deljenje poverilnic s tretjimi osebami ter avtomatiziran dostop oziroma dostop z boti ali strganjem podatkov — sam…                                 |
 
 ### ✅ Na splošno permisivno — previdno / nejasno / dovoljeno (vsi preostali)
@@ -266,7 +265,6 @@ Večina podatkov o »brezplačnih žetonih na mesec« na tem področju je sešte
 | `nlpcloud`       | brez ključa                 | —                    | —                         | izogibajte se  | 1      |
 | `nous-research`  | brez ključa                 | —                    | —                         | dvoumno        | 2      |
 | `nvidia`         | brez ključa                 | —                    | —                         | previdno       | 13     |
-| `opencode`       | brez ključa                 | —                    | —                         | izogibajte se  | 7      |
 | `pollinations`   | brez ključa                 | —                    | —                         | previdno       | 31     |
 | `publicai`       | brez ključa                 | —                    | —                         | previdno       | 3      |
 | `reka`           | brez ključa                 | —                    | —                         | previdno       | 2      |
@@ -277,17 +275,6 @@ Večina podatkov o »brezplačnih žetonih na mesec« na tem področju je sešte
 | `uncloseai`      | brez ključa                 | —                    | —                         | previdno       | 3      |
 
 ---
-
-## OpenCode Free: omejitev pogodbe odjemalca (#14313)
-
-Ponudnik `opencode` brez ključa (javni `https://opencode.ai/zen/v1`) zavrne vsako zahtevo,
-ki ni skladna s pogodbo odjemalca OpenCode, z napako **403 `FreeTierError`** in
-stavkom _»Brezplačno raven OpenCode je mogoče uporabljati samo znotraj OpenCode«_. To je
-zavrnitev na ravni zahteve (enaka odločitev za vsak račun pri enaki obliki zahteve), ne pa
-prepoved modela ali časovno omejeno čakanje povezave — OmniRoute jo razvrsti kot `project_route_error`, preskoči
-zaklep modela / časovno omejeno čakanje in (na sintetični poti `noauth`) za kratek čas TTL začasno ustavi
-ponovno samodejno izbiranje kombinacije. Pošiljajte zahteve, ki vsebujejo neprazen seznam orodij, `stream: true` in
-glave seje/UA OpenCode (`opencodeFreeTierContract.ts`), sicer pričakujte napako 403.
 
 ## Kaj se je spremenilo od objavljenega kataloga (`freeNote`)
 

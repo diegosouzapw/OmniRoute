@@ -137,13 +137,11 @@ STRICT_ZERO_COST 會**逐一**驗證該允許清單中每個連線的免費存�
 
 若要離線比較前後差異，`npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` 仍可針對
 執行中執行個體的候選項目輸出運作；它會讀取每個候選項目的真實 `connectionId`，因此也會
-測試連線安全性路徑。無金鑰候選項目必須使用合成的無驗證 `connectionId`，絕不能使用真實連線。
-目前內建的無金鑰自動路徑是 OpenCode Free；確切候選項目數量仍取決於即時模型探索結果，
+測試連線安全性路徑。無金鑰候選項目必須使用合成的無驗證 `connectionId`，絕不能使用真實連線。確切候選項目數量仍取決於即時模型探索結果，
 應在目標部署環境中實際測量，而不是從較舊的執行結果複製。`recurring-*` 候選項目只有在
 同時具備已註冊的用量配接器和 `hardStopGuaranteed: true` 時才會通過；中繼資料不完整時仍採取故障關閉。
 
-當 `excludeTosAvoid: true` 時，所有經整理後標記為 `tos: "avoid"` 的候選項目都會遭到移除。OpenCode Free
-目前帶有此判定，因此啟用該防護機制可能會清空部署環境中剩餘的無金鑰候選池。
+當 `excludeTosAvoid: true` 時，所有經整理後標記為 `tos: "avoid"` 的候選項目都會遭到移除。
 這是啟用 ToS 防護機制時預期會有的取捨，並非錯誤：正因如此，此防護機制的預設值才是 `false`
 （請參閱上方的「ToS 防護機制」）。
 

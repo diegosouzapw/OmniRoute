@@ -116,7 +116,6 @@ Sebagian besar angka "token gratis per bulan" di bidang ini adalah jumlah dari l
 | `modal`          | ToS Bagian 1.3 secara eksplisit melarang "menyewa, menjual kembali, atau dengan cara lain mengizinkan pihak ketiga mana pun akses langsung ke atau penggunaan Layanan" — membangun yang di-host sendiri… |
 | `muse-spark-web` | Meta ToS secara eksplisit melarang akses otomatis tanpa izin sebelumnya, rekayasa balik tanpa izin tertulis, dan menghindari teknologi…                                                                  |
 | `nlpcloud`       | ToS secara eksplisit melarang "menyiapkan proxy atau perangkat lain yang memungkinkan orang lain mengakses Layanan melaluinya" dan hanya memberikan yang tidak dapat dialihkan,…                         |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) secara eksplisit membatasi penggunaan untuk "penggunaan internal Anda sendiri, dan bukan atas nama atau untuk kepentingan pihak ketiga mana pun" — ope…                  |
 | `t3-web`         | ToS secara eksplisit membatasi akun untuk penggunaan pribadi saja, melarang berbagi kredensial dengan pihak ketiga, dan melarang akses otomatis/bot/scraping — a s…                                      |
 
 ### ✅ Umumnya permisif — caution / ambiguous / ok (sisanya)
@@ -258,7 +257,6 @@ Sebagian besar angka "token gratis per bulan" di bidang ini adalah jumlah dari l
 | `nlpcloud`       | tanpa kunci        | —                  | —                    | hindari            | 1     |
 | `nous-research`  | tanpa kunci        | —                  | —                    | ambigu             | 2     |
 | `nvidia`         | tanpa kunci        | —                  | —                    | hati-hati          | 13    |
-| `opencode`       | tanpa kunci        | —                  | —                    | hindari            | 7     |
 | `pollinations`   | tanpa kunci        | —                  | —                    | hati-hati          | 31    |
 | `publicai`       | keyless            | —                  | —                    | caution            | 3     |
 | `reka`           | keyless            | —                  | —                    | caution            | 2     |
@@ -269,10 +267,6 @@ Sebagian besar angka "token gratis per bulan" di bidang ini adalah jumlah dari l
 | `uncloseai`      | keyless            | —                  | —                    | caution            | 3     |
 
 ---
-
-## OpenCode Free: pembatasan kontrak klien (#14313)
-
-Penyedia `opencode` tanpa kunci (publik `https://opencode.ai/zen/v1`) menolak setiap permintaan yang tidak sesuai dengan kontrak klien OpenCode dengan **403 `FreeTierError`** dan kalimat _"OpenCode's free tier can only be used from within OpenCode"_. Ini adalah penolakan yang terlingkup permintaan (putusan yang sama pada setiap akun untuk bentuk permintaan yang sama), bukan larangan model atau pendinginan koneksi — OmniRoute mengklasifikasikannya sebagai `project_route_error`, melewati penguncian/pendinginan model, dan (pada jalur `noauth` sintetis) menjeda pemilihan ulang kombo otomatis untuk TTL singkat. Kirim permintaan yang membawa daftar alat yang tidak kosong, `stream: true`, dan header sesi/UA OpenCode (`opencodeFreeTierContract.ts`) atau harapkan 403.
 
 ## Apa yang berubah sejak katalog yang dikirim (`freeNote`)
 

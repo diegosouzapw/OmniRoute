@@ -14,12 +14,12 @@ Pense em um provedor como uma **operadora de telefonia**. Assim como você preci
 
 ### Tipos de provedores
 
-| Tipo              | O que é                          | Exemplos                          | Custo              |
-| ----------------- | -------------------------------- | --------------------------------- | ------------------ |
-| **Gratuito**      | Nenhum pagamento necessário      | Kiro, OpenCode Free, Pollinations | $0                 |
-| **Chave de API**  | Você precisa de uma chave de API | OpenAI, Anthropic, Google         | Pagamento por uso  |
-| **OAuth**         | Login com sua conta              | Claude Code, GitHub Copilot       | Assinatura         |
-| **Cookie da Web** | Usa a sessão do seu navegador    | ChatGPT Web (Codex), Gemini Web   | $0 (usa sua conta) |
+| Tipo              | O que é                          | Exemplos                        | Custo              |
+| ----------------- | -------------------------------- | ------------------------------- | ------------------ |
+| **Gratuito**      | Nenhum pagamento necessário      | Kiro, Pollinations              | $0                 |
+| **Chave de API**  | Você precisa de uma chave de API | OpenAI, Anthropic, Google       | Pagamento por uso  |
+| **OAuth**         | Login com sua conta              | Claude Code, GitHub Copilot     | Assinatura         |
+| **Cookie da Web** | Usa a sessão do seu navegador    | ChatGPT Web (Codex), Gemini Web | $0 (usa sua conta) |
 
 ### Provedores por cookie da Web
 
@@ -46,7 +46,6 @@ tentar novamente com segurança apenas os que falharam.
 2. Acesse **Provedores** → **Adicionar provedor**
 3. Selecione um destes provedores gratuitos:
    - **Kiro AI** — Modelos Claude gratuitos (nenhuma autenticação necessária)
-   - **OpenCode Free** — Modelos GPT gratuitos (nenhuma autenticação necessária)
    - **Pollinations** — GPT-5, Claude e Gemini gratuitos (nenhuma chave necessária)
    - **LongCat** — 10 milhões de tokens gratuitos (concessão única, exige conta + KYC)
    - **Cloudflare AI** — Mais de 50 modelos, 10 mil neurônios/dia
@@ -176,7 +175,6 @@ Estes provedores oferecem **acesso gratuito** sem exigir cartão de crédito:
 | Provedor          | Cota gratuita                     | Modelos                                  | Como conectar           |
 | ----------------- | --------------------------------- | ---------------------------------------- | ----------------------- |
 | **Kiro AI**       | 50 créditos/mês                   | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Não requer autenticação |
-| **OpenCode Free** | Ilimitada                         | GPT-4o, Claude, Gemini                   | Não requer autenticação |
 | **Pollinations**  | Não requer chave                  | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Não requer autenticação |
 | **LongCat**       | 10M uma única vez                 | LongCat-2.0                              | Chave de API + KYC      |
 | **Cloudflare AI** | 10K neurônios/dia                 | Mais de 50 modelos                       | Não requer autenticação |
@@ -250,7 +248,7 @@ O OmniRoute funciona melhor com **vários provedores**. Isso oferece:
 
 Conecte pelo menos **3 provedores** para obter a melhor experiência:
 
-1. **Um provedor gratuito** (Kiro, OpenCode Free ou Pollinations) — sempre disponível
+1. **Um provedor gratuito** (Kiro ou Pollinations) — sempre disponível
 2. **Um provedor rápido** (Groq, Cerebras) — para respostas rápidas
 3. **Um provedor de alta qualidade** (OpenAI, Anthropic, Google) — para tarefas complexas
 
@@ -296,7 +294,7 @@ Depois, use `model: "auto"`, e o OmniRoute escolherá automaticamente o melhor p
 
 ### "Preciso pagar para usar o OmniRoute?"
 
-**Não!** O OmniRoute é gratuito e de código aberto. Você pode usar provedores gratuitos (Kiro, OpenCode Free, Pollinations) sem pagar nada. Você só paga se optar por usar provedores pagos.
+**Não!** O OmniRoute é gratuito e de código aberto. Você pode usar provedores gratuitos (Kiro, Pollinations) sem pagar nada. Você só paga se optar por usar provedores pagos.
 
 ### "Com qual provedor devo começar?"
 

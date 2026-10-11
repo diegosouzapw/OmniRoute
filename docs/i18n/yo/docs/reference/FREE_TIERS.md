@@ -121,7 +121,6 @@ jáde tí kò bá ohun tó ṣẹlẹ̀ nígbà títẹ̀ mu — a mọ̀ọ́m�
 | `modal`          | Abala 1.3 nínú ToS fi òfin de “yíyá, àtúntà tàbí fífàyè gba ẹnikẹ́ni kẹta lọ́nà mìíràn láti ráyè sí tàbí lo Iṣẹ́ náà tààrà” ní kedere — ṣíṣe ètò tí a gbalejò fúnra ẹni…                      |
 | `muse-spark-web` | ToS Meta fi òfin de ìráyè aládàáṣiṣẹ́ láìgba àṣẹ ṣáájú, ṣíṣe ìtúpalẹ̀ ìdàrọ̀ láìgba àṣẹ ní kíkọ, àti yíyẹra fún àwọn ìdènà ìmọ̀ ẹ̀rọ… ní kedere                                                 |
 | `nlpcloud`       | ToS fi òfin de “ṣíṣètò aṣojú tàbí ẹ̀rọ mìíràn tí ó ń jẹ́ kí àwọn ẹlòmíràn ráyè sí Iṣẹ́ náà nípasẹ̀ rẹ̀” ní kedere, ó sì fúnni ní ohun tí kò ṣeé gbé fún ẹlòmíràn nìkan,…                        |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) fi òpin sí lílo ní kedere fún “lílò inú rẹ fúnra rẹ, kì í ṣe ní orúkọ tàbí fún àǹfààní ẹnikẹ́ni kẹta” — ope…                                                |
 | `t3-web`         | ToS fi òpin sí àwọn àkọọ́lẹ̀ fún lílò ara ẹni nìkan ní kedere, ó fi òfin de pínpín ẹ̀rí ìdánimọ̀ pẹ̀lú àwọn ẹnikẹ́ni kẹta, ó sì fòfin de ìráyè aládàáṣiṣẹ́/bot/scraping — a s…                    |
 
 ### ✅ Ó máa ń gba ààyè ní gbogbogbòò — ìkìlọ̀ / àìdánilójú / ó dára (àwọn tó kù)
@@ -265,7 +264,6 @@ jáde tí kò bá ohun tó ṣẹlẹ̀ nígbà títẹ̀ mu — a mọ̀ọ́m�
 | `nlpcloud`       | láìsí kọ́kọ́rọ́         | —                      | —                  | yẹra fún    | 1          |
 | `nous-research`  | láìsí kọ́kọ́rọ́         | —                      | —                  | àìṣe kedere | 2          |
 | `nvidia`         | láìsí kọ́kọ́rọ́         | —                      | —                  | ìṣọ́ra       | 13         |
-| `opencode`       | láìsí kọ́kọ́rọ́         | —                      | —                  | yẹra fún    | 7          |
 | `pollinations`   | láìsí kọ́kọ́rọ́         | —                      | —                  | ìṣọ́ra       | 31         |
 | `publicai`       | láìsí kọ́kọ́rọ́         | —                      | —                  | ìṣọ́ra       | 3          |
 | `reka`           | láìsí kọ́kọ́rọ́         | —                      | —                  | ìṣọ́ra       | 2          |

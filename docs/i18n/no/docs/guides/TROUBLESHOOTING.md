@@ -39,7 +39,7 @@ Vanlige problemer og løsninger for OmniRoute.
 
 ### Hastighetsbegrensning hos gratisleverandører (429 / 400 / 401)
 
-**Symptom**: Når du bruker `model: "auto"` med gratisleverandører eller leverandører uten autentisering (opencode, auggie osv.), får du periodevis `HTTP 429`, `400` eller `401` i stedet for svar. Forespørslene lykkes når den samme ledeteksten prøves på nytt noen øyeblikk senere, men automatisering (cron-jobber, agenter, skript) stopper ved den første feilen.
+**Symptom**: Når du bruker `model: "auto"` med gratisleverandører eller leverandører uten autentisering (auggie osv.), får du periodevis `HTTP 429`, `400` eller `401` i stedet for svar. Forespørslene lykkes når den samme ledeteksten prøves på nytt noen øyeblikk senere, men automatisering (cron-jobber, agenter, skript) stopper ved den første feilen.
 
 **Rotårsak**: Tre uavhengige feilmoduser virker sammen:
 

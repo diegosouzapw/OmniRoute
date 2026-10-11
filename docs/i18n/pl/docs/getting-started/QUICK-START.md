@@ -59,15 +59,7 @@ Możesz korzystać z OmniRoute **całkowicie bezpłatnie**, łącząc się z dar
 4. Kliknij **Połącz** (klucz API nie jest wymagany!)
 5. Gotowe! Masz teraz bezpłatny dostęp do modeli Claude.
 
-### Opcja B: OpenCode Free (bez uwierzytelniania)
-
-1. Otwórz panel pod adresem `http://localhost:20128`
-2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
-3. Wybierz **OpenCode Free**
-4. Kliknij **Połącz** (klucz API nie jest wymagany!)
-5. Gotowe! Masz teraz bezpłatny dostęp do wielu modeli.
-
-### Opcja C: Pollinations (bez klucza)
+### Opcja B: Pollinations (bez klucza)
 
 1. Otwórz panel pod adresem `http://localhost:20128`
 2. Przejdź do **Dostawcy** → **Dodaj dostawcę**
@@ -163,7 +155,7 @@ Szczegóły żądania możesz zobaczyć, klikając [Monitorowanie/Dzienniki](htt
 
 ### „Czy potrzebuję klucza API?”
 
-**Nie!** Możesz korzystać z darmowych dostawców (Kiro, OpenCode Free, Pollinations) bez żadnego klucza API. Wystarczy połączyć ich w panelu.
+**Nie!** Możesz korzystać z darmowych dostawców (Kiro, Pollinations) bez żadnego klucza API. Wystarczy połączyć ich w panelu.
 
 ### „Co oznacza `auto`?”
 

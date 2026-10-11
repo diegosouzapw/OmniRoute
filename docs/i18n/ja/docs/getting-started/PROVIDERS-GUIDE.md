@@ -14,12 +14,12 @@
 
 ### プロバイダーの種類
 
-| 種類           | 概要                       | 例                                | コスト                 |
-| -------------- | -------------------------- | --------------------------------- | ---------------------- |
-| **無料**       | 支払い不要                 | Kiro、OpenCode Free、Pollinations | $0                     |
-| **API キー**   | API キーが必要             | OpenAI、Anthropic、Google         | 従量課金               |
-| **OAuth**      | アカウントでログイン       | Claude Code、GitHub Copilot       | サブスクリプション     |
-| **Web Cookie** | ブラウザーセッションを使用 | ChatGPT Web (Codex)、Gemini Web   | $0（アカウントを使用） |
+| 種類           | 概要                       | 例                              | コスト                 |
+| -------------- | -------------------------- | ------------------------------- | ---------------------- |
+| **無料**       | 支払い不要                 | Kiro、Pollinations              | $0                     |
+| **API キー**   | API キーが必要             | OpenAI、Anthropic、Google       | 従量課金               |
+| **OAuth**      | アカウントでログイン       | Claude Code、GitHub Copilot     | サブスクリプション     |
+| **Web Cookie** | ブラウザーセッションを使用 | ChatGPT Web (Codex)、Gemini Web | $0（アカウントを使用） |
 
 ### Web Cookie プロバイダー
 
@@ -45,7 +45,6 @@
 2. **プロバイダー** → **プロバイダーを追加**に移動します
 3. 次の無料プロバイダーのいずれかを選択します：
    - **Kiro AI** — 無料の Claude モデル（認証不要）
-   - **OpenCode Free** — 無料の GPT モデル（認証不要）
    - **Pollinations** — 無料の GPT-5、Claude、Gemini（キー不要）
    - **LongCat** — 10M トークンが無料（1 回限りの付与、アカウントと KYC が必要）
    - **Cloudflare AI** — 50 以上のモデル、1 日あたり 10K ニューロン
@@ -175,7 +174,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | プロバイダー      | 無料枠                   | モデル                                   | 接続方法         |
 | ----------------- | ------------------------ | ---------------------------------------- | ---------------- |
 | **Kiro AI**       | 毎月50クレジット         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 認証不要         |
-| **OpenCode Free** | 無制限                   | GPT-4o, Claude, Gemini                   | 認証不要         |
 | **Pollinations**  | キー不要                 | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | 認証不要         |
 | **LongCat**       | 初回のみ10M              | LongCat-2.0                              | APIキー + KYC    |
 | **Cloudflare AI** | 1日あたり10Kニューロン   | 50以上のモデル                           | 認証不要         |
@@ -249,7 +247,7 @@ OmniRouteは、**複数のプロバイダー**を使用すると最も効果的�
 
 最適な環境を実現するには、少なくとも**3つのプロバイダー**に接続してください。
 
-1. **無料プロバイダーを1つ**（Kiro、OpenCode Free、またはPollinations）— 常時利用可能
+1. **無料プロバイダーを1つ**（Kiro、またはPollinations）— 常時利用可能
 2. **高速なプロバイダーを1つ**（Groq、Cerebras）— 素早い応答向け
 3. **高品質なプロバイダーを1つ**（OpenAI、Anthropic、Google）— 複雑なタスク向け
 
@@ -295,7 +293,7 @@ OmniRouteは、**複数のプロバイダー**を使用すると最も効果的�
 
 ### 「OmniRouteを使用するには料金がかかりますか？」
 
-**いいえ！** OmniRouteは無料のオープンソースです。無料プロバイダー（Kiro、OpenCode Free、Pollinations）は、料金を一切支払わずに使用できます。有料プロバイダーの使用を選択した場合にのみ料金が発生します。
+**いいえ！** OmniRouteは無料のオープンソースです。無料プロバイダー（Kiro、Pollinations）は、料金を一切支払わずに使用できます。有料プロバイダーの使用を選択した場合にのみ料金が発生します。
 
 ### 「どのプロバイダーから始めればよいですか？」
 

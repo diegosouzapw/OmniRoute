@@ -52,7 +52,6 @@ el filtro de capacidades de la tarea (visión, modo JSON, herramientas, contexto
 | Proveedor        | Cuota gratuita / créditos                         |
 | ---------------- | ------------------------------------------------- |
 | Kiro AI          | Nivel gratuito de Claude (uso razonable generoso) |
-| OpenCode Free    | Sin autenticación, límites de uso generosos       |
 | Qoder            | OAuth gratuito                                    |
 | Google Vertex AI | $300 en créditos para cuentas nuevas              |
 | Amazon Q         | Nivel gratuito para usuarios de AWS               |

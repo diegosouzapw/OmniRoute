@@ -14,12 +14,12 @@ Were onye na-enye ọrụ dịka **ụlọ ọrụ netwọkụ ekwentị**. Dị
 
 ### Ụdị Ndị Na-enye Ọrụ
 
-| Ụdị            | Ihe Ọ Bụ                      | Ọmụmaatụ                          | Ọnụ Ahịa                   |
-| -------------- | ----------------------------- | --------------------------------- | -------------------------- |
-| **N'efu**      | Achọghị ịkwụ ụgwọ             | Kiro, OpenCode Free, Pollinations | $0                         |
-| **API Key**    | Ị chọrọ API key               | OpenAI, Anthropic, Google         | Kwụọ ụgwọ dịka ojiji si dị |
-| **OAuth**      | Jiri akaụntụ gị banye         | Claude Code, GitHub Copilot       | Ndebanye aha               |
-| **Web Cookie** | Na-eji nnọkọ ihe nchọgharị gị | ChatGPT Web (Codex), Gemini Web   | $0 (na-eji akaụntụ gị)     |
+| Ụdị            | Ihe Ọ Bụ                      | Ọmụmaatụ                        | Ọnụ Ahịa                   |
+| -------------- | ----------------------------- | ------------------------------- | -------------------------- |
+| **N'efu**      | Achọghị ịkwụ ụgwọ             | Kiro, Pollinations              | $0                         |
+| **API Key**    | Ị chọrọ API key               | OpenAI, Anthropic, Google       | Kwụọ ụgwọ dịka ojiji si dị |
+| **OAuth**      | Jiri akaụntụ gị banye         | Claude Code, GitHub Copilot     | Ndebanye aha               |
+| **Web Cookie** | Na-eji nnọkọ ihe nchọgharị gị | ChatGPT Web (Codex), Gemini Web | $0 (na-eji akaụntụ gị)     |
 
 ### Ndị Na-enye Ọrụ Web Cookie
 
@@ -40,7 +40,6 @@ Omume a bụ nke nhọrọ: imecha ọkachamara nhazi anaghị emepụta njikọ
 2. Gaa na **Ndị Na-enye Ọrụ** → **Tinye Onye Na-enye Ọrụ**
 3. Họrọ otu n'ime ndị na-enye ọrụ n'efu ndị a:
    - **Kiro AI** — Ụdị Claude n'efu (achọghị nyocha njirimara)
-   - **OpenCode Free** — Ụdị GPT n'efu (achọghị nyocha njirimara)
    - **Pollinations** — GPT-5, Claude, Gemini n'efu (achọghị key)
    - **LongCat** — Token 10M n'efu (onyinye otu ugboro, chọrọ akaụntụ + KYC)
    - **Cloudflare AI** — Ụdị 50+, neuron 10K kwa ụbọchị
@@ -170,7 +169,6 @@ Ndị na-enye ọrụ ndị a na-enye **ohere iji n'efu** na-enweghị kaadị k
 | Onye Na-enye Ọrụ  | Oke Ojiji Efughị Ego        | Ụdị Model                                | Otu E Si Jikọọ            |
 | ----------------- | --------------------------- | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | kredit 50 kwa ọnwa          | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Achọghị nkwenye njirimara |
-| **OpenCode Free** | Enweghị oke                 | GPT-4o, Claude, Gemini                   | Achọghị nkwenye njirimara |
 | **Pollinations**  | Achọghị key                 | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Achọghị nkwenye njirimara |
 | **LongCat**       | 10M otu ugboro              | LongCat-2.0                              | API key + KYC             |
 | **Cloudflare AI** | neuron 10K kwa ụbọchị       | model karịrị 50                          | Achọghị nkwenye njirimara |
@@ -244,7 +242,7 @@ OmniRoute na-arụ ọrụ nke ọma karịa mgbe e nwere **ọtụtụ ndị na
 
 Jikọọ opekata mpe **ndị na-enye ọrụ 3** iji nweta ahụmịhe kachasị mma:
 
-1. **Otu onye na-enye ọrụ efughị ego** (Kiro, OpenCode Free, ma ọ bụ Pollinations) — Ọ na-adị mgbe niile
+1. **Otu onye na-enye ọrụ efughị ego** (Kiro, ma ọ bụ Pollinations) — Ọ na-adị mgbe niile
 2. **Otu onye na-enye ọrụ ọsọ ọsọ** (Groq, Cerebras) — Maka nzaghachi ngwa ngwa
 3. **Otu onye na-enye ọrụ dị elu** (OpenAI, Anthropic, Google) — Maka ọrụ ndị gbagwojuru anya
 
@@ -290,7 +288,7 @@ Mgbe ahụ jiri `model: "auto"`; OmniRoute ga-ahọrọ nke kachasị mma maka a
 
 ### "Ọ dị m mkpa ịkwụ ụgwọ iji jiri OmniRoute?"
 
-**Mba!** OmniRoute bụ n'efu ma bụrụ open-source. Ị nwere ike iji ndị na-enye ọrụ n'efu (Kiro, OpenCode Free, Pollinations) n'akwụghị ụgwọ ọ bụla. Naanị mgbe ị họọrọ iji ndị na-enye ọrụ a na-akwụ ụgwọ ka ị ga-akwụ ụgwọ.
+**Mba!** OmniRoute bụ n'efu ma bụrụ open-source. Ị nwere ike iji ndị na-enye ọrụ n'efu (Kiro, Pollinations) n'akwụghị ụgwọ ọ bụla. Naanị mgbe ị họọrọ iji ndị na-enye ọrụ a na-akwụ ụgwọ ka ị ga-akwụ ụgwọ.
 
 ### "Kedu onye na-enye ọrụ m kwesịrị ibido na ya?"
 

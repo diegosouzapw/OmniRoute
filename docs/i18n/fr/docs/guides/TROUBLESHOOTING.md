@@ -39,7 +39,7 @@ Problèmes courants et solutions pour OmniRoute.
 
 ### Limitation du débit chez les fournisseurs gratuits (429 / 400 / 401)
 
-**Symptôme** : lorsque vous utilisez `model: "auto"` avec des fournisseurs gratuits/sans authentification (opencode, auggie, etc.), vous obtenez par intermittence des réponses `HTTP 429`, `400` ou `401` au lieu des réponses attendues. Les requêtes aboutissent lorsque vous réessayez la même invite quelques instants plus tard, mais l’automatisation (tâches cron, agents, scripts) échoue dès la première erreur.
+**Symptôme** : lorsque vous utilisez `model: "auto"` avec des fournisseurs gratuits/sans authentification (auggie, etc.), vous obtenez par intermittence des réponses `HTTP 429`, `400` ou `401` au lieu des réponses attendues. Les requêtes aboutissent lorsque vous réessayez la même invite quelques instants plus tard, mais l’automatisation (tâches cron, agents, scripts) échoue dès la première erreur.
 
 **Cause racine** : trois modes de défaillance indépendants se cumulent :
 

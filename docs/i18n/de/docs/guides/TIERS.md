@@ -51,15 +51,14 @@ JSON-Modus, Tools, maximaler Kontext).
 
 **Kostenlose Anbieter** — kostenlose Tarife, Guthabenprogramme, tägliche OAuth-Kontingente.
 
-| Anbieter         | Kostenloses Kontingent / Guthaben               |
-| ---------------- | ----------------------------------------------- |
-| Kiro AI          | Kostenloser Claude-Tarif (großzügige Fair Use)  |
-| OpenCode Free    | Keine Authentifizierung, großzügige Ratenlimits |
-| Qoder            | Kostenloses OAuth                               |
-| Google Vertex AI | $300 Guthaben für neue Konten                   |
-| Amazon Q         | Kostenloser Tarif für AWS-Benutzer              |
-| Pollinations     | Offene öffentliche API                          |
-| Cloudflare AI    | Kostenloser Workers-AI-Tarif                    |
+| Anbieter         | Kostenloses Kontingent / Guthaben              |
+| ---------------- | ---------------------------------------------- |
+| Kiro AI          | Kostenloser Claude-Tarif (großzügige Fair Use) |
+| Qoder            | Kostenloses OAuth                              |
+| Google Vertex AI | $300 Guthaben für neue Konten                  |
+| Amazon Q         | Kostenloser Tarif für AWS-Benutzer             |
+| Pollinations     | Offene öffentliche API                         |
+| Cloudflare AI    | Kostenloser Workers-AI-Tarif                   |
 
 **Strategie**: Die Kombination `auto` mit Budgetobergrenze leitet Anfragen hierhin,
 wenn Stufe 1 und 2 fehlschlagen oder wenn `useFreeOnly=true` gesetzt ist. Kostenlose

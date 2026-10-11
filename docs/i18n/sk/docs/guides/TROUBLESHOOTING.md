@@ -39,7 +39,7 @@ Bežné problémy a ich riešenia pre OmniRoute.
 
 ### Obmedzovanie frekvencie požiadaviek u bezplatných poskytovateľov (429 / 400 / 401)
 
-**Príznak**: Pri používaní `model: "auto"` s bezplatnými poskytovateľmi alebo poskytovateľmi bez overenia (opencode, auggie atď.) sa namiesto odpovedí občas zobrazí `HTTP 429`, `400` alebo `401`. Pri zopakovaní rovnakej požiadavky o chvíľu neskôr požiadavky uspejú, ale automatizácia (úlohy cron, agenti, skripty) zlyhá už pri prvej chybe.
+**Príznak**: Pri používaní `model: "auto"` s bezplatnými poskytovateľmi alebo poskytovateľmi bez overenia (auggie atď.) sa namiesto odpovedí občas zobrazí `HTTP 429`, `400` alebo `401`. Pri zopakovaní rovnakej požiadavky o chvíľu neskôr požiadavky uspejú, ale automatizácia (úlohy cron, agenti, skripty) zlyhá už pri prvej chybe.
 
 **Hlavná príčina**: Súbežne sa vyskytujú tri nezávislé režimy zlyhania:
 

@@ -116,7 +116,6 @@ Většina údajů o „bezplatných tokenech za měsíc“ v tomto prostoru jsou
 | `modal`          | ToS Sekce 1.3 výslovně zakazuje „pronájem, další prodej nebo jiné umožnění přímého přístupu nebo použití Služby jakékoli třetí straně“ — budování samoobslužného…      |
 | `muse-spark-web` | ToS Meta výslovně zakazuje automatizovaný přístup bez předchozího svolení, reverzní inženýrství bez písemného svolení a obcházení technologií…                         |
 | `nlpcloud`       | ToS výslovně zakazuje „nastavení proxy serveru nebo jiného zařízení, které umožňuje ostatním přístup ke Službě prostřednictvím něj“ a uděluje pouze nepřenosnou…       |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) výslovně omezuje použití na „vaše vlastní interní použití, a nikoli jménem nebo ve prospěch jakékoli třetí strany“ — ope…              |
 | `t3-web`         | ToS výslovně omezuje účty pouze na osobní použití, zakazuje sdílení přihlašovacích údajů s třetími stranami a zakazuje automatizovaný/bot/scraping přístup — a s…      |
 
 ### ✅ Obecně povolené — upozornění / nejasné / ok (zbytek)
@@ -258,7 +257,6 @@ Většina údajů o „bezplatných tokenech za měsíc“ v tomto prostoru jsou
 | `nlpcloud`       | bez klíče      | —                     | —                     | vyhnout se | 1      |
 | `nous-research`  | bez klíče      | —                     | —                     | nejasné    | 2      |
 | `nvidia`         | bez klíče      | —                     | —                     | pozor      | 13     |
-| `opencode`       | bez klíče      | —                     | —                     | vyhnout se | 7      |
 | `pollinations`   | bez klíče      | —                     | —                     | pozor      | 31     |
 | `publicai`       | keyless        | —                     | —                     | caution    | 3      |
 | `reka`           | keyless        | —                     | —                     | caution    | 2      |
@@ -269,17 +267,6 @@ Většina údajů o „bezplatných tokenech za měsíc“ v tomto prostoru jsou
 | `uncloseai`      | keyless        | —                     | —                     | caution    | 3      |
 
 ---
-
-## OpenCode Free: omezení klient-smlouva (#14313)
-
-Poskytovatel `opencode` bez klíče (veřejný `https://opencode.ai/zen/v1`) odmítá jakýkoli požadavek,
-který neodpovídá klientské smlouvě OpenCode, s **403 `FreeTierError`** a
-větou _"OpenCode's free tier can only be used from within OpenCode"_. Jedná se o
-odmítnutí v rámci požadavku (stejný verdikt pro každý účet pro stejný tvar požadavku), nikoli o
-zákaz modelu nebo ochlazení připojení — OmniRoute to klasifikuje jako `project_route_error`, přeskočí
-uzamčení/ochlazení modelu a (na syntetické cestě `noauth`) pozastaví automatickou opětovnou volbu komba
-na krátkou dobu TTL. Odesílejte požadavky, které obsahují neprázdný seznam nástrojů, `stream: true` a
-hlavičky OpenCode session/UA (`opencodeFreeTierContract.ts`), nebo očekávejte 403.
 
 ## Co se změnilo od dodaného katalogu (`freeNote`)
 

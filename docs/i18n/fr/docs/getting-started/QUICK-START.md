@@ -59,15 +59,7 @@ Vous pouvez utiliser OmniRoute **sans rien payer** en connectant un fournisseur 
 4. Cliquez sur **Connecter** (aucune clé API nécessaire !)
 5. C’est fait ! Vous disposez désormais d’un accès gratuit aux modèles Claude.
 
-### Option B : OpenCode Free (aucune authentification)
-
-1. Ouvrez le tableau de bord à l’adresse `http://localhost:20128`
-2. Accédez à **Fournisseurs** → **Ajouter un fournisseur**
-3. Sélectionnez **OpenCode Free**
-4. Cliquez sur **Connecter** (aucune clé API nécessaire !)
-5. C’est fait ! Vous disposez désormais d’un accès gratuit à plusieurs modèles.
-
-### Option C : Pollinations (aucune clé nécessaire)
+### Option B : Pollinations (aucune clé nécessaire)
 
 1. Ouvrez le tableau de bord à l’adresse `http://localhost:20128`
 2. Accédez à **Fournisseurs** → **Ajouter un fournisseur**
@@ -163,7 +155,7 @@ Vous pouvez consulter les détails de la requête en cliquant sur [Surveillance/
 
 ### « Ai-je besoin d’une clé API ? »
 
-**Non !** Vous pouvez utiliser des fournisseurs gratuits (Kiro, OpenCode Free, Pollinations) sans aucune clé API. Il vous suffit de les connecter depuis le tableau de bord.
+**Non !** Vous pouvez utiliser des fournisseurs gratuits (Kiro, Pollinations) sans aucune clé API. Il vous suffit de les connecter depuis le tableau de bord.
 
 ### « Qu’est-ce que `auto` ? »
 

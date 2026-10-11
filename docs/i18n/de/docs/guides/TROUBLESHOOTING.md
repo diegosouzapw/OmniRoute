@@ -39,7 +39,7 @@ Häufige Probleme und Lösungen für OmniRoute.
 
 ### Ratenbegrenzung bei kostenlosen Anbietern (429 / 400 / 401)
 
-**Symptom**: Bei der Verwendung von `model: "auto"` mit kostenlosen bzw. nicht authentifizierungspflichtigen Anbietern (opencode, auggie usw.) erhalten Sie zeitweise `HTTP 429`, `400` oder `401` anstelle von Antworten. Wenn dieselbe Anfrage kurze Zeit später erneut gesendet wird, ist sie erfolgreich, doch Automatisierungen (Cronjobs, Agenten, Skripte) brechen beim ersten Fehler ab.
+**Symptom**: Bei der Verwendung von `model: "auto"` mit kostenlosen bzw. nicht authentifizierungspflichtigen Anbietern (auggie usw.) erhalten Sie zeitweise `HTTP 429`, `400` oder `401` anstelle von Antworten. Wenn dieselbe Anfrage kurze Zeit später erneut gesendet wird, ist sie erfolgreich, doch Automatisierungen (Cronjobs, Agenten, Skripte) brechen beim ersten Fehler ab.
 
 **Ursache**: Drei unabhängige Fehlermodi verstärken sich gegenseitig:
 

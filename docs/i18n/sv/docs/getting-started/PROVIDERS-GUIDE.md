@@ -14,12 +14,12 @@ Tänk på en leverantör som en **mobiloperatör**. Precis som du behöver en mo
 
 ### Typer av leverantörer
 
-| Typ            | Vad det är                    | Exempel                           | Kostnad                  |
-| -------------- | ----------------------------- | --------------------------------- | ------------------------ |
-| **Gratis**     | Ingen betalning krävs         | Kiro, OpenCode Free, Pollinations | $0                       |
-| **API-nyckel** | Du behöver en API-nyckel      | OpenAI, Anthropic, Google         | Betala efter användning  |
-| **OAuth**      | Logga in med ditt konto       | Claude Code, GitHub Copilot       | Prenumeration            |
-| **Webbkaka**   | Använder din webbläsarsession | ChatGPT Web (Codex), Gemini Web   | $0 (använder ditt konto) |
+| Typ            | Vad det är                    | Exempel                         | Kostnad                  |
+| -------------- | ----------------------------- | ------------------------------- | ------------------------ |
+| **Gratis**     | Ingen betalning krävs         | Kiro, Pollinations              | $0                       |
+| **API-nyckel** | Du behöver en API-nyckel      | OpenAI, Anthropic, Google       | Betala efter användning  |
+| **OAuth**      | Logga in med ditt konto       | Claude Code, GitHub Copilot     | Prenumeration            |
+| **Webbkaka**   | Använder din webbläsarsession | ChatGPT Web (Codex), Gemini Web | $0 (använder ditt konto) |
 
 ### Leverantörer med webbkakor
 
@@ -46,7 +46,6 @@ utan risk försöka igen enbart för de misslyckade leverantörerna.
 2. Gå till **Leverantörer** → **Lägg till leverantör**
 3. Välj någon av dessa gratisleverantörer:
    - **Kiro AI** — Kostnadsfria Claude-modeller (ingen autentisering krävs)
-   - **OpenCode Free** — Kostnadsfria GPT-modeller (ingen autentisering krävs)
    - **Pollinations** — Kostnadsfria GPT-5, Claude och Gemini (ingen nyckel krävs)
    - **LongCat** — 10 miljoner tokens utan kostnad (engångstilldelning, kräver konto + KYC)
    - **Cloudflare AI** — Fler än 50 modeller, 10 000 neuroner/dag
@@ -176,7 +175,6 @@ Dessa leverantörer erbjuder **kostnadsfri åtkomst** utan kreditkort:
 | Leverantör        | Kostnadsfri kvot         | Modeller                                 | Så ansluter du            |
 | ----------------- | ------------------------ | ---------------------------------------- | ------------------------- |
 | **Kiro AI**       | 50 krediter/månad        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Ingen autentisering krävs |
-| **OpenCode Free** | Obegränsad               | GPT-4o, Claude, Gemini                   | Ingen autentisering krävs |
 | **Pollinations**  | Ingen nyckel krävs       | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ingen autentisering krävs |
 | **LongCat**       | 10M som engångskvot      | LongCat-2.0                              | API-nyckel + KYC          |
 | **Cloudflare AI** | 10K neuroner/dag         | 50+ modeller                             | Ingen autentisering krävs |
@@ -250,7 +248,7 @@ OmniRoute fungerar bäst med **flera leverantörer**. Det ger dig:
 
 Anslut minst **3 leverantörer** för bästa möjliga upplevelse:
 
-1. **En kostnadsfri leverantör** (Kiro, OpenCode Free eller Pollinations) — Alltid tillgänglig
+1. **En kostnadsfri leverantör** (Kiro eller Pollinations) — Alltid tillgänglig
 2. **En snabb leverantör** (Groq, Cerebras) — För snabba svar
 3. **En kvalitetsleverantör** (OpenAI, Anthropic, Google) — För komplexa uppgifter
 
@@ -296,7 +294,7 @@ Använd sedan `model: "auto"` så väljer OmniRoute automatiskt den bästa för 
 
 ### "Måste jag betala för att använda OmniRoute?"
 
-**Nej!** OmniRoute är kostnadsfritt och har öppen källkod. Du kan använda kostnadsfria leverantörer (Kiro, OpenCode Free, Pollinations) utan att betala någonting. Du betalar endast om du väljer att använda betalleverantörer.
+**Nej!** OmniRoute är kostnadsfritt och har öppen källkod. Du kan använda kostnadsfria leverantörer (Kiro, Pollinations) utan att betala någonting. Du betalar endast om du väljer att använda betalleverantörer.
 
 ### "Vilken leverantör bör jag börja med?"
 

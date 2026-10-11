@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="설치하는 즉시 작동 — 제로 설정. 세 단계: 1. 설치 — npm i -g omniroute, 서버가 localhost:20128에서 부팅됩니다. 2. 도구를 http://localhost:20128/v1로 연결 — 모든 OpenAI 호환 도구(Claude Code, Cursor, Cline). 3. 응답 — API 키, 가입, 설정 없이 즉시 응답을 위해 모델 auto를 호출합니다. 키리스 제공업체 OpenCode Free는 auto 콤보에 미리 연결되어 있어, 새로 설치하면 바로 작동합니다."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="설치하는 즉시 작동 — 제로 설정. 세 단계: 1. 설치 — npm i -g omniroute, 서버가 localhost:20128에서 부팅됩니다. 2. 도구를 http://localhost:20128/v1로 연결 — 모든 OpenAI 호환 도구(Claude Code, Cursor, Cline). 3. 응답 — API 키, 가입, 설정 없이 즉시 응답을 위해 모델 auto를 호출합니다."/>
 
 ```bash
 # 새로 설치, 자격 증명 없음 — `auto`는 이미 작동합니다:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>특정 무료 백엔드를 선호하시나요? `oc/…` (OpenCode Free)를 직접 호출하세요. 그런 다음 `auto`로 전환하여 OmniRoute가 선택하도록 하세요.</sub>
 
 <sub>📦 **Python, Node.js, PHP, cURL**용 빠른 시작 스크립트 복사-붙여넣기 → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1007,7 +1005,7 @@ omniroute
 
 **2) 무료 제공업체 연결(가입 불필요)**
 
-대시보드 → **제공업체** → **Kiro AI**(무료 Claude, 계정당 월 약 50크레딧) 또는 **OpenCode Free**(인증 불필요) 연결 → 완료.
+대시보드 → **제공업체** → **Kiro AI**(무료 Claude, 계정당 월 약 50크레딧) 연결 → 완료.
 
 **3) 코딩 도구 연결**
 
@@ -1264,7 +1262,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1도 이를 건너�
   <tr><td nowrap><b>런타임</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>언어</b></td><td>TypeScript 6.0 — <code>src/</code> 및 <code>open-sse/</code> 전체에 걸쳐 <b>100% TypeScript</b> 사용(v2.0부터 코어의 <code>any</code> 사용 0건)</td></tr>
   <tr><td nowrap><b>프레임워크</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>데이터베이스</b></td><td>better-sqlite3 (SQLite, WAL 저널링) + LowDB (레거시 JSON) — 137개 도메인 모듈, 202개 마이그레이션</td></tr>
+  <tr><td nowrap><b>데이터베이스</b></td><td>better-sqlite3 (SQLite, WAL 저널링) + LowDB (레거시 JSON) — 137개 도메인 모듈, 203개 마이그레이션</td></tr>
   <tr><td nowrap><b>메모리</b></td><td>SQLite FTS5 전문 검색 + int8 양자화 벡터 임베딩, 유형화된 감쇠</td></tr>
   <tr><td nowrap><b>스키마</b></td><td>Zod 4 — MCP 도구 입출력 검증 + API 계약</td></tr>
   <tr><td nowrap><b>프로토콜</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

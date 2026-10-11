@@ -122,7 +122,6 @@ Dauguma šioje srityje nurodomų „nemokamų žetonų per mėnesį“ skaičių
 | `modal`          | ToS 1.3 skyrius aiškiai draudžia „nuomoti, perparduoti ar kitaip suteikti bet kuriai trečiajai šaliai tiesioginę prieigą prie Paslaugos arba galimybę ja naudotis“ — kuriant savarankiškai priglobtą… |
 | `muse-spark-web` | „Meta“ ToS aiškiai draudžia automatizuotą prieigą be išankstinio leidimo, apgrąžos inžineriją be rašytinio leidimo ir technologinių priemonių apėjimą…                                                |
 | `nlpcloud`       | ToS aiškiai draudžia „sukurti tarpinį serverį ar kitą įrenginį, leidžiantį kitiems per jį pasiekti Paslaugą“, ir suteikia tik neperleidžiamą…                                                         |
-| `opencode`       | ToS („Anomaly Innovations, Inc.“) aiškiai riboja naudojimą iki „jūsų pačių vidinio naudojimo, o ne bet kurios trečiosios šalies vardu ar jos naudai“ — atv…                                           |
 | `t3-web`         | ToS aiškiai nustato, kad paskyros skirtos tik asmeniniam naudojimui, draudžia dalytis prisijungimo duomenimis su trečiosiomis šalimis ir automatizuotą / robotų / duomenų rinkimo prieigą — s…        |
 
 ### ✅ Iš esmės leidžiama — dėmesio / neaišku / leidžiama (visi kiti)
@@ -266,7 +265,6 @@ Dauguma šioje srityje nurodomų „nemokamų žetonų per mėnesį“ skaičių
 | `nlpcloud`       | be rakto               | —                           | —                        | vengti            | 1        |
 | `nous-research`  | be rakto               | —                           | —                        | neaišku           | 2        |
 | `nvidia`         | be rakto               | —                           | —                        | atsargiai         | 13       |
-| `opencode`       | be rakto               | —                           | —                        | vengti            | 7        |
 | `pollinations`   | be rakto               | —                           | —                        | atsargiai         | 31       |
 | `publicai`       | be rakto               | —                           | —                        | atsargiai         | 3        |
 | `reka`           | be rakto               | —                           | —                        | atsargiai         | 2        |
@@ -277,17 +275,6 @@ Dauguma šioje srityje nurodomų „nemokamų žetonų per mėnesį“ skaičių
 | `uncloseai`      | be rakto               | —                           | —                        | atsargiai         | 3        |
 
 ---
-
-## OpenCode Free: kliento sutarties apribojimas (#14313)
-
-Teikėjas `opencode` be rakto (viešasis `https://opencode.ai/zen/v1`) atmeta bet kokią užklausą,
-kuri neatitinka OpenCode kliento sutarties, grąžindamas **403 `FreeTierError`** ir sakinį
-_„Nemokama OpenCode pakopa gali būti naudojama tik iš OpenCode“_. Tai yra
-konkrečiai užklausai taikomas atmetimas (tokios pačios formos užklausai visose paskyrose pateikiamas toks pats sprendimas), o ne
-modelio blokavimas ar ryšio atvėsimo laikotarpis — OmniRoute jį klasifikuoja kaip `project_route_error`, praleidžia
-modelio blokavimą / atvėsimo laikotarpį ir (sintetiniame `noauth` kelyje) trumpam TTL laikotarpiui pristabdo
-automatinį derinių parinkimą iš naujo. Siųskite užklausas su netuščiu įrankių sąrašu, `stream: true` ir
-OpenCode seanso / UA antraštėmis (`opencodeFreeTierContract.ts`), antraip tikėkitės 403.
 
 ## Kas pasikeitė nuo išleisto katalogo (`freeNote`)
 

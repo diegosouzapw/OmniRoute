@@ -39,7 +39,7 @@ Az OmniRoute gyakori problémái és azok megoldásai.
 
 ### Sebességkorlátozás ingyenes szolgáltatóknál (429 / 400 / 401)
 
-**Tünet**: Ha a `model: "auto"` beállítást ingyenes vagy hitelesítést nem igénylő szolgáltatókkal (opencode, auggie stb.) használja, időnként válasz helyett `HTTP 429`, `400` vagy `401` hibát kap. Ha néhány pillanattal később ugyanazzal a prompttal újrapróbálkozik, a kérés sikeres, de az automatizálás (cron-feladatok, ügynökök, szkriptek) már az első hibánál megszakad.
+**Tünet**: Ha a `model: "auto"` beállítást ingyenes vagy hitelesítést nem igénylő szolgáltatókkal (auggie stb.) használja, időnként válasz helyett `HTTP 429`, `400` vagy `401` hibát kap. Ha néhány pillanattal később ugyanazzal a prompttal újrapróbálkozik, a kérés sikeres, de az automatizálás (cron-feladatok, ügynökök, szkriptek) már az első hibánál megszakad.
 
 **Kiváltó ok**: Három egymástól független hibamód hatása adódik össze:
 

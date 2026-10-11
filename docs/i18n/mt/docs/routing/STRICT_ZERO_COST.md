@@ -147,15 +147,12 @@ ekonomika; din il-paġna ssemmi l-lakuna minflok tippretendi li ma teżistix.
 Għal paragun offline ta' qabel u wara, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` għadu jaħdem
 mal-output tal-kandidati ta' istanza attiva; jaqra l-`connectionId` reali ta' kull kandidat, għalhekk
 jittestja wkoll il-mogħdija tas-sikurezza tal-konnessjoni. Il-kandidati `keyless` iridu jaslu bil-`connectionId`
-sintetiku mingħajr awtentikazzjoni, u qatt b'konnessjoni reali. Il-mogħdija awtomatika `keyless` inkorporata
-attwalment hija OpenCode Free; l-għadd eżatt ta' kandidati xorta jiddependi mill-iskoperta diretta tal-mudelli
+sintetiku mingħajr awtentikazzjoni, u qatt b'konnessjoni reali. l-għadd eżatt ta' kandidati xorta jiddependi mill-iskoperta diretta tal-mudelli
 u għandu jitkejjel fuq id-deployment fil-mira minflok jiġi kkupjat minn eżekuzzjoni eqdem. Kandidat
 `recurring-*` jgħaddi biss meta jkollu kemm adapter tal-użu rreġistrat kif ukoll `hardStopGuaranteed: true`;
 metadata mhux kompluta tibqa' tagħlaq b'mod sigur.
 
-B'`excludeTosAvoid: true`, jitneħħa kull kandidat ikkurat bħala `tos: "avoid"`. OpenCode Free
-attwalment għandu dan il-verdett, għalhekk l-attivazzjoni tal-protezzjoni tista' tbattal il-pool `keyless`
-li jkun fadal ta' deployment. Dan huwa kompromess mistenni tal-attivazzjoni tal-protezzjoni tat-ToS,
+B'`excludeTosAvoid: true`, jitneħħa kull kandidat ikkurat bħala `tos: "avoid"`. Dan huwa kompromess mistenni tal-attivazzjoni tal-protezzjoni tat-ToS,
 mhux bug: il-protezzjoni hija `false` b'mod awtomatiku preċiżament għal din ir-raġuni (ara "Protezzjoni tat-ToS" hawn fuq).
 
 ## Attivazzjoni

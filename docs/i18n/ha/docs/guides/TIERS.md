@@ -51,7 +51,6 @@ tacewar ƙwarewar aikin (gani, yanayin JSON, kayan aiki, iyakar mahalli).
 | Mai samarwa      | Kason kyauta / kiredit                                    |
 | ---------------- | --------------------------------------------------------- |
 | Kiro AI          | Matakin Claude na kyauta (amfani mai karimci bisa adalci) |
-| OpenCode Free    | Babu tantancewa, iyakokin ƙima masu yalwa                 |
 | Qoder            | OAuth na kyauta                                           |
 | Google Vertex AI | Kiredit $300 na sabon asusu                               |
 | Amazon Q         | Matakin kyauta ga masu amfani da AWS                      |

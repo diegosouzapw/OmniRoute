@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ನೀವು ಇನ್ಸ್ಟಾಲ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಲಸ ಮಾಡುತ್ತದೆ — ಶೂನ್ಯ ಕಾನ್ಫಿಗ್. ಮೂರು ಹಂತಗಳು: 1. ಇನ್ಸ್ಟಾಲ್ ಮಾಡಿ — npm i -g omniroute, ಸರ್ವರ್ localhost:20128 ನಲ್ಲಿ ಬೂಟ್ ಆಗುತ್ತದೆ. 2. ನಿಮ್ಮ ಟೂಲ್ ಅನ್ನು http://localhost:20128/v1 ಗೆ ಪಾಯಿಂಟ್ ಮಾಡಿ — ಯಾವುದೇ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಟೂಲ್ (Claude Code, Cursor, Cline). 3. ಇದು ಉತ್ತರಿಸುತ್ತದೆ — ಯಾವುದೇ API ಕೀ, ಸೈನ್ ಅಪ್, ಕಾನ್ಫಿಗರೇಶನ್ ಇಲ್ಲದೆ ತಕ್ಷಣದ ಪ್ರತಿಕ್ರಿಯೆಗಾಗಿ `auto` ಮಾದರಿಯನ್ನು ಕರೆ ಮಾಡಿ. ಕೀಲೆಸ್ ಪ್ರೊವೈಡರ್ OpenCode Free ಅನ್ನು `auto` ಕಾಂಬೊಗೆ ಮೊದಲೇ ವೈರ್ ಮಾಡಲಾಗಿದೆ, ಆದ್ದರಿಂದ ಹೊಸ ಇನ್ಸ್ಟಾಲ್ ಬಾಕ್ಸ್ನಿಂದಲೇ ಪ್ರತಿಕ್ರಿಯಿಸುತ್ತದೆ."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ನೀವು ಇನ್ಸ್ಟಾಲ್ ಮಾಡಿದ ತಕ್ಷಣ ಕೆಲಸ ಮಾಡುತ್ತದೆ — ಶೂನ್ಯ ಕಾನ್ಫಿಗ್. ಮೂರು ಹಂತಗಳು: 1. ಇನ್ಸ್ಟಾಲ್ ಮಾಡಿ — npm i -g omniroute, ಸರ್ವರ್ localhost:20128 ನಲ್ಲಿ ಬೂಟ್ ಆಗುತ್ತದೆ. 2. ನಿಮ್ಮ ಟೂಲ್ ಅನ್ನು http://localhost:20128/v1 ಗೆ ಪಾಯಿಂಟ್ ಮಾಡಿ — ಯಾವುದೇ OpenAI-ಹೊಂದಾಣಿಕೆಯ ಟೂಲ್ (Claude Code, Cursor, Cline). 3. ಇದು ಉತ್ತರಿಸುತ್ತದೆ — ಯಾವುದೇ API ಕೀ, ಸೈನ್ ಅಪ್, ಕಾನ್ಫಿಗರೇಶನ್ ಇಲ್ಲದೆ ತಕ್ಷಣದ ಪ್ರತಿಕ್ರಿಯೆಗಾಗಿ `auto` ಮಾದರಿಯನ್ನು ಕರೆ ಮಾಡಿ."/>
 
 ```bash
 # ಹೊಸ ಇನ್ಸ್ಟಾಲ್, ಶೂನ್ಯ ರುಜುವಾತುಗಳು — `auto` ಈಗಾಗಲೇ ಕೆಲಸ ಮಾಡುತ್ತದೆ:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ನಿರ್ದಿಷ್ಟ ಉಚಿತ ಬ್ಯಾಕೆಂಡ್ ಅನ್ನು ಬಯಸುವಿರಾ? `oc/…` (OpenCode Free) ಅನ್ನು ನೇರವಾಗಿ ಕರೆ ಮಾಡಿ. ನಂತರ `auto` ಗೆ ಅಪ್ಗ್ರೇಡ್ ಮಾಡಿ ಮತ್ತು OmniRoute ಆಯ್ಕೆ ಮಾಡಲು ಬಿಡಿ.</sub>
 
 <sub>📦 **Python, Node.js, PHP, ಮತ್ತು cURL** ಗಾಗಿ ಕಾಪಿ-ಪೇಸ್ಟ್ ಕ್ವಿಕ್ಸ್ಟಾರ್ಟ್ ಸ್ಕ್ರಿಪ್ಟ್ಗಳು → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ omniroute
 
 **2) ಉಚಿತ ಪೂರೈಕೆದಾರರನ್ನು ಸಂಪರ್ಕಿಸಿ (ಸೈನ್ಅಪ್ ಅಗತ್ಯವಿಲ್ಲ)**
 
-ಡ್ಯಾಶ್ಬೋರ್ಡ್ → **ಪೂರೈಕೆದಾರರು** → **Kiro AI** (ಉಚಿತ Claude, ಪ್ರತಿ ಖಾತೆಗೆ ~50 ಕ್ರೆಡಿಟ್ಗಳು/ತಿಂಗಳು) ಅಥವಾ **OpenCode Free** (ದೃಢೀಕರಣ ಅಗತ್ಯವಿಲ್ಲ) ಸಂಪರ್ಕಿಸಿ → ಮುಗಿಯಿತು.
+ಡ್ಯಾಶ್ಬೋರ್ಡ್ → **ಪೂರೈಕೆದಾರರು** → **Kiro AI** (ಉಚಿತ Claude, ಪ್ರತಿ ಖಾತೆಗೆ ~50 ಕ್ರೆಡಿಟ್ಗಳು/ತಿಂಗಳು) ಸಂಪರ್ಕಿಸಿ → ಮುಗಿಯಿತು.
 
 **3) ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಟೂಲ್ ಅನ್ನು ನಿರ್ದೇಶಿಸಿ**
 
@@ -1265,7 +1263,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ಕೂಡ ಇದ�
   <tr><td nowrap><b>ರನ್ಟೈಮ್</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ಭಾಷೆ</b></td><td>TypeScript 6.0 — <code>src/</code> ಮತ್ತು <code>open-sse/</code> ಉದ್ದಕ್ಕೂ <b>100% TypeScript</b> (v2.0 ರಿಂದ ಕೋರ್ನಲ್ಲಿ ಶೂನ್ಯ <code>any</code>)</td></tr>
   <tr><td nowrap><b>ಫ್ರೇಮ್ವರ್ಕ್</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ಡೇಟಾಬೇಸ್</b></td><td>better-sqlite3 (SQLite, WAL ಜರ್ನಲಿಂಗ್) + LowDB (JSON ಲೆಗಸಿ) — 137 ಡೊಮೇನ್ ಮಾಡ್ಯೂಲ್ಗಳು, 202 ಮೈಗ್ರೇಶನ್ಗಳು</td></tr>
+  <tr><td nowrap><b>ಡೇಟಾಬೇಸ್</b></td><td>better-sqlite3 (SQLite, WAL ಜರ್ನಲಿಂಗ್) + LowDB (JSON ಲೆಗಸಿ) — 137 ಡೊಮೇನ್ ಮಾಡ್ಯೂಲ್ಗಳು, 203 ಮೈಗ್ರೇಶನ್ಗಳು</td></tr>
   <tr><td nowrap><b>ಮೆಮೊರಿ</b></td><td>SQLite FTS5 ಪೂರ್ಣ-ಪಠ್ಯ + int8-ಕ್ವಾಂಟೈಸ್ ಮಾಡಿದ ವೆಕ್ಟರ್ ಎಂಬೆಡಿಂಗ್ಗಳು, ಟೈಪ್ಗೊಳಿಸಿದ ಡಿಕೇ</td></tr>
   <tr><td nowrap><b>ಸ್ಕೀಮಾಗಳು</b></td><td>Zod 4 — MCP ಪರಿಕರ I/O ಮೌಲ್ಯಮಾಪನ + API ಒಪ್ಪಂದಗಳು</td></tr>
   <tr><td nowrap><b>ಪ್ರೋಟೋಕಾಲ್ಗಳು</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

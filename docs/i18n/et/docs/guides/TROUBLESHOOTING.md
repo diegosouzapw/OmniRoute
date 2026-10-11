@@ -39,7 +39,7 @@ OmniRoute'i levinumad probleemid ja lahendused.
 
 ### Tasuta teenusepakkujate kiirusepiirangud (429 / 400 / 401)
 
-**Sümptom**: Kui kasutate seadet `model: "auto"` tasuta/autentimiseta teenusepakkujatega (opencode, auggie jne), saate vastuste asemel aeg-ajalt veateate `HTTP 429`, `400` või `401`. Päringud õnnestuvad, kui proovite sama viipa mõni hetk hiljem uuesti, kuid automatiseerimine (cron-tööd, agendid, skriptid) katkeb esimese tõrke korral.
+**Sümptom**: Kui kasutate seadet `model: "auto"` tasuta/autentimiseta teenusepakkujatega (auggie jne), saate vastuste asemel aeg-ajalt veateate `HTTP 429`, `400` või `401`. Päringud õnnestuvad, kui proovite sama viipa mõni hetk hiljem uuesti, kuid automatiseerimine (cron-tööd, agendid, skriptid) katkeb esimese tõrke korral.
 
 **Algpõhjus**: Kolm sõltumatut tõrkerežiimi võimendavad üksteist:
 

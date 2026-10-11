@@ -59,15 +59,7 @@ Magagamit mo ang OmniRoute **nang walang anumang binabayaran** sa pamamagitan ng
 4. I-click ang **Connect** (hindi kailangan ng API key!)
 5. Tapos na! Mayroon ka na ngayong libreng access sa mga Claude model.
 
-### Opsyon B: OpenCode Free (Walang Auth)
-
-1. Buksan ang dashboard sa `http://localhost:20128`
-2. Pumunta sa **Providers** → **Add Provider**
-3. Piliin ang **OpenCode Free**
-4. I-click ang **Connect** (hindi kailangan ng API key!)
-5. Tapos na! Mayroon ka na ngayong libreng access sa maraming model.
-
-### Opsyon C: Pollinations (Hindi Kailangan ng Key)
+### Opsyon B: Pollinations (Hindi Kailangan ng Key)
 
 1. Buksan ang dashboard sa `http://localhost:20128`
 2. Pumunta sa **Providers** → **Add Provider**
@@ -163,7 +155,7 @@ Makikita mo ang mga detalye ng request sa pamamagitan ng pag-click sa [Monitorin
 
 ### "Kailangan ko ba ng API key?"
 
-**Hindi!** Magagamit mo ang mga libreng provider (Kiro, OpenCode Free, Pollinations) nang walang anumang API key. Ikonekta lamang ang mga ito sa dashboard.
+**Hindi!** Magagamit mo ang mga libreng provider (Kiro, Pollinations) nang walang anumang API key. Ikonekta lamang ang mga ito sa dashboard.
 
 ### "Ano ang `auto`?"
 

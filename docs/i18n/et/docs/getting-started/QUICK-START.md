@@ -59,15 +59,7 @@ Saad OmniRoute'i kasutada **täiesti tasuta**, ühendades tasuta teenusepakkuja.
 4. Klõpsa **Ühenda** (API-võtit pole vaja!)
 5. Valmis! Nüüd on sul tasuta juurdepääs Claude'i mudelitele.
 
-### Variant B: OpenCode Free (autentimist pole vaja)
-
-1. Ava juhtpaneel aadressil `http://localhost:20128`
-2. Ava **Teenusepakkujad** → **Lisa teenusepakkuja**
-3. Vali **OpenCode Free**
-4. Klõpsa **Ühenda** (API-võtit pole vaja!)
-5. Valmis! Nüüd on sul tasuta juurdepääs mitmele mudelile.
-
-### Variant C: Pollinations (võtit pole vaja)
+### Variant B: Pollinations (võtit pole vaja)
 
 1. Ava juhtpaneel aadressil `http://localhost:20128`
 2. Ava **Teenusepakkujad** → **Lisa teenusepakkuja**
@@ -163,7 +155,7 @@ Päringu üksikasju saad vaadata, klõpsates vasakul külgribal valikut [Jälgim
 
 ### „Kas mul on vaja API-võtit?”
 
-**Ei!** Saad kasutada tasuta teenusepakkujaid (Kiro, OpenCode Free, Pollinations) ilma ühegi API-võtmeta. Ühenda need lihtsalt juhtpaneelil.
+**Ei!** Saad kasutada tasuta teenusepakkujaid (Kiro, Pollinations) ilma ühegi API-võtmeta. Ühenda need lihtsalt juhtpaneelil.
 
 ### „Mis on `auto`?”
 

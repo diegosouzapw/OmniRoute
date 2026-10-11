@@ -14,12 +14,12 @@ Ajattele palveluntarjoajaa **puhelinoperaattorina**. Aivan kuten tarvitset puhel
 
 ### Palveluntarjoajatyypit
 
-| Tyyppi           | Mitä se tarkoittaa        | Esimerkkejä                       | Hinta                |
-| ---------------- | ------------------------- | --------------------------------- | -------------------- |
-| **Ilmainen**     | Maksua ei vaadita         | Kiro, OpenCode Free, Pollinations | $0                   |
-| **API-avain**    | Tarvitset API-avaimen     | OpenAI, Anthropic, Google         | Käytön mukaan        |
-| **OAuth**        | Kirjaudu sisään tililläsi | Claude Code, GitHub Copilot       | Tilaus               |
-| **Verkkoeväste** | Käyttää selainistuntoasi  | ChatGPT Web (Codex), Gemini Web   | $0 (käyttää tiliäsi) |
+| Tyyppi           | Mitä se tarkoittaa        | Esimerkkejä                     | Hinta                |
+| ---------------- | ------------------------- | ------------------------------- | -------------------- |
+| **Ilmainen**     | Maksua ei vaadita         | Kiro, Pollinations              | $0                   |
+| **API-avain**    | Tarvitset API-avaimen     | OpenAI, Anthropic, Google       | Käytön mukaan        |
+| **OAuth**        | Kirjaudu sisään tililläsi | Claude Code, GitHub Copilot     | Tilaus               |
+| **Verkkoeväste** | Käyttää selainistuntoasi  | ChatGPT Web (Codex), Gemini Web | $0 (käyttää tiliäsi) |
 
 ### Verkkoevästeitä käyttävät palveluntarjoajat
 
@@ -46,7 +46,6 @@ turvallisesti yrittää uudelleen vain epäonnistuneita palveluntarjoajia.
 2. Siirry kohtaan **Palveluntarjoajat** → **Lisää palveluntarjoaja**
 3. Valitse jokin näistä ilmaisista palveluntarjoajista:
    - **Kiro AI** — Ilmaisia Claude-malleja (todennusta ei tarvita)
-   - **OpenCode Free** — Ilmaisia GPT-malleja (todennusta ei tarvita)
    - **Pollinations** — Ilmaiset GPT-5-, Claude- ja Gemini-mallit (avainta ei tarvita)
    - **LongCat** — 10M ilmaista tokenia (kertaluonteinen etu, vaatii tilin ja KYC-tunnistautumisen)
    - **Cloudflare AI** — Yli 50 mallia, 10K neuronia päivässä
@@ -176,7 +175,6 @@ Nämä palveluntarjoajat tarjoavat **ilmaisen käyttöoikeuden** ilman luottokor
 | Palveluntarjoaja  | Ilmainen kiintiö            | Mallit                                   | Yhdistäminen                |
 | ----------------- | --------------------------- | ---------------------------------------- | --------------------------- |
 | **Kiro AI**       | 50 krediittiä/kuukausi      | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Tunnistautumista ei tarvita |
-| **OpenCode Free** | Rajoittamaton               | GPT-4o, Claude, Gemini                   | Tunnistautumista ei tarvita |
 | **Pollinations**  | Avainta ei tarvita          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Tunnistautumista ei tarvita |
 | **LongCat**       | 10M kertaluonteisesti       | LongCat-2.0                              | API-avain + KYC             |
 | **Cloudflare AI** | 10K neuronia/päivä          | Yli 50 mallia                            | Tunnistautumista ei tarvita |
@@ -250,7 +248,7 @@ OmniRoute toimii parhaiten **useiden palveluntarjoajien** kanssa. Näin saat:
 
 Yhdistä vähintään **3 palveluntarjoajaa** parhaan käyttökokemuksen saavuttamiseksi:
 
-1. **Yksi ilmainen palveluntarjoaja** (Kiro, OpenCode Free tai Pollinations) — Aina käytettävissä
+1. **Yksi ilmainen palveluntarjoaja** (Kiro tai Pollinations) — Aina käytettävissä
 2. **Yksi nopea palveluntarjoaja** (Groq, Cerebras) — Nopeita vastauksia varten
 3. **Yksi laadukas palveluntarjoaja** (OpenAI, Anthropic, Google) — Monimutkaisia tehtäviä varten
 
@@ -296,7 +294,7 @@ Käytä sitten asetusta `model: "auto"`, jolloin OmniRoute valitsee automaattise
 
 ### "Pitääkö OmniRouten käytöstä maksaa?"
 
-**Ei!** OmniRoute on ilmainen ja avoimen lähdekoodin ohjelmisto. Voit käyttää ilmaisia palveluntarjoajia (Kiro, OpenCode Free, Pollinations) maksamatta mitään. Maksat vain, jos päätät käyttää maksullisia palveluntarjoajia.
+**Ei!** OmniRoute on ilmainen ja avoimen lähdekoodin ohjelmisto. Voit käyttää ilmaisia palveluntarjoajia (Kiro, Pollinations) maksamatta mitään. Maksat vain, jos päätät käyttää maksullisia palveluntarjoajia.
 
 ### "Mistä palveluntarjoajasta minun kannattaa aloittaa?"
 

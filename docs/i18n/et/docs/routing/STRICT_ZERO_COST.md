@@ -145,15 +145,12 @@ eraldi küsimus; see leht nimetab lünga, mitte ei teeskle, et seda pole.
 Võrguühenduseta enne/pärast-võrdluseks töötab `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 endiselt aktiivse eksemplari kandidaatide väljundiga; see loeb iga kandidaadi tegelikku
 `connectionId`-d, seega kontrollib ka ühenduse ohutuse teed. Võtmeta kandidaadid peavad saabuma
-sünteetilise autentimiseta `connectionId`-ga, mitte kunagi tegeliku ühendusega. Praegune sisseehitatud
-võtmeta automaattee on OpenCode Free; kandidaatide täpne arv sõltub endiselt reaalajas mudelite
+sünteetilise autentimiseta `connectionId`-ga, mitte kunagi tegeliku ühendusega. kandidaatide täpne arv sõltub endiselt reaalajas mudelite
 avastamisest ning seda tuleks vanemast käivitusest kopeerimise asemel mõõta sihtjuurutuses.
 `recurring-*` kandidaat pääseb läbi ainult siis, kui tal on nii registreeritud kasutusadapter kui ka
 `hardStopGuaranteed: true`; puudulike metaandmete korral tõrgub süsteem endiselt suletult.
 
-Kui `excludeTosAvoid: true`, eemaldatakse iga kandidaat, mille kureeritud väärtus on `tos: "avoid"`.
-OpenCode Free kannab praegu seda otsust, seega võib kaitse sisselülitamine tühjendada juurutuse
-ülejäänud võtmeta kandidaatide kogumi. See on ToS-i kaitse sisselülitamise eeldatav kompromiss,
+Kui `excludeTosAvoid: true`, eemaldatakse iga kandidaat, mille kureeritud väärtus on `tos: "avoid"`. See on ToS-i kaitse sisselülitamise eeldatav kompromiss,
 mitte viga: just sel põhjusel on kaitse vaikimisi `false` (vt eespool jaotist „ToS-i kaitse”).
 
 ## Lubamine

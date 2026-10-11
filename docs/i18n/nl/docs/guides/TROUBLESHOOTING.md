@@ -39,7 +39,7 @@ Veelvoorkomende problemen en oplossingen voor OmniRoute.
 
 ### Snelheidsbeperking bij gratis providers (429 / 400 / 401)
 
-**Symptoom**: Wanneer je `model: "auto"` gebruikt met gratis providers/providers zonder authenticatie (opencode, auggie, enz.), krijg je af en toe `HTTP 429`, `400` of `401` in plaats van antwoorden. De verzoeken slagen wanneer je dezelfde prompt even later opnieuw probeert, maar automatisering (cron-taken, agents, scripts) stopt bij de eerste fout.
+**Symptoom**: Wanneer je `model: "auto"` gebruikt met gratis providers/providers zonder authenticatie (auggie, enz.), krijg je af en toe `HTTP 429`, `400` of `401` in plaats van antwoorden. De verzoeken slagen wanneer je dezelfde prompt even later opnieuw probeert, maar automatisering (cron-taken, agents, scripts) stopt bij de eerste fout.
 
 **Hoofdoorzaak**: Drie onafhankelijke foutscenario's stapelen zich op:
 

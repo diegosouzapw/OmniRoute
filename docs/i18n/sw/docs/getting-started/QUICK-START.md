@@ -59,15 +59,7 @@ Unaweza kutumia OmniRoute **bila kulipa chochote** kwa kuunganisha mtoa huduma w
 4. Bofya **Unganisha** (ufunguo wa API hauhitajiki!)
 5. Imekamilika! Sasa unaweza kutumia modeli za Claude bila malipo.
 
-### Chaguo B: OpenCode Free (Hakuna Uthibitishaji)
-
-1. Fungua dashibodi kwenye `http://localhost:20128`
-2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
-3. Chagua **OpenCode Free**
-4. Bofya **Unganisha** (ufunguo wa API hauhitajiki!)
-5. Imekamilika! Sasa unaweza kutumia modeli nyingi bila malipo.
-
-### Chaguo C: Pollinations (Ufunguo Hauhitajiki)
+### Chaguo B: Pollinations (Ufunguo Hauhitajiki)
 
 1. Fungua dashibodi kwenye `http://localhost:20128`
 2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
@@ -163,7 +155,7 @@ Unaweza kuona maelezo ya ombi kwa kubofya [Ufuatiliaji/Kumbukumbu](http://localh
 
 ### "Je, ninahitaji ufunguo wa API?"
 
-**Hapana!** Unaweza kutumia watoa huduma wa bure (Kiro, OpenCode Free, Pollinations) bila ufunguo wowote wa API. Waunganishe tu kwenye dashibodi.
+**Hapana!** Unaweza kutumia watoa huduma wa bure (Kiro, Pollinations) bila ufunguo wowote wa API. Waunganishe tu kwenye dashibodi.
 
 ### "`auto` ni nini?"
 

@@ -57,7 +57,6 @@ napi OAuth-kvóták.
 | Szolgáltató      | Ingyenes kvóta / kreditek                          |
 | ---------------- | -------------------------------------------------- |
 | Kiro AI          | Ingyenes Claude-szint (bőkezű méltányos használat) |
-| OpenCode Free    | Nincs hitelesítés, bőkezű sebességkorlátok         |
 | Qoder            | Ingyenes OAuth                                     |
 | Google Vertex AI | $300 kredit új fiókokhoz                           |
 | Amazon Q         | Ingyenes szint AWS-felhasználóknak                 |

@@ -14,12 +14,12 @@ Představte si poskytovatele jako **mobilního operátora**. Stejně jako k tele
 
 ### Typy poskytovatelů
 
-| Typ                      | Co to je                         | Příklady                          | Cena                  |
-| ------------------------ | -------------------------------- | --------------------------------- | --------------------- |
-| **Zdarma**               | Není vyžadována žádná platba     | Kiro, OpenCode Free, Pollinations | $0                    |
-| **Klíč API**             | Potřebujete klíč API             | OpenAI, Anthropic, Google         | Platba podle využití  |
-| **OAuth**                | Přihlášení pomocí vašeho účtu    | Claude Code, GitHub Copilot       | Předplatné            |
-| **Webový soubor cookie** | Používá relaci vašeho prohlížeče | ChatGPT Web (Codex), Gemini Web   | $0 (používá váš účet) |
+| Typ                      | Co to je                         | Příklady                        | Cena                  |
+| ------------------------ | -------------------------------- | ------------------------------- | --------------------- |
+| **Zdarma**               | Není vyžadována žádná platba     | Kiro, Pollinations              | $0                    |
+| **Klíč API**             | Potřebujete klíč API             | OpenAI, Anthropic, Google       | Platba podle využití  |
+| **OAuth**                | Přihlášení pomocí vašeho účtu    | Claude Code, GitHub Copilot     | Předplatné            |
+| **Webový soubor cookie** | Používá relaci vašeho prohlížeče | ChatGPT Web (Codex), Gemini Web | $0 (používá váš účet) |
 
 ### Poskytovatelé využívající webové soubory cookie
 
@@ -46,7 +46,6 @@ bezpečně zopakovat pouze neúspěšné pokusy.
 2. Přejděte na **Poskytovatelé** → **Přidat poskytovatele**
 3. Vyberte jednoho z těchto bezplatných poskytovatelů:
    - **Kiro AI** — Bezplatné modely Claude (bez nutnosti ověření)
-   - **OpenCode Free** — Bezplatné modely GPT (bez nutnosti ověření)
    - **Pollinations** — Bezplatné modely GPT-5, Claude a Gemini (bez nutnosti klíče)
    - **LongCat** — 10M tokenů zdarma (jednorázové přidělení, vyžaduje účet a KYC)
    - **Cloudflare AI** — Více než 50 modelů, 10K neuronů denně
@@ -176,7 +175,6 @@ Tito poskytovatelé nabízejí **bezplatný přístup** bez platební karty:
 | Poskytovatel      | Bezplatná kvóta         | Modely                                   | Jak se připojit       |
 | ----------------- | ----------------------- | ---------------------------------------- | --------------------- |
 | **Kiro AI**       | 50 kreditů/měsíc        | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Bez ověření           |
-| **OpenCode Free** | Neomezeně               | GPT-4o, Claude, Gemini                   | Bez ověření           |
 | **Pollinations**  | Klíč není potřeba       | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Bez ověření           |
 | **LongCat**       | Jednorázově 10M         | LongCat-2.0                              | Klíč API + KYC        |
 | **Cloudflare AI** | 10K neuronů/den         | Více než 50 modelů                       | Bez ověření           |
@@ -250,7 +248,7 @@ OmniRoute funguje nejlépe s **více poskytovateli**. Získáte tak:
 
 Pro nejlepší fungování připojte alespoň **3 poskytovatele**:
 
-1. **Jeden bezplatný poskytovatel** (Kiro, OpenCode Free nebo Pollinations) — Vždy k dispozici
+1. **Jeden bezplatný poskytovatel** (Kiro nebo Pollinations) — Vždy k dispozici
 2. **Jeden rychlý poskytovatel** (Groq, Cerebras) — Pro rychlé odpovědi
 3. **Jeden kvalitní poskytovatel** (OpenAI, Anthropic, Google) — Pro složité úlohy
 
@@ -296,7 +294,7 @@ Poté použijte `model: "auto"` a OmniRoute automaticky vybere pro každý poža
 
 ### „Musím za používání OmniRoute platit?“
 
-**Ne!** OmniRoute je zdarma a má otevřený zdrojový kód. Bez jakýchkoli poplatků můžete používat bezplatné poskytovatele (Kiro, OpenCode Free, Pollinations). Platíte pouze v případě, že se rozhodnete používat placené poskytovatele.
+**Ne!** OmniRoute je zdarma a má otevřený zdrojový kód. Bez jakýchkoli poplatků můžete používat bezplatné poskytovatele (Kiro, Pollinations). Platíte pouze v případě, že se rozhodnete používat placené poskytovatele.
 
 ### „Se kterým poskytovatelem bych měl začít?“
 

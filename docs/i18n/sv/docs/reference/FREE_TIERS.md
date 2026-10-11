@@ -122,7 +122,6 @@ De flesta siffror för ”kostnadsfria tokens per månad” inom detta område �
 | `modal`          | ToS avsnitt 1.3 förbjuder uttryckligen att ”hyra ut, återförsälja eller på annat sätt ge någon tredje part direkt åtkomst till eller användning av tjänsten” — att bygga en självhosta…        |
 | `muse-spark-web` | Meta ToS förbjuder uttryckligen automatiserad åtkomst utan föregående tillstånd, reverse engineering utan skriftligt tillstånd och kringgående av tekniska…                                    |
 | `nlpcloud`       | ToS förbjuder uttryckligen ”att konfigurera en proxy eller annan enhet som gör det möjligt för andra att komma åt tjänsten genom den” och beviljar endast en icke-överlåtbar,…                 |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) begränsar uttryckligen användningen till ”din egen interna användning, och inte för eller till förmån för någon tredje part” — ope…                            |
 | `t3-web`         | ToS begränsar uttryckligen konton till endast personlig användning, förbjuder delning av inloggningsuppgifter med tredje part och förbjuder automatiserad åtkomst/botåtkomst/skrapning — en s… |
 
 ### ✅ Generellt tillåtande — försiktighet / oklart / ok (resten)
@@ -266,7 +265,6 @@ De flesta siffror för ”kostnadsfria tokens per månad” inom detta område �
 | `nlpcloud`       | nyckelfri           | —                        | —                     | undvik       | 1        |
 | `nous-research`  | nyckelfri           | —                        | —                     | tvetydigt    | 2        |
 | `nvidia`         | nyckelfri           | —                        | —                     | försiktighet | 13       |
-| `opencode`       | nyckelfri           | —                        | —                     | undvik       | 7        |
 | `pollinations`   | nyckelfri           | —                        | —                     | försiktighet | 31       |
 | `publicai`       | utan nyckel         | —                        | —                     | försiktighet | 3        |
 | `reka`           | utan nyckel         | —                        | —                     | försiktighet | 2        |
@@ -277,17 +275,6 @@ De flesta siffror för ”kostnadsfria tokens per månad” inom detta område �
 | `uncloseai`      | utan nyckel         | —                        | —                     | försiktighet | 3        |
 
 ---
-
-## OpenCode Free: begränsning i klientkontraktet (#14313)
-
-Den nyckellösa `opencode`-leverantören (publika `https://opencode.ai/zen/v1`) nekar alla förfrågningar
-som inte överensstämmer med OpenCode-klientkontraktet med **403 `FreeTierError`** och meningen
-_"OpenCodes kostnadsfria nivå kan endast användas inifrån OpenCode"_. Detta är ett
-förfrågningsspecifikt avslag (samma beslut för varje konto med samma förfrågningsstruktur), inte en
-modellspärr eller anslutningskarantän — OmniRoute klassificerar det som `project_route_error`, hoppar över
-modellåsning/karantän och pausar (på den syntetiska `noauth`-sökvägen) automatiskt omval av kombination
-under en kort TTL. Skicka förfrågningar som innehåller en icke-tom verktygslista, `stream: true` och
-OpenCode-huvudena för session/UA (`opencodeFreeTierContract.ts`), annars får du räkna med 403.
 
 ## Vad som har ändrats sedan den levererade katalogen (`freeNote`)
 

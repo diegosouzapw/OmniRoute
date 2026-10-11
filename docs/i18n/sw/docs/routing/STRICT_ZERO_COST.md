@@ -144,14 +144,12 @@ pengo hilo badala ya kujifanya kuwa halipo.
 Kwa ulinganisho wa nje ya mtandao wa kabla/baada, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` bado hufanya kazi
 dhidi ya matokeo ya vipendekezwa ya instansi hai; husoma `connectionId` halisi ya kila kipendekezwa, kwa hivyo
 pia hujaribu njia ya usalama wa muunganisho. Vipendekezwa vya `keyless` lazima viwasili vikiwa na
-`connectionId` ya kutengenezwa ya kutokuwa na uthibitishaji, kamwe si muunganisho halisi. Njia ya sasa iliyojengewa ndani ya kiotomatiki ya `keyless` ni OpenCode Free; idadi kamili ya vipendekezwa
+`connectionId` ya kutengenezwa ya kutokuwa na uthibitishaji, kamwe si muunganisho halisi. idadi kamili ya vipendekezwa
 bado hutegemea ugunduzi wa moja kwa moja wa modeli na inapaswa kupimwa kwenye uwekaji lengwa badala ya
 kunakiliwa kutoka utekelezaji wa zamani. Kipendekezwa cha `recurring-*` hupita tu wakati kina adapta ya
 matumizi iliyosajiliwa na `hardStopGuaranteed: true`; metadata isiyokamilika inaendelea kufungwa kwa usalama.
 
-Ikiwa `excludeTosAvoid: true`, kila kipendekezwa kilichoratibiwa kama `tos: "avoid"` huondolewa. OpenCode Free
-kwa sasa ina uamuzi huo, kwa hivyo kuwasha kinga kunaweza kuondoa kila kitu katika kundi lililosalia la `keyless`
-la uwekaji. Haya ni maafikiano yanayotarajiwa ya kuwasha kinga ya ToS, si hitilafu: chaguo-msingi la kinga ni `false`
+Ikiwa `excludeTosAvoid: true`, kila kipendekezwa kilichoratibiwa kama `tos: "avoid"` huondolewa. Haya ni maafikiano yanayotarajiwa ya kuwasha kinga ya ToS, si hitilafu: chaguo-msingi la kinga ni `false`
 kwa sababu hii hasa (angalia "Kinga ya ToS" hapo juu).
 
 ## Kuwasha

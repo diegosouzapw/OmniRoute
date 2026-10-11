@@ -14,12 +14,12 @@
 
 ### 提供者类型
 
-| 类型           | 含义               | 示例                              | 费用               |
-| -------------- | ------------------ | --------------------------------- | ------------------ |
-| **免费**       | 无需付款           | Kiro、OpenCode Free、Pollinations | $0                 |
-| **API 密钥**   | 需要 API 密钥      | OpenAI、Anthropic、Google         | 按使用量付费       |
-| **OAuth**      | 使用你的账户登录   | Claude Code、GitHub Copilot       | 订阅               |
-| **Web Cookie** | 使用你的浏览器会话 | ChatGPT Web (Codex)、Gemini Web   | $0（使用你的账户） |
+| 类型           | 含义               | 示例                            | 费用               |
+| -------------- | ------------------ | ------------------------------- | ------------------ |
+| **免费**       | 无需付款           | Kiro、Pollinations              | $0                 |
+| **API 密钥**   | 需要 API 密钥      | OpenAI、Anthropic、Google       | 按使用量付费       |
+| **OAuth**      | 使用你的账户登录   | Claude Code、GitHub Copilot     | 订阅               |
+| **Web Cookie** | 使用你的浏览器会话 | ChatGPT Web (Codex)、Gemini Web | $0（使用你的账户） |
 
 ### Web Cookie 提供者
 
@@ -40,7 +40,6 @@
 2. 前往**提供者** → **添加提供者**
 3. 选择以下免费提供者之一：
    - **Kiro AI** — 免费 Claude 模型（无需身份验证）
-   - **OpenCode Free** — 免费 GPT 模型（无需身份验证）
    - **Pollinations** — 免费 GPT-5、Claude、Gemini（无需密钥）
    - **LongCat** — 免费提供 1000 万个 token（一次性额度，需要账户和 KYC）
    - **Cloudflare AI** — 50 多个模型，每天 1 万个神经元
@@ -170,7 +169,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | 提供者            | 免费额度           | 模型                                     | 连接方式          |
 | ----------------- | ------------------ | ---------------------------------------- | ----------------- |
 | **Kiro AI**       | 每月 50 个积分     | Claude Sonnet 4.5、Haiku 4.5、Opus 4.6   | 无需身份验证      |
-| **OpenCode Free** | 不限量             | GPT-4o、Claude、Gemini                   | 无需身份验证      |
 | **Pollinations**  | 无需密钥           | GPT-5、Claude、Gemini、DeepSeek、Llama 4 | 无需身份验证      |
 | **LongCat**       | 一次性 1000 万     | LongCat-2.0                              | API 密钥 + KYC    |
 | **Cloudflare AI** | 每天 1 万神经元    | 50 多个模型                              | 无需身份验证      |
@@ -244,7 +242,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 至少连接 **3 个提供者**，以获得最佳体验：
 
-1. **一个免费提供者**（Kiro、OpenCode Free 或 Pollinations）— 始终可用
+1. **一个免费提供者**（Kiro 或 Pollinations）— 始终可用
 2. **一个快速提供者**（Groq、Cerebras）— 用于快速响应
 3. **一个高质量提供者**（OpenAI、Anthropic、Google）— 用于复杂任务
 
@@ -290,7 +288,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ### “使用 OmniRoute 需要付费吗？”
 
-**不需要！** OmniRoute 是免费且开源的。你可以免费使用 Kiro、OpenCode Free、Pollinations 等提供者。只有选择付费提供者时才需要付费。
+**不需要！** OmniRoute 是免费且开源的。你可以免费使用 Kiro、Pollinations 等提供者。只有选择付费提供者时才需要付费。
 
 ### “我应该先使用哪个提供者？”
 

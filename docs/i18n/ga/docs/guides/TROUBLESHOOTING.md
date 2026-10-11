@@ -39,7 +39,7 @@ Fadhbanna coitianta agus réitigh dóibh in OmniRoute.
 
 ### Teorannú Ráta ar Sholáthraithe Saor in Aisce (429 / 400 / 401)
 
-**Siomptóm**: Agus `model: "auto"` in úsáid le soláthraithe saor in aisce/gan fíordheimhniú (opencode, auggie, srl.), faigheann tú `HTTP 429`, `400`, nó `401` ó am go chéile in ionad freagraí. Éiríonn leis na hiarratais nuair a bhaintear triail eile as an leid chéanna cúpla nóiméad ina dhiaidh sin, ach teipeann ar uathoibriú (tascanna cron, gníomhairí, scripteanna) ar an gcéad teip.
+**Siomptóm**: Agus `model: "auto"` in úsáid le soláthraithe saor in aisce/gan fíordheimhniú (auggie, srl.), faigheann tú `HTTP 429`, `400`, nó `401` ó am go chéile in ionad freagraí. Éiríonn leis na hiarratais nuair a bhaintear triail eile as an leid chéanna cúpla nóiméad ina dhiaidh sin, ach teipeann ar uathoibriú (tascanna cron, gníomhairí, scripteanna) ar an gcéad teip.
 
 **Bunchúis**: Tagann trí mhodh teipe neamhspleácha le chéile:
 

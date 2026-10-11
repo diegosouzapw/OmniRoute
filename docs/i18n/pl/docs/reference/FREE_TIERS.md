@@ -120,7 +120,6 @@ Większość wartości „darmowych tokenów miesięcznie” w tej branży stano
 | `modal`          | Sekcja 1.3 warunków korzystania wyraźnie zabrania „wynajmowania, odsprzedawania lub umożliwiania w inny sposób jakiejkolwiek stronie trzeciej bezpośredniego dostępu do Usługi albo korzystania z niej” — tworzenie samodzielnie hostowa… |
 | `muse-spark-web` | Warunki korzystania z Meta wyraźnie zabraniają automatycznego dostępu bez uprzedniej zgody, inżynierii wstecznej bez pisemnego zezwolenia oraz obchodzenia zabezpieczeń technologi…                                                       |
 | `nlpcloud`       | Warunki korzystania wyraźnie zabraniają „konfigurowania serwera proxy lub innego urządzenia, które umożliwia innym osobom dostęp do Usługi za jego pośrednictwem”, i przyznają jedynie nieprzenoszalne,…                                  |
-| `opencode`       | Warunki korzystania (Anomaly Innovations, Inc.) wyraźnie ograniczają użycie do „własnego użytku wewnętrznego, a nie w imieniu ani na rzecz jakiejkolwiek strony trzeciej” — ope…                                                          |
 | `t3-web`         | Warunki korzystania wyraźnie ograniczają konta wyłącznie do użytku osobistego, zabraniają udostępniania danych uwierzytelniających stronom trzecim oraz zakazują zautomatyzowanego dostępu, botów i scrapingu — s…                        |
 
 ### ✅ Zasadniczo liberalne — ostrożność / niejasne / dozwolone (pozostałe)
@@ -264,7 +263,6 @@ Większość wartości „darmowych tokenów miesięcznie” w tej branży stano
 | `nlpcloud`       | bez klucza            | —                          | —                          | unikać          | 1      |
 | `nous-research`  | bez klucza            | —                          | —                          | niejednoznaczny | 2      |
 | `nvidia`         | bez klucza            | —                          | —                          | ostrożnie       | 13     |
-| `opencode`       | bez klucza            | —                          | —                          | unikać          | 7      |
 | `pollinations`   | bez klucza            | —                          | —                          | ostrożnie       | 31     |
 | `publicai`       | keyless               | —                          | —                          | caution         | 3      |
 | `reka`           | keyless               | —                          | —                          | caution         | 2      |
@@ -275,17 +273,6 @@ Większość wartości „darmowych tokenów miesięcznie” w tej branży stano
 | `uncloseai`      | keyless               | —                          | —                          | caution         | 3      |
 
 ---
-
-## OpenCode Free: ograniczenie kontraktu klienta (#14313)
-
-Dostawca `opencode` bez klucza (publiczny `https://opencode.ai/zen/v1`) odrzuca każde żądanie,
-które nie jest zgodne z kontraktem klienta OpenCode, zwracając **403 `FreeTierError`** oraz
-komunikat _„Z bezpłatnego poziomu OpenCode można korzystać wyłącznie z poziomu OpenCode”_. Jest to
-odmowa dotycząca konkretnego żądania (ten sam rezultat na każdym koncie dla tego samego formatu żądania), a nie
-blokada modelu ani okres karencji połączenia — OmniRoute klasyfikuje ją jako `project_route_error`, pomija
-blokadę modelu / okres karencji, a (na syntetycznej ścieżce `noauth`) wstrzymuje automatyczny ponowny wybór kombinacji
-na krótki czas TTL. Wysyłaj żądania zawierające niepustą listę narzędzi, `stream: true` oraz
-nagłówki sesji/UA OpenCode (`opencodeFreeTierContract.ts`), w przeciwnym razie spodziewaj się błędu 403.
 
 ## Co zmieniło się od czasu wydania katalogu (`freeNote`)
 

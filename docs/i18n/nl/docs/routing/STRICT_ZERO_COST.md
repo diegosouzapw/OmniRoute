@@ -146,14 +146,12 @@ het hiaat in plaats van te doen alsof het niet bestaat.
 Voor een offlinevergelijking vóór en na werkt `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` nog steeds
 met de kandidaatuitvoer van een live-instance; het leest de werkelijke `connectionId` van elke kandidaat, zodat het
 ook het pad voor verbindingsveiligheid doorloopt. Keyless kandidaten moeten worden aangeleverd met de synthetische
-`connectionId` zonder authenticatie, nooit met een echte verbinding. Het huidige ingebouwde keyless automatische pad is OpenCode Free; exacte aantallen kandidaten
+`connectionId` zonder authenticatie, nooit met een echte verbinding. exacte aantallen kandidaten
 zijn nog steeds afhankelijk van live modeldetectie en moeten in de doelimplementatie worden gemeten in plaats van
 uit een oudere uitvoering te worden overgenomen. Een `recurring-*`-kandidaat slaagt alleen wanneer deze zowel een geregistreerde
 gebruiksadapter als `hardStopGuaranteed: true` heeft; onvolledige metadata blijven uit voorzorg tot uitsluiting leiden.
 
-Met `excludeTosAvoid: true` wordt elke kandidaat met het gecureerde oordeel `tos: "avoid"` verwijderd. OpenCode Free
-heeft momenteel dat oordeel, waardoor het inschakelen van de beveiliging de resterende keyless
-pool van een implementatie volledig kan leegmaken. Dit is een verwachte afweging bij het inschakelen van de ToS-beveiliging, geen bug: de beveiliging is
+Met `excludeTosAvoid: true` wordt elke kandidaat met het gecureerde oordeel `tos: "avoid"` verwijderd. Dit is een verwachte afweging bij het inschakelen van de ToS-beveiliging, geen bug: de beveiliging is
 juist om deze reden standaard `false` (zie ‘ToS-beveiliging’ hierboven).
 
 ## Inschakelen

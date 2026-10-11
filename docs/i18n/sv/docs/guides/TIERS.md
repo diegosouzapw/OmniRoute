@@ -54,7 +54,6 @@ OAuth-kvoter.
 | Leverantör       | Kostnadsfri kvot/krediter                           |
 | ---------------- | --------------------------------------------------- |
 | Kiro AI          | Kostnadsfri Claude-nivå (generös skälig användning) |
-| OpenCode Free    | Ingen autentisering, generösa hastighetsgränser     |
 | Qoder            | Kostnadsfri OAuth                                   |
 | Google Vertex AI | $300 i krediter för nya konton                      |
 | Amazon Q         | Kostnadsfri nivå för AWS-användare                  |

@@ -59,15 +59,7 @@ OmniRoute 會在 `http://localhost:20128` 啟動。儀表板將自動開啟。
 4. 按一下 **連接**（無須 API 金鑰！）
 5. 完成！您現在可以免費使用 Claude 模型。
 
-### 選項 B：OpenCode Free（無須驗證）
-
-1. 在 `http://localhost:20128` 開啟儀表板
-2. 前往 **提供者** → **新增提供者**
-3. 選取 **OpenCode Free**
-4. 按一下 **連接**（無須 API 金鑰！）
-5. 完成！您現在可以免費使用多種模型。
-
-### 選項 C：Pollinations（無須金鑰）
+### 選項 B：Pollinations（無須金鑰）
 
 1. 在 `http://localhost:20128` 開啟儀表板
 2. 前往 **提供者** → **新增提供者**
@@ -163,7 +155,7 @@ omniroute launch-codex --model auto
 
 ### 「我需要 API 金鑰嗎？」
 
-**不需要！** 您可以使用免費提供者（Kiro、OpenCode Free、Pollinations），無須任何 API 金鑰。只需在儀表板中連接它們即可。
+**不需要！** 您可以使用免費提供者（Kiro、Pollinations），無須任何 API 金鑰。只需在儀表板中連接它們即可。
 
 ### 「`auto` 是什麼？」
 

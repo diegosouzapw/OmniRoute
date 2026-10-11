@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fonctionne dès l'installation — zéro configuration. Trois étapes : 1. Installer — npm i -g omniroute, le serveur démarre sur localhost:20128. 2. Pointer votre outil vers http://localhost:20128/v1 — tout outil compatible OpenAI (Claude Code, Cursor, Cline). 3. Il répond — appeler le modèle auto pour une réponse instantanée, sans clé API, sans inscription, sans configuration. Le fournisseur sans clé OpenCode Free est pré-câblé dans le combo auto, donc une nouvelle installation répond immédiatement."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fonctionne dès l'installation — zéro configuration. Trois étapes : 1. Installer — npm i -g omniroute, le serveur démarre sur localhost:20128. 2. Pointer votre outil vers http://localhost:20128/v1 — tout outil compatible OpenAI (Claude Code, Cursor, Cline). 3. Il répond — appeler le modèle auto pour une réponse instantanée, sans clé API, sans inscription, sans configuration."/>
 
 ```bash
 # Nouvelle installation, zéro identifiants — `auto` fonctionne déjà :
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Vous préférez un backend gratuit spécifique ? Appelez `oc/…` (OpenCode Free) directement. Ensuite, passez à `auto` et laissez OmniRoute choisir.</sub>
 
 <sub>📦 Scripts de démarrage rapide à copier-coller pour **Python, Node.js, PHP et cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Tableau de bord sur `http://localhost:20128` · API sur `http://localhost:20128/
 
 **2) Connecter un fournisseur GRATUIT (sans inscription)**
 
-Tableau de bord → **Fournisseurs** → connectez **Kiro AI** (Claude gratuit, environ 50 crédits/mois par compte) ou **OpenCode Free** (sans authentification) → terminé.
+Tableau de bord → **Fournisseurs** → connectez **Kiro AI** (Claude gratuit, environ 50 crédits/mois par compte) → terminé.
 
 **3) Configurer votre outil de programmation**
 
@@ -1265,7 +1263,7 @@ Métriques canoniques au 2026-08-24 : **1.029 vidéos uniques** · **11.132.922 
   <tr><td nowrap><b>Environnement d’exécution</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Langage</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> dans <code>src/</code> et <code>open-sse/</code> (aucun <code>any</code> dans le cœur depuis v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Base de données</b></td><td>better-sqlite3 (SQLite, journalisation WAL) + LowDB (JSON historique) — 137 modules métier, 202 migrations</td></tr>
+  <tr><td nowrap><b>Base de données</b></td><td>better-sqlite3 (SQLite, journalisation WAL) + LowDB (JSON historique) — 137 modules métier, 203 migrations</td></tr>
   <tr><td nowrap><b>Mémoire</b></td><td>Recherche en texte intégral SQLite FTS5 + plongements vectoriels quantifiés en int8, décroissance typée</td></tr>
   <tr><td nowrap><b>Schémas</b></td><td>Zod 4 — validation des entrées/sorties des outils MCP + contrats d’API</td></tr>
   <tr><td nowrap><b>Protocoles</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

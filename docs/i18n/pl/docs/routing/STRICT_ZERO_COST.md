@@ -145,16 +145,13 @@ wskazuje lukę, zamiast udawać, że jej nie ma.
 Do porównania offline stanu przed i po zmianie nadal można użyć `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts`
 z danymi wyjściowymi kandydatów z działającej instancji; skrypt odczytuje rzeczywisty `connectionId`
 każdego kandydata, więc testuje również ścieżkę bezpieczeństwa połączenia. Kandydaci `keyless` muszą
-otrzymywać syntetyczny `connectionId` braku uwierzytelniania, nigdy rzeczywiste połączenie. Obecnie
-wbudowaną automatyczną ścieżką `keyless` jest OpenCode Free; dokładna liczba kandydatów nadal zależy
+otrzymywać syntetyczny `connectionId` braku uwierzytelniania, nigdy rzeczywiste połączenie. dokładna liczba kandydatów nadal zależy
 od aktywnego wykrywania modeli i powinna zostać zmierzona we wdrożeniu docelowym, zamiast być kopiowana
 ze starszego uruchomienia. Kandydat `recurring-*` przechodzi kontrolę tylko wtedy, gdy ma zarówno
 zarejestrowany adapter użycia, jak i `hardStopGuaranteed: true`; niekompletne metadane nadal powodują
 bezpieczną odmowę.
 
-Przy `excludeTosAvoid: true` każdy kandydat z ręcznie określonym `tos: "avoid"` zostaje usunięty.
-OpenCode Free ma obecnie taką ocenę, dlatego włączenie ochrony może opróżnić pozostałą pulę `keyless`
-we wdrożeniu. Jest to oczekiwany kompromis wynikający z włączenia ochrony ToS, a nie błąd: właśnie
+Przy `excludeTosAvoid: true` każdy kandydat z ręcznie określonym `tos: "avoid"` zostaje usunięty. Jest to oczekiwany kompromis wynikający z włączenia ochrony ToS, a nie błąd: właśnie
 z tego powodu ochrona ma domyślnie wartość `false` (zobacz „Ochrona ToS” powyżej).
 
 ## Włączanie

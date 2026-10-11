@@ -122,7 +122,6 @@ Kebanyakan angka "token percuma sebulan" dalam bidang ini ialah jumlah label bag
 | `modal`          | Seksyen 1.3 ToS secara nyata melarang "menyewa, menjual semula atau dengan cara lain membenarkan mana-mana pihak ketiga mendapat akses terus kepada atau menggunakan Perkhidmatan" — membina proksi yang dihoskan sendiri… |
 | `muse-spark-web` | ToS Meta secara nyata melarang akses automatik tanpa kebenaran terlebih dahulu, kejuruteraan songsang tanpa kebenaran bertulis dan pemintasan teknologi…                                                                   |
 | `nlpcloud`       | ToS secara nyata melarang "menyediakan proksi atau peranti lain yang membolehkan orang lain mengakses Perkhidmatan melaluinya" dan hanya memberikan hak yang tidak boleh dipindah milik,…                                  |
-| `opencode`       | ToS (Anomaly Innovations, Inc.) secara nyata mengehadkan penggunaan kepada "kegunaan dalaman anda sendiri, dan bukan bagi pihak atau untuk manfaat mana-mana pihak ketiga" — ope…                                          |
 | `t3-web`         | ToS secara nyata mengehadkan akaun kepada penggunaan peribadi sahaja, melarang perkongsian kelayakan dengan pihak ketiga dan melarang akses automatik/bot/pengikisan — suatu p…                                            |
 
 ### ✅ Umumnya permisif — berhati-hati / tidak jelas / ok (selebihnya)
@@ -266,7 +265,6 @@ Kebanyakan angka "token percuma sebulan" dalam bidang ini ialah jumlah label bag
 | `nlpcloud`       | tanpa kunci        | —               | —                    | elakkan             | 1     |
 | `nous-research`  | tanpa kunci        | —               | —                    | tidak jelas         | 2     |
 | `nvidia`         | tanpa kunci        | —               | —                    | berhati-hati        | 13    |
-| `opencode`       | tanpa kunci        | —               | —                    | elakkan             | 7     |
 | `pollinations`   | tanpa kunci        | —               | —                    | berhati-hati        | 31    |
 | `publicai`       | tanpa kunci        | —               | —                    | berhati-hati        | 3     |
 | `reka`           | tanpa kunci        | —               | —                    | berhati-hati        | 2     |
@@ -277,17 +275,6 @@ Kebanyakan angka "token percuma sebulan" dalam bidang ini ialah jumlah label bag
 | `uncloseai`      | tanpa kunci        | —               | —                    | berhati-hati        | 3     |
 
 ---
-
-## OpenCode Free: sekatan kontrak klien (#14313)
-
-Penyedia `opencode` tanpa kunci (awam `https://opencode.ai/zen/v1`) menolak sebarang permintaan
-yang tidak sepadan dengan kontrak klien OpenCode dengan **403 `FreeTierError`** dan ayat
-_"Peringkat percuma OpenCode hanya boleh digunakan dari dalam OpenCode"_. Ini ialah
-penolakan pada skop permintaan (keputusan yang sama pada setiap akaun untuk bentuk permintaan yang sama), bukannya
-sekatan model atau tempoh bertenang sambungan — OmniRoute mengklasifikasikannya sebagai `project_route_error`, melangkau
-penguncian / tempoh bertenang model dan (pada laluan sintetik `noauth`) menjeda pemilihan semula auto-combo
-untuk TTL yang singkat. Hantar permintaan yang membawa senarai alat yang tidak kosong, `stream: true`, dan
-pengepala sesi/UA OpenCode (`opencodeFreeTierContract.ts`) atau jangkakan 403.
 
 ## Perkara yang berubah sejak katalog yang dihantar (`freeNote`)
 

@@ -122,7 +122,6 @@ Il-biċċa l-kbira taċ-ċifri ta' "tokens bla ħlas fix-xahar" f'dan il-qasam h
 | `modal`          | It-Taqsima 1.3 tat-ToS tipprojbixxi b'mod espliċitu li "tikri, terġa' tbigħ jew b'xi mod ieħor tippermetti lil kwalunkwe parti terza aċċess dirett għas-Servizz jew l-użu tiegħu" — il-bini ta' proxy self-hosted… |
 | `muse-spark-web` | It-ToS ta' Meta jipprojbixxi b'mod espliċitu l-aċċess awtomatizzat mingħajr permess minn qabel, ir-reverse engineering mingħajr permess bil-miktub, u l-evażjoni ta' miżuri teknoloġiċi…                           |
 | `nlpcloud`       | It-ToS jipprojbixxi b'mod espliċitu "it-twaqqif ta' proxy jew apparat ieħor li jippermetti lil oħrajn jaċċessaw is-Servizz permezz tiegħu" u jagħti biss liċenzja mhux trasferibbli,…                              |
-| `opencode`       | It-ToS (Anomaly Innovations, Inc.) jirrestrinġi b'mod espliċitu l-użu għal "l-użu intern tiegħek stess, u mhux f'isem jew għall-benefiċċju ta' kwalunkwe parti terza" — ope…                                       |
 | `t3-web`         | It-ToS jirrestrinġi b'mod espliċitu l-kontijiet għal użu personali biss, jipprojbixxi l-kondiviżjoni tal-kredenzjali ma' partijiet terzi, u jipprojbixxi aċċess awtomatizzat/permezz ta' bots/scraping — s…        |
 
 ### ✅ Ġeneralment permissivi — attenzjoni / ambigwi / ok (il-bqija)
@@ -266,7 +265,6 @@ Il-biċċa l-kbira taċ-ċifri ta' "tokens bla ħlas fix-xahar" f'dan il-qasam h
 | `nlpcloud`       | mingħajr ċavetta           | —                    | —                       | evita               | 1       |
 | `nous-research`  | mingħajr ċavetta           | —                    | —                       | ambigwu             | 2       |
 | `nvidia`         | mingħajr ċavetta           | —                    | —                       | kawtela             | 13      |
-| `opencode`       | mingħajr ċavetta           | —                    | —                       | evita               | 7       |
 | `pollinations`   | mingħajr ċavetta           | —                    | —                       | kawtela             | 31      |
 | `publicai`       | mingħajr ċavetta           | —                    | —                       | attenzjoni          | 3       |
 | `reka`           | mingħajr ċavetta           | —                    | —                       | attenzjoni          | 2       |
@@ -277,17 +275,6 @@ Il-biċċa l-kbira taċ-ċifri ta' "tokens bla ħlas fix-xahar" f'dan il-qasam h
 | `uncloseai`      | mingħajr ċavetta           | —                    | —                       | attenzjoni          | 3       |
 
 ---
-
-## OpenCode Free: restrizzjoni tal-kuntratt tal-klijent (#14313)
-
-Il-fornitur `opencode` mingħajr ċavetta (`https://opencode.ai/zen/v1` pubbliku) jirrifjuta kwalunkwe talba
-li ma taqbilx mal-kuntratt tal-klijent OpenCode b’**403 `FreeTierError`** u bis-sentenza
-_"Il-livell bla ħlas ta’ OpenCode jista’ jintuża biss minn ġewwa OpenCode"_. Dan huwa
-rifjut speċifiku għat-talba (l-istess deċiżjoni fuq kull kont għall-istess struttura tat-talba), mhux
-projbizzjoni tal-mudell jew perjodu ta’ stennija tal-konnessjoni — OmniRoute jikklassifikah bħala `project_route_error`, jaqbeż
-l-imblukkar / il-perjodu ta’ stennija tal-mudell, u (fuq il-perkors sintetiku `noauth`) iwaqqaf temporanjament l-għażla mill-ġdid awtomatika
-tal-kombinazzjoni għal TTL qasir. Ibgħat talbiet li jkollhom lista mhux vojta ta’ għodod, `stream: true`, u l-headers
-tas-sessjoni/UA ta’ OpenCode (`opencodeFreeTierContract.ts`), inkella stenna l-403.
 
 ## X’inbidel mill-katalgu rilaxxat (`freeNote`)
 

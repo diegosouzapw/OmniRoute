@@ -51,7 +51,6 @@ scagaire cumais an taisc (fís, mód JSON, uirlisí, comhthéacs uasta).
 | Soláthraí        | Cuóta saor in aisce / creidmheasanna                  |
 | ---------------- | ----------------------------------------------------- |
 | Kiro AI          | Sraith Claude saor in aisce (úsáid chóir fhlaithiúil) |
-| OpenCode Free    | Gan fíordheimhniú, teorainneacha ráta flaithiúla      |
 | Qoder            | OAuth saor in aisce                                   |
 | Google Vertex AI | $300 i gcreidmheasanna do chuntas nua                 |
 | Amazon Q         | Sraith saor in aisce d'úsáideoirí AWS                 |

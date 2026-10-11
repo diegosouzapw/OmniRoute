@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="நீங்கள் நிறுவியவுடன் வேலை செய்கிறது — பூஜ்ஜிய கட்டமைப்பு. மூன்று படிகள்: 1. நிறுவு — npm i -g omniroute, சர்வர் localhost:20128 இல் தொடங்குகிறது. 2. உங்கள் கருவியை http://localhost:20128/v1 க்கு சுட்டிக்காட்டுங்கள் — எந்த OpenAI-இணக்கமான கருவியும் (Claude Code, Cursor, Cline). 3. இது பதிலளிக்கிறது — API விசை இல்லாமல், பதிவு இல்லாமல், கட்டமைப்பு இல்லாமல் உடனடி பதிலுக்கு 'auto' மாதிரியை அழைக்கவும். Keyless வழங்குநர் OpenCode Free ஆனது 'auto' காம்போவுடன் முன்பே இணைக்கப்பட்டுள்ளது, எனவே புதிய நிறுவல் உடனடியாக பதிலளிக்கும்."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="நீங்கள் நிறுவியவுடன் வேலை செய்கிறது — பூஜ்ஜிய கட்டமைப்பு. மூன்று படிகள்: 1. நிறுவு — npm i -g omniroute, சர்வர் localhost:20128 இல் தொடங்குகிறது. 2. உங்கள் கருவியை http://localhost:20128/v1 க்கு சுட்டிக்காட்டுங்கள் — எந்த OpenAI-இணக்கமான கருவியும் (Claude Code, Cursor, Cline). 3. இது பதிலளிக்கிறது — API விசை இல்லாமல், பதிவு இல்லாமல், கட்டமைப்பு இல்லாமல் உடனடி பதிலுக்கு 'auto' மாதிரியை அழைக்கவும்."/>
 
 ```bash
 # புதிய நிறுவல், பூஜ்ஜிய நற்சான்றுகள் — `auto` ஏற்கனவே வேலை செய்கிறது:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ஒரு குறிப்பிட்ட இலவச பின்தளத்தை விரும்புகிறீர்களா? `oc/…` (OpenCode Free) ஐ நேரடியாக அழைக்கவும். பின்னர் `auto` க்கு மேம்படுத்தி OmniRoute ஐ தேர்வு செய்ய விடுங்கள்.</sub>
 
 <sub>📦 **Python, Node.js, PHP, மற்றும் cURL** க்கான விரைவு தொடக்க ஸ்கிரிப்ட்களை நகலெடுத்து ஒட்டவும் → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1016,7 +1014,7 @@ omniroute
 
 **2) இலவச வழங்குநரை இணைக்கவும் (பதிவுசெய்தல் தேவையில்லை)**
 
-டாஷ்போர்டு → **வழங்குநர்கள்** → **Kiro AI**-ஐ (இலவச Claude, ஒரு கணக்கிற்கு மாதம் ~50 கிரெடிட்கள்) அல்லது **OpenCode Free**-ஐ (அங்கீகாரம் தேவையில்லை) இணைக்கவும் → முடிந்தது.
+டாஷ்போர்டு → **வழங்குநர்கள்** → **Kiro AI**-ஐ (இலவச Claude, ஒரு கணக்கிற்கு மாதம் ~50 கிரெடிட்கள்) இணைக்கவும் → முடிந்தது.
 
 **3) உங்கள் கோடிங் கருவியை இதற்குச் சுட்டிக்காட்டவும்**
 
@@ -1273,7 +1271,7 @@ Dashboard இல்லாத headless runtime-க்கு Docker `base` profile
   <tr><td nowrap><b>இயக்கச் சூழல்</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>மொழி</b></td><td>TypeScript 6.0 — <code>src/</code> மற்றும் <code>open-sse/</code> முழுவதிலும் <b>100% TypeScript</b> (v2.0 முதல் மையப் பகுதியில் <code>any</code> எதுவுமில்லை)</td></tr>
   <tr><td nowrap><b>கட்டமைப்பு</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபமைப்பு) — 137 களத் தொகுதிகள், 202 இடமாற்றங்கள்</td></tr>
+  <tr><td nowrap><b>தரவுத்தளம்</b></td><td>better-sqlite3 (SQLite, WAL பதிவேடு) + LowDB (JSON மரபமைப்பு) — 137 களத் தொகுதிகள், 203 இடமாற்றங்கள்</td></tr>
   <tr><td nowrap><b>நினைவகம்</b></td><td>SQLite FTS5 முழு-உரை + int8 அளவாக்கப்பட்ட திசையன் உட்பொதிவுகள், வகையிடப்பட்ட தேய்வு</td></tr>
   <tr><td nowrap><b>திட்டவடிவங்கள்</b></td><td>Zod 4 — MCP கருவி உள்ளீடு/வெளியீட்டுச் சரிபார்ப்பு + API ஒப்பந்தங்கள்</td></tr>
   <tr><td nowrap><b>நெறிமுறைகள்</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

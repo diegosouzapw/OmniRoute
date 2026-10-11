@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerer med en gang du installerer det — null konfigurasjon. Tre trinn: 1. Installer — npm i -g omniroute, serveren starter på localhost:20128. 2. Pek verktøyet ditt mot http://localhost:20128/v1 — ethvert OpenAI-kompatibelt verktøy (Claude Code, Cursor, Cline). 3. Det svarer — kall modell auto for et øyeblikkelig svar, uten API-nøkkel, ingen registrering, ingen konfigurasjon. Nøkkelfri leverandør OpenCode Free er forhåndskoblet inn i auto-kombinasjonen, så en fersk installasjon svarer ut av boksen."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerer med en gang du installerer det — null konfigurasjon. Tre trinn: 1. Installer — npm i -g omniroute, serveren starter på localhost:20128. 2. Pek verktøyet ditt mot http://localhost:20128/v1 — ethvert OpenAI-kompatibelt verktøy (Claude Code, Cursor, Cline). 3. Det svarer — kall modell auto for et øyeblikkelig svar, uten API-nøkkel, ingen registrering, ingen konfigurasjon."/>
 
 ```bash
 # Fersk installasjon, null legitimasjon — `auto` fungerer allerede:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Foretrekker du en spesifikk gratis backend? Kall `oc/…` (OpenCode Free) direkte. Gå deretter over til `auto` og la OmniRoute velge.</sub>
 
 <sub>📦 Kopier-lim inn hurtigstartskript for **Python, Node.js, PHP og cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1017,7 +1015,7 @@ Kontrollpanelet er tilgjengelig på `http://localhost:20128` · API-et på `http
 
 **2) Koble til en GRATIS leverandør (ingen registrering)**
 
-Kontrollpanel → **Leverandører** → koble til **Kiro AI** (gratis Claude, ~50 kreditter/måned per konto) eller **OpenCode Free** (ingen autentisering) → ferdig.
+Kontrollpanel → **Leverandører** → koble til **Kiro AI** (gratis Claude, ~50 kreditter/måned per konto) → ferdig.
 
 **3) Koble til kodeverktøyet ditt**
 
@@ -1274,7 +1272,7 @@ Kanoniske målinger per 2026-08-24: **1.029 unike videoer** · **11.132.922 kjen
   <tr><td nowrap><b>Kjøretidsmiljø</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Språk</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> på tvers av <code>src/</code> og <code>open-sse/</code> (ingen <code>any</code> i kjernen siden v2.0)</td></tr>
   <tr><td nowrap><b>Rammeverk</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (eldre JSON-format) — 137 domenemoduler, 202 migreringer</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (eldre JSON-format) — 137 domenemoduler, 203 migreringer</td></tr>
   <tr><td nowrap><b>Minne</b></td><td>SQLite FTS5-fulltekst + int8-kvantiserte vektorrepresentasjoner, typet nedbrytning</td></tr>
   <tr><td nowrap><b>Skjemaer</b></td><td>Zod 4 — validering av MCP-verktøyenes inn- og utdata + API-kontrakter</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

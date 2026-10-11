@@ -39,7 +39,7 @@ Uobičajeni problemi i rješenja za OmniRoute.
 
 ### Ograničavanje brzine kod besplatnih pružalaca usluga (429 / 400 / 401)
 
-**Simptom**: Kada koristite `model: "auto"` s besplatnim pružaocima usluga ili onima koji ne zahtijevaju autentifikaciju (opencode, auggie itd.), povremeno dobijate `HTTP 429`, `400` ili `401` umjesto odgovora. Zahtjevi uspiju kada nekoliko trenutaka kasnije ponovite isti upit, ali automatizacija (cron zadaci, agenti, skripte) prekida se pri prvom neuspjehu.
+**Simptom**: Kada koristite `model: "auto"` s besplatnim pružaocima usluga ili onima koji ne zahtijevaju autentifikaciju (auggie itd.), povremeno dobijate `HTTP 429`, `400` ili `401` umjesto odgovora. Zahtjevi uspiju kada nekoliko trenutaka kasnije ponovite isti upit, ali automatizacija (cron zadaci, agenti, skripte) prekida se pri prvom neuspjehu.
 
 **Osnovni uzrok**: Tri nezavisna načina otkazivanja međusobno se nadovezuju:
 

@@ -14,12 +14,12 @@ Pensa a un provider come a un **operatore telefonico**. Proprio come hai bisogno
 
 ### Tipi di provider
 
-| Tipo           | Descrizione                     | Esempi                            | Costo                       |
-| -------------- | ------------------------------- | --------------------------------- | --------------------------- |
-| **Gratuito**   | Non è richiesto alcun pagamento | Kiro, OpenCode Free, Pollinations | $0                          |
-| **Chiave API** | È necessaria una chiave API     | OpenAI, Anthropic, Google         | Pagamento in base all'uso   |
-| **OAuth**      | Accesso con il proprio account  | Claude Code, GitHub Copilot       | Abbonamento                 |
-| **Cookie web** | Usa la sessione del browser     | ChatGPT Web (Codex), Gemini Web   | $0 (usa il proprio account) |
+| Tipo           | Descrizione                     | Esempi                          | Costo                       |
+| -------------- | ------------------------------- | ------------------------------- | --------------------------- |
+| **Gratuito**   | Non è richiesto alcun pagamento | Kiro, Pollinations              | $0                          |
+| **Chiave API** | È necessaria una chiave API     | OpenAI, Anthropic, Google       | Pagamento in base all'uso   |
+| **OAuth**      | Accesso con il proprio account  | Claude Code, GitHub Copilot     | Abbonamento                 |
+| **Cookie web** | Usa la sessione del browser     | ChatGPT Web (Codex), Gemini Web | $0 (usa il proprio account) |
 
 ### Provider con cookie web
 
@@ -46,7 +46,6 @@ riprovare in sicurezza soltanto quelli non riusciti.
 2. Vai a **Provider** → **Aggiungi provider**
 3. Seleziona uno di questi provider gratuiti:
    - **Kiro AI** — Modelli Claude gratuiti (nessuna autenticazione necessaria)
-   - **OpenCode Free** — Modelli GPT gratuiti (nessuna autenticazione necessaria)
    - **Pollinations** — GPT-5, Claude e Gemini gratuiti (nessuna chiave necessaria)
    - **LongCat** — 10 milioni di token gratuiti (concessione una tantum, richiede account + KYC)
    - **Cloudflare AI** — Oltre 50 modelli, 10.000 neuroni/giorno
@@ -176,7 +175,6 @@ Questi provider offrono **accesso gratuito** senza carta di credito:
 | Provider          | Quota gratuita                   | Modelli                                  | Come connettersi                 |
 | ----------------- | -------------------------------- | ---------------------------------------- | -------------------------------- |
 | **Kiro AI**       | 50 crediti/mese                  | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Nessuna autenticazione richiesta |
-| **OpenCode Free** | Illimitata                       | GPT-4o, Claude, Gemini                   | Nessuna autenticazione richiesta |
 | **Pollinations**  | Nessuna chiave richiesta         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Nessuna autenticazione richiesta |
 | **LongCat**       | 10M una tantum                   | LongCat-2.0                              | Chiave API + KYC                 |
 | **Cloudflare AI** | 10K neuroni/giorno               | Oltre 50 modelli                         | Nessuna autenticazione richiesta |
@@ -250,7 +248,7 @@ OmniRoute funziona al meglio con **più provider**. Ciò offre:
 
 Connetti almeno **3 provider** per un'esperienza ottimale:
 
-1. **Un provider gratuito** (Kiro, OpenCode Free o Pollinations) — Sempre disponibile
+1. **Un provider gratuito** (Kiro o Pollinations) — Sempre disponibile
 2. **Un provider veloce** (Groq, Cerebras) — Per risposte rapide
 3. **Un provider di qualità** (OpenAI, Anthropic, Google) — Per attività complesse
 
@@ -296,7 +294,7 @@ Quindi utilizza `model: "auto"` e OmniRoute sceglierà automaticamente il provid
 
 ### "Devo pagare per usare OmniRoute?"
 
-**No!** OmniRoute è gratuito e open source. Puoi utilizzare provider gratuiti (Kiro, OpenCode Free, Pollinations) senza pagare nulla. Paghi solo se scegli di utilizzare provider a pagamento.
+**No!** OmniRoute è gratuito e open source. Puoi utilizzare provider gratuiti (Kiro, Pollinations) senza pagare nulla. Paghi solo se scegli di utilizzare provider a pagamento.
 
 ### "Con quale provider dovrei iniziare?"
 

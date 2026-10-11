@@ -51,7 +51,6 @@ filter kemampuan tugas (visi, mode JSON, alat, konteks maksimum).
 | Penyedia         | Kuota gratis / kredit                                 |
 | ---------------- | ----------------------------------------------------- |
 | Kiro AI          | Tingkat Claude gratis (penggunaan wajar yang longgar) |
-| OpenCode Free    | Tanpa autentikasi, batas laju yang longgar            |
 | Qoder            | OAuth gratis                                          |
 | Google Vertex AI | Kredit $300 untuk akun baru                           |
 | Amazon Q         | Tingkat gratis untuk pengguna AWS                     |

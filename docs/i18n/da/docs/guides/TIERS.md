@@ -51,15 +51,14 @@ værktøjer, maksimal kontekst).
 **Udbydere uden omkostninger** — gratis niveauer, kreditprogrammer og daglige
 OAuth-kvoter.
 
-| Udbyder          | Gratis kvote/kreditter                        |
-| ---------------- | --------------------------------------------- |
-| Kiro AI          | Gratis Claude-niveau (generøs rimelig brug)   |
-| OpenCode Free    | Ingen godkendelse, generøse hastighedsgrænser |
-| Qoder            | Gratis OAuth                                  |
-| Google Vertex AI | $300 i kredit til nye konti                   |
-| Amazon Q         | Gratis niveau for AWS-brugere                 |
-| Pollinations     | Åben offentlig API                            |
-| Cloudflare AI    | Gratis Workers AI-niveau                      |
+| Udbyder          | Gratis kvote/kreditter                      |
+| ---------------- | ------------------------------------------- |
+| Kiro AI          | Gratis Claude-niveau (generøs rimelig brug) |
+| Qoder            | Gratis OAuth                                |
+| Google Vertex AI | $300 i kredit til nye konti                 |
+| Amazon Q         | Gratis niveau for AWS-brugere               |
+| Pollinations     | Åben offentlig API                          |
+| Cloudflare AI    | Gratis Workers AI-niveau                    |
 
 **Strategi**: kombinationen `auto` med budgetloft sender anmodninger hertil, når
 niveau 1+2 fejler, eller når `useFreeOnly=true` er angivet. Gratis udbydere har ofte

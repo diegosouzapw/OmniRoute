@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Jaħdem mill-ewwel li tinstallah — konfigurazzjoni żero. Tliet passi: 1. Installa — npm i -g omniroute, is-server jibda fuq localhost:20128. 2. Ipponta l-għodda tiegħek lejn http://localhost:20128/v1 — kwalunkwe għodda kompatibbli mal-OpenAI (Claude Code, Cursor, Cline). 3. Tweġiba — ċempel il-mudell auto għal tweġiba immedjata, mingħajr ċavetta API, mingħajr reġistrazzjoni, mingħajr konfigurazzjoni. Il-fornitur mingħajr ċavetta OpenCode Free huwa diġà konness mal-combo auto, għalhekk installazzjoni ġdida tirrispondi mill-ewwel."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Jaħdem mill-ewwel li tinstallah — konfigurazzjoni żero. Tliet passi: 1. Installa — npm i -g omniroute, is-server jibda fuq localhost:20128. 2. Ipponta l-għodda tiegħek lejn http://localhost:20128/v1 — kwalunkwe għodda kompatibbli mal-OpenAI (Claude Code, Cursor, Cline). 3. Tweġiba — ċempel il-mudell auto għal tweġiba immedjata, mingħajr ċavetta API, mingħajr reġistrazzjoni, mingħajr konfigurazzjoni."/>
 
 ```bash
 # Installazzjoni ġdida, żero kredenzjali — `auto` diġà jaħdem:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Tippreferi backend speċifiku b'xejn? Ċempel `oc/…` (OpenCode Free) direttament. Imbagħad aġġorna għal `auto` u ħalli OmniRoute jagħżel.</sub>
 
 <sub>📦 Skripts ta' quickstart biex tikkopja u tippejstja għal **Python, Node.js, PHP, u cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard fuq `http://localhost:20128` · API fuq `http://localhost:20128/v1`.
 
 **2) Qabbad fornitur B’XEJN (mingħajr reġistrazzjoni)**
 
-Dashboard → **Fornituri** → qabbad **Kiro AI** (Claude b’xejn, ~50 kreditu fix-xahar għal kull kont) jew **OpenCode Free** (mingħajr awtentikazzjoni) → lest.
+Dashboard → **Fornituri** → qabbad **Kiro AI** (Claude b’xejn, ~50 kreditu fix-xahar għal kull kont) → lest.
 
 **3) Orjenta l-għodda tal-ipprogrammar tiegħek**
 
@@ -1265,7 +1263,7 @@ Metriċi kanoniċi fl-2026-08-24: **1.029 vidjo uniku** · **11.132.922 dehra ma
   <tr><td nowrap><b>Ambjent ta’ eżekuzzjoni</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Lingwa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> f’<code>src/</code> u <code>open-sse/</code> kollha (l-ebda <code>any</code> fil-qalba minn v2.0 ’l hawn)</td></tr>
   <tr><td nowrap><b>Qafas</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalizzazzjoni WAL) + LowDB (legat JSON) — 137 modulu tad-dominju, 202 migrazzjoni</td></tr>
+  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalizzazzjoni WAL) + LowDB (legat JSON) — 137 modulu tad-dominju, 203 migrazzjoni</td></tr>
   <tr><td nowrap><b>Memorja</b></td><td>Test sħiħ SQLite FTS5 + inkorporazzjonijiet vettorjali kkwantizzati b’int8, tnaqqis ittajpjat</td></tr>
   <tr><td nowrap><b>Skemi</b></td><td>Zod 4 — validazzjoni tal-I/O tal-għodod MCP + kuntratti tal-API</td></tr>
   <tr><td nowrap><b>Protokolli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

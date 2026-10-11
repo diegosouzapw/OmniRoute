@@ -59,15 +59,7 @@ Voit käyttää OmniRoutea **täysin maksutta** yhdistämällä maksuttoman palv
 4. Napsauta **Connect** (API-avainta ei tarvita!)
 5. Valmista! Voit nyt käyttää Claude-malleja maksutta.
 
-### Vaihtoehto B: OpenCode Free (ei tunnistautumista)
-
-1. Avaa hallintapaneeli osoitteessa `http://localhost:20128`
-2. Siirry kohtaan **Providers** → **Add Provider**
-3. Valitse **OpenCode Free**
-4. Napsauta **Connect** (API-avainta ei tarvita!)
-5. Valmista! Voit nyt käyttää useita malleja maksutta.
-
-### Vaihtoehto C: Pollinations (avainta ei tarvita)
+### Vaihtoehto B: Pollinations (avainta ei tarvita)
 
 1. Avaa hallintapaneeli osoitteessa `http://localhost:20128`
 2. Siirry kohtaan **Providers** → **Add Provider**
@@ -163,7 +155,7 @@ Näet pyynnön tiedot napsauttamalla vasemmasta sivupalkista kohtaa [Monitoring/
 
 ### "Tarvitsenko API-avaimen?"
 
-**Et!** Voit käyttää maksuttomia palveluntarjoajia (Kiro, OpenCode Free ja Pollinations) ilman API-avainta. Yhdistä ne vain hallintapaneelissa.
+**Et!** Voit käyttää maksuttomia palveluntarjoajia (Kiro ja Pollinations) ilman API-avainta. Yhdistä ne vain hallintapaneelissa.
 
 ### "Mikä `auto` on?"
 

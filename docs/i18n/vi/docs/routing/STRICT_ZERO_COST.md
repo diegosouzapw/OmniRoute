@@ -148,14 +148,12 @@ không tồn tại.
 Để so sánh trước/sau ở chế độ ngoại tuyến, `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` vẫn hoạt động
 với đầu ra ứng viên của một phiên bản đang chạy; nó đọc `connectionId` thực tế của từng ứng viên, vì vậy
 cũng kiểm tra luồng an toàn kết nối. Các ứng viên keyless phải đi kèm `connectionId` không cần xác thực
-tổng hợp, tuyệt đối không phải một kết nối thực. Luồng tự động keyless tích hợp sẵn hiện tại là OpenCode Free; số lượng ứng viên chính xác
+tổng hợp, tuyệt đối không phải một kết nối thực. số lượng ứng viên chính xác
 vẫn phụ thuộc vào việc khám phá mô hình trực tiếp và nên được đo trên môi trường triển khai đích thay vì
 sao chép từ một lần chạy cũ. Một ứng viên `recurring-*` chỉ vượt qua khi vừa có bộ điều hợp mức sử dụng
 đã đăng ký, vừa có `hardStopGuaranteed: true`; siêu dữ liệu không đầy đủ vẫn bị từ chối mặc định.
 
-Khi `excludeTosAvoid: true`, mọi ứng viên được tuyển chọn với `tos: "avoid"` đều bị loại bỏ. OpenCode Free
-hiện có kết luận đó, nên việc bật bộ lọc có thể làm trống tập ứng viên keyless còn lại của một môi trường
-triển khai. Đây là sự đánh đổi được dự kiến khi bật bộ lọc ToS, không phải lỗi: bộ lọc mặc định là `false`
+Khi `excludeTosAvoid: true`, mọi ứng viên được tuyển chọn với `tos: "avoid"` đều bị loại bỏ. Đây là sự đánh đổi được dự kiến khi bật bộ lọc ToS, không phải lỗi: bộ lọc mặc định là `false`
 chính vì lý do này (xem phần "Bộ lọc ToS" ở trên).
 
 ## Kích hoạt

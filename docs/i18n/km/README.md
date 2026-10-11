@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — គ្មានការកំណត់រចនាសម្ព័ន្ធ។ បីជំហាន៖ 1. ដំឡើង — npm i -g omniroute, server ចាប់ផ្ដើមនៅលើ localhost:20128។ 2. ចង្អុលឧបករណ៍របស់អ្នកទៅកាន់ http://localhost:20128/v1 — ឧបករណ៍ណាមួយដែលត្រូវគ្នាជាមួយ OpenAI (Claude Code, Cursor, Cline)។ 3. វាឆ្លើយតប — ហៅ model auto សម្រាប់ការឆ្លើយតបភ្លាមៗ ដោយគ្មាន API key គ្មានការចុះឈ្មោះ គ្មានការកំណត់រចនាសម្ព័ន្ធ។ អ្នកផ្តល់សេវាគ្មានគន្លឹះ OpenCode Free ត្រូវបានភ្ជាប់ជាមុនទៅក្នុង auto combo ដូច្នេះការដំឡើងថ្មីនឹងឆ្លើយតបភ្លាមៗ។"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ដំណើរការភ្លាមៗនៅពេលអ្នកដំឡើងវា — គ្មានការកំណត់រចនាសម្ព័ន្ធ។ បីជំហាន៖ 1. ដំឡើង — npm i -g omniroute, server ចាប់ផ្ដើមនៅលើ localhost:20128។ 2. ចង្អុលឧបករណ៍របស់អ្នកទៅកាន់ http://localhost:20128/v1 — ឧបករណ៍ណាមួយដែលត្រូវគ្នាជាមួយ OpenAI (Claude Code, Cursor, Cline)។ 3."/>
 
 ```bash
 # ការដំឡើងថ្មី គ្មានព័ត៌មានសម្ងាត់ — `auto` ដំណើរការរួចហើយ:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>ចូលចិត្ត backend ឥតគិតថ្លៃជាក់លាក់មួយ? ហៅ `oc/…` (OpenCode Free) ដោយផ្ទាល់។ បន្ទាប់មកប្តូរទៅ `auto` ហើយអនុញ្ញាតឱ្យ OmniRoute ជ្រើសរើស។</sub>
 
 <sub>📦 ចម្លង-បិទភ្ជាប់ស្គ្រីបចាប់ផ្ដើមរហ័សសម្រាប់ **Python, Node.js, PHP, និង cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dashboard នៅ `http://localhost:20128` · API នៅ `http://localhost:20128/
 
 **2) ភ្ជាប់ provider ឥតគិតថ្លៃ (មិនចាំបាច់ចុះឈ្មោះ)**
 
-Dashboard → **Providers** → ភ្ជាប់ **Kiro AI** (Claude ឥតគិតថ្លៃ, ~50 credits/ខែ ក្នុងមួយ account) ឬ **OpenCode Free** (មិនត្រូវការ auth) → រួចរាល់។
+Dashboard → **Providers** → ភ្ជាប់ **Kiro AI** (Claude ឥតគិតថ្លៃ, ~50 credits/ខែ ក្នុងមួយ account) → រួចរាល់។
 
 **3) តម្រង់ coding tool របស់អ្នក**
 
@@ -1265,7 +1263,7 @@ process ដូចគ្នានៅលើ port តែមួយ ដូច្ន�
   <tr><td nowrap><b>បរិស្ថានដំណើរការ</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ភាសា</b></td><td>TypeScript 6.0 — <b>TypeScript 100%</b> នៅទូទាំង <code>src/</code> និង <code>open-sse/</code> (គ្មាន <code>any</code> នៅក្នុងស្នូលចាប់តាំងពី v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, ការកត់ត្រាបែប WAL) + LowDB (JSON ចាស់) — ម៉ូឌុលដែន 137, ការធ្វើចំណាកស្រុក 202</td></tr>
+  <tr><td nowrap><b>មូលដ្ឋានទិន្នន័យ</b></td><td>better-sqlite3 (SQLite, ការកត់ត្រាបែប WAL) + LowDB (JSON ចាស់) — ម៉ូឌុលដែន 137, ការធ្វើចំណាកស្រុក 203</td></tr>
   <tr><td nowrap><b>អង្គចងចាំ</b></td><td>ការស្វែងរកអត្ថបទពេញលេញ SQLite FTS5 + ការបង្កប់វ៉ិចទ័រដែលបានកំណត់បរិមាណជា int8, ការថយចុះដែលមានប្រភេទ</td></tr>
   <tr><td nowrap><b>Schema</b></td><td>Zod 4 — ការផ្ទៀងផ្ទាត់ I/O របស់ឧបករណ៍ MCP + កិច្ចសន្យា API</td></tr>
   <tr><td nowrap><b>ពិធីការ</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

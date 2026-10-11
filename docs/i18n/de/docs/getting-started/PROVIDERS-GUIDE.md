@@ -14,12 +14,12 @@ Stellen Sie sich einen Anbieter wie einen **Mobilfunkanbieter** vor. So wie Sie 
 
 ### Anbietertypen
 
-| Typ               | Beschreibung                      | Beispiele                         | Kosten                       |
-| ----------------- | --------------------------------- | --------------------------------- | ---------------------------- |
-| **Kostenlos**     | Keine Zahlung erforderlich        | Kiro, OpenCode Free, Pollinations | $0                           |
-| **API-Schlüssel** | Sie benötigen einen API-Schlüssel | OpenAI, Anthropic, Google         | Nutzungsabhängige Abrechnung |
-| **OAuth**         | Anmeldung mit Ihrem Konto         | Claude Code, GitHub Copilot       | Abonnement                   |
-| **Web-Cookie**    | Verwendet Ihre Browsersitzung     | ChatGPT Web (Codex), Gemini Web   | $0 (verwendet Ihr Konto)     |
+| Typ               | Beschreibung                      | Beispiele                       | Kosten                       |
+| ----------------- | --------------------------------- | ------------------------------- | ---------------------------- |
+| **Kostenlos**     | Keine Zahlung erforderlich        | Kiro, Pollinations              | $0                           |
+| **API-Schlüssel** | Sie benötigen einen API-Schlüssel | OpenAI, Anthropic, Google       | Nutzungsabhängige Abrechnung |
+| **OAuth**         | Anmeldung mit Ihrem Konto         | Claude Code, GitHub Copilot     | Abonnement                   |
+| **Web-Cookie**    | Verwendet Ihre Browsersitzung     | ChatGPT Web (Codex), Gemini Web | $0 (verwendet Ihr Konto)     |
 
 ### Web-Cookie-Anbieter
 
@@ -46,7 +46,6 @@ bedenkenlos nur die fehlgeschlagenen Vorgänge erneut versuchen.
 2. Gehen Sie zu **Anbieter** → **Anbieter hinzufügen**
 3. Wählen Sie einen dieser kostenlosen Anbieter aus:
    - **Kiro AI** — Kostenlose Claude-Modelle (keine Authentifizierung erforderlich)
-   - **OpenCode Free** — Kostenlose GPT-Modelle (keine Authentifizierung erforderlich)
    - **Pollinations** — Kostenloses GPT-5, Claude und Gemini (kein Schlüssel erforderlich)
    - **LongCat** — 10 Mio. kostenlose Token (einmalige Gutschrift, Konto und KYC erforderlich)
    - **Cloudflare AI** — Mehr als 50 Modelle, 10.000 Neuronen/Tag
@@ -176,7 +175,6 @@ Diese Anbieter bieten **kostenlosen Zugang** ohne Kreditkarte:
 | Anbieter          | Kostenloses Kontingent      | Modelle                                  | Verbindungsherstellung               |
 | ----------------- | --------------------------- | ---------------------------------------- | ------------------------------------ |
 | **Kiro AI**       | 50 Credits/Monat            | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Keine Authentifizierung erforderlich |
-| **OpenCode Free** | Unbegrenzt                  | GPT-4o, Claude, Gemini                   | Keine Authentifizierung erforderlich |
 | **Pollinations**  | Kein Schlüssel erforderlich | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Keine Authentifizierung erforderlich |
 | **LongCat**       | Einmalig 10 Mio.            | LongCat-2.0                              | API-Schlüssel + KYC                  |
 | **Cloudflare AI** | 10.000 Neuronen/Tag         | Über 50 Modelle                          | Keine Authentifizierung erforderlich |
@@ -250,7 +248,7 @@ OmniRoute funktioniert am besten mit **mehreren Anbietern**. Dies bietet Ihnen:
 
 Verbinden Sie mindestens **3 Anbieter**, um die bestmögliche Erfahrung zu erzielen:
 
-1. **Einen kostenlosen Anbieter** (Kiro, OpenCode Free oder Pollinations) — Immer verfügbar
+1. **Einen kostenlosen Anbieter** (Kiro oder Pollinations) — Immer verfügbar
 2. **Einen schnellen Anbieter** (Groq, Cerebras) — Für schnelle Antworten
 3. **Einen Qualitätsanbieter** (OpenAI, Anthropic, Google) — Für komplexe Aufgaben
 
@@ -296,7 +294,7 @@ Verwenden Sie anschließend `model: "auto"`, und OmniRoute wählt automatisch f�
 
 ### „Muss ich für die Nutzung von OmniRoute bezahlen?“
 
-**Nein!** OmniRoute ist kostenlos und quelloffen. Sie können kostenlose Anbieter (Kiro, OpenCode Free, Pollinations) nutzen, ohne etwas zu bezahlen. Kosten entstehen nur, wenn Sie kostenpflichtige Anbieter verwenden.
+**Nein!** OmniRoute ist kostenlos und quelloffen. Sie können kostenlose Anbieter (Kiro, Pollinations) nutzen, ohne etwas zu bezahlen. Kosten entstehen nur, wenn Sie kostenpflichtige Anbieter verwenden.
 
 ### „Mit welchem Anbieter sollte ich beginnen?“
 

@@ -41,12 +41,12 @@ Common problems and solutions for OmniRoute.
 
 ### Rate Limiting on Free Providers (429 / 400 / 401)
 
-**Symptom**: When using `model: "auto"` with free/no-auth providers (opencode, auggie, etc.), you intermittently get `HTTP 429`, `400`, or `401` instead of answers. The requests succeed when retrying the same prompt moments later, but automation (cron jobs, agents, scripts) breaks on the first failure.
+**Symptom**: When using `model: "auto"` with free/no-auth providers (auggie, etc.), you intermittently get `HTTP 429`, `400`, or `401` instead of answers. The requests succeed when retrying the same prompt moments later, but automation (cron jobs, agents, scripts) breaks on the first failure.
 
 **Root cause**: Three independent failure modes stack up:
 
 1. **Provider rate-limit (`429`)**: Free tiers can enforce a per-window quota. A burst of parallel calls exhausts it, so the next request is refused until the window resets.
-2. **Broken model in passthrough (`400`/`401`)**: `auto/*` pools can include passthrough models from `opencode` that are registered in the catalog but have no live credentials (e.g. `oc/north-mini-code-free` → `401`). The auto-router tries one, fails, and the error propagates before fallback kicks in.
+2. **Broken model in passthrough (`400`/`401`)**: `auto/*` pools can include passthrough models that are registered in the catalog but have no live credentials (→ `401`). The auto-router tries one, fails, and the error propagates before fallback kicks in.
 3. **Concurrency amplification (`429` under load)**: When multiple agent/cron sessions hit `auto` at once, the aggregate request rate exceeds what free providers tolerate, so legitimate calls get flagged as abusive.
 
 **Verified fix (community-reported, 2026-08-10)**: tune three environment variables so that rotation, concurrency, and fallback absorb the free-tier churn instead of dying on it:
@@ -112,9 +112,9 @@ npm warn install-scripts 7 packages had install scripts blocked because they are
 
 Not all blocked scripts are essential for running OmniRoute:
 
-* **Essential (`omniroute`, `better-sqlite3`):** OmniRoute runs from a Next.js standalone application bundle (`dist/`). During installation, npm downloads or compiles the host-specific native SQLite driver in the top-level `node_modules/better-sqlite3/`. OmniRoute's `postinstall` script (`scripts/build/postinstall.mjs`) then verifies and copies these host-specific binaries into `dist/node_modules/` so the standalone server can access them. If `omniroute`'s postinstall script is blocked, this copy step is skipped.
-* **Optional/transitive (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** These are build helpers, watcher tools, or system keychain utilities. Allowing them prevents build warnings, but they are not required for core routing functionality.
-* **Excluded (`onnxruntime-node`):** An optional dependency for local AI embeddings and is **not** required for OmniRoute to run. Its postinstall script downloads ~300MB of CUDA assets from NuGet; do not include it in the allow-list unless you explicitly intend to use local ONNX acceleration on supported hardware.
+- **Essential (`omniroute`, `better-sqlite3`):** OmniRoute runs from a Next.js standalone application bundle (`dist/`). During installation, npm downloads or compiles the host-specific native SQLite driver in the top-level `node_modules/better-sqlite3/`. OmniRoute's `postinstall` script (`scripts/build/postinstall.mjs`) then verifies and copies these host-specific binaries into `dist/node_modules/` so the standalone server can access them. If `omniroute`'s postinstall script is blocked, this copy step is skipped.
+- **Optional/transitive (`keytar`, `@parcel/watcher`, `@swc/core`, `protobufjs`, `esbuild`):** These are build helpers, watcher tools, or system keychain utilities. Allowing them prevents build warnings, but they are not required for core routing functionality.
+- **Excluded (`onnxruntime-node`):** An optional dependency for local AI embeddings and is **not** required for OmniRoute to run. Its postinstall script downloads ~300MB of CUDA assets from NuGet; do not include it in the allow-list unless you explicitly intend to use local ONNX acceleration on supported hardware.
 
 ### Recommended fix
 

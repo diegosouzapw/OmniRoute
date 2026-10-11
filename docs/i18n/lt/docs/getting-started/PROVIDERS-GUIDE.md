@@ -14,12 +14,12 @@
 
 ### Teikėjų tipai
 
-| Tipas                     | Kas tai yra                     | Pavyzdžiai                        | Kaina                       |
-| ------------------------- | ------------------------------- | --------------------------------- | --------------------------- |
-| **Nemokamas**             | Mokėti nereikia                 | Kiro, OpenCode Free, Pollinations | $0                          |
-| **API raktas**            | Reikia API rakto                | OpenAI, Anthropic, Google         | Mokama pagal naudojimą      |
-| **OAuth**                 | Prisijungiama naudojant paskyrą | Claude Code, GitHub Copilot       | Prenumerata                 |
-| **Žiniatinklio slapukas** | Naudojamas naršyklės seansas    | ChatGPT Web (Codex), Gemini Web   | $0 (naudojama jūsų paskyra) |
+| Tipas                     | Kas tai yra                     | Pavyzdžiai                      | Kaina                       |
+| ------------------------- | ------------------------------- | ------------------------------- | --------------------------- |
+| **Nemokamas**             | Mokėti nereikia                 | Kiro, Pollinations              | $0                          |
+| **API raktas**            | Reikia API rakto                | OpenAI, Anthropic, Google       | Mokama pagal naudojimą      |
+| **OAuth**                 | Prisijungiama naudojant paskyrą | Claude Code, GitHub Copilot     | Prenumerata                 |
+| **Žiniatinklio slapukas** | Naudojamas naršyklės seansas    | ChatGPT Web (Codex), Gemini Web | $0 (naudojama jūsų paskyra) |
 
 ### Žiniatinklio slapukų teikėjai
 
@@ -46,7 +46,6 @@ saugiai iš naujo bandyti pridėti tik tuos teikėjus, kurių pridėti nepavyko.
 2. Eikite į **Teikėjai** → **Pridėti teikėją**
 3. Pasirinkite vieną iš šių nemokamų teikėjų:
    - **Kiro AI** — Nemokami Claude modeliai (autentifikavimas nereikalingas)
-   - **OpenCode Free** — Nemokami GPT modeliai (autentifikavimas nereikalingas)
    - **Pollinations** — Nemokami GPT-5, Claude, Gemini (rakto nereikia)
    - **LongCat** — 10M nemokamų žetonų (vienkartinė dotacija, reikia paskyros ir KYC)
    - **Cloudflare AI** — Daugiau nei 50 modelių, 10K neuronų per dieną
@@ -176,7 +175,6 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | Paslaugų teikėjas | Nemokama kvota              | Modeliai                                 | Kaip prisijungti               |
 | ----------------- | --------------------------- | ---------------------------------------- | ------------------------------ |
 | **Kiro AI**       | 50 kreditų per mėnesį       | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikavimas nereikalingas |
-| **OpenCode Free** | Neribota                    | GPT-4o, Claude, Gemini                   | Autentifikavimas nereikalingas |
 | **Pollinations**  | Rakto nereikia              | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikavimas nereikalingas |
 | **LongCat**       | 10 mln. vieną kartą         | LongCat-2.0                              | API raktas + KYC               |
 | **Cloudflare AI** | 10 tūkst. neuronų per dieną | 50+ modelių                              | Autentifikavimas nereikalingas |
@@ -250,7 +248,7 @@ OmniRoute geriausiai veikia su **keliais paslaugų teikėjais**. Tai suteikia:
 
 Kad naudojimo patirtis būtų geriausia, prijunkite bent **3 paslaugų teikėjus**:
 
-1. **Vieną nemokamą paslaugų teikėją** (Kiro, OpenCode Free arba Pollinations) — visada pasiekiamą
+1. **Vieną nemokamą paslaugų teikėją** (Kiro arba Pollinations) — visada pasiekiamą
 2. **Vieną spartų paslaugų teikėją** (Groq, Cerebras) — greitiems atsakymams
 3. **Vieną aukštos kokybės paslaugų teikėją** (OpenAI, Anthropic, Google) — sudėtingoms užduotims
 
@@ -296,7 +294,7 @@ Tada naudokite `model: "auto"`, o OmniRoute automatiškai parinks geriausią pas
 
 ### „Ar turiu mokėti už naudojimąsi OmniRoute?“
 
-**Ne!** OmniRoute yra nemokama atvirojo kodo programa. Galite nemokamai naudotis nemokamais paslaugų teikėjais (Kiro, OpenCode Free, Pollinations). Mokėsite tik tuo atveju, jei nuspręsite naudotis mokamais paslaugų teikėjais.
+**Ne!** OmniRoute yra nemokama atvirojo kodo programa. Galite nemokamai naudotis nemokamais paslaugų teikėjais (Kiro, Pollinations). Mokėsite tik tuo atveju, jei nuspręsite naudotis mokamais paslaugų teikėjais.
 
 ### „Nuo kurio paslaugų teikėjo turėčiau pradėti?“
 

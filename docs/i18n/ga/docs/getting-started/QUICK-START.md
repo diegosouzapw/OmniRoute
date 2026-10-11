@@ -59,15 +59,7 @@ Is féidir leat OmniRoute a úsáid **gan aon rud a íoc** ach soláthraí saor 
 4. Cliceáil **Ceangail** (níl eochair API ag teastáil!)
 5. Sin é! Tá rochtain saor in aisce agat anois ar shamhlacha Claude.
 
-### Rogha B: OpenCode Free (Gan Fíordheimhniú)
-
-1. Oscail an deais ag `http://localhost:20128`
-2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
-3. Roghnaigh **OpenCode Free**
-4. Cliceáil **Ceangail** (níl eochair API ag teastáil!)
-5. Sin é! Tá rochtain saor in aisce agat anois ar roinnt samhlacha.
-
-### Rogha C: Pollinations (Níl Eochair de Dhíth)
+### Rogha B: Pollinations (Níl Eochair de Dhíth)
 
 1. Oscail an deais ag `http://localhost:20128`
 2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
@@ -163,7 +155,7 @@ Is féidir leat sonraí an iarratais a fheiceáil trí [Monatóireacht/Logaí](h
 
 ### "An bhfuil eochair API de dhíth orm?"
 
-**Níl!** Is féidir leat soláthraithe saor in aisce (Kiro, OpenCode Free, Pollinations) a úsáid gan aon eochair API. Níl le déanamh agat ach iad a cheangal sa deais.
+**Níl!** Is féidir leat soláthraithe saor in aisce (Kiro, Pollinations) a úsáid gan aon eochair API. Níl le déanamh agat ach iad a cheangal sa deais.
 
 ### "Cad é `auto`?"
 

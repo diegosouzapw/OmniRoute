@@ -145,14 +145,12 @@ megnevezi a hiányosságot, ahelyett hogy úgy tenne, mintha nem létezne.
 Offline előtte/utána összehasonlításhoz az `npx tsx scripts/ad-hoc/dry-run-strict-zero-cost.ts` továbbra is használható
 egy élő példány jelöltkimenetével; minden jelölt valódi `connectionId` értékét olvassa, így
 a kapcsolatbiztonsági útvonalat is teszteli. A kulcs nélküli jelölteknek a szintetikus,
-hitelesítés nélküli `connectionId` értékkel kell érkezniük, soha nem valódi kapcsolattal. A jelenlegi beépített, kulcs nélküli automatikus útvonal az OpenCode Free; a jelöltek pontos száma
+hitelesítés nélküli `connectionId` értékkel kell érkezniük, soha nem valódi kapcsolattal. a jelöltek pontos száma
 továbbra is az élő modellfelderítéstől függ, ezért azt a céltelepítésen kell megmérni ahelyett, hogy
 egy régebbi futtatásból másolnák át. Egy `recurring-*` jelölt csak akkor felel meg, ha rendelkezik regisztrált
 használati adapterrel, és a `hardStopGuaranteed: true` is teljesül; hiányos metaadatok esetén a rendszer továbbra is zárt állapotban hibázik.
 
-Az `excludeTosAvoid: true` beállítással minden `tos: "avoid"` minősítésű jelölt eltávolításra kerül. Az OpenCode Free
-jelenleg ezt a minősítést viseli, ezért a védelem engedélyezése kiürítheti egy telepítés fennmaradó, kulcs nélküli
-készletét. Ez a ToS-védelem bekapcsolásának várható kompromisszuma, nem hiba: a védelem alapértelmezés szerint éppen
+Az `excludeTosAvoid: true` beállítással minden `tos: "avoid"` minősítésű jelölt eltávolításra kerül. Ez a ToS-védelem bekapcsolásának várható kompromisszuma, nem hiba: a védelem alapértelmezés szerint éppen
 ezért `false` (lásd fent a „ToS-védelem” című részt).
 
 ## Engedélyezés

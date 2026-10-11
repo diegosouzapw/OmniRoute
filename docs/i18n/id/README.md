@@ -218,7 +218,7 @@
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Berfungsi segera setelah Anda menginstalnya — konfigurasi nol. Tiga langkah: 1. Instal — npm i -g omniroute, server berjalan di localhost:20128. 2. Arahkan alat Anda ke http://localhost:20128/v1 — alat apa pun yang kompatibel dengan OpenAI (Claude Code, Cursor, Cline). 3. Ini menjawab — panggil model auto untuk balasan instan, tanpa kunci API, tanpa pendaftaran, tanpa konfigurasi. Penyedia tanpa kunci OpenCode Free sudah terhubung ke kombo auto, sehingga instalasi baru langsung merespons."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Berfungsi segera setelah Anda menginstalnya — konfigurasi nol. Tiga langkah: 1. Instal — npm i -g omniroute, server berjalan di localhost:20128. 2. Arahkan alat Anda ke http://localhost:20128/v1 — alat apa pun yang kompatibel dengan OpenAI (Claude Code, Cursor, Cline). 3. Ini menjawab — panggil model auto untuk balasan instan, tanpa kunci API, tanpa pendaftaran, tanpa konfigurasi."/>
 
 ```bash
 # Instalasi baru, tanpa kredensial — `auto` sudah berfungsi:
@@ -226,8 +226,6 @@ curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
-
-<sub>Lebih suka backend gratis tertentu? Panggil `oc/…` (OpenCode Free) secara langsung. Kemudian tingkatkan ke `auto` dan biarkan OmniRoute memilih.</sub>
 
 <sub>📦 Skrip mulai cepat salin-tempel untuk **Python, Node.js, PHP, dan cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -1008,7 +1006,7 @@ Dasbor tersedia di `http://localhost:20128` · API tersedia di `http://localhost
 
 **2) Hubungkan penyedia GRATIS (tanpa pendaftaran)**
 
-Dasbor → **Penyedia** → hubungkan **Kiro AI** (Claude gratis, ~50 kredit/bulan per akun) atau **OpenCode Free** (tanpa autentikasi) → selesai.
+Dasbor → **Penyedia** → hubungkan **Kiro AI** (Claude gratis, ~50 kredit/bulan per akun) → selesai.
 
 **3) Arahkan alat coding Anda**
 
@@ -1265,7 +1263,7 @@ Metrik kanonis pada 2026-08-24: **1.029 video unik** · **11.132.922 tayangan ya
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Bahasa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> di seluruh <code>src/</code> dan <code>open-sse/</code> (tanpa <code>any</code> di inti sejak v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Basis data</b></td><td>better-sqlite3 (SQLite, penjurnalan WAL) + LowDB (JSON lama) — 137 modul domain, 202 migrasi</td></tr>
+  <tr><td nowrap><b>Basis data</b></td><td>better-sqlite3 (SQLite, penjurnalan WAL) + LowDB (JSON lama) — 137 modul domain, 203 migrasi</td></tr>
   <tr><td nowrap><b>Memori</b></td><td>Teks lengkap SQLite FTS5 + embedding vektor terkuantisasi int8, peluruhan bertipe</td></tr>
   <tr><td nowrap><b>Skema</b></td><td>Zod 4 — validasi I/O alat MCP + kontrak API</td></tr>
   <tr><td nowrap><b>Protokol</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

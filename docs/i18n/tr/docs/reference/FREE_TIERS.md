@@ -122,7 +122,6 @@ Bu alandaki çoğu "aylık ücretsiz token" rakamı, model başına belirtilen m
 | `modal`          | ToS Bölüm 1.3, "herhangi bir üçüncü tarafın Hizmete doğrudan erişmesine veya Hizmeti kullanmasına izin vermeyi, kiralamayı ya da yeniden satmayı" açıkça yasaklar — şirket içinde barındırılan bir…       |
 | `muse-spark-web` | Meta ToS; önceden izin alınmadan otomatik erişimi, yazılı izin olmadan tersine mühendisliği ve teknolojik önlemlerin aşılmasını açıkça yasaklar…                                                          |
 | `nlpcloud`       | ToS, "başkalarının Hizmete bunun üzerinden erişmesine olanak tanıyan bir proxy veya başka bir cihaz kurmayı" açıkça yasaklar ve yalnızca devredilemez,…                                                   |
-| `opencode`       | ToS (Anomaly Innovations, Inc.), kullanımı açıkça "kendi dahili kullanımınız için ve herhangi bir üçüncü taraf adına veya yararına olmayacak şekilde" sınırlar — ope…                                     |
 | `t3-web`         | ToS, hesapları açıkça yalnızca kişisel kullanımla sınırlar, kimlik bilgilerinin üçüncü taraflarla paylaşılmasını yasaklar ve otomatik/bot/scraping erişimini engeller — bir ş…                            |
 
 ### ✅ Genel olarak izin verici — dikkat / belirsiz / uygun (geri kalanlar)
@@ -266,7 +265,6 @@ Bu alandaki çoğu "aylık ücretsiz token" rakamı, model başına belirtilen m
 | `nlpcloud`       | anahtarsız    | —                   | —              | kaçının            | 1        |
 | `nous-research`  | anahtarsız    | —                   | —              | belirsiz           | 2        |
 | `nvidia`         | anahtarsız    | —                   | —              | dikkat             | 13       |
-| `opencode`       | anahtarsız    | —                   | —              | kaçının            | 7        |
 | `pollinations`   | anahtarsız    | —                   | —              | dikkat             | 31       |
 | `publicai`       | anahtarsız    | —                   | —              | dikkat             | 3        |
 | `reka`           | anahtarsız    | —                   | —              | dikkat             | 2        |
