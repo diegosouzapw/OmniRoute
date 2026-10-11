@@ -1,0 +1,1 @@
+- fix(providers): keep upstream reasoning.supported_efforts when syncing named OpenAI-style providers so /v1/models exposes effort_tiers (#15762)

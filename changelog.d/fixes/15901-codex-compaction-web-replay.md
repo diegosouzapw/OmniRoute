@@ -1,0 +1,1 @@
+- Preserve Codex web-search history during Responses compaction and declare its replay tool without allowing new tool calls (#15901).

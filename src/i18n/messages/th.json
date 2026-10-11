@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "เริ่มต้น (อัตโนมัติ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "โทเค็นเอาต์พุตสูงสุด",
+    "maxOutputTokenOverrideHint": "ป้อนจำนวนโทเค็นเป็นจำนวนเต็มบวก เว้นว่างเพื่อใช้ค่าเริ่มต้น",
     "contextWindowOverrideLabel": "เขียนทับหน้าต่างบริบท",
     "contextWindowOverridePlaceholder": "เช่น 131072",
     "contextWindowOverrideHint": "ตั้งค่าหน้าต่างบริบทจริง (โทเค็น) ของโมเดลนี้ด้วยตนเองเมื่อผู้ให้บริการรายงานข้อมูลผิดพลาด ค่านี้จะมีความสำคัญเหนือกว่าค่าที่ตรวจพบโดยอัตโนมัติ/ค่าในแค็ตตาล็อก และป้องกันไม่ให้การกำหนดเส้นทางแบบคอมโบตัดโมเดลนี้ออก",

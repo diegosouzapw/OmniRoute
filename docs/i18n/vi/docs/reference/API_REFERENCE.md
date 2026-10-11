@@ -375,6 +375,12 @@ Một bản sao ở chế độ `dual` cũng có thể được nhận biết m�
 
 Các ứng dụng khách hiển thị trình chọn mô hình nên yêu cầu `?prefix=alias` — đây là cách [tiện ích mở rộng OmniCopilot cho VS Code](../guides/VSCODE-COPILOT.md) hoạt động.
 
+### Mô hình chat được ẩn riêng lẻ
+
+Mô hình được đánh dấu **Ẩn** trên trang nhà cung cấp sẽ bị loại khỏi danh mục và bị từ chối bằng HTTP `404` / `model_not_found` khi được yêu cầu đích danh. Việc kiểm tra sử dụng nhà cung cấp và mô hình đã được phân giải, có tính đến bí danh nhà cung cấp, tiền tố nút của nhà cung cấp tương thích và các giá trị mặc định của kết nối. Combo bỏ qua các đích bị ẩn và có thể dùng một đích khác đang hiển thị; nếu không còn đích nào có thể thực thi, nó trả về cùng mã lỗi. Việc bỏ ẩn có hiệu lực từ yêu cầu tiếp theo. Các thiết lập ghi đè khả năng hiển thị chỉ dành cho hình ảnh không ẩn mô hình chat có cùng ID.
+
+Thiết lập riêng cho từng mô hình này tách biệt với [danh sách cho phép và chặn công bố mô hình](../routing/MODEL_EXPOSURE_LIST.md). Các danh sách đó lọc phần hiển thị trong danh mục và ứng viên định tuyến tự động nhưng vẫn giữ khả năng gửi yêu cầu đích danh. Quyền truy cập mô hình của khóa API tiếp tục được áp dụng độc lập. Chế độ tiền tố mặc định của danh mục vẫn là `dual`.
+
 ### Các biến thể mô hình không suy luận
 
 Đối với các mô hình Claude có khả năng suy luận, `/v1/models` cũng công bố một biến thể **không suy luận** có id được thêm tiền tố `claude-3-omniroute-no-thinking/`:

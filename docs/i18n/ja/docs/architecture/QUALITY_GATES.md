@@ -306,11 +306,14 @@ BASE_REF=origin/release/vX.Y.Z npm run i18n:check-value-drift
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` —
   1回限りの緩和処理（`scripts/quality/relax-baselines.mjs`）。同じ注記での2回目の実行は拒否されます。
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  CIと同じ方法ですべての数値ゲートを測定し、ゲートごとの残りの余裕を出力します
-  （`scripts/quality/baseline-headroom.mjs`）。nightlyの`baseline-headroom`ジョブは、その表を継続的に更新されるIssue
-  **📈 Baseline headroom (velocity phase)**へ投稿し、いずれかのゲートが上限の10%以内に達した場合、またはすでに超過している場合に
-  `headroom-alert`ラベルを追加します。このIssueは早期警告として機能します。数日で予算が埋まる場合、その緩和分は
-  チーム全体ではなく少数のPRによって消費されています。問題のあるゲートの`_rebaseline_*`注記を確認してください。
+  CIと同じ方法ですべての数値による品質チェックを測定し、チェックごとの残りの余裕を出力します
+  （`scripts/quality/baseline-headroom.mjs`）。夜間の`baseline-headroom`ジョブは、ワークフロー実行の
+  サマリーに表を掲載し、JSON/Markdownレポートを
+  `baseline-headroom-<run_id>`としてアップロードして90日間保存します。警告および重大の行は、
+  上限までの余裕が10%以下のチェック、または上限をすでに超えたチェックを示します。
+  これらのレポートを許容枠の消費に対する早期警告として確認し、該当するチェックの
+  `_rebaseline_*`の注記を参照してください。ジョブは常設のIssueを作成・更新しなくなりました。
+  #12149には以前のレポートの履歴が保存されています。
 
 **新規コードモード（Clean-as-You-Code）— 2026-08-30以降、PRの高速パスのみ**
 

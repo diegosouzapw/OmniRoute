@@ -380,6 +380,12 @@ maydoni mavjud.
 Model tanlagichini koʻrsatadigan mijozlar `?prefix=alias` parametrini soʻrashi kerak —
 [OmniCopilot VS Code kengaytmasi](../guides/VSCODE-COPILOT.md) aynan shunday qiladi.
 
+### Alohida yashirilgan chat modellari
+
+Provayder sahifasida **Yashirin** deb belgilangan model katalogdan chiqariladi va u aniq so‘ralganda HTTP `404` / `model_not_found` bilan rad etiladi. Tekshiruv provayder taxalluslari, mos provayder tugunlarining prefikslari va ulanishning standart qiymatlarini hisobga olib aniqlangan provayder va modeldan foydalanadi. Combo yashirin nishonlarni o‘tkazib yuboradi va boshqa ko‘rinadigan nishondan foydalanishi mumkin; bajarish mumkin bo‘lgan nishon qolmasa, ayni xato kodini qaytaradi. Modelni yana ko‘rsatish keyingi so‘rovdan kuchga kiradi. Faqat rasmlarga oid ko‘rinish sozlamalarini almashtirish bir xil IDga ega chat modelini yashirmaydi.
+
+Bu alohida model sozlamasi [modellarni namoyish qilishga ruxsat va taqiq ro‘yxatlaridan](../routing/MODEL_EXPOSURE_LIST.md) ajralib turadi. Ular aniq modelga so‘rov yuborishni saqlagan holda katalogdagi namoyishni va avtomatik yo‘naltirish nomzodlarini filtrlaydi. API kalitining model ruxsatlari mustaqil ravishda amal qilishda davom etadi. Katalog prefikslarining standart rejimi `dual` bo‘lib qoladi.
+
 ### Fikrlashsiz model variantlari
 
 Fikrlash imkoniyatiga ega Claude modellari uchun `/v1/models`, shuningdek, id si `claude-3-omniroute-no-thinking/` prefiksi bilan boshlanadigan **fikrlashsiz** variantni ham taqdim etadi:

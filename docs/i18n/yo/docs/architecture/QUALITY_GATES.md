@@ -305,12 +305,14 @@ tí a lè ṣàyẹ̀wò, a sì kéde ìpele náà nínú `config/quality/qualit
   ìgbà-kan (`scripts/quality/relax-baselines.mjs`); kò ní gbà láti ṣiṣẹ́ lẹ́ẹ̀mejì pẹ̀lú
   àkọsílẹ̀ kan náà.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  ń díwọ̀n gbogbo ẹnubodè onínọ́mbà gẹ́gẹ́ bí CI ṣe ń ṣe, ó sì tẹ ààyè àfikún tó kù jáde fún ẹnubodè kọ̀ọ̀kan
-  (`scripts/quality/baseline-headroom.mjs`). Iṣẹ́ `baseline-headroom` alẹ́-dídọ́gba ń fi
-  tábìlì náà ránṣẹ́ sí ọ̀ràn alààyè **📈 Ààyè àfikún ìpìlẹ̀ (ìpele yíyára)**, ó sì ń fi àmì
-  `headroom-alert` kún un nígbà tí ẹnubodè èyíkéyìí bá wà láàárín 10% sí òpin rẹ̀ tàbí tí ó ti kọjá a. Ọ̀ràn yẹn
-  ni ìkìlọ̀ àkọ́kọ́: ìnáwó tí ó kún láàárín ọjọ́ díẹ̀ túmọ̀ sí pé àwọn PR díẹ̀ ni ń lo
-  ìtúsílẹ̀ náà, kì í ṣe gbogbo ẹgbẹ́ — wo àwọn àkọsílẹ̀ `_rebaseline_*` ti ẹnubodè tó fa ìṣòro náà.
+  ń díwọ̀n àyẹ̀wò dídára onínọ́mbà kọ̀ọ̀kan gẹ́gẹ́ bí CI ṣe ń ṣe, ó sì ń fi ààyè tó kù ṣáájú ààlà àyẹ̀wò kọ̀ọ̀kan hàn
+  (`scripts/quality/baseline-headroom.mjs`). Iṣẹ́ `baseline-headroom` tí ń ṣiṣẹ́ ní gbogbo alẹ́ ń tẹ tábìlì náà jáde
+  nínú àkótán ìṣiṣẹ́ ìṣàn iṣẹ́, ó sì ń gbé ìròyìn JSON/Markdown sókè pẹ̀lú orúkọ
+  `baseline-headroom-<run_id>`, tí a ń pa mọ́ fún ọjọ́ 90. Àwọn ìlà ìkìlọ̀ àti ti ipò líle ń tọ́ka sí
+  àwọn àyẹ̀wò tí ààyè tó kù sí ààlà wọn jẹ́ 10% tàbí kéré sí i, tàbí tí wọ́n ti kọjá ààlà náà.
+  Ṣàyẹ̀wò àwọn ìròyìn wọ̀nyí gẹ́gẹ́ bí ìkìlọ̀ ìbẹ̀rẹ̀ pé a ń lo ìnáwó tí a yàn; ka àwọn àkọsílẹ̀
+  `_rebaseline_*` fún àyẹ̀wò tí ọ̀ràn kàn. Iṣẹ́ náà kò tún ń dá ọ̀ràn pípẹ́ sílẹ̀ tàbí mú un dójú ìwọ̀n mọ́;
+  #12149 ń pa ìtàn àwọn ìròyìn àtijọ́ mọ́.
 
 **Ìpo kóòdù tuntun (Clean-as-You-Code) — láti 2026-08-30, ọ̀nà-yíyára PR nìkan**
 

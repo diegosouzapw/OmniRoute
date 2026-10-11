@@ -31,6 +31,7 @@ export interface ReasoningStateInspection {
 export interface ReasoningInputPolicyOptions {
   provider?: string | null;
   preserveEncryptedReasoning?: boolean;
+  preserveWebSearchCalls?: boolean;
   onIncompatibleReasoning?: "reject" | "drop";
 }
 
@@ -258,7 +259,8 @@ function sanitizeResponsesInput(
   input: unknown[],
   transport: ReasoningTransport,
   dropIncompatible: boolean,
-  stripOrphanedSummaries: boolean
+  stripOrphanedSummaries: boolean,
+  preserveWebSearchCalls: boolean
 ): unknown[] {
   const filtered: unknown[] = [];
   for (const item of input) {
@@ -269,6 +271,10 @@ function sanitizeResponsesInput(
       continue;
     }
     if (record.type === "item_reference") continue;
+    if (preserveWebSearchCalls && record.type === "web_search_call") {
+      filtered.push({ ...record });
+      continue;
+    }
 
     if (record.type === "reasoning") {
       const next = dropIncompatible
@@ -351,7 +357,8 @@ export function applyReasoningInputPolicy(
       body.input,
       transport,
       incompatibleReasoning || mixedState,
-      body.store === false
+      body.store === false,
+      options.preserveWebSearchCalls === true
     );
   }
   return { incompatibleReasoning: false };

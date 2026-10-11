@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "Standart (avtomatik)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravitatsiya",
+    "maxOutputTokenOverrideLabel": "Maksimal chiqish tokenlari",
+    "maxOutputTokenOverrideHint": "Musbat butun token sonini kiriting. Standart qiymat uchun boʻsh qoldiring.",
     "contextWindowOverrideLabel": "Kontekst oynasini qo‘lda belgilash",
     "contextWindowOverridePlaceholder": "masalan, 131072",
     "contextWindowOverrideHint": "Provayder noto‘g‘ri ma’lumot berganda ushbu modelning haqiqiy kontekst oynasini (tokenlarda) qo‘lda belgilang. Bu qiymat avtomatik aniqlangan yoki katalogdagi qiymatlardan ustun turadi va kombinatsiyalangan marshrutlashda modelning chiqarib tashlanishiga yo‘l qo‘ymaydi.",

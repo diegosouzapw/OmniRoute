@@ -51,7 +51,7 @@ import {
   makeZaiChunkEmitter,
 } from "./zai-web/stream.ts";
 import { browserBackedChat } from "../services/browserBackedChat.ts";
-import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
+import { isMissingBrowserExecutable, isMissingDisplay } from "./browserExecutableCheck.ts";
 import { CursorImageError, resolveCursorImages } from "../utils/cursorImages.ts";
 import {
   makeExecutorErrorResult as makeErrorResult,
@@ -438,6 +438,20 @@ export class ZaiWebExecutor extends BaseExecutor {
             "Z.ai requires the Playwright Chromium browser, which is not installed. " +
               "Run `npx playwright install chromium` on the host (or rebuild the Docker image " +
               "with browsers).",
+            input.body,
+            ZAI_CHAT_URL,
+            { "X-Omni-Fallback-Hint": "connection_cooldown" }
+          ),
+        };
+      }
+      // #15300: headed Chromium needs a display; Xvfb could not be provided. Same class of
+      // host/config fault as the missing binary above.
+      if (isMissingDisplay(rawMessage)) {
+        return {
+          errorResult: makeErrorResult(
+            503,
+            "Z.ai needs a display for its headed browser, and none is available. " +
+              "Install Xvfb (apt-get install xvfb) on the host or use the -web Docker image.",
             input.body,
             ZAI_CHAT_URL,
             { "X-Omni-Fallback-Hint": "connection_cooldown" }

@@ -191,6 +191,9 @@ export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
 // getCodeBuddyCnUserAgent(), which may replace both numbers with a newer npm publish.
 export const CODEBUDDY_CN_USER_AGENT = "CLI/2.108.1 CodeBuddy/2.108.1";
 
+// CodeBuddy International (codebuddy.ai) - single source of truth for intl profile.
+export const CODEBUDDY_INTL_USER_AGENT = "IDE/2.108.1 CodeBuddy/2.108.1";
+
 const QWEN_DOTTED_TRIPLE_PATTERN = /^\d+\.\d+\.\d+$/;
 const NPM_QWEN_CODE_LATEST_URL = "https://registry.npmjs.org/@qwen-code/qwen-code/latest";
 const NPM_CODEBUDDY_LATEST_URL = "https://registry.npmjs.org/@tencent-ai/codebuddy-code/latest";

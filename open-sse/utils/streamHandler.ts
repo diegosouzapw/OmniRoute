@@ -1,3 +1,5 @@
+import { hasTrustedEmptyTurn } from "./emptyTurnPolicy.ts";
+import type { StreamControllerOptions } from "./streamControllerTypes.ts";
 import { trackPendingRequest } from "@/lib/usageDb";
 import { STREAM_ACTIVE_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -22,31 +24,6 @@ import {
 // the watchdog must track upstream byte activity instead. Ported from
 // decolua/9router#1243.
 const DEFAULT_STREAM_STALL_TIMEOUT_MS = STREAM_IDLE_TIMEOUT_MS;
-
-type StreamDisconnectEvent = {
-  reason: string;
-  duration: number;
-};
-
-type StreamErrorEvent = {
-  error: unknown;
-  message: string;
-  statusCode: number;
-  duration: number;
-};
-
-type StreamControllerOptions = {
-  onDisconnect?: (event: StreamDisconnectEvent) => boolean | void;
-  onError?: (event: StreamErrorEvent) => boolean | void;
-  provider?: string;
-  model?: string;
-  connectionId?: string | null;
-  pendingRequestId?: string | null;
-  clientResponseFormat?: string | null;
-  clientAbortSignal?: AbortSignal | null;
-  allowCompletedToolHandoffGrace?: boolean;
-  clientDisconnectGracePeriodMs?: number;
-};
 
 type StreamController = ReturnType<typeof createStreamController>;
 
@@ -309,6 +286,14 @@ export function createStreamController({
     cleanupClientAbortSignal = null;
   };
 
+  const releaseRequestCallbacks = (preserveHandoffDrain = false) => {
+    // A completed Response may outlive its request. These callbacks capture
+    // chatCore's provider wire body and multimodal input through their context.
+    onDisconnect = undefined;
+    onError = undefined;
+    if (!preserveHandoffDrain) completedToolHandoffDrain = null;
+  };
+
   const getClientAbortReason = () => {
     const reason = clientAbortSignal?.reason;
     if (typeof reason === "string" && reason.trim().length > 0) {
@@ -353,11 +338,16 @@ export function createStreamController({
         abortController.abort(reason);
       }
 
-      onDisconnect?.({ reason, duration: Date.now() - startTime });
+      try {
+        onDisconnect?.({ reason, duration: Date.now() - startTime });
+      } finally {
+        releaseRequestCallbacks(deferUpstreamAbort);
+      }
     },
 
     // Call when stream completes normally
     handleComplete: () => {
+      releaseRequestCallbacks();
       if (disconnected) return;
       disconnected = true;
       cleanupClientAbortListener();
@@ -374,7 +364,7 @@ export function createStreamController({
     },
 
     registerCompletedToolHandoffDrain: (drain: () => void) => {
-      completedToolHandoffDrain = drain;
+      if (!disconnected && !abortController.signal.aborted) completedToolHandoffDrain = drain;
     },
 
     shouldDeferCompletedToolHandoff: () =>
@@ -393,6 +383,7 @@ export function createStreamController({
       // the upstream connection unavailable.
       if (disconnected || isClientDisconnectError(error)) {
         clearPendingRequest(error);
+        releaseRequestCallbacks();
         logStream(disconnected ? "client_disconnect (post-abort)" : "client_disconnect");
         return;
       }
@@ -418,6 +409,7 @@ export function createStreamController({
       } else {
         pendingRequestCleared = true;
       }
+      releaseRequestCallbacks();
 
       if (error instanceof Error && error.name === "AbortError") {
         logStream("aborted");
@@ -434,6 +426,7 @@ export function createStreamController({
     abort: () => {
       cleanupClientAbortListener();
       abortController.abort();
+      releaseRequestCallbacks();
     },
     clientResponseFormat,
     clientDisconnectGracePeriodMs,
@@ -610,6 +603,7 @@ function resolveSilentCloseOutcome(input: {
   clientTerminalSeen: boolean;
   clientResponseFormat?: string | null;
   contentWatcher: StreamContentWatcher;
+  permitsEmptyTurn?: () => boolean;
 }): SilentCloseOutcome | null {
   if (!input.bytesWereForwarded) return null;
 
@@ -648,7 +642,11 @@ function resolveSilentCloseOutcome(input: {
   const watcher = input.contentWatcher;
   if (watcher.sawError()) return null;
   if (watcher.sawSseFrame() && !watcher.sawContent() && !watcher.sawLegitEmptyTerminal()) {
-    return { kind: "error", reason: "Provider returned empty content" };
+    // A translated/client stop is insufficient: the executed native protocol
+    // must also have supplied an ordinary terminal on a trusted origin.
+    if (!(input.clientTerminalSeen && input.permitsEmptyTurn?.())) {
+      return { kind: "error", reason: "Provider returned empty content" };
+    }
   }
 
   return null;
@@ -657,7 +655,7 @@ function resolveSilentCloseOutcome(input: {
 export function createDisconnectAwareStream(
   transformStream,
   streamController,
-  options: { highWaterMark?: number } = {}
+  options: { highWaterMark?: number; permitsEmptyTurn?: () => boolean } = {}
 ) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
@@ -756,6 +754,7 @@ export function createDisconnectAwareStream(
               clientTerminalSeen,
               clientResponseFormat: streamController.clientResponseFormat,
               contentWatcher,
+              permitsEmptyTurn: options.permitsEmptyTurn,
             });
 
             if (silentClose?.kind === "truncated") {
@@ -916,7 +915,10 @@ export function pipeWithDisconnect(
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
       streamController,
-      { highWaterMark: opts.highWaterMark }
+      {
+        highWaterMark: opts.highWaterMark,
+        permitsEmptyTurn: () => hasTrustedEmptyTurn(providerResponse),
+      }
     );
   }
 
@@ -1184,6 +1186,9 @@ export function pipeWithDisconnect(
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
     wrappedController,
-    { highWaterMark: opts.highWaterMark }
+    {
+      highWaterMark: opts.highWaterMark,
+      permitsEmptyTurn: () => hasTrustedEmptyTurn(providerResponse),
+    }
   );
 }

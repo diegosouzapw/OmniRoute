@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "डीफॉल्ट (स्वयंचलित)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "कमाल आउटपुट टोकन",
+    "maxOutputTokenOverrideHint": "टोकनची धन पूर्णांक संख्या द्या. पूर्वनिर्धारित मूल्यासाठी रिकामे ठेवा.",
     "contextWindowOverrideLabel": "कॉन्टेक्स्ट विंडो ओव्हरराइड",
     "contextWindowOverridePlaceholder": "उदा. 131072",
     "contextWindowOverrideHint": "प्रदाता चुकीचा अहवाल देतो तेव्हा या मॉडेलची खरी कॉन्टेक्स्ट विंडो (टोकन्स) मॅन्युअली सेट करा. हे स्वयं-शोधलेल्या/कॅटलॉग मूल्यांपेक्षा प्राधान्य घेते आणि कॉम्बो रूटिंगला मॉडेल वगळण्यापासून प्रतिबंधित करते.",

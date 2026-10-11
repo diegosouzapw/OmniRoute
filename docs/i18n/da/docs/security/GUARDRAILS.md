@@ -353,6 +353,8 @@ Kroppen, der sendes opstrøms til modellen, er uændret. En observeret anmodning
 ikke holdbar hukommelse (både anmodnings- og svar-afledt ekstraktion springes over),
 så modellens eget svar kan ikke gentage transskriptionstekst i hukommelsen.
 
+**Rå videofelter (#12430).** Når broen er aktiveret, og indbygget videounderstøttelse er ukendt eller mangler, aktiverer definerede `transcript`/`audioTranscript`-felter også `videoBridgeObserved`, selv hvis beskrivelsen fejler, eller grænsen `maxVideos` nås. `null` og tomme strenge tæller med; manglende felter og metadata uden relation til video gør ikke. Gemte kopier skjuler disse felter eller udelader anmodningen, og caches/Memory springes over. Data til udbyderen forbliver uændrede.
+
 Yderligere bevarede kopier bruger det samme observerede-anmodningssignal. Det rå
 pre-guardrail klient-anmodningssnapshot, in-memory afventende anmodning og tidligt
 afviste-anmodningslog erstatter strukturelt transskriptionsfelter i videodele;

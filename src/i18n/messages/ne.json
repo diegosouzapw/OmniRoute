@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "पूर्वनिर्धारित (स्वचालित)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "अधिकतम आउटपुट टोकनहरू",
+    "maxOutputTokenOverrideHint": "टोकनको धनात्मक पूर्णाङ्क संख्या लेख्नुहोस्। पूर्वनिर्धारित मानका लागि खाली छोड्नुहोस्।",
     "contextWindowOverrideLabel": "कन्टेक्स्ट विन्डो अधिलेखन",
     "contextWindowOverridePlaceholder": "उदा. 131072",
     "contextWindowOverrideHint": "प्रदायकले गलत रूपमा रिपोर्ट गरेमा यस मोडेलको वास्तविक कन्टेक्स्ट विन्डो (टोकन) म्यानुअल रूपमा सेट गर्नुहोस्। यसले स्वतः पत्ता लगाइएका/क्याटलगका मानहरूभन्दा प्राथमिकता पाउँछ र कम्बो राउटिङले मोडेललाई हटाउनबाट रोक्छ।",

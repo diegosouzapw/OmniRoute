@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "ڈیفالٹ (خودکار)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "زیادہ سے زیادہ آؤٹ پٹ ٹوکن",
+    "maxOutputTokenOverrideHint": "ٹوکنز کی مثبت مکمل تعداد درج کریں۔ طے شدہ قدر استعمال کرنے کے لیے خالی چھوڑ دیں۔",
     "contextWindowOverrideLabel": "کانٹیکسٹ ونڈو اوور رائیڈ",
     "contextWindowOverridePlaceholder": "مثلاً 131072",
     "contextWindowOverrideHint": "جب فراہم کنندہ غلط رپورٹ کرے تو دستی طور پر اس ماڈل کی اصل کانٹیکسٹ ونڈو (ٹوکنز) سیٹ کریں۔ یہ خودکار طور پر شناخت شدہ/کیٹلاگ کی اقدار پر فوقیت رکھتا ہے اور کومبو روٹنگ کو ماڈل کو چھوڑنے سے روکتا ہے۔",

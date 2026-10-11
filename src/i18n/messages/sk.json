@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "Predvolené (automaticky)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maximálny výstup tokenov",
+    "maxOutputTokenOverrideHint": "Zadajte kladný celý počet tokenov. Pre predvolenú hodnotu nechajte prázdne.",
     "contextWindowOverrideLabel": "Prepísanie kontextového okna",
     "contextWindowOverridePlaceholder": "napr. 131072",
     "contextWindowOverrideHint": "Manuálne nastavte skutočné kontextové okno tohto modelu (v tokenoch), ak ho poskytovateľ nesprávne uvádza. Má prednosť pred automaticky zistenými/katalógovými hodnotami a zabraňuje vyradeniu modelu pri kombinovanom smerovaní.",

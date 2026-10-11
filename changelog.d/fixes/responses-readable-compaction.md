@@ -1,0 +1,1 @@
+- Restore readable `ocx1:` compaction summaries before routed translation and native Codex replay, validating canonical base64 and UTF-8 while preserving opaque native state and rejecting unsupported translated state.

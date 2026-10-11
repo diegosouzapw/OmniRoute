@@ -1,0 +1,1 @@
+- Return an actionable context-length error when round-robin or nested combo attempts are exhausted predominantly by context overflow, preserving diagnostics and the attempt limit (#15289).

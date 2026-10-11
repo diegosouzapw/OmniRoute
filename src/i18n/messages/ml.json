@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "ഡിഫോൾട്ട് (സ്വയമേവ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "പരമാവധി ഔട്ട്പുട്ട് ടോക്കണുകൾ",
+    "maxOutputTokenOverrideHint": "ടോക്കണുകളുടെ ധന പൂർണ്ണസംഖ്യ നൽകുക. ഡിഫോൾട്ട് മൂല്യത്തിന് ശൂന്യമായി വിടുക.",
     "contextWindowOverrideLabel": "കോൺടെക്സ്റ്റ് വിൻഡോ ഓവർറൈഡ്",
     "contextWindowOverridePlaceholder": "ഉദാ. 131072",
     "contextWindowOverrideHint": "ദാതാവ് ഈ മോഡലിന്റെ യഥാർഥ കോൺടെക്സ്റ്റ് വിൻഡോ തെറ്റായി റിപ്പോർട്ട് ചെയ്യുമ്പോൾ അത് (ടോക്കണുകളിൽ) സ്വമേധയാ സജ്ജമാക്കുക. ഇത് സ്വയം കണ്ടെത്തിയ/കാറ്റലോഗ് മൂല്യങ്ങളെ മറികടക്കുകയും കോംബോ റൂട്ടിംഗിൽ നിന്ന് മോഡൽ ഒഴിവാക്കപ്പെടുന്നത് തടയുകയും ചെയ്യുന്നു.",

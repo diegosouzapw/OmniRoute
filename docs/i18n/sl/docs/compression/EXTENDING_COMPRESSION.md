@@ -333,7 +333,6 @@ Lahko pa ga postavite na prepoznano mesto:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Uporabniška raven
-<project>/.compression/rules/hi/filler.json   # Raven projekta
 ```
 
 ### Najboljše prakse za jezikovne pakete

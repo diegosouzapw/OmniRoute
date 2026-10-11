@@ -15,9 +15,12 @@ release freezes, or if the Mergify Open Source plan ever changes.
    gate (the report + per-item decision — see `/merge-prs` Step 0.75).
 2. The owner (or the session acting on the owner's decision) applies the **`queue`**
    label. The label IS the merge approval; Mergify only executes it.
-3. Mergify batches up to 10 queued PRs, validates the batch against the fast-gates,
-   and merges (squash). A red batch is **bisected automatically** — the offending PR
-   is isolated in ~log2(N) revalidations and unqueued; the rest proceed.
+3. Mergify validates queued PRs **serially** (one at a time) against the fast-gates
+   and merges (squash). Batching + automatic bisection is a paid Mergify tier
+   ("Cannot use Merge Queue batch" on the free plan, #7220), so `.mergify.yml` sets no
+   `batch_size`; batching remains the job of the manual merge-train below. A PR whose
+   checks are still pending after `checks_timeout` (240 min = 2× the measured p95 of
+   `quality.yml`) is dequeued instead of stalling the queue.
 4. Post-merge, the continuous release-green workflow validates the new tip on push
    and opens an attribution issue if the combination regressed (never auto-revert).
 

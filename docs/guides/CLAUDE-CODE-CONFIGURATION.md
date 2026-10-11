@@ -245,6 +245,10 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # Only some providers
 omniroute setup-claude --only glm,kimi
 
+# Also write profiles for local-CLI providers (zcode, auggie, devin-cli-agentic,
+# codex-app-server) not detected on this host (skipped by default for a local target)
+omniroute setup-claude --include-local
+
 # Preview without writing
 omniroute setup-claude --dry-run
 

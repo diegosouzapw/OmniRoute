@@ -160,7 +160,7 @@ test("#2778 matching logic: node with prefix=flymux and id=UUID-id still matches
 
 test("custom provider auth lookup search pool maps alias prefixes to internal provider ids", async () => {
   const authSrc = fs.readFileSync(
-    path.resolve(__dirname, "../../src/sse/services/auth.ts"),
+    path.resolve(__dirname, "../../open-sse/services/providerConnectionPool.ts"),
     "utf8"
   );
 

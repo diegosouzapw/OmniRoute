@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "Standard (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maks utgang-tokens",
+    "maxOutputTokenOverrideHint": "Angi et positivt helt antall tokens. La feltet stå tomt for å bruke standardverdien.",
     "contextWindowOverrideLabel": "Overstyring av kontekstvindu",
     "contextWindowOverridePlaceholder": "f.eks. 131072",
     "contextWindowOverrideHint": "Angi denne modellens reelle kontekstvindu (tokens) manuelt når leverandøren feilrapporterer det. Overstyrer automatisk oppdagede/katalogverdier og forhindrer at kombinasjonsruting dropper modellen.",

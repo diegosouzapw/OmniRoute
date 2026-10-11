@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "ଡିଫଲ୍ଟ (ସ୍ୱୟଂଚାଳିତ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "ସର୍ବାଧିକ ଆଉଟ୍ପୁଟ୍ ଟୋକନ୍",
+    "maxOutputTokenOverrideHint": "ଟୋକେନର ଏକ ଧନାତ୍ମକ ପୂର୍ଣ୍ଣ ସଂଖ୍ୟା ଦିଅନ୍ତୁ। ପୂର୍ବନିର୍ଦ୍ଧାରିତ ମୂଲ୍ୟ ପାଇଁ ଖାଲି ରଖନ୍ତୁ।",
     "contextWindowOverrideLabel": "କଣ୍ଟେକ୍ସ୍ଟ ୱିଣ୍ଡୋ ଓଭରରାଇଡ୍",
     "contextWindowOverridePlaceholder": "ଉଦା. 131072",
     "contextWindowOverrideHint": "ପ୍ରଦାତା ଏହାକୁ ଭୁଲ୍ ଭାବେ ରିପୋର୍ଟ କଲେ, ଏହି ମଡେଲ୍ର ପ୍ରକୃତ କନ୍ଟେକ୍ସ୍ଟ ୱିଣ୍ଡୋ (ଟୋକନ୍) ମାନୁଆଲ୍ ଭାବେ ସେଟ୍ କରନ୍ତୁ। ଏହା ସ୍ୱତଃ-ଚିହ୍ନଟ/କ୍ୟାଟାଲଗ୍ ମୂଲ୍ୟଗୁଡ଼ିକଠାରୁ ପ୍ରାଧାନ୍ୟ ପାଏ ଏବଂ କମ୍ବୋ ରାଉଟିଂ ସମୟରେ ମଡେଲ୍ଟି ବାଦ ପଡ଼ିବାକୁ ରୋକେ।",

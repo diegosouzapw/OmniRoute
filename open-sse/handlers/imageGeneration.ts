@@ -21,6 +21,7 @@ import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.
 import { isCodexFreePlan } from "../executors/codex/tools.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
+import { normalizeImageBuffer } from "../utils/imageNormalize.ts";
 import {
   getKieErrorMessage,
   getKieErrorStatus,
@@ -133,21 +134,11 @@ interface KieImageOptions {
 //     ideogram/v3-reframe has no dedicated docs.kie.ai page as of this sweep
 //     (its 3 siblings above are all direct id matches, so it is assumed
 //     correct by pattern, not independently confirmed).
-// One catalog entry remains UNRESOLVED after this sweep and is deliberately
-// left untouched pending a follow-up (see #11296 discussion):
-//   - z-image/4.0-text-to-image and z-image/4.5-text-to-image: the only
-//     documented Z-Image Market page (docs.kie.ai/market/z-image/z-image)
-//     shows a single fixed `model` enum value `"z-image"` with no
-//     version-specific id or "version" input field found — unclear whether
-//     both catalog ids should collapse to the same upstream call.
-// flux/kontext is RESOLVED (#11296): it is catalogued with `isMarket: true`
-// but has no `docs.kie.ai/market/flux2/kontext` (or similar) Market page —
-// Flux Kontext is documented under the separate `/flux-kontext-api/*` docs
-// tree with its own endpoint (`POST /api/v1/flux/kontext/generate`, poll
-// `GET /api/v1/flux/kontext/record-info`, models `flux-kontext-pro`/
-// `flux-kontext-max`), not the Market `createTask` flow this map feeds. It is
-// NOT in KIE_MARKET_UPSTREAM_MODEL_IDS below on purpose — handleKieImageGeneration
-// reroutes it to the dedicated endpoint instead of rewriting its id.
+// #14335 (2026-10-08): https://docs.kie.ai/market/z-image/z-image declares
+// `z-image`. The old versioned picker ids remain compatibility aliases only.
+// Flux Kontext's dedicated API/tier is now explicit in the registry. The current
+// main docs also offer a Market API, but existing requests retain the documented
+// /old-model/flux-kontext-api contract rather than migrating endpoints implicitly.
 export const KIE_MARKET_UPSTREAM_MODEL_IDS: ReadonlyMap<string, string> = new Map([
   ["google-imagen/nano-banana", "google/nano-banana"],
   ["google-imagen/nano-banana-2", "nano-banana-2"],
@@ -165,6 +156,8 @@ export const KIE_MARKET_UPSTREAM_MODEL_IDS: ReadonlyMap<string, string> = new Ma
   ["flux/2-image-to-image", "flux-2/flex-image-to-image"],
   ["wan/2.7-image", "wan/2-7-image"],
   ["wan/2.7-image-pro", "wan/2-7-image-pro"],
+  ["z-image/4.0-text-to-image", "z-image"],
+  ["z-image/4.5-text-to-image", "z-image"],
 ]);
 
 export function resolveKieMarketUpstreamModelId(publicModelId: string): string {
@@ -919,13 +912,7 @@ async function handleKieImageGeneration({
   // Check if model is a Market model (unified API)
   const fullRegistry = getImageProvider(provider);
   const modelEntry = fullRegistry?.models?.find((m) => m.id === model);
-  // #11296 — flux/kontext is catalogued with `isMarket: true`, but KIE does not
-  // expose it through the Market catalog at all: it lives under a dedicated API
-  // tree (POST /api/v1/flux/kontext/generate, poll .../flux/kontext/record-info)
-  // that rejects the Market createTask flow with "model name not supported". Route
-  // it there instead of treating it as a Market entry (see KIE_MARKET_UPSTREAM_MODEL_IDS
-  // comment above for the same finding).
-  const isFluxKontext = model === "flux/kontext";
+  const isFluxKontext = Boolean(modelEntry?.kieFluxKontextModel);
   const isMarket = !isFluxKontext && (modelEntry?.isMarket || model.includes("/"));
 
   const { imageUrl } = extractImageInputs(body);
@@ -933,12 +920,12 @@ async function handleKieImageGeneration({
   let payload: Record<string, unknown> = {};
 
   if (isFluxKontext) {
-    // Dedicated Flux Kontext API endpoint (not part of the Market catalog).
+    // Preserve the dedicated API and choose Pro/Max from the catalog contract.
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/flux/kontext/generate`;
     payload = {
       prompt,
       aspectRatio: mapImageSize(size),
-      model: "flux-kontext-pro",
+      model: modelEntry.kieFluxKontextModel,
       ...(imageUrl ? { inputImage: imageUrl } : {}),
     };
   } else if (isMarket) {
@@ -2549,6 +2536,24 @@ export function mapLegacyImageQualityToImageTool(value: string): string {
   return normalized;
 }
 
+// The Codex backend answers 503 when an inline reference image is large (seen above ~400 KB);
+// a 1024px long edge keeps edits working without changing what the model sees in practice.
+const CODEX_REFERENCE_MAX_BYTES = 400_000;
+const CODEX_REFERENCE_MAX_LONG_EDGE = 1024;
+
+export async function shrinkCodexReferenceImage(image: {
+  bytes: Buffer;
+  mime?: string;
+}): Promise<{ bytes: Buffer; mime: string }> {
+  const mime = image.mime || "image/png";
+  if (image.bytes.length <= CODEX_REFERENCE_MAX_BYTES) return { bytes: image.bytes, mime };
+  const out = await normalizeImageBuffer(image.bytes, {
+    maxLongEdge: CODEX_REFERENCE_MAX_LONG_EDGE,
+  });
+  if (!out.resized) return { bytes: image.bytes, mime };
+  return { bytes: out.buffer, mime: out.mime || mime };
+}
+
 async function handleCodexImageGeneration({
   model,
   provider,
@@ -2624,12 +2629,18 @@ async function handleCodexImageGeneration({
   if (typeof body.quality === "string" && body.quality.trim()) {
     toolConfig.quality = mapLegacyImageQualityToImageTool(body.quality.trim());
   }
+  // The hosted image_generation tool accepts `background` ("transparent" | "opaque" | "auto");
+  // without it a logo/sticker request always comes back on an opaque canvas.
+  if (typeof body.background === "string" && body.background.trim()) {
+    toolConfig.background = body.background.trim();
+  }
 
   const inputContent: Array<Record<string, unknown>> = [{ type: "input_text", text: prompt }];
   for (const image of referenceImages) {
+    const reference = await shrinkCodexReferenceImage(image);
     inputContent.push({
       type: "input_image",
-      image_url: `data:${image.mime || "image/png"};base64,${image.bytes.toString("base64")}`,
+      image_url: `data:${reference.mime};base64,${reference.bytes.toString("base64")}`,
     });
   }
 

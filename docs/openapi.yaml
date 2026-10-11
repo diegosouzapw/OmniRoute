@@ -2414,9 +2414,41 @@ paths:
     get:
       tags: [Provider Nodes]
       summary: List provider models
+      description: >-
+        With a provider query parameter, includes modelOutputOverrides for manual
+        output-token caps, including synced models without a custom-model row.
       responses:
         "200":
           description: Provider model list
+    put:
+      tags: [Provider Nodes]
+      summary: Update model metadata or per-model overrides
+      description: >-
+        Requires management authentication. maxOutputTokenOverride sets a manual
+        max_output_tokens capability without creating a custom-model row when it
+        is the only change. A null value clears that override. Existing metadata
+        fields remain available on this operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, modelId]
+              properties:
+                provider:
+                  type: string
+                modelId:
+                  type: string
+                maxOutputTokenOverride:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+      responses:
+        "200":
+          description: Model settings saved
+        "400":
+          description: Invalid model target or override value
 
   /api/provider-models/validate-and-add:
     post:
@@ -10475,6 +10507,93 @@ paths:
       responses:
         "200":
           description: OK
+  /api/keys/{id}/self-service:
+    get:
+      tags:
+        - Keys
+      summary: "GET keys › <id> › self service"
+      description: >-
+        Self-service settings, what the key holder can see through /v1/me/status, the providers
+        the key can reach, and an admin preview of its /v1/me/status body (always includes
+        limits and settings-filtered accountQuotas, regardless of scopes).
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Settings and preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  settings:
+                    $ref: "#/components/schemas/ApiKeySelfServiceSettings"
+                  visibility:
+                    type: object
+                    properties:
+                      selfUsage:
+                        type: boolean
+                      accountQuota:
+                        type: boolean
+                  availableProviders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        provider:
+                          type: string
+                        connectionCount:
+                          type: integer
+                        quotaSupported:
+                          type: boolean
+                  status:
+                    $ref: "#/components/schemas/ApiKeySelfServiceStatus"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags:
+        - Keys
+      summary: "PUT keys › <id> › self service"
+      description: Update the key's self-service settings. Omitted fields keep their value.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                sharedQuotaProviders:
+                  type: array
+                  nullable: true
+                  maxItems: 100
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 64
+                anthropicRateLimitHeaders:
+                  type: string
+                  enum: [auto, forward, strip]
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  settings:
+                    $ref: "#/components/schemas/ApiKeySelfServiceSettings"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/keys/groups:
     get:
       tags:
@@ -10619,6 +10738,16 @@ paths:
       tags:
         - Logs
       summary: "GET logs › export"
+      description: >-
+        Streams a JSON log export. The initial estimatedCount and the
+        X-OmniRoute-Export-Count header are preflight estimates;
+        X-OmniRoute-Export-Count-Kind is estimate. The final count is the number
+        of rows actually emitted in logs, including on mid-stream failure.
+        Failures also append emitted and a sanitized error. Cap metadata is
+        available before row iteration. This is a live, best-effort export:
+        concurrent changes may remove call-log IDs before hydration, and proxy-log
+        LIMIT/OFFSET pages may repeat or omit rows when inserts/deletes shift pages.
+        Neither the export nor totalAvailable represents a transactional snapshot.
       x-always-protected: true
       responses:
         "200":
@@ -12793,10 +12922,55 @@ paths:
       tags:
         - System
       summary: "GET system › version"
+      description: >-
+        Running version, latest published version, auto-update status and npm release channel.
+        `releaseChannel` and `channels` are additive (rail 3.8.54); `channel` keeps meaning the
+        deployment mode used by the dashboard updater.
       x-loopback-only: true
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, latest, updateAvailable, channel, releaseChannel, channels]
+                properties:
+                  current: { type: string, description: Running OmniRoute version. }
+                  latest:
+                    type: string
+                    description: Latest published version, or "unavailable" when every lookup failed.
+                  updateAvailable: { type: boolean }
+                  channel:
+                    type: string
+                    enum: [npm, source, docker-compose]
+                    description: Deployment mode the auto-updater uses (not the npm release channel).
+                  autoUpdateSupported: { type: boolean }
+                  autoUpdateError: { type: [string, "null"] }
+                  news: { description: Active release-news payload, or null. }
+                  releaseChannel:
+                    type: string
+                    enum: [latest, next, nightly, lts]
+                    description: >-
+                      npm channel of the running build — `nightly` for `-nightly.*`, `next` for other
+                      pre-releases, `lts` for a stable of an older major than `channels.latest`,
+                      otherwise `latest` (same rules as scripts/release/dist-tag.mjs).
+                  channels:
+                    type: object
+                    description: >-
+                      Published head of each npm dist-tag (`npm view omniroute dist-tags`, cached
+                      10 minutes). `latest` is always present; the others only when the dist-tag
+                      exists.
+                    required: [latest]
+                    properties:
+                      latest: { type: string }
+                      next: { type: string }
+                      nightly: { type: string }
+                      lts: { type: string }
+        "304":
+          description: Not modified (If-None-Match matched the ETag).
+        "401":
+          description: Unauthorized
     post:
       tags:
         - System
@@ -13564,9 +13738,27 @@ paths:
       tags:
         - V1 Me
       summary: "GET me › status"
+      description: >-
+        Self-service usage status for the calling API key (also served at /v1/me/status).
+        Authenticate with `Authorization: Bearer <key>` or `x-api-key: <key>`. Requires scope
+        `self:usage`. `accountQuotas` / `accountQuota` are included only with scope
+        `self:account-quota` and are filtered by the key's `sharedQuotaProviders` setting.
+      security:
+        - BearerAuth: []
+        - XApiKeyAuth: []
       responses:
         "200":
-          description: OK
+          description: Status for the calling key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeySelfServiceStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: The key lacks the self:usage scope
+        "500":
+          description: Status could not be built
   /api/v1/me/sessions:
     get:
       tags:
@@ -14144,6 +14336,11 @@ components:
         includes `manage` or `admin` scope. See docs/guides/MANAGEMENT-AUTH.md.
         Bearer credentials are accepted on management routes that use this scheme;
         they are not rejected solely for being Bearer.
+    XApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Inference API key sent in the x-api-key header (accepted by /v1/me/status).
     ManagementSessionAuth:
       type: apiKey
       in: cookie
@@ -15749,6 +15946,164 @@ components:
           nullable: true
           minimum: 0
 
+    ApiKeySelfServiceSettings:
+      type: object
+      properties:
+        sharedQuotaProviders:
+          type: array
+          nullable: true
+          description: Providers whose account quotas the key holder may see. null = all, [] = none.
+          items:
+            type: string
+        anthropicRateLimitHeaders:
+          type: string
+          enum: [auto, forward, strip]
+    ApiKeySelfServiceUsageWindow:
+      type: object
+      properties:
+        periodStartAt:
+          type: string
+          format: date-time
+        resetAt:
+          type: string
+          format: date-time
+        costUsd:
+          type: number
+        requests:
+          type: integer
+        tokens:
+          type: object
+          properties:
+            input:
+              type: integer
+            output:
+              type: integer
+            cacheRead:
+              type: integer
+            cacheCreation:
+              type: integer
+            reasoning:
+              type: integer
+            total:
+              type: integer
+    ApiKeySelfServiceLimit:
+      type: object
+      properties:
+        id:
+          type: string
+          example: usage_limit:daily
+        source:
+          type: string
+          enum: [usage_limit, budget, token_limit, key_quota]
+        metric:
+          type: string
+          enum: [usd, tokens, requests]
+        window:
+          type: string
+          enum: [minute, daily, weekly, monthly]
+        scope:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [global, provider, model]
+            value:
+              type: string
+              nullable: true
+        limit:
+          type: number
+        used:
+          type: number
+        remaining:
+          type: number
+        utilization:
+          type: number
+          minimum: 0
+          maximum: 1
+        exceeded:
+          type: boolean
+        periodStartAt:
+          type: string
+          format: date-time
+          nullable: true
+        resetAt:
+          type: string
+          format: date-time
+          nullable: true
+    ApiKeySelfServiceAccountQuota:
+      type: object
+      properties:
+        provider:
+          type: string
+        connectionId:
+          type: string
+        label:
+          type: string
+          description: Account display name; email-like names are masked.
+        shared:
+          type: boolean
+        plan: {}
+        quotas:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              usedPercentage:
+                type: number
+              remainingPercentage:
+                type: number
+              resetAt:
+                type: string
+                format: date-time
+                nullable: true
+        fetchedAt:
+          type: string
+          format: date-time
+          nullable: true
+        stale:
+          type: boolean
+          description: true when the last refresh failed and cached data is served.
+        available:
+          type: boolean
+        reason:
+          type: string
+          enum: [connection_lookup_failed, not_supported, fetch_failed, not_available]
+    ApiKeySelfServiceStatus:
+      type: object
+      properties:
+        apiKey:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        generatedAt:
+          type: string
+          format: date-time
+        usage:
+          type: object
+          properties:
+            cost:
+              type: object
+              additionalProperties: true
+            tokens:
+              type: object
+              additionalProperties: true
+            daily:
+              $ref: "#/components/schemas/ApiKeySelfServiceUsageWindow"
+            weekly:
+              $ref: "#/components/schemas/ApiKeySelfServiceUsageWindow"
+        limits:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiKeySelfServiceLimit"
+        accountQuotas:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiKeySelfServiceAccountQuota"
+        accountQuota:
+          $ref: "#/components/schemas/ApiKeySelfServiceAccountQuota"
     ApiKey:
       type: object
       properties:

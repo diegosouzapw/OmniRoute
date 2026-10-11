@@ -1,0 +1,1 @@
+- fix(routing): reject individually hidden chat models before upstream dispatch, including aliases, compatible-provider prefixes, combo targets, and connection defaults; preserve API-key policy and catalog prefix settings (#12666).

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Er is iets misgegaan",
+      "description": "Er is een onverwachte fout opgetreden. Dit is geregistreerd en ons team zal het onderzoeken.",
+      "detailsAriaLabel": "Foutdetails",
+      "retryAriaLabel": "Probeer de pagina opnieuw te laden",
+      "tryAgain": "Probeer het opnieuw",
+      "statusAriaLabel": "Open systeemstatus",
+      "systemStatus": "Systeemstatus"
+    }
+  }
+}

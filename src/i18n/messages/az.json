@@ -5735,6 +5735,8 @@
     "targetFormatAuto": "Standart (avtomatik)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksimum Çıxış Tokenləri",
+    "maxOutputTokenOverrideHint": "Müsbət tam token sayı daxil edin. Standart dəyər üçün boş saxlayın.",
     "contextWindowOverrideLabel": "Kontekst Pəncərəsini Yenidən Təyin Etmə",
     "contextWindowOverridePlaceholder": "məs. 131072",
     "contextWindowOverrideHint": "Provayder səhv bildirdikdə bu modelin real kontekst pəncərəsini (tokenlər) əl ilə təyin edin. Avtomatik aşkarlanan/kataloq dəyərlərindən üstün tutulur və kombo marşrutlaşdırmanın modeli kənarlaşdırmasının qarşısını alır.",

@@ -1,0 +1,1 @@
+- docs(docker): explain Gemini regional errors, connection-scoped proxy checks and the prerequisites and rollback for host-level IPv6 tuning (#12762).

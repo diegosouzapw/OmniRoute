@@ -21,7 +21,7 @@ describe("VeniceWebExecutor", () => {
       });
       assert.ok(result.response instanceof Response);
       assert.ok(typeof result.url === "string");
-      assert.ok(result.url.includes("venice.ai"));
+      assert.equal(result.url, "https://outerface.venice.ai/api/inference/chat");
     } catch {
       // Network error expected
     }

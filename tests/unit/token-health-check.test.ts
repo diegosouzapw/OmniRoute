@@ -230,6 +230,52 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
+for (const concurrent of [false, true]) {
+  test(`successful OAuth refresh preserves ${concurrent ? "concurrent" : "existing"} quota cooldown diagnostics`, async () => {
+    await resetStorage();
+    const providerId = "healthcheck-quota-test";
+    let connectionId = "";
+    const cooldown = {
+      testStatus: "unavailable",
+      rateLimitedUntil: new Date(Date.now() + 3600_000).toISOString(),
+      lastError: "Weekly quota exhausted",
+      lastErrorAt: new Date().toISOString(),
+      lastErrorType: "quota_exhausted",
+      lastErrorSource: "upstream",
+      errorCode: "429",
+      backoffLevel: 2,
+    };
+    await withHttpServer(
+      async (_req, res) => {
+        if (concurrent) await providersDb.updateProviderConnection(connectionId, cooldown);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ access_token: "fresh-test-token", expires_in: 3600 }));
+      },
+      async (server) => {
+        await withPatchedProvider(providerId, { tokenUrl: `${server.url}/token` }, async () => {
+          const connection = await providersDb.createProviderConnection({
+            provider: providerId,
+            authType: "oauth",
+            accessToken: "expired-test-token",
+            refreshToken: "test-refresh-token",
+            expiresAt: new Date(Date.now() - 60_000).toISOString(),
+            isActive: true,
+            ...(concurrent ? { testStatus: "active" } : cooldown),
+          });
+          connectionId = connection.id;
+          if (!concurrent) await providersDb.updateProviderConnection(connectionId, cooldown);
+          await tokenHealthCheck.checkConnection(connection);
+          const updated = await providersDb.getProviderConnectionById(connectionId);
+          assert.equal(updated?.accessToken, "fresh-test-token");
+          for (const [key, value] of Object.entries(cooldown)) {
+            assert.equal(updated?.[key], value, `refresh must preserve ${key}`);
+          }
+        });
+      }
+    );
+  });
+}
+
 test("extractResolvedProxyConfig unwraps proxy resolution metadata", () => {
   const proxy = {
     type: "http",
