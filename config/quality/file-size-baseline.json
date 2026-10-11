@@ -567,7 +567,7 @@
     "open-sse/utils/cursorAgentProtobuf.ts": 1622,
     "open-sse/utils/error.ts": 1217,
     "open-sse/utils/proxyFetch.ts": 1360,
-    "open-sse/utils/stream.ts": 3326,
+    "open-sse/utils/stream.ts": 3383,
     "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/browser-worker.ts": 4467,
     "open-sse/vendor/codex-chatgpt-web/bridge.ts": 1322,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1344,
@@ -603,7 +603,8 @@
     "src/sse/handlers/chatHelpers.ts": 1285,
     "src/sse/services/auth.ts": 3587,
     "tests/unit/account-fallback-service.test.ts": 2453,
-    "tests/unit/provider-validation-specialty.test.ts": 4656
+    "tests/unit/provider-validation-specialty.test.ts": 4656,
+    "_rebaseline_2026_10_11_16304_translate-flush-pending-final-event": "PR 16304 own growth: open-sse/utils/stream.ts 3326->3383 (+57 = translate-flush drain call-site: one import plus a single drainTranslateFlushTail call before the existing partial-buffer block, with the per-line pipeline in the new module open-sse/utils/translateFlushTail.ts under cap; not extractable further without hiding the flush ordering. Covered by tests/unit/stream-translate-flush-pending-final.test.ts (5/5)."
   },
   "_rebaseline_2026_09_15_roundrobin_dashboard_events": "Fix #13089 (Combo Studio Live dashboard shows an empty backlog for round-robin combos): open-sse/services/combo/roundRobinCombo.ts 1205->1213. Round-robin is the only combo strategy that bypasses handleComboChat/executeTargetAttempt.ts, the path that publishes the combo.target.attempt/succeeded/failed EventBus events the Live dashboard listens for — so round-robin completions never showed up. The new call-site wiring (createRRDashboardEvents(...) instantiated once per target, one-line .attempt()/.succeeded()/.failed() calls at the 6 existing dispatch/outcome points) is the emitter logic actually extracted into a new module, open-sse/services/combo/rrDashboardEvents.ts — this is the minimum irreducible footprint for wiring 6 required call sites into 6 fixed control-flow points of the frozen file. Covered by tests/unit/issue-13089-roundrobin-live-ws-events.test.ts (2 tests: success + failure paths).",
   "_rebaseline_base_2026_08_10_proxyfetch": "Base-red fix (green-prs sweep, issue #9985): open-sse/utils/proxyFetch.ts 1207 > cap 1000 — new proxied-TLS fetch helper introduced by the Fal reference-image work. Owner-authorized quick rebaseline to green; structural slim tracked for v3.9.0.",
