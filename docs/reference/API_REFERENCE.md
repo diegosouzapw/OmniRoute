@@ -447,6 +447,20 @@ field pointing at the primary id.
 Clients that render a model picker should request `?prefix=alias` — this is what the
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md) does.
 
+### Individually hidden chat models
+
+A model marked **Hidden** on its provider page is excluded from the catalog and rejected
+with HTTP `404` / `model_not_found` when requested explicitly. The check uses the resolved
+provider and model, including provider aliases, compatible-provider node prefixes, and
+connection defaults. A combo skips hidden targets and can use a visible sibling; when no
+executable target remains it returns the same error code. Unhiding takes effect on the next
+request. Image-only visibility overrides do not hide the chat model with the same ID.
+
+This individual model setting is separate from the
+[model exposure allow/deny lists](../routing/MODEL_EXPOSURE_LIST.md), which filter catalog
+advertisement and auto-routing candidates while retaining explicit dispatch. API-key model
+permissions continue to apply independently. The default catalog prefix mode remains `dual`.
+
 ### No-thinking model variants
 
 For thinking-capable Claude models, `/v1/models` also advertises a **no-thinking** variant whose id is prefixed with `claude-3-omniroute-no-thinking/`:
@@ -876,18 +890,25 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                                | Method                | Description                                                                                                                                               |
-| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | List / create providers                                                                                                                                   |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Manage a provider                                                                                                                                         |
-| `/api/providers/[id]/test`              | POST                  | Test provider connection                                                                                                                                  |
-| `/api/providers/[id]/models`            | GET                   | List provider models                                                                                                                                      |
-| `/api/providers/validate`               | POST                  | Validate provider config                                                                                                                                  |
-| `/api/providers/bulk`                   | POST                  | Bulk-add API keys for ONE provider                                                                                                                        |
-| `/api/providers/import`                 | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
-| `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
-| `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+| Endpoint                                | Method                    | Description                                                                                                                                               |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                      | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                       | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                      | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                      | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                      | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various                   | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Custom models and per-model overrides (add, update, hide/show, delete)                                                                                    |
+| `/api/provider-models/validate-and-add` | POST                      | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+For synced/imported models, `PUT /api/provider-models` accepts `provider`, `modelId`, and
+`maxOutputTokenOverride`: a positive integer sets the manual output-token cap, and `null`
+clears it to restore the default. `GET /api/provider-models?provider=<provider>` returns these
+values in `modelOutputOverrides`, including models without a custom-model row. The override
+uses the runtime `max_output_tokens` capability and survives a model re-sync. The OpenAI-compatible
+provider page offers the same edit/clear controls and marks models with explicit vision support.
 
 Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
 successful connection test automatically selects chat-template controls for each exact model ID
@@ -950,6 +971,47 @@ verdicts; the second stage can still produce its requested visible reasoning as 
 | `/api/usage/token-limits`        | GET/POST/DELETE | Per-API-key token-limit budgets                                                                                                                                                                                                                                                                      |
 | `/api/usage/model-latency-stats` | GET             | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
 | `/api/usage/cache-health`        | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
+
+### API key permissions
+
+`PATCH /api/keys/{id}` updates an existing key's permissions. Like every `/api/keys*` route it needs management authorization (see [Management Authentication](../guides/MANAGEMENT-AUTH.md)), not an inference key. Send only the fields you want to change; a request with none of them is rejected with `No valid fields to update`. The accepted fields are defined by `updateKeyPermissionsSchema` in `src/shared/validation/schemas/keys.ts`.
+
+| Field                                       | Type                                                                 | Notes                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | string, 1-200 chars                                                  |                                                                                                                        |
+| `isActive`                                  | boolean                                                              |                                                                                                                        |
+| `isBanned`                                  | boolean                                                              |                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 datetime or `null`                                          | `null` clears the expiry                                                                                               |
+| `modelAccessMode`                           | `all` \| `restricted`                                                | `allowedModels` must be empty when the mode is `all`                                                                   |
+| `allowedModels`, `blockedModels`            | array of strings, up to 1000                                         |                                                                                                                        |
+| `allowedCombos`                             | array of strings, up to 500                                          | Gates which combos the key may call; direct models are governed by `modelAccessMode` / `allowedModels`                 |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                | `allowedConnections` must be non-empty when `restricted` and empty when `all`                                          |
+| `allowedConnections`                        | array of UUIDs, up to 100                                            |                                                                                                                        |
+| `allowAutoCombos`                           | boolean                                                              | `false` rejects requests for `auto/*` models with this key; keys that never set it are allowed                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                        | What `GET /v1/models` lists for this key (combos only, models only, or both); it does not change what the key may call |
+| `noLog`, `autoResolve`                      | boolean                                                              |                                                                                                                        |
+| `throttleDelayMs`                           | integer, 0-300000                                                    |                                                                                                                        |
+| `maxSessions`                               | integer, 0-10000                                                     |                                                                                                                        |
+| `rateLimits`                                | array of `{ limit, window }` (positive integers, up to 50) or `null` | `null` clears the limits                                                                                               |
+| `accessSchedule`                            | schedule object or `null`                                            | `null` clears the schedule                                                                                             |
+| `scopes`                                    | array of strings, up to 32                                           |                                                                                                                        |
+| `allowedEndpoints`                          | array of strings, up to 20                                           |                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                   |                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                 | See [Per-key cache bypass](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | boolean                                                              |                                                                                                                        |
+| `codexServiceMode`                          | one of the Codex service modes                                       |                                                                                                                        |
+| `disableNonPublicModels`                    | boolean                                                              |                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                              |                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                              |                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 or `null`                                                |                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                              |                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Settings
 
@@ -1085,13 +1147,15 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint                 | Method | Description                                          |
-| ------------------------ | ------ | ---------------------------------------------------- |
-| `/api/init`              | GET    | Application initialization check (used on first run) |
-| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`           | POST   | Trigger graceful server restart                      |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
-| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/api/init`              | GET    | Application initialization check (used on first run)   |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
+| `/api/restart`           | POST   | Trigger graceful server restart                        |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
+| `/api/system/version`    | GET    | Current/latest version, update status, release channel |
+| `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1115,6 +1179,43 @@ Repairs missing or corrupted OAuth environment variables for a specific provider
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Version and Release Channel
+
+```bash
+GET /api/system/version
+```
+
+Loopback-only management route (admin auth). Returns the running version, the latest
+published version and the auto-update status. `releaseChannel` and `channels` are additive
+fields (rail 3.8.54); `channel` keeps its meaning — the deployment mode the dashboard updater
+uses (`npm`, `source` or `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm channel of the running build: `nightly` for `-nightly.*` versions,
+  `next` for other pre-releases (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for a stable version of an
+  older major than `channels.latest`, otherwise `latest`. Same rules as
+  `scripts/release/dist-tag.mjs`, which picks the npm dist-tag at publish time.
+- `channels` — published head of each dist-tag, from `npm view omniroute dist-tags` (registry
+  HTTP fallback), cached with the same 10-minute TTL as `latest`. `latest` is always present
+  (falls back to the `latest` field, then `"unavailable"`); `next`, `nightly` and `lts` appear
+  only when that dist-tag exists. A `Cache-Control: no-cache` request refreshes both lookups.
+
+The channel model (`latest` = v3 until the 4.0 GA, `next` = rc, `nightly` = `develop` builds,
+`lts` = v3 patches after the 4.0 GA) is described in `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

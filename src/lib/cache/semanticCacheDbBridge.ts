@@ -1,7 +1,8 @@
-import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { getDbInstance } from "@/lib/db/core";
 import { decryptConnectionFields } from "@/lib/db/encryption";
 import { registerSemanticCacheConfigResolver } from "@omniroute/open-sse/config/semanticCacheConfig.ts";
+import { resolveEmbeddingCredentials } from "@omniroute/open-sse/services/cache/embeddingEndpoint";
 
 let registered = false;
 
@@ -47,15 +48,18 @@ export function ensureSemanticCacheDbBridge(): void {
   registered = true;
   registerSemanticCacheConfigResolver(() => {
     try {
-      const s = getDatabaseSettings().cache;
+      // Configuration reads must not run full DB statistics or integrity checks.
+      const s = getUserDatabaseSettings().cache;
       if (!s) return null;
 
       const conn = s.semanticCacheEmbeddingProvider
         ? resolveProviderConnectionDetails(s.semanticCacheEmbeddingProvider)
         : {};
 
-      const embeddingBaseUrl = s.semanticCacheEmbeddingBaseUrl || conn.baseUrl;
-      const embeddingApiKey = s.semanticCacheEmbeddingApiKey || conn.apiKey;
+      const { baseUrl: embeddingBaseUrl, apiKey: embeddingApiKey } = resolveEmbeddingCredentials(
+        { baseUrl: s.semanticCacheEmbeddingBaseUrl, apiKey: s.semanticCacheEmbeddingApiKey },
+        conn
+      );
 
       return {
         // The vector layer is opt-in (#14159): it only runs when the operator turned

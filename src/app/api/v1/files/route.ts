@@ -196,7 +196,7 @@ export async function GET(request: Request) {
   // anonymous / unresolvable bearer → 401. `listFiles`/`countFiles` read an
   // absent owner as "every tenant", so the widening must be an explicit
   // decision here, never a fallback (GHSA-m3hp-hq9g-fpmv).
-  const listScope = resolveListScope(scope);
+  const listScope = resolveListScope(scope, policy);
   if (listScope.mode === "rejected") return listScope.response;
   const ownerFilter = listScope.mode === "api_key" ? listScope.apiKeyId : undefined;
 

@@ -1,0 +1,41 @@
+# Declarative GitHub labels for the 3.8.5x -> 3.9.0 LTS release rail.
+#
+# Synced by `npm run labels:sync` (scripts/release/sync-labels.mjs): dry-run by
+# default, `-- --apply` to create/update. Only the labels listed here are managed;
+# labels missing from this file are never touched or deleted.
+#
+# Pre-existing operational labels (`queue`, `release-freeze`, `base-red`, ...) are
+# intentionally NOT listed — they keep their current meaning and colors.
+#
+# Model: docs/ops/RELEASE_STRATEGY.md
+#
+# Fields: name (required), color (QUOTED 6-digit hex - unquoted values like 5319E7 or
+# 012345 are parsed by YAML as numbers), description (<= 100 chars).
+
+- name: v4-feature
+  color: "1D76DB"
+  description: Feature PR held for the v4 channel (develop); re-targeted when it opens
+
+- name: lts
+  color: "0E8A16"
+  description: Belongs to the v3 LTS line (stable/v3) - fixes, security, provider updates
+
+- name: forward-port
+  color: "C5DEF5"
+  description: Fix forward-ported from stable/v3 to develop with original-author credit
+
+- name: channel:latest
+  color: "2EA44F"
+  description: Ships on the npm `latest` dist-tag (v3 until 4.0 GA)
+
+- name: channel:next
+  color: "FBCA04"
+  description: Ships on the npm `next` dist-tag (v4 release candidates)
+
+- name: channel:nightly
+  color: "5319E7"
+  description: Ships on the npm `nightly` dist-tag (v4 develop builds)
+
+- name: preview-artifact
+  color: "BFDADC"
+  description: Requests a PR preview build artifact (dormant until the 3.8.58 rehearsal)

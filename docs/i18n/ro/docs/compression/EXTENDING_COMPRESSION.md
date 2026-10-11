@@ -336,7 +336,6 @@ Sau plasați-l într-o locație recunoscută:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # La nivel de utilizator
-<project>/.compression/rules/hi/filler.json   # La nivel de proiect
 ```
 
 ### Bune practici pentru pachetele lingvistice

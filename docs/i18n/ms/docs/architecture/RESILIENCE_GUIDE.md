@@ -96,6 +96,8 @@ Pelindung regresi: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Perlindungan antikumpulan serentak:** menghalang kegagalan serentak daripada memanjangkan tempoh bertenang secara berlebihan atau menokok `backoffLevel` dua kali.
 
+Bingkai binari `reasoningContentEvent` Kiro dengan tandatangan yang tidak kosong mengekalkan aktiviti penaakulan melalui pelaksana sebagai delta `reasoning_content` kosong. Tandatangan tidak diteruskan. Metadata, bingkai tidak lengkap dan tandatangan kosong tidak memulakan semula had masa kandungan; had masa bebas bagi aliran aktif dan pembatalan oleh klien tetap berkuat kuasa. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Keadaan terminal (BUKAN tempoh bertenang):**
 
 - `banned` — ditetapkan oleh pengesanan kata kunci larangan / larangan akaun (lihat [BAN_DETECTION](../security/BAN_DETECTION.md)), dan oleh tiga penolakan huluan berturut-turut bagi setiap permintaan (`request_rejected`, misalnya Anthropic OAuth 403 "Permintaan tidak dibenarkan" — `open-sse/services/requestRejectedStreak.ts`); satu penolakan sahaja hanya mengenakan tempoh bertenang pada sambungan

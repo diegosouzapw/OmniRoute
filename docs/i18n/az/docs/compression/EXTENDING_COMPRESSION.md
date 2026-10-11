@@ -332,7 +332,6 @@ Yaxud onu tanınan mövqelərdən birinə yerləşdirin:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # İstifadəçi səviyyəsi
-<project>/.compression/rules/hi/filler.json   # Layihə səviyyəsi
 ```
 
 ### Dil Paketləri üçün Ən Yaxşı Təcrübələr

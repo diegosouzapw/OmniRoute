@@ -1,4 +1,5 @@
 import { MCP_TOOL_MAP } from "./schemas/tools.ts";
+import { hasManageScope } from "../../src/shared/constants/managementScopes.ts";
 
 type AuthInfoLike = {
   clientId?: string;
@@ -94,6 +95,19 @@ export function resolveCallerScopeContext(
   }
 
   return { callerId, scopes: [], source: "none" };
+}
+
+/**
+ * OMNIROUTE_MCP_ENFORCE_SCOPES is opt-in (default off) to keep the documented local/stdio
+ * single-operator flow friction-free. That default must never extend to a caller resolved from a
+ * real per-key HTTP `Authorization` header (`source === "authInfo"` — populated HTTP/SSE-only)
+ * unless that key already holds full `manage`/`admin` scope. Otherwise an API key granted ONLY the
+ * narrow `mcp:connect` bypass scope (authorized for nothing but the /api/mcp/ LOCAL_ONLY
+ * carve-out) could invoke every MCP tool once an operator enables remote MCP access, because
+ * `evaluateToolScopes()` short-circuits to `allowed: true` while enforcement is off.
+ */
+export function shouldForceScopeEnforcement(context: CallerScopeContext): boolean {
+  return context.source === "authInfo" && !hasManageScope(context.scopes);
 }
 
 export function evaluateToolScopes(

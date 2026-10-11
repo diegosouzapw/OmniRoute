@@ -10,6 +10,7 @@ import { openOmniRouteDb } from "../sqlite.mjs";
 import { loadAvailableProviders } from "../provider-catalog.mjs";
 import { apiFetch, isServerUp, isRouteUnavailableStatus } from "../api.mjs";
 import { t } from "../i18n.mjs";
+import { addProviderNodeKey, usesProviderNodeNamespace } from "../provider-node-key.mjs";
 
 function getValidProviderIds() {
   try {
@@ -165,6 +166,9 @@ export async function runKeysAddCommand(provider, apiKey, opts = {}) {
   }
 
   const providerLower = provider.toLowerCase();
+  if (usesProviderNodeNamespace(providerLower)) {
+    return addProviderNodeKey(providerLower, key, opts);
+  }
   const validIds = getValidProviderIds();
   if (validIds && !validIds.has(providerLower)) {
     console.error(t("keys.unknownProvider", { provider: providerLower }));

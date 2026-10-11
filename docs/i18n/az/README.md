@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funksiyalar</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinasiyalar</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provayderlər</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provayderlər</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI və MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ icra etmədən dəqiq mühit dəyişənlərini/arqumentləri əvvəlcədən gös
 
 <div align="center">
 
-## 🌐 357 AI Provayderi — 152-si Kataloqda Pulsuz Olaraq İşarələnib
+## 🌐 372 AI Provayderi — 154-si Kataloqda Pulsuz Olaraq İşarələnib
 
 </div>
 
@@ -1265,7 +1265,7 @@ bir portda təqdim olunur, buna görə hazırda ayrıca yalnız CLI üçün pake
   <tr><td nowrap><b>İcra mühiti</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Proqramlaşdırma dili</b></td><td>TypeScript 6.0 — <code>src/</code> və <code>open-sse/</code> daxilində <b>100% TypeScript</b> (v2.0-dan etibarən əsas hissədə sıfır <code>any</code>)</td></tr>
   <tr><td nowrap><b>Freymlork</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Verilənlər bazası</b></td><td>better-sqlite3 (SQLite, WAL jurnallaşdırması) + LowDB (köhnə JSON formatı) — 137 domen modulu, 193 miqrasiya</td></tr>
+  <tr><td nowrap><b>Verilənlər bazası</b></td><td>better-sqlite3 (SQLite, WAL jurnallaşdırması) + LowDB (köhnə JSON formatı) — 137 domen modulu, 202 miqrasiya</td></tr>
   <tr><td nowrap><b>Yaddaş</b></td><td>SQLite FTS5 tam mətn axtarışı + int8-kvantlaşdırılmış vektor yerləşdirmələri, tipləşdirilmiş zəifləmə</td></tr>
   <tr><td nowrap><b>Sxemlər</b></td><td>Zod 4 — MCP alətlərinin giriş/çıxış yoxlaması + API müqavilələri</td></tr>
   <tr><td nowrap><b>Protokollar</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

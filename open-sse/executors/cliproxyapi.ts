@@ -25,6 +25,12 @@ import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getProviderPluginManifestHeader } from "../config/providerPluginManifestUrl.ts";
 import { rememberCpaAuthIndex } from "../handlers/chatCore/cpaTraceAuthIndex.ts";
 import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
+import { readBodyReasoningEffort, writeBodyReasoningEffort } from "./base/reasoningEffort.ts";
+import {
+  clampToLearned,
+  getLearnedReasoningEffort,
+} from "../services/learnedReasoningEffortCaps.ts";
 import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 
@@ -37,6 +43,28 @@ const HEALTH_CHECK_TIMEOUT_MS = 5000;
 // "out of extra usage" 400. Two-underscore (mcp__X) and capitalized
 // (Mcp_X) variants pass cleanly.
 const MCP_RESERVED_PREFIX_RE = /^mcp_(?=[^_])/;
+
+/** Body copies must retain the two private response-restoration channels. */
+function preserveToolMetadata(source: unknown, target: unknown, cloneAliases = false): void {
+  if (
+    !source ||
+    !target ||
+    typeof source !== "object" ||
+    typeof target !== "object" ||
+    source === target
+  )
+    return;
+  for (const key of ["_toolNameMap", "_namespaceToolIdentityMap"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(source, key);
+    if (descriptor?.value instanceof Map) {
+      Object.defineProperty(target, key, {
+        ...descriptor,
+        value:
+          cloneAliases && key === "_toolNameMap" ? new Map(descriptor.value) : descriptor.value,
+      });
+    }
+  }
+}
 
 function rewriteMcpToolName(name: string): string | null {
   if (typeof name !== "string" || !MCP_RESERVED_PREFIX_RE.test(name)) return null;
@@ -294,6 +322,8 @@ export class CliproxyapiExecutor extends BaseExecutor {
     if (!body || typeof body !== "object") return body;
 
     const transformed = { ...(body as Record<string, unknown>) };
+    // The cloak adds aliases in place; isolate its ledger from the caller.
+    preserveToolMetadata(body, transformed, true);
     if (transformed.model !== model) {
       transformed.model = model;
     }
@@ -364,18 +394,20 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
       const mcpMap = applyMcpToolNameRewrite(transformed);
 
-      const toolNameMap = new Map<string, string>(cloakMap);
-      for (const [alias, original] of mcpMap) {
-        toolNameMap.set(alias, original);
-      }
-      if (toolNameMap.size > 0) {
+      if (cloakMap.size > 0 || mcpMap.size > 0) {
+        const existing = transformed._toolNameMap instanceof Map ? transformed._toolNameMap : null;
+        const toolNameMap = new Map<string, string>(existing);
+        for (const [alias, original] of [...cloakMap, ...mcpMap]) {
+          toolNameMap.set(alias, existing?.get(original) ?? original);
+        }
         // Non-enumerable: chatCore reads this for response-side tool-name
         // restoration; the wire body must never carry it (also stripped in execute()).
         Object.defineProperty(transformed, "_toolNameMap", {
-          value: toolNameMap,
           enumerable: false,
           configurable: true,
           writable: true,
+          ...Object.getOwnPropertyDescriptor(transformed, "_toolNameMap"),
+          value: toolNameMap,
         });
       }
     }
@@ -399,12 +431,22 @@ export class CliproxyapiExecutor extends BaseExecutor {
     const url = `${baseUrl}${endpoint}`;
     const shape = endpoint === "/v1/messages" ? "anthropic" : "openai";
     const headers = this.buildHeaders(input.credentials, input.stream);
-    const transformedBody = this.transformRequest(
+    let transformedBody = this.transformRequest(
       input.model,
       input.body,
       input.stream,
       input.credentials
     );
+    // CPA is a transparent backend: apply only capabilities actually learned
+    // for this provider/model, without adding static rules to an unknown first try.
+    const learned = getLearnedReasoningEffort(this.provider, input.model);
+    const effort = readBodyReasoningEffort(transformedBody);
+    const clamped = learned && effort ? clampToLearned(effort.toLowerCase(), learned) : null;
+    if (clamped !== null) {
+      const clampedBody = writeBodyReasoningEffort(transformedBody, clamped);
+      preserveToolMetadata(transformedBody, clampedBody);
+      transformedBody = clampedBody;
+    }
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
@@ -445,6 +487,20 @@ export class CliproxyapiExecutor extends BaseExecutor {
       log: input.log,
     });
     response = recovery.response;
+    preserveToolMetadata(transformedBody, recovery.body);
+    transformedBody = recovery.body;
+    response = await applyFieldDowngradeRecovery({
+      response,
+      url,
+      provider: this.provider,
+      model: input.model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: combinedSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: serializeWire,
+      strippedFields: new Set(),
+      log: input.log,
+    });
     // #11725: capture X-CPA-TRACE-ID before any later header rebuild. A missing
     // or unknown shape stays unattributed and does not fail the request.
     rememberCpaAuthIndex(response);

@@ -95,6 +95,8 @@ Reqressiyadan qorunma testi: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Eyni anda sorğu axınının qarşısını alan qoruyucu mexanizm:** paralel xətaların gözləmə müddətini həddən artıq uzatmasının və ya `backoffLevel` dəyərini iki dəfə artırmasının qarşısını alır.
 
+Kiro-nun boş olmayan imzalı ikili `reasoningContentEvent` kadrları icraçı vasitəsilə boş `reasoning_content` deltası kimi mühakimə fəaliyyətini qoruyur. İmza ötürülmür. Metaməlumatlar, natamam kadrlar və boş imzalar məzmun üçün vaxt limitini yenidən başlatmır; aktiv axının ayrıca vaxt limiti və müştərinin ləğvi qüvvədə qalır. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminal vəziyyətlər (gözləmə müddəti DEYİL):**
 
 - `banned` — qadağan edilmiş açar söz / hesab qadağası aşkarlanması ilə (baxın: [BAN_DETECTION](../security/BAN_DETECTION.md)), həmçinin yuxarı axından hər sorğu üzrə ardıcıl üç imtina ilə təyin edilir (`request_rejected`, məsələn, Anthropic OAuth 403 "Sorğuya icazə verilmir" — `open-sse/services/requestRejectedStreak.ts`); tək bir imtina yalnız bağlantını gözləmə rejiminə keçirir

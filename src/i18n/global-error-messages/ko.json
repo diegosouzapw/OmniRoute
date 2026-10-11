@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "문제가 발생했습니다",
+      "description": "예기치 않은 오류가 발생했습니다. 이 오류는 기록되었으며, 저희 팀이 조사할 것입니다.",
+      "detailsAriaLabel": "오류 세부정보",
+      "retryAriaLabel": "페이지를 다시 로드해 보세요",
+      "tryAgain": "다시 시도하세요",
+      "statusAriaLabel": "시스템 상태 열기",
+      "systemStatus": "시스템 상태"
+    }
+  }
+}

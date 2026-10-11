@@ -282,6 +282,10 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
     checkExpiry: true,
     refreshable: true,
   },
+  "codebuddy-intl": {
+    checkExpiry: true,
+    refreshable: true,
+  },
   workbuddy: {
     // WorkBuddy is a separate product from CodeBuddy CN (own host and account
     // system) but shares the same plugin-auth protocol shape, so the same

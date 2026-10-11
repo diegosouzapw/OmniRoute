@@ -254,6 +254,7 @@
     "log": "Vis serverlogfiler direkte",
     "no_recovery": "Deaktivér automatisk genstart efter nedbrud (fejlretningstilstand)",
     "max_restarts": "Maksimalt antal genstarter efter nedbrud inden for 30 sek., før der gives op (standard: 2)",
+    "headless": "Kør kun proxy-motoren: dashboard deaktiveret (404), valgfrie undersystemer springes over (sætter OMNIROUTE_HEADLESS=1)",
     "tray": "Start i systembakken (kun desktop, tilvalg)",
     "no_tray": "Deaktivér ikonet i systembakken",
     "ready_timeout": "Timeout for klargøringstest i ms (også OMNIROUTE_READY_TIMEOUT_MS, standard 60000)",

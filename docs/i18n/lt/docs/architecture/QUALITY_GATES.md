@@ -317,12 +317,14 @@ dokumentacijos / aplinkos sutartis, i18n atitiktis, vienetų testai) nepasikeit�
   sušvelninimas (`scripts/quality/relax-baselines.mjs`); atsisako vykdyti antrą kartą su ta pačia
   pastaba.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  išmatuoja kiekvieną skaitinę patikrą taip pat kaip CI ir parodo kiekvienos patikros likusį rezervą
-  (`scripts/quality/baseline-headroom.mjs`). Naktinė `baseline-headroom` užduotis paskelbia
-  lentelę aktyvioje užduotyje **📈 Bazinių lygių rezervas (spartos etapas)** ir prideda
-  `headroom-alert` žymą, kai bet kuri patikra yra ne daugiau kaip 10 % nutolusi nuo savo ribos arba ją jau viršija. Ta užduotis
-  yra išankstinis perspėjimas: per kelias dienas išnaudotas biudžetas reiškia, kad sušvelninimą sunaudoja
-  keli PR, o ne visa komanda — peržiūrėkite problemą sukėlusios patikros `_rebaseline_*` pastabas.
+  matuoja kiekvieną skaitinę kokybės patikrą taip pat kaip CI ir parodo kiekvienos patikros likusią atsargą
+  (`scripts/quality/baseline-headroom.mjs`). Naktinė užduotis `baseline-headroom` skelbia lentelę
+  darbo eigos vykdymo suvestinėje ir įkelia JSON/Markdown ataskaitą pavadinimu
+  `baseline-headroom-<run_id>`, saugomą 90 dienų. Įspėjimo ir kritinės eilutės nurodo
+  patikras, kurioms iki ribos liko ne daugiau kaip 10% arba kurios ją jau viršijo.
+  Peržiūrėkite šias ataskaitas kaip ankstyvą įspėjimą apie naudojamus biudžetus; patikrinkite atitinkamos patikros
+  `_rebaseline_*` pastabas. Užduotis nebekuria ir nebeatnaujina nuolatinio problemos įrašo;
+  #12149 išsaugo ankstesnių ataskaitų istoriją.
 
 **Naujo kodo režimas (Clean-as-You-Code) — nuo 2026-08-30, tik spartusis PR kelias**
 

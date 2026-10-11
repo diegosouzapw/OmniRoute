@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcijas</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinācijas</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pakalpojumu sniedzēji</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pakalpojumu sniedzēji</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI un MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ nonākt jūsu čaulas vēsturē. → [CLI integrācijas](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 MI pakalpojumu sniedzēji — 152 katalogā atzīmēti kā bezmaksas
+## 🌐 372 MI pakalpojumu sniedzēji — 154 katalogā atzīmēti kā bezmaksas
 
 </div>
 
@@ -1265,7 +1265,7 @@ Kanoniskie rādītāji 2026-08-24: **1.029 unikāli videoklipi** · **11.132.922
   <tr><td nowrap><b>Izpildvide</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Valoda</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> visā <code>src/</code> un <code>open-sse/</code> (pamatkodā nav neviena <code>any</code> kopš v2.0)</td></tr>
   <tr><td nowrap><b>Ietvars</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Datubāze</b></td><td>better-sqlite3 (SQLite, WAL žurnalēšana) + LowDB (mantotais JSON formāts) — 137 domēna moduļi, 193 migrācijas</td></tr>
+  <tr><td nowrap><b>Datubāze</b></td><td>better-sqlite3 (SQLite, WAL žurnalēšana) + LowDB (mantotais JSON formāts) — 137 domēna moduļi, 202 migrācijas</td></tr>
   <tr><td nowrap><b>Atmiņa</b></td><td>SQLite FTS5 pilnteksta meklēšana + int8 kvantizēti vektoru iegultie attēlojumi, tipizēta vājināšanās</td></tr>
   <tr><td nowrap><b>Shēmas</b></td><td>Zod 4 — MCP rīku ievades/izvades validācija + API līgumi</td></tr>
   <tr><td nowrap><b>Protokoli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

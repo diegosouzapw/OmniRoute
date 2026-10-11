@@ -13,7 +13,7 @@ on:
         required: true
         type: string
       tag:
-        description: "npm dist-tag (auto / latest / next / historic)"
+        description: "npm dist-tag (auto / latest / next / nightly / lts / historic)"
         required: false
         default: "auto"
         type: choice
@@ -21,6 +21,8 @@ on:
           - auto
           - latest
           - next
+          - nightly
+          - lts
           - historic
       publish_mode:
         description: "auto = publish through npm Trusted Publishing (OIDC, no token, no 2FA prompt — the default); staged = npm stage publish (owner approves with 2FA); direct = legacy token publish (emergency fallback only)"
@@ -38,7 +40,7 @@ on:
         required: true
         type: string
       tag:
-        description: "npm dist-tag (auto / latest / next / historic)"
+        description: "npm dist-tag (auto / latest / next / nightly / lts / historic)"
         required: false
         default: "auto"
         type: string
@@ -112,26 +114,26 @@ jobs:
             exit 1
           fi
 
-          # 2) Resolve dist-tag.
-          #    - explicit 'latest'/'next'/'historic' is honored
-          #    - 'auto' (or empty): pre-release identifiers → 'next';
-          #      stable versions → 'latest' only if VERSION is the highest
-          #      stable semver among `v*` tags (otherwise → 'historic').
+          # 2) Resolve dist-tag via scripts/release/dist-tag.mjs (single source of the
+          #    channel rules in docs/ops/RELEASE_STRATEGY.md; tests/unit/
+          #    compute-nightly-version.test.ts pins every decision):
+          #    - explicit 'latest'/'next'/'nightly'/'lts'/'historic' is honored
+          #    - 'auto' (or empty): `-nightly.*` → 'nightly' (never 'latest');
+          #      rc/beta/alpha/pre/next and any other pre-release → 'next';
+          #      stable versions → 'latest' only if VERSION is the highest stable
+          #      `v*` tag; a stable of an OLDER major than the highest stable tag
+          #      (3.9.x after the 4.0 GA) → 'lts' only if it is the highest of the
+          #      older majors; anything else → 'historic' (never clobbers a channel).
+          #    Values reach the script as quoted argv and stdin — never interpolated.
           REQUESTED_TAG="${INPUT_TAG:-auto}"
-          TAG="$REQUESTED_TAG"
-          if [ "$TAG" = "auto" ] || [ -z "$TAG" ]; then
-            if printf '%s' "$VERSION" | grep -qE -- '-(rc|alpha|beta|pre|next)'; then
-              TAG="next"
-            else
-              git fetch --tags --quiet || true
-              HIGHEST=$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -vE -- '-(rc|alpha|beta|pre|next)' | sort -V | tail -1 || echo "")
-              if [ -n "$HIGHEST" ] && [ "$VERSION" = "$HIGHEST" ]; then
-                TAG="latest"
-              else
-                echo "Version $VERSION is not the highest semver tag (highest=${HIGHEST:-<none>}). Using dist-tag 'historic' to avoid clobbering @latest."
-                TAG="historic"
-              fi
-            fi
+          test -f scripts/release/dist-tag.mjs || {
+            echo "scripts/release/dist-tag.mjs is missing from this checkout — refusing to guess a dist-tag." >&2
+            exit 1
+          }
+          git fetch --tags --quiet || true
+          TAG=$(git tag -l 'v[0-9]*' | node scripts/release/dist-tag.mjs --version "$VERSION" --requested "$REQUESTED_TAG")
+          if [ "$REQUESTED_TAG" = "auto" ] && [ "$TAG" = "historic" ]; then
+            echo "Version $VERSION is not the highest stable tag of its channel. Using dist-tag 'historic' to avoid clobbering @latest/@lts."
           fi
 
           # 3) Skip-if-already-published. NOTE: do NOT pass `--silent` to

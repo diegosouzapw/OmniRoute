@@ -13,6 +13,7 @@ import {
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
+import { listBackupIds, resolveBackupFile } from "./backupPaths";
 import { resetAllDbModuleState } from "./stateReset";
 import {
   DB_BACKUP_SETTINGS_NAMESPACE,
@@ -64,12 +65,10 @@ function getBackupDir() {
 }
 
 function listBackupFilesNewestFirst(backupDir: string) {
-  return fs
-    .readdirSync(backupDir)
-    .filter((filename) => filename.startsWith("db_") && filename.endsWith(".sqlite"))
+  return listBackupIds(backupDir)
     .flatMap((filename) => {
       try {
-        return [{ filename, stat: fs.statSync(path.join(backupDir, filename)) }];
+        return [{ filename, stat: fs.statSync(resolveBackupFile(backupDir, filename)) }];
       } catch {
         // A concurrent retention pass may remove an entry after readdir.
         return [];
@@ -435,7 +434,7 @@ export async function listDbBackups() {
 
     const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
     return entries.map(({ filename, stat }) => {
-      const filePath = path.join(backupDir, filename);
+      const filePath = resolveBackupFile(backupDir, filename);
       const match = filename.match(/^db_(.+?)_([^.]+)\.sqlite$/);
       const reason = match ? match[2] : "unknown";
 
@@ -485,7 +484,7 @@ export async function restoreDbBackup(backupId: string) {
     throw new Error("Invalid backup ID");
   }
 
-  const backupPath = path.resolve(backupDir, backupId);
+  const backupPath = path.resolve(resolveBackupFile(backupDir, backupId));
   // Prevent path traversal: resolved path must stay within backupDir
   if (
     !backupPath.startsWith(path.resolve(backupDir) + path.sep) &&

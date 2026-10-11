@@ -254,6 +254,7 @@
     "log": "Onyesha kumbukumbu za seva ndani ya mstari",
     "no_recovery": "Zima uanzishaji upya kiotomatiki inapoharibika (hali ya utatuzi)",
     "max_restarts": "Idadi ya juu ya uanzishaji upya baada ya kuharibika ndani ya sekunde 30 kabla ya kukata tamaa (chaguo-msingi: 2)",
+    "headless": "Endesha injini ya proksi pekee: dashibodi imezimwa (404), mifumo midogo ya hiari inarukwa (huweka OMNIROUTE_HEADLESS=1)",
     "tray": "Anza katika trei ya mfumo (kompyuta pekee, kwa hiari)",
     "no_tray": "Zima ikoni ya trei ya mfumo",
     "ready_timeout": "Muda wa mwisho wa ukaguzi wa utayari kwa ms (pia OMNIROUTE_READY_TIMEOUT_MS, chaguo-msingi 60000)",

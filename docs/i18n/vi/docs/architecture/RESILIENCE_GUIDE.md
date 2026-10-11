@@ -96,6 +96,8 @@ Biện pháp bảo vệ chống hồi quy: `tests/unit/provider-cooldown-window-
 
 **Cơ chế bảo vệ chống hiệu ứng đám đông:** ngăn các lỗi đồng thời kéo dài thời gian chờ quá mức hoặc tăng `backoffLevel` hai lần.
 
+Các khung nhị phân `reasoningContentEvent` của Kiro có chữ ký không rỗng duy trì hoạt động suy luận qua bộ thực thi dưới dạng delta `reasoning_content` rỗng. Chữ ký không được chuyển tiếp. Siêu dữ liệu, khung chưa hoàn chỉnh và chữ ký rỗng không đặt lại thời gian chờ nội dung; giới hạn thời gian độc lập của luồng đang hoạt động và thao tác hủy từ máy khách vẫn có hiệu lực. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Trạng thái kết thúc (KHÔNG phải thời gian chờ):**
 
 - `banned` — được đặt khi phát hiện từ khóa cấm/tài khoản bị cấm (xem [BAN_DETECTION](../security/BAN_DETECTION.md)), và sau ba lần liên tiếp thượng nguồn từ chối từng yêu cầu (`request_rejected`, ví dụ: Anthropic OAuth 403 "Yêu cầu không được phép" — `open-sse/services/requestRejectedStreak.ts`); một lần từ chối đơn lẻ chỉ đưa kết nối vào thời gian chờ

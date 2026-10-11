@@ -306,12 +306,14 @@ nkwekọrịta docs/env, nha anya i18n, unit tests) agbanwebeghị — ule na-ac
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — ime ka ọ dị mfe
   naanị otu ugboro (`scripts/quality/relax-baselines.mjs`); ọ na-ajụ iji otu ndetu ahụ mee ya ugboro abụọ.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  na-atụ ọnụ ụzọ ọnụọgụ ọ bụla dịka CI si eme ma bipụta ohere fọdụrụ n'ọnụ ụzọ ọ bụla
-  (`scripts/quality/baseline-headroom.mjs`). Ọrụ `baseline-headroom` nke abalị ọ bụla na-eziga
-  tebụl ahụ na nsogbu dị ndụ **📈 Oghere baseline (oge ọsọ)** ma tinye akara
-  `headroom-alert` mgbe ọnụ ụzọ ọ bụla nọ n'ime 10% nke oke ya ma ọ bụ gafee ya. Nsogbu ahụ
-  bụ ịdọ aka ná ntị mbụ: mmefu e nyere oke nke juputara n'ime ụbọchị pụtara na PR ole na ole na-eji
-  ohere ahụ, ọ bụghị ndị otu niile — lee ndetu `_rebaseline_*` nke ọnụ ụzọ kpatara ya.
+  na-atụ ule ogo ọ bụla e ji ọnụọgụ egosi n'otu ụzọ CI si eme ya, ma na-egosi ohere fọdụrụ tupu oke ule ọ bụla
+  (`scripts/quality/baseline-headroom.mjs`). Ọrụ abalị `baseline-headroom` na-ebipụta tebụl ahụ
+  na nchịkọta ọsọ usoro ọrụ, ma na-ebugo akụkọ JSON/Markdown ya n'aha
+  `baseline-headroom-<run_id>`, nke a na-edobe ruo ụbọchị 90. Ahịrị ịdọ aka ná ntị na nke ọnọdụ dị oke njọ na-egosi
+  ule ndị ohere fọdụrụ ha ruo oke ha bụ 10% ma ọ bụ obere, ma ọ bụ ndị gafere oke ahụ.
+  Lelee akụkọ ndị a dịka ịdọ aka ná ntị tupu oge eruo banyere mmefu oke e kenyere; nyochaa ndetu
+  `_rebaseline_*` nke ule metụtara ya. Ọrụ ahụ anaghịzi emepụta ma ọ bụ emelite issue na-adịgide adịgide;
+  #12149 na-echekwa akụkọ ihe mere eme nke akụkọ ndị gara aga.
 
 **Ọnọdụ koodu ọhụrụ (Clean-as-You-Code) — kemgbe 2026-08-30, naanị ụzọ ngwa ngwa nke PR**
 

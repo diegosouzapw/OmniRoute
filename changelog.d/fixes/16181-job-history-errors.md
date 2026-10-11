@@ -1,0 +1,1 @@
+- **fix(resilience):** Background-job history write and pruning errors are logged without escaping the scheduler or retrying completed handlers ([#16181](https://github.com/diegosouzapw/OmniRoute/pull/16181)) — thanks @W25X80

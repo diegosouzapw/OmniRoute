@@ -151,6 +151,32 @@ export function clearDispatcherCache(): void {
   delete globalWithCache[LOCAL_RETRY_DISPATCHER_KEY];
 }
 
+/**
+ * Pool scope for a selective dispatcher eviction.
+ */
+export type DispatcherPoolScope = "local" | "cloud";
+
+/**
+ * Close and drop the slots of one pool, leaving the other pool untouched.
+ * Never throws: the failure path that calls this is already handling an
+ * error, so a failed close must not replace it. Slots are dropped even when
+ * closing fails, so a broken dispatcher is never served again.
+ */
+export function evictDispatcherPool(scope: DispatcherPoolScope): void {
+  const globalWithCache = globalThis as GlobalWithDispatcherCache;
+  const keys =
+    scope === "local"
+      ? [LOCAL_DEFAULT_DISPATCHER_KEY, LOCAL_RETRY_DISPATCHER_KEY]
+      : [DEFAULT_DISPATCHER_KEY, RETRY_DISPATCHER_KEY];
+  for (const key of keys) {
+    try {
+      closeDispatcher(globalWithCache[key]);
+    } finally {
+      delete globalWithCache[key];
+    }
+  }
+}
+
 export function __cacheProxyDispatcherForTest(key: string, dispatcher: Dispatcher): void {
   getDispatcherCache().set(key, dispatcher);
 }

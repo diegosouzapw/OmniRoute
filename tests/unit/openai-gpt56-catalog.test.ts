@@ -13,6 +13,7 @@ import { openaiToOpenAIResponsesRequest } from "../../open-sse/translator/reques
 // gpt-6-sol and gpt-6-luna were added by #15023 (they were missing and fell back to
 // the 128k default, corrupting combo context windows).
 const EXPECTED_MODELS = [
+  "gpt-6.1-sol",
   "gpt-6-astra",
   "gpt-6-sol",
   "gpt-6-luna",

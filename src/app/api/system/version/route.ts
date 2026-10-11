@@ -21,8 +21,10 @@ import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNot
 import {
   clearLatestVersionCache,
   isNewer,
+  resolveDistTagsCached,
   resolveLatestVersionCached,
 } from "@/lib/system/versionCheck";
+import { describeReleaseChannels } from "@/lib/system/releaseChannel";
 import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
 import { restartRunningServer } from "@/lib/system/processManagerRestart";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
@@ -72,16 +74,21 @@ export async function GET(req: NextRequest) {
   const current = getCurrentVersion();
   const config = getAutoUpdateConfig();
 
-  const [latest, news, validation] = await Promise.all([
-    resolveLatestVersionCached({
-      bypassCache: /(?:^|,)\s*(?:no-cache|no-store)\b/i.test(
-        req.headers.get("Cache-Control") ?? ""
-      ),
-      storeResult: !/(?:^|,)\s*no-store\b/i.test(req.headers.get("Cache-Control") ?? ""),
-    }),
+  const cacheControl = req.headers.get("Cache-Control") ?? "";
+  const cacheOptions = {
+    bypassCache: /(?:^|,)\s*(?:no-cache|no-store)\b/i.test(cacheControl),
+    storeResult: !/(?:^|,)\s*no-store\b/i.test(cacheControl),
+  };
+  const [latest, distTags, news, validation] = await Promise.all([
+    resolveLatestVersionCached(cacheOptions),
+    resolveDistTagsCached(cacheOptions),
     getNews(),
     validateAutoUpdateRuntime(config),
   ]);
+  // Additive (rail 3.8.54): `channel` keeps meaning the deployment mode
+  // (npm / source / docker-compose) the dashboard updater relies on; the npm
+  // release channel of the running build is `releaseChannel`.
+  const { releaseChannel, channels } = describeReleaseChannels(current, distTags, latest);
 
   const body = {
     current,
@@ -91,11 +98,16 @@ export async function GET(req: NextRequest) {
     autoUpdateSupported: validation.supported,
     autoUpdateError: validation.reason,
     news,
+    releaseChannel,
+    channels,
   };
   const serialized = JSON.stringify(body);
   const etag = `"${createHash("sha256").update(serialized).digest("base64url")}"`;
   const headers = { "Cache-Control": "private, no-cache, must-revalidate", ETag: etag };
-  const validators = req.headers.get("If-None-Match")?.split(",").map((value) => value.trim());
+  const validators = req.headers
+    .get("If-None-Match")
+    ?.split(",")
+    .map((value) => value.trim());
   if (validators?.some((value) => value === etag || value === `W/${etag}`)) {
     return new NextResponse(null, { status: 304, headers });
   }
@@ -319,11 +331,11 @@ export async function POST(req: NextRequest) {
           return;
         }
         send({ step: "install", status: "running", message: `Installing omniroute@${latest}...` });
-          await execFileAsync(
-            "npm",
-            ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
-            buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
-          );
+        await execFileAsync(
+          "npm",
+          ["install", "-g", `omniroute@${latest}`, "--ignore-scripts", "--legacy-peer-deps"],
+          buildNpmExecOptions(process.platform, { cwd: PROJECT_ROOT, timeoutMs: 300_000 })
+        );
         send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
 
         // Step 2: Rebuild native modules (critical for better-sqlite3)

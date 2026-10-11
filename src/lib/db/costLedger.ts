@@ -197,6 +197,29 @@ export function aggregateLedger(
 }
 
 /**
+ * `service_tier` marker on every web-search ledger row. Chat rows only ever carry
+ * a real tier (standard/priority/flex/default), so this never matches chat spend,
+ * which per-key USD quotas already count from usage_history.
+ */
+export const SEARCH_LEDGER_SERVICE_TIER = "search";
+
+/**
+ * Total web-search spend for an api key since an ISO timestamp, failed calls
+ * included (a provider that reports a cost on an error status still charged).
+ */
+export function sumSearchLedgerSpendSince(apiKeyId: string, sinceIso: string): number {
+  if (!apiKeyId) return 0;
+  const row = getDbInstance()
+    .prepare(
+      `SELECT COALESCE(SUM(amount_usd), 0) AS amount_usd
+       FROM request_cost_ledger
+       WHERE api_key_id = ? AND timestamp >= ? AND service_tier = ?`
+    )
+    .get(apiKeyId, sinceIso, SEARCH_LEDGER_SERVICE_TIER);
+  return getAggRow(row).amountUsd;
+}
+
+/**
  * Return ledger rows for an api key within a window (descending timestamp).
  * Used by tests and future dashboard surfaces. `limit` is clamped to 500.
  */
