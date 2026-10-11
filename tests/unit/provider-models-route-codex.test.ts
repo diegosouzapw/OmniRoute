@@ -84,6 +84,47 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
+test("hidden Codex models survive live sync and cached routing while picker filtering stays separate", async () => {
+  const connection = await seedCodexConnection({
+    accessToken: "test-token",
+    providerSpecificData: { codexDiscoveryMode: "safe" },
+  });
+  globalThis.fetch = async (url) =>
+    String(url).includes("raw.githubusercontent.com")
+      ? Response.json({ models: [] })
+      : Response.json({
+          models: [
+            {
+              slug: "codex-auto-review",
+              visibility: "hide",
+              supported_in_api: true,
+              minimal_client_version: "0.98.0",
+            },
+            { slug: "visible-model", visibility: "list", supported_in_api: true },
+          ],
+        });
+  const fresh = await callRoute(connection.id, "?refresh=true");
+  assert.equal(fresh.status, 200);
+  const synced = await modelsDb.getSyncedAvailableModelsForConnection("codex", connection.id);
+  assert.equal(synced.find((model) => model.id === "codex-auto-review")?.visibility, "hide");
+  const { getModelInfo } = await import("../../src/sse/services/model.ts");
+  const resolved = await getModelInfo("codex/codex-auto-review");
+  assert.equal(resolved.provider, "codex");
+  assert.equal(resolved.model, "codex-auto-review");
+  assert.equal(resolved.error, undefined);
+  const cached = await callRoute(connection.id);
+  assert.ok(
+    ((await cached.json()) as RouteBody).models?.some((model) => model.id === "codex-auto-review")
+  );
+  const picker = await callRoute(connection.id, "?excludeHidden=true");
+  assert.equal(
+    ((await picker.json()) as RouteBody).models?.some((model) => model.id === "codex-auto-review"),
+    false
+  );
+  const stillSynced = await modelsDb.getSyncedAvailableModelsForConnection("codex", connection.id);
+  assert.ok(stillSynced.some((model) => model.id === "codex-auto-review"));
+});
+
 test("provider models route merges live Codex models with the local catalog then filters denylist", async () => {
   const connection = await seedCodexConnection({
     accessToken: "codex-access-token",

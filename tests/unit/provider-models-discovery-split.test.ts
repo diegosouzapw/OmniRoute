@@ -268,6 +268,7 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
   assert.deepEqual(
     parsed.map((m) => ({ id: m.id, name: m.name })),
     [
+      { id: "codex-auto-review", name: "Codex Auto Review" },
       { id: "gpt-5.4", name: "GPT-5.4" },
       { id: "gpt-5.5", name: "GPT-5.5" },
     ]
@@ -310,7 +311,7 @@ test("codex safe discovery classifies public metadata before activating it", () 
 });
 
 test("codex retired ids stay out of the discovery catalog", () => {
-  for (const id of ["gpt-5.3-codex-spark", "codex-auto-review"]) {
+  for (const id of ["gpt-5.3-codex-spark"]) {
     assert.equal(isCodexDiscoveryModelExcluded({ id }), true);
     assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), true);
     assert.deepEqual(
@@ -350,7 +351,7 @@ test("codex retired ids stay out of the discovery catalog", () => {
   );
   assert.deepEqual(
     catalog.map((model) => model.id),
-    ["gpt-6-sol"]
+    ["codex-auto-review", "gpt-6-sol"]
   );
 });
 
@@ -493,7 +494,7 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
 
   assert.deepEqual(
     parsed.map((model) => model.id),
-    ["gpt-5.6-sol", "future-model"]
+    ["gpt-5.6-sol", "future-model", "codex-auto-review"]
   );
   assert.equal(parsed[0]?.description, "Latest frontier agentic coding model.");
   assert.equal(parsed[0]?.inputTokenLimit, 372000);

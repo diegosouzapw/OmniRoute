@@ -7,12 +7,6 @@ export const CODEX_DISCOVERY_EXCLUDED_IDS: ReadonlySet<string> = new Set([
   // catalog can keep returning it, so it needs an explicit retired entry
   // instead of a prefix family.
   "gpt-5.3-codex-spark",
-  // Retired upstream: every manifest marks it `visibility: hide` (internal
-  // auto-approval reviewer), so discovery never activates it. Advertising it
-  // from the static side is what breaks: every request 400s with "Model
-  // 'codex-auto-review' is not available in the active live catalog for
-  // provider 'codex'."
-  "codex-auto-review",
 ]);
 
 /**
@@ -83,9 +77,8 @@ export function classifyCodexDiscoveryModel(
   }
 ): CodexDiscoveryCompatibilityResult {
   if (isCodexDiscoveryModelExcluded(model)) return { status: "retired", reason: "denylisted" };
-  if (typeof model.visibility === "string" && model.visibility.toLowerCase() === "hide") {
-    return { status: "incompatible", reason: "hidden" };
-  }
+  // Upstream visibility controls the picker, not account inference access.
+  // Internal models such as the approval reviewer are intentionally hidden.
   if (model.supportedInApi === false)
     return { status: "incompatible", reason: "api-not-supported" };
 

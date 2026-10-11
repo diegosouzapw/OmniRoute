@@ -256,7 +256,9 @@ export async function GET(
         payload.models = filterModelsForRoute(provider, payload.models, chatOnly);
       }
       if (excludeHidden && payload.models && Array.isArray(payload.models)) {
-        payload.models = payload.models.filter((m: any) => !getModelIsHidden(provider, m.id));
+        payload.models = payload.models.filter(
+          (m: any) => m.visibility !== "hide" && !getModelIsHidden(provider, m.id)
+        );
       }
       return NextResponse.json(payload, statusConfig);
     };

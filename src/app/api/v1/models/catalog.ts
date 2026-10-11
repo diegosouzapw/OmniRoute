@@ -1292,6 +1292,10 @@ async function buildUnifiedModelsResponseCore(
           // so the effort_tiers exclusion (codex/glm/kimi) and the entries agree.
           const syncedOwnedBy = resolvePublicOwnerId(providerId, canonicalProviderId);
           const syncedFields = {
+            ...(sm.visibility ? { visibility: sm.visibility } : {}),
+            ...(typeof sm.supportedInApi === "boolean"
+              ? { supported_in_api: sm.supportedInApi }
+              : {}),
             ...(modelType ? { type: modelType } : {}),
             ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(classification.subtype ? { subtype: classification.subtype } : {}),

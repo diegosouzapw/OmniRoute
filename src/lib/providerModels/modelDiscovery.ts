@@ -666,6 +666,15 @@ export function normalizeDiscoveredModels(
       id,
       name,
       source: "imported",
+      ...(record.visibility === "hide" || record.visibility === "list"
+        ? { visibility: record.visibility }
+        : {}),
+      ...(typeof record.supportedInApi === "boolean"
+        ? { supportedInApi: record.supportedInApi }
+        : {}),
+      ...(toNonEmptyString(record.minimalClientVersion)
+        ? { minimalClientVersion: toNonEmptyString(record.minimalClientVersion)! }
+        : {}),
       ...(apiFormat ? { apiFormat } : {}),
       ...(toNonEmptyString(record.targetFormat)
         ? { targetFormat: toNonEmptyString(record.targetFormat)! }
