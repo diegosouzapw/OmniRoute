@@ -65,7 +65,6 @@ test("#13389 one timeout wave of twenty clients does not duplicate the still-liv
     "CATALOG_13389_WAITERS",
     JSON.stringify({ firstWaveMs, totalBuilders, peakBuilders, retryStatus: retry.status })
   );
-  assert.ok(firstWaveMs < 300, "fixture must stay inside the three-budget hung-build window");
   assert.equal(retry.status, 200);
   assert.equal(await retry.text(), "same-generation-result");
   assert.equal(

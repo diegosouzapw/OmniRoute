@@ -15,8 +15,9 @@
 import { createHmac } from "node:crypto";
 
 import { after } from "next/server";
+import { getCopilotRejectionCatalogVersion } from "@omniroute/open-sse/services/copilotModelRejections.ts";
 
-import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
+import { getModelCatalogCacheVersion as getDatabaseCatalogVersion } from "@/lib/db/readCache";
 import { extractApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -189,7 +190,7 @@ const catalogCache = new Map<string, CachedCatalog>();
  * on it), just without being persisted.
  */
 type InFlightBuild = {
-  generation: number;
+  generation: string;
   promise: Promise<CachedCatalog>;
   lastKeptAt?: number;
   timeoutCount?: number;
@@ -216,6 +217,9 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
 // combos/pricing write; when it moves on, every memoized entry here was built from
 // state that no longer holds, so drop them all rather than keying by version (which
 // would leak one Map entry per version forever instead of ever pruning old ones).
+function getModelCatalogCacheVersion(): string {
+  return `${getDatabaseCatalogVersion()}:${getCopilotRejectionCatalogVersion()}`;
+}
 let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
 function dropCatalogCacheIfStateChanged(): void {
   const currentVersion = getModelCatalogCacheVersion();
@@ -261,7 +265,7 @@ export function mergeCatalogHeaders(
 function storePayload(
   cacheKey: string,
   payload: CatalogPayload,
-  buildGeneration: number
+  buildGeneration: string
 ): CachedCatalog {
   const entry: CachedCatalog = {
     body: payload.body,

@@ -1,0 +1,1 @@
+- Copilot models rejected with `model_not_supported` are temporarily omitted from the public catalog when no eligible account advertises them. Repeated requests retain the specific unsupported-model diagnostic; explicit clear or expiry restores listing without modifying synced inventories or combo definitions.

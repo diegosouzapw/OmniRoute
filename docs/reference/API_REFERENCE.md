@@ -447,6 +447,20 @@ field pointing at the primary id.
 Clients that render a model picker should request `?prefix=alias` — this is what the
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md) does.
 
+### Individually hidden chat models
+
+A model marked **Hidden** on its provider page is excluded from the catalog and rejected
+with HTTP `404` / `model_not_found` when requested explicitly. The check uses the resolved
+provider and model, including provider aliases, compatible-provider node prefixes, and
+connection defaults. A combo skips hidden targets and can use a visible sibling; when no
+executable target remains it returns the same error code. Unhiding takes effect on the next
+request. Image-only visibility overrides do not hide the chat model with the same ID.
+
+This individual model setting is separate from the
+[model exposure allow/deny lists](../routing/MODEL_EXPOSURE_LIST.md), which filter catalog
+advertisement and auto-routing candidates while retaining explicit dispatch. API-key model
+permissions continue to apply independently. The default catalog prefix mode remains `dual`.
+
 ### No-thinking model variants
 
 For thinking-capable Claude models, `/v1/models` also advertises a **no-thinking** variant whose id is prefixed with `claude-3-omniroute-no-thinking/`:
@@ -957,6 +971,47 @@ verdicts; the second stage can still produce its requested visible reasoning as 
 | `/api/usage/token-limits`        | GET/POST/DELETE | Per-API-key token-limit budgets                                                                                                                                                                                                                                                                      |
 | `/api/usage/model-latency-stats` | GET             | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
 | `/api/usage/cache-health`        | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
+
+### API key permissions
+
+`PATCH /api/keys/{id}` updates an existing key's permissions. Like every `/api/keys*` route it needs management authorization (see [Management Authentication](../guides/MANAGEMENT-AUTH.md)), not an inference key. Send only the fields you want to change; a request with none of them is rejected with `No valid fields to update`. The accepted fields are defined by `updateKeyPermissionsSchema` in `src/shared/validation/schemas/keys.ts`.
+
+| Field                                       | Type                                                                 | Notes                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | string, 1-200 chars                                                  |                                                                                                                        |
+| `isActive`                                  | boolean                                                              |                                                                                                                        |
+| `isBanned`                                  | boolean                                                              |                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 datetime or `null`                                          | `null` clears the expiry                                                                                               |
+| `modelAccessMode`                           | `all` \| `restricted`                                                | `allowedModels` must be empty when the mode is `all`                                                                   |
+| `allowedModels`, `blockedModels`            | array of strings, up to 1000                                         |                                                                                                                        |
+| `allowedCombos`                             | array of strings, up to 500                                          | Gates which combos the key may call; direct models are governed by `modelAccessMode` / `allowedModels`                 |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                | `allowedConnections` must be non-empty when `restricted` and empty when `all`                                          |
+| `allowedConnections`                        | array of UUIDs, up to 100                                            |                                                                                                                        |
+| `allowAutoCombos`                           | boolean                                                              | `false` rejects requests for `auto/*` models with this key; keys that never set it are allowed                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                        | What `GET /v1/models` lists for this key (combos only, models only, or both); it does not change what the key may call |
+| `noLog`, `autoResolve`                      | boolean                                                              |                                                                                                                        |
+| `throttleDelayMs`                           | integer, 0-300000                                                    |                                                                                                                        |
+| `maxSessions`                               | integer, 0-10000                                                     |                                                                                                                        |
+| `rateLimits`                                | array of `{ limit, window }` (positive integers, up to 50) or `null` | `null` clears the limits                                                                                               |
+| `accessSchedule`                            | schedule object or `null`                                            | `null` clears the schedule                                                                                             |
+| `scopes`                                    | array of strings, up to 32                                           |                                                                                                                        |
+| `allowedEndpoints`                          | array of strings, up to 20                                           |                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                   |                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                 | See [Per-key cache bypass](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | boolean                                                              |                                                                                                                        |
+| `codexServiceMode`                          | one of the Codex service modes                                       |                                                                                                                        |
+| `disableNonPublicModels`                    | boolean                                                              |                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                              |                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                              |                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 or `null`                                                |                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                              |                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Settings
 

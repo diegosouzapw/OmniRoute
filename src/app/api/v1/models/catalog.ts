@@ -1,6 +1,8 @@
+import { createCatalogConnectionExclusionFilter } from "@/lib/providerModels/copilotCatalogRejections";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { getCombos } from "@/lib/db/combos";
+import { createHiddenModelLookup } from "@/lib/hiddenModelLookup";
 import { getSettings } from "@/lib/db/settings";
 import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
@@ -305,11 +307,11 @@ async function buildUnifiedModelsResponseCore(
     // literal model id and must be hideable independently (#12172). Deliberately kept
     // INSIDE this try block: the builder's catch below sanitizes a build-time failure
     // into a 500 instead of a rejected promise.
-    const hiddenModelsByModality = new Map<string, Map<string, Set<string>>>();
-    const getHiddenModelsForModality = (modality: string): Map<string, Set<string>> => {
+    const hiddenModelsByModality = new Map<string, ReturnType<typeof createHiddenModelLookup>>();
+    const getHiddenModelsForModality = (modality: string) => {
       let m = hiddenModelsByModality.get(modality);
       if (!m) {
-        m = getHiddenModelsByProvider(modality);
+        m = createHiddenModelLookup(getHiddenModelsByProvider(modality), providerNodes, modality);
         hiddenModelsByModality.set(modality, m);
       }
       return m;
@@ -448,16 +450,15 @@ async function buildUnifiedModelsResponseCore(
       if (!providerKey || !modelId) return false;
       const canonical = canonicalProviderId || resolveCanonicalProviderId(providerKey);
       const alias = providerIdToAlias[canonical] || providerIdToAlias[providerKey] || undefined;
-      const nodePrefix = providerIdToPrefix[providerKey] || providerIdToPrefix[canonical];
+      const prefix = providerIdToPrefix[providerKey] || providerIdToPrefix[canonical];
+      const nodePrefix = [providerKey, canonical].includes(providerNodeIdByPrefix[prefix])
+        ? prefix
+        : undefined;
       const keysToCheck = [providerKey, canonical, alias, nodePrefix].filter((k): k is string =>
         Boolean(k)
       );
-      const hiddenModelsForModality = getHiddenModelsForModality(modality);
-      for (const key of keysToCheck) {
-        const hiddenSet = hiddenModelsForModality.get(key);
-        if (hiddenSet?.has(modelId)) return true;
-      }
-      return false;
+      const isHidden = getHiddenModelsForModality(modality);
+      return keysToCheck.some((key) => isHidden(key, modelId));
     };
 
     // Get combos
@@ -527,13 +528,11 @@ async function buildUnifiedModelsResponseCore(
     // at request time in getProviderCredentials(); mirror the same rule in the
     // catalog so ghost models do not appear as available. A model is hidden when
     // the provider HAS connections but NONE of them is eligible for it.
-    const isExcludedByProviderConnections = (providerKey: string, modelId: string) => {
-      const providerId = aliasToProviderId[providerKey] || providerKey;
-      const alias = providerIdToAlias[providerId] || providerKey;
-      const providerConnections = getConnectionsForProvider(providerId, alias, providerKey);
-      if (providerConnections.length === 0) return false; // noAuth / no DB row: keep
-      return !hasEligibleConnectionForModel(providerConnections, modelId);
-    };
+    const isExcludedByProviderConnections = await createCatalogConnectionExclusionFilter(
+      aliasToProviderId,
+      providerIdToAlias,
+      getConnectionsForProvider
+    );
 
     const providerSupportsModel = (providerKey: string, modelId: string) => {
       const providerId = aliasToProviderId[providerKey] || providerKey;

@@ -382,6 +382,12 @@ unaoelekeza kwenye id ya msingi.
 Wateja wanaoonyesha kiteuzi cha modeli wanapaswa kuomba `?prefix=alias` — hivi ndivyo
 [kiendelezi cha OmniCopilot cha VS Code](../guides/VSCODE-COPILOT.md) hufanya.
 
+### Miundo ya mazungumzo iliyofichwa mmoja mmoja
+
+Muundo uliowekwa alama ya **Imefichwa** kwenye ukurasa wa mtoa huduma wake huondolewa kwenye katalogi na kukataliwa kwa HTTP `404` / `model_not_found` unapoombwa moja kwa moja. Ukaguzi hutumia mtoa huduma na muundo waliobainishwa, ukizingatia majina mbadala ya mtoa huduma, viambishi awali vya nodi za watoa huduma wanaooana na thamani chaguomsingi za muunganisho. Combo huruka malengo yaliyofichwa na inaweza kutumia lengo jingine linaloonekana; ikiwa hakuna lengo linaloweza kutekelezwa linalobaki, hurudisha msimbo huohuo wa hitilafu. Kuonyesha muundo tena huanza kutumika kuanzia ombi linalofuata. Mipangilio maalumu ya mwonekano inayohusu picha pekee haifichi muundo wa mazungumzo wenye ID ileile.
+
+Mpangilio huu wa kila muundo ni tofauti na [orodha za kuruhusu na kuzuia uonyeshaji wa miundo](../routing/MODEL_EXPOSURE_LIST.md), ambazo huchuja uonyeshaji kwenye katalogi na wagombea wa uelekezaji otomatiki huku zikiendelea kuruhusu utumaji wa moja kwa moja. Ruhusa za miundo za ufunguo wa API zinaendelea kutumika kwa kujitegemea. Hali chaguomsingi ya viambishi awali vya katalogi inabaki `dual`.
+
 ### Vibadala vya modeli visivyo na kufikiri
 
 Kwa modeli za Claude zenye uwezo wa kufikiri, `/v1/models` pia hutangaza kibadala **kisicho na kufikiri** ambacho id yake huanza na `claude-3-omniroute-no-thinking/`:
