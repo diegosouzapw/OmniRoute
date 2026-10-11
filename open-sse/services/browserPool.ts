@@ -27,6 +27,7 @@
 import { Buffer } from "node:buffer";
 
 import { connectObscuraBrowser } from "./obscura.ts";
+import { ensureVirtualDisplay, stopVirtualDisplay } from "./virtualDisplay.ts";
 
 type Browser = import("playwright").Browser;
 type BrowserContext = import("playwright").BrowserContext;
@@ -313,7 +314,12 @@ async function launchBrowserInstance(
   // preference below applies to the headless path only.
   if (!headless) {
     const { chromium } = await import("playwright");
-    return chromium.launch(resolvePlainBrowserLaunchOptions(options));
+    // #15300: no X server (Docker -web image / bare VPS) → start a private Xvfb.
+    const display = await ensureVirtualDisplay();
+    return chromium.launch({
+      ...resolvePlainBrowserLaunchOptions(options),
+      ...(display ? { env: { ...process.env, DISPLAY: display } as Record<string, string> } : {}),
+    });
   }
 
   // #12274: prefer Obscura (lightweight, browser-grade CDP) over a full
@@ -615,6 +621,7 @@ export async function shutdownPool(reason: string): Promise<void> {
   }
   state.launching = null;
   state.headedLaunching = null;
+  stopVirtualDisplay();
   // #12274: the shared Obscura server is owned by ./obscura.ts and reused by
   // executors (cloudflare-playground), so closing the pool's CDP connection is
   // enough — never kill the server here.

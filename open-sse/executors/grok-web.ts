@@ -28,6 +28,7 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import {
   shouldUseGrokBrowserBacked,
@@ -73,6 +74,12 @@ function isTlsClientUnavailableError(error: unknown): error is TlsClientUnavaila
   }
 }
 
+// Publish the received status so proxy health counts it as upstream.
+function recordGrokUpstreamStatus(status: number): void {
+  const sink = currentAppliedProxySink();
+  if (sink && status >= 400) sink.upstreamStatus = status;
+}
+
 // ─── Model mappings ─────────────────────────────────────────────────────────
 // Grok Web exposes UI modes, not stable public model IDs. Keep OmniRoute model
 // IDs mapped directly to Grok's modeId field.
@@ -115,8 +122,8 @@ function randomString(length: number, alphanumeric = false): string {
 function generateStatsigId(): string {
   const msg =
     Math.random() < 0.5
-      ? `e:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
-      : `e:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
+      ? `x1:TypeError: Cannot read properties of null (reading 'children["${randomString(5, true)}"]')`
+      : `x1:TypeError: Cannot read properties of undefined (reading '${randomString(10)}')`;
   return btoa(msg);
 }
 
@@ -1094,6 +1101,7 @@ export class GrokWebExecutor extends BaseExecutor {
 
     if (!tlsResult.body) {
       const status = tlsResult.status;
+      recordGrokUpstreamStatus(status);
       const classification = classifyGrokNullBodyError(status, tlsResult.text);
       log?.warn?.("GROK-WEB", classification.message);
       const errResp = buildGrokNullBodyErrorResponse(status, classification);

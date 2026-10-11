@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 upstream provider — babu abort RPC a cikin `CloudAgentBase`. Don dakatar da cajin kuɗi
 a upstream, kawo ƙarshen task ɗin a console na provider ɗin.
 
-## REST API — Haɗin Cloud Provider
+## REST API — Haɗa Cloud Provider
 
 Waɗannan ƙarin endpoints da ke ƙarƙashin `src/app/api/cloud/` ana amfani da su ne ta clients masu nisa
 (CLI, manhajar Electron, ko sync workers) don karanta metadata na haɗin provider
-da warware aliases na model. Ana tabbatar da sahihancinsu da **API key na yau da kullum**
-(ta hanyar `validateApiKey`), ba management auth da endpoints na task ke amfani da shi ba.
+da kuma tantance model aliases. Ana tabbatar da sahihancinsu da **API key**
+(ta hanyar `validateApiKey`), ba management auth da task endpoints ke amfani da shi ba; abin da
+`/api/cloud/auth` ke mayarwa ya danganta da scope na key ɗin (duba ƙasa).
 
-| Hanya | Path                            | Manufa                                                                       |
-| ----- | ------------------------------- | ---------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | Tabbatar da API key, dawo da metadata na haɗi da aka ɓoye + aliases na model |
-| PUT   | `/api/cloud/credentials/update` | Sabunta `accessToken` / `refreshToken` / `expiresAt`                         |
-| POST  | `/api/cloud/model/resolve`      | Warware alias na model zuwa `{ provider, model }`                            |
-| GET   | `/api/cloud/models/alias`       | Jera duk aliases na model                                                    |
-| PUT   | `/api/cloud/models/alias`       | Saita alias na model (kuma a yi auto-sync zuwa Cloud idan an kunna)          |
+| Method | Path                            | Manufa                                                                  |
+| ------ | ------------------------------- | ----------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | Tabbatar da API key, mayar da ɓoyayyen metadata na haɗi + model aliases |
+| PUT    | `/api/cloud/credentials/update` | Sabunta `accessToken` / `refreshToken` / `expiresAt`                    |
+| POST   | `/api/cloud/model/resolve`      | Tantance model alias zuwa `{ provider, model }`                         |
+| GET    | `/api/cloud/models/alias`       | Jera duk model aliases                                                  |
+| PUT    | `/api/cloud/models/alias`       | Saita model alias (kuma a yi auto-sync zuwa Cloud idan an kunna)        |
 
-`/api/cloud/auth` ba ya taɓa dawo da ainihin `apiKey` / `accessToken` / `refreshToken`. Yana
-dawo da `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, da samfurin da aka ɓoye
-(`maskedApiKey`: haruffa 4 na farko + `****` + haruffa 4 na ƙarshe).
+`/api/cloud/auth` ba ya taɓa mayar da ainihin `apiKey` / `accessToken` / `refreshToken`. Yana
+mayar da `hasApiKey`, `hasAccessToken`, `hasRefreshToken` don haɗe-haɗe masu aiki waɗanda key ɗin
+zai iya amfani da su (key da aka taƙaita da `allowedConnections` yana ganin waɗannan kaɗai). Ga API key mai
+scope na `manage` ko `admin`, ciki har da deployment key daga `OMNIROUTE_API_KEY`, yana kuma
+mayar da ɓoyayyen samfoti (`maskedApiKey`: har zuwa haruffa 4 a kowane ƙarshen, ƙasa da haka ga gajeren
+key, babu komai idan haruffa 8 ne ko ƙasa da haka) da kuma `projectId` na haɗin. Ba a saka waɗannan fields biyu
+a cikin response ga kowane key dabam.
 
 ## Warware Credentials
 

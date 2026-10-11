@@ -14,45 +14,45 @@
 
 ### Exemples rapides
 
-| ID du modèle   | Variante | Comportement                                                                                 |
-| -------------- | -------- | -------------------------------------------------------------------------------------------- |
-| `auto`         | default  | Tous les fournisseurs connectés, stratégie LKGP, poids équilibrés                            |
-| `auto/coding`  | coding   | Poids privilégiant la qualité, adaptés à la génération de code                               |
-| `auto/fast`    | fast     | Sélection pondérée à faible latence                                                          |
-| `auto/cheap`   | cheap    | Routage optimisé pour les coûts (coût le plus bas en premier)                                |
-| `auto/offline` | offline  | Privilégie les fournisseurs disposant du quota disponible le plus élevé                      |
-| `auto/smart`   | smart    | Priorité à la qualité + taux d’exploration supérieur (10 %) pour mieux découvrir les modèles |
-| `auto/lkgp`    | lkgp     | LKGP explicite (identique à `auto` par défaut)                                               |
-| `auto/chaos`   | chaos    | Poids d’injection de pannes pour les tests de résilience (ingénierie du chaos)               |
+| ID du modèle   | Variante | Comportement                                                                                  |
+| -------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `auto`         | default  | Tous les fournisseurs connectés, stratégie LKGP, pondérations équilibrées                     |
+| `auto/coding`  | coding   | Pondérations privilégiant la qualité, adaptées à la génération de code                        |
+| `auto/fast`    | fast     | Sélection pondérée à faible latence                                                           |
+| `auto/cheap`   | cheap    | Routage optimisé pour les coûts (coût le plus bas en premier)                                 |
+| `auto/offline` | offline  | Privilégie les fournisseurs disposant du quota disponible le plus élevé                       |
+| `auto/smart`   | smart    | Priorité à la qualité + taux d’exploration plus élevé (10 %) pour mieux découvrir les modèles |
+| `auto/lkgp`    | lkgp     | LKGP explicite (identique à `auto` par défaut)                                                |
+| `auto/chaos`   | chaos    | Diffusion parallèle, un modèle par fournisseur (pas d’injection de pannes)                    |
 
 ### Composition catégorie × niveau (`auto/<category>:<tier>`)
 
 Les suffixes de style OpenRouter séparent **le type de route** (catégorie) de **la manière de l’optimiser** (niveau), afin que vous puissiez les combiner librement (#4235 Phase B, `open-sse/services/autoCombo/suffixComposition.ts`) :
 
-- **Catégories** (filtrent le groupe de candidats selon leurs capacités) : `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` conservent les modèles capables de traiter des images ; `reasoning` conserve les modèles de raisonnement/réflexion.
-- **Niveaux** (sélectionnent les poids de notation / le filtre du groupe) : `fast` (livraison rapide) · `cheap` (alias `floor`, économie de coûts) · `reliable` (état du disjoncteur + stabilité de la latence) · `free` / `pro` (filtrent le groupe selon le niveau du modèle via `classifyTier` — niveau gratuit ou premium).
+- **Catégories** (filtrent l’ensemble de candidats par capacité) : `coding` · `reasoning` · `vision` · `chat` · `multimodal`. `vision`/`multimodal` conservent les modèles prenant en charge la vision ; `reasoning` conserve les modèles de raisonnement/réflexion.
+- **Niveaux** (sélectionnent les pondérations de score / le filtre de l’ensemble) : `fast` (livraison rapide) · `cheap` (alias `floor`, réduction des coûts) · `reliable` (santé du disjoncteur + stabilité de la latence) · `free` / `pro` (filtrent l’ensemble par niveau de modèle via `classifyTier` — niveau gratuit ou premium).
 
-| Exemple                | Résultat                                                                 |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `auto/coding:fast`     | groupe de codage, poids à faible latence                                 |
-| `auto/coding:cheap`    | groupe de codage, optimisé pour les coûts (alias `auto/coding:floor`)    |
-| `auto/reasoning:pro`   | modèles de raisonnement/réflexion uniquement, niveau premium             |
-| `auto/vision`          | modèles capables de traiter des images (aucun niveau → poids équilibrés) |
-| `auto/multimodal:free` | modèles multimodaux, niveau gratuit uniquement                           |
+| Exemple                | Résultat                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `auto/coding:fast`     | ensemble de codage, pondérations à faible latence                             |
+| `auto/coding:cheap`    | ensemble de codage, optimisé pour les coûts (alias `auto/coding:floor`)       |
+| `auto/reasoning:pro`   | modèles de raisonnement/réflexion uniquement, niveau premium                  |
+| `auto/vision`          | modèles prenant en charge la vision (aucun niveau → pondérations équilibrées) |
+| `auto/multimodal:free` | modèles prenant en charge le multimodal, niveau gratuit uniquement            |
 
-Toute combinaison valide `auto/<category>[:<tier>]` est résolue à la demande ; une sélection organisée est annoncée dans `/v1/models` et le tableau de bord (`AUTO_SUFFIX_VARIANTS` dans `open-sse/services/autoCombo/builtinCatalog.ts`). Le filtrage est **tolérant aux échecs** — si une contrainte ne correspond à aucun modèle connecté, le groupe complet est utilisé afin que le routage ne soit jamais interrompu. Le mécanisme de notation principal (`combo.ts`) reste inchangé ; le filtre de catégorie/niveau est appliqué dans `buildAutoCandidates`.
+Toute valeur valide `auto/<category>[:<tier>]` est résolue à la demande ; un sous-ensemble sélectionné est présenté dans `/v1/models` et le tableau de bord (`AUTO_SUFFIX_VARIANTS` dans `open-sse/services/autoCombo/builtinCatalog.ts`). Le filtrage est **à tolérance ouverte** — si aucune contrainte ne correspond aux modèles connectés, l’ensemble complet est utilisé afin que le routage ne soit jamais interrompu. Le système central de calcul des scores (`combo.ts`) reste inchangé ; le filtre de catégorie/niveau est appliqué dans `buildAutoCandidates`.
 
-> **Intelligence des modèles en direct :** la pertinence du routage automatique s’appuie sur les classements **Arena ELO** en direct ainsi que sur les données de niveau de **models.dev** lorsque l’indicateur `ARENA_ELO_SYNC_ENABLED` est activé (sinon, retour à la carte de pertinence statique).
+> **Intelligence des modèles en temps réel :** la pertinence du routage automatique s’appuie sur les classements **Arena ELO** en temps réel et les données de niveau de **models.dev** lorsque l’indicateur `ARENA_ELO_SYNC_ENABLED` est activé (sinon, le système revient à la carte de pertinence statique).
 
 **Utilisation :**
 
 ```bash
 # Tout IDE ou outil CLI prenant en charge le format OpenAI
-Base URL: http://localhost:20128/v1
-API Key:  <votre-clé-de-point-de-terminaison>
+URL de base : http://localhost:20128/v1
+Clé API :     <votre-clé-de-point-de-terminaison>
 
 # Dans votre code/configuration, définissez le modèle sur :
-model: "auto"                 # valeur équilibrée par défaut
+model: "auto"                 # valeur par défaut équilibrée
 model: "auto/coding"          # idéal pour les tâches de codage
 model: "auto/fast"            # le plus rapide disponible
 model: "auto/cheap"           # le moins cher par jeton
@@ -61,25 +61,25 @@ model: "auto/cheap"           # le moins cher par jeton
 **Ce qui se passe :**
 
 1. OmniRoute détecte le préfixe `auto/` dans `src/sse/handlers/chat.ts`
-2. Interroge toutes les **connexions de fournisseurs actives** dans la base de données
-3. Filtre celles qui disposent d’identifiants valides (clé API ou jeton OAuth)
+2. Interroge toutes les **connexions actives aux fournisseurs** dans la base de données
+3. Filtre celles disposant d’identifiants valides (clé API ou jeton OAuth)
 4. Détermine le modèle pour chaque connexion (`connection.defaultModel` ou le premier modèle du fournisseur)
-5. Construit un **combo virtuel** en mémoire (non stocké dans la base de données)
-6. Effectue le routage à l’aide du profil de poids de la variante sélectionnée + la stratégie LKGP
+5. Crée un **combo virtuel** en mémoire (non stocké dans la base de données)
+6. Effectue le routage à l’aide du profil de pondération de la variante sélectionnée et de la stratégie LKGP
 
 **Propriétés principales :**
 
-- ✅ **Toujours actif :** Aucun bouton d’activation, aucune création de combo et aucune configuration nécessaires
+- ✅ **Toujours actif :** Aucun interrupteur, aucune création de combo, aucune configuration nécessaire
 - ✅ **Dynamique :** Reflète automatiquement les fournisseurs actuellement connectés
 - ✅ **Affinité de session :** LKGP garantit que le dernier fournisseur ayant réussi est prioritaire
-- ✅ **Prise en charge de plusieurs comptes :** Chaque connexion de fournisseur devient un candidat distinct
-- ✅ **Aucune écriture dans la base de données :** Le combo virtuel n’existe que pour la requête, sans aucune surcharge de persistance
+- ✅ **Prise en charge de plusieurs comptes :** Chaque connexion à un fournisseur devient un candidat distinct
+- ✅ **Aucune écriture en base de données :** Le combo virtuel n’existe que pour la requête, sans aucune surcharge de persistance
 
 ### Contrôle des candidats par clé (#7819, niveaux 1+2)
 
 `GET /v1/auto-combo/{channel}/candidates` (`{channel}` = le suffixe après `auto/`, ou
 la valeur littérale `auto` pour le canal de base) est un point de terminaison **en lecture seule** qui répertorie
-le groupe de candidats actuel d’un canal `auto/*`, enrichi avec l’accessibilité en direct, en réutilisant
+l’ensemble actuel de candidats d’un canal `auto/*`, enrichi de leur accessibilité en temps réel, en réutilisant
 les lectures de résilience existantes (jamais la valeur brute `state` du disjoncteur) :
 
 - disjoncteur du fournisseur — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
@@ -87,21 +87,21 @@ les lectures de résilience existantes (jamais la valeur brute `state` du disjon
   `provider_connections` résolue
 - verrouillage du modèle — `isModelLocked(provider, connectionId, model)`
 
-Chaque candidat comporte également l’indicateur `excluded` propre à cette clé API. Les exclusions sont stockées
+Chaque candidat comporte également l’indicateur `excluded` de cette clé API. Les exclusions sont stockées
 par clé API (table `auto_candidate_overrides`, migration `128`) — OmniRoute est
-monolocataire et ne possède aucune table `users`, donc `apiKeyId` est l’identité réelle par appelant
-la plus proche — et appliquées au point de passage obligé du groupe de candidats dans
-`open-sse/services/autoCombo/virtualFactory.ts` via la fonction pure et testée unitairement
+monolocataire et ne possède pas de table `users` ; `apiKeyId` constitue donc l’identité réelle par appelant
+la plus proche — et sont appliquées au point de contrôle de l’ensemble de candidats dans
+`open-sse/services/autoCombo/virtualFactory.ts` au moyen de la fonction pure et couverte par des tests unitaires
 `filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
-Le filtre est **tolérant aux échecs** : un apiKeyId/canal non défini ou l’échec d’une recherche dans la base de données
-laissent tous deux le groupe sans filtrage, de sorte qu’un opérateur n’ayant configuré aucun remplacement bénéficie d’un routage
-strictement identique, octet pour octet, à celui d’avant cette fonctionnalité.
+Le filtre est **à tolérance ouverte** : une valeur apiKeyId/channel non définie ou l’échec d’une consultation de la base de données
+laissent tous deux l’ensemble non filtré, de sorte qu’un opérateur n’ayant configuré aucun remplacement bénéficie d’un routage
+strictement identique, octet pour octet, à celui précédant cette fonctionnalité.
 
-**Reporté à un ticket de suivi :** pondérations par candidat + ordre explicite (niveau 3
-— alimente les chemins de stratégie pondérée/prioritaire existants) et épinglage d’une
-stratégie `combo.ts` spécifique par canal `auto/*` (niveau 4). Consultez le plan du ticket #7819 concernant la question en suspens :
-les substitutions doivent-elles rester propres à chaque clé d’API ou devenir globales compte tenu du
-modèle à locataire unique ?
+**Reporté à un ticket ultérieur :** pondération par candidat + ordre explicite (niveau 3
+— alimente les chemins de stratégie pondérée/prioritaire existants) et épinglage d’une stratégie
+`combo.ts` spécifique par canal `auto/*` (niveau 4). Consultez le plan du ticket #7819 pour la question
+ouverte visant à déterminer si les remplacements doivent rester propres à chaque clé d’API ou devenir globaux compte tenu du
+modèle à locataire unique.
 
 **En coulisses :**
 
@@ -124,7 +124,7 @@ La notation automatique sélectionne le meilleur fournisseur/modèle pour chaque
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Analyseur de préfixe (`parseAutoPrefix`)                            |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Crée des objets `AutoComboConfig` virtuels                          |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Point d’injection de test pour simuler le registre des fournisseurs |
-| `src/sse/handlers/chat.ts`                                | Intégration : court-circuit pour le préfixe automatique             |
+| `src/sse/handlers/chat.ts`                                | Intégration : court-circuit du préfixe automatique                  |
 | `src/shared/constants/providers.ts`                       | Entrée système `SYSTEM_PROVIDERS.auto`                              |
 
 ## Noms de combos correspondant à un identifiant de modèle réel
@@ -217,7 +217,7 @@ L’Auto-Combo Engine sélectionne dynamiquement le meilleur fournisseur/modèle
 
 ## Packs de modes
 
-6 profils de pondération prédéfinis dans `open-sse/services/autoCombo/modePacks.ts`. Chaque pack remplace intégralement les pondérations par défaut afin d’orienter la sélection vers un objectif. La somme de chaque pack est déjà égale à `1.0` (`0.9999` avec un affichage à quatre décimales) ; `normalizeScoringWeights()` n’a donc rien de significatif à corriger lorsqu’un pack est actif — les valeurs ci-dessous sont, à l’arrondi près, celles appliquées par le système de notation.
+6 profils de pondération prédéfinis dans `open-sse/services/autoCombo/modePacks.ts`. Chaque pack remplace entièrement les pondérations par défaut afin d’orienter la sélection vers un objectif précis. Chaque pack totalise déjà `1.0` (`0.9999` tel qu’affiché avec quatre décimales), donc `normalizeScoringWeights()` n’a rien de significatif à corriger lorsqu’un pack est actif — les valeurs ci-dessous sont, à l’arrondi près, celles que le moteur de notation applique.
 
 | Facteur               | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -239,15 +239,15 @@ L’Auto-Combo Engine sélectionne dynamiquement le meilleur fournisseur/modèle
 
 Remarques :
 
-- **Les packs incluent `quality` et `reliability`** (`quality 0.02`, `quality-first 0.03` ; `reliability 0.03`, `reliability-first 0.04`) et remplacent entièrement la table de pondérations (`weights = pack`, sans fusion). `DEFAULT_WEIGHTS` contient `quality 0.03 / reliability 0` ; sélectionner `balanced`/`default` conserve ces valeurs par défaut, tandis que sélectionner un pack utilise les valeurs du pack indiquées ci-dessus. Avec un pool froid (encore aucune observation, donc `quality 0.5` et `reliability 1`), ces deux facteurs ajoutent `+0.04` avec un pack générique (`0.03 + 0.01`), `+0.045` avec `quality-first` et `+0.05` avec `reliability-first`.
-- `tierAffinity`, `specificityMatch` et `resetWindowAffinity` sont explicitement définis sur `0` dans chaque pack.
-- Aperçu des priorités de chaque pack :
+- **Les packs incluent `quality` et `reliability`** (`quality 0.02`, `quality-first 0.03` ; `reliability 0.03`, `reliability-first 0.04`) et remplacent intégralement la table des pondérations (`weights = pack`, il ne s’agit pas d’une fusion). `DEFAULT_WEIGHTS` contient `quality 0.03 / reliability 0` ; sélectionner `balanced`/`default` conserve ces valeurs par défaut, tandis que sélectionner un pack utilise les valeurs du pack indiquées ci-dessus. Dans un pool à froid (aucune observation pour le moment, donc `quality 0.5` et `reliability 1`), ces deux facteurs ajoutent `+0.04` avec un pack générique (`0.03 + 0.01`), `+0.045` avec `quality-first` et `+0.05` avec `reliability-first`.
+- `tierAffinity`, `specificityMatch` et `resetWindowAffinity` valent explicitement `0` dans chaque pack.
+- L’accent mis par chaque pack en un coup d’œil :
   - **ship-fast** → latencyInv 0.3048 + health 0.2667 (connexions saines à faible latence)
   - **cost-saver** → costInv 0.3324 (les jetons les moins chers l’emportent)
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, la valeur la plus élevée de tous les packs (meilleur modèle pour la tâche, comportement cohérent)
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03, la valeur la plus élevée de tous les packs (meilleur modèle pour la tâche, résultats cohérents)
   - **offline-friendly** → quota 0.3324 + health 0.2667 (marge maximale, indépendamment de la vitesse ou du coût)
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, la valeur la plus élevée de tous les packs (moins de surprises)
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (profil d’injection de pannes)
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04, la valeur la plus élevée de tous les packs (le moins de surprises possible)
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905 (le pack de pondérations que `auto/chaos` attribue aux membres de son panel ; la distribution parallèle ne lit pas ces pondérations, et il ne s’agit pas d’un profil d’injection de pannes, voir [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out))
 
 ### Contrôles par requête (en-têtes) — #6023 / #6024 / #6025 / #3470
 
@@ -256,15 +256,15 @@ configuration stockée du combo. Ceux-ci s’appliquent uniquement à la straté
 qui les contient ; les valeurs `modePack`/`budgetCap`/`budgetFallback` enregistrées du combo sont utilisées
 lorsque l’en-tête est absent.
 
-| En-tête                       | Accepte                                                                                                                                                                                             | Effet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `X-OmniRoute-Mode`            | un alias de préréglage (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ou un nom de pack brut (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Remplace les pondérations de score pour cette requête. `balanced`/`default` imposent les pondérations par défaut (aucun pack). Les valeurs inconnues sont ignorées (configuration préservée).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `X-OmniRoute-Budget`          | un nombre positif (montant maximal en USD par requête)                                                                                                                                              | Plafond de coût strict : les candidats dont le coût estimé le dépasse sont filtrés avant la sélection. Le comportement lorsque **tous** les candidats le dépassent est déterminé par `X-OmniRoute-Budget-Fallback` ci-dessous.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `X-OmniRoute-Budget-Fallback` | `cheapest` (par défaut, alias : `cheapest-viable`, `soft`) ou `strict` (alias : `block`, `hard`)                                                                                                    | `cheapest` : se rabat sur le candidat globalement le moins cher, même s’il dépasse toujours le plafond (comportement historique). `strict` : refuse d’effectuer une sélection — la requête échoue immédiatement avec `HTTP 402` au lieu d’entraîner silencieusement un dépassement de budget. Les valeurs inconnues sont ignorées.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `X-OmniRoute-Effort`          | `auto` (autres valeurs réservées)                                                                                                                                                                   | Budget de réflexion adaptatif : lorsque la requête ne contient **aucun** champ de raisonnement, quelle qu’en soit la forme (`reasoning_effort`, `reasoning`, `thinking`), la passerelle résout `auto` en `low`/`medium`/`high` à partir de signaux déterministes liés à la structure de la requête (longueur du dernier message utilisateur, taille du contexte jusqu’au dernier message utilisateur, résultats d’outils antérieurs, profondeur de la boucle d’outils). Les signaux sont limités au tour actuel — tout ce qui suit le dernier message utilisateur est ignoré — de sorte que chaque requête d’une boucle d’outils est résolue au même niveau (verrouillage sans état par tour, aucun état de session, aucune augmentation en cours de boucle susceptible de rompre les préfixes du cache de prompts en amont). Un champ de raisonnement explicite du client est toujours prioritaire. Limité aux requêtes dont la répartition en amont correspond au format OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` est un champ au format OpenAI ; l’en-tête est donc sans effet sur une requête ciblant Claude ou Gemini (voir `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
+| En-tête                       | Valeurs acceptées                                                                                                                                                                                   | Effet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | un alias de préréglage (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) ou un nom de pack brut (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Remplace les pondérations de notation pour cette requête. `balanced`/`default` imposent les pondérations par défaut (aucun pack). Les valeurs inconnues sont ignorées (la configuration est conservée).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `X-OmniRoute-Budget`          | un nombre positif (montant maximal en USD par requête)                                                                                                                                              | Plafond de coût strict : les candidats dont le coût estimé le dépasse sont filtrés avant la sélection. Le comportement adopté lorsque **tous** les candidats le dépassent est contrôlé par `X-OmniRoute-Budget-Fallback` ci-dessous.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `X-OmniRoute-Budget-Fallback` | `cheapest` (valeur par défaut, alias : `cheapest-viable`, `soft`) ou `strict` (alias : `block`, `hard`)                                                                                             | `cheapest` : utilise en dernier recours le candidat globalement le moins cher, même s’il dépasse toujours le plafond (comportement historique). `strict` : refuse d’effectuer une sélection — la requête échoue immédiatement avec `HTTP 402` au lieu de dépasser silencieusement le budget. Les valeurs inconnues sont ignorées.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `X-OmniRoute-Effort`          | `auto` (autres valeurs réservées)                                                                                                                                                                   | Budget de réflexion adaptatif : lorsque la requête ne comporte **aucun** champ de raisonnement, quelle qu’en soit la forme (`reasoning_effort`, `reasoning`, `thinking`), la passerelle résout `auto` en `low`/`medium`/`high` à partir de signaux déterministes liés à la structure de la requête (longueur du dernier message utilisateur, taille du contexte jusqu’au dernier message utilisateur, résultats d’outils antérieurs, profondeur de la boucle d’outils). Les signaux sont limités au tour actuel — tout ce qui suit le dernier message utilisateur est ignoré — de sorte que chaque requête d’une boucle d’outils est résolue au même niveau (fixation sans état par tour, aucun état de session, aucune augmentation en cours de boucle susceptible de rompre les préfixes du cache de prompts en amont). Un champ de raisonnement explicite fourni par le client est toujours prioritaire. Limité aux requêtes dont le routage en amont est résolu vers le format OpenAI Chat Completions (`targetFormat === FORMATS.OPENAI`) — `reasoning_effort` est un champ au format OpenAI ; l’en-tête est donc sans effet sur une requête ciblant Claude ou Gemini (voir `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`). |
 
 ```bash
-# Forcer le profil le plus rapide, plafonner cette requête à 0,05 $, et bloquer strictement plutôt que de dépasser le budget
+# Forcer le profil le plus rapide, plafonner cette requête à 0,05 $, et la bloquer strictement plutôt que de dépasser le budget
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -274,9 +274,9 @@ curl -sS http://localhost:20128/v1/chat/completions \
 ```
 
 La résolution est une fonction pure (`open-sse/services/autoCombo/requestControls.ts`) ; les
-valeurs résolues alimentent les entrées `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` existantes du moteur. La valeur `config.budgetFallback` enregistrée d'une combinaison ("strict" |
-"cheapest") définit la politique persistante ; l'en-tête la remplace pour une seule requête.
+valeurs résolues alimentent les entrées existantes `config.modePack` / `config.budgetCap` /
+`config.budgetFallback` du moteur. La valeur `config.budgetFallback` enregistrée d’une combinaison ("strict" |
+"cheapest") définit la politique persistante ; l’en-tête la remplace pour une seule requête.
 
 ## Toutes les stratégies de routage
 
@@ -764,14 +764,14 @@ En incluant `auto` seul (valeur par défaut) ainsi que les 6 valeurs `AutoVarian
 
 (`AutoVariant` lui-même énumère 6 valeurs ; la 7e option correspond à « aucune variante » — `auto` seul — gérée par `parseAutoPrefix()` sous la forme `variant: undefined`.)
 
-## Intégration des niveaux dans Auto-Combo
+## Comment les niveaux s’intègrent à Auto-Combo
 
-La fonction de notation à 16 facteurs (`open-sse/services/autoCombo/scoring.ts`) traite l’appartenance à un niveau comme deux signaux : `tierPriority` (0.0476) et `tierAffinity` (0.0476). Consultez le [tableau canonique des facteurs de notation](#how-it-works-persisted-auto-combos) ci-dessus pour l’ensemble complet de `DEFAULT_WEIGHTS` — les substitutions propres à chaque pack (ship-fast/cost-saver/quality-first/
-offline-friendly) sont répertoriées dans le tableau « Weight profiles per pack ».
+La fonction de notation à 16 facteurs (`open-sse/services/autoCombo/scoring.ts`) traite l’appartenance à un niveau comme deux signaux : `tierPriority` (0.0476) et `tierAffinity` (0.0476). Consultez le [tableau canonique des facteurs de notation](#how-it-works-persisted-auto-combos) ci-dessus pour voir l’ensemble complet de `DEFAULT_WEIGHTS` — les substitutions propres à chaque pack (ship-fast/cost-saver/quality-first/
+offline-friendly) sont répertoriées dans le tableau « Profils de pondération par pack ».
 
-Le niveau seul ne force **pas** le niveau 1 à être prioritaire — si la latence du niveau 1 est mauvaise ou si le rapport coût-qualité est sous-optimal, le niveau 2 l’emporte. Pour imposer l’ordre des niveaux, utilisez la stratégie de combinaison `priority` et classez les fournisseurs par niveau.
+Le niveau seul ne force **pas** la priorité du niveau 1 : si la latence du niveau 1 est mauvaise ou si le rapport coût-qualité n’est pas optimal, le niveau 2 l’emporte. Pour imposer l’ordre des niveaux, utilisez la stratégie de combinaison `priority` et classez les fournisseurs par niveau.
 
-Pour favoriser fortement le niveau 1 (abonnement), augmentez le poids de `tierPriority` :
+Pour favoriser fortement le niveau 1 (abonnement), augmentez le poids de `tierPriority` :
 
 ```json
 {
@@ -780,7 +780,7 @@ Pour favoriser fortement le niveau 1 (abonnement), augmentez le poids de `tierPr
 }
 ```
 
-Consultez `docs/marketing/TIERS.md` pour les définitions des niveaux et la classification des fournisseurs.
+Consultez [`docs/guides/TIERS.md`](../guides/TIERS.md) pour connaître les définitions des niveaux et la classification des fournisseurs.
 
 ## Tests et couverture
 

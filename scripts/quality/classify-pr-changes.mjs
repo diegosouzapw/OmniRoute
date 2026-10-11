@@ -10,6 +10,13 @@
  *
  * Pure docs or pure message-catalog PRs should NOT pay full unit/lint wall time.
  * Unknown paths default to code (fail-safe: better over-run than under-protect).
+ *
+ * Second, ADDITIVE level — `domains` (one-CI-policy step 1, RFC #8084 D1-full):
+ * the sorted set of real change domains a diff touches (see CHANGE_DOMAINS).
+ * It is only EXPOSED (stdout `domains=<csv>` + `outputs.domains` of the
+ * `changes` job in ci.yml / quality.yml); no job is gated on it yet. The legacy
+ * flags above and their stdout lines stay byte-identical. Unknown paths map to
+ * `core` (fail-safe, same spirit as code=true).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -54,11 +61,7 @@ export function classifyPaths(files) {
     }
 
     // i18n tooling / non-message i18n source → also code (scripts, config, loaders).
-    if (
-      f.startsWith("scripts/i18n/") ||
-      f === "config/i18n.json" ||
-      f.startsWith("src/i18n/")
-    ) {
+    if (f.startsWith("scripts/i18n/") || f === "config/i18n.json" || f.startsWith("src/i18n/")) {
       i18n = true;
       code = true;
       continue;
@@ -96,6 +99,157 @@ export function classifyPaths(files) {
   return { code, docs, i18n, workflow, testsOnly: sawAnyFile && !sawNonTest && !sawE2eTest };
 }
 
+/**
+ * Closed, alphabetically sorted set of change domains. `core` is the fail-safe
+ * bucket for shared code and for any path no other rule claims.
+ */
+export const CHANGE_DOMAINS = Object.freeze([
+  "build",
+  "catalog",
+  "cli",
+  "core",
+  "db",
+  "docs",
+  "i18n",
+  "provider",
+  "routing",
+  "tests",
+  "ui",
+  "workflow",
+]);
+
+// open-sse/services/** entries that implement routing / resilience (combo
+// strategies, account + provider fallback, cooldowns, rate limiting, breakers).
+// Every other service file is shared runtime → `core`.
+const ROUTING_SERVICE_PREFIXES = [
+  "open-sse/services/combo", // combo.ts, combo/, comboConfig.ts, comboMetrics.ts, …
+  "open-sse/services/autoCombo/",
+  "open-sse/services/routing/",
+  "open-sse/services/routingStrategies.",
+  "open-sse/services/accountFallback", // accountFallback.ts + accountFallback/
+  "open-sse/services/accountSelector.",
+  "open-sse/services/accountSemaphore.",
+  "open-sse/services/connectionCircuitBreaker.",
+  "open-sse/services/providerCooldownTracker.",
+  "open-sse/services/rateLimitManager", // rateLimitManager.ts + rateLimitManager/
+  "open-sse/services/rateLimitSemaphore.",
+  "open-sse/services/emergencyFallback.",
+  "open-sse/services/modelFamilyFallback.",
+  "open-sse/services/fusion.",
+  "open-sse/services/wildcardRouter.",
+  "open-sse/services/taskAwareRout", // taskAwareRouter.ts, taskAwareRouting.ts
+  "open-sse/services/imageCombo.",
+  "open-sse/services/speechCombo.",
+  "open-sse/services/videoCombo.",
+  "src/lib/resilience/",
+  "src/lib/routing/",
+  "src/lib/combos/",
+  "src/shared/utils/circuitBreaker.",
+];
+
+const BUILD_ROOT_FILES = new Set([
+  "package.json",
+  "package-lock.json",
+  ".dockerignore",
+  ".npmrc",
+  ".npmignore",
+  ".node-version",
+  ".nvmrc",
+]);
+
+/**
+ * Map ONE changed path to exactly one domain. Rule order matters: tests and docs
+ * win over the source tree they live in (open-sse/services/__tests__/…,
+ * open-sse/services/AGENTS.md), mirroring how classifyPaths() routes `.md`.
+ * @param {string} raw relative path from git diff
+ * @returns {string} a member of CHANGE_DOMAINS
+ */
+export function classifyDomain(raw) {
+  const f = String(raw || "")
+    .trim()
+    .replace(/\\/g, "/");
+
+  if (
+    f.startsWith(".github/workflows/") ||
+    f.startsWith(".github/actions/") ||
+    f === ".zizmor.yml"
+  ) {
+    return "workflow";
+  }
+
+  if (
+    f.startsWith("tests/") ||
+    f.includes("/__tests__/") ||
+    /\.(test|spec)\.[cm]?[jt]sx?$/.test(f) ||
+    /^vitest[^/]*\.(config|workspace)\.[cm]?[jt]s$/.test(f) ||
+    f.startsWith("playwright.config.")
+  ) {
+    return "tests";
+  }
+
+  if (f.startsWith("src/i18n/") || f.startsWith("scripts/i18n/") || f === "config/i18n.json") {
+    return "i18n";
+  }
+
+  if (f.startsWith("docs/") || f.endsWith(".md")) return "docs";
+
+  if (
+    BUILD_ROOT_FILES.has(f) ||
+    /(^|\/)package\.json$/.test(f) ||
+    f.startsWith("next.config.") ||
+    /^Dockerfile(\.|$)/.test(f) ||
+    /^docker-compose[^/]*\.ya?ml$/.test(f) ||
+    /^tsconfig[^/]*\.json$/.test(f) ||
+    f.startsWith("scripts/build/")
+  ) {
+    return "build";
+  }
+
+  if (f.startsWith("bin/")) return "cli";
+
+  if (f.startsWith("src/lib/db/")) return "db"; // includes src/lib/db/migrations/
+
+  if (
+    f.startsWith("src/app/api/v1/models/") ||
+    f.startsWith("src/lib/catalog/") ||
+    f.startsWith("open-sse/config/providerRegistry")
+  ) {
+    return "catalog";
+  }
+
+  if (
+    f.startsWith("open-sse/executors/") ||
+    f.startsWith("open-sse/translator/") ||
+    f.startsWith("open-sse/config/providers/") ||
+    f.startsWith("src/shared/constants/providers") // providers.ts + providers/
+  ) {
+    return "provider";
+  }
+
+  if (ROUTING_SERVICE_PREFIXES.some((p) => f.startsWith(p))) return "routing";
+
+  if (f.startsWith("src/app/(dashboard)/") || f.startsWith("src/shared/components/")) {
+    return "ui";
+  }
+
+  // Shared runtime (open-sse/handlers, open-sse/utils, src/server, the rest of
+  // src/lib, …) AND every unknown path: fail-safe to `core`.
+  return "core";
+}
+
+/**
+ * @param {string[]} files relative paths from git diff
+ * @returns {string[]} sorted, de-duplicated domains (empty for an empty diff)
+ */
+export function classifyDomains(files) {
+  const seen = new Set();
+  for (const raw of files) {
+    if (!String(raw || "").trim()) continue;
+    seen.add(classifyDomain(raw));
+  }
+  return CHANGE_DOMAINS.filter((d) => seen.has(d));
+}
+
 function main() {
   const listPath = process.argv[2];
   let files;
@@ -123,14 +277,15 @@ function main() {
   }
   const c = classifyPaths(files);
   // GitHub Actions output format (also human-readable key=value).
+  // Legacy lines first and unchanged; `domains` is appended (additive).
   process.stdout.write(
     `code=${c.code}\ndocs=${c.docs}\ni18n=${c.i18n}\nworkflow=${c.workflow}\ntestsOnly=${c.testsOnly}\n`
   );
+  process.stdout.write(`domains=${classifyDomains(files).join(",")}\n`);
 }
 
 const isMain =
-  process.argv[1] &&
-  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  process.argv[1] && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 
 if (isMain) {
   main();

@@ -17,56 +17,60 @@ OmniRoutessa on reittitietoinen valtuutusputki, joka valvoo jokaista API-pyyntö
 
 ### 1. API-avain (Bearer)
 
-Käytetään OpenAI-/Anthropic-/Gemini-yhteensopivissa asiakas-API-rajapinnoissa sekä joillakin hallintareiteillä, kun avaimella on `manage`-käyttöoikeusalue.
+Käytetään OpenAI/Anthropic/Gemini-yhteensopivissa asiakasohjelmointirajapinnoissa sekä muutamissa hallintareiteissä, kun avaimella on `manage`-käyttöoikeusalue.
 
 ```
-Authorization: Bearer <api-avain>
+Authorization: Bearer <api-key>
 ```
 
-Validoinnin tekevät `isValidApiKey()` / `extractApiKey()` tiedostossa `src/sse/services/auth.ts`, ja ne viedään uudelleen tiedoston `src/shared/utils/apiAuth.ts` kautta. Validoija hyväksyy myös ympäristömuuttujat `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` pysyvinä läpivientiavaimina (ongelma #1350).
+Vahvistuksen suorittavat `isValidApiKey()` / `extractApiKey()` tiedostossa `src/sse/services/auth.ts`, ja ne viedään uudelleen tiedoston `src/shared/utils/apiAuth.ts` kautta. Vahvistin hyväksyy myös ympäristömuuttujat `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` pysyvinä läpivientiavaimina (ongelma #1350).
 
 ### 2. Hallintapaneelin istunto (auth_token-eväste)
 
 Hallintapaneelin sivuja ja ylläpitotoimintoja varten.
 
 ```
-Cookie: auth_token=<JWT, joka on allekirjoitettu JWT_SECRET-arvolla>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Eväste on istunto vain, kun JWT:n allekirjoitus varmistetaan **ja** se sisältää arvon `authenticated: true`
+Eväste on istunto vain, kun JWT:n allekirjoitus vahvistuu **ja** se sisältää arvon `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Jokainen
-evästeen käyttäjä (reittisuojaus, authz-putken päivitys, WebSocket-kättely, reaaliaikainen
+evästeen käyttäjä (hallintapaneelin reittisuojaus (`isDashboardSessionAuthenticated()`), valtuutusputken päivitys, WebSocket-kättely, reaaliaikainen
 palvelin, `/api/settings/require-login`, `/api/auth/status`) käyttää kyseistä apufunktiota.
-Muitakin `JWT_SECRET`-arvolla allekirjoitettuja JWT-tunnisteita on olemassa — Cursor CLI:n läpivienti luo
-avainten haltijoille tunnisteita, joiden arvot ovat `iss "omniroute" / aud "cursor-cli"` — eivätkä ne koskaan ole istuntoja
+Myös muita muuttujalla `JWT_SECRET` allekirjoitettuja JWT-tunnuksia on olemassa — Cursor CLI:n läpivienti luo
+avainten haltijoille tunnuksia, joissa on `iss "omniroute" / aud "cursor-cli"` — eikä niitä koskaan käsitellä istuntoina
 (#13298).
 
-Varmistuksen tekee `isDashboardSessionAuthenticated()` tiedostossa `src/shared/utils/apiAuth.ts`. Putki päivittää JWT:n automaattisesti, kun sen 30 päivän voimassaoloajasta on jäljellä alle 7 päivää.
+Vahvistuksen suorittaa `isDashboardSessionAuthenticated()` tiedostossa `src/shared/utils/apiAuth.ts`. Putki päivittää JWT:n automaattisesti, kun sen 30 päivän voimassaoloajasta on jäljellä alle 7 päivää.
 
-Jotkin hallintareitit hyväksyvät **kumman tahansa** tavan: evästeen TAI `Bearer <key>` -tunnisteen, kun API-avaimella on `manage`- (tai `admin`-) käyttöoikeusalue. Tämä mahdollistaa versiossa v3.8 lisätyn työnkulun, jossa määrityksiä voidaan tehdä API-kutsuilla.
+Istunto voi päättyä myös ennen 30 päivän täyttymistä, koska jokainen tunnuksen luoja käyttää funktiota `mintDashboardSessionToken` (myöntämisaika `iat` ja tunniste `jti`) ja vahvistin tarkistaa kaksi asetusta: `sessionsValidAfter`, joka asetetaan salasanan vaihdon yhteydessä niin, että kaikki sitä ennen myönnetyt istunnot lakkaavat vahvistumasta (salasanan vaihtanut selain saa uuden evästeen), sekä `revokedDashboardSessions`, johon `POST /api/auth/logout` lisää uloskirjautuneen istunnon `jti`-tunnisteen. Vanhemmalla versiolla luodut istunnot eivät sisällä kumpaakaan väitettä ja pysyvät voimassa ensimmäiseen salasanan vaihtoon asti. Jos asetuksia ei voida lukea, istuntoon ei luoteta.
 
-#### Valinnainen OIDC-kirjautumisrajoitus (#6973)
+Jotkin hallintareitit hyväksyvät **kumman tahansa** tavan: evästeen TAI `Bearer <key>` -tunnisteen, kun API-avaimella on `manage`- (tai `admin`-)käyttöoikeusalue. Tämä mahdollistaa versiossa v3.8 lisätyn ”määritettävissä API-kutsuilla” -työnkulun.
 
-Hallintapaneelin ylläpitäjäkirjautuminen tukee oletusarvoisen salasanakirjautumisen rinnalla myös **valinnaista** OIDC (OpenID Connect) -työnkulkua — salasanakirjautumista ei koskaan poisteta, vaan sitä ainoastaan täydennetään:
+#### Valinnainen OIDC-kirjautumisportti (#6973)
+
+Hallintapaneelin ylläpitäjäkirjautuminen tukee myös **erikseen käyttöön otettavaa** OIDC (OpenID Connect) -työnkulkua
+oletusarvoisen salasanakirjautumisen rinnalla — salasanakirjautumista ei koskaan poisteta, vaan sitä ainoastaan
+täydennetään:
 
 - Poissa käytöstä, ellei `settings.oidcEnabled === true` **ja** kaikkia asetuksia `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ole määritetty (Asetukset → Todennus).
   Muussa tapauksessa `GET /api/auth/oidc/login` palauttaa arvon `400`.
-- `GET /api/auth/oidc/login` hakee `authorization_endpoint`-päätepisteen myöntäjän
-  `/.well-known/openid-configuration`-määrityksestä (varavaihtoehtona
+- `GET /api/auth/oidc/login` selvittää `authorization_endpoint`-päätepisteen
+  myöntäjän `/.well-known/openid-configuration`-määrityksestä (varavaihtoehtona
   `<issuer>/authorize`), muodostaa uudelleenohjaus-URI:n saapuvasta pyynnöstä
   (`x-forwarded-proto` huomioiden) ja uudelleenohjaa IdP:hen satunnaisella `state`-arvolla,
   joka tallennetaan `httpOnly`-määritteen sisältävään `oidc_state`-evästeeseen.
-- `GET /api/auth/oidc/callback` validoi `state`-arvon, vaihtaa valtuutuskoodin
-  tunnisteisiin ja varmistaa ID-tunnisteen allekirjoituksen myöntäjän JWKS:n avulla
-  (`jose`-paketin `createRemoteJWKSet`, välimuistissa JWKS-URI-kohtaisesti) käyttäen `issuer`/`audience`-
-  tarkistuksia. Valinnainen `oidcAllowedSubjects`-sallittujen luettelo vertaa tunnisteen
+- `GET /api/auth/oidc/callback` vahvistaa `state`-arvon, vaihtaa valtuutuskoodin
+  ja vahvistaa ID-tunnuksen allekirjoituksen myöntäjän JWKS:n kautta
+  (`jose`-paketin `createRemoteJWKSet`, välimuistissa JWKS-URI-kohtaisesti) käyttäen `issuer`/`audience`-tarkistuksia.
+  Valinnainen `oidcAllowedSubjects`-sallittujen arvojen luettelo vertaa tunnuksen
   `sub`-väitettä tai sen `email`-väitettä — sähköpostiväite huomioidaan vain, kun
-  `email_verified === true`, joten IdP:n vahvistamaton sähköpostiosoite ei voi koskaan läpäistä
-  rajoitusta.
-- Onnistumisen yhteydessä luodaan **täsmälleen sama** 30 päivää voimassa oleva `auth_token`-JWT, jonka salasanalla
-  kirjautuminen luo (`src/app/api/auth/login/route.ts`), joten hallintapaneelin
-  istuntoputken muu toiminta (automaattinen päivitys, evästeiden määritteet) säilyy ennallaan —
+  `email_verified === true`, joten IdP:n vahvistamaton sähköpostiosoite ei koskaan läpäise
+  porttia.
+- Onnistumisen yhteydessä luodaan **täsmälleen sama** 30 päivän `auth_token`-JWT kuin salasanalla
+  kirjauduttaessa (`src/app/api/auth/login/route.ts`), joten hallintapaneelin
+  istuntoputken muut osat (automaattinen päivitys, evästemääritykset) säilyvät ennallaan —
   OIDC korvaa vain evästeen luontitavan, ei sen myöntämiä oikeuksia.
 
 ## Reittiluokat

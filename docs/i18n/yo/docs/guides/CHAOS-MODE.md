@@ -4,22 +4,45 @@
 
 ---
 
-> **Pẹpẹ Ìṣàkóso:** **Ipo Chaos** (ọ̀pá ẹ̀gbẹ́) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (ìgbà ìṣiṣẹ́ pẹpẹ ìṣàkóso) · `POST /api/skills/collect/chaos` (kọ́kọ́rọ́ API)  
+> **Pátákó ìṣàkóso:** **Chaos Mode** (àkójọ-ẹ̀gbẹ́) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (àkókò pátákó ìṣàkóso) · `POST /api/skills/collect/chaos` (kọ́kọ́rọ́ API)  
 > **Orísun:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Ipo Chaos máa ń fi **iṣẹ́ kan ránṣẹ́ sí ọ̀pọ̀ olùpèsè lẹ́ẹ̀kan náà** — olùpèsè kọ̀ọ̀kan tó kópa
-máa ń ṣàfikún àpẹẹrẹ model kan, o sì máa rí gbogbo àwọn ìdáhùn lẹ́gbẹ̀ẹ́ ara wọn (tàbí ní ẹ̀wọ̀n). Ó jẹ́
-ojú-ọ̀nà ìṣiṣẹ́ model-púpọ̀, kì í ṣe ọgbọ́n ìtọ́sọ́nà: kò ní ipa lórí ìrìnàjò `/v1/chat/completions`
-deede rẹ rárá.
+Chaos Mode ń fi **iṣẹ́ kan ṣoṣo ránṣẹ́ sí ọ̀pọ̀ olùpèsè lẹ́ẹ̀kan náà** — olùpèsè kọ̀ọ̀kan tó ń kópa
+ń ṣàfikún ẹ̀dà awoṣe kan, ìwọ yóò sì gba gbogbo àwọn ìdáhùn náà lẹ́gbẹ̀ẹ́ ara wọn (tàbí ní ọ̀wọ̀ọ̀wọ́). Ó jẹ́
+ojú-iṣẹ́ ìṣiṣẹ́ ọ̀pọ̀-awoṣe, kì í ṣe ọgbọ́n ìdarí ipa-ọ̀nà: kò ní ipa kankan lórí ìrìnnà `/v1/chat/completions`
+deédéé rẹ.
 
-**Ìyàtọ̀-kedere — ohun mẹ́ta ọ̀tọ̀ọ̀tọ̀ ni a pèsè pẹ̀lú "chaos" nínú orúkọ wọn:**
+**Ìyàtọ̀sí — ohun mẹ́ta ọ̀tọ̀ọ̀tọ̀ ló ní "chaos" nínú orúkọ wọn:**
 
-| Nǹkan             | Ohun tí ó jẹ́                                                                                                                | Ibi tí a ti ṣàkọsílẹ̀ rẹ̀                      |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Ipo Chaos**     | Ojú-ìwé pẹpẹ ìṣàkóso + API tí a ṣàlàyé níbí: pín iṣẹ́ kan sí ọ̀pọ̀ olùpèsè (ní ìṣọ̀kan tàbí ní ìfọwọ́sowọ́pọ̀).                    | Ìtọ́sọ́nà yìí                                  |
-| `auto/chaos`      | Id model Auto-Combo kan pẹ̀lú àwọn ìwọ̀n ìṣírò ìfí-àṣìṣe-sínú-ètò, fún ìdánwò agbára ìfaradà. Kò sí ohun tí a nílò láti ṣètò. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Àtòpọ̀ ìṣètò Chaos | Àtòpọ̀ tí a tọ́jú pẹ̀lú `config.chaos.enabled` máa ń pín sí panẹli kan pẹ̀lú model adájọ́ àṣàyàn (API-nìkan).                    | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Nǹkan             | Ohun tí ó jẹ́                                                                                                                                                                   | Ibi tí a ti ṣàkọsílẹ̀ rẹ̀                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| **Chaos Mode**    | Ojú-ìwé pátákó ìṣàkóso + API tí a ṣàlàyé níbí: tan iṣẹ́ kan ká sí ọ̀pọ̀ olùpèsè (ní ìfarakanra tàbí ní ìfọwọ́sowọ́pọ̀).                                                              | Ìtọ́sọ́nà yìí                                  |
+| `auto/chaos`      | ID awoṣe Auto-Combo: títan ká ní ìfarakanra, awoṣe kan fún olùpèsè kọ̀ọ̀kan, ìpè kan sí iṣẹ́ òkè fún ọ̀kọ̀ọ̀kan. Kì í ṣe fífi àṣìṣe sínú eto ([àlàyé](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Àtòpọ̀ ìṣètò Chaos | Àtòpọ̀ tí a fi pamọ́ pẹ̀lú `config.chaos.enabled` ń tan iṣẹ́ ká ní ọ̀nà kan náà (API-nìkan); `judgeModel` kàn ń yan ìdáhùn ìkẹyìn, kò sí ìpè àkójọpọ̀.                               | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: títan ká ní ìfarakanra
+
+`auto/chaos` **kì í ṣe** àmúlò fífi àṣìṣe sínú eto tàbí ti ìdánwò agbára ìfaradà. Nígbà tí a bá béèrè
+`model: "auto/chaos"` lórí `/v1/chat/completions`:
+
+1. Ó kọ́ ẹgbẹ́ kan ti **awoṣe kan fún olùpèsè kọ̀ọ̀kan**: olùdíje àkọ́kọ́ láti ọ̀dọ̀
+   olùpèsè kọ̀ọ̀kan tó sopọ̀, ní ìtẹ̀lé àkójọpọ̀ àwọn olùdíje, tó fi dé ọmọ ẹgbẹ́ 5
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, tí a dá dúró sí 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Àkójọpọ̀ ìwọ̀n `chaos-mode`
+   kàn ń ṣètò `weight` ọmọ ẹgbẹ́ kọ̀ọ̀kan; títan ká náà kò ka á.
+2. Ó fi ìbéèrè kan náà ránṣẹ́ sí gbogbo ọmọ ẹgbẹ́ **ní ìfarakanra**, nítorí náà ìbéèrè kan
+   ń ná ìpè iṣẹ́ òkè kan fún ọmọ ẹgbẹ́ kọ̀ọ̀kan
+   (`open-sse/services/autoCombo/chaosEngine.ts`, tí a fi ránṣẹ́ láti
+   `open-sse/services/combo.ts`).
+3. Ó ń ṣàn ìlà ipò kan fún ọmọ ẹgbẹ́ kọ̀ọ̀kan bí ó ṣe ń dé: àlàyé SSE kan
+   (`: chaos <index> ok|fail <model>`) ní àìyípadà, pẹ̀lú ìṣẹ̀lẹ̀ `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) nígbà tí ìbéèrè bá ṣètò
+   `stream_options.include_chaos_parts: true`. Ìwọ̀nyí kò ní ọ̀rọ̀ ìdáhùn kankan.
+4. Ó fi **ìdáhùn kan ṣoṣo** láti inú ẹgbẹ́ náà ránṣẹ́ gẹ́gẹ́ bí àjákù ìkẹyìn ní àṣà OpenAI: ti ọmọ ẹgbẹ́
+   àkọ́kọ́ (`auto/chaos` ń ṣètò rẹ̀ gẹ́gẹ́ bí `judgeModel`) nígbà tí ó bá ṣàṣeyọrí, bí bẹ́ẹ̀ kọ́
+   ti ọmọ ẹgbẹ́ tó ṣàṣeyọrí gbẹ̀yìn. A kò dá àwọn ìdáhùn ọmọ ẹgbẹ́ yòókù padà, nítorí náà
+   o sanwó fún ìpè N, o sì gba ìparí kan ṣoṣo.
 
 ## Ìṣètò
 

@@ -98,7 +98,9 @@ test("agnes-cn is a named OpenAI-style provider with openai-compat discovery", (
 
 test("PROVIDER_SEARCH_PAIRS and CATALOG_SIBLING_IDS do not pair agnes with agnes-cn", () => {
   const pairs = extractNamedConstLiteral(
-    readRepo("src/sse/services/auth.ts"),
+    // #15927 moved PROVIDER_SEARCH_PAIRS (with getProviderSearchPool) out of
+    // src/sse/services/auth.ts into the shared pool module used by combo discovery.
+    readRepo("open-sse/services/providerConnectionPool.ts"),
     "PROVIDER_SEARCH_PAIRS"
   );
   const siblings = extractNamedConstLiteral(

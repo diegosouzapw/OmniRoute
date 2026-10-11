@@ -39,31 +39,31 @@ Fadhbanna coitianta agus réitigh dóibh in OmniRoute.
 
 ### Teorannú Ráta ar Sholáthraithe Saor in Aisce (429 / 400 / 401)
 
-**Siomptóm**: Agus `model: "auto"` á úsáid agat le soláthraithe saor in aisce/gan fíordheimhniú (opencode, auggie, srl.), faigheann tú `HTTP 429`, `400`, nó `401` ó am go chéile in ionad freagraí. Éiríonn leis na hiarratais nuair a bhaintear triail eile as an leid chéanna cúpla nóiméad ina dhiaidh sin, ach teipeann ar uathoibriú (jabanna cron, gníomhairí, scripteanna) ar an gcéad teip.
+**Siomptóm**: Agus `model: "auto"` in úsáid le soláthraithe saor in aisce/gan fíordheimhniú (opencode, auggie, srl.), faigheann tú `HTTP 429`, `400`, nó `401` ó am go chéile in ionad freagraí. Éiríonn leis na hiarratais nuair a bhaintear triail eile as an leid chéanna cúpla nóiméad ina dhiaidh sin, ach teipeann ar uathoibriú (tascanna cron, gníomhairí, scripteanna) ar an gcéad teip.
 
 **Bunchúis**: Tagann trí mhodh teipe neamhspleácha le chéile:
 
-1. **Teorainn ráta an tsoláthraí (`429`)**: Féadfaidh sraitheanna saor in aisce cuóta in aghaidh na fuinneoige a chur i bhfeidhm. Ídíonn ráig glaonna comhthreomhara é, agus mar sin diúltaítear don chéad iarratas eile go dtí go n-athshocraítear an fhuinneog.
-2. **Samhail bhriste sa chur ar aghaidh (`400`/`401`)**: Féadfaidh samhlacha curtha ar aghaidh ó `opencode` a bheith i linnte `auto/*`, ar samhlacha iad atá cláraithe sa chatalóg ach nach bhfuil dintiúir bheo acu (m.sh. `oc/north-mini-code-free` → `401`). Baineann an t-uathródaire triail as ceann amháin, teipeann air, agus iomadaítear an earráid sula dtosaíonn an cúltaca.
-3. **Aimpliú comhthráthachta (`429` faoi ualach)**: Nuair a úsáideann roinnt seisiún gníomhaire/cron `auto` ag an am céanna, sáraíonn ráta comhiomlán na n-iarratas an méid is féidir le soláthraithe saor in aisce a fhulaingt, agus dá bhrí sin marcáiltear glaonna dlisteanacha mar mhí-úsáid.
+1. **Teorainn ráta an tsoláthraí (`429`)**: Is féidir le sraitheanna saor in aisce cuóta in aghaidh na tréimhse a fhorchur. Ídíonn ráig glaonna comhthreomhara é, mar sin diúltaítear don chéad iarratas eile go dtí go n-athshocraítear an tréimhse.
+2. **Samhail bhriste in aistriú díreach (`400`/`401`)**: Is féidir le linnte `auto/*` samhlacha aistrithe dhírigh ó `opencode` a áireamh atá cláraithe sa chatalóg ach nach bhfuil dintiúir bheo acu (m.sh. `oc/north-mini-code-free` → `401`). Baineann an t-uathródaire triail as ceann amháin, teipeann air, agus leathnaíonn an earráid sula gcuirtear an cúltaca i bhfeidhm.
+3. **Aimpliú comhthráthachta (`429` faoi ualach)**: Nuair a úsáideann roinnt seisiún gníomhaire/cron `auto` ag an am céanna, sáraíonn an ráta comhiomlán iarratas an méid is féidir le soláthraithe saor in aisce a láimhseáil, agus mar sin marcáiltear glaonna dlisteanacha mar mhí-úsáid.
 
-**Réiteach deimhnithe (tuairiscithe ag an bpobal, 2026-08-10)**: coigeartaigh trí athróg timpeallachta ionas go maolóidh rothlú, comhthráthacht agus cúltaca luaineacht na sraithe saor in aisce seachas teip dá barr:
+**Réiteach fíoraithe (tuairiscithe ag an bpobal, 2026-08-10)**: coigeartaigh trí athróg timpeallachta ionas go n-ionsúnn rothlú, comhthráthacht agus cúltaca luaineacht na sraithe saor in aisce in ionad teip mar gheall uirthi:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # léim chuig samhail/soláthraí eile ar 400/401 (scipeálann sé samhlacha briste curtha ar aghaidh)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # uasteorainn iontrála shainráite d’iarratais throma (gan socrú de réir réamhshocraithe: níl teorainn ar líon na n-iarratas, féach an nóta thíos)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # fanacht teoranta níos faide ar acmhainn d’iarratais throma in ionad 503 in-atriallach láithreach
+export OMNIROUTE_ROTATE_ON_400=true           # léim chuig samhail/soláthraí eile ar 400/401 (seachnaítear samhlacha briste aistrithe dhírigh)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # uasteorainn iontrála shainráite d'iarratais throma (gan socrú de réir réamhshocraithe: níl aon teorainn ar líon na n-iarratas, féach an nóta thíos)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # ardaigh an fanacht teorannaithe thar réamhshocrú RATE_LIMIT_MAX_WAIT_MS do sheirbhísí réamhtheachtacha malla
 ```
 
-Socraigh iad seo i dtimpeallacht phróiseas OmniRoute (an deamhan, m.sh. tríd an LaunchAgent plist nó `systemctl edit`), agus ansin atosaigh OmniRoute. Is í bratach an rothlaithe an luamhán aonair is éifeachtaí: athraíonn sí teip chrua ina hatriail thrédhearcach le soláthraí sláintiúil sa linn.
+Socraigh iad seo i dtimpeallacht phróiseas OmniRoute (an deamhan, m.sh. tríd an LaunchAgent plist nó `systemctl edit`), agus ansin atosaigh OmniRoute. Is í an bhratach rothlaithe an luamhán aonair is éifeachtaí: tiontaíonn sí teip chrua ina hathiarracht thrédhearcach i gcoinne soláthraí sláintiúil sa linn.
 
-**Nóta**: Cuireann `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` teorainn le líon na n-iarratas trom — comhthéacs fada — a ritheann ag an am céanna; geata iontrála is ea an teorainn, ní teorantóir ráta soláthraí. **Nuashonrú #503-fanout:** ní shocraítear an athróg seo de réir réamhshocraithe a thuilleadh (ní bhíonn sí ceangailte anois ach nuair a chumraítear go sainráite í, mar atá thuas) — ina ionad sin, déantar iontráil iarratas trom a rialú le buiséad beart a dhíorthaítear go huathoibríoch (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) agus a scálaíonn é féin ó fhíortheorainn chuimhne an óstaigh, agus mar sin ba cheart go mbeadh i bhfad níos lú diúltuithe `503 chat_admission_busy` le feiceáil in imscaradh úr gan an athróg seo a shocrú ar chor ar bith; má shocraítear go sainráite anseo í, oibríonn sí go díreach mar atá doiciméadaithe. Cuirtear teorainn 8 MiB–2 GiB ar sháruithe sainráite bhuiséad na mbeart. Ní riocht sealadach é `413 body_exceeds_budget`: méadaigh an buiséad beart sin, ísligh `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, nó méadaigh teorainn chuimhne an phróisis. Is achrann sealadach é díluchtú `inflight_bytes_budget` agus is féidir triail eile a bhaint as fós. Déantar teorannú ráta in aghaidh an tsoláthraí (`open-sse/services/rateLimitManager.ts`) a rialú ar leithligh le `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, agus `RATE_LIMIT_AUTO_ENABLE` — féach `.env.example`.
+**Nóta**: Cuireann `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` teorainn le líon na n-iarratas trom — iarratais le comhthéacs fada — a ritheann ag an am céanna; is geata iontrála í an teorainn, ní teorantóir ráta soláthraí. **Nuashonrú #503-fanout:** ní shocraítear an athróg seo de réir réamhshocraithe a thuilleadh (ní bhíonn sí ceangailte anois ach amháin nuair a chumraítear go sainráite í, mar atá thuas) — ina ionad sin, rialaítear iontráil iarratas trom le buiséad beart uathdhíorthaithe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) a scálaíonn é féin de réir fhíortheorainn chuimhne an óstríomhaire, mar sin ba cheart go mbeadh i bhfad níos lú diúltuithe `503 chat_admission_busy` le feiceáil in imscaradh úr gan an athróg seo a shocrú ar chor ar bith; má shocraítear go sainráite anseo í, oibríonn sí go díreach mar atá doiciméadaithe. Cuirtear sárú sainráite ar an mbuiséad beart faoi theorainn 8 MiB–2 GiB. Níl `413 body_exceeds_budget` sealadach: méadaigh an buiséad beart sin, laghdaigh `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, nó méadaigh teorainn chuimhne an phróisis. Is achrann sealadach é laghdú `inflight_bytes_budget` agus is féidir atriail a bhaint as fós. Rialaítear an teorannú ráta in aghaidh an tsoláthraí (`open-sse/services/rateLimitManager.ts`) ar leithligh ag `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, agus `RATE_LIMIT_AUTO_ENABLE` — féach `.env.example`.
 
-**Conas a dheimhniú gur oibrigh sé**: rith d’oibreán/cron faoi dhó go gairid i ndiaidh a chéile agus deimhnigh go n-éiríonn leis an dá rith. Roimh an gceartúchán, is gnách go gcaitheann an dara rith `429`/`401`. Tar éis an cheartúcháin, baintear atriail as teipeanna (más ann dóibh) go trédhearcach agus cuirtear an glao i gcrích. Is féidir leat `curl /monitoring/health` a úsáid freisin agus súil a choinneáil ar an réimse `rateLimitedUntil` ar na naisc soláthraí agus ar `circuitBreakers.providerBreakers[].state` do na soláthraithe lena mbaineann — is é ceann de `CLOSED`, `DEGRADED`, `OPEN`, nó `HALF_OPEN` an staid (féach `src/shared/utils/circuitBreaker.ts`), agus athróidh soláthraí a leanann de bheith ag teip ó `CLOSED → DEGRADED → OPEN` sula gceadaíonn an fhuinneog athshocraithe do thóraíocht dul tríd (`HALF_OPEN`).
+**Conas a fhíorú gur oibrigh sé**: rith do ghníomhaire/cron faoi dhó as a chéile go tapa agus deimhnigh go n-éiríonn leis an dá rith. Roimh an réiteach, is gnách go gcaitheann an dara rith `429`/`401`. Tar éis an réitigh, baintear atriail thrédhearcach as teipeanna (más ann dóibh) agus cuirtear an glao i gcrích. Is féidir leat freisin `curl /monitoring/health` a rith agus faire ar an réimse `rateLimitedUntil` ar naisc na soláthraithe agus ar `circuitBreakers.providerBreakers[].state` do na soláthraithe lena mbaineann — beidh ceann de `CLOSED`, `DEGRADED`, `OPEN`, nó `HALF_OPEN` mar staid aige (féach `src/shared/utils/circuitBreaker.ts`), agus athróidh soláthraí a leanann air ag teip ó `CLOSED → DEGRADED → OPEN` sula ligeann an tréimhse athshocraithe do thaiscéalaí dul tríd (`HALF_OPEN`).
 
-**Má fheiceann tú 429 fós**: tá a _chuóta_ ídithe i ndáiríre ag an gcuntas gníomhach don soláthraí sin (ní hé an ráta amháin atá i gceist). Cuir dara cuntas leis don soláthraí céanna i ndeais OmniRoute → Soláthraithe → Cuntais, nó cuir soláthraí saor in aisce eile san áireamh (m.sh. `routeway`, `auggie`). Ní chuidíonn an rothlú ach le ráta/400/401 sealadach; má tá an cuóta ídithe go hiomlán, teastaíonn an dara dintiúr nó soláthraí eile.
+**Má fheiceann tú 429 fós**: tá a _chuóta_ ídithe i ndáiríre ag an gcuntas gníomhach don soláthraí sin (ní ráta amháin). Cuir an dara cuntas leis don soláthraí céanna i ndeais OmniRoute → Soláthraithe → Cuntais, nó cuir soláthraí eile saor in aisce leis an meascán (m.sh. `routeway`, `auggie`). Ní chuidíonn rothlú ach le ráta/400/401 sealadach; teastaíonn an dara dintiúr nó soláthraí eile i gcás ídiú crua cuóta.
 
-**Má fheiceann tú 403 ar shamhlacha amhairc (`auto/vision`, `bazaarlink/*`)**: níl plean íoctha lena n-áirítear fís ag an gcuntas nasctha, nó níl dóthain ceadanna ag an eochair API. Deimhnigh i ndeais an tsoláthraí go n-áirítear fís/ilmhódúlacht i scóip na heochrach, nó nasc cuntas ar shraith íoctha agus coinnigh é mar sprioc na físe.
+**Má fheiceann tú 403 ar shamhlacha amhairc (`auto/vision`, `bazaarlink/*`)**: níl plean íoctha a chuimsíonn fís ag an gcuntas nasctha, nó níl dóthain ceadanna ag an eochair API. Deimhnigh i ndeais an tsoláthraí go gcuimsíonn scóip na heochrach fís/ilmhódúlacht, nó nasc cuntas sraithe íoctha agus coinnigh é mar sprioc na físe.
 
 ---
 
@@ -546,40 +546,40 @@ Má théann soláthraí isteach sa staid OPEN arís agus arís eile:
 
 ## Socruithe Athléimneachta
 
-### Gan teorannú ráta uathoibríoch a bheith á ghníomhachtú
+### Gan teorannú ráta uathoibríoch á spreagadh
 
-- Ní bhaineann teorannú ráta uathoibríoch ach le soláthraithe eochrach API (ní bhaineann sé le OAuth/síntiús)
-- Deimhnigh go bhfuil teorannú ráta uathoibríoch cumasaithe faoi **Socruithe → Athléimneacht → Próifílí Soláthraithe**
-- Seiceáil an bhfilleann an soláthraí cóid stádais `429` nó ceanntásca `Retry-After`
+- Ní bhaineann teorannú ráta uathoibríoch ach le soláthraithe eochracha API (ní bhaineann sé le OAuth/síntiús)
+- Deimhnigh go bhfuil teorannú ráta uathoibríoch cumasaithe faoi **Settings → Resilience → Provider Profiles**
+- Seiceáil an dtugann an soláthraí cóid stádais `429` nó ceanntásca `Retry-After` ar ais
 
-### Mionchoigeartú ar chúlú easpónantúil
+### Cúlú easpónantúil a mhionchoigeartú
 
 Tacaíonn próifílí soláthraithe leis na socruithe seo:
 
-- **Bonnmhoill** — An tréimhse feithimh tosaigh tar éis na chéad teipe (réamhshocrú: 1s)
-- **Uasmhoill** — Uasteorainn na tréimhse feithimh (réamhshocrú: 30s)
+- **Bunmhoill** — An t-am feithimh tosaigh tar éis na chéad teipe (réamhshocrú: 1s)
+- **Uasmhoill** — Uasteorainn an ama feithimh (réamhshocrú: 30s)
 - **Iolraitheoir** — An méid a mhéadaítear an mhoill le gach teip chomhleanúnach (réamhshocrú: 2x)
 
-### Frith-thréad toirní
+### Frith-thréadán toirní
 
-Nuair a dhéanann go leor iarratas comhthráthach teagmháil le soláthraí atá faoi theorainn ráta, úsáideann OmniRoute mutex + teorannú ráta uathoibríoch chun iarratais a shrathú agus teipeanna cascáideacha a chosc. Déantar é seo go huathoibríoch i gcás soláthraithe eochrach API.
+Nuair a sheolann go leor iarrataí comhthráthacha chuig soláthraí atá faoi theorainn ráta, úsáideann OmniRoute mutex + teorannú ráta uathoibríoch chun iarrataí a shrathú agus teipeanna cascáideacha a chosc. Tarlaíonn sé seo go huathoibríoch do sholáthraithe eochracha API.
 
-### Teipeann ar iarratais chomhrá le 503 / chat_admission_busy
+### Teipeann ar iarrataí comhrá le 503 / chat_admission_busy
 
 **Comharthaí:**
 
-- Filleann críochphointe na gcomhlánuithe comhrá freagra `503` ar féidir triail eile a bhaint as agus is é
+- Tugann críochphointe na gcríochnuithe comhrá freagra `503` ar féidir triail eile a bhaint as agus arb é
   `chat_admission_busy` a chód earráide.
-- Áirítear `Retry-After` sa fhreagra. Ó #12135 i leith, díorthaítear an luach ón áitíocht bhreathnaithe —
-  an luach is mó idir an fhuinneog `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ar fhan an t-iarratas léi cheana
-  agus an tréimhse a raibh na léasanna tromualaithe reatha á sealbhú — slánaithe suas go soicindí iomlána
-  agus teorannaithe ag 60. Ar gheata díomhaoin, coinnítear na híosluachanna stairiúla: 2 shoicind ar an
-  gconair bheartbhunaithe, 1 soicind ar an gconair struchtúrbhunaithe (ina n-áirítear freisin
-  `reason: "structure_limit"`).
-- Féadfaidh sé seo tarlú agus comhrá tromualaithe eile nó freagra sruthaithe fadtréimhseach fós
+- Áirítear `Retry-After` sa fhreagra. Ó #12135 i leith, díorthaítear an luach ón áitíocht a breathnaíodh
+  — an ceann is mó d'fhuinneog `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` a raibh an t-iarratas ag
+  fanacht cheana agus an t-am a raibh na léasanna trom-ualaigh reatha á gcoinneáil — arna shlánú suas go
+  soicindí iomlána agus faoi uasteorainn 60. Ar gheata díomhaoin, coinníonn sé na híosluachanna stairiúla: 2 shoicind ar an
+  gcosán bunaithe ar bhearta, 1 soicind ar an gcosán bunaithe ar struchtúr (ina n-áirítear
+  `reason: "structure_limit"` freisin).
+- D'fhéadfadh sé seo tarlú fad atá comhrá trom-ualaigh eile nó freagra sruthaithe fadtréimhseach fós
   ar siúl.
 
-Seo é corp an fhreagra bheartbhunaithe:
+Seo é corp an fhreagra atá bunaithe ar bhearta:
 
 ```json
 {
@@ -591,52 +591,52 @@ Seo é corp an fhreagra bheartbhunaithe:
 }
 ```
 
-Úsáideann an freagra struchtúrbhunaithe an cineál agus an cód céanna, leis an teachtaireacht
+Úsáideann an freagra atá bunaithe ar struchtúr an cineál agus an cód céanna, leis an teachtaireacht
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 agus `reason: "structure_limit"`.
 Ag na tairseacha réamhshocraithe, meastar iarratas a bheith trom ó thaobh struchtúir de nuair a bhíonn `200` teachtaireacht ar a laghad ann,
-`64` uirlis ar a laghad, nó `32,000` comhartha measta ar a laghad, nó nuair a ídíonn meastachán struchtúir teoranta
-a theorainneacha de `10,000` nód ar tugadh cuairt orthu nó doimhneacht `12`.
+`64` uirlis ar a laghad, nó `32,000` comhartha measta ar a laghad, nó nuair a
+ídíonn meastachán teoranta struchtúir a theorainneacha de `10,000` nód ar tugadh cuairt orthu nó doimhneacht `12`.
 
-**Cúis:** Is díluchtú ualaigh d'aon ghnó é seo laistigh de OmniRoute, ní teip ó sholáthraí réamhtheachtach.
-Úsáideann gach próiseas garda áitiúil don phróiseas chun acmhainn theoranta tromualaigh a chur in áirithe sula gcoinnítear
-agus sula bparsáiltear corp mór iarratais. Coinnítear léas tromualaithe ar feadh shaolré freagra SSE.
+**Cúis:** Is laghdú ualaigh d'aon ghnó laistigh de OmniRoute é seo, ní teip soláthraí réamhtheachtach.
+Úsáideann gach próiseas cosaint áitiúil don phróiseas chun acmhainn theoranta trom-ualaigh a chur in áirithe sula gcoinnítear
+agus sula bparsáiltear corp mór iarratais. Coinnítear léas trom-ualaigh ar feadh shaolré freagra SSE.
 
-**#503-fanout:** roimh an socrú seo, chuir an garda teorainn leis an gcomhthráthacht ag COMHAIREAMH seasta iarratas
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, réamhshocrú `1`) beag beann ar chuimhne an óstaigh, agus mar sin thit
-scaip-amach gníomhairí códúcháin (ilfho-ghníomhairí/CLIanna, coirp níos mó ná 256 KB go rialta) go dtí
-comhthráthacht éifeachtach de ~1 agus fuarthas 503anna faoi ghnáthualach amach is amach. Déanann an garda
-féinchoigeartú anois: rialaítear é le buiséad BEART ionghabhála uathdhíorthaithe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`)
-a mhéadaítear de réir fhíoruasteorainn chuimhne an phróisis, agus téann sé i gcomhairle freisin le comhartha beo
-brú acmhainní — mar sin ní dhíluchtaíonn sé ach amháin nuair atá an t-óstach faoi fhíorbhrú cuimhne, seachas
-díreach toisc gur tháinig níos mó ná iarratas trom amháin ag an am céanna. Urramaítear an tseanteorainn chomhairimh
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) fós, ach amháin má shocraíonn tú go sainráite í.
+**Scaipeadh #503:** roimh an gceartúchán seo, chuir an chosaint teorainn leis an gcomhthráthacht ag LÍON seasta iarratas
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, réamhshocrú `1`) beag beann ar chuimhne an óstríomhaire, agus mar sin
+thit scaipeadh ó ghníomhairí códúcháin (fo-ghníomhairí/CLIanna iolracha, coirp > 256 KB go rialta) go comhthráthacht éifeachtach
+de ~1 agus thug sé 503 faoi ualach iomlán normálta. Déanann an chosaint í féin a mhionchoigeartú anois: rialaítear í
+le buiséad ionghabhála BEART atá díorthaithe go huathoibríoch (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) agus atá tomhaiste de réir
+fhíoruasteorainn chuimhne an phróisis, agus téann sí i gcomhairle freisin le comhartha beo faoi bhrú acmhainní — mar sin
+ní laghdaíonn sí an t-ualach ach amháin nuair atá an t-óstach faoi fhíorbhrú cuimhne, seachas toisc gur tháinig níos mó ná
+iarratas trom amháin ag an am céanna. Tugtar urraim fós don tseanteorainn chomhairimh (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`),
+ach amháin má shocraíonn tú go sainráite í.
 
-Nuair atá an acmhainn gnóthach, fanann iarratas tromualaithe ar feadh suas le
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (réamhshocrú `2000`, díchumasaíonn `0` an fanacht) ar dtús go dtí go scaoiltear sliotán
-sula dtugtar an freagra `503` ar féidir triail eile a bhaint as. Tá an fanacht teoranta ann ionas go srathaíonn cliaint ar nós gníomhairí
-(OpenCode, Claude Code, Cursor), a scaipeann fo-iarratais throma go comhthráthach, an borradh
-seachas a mbuiséad iomlán atrialacha a ídiú ar dhiúltuithe láithreacha agus teip leath bealaigh tríd an tasc.
-Taispeántar áitíocht reatha na léasanna tromualaithe, an buiséad beart réitithe, agus déine bheo an bhrú
+Nuair atá an acmhainn gnóthach, fanann iarratas trom-ualaigh ar dtús ar feadh suas le
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (is é `RATE_LIMIT_MAX_WAIT_MS` an réamhshocrú; díchumasaíonn `0` an fanacht) go dtí go scaoiltear sliotán
+sula dtugtar an freagra `503` ar féidir triail eile a bhaint as. Tá an fanacht teoranta ann ionas go ndéanfaidh cliaint ar nós gníomhairí
+(OpenCode, Claude Code, Cursor), a scaipeann fo-iarratais throma go comhthráthach, an racht a shrathú
+in ionad a mbuiséad iomlán atrialacha a ídiú ar dhiúltuithe láithreacha agus teip i lár taisc.
+Taispeántar áitíocht reatha léasanna trom-ualaigh, an buiséad beart réitithe, agus déine an bhrú bheo
 ag `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — seiceáil iad seo sula n-athraíonn tú aon athróg timpeallachta.
-Ní rialaíonn Socruithe → Athléimneacht → Ciú Iarratas → Iarratais Chomhthráthacha é seo; rialaíonn an socrú sin
-meicníocht ar leith do chiú iarratas an tsoláthraí.
+Ní rialaíonn Settings → Resilience → Request Queue → Concurrent Requests é seo; rialaíonn an socrú sin
+meicníocht scuaine iarratas soláthraí ar leith.
 
-**Réiteach:**
+**Ceartúchán:**
 
-1. Bain triail eile as ar dtús. Ba cheart do chliaint `Retry-After` a urramú agus cúlú a úsáid seachas
+1. Bain triail eile as ar dtús. Ba cheart do chliaint cloí le `Retry-After` agus cúlú a úsáid seachas
    an t-iarratas a athdhéanamh láithreach.
-2. Seiceáil `/api/monitoring/health` → `chatAdmission` sula ndéanann tú aon mhionchoigeartú. Ciallaíonn `countCapEnabled:
-false` agus `maxInflightBytes` flaithiúil go bhfuil an buiséad uathdhíorthaithe ag déanamh a
-   chuid oibre cheana féin; ciallaíonn `pressureSeverity` de `high`/`critical` go bhfuil an t-óstach fíoríseal ar chuimhne —
-   ní féidir é sin a réiteach le hathróg timpeallachta iontrála; teastaíonn tuilleadh RAM nó ualach oibre níos lú.
+2. Seiceáil `/api/monitoring/health` → `chatAdmission` sula mionchoigeartaíonn tú aon rud. Má fheiceann tú `countCapEnabled:
+false` agus `maxInflightBytes` flaithiúil, ciallaíonn sé sin go bhfuil an buiséad uathdhíorthaithe ag déanamh a
+   chuid oibre cheana féin; má tá `pressureSeverity` de `high`/`critical` ann, tá fíorghannchuid cuimhne ar an óstach —
+   ní féidir é sin a cheartú le hathróg timpeallachta iontrála, teastaíonn tuilleadh RAM nó ualach oibre níos lú.
 3. Ach amháin má léiríonn `/api/monitoring/health` go bhfuil an buiséad uathdhíorthaithe róbheag i ndáiríre do
-   d'óstach (rud annamh — méadaítear é cheana féin ó choimeádán go miotal lom), sáraigh go díreach é le
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` seachas filleadh ar an tseanteorainn comhairimh iarratas.
+   d'óstach (rud annamh — scálaíonn sé cheana féin ó choimeádán go miotal lom), sáraigh go díreach é le
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` seachas dul ar ais chuig an tseanteorainn bunaithe ar líon na n-iarratas.
 
 Féach ar an [tagairt d'athróga timpeallachta](../reference/ENVIRONMENT.md#4-security--authentication)
-chun na socruithe údarásacha iontrála a fháil.
+le haghaidh na socruithe údarásacha iontrála.
 
 ---
 

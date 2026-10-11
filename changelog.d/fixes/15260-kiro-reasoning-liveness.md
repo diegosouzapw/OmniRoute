@@ -1,0 +1,1 @@
+- **fix(kiro):** Preserve activity from native signature-only reasoning frames so the stream content watchdog can wait for the answer without exposing signatures. Metadata-only stalls, the active-stream deadline, and client cancellation remain enforced ([#15260](https://github.com/diegosouzapw/OmniRoute/issues/15260)).

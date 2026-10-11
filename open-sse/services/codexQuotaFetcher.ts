@@ -26,6 +26,7 @@ import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./qu
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { getCodexBackendIdentityHeaders } from "../config/codexClient.ts";
+import { parseCodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
 /**
  * Stable identifiers for Codex's quota windows. These match the quota keys
@@ -443,6 +444,7 @@ function parseCodexUsageResponse(
   });
 
   const bankedResetCredits = parseBankedResetCredits(obj);
+  const paidCredits = parseCodexPaidCredits(obj.credits);
   const rateLimitReachedType = parseRateLimitReachedType(obj);
 
   return {
@@ -463,6 +465,7 @@ function parseCodexUsageResponse(
     limitReached,
     // Banked reset credits (display-only, eligibility-gated — issue #5199).
     ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
+    ...(paidCredits ? { paidCredits } : {}),
     ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
   };
 }

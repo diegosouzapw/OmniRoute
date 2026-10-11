@@ -254,6 +254,7 @@
     "log": "Näytä palvelinlokit suoraan",
     "no_recovery": "Poista automaattinen uudelleenkäynnistys käytöstä kaatumisen jälkeen (virheenkorjaustila)",
     "max_restarts": "Kaatumisen jälkeisten uudelleenkäynnistysten enimmäismäärä 30 sekunnin sisällä ennen luovuttamista (oletus: 2)",
+    "headless": "Suorita vain välityspalvelinmoottori: hallintapaneeli poistettu käytöstä (404), valinnaiset alijärjestelmät ohitetaan (asettaa OMNIROUTE_HEADLESS=1)",
     "tray": "Käynnistä ilmaisinalueella (vain työpöytäympäristössä, valinnainen)",
     "no_tray": "Poista ilmaisinalueen kuvake käytöstä",
     "ready_timeout": "Valmiustarkistuksen aikakatkaisu millisekunteina (myös OMNIROUTE_READY_TIMEOUT_MS, oletus 60000)",

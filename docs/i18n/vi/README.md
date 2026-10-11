@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Tính năng</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Nhà cung cấp</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Nhà cung cấp</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -347,29 +347,29 @@ curl http://localhost:20128/v1/chat/completions \
 
 <img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Ảnh động minh họa toàn bộ 19 chiến lược định tuyến combo — mỗi ô tương ứng với một chiến lược: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Xem bảng phía trên để biết chức năng của từng chiến lược."/>
 
-> **Combo** là một chuỗi mô hình mà OmniRoute định tuyến qua **tự động**. Nếu hết hạn mức, nhà cung cấp gặp sự cố hoặc chi phí tăng đột biến, combo có thể chuyển sang mô hình đủ điều kiện và hoạt động ổn định tiếp theo. 🛡️
+> **Combo** là một chuỗi mô hình mà OmniRoute định tuyến qua một cách **tự động**. Nếu hết hạn mức, nhà cung cấp gặp sự cố hoặc chi phí tăng đột biến, combo có thể chuyển sang mô hình đủ điều kiện và đang hoạt động tốt tiếp theo. 🛡️
 
 ### ⚡ Không cần cấu hình — chỉ cần dùng `auto`
 
-Không cần tạo combo. Đặt mô hình thành `auto` (hoặc một biến thể) và OmniRoute sẽ xây dựng một combo ảo từ các nhà cung cấp đã kết nối của bạn, được chấm điểm theo thời gian thực:
+Không cần tạo combo. Đặt mô hình của bạn thành `auto` (hoặc một biến thể) và OmniRoute sẽ xây dựng một combo ảo từ các nhà cung cấp đã kết nối, được chấm điểm theo thời gian thực:
 
 <table>
-  <tr><th align="left">ID mô hình</th><th align="left">Mục tiêu tối ưu hóa</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Mặc định cân bằng (LKGP — duy trì nhà cung cấp hoạt động tốt gần nhất)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Trọng số ưu tiên chất lượng cho việc sinh mã</td></tr>
+  <tr><th align="left">ID mô hình</th><th align="left">Tiêu chí tối ưu</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Mặc định cân bằng (LKGP — tiếp tục dùng nhà cung cấp tốt gần nhất)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Trọng số ưu tiên chất lượng để sinh mã</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Ưu tiên độ trễ thấp nhất</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Ưu tiên chi phí thấp nhất trên mỗi token</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Ưu tiên phần hạn mức / giới hạn tốc độ còn dư nhiều nhất</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Ưu tiên chất lượng + 10% thăm dò để tìm các mô hình tốt hơn</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Duy trì rõ ràng nhà cung cấp hoạt động tốt gần nhất</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Trọng số chèn lỗi để kiểm thử khả năng phục hồi (chaos engineering)</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Ưu tiên mức dư hạn mức / giới hạn tốc độ lớn nhất</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Ưu tiên chất lượng + 10% khám phá để tìm các mô hình tốt hơn</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Bám rõ ràng vào nhà cung cấp tốt gần nhất</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Phân tán song song đến một nhóm mô hình (mỗi nhà cung cấp một mô hình, mặc định là 5), trả về một câu trả lời; mỗi mô hình trong nhóm thực hiện một lệnh gọi ngược dòng, không phải chèn lỗi</td></tr>
 </table>
 
 ##
 
 ### 🔀 Hoặc tự xây dựng — 19 chiến lược định tuyến
 
-Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước của combo:
+Toàn bộ **19** chiến lược — kết hợp tùy ý cho từng bước của combo:
 
 <table>
   <tr>
@@ -400,7 +400,7 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>Cân bằng tải ngẫu nhiên theo phương pháp chọn hai mục tiêu</td>
+    <td>Cân bằng tải ngẫu nhiên theo phương pháp chọn một trong hai</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -410,17 +410,17 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>Chọn ngẫu nhiên đồng đều (loại bỏ mục trùng lặp)</td>
+    <td>Chọn ngẫu nhiên đồng đều (đã loại bỏ trùng lặp)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Chọn ngẫu nhiên mà không loại bỏ các lần lặp lại 🎲</td>
+    <td>Chọn ngẫu nhiên mà không loại bỏ các lần lặp 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Giảm thiểu chi phí $ cho mỗi yêu cầu dựa trên giá trực tiếp trong danh mục 💸</td>
+    <td>Giảm thiểu chi phí $ trên mỗi yêu cầu dựa trên giá trực tiếp trong danh mục 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -430,17 +430,17 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Ưu tiên mục tiêu có khoảng thời gian hạn mức được đặt lại sớm nhất</td>
+    <td>Ưu tiên mục tiêu có khung thời gian hạn mức được đặt lại sớm nhất</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Xếp hạng theo thời điểm đặt lại hạn mức — ưu tiên khoảng thời gian ngắn 📊</td>
+    <td>Xếp hạng theo thời điểm đặt lại hạn mức — ưu tiên các khung thời gian ngắn 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Chuyển giao ngữ cảnh giữa các mục tiêu cho những cuộc hội thoại dài 🧠</td>
+    <td>Chuyển tiếp ngữ cảnh giữa các mục tiêu cho những cuộc hội thoại dài 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -450,27 +450,27 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Gắn từng tiền tố prompt có thể tái sử dụng vào cùng một tài khoản — tối đa hóa số lần truy cập thành công vào bộ nhớ đệm prompt 🎯</td>
+    <td>Gắn cố định từng tiền tố prompt có thể tái sử dụng vào cùng một tài khoản — tối đa hóa số lần trúng bộ nhớ đệm prompt 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Đường dẫn hoạt động tốt gần nhất — gắn với nhà cung cấp thành công gần nhất, sau đó chuyển dự phòng theo các quy tắc</td>
+    <td>Đường dẫn tốt gần nhất — gắn cố định vào nhà cung cấp thành công gần nhất, sau đó dự phòng theo các quy tắc</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Chấm điểm trực tiếp dựa trên 16 yếu tố trên mọi kết nối 🤖</td>
+    <td>Chấm điểm trực tiếp theo 16 yếu tố trên mọi kết nối 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Phân phối đến một nhóm mô hình + một mô hình giám khảo tổng hợp thành một câu trả lời 🧬</td>
+    <td>Phân tán yêu cầu đến một nhóm mô hình + một mô hình đánh giá tổng hợp thành một câu trả lời 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Chuỗi các bước — đầu ra của mỗi mục tiêu được chuyển vào mục tiêu tiếp theo 🔗</td>
+    <td>Xâu chuỗi các bước — đầu ra của mỗi mục tiêu được đưa vào mục tiêu tiếp theo 🔗</td>
   </tr>
 </table>
 
@@ -480,7 +480,7 @@ Toàn bộ **19** chiến lược — kết hợp linh hoạt ở từng bước
 
 ### 🧱 Khả năng phục hồi được tích hợp sẵn (3 lớp độc lập)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Khả năng phục hồi của OmniRoute — 3 lớp tự phục hồi độc lập, đúng lớp cho đúng lỗi. Lớp 1: bộ ngắt mạch nhà cung cấp (toàn bộ nhà cung cấp): chỉ kích hoạt khi gặp 408/5xx, ngưỡng OAuth 8× / API-key 12× / cục bộ 2×, đặt lại sau 60s/30s/15s để chuyển sang thăm dò HALF-OPEN, phục hồi trì hoãn; khi ở trạng thái OPEN, tổ hợp sẽ định tuyến lại đến nhà cung cấp tiếp theo. Lớp 2: thời gian chờ kết nối (một khóa/tài khoản): cơ sở 5s với OAuth / 3s với API-key, thời gian chờ tăng theo cấp số nhân ×2 với cơ chế chống hiệu ứng đám đông, 429 tuân theo Retry-After, khi thành công sẽ xóa toàn bộ trạng thái lỗi; một khóa đang trong thời gian chờ sẽ bị bỏ qua trong khi các khóa cùng cấp vẫn tiếp tục phục vụ. Lớp 3: khóa mô hình (một mô hình): lỗi 429 theo từng mô hình, lỗi 404 cục bộ hoặc từ chối chế độ chỉ khóa mô hình đó — không bao giờ khóa toàn bộ kết nối. Các trạng thái kết thúc (bị cấm, hết hạn, cạn tín dụng) dành cho người vận hành xử lý, không phải thời gian chờ."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Khả năng phục hồi của OmniRoute — 3 lớp tự phục hồi độc lập, đúng lớp cho đúng sự cố. Lớp 1: bộ ngắt mạch nhà cung cấp (toàn bộ nhà cung cấp): chỉ kích hoạt khi gặp 408/5xx, ngưỡng OAuth 8× / API-key 12× / local 2×, đặt lại sau 60s/30s/15s sang trạng thái thăm dò HALF-OPEN, phục hồi thụ động; khi ở trạng thái OPEN, combo sẽ định tuyến lại đến nhà cung cấp tiếp theo. Lớp 2: thời gian chờ kết nối (một khóa/tài khoản): cơ sở 5s với OAuth / 3s với API-key, thời gian chờ tăng theo cấp số nhân ×2 kèm cơ chế chống hiệu ứng đám đông, 429 tuân theo Retry-After, thành công sẽ xóa toàn bộ trạng thái lỗi; một khóa đang trong thời gian chờ sẽ bị bỏ qua trong khi các khóa cùng nhóm vẫn tiếp tục phục vụ. Lớp 3: khóa mô hình (một mô hình): lỗi 429 theo từng mô hình, lỗi 404 cục bộ hoặc từ chối chế độ chỉ khóa riêng mô hình đó — không bao giờ khóa toàn bộ kết nối. Các trạng thái kết thúc (bị cấm, hết hạn, hết tín dụng) dành cho người vận hành xử lý, không phải thời gian chờ."/>
 
 <sub>📖 [Công cụ Auto-Combo](docs/routing/AUTO-COMBO.md) · [Hướng dẫn về khả năng phục hồi](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
@@ -562,29 +562,29 @@ Radar hoạt động theo cơ chế chọn tham gia và chỉ sử dụng GET. �
 
 </div>
 
-> Những điểm nổi bật gần đây từ **v3.8.20 → v3.8.50**. Toàn bộ lịch sử có trong [`CHANGELOG.md`](CHANGELOG.md).
+> Những điểm nổi bật gần đây từ **v3.8.20 → v3.8.50**. Xem toàn bộ lịch sử trong [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — ủy quyền A2A đầu vào cho đội tác nhân của bạn, các kỹ năng Conductor trên Agent Card và bảng điều khiển với tính năng trò chuyện thoại nhấn-để-nói Faro. → [Máy chủ A2A](docs/frameworks/A2A-SERVER.md)
-- **🛂 Kiểm soát tiếp nhận thích ứng & bảo vệ quá tải** — các yêu cầu trò chuyện nặng được đưa vào hàng đợi thay vì trả về lỗi 503, với lease cuộn RPM nguyên tử cho mỗi kết nối. → [Hướng dẫn về khả năng phục hồi](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Thứ tự `/v1/models` chuẩn hóa** — mỗi nhà cung cấp có một khối liền mạch được nhóm riêng (các combo được ghim lên đầu), ổn định trên mọi nguồn danh mục. → [Tài liệu tham khảo API](docs/reference/API_REFERENCE.md)
-- **🗜️ Tăng cường độ an toàn của tính năng nén** — cơ chế bảo vệ chống bung nén được bật mặc định, các gói Caveman cho DE / FR / JA + tiếng Trung (wényán), bộ lọc RTK cho Gradle & .NET. → [Nén](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Chi phí gói cố định trung thực** — các nhà cung cấp theo gói đăng ký / gói lập trình hiển thị chi phí là **$0** trong phân tích chi phí; ngân sách, hạn ngạch & định tuyến vẫn tiếp tục ước tính. → [Tài liệu tham khảo API](docs/reference/API_REFERENCE.md)
-- **⚖️ Định tuyến Quota-Share** — phân chia công bằng hạn ngạch của một tài khoản dùng chung giữa các khóa được gộp, đồng thời duy trì hiệu quả sử dụng bằng cách cho mượn các phần hạn ngạch đang nhàn rỗi. → [Hướng dẫn về khả năng phục hồi](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Thiết lập CLI/tác nhân bằng một lệnh** — 13 lệnh `setup-*` đã đăng ký; `omniroute run` khởi chạy 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` hỗ trợ 10 đích với bộ chọn nhà cung cấp+mô hình tương tác và các mục yêu thích theo từng ngữ cảnh. → [Tích hợp CLI](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Chế độ từ xa** — điều khiển một OmniRoute từ xa bằng các token có phạm vi (`connect` / `contexts` / `tokens`) + trình trợ giúp OAuth `antigravity` dành cho cài đặt trên VPS. → [Chế độ từ xa](docs/guides/REMOTE-MODE.md)
-- **🧭 Tự động định tuyến thông minh hơn** — các combo `auto/<category>:<tier>`, **Fusion** (hội đồng mô hình + giám khảo), định tuyến nhận biết tác vụ, ghi đè mô hình / chế độ / ngân sách USD theo từng yêu cầu. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Nén có thể mở rộng bằng mô-đun** — 12 engine có thể kết hợp + Compression Studios: LLMLingua-2, Ultra hai tầng, omniglyph, cổng kiểm tra độ trung thực theo từng bước, GCF v3.2, trình chỉnh sửa kéo-thả để sắp xếp lại. → [Nén](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Giải mã MITM trong suốt (TPROXY)** — thu nhận lưu lượng từ các CLI bỏ qua biến môi trường proxy, với CA theo từng SNI + trình cài đặt kho tin cậy. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Đo lường chi phí ở mọi nơi** — các header chi phí/mức sử dụng `X-OmniRoute-*` trên mọi endpoint, header khoản tiết kiệm do cache-HIT, hạn ngạch chi tiêu USD theo từng khóa. → [Tài liệu tham khảo API](docs/reference/API_REFERENCE.md)
-- **🧠 Bộ nhớ do bạn kiểm soát** — tắt theo mặc định, tùy chọn bật lượng tử hóa vector int8 + cơ chế suy giảm theo kiểu, `x-omniroute-no-memory` theo từng yêu cầu. → [Bộ nhớ](docs/frameworks/MEMORY.md)
-- **🛡️ Bảo mật** — cơ chế bảo vệ chống chèn prompt trên mọi tuyến LLM (bộ kiểm thử red-team), rào chắn che thông tin xác thực có thể tùy chọn bật (ẩn các khóa API/bí mật bị rò rỉ theo cả hai chiều), tìm kiếm web DuckDuckGo miễn phí như phương án cuối cùng và cổng đăng nhập OIDC tùy chọn cho bảng điều khiển (đăng nhập bằng mật khẩu luôn khả dụng). → [Rào chắn](docs/security/GUARDRAILS.md)
-- **🖼️ Các endpoint mới** — `/v1/ocr` (Mistral OCR) và `/v1/audio/translations` (kiểu Whisper) hoàn thiện phạm vi tính năng đa phương tiện. → [Tài liệu tham khảo API](docs/reference/API_REFERENCE.md)
-- **🎨 Tạo hình ảnh / video / âm thanh** — một API duy nhất cho đa phương tiện: video xAI Grok Imagine & Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind và các nhà cung cấp giọng nói như ElevenLabs. → [Tài liệu tham khảo API](docs/reference/API_REFERENCE.md)
-- **🌍 Triển khai & vận hành** — `basePath` cho reverse proxy, tự động phát hiện ngôn ngữ trình duyệt, theo dõi thiết bị theo từng khóa, thiết lập tin cậy MITM không cần quyền root, bản địa hóa zh-TW. → [Môi trường](docs/reference/ENVIRONMENT.md)
-- **🤝 Thêm nhiều nhà cung cấp & tác nhân** — tác nhân đám mây (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) với trình duyệt + đăng nhập OAuth, thẻ Ollama hạng nhất, Claude Opus 5 & Sonnet 5, quan hệ đối tác chính thức với Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… cùng **danh mục 352 nhà cung cấp** được làm mới. → [Nhà cung cấp](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Tính minh bạch trong định tuyến** — mọi phản hồi đều chứa header `X-OmniRoute-Decision` nêu rõ chiến lược/nhà cung cấp/độ trễ đã phục vụ phản hồi đó, một chiến lược combo `cache-optimized` mới + hệ số `cacheAffinity` của Auto-Combo định tuyến các yêu cầu lặp lại trở về kết nối đang giữ tiền tố trong bộ nhớ đệm, và endpoint chỉ đọc `/v1/auto-combo/{channel}/candidates` cho biết nhóm ứng viên trực tiếp của một kênh `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Hiệu năng cục bộ & hạ tầng** — Redis cục bộ bằng một cú nhấp, các trình triển khai relay cho Cloudflare Workers / Deno Deploy, Bifrost & Mux dưới dạng dịch vụ nhúng được giám sát. → [Dịch vụ nhúng](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Ngoài ra còn có** — framework plugin + marketplace, các framework kỹ năng Omni/Agent/GitHub, tích hợp kho Obsidian (22 công cụ MCP), API Batch & Files tương thích OpenAI, bộ nhớ đệm phản hồi ngữ nghĩa, trò chơi hóa với bảng xếp hạng, khám phá tác nhân ACP (15 tác nhân tích hợp sẵn), xuất nhật ký theo lịch sang BigQuery, chèn lỗi `auto/chaos`, cầu nối bot Telegram, trình quản lý phiên bản trong ứng dụng và bảng xếp hạng nhà cung cấp miễn phí LMArena-ELO. → [Tài liệu](docs/README.md)
+- **🎛️ OmniConductor** — ủy quyền A2A đầu vào cho đội tác nhân của bạn, các kỹ năng Conductor trên Agent Card và bảng điều khiển có tính năng trò chuyện thoại nhấn-để-nói Faro. → [Máy chủ A2A](docs/frameworks/A2A-SERVER.md)
+- **🛂 Kiểm soát tiếp nhận thích ứng & bảo vệ quá tải** — các yêu cầu trò chuyện nặng được đưa vào hàng đợi thay vì trả về lỗi 503, với các lease RPM cuốn chiếu nguyên tử cho từng kết nối. → [Hướng dẫn khả năng phục hồi](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Thứ tự `/v1/models` chuẩn hóa** — mỗi nhà cung cấp có một khối liền mạch được nhóm theo nhà cung cấp (các combo được ghim trước), ổn định trên mọi nguồn danh mục. → [Tham chiếu API](docs/reference/API_REFERENCE.md)
+- **🗜️ Tăng cường khả năng nén** — trình bảo vệ giải nén được bật mặc định, các gói Caveman cho DE / FR / JA + tiếng Trung (wényán), bộ lọc RTK cho Gradle & .NET. → [Nén](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Chi phí gói cố định minh bạch** — các nhà cung cấp theo gói đăng ký / gói lập trình hiển thị chi phí **$0** trong phân tích chi phí; ngân sách, hạn ngạch & định tuyến vẫn tiếp tục ước tính. → [Tham chiếu API](docs/reference/API_REFERENCE.md)
+- **⚖️ Định tuyến Quota-Share** — phân chia công bằng hạn ngạch của một tài khoản dùng chung giữa các khóa trong nhóm, đồng thời duy trì hiệu suất bằng cách cho mượn các phần hạn ngạch nhàn rỗi. → [Hướng dẫn khả năng phục hồi](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Thiết lập CLI/tác nhân bằng một lệnh** — 13 lệnh `setup-*` đã đăng ký; `omniroute run` khởi chạy 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` hỗ trợ 10 đích với trình chọn nhà cung cấp+mô hình tương tác và các mục yêu thích theo từng ngữ cảnh. → [Tích hợp CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Chế độ từ xa** — điều khiển OmniRoute từ xa bằng token có phạm vi (`connect` / `contexts` / `tokens`) + trình trợ giúp OAuth `antigravity` dành cho các bản cài đặt VPS. → [Chế độ từ xa](docs/guides/REMOTE-MODE.md)
+- **🧭 Tự động định tuyến thông minh hơn** — các combo `auto/<category>:<tier>`, **Fusion** (hội đồng mô hình + bộ đánh giá), định tuyến nhận biết tác vụ, ghi đè mô hình / chế độ / ngân sách USD theo từng yêu cầu. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Nén có thể mở rộng** — 12 engine có thể kết hợp + Compression Studios: LLMLingua-2, Ultra hai tầng, omniglyph, cổng kiểm tra độ trung thực theo từng bước, GCF v3.2, trình chỉnh sửa kéo-thả để sắp xếp lại. → [Nén](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Giải mã MITM minh bạch (TPROXY)** — thu thập lưu lượng từ các CLI bỏ qua biến môi trường proxy, với CA theo từng SNI + trình cài đặt kho tin cậy. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Dữ liệu đo lường chi phí ở mọi nơi** — các header chi phí/mức sử dụng `X-OmniRoute-*` trên mọi endpoint, header khoản tiết kiệm từ cache-HIT, hạn ngạch chi tiêu USD theo từng khóa. → [Tham chiếu API](docs/reference/API_REFERENCE.md)
+- **🧠 Bộ nhớ do bạn kiểm soát** — mặc định tắt, tùy chọn sử dụng lượng tử hóa vector int8 + suy giảm có kiểu, `x-omniroute-no-memory` theo từng yêu cầu. → [Bộ nhớ](docs/frameworks/MEMORY.md)
+- **🛡️ Bảo mật** — trình bảo vệ chống chèn prompt trên mọi tuyến LLM (bộ kiểm thử red-team), cơ chế bảo vệ che thông tin xác thực tùy chọn (ẩn các API key/bí mật bị rò rỉ theo cả hai chiều), tìm kiếm web dự phòng cuối cùng miễn phí bằng DuckDuckGo và cổng đăng nhập OIDC tùy chọn cho bảng điều khiển (đăng nhập bằng mật khẩu luôn khả dụng). → [Cơ chế bảo vệ](docs/security/GUARDRAILS.md)
+- **🖼️ Endpoint mới** — `/v1/ocr` (Mistral OCR) và `/v1/audio/translations` (kiểu Whisper) hoàn thiện phạm vi xử lý nội dung đa phương tiện. → [Tham chiếu API](docs/reference/API_REFERENCE.md)
+- **🎨 Tạo hình ảnh / video / âm thanh** — một API duy nhất cho nội dung đa phương tiện: video xAI Grok Imagine & Novita AI, ComfyUI, Magnific, Adobe Firefly, Segmind và các nhà cung cấp giọng nói như ElevenLabs. → [Tham chiếu API](docs/reference/API_REFERENCE.md)
+- **🌍 Triển khai & vận hành** — `basePath` cho reverse proxy, tự động phát hiện ngôn ngữ trình duyệt, theo dõi thiết bị theo từng khóa, độ tin cậy MITM không cần quyền root, bản địa hóa zh-TW. → [Môi trường](docs/reference/ENVIRONMENT.md)
+- **🤝 Thêm nhiều nhà cung cấp & tác nhân** — các tác nhân đám mây (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) với trình duyệt + đăng nhập OAuth, thẻ Ollama hạng nhất, Claude Opus 5 & Sonnet 5, quan hệ đối tác chính thức với Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… và **danh mục 352 nhà cung cấp** được làm mới. → [Nhà cung cấp](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Tính minh bạch của định tuyến** — mọi phản hồi đều có header `X-OmniRoute-Decision` cho biết chiến lược/nhà cung cấp/độ trễ đã phục vụ phản hồi đó; một chiến lược combo `cache-optimized` mới + hệ số `cacheAffinity` của Auto-Combo định tuyến các yêu cầu lặp lại trở về kết nối đang giữ tiền tố được lưu trong bộ nhớ đệm; và endpoint chỉ đọc `/v1/auto-combo/{channel}/candidates` hiển thị nhóm ứng viên trực tiếp của một kênh `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Hiệu năng cục bộ & hạ tầng** — Redis cục bộ chỉ với một cú nhấp chuột, các trình triển khai relay cho Cloudflare Workers / Deno Deploy, Bifrost & Mux dưới dạng các dịch vụ nhúng được giám sát. → [Dịch vụ nhúng](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Cũng được tích hợp sẵn** — framework plugin + marketplace, các framework kỹ năng Omni/Agent/GitHub, tích hợp kho Obsidian (22 công cụ MCP), API Batch & Files tương thích OpenAI, bộ nhớ đệm phản hồi ngữ nghĩa, trò chơi hóa với bảng xếp hạng, khám phá tác nhân ACP (15 tác nhân tích hợp sẵn), xuất nhật ký theo lịch sang BigQuery, phân luồng song song đến nhiều mô hình bằng `auto/chaos`, cầu nối bot Telegram, trình quản lý phiên bản trong ứng dụng và bảng xếp hạng nhà cung cấp miễn phí LMArena-ELO. → [Tài liệu](docs/README.md)
 
 <br/>
 
@@ -665,7 +665,7 @@ lưu khóa bí mật vào lịch sử shell. → [Tích hợp CLI](docs/guides/C
 
 <div align="center">
 
-## 🌐 357 Nhà cung cấp AI — 152 nhà cung cấp miễn phí được đánh dấu trong danh mục
+## 🌐 372 Nhà cung cấp AI — 154 nhà cung cấp miễn phí được đánh dấu trong danh mục
 
 </div>
 
@@ -1265,15 +1265,15 @@ Số liệu chuẩn vào 2026-08-24: **1.029 video duy nhất** · **11.132.922 
   <tr><td nowrap><b>Môi trường chạy</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Ngôn ngữ</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> trên toàn bộ <code>src/</code> và <code>open-sse/</code> (không có <code>any</code> trong phần lõi kể từ v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, ghi nhật ký WAL) + LowDB (JSON kế thừa) — 122 mô-đun miền nghiệp vụ, 190 bản di chuyển</td></tr>
-  <tr><td nowrap><b>Bộ nhớ</b></td><td>Tìm kiếm toàn văn SQLite FTS5 + vector nhúng lượng tử hóa int8, suy giảm có kiểu</td></tr>
+  <tr><td nowrap><b>Cơ sở dữ liệu</b></td><td>better-sqlite3 (SQLite, ghi nhật ký WAL) + LowDB (JSON cũ) — 137 mô-đun miền, 202 bản di chuyển</td></tr>
+  <tr><td nowrap><b>Bộ nhớ</b></td><td>Tìm kiếm toàn văn SQLite FTS5 + vector embedding lượng tử hóa int8, cơ chế suy giảm có kiểu</td></tr>
   <tr><td nowrap><b>Lược đồ</b></td><td>Zod 4 — xác thực đầu vào/đầu ra của công cụ MCP + hợp đồng API</td></tr>
   <tr><td nowrap><b>Giao thức</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Truyền phát</b></td><td>Server-Sent Events (SSE) + cầu nối WebSocket (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Nén</b></td><td>Quy trình 12 công cụ — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Xác thực &amp; bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + khóa API + xác thực MCP theo phạm vi · AES-256-GCM cho dữ liệu lưu trữ · DOMPurify</td></tr>
+  <tr><td nowrap><b>Xác thực &amp; bảo mật</b></td><td>OAuth 2.0 (PKCE) + JWT + khóa API + xác thực theo phạm vi MCP · AES-256-GCM khi lưu trữ · DOMPurify</td></tr>
   <tr><td nowrap><b>Ẩn danh</b></td><td>wreq-js — giả lập dấu vân tay TLS JA3 / JA4, proxy 3 cấp</td></tr>
-  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, thời gian chờ lũy thừa, chống hiệu ứng đám đông, tổ hợp tự phục hồi tự động</td></tr>
+  <tr><td nowrap><b>Khả năng phục hồi</b></td><td>Bộ ngắt mạch, backoff theo cấp số nhân, chống thundering herd, cơ chế tự phục hồi tổ hợp tự động</td></tr>
   <tr><td nowrap><b>Ghi nhật ký</b></td><td>pino — nhật ký JSON có cấu trúc kèm ngữ cảnh yêu cầu</td></tr>
   <tr><td nowrap><b>Kiểm thử</b></td><td>Trình chạy kiểm thử Node.js + Vitest — <b>hơn 39.000 khai báo kiểm thử tĩnh</b> trên hơn 5.100 tệp kiểm thử được theo dõi (đơn vị, tích hợp, E2E, bảo mật, hệ sinh thái)</td></tr>
   <tr><td nowrap><b>Nền tảng</b></td><td>Máy tính để bàn (Electron) · Android (Termux) · PWA (mọi trình duyệt)</td></tr>
@@ -1729,7 +1729,7 @@ Giấy phép MIT - xem [LICENSE](LICENSE) để biết chi tiết.
 
 **[⬆ Quay lại đầu trang](#-omniroute)** · Được xây dựng với ❤️ dành cho cộng đồng AI mã nguồn mở.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Giấy phép MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Giấy phép MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions được bật để cộng đồng hỏi đáp -->

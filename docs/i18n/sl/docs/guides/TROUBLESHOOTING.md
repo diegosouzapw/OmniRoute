@@ -39,31 +39,31 @@ Pogoste težave in rešitve za OmniRoute.
 
 ### Omejevanje hitrosti pri brezplačnih ponudnikih (429 / 400 / 401)
 
-**Simptom**: Pri uporabi `model: "auto"` z brezplačnimi ponudniki oziroma ponudniki brez preverjanja pristnosti (opencode, auggie itd.) namesto odgovorov občasno prejmete `HTTP 429`, `400` ali `401`. Zahteve uspejo, če isti poziv nekaj trenutkov pozneje pošljete znova, vendar se avtomatizacija (opravila cron, agenti, skripti) prekine že ob prvi napaki.
+**Simptom**: Pri uporabi `model: "auto"` z brezplačnimi ponudniki oziroma ponudniki brez preverjanja pristnosti (opencode, auggie itd.) namesto odgovorov občasno prejmete `HTTP 429`, `400` ali `401`. Zahteve uspejo, če isti poziv ponovite nekaj trenutkov pozneje, vendar se avtomatizacija (opravila cron, agenti, skripti) prekine že ob prvi napaki.
 
-**Osnovni vzrok**: Seštevajo se trije neodvisni načini odpovedi:
+**Glavni vzrok**: Hkrati se pojavljajo trije neodvisni načini odpovedi:
 
-1. **Ponudnikova omejitev hitrosti (`429`)**: Brezplačne ravni lahko uveljavljajo kvoto za posamezno časovno okno. Sunek vzporednih klicev jo izčrpa, zato je naslednja zahteva zavrnjena, dokler se časovno okno ne ponastavi.
-2. **Nedelujoč model v neposrednem posredovanju (`400`/`401`)**: Nabori `auto/*` lahko vključujejo modele za neposredno posredovanje iz `opencode`, ki so registrirani v katalogu, vendar nimajo veljavnih poverilnic (npr. `oc/north-mini-code-free` → `401`). Samodejni usmerjevalnik poskusi enega od njih in ne uspe, napaka pa se razširi, še preden se sproži preklop.
-3. **Ojačanje zaradi sočasnosti (`429` pod obremenitvijo)**: Ko več sej agentov ali opravil cron hkrati dostopa do `auto`, skupna hitrost zahtev preseže obremenitev, ki jo brezplačni ponudniki dopuščajo, zato so legitimni klici označeni kot zloraba.
+1. **Ponudnikova omejitev hitrosti (`429`)**: Brezplačne ravni lahko uveljavljajo kvoto za posamezno časovno okno. Naval vzporednih klicev jo izčrpa, zato je naslednja zahteva zavrnjena, dokler se časovno okno ne ponastavi.
+2. **Nedelujoč model pri neposrednem posredovanju (`400`/`401`)**: Nabori `auto/*` lahko vključujejo modele ponudnika `opencode` z neposrednim posredovanjem, ki so registrirani v katalogu, vendar nimajo veljavnih poverilnic (npr. `oc/north-mini-code-free` → `401`). Samodejni usmerjevalnik poskusi uporabiti enega od njih, ta odpove, napaka pa se razširi, preden se sproži nadomestna možnost.
+3. **Ojačanje zaradi sočasnosti (`429` pod obremenitvijo)**: Ko več sej agentov ali opravil cron hkrati dostopa do `auto`, skupna hitrost zahtev preseže raven, ki jo brezplačni ponudniki še dopuščajo, zato so legitimni klici označeni kot zlonamerni.
 
-**Preverjen popravek (po poročilih skupnosti, 2026-08-10)**: prilagodite tri spremenljivke okolja, da bodo rotacija, sočasnost in preklop prestregli nestabilnost brezplačne ravni, namesto da bi se proces zaradi nje prekinil:
+**Preverjen popravek (po poročilih skupnosti, 2026-08-10)**: prilagodite tri okoljske spremenljivke, da bodo rotacija, sočasnost in nadomestne možnosti obvladale nestanovitnost brezplačne ravni, namesto da bi zaradi nje proces odpovedal:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # ob 400/401 preklopi na drug model/ponudnika (preskoči nedelujoče modele za neposredno posredovanje)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # izrecna zgornja meja sprejema zahtev z veliko obremenitvijo (privzeto ni nastavljena: ni omejitve števila zahtev, glejte opombo spodaj)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # daljše omejeno čakanje na zmogljivost za veliko obremenitev namesto takojšnje ponovljive napake 503
+export OMNIROUTE_ROTATE_ON_400=true           # ob napaki 400/401 preklopi na drug model/ponudnika (preskoči nedelujoče modele z neposrednim posredovanjem)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # izrecna zgornja meja sprejema zahtevnih zahtev (privzeto ni nastavljena: ni omejitve števila zahtev, glejte opombo spodaj)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # omejeni čas čakanja podaljša čez privzeto vrednost RATE_LIMIT_MAX_WAIT_MS za počasne zunanje storitve
 ```
 
-Te spremenljivke nastavite v okolju procesa OmniRoute (demona, npr. prek datoteke plist LaunchAgent ali `systemctl edit`), nato znova zaženite OmniRoute. Zastavica za rotacijo ima največji učinek: kritično napako pretvori v pregleden ponovni poskus pri delujočem ponudniku v naboru.
+Te vrednosti nastavite v okolju procesa OmniRoute (v demonu, npr. prek datoteke plist za LaunchAgent ali ukaza `systemctl edit`), nato pa znova zaženite OmniRoute. Zastavica za rotacijo ima največji učinek: dokončno odpoved spremeni v neopazen ponovni poskus pri delujočem ponudniku iz nabora.
 
-**Opomba**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` omejuje število zahtev z veliko obremenitvijo — zahtev z dolgim kontekstom — ki se izvajajo hkrati; ta meja je vstopna pregrada, ne ponudnikova omejitev hitrosti. **Posodobitev glede razpršitve napak #503:** ta spremenljivka privzeto ni več nastavljena (zdaj se upošteva le, če je izrecno konfigurirana, kot zgoraj) — sprejem zahtev z veliko obremenitvijo namesto tega omejuje samodejno izračunan bajtni proračun (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ki se prilagaja dejanski omejitvi pomnilnika gostitelja. Zato bi morala nova uvedba brez nastavljanja te spremenljivke prejeti precej manj zavrnitev `503 chat_admission_busy`; njena izrecna nastavitev še vedno deluje natančno tako, kot je dokumentirano. Izrecne preglasitve bajtnega proračuna so omejene na 8 MiB–2 GiB. Napaka `413 body_exceeds_budget` ni prehodna: povečajte ta bajtni proračun, zmanjšajte `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ali povečajte omejitev pomnilnika procesa. Razbremenitev `inflight_bytes_budget` pomeni začasno tekmovanje za vire in jo je mogoče znova poskusiti. Omejevanje hitrosti za posameznega ponudnika (`open-sse/services/rateLimitManager.ts`) ločeno upravljajo `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` in `RATE_LIMIT_AUTO_ENABLE` — glejte `.env.example`.
+**Opomba**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` omejuje število zahtevnih zahtev — zahtev z dolgim kontekstom — ki se izvajajo hkrati; ta omejitev je vstopna kontrola in ne ponudnikova omejitev hitrosti. **Posodobitev glede porazdelitve #503:** ta spremenljivka privzeto ni več nastavljena (zdaj se upošteva samo, kadar je izrecno konfigurirana, kot zgoraj) — sprejem zahtevnih zahtev namesto tega omejuje samodejno izračunan proračun bajtov (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), ki se prilagaja dejanski omejitvi pomnilnika gostitelja, zato bi morala sveža uvedba brez kakršne koli nastavitve te spremenljivke povzročiti bistveno manj zavrnitev `503 chat_admission_busy`; njena izrecna nastavitev, kot je prikazano tukaj, še vedno deluje natanko tako, kot je dokumentirano. Izrecne preglasitve proračuna bajtov so omejene na razpon od 8 MiB do 2 GiB. Napaka `413 body_exceeds_budget` ni prehodna: povečajte ta proračun bajtov, zmanjšajte `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ali povečajte omejitev pomnilnika procesa. Razbremenitev `inflight_bytes_budget` je posledica začasnega tekmovanja za vire in jo je še vedno mogoče znova poskusiti. Omejevanje hitrosti za posameznega ponudnika (`open-sse/services/rateLimitManager.ts`) ločeno upravljajo `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` in `RATE_LIMIT_AUTO_ENABLE` — glejte `.env.example`.
 
-**Kako preveriti, ali popravek deluje**: dvakrat v hitrem zaporedju zaženite svojega agenta/opravilo cron in potrdite, da sta oba zagona uspešna. Pred popravkom drugi zagon običajno vrne napako `429`/`401`. Po popravku se neuspešni poskusi (če do njih pride) samodejno ponovijo in klic se dokonča. Prav tako lahko izvedete `curl /monitoring/health` ter pri povezavah ponudnikov spremljate polje `rateLimitedUntil` in polje `circuitBreakers.providerBreakers[].state` za prizadete ponudnike — stanje je lahko `CLOSED`, `DEGRADED`, `OPEN` ali `HALF_OPEN` (glejte `src/shared/utils/circuitBreaker.ts`), ponudnik, pri katerem se napake ponavljajo, pa bo prešel iz stanja `CLOSED → DEGRADED → OPEN`, preden bo časovno okno za ponastavitev omogočilo preizkusni klic (`HALF_OPEN`).
+**Kako preveriti, ali je popravek deloval**: dvakrat v hitrem zaporedju zaženite svojega agenta ali opravilo cron in preverite, ali sta oba zagona uspešna. Pred popravkom drugi zagon običajno sproži `429`/`401`. Po popravku se napake (če se pojavijo) neopazno znova poskusijo in klic se dokonča. Izvedete lahko tudi `curl /monitoring/health` ter spremljate polje `rateLimitedUntil` pri povezavah ponudnikov in `circuitBreakers.providerBreakers[].state` pri prizadetih ponudnikih — stanje je lahko `CLOSED`, `DEGRADED`, `OPEN` ali `HALF_OPEN` (glejte `src/shared/utils/circuitBreaker.ts`), ponudnik, pri katerem se napake ponavljajo, pa bo prešel skozi stanja `CLOSED → DEGRADED → OPEN`, preden bo časovno okno ponastavitve omogočilo preizkusno zahtevo (`HALF_OPEN`).
 
-**Če se napaka 429 še vedno pojavlja**: aktivni račun pri tem ponudniku je dejansko izčrpal svojo _kvoto_ (ne le omejitve hitrosti). Na nadzorni plošči OmniRoute v razdelku Providers → Accounts dodajte drugi račun za istega ponudnika ali vključite drugega brezplačnega ponudnika (npr. `routeway`, `auggie`). Rotacija pomaga le pri prehodnih napakah omejitve hitrosti oziroma napakah 400/401; popolna izčrpanost kvote zahteva dodatne poverilnice ali drugega ponudnika.
+**Če se napaka 429 še vedno pojavlja**: aktivni račun pri tem ponudniku je dejansko izčrpal svojo _kvoto_ (ne le omejitve hitrosti). Na nadzorni plošči OmniRoute v razdelku Providers → Accounts dodajte drugi račun za istega ponudnika ali vključite drugega brezplačnega ponudnika (npr. `routeway`, `auggie`). Rotacija pomaga le pri prehodnih omejitvah hitrosti ter napakah 400/401; popolna izčrpanost kvote zahteva druge poverilnice ali drugega ponudnika.
 
-**Če se pri modelih za vid (`auto/vision`, `bazaarlink/*`) pojavlja napaka 403**: povezani račun nima plačljivega paketa, ki vključuje vid, ali pa ključ API nima zadostnih dovoljenj. Na nadzorni plošči ponudnika preverite, ali obseg ključa vključuje vid/večmodalnost, ali pa povežite račun s plačljivim paketom in ga ohranite kot cilj za vid.
+**Če se pri modelih za vid (`auto/vision`, `bazaarlink/*`) pojavi napaka 403**: povezani račun nima plačljivega paketa, ki vključuje vid, ali pa ključ API nima zadostnih dovoljenj. Na nadzorni plošči ponudnika preverite, ali obseg ključa vključuje vid oziroma večmodalnost, ali pa povežite račun s plačljivo ravnjo in ga obdržite kot cilj za vid.
 
 ---
 
@@ -545,21 +545,21 @@ Za odpravljanje težav s prevajanjem formatov uporabite **Nadzorna plošča → 
 
 ### Samodejno omejevanje hitrosti se ne sproži
 
-- Samodejno omejevanje hitrosti velja samo za ponudnike s ključi API (ne za OAuth/naročnine)
-- Preverite, ali je v **Nastavitve → Odpornost → Profili ponudnikov** omogočeno samodejno omejevanje hitrosti
+- Samodejno omejevanje hitrosti velja samo za ponudnike s ključem API (ne za OAuth/naročnino)
+- Preverite, ali je v razdelku **Nastavitve → Odpornost → Profili ponudnikov** omogočeno samodejno omejevanje hitrosti
 - Preverite, ali ponudnik vrača kode stanja `429` ali glave `Retry-After`
 
-### Prilagajanje eksponentnega čakanja
+### Prilagajanje eksponentnega zakasnjevanja
 
 Profili ponudnikov podpirajo te nastavitve:
 
-- **Osnovna zakasnitev** — začetni čas čakanja po prvi napaki (privzeto: 1s)
-- **Največja zakasnitev** — zgornja meja časa čakanja (privzeto: 30s)
-- **Množitelj** — za koliko se poveča zakasnitev ob vsaki zaporedni napaki (privzeto: 2x)
+- **Osnovna zakasnitev** — začetni čas čakanja po prvi napaki (privzeto: 1 s)
+- **Največja zakasnitev** — zgornja meja časa čakanja (privzeto: 30 s)
+- **Množilnik** — za koliko se poveča zakasnitev ob vsaki zaporedni napaki (privzeto: 2x)
 
-### Preprečevanje stampeda zahtev
+### Preprečevanje črednega učinka
 
-Ko veliko sočasnih zahtev doseže ponudnika z omejeno hitrostjo, OmniRoute uporabi mutex in samodejno omejevanje hitrosti, da zahteve serializira ter prepreči verižno pojavljanje napak. To se za ponudnike s ključi API izvede samodejno.
+Ko veliko sočasnih zahtev zadene ponudnika z omejeno hitrostjo, OmniRoute uporabi mutex in samodejno omejevanje hitrosti, da zahteve obravnava zaporedno in prepreči kaskadne napake. To je samodejno za ponudnike s ključem API.
 
 ### Zahteve za klepet ne uspejo z 503 / chat_admission_busy
 
@@ -567,16 +567,16 @@ Ko veliko sočasnih zahtev doseže ponudnika z omejeno hitrostjo, OmniRoute upor
 
 - Končna točka za dokončanja klepeta vrne ponovljiv odgovor `503`, katerega koda napake je
   `chat_admission_busy`.
-- Odgovor vključuje `Retry-After`. Od #12135 dalje je vrednost izpeljana iz opažene
-  zasedenosti — uporabi se večja izmed okna `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, kolikor je zahteva že
-  čakala, in časa, kolikor so bile trenutne zahtevne rezervacije zadržane — zaokrožena navzgor na cele
-  sekunde in omejena na 60. Pri nedejavnih vratih ohrani zgodovinske spodnje meje: 2 sekundi na
-  poti, ki temelji na bajtih, in 1 sekundo na poti, ki temelji na strukturi (ta vključuje tudi
+- Odgovor vključuje `Retry-After`. Od različice #12135 naprej je vrednost izpeljana iz opažene
+  zasedenosti — uporabi se večja vrednost med časom, ki ga je zahteva že čakala znotraj okna
+  `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`, in časom, ko so trenutni zahtevni zakupi že zadržani — zaokrožena
+  navzgor na cele sekunde in omejena na 60. Pri neobremenjeni pregradi ohrani zgodovinske spodnje meje:
+  2 sekundi na poti, ki temelji na bajtih, in 1 sekundo na poti, ki temelji na strukturi (ta vključuje tudi
   `reason: "structure_limit"`).
-- To se lahko zgodi, medtem ko se drug zahteven klepet ali dolgotrajen pretočni odgovor še vedno
-  izvaja.
+- To se lahko zgodi, medtem ko je drug zahteven klepet ali dolgotrajen pretočni odgovor še vedno
+  v teku.
 
-Telo odgovora poti, ki temelji na bajtih, je:
+Telo odgovora, ki temelji na bajtih, je:
 
 ```json
 {
@@ -588,49 +588,52 @@ Telo odgovora poti, ki temelji na bajtih, je:
 }
 ```
 
-Odgovor, ki temelji na strukturi, uporablja isto vrsto in kodo ter sporočilo
+Odgovor, ki temelji na strukturi, uporablja isto vrsto in kodo, s sporočilom
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 in `reason: "structure_limit"`.
-Pri privzetih pragovih je zahteva strukturno zahtevna, če ima vsaj `200` sporočil,
-vsaj `64` orodij ali vsaj `32,000` ocenjenih žetonov oziroma kadar omejeno ocenjevanje strukture
-izčrpa svoje omejitve `10,000` obiskanih vozlišč ali globine `12`.
+Pri privzetih pragih je zahteva strukturno zahtevna, če vsebuje vsaj `200` sporočil,
+vsaj `64` orodij ali vsaj `32,000` ocenjenih žetonov oziroma če omejeno ocenjevanje strukture
+izčrpa svoje meje `10,000` obiskanih vozlišč ali globine `12`.
 
-**Vzrok:** To je namerno razbremenjevanje znotraj OmniRoute in ne napaka ponudnika v višjem toku.
-Vsak proces uporablja lokalno varovalo procesa, da rezervira omejeno zmogljivost za zahtevne zahteve, preden zadrži
-in razčleni veliko telo zahteve. Zahtevna rezervacija ostane zadržana celotno življenjsko dobo odgovora SSE.
+**Vzrok:** To je namerno razbremenjevanje znotraj OmniRoute in ne napaka ponudnika v zaledju.
+Vsak proces uporablja lokalno varovalo procesa, da rezervira omejeno zmogljivost za zahtevne zahteve,
+preden zadrži in razčleni veliko telo zahteve. Zahteven zakup ostane zadržan ves čas trajanja odgovora SSE.
 
-**Razvejanje napak #503:** pred tem popravkom je varovalo omejevalo sočasnost na fiksno ŠTEVILO zahtev
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, privzeto `1`) ne glede na pomnilnik gostitelja, zato se je
-razvejanje programskih agentov (več podagentov/CLI-jev, telesa redno > 256 KB) sesulo na učinkovito
-sočasnost ~1 in pri povsem običajni obremenitvi vračalo napake 503. Varovalo se zdaj samodejno prilagaja: upravlja
-ga samodejno izpeljan BAJTNI proračun za sprejem (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), določen glede na
-dejansko omejitev pomnilnika procesa, poleg tega pa upošteva sprotni signal obremenitve virov — zato
-zavrne zahteve samo, kadar je gostitelj dejansko pod pomnilniškim pritiskom, in ne zgolj zato, ker je hkrati
-prispela več kot ena zahtevna zahteva. Stara omejitev števila (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) se
-še vedno upošteva, vendar samo, če jo izrecno nastavite.
+**#503-fanout:** pred tem popravkom je varovalo omejevalo sočasnost na fiksno ŠTEVILO zahtev
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, privzeto `1`) ne glede na pomnilnik gostitelja, zato je
+razvejanje kodirnih agentov (več podagentov/CLI-jev, telesa redno > 256 KB) zmanjšalo učinkovito
+sočasnost na približno 1 in povzročalo napake 503 pri povsem običajni obremenitvi. Varovalo se zdaj
+samodejno prilagaja: upravlja ga samodejno izpeljan BAJTNI proračun sprejema
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), določen glede na dejansko pomnilniško omejitev procesa,
+upošteva pa tudi sprotni signal obremenitve virov — zato zahteve zavrača le, ko je gostitelj dejansko
+pod pomnilniškim pritiskom, in ne zgolj zato, ker je hkrati prispela več kot ena zahtevna zahteva.
+Stara omejitev števila (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) se še vedno upošteva, vendar samo,
+če jo izrecno nastavite.
 
-Ko je zmogljivost zasedena, zahtevna zahteva najprej čaka največ
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (privzeto `2000`, `0` onemogoči čakanje), da se mesto sprosti,
-preden odgovori s ponovljivim `503`. Omejeno čakanje obstaja zato, da odjemalci v slogu agentov
-(OpenCode, Claude Code, Cursor), ki sočasno razvejajo zahtevne podzahteve, serializirajo naval
-namesto da bi porabili ves svoj proračun ponovnih poskusov za takojšnje zavrnitve in odpovedali sredi opravila.
-Trenutna zasedenost zahtevnih rezervacij, razrešeni bajtni proračun in trenutna resnost pritiska so
+Ko je zmogljivost zasedena, zahtevna zahteva najprej čaka do
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (privzeto `RATE_LIMIT_MAX_WAIT_MS`; `0` onemogoči čakanje), da se mesto sprosti,
+preden prejme ponovljiv odgovor `503`. Omejeno čakanje obstaja zato, da odjemalci v slogu agentov
+(OpenCode, Claude Code, Cursor), ki sočasno razvejajo zahtevne podzahteve, zaporedno obdelajo naval,
+namesto da bi porabili celoten proračun ponovnih poskusov za takojšnje zavrnitve in odpovedali sredi opravila.
+Trenutna zasedenost zahtevnih zakupov, razrešeni bajtni proračun in trenutna stopnja pritiska so
 prikazani na `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — to preverite, preden spremenite katero koli spremenljivko okolja.
-Nastavitve → Odpornost → Čakalna vrsta zahtev → Sočasne zahteve tega ne nadzoruje; ta nastavitev
-upravlja ločen mehanizem čakalne vrste zahtev ponudnika.
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — preverite jih, preden spreminjate katero koli
+spremenljivko okolja. Nastavitve → Odpornost → Čakalna vrsta zahtev → Sočasne zahteve tega ne nadzira;
+ta nastavitev upravlja ločen mehanizem čakalne vrste zahtev ponudnika.
 
 **Rešitev:**
 
-1. Najprej poskusite znova. Odjemalci morajo upoštevati `Retry-After` in uporabiti čakanje namesto takojšnje
-   ponovitve zahteve.
+1. Najprej poskusite znova. Odjemalci morajo upoštevati `Retry-After` in uporabiti zakasnitev, namesto
+   da zahtevo takoj ponovijo.
 2. Pred kakršnim koli prilagajanjem preverite `/api/monitoring/health` → `chatAdmission`. `countCapEnabled:
-false` in velikodušen `maxInflightBytes` pomenita, da samodejno izpeljani proračun že opravlja svoje
-   delo; `pressureSeverity` z vrednostjo `high`/`critical` pomeni, da gostitelju dejansko primanjkuje pomnilnika —
-   tega ni mogoče odpraviti s spremenljivko okolja za sprejem, temveč je potrebnega več pomnilnika RAM ali manjša delovna obremenitev.
-3. Samo če `/api/monitoring/health` pokaže, da je samodejno izpeljani proračun dejansko premajhen za
-   vašega gostitelja (kar je redko — že se prilagaja od vsebnikov do fizičnih strežnikov), ga neposredno preglasite z
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, namesto da se vrnete na podedovano omejitev števila zahtev.
+false` in velikodušen `maxInflightBytes` pomenita, da samodejno izpeljan proračun že opravlja svojo
+   nalogo; vrednost `pressureSeverity` `high`/`critical` pomeni, da gostitelju dejansko primanjkuje
+   pomnilnika — tega ni mogoče odpraviti s spremenljivko okolja za sprejem, temveč je potrebnega več
+   pomnilnika RAM ali manjša delovna obremenitev.
+3. Samo če `/api/monitoring/health` pokaže, da je samodejno izpeljan proračun resnično premajhen za
+   vašega gostitelja (kar je redko — že prilagaja velikost od vsebnikov do fizičnih strežnikov), ga
+   neposredno preglasite z `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, namesto da se vrnete na podedovano
+   omejitev števila zahtev.
 
 Za uradne nastavitve sprejema glejte [referenco spremenljivk okolja](../reference/ENVIRONMENT.md#4-security--authentication).
 

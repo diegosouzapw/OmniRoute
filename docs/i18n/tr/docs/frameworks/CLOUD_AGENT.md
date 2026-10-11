@@ -311,20 +311,24 @@ sağlayıcıdaki faturalandırmayı durdurmak için görevi sağlayıcının ken
 
 `src/app/api/cloud/` altındaki bu yardımcı uç noktalar, uzak istemciler
 (CLI, Electron uygulaması veya senkronizasyon çalışanları) tarafından sağlayıcı bağlantı meta verilerini
-okumak ve model takma adlarını çözümlemek için kullanılır. Görev uç noktalarının kullandığı yönetim kimlik doğrulamasıyla değil,
-`validateApiKey` aracılığıyla **normal bir API anahtarıyla** kimlik doğrulaması yapılır.
+okumak ve model takma adlarını çözümlemek için kullanılır. Bunların kimlik doğrulaması, görev uç noktalarının kullandığı yönetim kimlik doğrulamasıyla değil, bir **API anahtarıyla**
+(`validateApiKey` aracılığıyla) yapılır; `/api/cloud/auth` tarafından döndürülenler anahtarın kapsamına bağlıdır (aşağıya bakın).
 
 | Yöntem | Yol                             | Amaç                                                                                        |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------- |
 | POST   | `/api/cloud/auth`               | API anahtarını doğrula, maskelenmiş bağlantı meta verilerini ve model takma adlarını döndür |
 | PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` değerlerini yenile                             |
-| POST   | `/api/cloud/model/resolve`      | Bir model takma adını `{ provider, model }` biçiminde çözümle                               |
+| POST   | `/api/cloud/model/resolve`      | Bir model takma adını `{ provider, model }` olarak çözümle                                  |
 | GET    | `/api/cloud/models/alias`       | Tüm model takma adlarını listele                                                            |
-| PUT    | `/api/cloud/models/alias`       | Bir model takma adı ayarla (ve etkinse Cloud ile otomatik olarak senkronize et)             |
+| PUT    | `/api/cloud/models/alias`       | Bir model takma adı ayarla (ve etkinse Bulut ile otomatik olarak senkronize et)             |
 
-`/api/cloud/auth`, ham `apiKey` / `accessToken` / `refreshToken` değerlerini hiçbir zaman döndürmez.
-Bunun yerine `hasApiKey`, `hasAccessToken`, `hasRefreshToken` ve maskelenmiş bir önizleme
-(`maskedApiKey`: ilk 4 + `****` + son 4) döndürür.
+`/api/cloud/auth`, ham `apiKey` / `accessToken` / `refreshToken` değerlerini hiçbir zaman döndürmez. Anahtarın
+kullanabileceği etkin bağlantılar için `hasApiKey`, `hasAccessToken`, `hasRefreshToken` değerlerini
+döndürür (`allowedConnections` ile kısıtlanmış bir anahtar yalnızca bu bağlantıları görür). `OMNIROUTE_API_KEY`
+kaynaklı dağıtım anahtarı da dahil olmak üzere `manage` veya `admin` kapsamına sahip bir API anahtarı için ayrıca
+maskelenmiş bir önizleme (`maskedApiKey`: her iki uçta en fazla 4 karakter, kısa bir anahtarda daha az,
+8 veya daha az karakterli anahtarlarda hiçbiri) ve bağlantının `projectId` değerini döndürür. Diğer tüm anahtarlar
+için her iki alan da yanıta dahil edilmez.
 
 ## Kimlik Bilgilerinin Çözümlenmesi
 

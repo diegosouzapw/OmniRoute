@@ -90,7 +90,7 @@ test("Opus 5 catalog is limited to verified first-party, web, and Copilot provid
 
 test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {
   // Sonnet 5 must be wired everywhere the last flagship (Fable 5) was — but as a
-  // Sonnet-tier model: $3/$15 pricing (NOT the Opus/Fable $15/$75), 1M ctx / 128K out.
+  // Sonnet-tier model: kiro's own table is $3/$15 (not the official $2/$10), 1M ctx / 128K out.
   for (const providerId of ["cc", "kiro", "anthropic", "blackbox"]) {
     const ids = new Set(getModelsByProviderId(providerId).map((m) => m.id));
     assert.ok(ids.has("claude-sonnet-5"), `${providerId} must expose claude-sonnet-5`);

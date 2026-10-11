@@ -4,11 +4,20 @@ import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { runCliTarget } from "../../../bin/cli/commands/run.mjs";
 
 const originalFetch = globalThis.fetch;
 const originalPath = process.env.PATH;
+
+// All executable fixtures below are POSIX scripts. Keep that capability check in one
+// place; each case is still registered and reports its own skip on Windows.
+function requirePosix(t: import("node:test").TestContext): boolean {
+  if (process.platform !== "win32") return true;
+  t.skip("POSIX executable/signal fixture; Windows behavior has launcher-specific tests");
+  return false;
+}
 
 async function makeFakeCli(name: string, body: string) {
   const dir = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-cli-"));
@@ -27,55 +36,59 @@ async function withReachableOmniRoute<T>(run: () => Promise<T>): Promise<T> {
   }
 }
 
-test("run executes a generic target with isolated env and propagates its exit code", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-    return;
-  }
+async function waitForFile(file: string, timeoutMs = 3000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!existsSync(file) && Date.now() < deadline) await delay(10);
+  assert.ok(existsSync(file), `timed out waiting for ${file}`);
+}
 
-  const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-capture-"));
-  const capturePath = path.join(capture, "aider.json");
-  const fake = await makeFakeCli(
-    "aider",
-    `const fs = await import("node:fs");
-fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
+for (const remote of [
+  "https://relay.example.test",
+  "https://relay.example.test/",
+  "https://relay.example.test/v1",
+  "https://relay.example.test/v1/",
+]) {
+  test(`run Aider uses one /v1 API suffix for ${remote} and preserves exit code`, async (t) => {
+    if (!requirePosix(t)) return;
+
+    const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-capture-"));
+    const capturePath = path.join(capture, "aider.json");
+    const fake = await makeFakeCli(
+      "aider",
+      `const fs = await import("node:fs");
+fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
   argv: process.argv.slice(2),
   base: process.env.OPENAI_API_BASE,
   key: process.env.OPENAI_API_KEY,
 }));
 process.exit(7);`
-  );
-  process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
-  process.env.CAPTURE_PATH = capturePath;
-
-  try {
-    const code = await withReachableOmniRoute(() =>
-      runCliTarget(
-        "aider",
-        { remote: "https://relay.example.test", apiKey: "sk_private", model: "glm/glm-5.2" },
-        ["--message", "reply OK"]
-      )
     );
-    assert.equal(code, 7);
-    const result = JSON.parse(await readFile(capturePath, "utf8"));
-    assert.deepEqual(result.argv.slice(0, 2), ["--model", "openai/glm/glm-5.2"]);
-    assert.deepEqual(result.argv.slice(2), ["--message", "reply OK"]);
-    assert.equal(result.base, "https://relay.example.test");
-    assert.equal(result.key, "sk_private");
-  } finally {
-    if (originalPath === undefined) delete process.env.PATH;
-    else process.env.PATH = originalPath;
-    delete process.env.CAPTURE_PATH;
-    await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-    await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  }
-});
+    process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
+
+    try {
+      const code = await withReachableOmniRoute(() =>
+        runCliTarget("aider", { remote, apiKey: "sk_private", model: "glm/glm-5.2" }, [
+          "--message",
+          "reply OK",
+        ])
+      );
+      assert.equal(code, 7);
+      const result = JSON.parse(await readFile(capturePath, "utf8"));
+      assert.deepEqual(result.argv.slice(0, 2), ["--model", "openai/glm/glm-5.2"]);
+      assert.deepEqual(result.argv.slice(2), ["--message", "reply OK"]);
+      assert.equal(result.base, "https://relay.example.test/v1");
+      assert.equal(result.key, "sk_private");
+    } finally {
+      if (originalPath === undefined) delete process.env.PATH;
+      else process.env.PATH = originalPath;
+      await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+  });
+}
 
 test("run gives Gemini an isolated GEMINI_CLI_HOME forcing api-key auth and removes it", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-gemini-capture-"));
   const capturePath = path.join(capture, "gemini.json");
@@ -85,7 +98,7 @@ test("run gives Gemini an isolated GEMINI_CLI_HOME forcing api-key auth and remo
 const path = await import("node:path");
 const home = process.env.GEMINI_CLI_HOME;
 const settings = JSON.parse(fs.readFileSync(path.join(home, ".gemini", "settings.json"), "utf8"));
-fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
+fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
   home,
   argv: process.argv.slice(2),
   baseUrl: process.env.GOOGLE_GEMINI_BASE_URL,
@@ -95,7 +108,6 @@ fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
 }));`
   );
   process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
-  process.env.CAPTURE_PATH = capturePath;
 
   try {
     const code = await withReachableOmniRoute(() =>
@@ -116,17 +128,13 @@ fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
   } finally {
     if (originalPath === undefined) delete process.env.PATH;
     else process.env.PATH = originalPath;
-    delete process.env.CAPTURE_PATH;
     await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
 test("run gives Qwen an isolated temporary home and removes it after exit", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("POSIX fake executable; Windows shim behavior is covered by launch tests");
-    return;
-  }
+  if (!requirePosix(t)) return;
 
   const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-qwen-capture-"));
   const capturePath = path.join(capture, "qwen.json");
@@ -136,7 +144,7 @@ test("run gives Qwen an isolated temporary home and removes it after exit", asyn
 const path = await import("node:path");
 const home = process.env.QWEN_HOME;
 const settings = JSON.parse(fs.readFileSync(path.join(home, "settings.json"), "utf8"));
-fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
+fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
   home,
   argv: process.argv.slice(2),
   model: settings.model?.name,
@@ -144,7 +152,6 @@ fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
 }));`
   );
   process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
-  process.env.CAPTURE_PATH = capturePath;
 
   try {
     const code = await withReachableOmniRoute(() =>
@@ -163,7 +170,140 @@ fs.writeFileSync(process.env.CAPTURE_PATH, JSON.stringify({
   } finally {
     if (originalPath === undefined) delete process.env.PATH;
     else process.env.PATH = originalPath;
-    delete process.env.CAPTURE_PATH;
+    await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("run waits for a signalled child to close before removing its temporary home", async (t) => {
+  if (!requirePosix(t)) return;
+
+  const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-run-signal-capture-"));
+  const readyPath = path.join(capture, "ready");
+  const capturePath = path.join(capture, "signal.json");
+  const fake = await makeFakeCli(
+    "gemini",
+    `const fs = await import("node:fs");
+process.on("SIGTERM", () => {
+  setTimeout(() => {
+    fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
+      overlayExistedAfterSignal: fs.existsSync(process.env.GEMINI_CLI_HOME),
+    }));
+    process.exit(0);
+  }, 100);
+});
+fs.writeFileSync(${JSON.stringify(readyPath)}, "ready");
+setInterval(() => {}, 1000);`
+  );
+  process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  try {
+    const runPromise = runCliTarget(
+      "gemini",
+      { remote: "https://relay.example.test", apiKey: "sk_private", model: "glm/glm-5.2" },
+      []
+    );
+    await waitForFile(readyPath);
+    process.emit("SIGTERM", "SIGTERM");
+    const code = await runPromise;
+    await waitForFile(capturePath);
+    const result = JSON.parse(await readFile(capturePath, "utf8"));
+
+    assert.equal(code, 143);
+    assert.equal(result.overlayExistedAfterSignal, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("legacy Claude launcher resolves only after a signalled child closes", async (t) => {
+  if (!requirePosix(t)) return;
+
+  const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-claude-signal-"));
+  const readyPath = path.join(capture, "ready");
+  const capturePath = path.join(capture, "signal.json");
+  const fake = await makeFakeCli(
+    "claude",
+    `const fs = await import("node:fs");
+process.on("SIGTERM", () => {
+  setTimeout(() => {
+    fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({ finishedAt: Date.now() }));
+    process.exit(0);
+  }, 100);
+});
+fs.writeFileSync(${JSON.stringify(readyPath)}, "ready");
+setInterval(() => {}, 1000);`
+  );
+  process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  try {
+    const runPromise = runCliTarget("claude", {
+      remote: "https://relay.example.test",
+      apiKey: "sk_private",
+    });
+    await waitForFile(readyPath);
+    process.emit("SIGTERM", "SIGTERM");
+    const code = await runPromise;
+    const resolvedAt = Date.now();
+    await waitForFile(capturePath);
+    const result = JSON.parse(await readFile(capturePath, "utf8"));
+
+    assert.equal(code, 143);
+    assert.ok(resolvedAt >= result.finishedAt, "launcher resolved before the child finished");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("legacy Codex launcher resolves only after a signalled child closes", async (t) => {
+  if (!requirePosix(t)) return;
+
+  const capture = await mkdtemp(path.join(os.tmpdir(), "omniroute-codex-signal-"));
+  const readyPath = path.join(capture, "ready");
+  const capturePath = path.join(capture, "signal.json");
+  const fake = await makeFakeCli(
+    "codex",
+    `const fs = await import("node:fs");
+process.on("SIGTERM", () => {
+  setTimeout(() => {
+    fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({ finishedAt: Date.now() }));
+    process.exit(0);
+  }, 100);
+});
+fs.writeFileSync(${JSON.stringify(readyPath)}, "ready");
+setInterval(() => {}, 1000);`
+  );
+  process.env.PATH = `${fake.dir}${path.delimiter}${originalPath || ""}`;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  try {
+    const runPromise = runCliTarget("codex", {
+      remote: "https://relay.example.test",
+      apiKey: "sk_private",
+    });
+    await waitForFile(readyPath);
+    process.emit("SIGTERM", "SIGTERM");
+    const code = await runPromise;
+    const resolvedAt = Date.now();
+    await waitForFile(capturePath);
+    const result = JSON.parse(await readFile(capturePath, "utf8"));
+
+    assert.equal(code, 143);
+    assert.ok(resolvedAt >= result.finishedAt, "launcher resolved before the child finished");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
     await rm(fake.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     await rm(capture, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }

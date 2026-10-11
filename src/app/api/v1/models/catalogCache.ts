@@ -15,8 +15,9 @@
 import { createHmac } from "node:crypto";
 
 import { after } from "next/server";
+import { getCopilotRejectionCatalogVersion } from "@omniroute/open-sse/services/copilotModelRejections.ts";
 
-import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
+import { getModelCatalogCacheVersion as getDatabaseCatalogVersion } from "@/lib/db/readCache";
 import { extractApiKey } from "@/sse/services/auth";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
@@ -189,10 +190,11 @@ const catalogCache = new Map<string, CachedCatalog>();
  * on it), just without being persisted.
  */
 type InFlightBuild = {
-  generation: number;
+  generation: string;
   promise: Promise<CachedCatalog>;
   lastKeptAt?: number;
   timeoutCount?: number;
+  lastTimeoutCountedAt?: number;
 };
 const catalogInFlight = new Map<string, InFlightBuild>();
 
@@ -215,12 +217,16 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
 // combos/pricing write; when it moves on, every memoized entry here was built from
 // state that no longer holds, so drop them all rather than keying by version (which
 // would leak one Map entry per version forever instead of ever pruning old ones).
+function getModelCatalogCacheVersion(): string {
+  return `${getDatabaseCatalogVersion()}:${getCopilotRejectionCatalogVersion()}`;
+}
 let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
 function dropCatalogCacheIfStateChanged(): void {
   const currentVersion = getModelCatalogCacheVersion();
   if (currentVersion === lastSeenCatalogCacheVersion) return;
   lastSeenCatalogCacheVersion = currentVersion;
   catalogCache.clear();
+  catalogLastGood.clear();
   // Deliberately NOT clearing catalogInFlight: an in-flight build bound to the
   // previous generation is left to finish for its original caller, but the
   // generation check in the join path (below) keeps new requests from joining
@@ -259,7 +265,7 @@ export function mergeCatalogHeaders(
 function storePayload(
   cacheKey: string,
   payload: CatalogPayload,
-  buildGeneration: number
+  buildGeneration: string
 ): CachedCatalog {
   const entry: CachedCatalog = {
     body: payload.body,
@@ -371,12 +377,21 @@ async function awaitCatalogInFlight(
         lastGood.status
       );
     }
+    const boundMs = catalogBuildTimeoutMs();
     const shared = catalogInFlight.get(cacheKey);
     if (shared && shared.promise === inflight.promise) {
-      shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
-      shared.lastKeptAt = Date.now();
+      const now = Date.now();
+      // Concurrent waiters observe one expired build window. Counting each
+      // waiter would replace a live build after just one busy timeout wave.
+      if (
+        shared.lastTimeoutCountedAt === undefined ||
+        now - shared.lastTimeoutCountedAt >= boundMs
+      ) {
+        shared.timeoutCount = (shared.timeoutCount ?? 0) + 1;
+        shared.lastTimeoutCountedAt = now;
+      }
+      shared.lastKeptAt = now;
     }
-    const boundMs = catalogBuildTimeoutMs();
     const retryAfterSec = Math.max(1, Math.ceil((2 * boundMs) / 1000));
     const body = JSON.stringify(
       buildErrorBody(503, "catalog_build_timeout", undefined, {

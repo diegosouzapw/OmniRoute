@@ -1,0 +1,1 @@
+- **feat(providers):** the Xiaomi MiMo Token Plan (`mimotp`) catalog now lists `mimo-v2.6-pro` and `mimo-v2.6-flash` (1M context, 128K output), ahead of Xiaomi retiring `mimo-v2.5-pro` / `mimo-v2.5` on 2026-10-21 ([#15219](https://github.com/diegosouzapw/OmniRoute/pull/15219)) — thanks @kang-heewon

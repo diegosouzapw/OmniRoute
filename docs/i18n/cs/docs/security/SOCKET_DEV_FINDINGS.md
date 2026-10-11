@@ -209,13 +209,13 @@ centralizovat týmové přihlašovací údaje. Oprava transparentně vymezuje mo
 
 ## Profil sestavení: `minimal`
 
-Uživatelé, kteří potřebují artefakt kompatibilní se Socketem, jej mohou sestavit pomocí:
+Pro uživatele, kteří potřebují artefakt vhodný pro Socket, použijte toto sestavení:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpackový modul `NormalModuleReplacementPlugin` nahrazuje čtyři moduly jejich zástupnými implementacemi:
+Webpackový plugin `NormalModuleReplacementPlugin` nahrazuje čtyři moduly jejich zástupnými implementacemi:
 
 | Modul                                       | Zástupná implementace                            |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -226,11 +226,10 @@ Webpackový modul `NormalModuleReplacementPlugin` nahrazuje čtyři moduly jejic
 
 Každá zástupná implementace exportuje stejné rozhraní, ale každá funkce za běhu vyvolá
 `featureDisabledError(name)`. Trasy, které závisejí na deaktivovaném
-modulu, vrátí HTTP 503 s jasným sdělením namísto aktivace
+modulu, vracejí HTTP 503 s jasnou zprávou namísto aktivace
 citlivé cesty kódu.
 
-Výsledný balíček je určen k publikování pod názvem `omniroute-secure`. Postup publikování naleznete v
-`docs/ops/PUBLISHING_SECURE.md`.
+Výsledný balíček je určen k publikování pod názvem `omniroute-secure`.
 
 ---
 

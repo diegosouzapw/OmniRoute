@@ -87,11 +87,18 @@ naming the endpoint and what was lost — so a degraded picker is never a myster
 | `enrichment`                     | `true`                                         | Fetch names, pricing and free-tier budgets                                                             |
 | `providerTag`                    | `true`                                         | Prefix a display name with the upstream provider it routes to                                          |
 | `usableOnly`                     | `false`                                        | Keep only providers the gateway reports as provisioned                                                 |
-| `visibleModels` / `hiddenModels` | `[]`                                           | Exact-or-suffix allowlists; deny wins                                                                  |
+| `showcasePerOwner`               | `10`                                           | Default-view entries kept per provider                                                                 |
+| `freshPerOwner`                  | `10`                                           | Default-view fresh entries kept per provider                                                           |
+| `freshWindowDays`                | `90`                                           | Freshness window in days for the fresh branch                                                          |
+| `usageMemory`                    | `true`                                         | Restore statically dropped entries named by 30-day usage analytics (needs a management token)          |
+| `visibleModels` / `hiddenModels` | `[]`                                           | Exact-or-suffix allowlists; deny wins; `*` publishes the full catalog (other filters still apply)      |
 | `geminiSanitization`             | `true`                                         | Strip the JSON-Schema keywords Gemini rejects from tool schemas (`$ref` tools are forwarded untouched) |
 | `apiFormat.allowAnthropic`       | `false`                                        | Route allowlisted ids through the Anthropic API block                                                  |
 | `apiFormat.anthropicModels`      | `[]`                                           | Full model ids routed to Anthropic                                                                     |
 | `logLevel` / `startupDebug`      | `warn` / `false`                               | Logger verbosity                                                                                       |
+
+Usage memory is on by default. Without a management token it stays inert
+(a startup notice is logged) and nothing is restored.
 
 ## How the catalog stays fresh
 

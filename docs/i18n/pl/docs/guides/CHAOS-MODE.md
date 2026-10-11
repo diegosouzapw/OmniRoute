@@ -8,18 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesja panelu) · `POST /api/skills/collect/chaos` (klucz API)  
 > **Źródło:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Tryb Chaos wysyła **jedno zadanie jednocześnie do kilku dostawców** — każdy uczestniczący dostawca
-udostępnia jedną instancję modelu, a wszystkie odpowiedzi otrzymujesz obok siebie (lub w łańcuchu).
-Jest to mechanizm wykonywania wielomodelowego, a nie strategia routingu: nie ma on żadnego wpływu
-na zwykły ruch `/v1/chat/completions`.
+Tryb Chaos wysyła **jedno zadanie do kilku dostawców jednocześnie** — każdy uczestniczący dostawca
+udostępnia jedną instancję modelu, a wszystkie odpowiedzi są prezentowane obok siebie (lub łączone w sekwencję). Jest to
+mechanizm wykonywania wielomodelowego, a nie strategia routingu: nie ma on żadnego wpływu na zwykły ruch
+`/v1/chat/completions`.
 
-**Uściślenie — produkt zawiera trzy różne funkcje ze słowem „chaos” w nazwie:**
+**Wyjaśnienie — trzy różne elementy zawierają słowo „chaos” w nazwie:**
 
-| Element                       | Czym jest                                                                                                                               | Gdzie opisano                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Tryb Chaos**                | Opisana tutaj strona panelu i interfejs API: przekazuje jedno zadanie do wielu dostawców (równolegle lub zespołowo).                    | Ten przewodnik                               |
-| `auto/chaos`                  | Identyfikator modelu Auto-Combo z wagami oceny wstrzykiwania błędów, przeznaczony do testowania odporności. Nie wymaga konfiguracji.    | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Konfiguracja kombinacji Chaos | Utrwalona kombinacja z `config.chaos.enabled`, która przekazuje zadanie do panelu modeli z opcjonalnym modelem oceniającym (tylko API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Element                       | Czym jest                                                                                                                                                                                           | Gdzie opisano                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Tryb Chaos**                | Opisana tutaj strona panelu i interfejs API: rozsyła jedno zadanie do wielu dostawców (równolegle lub w trybie współpracy).                                                                         | Ten przewodnik                               |
+| `auto/chaos`                  | Identyfikator modelu Auto-Combo: równoległe rozsyłanie, jeden model na dostawcę i po jednym wywołaniu nadrzędnym. Nie jest to wstrzykiwanie błędów ([szczegóły](#autochaos-równoległe-rozsyłanie)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Konfiguracja kombinacji Chaos | Utrwalona kombinacja z `config.chaos.enabled` rozsyła żądania w ten sam sposób (tylko przez API); `judgeModel` jedynie wybiera końcową odpowiedź, bez wywołania syntezy.                            | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: równoległe rozsyłanie
+
+`auto/chaos` **nie** jest mechanizmem wstrzykiwania błędów ani testowania odporności. Żądanie
+`model: "auto/chaos"` wysłane do `/v1/chat/completions`:
+
+1. Tworzy panel zawierający **jeden model na dostawcę**: pierwszy model kandydujący każdego
+   połączonego dostawcy, zgodnie z kolejnością w puli kandydatów, maksymalnie 5 członków
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, z górnym limitem 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Pakiet wag `chaos-mode`
+   ustawia wyłącznie `weight` każdego członka; mechanizm rozsyłania nie odczytuje tej wartości.
+2. Wysyła to samo żądanie do wszystkich członków panelu **równolegle**, więc jedno żądanie
+   generuje jedno wywołanie nadrzędne na każdego członka panelu
+   (`open-sse/services/autoCombo/chaosEngine.ts`, wywoływane z
+   `open-sse/services/combo.ts`).
+3. Przesyła jeden wiersz statusu dla każdego członka panelu w chwili otrzymania wyniku: domyślnie komentarz SSE
+   (`: chaos <index> ok|fail <model>`), a także zdarzenie `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`), gdy żądanie ustawia
+   `stream_options.include_chaos_parts: true`. Nie zawierają one tekstu odpowiedzi.
+4. Wysyła **jedną** odpowiedź panelu jako końcowy fragment w stylu OpenAI: odpowiedź pierwszego
+   członka panelu (`auto/chaos` ustawia go jako `judgeModel`), jeśli jego wywołanie zakończy się powodzeniem, a w przeciwnym razie
+   odpowiedź ostatniego członka, którego wywołanie zakończyło się powodzeniem. Pozostałe odpowiedzi panelu nie są zwracane, więc
+   płacisz za N wywołań, a otrzymujesz jedno ukończenie.
 
 ## Konfiguracja
 

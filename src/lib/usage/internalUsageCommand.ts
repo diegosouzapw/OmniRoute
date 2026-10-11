@@ -475,6 +475,18 @@ function resolveQuotaCutoffPercent(
   return policy.defaultThresholdPercent;
 }
 
+/**
+ * Computes the cutoff-adjusted effective remaining quota percentage.
+ *
+ * Scales the remaining quota so that the configured cutoff threshold
+ * (the protected reserve floor) reads as 0% left:
+ * - If remaining <= cutoff: returns 0%.
+ * - Otherwise: ((remaining - cutoff) / (100 - cutoff)) * 100.
+ *
+ * Used by {@link appendQuotaBlock} for terminal/text output (`NN% left`).
+ * In contrast, {@link buildUsageCommandJson} returns raw upstream snapshots
+ * in `provider.quotas` alongside `quotaWindowThresholds`.
+ */
 function effectiveRemainingPercent(
   realRemaining: number | null,
   cutoffPercent: number
@@ -530,6 +542,15 @@ function appendQuotaBlock(
  * renders as text, exposed as data for API consumers (the OmniCopilot panel
  * asks for it via `?format=json`). Text and JSON share the exact same
  * collectors, so the two can never disagree about a number.
+ *
+ * NOTE on percentage semantics (#15530):
+ * - JSON `provider.quotas` and `providers[].quotas` expose raw upstream
+ *   snapshots (unadjusted usage and remaining numbers/percentages), alongside
+ *   connection-level `quotaWindowThresholds`.
+ * - In contrast, text output (`buildUsageCommandText` / terminal `@@om-usage`)
+ *   renders cutoff-adjusted remaining percentages (`NN% left`) via
+ *   {@link effectiveRemainingPercent}, where the configured cutoff reserve
+ *   reads as 0% left.
  *
  * The key design constraint is the 403 case: a key without `allowUsageCommand`
  * must reach the client as a *structured* reason, not a bare text error — a

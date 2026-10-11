@@ -71,6 +71,8 @@ services:
       - DATA_DIR=/app/data
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
       - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
+      - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
+      - CDP_PROXY_TOKEN_FILE=/cdp-token/token
     ports:
       # Loopback-only by default (#12568) — see docker-compose.yml's
       # APP_BIND_HOST comment for the rationale. Override for a LAN/WAN prod
@@ -81,6 +83,7 @@ services:
       - "${APP_BIND_HOST:-127.0.0.1}:${PROD_LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
       - omniroute-prod-data:/app/data
+      - chatgpt-web-codex-cdp-token-prod:/cdp-token:ro
     healthcheck:
       test: ["CMD", "node", "healthcheck.mjs"]
       interval: 30s
@@ -95,10 +98,18 @@ services:
     image: omniroute:chatgpt-web-codex-browser
     restart: unless-stopped
     shm_size: "2gb"
+    environment:
+      # #14486: fail-closed. Empty CDP_PROXY_TOKEN => the proxy generates a
+      # secret into the shared cdp-token volume that omniroute-prod reads.
+      - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
+      - CDP_PROXY_TOKEN_FILE=/cdp-token/token
     volumes:
       - chatgpt-web-codex-browser-prod-data:/browser-profile
+      - chatgpt-web-codex-cdp-token-prod:/cdp-token
 
 volumes:
+  chatgpt-web-codex-cdp-token-prod:
+    name: omniroute-chatgpt-web-codex-cdp-token-prod
   chatgpt-web-codex-browser-prod-data:
     name: omniroute-chatgpt-web-codex-browser-prod-data
   omniroute-prod-data:

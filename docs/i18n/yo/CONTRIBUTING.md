@@ -400,19 +400,19 @@ Kọ àwọn unit test sínú `tests/unit/` tí yóò kéré tán bo:
 ## Àtòjọ Àyẹ̀wò Pull Request
 
 - [ ] Àwọn ìdánwò kọjá (`npm test`)
-- [ ] Linting kọjá (`npm run lint`)
-- [ ] Build ṣàṣeyọrí (`npm run build`)
-- [ ] A fi àwọn type TypeScript kún un fún àwọn function àti interface gbogbogbò tuntun
-- [ ] Kò sí secret tàbí iye fallback tí a kọ sínú kóòdù
-- [ ] A fi àwọn ẹ̀rí ìdánimọ̀ upstream gbogbogbò sínú kóòdù nípasẹ̀ `resolvePublicCred()` (wo [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), kì í ṣe gẹ́gẹ́ bí literal láé
-- [ ] Àwọn ìdáhùn àṣìṣe gba inú `buildErrorBody()` / `sanitizeErrorMessage()` kọjá — kò sí stack trace aláìṣe-àtúnṣe nínú body ìdáhùn (wo [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Àwọn àṣẹ shell (`exec` / `spawn`) ń fi àwọn iye runtime ránṣẹ́ nípasẹ̀ `env`, kì í ṣe nípasẹ̀ string interpolation
-- [ ] A fìdí gbogbo àwọn input múlẹ̀ pẹ̀lú schema Zod
-- [ ] A fi **fragment** changelog kún abẹ́ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` fún àwọn àyípadà tí olumulo yóò rí (wo [`changelog.d/README.md`](./changelog.d/README.md)) — **má ṣe** ṣàtúnṣe `CHANGELOG.md` ní tààrà; a máa ń kó àwọn fragment jọ nígbà release, wọn kì í sì í fa ìtakora láàárín àwọn PR láé
-- [ ] A ṣe àfikún sí àkọsílẹ̀ ìtọ́sọ́nà (bí ó bá yẹ)
-- [ ] Kò sí ìkìlọ̀ CodeQL / Secret-Scanning tuntun tí a ṣí, tàbí a kọ ọ̀kọ̀ọ̀kan sílẹ̀ pẹ̀lú ìdáláre ìmọ̀-ẹ̀rọ tó tọ́ka sí doc tó bá a mu nínú `docs/security/`
+- [ ] Àyẹ̀wò lint kọjá (`npm run lint`)
+- [ ] Ìkọ́lé ṣàṣeyọrí (`npm run build`)
+- [ ] Àwọn irú TypeScript ti jẹ́ àfikún fún àwọn iṣẹ́ àti àwọn interface tuntun tí ó wà fún gbogbo ènìyàn
+- [ ] Kò sí àwọn àṣírí tàbí iye àfẹ́yìntì tí a kọ sínú kóòdù ní tààrà
+- [ ] Àwọn ẹ̀rí ìdánimọ̀ upstream tí ó wà fún gbogbo ènìyàn ni a fi sínú rẹ̀ nípasẹ̀ `resolvePublicCred()` (wo [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), kì í ṣe gẹ́gẹ́ bí literal láé
+- [ ] Àwọn ìdáhùn àṣìṣe ń gba `buildErrorBody()` / `sanitizeErrorMessage()` kọjá — kò sí àwọn stack trace aise nínú ara ìdáhùn (wo [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Àwọn àṣẹ shell (`exec` / `spawn`) ń fi àwọn iye runtime ránṣẹ́ nípasẹ̀ `env`, kì í ṣe nípasẹ̀ ìṣọ̀kan ọ̀rọ̀
+- [ ] Gbogbo àwọn input ni a fìdí rẹ̀ múlẹ̀ pẹ̀lú àwọn schema Zod
+- [ ] A ti ṣàfikún **àjákù** changelog sí abẹ́ `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` fún àwọn ìyípadà tí àwọn aṣàmúlò lè rí (wo [`changelog.d/README.md`](./changelog.d/README.md)) — **má ṣe** ṣàtúnṣe `CHANGELOG.md` ní tààrà; a máa ń kó àwọn àjákù jọ ní àkókò ìtújáde, wọn kì í sì í forí gbárí láàárín àwọn PR
+- [ ] A ti mú àwọn ìwé àlàyé dọ́gba (bí ó bá yẹ)
+- [ ] Kò sí ìkìlọ̀ CodeQL / Secret-Scanning tuntun tí a ṣí, tàbí a ti kọ ọ̀kọ̀ọ̀kan sílẹ̀ pẹ̀lú ìdáláre ìmọ̀ ẹ̀rọ tí ó tọ́ka sí ìwé `docs/security/` tó yẹ
 - [ ] Àwọn route tí ń dá child process sílẹ̀ (`/api/mcp/`, `/api/cli-tools/runtime/`) ni a pín sí `isLocalOnlyPath()` nínú `src/server/authz/routeGuard.ts` — wo [Òfin Líle #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Kò sí trailer `Co-Authored-By` nínú àwọn ìfiránṣẹ́ commit — àwọn commit gbọ́dọ̀ farahàn lábẹ́ Git identity olówó repository nìkan (Òfin Líle #16)
+- [ ] Kò sí trailer `Co-authored-by` ti AI/bot nínú àwọn ọ̀rọ̀ commit (Òfin Líle #16) — àwọn alábàáṣiṣẹ́ ènìyàn tí a tún lo iṣẹ́ wọn ni a fún ní ìkànsí pẹ̀lú àwọn trailer boṣewa `Co-authored-by: Name <email>`
 
 ---
 
@@ -428,9 +428,8 @@ Lẹ́yìn náà, lo àwọn skill `/deploy-vps-*-cc` tí ó máa ń lo rsync l�
 
 ## Bí A Ṣe Lè Rí Ìrànlọ́wọ́
 
-- **Àwòrán-ẹ̀rọ**: Wo [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **Ìṣètò Àwòrán Ẹ̀rọ**: Wo [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Ìtọ́kasí API**: Wo [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Àwọn ìwé ààbò**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Àwọn ìwé iṣẹ́-ìṣàkóso**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Àwọn àkọsílẹ̀ ààbò**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Àwọn àkọsílẹ̀ iṣẹ́ ìṣàkóso**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Àwọn ìṣòro**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Àwọn ADR**: Wo `docs/adr/` fún àwọn àkọsílẹ̀ ìpinnu àwòrán-ẹ̀rọ

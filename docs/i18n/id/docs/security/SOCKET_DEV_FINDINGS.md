@@ -205,13 +205,13 @@ untuk memusatkan kredensial tim. Perbaikan ini membuat model ancaman menjadi jel
 
 ## Profil build: `minimal`
 
-Untuk pengguna yang memerlukan artefak yang ramah Socket, lakukan build dengan:
+Untuk pengguna yang memerlukan artefak yang kompatibel dengan Socket, build dengan:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-`NormalModuleReplacementPlugin` dari webpack mengalihkan empat modul ke stub:
+`NormalModuleReplacementPlugin` webpack mengalihkan empat modul ke stub:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -221,12 +221,11 @@ OMNIROUTE_BUILD_PROFILE=minimal npm run build
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 Setiap stub mengekspor antarmuka yang sama, tetapi setiap fungsi melempar
-`featureDisabledError(name)` saat runtime. Route yang bergantung pada modul yang dinonaktifkan
-mengembalikan HTTP 503 dengan pesan yang jelas alih-alih mengaktifkan
-alur kode sensitif.
+`featureDisabledError(name)` saat runtime. Rute yang bergantung pada modul yang
+dinonaktifkan akan mengembalikan HTTP 503 dengan pesan yang jelas, alih-alih
+mengaktifkan jalur kode sensitif.
 
-Bundle yang dihasilkan ditujukan untuk diterbitkan sebagai `omniroute-secure`. Lihat
-`docs/ops/PUBLISHING_SECURE.md` untuk panduan penerbitan.
+Bundle yang dihasilkan dimaksudkan untuk dipublikasikan sebagai `omniroute-secure`.
 
 ---
 

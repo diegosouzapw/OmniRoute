@@ -118,21 +118,25 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
 
 ## ઉદાહરણ: OmniRouteની આગળ રિવર્સ પ્રોક્સી
 
-CORSને OmniRoute પોતે જ અમલમાં મૂકે છે, તેથી પ્રોક્સીએ સામાન્ય રીતે
-`Access-Control-*` હેડર્સ ઉમેરવા કે ફરીથી લખવા **ન જોઈએ** (ડબલ હેડર્સ બ્રાઉઝર્સમાં ખામી સર્જે છે). TLS
-ટર્મિનેટ કરીને ફૉર્વર્ડ કરો — પ્રીફ્લાઇટનો જવાબ OmniRouteને આપવા દો:
+CORSને OmniRoute પોતે લાગુ કરે છે, તેથી પ્રોક્સીએ સામાન્ય રીતે `Access-Control-*`
+હેડર્સ ઉમેરવા કે ફરી લખવા **જોઈએ નહીં** (ડુપ્લિકેટ હેડર્સ બ્રાઉઝર્સમાં સમસ્યા સર્જે છે). TLS
+ટર્મિનેટ કરો અને ફોરવર્ડ કરો — પ્રીફ્લાઇટનો જવાબ OmniRouteને આપવા દો:
 
 ```nginx
-# nginx — OmniRoute પર ફૉર્વર્ડ કરો; અહીં Access-Control-* ઇન્જેક્ટ કરશો નહીં
+# nginx — OmniRoute પર ફોરવર્ડ કરો; અહીં Access-Control-* ઉમેરશો નહીં
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-Forને 127.0.0.1 પર સેટ કરશો નહીં — તે લૂપબૅક રૂટ ગાર્ડને નિષ્ફળ બનાવે છે.
+    # ફોરવર્ડિંગ હેડર્સ જાળવી રાખો: સમાન હોસ્ટ પરની પ્રોક્સી લૂપબૅકથી કનેક્ટ થાય છે, અને આ હેડર્સ
+    # OmniRouteને જણાવે છે કે કૉલ કરનાર સ્થાનિક ઑપરેટર નથી. જો પ્રોક્સી આમાંથી કોઈ પણ હેડર ન ઉમેરે,
+    # તો દરેક રિમોટ કૉલર સ્થાનિક હોય તેવું જણાય છે. X-Forwarded-Forને ક્યારેય 127.0.0.1 પર પણ સેટ કરશો નહીં.
 }
 ```
 
-મંજૂર બ્રાઉઝર ઑરિજિન્સને પ્રોક્સીમાં નહીં, પરંતુ OmniRouteમાં (`CORS_ALLOWED_ORIGINS` અથવા
+માન્ય બ્રાઉઝર ઓરિજિન્સ પ્રોક્સીમાં નહીં, પરંતુ OmniRouteમાં (`CORS_ALLOWED_ORIGINS` અથવા
 Security ટૅબમાં) સેટ કરો.
 
 ## સોર્સ ફાઇલો

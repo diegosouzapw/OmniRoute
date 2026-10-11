@@ -1,0 +1,1 @@
+- **fix(usage):** normalize every decimal comma (not just the first) in the SYNTX token-balance and percent-left parsers, closing CodeQL #1107 ([#16063](https://github.com/diegosouzapw/OmniRoute/pull/16063))

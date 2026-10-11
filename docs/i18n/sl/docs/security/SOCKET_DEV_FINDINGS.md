@@ -214,28 +214,27 @@ centralizira poverilnice ekipe. Popravek jasno opredeljuje model groženj:
 
 ## Profil gradnje: `minimal`
 
-Uporabniki, ki potrebujejo artefakt, prijazen do Socket, naj ga zgradijo z:
+Za uporabnike, ki potrebujejo artefakt, združljiv s Socket, izvedite gradnjo z:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpackov `NormalModuleReplacementPlugin` štiri module preusmeri na nadomestke:
+Webpackov `NormalModuleReplacementPlugin` preslika štiri module na nadomestne izvedbe:
 
-| Modul                                       | Nadomestek                                       |
+| Modul                                       | Nadomestna izvedba                               |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Vsak nadomestek izvaža enak vmesnik, vendar vsaka funkcija med izvajanjem sproži
-`featureDisabledError(name)`. Poti, ki so odvisne od onemogočenega modula,
-vrnejo HTTP 503 z jasnim sporočilom, namesto da bi aktivirale občutljivo
-izvajalno pot.
+Vsaka nadomestna izvedba izvaža enak vmesnik, vendar vsaka funkcija med izvajanjem sproži
+`featureDisabledError(name)`. Poti, ki so odvisne od onemogočenega
+modula, vrnejo HTTP 503 z jasnim sporočilom, namesto da bi aktivirale
+občutljivo kodno pot.
 
-Nastali paket je namenjen objavi kot `omniroute-secure`. Navodila za objavo so v
-`docs/ops/PUBLISHING_SECURE.md`.
+Nastali sveženj je namenjen objavi kot `omniroute-secure`.
 
 ---
 

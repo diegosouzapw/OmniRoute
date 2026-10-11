@@ -1,7 +1,7 @@
 ---
 title: "API Reference"
-version: 3.8.51
-lastUpdated: 2026-08-31
+version: 3.8.52
+lastUpdated: 2026-10-05
 ---
 
 # API Reference
@@ -9,6 +9,9 @@ lastUpdated: 2026-08-31
 🌐 **Languages:** 🇺🇸 [English](./API_REFERENCE.md) | 🇪🇹 [አማርኛ](../i18n/am/docs/reference/API_REFERENCE.md) | 🇸🇦 [العربية](../i18n/ar/docs/reference/API_REFERENCE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/reference/API_REFERENCE.md) | 🇧🇬 [Български](../i18n/bg/docs/reference/API_REFERENCE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/reference/API_REFERENCE.md) | 🇧🇦 [Bosanski](../i18n/bs/docs/reference/API_REFERENCE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/reference/API_REFERENCE.md) | 🇩🇰 [Dansk](../i18n/da/docs/reference/API_REFERENCE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/reference/API_REFERENCE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/reference/API_REFERENCE.md) | 🇪🇸 [Español](../i18n/es/docs/reference/API_REFERENCE.md) | 🇪🇪 [Eesti](../i18n/et/docs/reference/API_REFERENCE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/reference/API_REFERENCE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/reference/API_REFERENCE.md) | 🇫🇷 [Français](../i18n/fr/docs/reference/API_REFERENCE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/reference/API_REFERENCE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/reference/API_REFERENCE.md) | 🇳🇬 [Hausa](../i18n/ha/docs/reference/API_REFERENCE.md) | 🇮🇱 [עברית](../i18n/he/docs/reference/API_REFERENCE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/reference/API_REFERENCE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/reference/API_REFERENCE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/reference/API_REFERENCE.md) | 🇦🇲 [Հայերեն](../i18n/hy/docs/reference/API_REFERENCE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/reference/API_REFERENCE.md) | 🇳🇬 [Igbo](../i18n/ig/docs/reference/API_REFERENCE.md) | 🇮🇹 [Italiano](../i18n/it/docs/reference/API_REFERENCE.md) | 🇯🇵 [日本語](../i18n/ja/docs/reference/API_REFERENCE.md) | 🇬🇪 [ქართული](../i18n/ka/docs/reference/API_REFERENCE.md) | 🇰🇭 [ខ្មែរ](../i18n/km/docs/reference/API_REFERENCE.md) | 🇮🇳 [ಕನ್ನಡ](../i18n/kn/docs/reference/API_REFERENCE.md) | 🇰🇷 [한국어](../i18n/ko/docs/reference/API_REFERENCE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/reference/API_REFERENCE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/reference/API_REFERENCE.md) | 🇮🇳 [മലയാളം](../i18n/ml/docs/reference/API_REFERENCE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/reference/API_REFERENCE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/reference/API_REFERENCE.md) | 🇲🇹 [Malti](../i18n/mt/docs/reference/API_REFERENCE.md) | 🇲🇲 [မြန်မာ](../i18n/my/docs/reference/API_REFERENCE.md) | 🇳🇵 [नेपाली](../i18n/ne/docs/reference/API_REFERENCE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/reference/API_REFERENCE.md) | 🇳🇴 [Norsk](../i18n/no/docs/reference/API_REFERENCE.md) | 🇮🇳 [ଓଡ଼ିଆ](../i18n/or/docs/reference/API_REFERENCE.md) | 🇮🇳 [ਪੰਜਾਬੀ](../i18n/pa/docs/reference/API_REFERENCE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/reference/API_REFERENCE.md) | 🇵🇱 [Polski](../i18n/pl/docs/reference/API_REFERENCE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/reference/API_REFERENCE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/reference/API_REFERENCE.md) | 🇷🇴 [Română](../i18n/ro/docs/reference/API_REFERENCE.md) | 🇷🇺 [Русский](../i18n/ru/docs/reference/API_REFERENCE.md) | 🇱🇰 [සිංහල](../i18n/si/docs/reference/API_REFERENCE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/reference/API_REFERENCE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/reference/API_REFERENCE.md) | 🇷🇸 [Српски](../i18n/sr/docs/reference/API_REFERENCE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/reference/API_REFERENCE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/reference/API_REFERENCE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/reference/API_REFERENCE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/reference/API_REFERENCE.md) | 🇹🇭 [ไทย](../i18n/th/docs/reference/API_REFERENCE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/reference/API_REFERENCE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/reference/API_REFERENCE.md) | 🇵🇰 [اردو](../i18n/ur/docs/reference/API_REFERENCE.md) | 🇺🇿 [Oʻzbekcha](../i18n/uz/docs/reference/API_REFERENCE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/reference/API_REFERENCE.md) | 🇳🇬 [Yorùbá](../i18n/yo/docs/reference/API_REFERENCE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/reference/API_REFERENCE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/reference/API_REFERENCE.md)
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
+
+For the focused OpenAI-compatible protocol and provider capability matrix, see
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
 
 ---
 
@@ -274,6 +277,12 @@ Provider translation (canonical items are never forwarded unchanged):
   top-level item.
 - Gemini Embedding 2 family: one top-level array becomes a single native
   `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, any model the local server loaded): canonical `text` items
+  become plain strings, and `image` / `audio` / `video` become one
+  `{"content": [part]}` object each, using llama-server's chat content parts (`image_url`,
+  `input_audio` with format `wav` / `mp3` / `flac`, `input_video`) with inline data; one vector
+  per top-level item. The server must run with `--embedding --mmproj …`; without a projector it
+  rejects media itself. `document` is not supported.
 - Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
@@ -315,7 +324,26 @@ Content-Type: application/json
 }
 ```
 
-Available providers: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
+Available providers include OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, **ZenMux**, SD WebUI (local), ComfyUI (local).
+
+ZenMux reuses the existing API-key connection and accepts `zenmux/` or `zm/` prefixes:
+
+- `zenmux/openai/gpt-image-2` uses ZenMux's OpenAI Images API. Options include `size`,
+  `quality`, `n`, `output_format`, `output_compression`, `background`, and `response_format`.
+- Other publishers, such as `zm/meta/muse-image-1.0`, use ZenMux's Vertex AI `:predict`
+  endpoint. `n` maps to `sampleCount`, `aspect_ratio` to `aspectRatio`, and `image_size`
+  (`1K`, `2K`, `4K`) to `sampleImageSize`. A pixel `size` supplies only an aspect ratio,
+  not guaranteed pixel dimensions. Supported ratios, resolutions, and counts vary by model.
+- `zm/inclusionai/ming-image-0.1-design` chooses its own dimensions. Omit `size`,
+  `aspect_ratio`, and `image_size`; explicit values return HTTP 400. PNG, JPEG, and WebP
+  can be requested with `output_format`.
+
+This integration supports text-to-image generation, not reference-image editing. Vertex
+output is normalized to `data[].b64_json`; `response_format: "url"` returns an upstream
+HTTPS URL or a base64 data URL when only image bytes are available. Empty/filtered outputs
+return an error rather than an empty success. Model access depends on the ZenMux account.
+See [ZenMux's Vertex API](https://docs.zenmux.ai/api/vertexai/generate-images) and
+[OpenAI Images API](https://docs.zenmux.ai/api/openai/generate-an-image).
 
 ```bash
 # List all image models
@@ -419,6 +447,20 @@ field pointing at the primary id.
 Clients that render a model picker should request `?prefix=alias` — this is what the
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md) does.
 
+### Individually hidden chat models
+
+A model marked **Hidden** on its provider page is excluded from the catalog and rejected
+with HTTP `404` / `model_not_found` when requested explicitly. The check uses the resolved
+provider and model, including provider aliases, compatible-provider node prefixes, and
+connection defaults. A combo skips hidden targets and can use a visible sibling; when no
+executable target remains it returns the same error code. Unhiding takes effect on the next
+request. Image-only visibility overrides do not hide the chat model with the same ID.
+
+This individual model setting is separate from the
+[model exposure allow/deny lists](../routing/MODEL_EXPOSURE_LIST.md), which filter catalog
+advertisement and auto-routing candidates while retaining explicit dispatch. API-key model
+permissions continue to apply independently. The default catalog prefix mode remains `dual`.
+
 ### No-thinking model variants
 
 For thinking-capable Claude models, `/v1/models` also advertises a **no-thinking** variant whose id is prefixed with `claude-3-omniroute-no-thinking/`:
@@ -514,11 +556,14 @@ POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
 > (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
-> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible, and so are hostnames the
+> operator lists in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (e.g. a Docker/Compose service name such
+> as `http://reranker:8080/v1`; these are called directly, never through `HTTP(S)_PROXY` or a
+> connection's pinned proxy). Nodes on any other
 > host — a LAN box or Tailscale peer — are eligible only when the operator enables the
 > `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
-> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`);
-> cloud-metadata hosts are never routed to. The memory engine's rerank step calls this route over
+> outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
+> The memory engine's rerank step calls this route over
 > loopback, so the same rule governs `rerankProviderModel` in the Memory settings.
 >
 > **Local server shapes:** the node is called at `<base>/v1/rerank` and, on 404, at `<base>/rerank`
@@ -762,6 +807,57 @@ distinguishes them.
 **Auth:** the caller's own Bearer API key, validated with `isValidApiKey` — this is _not_ the
 management surface (`/api/keys/…`), which stays behind `requireManagementAuth`.
 
+### Raw vs. Cutoff-Adjusted Quota Percentages
+
+When consuming `/api/usage/om-usage`, callers should note the distinction between the
+percentages presented by the **plain-text output** and the structured **JSON output**:
+
+| Aspect               | Plain-text format (`/api/usage/om-usage` / `@@om-usage`)                             | JSON format (`?format=json`)                                          |
+| :------------------- | :----------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Output field**     | `NN% left` (e.g., `20% left`)                                                        | `provider.quotas` / `providers[].quotas`                              |
+| **Measurement**      | **Cutoff-adjusted usable allowance**: remaining capacity above the cutoff threshold  | **Raw upstream quota**: unadjusted provider measurement               |
+| **Cutoff scaling**   | Scaled via `effectiveRemainingPercent()` so the protected reserve reads as `0% left` | None (raw snapshot values as reported by the provider)                |
+| **Threshold data**   | Incorporated into the displayed percentage                                           | Stored in `quotaWindowThresholds` per connection (or server defaults) |
+| **Primary consumer** | Interactive CLIs, terminal prompts, human operators                                  | Programmatic integrations, dashboards, analytics, billing trackers    |
+
+#### The Cutoff Adjustment Formula
+
+OmniRoute supports proactive quota cutoffs to prevent upstream exhaustion (configured via connection
+`quotaWindowThresholds`, provider defaults, or global resilience settings). When a cutoff threshold
+(e.g., `cutoff = 25%`) is active on a quota window, the text renderer calculates remaining allowance as:
+
+- If `remaining <= cutoff`: returns `0%`.
+- If `remaining > cutoff`: returns `((remaining - cutoff) / (100 - cutoff)) * 100`.
+
+The formatted text output rounds this to the nearest integer (`Math.round(...)`).
+
+#### Illustrative Example
+
+Consider a provider window with **60% raw usage** (hence **40% raw remaining quota**) and a configured
+**25% remaining-quota cutoff** threshold:
+
+| Representation                | Calculation                                        | Remaining |                Implied Used                |
+| :---------------------------- | :------------------------------------------------- | :-------: | :----------------------------------------: |
+| **Raw JSON (`?format=json`)** | Upstream snapshot (`quotas[window]`)               |  **40%**  |                  **60%**                   |
+| **Text format (`NN% left`)**  | `((40 - 25) / (100 - 25)) * 100 = (15 / 75) * 100` |  **20%**  | **80%** (if calculating `100 - remaining`) |
+
+- **Why text shows 20% left:** Out of the 40% physical quota left on the account, 25% is reserved by the
+  cutoff policy. The caller has only 15% out of 75% usable headroom remaining before the router stops
+  routing to this connection. Scaling ensures the connection signals exhaustion (`0% left`) exactly when
+  routing will cease.
+- **Why JSON preserves raw values:** The JSON payload returns the exact provider snapshot (`UsageSnapshot`)
+  so external tools have access to ground-truth upstream utilization and connection-level
+  `quotaWindowThresholds` without server-side lossy scaling.
+
+#### Consumer Migration Guidance
+
+If an external integration (such as an editor plugin or agent extension) previously scraped the text
+endpoint (`NN% left`) and computed used percentage as `100 - NN`, migrating to `?format=json` means:
+
+- Reading raw JSON values will reflect **actual upstream consumption** (60% used in the example above).
+- If the integration wishes to preserve the text endpoint's usable-allowance semantics, it can evaluate
+  the effective remaining formula client-side using `quotaWindowThresholds` for connection-level overrides.
+
 ---
 
 ## Semantic Cache
@@ -845,17 +941,59 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                     | Method                | Description                                                                                               |
-| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- |
-| `/api/providers`             | GET/POST              | List / create providers                                                                                   |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                                                                                         |
-| `/api/providers/[id]/test`   | POST                  | Test provider connection                                                                                  |
-| `/api/providers/[id]/models` | GET                   | List provider models                                                                                      |
-| `/api/providers/validate`    | POST                  | Validate provider config                                                                                  |
-| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider                                                                        |
-| `/api/providers/import`      | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results |
-| `/api/provider-nodes*`       | Various               | Provider node management                                                                                  |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                            |
+| Endpoint                                | Method                    | Description                                                                                                                                               |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                      | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                       | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                      | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                      | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                      | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various                   | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Custom models and per-model overrides (add, update, hide/show, delete)                                                                                    |
+| `/api/provider-models/validate-and-add` | POST                      | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+For synced/imported models, `PUT /api/provider-models` accepts `provider`, `modelId`, and
+`maxOutputTokenOverride`: a positive integer sets the manual output-token cap, and `null`
+clears it to restore the default. `GET /api/provider-models?provider=<provider>` returns these
+values in `modelOutputOverrides`, including models without a custom-model row. The override
+uses the runtime `max_output_tokens` capability and survives a model re-sync. The OpenAI-compatible
+provider page offers the same edit/clear controls and marks models with explicit vision support.
+
+Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
+successful connection test automatically selects chat-template controls for each exact model ID
+whose `/models` entry proves a recognized `owned_by` value: `vllm`, `sglang`, or `llamacpp`.
+Transparent OpenAI-compatible wrappers may preserve the original model entry inside a nested
+`openai` object; detection follows up to three such envelopes. Models with missing, unknown, or
+conflicting ownership keep ordinary OpenAI behavior. Detection reuses the existing catalog request,
+generates no completion tokens, and is invalidated when the connection endpoint changes.
+
+To pin the behavior for a backend that does not expose that metadata, use the existing partial
+provider update API:
+
+```json
+{
+  "providerSpecificData": {
+    "reasoningControl": "chat-template"
+  }
+}
+```
+
+Send that body with `PUT /api/providers/<connection-id>`. On that connection, an explicit
+reasoning effort of `none` is sent as `chat_template_kwargs.thinking=false` and
+`chat_template_kwargs.enable_thinking=false`. Explicit native template values remain authoritative
+unless a server-side reasoning rule forces an effort. The setting applies only when a custom
+OpenAI-compatible connection dispatches a Chat Completions body; Responses requests and ordinary
+providers keep their native request shape. Set `reasoningControl` to `openai` to force ordinary OpenAI
+`reasoning_effort` passthrough, or omit it/set it to `null` to use automatic detection.
+
+Claude Code auto-mode classifier requests default native thinking to disabled when they contain
+no explicit reasoning controls. Detection uses the classifier's system marker in Claude-format
+requests, not model names or completion limits. Explicit body controls, supported effort/thinking
+headers, routing rules, and resolved model effort keep their existing priority. Both classifier
+stages retain their prompts, completion limits, stop sequences, and real upstream permission
+verdicts; the second stage can still produce its requested visible reasoning as ordinary text.
 
 ### OAuth Flows
 
@@ -884,6 +1022,47 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 | `/api/usage/token-limits`        | GET/POST/DELETE | Per-API-key token-limit budgets                                                                                                                                                                                                                                                                      |
 | `/api/usage/model-latency-stats` | GET             | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
 | `/api/usage/cache-health`        | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
+
+### API key permissions
+
+`PATCH /api/keys/{id}` updates an existing key's permissions. Like every `/api/keys*` route it needs management authorization (see [Management Authentication](../guides/MANAGEMENT-AUTH.md)), not an inference key. Send only the fields you want to change; a request with none of them is rejected with `No valid fields to update`. The accepted fields are defined by `updateKeyPermissionsSchema` in `src/shared/validation/schemas/keys.ts`.
+
+| Field                                       | Type                                                                 | Notes                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | string, 1-200 chars                                                  |                                                                                                                        |
+| `isActive`                                  | boolean                                                              |                                                                                                                        |
+| `isBanned`                                  | boolean                                                              |                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 datetime or `null`                                          | `null` clears the expiry                                                                                               |
+| `modelAccessMode`                           | `all` \| `restricted`                                                | `allowedModels` must be empty when the mode is `all`                                                                   |
+| `allowedModels`, `blockedModels`            | array of strings, up to 1000                                         |                                                                                                                        |
+| `allowedCombos`                             | array of strings, up to 500                                          | Gates which combos the key may call; direct models are governed by `modelAccessMode` / `allowedModels`                 |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                | `allowedConnections` must be non-empty when `restricted` and empty when `all`                                          |
+| `allowedConnections`                        | array of UUIDs, up to 100                                            |                                                                                                                        |
+| `allowAutoCombos`                           | boolean                                                              | `false` rejects requests for `auto/*` models with this key; keys that never set it are allowed                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                        | What `GET /v1/models` lists for this key (combos only, models only, or both); it does not change what the key may call |
+| `noLog`, `autoResolve`                      | boolean                                                              |                                                                                                                        |
+| `throttleDelayMs`                           | integer, 0-300000                                                    |                                                                                                                        |
+| `maxSessions`                               | integer, 0-10000                                                     |                                                                                                                        |
+| `rateLimits`                                | array of `{ limit, window }` (positive integers, up to 50) or `null` | `null` clears the limits                                                                                               |
+| `accessSchedule`                            | schedule object or `null`                                            | `null` clears the schedule                                                                                             |
+| `scopes`                                    | array of strings, up to 32                                           |                                                                                                                        |
+| `allowedEndpoints`                          | array of strings, up to 20                                           |                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                   |                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                 | See [Per-key cache bypass](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | boolean                                                              |                                                                                                                        |
+| `codexServiceMode`                          | one of the Codex service modes                                       |                                                                                                                        |
+| `disableNonPublicModels`                    | boolean                                                              |                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                              |                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                              |                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 or `null`                                                |                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                              |                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
 
 ### Settings
 
@@ -1019,13 +1198,15 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint                 | Method | Description                                          |
-| ------------------------ | ------ | ---------------------------------------------------- |
-| `/api/init`              | GET    | Application initialization check (used on first run) |
-| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`           | POST   | Trigger graceful server restart                      |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
-| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/api/init`              | GET    | Application initialization check (used on first run)   |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
+| `/api/restart`           | POST   | Trigger graceful server restart                        |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
+| `/api/system/version`    | GET    | Current/latest version, update status, release channel |
+| `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1049,6 +1230,43 @@ Repairs missing or corrupted OAuth environment variables for a specific provider
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Version and Release Channel
+
+```bash
+GET /api/system/version
+```
+
+Loopback-only management route (admin auth). Returns the running version, the latest
+published version and the auto-update status. `releaseChannel` and `channels` are additive
+fields (rail 3.8.54); `channel` keeps its meaning — the deployment mode the dashboard updater
+uses (`npm`, `source` or `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm channel of the running build: `nightly` for `-nightly.*` versions,
+  `next` for other pre-releases (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for a stable version of an
+  older major than `channels.latest`, otherwise `latest`. Same rules as
+  `scripts/release/dist-tag.mjs`, which picks the npm dist-tag at publish time.
+- `channels` — published head of each dist-tag, from `npm view omniroute dist-tags` (registry
+  HTTP fallback), cached with the same 10-minute TTL as `latest`. `latest` is always present
+  (falls back to the `latest` field, then `"unavailable"`); `next`, `nightly` and `lts` appear
+  only when that dist-tag exists. A `Cache-Control: no-cache` request refreshes both lookups.
+
+The channel model (`latest` = v3 until the 4.0 GA, `next` = rc, `nightly` = `develop` builds,
+`lts` = v3 patches after the 4.0 GA) is described in `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

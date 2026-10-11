@@ -203,13 +203,13 @@ rawBody)`) ਦੀ ਜਾਂਚ ਕਰਦਾ ਹੈ। ਜੇ ਸੀਕ੍ਰੇ�
 
 ## ਬਿਲਡ ਪ੍ਰੋਫ਼ਾਈਲ: `minimal`
 
-ਜਿਨ੍ਹਾਂ ਵਰਤੋਂਕਾਰਾਂ ਨੂੰ Socket-ਅਨੁਕੂਲ ਆਰਟੀਫੈਕਟ ਦੀ ਲੋੜ ਹੈ, ਉਹ ਇਸ ਨਾਲ ਬਿਲਡ ਕਰਨ:
+ਜਿਨ੍ਹਾਂ ਉਪਭੋਗਤਾਵਾਂ ਨੂੰ Socket-ਅਨੁਕੂਲ ਆਰਟੀਫੈਕਟ ਦੀ ਲੋੜ ਹੈ, ਉਹ ਇਸ ਤਰ੍ਹਾਂ ਬਿਲਡ ਕਰਨ:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` ਚਾਰ ਮੋਡੀਊਲਾਂ ਨੂੰ ਸਟੱਬਾਂ ਨਾਲ ਐਲਿਅਸ ਕਰਦਾ ਹੈ:
+webpack ਦਾ `NormalModuleReplacementPlugin` ਚਾਰ ਮੋਡੀਊਲਾਂ ਨੂੰ ਸਟੱਬਾਂ ਨਾਲ ਐਲਿਆਸ ਕਰਦਾ ਹੈ:
 
 | ਮੋਡੀਊਲ                                      | ਸਟੱਬ                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -218,11 +218,11 @@ webpack `NormalModuleReplacementPlugin` ਚਾਰ ਮੋਡੀਊਲਾਂ ਨ�
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-ਹਰੇਕ ਸਟੱਬ ਉਹੀ ਇੰਟਰਫੇਸ ਐਕਸਪੋਰਟ ਕਰਦਾ ਹੈ, ਪਰ ਹਰ ਫੰਕਸ਼ਨ ਰਨਟਾਈਮ 'ਤੇ
-`featureDisabledError(name)` ਥ੍ਰੋ ਕਰਦਾ ਹੈ। ਅਯੋਗ ਕੀਤੇ ਮੋਡੀਊਲ 'ਤੇ ਨਿਰਭਰ ਰੂਟ, ਸੰਵੇਦਨਸ਼ੀਲ ਕੋਡ ਪਾਥ ਨੂੰ ਸਰਗਰਮ ਕਰਨ ਦੀ ਬਜਾਏ, ਇੱਕ ਸਪਸ਼ਟ ਸੁਨੇਹੇ ਨਾਲ HTTP 503 ਵਾਪਸ ਕਰਦੇ ਹਨ।
+ਹਰੇਕ ਸਟੱਬ ਉਹੀ ਇੰਟਰਫੇਸ ਐਕਸਪੋਰਟ ਕਰਦਾ ਹੈ, ਪਰ ਹਰ ਫੰਕਸ਼ਨ ਰਨਟਾਈਮ ਦੌਰਾਨ
+`featureDisabledError(name)` ਥ੍ਰੋ ਕਰਦਾ ਹੈ। ਅਯੋਗ ਕੀਤੇ ਮੋਡੀਊਲ 'ਤੇ ਨਿਰਭਰ ਰੂਟ,
+ਸੰਵੇਦਨਸ਼ੀਲ ਕੋਡ ਪਾਥ ਨੂੰ ਸਰਗਰਮ ਕਰਨ ਦੀ ਬਜਾਏ, ਇੱਕ ਸਪਸ਼ਟ ਸੁਨੇਹੇ ਸਮੇਤ HTTP 503 ਵਾਪਸ ਕਰਦੇ ਹਨ।
 
-ਨਤੀਜੇ ਵਜੋਂ ਬਣਿਆ ਬੰਡਲ `omniroute-secure` ਵਜੋਂ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਨ ਲਈ ਹੈ। ਪ੍ਰਕਾਸ਼ਨ ਵਿਧੀ ਲਈ
-`docs/ops/PUBLISHING_SECURE.md` ਵੇਖੋ।
+ਨਤੀਜੇ ਵਜੋਂ ਬਣੇ ਬੰਡਲ ਨੂੰ `omniroute-secure` ਵਜੋਂ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਨ ਲਈ ਤਿਆਰ ਕੀਤਾ ਗਿਆ ਹੈ।
 
 ---
 

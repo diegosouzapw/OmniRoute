@@ -9,17 +9,40 @@
 > **Kilde:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaos Mode sender **én opgave til flere udbydere på én gang** — hver deltagende udbyder
-bidrager med én modelinstans, og du får alle svarene vist side om side (eller sammenkædet). Det er en
-kørselsflade til flere modeller, ikke en routingstrategi: Din normale `/v1/chat/completions`-trafik
+bidrager med én modelinstans, og du får alle svarene side om side (eller sammenkædet). Det er en
+kørselsflade til flere modeller, ikke en routingstrategi: din normale trafik til `/v1/chat/completions`
 påvirkes aldrig af den.
 
-**Præcisering — der findes tre forskellige ting med "chaos" i navnet:**
+**Præcisering — tre forskellige ting leveres med "chaos" i navnet:**
 
-| Ting                     | Hvad det er                                                                                                                  | Hvor det er dokumenteret                     |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**           | Dashboard-siden + API'et, der beskrives her: Send én opgave ud til mange udbydere (parallelt eller kollaborativt).           | Denne vejledning                             |
-| `auto/chaos`             | Et Auto-Combo-model-id med vægte til fejlinjektionsscoring til robusthedstest. Intet skal konfigureres.                      | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos-kombokonfiguration | En permanent gemt kombination, hvor `config.chaos.enabled` sender ud til et panel med en valgfri bedømmelsesmodel (kun API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Ting                      | Hvad det er                                                                                                                                                  | Hvor det er dokumenteret                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| **Chaos Mode**            | Dashboard-siden + API'et, der beskrives her: send én opgave ud til mange udbydere (parallelt eller kollaborativt).                                           | Denne vejledning                             |
+| `auto/chaos`              | Auto-Combo-model-id: parallel fan-out, én model pr. udbyder, ét upstream-kald til hver. Ikke fejlinjektion ([detaljer](#autochaos-parallel-fan-out)).        | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo-konfiguration | En permanent gemt combo med `config.chaos.enabled` udfører fan-out på samme måde (kun via API); `judgeModel` vælger kun det endelige svar, uden syntesekald. | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: parallel fan-out
+
+`auto/chaos` er **ikke** en indstilling til fejlinjektion eller robusthedstest. En anmodning med
+`model: "auto/chaos"` på `/v1/chat/completions`:
+
+1. Opbygger et panel med **én model pr. udbyder**: den første kandidat fra hver
+   tilsluttet udbyder i kandidatpuljens rækkefølge, op til 5 medlemmer
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, begrænset til højst 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Vægtpakken `chaos-mode`
+   angiver kun hvert medlems `weight`; fan-out-processen læser den ikke.
+2. Sender den samme anmodning til alle panelmedlemmer **parallelt**, så én anmodning
+   koster ét upstream-kald pr. panelmedlem
+   (`open-sse/services/autoCombo/chaosEngine.ts`, afsendt fra
+   `open-sse/services/combo.ts`).
+3. Streamer én statuslinje pr. panelmedlem, efterhånden som resultatet ankommer: som standard en SSE-kommentar
+   (`: chaos <index> ok|fail <model>`) samt en `omni-chaos-part`-hændelse
+   (`model`, `index`, `ok`, `error`), når anmodningen angiver
+   `stream_options.include_chaos_parts: true`. Disse indeholder ingen svartekst.
+4. Sender **ét** panelsvar som det endelige chunk i OpenAI-stil: svaret fra det første panelmedlem
+   (`auto/chaos` angiver det som `judgeModel`), når det lykkes, og ellers
+   svaret fra det senest fuldførte medlem. De øvrige panelsvar returneres ikke, så
+   du betaler for N kald og modtager én fuldførelse.
 
 ## Opsætning
 

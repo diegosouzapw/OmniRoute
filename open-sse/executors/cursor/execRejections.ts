@@ -23,6 +23,11 @@ const BUILTIN_TOOL_REJECT_REASON =
   "Tool not available in this environment. Use the MCP tools provided instead.";
 
 export function buildExecRejection(event: ExecServerEvent): Buffer | null {
+  if (process.env.CURSOR_DEBUG || process.env.NODE_ENV === "development") {
+    console.info(
+      `[cursor-bridge] native tool rejection for event kind=${event.kind}: ${BUILTIN_TOOL_REJECT_REASON}`
+    );
+  }
   if (isExtraExecEvent(event)) {
     return encodeExtraExecResult(event);
   }

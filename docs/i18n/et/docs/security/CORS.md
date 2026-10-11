@@ -129,22 +129,26 @@ taaskäivitamiseta.
 
 ## Näide: pöördproksi OmniRoute'i ees
 
-CORS-i jõustab OmniRoute ise, seega ei tohiks proksi üldjuhul päiseid
-`Access-Control-*` lisada ega ümber kirjutada (topeltpäised põhjustavad brauserites tõrkeid). Lõpetage TLS
-ja edastage päring — laske OmniRoute'il eelpäringule vastata:
+CORS-i jõustab OmniRoute ise, seega ei tohiks proksi üldjuhul `Access-Control-*`
+päiseid lisada ega ümber kirjutada (topeltpäised põhjustavad brauserites tõrkeid). Lõpeta TLS
+ja edasta päring edasi — lase OmniRoute'il eelpäringule vastata:
 
 ```nginx
-# nginx — edasta OmniRoute'i; ÄRA sisesta siin päiseid Access-Control-*
+# nginx — edasta OmniRoute'ile; ÄRA sisesta siia Access-Control-* päiseid
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # ÄRA määra X-Forwarded-For väärtuseks 127.0.0.1 — see nurjab loopback-marsruudi kaitse.
+    # Säilita edastuspäised: samas hostis asuv proksi loob ühenduse tagasisideaadressilt ja just
+    # need annavad OmniRoute'ile teada, et helistaja ei ole kohalik operaator. Proksi, mis ei lisa neist ühtegi,
+    # jätab mulje, et iga kaughelistaja on kohalik. Ära määra ka X-Forwarded-For väärtuseks 127.0.0.1.
 }
 ```
 
-Määrake brauseri lubatud päritoluallikad OmniRoute'is (`CORS_ALLOWED_ORIGINS` või
-vahekaardil Turvalisus), mitte proksis.
+Määra brauseri lubatud päritolud OmniRoute'is (`CORS_ALLOWED_ORIGINS` või
+vahekaardil Security), mitte proksis.
 
 ## Lähtefailid
 

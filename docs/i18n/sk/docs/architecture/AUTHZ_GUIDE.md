@@ -17,58 +17,61 @@ OmniRoute má autorizačný pipeline, ktorý je citlivý na trasy a stráži ka�
 
 ### 1. Kľúč API (Bearer)
 
-Používa sa pre klientske API kompatibilné s OpenAI/Anthropic/Gemini a pre niektoré trasy správy, ak má kľúč rozsah `manage`.
+Používa sa pre klientske API kompatibilné s OpenAI/Anthropic/Gemini a niekoľko trás na správu, keď má kľúč rozsah `manage`.
 
 ```
-Authorization: Bearer <kľúč-api>
+Authorization: Bearer <api-key>
 ```
 
-Overuje sa pomocou `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts` a opätovne sa exportuje prostredníctvom `src/shared/utils/apiAuth.ts`. Overovací mechanizmus prijíma aj premenné prostredia `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ako trvalé kľúče na priame odovzdávanie (problém č. 1350).
+Overuje sa pomocou `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts` a opätovne sa exportuje prostredníctvom `src/shared/utils/apiAuth.ts`. Validátor akceptuje aj premenné prostredia `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ako trvalé priechodné kľúče (problém č. 1350).
 
 ### 2. Relácia ovládacieho panela (súbor cookie auth_token)
 
 Pre stránky ovládacieho panela a operácie správcu.
 
 ```
-Cookie: auth_token=<JWT podpísaný pomocou JWT_SECRET>
+Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
 Súbor cookie predstavuje reláciu iba vtedy, keď je JWT úspešne overený **a** obsahuje `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Každý
-spotrebiteľ súboru cookie (ochrana trasy, obnovenie autorizačného kanála, nadviazanie spojenia WebSocket, živý
+spotrebiteľ súboru cookie (ochrana trás ovládacieho panela (`isDashboardSessionAuthenticated()`), obnovenie v autorizačnom reťazci, nadviazanie spojenia WebSocket, živý
 server, `/api/settings/require-login`, `/api/auth/status`) používa túto pomocnú funkciu.
-Existujú aj iné JWT podpísané pomocou `JWT_SECRET` — priame odovzdávanie Cursor CLI vydáva
-držiteľom kľúčov tokeny s `iss "omniroute" / aud "cursor-cli"` — a tie sa nikdy nepovažujú za relácie
-(#13298).
+Existujú aj iné tokeny JWT podpísané pomocou `JWT_SECRET` — priechodný mechanizmus Cursor CLI vytvára
+pre držiteľov kľúčov tokeny s `iss "omniroute" / aud "cursor-cli"` — a tie nikdy nepredstavujú relácie
+(č. 13298).
 
-Overuje sa pomocou `isDashboardSessionAuthenticated()` v `src/shared/utils/apiAuth.ts`. Kanál automaticky obnoví JWT, keď do konca jeho 30-dňovej platnosti zostáva menej než 7 dní.
+Overenie vykonáva `isDashboardSessionAuthenticated()` v `src/shared/utils/apiAuth.ts`. Reťazec automaticky obnoví JWT, keď z jeho 30-dňovej platnosti zostáva menej ako 7 dní.
 
-Niektoré trasy správy akceptujú **ktorýkoľvek** režim: súbor cookie ALEBO `Bearer <key>`, ak má kľúč API rozsah `manage` (alebo `admin`). Práve to umožňuje pracovný postup „konfigurovateľné prostredníctvom volaní API“, ktorý bol pridaný vo verzii v3.8.
+Relácia sa môže skončiť aj pred uplynutím 30 dní, pretože každý mechanizmus vytvárania tokenov používa `mintDashboardSessionToken` (čas vydania `iat` a identifikátor `jti`) a overovací mechanizmus kontroluje dve nastavenia: `sessionsValidAfter`, ktoré sa nastaví pri zmene hesla, takže všetky relácie vydané pred týmto okamihom sa prestanú overovať (prehliadač, v ktorom bolo heslo zmenené, dostane nový súbor cookie), a `revokedDashboardSessions`, do ktorého `POST /api/auth/logout` pridá `jti` odhlásenej relácie. Relácie vytvorené staršou verziou neobsahujú ani jeden z týchto nárokov a zostávajú platné až do prvej zmeny hesla. Ak nastavenia nemožno načítať, relácia sa nepovažuje za dôveryhodnú.
 
-#### Voliteľná brána prihlásenia OIDC (#6973)
+Niektoré trasy na správu akceptujú **ktorýkoľvek** režim: súbor cookie ALEBO `Bearer <key>`, ak má kľúč API rozsah `manage` (alebo `admin`). To umožňuje pracovný postup „konfigurovateľné prostredníctvom volaní API“, ktorý bol pridaný vo v3.8.
 
-Prihlásenie správcu do ovládacieho panela podporuje okrem predvoleného prihlásenia heslom aj **voliteľný** postup OIDC (OpenID Connect) — prihlásenie heslom sa nikdy neodstráni, iba
+#### Voliteľná prihlasovacia brána OIDC (č. 6973)
+
+Prihlásenie správcu do ovládacieho panela podporuje aj **voliteľný** tok OIDC (OpenID Connect)
+popri predvolenom prihlásení heslom — prihlásenie heslom sa nikdy neodstráni, iba
 doplní:
 
-- Je vypnutý, pokiaľ `settings.oidcEnabled === true` **a zároveň** nie sú nakonfigurované všetky položky `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` (Nastavenia → Overovanie).
+- Je vypnuté, pokiaľ `settings.oidcEnabled === true` **a zároveň** nie sú nakonfigurované všetky
+  hodnoty `oidcIssuer` / `oidcClientId` / `oidcClientSecret` (Nastavenia → Overovanie).
   V opačnom prípade `GET /api/auth/oidc/login` vráti `400`.
-- `GET /api/auth/oidc/login` zistí `authorization_endpoint` z konfigurácie
-  `/.well-known/openid-configuration` vydavateľa (ako záložné riešenie použije
+- `GET /api/auth/oidc/login` vyhľadá `authorization_endpoint` v
+  `/.well-known/openid-configuration` vydavateľa (ako náhradné riešenie použije
   `<issuer>/authorize`), zostaví URI presmerovania z prichádzajúcej požiadavky
-  (so zohľadnením `x-forwarded-proto`) a presmeruje na IdP s náhodným reťazcom `state`
-  uloženým v súbore cookie `oidc_state` s príznakom `httpOnly`.
+  (s podporou `x-forwarded-proto`) a presmeruje na IdP s náhodnou hodnotou `state`
+  uloženou v súbore cookie `oidc_state` s atribútom `httpOnly`.
 - `GET /api/auth/oidc/callback` overí `state`, vymení autorizačný
   kód a overí podpis tokenu ID prostredníctvom JWKS vydavateľa
-  (`createRemoteJWKSet` z balíka `jose`, uložené vo vyrovnávacej pamäti pre každý identifikátor URI JWKS) s kontrolami `issuer`/`audience`.
-  Voliteľný zoznam povolených hodnôt `oidcAllowedSubjects` porovnáva deklaráciu `sub`
-  tokenu alebo jeho deklaráciu `email` — deklarácia e-mailu sa zohľadní iba vtedy, keď
-  `email_verified === true`, takže neoverený e-mail u IdP nikdy nemôže prejsť
-  touto bránou.
-- Pri úspechu sa vydá **presne ten istý** 30-dňový JWT `auth_token` ako pri prihlásení
-  heslom (`src/app/api/auth/login/route.ts`), takže zvyšok kanála relácie
-  ovládacieho panela (automatické obnovenie, príznaky súborov cookie) zostáva nezmenený —
-  OIDC nahrádza iba spôsob vydania súboru cookie, nie oprávnenia, ktoré udeľuje.
+  (`createRemoteJWKSet` z balíka `jose`, ukladané do vyrovnávacej pamäte pre každé URI JWKS) s kontrolami
+  `issuer`/`audience`. Voliteľný zoznam povolených hodnôt `oidcAllowedSubjects` porovná nárok
+  `sub` tokenu alebo jeho nárok `email` — nárok emailu sa akceptuje iba vtedy, keď
+  `email_verified === true`, takže neoverený email u IdP nikdy nemôže prejsť
+  cez bránu.
+- Po úspešnom overení sa vytvorí **presne ten istý** 30-dňový JWT `auth_token`, aký vydáva prihlásenie
+  heslom (`src/app/api/auth/login/route.ts`), takže zvyšok
+  reťazca relácie ovládacieho panela (automatické obnovenie, príznaky súboru cookie) zostáva nezmenený —
+  OIDC nahrádza iba spôsob vytvorenia súboru cookie, nie oprávnenia, ktoré udeľuje.
 
 ## Triedy trás
 

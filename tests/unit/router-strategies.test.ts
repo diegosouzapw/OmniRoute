@@ -337,7 +337,17 @@ test("selectWithStrategy — unknown strategy silently falls back to rules", () 
 test("listStrategies — exposes every registered strategy + aliases", () => {
   const names = listStrategies().map((s) => s.name);
   assert.ok(names.includes("score"), "listStrategies missing 'score'");
-  for (const n of ["rules", "cost", "eco", "latency", "fast", "sla-aware", "sla", "lkgp"]) {
+  for (const n of [
+    "rules",
+    "cost",
+    "eco",
+    "latency",
+    "fast",
+    "sla-aware",
+    "sla",
+    "lkgp",
+    "nadir",
+  ]) {
     assert.ok(names.includes(n), `listStrategies missing '${n}'`);
   }
 });

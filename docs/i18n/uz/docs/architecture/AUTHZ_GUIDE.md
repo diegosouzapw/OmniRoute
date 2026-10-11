@@ -17,15 +17,15 @@ OmniRoute har bir API soʻrovini boshqaradigan marshrutni biluvchi avtorizatsiya
 
 ### 1. API kaliti (Bearer)
 
-OpenAI/Anthropic/Gemini bilan mos mijoz API’lari hamda kalitda `manage` doirasi mavjud boʻlganda ayrim boshqaruv marshrutlari uchun ishlatiladi.
+OpenAI/Anthropic/Gemini bilan mos keluvchi mijoz API’lari va kalitda `manage` doirasi mavjud bo‘lganda ayrim boshqaruv yo‘nalishlari uchun ishlatiladi.
 
 ```
-Authorization: Bearer <api-kalit>
+Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts` ichidagi `isValidApiKey()` / `extractApiKey()` orqali tekshiriladi va `src/shared/utils/apiAuth.ts` orqali qayta eksport qilinadi. Validator, shuningdek, `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` muhit oʻzgaruvchilarini doimiy toʻgʻridan-toʻgʻri uzatish kalitlari sifatida qabul qiladi (masala #1350).
+`src/sse/services/auth.ts` ichidagi `isValidApiKey()` / `extractApiKey()` orqali tekshiriladi va `src/shared/utils/apiAuth.ts` orqali qayta eksport qilinadi. Validator, shuningdek, `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` muhit o‘zgaruvchilarini doimiy tranzit kalitlar sifatida qabul qiladi (masala #1350).
 
-### 2. Boshqaruv paneli sessiyasi (auth_token cookie fayli)
+### 2. Boshqaruv paneli sessiyasi (auth_token cookie-fayli)
 
 Boshqaruv paneli sahifalari va administrator amallari uchun.
 
@@ -33,43 +33,45 @@ Boshqaruv paneli sahifalari va administrator amallari uchun.
 Cookie: auth_token=<JWT_SECRET bilan imzolangan JWT>
 ```
 
-Cookie faqat JWT tekshiruvdan oʻtganida **va** `authenticated: true` qiymatini oʻz ichiga olganida sessiya hisoblanadi
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Cookie’dan
-foydalanuvchi har bir komponent (marshrut himoyachisi, authz konveyerini yangilash, WebSocket ulanishi, jonli
-server, `/api/settings/require-login`, `/api/auth/status`) shu yordamchi orqali oʻtadi.
-`JWT_SECRET` bilan imzolangan boshqa JWT’lar ham mavjud — Cursor CLI toʻgʻridan-toʻgʻri uzatish mexanizmi
-kalit egalariga `iss "omniroute" / aud "cursor-cli"` tokenlarini yaratadi — va ular hech qachon sessiya
-hisoblanmaydi (#13298).
+JWT tekshiruvdan o‘tganda **va** `authenticated: true` qiymatini o‘z ichiga olgandagina cookie-fayl sessiya hisoblanadi
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Cookie-faylning har bir
+iste’molchisi (boshqaruv paneli yo‘nalishi himoyachisi (`isDashboardSessionAuthenticated()`), authz konveyerining yangilanishi, WebSocket ulanishi, jonli
+server, `/api/settings/require-login`, `/api/auth/status`) shu yordamchi orqali ishlaydi.
+`JWT_SECRET` bilan imzolangan boshqa JWT’lar ham mavjud — Cursor CLI tranziti kalit egalariga
+`iss "omniroute" / aud "cursor-cli"` tokenlarini yaratadi — va ular hech qachon sessiya hisoblanmaydi
+(#13298).
 
-`src/shared/utils/apiAuth.ts` ichidagi `isDashboardSessionAuthenticated()` orqali tekshiriladi. JWT’ning 30 kunlik amal qilish muddatidan 7 kundan kam vaqt qolganda konveyer uni avtomatik ravishda yangilaydi.
+`src/shared/utils/apiAuth.ts` ichidagi `isDashboardSessionAuthenticated()` orqali tekshiriladi. JWT’ning 30 kunlik amal qilish muddatidan 7 kundan kamroq vaqt qolganida konveyer uni avtomatik ravishda yangilaydi.
 
-Ayrim boshqaruv marshrutlari **har ikkala** rejimni qabul qiladi: cookie YOKI API kalitida `manage` (yoki `admin`) doirasi mavjud boʻlsa, `Bearer <key>`. Aynan shu v3.8 versiyasida qoʻshilgan «API chaqiruvlari orqali sozlash» ish jarayonini taʼminlaydi.
+Sessiya 30 kun tugashidan oldin ham yakunlanishi mumkin, chunki har bir token yaratuvchi `mintDashboardSessionToken` orqali ishlaydi (yaratilish vaqti `iat` va identifikator `jti`) va tekshiruvchi ikkita sozlamani tekshiradi: `sessionsValidAfter`, parol o‘zgartirilganda o‘rnatiladi, shunda undan oldin yaratilgan barcha sessiyalar tekshiruvdan o‘tmaydi (parolni o‘zgartirgan brauzer yangi cookie-fayl oladi), hamda `revokedDashboardSessions`, unga `POST /api/auth/logout` tizimdan chiqarilgan sessiyaning `jti` qiymatini qo‘shadi. Eskiroq versiyada yaratilgan sessiyalar bu da’volarning hech birini o‘z ichiga olmaydi va birinchi parol o‘zgarishigacha amal qiladi. Agar sozlamalarni o‘qib bo‘lmasa, sessiyaga ishonilmaydi.
 
-#### Ixtiyoriy OIDC kirish nazorati (#6973)
+Ba’zi boshqaruv yo‘nalishlari **ikkala** rejimdan birini qabul qiladi: cookie-fayl YOKI API kalitida `manage` (yoki `admin`) doirasi mavjud bo‘lganda `Bearer <key>`. Bu v3.8 versiyasida qo‘shilgan «API chaqiruvlari orqali sozlanadigan» ish jarayonini ta’minlaydi.
 
-Boshqaruv panelidagi administrator kirishi standart parol orqali kirishga qoʻshimcha ravishda
-**ixtiyoriy ravishda yoqiladigan** OIDC (OpenID Connect) oqimini ham qoʻllab-quvvatlaydi — parol orqali kirish hech qachon olib tashlanmaydi, faqat
-toʻldiriladi:
+#### Ixtiyoriy OIDC kirish to‘sig‘i (#6973)
 
-- `settings.oidcEnabled === true` boʻlmasa **hamda** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` qiymatlarining barchasi sozlanmagan boʻlsa (Settings → Auth),
-  funksiya oʻchirilgan boʻladi. Aks holda `GET /api/auth/oidc/login` `400` qaytaradi.
+Boshqaruv panelidagi administrator kirishi, shuningdek, standart parol orqali kirish bilan birga **ixtiyoriy ravishda yoqiladigan** OIDC (OpenID Connect) jarayonini
+qo‘llab-quvvatlaydi — parol orqali kirish hech qachon olib tashlanmaydi, faqat
+to‘ldiriladi:
+
+- Faqat `settings.oidcEnabled === true` bo‘lsa **va** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` qiymatlarining barchasi sozlangan bo‘lsa (Sozlamalar → Autentifikatsiya) yoqiladi.
+  Aks holda `GET /api/auth/oidc/login` `400` qaytaradi.
 - `GET /api/auth/oidc/login` emitentning
-  `/.well-known/openid-configuration` manzilidan `authorization_endpoint`ni aniqlaydi (topilmasa,
-  `<issuer>/authorize`dan foydalanadi), kiruvchi soʻrov asosida qayta yoʻnaltirish URI’sini
-  (`x-forwarded-proto`ni hisobga olgan holda) tuzadi va `httpOnly` turidagi `oidc_state` cookie faylida
-  saqlanadigan tasodifiy `state` bilan IdP’ga qayta yoʻnaltiradi.
-- `GET /api/auth/oidc/callback` `state`ni tekshiradi, avtorizatsiya
-  kodini almashtiradi va `issuer`/`audience`
-  tekshiruvlari bilan emitentning JWKS’i orqali ID token imzosini
-  (`jose`ning `createRemoteJWKSet` funksiyasi, har bir JWKS URI uchun keshlanadi) tekshiradi. Ixtiyoriy `oidcAllowedSubjects` ruxsat roʻyxati tokenning
-  `sub` daʼvosiga yoki uning `email` daʼvosiga mos keladi — email daʼvosi faqat
-  `email_verified === true` boʻlganda qabul qilinadi, shuning uchun IdP’dagi tasdiqlanmagan email hech qachon
-  nazoratdan oʻta olmaydi.
-- Muvaffaqiyatli yakunlanganda u parol orqali kirish chiqaradigan **aynan bir xil** 30 kunlik `auth_token` JWT’ni
-  (`src/app/api/auth/login/route.ts`) yaratadi, shu sababli boshqaruv paneli
-  sessiyasi konveyerining qolgan qismi (avtomatik yangilash, cookie bayroqlari) oʻzgarmaydi —
-  OIDC faqat cookie qanday yaratilishini almashtiradi, u beradigan ruxsatlarni emas.
+  `/.well-known/openid-configuration` manzilidan `authorization_endpoint` qiymatini aniqlaydi (topilmasa,
+  `<issuer>/authorize` dan foydalanadi), kiruvchi so‘rov asosida qayta yo‘naltirish URI manzilini yaratadi
+  (`x-forwarded-proto` ni hisobga oladi) va `httpOnly` xususiyatli `oidc_state` cookie-faylida saqlangan tasodifiy `state`
+  bilan IdP’ga qayta yo‘naltiradi.
+- `GET /api/auth/oidc/callback` `state` qiymatini tekshiradi, avtorizatsiya
+  kodini almashtiradi va emitentning JWKS’i orqali ID token imzosini
+  (`jose` paketidagi `createRemoteJWKSet`, har bir JWKS URI uchun keshlanadi) `issuer`/`audience`
+  tekshiruvlari bilan tasdiqlaydi. Ixtiyoriy `oidcAllowedSubjects` ruxsat ro‘yxati tokenning
+  `sub` da’vosi yoki uning `email` da’vosiga moslikni tekshiradi — email da’vosi faqat
+  `email_verified === true` bo‘lganda qabul qilinadi, shu sababli IdP’dagi tasdiqlanmagan email hech qachon
+  to‘siqdan o‘ta olmaydi.
+- Muvaffaqiyatli bo‘lsa, u parol orqali kirishda beriladigan **aynan o‘sha** 30 kunlik `auth_token` JWT’ni
+  yaratadi (`src/app/api/auth/login/route.ts`), shu sababli boshqaruv paneli
+  sessiya konveyerining qolgan qismi (avtomatik yangilash, cookie-fayl bayroqlari) o‘zgarmaydi —
+  OIDC faqat cookie-fayl qanday yaratilishini almashtiradi, u qanday huquqlar berishini emas.
 
 ## Marshrut sinflari
 

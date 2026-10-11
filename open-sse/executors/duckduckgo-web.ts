@@ -468,7 +468,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     const upstreamHeaders = upstreamExtraHeaders || {};
 
     const errorResponse = (status: number, message: string, retryAfter?: string | null): Response =>
-      new Response(JSON.stringify({ error: { message } }), {
+      new Response(JSON.stringify({ error: { message: sanitizeErrorMessage(message) } }), {
         status,
         headers: {
           "Content-Type": "application/json",
@@ -881,7 +881,9 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     if (!response.ok) {
       const body = await response.text();
       return new Response(
-        JSON.stringify({ error: { message: normalizeDuckDuckGoError(response.status, body) } }),
+        JSON.stringify({
+          error: { message: sanitizeErrorMessage(normalizeDuckDuckGoError(response.status, body)) },
+        }),
         {
           status: response.status,
           headers: { "Content-Type": "application/json" },

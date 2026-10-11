@@ -36,6 +36,8 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
     assert.equal(providerUsesCuratedModelsOnly("zai-web"), true);
     assert.equal(providerUsesCuratedModelsOnly("chatgpt-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("codebuddy-cn"), true);
+    assert.equal(providerUsesCuratedModelsOnly("codebuddy-intl"), true);
     assert.equal(providerUsesCuratedModelsOnly("cgpt-web"), false);
     assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
@@ -44,6 +46,8 @@ describe("providerLacksModelListing (#5420)", () => {
 
 describe("providerUsesExclusiveSyncedListing", () => {
   it("is true only for Cursor (id or alias)", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("codex"), true);
+    assert.equal(providerUsesExclusiveSyncedListing("cx"), true);
     assert.equal(providerUsesExclusiveSyncedListing("cursor"), true);
     assert.equal(providerUsesExclusiveSyncedListing("cu"), true);
     assert.equal(providerUsesExclusiveSyncedListing("Cursor"), true);
@@ -56,9 +60,9 @@ describe("providerUsesExclusiveSyncedListing", () => {
     assert.equal(providerUsesExclusiveSyncedListing(""), false);
   });
 
-  it("test 10: exclusive listing stays cursor-only; claude is not cursor", () => {
+  it("test 10: exclusive listing includes Codex but not unrelated providers", () => {
     assert.equal(providerUsesExclusiveSyncedListing("claude"), false);
-    assert.equal(providerUsesExclusiveSyncedListing("codex"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("codex"), true);
     assert.equal(providerUsesExclusiveSyncedListing("agy"), false);
   });
 });

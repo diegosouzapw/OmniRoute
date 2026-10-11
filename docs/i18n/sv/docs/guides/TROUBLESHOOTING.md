@@ -39,31 +39,31 @@ Vanliga problem och lösningar för OmniRoute.
 
 ### Hastighetsbegränsning hos kostnadsfria leverantörer (429 / 400 / 401)
 
-**Symptom**: När du använder `model: "auto"` med kostnadsfria leverantörer/leverantörer utan autentisering (opencode, auggie osv.) får du ibland `HTTP 429`, `400` eller `401` i stället för svar. Förfrågningarna lyckas om samma prompt skickas igen en kort stund senare, men automatisering (cron-jobb, agenter, skript) avbryts vid det första felet.
+**Symptom**: När du använder `model: "auto"` med kostnadsfria leverantörer eller leverantörer utan autentisering (opencode, auggie osv.) får du ibland `HTTP 429`, `400` eller `401` i stället för svar. Förfrågningarna lyckas när samma prompt skickas igen en kort stund senare, men automatisering (cron-jobb, agenter, skript) avbryts vid det första felet.
 
-**Grundorsak**: Tre oberoende fellägen förstärker varandra:
+**Grundorsak**: Tre oberoende fellägen samverkar:
 
-1. **Leverantörens hastighetsbegränsning (`429`)**: Kostnadsfria nivåer kan tillämpa en kvot per tidsfönster. En skur av parallella anrop förbrukar den, så nästa förfrågan nekas tills tidsfönstret återställs.
-2. **Trasig modell vid direktvidarebefordran (`400`/`401`)**: `auto/*`-pooler kan innehålla modeller för direktvidarebefordran från `opencode` som är registrerade i katalogen men saknar aktiva autentiseringsuppgifter (t.ex. `oc/north-mini-code-free` → `401`). Den automatiska routern provar en, misslyckas och felet sprids innan reservlösningen aktiveras.
-3. **Förstärkning genom samtidighet (`429` under belastning)**: När flera agent-/cron-sessioner anropar `auto` samtidigt överstiger den sammanlagda förfrågningsfrekvensen vad kostnadsfria leverantörer tolererar, vilket gör att legitima anrop flaggas som missbruk.
+1. **Leverantörens hastighetsgräns (`429`)**: Kostnadsfria nivåer kan tillämpa en kvot per tidsfönster. En skur av parallella anrop förbrukar den, vilket gör att nästa förfrågan nekas tills tidsfönstret återställs.
+2. **Trasig modell vid direktvidarebefordran (`400`/`401`)**: `auto/*`-pooler kan innehålla modeller för direktvidarebefordran från `opencode` som är registrerade i katalogen men saknar fungerande autentiseringsuppgifter (t.ex. `oc/north-mini-code-free` → `401`). Den automatiska routern provar en sådan modell, misslyckas och vidarebefordrar felet innan reservväxlingen hinner aktiveras.
+3. **Förstärkning genom samtidighet (`429` under belastning)**: När flera agent-/cron-sessioner anropar `auto` samtidigt överstiger den sammanlagda förfrågningsfrekvensen vad kostnadsfria leverantörer tolererar, vilket gör att legitima anrop markeras som missbruk.
 
-**Verifierad lösning (rapporterad av communityn, 2026-08-10)**: justera tre miljövariabler så att rotation, samtidighet och reservlösningar absorberar svängningarna i den kostnadsfria nivån i stället för att krascha på grund av dem:
+**Verifierad lösning (rapporterad av communityn, 2026-08-10)**: justera tre miljövariabler så att rotation, samtidighet och reservväxling hanterar instabiliteten i den kostnadsfria nivån i stället för att stoppas av den:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # hoppa till en annan modell/leverantör vid 400/401 (hoppar över trasiga modeller för direktvidarebefordran)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # explicit tak för samtidiga tungviktsförfrågningar (inte angivet som standard: inget tak för antal förfrågningar, se anmärkningen nedan)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # längre begränsad väntan på tungviktskapacitet i stället för ett omedelbart återförsökningsbart 503-fel
+export OMNIROUTE_ROTATE_ON_400=true           # byt till en annan modell/leverantör vid 400/401 (hoppar över trasiga modeller för direktvidarebefordran)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # uttryckligt tak för samtidiga resurskrävande förfrågningar (inte angivet som standard: ingen gräns för antal förfrågningar, se anmärkningen nedan)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # höj den begränsade väntetiden över standardvärdet för RATE_LIMIT_MAX_WAIT_MS för långsamma uppströmsleverantörer
 ```
 
-Ange dessa i OmniRoute-processens miljö (demonen, t.ex. via LaunchAgent plist eller `systemctl edit`) och starta sedan om OmniRoute. Rotationsflaggan är den enskilda åtgärd som ger störst effekt: den omvandlar ett definitivt fel till ett transparent nytt försök hos en fungerande leverantör i poolen.
+Ange dessa i OmniRoute-processens miljö (demonen, t.ex. via LaunchAgent-plist-filen eller `systemctl edit`) och starta sedan om OmniRoute. Rotationsflaggan är den enskilt mest effektiva åtgärden: den omvandlar ett definitivt fel till ett transparent nytt försök mot en fungerande leverantör i poolen.
 
-**Anmärkning**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` begränsar hur många tungviktsförfrågningar — förfrågningar med lång kontext — som körs samtidigt; gränsen är en tillträdeskontroll, inte en hastighetsbegränsare för leverantören. **Uppdatering om #503-fanout:** denna variabel anges inte längre som standard (den tillämpas nu endast när den konfigureras explicit, som ovan) — tillträde för tungviktsförfrågningar styrs i stället av en automatiskt härledd bytebudget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) som anpassar sig efter värdens faktiska minnesgräns. En ny distribution bör därför få betydligt färre avvisningar med `503 chat_admission_busy` utan att denna variabel behöver anges alls; att uttryckligen ange den här fungerar fortfarande precis som dokumenterat. Explicita åsidosättningar av bytebudgeten begränsas till 8 MiB–2 GiB. Ett `413 body_exceeds_budget` är inte tillfälligt: öka bytebudgeten, sänk `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` eller höj processens minnesgräns. En bortkoppling på grund av `inflight_bytes_budget` beror på tillfällig resurskonkurrens och kan fortfarande försökas igen. Hastighetsbegränsningen per leverantör (`open-sse/services/rateLimitManager.ts`) styrs separat av `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` och `RATE_LIMIT_AUTO_ENABLE` — se `.env.example`.
+**Anmärkning**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` begränsar hur många resurskrävande förfrågningar — med lång kontext — som körs samtidigt. Begränsningen är en insläppsspärr, inte en hastighetsbegränsare för leverantören. **Uppdatering om #503-fanout:** den här variabeln anges inte längre som standard (den får nu endast effekt när den konfigureras uttryckligen, som ovan) — insläpp av resurskrävande förfrågningar styrs i stället av en automatiskt beräknad bytebudget (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) som anpassas efter värddatorns faktiska minnesgräns. En ny driftsättning bör därför ge betydligt färre avvisningar av typen `503 chat_admission_busy` utan att variabeln behöver anges alls. Att uttryckligen ange den här fungerar fortfarande exakt enligt dokumentationen. Uttryckliga åsidosättningar av bytebudgeten begränsas till 8 MiB–2 GiB. Ett `413 body_exceeds_budget` är inte tillfälligt: öka bytebudgeten, sänk `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` eller höj processens minnesgräns. En bortkoppling av typen `inflight_bytes_budget` orsakas av tillfällig resurskonkurrens och kan fortfarande provas igen. Hastighetsbegränsningen per leverantör (`open-sse/services/rateLimitManager.ts`) styrs separat av `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` och `RATE_LIMIT_AUTO_ENABLE` — se `.env.example`.
 
-**Så verifierar du att det fungerade**: kör din agent/cron två gånger i snabb följd och kontrollera att båda körningarna lyckas. Före korrigeringen kastar den andra körningen vanligtvis `429`/`401`. Efter korrigeringen görs nya försök transparent vid fel (om några uppstår), och anropet slutförs. Du kan också köra `curl /monitoring/health` och övervaka fältet `rateLimitedUntil` för leverantörsanslutningarna samt `circuitBreakers.providerBreakers[].state` för de berörda leverantörerna – tillståndet är något av `CLOSED`, `DEGRADED`, `OPEN` eller `HALF_OPEN` (se `src/shared/utils/circuitBreaker.ts`), och en leverantör som fortsätter att misslyckas växlar från `CLOSED → DEGRADED → OPEN` innan återställningsfönstret släpper igenom ett testanrop (`HALF_OPEN`).
+**Så verifierar du att det fungerade**: kör din agent/ditt cron-jobb två gånger i snabb följd och bekräfta att båda körningarna lyckas. Före korrigeringen ger den andra körningen vanligtvis `429`/`401`. Efter korrigeringen görs nya försök transparent vid eventuella fel och anropet slutförs. Du kan även köra `curl /monitoring/health` och övervaka fältet `rateLimitedUntil` för leverantörsanslutningarna samt `circuitBreakers.providerBreakers[].state` för de berörda leverantörerna — tillståndet är ett av `CLOSED`, `DEGRADED`, `OPEN` eller `HALF_OPEN` (se `src/shared/utils/circuitBreaker.ts`), och en leverantör som fortsätter att misslyckas växlar från `CLOSED → DEGRADED → OPEN` innan återställningsfönstret släpper igenom ett testanrop (`HALF_OPEN`).
 
-**Om du fortfarande ser 429**: det aktiva kontot för den leverantören har faktiskt förbrukat hela sin _kvot_ (det handlar inte bara om frekvensbegränsning). Lägg till ett andra konto för samma leverantör i OmniRoute-instrumentpanelen → Providers → Accounts, eller använd även en annan kostnadsfri leverantör (t.ex. `routeway`, `auggie`). Rotation hjälper endast vid tillfälliga frekvensbegränsningsfel/400/401; en helt förbrukad kvot kräver en andra autentiseringsuppgift eller en annan leverantör.
+**Om du fortfarande ser 429**: det aktiva kontot hos den leverantören har verkligen förbrukat sin _kvot_ (det handlar inte bara om hastighetsbegränsning). Lägg till ett andra konto för samma leverantör i OmniRoute-instrumentpanelen → Leverantörer → Konton, eller inkludera en annan kostnadsfri leverantör (t.ex. `routeway`, `auggie`). Rotation hjälper endast vid tillfällig hastighetsbegränsning eller tillfälliga 400-/401-fel. Definitivt förbrukad kvot kräver andra autentiseringsuppgifter eller en annan leverantör.
 
-**Om du ser 403 för visionsmodeller (`auto/vision`, `bazaarlink/*`)**: det anslutna kontot saknar en betalplan som omfattar vision, eller så har API-nyckeln otillräckliga behörigheter. Kontrollera i leverantörens instrumentpanel att nyckelns behörighetsomfång inkluderar vision/multimodal funktionalitet, eller anslut ett konto med en betalnivå och behåll det som mål för vision.
+**Om du ser 403 för visionsmodeller (`auto/vision`, `bazaarlink/*`)**: det anslutna kontot saknar en betalplan som omfattar bildanalys, eller så har API-nyckeln otillräckliga behörigheter. Kontrollera i leverantörens instrumentpanel att nyckelns omfång omfattar vision/multimodal funktionalitet, eller anslut ett konto med betalnivå och behåll det som mål för bildanalys.
 
 ---
 
@@ -552,11 +552,11 @@ Använd **Dashboard → Translator** för att felsöka problem med formatövers�
 
 ## Inställningar för motståndskraft
 
-### Automatisk hastighetsbegränsning utlöses inte
+### Automatisk hastighetsbegränsning aktiveras inte
 
 - Automatisk hastighetsbegränsning gäller endast leverantörer med API-nyckel (inte OAuth/prenumeration)
-- Kontrollera att **Inställningar → Motståndskraft → Leverantörsprofiler** har automatisk hastighetsbegränsning aktiverad
-- Kontrollera om leverantören returnerar statuskoderna `429` eller rubrikerna `Retry-After`
+- Kontrollera att automatisk hastighetsbegränsning är aktiverad under **Inställningar → Motståndskraft → Leverantörsprofiler**
+- Kontrollera om leverantören returnerar statuskoderna `429` eller `Retry-After`-rubriker
 
 ### Justera exponentiell backoff
 
@@ -564,25 +564,25 @@ Leverantörsprofiler stöder följande inställningar:
 
 - **Grundfördröjning** — Inledande väntetid efter det första felet (standard: 1s)
 - **Maximal fördröjning** — Övre gräns för väntetiden (standard: 30s)
-- **Multiplikator** — Hur mycket fördröjningen ska ökas per efterföljande fel (standard: 2x)
+- **Multiplikator** — Hur mycket fördröjningen ska öka per efterföljande fel (standard: 2x)
 
 ### Skydd mot thundering herd
 
-När många samtidiga begäranden når en hastighetsbegränsad leverantör använder OmniRoute mutex + automatisk hastighetsbegränsning för att serialisera begäranden och förhindra kaskadfel. Detta sker automatiskt för leverantörer med API-nyckel.
+När många samtidiga förfrågningar når en hastighetsbegränsad leverantör använder OmniRoute mutex + automatisk hastighetsbegränsning för att serialisera förfrågningarna och förhindra kaskadfel. Detta sker automatiskt för leverantörer med API-nyckel.
 
-### Chattbegäranden misslyckas med 503 / chat_admission_busy
+### Chattförfrågningar misslyckas med 503 / chat_admission_busy
 
 **Symptom:**
 
 - Slutpunkten för chattkompletteringar returnerar ett återförsökbart `503`-svar vars felkod är
   `chat_admission_busy`.
 - Svaret innehåller `Retry-After`. Sedan #12135 härleds värdet från den observerade
-  beläggningen — det större värdet av det `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-fönster som begäran redan
-  har väntat och den tid som de aktuella tungviktsleaserna har hållits — avrundat uppåt till hela
-  sekunder och begränsat till 60. Vid en inaktiv spärr behålls de historiska miniminivåerna: 2 sekunder för den
-  bytebaserade sökvägen och 1 sekund för den strukturbaserade sökvägen (som även innehåller
+  beläggningen — det större värdet av det `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-fönster som förfrågan redan
+  har väntat och den tid som de aktuella tungviktslåsen har hållits — avrundat uppåt till hela
+  sekunder och begränsat till 60. Vid en inaktiv grind behålls de historiska minimivärdena: 2 sekunder för
+  den bytebaserade sökvägen och 1 sekund för den strukturbaserade sökvägen (som även inkluderar
   `reason: "structure_limit"`).
-- Detta kan inträffa medan en annan tungviktschatt eller långvarig strömmande respons fortfarande
+- Detta kan inträffa medan en annan tung chattförfrågan eller långvarig strömmande respons fortfarande
   pågår.
 
 Den bytebaserade svarstexten är:
@@ -600,47 +600,47 @@ Den bytebaserade svarstexten är:
 Det strukturbaserade svaret använder samma typ och kod, med meddelandet
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 och `reason: "structure_limit"`.
-Med standardtröskelvärdena betraktas en begäran som strukturellt tung när den har minst `200` meddelanden,
+Med standardtröskelvärdena betraktas en förfrågan som strukturellt tung när den har minst `200` meddelanden,
 minst `64` verktyg eller minst `32,000` uppskattade token, eller när den begränsade strukturuppskattningen
-uttömmer sina gränser på `10,000` besökta noder eller djupet `12`.
+når sina gränser på `10,000` besökta noder eller djupet `12`.
 
 **Orsak:** Detta är avsiktlig lastreducering i OmniRoute, inte ett fel hos en uppströmsleverantör.
-Varje process använder en processlokal spärr för att reservera begränsad tungviktskapacitet innan en stor
-begärandetext behålls och parsas. En tungviktslease förblir reserverad under hela livslängden för ett SSE-
+Varje process använder ett processlokalt skydd för att reservera begränsad tungviktskapacitet innan
+en stor förfrågetext behålls och parsas. Ett tungviktslås förblir aktivt under hela livslängden för ett SSE-
 svar.
 
-**#503-fan-out:** före den här korrigeringen begränsade spärren samtidigheten till ett fast ANTAL begäranden
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standard `1`) oavsett värddatorns minne, vilket gjorde att
-fan-out från kodningsagenter (flera underagenter/CLI:er, med texter som rutinmässigt är > 256 KB) kollapsade till en effektiv
-samtidighet på ~1 och gav 503-fel under helt normal belastning. Spärren självjusteras nu: den styrs
+**#503-förgrening:** före denna korrigering begränsade skyddet samtidigheten till ett fast ANTAL förfrågningar
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, standard `1`) oavsett värdminne, så förgrening från kodningsagenter
+(flera underagenter/CLI:er, förfrågetexter regelbundet > 256 KB) kollapsade till en effektiv
+samtidighet på ~1 och gav 503-fel under helt normal belastning. Skyddet är nu självjusterande: det styrs
 av en automatiskt härledd BYTE-budget för inläsning (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) som dimensioneras utifrån
-processens faktiska minnesgräns, och den tar även hänsyn till en aktuell signal för resurstryck — så den
-reducerar endast lasten när värddatorn verkligen utsätts för minnestryck, inte enbart för att fler än en
-tung begäran anlände samtidigt. Den gamla antalsgränsen (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`)
-respekteras fortfarande, men endast om du uttryckligen anger den.
+processens verkliga minnesgräns, och det tar även hänsyn till en aktuell signal för resursbelastning — så det
+reducerar endast lasten när värden faktiskt har minnesbrist, inte bara för att mer än en
+tung förfrågan anlände samtidigt. Den gamla antalsgränsen (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) respekteras
+fortfarande, men endast om du uttryckligen anger den.
 
-När kapaciteten är upptagen väntar en tungviktsbegäran först i upp till
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (standard `2000`, `0` inaktiverar väntan) på att en plats ska frigöras
-innan det återförsökbara `503`-svaret returneras. Den begränsade väntetiden finns för att agentbaserade klienter
-(OpenCode, Claude Code, Cursor), som sprider tunga underbegäranden samtidigt, ska serialisera belastningstoppen
+När kapaciteten är upptagen väntar en tung förfrågan först i upp till
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (standard är `RATE_LIMIT_MAX_WAIT_MS`; `0` inaktiverar väntan) på att en plats ska bli ledig
+innan det återförsökbara `503`-svaret skickas. Den begränsade väntan finns för att klienter av agenttyp
+(OpenCode, Claude Code, Cursor) som förgrenar tunga underförfrågningar samtidigt ska serialisera belastningstoppen
 i stället för att förbruka hela sin återförsöksbudget på omedelbara avvisningar och avbrytas mitt i uppgiften.
-Aktuell beläggning för tungviktsleaser, den fastställda bytebudgeten och det aktuella resurstryckets allvarlighetsgrad
-visas under `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+Aktuell beläggning för tungviktslås, den fastställda bytebudgeten och den aktuella belastningsgraden
+visas vid `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — kontrollera dessa innan du ändrar någon miljövariabel.
-Inställningar → Motståndskraft → Begärandekö → Samtidiga begäranden styr inte detta; den inställningen
-styr en separat kömekanism för leverantörsbegäranden.
+Inställningar → Motståndskraft → Förfrågekö → Samtidiga förfrågningar styr inte detta; den inställningen
+styr en separat kömekanism för leverantörsförfrågningar.
 
-**Korrigering:**
+**Lösning:**
 
 1. Försök igen först. Klienter bör respektera `Retry-After` och använda backoff i stället för att omedelbart
-   upprepa begäran.
+   upprepa förfrågan.
 2. Kontrollera `/api/monitoring/health` → `chatAdmission` innan du justerar något. `countCapEnabled:
 false` och ett generöst `maxInflightBytes` innebär att den automatiskt härledda budgeten redan gör sitt
-   jobb; en `pressureSeverity` på `high`/`critical` innebär att värddatorn faktiskt har ont om minne —
-   det kan inte åtgärdas med en miljövariabel för insläpp, utan kräver mer RAM eller en mindre arbetsbelastning.
+   jobb; en `pressureSeverity` på `high`/`critical` innebär att värden faktiskt har ont om minne —
+   detta kan inte åtgärdas med en miljövariabel för insläpp, utan kräver mer RAM eller en mindre arbetsbelastning.
 3. Endast om `/api/monitoring/health` visar att den automatiskt härledda budgeten verkligen är för liten för
-   din värddator (sällsynt — den skalas redan från container till fysisk server) bör du åsidosätta den direkt med
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` i stället för att återgå till den äldre antalsgränsen för begäranden.
+   din värd (sällsynt — den skalas redan från containrar till fysisk maskinvara) bör du åsidosätta den direkt med
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` i stället för att återgå till den äldre antalsgränsen för förfrågningar.
 
 Se [referensen för miljövariabler](../reference/ENVIRONMENT.md#4-security--authentication)
 för de auktoritativa insläppsinställningarna.

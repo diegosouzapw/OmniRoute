@@ -208,7 +208,7 @@ rawBody)`) যাচাই করে। সিক্রেট সেট কর�
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack-এর `NormalModuleReplacementPlugin` চারটি মডিউলকে স্টাবের অ্যালিয়াস হিসেবে নির্ধারণ করে:
+webpack-এর `NormalModuleReplacementPlugin` চারটি মডিউলকে স্টাবের সঙ্গে অ্যালিয়াস করে:
 
 | মডিউল                                       | স্টাব                                            |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -217,12 +217,12 @@ webpack-এর `NormalModuleReplacementPlugin` চারটি মডিউল�
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-প্রতিটি স্টাব একই সারফেস এক্সপোর্ট করে, কিন্তু রানটাইমে প্রতিটি ফাংশন
-`featureDisabledError(name)` থ্রো করে। নিষ্ক্রিয় মডিউলের ওপর নির্ভরশীল রুটগুলো
-সংবেদনশীল কোড পাথ সক্রিয় করার পরিবর্তে একটি স্পষ্ট বার্তাসহ HTTP 503 রিটার্ন করে।
+প্রতিটি স্টাব একই ইন্টারফেস এক্সপোর্ট করে, তবে রানটাইমে প্রতিটি ফাংশন
+`featureDisabledError(name)` থ্রো করে। নিষ্ক্রিয় করা মডিউলের ওপর নির্ভরশীল
+রুটগুলো সংবেদনশীল কোড পাথ সক্রিয় করার পরিবর্তে একটি স্পষ্ট বার্তাসহ HTTP 503
+রিটার্ন করে।
 
-ফলস্বরূপ বান্ডলটি `omniroute-secure` হিসেবে প্রকাশ করার উদ্দেশ্যে তৈরি।
-প্রকাশনার নির্দেশাবলির জন্য `docs/ops/PUBLISHING_SECURE.md` দেখুন।
+তৈরি হওয়া বান্ডলটি `omniroute-secure` হিসেবে প্রকাশের জন্য নির্ধারিত।
 
 ---
 

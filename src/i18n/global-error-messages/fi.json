@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Jotain meni pieleen",
+      "description": "Odottamaton virhe tapahtui. Tämä on kirjattu ja tiimimme tutkii asiaa.",
+      "detailsAriaLabel": "Virheen tiedot",
+      "retryAriaLabel": "Yritä ladata sivu uudelleen",
+      "tryAgain": "Yritä uudelleen",
+      "statusAriaLabel": "Avaa järjestelmän tila",
+      "systemStatus": "Järjestelmän tila"
+    }
+  }
+}

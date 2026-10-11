@@ -19,6 +19,7 @@ import {
   type RetryRouting,
 } from "../../utils/emptyTurnRetry.ts";
 import { noteBufferedVerdictOutcome } from "./emptyTurnResilienceNotes.ts";
+import { hasTrustedEmptyTurn } from "../../utils/emptyTurnPolicy.ts";
 import { STREAM_RECOVERY } from "../../config/constants.ts";
 
 type LoggerLike = {
@@ -82,16 +83,15 @@ export async function runEmptyTurnRetryLoop(
   let adopted = false;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const verdict = judgeBufferedTurn(
-      await readBoundedResponseOutcome(
-        providerResponse,
-        FLUSH_EMPTY_RETRY_MAX_BYTES,
-        deps.timeoutMs
-      ),
-      deps.targetFormat,
-      deps.clientResponseFormat,
-      deps.isAborted()
+    const read = await readBoundedResponseOutcome(
+      providerResponse,
+      FLUSH_EMPTY_RETRY_MAX_BYTES,
+      deps.timeoutMs
     );
+    const verdict: Verdict =
+      read.kind === "text" && !deps.isAborted() && hasTrustedEmptyTurn(providerResponse)
+        ? { kind: "pass", why: "native execution completed normally" }
+        : judgeBufferedTurn(read, deps.targetFormat, deps.clientResponseFormat, deps.isAborted());
     if (verdict.kind === "pass") {
       notePass(deps, note, verdict);
       break;

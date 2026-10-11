@@ -9,7 +9,7 @@ import type { RegistryEntry } from "../../shared.ts";
  * `reasoning_effort` (not vendor-native thinking shapes). Streaming is forced
  * by the executor because non-stream requests are rejected with code 11101.
  *
- * Short alias "cbcn" reserves "cbai" for a future CodeBuddy intl variant.
+ * Short alias "cbcn" (paired with "cbai" for the CodeBuddy intl variant).
  * Per-model context windows/vision are advertised in the catalog below.
  */
 export const codebuddy_cnProvider: RegistryEntry = {

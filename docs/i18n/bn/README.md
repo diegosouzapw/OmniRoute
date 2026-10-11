@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ বৈশিষ্ট্য</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 কম্বোসমূহ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 প্রদানকারীরা</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 প্রদানকারীরা</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ও MCP</a></td>
   </tr>
   <tr>
@@ -345,142 +345,142 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="সমস্ত 19টি কম্বো রাউটিং কৌশলের অ্যানিমেশন — প্রতিটি কৌশলের জন্য একটি করে টাইল: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। প্রতিটি কী করে তা জানতে উপরের টেবিলটি দেখুন।"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="সব 19টি কম্বো রাউটিং কৌশলের অ্যানিমেশন — প্রতিটি কৌশলের জন্য একটি টাইল: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline। প্রতিটি কী করে তা জানতে উপরের টেবিলটি দেখুন।"/>
 
-> একটি **কম্বো** হলো মডেলের এমন একটি শৃঙ্খল, যার মধ্য দিয়ে OmniRoute **স্বয়ংক্রিয়ভাবে** রাউট করে। কোটা শেষ হয়ে গেলে, কোনো প্রোভাইডার ব্যর্থ হলে, অথবা খরচ হঠাৎ বেড়ে গেলে, কম্বোটি পরবর্তী উপযুক্ত ও সচল মডেলে চলে যেতে পারে। 🛡️
+> একটি **কম্বো** হলো মডেলগুলোর একটি শৃঙ্খল, যেগুলোর মধ্যে OmniRoute **স্বয়ংক্রিয়ভাবে** রাউট করে। কোটা শেষ হয়ে গেলে, কোনো প্রোভাইডার ব্যর্থ হলে বা খরচ হঠাৎ বেড়ে গেলে, কম্বোটি পরবর্তী যোগ্য ও সচল মডেলে যেতে পারে। 🛡️
 
 ### ⚡ কোনো কনফিগারেশন নয় — শুধু `auto` ব্যবহার করুন
 
-কোনো কম্বো তৈরি করতে হবে না। আপনার মডেলটি `auto` (অথবা এর কোনো ভ্যারিয়েন্ট) হিসেবে সেট করুন, আর OmniRoute আপনার সংযুক্ত প্রোভাইডারগুলো থেকে একটি ভার্চুয়াল কম্বো তৈরি করবে, যার স্কোর সরাসরি হালনাগাদ হয়:
+কোনো কম্বো তৈরি করতে হবে না। আপনার মডেলটি `auto`-তে (অথবা এর কোনো ভ্যারিয়েন্টে) সেট করুন, আর OmniRoute আপনার সংযুক্ত প্রোভাইডারগুলো থেকে একটি ভার্চুয়াল কম্বো তৈরি করবে, যার স্কোর সরাসরি নির্ধারিত হয়:
 
 <table>
-  <tr><th align="left">মডেল ID</th><th align="left">এটি যে বিষয়ের জন্য অপ্টিমাইজ করে</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 ভারসাম্যপূর্ণ ডিফল্ট (LKGP — আপনার সর্বশেষ কার্যকর প্রোভাইডারেই স্থির থাকে)</td></tr>
+  <tr><th align="left">মডেল ID</th><th align="left">এটি যেটির জন্য অপ্টিমাইজ করে</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 ভারসাম্যপূর্ণ ডিফল্ট (LKGP — আপনার সর্বশেষ কার্যকর প্রোভাইডারের সঙ্গেই থাকে)</td></tr>
   <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 কোড তৈরির জন্য গুণমান-প্রধান ওজন</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ সর্বনিম্ন ল্যাটেন্সি আগে</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 প্রতি টোকেনে সবচেয়ে সস্তা আগে</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 সর্বাধিক কোটা / রেট-লিমিট হেডরুম আগে</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 গুণমান আগে + আরও ভালো মডেল খুঁজে পেতে 10% অনুসন্ধান</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 সর্বশেষ-জ্ঞাত-কার্যকর-প্রোভাইডারে সুস্পষ্টভাবে স্থির থাকা</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 স্থিতিস্থাপকতা পরীক্ষার জন্য ত্রুটি-সন্নিবেশ ওজন (কেয়স ইঞ্জিনিয়ারিং)</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ সর্বনিম্ন ল্যাটেন্সি প্রথমে</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 প্রতি টোকেনে সবচেয়ে সস্তাটি প্রথমে</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 সর্বাধিক কোটা / রেট-লিমিট হেডরুম প্রথমে</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 গুণমান প্রথমে + আরও ভালো মডেল খুঁজে পেতে 10% অনুসন্ধান</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 সর্বশেষ-জ্ঞাত-কার্যকর-প্রোভাইডারের প্রতি সুস্পষ্ট স্থায়ী আনুগত্য</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 মডেলের একটি প্যানেলে সমান্তরাল ফ্যান-আউট (প্রতি প্রোভাইডারে একটি, ডিফল্টভাবে 5টি), একটি উত্তর ফেরত দেয়; প্রতি প্যানেল মডেলের জন্য একটি আপস্ট্রিম কল, ফল্ট ইনজেকশন নয়</td></tr>
 </table>
 
 ##
 
 ### 🔀 অথবা নিজেরটি তৈরি করুন — 19টি রাউটিং কৌশল
 
-সমস্ত **19টি** কৌশল — প্রতিটি কম্বো ধাপে ইচ্ছামতো মেলান:
+সব **19টি** কৌশল — প্রতিটি কম্বো ধাপে মিশিয়ে ও মিলিয়ে ব্যবহার করুন:
 
 <table>
   <tr>
     <th>#</th>
     <th align="left">কৌশল</th>
-    <th align="left">এটি কী করে</th>
+    <th align="left">এটি যা করে</th>
   </tr>
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>প্রথম টার্গেটকে অগ্রাধিকার দেওয়া ক্রমবদ্ধ তালিকা — পরবর্তীটিতে যাওয়ার আগে প্রতিটির সক্ষমতা শেষ পর্যন্ত ব্যবহার করে 🥇</td>
+    <td>প্রথম-টার্গেটভিত্তিক ক্রমবদ্ধ তালিকা — পরবর্তীটিতে যাওয়ার আগে প্রতিটিকে নিঃশেষ করুন 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>পরবর্তীটিতে যাওয়ার আগে প্রতিটি টার্গেটের কোটা সম্পূর্ণ ব্যবহার করে</td>
+    <td>পরবর্তীটিতে যাওয়ার আগে প্রতিটি টার্গেটের কোটা পুরোপুরি পূরণ করুন</td>
   </tr>
   <tr>
     <td align="center">3</td>
     <td nowrap><code>weighted</code></td>
-    <td>প্রতি-টার্গেট ওজন অনুযায়ী ভারযুক্ত র্যান্ডম নির্বাচন</td>
+    <td>প্রতি-টার্গেট ওজন অনুযায়ী ওজনযুক্ত র্যান্ডম নির্বাচন</td>
   </tr>
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>ক্রম অনুসারে টার্গেটগুলোর মধ্য দিয়ে চক্রাকারে যায়</td>
+    <td>ক্রম অনুযায়ী টার্গেটগুলোর মধ্যে চক্রাকারে নির্বাচন</td>
   </tr>
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>দুটি-পছন্দের-শক্তিভিত্তিক র্যান্ডম লোড ব্যালান্সিং</td>
+    <td>পাওয়ার-অব-টু-চয়েসেস র্যান্ডম লোড ব্যালান্সিং</td>
   </tr>
   <tr>
     <td align="center">6</td>
     <td nowrap><code>least-used</code></td>
-    <td>বর্তমানে সর্বনিম্ন লোড থাকা টার্গেটটি বেছে নেয়</td>
+    <td>বর্তমানে সর্বনিম্ন লোড থাকা টার্গেটটি বেছে নিন</td>
   </tr>
   <tr>
     <td align="center">7</td>
     <td nowrap><code>random</code></td>
-    <td>সমবণ্টিত র্যান্ডম নির্বাচন (ডুপ্লিকেট বাদ দিয়ে)</td>
+    <td>সমবণ্টিত র্যান্ডম নির্বাচন (ডিডুপ্লিকেট করা)</td>
   </tr>
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>পুনরাবৃত্তি ডি-ডুপ্লিকেট না করে র্যান্ডম নির্বাচন 🎲</td>
+    <td>পুনরাবৃত্তি ডিডুপ্লিকেট না করে র্যান্ডম নির্বাচন 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>লাইভ ক্যাটালগের মূল্য অনুযায়ী প্রতি অনুরোধের $ খরচ সর্বনিম্ন করে 💸</td>
+    <td>লাইভ ক্যাটালগের মূল্য অনুযায়ী প্রতি অনুরোধের $ খরচ সর্বনিম্ন করুন 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>সবচেয়ে বেশি অবশিষ্ট কোটা থাকা টার্গেটটি বেছে নেয়</td>
+    <td>সবচেয়ে বেশি অবশিষ্ট কোটা থাকা টার্গেটটি বেছে নিন</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>যে টার্গেটের কোটা উইন্ডো সবচেয়ে আগে রিসেট হবে, সেটিকে অগ্রাধিকার দেয়</td>
+    <td>যে টার্গেটের কোটা উইন্ডো সবচেয়ে আগে রিসেট হবে সেটিকে অগ্রাধিকার দিন</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>কোটা রিসেটের সময় অনুযায়ী র্যাঙ্ক করে — ছোট উইন্ডো আগে 📊</td>
+    <td>কোটা রিসেটের সময় অনুযায়ী র্যাঙ্ক করুন — ছোট উইন্ডো প্রথমে 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>দীর্ঘ কথোপকথনের জন্য টার্গেটগুলোর মধ্যে কনটেক্সট হস্তান্তর করে 🧠</td>
+    <td>দীর্ঘ কথোপকথনের জন্য টার্গেটগুলোর মধ্যে কনটেক্সট হস্তান্তর করুন 🧠</td>
   </tr>
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>বর্তমান কনটেক্সটের আকারের জন্য সবচেয়ে উপযুক্তটি বেছে নেয়</td>
+    <td>বর্তমান কনটেক্সটের আকারের জন্য সবচেয়ে উপযুক্তটি বেছে নিন</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>পুনর্ব্যবহারযোগ্য প্রতিটি প্রম্পট প্রিফিক্সকে একই অ্যাকাউন্টে পিন করে — প্রম্পট-ক্যাশ হিট সর্বাধিক করে 🎯</td>
+    <td>পুনর্ব্যবহারযোগ্য প্রতিটি প্রম্পট প্রিফিক্সকে একই অ্যাকাউন্টে পিন করুন — প্রম্পট-ক্যাশ হিট সর্বাধিক করুন 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>সর্বশেষ-জ্ঞাত-কার্যকর পথ — সর্বশেষ সফল প্রোভাইডারে পিন করে, তারপর নিয়ম অনুযায়ী ফলব্যাক করে</td>
+    <td>সর্বশেষ-জ্ঞাত-কার্যকর পাথ — সর্বশেষ সফল প্রোভাইডারে পিন করে, তারপর নিয়ম অনুযায়ী ফলব্যাক করে</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>প্রতিটি সংযোগে 16টি ফ্যাক্টরের লাইভ স্কোরিং 🤖</td>
+    <td>প্রতিটি সংযোগজুড়ে 16টি ফ্যাক্টরের লাইভ স্কোরিং 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>মডেলের একটি প্যানেলে সমান্তরালে পাঠায় + একজন বিচারক একটি উত্তর সংশ্লেষ করে 🧬</td>
+    <td>মডেলের একটি প্যানেলে ফ্যান-আউট করে + একজন বিচারক একটি উত্তর সংশ্লেষ করে 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>ধাপগুলোকে শৃঙ্খলিত করে — প্রতিটি টার্গেটের আউটপুট পরবর্তীটির ইনপুট হয় 🔗</td>
+    <td>ধাপগুলো শৃঙ্খলিত করুন — প্রতিটি টার্গেটের আউটপুট পরবর্তীটিতে প্রবেশ করে 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Combo ইঞ্জিন প্রতিটি প্রার্থীকে **16টি ফ্যাক্টরের** (স্বাস্থ্য, কোটা, খরচ, ল্যাটেন্সি, কাজের উপযোগিতা, গুণমান, সেশনের প্রাপ্যতা…) ভিত্তিতে স্কোর করে — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) দেখুন।</sub>
+<sub>Auto-Combo ইঞ্জিন প্রতিটি প্রার্থীকে **16টি ফ্যাক্টরের** (স্বাস্থ্য, কোটা, খরচ, ল্যাটেন্সি, কাজের উপযোগিতা, গুণমান, সেশনের প্রাপ্যতা…) ভিত্তিতে স্কোর করে — দেখুন [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)।</sub>
 
 ##
 
-### 🧱 স্থিতিস্থাপকতা অন্তর্নির্মিত (3টি স্বতন্ত্র স্তর)
+### 🧱 স্থিতিস্থাপকতা অন্তর্নির্মিত (3টি স্বাধীন স্তর)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute স্থিতিস্থাপকতা — ৩টি স্বাধীন স্ব-নিরাময় স্তর, সঠিক ব্যর্থতার জন্য সঠিক স্তর। স্তর ১ প্রোভাইডার সার্কিট ব্রেকার (সম্পূর্ণ প্রোভাইডার): শুধু 408/5xx-এ ট্রিপ করে, থ্রেশহোল্ড OAuth ৮× / API-key ১২× / local ২×, 60s/30s/15s পরে HALF-OPEN প্রোবে রিসেট হয়, অলস পুনরুদ্ধার; OPEN থাকা অবস্থায় কম্বো পরবর্তী প্রোভাইডারে পুনরায় রুট করে। স্তর ২ সংযোগ কুলডাউন (একটি কী/অ্যাকাউন্ট): ভিত্তি OAuth-এর জন্য 5s / API-key-এর জন্য 3s, অ্যান্টি-থান্ডারিং-হার্ড সুরক্ষাসহ সূচকীয় ×২ ব্যাকঅফ, 429-এর ক্ষেত্রে Retry-After মেনে চলে, সফল হলে সব ত্রুটি-অবস্থা মুছে যায়; কুলডাউনে থাকা একটি কী এড়িয়ে যাওয়া হয়, আর সমপর্যায়ের অন্য কীগুলো সেবা দিতে থাকে। স্তর ৩ মডেল লকআউট (একটি মডেল): প্রতি-মডেল 429, local 404 অথবা মোড প্রত্যাখ্যান শুধু সেই মডেলটিকেই লক করে — কখনোই সম্পূর্ণ সংযোগকে নয়। চূড়ান্ত অবস্থাগুলো (নিষিদ্ধ, মেয়াদোত্তীর্ণ, ক্রেডিট নিঃশেষিত) অপারেটরের জন্য, কুলডাউনের জন্য নয়।"/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute স্থিতিস্থাপকতা — ৩টি স্বতন্ত্র স্ব-নিরাময় স্তর, সঠিক ব্যর্থতার জন্য সঠিক স্তর। স্তর ১ প্রদানকারী সার্কিট ব্রেকার (সম্পূর্ণ প্রদানকারী): কেবল 408/5xx-এ ট্রিপ করে, থ্রেশহোল্ড OAuth 8× / API-key 12× / local 2×, 60s/30s/15s পরে একটি HALF-OPEN প্রোবে রিসেট হয়, অলস পুনরুদ্ধার; OPEN থাকা অবস্থায় কম্বো পরবর্তী প্রদানকারীর দিকে পুনঃরুট করে। স্তর ২ সংযোগ কুলডাউন (একটি কী/অ্যাকাউন্ট): বেস OAuth-এর জন্য 5s / API-key-এর জন্য 3s, অ্যান্টি-থান্ডারিং-হার্ড গার্ডসহ সূচকীয় ×2 ব্যাকঅফ, 429 Retry-After মেনে চলে, সফলতা সব ত্রুটি-অবস্থা মুছে দেয়; একটি কুলডাউনে থাকা কী এড়িয়ে যাওয়া হয়, যখন সমপর্যায়ের অন্য কীগুলো সেবা প্রদান চালিয়ে যায়। স্তর ৩ মডেল লকআউট (একটি মডেল): প্রতি-মডেলের 429, local 404 অথবা মোড প্রত্যাখ্যান শুধু সেই মডেলটিকেই লক করে — কখনোই সম্পূর্ণ সংযোগকে নয়। চূড়ান্ত অবস্থাগুলো (নিষিদ্ধ, মেয়াদোত্তীর্ণ, ক্রেডিট নিঃশেষিত) অপারেটরের জন্য, কুলডাউনের জন্য নয়।"/>
 
 <sub>📖 [অটো-কম্বো ইঞ্জিন](docs/routing/AUTO-COMBO.md) · [স্থিতিস্থাপকতা নির্দেশিকা](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
@@ -558,33 +558,33 @@ Radar ব্যবহার ঐচ্ছিক এবং এটি কেবল 
 
 <div align="center">
 
-## ✨ নতুন কী
+## ✨ নতুন কী আছে
 
 </div>
 
-> **v3.8.20 → v3.8.50**-এর সাম্প্রতিক উল্লেখযোগ্য পরিবর্তনগুলো। সম্পূর্ণ ইতিহাস [`CHANGELOG.md`](CHANGELOG.md)-এ।
+> **v3.8.20 → v3.8.50**-এর সাম্প্রতিক উল্লেখযোগ্য পরিবর্তনসমূহ। সম্পূর্ণ ইতিহাস [`CHANGELOG.md`](CHANGELOG.md)-এ।
 
 - **🎛️ OmniConductor** — আপনার এজেন্ট বহরে ইনবাউন্ড A2A ডেলিগেশন, Agent Card-এ Conductor স্কিল এবং Faro পুশ-টু-টক ভয়েস চ্যাটসহ একটি ড্যাশবোর্ড প্যানেল। → [A2A সার্ভার](docs/frameworks/A2A-SERVER.md)
-- **🛂 অভিযোজিত ভর্তি ও ওভারলোড সুরক্ষা** — ভারী চ্যাট অনুরোধগুলো 503 ফেরত দেওয়ার পরিবর্তে সারিবদ্ধ হয়, সঙ্গে প্রতি সংযোগে অ্যাটমিক RPM রোলিং লিজ। → [স্থিতিস্থাপকতা নির্দেশিকা](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ ক্যানোনিক্যাল `/v1/models` ক্রম** — প্রতি প্রোভাইডারের জন্য একটি সংলগ্ন, প্রোভাইডার-অনুযায়ী গোষ্ঠীবদ্ধ ব্লক (কম্বোগুলো প্রথমে পিন করা), যা প্রতিটি ক্যাটালগ উৎসে স্থিতিশীল থাকে। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
-- **🗜️ কম্প্রেশন দৃঢ়ীকরণ** — ডিফল্টভাবে সক্রিয় ইনফ্লেশন গার্ড, DE / FR / JA + Chinese (wényán)-এর জন্য Caveman প্যাক, Gradle ও .NET-এর জন্য RTK ফিল্টার। → [কম্প্রেশন](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 সৎ ফ্ল্যাট-রেট খরচ** — সাবস্ক্রিপশন / কোডিং-প্ল্যান প্রোভাইডারগুলোর খরচ বিশ্লেষণে **$0** দেখানো হয়; বাজেট, কোটা ও রাউটিং অনুমান চালিয়ে যায়। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share রাউটিং** — পুল করা কিগুলোর মধ্যে একটি শেয়ার করা অ্যাকাউন্টের কোটা ন্যায্যভাবে ভাগ করে; কাজ-সংরক্ষণশীল হওয়ায় নিষ্ক্রিয় অংশগুলো অন্যদের ধার দেওয়া হয়। → [স্থিতিস্থাপকতা নির্দেশিকা](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 এক-কমান্ডে CLI/এজেন্ট সেটআপ** — 13টি নিবন্ধিত `setup-*` কমান্ড; `omniroute run` 7টি CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI) চালু করে; `omniroute configure` ইন্টার্যাক্টিভ প্রোভাইডার+মডেল পিকার এবং প্রতি-কনটেক্সট ফেভারিটসহ 10টি টার্গেট সমর্থন করে। → [CLI ইন্টিগ্রেশন](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ রিমোট মোড** — স্কোপড টোকেন (`connect` / `contexts` / `tokens`) এবং VPS ইনস্টলের জন্য একটি `antigravity` OAuth সহায়ক দিয়ে রিমোট OmniRoute পরিচালনা করুন। → [রিমোট মোড](docs/guides/REMOTE-MODE.md)
-- **🧭 আরও স্মার্ট অটো-রাউটিং** — `auto/<category>:<tier>` কম্বো, **Fusion** (মডেল প্যানেল + বিচারক), টাস্ক-সচেতন রাউটিং, প্রতি-অনুরোধে মডেল / মোড / USD-বাজেট ওভাররাইড। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ প্লাগযোগ্য কম্প্রেশন** — 12টি সমন্বয়যোগ্য ইঞ্জিন + Compression Studios: LLMLingua-2, দুই-স্তরের Ultra, omniglyph, প্রতি-ধাপের ফিডেলিটি গেট, GCF v3.2, ড্র্যাগ-রিঅর্ডার এডিটর। → [কম্প্রেশন](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ স্বচ্ছ MITM ডিক্রিপশন (TPROXY)** — প্রতি-SNI CA ও ট্রাস্ট-স্টোর ইনস্টলার ব্যবহার করে প্রক্সি env var উপেক্ষা করা CLI-গুলো ক্যাপচার করুন। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 সর্বত্র খরচ টেলিমেট্রি** — প্রতিটি এন্ডপয়েন্টে `X-OmniRoute-*` খরচ/ব্যবহার হেডার, ক্যাশ-HIT সাশ্রয় হেডার এবং প্রতি-কিতে USD ব্যয়ের কোটা। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
-- **🧠 আপনার নিয়ন্ত্রণাধীন মেমোরি** — ডিফল্টভাবে বন্ধ; অপ্ট-ইন int8 ভেক্টর কোয়ান্টাইজেশন + টাইপড ডিকে এবং প্রতি-অনুরোধে `x-omniroute-no-memory`। → [মেমোরি](docs/frameworks/MEMORY.md)
-- **🛡️ নিরাপত্তা** — প্রতিটি LLM রুটে প্রম্পট-ইনজেকশন গার্ড (রেড-টিম স্যুট), অপ্ট-ইন ক্রেডেনশিয়াল-মাস্কিং গার্ডরেল (উভয় দিকে ফাঁস হওয়া API কি/সিক্রেট গোপন করে), বিনামূল্যের DuckDuckGo শেষ-অবলম্বন ওয়েব সার্চ এবং ড্যাশবোর্ডের জন্য ঐচ্ছিক OIDC লগইন গেট (পাসওয়ার্ড লগইন সবসময় উপলভ্য থাকে)। → [গার্ডরেল](docs/security/GUARDRAILS.md)
-- **🖼️ নতুন এন্ডপয়েন্ট** — `/v1/ocr` (Mistral OCR) এবং `/v1/audio/translations` (Whisper-ধাঁচের) মিডিয়া সুবিধাকে পূর্ণতা দেয়। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
+- **🛂 অভিযোজিত অ্যাডমিশন ও ওভারলোড সুরক্ষা** — ভারী চ্যাট অনুরোধগুলো 503 ফেরত দেওয়ার বদলে সারিবদ্ধ হয়, প্রতি সংযোগে অ্যাটমিক RPM রোলিং লিজসহ। → [স্থিতিস্থাপকতা নির্দেশিকা](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ ক্যানোনিক্যাল `/v1/models` ক্রম** — প্রতি প্রোভাইডারের জন্য একটি করে সংলগ্ন প্রোভাইডার-ভিত্তিক ব্লক (কম্বোগুলো প্রথমে পিন করা), প্রতিটি ক্যাটালগ উৎসজুড়ে স্থিতিশীল। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
+- **🗜️ কমপ্রেশন হার্ডেনিং** — ডিফল্টভাবে চালু ইনফ্লেশন গার্ড, DE / FR / JA + Chinese (wényán)-এর জন্য Caveman প্যাক, Gradle ও .NET-এর জন্য RTK ফিল্টার। → [কমপ্রেশন](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 স্বচ্ছ ফ্ল্যাট-রেট খরচ** — খরচ বিশ্লেষণে সাবস্ক্রিপশন / কোডিং-প্ল্যান প্রোভাইডারগুলো **$0** দেখায়; বাজেট, কোটা ও রাউটিংয়ে অনুমান অব্যাহত থাকে। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share রাউটিং** — পুল করা কীগুলোর মধ্যে একটি শেয়ার করা অ্যাকাউন্টের কোটা ন্যায্যভাবে ভাগ করে; এটি ওয়ার্ক-কনজার্ভিং হওয়ায় নিষ্ক্রিয় অংশ অন্যদের ব্যবহারের জন্য দেওয়া হয়। → [স্থিতিস্থাপকতা নির্দেশিকা](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 এক-কমান্ডে CLI/এজেন্ট সেটআপ** — নিবন্ধিত 13টি `setup-*` কমান্ড; `omniroute run` 7টি CLI চালু করে (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); `omniroute configure` ইন্টার্যাক্টিভ প্রোভাইডার+মডেল পিকার এবং প্রতি-কনটেক্সট ফেভারিটসহ 10টি টার্গেট সমর্থন করে। → [CLI ইন্টিগ্রেশন](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ রিমোট মোড** — স্কোপযুক্ত টোকেন (`connect` / `contexts` / `tokens`) এবং VPS ইনস্টলের জন্য একটি `antigravity` OAuth সহায়কের মাধ্যমে রিমোট OmniRoute পরিচালনা করুন। → [রিমোট মোড](docs/guides/REMOTE-MODE.md)
+- **🧭 আরও বুদ্ধিমান অটো-রাউটিং** — `auto/<category>:<tier>` কম্বো, **Fusion** (মডেল প্যানেল + বিচারক), টাস্ক-সচেতন রাউটিং, প্রতি-অনুরোধে মডেল / মোড / USD-বাজেট ওভাররাইড। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ প্লাগযোগ্য কমপ্রেশন** — 12টি সমন্বয়যোগ্য ইঞ্জিন + Compression Studios: LLMLingua-2, দুই-স্তরবিশিষ্ট Ultra, omniglyph, প্রতি-ধাপের ফিডেলিটি গেট, GCF v3.2, ড্র্যাগ-রিঅর্ডার এডিটর। → [কমপ্রেশন](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ স্বচ্ছ MITM ডিক্রিপশন (TPROXY)** — প্রতি-SNI CA ও ট্রাস্ট-স্টোর ইনস্টলারসহ প্রক্সি এনভায়রনমেন্ট ভেরিয়েবল উপেক্ষা করা CLI-গুলো ক্যাপচার করুন। → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 সর্বত্র খরচের টেলিমেট্রি** — প্রতিটি এন্ডপয়েন্টে `X-OmniRoute-*` খরচ/ব্যবহার হেডার, ক্যাশ-HIT সাশ্রয় হেডার এবং প্রতি-কী USD ব্যয় কোটা। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
+- **🧠 আপনার নিয়ন্ত্রণাধীন মেমরি** — ডিফল্টভাবে বন্ধ, অপ্ট-ইন int8 ভেক্টর কোয়ান্টাইজেশন + টাইপড ডিকে এবং প্রতি-অনুরোধে `x-omniroute-no-memory`। → [মেমরি](docs/frameworks/MEMORY.md)
+- **🛡️ নিরাপত্তা** — প্রতিটি LLM রুটে প্রম্পট-ইনজেকশন গার্ড (রেড-টিম স্যুট), অপ্ট-ইন ক্রেডেনশিয়াল-মাস্কিং গার্ডরেল (উভয় দিকেই ফাঁস হওয়া API কী/সিক্রেট রিড্যাক্ট করে), বিনামূল্যের DuckDuckGo সর্বশেষ-বিকল্প ওয়েব সার্চ এবং ড্যাশবোর্ডের জন্য ঐচ্ছিক OIDC লগইন গেট (পাসওয়ার্ড লগইন সবসময় উপলভ্য থাকে)। → [গার্ডরেল](docs/security/GUARDRAILS.md)
+- **🖼️ নতুন এন্ডপয়েন্ট** — `/v1/ocr` (Mistral OCR) এবং `/v1/audio/translations` (Whisper-ধাঁচের) মিডিয়া সুবিধাগুলোকে পূর্ণতা দেয়। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
 - **🎨 ছবি / ভিডিও / অডিও জেনারেশন** — মিডিয়ার জন্য একটি API: xAI Grok Imagine ও Novita AI ভিডিও, ComfyUI, Magnific, Adobe Firefly, Segmind এবং ElevenLabs-এর মতো স্পিচ প্রোভাইডার। → [API রেফারেন্স](docs/reference/API_REFERENCE.md)
-- **🌍 ডিপ্লয়মেন্ট ও অপারেশন** — রিভার্স-প্রক্সি `basePath`, ব্রাউজারের ভাষা স্বয়ংক্রিয় শনাক্তকরণ, প্রতি-কিতে ডিভাইস ট্র্যাকিং, রুট-লেস MITM ট্রাস্ট, zh-TW লোকালাইজেশন। → [এনভায়রনমেন্ট](docs/reference/ENVIRONMENT.md)
+- **🌍 ডিপ্লয়মেন্ট ও অপারেশনস** — রিভার্স-প্রক্সি `basePath`, ব্রাউজারের ভাষা স্বয়ংক্রিয় শনাক্তকরণ, প্রতি-কী ডিভাইস ট্র্যাকিং, রুটবিহীন MITM ট্রাস্ট, zh-TW লোকালাইজেশন। → [এনভায়রনমেন্ট](docs/reference/ENVIRONMENT.md)
 - **🤝 আরও প্রোভাইডার ও এজেন্ট** — ক্লাউড এজেন্ট (Codex Cloud, Cursor, Devin, Jules), ব্রাউজার + OAuth লগইনসহ Grok Build (xAI), প্রথম-শ্রেণির Ollama কার্ড, Claude Opus 5 ও Sonnet 5, Kimi-এর আনুষ্ঠানিক অংশীদারত্ব (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… এবং হালনাগাদ **352-প্রোভাইডারের ক্যাটালগ**। → [প্রোভাইডার](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 রাউটিংয়ের স্বচ্ছতা** — প্রতিটি রেসপন্সে সেটি পরিবেশনকারী কৌশল/প্রোভাইডার/লেটেন্সির নামসহ একটি `X-OmniRoute-Decision` হেডার থাকে; নতুন `cache-optimized` কম্বো কৌশল + Auto-Combo `cacheAffinity` ফ্যাক্টর পুনরাবৃত্ত অনুরোধকে ক্যাশ করা প্রিফিক্সধারী সংযোগে ফেরত পাঠায়; এবং শুধু-পঠনযোগ্য `/v1/auto-combo/{channel}/candidates` এন্ডপয়েন্ট একটি `auto/*` চ্যানেলের লাইভ প্রার্থী পুল প্রকাশ করে। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ লোকাল পারফরম্যান্স ও অবকাঠামো** — এক-ক্লিকে লোকাল Redis, Cloudflare Workers / Deno Deploy রিলে ডিপ্লয়ার এবং তত্ত্বাবধানে থাকা এমবেডেড সার্ভিস হিসেবে Bifrost ও Mux। → [এমবেডেড সার্ভিস](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 সঙ্গে আরও যা আছে** — প্লাগইন ফ্রেমওয়ার্ক + মার্কেটপ্লেস, Omni/Agent/GitHub স্কিল ফ্রেমওয়ার্ক, Obsidian ভল্ট ইন্টিগ্রেশন (22টি MCP টুল), OpenAI-সামঞ্জস্যপূর্ণ Batch ও Files API, সেমান্টিক রেসপন্স ক্যাশ, লিডারবোর্ডসহ গেমিফিকেশন, ACP এজেন্ট ডিসকভারি (15টি বিল্ট-ইন এজেন্ট), BigQuery-তে নির্ধারিত লগ এক্সপোর্ট, `auto/chaos` ফল্ট ইনজেকশন, একটি Telegram বট ব্রিজ, ইন-অ্যাপ সংস্করণ ম্যানেজার এবং LMArena-ELO বিনামূল্যের-প্রোভাইডার র্যাঙ্কিং। → [ডকুমেন্টেশন](docs/README.md)
+- **📡 রাউটিংয়ের স্বচ্ছতা** — প্রতিটি রেসপন্সে সেটি পরিবেশনকারী কৌশল/প্রোভাইডার/লেটেন্সির নামসহ একটি `X-OmniRoute-Decision` হেডার থাকে; নতুন `cache-optimized` কম্বো কৌশল + Auto-Combo `cacheAffinity` ফ্যাক্টর পুনরাবৃত্ত অনুরোধকে ক্যাশ করা প্রিফিক্স ধারণকারী সংযোগে ফেরত পাঠায়; এবং একটি রিড-অনলি `/v1/auto-combo/{channel}/candidates` এন্ডপয়েন্ট কোনো `auto/*` চ্যানেলের লাইভ ক্যান্ডিডেট পুল প্রকাশ করে। → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ লোকাল পারফরম্যান্স ও অবকাঠামো** — এক-ক্লিক লোকাল Redis, Cloudflare Workers / Deno Deploy রিলে ডিপ্লয়ার এবং তত্ত্বাবধানে থাকা এমবেডেড সার্ভিস হিসেবে Bifrost ও Mux। → [এমবেডেড সার্ভিস](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 আরও যা অন্তর্ভুক্ত আছে** — প্লাগইন ফ্রেমওয়ার্ক + মার্কেটপ্লেস, Omni/Agent/GitHub স্কিল ফ্রেমওয়ার্ক, Obsidian ভল্ট ইন্টিগ্রেশন (22টি MCP টুল), OpenAI-সামঞ্জস্যপূর্ণ Batch ও Files API, সেমান্টিক রেসপন্স ক্যাশ, লিডারবোর্ডসহ গেমিফিকেশন, ACP এজেন্ট ডিসকভারি (15টি বিল্ট-ইন এজেন্ট), BigQuery-তে নির্ধারিত লগ এক্সপোর্ট, `auto/chaos` সমান্তরাল মাল্টি-মডেল ফ্যান-আউট, একটি Telegram বট ব্রিজ, ইন-অ্যাপ ভার্সন ম্যানেজার এবং LMArena-ELO বিনামূল্যের-প্রোভাইডার র্যাঙ্কিং। → [ডকুমেন্টেশন](docs/README.md)
 
 <br/>
 
@@ -665,7 +665,7 @@ omniroute configure codex          # আরও রয়েছে: claude openco
 
 <div align="center">
 
-## 🌐 357টি AI প্রদানকারী — 152টি ক্যাটালগে বিনামূল্য হিসেবে চিহ্নিত
+## 🌐 372টি AI প্রদানকারী — 154টি ক্যাটালগে বিনামূল্য হিসেবে চিহ্নিত
 
 </div>
 
@@ -1265,19 +1265,19 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1-ও এটি এ
   <tr><td nowrap><b>রানটাইম</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>ভাষা</b></td><td>TypeScript 6.0 — <code>src/</code> এবং <code>open-sse/</code> জুড়ে <b>100% TypeScript</b> (v2.0 থেকে কোরে একটিও <code>any</code> নেই)</td></tr>
   <tr><td nowrap><b>ফ্রেমওয়ার্ক</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>ডেটাবেস</b></td><td>better-sqlite3 (SQLite, WAL জার্নালিং) + LowDB (পুরোনো JSON) — 122টি ডোমেইন মডিউল, 190টি মাইগ্রেশন</td></tr>
-  <tr><td nowrap><b>মেমরি</b></td><td>SQLite FTS5 পূর্ণ-পাঠ অনুসন্ধান + int8-কোয়ান্টাইজড ভেক্টর এমবেডিং, টাইপযুক্ত ক্ষয়</td></tr>
-  <tr><td nowrap><b>স্কিমা</b></td><td>Zod 4 — MCP টুল I/O যাচাইকরণ + API চুক্তি</td></tr>
+  <tr><td nowrap><b>ডেটাবেস</b></td><td>better-sqlite3 (SQLite, WAL জার্নালিং) + LowDB (JSON লিগ্যাসি) — 137টি ডোমেইন মডিউল, 202টি মাইগ্রেশন</td></tr>
+  <tr><td nowrap><b>মেমরি</b></td><td>SQLite FTS5 পূর্ণ-পাঠ অনুসন্ধান + int8-কোয়ান্টাইজড ভেক্টর এমবেডিং, টাইপড ডিকে</td></tr>
+  <tr><td nowrap><b>স্কিমা</b></td><td>Zod 4 — MCP টুলের ইনপুট/আউটপুট যাচাইকরণ + API কনট্র্যাক্ট</td></tr>
   <tr><td nowrap><b>প্রোটোকল</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>স্ট্রিমিং</b></td><td>Server-Sent Events (SSE) + WebSocket ব্রিজ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>কম্প্রেশন</b></td><td>12-ইঞ্জিনের পাইপলাইন — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>প্রমাণীকরণ ও নিরাপত্তা</b></td><td>OAuth 2.0 (PKCE) + JWT + API কী + MCP স্কোপযুক্ত প্রমাণীকরণ · সংরক্ষিত অবস্থায় AES-256-GCM · DOMPurify</td></tr>
-  <tr><td nowrap><b>স্টেলথ</b></td><td>wreq-js — JA3 / JA4 TLS ফিঙ্গারপ্রিন্ট অনুকরণ, 3-স্তরীয় প্রক্সি</td></tr>
-  <tr><td nowrap><b>স্থিতিস্থাপকতা</b></td><td>সার্কিট ব্রেকার, এক্সপোনেনশিয়াল ব্যাকঅফ, অ্যান্টি-থান্ডারিং-হার্ড, স্বয়ংক্রিয়-কম্বো স্ব-নিরাময়</td></tr>
-  <tr><td nowrap><b>লগিং</b></td><td>pino — অনুরোধের প্রসঙ্গসহ কাঠামোবদ্ধ JSON লগ</td></tr>
-  <tr><td nowrap><b>পরীক্ষা</b></td><td>Node.js টেস্ট রানার + Vitest — ট্র্যাক করা 5,100+টি টেস্ট ফাইলজুড়ে <b>39,000+টি স্ট্যাটিক টেস্ট ঘোষণা</b> (ইউনিট, ইন্টিগ্রেশন, E2E, নিরাপত্তা, ইকোসিস্টেম)</td></tr>
+  <tr><td nowrap><b>কম্প্রেশন</b></td><td>12-ইঞ্জিন পাইপলাইন — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>প্রমাণীকরণ ও নিরাপত্তা</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP স্কোপড প্রমাণীকরণ · সংরক্ষিত অবস্থায় AES-256-GCM এনক্রিপশন · DOMPurify</td></tr>
+  <tr><td nowrap><b>স্টেলথ</b></td><td>wreq-js — JA3 / JA4 TLS ফিঙ্গারপ্রিন্ট ছদ্মবেশ, 3-স্তরের প্রক্সি</td></tr>
+  <tr><td nowrap><b>স্থিতিস্থাপকতা</b></td><td>সার্কিট ব্রেকার, এক্সপোনেনশিয়াল ব্যাকঅফ, অ্যান্টি-থান্ডারিং-হার্ড, স্বয়ংক্রিয়-কম্বো স্ব-মেরামত</td></tr>
+  <tr><td nowrap><b>লগিং</b></td><td>pino — রিকোয়েস্ট কনটেক্সটসহ কাঠামোবদ্ধ JSON লগ</td></tr>
+  <tr><td nowrap><b>টেস্টিং</b></td><td>Node.js টেস্ট রানার + Vitest — 5,100টিরও বেশি ট্র্যাক করা টেস্ট ফাইলজুড়ে <b>39,000টিরও বেশি স্ট্যাটিক টেস্ট ডিক্লারেশন</b> (ইউনিট, ইন্টিগ্রেশন, E2E, নিরাপত্তা, ইকোসিস্টেম)</td></tr>
   <tr><td nowrap><b>প্ল্যাটফর্ম</b></td><td>ডেস্কটপ (Electron) · Android (Termux) · PWA (যেকোনো ব্রাউজার)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — রিলিজের সময় স্বয়ংক্রিয় npm প্রকাশনা + Docker Hub</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — রিলিজের সময় স্বয়ংক্রিয়ভাবে npm-এ প্রকাশ + Docker Hub</td></tr>
   <tr><td nowrap><b>লিংক</b></td><td><a href="https://omniroute.online">ওয়েবসাইট</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1729,7 +1729,7 @@ MIT লাইসেন্স - বিস্তারিত জানতে [LICE
 
 **[⬆ উপরে ফিরে যান](#-omniroute)** · ওপেন-সোর্স AI কমিউনিটির জন্য ❤️ দিয়ে তৈরি।
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT লাইসেন্স · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT লাইসেন্স · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- কমিউনিটির প্রশ্নোত্তরের জন্য GitHub Discussions সক্রিয় করা হয়েছে -->

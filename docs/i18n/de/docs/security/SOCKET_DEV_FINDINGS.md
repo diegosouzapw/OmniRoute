@@ -219,13 +219,13 @@ Team-Anmeldedaten zentral zu verwalten. Die Korrektur bildet das Bedrohungsmodel
 
 ## Build-Profil: `minimal`
 
-Benutzer, die ein Socket-freundliches Artefakt benötigen, können es wie folgt erstellen:
+Für Benutzer, die ein Socket-kompatibles Artefakt benötigen, erfolgt der Build mit:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Das webpack-Plugin `NormalModuleReplacementPlugin` ersetzt vier Module durch Stubs:
+Das Webpack-Plugin `NormalModuleReplacementPlugin` ersetzt vier Module durch Stubs:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -237,10 +237,9 @@ Das webpack-Plugin `NormalModuleReplacementPlugin` ersetzt vier Module durch Stu
 Jeder Stub exportiert dieselbe Schnittstelle, aber jede Funktion löst zur Laufzeit einen
 `featureDisabledError(name)` aus. Routen, die vom deaktivierten
 Modul abhängen, geben HTTP 503 mit einer eindeutigen Meldung zurück, anstatt den
-sensiblen Codepfad zu aktivieren.
+sicherheitskritischen Codepfad zu aktivieren.
 
-Das resultierende Bundle ist für die Veröffentlichung als `omniroute-secure` vorgesehen. Das
-Veröffentlichungsverfahren ist unter `docs/ops/PUBLISHING_SECURE.md` beschrieben.
+Das resultierende Bundle ist zur Veröffentlichung als `omniroute-secure` vorgesehen.
 
 ---
 

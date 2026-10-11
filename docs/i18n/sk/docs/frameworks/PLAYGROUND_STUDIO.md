@@ -188,14 +188,14 @@ Autentifikácia: voliteľná (`REQUIRE_API_KEY`). Chyby prostredníctvom `buildE
 
 ## Riešenie problémov
 
-| Príznak                                     | Príčina                               | Riešenie                                                                                           |
-| ------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Editor Monaco sa na karte API nevykresľuje  | SSR načítalo Monaco                   | Overte, či `ApiTab` používa `dynamic(..., { ssr: false })`                                         |
-| Porovnávacie streamy sa spúšťajú sekvenčne  | Nesprávne použitie `Promise.all`      | Všetky spustenia streamov sa musia vykonať v jednom volaní `Promise.all`                           |
-| Metriky zobrazujú pre TTFT hodnotu `null`   | Obsluha prvého bloku nie je pripojená | Skontrolujte, či sa `useStreamMetrics.onFirstChunk()` volá v slučke čítačky SSE                    |
-| Predvoľba sa neukladá                       | Migrácia DB nebola spustená           | Spustite `npm run db:migrate` alebo reštartujte server (migrácia sa automaticky spustí pri štarte) |
-| Vylepšenie promptu vracia 502               | Model nie je nastavený v konfigurácii | Pred vylepšením musí používateľ zadať názov modelu na paneli konfigurácie                          |
-| Exportovaný kód zobrazuje `MISSING_API_KEY` | Zástupný text nebol vložený           | `codeExport.ts` vždy používa `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                          |
+| Príznak                                        | Príčina                               | Riešenie                                                                        |
+| ---------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| Editor Monaco sa nezobrazuje na karte API      | Monaco sa načítalo cez SSR            | Overte, či `ApiTab` používa `dynamic(..., { ssr: false })`                      |
+| Porovnávané streamy sa spúšťajú postupne       | Nesprávne použitie `Promise.all`      | Spustenia všetkých streamov musia byť odoslané v jednom volaní `Promise.all`    |
+| Metriky zobrazujú hodnotu TTFT ako `null`      | Obsluha prvého bloku nie je zapojená  | Skontrolujte, či sa `useStreamMetrics.onFirstChunk()` volá v slučke čítačky SSE |
+| Predvoľba sa neukladá natrvalo                 | Migrácia databázy nebola spustená     | Reštartujte server: migrácie sa pri spustení vykonajú automaticky               |
+| Funkcia na vylepšenie promptu vracia chybu 502 | Model nie je nastavený v konfigurácii | Pred vylepšením musí používateľ zadať názov modelu na paneli konfigurácie       |
+| Exportovaný kód zobrazuje `MISSING_API_KEY`    | Zástupný symbol nebol vložený         | `codeExport.ts` vždy používa `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`       |
 
 ---
 

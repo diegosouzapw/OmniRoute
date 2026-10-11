@@ -215,15 +215,15 @@ dürüst edir: "server imzalayır, müştəri yoxlayır, operator açıq razıl�
 
 ---
 
-## Qurma profili: `minimal`
+## Quraşdırma profili: `minimal`
 
-Socket ilə uyğun artefakta ehtiyacı olan istifadəçilər aşağıdakı əmrlə qura bilərlər:
+Socket ilə uyğun artefakta ehtiyacı olan istifadəçilər aşağıdakı əmrlə quraşdırmalıdır:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` vasitəsilə dörd modulu stub-larla əvəz edir:
+webpack `NormalModuleReplacementPlugin` vasitəsilə dörd modul üçün stub ləqəbləri təyin edir:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -232,13 +232,12 @@ webpack `NormalModuleReplacementPlugin` vasitəsilə dörd modulu stub-larla əv
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Hər bir stub eyni interfeysi ixrac edir, lakin hər bir funksiya icra zamanı
+Hər bir stub eyni interfeysi ixrac edir, lakin bütün funksiyalar icra zamanı
 `featureDisabledError(name)` xətası yaradır. Deaktiv edilmiş moduldan asılı olan
 marşrutlar həssas kod yolunu aktivləşdirmək əvəzinə aydın mesajla HTTP 503
 cavabı qaytarır.
 
-Yaranan paket `omniroute-secure` kimi dərc edilmək üçün nəzərdə tutulub. Dərc
-təlimatları üçün `docs/ops/PUBLISHING_SECURE.md` sənədinə baxın.
+Yaranan paket `omniroute-secure` adı ilə dərc edilmək üçün nəzərdə tutulub.
 
 ---
 

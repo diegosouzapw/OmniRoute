@@ -126,25 +126,28 @@ Security → CORS Allowed Origins**-ში, გადატვირთვის
   არარსებობით. მართვის/dashboard-ის origin-ები არ შეიტანოთ არცერთ permissive
   კონფიგურაციაში; ისინი ზუსტად fail-closed რეჟიმში უნდა დარჩეს.
 
-## მაგალითი: reverse proxy OmniRoute-ის წინ
+## მაგალითი: უკუპროქსი OmniRoute-ის წინ
 
-CORS-ს თავად OmniRoute აღასრულებს, ამიტომ proxy-მ, ჩვეულებრივ, **არ უნდა**
-დაამატოს ან გადაწეროს `Access-Control-*` სათაურები (ორმაგი სათაურები ბრაუზერების
-მუშაობას არღვევს). დაასრულეთ TLS და გადაამისამართეთ მოთხოვნა — preflight-ს
-OmniRoute-მა უპასუხოს:
+CORS-ს თავად OmniRoute უზრუნველყოფს, ამიტომ პროქსიმ, როგორც წესი, **არ უნდა** დაამატოს ან
+გადააწეროს `Access-Control-*` სათაურები (დუბლირებული სათაურები ბრაუზერების მუშაობას არღვევს). დაასრულეთ TLS
+და გადაამისამართეთ მოთხოვნები — წინასწარ მოთხოვნას OmniRoute-მა უპასუხოს:
 
 ```nginx
-# nginx — გადაამისამართეთ OmniRoute-ზე; აქ Access-Control-* არ ჩასვათ
+# nginx — გადაამისამართეთ OmniRoute-ზე; აქ Access-Control-* არ დაამატოთ
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # X-Forwarded-For არ დააყენოთ 127.0.0.1-ზე — ეს loopback მარშრუტების დამცავს აუვლის გვერდს.
+    # შეინარჩუნეთ გადამისამართების სათაურები: იმავე ჰოსტზე არსებული პროქსი loopback-იდან უკავშირდება და სწორედ
+    # ეს სათაურები ატყობინებს OmniRoute-ს, რომ გამომძახებელი ლოკალური ოპერატორი არ არის. პროქსი, რომელიც არცერთ მათგანს
+    # არ ამატებს, ყველა დისტანციურ გამომძახებელს ლოკალურად წარმოაჩენს. ასევე არასოდეს დააყენოთ X-Forwarded-For-ის მნიშვნელობად 127.0.0.1.
 }
 ```
 
-ბრაუზერის დაშვებული origin-ები დააყენეთ OmniRoute-ში
-(`CORS_ALLOWED_ORIGINS` ან Security ჩანართი) და არა proxy-ში.
+ბრაუზერის ნებადართული წყაროები მიუთითეთ OmniRoute-ში (`CORS_ALLOWED_ORIGINS` ან
+უსაფრთხოების ჩანართში) და არა პროქსიში.
 
 ## საწყისი ფაილები
 

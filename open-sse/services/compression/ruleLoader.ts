@@ -184,17 +184,59 @@ export function validateRulePack(pack: unknown): { valid: boolean; errors: strin
   return { valid: errors.length === 0, errors };
 }
 
-function readPack(language: string, category: string): RulePack | null {
-  const filename = path.join(getRulesDir(), language, `${category}.json`);
+function readPackFile(filename: string, label: string): RulePack | null {
   if (!fs.existsSync(filename)) return null;
   const parsed = JSON.parse(fs.readFileSync(filename, "utf8")) as unknown;
   const validation = validateRulePack(parsed);
   if (!validation.valid) {
-    throw new Error(
-      `Invalid Caveman rule pack ${language}/${category}: ${validation.errors.join("; ")}`
-    );
+    throw new Error(`Invalid Caveman rule pack ${label}: ${validation.errors.join("; ")}`);
   }
   return parsed as RulePack;
+}
+
+function readPack(language: string, category: string): RulePack | null {
+  return readPackFile(
+    path.join(getRulesDir(), language, `${category}.json`),
+    `${language}/${category}`
+  );
+}
+
+/** User overlay dir (#15677): `<DATA_DIR or ~/.omniroute>/compression/rules`. */
+function getUserRulesDir(): string {
+  const dataDir = process.env.DATA_DIR?.trim() || path.join(os.homedir(), ".omniroute");
+  return path.join(dataDir, "compression", "rules");
+}
+
+/** Bundled rules, with same-name user rules replacing them and new user rules appended. */
+function readMergedRules(language: string, category: string): FileRule[] | null {
+  const bundled = readPack(language, category);
+  let user: RulePack | null = null;
+  try {
+    user = readPackFile(
+      path.join(getUserRulesDir(), language, `${category}.json`),
+      `user:${language}/${category}`
+    );
+  } catch (error) {
+    // A broken user overlay must never take down compression: fall back to bundled rules.
+    console.warn(`[compression] ignoring invalid user rule pack: ${String(error)}`);
+  }
+  if (!bundled && !user) return null;
+  if (!user) return bundled?.rules ?? null;
+  const overrides = new Map(user.rules.map((rule) => [rule.name, rule]));
+  const merged = (bundled?.rules ?? []).map((rule) => overrides.get(rule.name) ?? rule);
+  const bundledNames = new Set((bundled?.rules ?? []).map((rule) => rule.name));
+  return [...merged, ...user.rules.filter((rule) => !bundledNames.has(rule.name))];
+}
+
+function listCategories(language: string): string[] {
+  const names = new Set<string>();
+  for (const dir of [path.join(getRulesDir(), language), path.join(getUserRulesDir(), language)]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const entry of fs.readdirSync(dir)) {
+      if (entry.endsWith(".json")) names.add(path.basename(entry, ".json"));
+    }
+  }
+  return [...names].sort();
 }
 
 export function loadRulePack(
@@ -202,16 +244,16 @@ export function loadRulePack(
   category: string,
   options: { refresh?: boolean } = {}
 ): CavemanRule[] {
-  const key = `${getRulesDir()}:${language}:${category}`;
+  const key = `${getRulesDir()}:${getUserRulesDir()}:${language}:${category}`;
   if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
 
-  const pack = readPack(language, category);
-  if (!pack) {
+  const fileRules = readMergedRules(language, category);
+  if (!fileRules) {
     cache.set(key, []);
     return [];
   }
 
-  const rules = pack.rules.map((rule) => compileRule(rule, `${language}/${category}`));
+  const rules = fileRules.map((rule) => compileRule(rule, `${language}/${category}`));
   cache.set(key, rules);
   return rules;
 }
@@ -220,20 +262,12 @@ export function loadAllRulesForLanguage(
   language: string,
   options: { refresh?: boolean } = {}
 ): CavemanRule[] {
-  const key = `${getRulesDir()}:${language}:*`;
+  const key = `${getRulesDir()}:${getUserRulesDir()}:${language}:*`;
   if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
 
-  const languageDir = path.join(getRulesDir(), language);
-  if (!fs.existsSync(languageDir)) {
-    cache.set(key, []);
-    return [];
-  }
-
-  const rules = fs
-    .readdirSync(languageDir)
-    .filter((entry) => entry.endsWith(".json"))
-    .sort()
-    .flatMap((entry) => loadRulePack(language, path.basename(entry, ".json"), options));
+  const rules = listCategories(language).flatMap((category) =>
+    loadRulePack(language, category, options)
+  );
 
   cache.set(key, rules);
   return rules;

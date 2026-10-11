@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Įvyko klaida",
+      "description": "Įvyko netikėta klaida. Ji užregistruota, o mūsų komanda ją ištirs.",
+      "detailsAriaLabel": "Klaidos informacija",
+      "retryAriaLabel": "Bandyti įkelti puslapį dar kartą",
+      "tryAgain": "Bandyti dar kartą",
+      "statusAriaLabel": "Atidaryti sistemos būseną",
+      "systemStatus": "Sistemos būsena"
+    }
+  }
+}

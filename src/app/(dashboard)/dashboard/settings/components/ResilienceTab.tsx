@@ -6,7 +6,9 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import AutoDisableCard from "./AutoDisableCard";
 import ModelLockoutCard from "./ModelLockoutCard";
+import TokenRefreshBreakerCard, { type TokenRefreshBreakerValue } from "./TokenRefreshBreakerCard";
 import { NumberField, BooleanField } from "./ResilienceFields";
+import { throwIfResilienceSaveFailed } from "./resilienceSaveError";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -75,6 +77,7 @@ type ResilienceResponse = {
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   providerCooldown: ProviderCooldownSettings;
   credentialHealthCheck?: CredentialHealthCheckSettings;
+  tokenRefreshBreaker?: TokenRefreshBreakerValue;
 };
 
 function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
@@ -86,6 +89,9 @@ function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
     comboCooldownWait: json.comboCooldownWait,
     quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
     providerCooldown: json.providerCooldown,
+    // Older servers do not send the token-refresh section; keep undefined
+    // so the card can hide itself instead of showing a bogus default.
+    tokenRefreshBreaker: json.tokenRefreshBreaker,
     // Older servers do not send the credential-health section; keep undefined
     // so the card can hide itself instead of showing a bogus default.
     credentialHealthCheck: json.credentialHealthCheck,
@@ -1176,9 +1182,7 @@ export default function ResilienceTab() {
         body: JSON.stringify(payload),
       });
       const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
-      }
+      /* prettier-ignore */ throwIfResilienceSaveFailed(response.ok, json, tx("saveFailed", "Failed to save resilience settings"));
       setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
@@ -1255,6 +1259,15 @@ export default function ResilienceTab() {
         saving={savingSection === "providerCooldown"}
         onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
       />
+      {data.tokenRefreshBreaker && (
+        <TokenRefreshBreakerCard
+          value={data.tokenRefreshBreaker}
+          saving={savingSection === "tokenRefreshBreaker"}
+          onSave={(tokenRefreshBreaker) =>
+            savePatch("tokenRefreshBreaker", { tokenRefreshBreaker })
+          }
+        />
+      )}
       {data.credentialHealthCheck && (
         <CredentialHealthCheckCard
           value={data.credentialHealthCheck}

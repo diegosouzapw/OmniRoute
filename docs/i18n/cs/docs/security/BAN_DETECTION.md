@@ -4,23 +4,27 @@
 
 ---
 
-OmniRoute prohledává chybové odpovědi nadřazených služeb a hledá signály, které naznačují, že je **účet poskytovatele trvale nefunkční** (pozastavený / deaktivovaný / zablokovaný kvůli porušení smluvních podmínek), a při
-nalezení shody převede dané připojení do **koncového stavu `banned`**, takže již
-nebude vybíráno pro požadavky. Toto chování konfiguruje karta nastavení **Zabezpečení → Zakázaná klíčová slova**
-(„Další klíčová slova, která spustí detekci trvalého zablokování účtu.
-Vestavěná klíčová slova se použijí vždy.“).
+OmniRoute kontroluje chybové odpovědi upstream poskytovatelů a hledá signály, které naznačují, že
+**účet je trvale nefunkční** (pozastavený / deaktivovaný / zablokovaný kvůli porušení podmínek použití), a pokud
+najde shodu, přesune toto připojení do **koncového stavu `banned`**, takže již
+nebude vybíráno pro požadavky. Toto chování se konfiguruje na kartě nastavení
+**Security → Banned Keywords** („Další klíčová slova, která spustí detekci trvalého
+zablokování účtu. Vestavěná klíčová slova se použijí vždy.“).
 
-Tato stránka popisuje vestavěný seznam, průběh detekce, její rozsah, bezpečné
-přidávání vlastních klíčových slov a obnovení označeného připojení. Samotný koncový
+Tato stránka dokumentuje vestavěný seznam, průběh detekce, její rozsah, bezpečný způsob přidávání
+vlastních klíčových slov a postup obnovení označeného připojení. Samotný koncový
 stav je součástí modelu odolnosti — viz
 [RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Koncové stavy“).
 
 **Zdroj pravdy:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+spolu s `open-sse/services/errorClassifier.ts` pro nekoncovou třídu vyžadující ověření
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) a pro
+větev 403, která ji používá.
 
 ## Vestavěná klíčová slova
 
-Těchto 8 podřetězců se použije vždy (bez rozlišení velikosti písmen), bez ohledu na vlastní seznam:
+Těchto 7 podřetězců se použije vždy (bez ohledu na velikost písmen), nezávisle na jakémkoli vlastním seznamu:
 
 ```
 account_deactivated
@@ -28,24 +32,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Tento seznam se vyvíjí podle toho, jak poskytovatelé mění znění zpráv o zablokování. Směrodatná
+> Tento seznam se vyvíjí s tím, jak poskytovatelé mění formulace zákazů. Směrodatná
 > kopie je `ACCOUNT_DEACTIVATED_SIGNALS` v `open-sse/services/accountFallback.ts`;
 > výše uvedený blok považujte za snímek.
 
-Ve stejném souboru se nacházejí dvě sousední, **samostatné** tabulky signálů, které
-_nejsou_ součástí detekce zakázaných klíčových slov:
+### Nejde o zákaz: výzvy k ověření vyžadující zásah operátora
+
+`verify your account to continue` **dříve bylo** ve výše uvedeném seznamu. Nejde o signál
+zákazu a nyní se nachází v `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, který jej klasifikuje jako
+obnovitelnou chybu `PROJECT_ROUTE_ERROR` namísto trvalého ukončení připojení.
+
+Google Cloud Code / Antigravity jej vracejí jako `403 VALIDATION_REQUIRED`. Je
+**přechodný a objevuje se u zdravých účtů s plně dostupnou kvótou** — podle měření v živém
+nasazení (2026-09-25, `proxy_logs`): jedno připojení Antigravity vrátilo během 10 minut 33 těchto
+chyb 403 a zůstalo `active`, zatímco souběžné připojení se 100 % dostupné
+kvóty ve všech 17 oknech bylo jediným takovým výskytem **trvale** zablokováno. Jediným
+rozdílem bylo, který pokus byl náhodou obsloužen.
+
+Toto rozlišení je důležité, protože terminální shoda znamená `permanent: true` (roční interval opětovného
+použití, bez automatického obnovení), zatímco výzvu k ověření operátor vyřeší v prohlížeči.
+Ponechání této fráze v seznamu zákazů také způsobovalo, že obnovitelná větev pro chybu cloud-code 403 v
+`classifyProviderError` byla pro tuto formulaci nedostupná, protože `accountDeactivated` se
+vyhodnocuje jako první — takže obnovení projektové trasy přidané pro Gemini Code Assist v
+[#868](https://github.com/diegosouzapw/OmniRoute/pull/868) a
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) se nikdy nemohlo spustit.
+
+Tři sousední, **samostatné** tabulky signálů _nejsou_ součástí detekce zakázaných klíčových slov:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — vyčerpané prostředky/kvóta (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → koncový stav `credits_exhausted`.
-- `OAUTH_INVALID_TOKEN_SIGNALS` — **nekoncový stav**; obnovení tokenu může připojení obnovit.
+  `credit_balance_too_low`, `payment required`, …) → terminální `credits_exhausted`.
+- `OAUTH_INVALID_TOKEN_SIGNALS` — **neterminální**; obnovení tokenu může stav napravit.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **neterminální**; operátor musí
+  účet znovu ověřit u nadřazeného poskytovatele. Nachází se v `open-sse/services/errorClassifier.ts`
+  (zbývající dvě se nacházejí v `accountFallback.ts`). Viz výše uvedená část.
 
-Poznámka: běžné dočasné fráze jako **`rate limit`** / `429` zpracovává
-mechanismus omezení rychlosti / dočasného blokování připojení a **nejde** o signály zablokování.
+Poznámka: běžné přechodné fráze jako **`rate limit`** / `429` zpracovává
+mechanismus omezení rychlosti / intervalu opětovného použití připojení a **nejde** o signály zákazu.
 
 ## Průběh detekce
 

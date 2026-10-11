@@ -307,22 +307,27 @@ sa upstream, wakasan ang gawain sa sariling console ng provider.
 
 ## REST API — Imprastraktura ng Cloud Provider
 
-Ginagamit ng mga remote client ang mga auxiliary endpoint na ito sa ilalim ng `src/app/api/cloud/`
-(ang CLI, Electron app, o mga sync worker) upang basahin ang metadata ng koneksyon ng provider
-at lutasin ang mga alias ng modelo. Ina-authenticate ang mga ito gamit ang **regular na API key**
-(sa pamamagitan ng `validateApiKey`), hindi ang management auth na ginagamit ng mga task endpoint.
+Ang mga pantulong na endpoint na ito sa ilalim ng `src/app/api/cloud/` ay ginagamit ng mga remote client
+(ang CLI, Electron app, o mga sync worker) upang basahin ang metadata ng koneksyon sa provider
+at lutasin ang mga alias ng modelo. Ina-authenticate ang mga ito gamit ang isang **API key**
+(sa pamamagitan ng `validateApiKey`), hindi ang authentication sa pamamahala na ginagamit ng mga endpoint ng task; ang
+ibinabalik ng `/api/cloud/auth` ay nakadepende sa scope ng key (tingnan sa ibaba).
 
-| Paraan | Path                            | Layunin                                                                                     |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | I-validate ang API key, ibalik ang naka-mask na metadata ng koneksyon + mga alias ng modelo |
-| PUT    | `/api/cloud/credentials/update` | I-refresh ang `accessToken` / `refreshToken` / `expiresAt`                                  |
-| POST   | `/api/cloud/model/resolve`      | Lutasin ang alias ng modelo tungo sa `{ provider, model }`                                  |
-| GET    | `/api/cloud/models/alias`       | Ilista ang lahat ng alias ng modelo                                                         |
-| PUT    | `/api/cloud/models/alias`       | Magtakda ng alias ng modelo (at awtomatikong i-sync sa Cloud kung naka-enable)              |
+| Pamamaraan | Path                            | Layunin                                                                                     |
+| ---------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| POST       | `/api/cloud/auth`               | I-validate ang API key, ibalik ang naka-mask na metadata ng koneksyon + mga alias ng modelo |
+| PUT        | `/api/cloud/credentials/update` | I-refresh ang `accessToken` / `refreshToken` / `expiresAt`                                  |
+| POST       | `/api/cloud/model/resolve`      | Lutasin ang alias ng modelo bilang `{ provider, model }`                                    |
+| GET        | `/api/cloud/models/alias`       | Ilista ang lahat ng alias ng modelo                                                         |
+| PUT        | `/api/cloud/models/alias`       | Magtakda ng alias ng modelo (at awtomatikong i-sync sa Cloud kung naka-enable)              |
 
-Hindi kailanman ibinabalik ng `/api/cloud/auth` ang raw na `apiKey` / `accessToken` / `refreshToken`. Sa halip,
-ibinabalik nito ang `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, at isang naka-mask na preview
-(`maskedApiKey`: unang 4 + `****` + huling 4).
+Hindi kailanman ibinabalik ng `/api/cloud/auth` ang aktuwal na `apiKey` / `accessToken` / `refreshToken`. Ibinabalik nito ang
+`hasApiKey`, `hasAccessToken`, `hasRefreshToken` para sa mga aktibong koneksyong maaaring
+gamitin ng key (ang isang key na nilimitahan gamit ang `allowedConnections` ay ang mga iyon lamang ang nakikita). Para sa isang API key na may
+scope na `manage` o `admin`, kabilang ang deployment key mula sa `OMNIROUTE_API_KEY`, ibinabalik din nito
+ang isang naka-mask na preview (`maskedApiKey`: hanggang 4 na character sa bawat dulo, mas kaunti para sa maikling
+key, at wala para sa key na may 8 character o mas kaunti) at ang `projectId` ng koneksyon. Hindi isinasama ang dalawang field
+na ito sa response para sa anumang ibang key.
 
 ## Pagresolba ng mga Credential
 

@@ -17,57 +17,59 @@ OmniRoute 具有一個路由感知授權管道，用於把關每個 API 請求�
 
 ### 1. API 金鑰（Bearer）
 
-用於與 OpenAI/Anthropic/Gemini 相容的用戶端 API，以及少數在金鑰具有 `manage` 範圍時可存取的管理路由。
+用於與 OpenAI/Anthropic/Gemini 相容的用戶端 API，以及 API 金鑰具有 `manage` 範圍時的少數管理路由。
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 驗證，並透過 `src/shared/utils/apiAuth.ts` 重新匯出。驗證器也接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 環境變數作為持久性透傳金鑰（議題 #1350）。
+由 `src/sse/services/auth.ts` 中的 `isValidApiKey()` / `extractApiKey()` 驗證，並透過 `src/shared/utils/apiAuth.ts` 重新匯出。驗證器也接受 `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` 環境變數作為永久的直通金鑰（議題 #1350）。
 
 ### 2. 儀表板工作階段（auth_token Cookie）
 
-用於儀表板頁面與管理員操作。
+用於儀表板頁面和管理操作。
 
 ```
-Cookie: auth_token=<以 JWT_SECRET 簽署的 JWT>
+Cookie: auth_token=<使用 JWT_SECRET 簽署的 JWT>
 ```
 
-只有當 JWT 驗證成功**且**帶有 `authenticated: true` 時，Cookie 才是工作階段
-（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。Cookie 的每個
-使用端（路由守衛、授權管線重新整理、WebSocket 交握、即時
+只有在 JWT 驗證成功**且**帶有 `authenticated: true` 時，Cookie 才會被視為工作階段
+（`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`）。每個
+Cookie 使用者（儀表板路由守衛（`isDashboardSessionAuthenticated()`）、授權管線重新整理、WebSocket 交握、即時
 伺服器、`/api/settings/require-login`、`/api/auth/status`）都會透過該輔助函式處理。
-另有其他以 `JWT_SECRET` 簽署的 JWT——Cursor CLI 透傳功能會為金鑰持有者建立
-`iss "omniroute" / aud "cursor-cli"` 權杖——但這些權杖絕不會被視為工作階段
+也存在其他使用 `JWT_SECRET` 簽署的 JWT——Cursor CLI 直通功能會為金鑰持有者簽發
+`iss "omniroute" / aud "cursor-cli"` 權杖——而這些權杖絕不會被視為工作階段
 （#13298）。
 
-由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 驗證。當 JWT 在其 30 天有效期中剩餘不到 7 天時，管線會自動重新整理該 JWT。
+由 `src/shared/utils/apiAuth.ts` 中的 `isDashboardSessionAuthenticated()` 驗證。當 JWT 在其 30 天有效期內剩餘不到 7 天時，管線會自動重新整理 JWT。
 
-部分管理路由接受**任一**模式：Cookie，或在 API 金鑰具有 `manage`（或 `admin`）範圍時使用 `Bearer <key>`。這正是 v3.8 新增的「可透過 API 呼叫設定」工作流程。
+工作階段也可能在 30 天到期之前結束，因為每個簽發器都會透過 `mintDashboardSessionToken`（包含簽發時間 `iat` 和 ID `jti`），且驗證器會檢查兩項設定：`sessionsValidAfter`，它會在變更密碼時設定，使在該時間之前簽發的所有工作階段都無法再通過驗證（變更密碼的瀏覽器會取得新的 Cookie）；以及 `revokedDashboardSessions`，`POST /api/auth/logout` 會將已登出工作階段的 `jti` 加入其中。由舊版簽發的工作階段不帶有這兩項宣告，並會持續有效至首次變更密碼為止。如果無法讀取設定，則不信任該工作階段。
 
-#### 選用的 OIDC 登入閘門（#6973）
+部分管理路由接受**任一**模式：Cookie，或在 API 金鑰具有 `manage`（或 `admin`）範圍時接受 `Bearer <key>`。這使得 v3.8 中新增的「可透過 API 呼叫進行設定」工作流程得以實現。
 
-儀表板管理員登入除了預設的密碼登入外，也支援**選擇啟用**的 OIDC（OpenID Connect）流程——密碼登入永遠不會被移除，只會加入額外的登入方式：
+#### 選用的 OIDC 登入閘道（#6973）
+
+儀表板管理員登入除了預設的密碼登入之外，也支援**選擇啟用**的 OIDC（OpenID Connect）流程——密碼登入永遠不會移除，只會由 OIDC 加以補充：
 
 - 除非 `settings.oidcEnabled === true`，**且** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` 均已設定（設定 → 驗證），否則此功能將停用。
-  在其他情況下，`GET /api/auth/oidc/login` 會傳回 `400`。
+  `oidcClientId` / `oidcClientSecret` 均已設定（設定 → 驗證），否則此功能會停用。
+  否則，`GET /api/auth/oidc/login` 會傳回 `400`。
 - `GET /api/auth/oidc/login` 會從簽發者的
-  `/.well-known/openid-configuration` 探索 `authorization_endpoint`（若失敗則改用
-  `<issuer>/authorize`），根據傳入的請求建立重新導向 URI
-  （可感知 `x-forwarded-proto`），並使用儲存在 `httpOnly` `oidc_state` Cookie 中的隨機 `state`
-  重新導向至 IdP。
+  `/.well-known/openid-configuration` 探索 `authorization_endpoint`（備援至
+  `<issuer>/authorize`），根據傳入的請求建構重新導向 URI
+  （可感知 `x-forwarded-proto`），並重新導向至 IdP，同時將隨機 `state`
+  儲存在 `httpOnly` 的 `oidc_state` Cookie 中。
 - `GET /api/auth/oidc/callback` 會驗證 `state`、交換授權
   碼，並透過簽發者的 JWKS 驗證 ID 權杖的簽章
-  （使用 `jose` 的 `createRemoteJWKSet`，依每個 JWKS URI 進行快取），同時執行 `issuer`/`audience`
+  （`jose` 的 `createRemoteJWKSet`，依每個 JWKS URI 快取），同時執行 `issuer`/`audience`
   檢查。選用的 `oidcAllowedSubjects` 允許清單會比對權杖的
-  `sub` 宣告或其 `email` 宣告——只有當
-  `email_verified === true` 時才會採信電子郵件宣告，因此 IdP 上未經驗證的電子郵件絕不可能通過
-  閘門。
-- 成功後，系統會建立與密碼
-  登入所核發的**完全相同**、有效期為 30 天的 `auth_token` JWT
+  `sub` 宣告或其 `email` 宣告——只有在
+  `email_verified === true` 時才會採納電子郵件宣告，因此 IdP 中未經驗證的電子郵件永遠無法通過
+  此閘道。
+- 成功後，它會簽發與密碼登入所簽發的**完全相同**、有效期為 30 天的 `auth_token` JWT
   （`src/app/api/auth/login/route.ts`），因此儀表板工作階段管線的其餘部分
-  （自動重新整理、Cookie 旗標）維持不變——OIDC 只會取代 Cookie 的建立方式，不會改變它所授予的權限。
+  （自動重新整理、Cookie 旗標）保持不變——OIDC 只會取代 Cookie 的簽發方式，
+  而不會改變它所授予的權限。
 
 ## 路由類別
 

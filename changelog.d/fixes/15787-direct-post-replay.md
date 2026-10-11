@@ -1,0 +1,1 @@
+- **fix(fetch):** Avoid replaying inference POSTs after ambiguous response-start timeouts, preserve caller cancellation, and give unsafe methods the existing final request budget ([#15787](https://github.com/diegosouzapw/OmniRoute/pull/15787)) — thanks @D4rk4

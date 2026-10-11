@@ -7,52 +7,52 @@
 OmniRoute có **hai** hệ thống lane cục bộ theo tiến trình với phạm vi khác nhau. Chúng
 bổ trợ cho nhau; người vận hành cần biết mình đang xem hệ thống nào.
 
-## 1. Kiểm soát tiếp nhận trên toàn tiến trình theo cấp byte (`chatBodyAdmission.ts`)
+## 1. Cơ chế tiếp nhận theo byte trên toàn tiến trình (`chatBodyAdmission.ts`)
 
-- **Phạm vi:** đường dẫn bộ nhớ đệm phần thân/heap dành cho `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` và các route khác có cấu trúc dạng chat. Bảo vệ
-  khỏi hiện tượng khuếch đại heap do phần thân lớn từ coding-agent (#4380).
-- **Một bộ điều khiển toàn cục cho tiến trình, không phải các lane theo từng khóa (#10110).** Mọi API key
+- **Phạm vi:** đường dẫn buffered-body/heap cho `POST /v1/chat/completions`,
+  `/v1/messages`, `/v1/responses` và các route dạng chat khác. Bảo vệ khỏi tình trạng
+  khuếch đại heap do body lớn từ các coding agent (#4380).
+- **Một bộ điều khiển toàn cục cho tiến trình, không phải các lane theo từng key (#10110).** Mọi API key
   (đã băm) hoặc phiên `anonymous` đều được tiếp nhận dựa trên **cùng một** ngân sách dùng chung —
-  id phiên đã băm CHỈ được dùng làm khóa lập lịch công bằng (điều phối round-robin
-  giữa các yêu cầu đang chờ), không bao giờ dùng làm phân vùng dung lượng. Một phiên bản trước đây của tài liệu này
-  mô tả các lane theo từng khóa với dung lượng độc lập; mô hình đó đã bị
-  loại bỏ trong #10110 vì nó cho phép thông tin xác thực giả chưa được xác thực làm tăng
-  giới hạn trên toàn tiến trình.
-- **Cổng kiểm soát (#503-fanout): ngân sách BYTE tiếp nhận được tự động suy ra, không phải số lượng yêu cầu
-  cố định.** Giới hạn số lượng yêu cầu `CHAT_MAX_HEAVY_IN_FLIGHT` cũ (mặc định là `1`
-  trước bản sửa lỗi này) đã làm giảm fan-out của coding-agent (nhiều subagent/CLI,
-  phần thân thường xuyên > 256 KB) xuống mức đồng thời hiệu dụng khoảng 1, dẫn đến lỗi 503
-  dưới tải hoàn toàn bình thường. Giờ đây, giới hạn này chỉ có hiệu lực khi người vận hành thiết lập rõ ràng
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Khi không được thiết lập, việc tiếp nhận thay vào đó
+  id phiên đã băm CHỈ được dùng làm key lập lịch công bằng (điều phối round-robin
+  giữa các yêu cầu đang chờ), tuyệt đối không dùng làm phân vùng dung lượng. Một phiên bản trước của tài liệu này
+  mô tả các lane theo từng key với dung lượng độc lập; mô hình đó đã bị
+  loại bỏ trong #10110 vì nó cho phép thông tin xác thực giả chưa qua xác thực nhân
+  giới hạn trên toàn tiến trình lên nhiều lần.
+- **Cổng kiểm soát (#503-fanout): ngân sách BYTE tiếp nhận được tự động suy ra, không phải số lượng request
+  cố định.** Giới hạn theo số lượng request `CHAT_MAX_HEAVY_IN_FLIGHT` cũ (mặc định là `1`
+  trước bản sửa lỗi này) đã làm giảm fan-out của coding agent (nhiều subagent/CLI,
+  body thường xuyên > 256 KB) xuống mức đồng thời hiệu dụng khoảng 1, dẫn đến lỗi 503
+  dưới tải hoàn toàn bình thường. Hiện tại, giới hạn này chỉ có hiệu lực khi operator đặt rõ ràng
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Nếu không được đặt, việc tiếp nhận thay vào đó
   được kiểm soát bởi `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — một ngân sách được tự động suy ra từ
   giới hạn bộ nhớ thực tế của tiến trình (`src/shared/middleware/admissionBudget.ts`):
   25% của giá trị nhỏ hơn giữa giới hạn heap V8 và bất kỳ giới hạn cgroup/container nào,
-  chia cho hệ số khuếch đại tạm thời 8x, được giới hạn trong khoảng từ 8 MiB đến
-  2 GiB. Các giá trị ghi đè rõ ràng cũng sử dụng cùng các giới hạn này. Cơ chế này tự điều chỉnh từ
-  container 512 MB đến máy tính để bàn 32 GB mà không cần tinh chỉnh biến môi trường. Phần thân không thể
-  vừa trong ngân sách hiệu dụng sẽ thất bại ngay lập tức với `413 body_exceeds_budget`;
-  chỉ sự tranh chấp giữa các phần thân mà từng phần có thể được phục vụ mới đi vào hàng đợi công bằng
-  có giới hạn. Một bộ theo dõi áp lực tài nguyên trực tiếp dựa trên nhiều tín hiệu (tỷ lệ heap V8,
+  chia cho hệ số khuếch đại tạm thời 8x, rồi giới hạn trong khoảng từ 8 MiB đến
+  2 GiB. Các giá trị ghi đè rõ ràng cũng sử dụng cùng các giới hạn này. Cơ chế này tự điều chỉnh quy mô từ
+  container 512 MB đến máy tính để bàn 32 GB mà không cần tinh chỉnh env. Một body không thể
+  vừa với ngân sách hiệu dụng sẽ thất bại ngay lập tức với `413 body_exceeds_budget`;
+  chỉ sự tranh chấp giữa các body mà từng body riêng lẻ có thể được xử lý mới đi vào hàng đợi
+  công bằng có giới hạn. Một bộ theo dõi áp lực tài nguyên đa tín hiệu theo thời gian thực (tỷ lệ heap V8,
   cgroup, PSI, sự kiện OOM — `open-sse/utils/resourcePressurePolicy.ts`) rút ngắn
-  thời gian chờ có giới hạn khi áp lực ở mức `high` và loại tải ngay lập tức với
-  `503 resource_pressure` khi áp lực ở mức `critical`, trước khi bất kỳ byte nào được
-  tiếp nhận. PSI được đọc từ `memory.pressure` của cgroup thuộc đơn vị này khi có
+  thời gian chờ có giới hạn khi áp lực ở mức `high` và loại bỏ tải ngay lập tức với
+  `503 resource_pressure` khi áp lực ở mức `critical`, trước cả khi bất kỳ byte nào được
+  tiếp nhận. PSI được đọc từ `memory.pressure` của cgroup thuộc unit này nếu có
   (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` áp dụng
-  trên toàn host và chỉ được dùng làm phương án dự phòng trên bare metal / cgroup v1, để một host
-  đang swap không thể khiến container nhàn rỗi trả về 503.
+  cho toàn host và chỉ được dùng làm phương án dự phòng trên bare metal / cgroup v1, để một host
+  đang swapping không thể khiến container nhàn rỗi trả về 503.
 - **Tinh chỉnh:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — giá trị ghi đè cho ngân sách byte được tự động suy ra
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — giới hạn số lượng yêu cầu cũ, chỉ bật khi được chọn
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — thời gian chờ trong hàng đợi trước khi trả về 503 (mặc định 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — van bảo vệ heap theo số byte trong hàng đợi (mặc định 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — đã lỗi thời
-    và không còn tác dụng kể từ #10110 (được chấp nhận để tương thích cấu hình nhưng bị bỏ qua)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — giới hạn số lượng request cũ, chỉ có hiệu lực khi chủ động bật
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — thời gian chờ trong hàng đợi trước khi trả về 503 (mặc định là `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — van bảo vệ heap theo số byte đang xếp hàng (mặc định 4 MB)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — đã ngừng dùng
+    và không thực hiện thao tác nào kể từ #10110 (được chấp nhận để đảm bảo tương thích cấu hình, nhưng bị bỏ qua)
 - **Báo cáo:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — bao gồm
-  các trường bổ sung từ #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
+  các trường bổ sung từ #503-fanout là `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` và `countCapEnabled`
-  (false trên triển khai mặc định — xác nhận rằng ngân sách byte, chứ không phải giới hạn
-  số lượng cũ, mới là cơ chế thực sự đang áp đặt giới hạn).
+  (false trên một deployment mặc định — xác nhận rằng ngân sách byte, chứ không phải
+  giới hạn số lượng cũ, mới là yếu tố thực sự đang ràng buộc).
 
 ## 2. Làn ảo thích ứng trong thời gian chạy (`open-sse/services/admission`)
 

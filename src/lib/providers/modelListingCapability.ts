@@ -22,6 +22,10 @@ const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>([
   // The clean-room browser integration exposes only model/effort routes
   // observed in the first-party picker. It has no upstream model-list API.
   "chatgpt-web",
+  // CodeBuddy gateways (Tencent CN and intl) publish no model-catalog endpoint;
+  // their registry models are the complete curated lineup.
+  "codebuddy-cn",
+  "codebuddy-intl",
 ]);
 
 export function providerUsesCuratedModelsOnly(providerId: string): boolean {
@@ -33,12 +37,12 @@ export function providerUsesCuratedModelsOnly(providerId: string): boolean {
  * static registry for dashboard / `/v1/models` / Test All listing. Static rows
  * remain offline fallback only when synced is empty.
  *
- * Cursor-only for now — other authoritative live-catalog providers keep
- * coverage-style static preservation (e.g. command-code uncovered static ids).
+ * Cursor and Codex inventories are account-specific. Partial-discovery providers
+ * retain coverage-style preservation (e.g. command-code uncovered static ids).
  */
 export function providerUsesExclusiveSyncedListing(providerId: string): boolean {
   const id = providerId.trim().toLowerCase();
-  return id === "cursor" || id === "cu";
+  return id === "cursor" || id === "cu" || id === "codex" || id === "cx";
 }
 
 /**

@@ -74,26 +74,30 @@ Wo [A2A-SERVER.md](./A2A-SERVER.md) fún àwọn àlàyé ọ̀nà ìgbékalẹ�
 
 ### Ohun tí ó jẹ́
 
-ACP ni **àkójọ àwọn aṣojú CLI abẹ́nú** ti OmniRoute. Ó ń ṣàwárí àwọn CLI ìkọ́kóòdù tí a ti fi sórí ẹ̀rọ alágbàlejò (Cursor, Cline, Claude Code, Codex CLI, Continue, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), ó ń pinnu àwọn ẹ̀yà wọn, ó sì ń fi wọ́n hàn lórí pánẹ́ẹ̀lì ìṣàkóso kí aṣàmúlò lè ṣètò CLI kọ̀ọ̀kan láti tọ́ka sí OmniRoute.
+ACP jẹ́ **àkójọ àwọn aṣojú CLI abẹ́lẹ̀** ti OmniRoute. Ó ń ṣàwárí àwọn CLI ìkọ-kóòdù tí a ti fi sórí ẹ̀rọ agbàlejò (Cursor, Cline, Claude Code, Codex CLI, Continue, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ), ó ń pinnu àwọn ẹ̀yà wọn, ó sì ń fi wọ́n hàn lórí pátákó ìdarí kí olumulo lè ṣètò CLI kọ̀ọ̀kan láti tọ́ka sí OmniRoute.
 
-Èyí KÌ Í ṢE ìlànà ìbánisọ̀rọ̀ òde — ìforúkọsílẹ̀ abẹ́nú ni tí ó ń mú UI "CLI Tools" ṣiṣẹ́ àti ìtọpinpin àmì ìdánimọ̀ CLI (wo [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+Apá HTTP náà jẹ́ àkójọ abẹ́lẹ̀ tí ó ń mú UI "Àwọn Irinṣẹ́ CLI" ṣiṣẹ́, tí ó sì ń
+tọpinpin àmì ìdánimọ̀ CLI (wo [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Ní ọ̀nà mìíràn,
+olùṣàkóso ìlànà abẹ́lẹ̀ náà ṣe àtìlẹ́yìn fún Agent Client Protocol àbínibí fún
+olùbẹ̀rẹ̀ Gemini tí a forúkọsílẹ̀ àti àwọn ohun ìbámu stdio àtijọ́ fún àwọn àdéhùn mìíràn.
+Wo [Ìforúkọsílẹ̀ ACP àti àwọn olùbẹ̀rẹ̀](./ACP.md) fún àwọn ipò àti ààlà ọ̀tọ̀ọ̀tọ̀ wọ̀nyẹn.
 
 ### Ohun tí ó ń ṣe
 
-- Ṣàyẹ̀wò ẹ̀rọ alágbàlejò fún àwọn fáìlì ètò CLI tí a ti fi sílẹ̀ (ó ń lo `which` / `where` ní ìbámu pẹ̀lú OS)
-- Ka ẹ̀yà CLI kọ̀ọ̀kan (ó ń pe `<bin> --version`)
-- Ó lè gba àwọn aṣojú àdáni tí aṣàmúlò ṣàlàyé (ọ̀nà fáìlì ètò + àṣẹ ìṣàyẹ̀wò ẹ̀yà + àwọn àríyànjiyàn ìfilọ́lẹ̀)
-- Fi àwọn aṣojú àdáni pamọ́ sínú àwọn ààtò
-- Dá àkójọ ìṣọ̀kan padà sí pánẹ́ẹ̀lì ìṣàkóso
+- Ó ń ṣàyẹ̀wò ẹ̀rọ agbàlejò fún àwọn fáìlì aláṣiṣẹ́ CLI tí a ti fi sí i (ó ń lo `which` / `where` ní ìbámu pẹ̀lú OS)
+- Ó ń ka ẹ̀yà CLI kọ̀ọ̀kan (ó ń pe `<bin> --version`)
+- Ó lè gba àwọn aṣojú àkànṣe tí olumulo ṣàlàyé (ọ̀nà fáìlì aláṣiṣẹ́ + àyẹ̀wò ẹ̀yà + àwọn àríyànjiyàn ìbẹ̀rẹ̀)
+- Ó ń tọ́jú àwọn aṣojú àkànṣe sínú àwọn ààtò
+- Ó ń dá àkójọ ìṣọ̀kan náà padà sí pátákó ìdarí
 
 ### REST API
 
-| Endpoint          | Ọ̀nà  | Àpèjúwe                                                                | Ìfàṣẹsí    |
-| ----------------- | ---- | ---------------------------------------------------------------------- | ---------- |
-| `/api/acp/agents` | GET  | Ṣàkójọ àwọn aṣojú tí a ṣàwárí + ti àdáni (iye tí a fi sílẹ̀/lápapọ̀)     | Kọ́kọ́rọ́ API |
-| `/api/acp/agents` | POST | Ṣàfikún/ṣe àfikún sí/yọ aṣojú àdáni kúrò (olùyàtọ̀ ìṣe nínú ara ìbéèrè) | Kọ́kọ́rọ́ API |
+| Endpoint          | Ọ̀nà  | Àpèjúwe                                                          | Ìfàṣẹsí    |
+| ----------------- | ---- | ---------------------------------------------------------------- | ---------- |
+| `/api/acp/agents` | GET  | Ṣàkójọ àwọn aṣojú tí a ṣàwárí + ti àkànṣe (iye tí a fi sí/àpapọ̀) | Kọ́kọ́rọ́ API |
+| `/api/acp/agents` | POST | Ṣàfikún/ṣàtúnṣe/yọ aṣojú àkànṣe kúrò (olùyàtọ̀ ìṣe nínú ara)      | Kọ́kọ́rọ́ API |
 
-Ìrísí ara ìbéèrè fún POST (`customAgentBodySchema` nínú `src/app/api/acp/agents/route.ts`):
+Ìrísí ara fún POST (`customAgentBodySchema` nínú `src/app/api/acp/agents/route.ts`):
 
 ```json
 {
@@ -110,13 +114,16 @@ ACP ni **àkójọ àwọn aṣojú CLI abẹ́nú** ti OmniRoute. Ó ń ṣàw�
 
 ### Àwọn ọ̀nà ìlò
 
-- Ojú-ewé "CLI Tools" lórí pánẹ́ẹ̀lì ìṣàkóso ń ṣàkójọ ohun tí a ti fi sílẹ̀, ó sì ń ràn ọ́ lọ́wọ́ láti tọ́ka ọ̀kọ̀ọ̀kan sí OmniRoute
-- Àwọn aṣojú àdáni ń jẹ́ kí àwọn aṣàmúlò onímọ̀ lè forúkọsílẹ̀ àwọn CLI abẹ́nú/ohun-ìní tí OmniRoute kò mọ̀ nípasẹ̀ ààtò àkọ́kọ́
-- Àbájáde ìṣàwárí ń pèsè dátà fún mátríìsì àmì ìdánimọ̀ `cli-tools`
+- Ojú-ìwé "Àwọn Irinṣẹ́ CLI" lórí pátákó ìdarí ń ṣàkójọ ohun tí a ti fi sí, ó sì ń ràn ọ́ lọ́wọ́ láti tọ́ka ọ̀kọ̀ọ̀kan sí OmniRoute
+- Àwọn aṣojú àkànṣe ń jẹ́ kí àwọn olumulo amọ̀ja forúkọsílẹ̀ àwọn CLI abẹ́lé/ohun-ìní tí OmniRoute kò mọ̀ nípa wọn láìsí àtúnṣe
+- Àbájáde ìṣàwárí ń pèsè dátà fún àtòjọ àmì ìdánimọ̀ `cli-tools`
 
 ### Ìgbà tí kò yẹ kí o lo ACP
 
-- ACP kò _ṣiṣẹ́_ àwọn iṣẹ́. Ó kàn ń ṣàwárí + ṣètò àwọn CLI. Láti pe CLI kan ní tòótọ́, ìwọ fúnra rẹ ni yóò ṣe ìfilọ́lẹ̀ rẹ̀ pẹ̀lú àwọn env vars tí OmniRoute pèsè (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ).
+- Ìforúkọsílẹ̀ HTTP kò gba àwọn iṣẹ́ tàbí ṣí ìbẹ̀rẹ̀ ìlànà síta. Olùṣàkóso
+  abẹ́lẹ̀ lè bẹ̀rẹ̀ CLI tí a forúkọsílẹ̀, ṣùgbọ́n a kò so ó gẹ́gẹ́ bí olùpèsè
+  àfidípò aládàáṣiṣẹ́. Fún lílò ìbánisọ̀rọ̀ ojoojúmọ́, bẹ̀rẹ̀ CLI tí a ti ṣètò fúnra rẹ tàbí
+  lo `omniroute run`.
 
 ## 3. Àwọn Aṣojú Àwọsánmà
 

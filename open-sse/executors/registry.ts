@@ -37,11 +37,17 @@ export function getRegisteredExecutor(alias: string): BaseExecutor | undefined {
 // static registration.
 const lazyLoaders = new Map<string, () => Promise<BaseExecutor>>();
 const lazyInFlight = new Map<string, Promise<BaseExecutor>>();
+// Bumped on every re-register so a load already in flight cannot publish the
+// old executor or delete the replacement loader (#15792).
+const lazyGeneration = new Map<string, number>();
 
 export function registerLazyExecutor(alias: string, load: () => Promise<BaseExecutor>): void {
-  if (registry.has(alias) || lazyLoaders.has(alias)) {
-    throw new Error(`executor alias already registered: "${alias}"`);
+  // If re-evaluated under HMR / dev reload, overwrite lazy loader and clear cached instance
+  if (registry.has(alias)) {
+    registry.delete(alias);
   }
+  lazyInFlight.delete(alias);
+  lazyGeneration.set(alias, (lazyGeneration.get(alias) ?? 0) + 1);
   lazyLoaders.set(alias, load);
 }
 
@@ -52,7 +58,9 @@ export function loadRegisteredExecutor(alias: string): Promise<BaseExecutor> | u
   if (!load) return undefined;
   let inFlight = lazyInFlight.get(alias);
   if (!inFlight) {
+    const generation = lazyGeneration.get(alias) ?? 0;
     inFlight = load().then((executor) => {
+      if ((lazyGeneration.get(alias) ?? 0) !== generation) return executor;
       registerExecutor(alias, executor);
       lazyLoaders.delete(alias);
       lazyInFlight.delete(alias);

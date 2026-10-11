@@ -8,6 +8,7 @@
  */
 
 import { logger } from "../../../open-sse/utils/logger.ts";
+import { assertPluginHandlerAllowed, canInitializeRequestPlugins } from "./executionGuard";
 
 const log = logger("PLUGIN_HOOKS");
 
@@ -145,6 +146,7 @@ export async function emitHook(event: string, payload: unknown): Promise<void> {
   if (!list || list.length === 0) return;
 
   for (const reg of list) {
+    assertPluginHandlerAllowed();
     if (isRateLimited(reg.pluginName)) {
       log.warn("hook.rate_limited", { event, pluginName: reg.pluginName });
       continue;
@@ -182,6 +184,7 @@ export async function emitHookBlocking(
   let mergedMetadata: Record<string, unknown> = (ctx.metadata as Record<string, unknown>) || {};
 
   for (const reg of list) {
+    assertPluginHandlerAllowed();
     // Mirror emitHook: rate-limit the hot blocking path too
     if (isRateLimited(reg.pluginName)) {
       log.warn("hook.blocking_rate_limited", { event, pluginName: reg.pluginName });
@@ -326,6 +329,9 @@ function ensurePluginsLoaded(): Promise<void> {
  * Run onRequest hooks — blocking. Plugins can modify body/metadata or block with 403.
  */
 export async function runOnRequest(ctx: PluginContext): Promise<PluginResult> {
+  // A strict proof must fail if any plugin policy is active, never skip that policy.
+  // When no plugins exist, avoid lazy loading arbitrary plugin code in this request.
+  if (!canInitializeRequestPlugins()) return {};
   await ensurePluginsLoaded();
   return emitHookBlocking("onRequest", ctx);
 }
@@ -337,6 +343,7 @@ export async function runOnResponse(ctx: PluginContext, response: unknown): Prom
   let currentResponse = response;
   const list = hooks.get("onResponse") || [];
   for (const reg of list) {
+    assertPluginHandlerAllowed();
     try {
       const result = await reg.handler({ ...ctx, response: currentResponse });
       if (

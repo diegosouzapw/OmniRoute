@@ -149,7 +149,7 @@ test("v1 models catalog exposes remote-only Codex IDs from the discovery cache",
   const ids = new Set((body.data || []).map((item) => item.id));
 
   assert.equal(response.status, 200);
-  assert.equal(ids.has("cx/codex-auto-review"), true);
+  assert.equal(ids.has("cx/codex-auto-review"), false);
   assert.equal(ids.has("cx/future-codex-model"), true);
   assert.equal(ids.has("codex/future-codex-model"), true);
   assert.equal(ids.has("cx/gpt-5.4-mini"), false);

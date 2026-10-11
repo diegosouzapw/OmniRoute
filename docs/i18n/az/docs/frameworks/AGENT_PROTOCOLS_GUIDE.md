@@ -69,31 +69,32 @@ Nəqliyyat təfərrüatları, agent kartının strukturu, tapşırıq TTL konfiq
 
 ## 2. ACP — CLI Agentləri Reyestri
 
-**OmniRoute son nöqtəsi:** `GET /api/acp/agents`
+**OmniRoute endpoint-i:** `GET /api/acp/agents`
 **Mənbə:** `src/lib/acp/{index,manager,registry}.ts`
 
 ### Bu nədir
 
-ACP OmniRoute-un **lokal CLI agentləri inventarıdır**. O, host sistemdə hansı proqramlaşdırma CLI-lərinin quraşdırıldığını (Cursor, Cline, Claude Code, Codex CLI, Continue və s.) aşkar edir, onların versiyalarını müəyyənləşdirir və istifadəçinin hər bir CLI-ni OmniRoute-a yönləndirə bilməsi üçün onları idarə panelində göstərir.
+ACP OmniRoute-un **lokal CLI agentləri inventarıdır**. O, host sistemdə hansı proqramlaşdırma CLI-lərinin quraşdırıldığını (Cursor, Cline, Claude Code, Codex CLI, Continue və s.) müəyyən edir, onların versiyalarını aşkarlayır və istifadəçinin hər bir CLI-ni OmniRoute-a yönləndirə bilməsi üçün onları idarəetmə panelində göstərir.
 
-Bu, xarici protokol DEYİL — "CLI Tools" istifadəçi interfeysini və CLI barmaq izi izləməsini təmin edən daxili reyestrdir (baxın: [CLI-TOOLS.md](../reference/CLI-TOOLS.md)).
+HTTP interfeysi "CLI Tools" istifadəçi interfeysini və CLI barmaq izi izlənməsini təmin edən daxili inventardır (baxın: [CLI-TOOLS.md](../reference/CLI-TOOLS.md)). Bundan əlavə, daxili proses meneceri qeydiyyatdan keçirilmiş Gemini başladıcısı üçün yerli Agent Client Protocol-u, digər müqavilələr üçün isə köhnə stdio adapterlərini dəstəkləyir.
+Bu fərqli rejimlər və məhdudiyyətlər üçün [ACP reyestri və başladıcıları](./ACP.md) bölməsinə baxın.
 
 ### Nə edir
 
 - Quraşdırılmış CLI icra fayllarını tapmaq üçün host sistemi yoxlayır (əməliyyat sistemindən asılı olaraq `which` / `where` istifadə edir)
 - Hər bir CLI-nin versiyasını oxuyur (`<bin> --version` çağırır)
-- İstəyə bağlı olaraq istifadəçi tərəfindən müəyyən edilmiş xüsusi agentləri qəbul edir (icra faylının yolu + versiya yoxlama əmri + işə salma arqumentləri)
-- Xüsusi agentləri parametrlərdə daimi saxlayır
-- Birləşdirilmiş siyahını idarə panelinə qaytarır
+- İstəyə bağlı olaraq istifadəçi tərəfindən müəyyən edilmiş xüsusi agentləri qəbul edir (icra faylının yolu + versiya yoxlaması + işə salma arqumentləri)
+- Xüsusi agentləri ayarlarda saxlayır
+- Birləşdirilmiş siyahını idarəetmə panelinə qaytarır
 
 ### REST API
 
-| Son nöqtə         | Metod | Təsvir                                                                      | Autentifikasiya |
-| ----------------- | ----- | --------------------------------------------------------------------------- | --------------- |
-| `/api/acp/agents` | GET   | Aşkar edilmiş + xüsusi agentləri siyahıya alır (quraşdırılmış/ümumi saylar) | API açarı       |
-| `/api/acp/agents` | POST  | Xüsusi agent əlavə edir/yeniləyir/silir (gövdədə əməliyyat diskriminatoru)  | API açarı       |
+| Endpoint          | Metod | Təsvir                                                                                   | Autentifikasiya |
+| ----------------- | ----- | ---------------------------------------------------------------------------------------- | --------------- |
+| `/api/acp/agents` | GET   | Aşkarlanmış + xüsusi agentlərin siyahısı (quraşdırılmış/ümumi saylar)                    | API açarı       |
+| `/api/acp/agents` | POST  | Xüsusi agenti əlavə edir/yeniləyir/silir (əməliyyat fərqləndiricisi sorğu gövdəsindədir) | API açarı       |
 
-POST üçün gövdə strukturu (`src/app/api/acp/agents/route.ts` daxilində `customAgentBodySchema`):
+POST üçün sorğu gövdəsinin strukturu (`src/app/api/acp/agents/route.ts` daxilində `customAgentBodySchema`):
 
 ```json
 {
@@ -110,13 +111,13 @@ POST üçün gövdə strukturu (`src/app/api/acp/agents/route.ts` daxilində `cu
 
 ### İstifadə halları
 
-- İdarə panelindəki "CLI Tools" səhifəsi quraşdırılmış alətləri siyahıya alır və hər birini OmniRoute-a yönləndirməyə kömək edir
-- Xüsusi agentlər təcrübəli istifadəçilərə OmniRoute-un standart olaraq tanımadığı daxili/mülkiyyətli CLI-ləri qeydiyyatdan keçirməyə imkan verir
-- Aşkarlama nəticəsi `cli-tools` barmaq izi matrisini məlumatla təmin edir
+- İdarəetmə panelindəki "CLI Tools" səhifəsi quraşdırılmış alətləri sadalayır və hər birini OmniRoute-a yönləndirməyə kömək edir
+- Xüsusi agentlər təcrübəli istifadəçilərə OmniRoute-un standart olaraq tanımadığı daxili/mülkiyyətçi CLI-ləri qeydiyyatdan keçirməyə imkan verir
+- Aşkarlama nəticəsi `cli-tools` barmaq izi matrisini təmin edir
 
 ### ACP-dən nə zaman istifadə ETMƏMƏLİ
 
-- ACP tapşırıqları _icra etmir_. O, yalnız CLI-ləri aşkar edir və konfiqurasiya edir. CLI-ni faktiki olaraq işə salmaq üçün onu OmniRoute-un təqdim etdiyi mühit dəyişənləri (`OPENAI_BASE_URL`, `OPENAI_API_KEY` və s.) ilə özünüz başladırsınız.
+- HTTP reyestri tapşırıqları qəbul etmir və proseslərin işə salınması imkanını təqdim etmir. Daxili menecer qeydiyyatdan keçirilmiş CLI-ni işə sala bilər, lakin avtomatik provayder ehtiyat mexanizmi kimi qoşulmayıb. Adi interaktiv istifadə üçün konfiqurasiya edilmiş CLI-ni özünüz başladın və ya `omniroute run` istifadə edin.
 
 ## 3. Bulud Agentləri
 

@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 공급자를 호출하지는 **않습니다**. `CloudAgentBase`에는 중단 RPC가 없습니다. 업스트림
 과금을 중단하려면 공급자 자체 콘솔에서 작업을 종료하세요.
 
-## REST API — 클라우드 제공자 연동
+## REST API — 클라우드 공급자 연동
 
 `src/app/api/cloud/` 아래의 이러한 보조 엔드포인트는 원격 클라이언트
-(CLI, Electron 앱 또는 동기화 워커)가 제공자 연결 메타데이터를 읽고
-모델 별칭을 확인하는 데 사용됩니다. 태스크 엔드포인트에서 사용하는 관리 인증이 아니라
-**일반 API 키**(`validateApiKey`를 통해)로 인증됩니다.
+(CLI, Electron 앱 또는 동기화 워커)가 공급자 연결 메타데이터를 읽고
+모델 별칭을 확인하는 데 사용됩니다. 이러한 엔드포인트는 작업 엔드포인트에서 사용하는 관리 인증이 아니라
+**API 키**(`validateApiKey`를 통해)로 인증되며,
+`/api/cloud/auth`가 반환하는 내용은 키의 범위에 따라 달라집니다(아래 참조).
 
 | 메서드 | 경로                            | 용도                                                        |
 | ------ | ------------------------------- | ----------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | API 키를 검증하고 마스킹된 연결 메타데이터 + 모델 별칭 반환 |
+| POST   | `/api/cloud/auth`               | API 키를 검증하고 마스킹된 연결 메타데이터와 모델 별칭 반환 |
 | PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` 갱신           |
 | POST   | `/api/cloud/model/resolve`      | 모델 별칭을 `{ provider, model }`로 확인                    |
 | GET    | `/api/cloud/models/alias`       | 모든 모델 별칭 나열                                         |
 | PUT    | `/api/cloud/models/alias`       | 모델 별칭 설정(활성화된 경우 Cloud에 자동 동기화)           |
 
-`/api/cloud/auth`는 원본 `apiKey` / `accessToken` / `refreshToken`을 절대 반환하지 않습니다.
-대신 `hasApiKey`, `hasAccessToken`, `hasRefreshToken`과 마스킹된 미리보기
-(`maskedApiKey`: 처음 4자 + `****` + 마지막 4자)를 반환합니다.
+`/api/cloud/auth`는 원시 `apiKey` / `accessToken` / `refreshToken`을 절대 반환하지 않습니다.
+키가 사용할 수 있는 활성 연결에 대해 `hasApiKey`, `hasAccessToken`, `hasRefreshToken`을
+반환합니다(`allowedConnections`로 제한된 키에는 해당 연결만 표시됨). `manage` 또는
+`admin` 범위가 있는 API 키(여기에는 `OMNIROUTE_API_KEY`의 배포 키도 포함됨)의 경우,
+마스킹된 미리보기(`maskedApiKey`: 양쪽 끝에 각각 최대 4자, 짧은 키는 더 적은 문자,
+8자 이하인 경우 없음)와 연결의 `projectId`도 반환합니다. 그 외 모든 키에 대해서는
+두 필드 모두 응답에서 제외됩니다.
 
 ## 자격 증명 확인
 

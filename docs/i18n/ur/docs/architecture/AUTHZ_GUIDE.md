@@ -13,61 +13,64 @@ OmniRoute کے پاس ایک روٹ-آگاہ اجازت پائپ لائن ہے �
 
 > ماخذ: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## تصدیق کے دو طریقے
+## توثیق کے دو طریقے
 
 ### 1. API کلید (Bearer)
 
-OpenAI/Anthropic/Gemini سے ہم آہنگ کلائنٹ APIs اور چند انتظامی روٹس کے لیے استعمال ہوتی ہے، جب کلید کے پاس `manage` اسکوپ ہو۔
+OpenAI/Anthropic/Gemini سے ہم آہنگ کلائنٹ APIs اور چند انتظامی routes کے لیے استعمال ہوتی ہے، بشرطیکہ کلید کے پاس `manage` scope ہو۔
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-اس کی توثیق `src/sse/services/auth.ts` میں موجود `isValidApiKey()` / `extractApiKey()` کے ذریعے کی جاتی ہے اور اسے `src/shared/utils/apiAuth.ts` کے ذریعے دوبارہ برآمد کیا جاتا ہے۔ توثیق کنندہ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` ماحولیاتی متغیرات کو مستقل پاس تھرو کلیدوں کے طور پر بھی قبول کرتا ہے (مسئلہ #1350)۔
+اس کی توثیق `src/sse/services/auth.ts` میں موجود `isValidApiKey()` / `extractApiKey()` کے ذریعے کی جاتی ہے اور اسے `src/shared/utils/apiAuth.ts` کے ذریعے دوبارہ export کیا جاتا ہے۔ validator مستقل passthrough کلیدوں کے طور پر `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` env vars کو بھی قبول کرتا ہے (issue #1350)۔
 
-### 2. ڈیش بورڈ سیشن (auth_token کوکی)
+### 2. Dashboard سیشن (auth_token cookie)
 
-ڈیش بورڈ صفحات اور منتظم کارروائیوں کے لیے۔
+Dashboard صفحات اور admin کارروائیوں کے لیے۔
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-کوکی صرف اسی وقت سیشن ہوتی ہے جب JWT کی توثیق ہو **اور** اس میں `authenticated: true` موجود ہو
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)۔ کوکی استعمال کرنے والا ہر
-جزو (روٹ گارڈ، authz پائپ لائن ریفریش، WebSocket ہینڈ شیک، لائیو
-سرور، `/api/settings/require-login`، `/api/auth/status`) اسی معاون سے گزرتا ہے۔
-`JWT_SECRET` سے دستخط شدہ دیگر JWTs بھی موجود ہیں — Cursor CLI پاس تھرو کلید رکھنے والوں کے لیے
-`iss "omniroute" / aud "cursor-cli"` ٹوکن بناتا ہے — اور انہیں کبھی سیشن نہیں سمجھا جاتا
+کوئی cookie صرف اسی وقت سیشن ہوتی ہے جب JWT کی توثیق ہو جائے **اور** اس میں `authenticated: true` موجود ہو
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)۔ cookie استعمال کرنے والا ہر
+جزو (dashboard route guard (`isDashboardSessionAuthenticated()`)، authz pipeline refresh، WebSocket handshake، live
+server، `/api/settings/require-login`، `/api/auth/status`) اسی helper سے گزرتا ہے۔
+`JWT_SECRET` کے ساتھ دستخط شدہ دیگر JWTs بھی موجود ہیں — Cursor CLI passthrough کلید رکھنے والوں کے لیے
+`iss "omniroute" / aud "cursor-cli"` tokens جاری کرتا ہے — اور انہیں کبھی سیشن نہیں سمجھا جاتا
 (#13298)۔
 
-اس کی توثیق `src/shared/utils/apiAuth.ts` میں موجود `isDashboardSessionAuthenticated()` کے ذریعے ہوتی ہے۔ جب JWT کی 30 روزہ مدت میں 7 دن سے کم باقی ہوں تو پائپ لائن اسے خودکار طور پر ریفریش کرتی ہے۔
+اس کی توثیق `src/shared/utils/apiAuth.ts` میں موجود `isDashboardSessionAuthenticated()` کے ذریعے کی جاتی ہے۔ جب JWT کی 30 دن کی مدت میں 7 دن سے کم باقی ہوں تو pipeline خودکار طور پر اسے refresh کر دیتی ہے۔
 
-کچھ انتظامی روٹس **دونوں میں سے کوئی ایک** طریقہ قبول کرتے ہیں: کوکی یا `Bearer <key>`، بشرطیکہ API کلید کے پاس `manage` (یا `admin`) اسکوپ ہو۔ یہی v3.8 میں شامل کیے گئے "API کالز کے ذریعے قابلِ ترتیب" ورک فلو کو ممکن بناتا ہے۔
+کوئی سیشن اپنی 30 دن کی مدت مکمل ہونے سے پہلے بھی ختم ہو سکتا ہے، کیونکہ ہر minter `mintDashboardSessionToken` سے گزرتا ہے (ایک اجراء کا وقت `iat` اور ایک id `jti`) اور verifier دو settings کی جانچ کرتا ہے: `sessionsValidAfter`، جسے password تبدیل ہونے پر مقرر کیا جاتا ہے تاکہ اس سے پہلے جاری کیے گئے تمام سیشنز کی توثیق رک جائے (password تبدیل کرنے والے browser کو ایک نئی cookie ملتی ہے)، اور `revokedDashboardSessions`، جس میں `POST /api/auth/logout` sign out کیے گئے سیشن کا `jti` شامل کرتا ہے۔ پرانے release کے ذریعے جاری کیے گئے سیشنز میں ان میں سے کوئی claim موجود نہیں ہوتا اور وہ پہلی password تبدیلی تک درست رہتے ہیں۔ اگر settings پڑھی نہ جا سکیں تو سیشن پر اعتماد نہیں کیا جاتا۔
 
-#### اختیاری OIDC لاگ اِن گیٹ (#6973)
+بعض انتظامی routes **دونوں میں سے کسی بھی** طریقے کو قبول کرتے ہیں: cookie یا `Bearer <key>`، بشرطیکہ API کلید کے پاس `manage` (یا `admin`) scope ہو۔ یہی وہ چیز ہے جو v3.8 میں شامل کردہ "API calls کے ذریعے قابلِ ترتیب" workflow کو ممکن بناتی ہے۔
 
-ڈیش بورڈ کا منتظم لاگ اِن، پہلے سے طے شدہ پاس ورڈ لاگ اِن کے ساتھ ایک **اختیاری طور پر فعال کیے جانے والے** OIDC (OpenID Connect) فلو کو بھی سپورٹ کرتا ہے — پاس ورڈ لاگ اِن کبھی ہٹایا نہیں جاتا، صرف اس میں اضافہ کیا جاتا ہے:
+#### اختیاری OIDC login gate (#6973)
+
+Dashboard admin login، پہلے سے طے شدہ password login کے ساتھ ایک **opt-in** OIDC (OpenID Connect) flow کی بھی معاونت کرتا ہے — password login کبھی ختم نہیں کیا جاتا، صرف
+اس میں اضافہ کیا جاتا ہے:
 
 - یہ اس وقت تک غیر فعال رہتا ہے جب تک `settings.oidcEnabled === true` **اور** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` سب ترتیب نہ دیے گئے ہوں (Settings → Auth)۔
-  بصورتِ دیگر `GET /api/auth/oidc/login`، `400` لوٹاتا ہے۔
-- `GET /api/auth/oidc/login` جاری کنندہ کے
+  `oidcClientId` / `oidcClientSecret` سبھی configure نہ کیے گئے ہوں (Settings → Auth)۔
+  بصورتِ دیگر `GET /api/auth/oidc/login`، `400` واپس کرتا ہے۔
+- `GET /api/auth/oidc/login`، issuer کے
   `/.well-known/openid-configuration` سے `authorization_endpoint` دریافت کرتا ہے (دستیاب نہ ہونے پر
-  `<issuer>/authorize` استعمال کرتا ہے)، آنے والی درخواست سے ری ڈائریکٹ URI بناتا ہے
-  (`x-forwarded-proto` سے آگاہ)، اور صارف کو ایک بے ترتیب `state` کے ساتھ IdP پر ری ڈائریکٹ کرتا ہے،
-  جسے ایک `httpOnly` `oidc_state` کوکی میں محفوظ کیا جاتا ہے۔
-- `GET /api/auth/oidc/callback`، `state` کی توثیق کرتا ہے، اجازت دہی
-  کوڈ کا تبادلہ کرتا ہے، اور جاری کنندہ کے JWKS کے ذریعے ID ٹوکن کے دستخط کی توثیق کرتا ہے
-  (`jose` کا `createRemoteJWKSet`، ہر JWKS URI کے لیے کیش شدہ)، نیز `issuer`/`audience`
-  کی جانچ کرتا ہے۔ ایک اختیاری `oidcAllowedSubjects` اجازت فہرست ٹوکن کے
-  `sub` دعوے یا اس کے `email` دعوے سے مماثلت کرتی ہے — ای میل کے دعوے کو صرف اسی وقت قبول کیا جاتا ہے جب
-  `email_verified === true` ہو، لہٰذا IdP پر غیر تصدیق شدہ ای میل کبھی بھی
-  اس گیٹ سے نہیں گزر سکتی۔
-- کامیابی کی صورت میں یہ **بالکل وہی** 30 روزہ `auth_token` JWT بناتا ہے جو پاس ورڈ
-  لاگ اِن جاری کرتا ہے (`src/app/api/auth/login/route.ts`)، اس لیے ڈیش بورڈ
-  سیشن پائپ لائن کا باقی حصہ (خودکار ریفریش، کوکی فلیگز) تبدیل نہیں ہوتا —
-  OIDC صرف یہ بدلتا ہے کہ کوکی کیسے بنائی جاتی ہے، یہ نہیں کہ وہ کیا اختیارات دیتی ہے۔
+  `<issuer>/authorize` استعمال کرتا ہے)، آنے والی request سے redirect URI بناتا ہے
+  (`x-forwarded-proto` سے آگاہ)، اور ایک random `state` کے ساتھ IdP کی جانب redirect کرتا ہے، جسے
+  ایک `httpOnly` `oidc_state` cookie میں محفوظ کیا جاتا ہے۔
+- `GET /api/auth/oidc/callback`، `state` کی توثیق کرتا ہے، authorization
+  code کا تبادلہ کرتا ہے، اور issuer کے JWKS کے ذریعے ID token کے signature کی توثیق کرتا ہے
+  (`jose` کا `createRemoteJWKSet`، ہر JWKS URI کے لیے cached)، جس میں `issuer`/`audience`
+  کی جانچ بھی شامل ہے۔ ایک اختیاری `oidcAllowedSubjects` allowlist، token کے
+  `sub` claim یا اس کے `email` claim سے مطابقت کرتی ہے — email claim صرف اسی وقت قبول کیا جاتا ہے جب
+  `email_verified === true` ہو، اس لیے IdP پر کوئی غیر تصدیق شدہ email کبھی بھی
+  gate سے نہیں گزر سکتا۔
+- کامیابی کی صورت میں یہ **بالکل وہی** 30 دن کا `auth_token` JWT جاری کرتا ہے جو password
+  login جاری کرتا ہے (`src/app/api/auth/login/route.ts`)، لہٰذا dashboard کے باقی
+  session pipeline (خودکار refresh، cookie flags) میں کوئی تبدیلی نہیں آتی —
+  OIDC صرف یہ تبدیل کرتا ہے کہ cookie کیسے جاری کی جاتی ہے، یہ نہیں کہ وہ کیا اختیارات دیتی ہے۔
 
 ## روٹ کلاسز
 

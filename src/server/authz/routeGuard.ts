@@ -129,6 +129,21 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/volcengine-plan\/connect(\/.*)?$/, // manual headful flow + session-based phone/SMS auto-login (both spawn Playwright)
   /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/,
   /^\/api\/providers\/[^/]+\/chatgpt-web-codex-doctor\/?$/,
+  // S-01 (#15159): spawn(bin, ["acp", "--agent-type", "summarizer"], …) in
+  // src/lib/providers/validation/webProvidersB.ts:535 — fixed binary list + fixed argv (not
+  // caller-controlled RCE) but Hard Rules #15 + #17 still require loopback enforcement before
+  // any auth check. Exact paths only: the rest of /api/providers/ CRUD must stay
+  // remote-reachable. NOTE: keep this justification on its OWN line — a trailing `//` comment
+  // makes the pattern invisible to check-openapi-security-tiers.mjs, whose `//.*$` strip cannot
+  // match past a CRLF line ending.
+  /^\/api\/providers\/(validate|import|bulk)\/?$/,
+  // S-01 (#15159) second hop is deliberately NOT a path pattern: /api/providers/{id}/models
+  // resolves `{id}` to an arbitrary CONNECTION id, and the spawn
+  // (src/lib/providerModels/cursorAgent.ts:17, via fetchCursorAgentModels) only runs on the
+  // `provider === "cursor"` branch of that route. A `[^/]+/models` pattern would lock remote
+  // model discovery for EVERY provider — the over-broadening the /login precedent above
+  // exists to avoid. Instead the route gates the spawn on the trusted peer-locality header,
+  // mirroring cursorAgentImage.ts (see the guard in src/app/api/providers/[id]/models/route.ts).
 ];
 
 // `SPAWN_CAPABLE_PREFIXES` / `SPAWN_CAPABLE_PATTERNS` (the spawn-capable
@@ -191,6 +206,13 @@ export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
   // the /webdav child. ALWAYS_PROTECTED rather than LOCAL_ONLY so an operator
   // driving the dashboard through a tunnel keeps the feature.
   "/api/settings/obsidian",
+  // GET spreads every provider_connections row verbatim, so the lazy-decrypt
+  // proxy returns each connection's apiKey / accessToken / refreshToken /
+  // idToken in plaintext, and the route has no auth call of its own. Left on the
+  // fail-open MANAGEMENT tier it served all of them anonymously under
+  // requireLogin=false (GHSA-qxg2-rm3h-4cxp). The dashboard consumers send the
+  // session cookie, so ALWAYS_PROTECTED keeps them working through a tunnel.
+  "/api/providers/client",
 ];
 
 /**

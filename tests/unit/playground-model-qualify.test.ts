@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { qualifyPlaygroundModel } =
+const { qualifyPlaygroundModel, resolveLlmPlaygroundEndpoint } =
   await import("../../src/app/(dashboard)/dashboard/media-providers/components/LlmChatCard.tsx");
 
 // #3050 — vendor-namespaced model ids already contain a "/", so the old
@@ -30,6 +30,12 @@ test("qualifyPlaygroundModel does not double-prefix an already-qualified model",
 test("qualifyPlaygroundModel returns the model unchanged without a providerId", () => {
   assert.equal(qualifyPlaygroundModel("moonshotai/kimi-k2.6", ""), "moonshotai/kimi-k2.6");
   assert.equal(qualifyPlaygroundModel("", "nim"), "");
+});
+
+test("provider playground uses native Responses for both ChatGPT Web Codex prefixes", () => {
+  assert.equal(resolveLlmPlaygroundEndpoint("cgpt-codex/think"), "/api/v1/responses");
+  assert.equal(resolveLlmPlaygroundEndpoint("chatgpt-web-codex/high"), "/api/v1/responses");
+  assert.equal(resolveLlmPlaygroundEndpoint("openai/gpt-5"), "/api/v1/chat/completions");
 });
 
 test("OpenCode Free playground uses its routing alias instead of the reserved provider id", async () => {

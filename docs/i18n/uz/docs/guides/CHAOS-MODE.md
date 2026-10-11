@@ -8,18 +8,41 @@
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (boshqaruv paneli sessiyasi) · `POST /api/skills/collect/chaos` (API kaliti)  
 > **Manba:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode **bitta vazifani bir vaqtning oʻzida bir nechta provayderga yuboradi** — har bir ishtirokchi provayder
+Chaos Mode **bitta vazifani bir vaqtning oʻzida bir nechta provayderga yuboradi** — ishtirok etayotgan har bir provayder
 bittadan model nusxasini taqdim etadi va siz barcha javoblarni yonma-yon (yoki zanjirlangan holda) olasiz. Bu
-marshrutlash strategiyasi emas, balki koʻp modelli bajarish vositasidir: odatiy `/v1/chat/completions`
+marshrutlash strategiyasi emas, balki bir nechta modelni ishga tushirish vositasidir: odatiy `/v1/chat/completions`
 trafikingizga u hech qachon taʼsir qilmaydi.
 
-**Farqlash — nomida "chaos" boʻlgan uch xil narsa taqdim etiladi:**
+**Aniqlik kiritish — nomida "chaos" boʻlgan uch xil narsa taqdim etiladi:**
 
-| Narsa                                 | Bu nima                                                                                                                                      | Hujjat joylashuvi                            |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**                        | Bu yerda tavsiflangan boshqaruv paneli sahifasi + API: bitta vazifani koʻplab provayderlarga tarqatadi (parallel yoki hamkorlikda).          | Ushbu qoʻllanma                              |
-| `auto/chaos`                          | Barqarorlikni sinash uchun nosozlik kiritishga asoslangan baholash vaznlariga ega Auto-Combo model identifikatori. Sozlash talab qilinmaydi. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos kombinatsiyasi konfiguratsiyasi | `config.chaos.enabled` bilan saqlanadigan kombinatsiya vazifani ixtiyoriy hakam modeli mavjud panelga tarqatadi (faqat API orqali).          | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Narsa                        | Bu nima                                                                                                                                                                                                       | Hujjatlashtirilgan joy                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**               | Bu yerda tasvirlangan boshqaruv paneli sahifasi va API: bitta vazifani koʻplab provayderlarga tarqatish (parallel yoki hamkorlikda).                                                                          | Ushbu qoʻllanma                              |
+| `auto/chaos`                 | Auto-Combo model identifikatori: parallel tarqatish, har bir provayderdan bittadan model, har biri uchun bittadan yuqori oqim chaqiruvi. Nosozlik kiritish emas ([tafsilotlar](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos combo konfiguratsiyasi | `config.chaos.enabled` bilan saqlanadigan combo xuddi shu tarzda tarqatadi (faqat API orqali); `judgeModel` faqat yakuniy javobni tanlaydi, sintez chaqiruvi amalga oshirilmaydi.                             | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: parallel tarqatish
+
+`auto/chaos` nosozlik kiritish yoki barqarorlikni sinash uchun **moʻljallanmagan**. `/v1/chat/completions` orqali
+`model: "auto/chaos"` soʻralganda:
+
+1. **Har bir provayderdan bittadan model**dan iborat panel tuziladi: har bir
+   ulangan provayderning nomzodlar havzasi tartibidagi birinchi nomzodi, koʻpi bilan 5 ta aʼzogacha
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, yuqori chegarasi 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode` vaznlar
+   toʻplami faqat har bir aʼzoning `weight` qiymatini belgilaydi; tarqatish uni oʻqimaydi.
+2. Bir xil soʻrov har bir panel aʼzosiga **parallel ravishda** yuboriladi, shuning uchun bitta soʻrov
+   har bir panel aʼzosi uchun bittadan yuqori oqim chaqiruviga teng xarajat qiladi
+   (`open-sse/services/autoCombo/chaosEngine.ts`, quyidagi manbadan yuboriladi:
+   `open-sse/services/combo.ts`).
+3. Har bir panel aʼzosi natijasi kelishi bilan unga tegishli bittadan holat qatori uzatiladi: sukut boʻyicha
+   SSE izohi (`: chaos <index> ok|fail <model>`), shuningdek, soʻrovda
+   `stream_options.include_chaos_parts: true` oʻrnatilgan boʻlsa, `omni-chaos-part`
+   hodisasi (`model`, `index`, `ok`, `error`). Ular javob matnini oʻz ichiga olmaydi.
+4. Yakuniy OpenAI uslubidagi parcha sifatida panelning **bitta** javobi yuboriladi: birinchi panel
+   aʼzosining javobi (`auto/chaos` uni `judgeModel` sifatida belgilaydi), agar u muvaffaqiyatli boʻlsa, aks holda
+   oxirgi muvaffaqiyatli aʼzoning javobi. Panelning boshqa javoblari qaytarilmaydi, shu sababli
+   siz N ta chaqiruv uchun toʻlaysiz va bitta yakunlangan javob olasiz.
 
 ## Sozlash
 

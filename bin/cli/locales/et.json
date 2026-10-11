@@ -254,6 +254,7 @@
     "log": "Kuva serveri logid otse",
     "no_recovery": "Keela automaatne taaskäivitus krahhi korral (silumisrežiim)",
     "max_restarts": "Maksimaalne krahhijärgsete taaskäivituste arv 30 sekundi jooksul enne alla andmist (vaikimisi: 2)",
+    "headless": "Käivita ainult puhverserveri mootor: juhtpaneel keelatud (404), valikulised alamsüsteemid jäetakse vahele (määrab OMNIROUTE_HEADLESS=1)",
     "tray": "Käivita süsteemisalves (ainult töölaual, valikuline)",
     "no_tray": "Keela süsteemisalve ikoon",
     "ready_timeout": "Valmisolekukontrolli ajalõpp millisekundites (ka OMNIROUTE_READY_TIMEOUT_MS, vaikimisi 60000)",

@@ -110,15 +110,15 @@ export abstract class CloudAgentBase {
     c: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]>;
 
-  protected mapStatus(raw: string): CloudAgentStatus; // heuristic upstream-string → enum
+  protected mapStatus(raw: string): CloudAgentStatus; // upstream string ကို heuristic နည်းဖြင့် enum သို့ ပြောင်းလဲခြင်း
   protected generateTaskId(): string; // `task_<ts>_<rand>`
   protected generateActivityId(): string; // `act_<ts>_<rand>`
 }
 ```
 
-`CodexCloudAgent.approvePlan` သည် ရည်ရွယ်ချက်ရှိရှိ exception တစ်ခု throw လုပ်သည် — Codex Cloud သည် အလိုအလျောက် အစီအစဉ်ရေးဆွဲပြီး အတည်ပြုမှုအဆင့် မရှိပါ။ `CodexCloudAgent.listSources` သည် `[]` ကို ပြန်ပေးသည်။
+`CodexCloudAgent.approvePlan` သည် ရည်ရွယ်ချက်ရှိရှိ error ပစ်ပါသည် — Codex Cloud သည် အစီအစဉ်ကို အလိုအလျောက် ရေးဆွဲပြီး အတည်ပြုမှုဂိတ် မရှိပါ။ `CodexCloudAgent.listSources` သည် `[]` ကို ပြန်ပေးပါသည်။
 
-`CursorCloudAgent` သည် ၎င်း၏ တရားဝင် REST API (`api.cursor.com/v0`) မှတစ်ဆင့် Cursor ၏ Background / Cloud Agents များကို **အသုံးပြုသူ သို့မဟုတ် service-account API key** ဖြင့် မောင်းနှင်သည် — ၎င်းသည် အသုံးပြုခွင့်ပိတ်ပင်ခံရနိုင်ကြောင်း သတိပေးချက်ပါရှိသော Cursor IDE ၏ OAuth session (provider `cursor`) ကို ပြန်လည်အသုံးပြုခြင်းထက် ပိုမိုလုံခြုံသည့် first-party နည်းလမ်းဖြစ်သည်။ ၎င်းသည် ရိုးရှင်းသော REST adapter တစ်ခုဖြစ်ပြီး `@cursor/sdk` native dependency မရှိပါ။ `approvePlan` သည် exception တစ်ခု throw လုပ်သည် (Cursor agents များသည် ကိုယ်ပိုင်ဆုံးဖြတ်ချက်ဖြင့် လုပ်ဆောင်ကြသည်)။ `listSources` သည် key ဖြင့် ရယူနိုင်သော repository များကို စာရင်းပြုစုသည်။ Cursor သည် UPPERCASE status enum များ (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) ကို ပြန်ပေးပြီး ၎င်းတို့ကို မျှဝေအသုံးပြုသည့် `CloudAgentStatus` သို့ အတိအလင်း map လုပ်ထားသည်။ ကုဒ်ကို ပြောင်းလဲစရာမလိုဘဲ API version/path ကို ပြင်ဆင်နိုင်စေရန် credential တစ်ခုချင်းအလိုက် `baseUrl` ကို override လုပ်နိုင်သည်။
+`CursorCloudAgent` သည် **အသုံးပြုသူ သို့မဟုတ် service-account API key** ဖြင့် Cursor ၏ တရားဝင် REST API (`api.cursor.com/v0`) မှတစ်ဆင့် ၎င်း၏ Background / Cloud Agents များကို ထိန်းချုပ်ပါသည် — ၎င်းသည် အသုံးပြုခွင့်ပိတ်ပင်ခံရနိုင်ခြေဆိုင်ရာ သတိပေးချက်ပါရှိသော Cursor IDE ၏ OAuth session (provider `cursor`) ကို ပြန်လည်အသုံးပြုခြင်းထက် ပိုမိုလုံခြုံသော first-party အခြားရွေးချယ်စရာ ဖြစ်ပါသည်။ ၎င်းသည် ရိုးရှင်းသော REST adapter တစ်ခုဖြစ်ပြီး `@cursor/sdk` native dependency မရှိပါ။ `approvePlan` သည် error ပစ်ပါသည် (Cursor agent များသည် အလိုအလျောက် လုပ်ဆောင်ကြသည်)၊ `listSources` သည် key ဖြင့် ဝင်ရောက်နိုင်သော repository များကို စာရင်းပြုစုပါသည်။ Cursor သည် UPPERCASE status enum များ (`CREATING`/`RUNNING`/`FINISHED`/`ERROR`) ကို ပြန်ပေးပြီး ၎င်းတို့ကို မျှဝေသုံးထားသော `CloudAgentStatus` သို့ တိကျစွာ map လုပ်ထားပါသည်။ API version/path ကို code ပြောင်းလဲစရာမလိုဘဲ ပြင်ဆင်နိုင်ရန် credential တစ်ခုချင်းအလိုက် `baseUrl` ကို override လုပ်နိုင်ပါသည်။
 
 ## Domain အမျိုးအစားများ
 
@@ -297,22 +297,27 @@ upstream provider ကို **မ**ခေါ်ပါ — `CloudAgentBase` တ�
 
 ## REST API — Cloud Provider ချိတ်ဆက်မှု
 
-`src/app/api/cloud/` အောက်ရှိ ဤအရန် endpoint များကို အဝေးထိန်း client များ
-(CLI၊ Electron app သို့မဟုတ် sync worker များ) က provider ချိတ်ဆက်မှု metadata ကို ဖတ်ရှုရန်နှင့်
-model alias များကို ဖြေရှင်းရန် အသုံးပြုသည်။ ၎င်းတို့ကို task endpoint များတွင် အသုံးပြုသည့် management auth မဟုတ်ဘဲ
-**ပုံမှန် API key** (`validateApiKey` မှတစ်ဆင့်) ဖြင့် authentication ပြုလုပ်ထားသည်။
+`src/app/api/cloud/` အောက်ရှိ ဤအကူ endpoint များကို အဝေးမှ client များ
+(CLI၊ Electron app သို့မဟုတ် sync worker များ) က provider ချိတ်ဆက်မှု metadata ကို ဖတ်ရန်နှင့်
+model alias များကို ဖြေရှင်းရန် အသုံးပြုသည်။ ၎င်းတို့သည် task endpoint များတွင် အသုံးပြုသည့် management auth မဟုတ်ဘဲ **API key**
+(`validateApiKey` မှတစ်ဆင့်) ဖြင့် စစ်မှန်ကြောင်း အတည်ပြုသည်။ `/api/cloud/auth` က
+ပြန်ပေးသည့်အရာသည် key ၏ scope ပေါ် မူတည်သည် (အောက်တွင် ကြည့်ပါ)။
 
-| Method | Path                            | Purpose                                                                                     |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| POST   | `/api/cloud/auth`               | API key ကို စစ်ဆေးပြီး ဖုံးကွယ်ထားသော ချိတ်ဆက်မှု metadata + model alias များကို ပြန်ပေးရန် |
-| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` ကို အသစ်ပြန်လည်ရယူရန်                          |
-| POST   | `/api/cloud/model/resolve`      | model alias တစ်ခုကို `{ provider, model }` အဖြစ် ဖြေရှင်းရန်                                |
-| GET    | `/api/cloud/models/alias`       | model alias အားလုံးကို စာရင်းပြုစုရန်                                                       |
-| PUT    | `/api/cloud/models/alias`       | model alias တစ်ခု သတ်မှတ်ရန် (ဖွင့်ထားပါက Cloud သို့ အလိုအလျောက် sync လုပ်ရန်)              |
+| Method | Path                            | ရည်ရွယ်ချက်                                                                                  |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------------------- |
+| POST   | `/api/cloud/auth`               | API key ကို အတည်ပြုပြီး ဖုံးကွယ်ထားသော ချိတ်ဆက်မှု metadata + model alias များကို ပြန်ပေးရန် |
+| PUT    | `/api/cloud/credentials/update` | `accessToken` / `refreshToken` / `expiresAt` ကို အသစ်ပြန်လည်ဖြည့်တင်းရန်                     |
+| POST   | `/api/cloud/model/resolve`      | model alias တစ်ခုကို `{ provider, model }` အဖြစ် ဖြေရှင်းရန်                                 |
+| GET    | `/api/cloud/models/alias`       | model alias အားလုံးကို စာရင်းပြုစုရန်                                                        |
+| PUT    | `/api/cloud/models/alias`       | model alias တစ်ခု သတ်မှတ်ရန် (ဖွင့်ထားပါက Cloud သို့ အလိုအလျောက် sync လုပ်ရန်)               |
 
 `/api/cloud/auth` သည် မူရင်း `apiKey` / `accessToken` / `refreshToken` ကို မည်သည့်အခါမျှ ပြန်မပေးပါ။ ၎င်းသည်
-`hasApiKey`၊ `hasAccessToken`၊ `hasRefreshToken` နှင့် ဖုံးကွယ်ထားသော အစမ်းမြင်ကွင်း
-(`maskedApiKey`: ပထမ 4 လုံး + `****` + နောက်ဆုံး 4 လုံး) ကို ပြန်ပေးသည်။
+key က အသုံးပြုနိုင်သည့် လက်ရှိအသုံးပြုနေသော ချိတ်ဆက်မှုများအတွက် `hasApiKey`၊ `hasAccessToken`၊ `hasRefreshToken` ကို
+ပြန်ပေးသည် (`allowedConnections` ဖြင့် ကန့်သတ်ထားသော key သည် ထိုချိတ်ဆက်မှုများကိုသာ မြင်နိုင်သည်)။ `manage`
+သို့မဟုတ် `admin` scope ရှိသော API key အတွက်—`OMNIROUTE_API_KEY` မှ deployment key အပါအဝင်—၎င်းသည်
+ဖုံးကွယ်ထားသော အစမ်းမြင်ကွင်း (`maskedApiKey`—အစွန်းတစ်ဖက်စီတွင် စာလုံး 4 လုံးအထိ၊ တိုသော
+key အတွက် ထို့ထက်နည်းပြီး စာလုံး 8 လုံး သို့မဟုတ် ထို့ထက်နည်းပါက တစ်လုံးမျှမပါ) နှင့် ချိတ်ဆက်မှု၏ `projectId` ကိုလည်း ပြန်ပေးသည်။ အခြား key များအတွက်
+အဆိုပါ field နှစ်ခုလုံးကို response မှ ချန်လှပ်ထားသည်။
 
 ## Credential ဖြေရှင်းခြင်း
 

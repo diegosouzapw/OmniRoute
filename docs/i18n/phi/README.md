@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Mga Feature</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Mga Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Mga Provider</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Mga Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI at MCP</a></td>
   </tr>
   <tr>
@@ -345,13 +345,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Lahat ng 19 na estratehiya sa pag-route ng combo na naka-animate — isang tile bawat estratehiya: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Tingnan ang talahanayan sa itaas para malaman kung ano ang ginagawa ng bawat isa."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Naka-animate ang lahat ng 19 na diskarte sa pag-route ng combo — isang tile bawat diskarte: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Tingnan ang talahanayan sa itaas para sa ginagawa ng bawat isa."/>
 
-> Ang **combo** ay isang hanay ng mga model na **awtomatikong** dinaraanan ng OmniRoute. Kapag naubos ang quota, pumalya ang isang provider, o biglang tumaas ang mga gastos, maaaring lumipat ang combo sa susunod na kwalipikado at maayos na model. 🛡️
+> Ang **combo** ay isang sunod-sunod na hanay ng mga model na **awtomatikong** dinaraanan ng OmniRoute. Kung maubos ang quota, pumalya ang isang provider, o biglang tumaas ang mga gastos, maaaring lumipat ang combo sa susunod na kwalipikado at maayos na model. 🛡️
 
-### ⚡ Walang configuration — gamitin lang ang `auto`
+### ⚡ Walang kailangang i-configure — gamitin lang ang `auto`
 
-Walang combo na kailangang gawin. Itakda ang iyong model sa `auto` (o isang variant) at bubuo ang OmniRoute ng virtual na combo mula sa iyong mga nakakonektang provider, na sinusuri nang live:
+Walang combo na kailangang gawin. Itakda ang iyong model sa `auto` (o isang variant) at bubuo ang OmniRoute ng virtual na combo mula sa iyong mga nakakonektang provider, na sinusuri nang real time:
 
 <table>
   <tr><th align="left">Model ID</th><th align="left">Kung para saan ito nag-o-optimize</th></tr>
@@ -359,33 +359,33 @@ Walang combo na kailangang gawin. Itakda ang iyong model sa `auto` (o isang vari
   <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Mga weight na inuuna ang kalidad para sa pagbuo ng code</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Pinakamababang latency muna</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Pinakamura bawat token muna</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Pinakamalaking natitirang quota / headroom sa rate limit muna</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Inuuna ang kalidad + 10% paggalugad upang tumuklas ng mas mahuhusay na model</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Tahasang pananatili sa huling provider na napatunayang maayos</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Mga weight sa pag-inject ng fault para sa pagsubok ng katatagan (chaos engineering)</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Pinakamalaking natitirang quota / rate-limit muna</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Inuuna ang kalidad + 10% na paggalugad upang makatuklas ng mas mahuhusay na model</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Tahasang pananatili sa huling provider na nalamang maayos</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Sabay-sabay na pagpapadala sa isang panel ng mga model (isa bawat provider, 5 bilang default), at nagbabalik ng isang sagot; isang upstream na tawag bawat model sa panel, hindi ito fault injection</td></tr>
 </table>
 
 ##
 
-### 🔀 O gumawa ng sarili mo — 19 na estratehiya sa pag-route
+### 🔀 O bumuo ng sarili mo — 19 na diskarte sa pag-route
 
-Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang ng combo:
+Lahat ng **19** na diskarte — paghalu-haluin at pagtugmain sa bawat hakbang ng combo:
 
 <table>
   <tr>
     <th>#</th>
-    <th align="left">Estratehiya</th>
-    <th align="left">Ano ang ginagawa nito</th>
+    <th align="left">Diskarte</th>
+    <th align="left">Ang ginagawa nito</th>
   </tr>
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Nakaayos na listahang inuuna ang unang target — ubusin ang bawat isa bago ang susunod 🥇</td>
+    <td>Nakaayos na listahang inuuna ang unang target — ubusin ang bawat isa bago lumipat sa susunod 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>Ubusin muna nang buo ang quota ng bawat target bago lumipat</td>
+    <td>Lubusang gamitin ang quota ng bawat target bago lumipat</td>
   </tr>
   <tr>
     <td align="center">3</td>
@@ -395,7 +395,7 @@ Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang
   <tr>
     <td align="center">4</td>
     <td nowrap><code>round-robin</code></td>
-    <td>Paikut-ikot na dumaan sa mga target ayon sa pagkakasunod-sunod</td>
+    <td>Paikot na daanan ang mga target ayon sa pagkakasunod-sunod</td>
   </tr>
   <tr>
     <td align="center">5</td>
@@ -415,12 +415,12 @@ Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Random na pagpili nang hindi inaalis ang mga pag-uulit 🎲</td>
+    <td>Random nang hindi inaalis ang mga pag-uulit 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Bawasan ang $ bawat request gamit ang live na pagpepresyo sa catalog 💸</td>
+    <td>Pinapaliit ang $ bawat request batay sa kasalukuyang presyo sa catalog 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -430,12 +430,12 @@ Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>Unahin ang target na pinakamalapit nang mag-reset ang quota window</td>
+    <td>Mas piliin ang target na pinakamalapit nang mag-reset ang quota window</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Ayusin ayon sa oras ng pag-reset ng quota — maiikling window muna 📊</td>
+    <td>Isaayos ayon sa oras ng pag-reset ng quota — maiikling window muna 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
@@ -450,39 +450,39 @@ Lahat ng **19** na estratehiya — paghalu-haluin at pagtugmain sa bawat hakbang
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Italaga ang bawat magagamit-muling prompt prefix sa parehong account — i-maximize ang mga prompt-cache hit 🎯</td>
+    <td>Itali ang bawat magagamit-muling prompt prefix sa parehong account — paramihin ang mga prompt-cache hit 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Last-Known-Good Path — nananatili sa huling matagumpay na provider, saka bumabalik sa mga panuntunan kung kailangan</td>
+    <td>Last-Known-Good Path — nananatili sa huling matagumpay na provider, pagkatapos ay bumabalik sa mga tuntunin kapag kailangan</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Live na pagsusuri gamit ang 16 na salik sa lahat ng koneksyon 🤖</td>
+    <td>Real-time na pagmamarka batay sa 16 na salik sa lahat ng koneksyon 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Ipadala sa isang panel ng mga model + isang tagahatol ang magsasama-sama upang makabuo ng iisang sagot 🧬</td>
+    <td>Sabay-sabay na ipinapadala sa isang panel ng mga model + bumubuo ang isang tagahatol ng iisang sagot 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Pagkadenahin ang mga hakbang — ang output ng bawat target ang ipapasok sa susunod 🔗</td>
+    <td>Pagdugtung-dugtungin ang mga hakbang — ang output ng bawat target ang ipinapasok sa susunod 🔗</td>
   </tr>
 </table>
 
-<sub>Sinusuri ng Auto-Combo engine ang bawat kandidato batay sa **16 na salik** (kalagayan, quota, gastos, latency, pagiging angkop sa gawain, kalidad, availability ng session…) — tingnan ang [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>Minamarkahan ng Auto-Combo engine ang bawat kandidato batay sa **16 na salik** (kalagayan, quota, gastos, latency, pagiging angkop sa gawain, kalidad, availability ng session…) — tingnan ang [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
 
-### 🧱 Built-in ang katatagan (3 magkakahiwalay na layer)
+### 🧱 Kasama na ang katatagan (3 magkakahiwalay na layer)
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Katatagan ng OmniRoute — 3 independiyenteng layer ng kusang pagbangon, ang tamang layer para sa tamang pagkabigo. Layer 1 circuit breaker ng provider (buong provider): nati-trigger lamang sa 408/5xx, mga threshold na OAuth 8× / API-key 12× / lokal 2×, nagre-reset pagkalipas ng 60s/30s/15s tungo sa isang HALF-OPEN na probe, lazy recovery; habang OPEN, inililipat ng combo ang ruta sa susunod na provider. Layer 2 cooldown ng koneksyon (isang key/account): batayang 5s OAuth / 3s API-key, exponential ×2 backoff na may proteksyon laban sa thundering herd, sinusunod ng 429 ang Retry-After, nililinis ng tagumpay ang lahat ng error state; nilalaktawan ang isang key na nasa cooldown habang patuloy na nagsisilbi ang mga kapatid na key. Layer 3 lockout ng modelo (isang modelo): per-model na 429, lokal na 404, o mga pagtanggi sa mode ang nagla-lock lamang sa modelong iyon — hindi kailanman sa buong koneksyon. Ang mga terminal state (na-ban, nag-expire, ubos na ang mga credit) ay para sa operator, hindi mga cooldown."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Katatagan ng OmniRoute — 3 independiyenteng patong ng sariling pagbangon, ang tamang patong para sa tamang pagkabigo. Patong 1 circuit breaker ng provider (buong provider): mati-trigger lamang sa 408/5xx, mga threshold na OAuth 8× / API-key 12× / lokal 2×, magre-reset pagkalipas ng 60s/30s/15s tungo sa isang HALF-OPEN na pagsubok, kusang pagbawi kapag kailangan; habang OPEN, muling iruruta ng combo sa susunod na provider. Patong 2 cooldown ng koneksyon (isang key/account): batayang 5s OAuth / 3s API-key, eksponensiyal na ×2 backoff na may proteksiyon laban sa sabay-sabay na pagdagsa, sinusunod ng 429 ang Retry-After, nililinis ng tagumpay ang lahat ng estado ng error; nilalaktawan ang isang key na nasa cooldown habang patuloy na nagseserbisyo ang mga kapatid nitong key. Patong 3 lockout ng modelo (isang modelo): ang per-model na 429, lokal na 404, o mga pagtanggi sa mode ay nagla-lock lamang sa modelong iyon — hindi kailanman sa buong koneksyon. Ang mga terminal na estado (na-ban, nag-expire, naubos ang credits) ay para sa operator, hindi mga cooldown."/>
 
-<sub>📖 [Auto-Combo Engine](docs/routing/AUTO-COMBO.md) · [Gabay sa Katatagan](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub>📖 [Makina ng Auto-Combo](docs/routing/AUTO-COMBO.md) · [Gabay sa Katatagan](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
@@ -562,29 +562,29 @@ Ang Radar ay opt-in at GET-only. Hindi nag-a-upload ang OmniRoute client ng mga 
 
 </div>
 
-> Mga kamakailang tampok mula **v3.8.20 → v3.8.50**. Ang buong kasaysayan ay nasa [`CHANGELOG.md`](CHANGELOG.md).
+> Mga kamakailang tampok mula **v3.8.20 → v3.8.50**. Buong kasaysayan sa [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — papasok na delegasyong A2A sa iyong fleet ng mga agent, mga skill ng Conductor sa Agent Card, at isang dashboard panel na may Faro push-to-talk voice chat. → [A2A Server](docs/frameworks/A2A-SERVER.md)
-- **🛂 Adaptive na pagtanggap at proteksiyon laban sa overload** — ipinipila ang mabibigat na kahilingan sa chat sa halip na magbalik ng 503, gamit ang mga atomic RPM rolling lease sa bawat koneksiyon. → [Gabay sa Resilience](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Kanonikal na pagkakasunod-sunod ng `/v1/models`** — isang magkakadikit na block na nakapangkat ayon sa provider para sa bawat provider (naka-pin muna ang mga combo), na hindi nagbabago sa lahat ng pinagmulan ng catalog. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
-- **🗜️ Pagpapatatag ng compression** — naka-on bilang default na inflation guard, mga Caveman pack para sa DE / FR / JA + Chinese (wényán), at mga RTK filter para sa Gradle at .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Tapat na flat-rate na gastos** — lumalabas bilang **$0** sa cost analytics ang mga provider ng subscription / coding plan; patuloy na nagtatantiya ang budget, quota, at routing. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share routing** — patas na hinahati ang quota ng isang shared account sa mga pooled key, at work-conserving ito upang maipahiram ang mga hindi ginagamit na bahagi. → [Gabay sa Resilience](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Isang-command na pag-setup ng CLI/agent** — 13 nakarehistrong `setup-*` command; inilulunsad ng `omniroute run` ang 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); sinusuportahan ng `omniroute configure` ang 10 target na may interactive na provider+model picker at mga paborito sa bawat konteksto. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Remote mode** — kontrolin ang isang remote na OmniRoute gamit ang mga scoped token (`connect` / `contexts` / `tokens`) + isang `antigravity` OAuth helper para sa mga pag-install sa VPS. → [Remote Mode](docs/guides/REMOTE-MODE.md)
-- **🧭 Mas matalinong auto-routing** — mga combo na `auto/<category>:<tier>`, **Fusion** (model panel + judge), routing na isinasaalang-alang ang gawain, at mga override sa bawat kahilingan para sa model / mode / USD budget. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🎛️ OmniConductor** — papasok na A2A delegation sa iyong fleet ng mga agent, mga kasanayan ng Conductor sa Agent Card, at isang dashboard panel na may Faro push-to-talk voice chat. → [A2A Server](docs/frameworks/A2A-SERVER.md)
+- **🛂 Naaangkop na admission at proteksiyon laban sa overload** — pumipila ang mabibigat na kahilingan sa chat sa halip na magbalik ng 503, na may mga atomic RPM rolling lease sa bawat koneksiyon. → [Gabay sa Resilience](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ Canonical na pagkakasunod-sunod ng `/v1/models`** — isang tuloy-tuloy na block na nakapangkat ayon sa provider para sa bawat provider (naka-pin muna ang mga combo), at matatag sa bawat pinagmulan ng catalog. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
+- **🗜️ Pagpapatibay ng compression** — default na naka-on na inflation guard, mga Caveman pack para sa DE / FR / JA + Chinese (wényán), at mga RTK filter para sa Gradle at .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Tapat na flat-rate na gastos** — nagpapakita ng **$0** sa cost analytics ang mga provider ng subscription / coding plan; patuloy namang nagtatantiya ang budget, quota at routing. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share routing** — patas na hatiin ang quota ng isang nakabahaging account sa mga pinagsama-samang key, at work-conserving upang maipahiram ang mga hindi ginagamit na bahagi. → [Gabay sa Resilience](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 Isang-command na pag-setup ng CLI/agent** — 13 nakarehistrong `setup-*` command; inilulunsad ng `omniroute run` ang 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI); sinusuportahan ng `omniroute configure` ang 10 target na may interactive na tagapili ng provider+model at mga paborito sa bawat context. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Remote mode** — patakbuhin ang isang remote na OmniRoute gamit ang mga scoped token (`connect` / `contexts` / `tokens`) + isang `antigravity` OAuth helper para sa mga installation sa VPS. → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- **🧭 Mas matalinong auto-routing** — mga combo na `auto/<category>:<tier>`, **Fusion** (model panel + judge), routing na isinasaalang-alang ang gawain, at mga override sa bawat kahilingan para sa model / mode / USD-budget. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
 - **🗜️ Pluggable na compression** — 12 composable engine + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, fidelity gate sa bawat hakbang, GCF v3.2, at drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Transparent na MITM decrypt (TPROXY)** — i-capture ang mga CLI na binabalewala ang mga proxy env var, gamit ang CA sa bawat SNI + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Cost telemetry saanman** — mga header ng gastos/paggamit na `X-OmniRoute-*` sa bawat endpoint, header ng matitipid mula sa cache-HIT, at mga USD spending quota sa bawat key. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
+- **🕵️ Transparent na MITM decrypt (TPROXY)** — i-capture ang mga CLI na binabalewala ang mga proxy env var, gamit ang per-SNI CA + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Cost telemetry sa lahat ng dako** — mga header ng gastos/paggamit na `X-OmniRoute-*` sa bawat endpoint, header ng natipid mula sa cache-HIT, at mga USD spending quota sa bawat key. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
 - **🧠 Memory na kontrolado mo** — naka-off bilang default, opt-in na int8 vector quantization + typed decay, at `x-omniroute-no-memory` sa bawat kahilingan. → [Memory](docs/frameworks/MEMORY.md)
-- **🛡️ Seguridad** — prompt-injection guard sa bawat LLM route (red-team suite), opt-in na credential-masking guardrail (nire-redact ang mga tumagas na API key/secret sa parehong direksiyon), libreng DuckDuckGo web search bilang huling opsiyon, at opsiyonal na OIDC login gate para sa dashboard (palaging nananatiling available ang password login). → [Mga Guardrail](docs/security/GUARDRAILS.md)
-- **🖼️ Mga bagong endpoint** — kinukumpleto ng `/v1/ocr` (Mistral OCR) at `/v1/audio/translations` (Whisper-style) ang saklaw ng media. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
-- **🎨 Pagbuo ng image / video / audio** — iisang API para sa media: xAI Grok Imagine at Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind, at mga speech provider gaya ng ElevenLabs. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
-- **🌍 Deployment at operasyon** — reverse-proxy `basePath`, awtomatikong pagtukoy sa wika ng browser, pagsubaybay sa device sa bawat key, root-less na MITM trust, at zh-TW localization. → [Environment](docs/reference/ENVIRONMENT.md)
-- **🤝 Higit pang provider at agent** — mga cloud agent (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) na may browser + OAuth login, first-class na card para sa Ollama, Claude Opus 5 at Sonnet 5, opisyal na pakikipagsosyo sa Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… at isang ni-refresh na **catalog ng 352 provider**. → [Mga Provider](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Transparency sa routing** — bawat tugon ay may header na `X-OmniRoute-Decision` na tumutukoy sa strategy/provider/latency na nagsilbi rito, isang bagong `cache-optimized` combo strategy + Auto-Combo `cacheAffinity` factor ang muling nagru-route ng mga nauulit na kahilingan pabalik sa koneksiyong may hawak ng naka-cache na prefix, at inilalantad ng read-only na endpoint na `/v1/auto-combo/{channel}/candidates` ang live candidate pool ng isang `auto/*` channel. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Lokal na performance at imprastraktura** — one-click na lokal na Redis, mga relay deployer para sa Cloudflare Workers / Deno Deploy, at Bifrost at Mux bilang mga pinangangasiwaang embedded service. → [Mga Embedded Service](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Kasama rin** — plugin framework + marketplace, mga framework ng Omni/Agent/GitHub skills, integrasyon sa Obsidian vault (22 MCP tool), OpenAI-compatible na Batch at Files API, semantic response cache, gamification na may mga leaderboard, ACP agent discovery (15 built-in na agent), nakaiskedyul na pag-export ng log sa BigQuery, `auto/chaos` fault injection, isang Telegram bot bridge, isang in-app na version manager, at mga ranking ng libreng provider mula sa LMArena-ELO. → [Mga Dokumento](docs/README.md)
+- **🛡️ Seguridad** — prompt-injection guard sa bawat LLM route (red-team suite), opt-in na credential-masking guardrail (nagre-redact ng mga na-leak na API key/secret sa parehong direksiyon), libreng DuckDuckGo web search bilang huling opsyon, at opsyonal na OIDC login gate para sa dashboard (palaging nananatiling available ang password login). → [Mga Guardrail](docs/security/GUARDRAILS.md)
+- **🖼️ Mga bagong endpoint** — kinukumpleto ng `/v1/ocr` (Mistral OCR) at `/v1/audio/translations` (Whisper-style) ang media surface. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
+- **🎨 Pagbuo ng image / video / audio** — isang API para sa media: xAI Grok Imagine at Novita AI video, ComfyUI, Magnific, Adobe Firefly, Segmind, at mga speech provider gaya ng ElevenLabs. → [Sanggunian ng API](docs/reference/API_REFERENCE.md)
+- **🌍 Deployment at operasyon** — reverse-proxy na `basePath`, awtomatikong pagtukoy sa wika ng browser, pagsubaybay sa device sa bawat key, root-less na MITM trust, at zh-TW localization. → [Environment](docs/reference/ENVIRONMENT.md)
+- **🤝 Higit pang mga provider at agent** — mga cloud agent (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) na may browser + OAuth login, first-class card para sa Ollama, Claude Opus 5 at Sonnet 5, opisyal na pakikipagtulungan sa Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… at isang na-refresh na **catalog ng 352 provider**. → [Mga Provider](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 Transparency sa routing** — may `X-OmniRoute-Decision` header ang bawat tugon na tumutukoy sa strategy/provider/latency na nagsilbi rito, isang bagong `cache-optimized` na combo strategy + Auto-Combo `cacheAffinity` factor ang nagbabalik sa mga nauulit na kahilingan sa koneksiyong may hawak ng naka-cache na prefix, at inilalantad ng read-only na `/v1/auto-combo/{channel}/candidates` endpoint ang live candidate pool ng isang `auto/*` channel. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **⚡ Lokal na performance at imprastraktura** — one-click na lokal na Redis, mga deployer ng relay para sa Cloudflare Workers / Deno Deploy, at Bifrost at Mux bilang mga pinangangasiwaang embedded service. → [Mga Embedded Service](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🧩 Kasama rin sa package** — plugin framework + marketplace, mga framework ng Omni/Agent/GitHub skills, integrasyon ng Obsidian vault (22 MCP tool), mga OpenAI-compatible na Batch at Files API, semantic response cache, gamification na may mga leaderboard, ACP agent discovery (15 built-in na agent), nakaiskedyul na pag-export ng log sa BigQuery, `auto/chaos` na parallel multi-model fan-out, isang Telegram bot bridge, isang in-app version manager, at mga ranking ng libreng provider mula sa LMArena-ELO. → [Mga Dokumento](docs/README.md)
 
 <br/>
 
@@ -665,7 +665,7 @@ ng iyong shell history. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATION
 
 <div align="center">
 
-## 🌐 357 AI Provider — 152 Minarkahan sa Catalog bilang Libre
+## 🌐 372 AI Provider — 154 Minarkahan sa Catalog bilang Libre
 
 </div>
 
@@ -1256,7 +1256,7 @@ Mga canonical na sukatan noong 2026-08-24: **1.029 natatanging video** · **11.1
 <br/>
 <div align="center">
 
-## 🛠️ Teknolohiyang Ginamit
+## 🛠️ Tech Stack
 
 </div>
 
@@ -1265,17 +1265,17 @@ Mga canonical na sukatan noong 2026-08-24: **1.029 natatanging video** · **11.1
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Wika</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> sa buong <code>src/</code> at <code>open-sse/</code> (walang <code>any</code> sa core mula noong v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (legacy na JSON) — 122 domain module, 190 migration</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (legacy na JSON) — 137 domain module, 202 migration</td></tr>
   <tr><td nowrap><b>Memory</b></td><td>SQLite FTS5 full-text + int8-quantized vector embedding, typed decay</td></tr>
   <tr><td nowrap><b>Mga Schema</b></td><td>Zod 4 — pagpapatunay ng I/O ng MCP tool + mga kontrata ng API</td></tr>
   <tr><td nowrap><b>Mga Protocol</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
   <tr><td nowrap><b>Compression</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Auth at seguridad</b></td><td>OAuth 2.0 (PKCE) + JWT + mga API Key + scoped auth ng MCP · AES-256-GCM para sa nakaimbak na data · DOMPurify</td></tr>
+  <tr><td nowrap><b>Auth at seguridad</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM habang nakaimbak · DOMPurify</td></tr>
   <tr><td nowrap><b>Stealth</b></td><td>wreq-js — pagpapanggap bilang JA3 / JA4 TLS fingerprint, 3-level proxy</td></tr>
-  <tr><td nowrap><b>Katatagan</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, self-healing na auto-combo</td></tr>
-  <tr><td nowrap><b>Pagla-log</b></td><td>pino — mga structured JSON log na may konteksto ng request</td></tr>
-  <tr><td nowrap><b>Pagsubok</b></td><td>Node.js test runner + Vitest — <b>39,000+ static na deklarasyon ng pagsubok</b> sa mahigit 5,100 sinusubaybayang test file (unit, integration, E2E, seguridad, ecosystem)</td></tr>
+  <tr><td nowrap><b>Katatagan</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, kusang paghilom ng auto-combo</td></tr>
+  <tr><td nowrap><b>Pag-log</b></td><td>pino — mga nakaayos na JSON log na may konteksto ng request</td></tr>
+  <tr><td nowrap><b>Pagsubok</b></td><td>Node.js test runner + Vitest — <b>39,000+ static na deklarasyon ng test</b> sa 5,100+ sinusubaybayang test file (unit, integration, E2E, seguridad, ecosystem)</td></tr>
   <tr><td nowrap><b>Mga Platform</b></td><td>Desktop (Electron) · Android (Termux) · PWA (anumang browser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — awtomatikong pag-publish sa npm + Docker Hub kapag may release</td></tr>
   <tr><td nowrap><b>Mga Link</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
@@ -1729,7 +1729,7 @@ Lisensyang MIT - tingnan ang [LICENSE](LICENSE) para sa mga detalye.
 
 **[⬆ Bumalik sa itaas](#-omniroute)** · Binuo nang may ❤️ para sa open-source na komunidad ng AI.
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Lisensyang MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · Lisensyang MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- Pinagana ang GitHub Discussions para sa mga tanong at sagot ng komunidad -->

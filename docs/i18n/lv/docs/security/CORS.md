@@ -132,22 +132,26 @@ restartēšanas.
 
 ## Piemērs: reversais starpniekserveris OmniRoute priekšā
 
-CORS ievērošanu nodrošina pats OmniRoute, tāpēc starpniekserverim parasti **nevajadzētu** pievienot vai
-pārrakstīt `Access-Control-*` galvenes (dubultas galvenes traucē pārlūkprogrammu darbībai). Terminējiet TLS
-un pārsūtiet pieprasījumus — ļaujiet OmniRoute atbildēt uz priekšpieprasījumiem:
+CORS ierobežojumus piemēro pats OmniRoute, tāpēc starpniekserverim parasti **nevajadzētu** pievienot vai
+pārrakstīt `Access-Control-*` galvenes (dublētas galvenes rada pārlūkprogrammu darbības traucējumus). Pabeidziet TLS
+savienojumu un pārsūtiet pieprasījumus — ļaujiet OmniRoute atbildēt uz priekšpārbaudes pieprasījumiem:
 
 ```nginx
-# nginx — pārsūtiet uz OmniRoute; NEIEVIETOJIET šeit Access-Control-*
+# nginx — pārsūtiet uz OmniRoute; šeit NEIEVIETOJIET Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NEIESTATIET X-Forwarded-For uz 127.0.0.1 — tas apiet lokālās atgriezeniskās saites maršrutu aizsargu.
+    # Saglabājiet pārsūtīšanas galvenes: starpniekserveris tajā pašā resursdatorā izveido savienojumu no atgriezeniskās cilpas adreses, un tieši tās
+    # norāda OmniRoute, ka izsaucējs nav lokālais operators. Ja starpniekserveris nepievieno nevienu no šīm galvenēm,
+    # visi attālinātie izsaucēji izskatās kā lokāli. Nekad arī neiestatiet X-Forwarded-For vērtību uz 127.0.0.1.
 }
 ```
 
 Iestatiet atļautās pārlūkprogrammu izcelsmes vietas OmniRoute (`CORS_ALLOWED_ORIGINS` vai
-cilnē Security), nevis starpniekserverī.
+cilnē Drošība), nevis starpniekserverī.
 
 ## Avota faili
 
