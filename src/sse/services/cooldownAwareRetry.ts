@@ -124,7 +124,8 @@ export function getCooldownAwareRetryDecision({
   /**
    * errorCode of the connection whose cooldown ends first. An auth cooldown (401) has no
    * known end: waiting for it re-sends the request into the same 401 and another token
-   * refresh on every retry, turning a ~3 s failure into minutes.
+   * refresh on every retry, turning a ~3 s failure into minutes. The same holds for a
+   * 403 (access refused) or a 410 (model retired): no wait re-opens them.
    */
   lastErrorCode?: unknown;
 }): {
@@ -135,13 +136,16 @@ export function getCooldownAwareRetryDecision({
 } {
   const closest = computeClosestRetryAfter(retryAfter);
   const effectiveBudgetLeftMs = budgetLeftMs ?? settings.budgetMs;
+  const lastCode = Number(lastErrorCode);
   if (
     !settings.enabled ||
     settings.maxRetries <= 0 ||
     settings.maxRetryWaitMs <= 0 ||
     attempt >= settings.maxRetries ||
     closest.waitMs === null ||
-    Number(lastErrorCode) === 401
+    lastCode === 401 ||
+    lastCode === 403 ||
+    lastCode === 410
   ) {
     return {
       shouldRetry: false,

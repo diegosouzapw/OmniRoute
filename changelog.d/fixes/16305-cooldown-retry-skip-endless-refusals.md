@@ -1,0 +1,1 @@
+- **fix(sse):** a request refused with 403 or 410 on every account no longer waits out the cooldown and retries, it returns the refusal at once; a renewing agentrouter quota 403 keeps retrying as 429 ([#16305](https://github.com/diegosouzapw/OmniRoute/pull/16305)) — thanks @maxmad64bis

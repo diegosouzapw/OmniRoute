@@ -2835,7 +2835,7 @@ export async function markAccountUnavailable(
         lastErrorType: fallbackResult.reason || RateLimitReason.QUOTA_EXHAUSTED,
         lastError: `Account quota exhausted (${provider})`,
         lastErrorAt: new Date().toISOString(),
-        errorCode: status,
+        errorCode: isAgentrouterConnectionQuotaScope(provider, fallbackResult) ? 429 : status,
         backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
         rateLimitedUntil: getUnavailableUntil(connectionCooldownMs),
         testStatus: "unavailable",
