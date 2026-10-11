@@ -1,0 +1,1 @@
+- **fix(logs):** keeping the console log view open no longer slows other requests ([#16301](https://github.com/diegosouzapw/OmniRoute/pull/16301)) — thanks @maxmad64bis
