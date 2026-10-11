@@ -27,6 +27,12 @@ const EXPIRY_SKEW_MS = 60_000;
 
 const tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
+function validateTokenUri(tokenUri: unknown): void {
+  if (tokenUri !== undefined && tokenUri !== DEFAULT_TOKEN_URI) {
+    throw new Error("Service account token_uri must be the Google OAuth token endpoint");
+  }
+}
+
 /** Parse and shape-check a service-account JSON blob. Throws with an operator-facing message. */
 export function parseServiceAccountKey(raw: string): ServiceAccountKey {
   let parsed: unknown;
@@ -48,13 +54,14 @@ export function parseServiceAccountKey(raw: string): ServiceAccountKey {
   if (!key.private_key || typeof key.private_key !== "string") {
     throw new Error("Service account key is missing private_key");
   }
+  validateTokenUri(key.token_uri);
   return {
     type: key.type,
     project_id: key.project_id,
     client_email: key.client_email,
     // Keys pasted through a form or an env var often arrive with literal \n.
     private_key: key.private_key.replace(/\\n/g, "\n"),
-    token_uri: key.token_uri || DEFAULT_TOKEN_URI,
+    token_uri: DEFAULT_TOKEN_URI,
   };
 }
 
@@ -68,7 +75,7 @@ function buildAssertion(key: ServiceAccountKey, scope: string, nowSeconds: numbe
     JSON.stringify({
       iss: key.client_email,
       scope,
-      aud: key.token_uri,
+      aud: DEFAULT_TOKEN_URI,
       exp: nowSeconds + TOKEN_TTL_SECONDS,
       iat: nowSeconds,
     })
@@ -86,6 +93,8 @@ export async function getServiceAccountAccessToken(
   scope: string,
   fetchImpl: typeof fetch = fetch
 ): Promise<string> {
+  // Validate direct callers too, including requests served from the token cache.
+  validateTokenUri(key.token_uri);
   const cacheKey = `${key.client_email}::${scope}`;
   const cached = tokenCache.get(cacheKey);
   if (cached && cached.expiresAt - EXPIRY_SKEW_MS > Date.now()) return cached.token;
@@ -93,8 +102,9 @@ export async function getServiceAccountAccessToken(
   const nowSeconds = Math.floor(Date.now() / 1000);
   const assertion = buildAssertion(key, scope, nowSeconds);
 
-  const response = await fetchImpl(key.token_uri || DEFAULT_TOKEN_URI, {
+  const response = await fetchImpl(DEFAULT_TOKEN_URI, {
     method: "POST",
+    redirect: "error",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",

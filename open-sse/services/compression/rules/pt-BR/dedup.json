@@ -4,30 +4,33 @@
   "rules": [
     {
       "name": "pt_repeated_context",
-      "pattern": "\\b(?:como falamos antes|como mencionamos|como vimos anteriormente|conforme discutido|como já expliquei)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:como falamos antes|como mencionamos|como vimos anteriormente|conforme discutido|como já expliquei)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "Ver acima. ",
       "context": "all",
       "category": "dedup",
       "minIntensity": "lite",
-      "description": "References to earlier discussion"
+      "description": "References to earlier discussion",
+      "flags": "giu"
     },
     {
       "name": "pt_repeated_question",
-      "pattern": "\\b(?:mesma pergunta de antes|já perguntei isso|é a mesma dúvida|repito a pergunta)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:mesma pergunta de antes|já perguntei isso|é a mesma dúvida|repito a pergunta)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "[mesma pergunta] ",
       "context": "user",
       "category": "dedup",
       "minIntensity": "lite",
-      "description": "Repeated question markers"
+      "description": "Repeated question markers",
+      "flags": "giu"
     },
     {
       "name": "pt_reestablished_context",
-      "pattern": "\\b(?:voltando ao código acima|voltando ao que falamos|retomando o assunto|voltando ao ponto)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:voltando ao código acima|voltando ao que falamos|retomando o assunto|voltando ao ponto)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "Re: ",
       "context": "all",
       "category": "dedup",
       "minIntensity": "lite",
-      "description": "Context re-establishment"
+      "description": "Context re-establishment",
+      "flags": "giu"
     },
     {
       "name": "pt_summary",

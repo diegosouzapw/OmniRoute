@@ -332,7 +332,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # 사용자 수준
-<project>/.compression/rules/hi/filler.json   # 프로젝트 수준
 ```
 
 ### 언어 팩 모범 사례

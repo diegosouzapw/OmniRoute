@@ -339,7 +339,6 @@ Nó cuir in áit aitheanta é:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Leibhéal úsáideora
-<project>/.compression/rules/hi/filler.json   # Leibhéal tionscadail
 ```
 
 ### Dea-Chleachtais do Phacáistí Teanga

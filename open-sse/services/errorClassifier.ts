@@ -30,10 +30,11 @@ const NORMAL_STOP_CLAUDE_STOP = new Set(["end_turn"]);
 
 export function isEmptyContentResponse(
   responseBody: unknown,
-  opts?: { provider?: string | null }
+  opts?: { provider?: string | null; trustedEmptyTurn?: boolean }
 ): boolean {
   const trustedEmptyStop =
-    typeof opts?.provider === "string" && TRUSTED_EMPTY_STOP_PROVIDERS.has(opts.provider);
+    opts?.trustedEmptyTurn === true ||
+    (typeof opts?.provider === "string" && TRUSTED_EMPTY_STOP_PROVIDERS.has(opts.provider));
   if (!responseBody || typeof responseBody !== "object") return false;
 
   const body = responseBody as Record<string, unknown>;
@@ -79,7 +80,11 @@ export function isEmptyContentResponse(
     // failure. Only flag empty content when no such terminal stop_reason is present.
     const stopReason = typeof body.stop_reason === "string" ? body.stop_reason : "";
     // #14160: same exemption for the Claude wire shape on trusted first-party APIs.
-    if (trustedEmptyStop && NORMAL_STOP_CLAUDE_STOP.has(stopReason)) return false;
+    if (
+      (trustedEmptyStop && NORMAL_STOP_CLAUDE_STOP.has(stopReason)) ||
+      (opts?.trustedEmptyTurn === true && stopReason === "stop_sequence")
+    )
+      return false;
     return !LEGIT_EMPTY_CLAUDE_STOP.has(stopReason);
   }
 

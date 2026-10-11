@@ -16,6 +16,7 @@ import {
   readProseRetryAfter,
 } from "../../utils/error.ts";
 import { buildRecoveryHint } from "./pinRecovery.ts";
+import { buildContextBudgetResponse } from "./budgetExhaustion.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
 import { collectQuotaWindowExclusions, formatQuotaSkipMessage } from "./quotaSkipDiagnostics.ts";
 import { recordComboRequest, recordPersistedSkipBypass } from "../comboMetrics.ts";
@@ -619,7 +620,6 @@ export async function handleRoundRobinCombo({
         throw err;
       }
 
-      // Retry loop within this model
       try {
         for (let retry = 0; retry <= maxRetries; retry++) {
           globalAttempts++;
@@ -628,7 +628,7 @@ export async function handleRoundRobinCombo({
               "COMBO-RR",
               `Maximum combo attempts (${maxGlobalAttempts}) exceeded. Terminating loop to prevent runaway requests.`
             );
-            return errorResponseWithComboDiagnostics(503, "Maximum combo retry limit reached", {
+            return buildContextBudgetResponse(lastError, rrOutcomes, {
               poolSize: modelCount,
               attempted: globalAttempts,
               excluded: [

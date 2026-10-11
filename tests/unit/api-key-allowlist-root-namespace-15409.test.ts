@@ -113,13 +113,18 @@ test("R4: a blocked id is not brought back through its root", async () => {
 });
 
 test("R5: the catalog filters provider rows through isCatalogModelAllowedForKey", () => {
-  const catalog = fs.readFileSync(
+  const catalogSource = fs.readFileSync(
     path.join(process.cwd(), "src/app/api/v1/models/catalog.ts"),
     "utf8"
   );
+  assert.ok(catalogSource.includes("finalModels = await filterCatalogModelsForKey("));
+  const catalog = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/v1/models/catalogKeyFilter.ts"),
+    "utf8"
+  );
   assert.ok(
-    catalog.includes("isCatalogModelAllowedForKey("),
-    "catalog.ts must decide provider-row visibility via isCatalogModelAllowedForKey"
+    catalog.includes("await isCatalogModelAllowedForKey(apiKey, m, keyMeta.blockedModels, deps)"),
+    "catalogKeyFilter.ts must decide provider-row visibility via isCatalogModelAllowedForKey"
   );
   assert.ok(
     !catalog.includes("isModelAllowedForKey(apiKey, m.root)"),

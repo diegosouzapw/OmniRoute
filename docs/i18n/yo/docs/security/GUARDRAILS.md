@@ -263,6 +263,8 @@ kún Memory tí ó wà títí (ìyọkúrò tí ó wá láti ìbéèrè àti ìd
 fò kọjá), nítorí náà ìdáhùn àwòkọ fúnra rẹ̀ kò lè tún ọ̀rọ̀ àwòkọ sínú
 Memory.
 
+**Àwọn pápá fídíò àìṣe àtúnṣe (#12430).** Nígbà tí bridge bá ṣiṣẹ́ tí àtìlẹ́yìn fídíò abinibi kò sì mọ̀ tàbí kò sí, àwọn pápá `transcript`/`audioTranscript` tí a ṣètò tún máa ń mú `videoBridgeObserved` ṣiṣẹ́, bí àpèjúwe bá kùnà tàbí a bá dé ààlà `maxVideos` pàápàá. `null` àti ọ̀rọ̀ òfo wà nínú ìṣirò; àwọn pápá tí kò sí àti metadata tí kò jẹ́ ti fídíò kò sí. Àwọn ẹ̀dà tí a fi pamọ́ máa ń bo àwọn pápá wọ̀nyí tàbí yọ ìbéèrè náà sílẹ̀, a sì fo cache/Memory. Dátà tí a rán sí olùpèsè kò yí padà.
+
 Àwọn ẹ̀dà tí a tọ́jú síwájú sí i lo àmì ìbéèrè tí a ti ṣàkíyèsí kan náà.
 Àwòrán ìbéèrè-oníbàárà tí kò tíì gbàgbé ṣáájú-ìgbèjà, ìbéèrè tí ó wà ní
 ìrántí tí ó dúró, àti ìwé ìrántí ìbéèrè tí a ti kọ̀ tẹ́lẹ̀ rọ́pò àwọn

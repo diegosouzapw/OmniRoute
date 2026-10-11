@@ -333,7 +333,6 @@ Au kiweke katika eneo linalotambuliwa:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Kiwango cha mtumiaji
-<project>/.compression/rules/hi/filler.json   # Kiwango cha mradi
 ```
 
 ### Mbinu Bora za Vifurushi vya Lugha

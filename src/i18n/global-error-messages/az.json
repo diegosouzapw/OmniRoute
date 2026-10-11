@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Bir şey səhv oldu",
+      "description": "Gözlənilməz bir xəta baş verdi. Bu qeydə alınıb və komandamız araşdıracaq.",
+      "detailsAriaLabel": "Xəta təfərrüatları",
+      "retryAriaLabel": "Səhifəni yenidən yükləməyə cəhd edin",
+      "tryAgain": "Yenidən Cəhd Et",
+      "statusAriaLabel": "Sistem vəziyyətini açın",
+      "systemStatus": "Sistem Statusu"
+    }
+  }
+}

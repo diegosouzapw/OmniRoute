@@ -336,7 +336,6 @@ Atau letakkannya di lokasi yang dikenali:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Peringkat pengguna
-<project>/.compression/rules/hi/filler.json   # Peringkat projek
 ```
 
 ### Amalan Terbaik untuk Pek Bahasa

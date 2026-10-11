@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { IsModelAvailable } from "../../open-sse/services/combo/types.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-weighted-cooling-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -76,7 +77,7 @@ async function openBreaker(provider: string) {
 }
 
 async function run(opts: {
-  isModelAvailable?: (modelStr: string) => Promise<boolean> | boolean;
+  isModelAvailable?: IsModelAvailable;
   settings?: Record<string, unknown> | null;
   log?: ReturnType<typeof createLog>;
   calls?: string[];
@@ -201,4 +202,61 @@ test("a cooling target plus an unavailable one is still 503 — the unavailable 
     "claude:unavailable",
     "openai:model_lockout",
   ]);
+});
+
+test("account cooldown from the availability probe returns 503 with retry timing, not 404", async () => {
+  const calls: string[] = [];
+  const res = await run({
+    calls,
+    isModelAvailable: async () => ({
+      available: false,
+      reason: "connection_cooldown",
+      retryAfterMs: 5000,
+    }),
+  });
+  assert.equal(res.status, 503);
+  assert.equal(res.headers.get("Retry-After"), "5");
+  assert.deepEqual(calls, []);
+  const body = await res.json();
+  assert.equal(body.error.code, "all_targets_cooling_down");
+  assert.ok(body.diagnostics.excluded.every((entry) => entry.reason === "connection_cooldown"));
+  assert.equal(getCircuitBreaker("openai").getStatus().failureCount, 0);
+  assert.equal(getCircuitBreaker("claude").getStatus().failureCount, 0);
+});
+
+test("account cooldown mixed with missing credentials remains retryable", async () => {
+  const res = await run({
+    isModelAvailable: (model) =>
+      model === "claude/b"
+        ? false
+        : {
+            available: false,
+            reason: "connection_cooldown",
+            retryAfterMs: 1200,
+          },
+  });
+  assert.equal(res.status, 503);
+  assert.equal(res.headers.get("Retry-After"), "2");
+  const body = await res.json();
+  assert.deepEqual(body.diagnostics.excluded.map((entry) => entry.reason).sort(), [
+    "connection_cooldown",
+    "unavailable",
+  ]);
+});
+
+test("account cooldown still allows a healthy sibling without changing breaker state", async () => {
+  const calls: string[] = [];
+  const res = await run({
+    calls,
+    isModelAvailable: (model) =>
+      model === "claude/b"
+        ? true
+        : {
+            available: false,
+            reason: "connection_cooldown",
+            retryAfterMs: 5000,
+          },
+  });
+  assert.equal(res.status, 200);
+  assert.deepEqual(calls, ["claude/b"]);
 });

@@ -334,7 +334,6 @@ Ma ọ bụ tinye ya n'ebe a na-amata:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Ọkwa onye ọrụ
-<project>/.compression/rules/hi/filler.json   # Ọkwa ọrụ ngo
 ```
 
 ### Omume Kachasị Mma Maka Ngwugwu Asụsụ

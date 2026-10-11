@@ -96,6 +96,8 @@ Test zabezpieczający przed regresją: `tests/unit/provider-cooldown-window-gate
 
 **Ochrona przed lawiną równoczesnych żądań:** zapobiega nadmiernemu wydłużaniu okresu karencji lub podwójnemu zwiększaniu `backoffLevel` przez równoczesne błędy.
 
+Binarne ramki `reasoningContentEvent` Kiro z niepustą sygnaturą zachowują aktywność rozumowania podczas przejścia przez executor jako pustą deltę `reasoning_content`. Sygnatura nie jest przekazywana dalej. Metadane, niekompletne ramki i puste sygnatury nie uruchamiają ponownie limitu czasu na treść; niezależny limit czasu aktywnego strumienia i anulowanie przez klienta nadal obowiązują. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Stany końcowe (NIE okresy karencji):**
 
 - `banned` — ustawiany po wykryciu słowa kluczowego oznaczającego blokadę lub blokady konta (zobacz [BAN_DETECTION](../security/BAN_DETECTION.md)), a także po trzech kolejnych odmowach usługi nadrzędnej dotyczących pojedynczego żądania (`request_rejected`, np. Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); pojedyncza odmowa jedynie wprowadza połączenie w okres karencji

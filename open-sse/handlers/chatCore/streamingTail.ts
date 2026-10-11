@@ -1,3 +1,4 @@
+import { inheritEmptyTurnPolicy } from "../../utils/emptyTurnPolicy.ts";
 import { getCodexClientSessionId } from "../../config/codexIdentity.ts";
 import {
   noteCodexTurnStateProvenance,
@@ -746,9 +747,12 @@ export async function runStreamingTail(deps: StreamingTailDeps) {
     response: { status: 200, streamed: true },
   });
 
-  const response = new Response(clientFacingStream, {
-    headers: responseHeaders,
-  });
+  const response = inheritEmptyTurnPolicy(
+    providerResponse,
+    new Response(clientFacingStream, {
+      headers: responseHeaders,
+    })
+  );
   turnExecutionHandedOffToStream = true;
   return {
     result: {

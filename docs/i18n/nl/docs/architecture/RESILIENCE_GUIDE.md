@@ -95,6 +95,8 @@ Regressiebeveiliging: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Beveiliging tegen een thundering herd:** voorkomt dat gelijktijdige fouten de afkoelperiode buitensporig verlengen of `backoffLevel` dubbel verhogen.
 
+Binaire `reasoningContentEvent`-frames van Kiro met een niet-lege handtekening behouden de redeneeractiviteit door de executor heen als een lege `reasoning_content`-delta. De handtekening wordt niet doorgestuurd. Metadata, onvolledige frames en lege handtekeningen starten het tijdsbudget voor inhoud niet opnieuw; de onafhankelijke tijdslimiet voor de actieve stream en annulering door de client blijven gelden. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Eindstatussen (GEEN afkoelperioden):**
 
 - `banned` — ingesteld door detectie van verboden trefwoorden/accountblokkeringen (zie [BAN_DETECTION](../security/BAN_DETECTION.md)), en door drie opeenvolgende upstreamweigeringen per verzoek (`request_rejected`, bijvoorbeeld Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); één weigering activeert alleen een afkoelperiode voor de verbinding

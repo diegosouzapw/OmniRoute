@@ -18,7 +18,6 @@ const {
   getNativeCodexTurnActiveGeneration,
   clearNativeCodexTurnPinsForTests,
   revokeNativeCodexTurnPinsForConnection,
-  NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE,
 } = await import("../../open-sse/services/combo/nativeCodexTurnPin.ts");
 const { recordProviderCooldown, isProviderInCooldown, clearCooldownState } =
   await import("../../open-sse/services/providerCooldownTracker.ts");
@@ -295,7 +294,7 @@ describe("Native Codex Safe Auto-Resume", () => {
     assert.deepEqual(attemptedModels, [geminiModel], "Subsequent request stayed pinned to Gemini");
   });
 
-  test("Opaque continuation state (previous_response_id) rejects auto-resume and returns HTTP 400", async () => {
+  test("Opaque continuation state rejects model switching and retries quota with HTTP 429", async () => {
     const conn1 = await providersDb.createProviderConnection({
       provider: "antigravity",
       authType: "oauth",
@@ -361,18 +360,16 @@ describe("Native Codex Safe Auto-Resume", () => {
       allCombos: null,
     });
 
-    assert.equal(result.status, 400);
+    assert.equal(result.status, 429);
     const data = await result.json();
-    assert.equal(data.error.code, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE);
+    assert.equal(data.error.code, "model_cooldown");
     assert.equal(attempted.length, 0, "No model dispatched");
 
-    const rejectLog = logs.find(
-      (e) => e.msg.includes("auto-resume rejected") && e.msg.includes("unsafe_provider_state")
-    );
-    assert.ok(rejectLog, "Should log rejection reason unsafe_provider_state");
+    const rejectLog = logs.find((e) => e.msg.includes("preserving turn for retry"));
+    assert.ok(rejectLog, "Should preserve the turn for retry");
   });
 
-  test("Pending tool call prevents auto-resume and returns HTTP 400", async () => {
+  test("Pending tool call prevents model switching and retries quota with HTTP 429", async () => {
     const conn1 = await providersDb.createProviderConnection({
       provider: "antigravity",
       authType: "oauth",
@@ -436,15 +433,13 @@ describe("Native Codex Safe Auto-Resume", () => {
       allCombos: null,
     });
 
-    assert.equal(result.status, 400, "Must return HTTP 400 when tool call unresolved");
+    assert.equal(result.status, 429, "Quota remains retryable with unresolved tool calls");
     const data = await result.json();
-    assert.equal(data.error.code, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE);
+    assert.equal(data.error.code, "model_cooldown");
     assert.equal(attempted.length, 0, "No model dispatched");
 
-    const rejectLog = logs.find(
-      (e) => e.msg.includes("auto-resume rejected") && e.msg.includes("pending_tool_call")
-    );
-    assert.ok(rejectLog, "Should log rejection reason pending_tool_call");
+    const rejectLog = logs.find((e) => e.msg.includes("preserving turn for retry"));
+    assert.ok(rejectLog, "Should preserve the turn for retry");
   });
 
   test("Partial stream safety: Opus emits partial SSE stream chunks then fails -> Gemini is NOT dispatched mid-stream", async () => {
@@ -604,7 +599,7 @@ describe("Native Codex Safe Auto-Resume", () => {
     );
   });
 
-  test("No healthy alternate model in combo returns HTTP 400 NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE and does NOT advance generation", async () => {
+  test("No healthy alternate model retries quota with HTTP 429 without advancing generation", async () => {
     const conn1 = await providersDb.createProviderConnection({
       provider: "antigravity",
       authType: "oauth",
@@ -664,9 +659,9 @@ describe("Native Codex Safe Auto-Resume", () => {
       allCombos: null,
     });
 
-    assert.equal(result.status, 400);
+    assert.equal(result.status, 429);
     const data = await result.json();
-    assert.equal(data.error.code, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE);
+    assert.equal(data.error.code, "model_cooldown");
     assert.equal(attempted.length, 0);
     assert.equal(
       getNativeCodexTurnActiveGeneration(turnBody, "OpusOnly"),
@@ -814,7 +809,7 @@ describe("Native Codex Safe Auto-Resume", () => {
     assert.equal(getNativeCodexTurnActiveGeneration(turnBody, comboName), 0);
   });
 
-  test("MAX_AUTORESUMES_PER_TURN = 1 stops cascading: Opus -> Gemini succeeds, but second failure in same turn returns terminal 400", async () => {
+  test("MAX_AUTORESUMES_PER_TURN stops cascading while a second quota failure remains retryable", async () => {
     const conn1 = await providersDb.createProviderConnection({
       provider: "antigravity",
       authType: "oauth",
@@ -909,9 +904,9 @@ describe("Native Codex Safe Auto-Resume", () => {
       allCombos: null,
     });
 
-    assert.equal(resGen2.status, 400, "Must return HTTP 400: max resumes exceeded");
+    assert.equal(resGen2.status, 429, "Retry the current model without a second resume");
     const dataGen2 = await resGen2.json();
-    assert.equal(dataGen2.error.code, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE);
+    assert.equal(dataGen2.error.code, "model_cooldown");
     assert.equal(attemptedGen2.length, 0, "Codex must NOT be dispatched on 2nd cascade");
     assert.equal(
       getNativeCodexTurnActiveGeneration(turnBody, comboName),
@@ -919,10 +914,8 @@ describe("Native Codex Safe Auto-Resume", () => {
       "Generation remains 1"
     );
 
-    const maxLog = logsGen2.find(
-      (e) => e.msg.includes("auto-resume rejected") && e.msg.includes("max_resumes_exceeded")
-    );
-    assert.ok(maxLog, "Should log max_resumes_exceeded rejection");
+    const maxLog = logsGen2.find((e) => e.msg.includes("preserving turn for retry"));
+    assert.ok(maxLog, "Should preserve the current generation for retry");
   });
 
   test("Pin immutability, multi-generation revocation, and TTL expiry cleanup", () => {

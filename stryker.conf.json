@@ -42,6 +42,11 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/responses-refusal-preservation.test.ts",
+      "tests/unit/codex-overload-scope.test.ts",
+      "tests/unit/responses-keepalive-error-frame-nested.test.ts",
+      "tests/unit/search-internal-error-sanitization-15159.test.ts",
+      "tests/unit/combo/quota-weighted-model-window.test.ts",
       "tests/unit/codex-claude-signature-provenance-15534.test.ts",
       "tests/unit/provider-breaker-combo-probe-slot-consumed-15698.test.ts",
       "tests/unit/provider-breaker-local-cooldown-refusal-15690.test.ts",
@@ -371,6 +376,8 @@
       "tests/unit/native-codex-turn-pin-10379.test.ts",
       "tests/unit/native-codex-turn-pin-model-scoped-fallback.test.ts",
       "tests/unit/native-codex-turn-pin-short-lockout.test.ts",
+      "tests/unit/native-turn-quota-recovery.test.ts",
+      "tests/unit/native-turn-retry-response.test.ts",
       "tests/unit/no-memory-header.test.ts",
       "tests/unit/noauth-autocombo-lockout-7623.test.ts",
       "tests/unit/noauth-model-lockout.test.ts",
@@ -419,6 +426,7 @@
       "tests/unit/public-client-ids-3493.test.ts",
       "tests/unit/publicCreds.test.ts",
       "tests/unit/qoder-oauth-config.test.ts",
+      "tests/unit/qoder-pat-tools-13697.test.ts",
       "tests/unit/quota-exhaustion-cutoff-opencode.test.ts",
       "tests/unit/quota-groups-route.test.ts",
       "tests/unit/quota-key-models-route.test.ts",
@@ -603,7 +611,10 @@
       "tests/unit/db-proxies-ventilated.test.ts",
       "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts",
       "tests/unit/alibaba-free-quota-drain-preserves-model-catalog-cache.test.ts",
-      "tests/unit/upstreamErrorEnvelope.test.ts"
+      "tests/unit/upstreamErrorEnvelope.test.ts",
+      "tests/unit/provider-alias-combo-pool-12844.test.ts",
+      "tests/unit/model-capacity-failure-scope-15788.test.ts",
+      "tests/unit/provider-node-local-dispatch-13452.test.ts"
     ],
     "nodeArgs": [
       "--import",
