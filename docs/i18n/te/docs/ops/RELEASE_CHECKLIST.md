@@ -135,7 +135,7 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 - [ ] `npm run lint` — 0 లోపాలు (హెచ్చరికలు ముందే ఉన్నవి)
 - [ ] `npm run typecheck:core` — సమస్యలు లేవు
 - [ ] `npm run typecheck:noimplicit:core` — సమస్యలు లేవు (కఠినమైనది)
-- [ ] `npm run check:cycles` — circular deps లేవు
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget పరిధిలో ఉంది
 - [ ] `npm run check:route-validation:t06` — సమస్యలు లేవు
 - [ ] `npm run check:node-runtime` — మద్దతు ఉన్న కనిష్ఠ runtime నిబంధన నెరవేరింది (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts`లోని `SUPPORTED_NODE_RANGE` ప్రకారం; `package.json`లోని `engines`తో సమలేఖనం చేయబడింది)

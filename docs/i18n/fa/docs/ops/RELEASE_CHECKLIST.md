@@ -135,7 +135,7 @@ quality-gate، quality-extended) عبور میکند و گیتهای سریع و
 - [ ] `npm run lint` — ۰ خطا (هشدارها از قبل وجود داشتهاند)
 - [ ] `npm run typecheck:core` — بدون مشکل
 - [ ] `npm run typecheck:noimplicit:core` — بدون مشکل (سختگیرانه)
-- [ ] `npm run check:cycles` — بدون وابستگی دوری
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — در محدوده بودجه
 - [ ] `npm run check:route-validation:t06` — بدون مشکل
 - [ ] `npm run check:node-runtime` — حداقل زماناجرای پشتیبانیشده رعایت شده است (`>=22.22.2 <23`، `>=24.0.0 <27`، مطابق `SUPPORTED_NODE_RANGE` در `src/shared/utils/nodeRuntimeSupport.ts`؛ همتراز با `engines` در `package.json`)

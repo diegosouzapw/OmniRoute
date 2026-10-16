@@ -135,7 +135,7 @@ E2E-matrixen over uden nogen label.
 - [ ] `npm run lint` — 0 fejl (advarslerne fandtes i forvejen)
 - [ ] `npm run typecheck:core` — uden fejl
 - [ ] `npm run typecheck:noimplicit:core` — uden fejl (streng)
-- [ ] `npm run check:cycles` — ingen cirkulære afhængigheder
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — inden for budgettet
 - [ ] `npm run check:route-validation:t06` — uden fejl
 - [ ] `npm run check:node-runtime` — minimumskravet til den understøttede runtime er opfyldt (`>=22.22.2 <23`, `>=24.0.0 <27`, i henhold til `SUPPORTED_NODE_RANGE` i `src/shared/utils/nodeRuntimeSupport.ts`; afstemt med `package.json` `engines`)

@@ -135,7 +135,7 @@ quality-gate, quality-extended) ומשאיר את שערי הבדיקה המהי
 - [ ] `npm run lint` — 0 שגיאות (האזהרות היו קיימות מראש)
 - [ ] `npm run typecheck:core` — ללא שגיאות
 - [ ] `npm run typecheck:noimplicit:core` — ללא שגיאות (מחמיר)
-- [ ] `npm run check:cycles` — אין תלויות מעגליות
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — במסגרת התקציב
 - [ ] `npm run check:route-validation:t06` — ללא שגיאות
 - [ ] `npm run check:node-runtime` — עומד בגרסת זמן הריצה המינימלית הנתמכת (`>=22.22.2 <23`, `>=24.0.0 <27`, לפי `SUPPORTED_NODE_RANGE` ב-`src/shared/utils/nodeRuntimeSupport.ts`; תואם ל-`engines` ב-`package.json`)

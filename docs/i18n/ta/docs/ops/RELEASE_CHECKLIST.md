@@ -136,7 +136,7 @@ Tests மட்டும் கொண்ட diffs (`tests/`-இன் கீழ�
 - [ ] `npm run lint` — 0 errors (warnings முன்பே இருந்தவை)
 - [ ] `npm run typecheck:core` — சிக்கல்கள் இல்லை
 - [ ] `npm run typecheck:noimplicit:core` — சிக்கல்கள் இல்லை (strict)
-- [ ] `npm run check:cycles` — circular deps இல்லை
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget வரம்பிற்குள் உள்ளது
 - [ ] `npm run check:route-validation:t06` — சிக்கல்கள் இல்லை
 - [ ] `npm run check:node-runtime` — ஆதரிக்கப்படும் runtime குறைந்தபட்சம் பூர்த்தி செய்யப்பட்டுள்ளது (`>=22.22.2 <23`, `>=24.0.0 <27`; `src/shared/utils/nodeRuntimeSupport.ts`-இல் உள்ள `SUPPORTED_NODE_RANGE`-இன்படி; `package.json`-இன் `engines` உடன் ஒத்திசைக்கப்பட்டுள்ளது)

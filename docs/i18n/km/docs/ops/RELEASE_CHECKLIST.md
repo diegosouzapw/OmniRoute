@@ -135,7 +135,7 @@ Diff ដែលមានតែ test (ឯកសារទាំងអស់ស្�
 - [ ] `npm run lint` — 0 errors (warnings មានស្រាប់ពីមុន)
 - [ ] `npm run typecheck:core` — គ្មានបញ្ហា
 - [ ] `npm run typecheck:noimplicit:core` — គ្មានបញ្ហា (strict)
-- [ ] `npm run check:cycles` — គ្មាន circular deps
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ស្ថិតក្នុង budget
 - [ ] `npm run check:route-validation:t06` — គ្មានបញ្ហា
 - [ ] `npm run check:node-runtime` — បំពេញ runtime floor ដែលគាំទ្រ (`>=22.22.2 <23`, `>=24.0.0 <27`, យោងតាម `SUPPORTED_NODE_RANGE` ក្នុង `src/shared/utils/nodeRuntimeSupport.ts`; ស្របគ្នាជាមួយ `engines` ក្នុង `package.json`)

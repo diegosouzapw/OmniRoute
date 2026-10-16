@@ -135,7 +135,7 @@ diff ที่เปลี่ยนเฉพาะการทดสอบ (ไ�
 - [ ] `npm run lint` — ข้อผิดพลาด 0 รายการ (คำเตือนมีอยู่ก่อนแล้ว)
 - [ ] `npm run typecheck:core` — ผ่านโดยไม่มีปัญหา
 - [ ] `npm run typecheck:noimplicit:core` — ผ่านโดยไม่มีปัญหา (เข้มงวด)
-- [ ] `npm run check:cycles` — ไม่มี circular dependencies
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — อยู่ภายในงบประมาณ
 - [ ] `npm run check:route-validation:t06` — ผ่านโดยไม่มีปัญหา
 - [ ] `npm run check:node-runtime` — เป็นไปตาม runtime ขั้นต่ำที่รองรับ (`>=22.22.2 <23`, `>=24.0.0 <27` ตาม `SUPPORTED_NODE_RANGE` ใน `src/shared/utils/nodeRuntimeSupport.ts`; สอดคล้องกับ `engines` ใน `package.json`)

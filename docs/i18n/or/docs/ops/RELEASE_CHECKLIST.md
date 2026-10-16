@@ -135,7 +135,7 @@ Compose ଦ୍ରୁତ-ଆରମ୍ଭଗୁଡ଼ିକ `:latest` ବ୍ୟବ
 - [ ] `npm run lint` — 0ଟି ତ୍ରୁଟି (ଚେତାବନୀଗୁଡ଼ିକ ପୂର୍ବରୁ ଅଛି)
 - [ ] `npm run typecheck:core` — ସଫା
 - [ ] `npm run typecheck:noimplicit:core` — ସଫା (କଠୋର)
-- [ ] `npm run check:cycles` — କୌଣସି ସର୍କୁଲାର୍ ଡିପେଣ୍ଡେନ୍ସି ନାହିଁ
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ବଜେଟ୍ ମଧ୍ୟରେ
 - [ ] `npm run check:route-validation:t06` — ସଫା
 - [ ] `npm run check:node-runtime` — ସମର୍ଥିତ ରନ୍ଟାଇମ୍ର ସର୍ବନିମ୍ନ ସୀମା ପୂରଣ ହୋଇଛି (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts`ରେ ଥିବା `SUPPORTED_NODE_RANGE` ଅନୁସାରେ; `package.json`ର `engines` ସହ ସମନ୍ୱିତ)

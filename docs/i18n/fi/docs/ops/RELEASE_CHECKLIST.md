@@ -136,7 +136,7 @@ automaattisesti ilman tunnistetta.
 - [ ] `npm run lint` — 0 virhettä (varoitukset ovat ennestään olemassa)
 - [ ] `npm run typecheck:core` — puhdas
 - [ ] `npm run typecheck:noimplicit:core` — puhdas (tiukka)
-- [ ] `npm run check:cycles` — ei syklisiä riippuvuuksia
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budjetin rajoissa
 - [ ] `npm run check:route-validation:t06` — puhdas
 - [ ] `npm run check:node-runtime` — tuetun suoritusympäristön vähimmäisversio täyttyy (`>=22.22.2 <23`, `>=24.0.0 <27`, tiedoston `src/shared/utils/nodeRuntimeSupport.ts` arvon `SUPPORTED_NODE_RANGE` mukaisesti; yhdenmukainen tiedoston `package.json` `engines`-arvon kanssa)

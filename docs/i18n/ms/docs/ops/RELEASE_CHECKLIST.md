@@ -135,7 +135,7 @@ secara automatik, tanpa sebarang label.
 - [ ] `npm run lint` — 0 ralat (amaran telah sedia ada)
 - [ ] `npm run typecheck:core` — bersih
 - [ ] `npm run typecheck:noimplicit:core` — bersih (ketat)
-- [ ] `npm run check:cycles` — tiada kebergantungan kitaran
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — dalam had
 - [ ] `npm run check:route-validation:t06` — bersih
 - [ ] `npm run check:node-runtime` — had minimum masa jalan yang disokong dipenuhi (`>=22.22.2 <23`, `>=24.0.0 <27`, mengikut `SUPPORTED_NODE_RANGE` dalam `src/shared/utils/nodeRuntimeSupport.ts`; sejajar dengan `engines` dalam `package.json`)

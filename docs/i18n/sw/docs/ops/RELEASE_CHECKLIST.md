@@ -135,7 +135,7 @@ kiotomatiki, bila lebo yoyote.
 - [ ] `npm run lint` — hitilafu 0 (maonyo yalikuwepo awali)
 - [ ] `npm run typecheck:core` — safi
 - [ ] `npm run typecheck:noimplicit:core` — safi (kali)
-- [ ] `npm run check:cycles` — hakuna utegemezi wa mzunguko
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ndani ya bajeti
 - [ ] `npm run check:route-validation:t06` — safi
 - [ ] `npm run check:node-runtime` — kiwango cha chini cha runtime inayotumika kimetimizwa (`>=22.22.2 <23`, `>=24.0.0 <27`, kulingana na `SUPPORTED_NODE_RANGE` katika `src/shared/utils/nodeRuntimeSupport.ts`; kimeoanishwa na `engines` ya `package.json`)

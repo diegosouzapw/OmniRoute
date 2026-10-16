@@ -135,7 +135,7 @@ go huathoibríoch, gan aon lipéad.
 - [ ] `npm run lint` — 0 earráid (bhí na rabhaidh ann cheana)
 - [ ] `npm run typecheck:core` — glan
 - [ ] `npm run typecheck:noimplicit:core` — glan (docht)
-- [ ] `npm run check:cycles` — gan aon spleáchais chiorclacha
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — laistigh den bhuiséad
 - [ ] `npm run check:route-validation:t06` — glan
 - [ ] `npm run check:node-runtime` — comhlíontar íosteorainn an ama rite a dtacaítear léi (`>=22.22.2 <23`, `>=24.0.0 <27`, de réir `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; ailínithe le `engines` in `package.json`)

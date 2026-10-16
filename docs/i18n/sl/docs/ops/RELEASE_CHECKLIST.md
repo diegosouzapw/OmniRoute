@@ -135,7 +135,7 @@ preskočijo matriko E2E brez kakršne koli oznake.
 - [ ] `npm run lint` — 0 napak (opozorila so obstajala že prej)
 - [ ] `npm run typecheck:core` — brez napak
 - [ ] `npm run typecheck:noimplicit:core` — brez napak (strogo)
-- [ ] `npm run check:cycles` — brez krožnih odvisnosti
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — znotraj omejitve
 - [ ] `npm run check:route-validation:t06` — brez napak
 - [ ] `npm run check:node-runtime` — dosežena je najnižja podprta različica izvajalnega okolja (`>=22.22.2 <23`, `>=24.0.0 <27`, skladno s `SUPPORTED_NODE_RANGE` v `src/shared/utils/nodeRuntimeSupport.ts`; usklajeno z `engines` v `package.json`)

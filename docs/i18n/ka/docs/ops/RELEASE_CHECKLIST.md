@@ -139,7 +139,7 @@ E2E მატრიცას ავტომატურად, ყოველ�
 - [ ] `npm run lint` — 0 შეცდომა (გაფრთხილებები მანამდეც არსებობდა)
 - [ ] `npm run typecheck:core` — სუფთაა
 - [ ] `npm run typecheck:noimplicit:core` — სუფთაა (მკაცრი რეჟიმი)
-- [ ] `npm run check:cycles` — ციკლური დამოკიდებულებების გარეშე
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ბიუჯეტის ფარგლებში
 - [ ] `npm run check:route-validation:t06` — სუფთაა
 - [ ] `npm run check:node-runtime` — მხარდაჭერილი runtime-ის მინიმალური ზღვარი დაკმაყოფილებულია (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts`-ში არსებული `SUPPORTED_NODE_RANGE`-ის მიხედვით; შესაბამისობაშია `package.json`-ის `engines`-თან)

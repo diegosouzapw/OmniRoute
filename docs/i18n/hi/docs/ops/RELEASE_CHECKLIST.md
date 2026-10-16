@@ -135,7 +135,7 @@ E2E मैट्रिक्स को स्वचालित रूप से
 - [ ] `npm run lint` — 0 त्रुटियाँ (चेतावनियाँ पहले से मौजूद हैं)
 - [ ] `npm run typecheck:core` — त्रुटिरहित
 - [ ] `npm run typecheck:noimplicit:core` — त्रुटिरहित (सख्त)
-- [ ] `npm run check:cycles` — कोई सर्कुलर डिपेंडेंसी नहीं
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — बजट के भीतर
 - [ ] `npm run check:route-validation:t06` — त्रुटिरहित
 - [ ] `npm run check:node-runtime` — समर्थित रनटाइम की न्यूनतम सीमा पूरी हुई (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` में `SUPPORTED_NODE_RANGE` के अनुसार; `package.json` के `engines` के अनुरूप)

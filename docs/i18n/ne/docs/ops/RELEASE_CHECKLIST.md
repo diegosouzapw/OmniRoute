@@ -136,7 +136,7 @@ tests-only diff (`tests/` अन्तर्गतका सबै file, `tests/
 - [ ] `npm run lint` — 0 error (warning हरू पहिलेदेखि नै छन्)
 - [ ] `npm run typecheck:core` — त्रुटिरहित
 - [ ] `npm run typecheck:noimplicit:core` — त्रुटिरहित (strict)
-- [ ] `npm run check:cycles` — कुनै circular dependency छैन
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget भित्र
 - [ ] `npm run check:route-validation:t06` — त्रुटिरहित
 - [ ] `npm run check:node-runtime` — समर्थित न्यूनतम runtime पूरा भएको (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` को `SUPPORTED_NODE_RANGE` अनुसार; `package.json` को `engines` सँग मिलाइएको)

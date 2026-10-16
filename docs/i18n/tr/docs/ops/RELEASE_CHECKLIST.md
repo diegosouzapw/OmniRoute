@@ -135,7 +135,7 @@ E2E matrisini herhangi bir etiket olmadan otomatik olarak atlar.
 - [ ] `npm run lint` — 0 hata (uyarılar önceden mevcuttur)
 - [ ] `npm run typecheck:core` — temiz
 - [ ] `npm run typecheck:noimplicit:core` — temiz (katı)
-- [ ] `npm run check:cycles` — döngüsel bağımlılık yok
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — bütçe dahilinde
 - [ ] `npm run check:route-validation:t06` — temiz
 - [ ] `npm run check:node-runtime` — desteklenen asgari çalışma zamanı karşılanıyor (`>=22.22.2 <23`, `>=24.0.0 <27`; `src/shared/utils/nodeRuntimeSupport.ts` içindeki `SUPPORTED_NODE_RANGE` uyarınca; `package.json` içindeki `engines` ile uyumlu)

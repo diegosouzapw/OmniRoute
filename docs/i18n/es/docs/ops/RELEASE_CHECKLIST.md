@@ -136,7 +136,7 @@ E2E automáticamente, sin ninguna etiqueta.
 - [ ] `npm run lint` — 0 errores (las advertencias ya existían)
 - [ ] `npm run typecheck:core` — sin errores
 - [ ] `npm run typecheck:noimplicit:core` — sin errores (estricto)
-- [ ] `npm run check:cycles` — sin dependencias circulares
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — dentro del presupuesto
 - [ ] `npm run check:route-validation:t06` — sin errores
 - [ ] `npm run check:node-runtime` — se cumple la versión mínima del entorno de ejecución compatible (`>=22.22.2 <23`, `>=24.0.0 <27`, según `SUPPORTED_NODE_RANGE` en `src/shared/utils/nodeRuntimeSupport.ts`; alineado con `engines` de `package.json`)

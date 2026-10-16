@@ -1,0 +1,2 @@
+- **fix(ci):** the quality-rail membership guard (G0) pins `cycles` in the fast-gates `ratchet_gates` array, completing the #15590 landing whose squash omitted the matching test update — every PR off `release/v3.8.52` was red on `Unit Tests (3/8)` + `fast-path (3/4)` over the stale gate-membership needle (#15682)
+- **fix(tests):** keep the order-independent gate membership check during release reconciliation, reject a plain non-ratcheted `cycles` entry, and include the current account-credit and multi-credential authentication regressions in Stryker's test list.

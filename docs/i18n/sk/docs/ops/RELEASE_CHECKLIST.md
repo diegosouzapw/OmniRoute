@@ -136,7 +136,7 @@ automaticky bez akéhokoľvek štítku.
 - [ ] `npm run lint` — 0 chýb (upozornenia už existovali)
 - [ ] `npm run typecheck:core` — bez problémov
 - [ ] `npm run typecheck:noimplicit:core` — bez problémov (striktné)
-- [ ] `npm run check:cycles` — žiadne cyklické závislosti
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — v rámci rozpočtu
 - [ ] `npm run check:route-validation:t06` — bez problémov
 - [ ] `npm run check:node-runtime` — splnená minimálna podporovaná verzia runtime (`>=22.22.2 <23`, `>=24.0.0 <27`, podľa `SUPPORTED_NODE_RANGE` v `src/shared/utils/nodeRuntimeSupport.ts`; zosúladené s `engines` v `package.json`)

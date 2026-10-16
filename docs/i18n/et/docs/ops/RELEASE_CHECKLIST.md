@@ -135,7 +135,7 @@ maatriksi automaatselt vahele ilma ühegi sildita.
 - [ ] `npm run lint` — 0 viga (hoiatused on varasemast olemas)
 - [ ] `npm run typecheck:core` — puhas
 - [ ] `npm run typecheck:noimplicit:core` — puhas (range)
-- [ ] `npm run check:cycles` — ringsõltuvusi pole
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — eelarve piires
 - [ ] `npm run check:route-validation:t06` — puhas
 - [ ] `npm run check:node-runtime` — toetatud käituskeskkonna miinimumnõue on täidetud (`>=22.22.2 <23`, `>=24.0.0 <27`, vastavalt konstandile `SUPPORTED_NODE_RANGE` failis `src/shared/utils/nodeRuntimeSupport.ts`; kooskõlas faili `package.json` väljaga `engines`)

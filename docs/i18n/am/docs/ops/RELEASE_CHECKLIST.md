@@ -135,7 +135,7 @@ unit shards፣ integration፣ vitest፣ lint/typecheck፣ docs-sync፣ `check:pa
 - [ ] `npm run lint` — 0 errors (warnings ከዚህ በፊት የነበሩ ናቸው)
 - [ ] `npm run typecheck:core` — ንጹሕ
 - [ ] `npm run typecheck:noimplicit:core` — ንጹሕ (strict)
-- [ ] `npm run check:cycles` — circular deps የሉም
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — በbudget ውስጥ
 - [ ] `npm run check:route-validation:t06` — ንጹሕ
 - [ ] `npm run check:node-runtime` — የሚደገፈው ዝቅተኛ runtime መስፈርት ተሟልቷል (`>=22.22.2 <23`, `>=24.0.0 <27`፣ በ`src/shared/utils/nodeRuntimeSupport.ts` ውስጥ ባለው `SUPPORTED_NODE_RANGE` መሠረት፤ ከ`package.json` `engines` ጋር የተጣጣመ)

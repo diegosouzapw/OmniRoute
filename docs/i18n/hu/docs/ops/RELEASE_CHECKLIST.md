@@ -135,7 +135,7 @@ automatikusan, címke nélkül is kihagyják az E2E-mátrixot.
 - [ ] `npm run lint` — 0 hiba (a figyelmeztetések már korábban is léteztek)
 - [ ] `npm run typecheck:core` — hibamentes
 - [ ] `npm run typecheck:noimplicit:core` — hibamentes (szigorú)
-- [ ] `npm run check:cycles` — nincsenek körkörös függőségek
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — a kereten belül
 - [ ] `npm run check:route-validation:t06` — hibamentes
 - [ ] `npm run check:node-runtime` — a támogatott minimális futtatókörnyezeti követelmény teljesül (`>=22.22.2 <23`, `>=24.0.0 <27`, a `src/shared/utils/nodeRuntimeSupport.ts` fájlban található `SUPPORTED_NODE_RANGE` szerint; összhangban a `package.json` `engines` mezőjével)

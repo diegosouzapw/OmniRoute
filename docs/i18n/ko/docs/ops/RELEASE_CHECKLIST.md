@@ -138,7 +138,7 @@ quality-gate, quality-extended)를 건너뛰고 빠르고 신호도가 높은 �
 - [ ] `npm run lint` — 오류 0개(경고는 기존에 존재함)
 - [ ] `npm run typecheck:core` — 문제 없음
 - [ ] `npm run typecheck:noimplicit:core` — 문제 없음(엄격 모드)
-- [ ] `npm run check:cycles` — 순환 의존성 없음
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — 예산 범위 내
 - [ ] `npm run check:route-validation:t06` — 문제 없음
 - [ ] `npm run check:node-runtime` — 지원되는 최소 런타임 충족(`src/shared/utils/nodeRuntimeSupport.ts`의 `SUPPORTED_NODE_RANGE`에 따라 `>=22.22.2 <23`, `>=24.0.0 <27`; `package.json`의 `engines`와 일치)

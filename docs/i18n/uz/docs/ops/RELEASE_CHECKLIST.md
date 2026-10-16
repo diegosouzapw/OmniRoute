@@ -140,7 +140,7 @@ matritsasini hech qanday yorliqsiz avtomatik ravishda oʻtkazib yuboradi.
 - [ ] `npm run lint` — 0 ta xato (ogohlantirishlar avvaldan mavjud)
 - [ ] `npm run typecheck:core` — toza
 - [ ] `npm run typecheck:noimplicit:core` — toza (qatʼiy)
-- [ ] `npm run check:cycles` — siklik bogʻliqliklar yoʻq
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budjet doirasida
 - [ ] `npm run check:route-validation:t06` — toza
 - [ ] `npm run check:node-runtime` — qoʻllab-quvvatlanadigan minimal runtime talabi bajarilgan (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` dagi `SUPPORTED_NODE_RANGE` boʻyicha; `package.json` dagi `engines` bilan moslashtirilgan)

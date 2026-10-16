@@ -135,7 +135,7 @@ Compose السريعة `:latest`؛ وينبغي أن يستمر GitOps في تث
 - [ ] `npm run lint` — 0 أخطاء (التحذيرات موجودة مسبقًا)
 - [ ] `npm run typecheck:core` — ناجح
 - [ ] `npm run typecheck:noimplicit:core` — ناجح (صارم)
-- [ ] `npm run check:cycles` — لا توجد تبعيات دورية
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ضمن الميزانية
 - [ ] `npm run check:route-validation:t06` — ناجح
 - [ ] `npm run check:node-runtime` — استيفاء الحد الأدنى لبيئة التشغيل المدعومة (`>=22.22.2 <23`، و`>=24.0.0 <27`، وفق `SUPPORTED_NODE_RANGE` في `src/shared/utils/nodeRuntimeSupport.ts`؛ ومتوافق مع `engines` في `package.json`)

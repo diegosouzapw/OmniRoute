@@ -135,7 +135,7 @@ matricu, bez ikakve oznake.
 - [ ] `npm run lint` — 0 grešaka (upozorenja su postojala ranije)
 - [ ] `npm run typecheck:core` — bez grešaka
 - [ ] `npm run typecheck:noimplicit:core` — bez grešaka (strogo)
-- [ ] `npm run check:cycles` — nema kružnih zavisnosti
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — unutar budžeta
 - [ ] `npm run check:route-validation:t06` — bez grešaka
 - [ ] `npm run check:node-runtime` — zadovoljena je minimalna podržana verzija okruženja (`>=22.22.2 <23`, `>=24.0.0 <27`, prema `SUPPORTED_NODE_RANGE` u `src/shared/utils/nodeRuntimeSupport.ts`; usklađeno s `engines` u `package.json`)

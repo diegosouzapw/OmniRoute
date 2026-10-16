@@ -135,7 +135,7 @@ ta atomatik, ba tare da wani lakabi ba.
 - [ ] `npm run lint` — errors 0 (warnings sun riga sun kasance)
 - [ ] `npm run typecheck:core` — babu matsala
 - [ ] `npm run typecheck:noimplicit:core` — babu matsala (strict)
-- [ ] `npm run check:cycles` — babu circular deps
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — yana cikin budget
 - [ ] `npm run check:route-validation:t06` — babu matsala
 - [ ] `npm run check:node-runtime` — an cika mafi ƙarancin runtime da ake tallafawa (`>=22.22.2 <23`, `>=24.0.0 <27`, bisa `SUPPORTED_NODE_RANGE` a cikin `src/shared/utils/nodeRuntimeSupport.ts`; ya yi daidai da `engines` na `package.json`)

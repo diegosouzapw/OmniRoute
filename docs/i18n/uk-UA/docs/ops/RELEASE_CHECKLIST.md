@@ -135,7 +135,7 @@ quality-gate, quality-extended) і зберігає швидкі та висок
 - [ ] `npm run lint` — 0 помилок (попередження існували раніше)
 - [ ] `npm run typecheck:core` — без помилок
 - [ ] `npm run typecheck:noimplicit:core` — без помилок (суворий режим)
-- [ ] `npm run check:cycles` — немає циклічних залежностей
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — у межах бюджету
 - [ ] `npm run check:route-validation:t06` — без помилок
 - [ ] `npm run check:node-runtime` — дотримано мінімальну підтримувану версію середовища виконання (`>=22.22.2 <23`, `>=24.0.0 <27`, згідно з `SUPPORTED_NODE_RANGE` у `src/shared/utils/nodeRuntimeSupport.ts`; узгоджено з `engines` у `package.json`)

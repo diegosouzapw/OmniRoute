@@ -136,7 +136,7 @@ SemVer 摘要，且 `last_updated` 已更新。不要让 `:latest` 继续指向�
 - [ ] `npm run lint` — 0 个错误（警告为既有问题）
 - [ ] `npm run typecheck:core` — 无问题
 - [ ] `npm run typecheck:noimplicit:core` — 无问题（严格模式）
-- [ ] `npm run check:cycles` — 无循环依赖
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — 在预算范围内
 - [ ] `npm run check:route-validation:t06` — 无问题
 - [ ] `npm run check:node-runtime` — 满足支持的最低运行时要求（`>=22.22.2 <23`、`>=24.0.0 <27`，依据 `src/shared/utils/nodeRuntimeSupport.ts` 中的 `SUPPORTED_NODE_RANGE`；与 `package.json` 的 `engines` 保持一致）

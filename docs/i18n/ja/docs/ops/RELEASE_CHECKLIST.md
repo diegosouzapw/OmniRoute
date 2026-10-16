@@ -135,7 +135,7 @@ quality-gate、quality-extended）をスキップし、高速で検出力の高�
 - [ ] `npm run lint` — エラー 0 件（警告は既存のもの）
 - [ ] `npm run typecheck:core` — 問題なし
 - [ ] `npm run typecheck:noimplicit:core` — 問題なし（厳格）
-- [ ] `npm run check:cycles` — 循環依存なし
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — 予算内
 - [ ] `npm run check:route-validation:t06` — 問題なし
 - [ ] `npm run check:node-runtime` — サポート対象ランタイムの下限を満たしている（`src/shared/utils/nodeRuntimeSupport.ts` の `SUPPORTED_NODE_RANGE` に基づき、`>=22.22.2 <23`、`>=24.0.0 <27`。`package.json` の `engines` と整合）

@@ -135,7 +135,7 @@ E2E ਮੈਟ੍ਰਿਕਸ ਨੂੰ ਆਪਣੇ-ਆਪ ਛੱਡ ਦਿੰ�
 - [ ] `npm run lint` — 0 ਗਲਤੀਆਂ (ਚੇਤਾਵਨੀਆਂ ਪਹਿਲਾਂ ਤੋਂ ਮੌਜੂਦ ਹਨ)
 - [ ] `npm run typecheck:core` — ਸਾਫ਼
 - [ ] `npm run typecheck:noimplicit:core` — ਸਾਫ਼ (ਸਖ਼ਤ)
-- [ ] `npm run check:cycles` — ਕੋਈ circular deps ਨਹੀਂ
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ਬਜਟ ਦੇ ਅੰਦਰ
 - [ ] `npm run check:route-validation:t06` — ਸਾਫ਼
 - [ ] `npm run check:node-runtime` — ਸਮਰਥਿਤ runtime ਦੀ ਘੱਟੋ-ਘੱਟ ਸੀਮਾ ਪੂਰੀ ਹੁੰਦੀ ਹੈ (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` ਵਿੱਚ `SUPPORTED_NODE_RANGE` ਅਨੁਸਾਰ; `package.json` ਦੇ `engines` ਨਾਲ ਇਕਸਾਰ)

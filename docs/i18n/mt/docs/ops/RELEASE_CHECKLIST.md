@@ -135,7 +135,7 @@ awtomatikament, mingħajr ebda tikketta.
 - [ ] `npm run lint` — 0 żbalji (it-twissijiet kienu diġà jeżistu)
 - [ ] `npm run typecheck:core` — nadif
 - [ ] `npm run typecheck:noimplicit:core` — nadif (strett)
-- [ ] `npm run check:cycles` — l-ebda dipendenza ċirkolari
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — fil-limitu tal-baġit
 - [ ] `npm run check:route-validation:t06` — nadif
 - [ ] `npm run check:node-runtime` — il-limitu minimu tar-runtime appoġġjat huwa ssodisfat (`>=22.22.2 <23`, `>=24.0.0 <27`, skont `SUPPORTED_NODE_RANGE` f’`src/shared/utils/nodeRuntimeSupport.ts`; allinjat ma’ `engines` f’`package.json`)

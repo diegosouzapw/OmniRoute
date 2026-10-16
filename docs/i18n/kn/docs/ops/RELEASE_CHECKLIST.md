@@ -136,7 +136,7 @@ E2E matrix ಅನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಬಿಟ�
 - [ ] `npm run lint` — 0 errors (warnings ಮೊದಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿವೆ)
 - [ ] `npm run typecheck:core` — ಸ್ವಚ್ಛ
 - [ ] `npm run typecheck:noimplicit:core` — ಸ್ವಚ್ಛ (strict)
-- [ ] `npm run check:cycles` — circular deps ಇಲ್ಲ
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budgetನೊಳಗೆ
 - [ ] `npm run check:route-validation:t06` — ಸ್ವಚ್ಛ
 - [ ] `npm run check:node-runtime` — ಬೆಂಬಲಿತ runtime ಕನಿಷ್ಠ ಮಿತಿ ಪೂರೈಸಲಾಗಿದೆ (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` ನಲ್ಲಿನ `SUPPORTED_NODE_RANGE` ಪ್ರಕಾರ; `package.json` ನ `engines` ಜೊತೆಗೆ ಹೊಂದಿಸಲಾಗಿದೆ)

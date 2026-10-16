@@ -110,7 +110,7 @@ matrix ကို အလိုအလျောက် ကျော်သည်။
 - [ ] `npm run lint` — error 0 ခု (warning များသည် ယခင်ကတည်းက ရှိနေသည်)
 - [ ] `npm run typecheck:core` — ပြဿနာမရှိရ
 - [ ] `npm run typecheck:noimplicit:core` — ပြဿနာမရှိရ (တင်းကျပ်သော စစ်ဆေးမှု)
-- [ ] `npm run check:cycles` — circular dependency မရှိရ
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — သတ်မှတ် budget အတွင်း ရှိရ
 - [ ] `npm run check:route-validation:t06` — ပြဿနာမရှိရ
 - [ ] `npm run check:node-runtime` — ပံ့ပိုးထားသော runtime အနိမ့်ဆုံးသတ်မှတ်ချက်နှင့် ကိုက်ညီရ (`>=22.22.2 <23`, `>=24.0.0 <27`၊ `src/shared/utils/nodeRuntimeSupport.ts` ရှိ `SUPPORTED_NODE_RANGE` အတိုင်း၊ `package.json` ရှိ `engines` နှင့် ကိုက်ညီသည်)

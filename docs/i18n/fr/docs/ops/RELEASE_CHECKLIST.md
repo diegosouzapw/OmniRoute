@@ -135,7 +135,7 @@ la matrice E2E, sans aucun label.
 - [ ] `npm run lint` — 0 erreur (les avertissements sont préexistants)
 - [ ] `npm run typecheck:core` — aucun problème
 - [ ] `npm run typecheck:noimplicit:core` — aucun problème (strict)
-- [ ] `npm run check:cycles` — aucune dépendance circulaire
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — dans les limites du budget
 - [ ] `npm run check:route-validation:t06` — aucun problème
 - [ ] `npm run check:node-runtime` — version minimale d’exécution prise en charge respectée (`>=22.22.2 <23`, `>=24.0.0 <27`, conformément à `SUPPORTED_NODE_RANGE` dans `src/shared/utils/nodeRuntimeSupport.ts` ; alignée sur `engines` dans `package.json`)

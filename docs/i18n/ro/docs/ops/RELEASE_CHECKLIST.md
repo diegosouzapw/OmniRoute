@@ -135,7 +135,7 @@ E2E, fără nicio etichetă.
 - [ ] `npm run lint` — 0 erori (avertismentele existau deja)
 - [ ] `npm run typecheck:core` — fără probleme
 - [ ] `npm run typecheck:noimplicit:core` — fără probleme (strict)
-- [ ] `npm run check:cycles` — fără dependențe circulare
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — în limita bugetului
 - [ ] `npm run check:route-validation:t06` — fără probleme
 - [ ] `npm run check:node-runtime` — este respectată versiunea minimă acceptată a runtime-ului (`>=22.22.2 <23`, `>=24.0.0 <27`, conform `SUPPORTED_NODE_RANGE` din `src/shared/utils/nodeRuntimeSupport.ts`; aliniată cu `engines` din `package.json`)

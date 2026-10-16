@@ -135,7 +135,7 @@ matricu bez jebkādas etiķetes.
 - [ ] `npm run lint` — 0 kļūdu (brīdinājumi ir bijuši jau iepriekš)
 - [ ] `npm run typecheck:core` — bez kļūdām
 - [ ] `npm run typecheck:noimplicit:core` — bez kļūdām (stingrā pārbaude)
-- [ ] `npm run check:cycles` — nav ciklisku atkarību
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budžeta robežās
 - [ ] `npm run check:route-validation:t06` — bez kļūdām
 - [ ] `npm run check:node-runtime` — atbalstītās izpildlaika vides minimālās prasības ir izpildītas (`>=22.22.2 <23`, `>=24.0.0 <27`, atbilstoši `SUPPORTED_NODE_RANGE` failā `src/shared/utils/nodeRuntimeSupport.ts`; saskaņots ar `package.json` `engines`)

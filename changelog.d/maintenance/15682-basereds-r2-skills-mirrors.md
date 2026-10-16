@@ -1,0 +1,2 @@
+- **chore(skills):** refresh the `omni-auth` OIDC allowlist contract and `omni-settings` partial-update endpoint reference; these two mirror corrections do not claim to resolve unrelated generated-skill drift (#15682).
+- **fix(docs):** propagate the reviewed bare-cycle fail-closed behavior and ratchet release checklist to all published locale mirrors, preserving translation provenance and adding a focused mirror-contract regression guard (#15682).

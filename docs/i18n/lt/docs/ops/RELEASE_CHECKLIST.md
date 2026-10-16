@@ -140,7 +140,7 @@ matricą be jokios žymos.
 - [ ] `npm run lint` — 0 klaidų (įspėjimai jau buvo anksčiau)
 - [ ] `npm run typecheck:core` — be klaidų
 - [ ] `npm run typecheck:noimplicit:core` — be klaidų (griežtas režimas)
-- [ ] `npm run check:cycles` — nėra ciklinių priklausomybių
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — neviršija limito
 - [ ] `npm run check:route-validation:t06` — be klaidų
 - [ ] `npm run check:node-runtime` — atitinka minimalų palaikomą vykdymo aplinkos lygį (`>=22.22.2 <23`, `>=24.0.0 <27`, pagal `SUPPORTED_NODE_RANGE`, esantį `src/shared/utils/nodeRuntimeSupport.ts`; suderinta su `package.json` `engines`)

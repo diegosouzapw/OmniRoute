@@ -135,7 +135,7 @@ matrisen automatisk, uten noen etikett.
 - [ ] `npm run lint` — 0 feil (advarslene eksisterte fra før)
 - [ ] `npm run typecheck:core` — uten feil
 - [ ] `npm run typecheck:noimplicit:core` — uten feil (streng)
-- [ ] `npm run check:cycles` — ingen sirkulære avhengigheter
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — innenfor budsjettet
 - [ ] `npm run check:route-validation:t06` — uten feil
 - [ ] `npm run check:node-runtime` — støttet minimumskjøretid er oppfylt (`>=22.22.2 <23`, `>=24.0.0 <27`, i henhold til `SUPPORTED_NODE_RANGE` i `src/shared/utils/nodeRuntimeSupport.ts`; samkjørt med `package.json` `engines`)

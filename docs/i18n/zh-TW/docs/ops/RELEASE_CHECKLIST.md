@@ -135,7 +135,7 @@ quality-gate、quality-extended），並保留快速且高訊號的閘門：建�
 - [ ] `npm run lint` — 0 個錯誤（警告皆為既有項目）
 - [ ] `npm run typecheck:core` — 無問題
 - [ ] `npm run typecheck:noimplicit:core` — 無問題（嚴格模式）
-- [ ] `npm run check:cycles` — 無循環相依性
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — 未超出預算
 - [ ] `npm run check:route-validation:t06` — 無問題
 - [ ] `npm run check:node-runtime` — 已符合支援的最低執行環境要求（`>=22.22.2 <23`、`>=24.0.0 <27`，依據 `src/shared/utils/nodeRuntimeSupport.ts` 中的 `SUPPORTED_NODE_RANGE`；與 `package.json` 的 `engines` 一致）

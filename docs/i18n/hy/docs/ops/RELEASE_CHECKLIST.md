@@ -135,7 +135,7 @@ unit շարդեր, integration, vitest, lint/typecheck, docs-sync, `check:pack-a
 - [ ] `npm run lint` — 0 սխալ (նախազգուշացումներն արդեն գոյություն ունեն)
 - [ ] `npm run typecheck:core` — անթերի
 - [ ] `npm run typecheck:noimplicit:core` — անթերի (խիստ)
-- [ ] `npm run check:cycles` — շրջանաձև կախվածություններ չկան
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — բյուջեի սահմաններում
 - [ ] `npm run check:route-validation:t06` — անթերի
 - [ ] `npm run check:node-runtime` — աջակցվող runtime-ի նվազագույն շեմը պահպանված է (`>=22.22.2 <23`, `>=24.0.0 <27`, ըստ `src/shared/utils/nodeRuntimeSupport.ts`-ի `SUPPORTED_NODE_RANGE`-ի՝ համապատասխանեցված `package.json`-ի `engines`-ին)

@@ -135,7 +135,7 @@ quality-gate, quality-extended) и задржава брзе провере ви
 - [ ] `npm run lint` — 0 грешака (упозорења су постојала и раније)
 - [ ] `npm run typecheck:core` — без грешака
 - [ ] `npm run typecheck:noimplicit:core` — без грешака (строго)
-- [ ] `npm run check:cycles` — нема кружних зависности
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — у оквиру ограничења
 - [ ] `npm run check:route-validation:t06` — без грешака
 - [ ] `npm run check:node-runtime` — испуњена је најнижа подржана верзија окружења (`>=22.22.2 <23`, `>=24.0.0 <27`, према `SUPPORTED_NODE_RANGE` у `src/shared/utils/nodeRuntimeSupport.ts`; усклађено са `package.json` `engines`)

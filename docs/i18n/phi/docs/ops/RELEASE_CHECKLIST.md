@@ -135,7 +135,7 @@ matrix, nang walang anumang label.
 - [ ] `npm run lint` — 0 error (umiiral na dati ang mga warning)
 - [ ] `npm run typecheck:core` — malinis
 - [ ] `npm run typecheck:noimplicit:core` — malinis (strict)
-- [ ] `npm run check:cycles` — walang circular dependency
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — pasok sa budget
 - [ ] `npm run check:route-validation:t06` — malinis
 - [ ] `npm run check:node-runtime` — natutugunan ang minimum na sinusuportahang runtime (`>=22.22.2 <23`, `>=24.0.0 <27`, ayon sa `SUPPORTED_NODE_RANGE` sa `src/shared/utils/nodeRuntimeSupport.ts`; nakaayon sa `engines` ng `package.json`)

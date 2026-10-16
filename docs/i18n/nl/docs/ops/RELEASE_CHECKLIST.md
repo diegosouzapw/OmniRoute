@@ -135,7 +135,7 @@ matrix automatisch over, zonder label.
 - [ ] `npm run lint` — 0 fouten (waarschuwingen bestonden al)
 - [ ] `npm run typecheck:core` — zonder fouten
 - [ ] `npm run typecheck:noimplicit:core` — zonder fouten (strikt)
-- [ ] `npm run check:cycles` — geen circulaire afhankelijkheden
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — binnen het budget
 - [ ] `npm run check:route-validation:t06` — zonder fouten
 - [ ] `npm run check:node-runtime` — minimale ondersteunde runtime gehaald (`>=22.22.2 <23`, `>=24.0.0 <27`, volgens `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; afgestemd op `engines` in `package.json`)

@@ -135,7 +135,7 @@ na-akpaghị aka, na-enweghị label ọ bụla.
 - [ ] `npm run lint` — njehie 0 (ịdọ aka ná ntị ndị ahụ adịlarị)
 - [ ] `npm run typecheck:core` — dị ọcha
 - [ ] `npm run typecheck:noimplicit:core` — dị ọcha (siri ike)
-- [ ] `npm run check:cycles` — enweghị dependencies na-agbagharị okirikiri
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — nọ n'ime budget
 - [ ] `npm run check:route-validation:t06` — dị ọcha
 - [ ] `npm run check:node-runtime` — e zutere runtime floor a na-akwado (`>=22.22.2 <23`, `>=24.0.0 <27`, dịka `SUPPORTED_NODE_RANGE` dị na `src/shared/utils/nodeRuntimeSupport.ts`; kwekọrọ na `engines` nke `package.json`)

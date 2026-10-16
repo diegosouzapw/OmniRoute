@@ -135,7 +135,7 @@ Matrix automatisch und ohne Label.
 - [ ] `npm run lint` — 0 Fehler (Warnungen bestanden bereits zuvor)
 - [ ] `npm run typecheck:core` — ohne Beanstandungen
 - [ ] `npm run typecheck:noimplicit:core` — ohne Beanstandungen (streng)
-- [ ] `npm run check:cycles` — keine zirkulären Abhängigkeiten
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — innerhalb des Budgets
 - [ ] `npm run check:route-validation:t06` — ohne Beanstandungen
 - [ ] `npm run check:node-runtime` — unterstützte Mindestlaufzeit erfüllt (`>=22.22.2 <23`, `>=24.0.0 <27`, gemäß `SUPPORTED_NODE_RANGE` in `src/shared/utils/nodeRuntimeSupport.ts`; abgestimmt auf `engines` in `package.json`)

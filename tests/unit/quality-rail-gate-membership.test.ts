@@ -78,6 +78,17 @@ test("fast-gates carries the deterministic ratchets and security scanners from t
   ]) {
     assert.ok(block.includes(needle), `fast-gates must contain "${needle}"`);
   }
+  // The ratchet_gates move must be exclusive: a plain `cycles` entry would run
+  // check-cycles.mjs without --ratchet, which exits 1 on ANY cycle and fails
+  // every PR at the frozen 14-SCC ceiling (#15306). Pin the whole gates=(...)
+  // array, not just its current line, so a re-entry on any line trips the guard.
+  const plainGates = /\n(\s+)gates=\(([\s\S]*?)\n\1\)/.exec(block);
+  assert.ok(plainGates, "fast-gates must still carry the deterministic plain gates array");
+  assert.doesNotMatch(
+    plainGates[2],
+    /(^|\s)cycles(\s|$)/,
+    "cycles must not re-enter the plain gates array — it would run without --ratchet"
+  );
   assert.ok(
     block.includes(
       "BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}"

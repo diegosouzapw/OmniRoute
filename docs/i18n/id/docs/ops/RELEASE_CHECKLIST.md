@@ -135,7 +135,7 @@ E2E secara otomatis, tanpa label apa pun.
 - [ ] `npm run lint` — 0 error (peringatan sudah ada sebelumnya)
 - [ ] `npm run typecheck:core` — bersih
 - [ ] `npm run typecheck:noimplicit:core` — bersih (ketat)
-- [ ] `npm run check:cycles` — tidak ada dependensi melingkar
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — dalam batas anggaran
 - [ ] `npm run check:route-validation:t06` — bersih
 - [ ] `npm run check:node-runtime` — batas minimum runtime yang didukung terpenuhi (`>=22.22.2 <23`, `>=24.0.0 <27`, sesuai `SUPPORTED_NODE_RANGE` dalam `src/shared/utils/nodeRuntimeSupport.ts`; selaras dengan `engines` pada `package.json`)

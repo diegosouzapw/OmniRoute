@@ -135,7 +135,7 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 - [ ] `npm run lint` — 0 errors (warnings आधीपासून अस्तित्वात आहेत)
 - [ ] `npm run typecheck:core` — त्रुटीमुक्त
 - [ ] `npm run typecheck:noimplicit:core` — त्रुटीमुक्त (strict)
-- [ ] `npm run check:cycles` — कोणत्याही circular deps नाहीत
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget च्या मर्यादेत
 - [ ] `npm run check:route-validation:t06` — त्रुटीमुक्त
 - [ ] `npm run check:node-runtime` — समर्थित runtime ची किमान मर्यादा पूर्ण (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` मधील `SUPPORTED_NODE_RANGE` नुसार; `package.json` मधील `engines` शी संरेखित)

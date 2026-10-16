@@ -135,7 +135,7 @@ matrisen utan någon etikett.
 - [ ] `npm run lint` — 0 fel (varningarna fanns sedan tidigare)
 - [ ] `npm run typecheck:core` — utan fel
 - [ ] `npm run typecheck:noimplicit:core` — utan fel (strikt)
-- [ ] `npm run check:cycles` — inga cirkulära beroenden
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — inom budget
 - [ ] `npm run check:route-validation:t06` — utan fel
 - [ ] `npm run check:node-runtime` — miniminivån för den stödda exekveringsmiljön är uppfylld (`>=22.22.2 <23`, `>=24.0.0 <27`, enligt `SUPPORTED_NODE_RANGE` i `src/shared/utils/nodeRuntimeSupport.ts`; i linje med `engines` i `package.json`)

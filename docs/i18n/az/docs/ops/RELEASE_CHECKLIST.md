@@ -135,7 +135,7 @@ heç bir etiket olmadan E2E matrisini avtomatik ötürür.
 - [ ] `npm run lint` — 0 xəta (xəbərdarlıqlar əvvəldən mövcuddur)
 - [ ] `npm run typecheck:core` — problemsiz
 - [ ] `npm run typecheck:noimplicit:core` — problemsiz (ciddi)
-- [ ] `npm run check:cycles` — dairəvi asılılıq yoxdur
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — büdcə daxilindədir
 - [ ] `npm run check:route-validation:t06` — problemsiz
 - [ ] `npm run check:node-runtime` — dəstəklənən minimum icra mühiti tələbi ödənir (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts` daxilindəki `SUPPORTED_NODE_RANGE` əsasında; `package.json` faylındakı `engines` ilə uyğunlaşdırılıb)

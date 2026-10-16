@@ -135,7 +135,7 @@ mà không cần bất kỳ nhãn nào.
 - [ ] `npm run lint` — 0 lỗi (các cảnh báo đã tồn tại từ trước)
 - [ ] `npm run typecheck:core` — sạch
 - [ ] `npm run typecheck:noimplicit:core` — sạch (nghiêm ngặt)
-- [ ] `npm run check:cycles` — không có dependency vòng
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — trong phạm vi ngân sách
 - [ ] `npm run check:route-validation:t06` — sạch
 - [ ] `npm run check:node-runtime` — đáp ứng mức runtime tối thiểu được hỗ trợ (`>=22.22.2 <23`, `>=24.0.0 <27`, theo `SUPPORTED_NODE_RANGE` trong `src/shared/utils/nodeRuntimeSupport.ts`; đồng bộ với `engines` trong `package.json`)

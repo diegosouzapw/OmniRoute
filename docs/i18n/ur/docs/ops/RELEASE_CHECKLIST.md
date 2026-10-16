@@ -135,7 +135,7 @@ release branch پر دوبارہ توثیق کی جاتی ہے (مسلسل relea
 - [ ] `npm run lint` — 0 errors (warnings پہلے سے موجود ہیں)
 - [ ] `npm run typecheck:core` — صاف
 - [ ] `npm run typecheck:noimplicit:core` — صاف (سخت)
-- [ ] `npm run check:cycles` — کوئی circular deps نہیں
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget کے اندر
 - [ ] `npm run check:route-validation:t06` — صاف
 - [ ] `npm run check:node-runtime` — کم از کم supported runtime پورا ہوتا ہے (`>=22.22.2 <23`، `>=24.0.0 <27`، `src/shared/utils/nodeRuntimeSupport.ts` میں `SUPPORTED_NODE_RANGE` کے مطابق؛ `package.json` کے `engines` سے ہم آہنگ)

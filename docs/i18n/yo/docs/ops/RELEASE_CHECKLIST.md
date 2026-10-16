@@ -135,7 +135,7 @@ kọjá laifọwọ́yi, láìsí àmì kankan.
 - [ ] `npm run lint` — error 0 (àwọn warning ti wà tẹ́lẹ̀)
 - [ ] `npm run typecheck:core` — ó mọ́
 - [ ] `npm run typecheck:noimplicit:core` — ó mọ́ (strict)
-- [ ] `npm run check:cycles` — kò sí dependency tó ń yípo
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — ó wà láàárín budget
 - [ ] `npm run check:route-validation:t06` — ó mọ́
 - [ ] `npm run check:node-runtime` — runtime floor tí a ṣe support rẹ̀ ti pé (`>=22.22.2 <23`, `>=24.0.0 <27`, gẹ́gẹ́ bí `SUPPORTED_NODE_RANGE` nínú `src/shared/utils/nodeRuntimeSupport.ts`; ó bá `engines` inú `package.json` mu)

@@ -136,7 +136,7 @@ E2E matrix സ്വയമേവ ഒഴിവാക്കും.
 - [ ] `npm run lint` — 0 errors (warnings മുമ്പേ നിലവിലുള്ളവയാണ്)
 - [ ] `npm run typecheck:core` — പ്രശ്നങ്ങളില്ല
 - [ ] `npm run typecheck:noimplicit:core` — പ്രശ്നങ്ങളില്ല (strict)
-- [ ] `npm run check:cycles` — circular deps ഇല്ല
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — budget-നുള്ളിൽ
 - [ ] `npm run check:route-validation:t06` — പ്രശ്നങ്ങളില്ല
 - [ ] `npm run check:node-runtime` — പിന്തുണയ്ക്കുന്ന runtime-ന്റെ കുറഞ്ഞ പരിധി പാലിക്കുന്നു (`>=22.22.2 <23`, `>=24.0.0 <27`, `src/shared/utils/nodeRuntimeSupport.ts`-ലെ `SUPPORTED_NODE_RANGE` അനുസരിച്ച്; `package.json`-ലെ `engines`-മായി യോജിപ്പിച്ചിരിക്കുന്നു)

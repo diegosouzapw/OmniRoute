@@ -136,7 +136,7 @@ E2E, bez żadnej etykiety.
 - [ ] `npm run lint` — 0 błędów (ostrzeżenia istniały wcześniej)
 - [ ] `npm run typecheck:core` — bez błędów
 - [ ] `npm run typecheck:noimplicit:core` — bez błędów (tryb ścisły)
-- [ ] `npm run check:cycles` — brak zależności cyklicznych
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — w granicach budżetu
 - [ ] `npm run check:route-validation:t06` — bez błędów
 - [ ] `npm run check:node-runtime` — spełniono minimalne wymagania obsługiwanego środowiska uruchomieniowego (`>=22.22.2 <23`, `>=24.0.0 <27`, zgodnie z `SUPPORTED_NODE_RANGE` w `src/shared/utils/nodeRuntimeSupport.ts`; spójne z `engines` w `package.json`)

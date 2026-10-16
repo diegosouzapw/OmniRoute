@@ -135,7 +135,7 @@ E2E, χωρίς καμία ετικέτα.
 - [ ] `npm run lint` — 0 σφάλματα (οι προειδοποιήσεις προϋπάρχουν)
 - [ ] `npm run typecheck:core` — χωρίς προβλήματα
 - [ ] `npm run typecheck:noimplicit:core` — χωρίς προβλήματα (αυστηρός έλεγχος)
-- [ ] `npm run check:cycles` — χωρίς κυκλικές εξαρτήσεις
+- [ ] `npm run check:cycles:ratchet` — `cycles ≤ metrics.cycles.value` (`quality-baseline.json`; `check:cycles`: `cycles > 0 → exit 1`, #15281)
 - [ ] `npm run check:any-budget:t11` — εντός ορίου
 - [ ] `npm run check:route-validation:t06` — χωρίς προβλήματα
 - [ ] `npm run check:node-runtime` — πληρούται το ελάχιστο υποστηριζόμενο runtime (`>=22.22.2 <23`, `>=24.0.0 <27`, σύμφωνα με το `SUPPORTED_NODE_RANGE` στο `src/shared/utils/nodeRuntimeSupport.ts`· ευθυγραμμισμένο με το `engines` του `package.json`)
