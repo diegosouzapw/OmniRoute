@@ -1,0 +1,1 @@
+- **fix(authz):** let a remote dashboard validate provider API keys when the public base is set ([#16449](https://github.com/diegosouzapw/OmniRoute/pull/16449)) — thanks @HouMinXi.

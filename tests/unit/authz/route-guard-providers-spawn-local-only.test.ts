@@ -22,16 +22,14 @@ import { isLocalOnlyPath } from "../../../src/server/authz/routeGuard.ts";
 
 // ─── S-01: /api/providers/validate, /import, /bulk spawn a child process ──
 
-test("isLocalOnlyPath: /api/providers/validate, /import, /bulk are local-only (S-01, #15159)", () => {
-  // webProvidersB.ts:535 spawns `bin` with argv ["acp", "--agent-type", "summarizer"].
-  // The binary comes from a fixed candidate list and argv is fixed — not caller-
-  // controlled RCE — but Hard Rules #15 + #17 still require loopback enforcement
-  // before any auth check so a leaked JWT via tunnel cannot trigger the spawn.
-  assert.equal(isLocalOnlyPath("/api/providers/validate"), true);
+test("isLocalOnlyPath: /api/providers/import and /bulk stay local-only; /validate does not", () => {
+  // import and bulk still spawn through the Devin CLI fallback without a
+  // per-request switch. /validate passes allowLocalSpawn=false for a remote
+  // caller, so a dashboard on a LAN or tunnel host can validate keys.
+  assert.equal(isLocalOnlyPath("/api/providers/validate"), false);
+  assert.equal(isLocalOnlyPath("/api/providers/validate/"), false);
   assert.equal(isLocalOnlyPath("/api/providers/import"), true);
   assert.equal(isLocalOnlyPath("/api/providers/bulk"), true);
-  // Trailing slash must also match (Next.js normalizes but the guard should be safe)
-  assert.equal(isLocalOnlyPath("/api/providers/validate/"), true);
   assert.equal(isLocalOnlyPath("/api/providers/import/"), true);
   assert.equal(isLocalOnlyPath("/api/providers/bulk/"), true);
 });

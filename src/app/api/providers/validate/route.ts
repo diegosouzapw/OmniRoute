@@ -16,6 +16,7 @@ import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 
 function sanitizeAuditUrl(url: string | null | undefined) {
   if (!url) return null;
@@ -131,6 +132,9 @@ export async function POST(request) {
           provider,
           apiKey,
           providerSpecificData,
+          // Only an explicit loopback or LAN verdict may reach the Devin CLI spawn.
+          // Missing, forged, or unknown locality stays remote and does not spawn.
+          allowLocalSpawn: ["loopback", "lan"].includes(getRequestPeerLocality(request)),
         })
       )
     );

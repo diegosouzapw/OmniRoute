@@ -2321,8 +2321,7 @@ paths:
     post:
       tags: [Providers]
       summary: Validate provider credentials
-      description: "Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
-      x-loopback-only: true
+      description: "Management route. A remote caller validates without the local Devin CLI spawn; loopback and LAN callers keep that fallback."
       responses:
         "200":
           description: Validation result

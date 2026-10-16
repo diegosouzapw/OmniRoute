@@ -165,6 +165,7 @@ test("S-01: the three test routes derive allowLocalSpawn from peer locality", as
     ["[id]/test", await read("[id]/test/route.ts")],
     ["providers (create)", await read("route.ts")],
     ["test-batch", await read("test-batch/route.ts")],
+    ["validate", await read("validate/route.ts")],
   ];
 
   // Accepts both call shapes present in these routes: an inline
@@ -174,23 +175,24 @@ test("S-01: the three test routes derive allowLocalSpawn from peer locality", as
   // derived from the trusted peer-locality header, not from anything caller-supplied.
   const derivedFromLocality =
     /allowLocalSpawn:\s*getRequestPeerLocality\(request\)\s*!==\s*"remote"/;
+  const allowlistFromLocality =
+    /allowLocalSpawn:\s*\[\s*"loopback",\s*"lan"\s*\]\.includes\(\s*getRequestPeerLocality\(request\)\s*\)/;
   const boundFromLocality =
     /const allowLocalSpawn = getRequestPeerLocality\(request\)\s*!==\s*"remote"/;
 
   for (const [name, source] of sources) {
+    const pattern = name === "validate" ? allowlistFromLocality : derivedFromLocality;
     assert.ok(
-      derivedFromLocality.test(source) || boundFromLocality.test(source),
+      pattern.test(source) || boundFromLocality.test(source),
       `${name} must derive allowLocalSpawn from the trusted peer-locality header`
     );
   }
 
-  // The flag must actually reach testSingleConnection in every route, or deriving
-  // it is pointless. Skip the `async function testSingleConnection(` DECLARATION in
-  // [id]/test by requiring the call to be preceded by `await`, `void` or `[` — the
-  // last covers test-batch, which calls it bare inside `Promise.race([ … ])`. Bounded
-  // window rather than `[^)]*`, which cannot cross the `)` in
-  // `testSingleConnection(id, validationModelId, { … })`.
-  for (const [name, source] of sources) {
+  // The flag must actually reach testSingleConnection in the routes that use it.
+  // /validate calls validateProviderApiKey directly, so the derivation check above
+  // is the one that applies there.
+  const connectionRoutes = sources.filter(([name]) => name !== "validate");
+  for (const [name, source] of connectionRoutes) {
     const callMatch = /(?:await\s+|void\s+|\[\s*)testSingleConnection\(/g;
     let sawCall = false;
     let m: RegExpExecArray | null;

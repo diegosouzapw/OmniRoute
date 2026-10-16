@@ -137,7 +137,7 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   // remote-reachable. NOTE: keep this justification on its OWN line — a trailing `//` comment
   // makes the pattern invisible to check-openapi-security-tiers.mjs, whose `//.*$` strip cannot
   // match past a CRLF line ending.
-  /^\/api\/providers\/(validate|import|bulk)\/?$/,
+  /^\/api\/providers\/(import|bulk)\/?$/,
   // S-01 (#15159) second hop is deliberately NOT a path pattern: /api/providers/{id}/models
   // resolves `{id}` to an arbitrary CONNECTION id, and the spawn
   // (src/lib/providerModels/cursorAgent.ts:17, via fetchCursorAgentModels) only runs on the
