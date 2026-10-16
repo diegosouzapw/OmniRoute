@@ -12,13 +12,15 @@ test("global compression off gates reactive and last-resort context compaction",
     source,
     /reactiveContextCompactionEnabled\s*=\s*compressionSettingsResult\.enabled\s*&&\s*!compressionExcluded;/
   );
-  // #8949 added the !nativeCodexPassthrough guard between the flag and the token check.
-  assert.match(
+  // Native Codex passthrough is no longer excluded from reactive context compaction (#8560 follow-up).
+  assert.doesNotMatch(
     source,
-    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*estimatedTokens\s*>\s*threshold/
+    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough/,
+    "reactive compaction must not bypass native Codex passthrough"
   );
+  assert.match(source, /reactiveContextCompactionEnabled\s*&&\s*estimatedTokens\s*>\s*threshold/);
   assert.match(
     source,
-    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*finalEstimatedInputTokens\s*>=\s*finalContextLimit/
+    /reactiveContextCompactionEnabled\s*&&\s*finalEstimatedInputTokens\s*>=\s*finalContextLimit/
   );
 });

@@ -2036,7 +2036,6 @@ async function handleChatCoreInner({
     // at the budget check below (#8560).
     if (
       reactiveContextCompactionEnabled &&
-      !nativeCodexPassthrough &&
       estimatedTokens > threshold
     ) {
       log?.info?.(
@@ -2115,7 +2114,6 @@ async function handleChatCoreInner({
   // Covers cases where the proactive pass was skipped or still left the request oversized (#8560).
   if (
     reactiveContextCompactionEnabled &&
-    !nativeCodexPassthrough &&
     finalEstimatedInputTokens >= finalContextLimit &&
     body
   ) {

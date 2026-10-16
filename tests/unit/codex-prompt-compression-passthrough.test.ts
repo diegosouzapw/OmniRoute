@@ -45,15 +45,20 @@ test("codex target is compressible by default; operators can still opt out via e
   );
 });
 
-test("prompt-only scope: reactive compaction still bypasses native passthrough", () => {
-  // Deliberately left for follow-up (overflow fail-fast + history-rewriting safety).
-  // If these gates are ever lifted, update the PR body notes, not just this test.
-  assert.match(
+test("reactive compaction applies to native passthrough", () => {
+  // #12793 follow-up: reactive and last-resort compaction now apply to native Codex passthrough
+  // payloads via Responses adaptBodyForCompression instead of bypassing.
+  assert.doesNotMatch(
     chatCoreSource,
-    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*estimatedTokens\s*>\s*threshold/
+    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough/,
+    "reactive compaction must not bypass native Codex passthrough"
   );
   assert.match(
     chatCoreSource,
-    /reactiveContextCompactionEnabled\s*&&\s*!nativeCodexPassthrough\s*&&\s*finalEstimatedInputTokens\s*>=\s*finalContextLimit/
+    /reactiveContextCompactionEnabled\s*&&\s*estimatedTokens\s*>\s*threshold/
+  );
+  assert.match(
+    chatCoreSource,
+    /reactiveContextCompactionEnabled\s*&&\s*finalEstimatedInputTokens\s*>=\s*finalContextLimit/
   );
 });
