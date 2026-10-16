@@ -14877,5 +14877,8 @@
     "saveMessage": "Zapisz wiadomość",
     "defaultModel": "Domyślny model testowy",
     "defaultModelHint": "Używane automatycznie przez przyciski „Wiadomość testowa” dla tego konta. Zapisywane wraz z połączeniem; żadna wiadomość nie jest wysyłana."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Zacznij od bieżącej pozycji (pomiń istniejące dzienniki)"
   }
 }

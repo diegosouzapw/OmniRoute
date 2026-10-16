@@ -14877,5 +14877,8 @@
     "saveMessage": "መልዕክቱን አስቀምጥ",
     "defaultModel": "ነባሪ የሙከራ ሞዴል",
     "defaultModelHint": "ለዚህ መለያ ባሉ የመልእክት ሙከራ አዝራሮች በራስ-ሰር ጥቅም ላይ ይውላል። ከግንኙነቱ ጋር ይቀመጣል፤ ምንም መልእክት አይላክም።"
+  },
+  "logExport": {
+    "startFromCurrentPosition": "ከአሁኑ ቦታ ይጀምሩ (ያሉትን መዝገቦች ይዝለሉ)"
   }
 }

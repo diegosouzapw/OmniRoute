@@ -14877,5 +14877,8 @@
     "saveMessage": "Uložit zprávu",
     "defaultModel": "Výchozí testovací model",
     "defaultModelHint": "Používá se automaticky tlačítky Testovací zpráva pro tento účet. Ukládá se spolu s připojením; žádná zpráva se neodesílá."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Začít od aktuální pozice (přeskočit existující protokoly)"
   }
 }

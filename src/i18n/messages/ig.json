@@ -14877,5 +14877,8 @@
     "saveMessage": "Chekwaa ozi",
     "defaultModel": "Ụdịdị nnwale ndabara",
     "defaultModelHint": "Bọtịnụ ozi Nnwale na-eji nke a na-akpaghị aka maka akaụntụ a. A na-echekwa ya na njikọ ahụ; ọ dịghị ozi a na-eziga."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Malite site n'ọnọdụ ugbu a (wụpụ ndekọ ndị dị ugbu a)"
   }
 }

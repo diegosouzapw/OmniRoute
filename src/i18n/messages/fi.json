@@ -14877,5 +14877,8 @@
     "saveMessage": "Tallenna viesti",
     "defaultModel": "Oletusarvoinen testimalli",
     "defaultModelHint": "Käytetään automaattisesti tämän tilin Test message -painikkeissa. Tallennetaan yhteyden mukana; viestiä ei lähetetä."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Aloita nykyisestä kohdasta (ohita olemassa olevat lokit)"
   }
 }

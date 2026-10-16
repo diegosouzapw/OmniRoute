@@ -14877,5 +14877,8 @@
     "saveMessage": "Salva messaggio",
     "defaultModel": "Modello di prova predefinito",
     "defaultModelHint": "Utilizzato automaticamente dai pulsanti Messaggio di prova per questo account. Salvato con la connessione; non viene inviato alcun messaggio."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Inizia dalla posizione attuale (salta i log esistenti)"
   }
 }

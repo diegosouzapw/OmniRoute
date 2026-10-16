@@ -14877,5 +14877,8 @@
     "saveMessage": "Lagre melding",
     "defaultModel": "Standard testmodell",
     "defaultModelHint": "Brukes automatisk av knappene for testmeldinger for denne kontoen. Lagres sammen med tilkoblingen; ingen melding sendes."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Start fra gjeldende posisjon (hopp over eksisterende logger)"
   }
 }

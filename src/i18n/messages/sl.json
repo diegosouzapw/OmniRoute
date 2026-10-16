@@ -14877,5 +14877,8 @@
     "saveMessage": "Shrani sporočilo",
     "defaultModel": "Privzeti preskusni model",
     "defaultModelHint": "Samodejno se uporablja z gumbi »Preizkusi sporočilo« za ta račun. Shrani se skupaj s povezavo; sporočilo ni poslano."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Začni na trenutnem mestu (preskoči obstoječe dnevnike)"
   }
 }

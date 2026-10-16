@@ -14877,5 +14877,8 @@
     "saveMessage": "Uložiť správu",
     "defaultModel": "Predvolený testovací model",
     "defaultModelHint": "Používa sa automaticky tlačidlami Testovacia správa pre tento účet. Uloží sa spolu s pripojením; neodošle sa žiadna správa."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Začať od aktuálnej pozície (preskočiť existujúce záznamy)"
   }
 }

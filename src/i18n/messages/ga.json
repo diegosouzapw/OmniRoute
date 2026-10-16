@@ -14877,5 +14877,8 @@
     "saveMessage": "Sábháil an teachtaireacht",
     "defaultModel": "Samhail tástála réamhshocraithe",
     "defaultModelHint": "Úsáidtear é seo go huathoibríoch leis na cnaipí Teachtaireacht tástála don chuntas seo. Sábháiltear leis an gceangal é; ní sheoltar aon teachtaireacht."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Tosaigh ón suíomh reatha (scipeáil na logaí atá ann)"
   }
 }

@@ -14877,5 +14877,8 @@
     "saveMessage": "儲存訊息",
     "defaultModel": "預設測試模型",
     "defaultModelHint": "此帳戶的「測試訊息」按鈕會自動使用此設定。設定會隨連線儲存；不會傳送任何訊息。"
+  },
+  "logExport": {
+    "startFromCurrentPosition": "從目前位置開始（略過現有日誌）"
   }
 }

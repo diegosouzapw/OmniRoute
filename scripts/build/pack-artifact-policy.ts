@@ -54,6 +54,9 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "open-sse/services/compression/compressionWorker.js",
   "src/lib/usage/callLogArtifactWorker.js",
+  "src/lib/logExport/exportChild.js",
+  // Scoped ESM package survives pruning beneath a CommonJS standalone root.
+  "src/lib/logExport/package.json",
   "src/lib/db/healthCheckWorker.js",
   "package.json",
   "peer-stamp.mjs",
@@ -215,6 +218,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
   "dist/src/lib/usage/callLogArtifactWorker.js",
+  "dist/src/lib/logExport/exportChild.js",
+  "dist/src/lib/logExport/package.json",
   "dist/src/lib/db/healthCheckWorker.js",
   "dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
   "dist/open-sse/services/compression/rules/en/filler.json",

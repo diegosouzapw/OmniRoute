@@ -14877,5 +14877,8 @@
     "saveMessage": "Nachricht speichern",
     "defaultModel": "Standardmodell für Testnachrichten",
     "defaultModelHint": "Wird bei den Testnachrichten dieses Accounts automatisch vorausgewählt. Speichern übernimmt die Auswahl und sendet keine Nachricht."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Ab aktueller Position starten (vorhandene Protokolle überspringen)"
   }
 }

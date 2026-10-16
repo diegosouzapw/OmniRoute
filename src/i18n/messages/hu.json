@@ -14877,5 +14877,8 @@
     "saveMessage": "Üzenet mentése",
     "defaultModel": "Alapértelmezett tesztmodell",
     "defaultModelHint": "A rendszer automatikusan ezt használja a fiók Üzenet tesztelése gombjainál. A kapcsolattal együtt kerül mentésre; a rendszer nem küld üzenetet."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Kezdés az aktuális pozíciótól (meglévő naplók kihagyása)"
   }
 }

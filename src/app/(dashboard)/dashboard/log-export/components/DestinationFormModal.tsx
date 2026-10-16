@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Checkbox, Input, Modal } from "@/shared/components";
 import {
   SECRET_PLACEHOLDER,
@@ -15,6 +16,7 @@ export interface DestinationSubmitPayload {
   enabled: boolean;
   config: Record<string, unknown>;
   batchSize: number;
+  startFromCurrentPosition?: boolean;
   includeBodies: boolean;
   maxBodyBytes: number;
   maxRowsPerRun: number;
@@ -38,7 +40,7 @@ function initialValues(
 ): FormValues {
   const values: FormValues = {};
   for (const field of descriptor?.fields ?? []) {
-    const stored = destination?.config?.[field.key];
+    const stored = destination?.config?.[field.key] ?? field.defaultValue;
     if (field.type === "boolean") {
       values[field.key] = stored === undefined ? true : Boolean(stored);
     } else {
@@ -63,6 +65,8 @@ function DestinationForm({
   onClose,
   onSubmit,
 }: Omit<DestinationFormModalProps, "open">) {
+  const t = useTranslations("logExport");
+  const [startFromCurrentPosition, setStartFromCurrentPosition] = useState(false);
   const [name, setName] = useState(editing?.name ?? "");
   const [typeId, setTypeId] = useState(editing?.type ?? types[0]?.id ?? "");
   const [enabled, setEnabled] = useState(editing?.enabled ?? true);
@@ -102,6 +106,7 @@ function DestinationForm({
         continue;
       }
       if (field.type === "number") {
+        if (value === "" || value === undefined) continue;
         const numeric = Number(value);
         if (Number.isFinite(numeric)) config[field.key] = numeric;
         continue;
@@ -237,6 +242,14 @@ function DestinationForm({
         />
       </div>
 
+      {!editing ? (
+        <Checkbox
+          label={t("startFromCurrentPosition")}
+          checked={startFromCurrentPosition}
+          onChange={(event) => setStartFromCurrentPosition(event.target.checked)}
+        />
+      ) : null}
+
       <Checkbox
         label="Export prompts and responses"
         checked={includeBodies}
@@ -285,6 +298,7 @@ function DestinationForm({
               enabled,
               config: buildConfig(),
               batchSize: Number(batchSize) || 500,
+              ...(!editing ? { startFromCurrentPosition } : {}),
               includeBodies,
               maxBodyBytes: Number(maxBodyBytes) || 262144,
               maxRowsPerRun: Number(maxRowsPerRun) || 10000,

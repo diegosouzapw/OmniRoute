@@ -14877,5 +14877,8 @@
     "saveMessage": "Salvează mesajul",
     "defaultModel": "Model de test implicit",
     "defaultModelHint": "Utilizat automat de butoanele Mesaj de test pentru acest cont. Salvat împreună cu conexiunea; nu se trimite niciun mesaj."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Începe de la poziția curentă (omite jurnalele existente)"
   }
 }

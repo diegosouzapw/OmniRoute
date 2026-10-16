@@ -14877,5 +14877,8 @@
     "saveMessage": "Issejvja l-messaġġ",
     "defaultModel": "Mudell tat-test predefinit",
     "defaultModelHint": "Jintuża awtomatikament mill-buttuni tal-Messaġġ ta’ prova għal dan il-kont. Jiġi ssejvjat mal-konnessjoni; ma jintbagħat l-ebda messaġġ."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Ibda mill-pożizzjoni attwali (aqbeż ir-reġistri eżistenti)"
   }
 }

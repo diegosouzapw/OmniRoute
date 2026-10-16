@@ -14877,5 +14877,8 @@
     "saveMessage": "Enregistrer le message",
     "defaultModel": "Modèle de test par défaut",
     "defaultModelHint": "Utilisé automatiquement par les boutons « Tester le message » pour ce compte. Enregistré avec la connexion ; aucun message n’est envoyé."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Commencer à la position actuelle (ignorer les journaux existants)"
   }
 }

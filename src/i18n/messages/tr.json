@@ -14877,5 +14877,8 @@
     "saveMessage": "Mesajı kaydet",
     "defaultModel": "Varsayılan test modeli",
     "defaultModelHint": "Bu hesap için Test mesajı düğmeleri tarafından otomatik olarak kullanılır. Bağlantıyla birlikte kaydedilir; hiçbir mesaj gönderilmez."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Geçerli konumdan başla (mevcut günlükleri atla)"
   }
 }

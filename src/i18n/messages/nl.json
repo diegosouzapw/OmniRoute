@@ -14877,5 +14877,8 @@
     "saveMessage": "Bericht opslaan",
     "defaultModel": "Standaard testmodel",
     "defaultModelHint": "Wordt automatisch gebruikt door de knoppen Bericht testen voor dit account. Wordt bij de verbinding opgeslagen; er wordt geen bericht verzonden."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Begin vanaf de huidige positie (bestaande logboeken overslaan)"
   }
 }

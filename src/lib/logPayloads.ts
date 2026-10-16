@@ -502,11 +502,4 @@ export function serializePayloadForStorage(payload: unknown, maxLength = 65536):
   });
 }
 
-export function parseStoredPayload(value: unknown): unknown | null {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return { _rawText: value };
-  }
-}
+export { parseStoredPayload } from "./usage/parseStoredPayload";

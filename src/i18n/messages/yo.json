@@ -14877,5 +14877,8 @@
     "saveMessage": "Fi ìfiránṣẹ́ pamọ́",
     "defaultModel": "Model ìdánwò àkọ́kọ́",
     "defaultModelHint": "A máa ń lò ó láìfọwọ́yí nípasẹ̀ àwọn bọ́tìnì Test message fún àkọọ́lẹ̀ yìí. A fi pamọ́ pọ̀ mọ́ àsopọ̀ náà; kò sí ìfiranṣẹ́ tí a fi ránṣẹ́."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Bẹ̀rẹ̀ láti ipò ìsinsìnyí (fo àwọn àkọsílẹ̀ tó wà tẹ́lẹ̀)"
   }
 }

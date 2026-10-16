@@ -14877,5 +14877,8 @@
     "saveMessage": "Išsaugoti pranešimą",
     "defaultModel": "Numatytasis bandomasis modelis",
     "defaultModelHint": "Automatiškai naudojama šios paskyros mygtukams „Testuoti pranešimą“. Išsaugoma kartu su ryšiu; joks pranešimas nesiunčiamas."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Pradėti nuo dabartinės pozicijos (praleisti esamus žurnalus)"
   }
 }

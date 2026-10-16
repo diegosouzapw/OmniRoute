@@ -90,6 +90,9 @@ const IGNORE_FROM_CODE = new Set([
   // bundler is active — framework-internal. The OmniRoute-facing knob is
   // OMNIROUTE_USE_TURBOPACK (scripts/dev/run-next.mjs), which IS documented.
   "TURBOPACK",
+  // Electron sets this on its embedded Node server; children must preserve Node mode.
+  // Runtime-owned context, never a user-facing OmniRoute setting (#16454).
+  "ELECTRON_RUN_AS_NODE",
   "NODE_TEST_CONTEXT",
   "VITEST",
   // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.

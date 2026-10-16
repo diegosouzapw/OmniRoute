@@ -14877,5 +14877,8 @@
     "saveMessage": "Guardar mensaje",
     "defaultModel": "Modelo de prueba predeterminado",
     "defaultModelHint": "Se usa automáticamente con los botones «Mensaje de prueba» de esta cuenta. Se guarda con la conexión; no se envía ningún mensaje."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Empezar desde la posición actual (omitir los registros existentes)"
   }
 }

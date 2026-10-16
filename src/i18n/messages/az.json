@@ -14877,5 +14877,8 @@
     "saveMessage": "Mesajı yadda saxla",
     "defaultModel": "Defolt test modeli",
     "defaultModelHint": "Bu hesab üçün “Sınaq mesajı” düymələri tərəfindən avtomatik istifadə olunur. Bağlantı ilə birlikdə yadda saxlanılır; heç bir mesaj göndərilmir."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Cari mövqedən başla (mövcud qeydləri ötür)"
   }
 }

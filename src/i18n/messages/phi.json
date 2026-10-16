@@ -14877,5 +14877,8 @@
     "saveMessage": "I-save ang mensahe",
     "defaultModel": "Default na modelo para sa pagsubok",
     "defaultModelHint": "Awtomatikong ginagamit ng mga button na Test message para sa account na ito. Sine-save kasama ng koneksyon; walang ipinapadalang mensahe."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Magsimula sa kasalukuyang posisyon (laktawan ang mga umiiral na log)"
   }
 }

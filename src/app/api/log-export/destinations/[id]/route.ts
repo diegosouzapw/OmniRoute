@@ -18,6 +18,7 @@ import {
 import { getLogExportDestinationType } from "@/lib/logExport/registry";
 import {
   encryptDestinationConfig,
+  decryptDestinationConfig,
   mergeDestinationConfig,
   requiresEncryptionKey,
 } from "@/lib/logExport/secrets";
@@ -78,10 +79,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           { status: 400 }
         );
       }
-      // The UI sends back a placeholder for secrets it did not retype — keep the
-      // stored ciphertext for those instead of overwriting it with the placeholder.
-      // Ciphertext is a non-empty string, so presence checks in the schema still hold.
-      const merged = mergeDestinationConfig(existing.type, existing.config, data.config);
+      // The UI sends a placeholder for secrets it did not retype; retain those values.
+      // Validate secret syntax on plaintext, not ciphertext. Only the parsed, re-encrypted
+      // result is persisted or projected; omitted secrets and placeholders retain their value.
+      const merged = mergeDestinationConfig(
+        existing.type,
+        decryptDestinationConfig(existing.type, existing.config),
+        data.config
+      );
       const parsedConfig = destinationType.configSchema.safeParse(merged);
       if (!parsedConfig.success) {
         return NextResponse.json(

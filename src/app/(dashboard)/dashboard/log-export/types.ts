@@ -4,6 +4,7 @@ export interface LogExportFieldDescriptor {
   type: "text" | "password" | "textarea" | "number" | "boolean" | "select";
   required?: boolean;
   secret?: boolean;
+  defaultValue?: string | number | boolean;
   placeholder?: string;
   helpFallback?: string;
   options?: Array<{ value: string; labelFallback: string }>;

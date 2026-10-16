@@ -35,6 +35,8 @@ export interface LogExportRecord {
   account: string | null;
   connectionId: string | null;
   duration: number | null;
+  /** Time to first token, in milliseconds; null when unknown. */
+  ttftMs: number | null;
   tokensIn: number | null;
   tokensOut: number | null;
   tokensCacheRead: number | null;
@@ -96,6 +98,8 @@ export interface LogExportConfigField {
   type: LogExportFieldType;
   required?: boolean;
   secret?: boolean;
+  /** Generic form defaults; omitted preserves legacy behaviour. */
+  defaultValue?: string | number | boolean;
   placeholder?: string;
   helpFallback?: string;
   options?: ReadonlyArray<{ value: string; labelFallback: string }>;
@@ -127,5 +131,7 @@ export interface LogExportDestinationType<TConfig = Record<string, unknown>> {
   secretFields: readonly string[];
   fields: readonly LogExportConfigField[];
   configSchema: ZodType<TConfig>;
+  /** Create-time secret/default generation, before encryption and persistence. */
+  initializeConfig?(config: TConfig): TConfig;
   createClient(config: TConfig): LogExportClient;
 }

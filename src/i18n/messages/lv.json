@@ -14877,5 +14877,8 @@
     "saveMessage": "Saglabāt ziņojumu",
     "defaultModel": "Noklusējuma testa modelis",
     "defaultModelHint": "Šim kontam to automātiski izmanto pogas “Testa ziņojums”. Saglabāts kopā ar savienojumu; ziņojums netiek nosūtīts."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Sākt no pašreizējās pozīcijas (izlaist esošos žurnālus)"
   }
 }

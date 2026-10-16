@@ -14877,5 +14877,8 @@
     "saveMessage": "Hifadhi ujumbe",
     "defaultModel": "Modeli chaguomsingi ya majaribio",
     "defaultModelHint": "Hutumika kiotomatiki na vitufe vya ujumbe wa majaribio vya akaunti hii. Huhifadhiwa pamoja na muunganisho; hakuna ujumbe unaotumwa."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Anza kutoka nafasi ya sasa (ruka kumbukumbu zilizopo)"
   }
 }

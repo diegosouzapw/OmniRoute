@@ -5,12 +5,12 @@
  * filesystem artifacts and are loaded only for explicit detail/export flows.
  */
 
-import fs from "node:fs";
-import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { getDbInstance } from "../db/core";
-import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
+import { applyNodePrefix, resolveProviderDisplay } from "./callLogDisplay";
+export { applyNodePrefix, resolveProviderDisplay } from "./callLogDisplay";
+import { dashboardDetailIo, resolveCallLogDetail } from "./callLogDetailResolver";
 import { shouldPersistToDisk } from "./migrations";
 import { updateRequestTokensById } from "./usageHistory";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
@@ -41,17 +41,11 @@ import {
   protectPayloadForLog,
 } from "../logPayloads";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import {
-  CALL_LOGS_DIR,
-  readCallArtifact,
-  type CallLogArtifact,
-  type CallLogDetailState,
-} from "./callLogArtifacts";
+import { CALL_LOGS_DIR, type CallLogArtifact, type CallLogDetailState } from "./callLogArtifacts";
 import { closeCallLogArtifactWriter, writeCallArtifactAsync } from "./callLogArtifactWriter";
 import {
   toNumber,
   toStringOrNull,
-  parseInlineError,
   normalizeDetailState,
   sanitizeErrorForLog,
   toStoredErrorSummary,
@@ -140,12 +134,6 @@ type CallLogSummaryRow = {
 export const RESOLVED_ACCOUNT_SQL =
   "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
 
-type LegacyInlineRow = {
-  request_body: string | null;
-  response_body: string | null;
-  error: string | null;
-};
-
 type DeleteResult = {
   deletedRows: number;
   deletedArtifacts: number;
@@ -219,17 +207,6 @@ function isCompatibleProviderId(providerId: string | null): boolean {
   );
 }
 
-export function applyNodePrefix(
-  requestedModel: string | null,
-  provider: string | null,
-  nodePrefix: string | null
-): string | null {
-  if (!requestedModel || !provider || !nodePrefix) return requestedModel;
-  if (requestedModel.startsWith(provider + "/")) {
-    return nodePrefix + "/" + requestedModel.slice(provider.length + 1);
-  }
-  return requestedModel;
-}
 function buildArtifact(
   logEntry: {
     id: string;
@@ -371,13 +348,6 @@ function resolveReasoningObservation(
   return { source: null, chars: null };
 }
 
-function hasTable(tableName: string): boolean {
-  const db = getDbInstance();
-  return Boolean(
-    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName)
-  );
-}
-
 function hasCallLogsColumn(columnName: string): boolean {
   // One PRAGMA per INSERT is wasteful; the cached answer is invalidated only
   // when a write fails with "no such column" (concurrent migration race).
@@ -398,69 +368,6 @@ function hasCallLogsColumn(columnName: string): boolean {
 
 export function invalidateCallLogsColumnCache(): void {
   (hasCallLogsColumn as { cache?: Map<string, boolean> }).cache = undefined;
-}
-
-function readLegacyLogFromDisk(entry: {
-  timestamp: string | null;
-  model: string | null;
-  status: number;
-}) {
-  if (!CALL_LOGS_DIR || !entry.timestamp) return null;
-
-  try {
-    const date = new Date(entry.timestamp);
-    if (Number.isNaN(date.getTime())) return null;
-
-    const dateFolder = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}-${String(date.getDate()).padStart(2, "0")}`;
-    const dir = path.join(CALL_LOGS_DIR, dateFolder);
-    if (!fs.existsSync(dir)) return null;
-
-    const time = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(
-      2,
-      "0"
-    )}${String(date.getSeconds()).padStart(2, "0")}`;
-    const safeModel = (entry.model || "unknown").replace(/[/:]/g, "-");
-    const expectedName = `${time}_${safeModel}_${entry.status}.json`;
-
-    const exactPath = path.join(dir, expectedName);
-    if (fs.existsSync(exactPath)) {
-      return JSON.parse(fs.readFileSync(exactPath, "utf8"));
-    }
-
-    const files = fs
-      .readdirSync(dir)
-      .filter((file) => file.startsWith(time) && file.endsWith(`_${entry.status}.json`));
-    if (files.length > 0) {
-      return JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8"));
-    }
-  } catch (error) {
-    console.error(
-      "[callLogs] Failed to read legacy disk log:",
-      sanitizeErrorMessage(error) || "Legacy call log read failed"
-    );
-  }
-
-  return null;
-}
-
-export function resolveProviderDisplay(
-  provider: string | null,
-  nodeName: string | null,
-  nodePrefix: string | null
-): string | null {
-  const rawProvider = toStringOrNull(provider);
-  if (!rawProvider) return null;
-
-  const name = toStringOrNull(nodeName)?.trim();
-  if (name) return name;
-
-  const prefix = toStringOrNull(nodePrefix)?.trim();
-  if (prefix) return prefix;
-
-  return null;
 }
 
 export { parseResilienceActions };
@@ -520,34 +427,6 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     modelPinned: toNumber(row.model_pinned) === 1,
     sessionTag: row.session_tag || null,
     resilienceActions: parseResilienceActions(row.resilience_actions ?? null),
-  };
-}
-
-function buildLegacyPipelinePayloads(id: string) {
-  const detailed = getRequestDetailLogByCallLogId(id);
-  if (!detailed) return null;
-
-  return {
-    clientRequest: detailed.client_request ?? null,
-    providerRequest: detailed.translated_request ?? null,
-    providerResponse: detailed.provider_response ?? null,
-    clientResponse: detailed.client_response ?? null,
-  };
-}
-
-function getLegacyInlineDetail(id: string) {
-  if (!hasTable("call_logs_v1_legacy")) return null;
-
-  const db = getDbInstance();
-  const row = db
-    .prepare("SELECT request_body, response_body, error FROM call_logs_v1_legacy WHERE id = ?")
-    .get(id) as LegacyInlineRow | undefined;
-  if (!row) return null;
-
-  return {
-    requestBody: parseStoredPayload(row.request_body),
-    responseBody: parseStoredPayload(row.response_body),
-    error: parseInlineError(row.error),
   };
 }
 
@@ -1059,77 +938,13 @@ export async function getCallLogById(id: string) {
   if (!row) return null;
 
   const entry = mapSummaryRow(row);
-  let detailState = entry.detailState;
-  let artifactRelPath = entry.artifactRelPath;
-
-  if (artifactRelPath) {
-    const artifactResult = readCallArtifact(artifactRelPath);
-    if (artifactResult.state === "ready" && artifactResult.artifact) {
-      return {
-        ...entry,
-        detailState: "ready" as const,
-        requestBody: artifactResult.artifact.requestBody ?? null,
-        responseBody: artifactResult.artifact.responseBody ?? null,
-        error: artifactResult.artifact.error ?? entry.error,
-        pipelinePayloads: artifactResult.artifact.pipeline ?? buildLegacyPipelinePayloads(id),
-        hasPipelineDetails: Boolean(artifactResult.artifact.pipeline) || entry.hasPipelineDetails,
-        active: false,
-      };
-    }
-
-    detailState = artifactResult.state;
-    if (artifactResult.state === "missing") {
-      clearArtifactReference(artifactRelPath, "missing");
-      artifactRelPath = null;
-    } else {
-      db.prepare("UPDATE call_logs SET detail_state = ? WHERE id = ?").run("corrupt", id);
-    }
-  }
-
-  if (detailState === "legacy-inline") {
-    const legacyInline = getLegacyInlineDetail(id);
-    if (legacyInline) {
-      const legacyPipeline = buildLegacyPipelinePayloads(id);
-      return {
-        ...entry,
-        detailState,
-        artifactRelPath,
-        ...legacyInline,
-        pipelinePayloads: legacyPipeline,
-        hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-        active: false,
-      };
-    }
-  }
-
-  const legacyDisk = readLegacyLogFromDisk(entry);
-  if (legacyDisk) {
-    const legacyPipeline = buildLegacyPipelinePayloads(id);
-    return {
-      ...entry,
-      detailState,
-      artifactRelPath,
-      requestBody: legacyDisk.requestBody ?? null,
-      responseBody: legacyDisk.responseBody ?? null,
-      error: legacyDisk.error ?? entry.error,
-      pipelinePayloads: legacyPipeline,
-      hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-      active: false,
-    };
-  }
-
-  const legacyPipeline = buildLegacyPipelinePayloads(id);
-  return {
-    ...entry,
-    detailState,
-    artifactRelPath,
-    requestBody: null,
-    responseBody: null,
-    error: entry.error,
-    pipelinePayloads: legacyPipeline,
-    hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
-    active: false,
-  };
+  return resolveCallLogDetail(db, entry, CALL_LOGS_DIR, {
+    io: dashboardDetailIo,
+    onArtifactState(relativePath, state) {
+      if (state === "missing") clearArtifactReference(relativePath, "missing");
+      else db.prepare("UPDATE call_logs SET detail_state = ? WHERE id = ?").run("corrupt", id);
+    },
+  });
 }
 
 export async function exportCallLogsSince(since: string) {

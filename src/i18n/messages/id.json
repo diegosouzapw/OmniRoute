@@ -14877,5 +14877,8 @@
     "saveMessage": "Simpan pesan",
     "defaultModel": "Model uji default",
     "defaultModelHint": "Digunakan secara otomatis oleh tombol Uji pesan untuk akun ini. Disimpan bersama koneksi; tidak ada pesan yang dikirim."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Mulai dari posisi saat ini (lewati log yang ada)"
   }
 }

@@ -14877,5 +14877,8 @@
     "saveMessage": "メッセージを保存",
     "defaultModel": "デフォルトのテストモデル",
     "defaultModelHint": "このアカウントの［テストメッセージ］ボタンで自動的に使用されます。接続設定とともに保存されますが、メッセージは送信されません。"
+  },
+  "logExport": {
+    "startFromCurrentPosition": "現在の位置から開始（既存のログをスキップ）"
   }
 }

@@ -14877,5 +14877,8 @@
     "saveMessage": "Ajiye saƙo",
     "defaultModel": "Samfurin gwaji na tsohuwa",
     "defaultModelHint": "Ana amfani da shi ta atomatik ta maɓallan saƙon Test na wannan asusun. Ana adana shi tare da haɗin; ba a aika wani saƙo ba."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Fara daga matsayin yanzu (tsallake bayanan da ke akwai)"
   }
 }

@@ -131,6 +131,23 @@ function main() {
   );
   console.log("[colocate-standalone] ✅ call-log artifact worker bundled");
 
+  const exportChildDest = join(STANDALONE, "src/lib/logExport/exportChild.js");
+  mkdirSync(dirname(exportChildDest), { recursive: true });
+  runBuildTool(
+    "esbuild",
+    "esbuild",
+    [
+      join(ROOT, "src/lib/logExport/exportChild.ts"),
+      "--bundle",
+      "--platform=node",
+      "--packages=external",
+      "--format=esm",
+      `--outfile=${exportChildDest}`,
+    ],
+    { stdio: "inherit" }
+  );
+  console.log("[colocate-standalone] ✅ log-export child bundled");
+
   const compressionWorkerDest = join(STANDALONE, COMPRESSION_WORKER_REL);
   mkdirSync(dirname(compressionWorkerDest), { recursive: true });
   runBuildTool(
@@ -153,6 +170,7 @@ function main() {
   const workerDirs = [
     dirname(healthWorkerDest),
     dirname(callLogWorkerDest),
+    dirname(exportChildDest),
     dirname(compressionWorkerDest),
   ];
 

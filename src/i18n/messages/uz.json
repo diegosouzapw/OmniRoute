@@ -14877,5 +14877,8 @@
     "saveMessage": "Xabarni saqlash",
     "defaultModel": "Standart sinov modeli",
     "defaultModelHint": "Ushbu hisob uchun «Xabarni sinash» tugmalari tomonidan avtomatik ravishda ishlatiladi. Ulanish bilan birga saqlanadi; hech qanday xabar yuborilmaydi."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Joriy joydan boshlash (mavjud jurnallarni o'tkazib yuborish)"
   }
 }

@@ -7,9 +7,13 @@
  */
 
 import { bigQueryDestination } from "./destinations/bigquery";
+import { otlpHttpDestination } from "./destinations/otlpHttp";
 import type { LogExportConfigField, LogExportDestinationType } from "./types";
 
-const DESTINATIONS: ReadonlyArray<LogExportDestinationType> = [bigQueryDestination];
+const DESTINATIONS: ReadonlyArray<LogExportDestinationType> = [
+  bigQueryDestination,
+  otlpHttpDestination,
+];
 
 /**
  * Types registered at runtime. Only tests use this: it lets the runner, the REST layer

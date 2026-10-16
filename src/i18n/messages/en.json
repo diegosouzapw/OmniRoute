@@ -14877,5 +14877,8 @@
     "saveMessage": "Save message",
     "defaultModel": "Default test model",
     "defaultModelHint": "Used automatically by the Test message buttons for this account. Saved with the connection; no message is sent."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Start from current position (skip existing logs)"
   }
 }

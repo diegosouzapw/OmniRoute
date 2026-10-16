@@ -330,6 +330,32 @@ runBuildTool(
   { cwd: ROOT, stdio: "inherit" }
 );
 
+const logExportChildSrc = join(ROOT, "src", "lib", "logExport", "exportChild.ts");
+const logExportChildDest = join(DIST_DIR, "src", "lib", "logExport", "exportChild.js");
+const logExportScope = join(dirname(logExportChildDest), "package.json");
+if (!existsSync(logExportScope)) {
+  mkdirSync(dirname(logExportScope), { recursive: true });
+  writeFileSync(logExportScope, JSON.stringify({ type: "module" }) + "\n");
+}
+if (!existsSync(logExportChildSrc)) {
+  throw new Error("Required log-export child source is missing");
+}
+console.log("  🔨 Bundling log-export child...");
+mkdirSync(dirname(logExportChildDest), { recursive: true });
+runBuildTool(
+  "esbuild",
+  "esbuild",
+  [
+    "src/lib/logExport/exportChild.ts",
+    "--bundle",
+    "--platform=node",
+    "--packages=external",
+    "--format=esm",
+    "--outfile=dist/src/lib/logExport/exportChild.js",
+  ],
+  { cwd: ROOT, stdio: "inherit" }
+);
+
 // ── Step 8.6a: Bundle LLMLingua ONNX worker ───────────────────────────
 // The worker is spawned via worker_threads at a path the Next.js bundler cannot
 // statically trace, so it must ship as a standalone .js (mirrors the MCP-server

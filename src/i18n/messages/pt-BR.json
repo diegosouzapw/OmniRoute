@@ -14877,5 +14877,8 @@
     "saveMessage": "Salvar mensagem",
     "defaultModel": "Modelo de teste padrão",
     "defaultModelHint": "Usado automaticamente pelos botões de mensagem de teste desta conta. É salvo com a conexão; nenhuma mensagem é enviada."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Começar na posição atual (ignorar os logs existentes)"
   }
 }

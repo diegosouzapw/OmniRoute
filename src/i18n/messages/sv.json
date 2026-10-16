@@ -14877,5 +14877,8 @@
     "saveMessage": "Spara meddelande",
     "defaultModel": "Standardmodell för test",
     "defaultModelHint": "Används automatiskt av knapparna Testmeddelande för det här kontot. Sparas med anslutningen; inget meddelande skickas."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Börja från aktuell position (hoppa över befintliga loggar)"
   }
 }

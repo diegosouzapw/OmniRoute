@@ -14877,5 +14877,8 @@
     "saveMessage": "Sačuvaj poruku",
     "defaultModel": "Zadani testni model",
     "defaultModelHint": "Automatski se koristi pomoću dugmadi Testiraj poruku za ovaj račun. Sprema se zajedno s vezom; nijedna poruka se ne šalje."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Počni od trenutne pozicije (preskoči postojeće zapise)"
   }
 }

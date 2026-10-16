@@ -14877,5 +14877,8 @@
     "saveMessage": "Lưu tin nhắn",
     "defaultModel": "Mô hình kiểm tra mặc định",
     "defaultModelHint": "Được các nút Kiểm tra tin nhắn tự động sử dụng cho tài khoản này. Được lưu cùng với kết nối; không có tin nhắn nào được gửi."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Bắt đầu từ vị trí hiện tại (bỏ qua nhật ký hiện có)"
   }
 }

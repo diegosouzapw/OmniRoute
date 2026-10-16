@@ -14877,5 +14877,8 @@
     "saveMessage": "保存消息",
     "defaultModel": "默认测试模型",
     "defaultModelHint": "此账号的“测试消息”按钮会自动使用该设置。该设置将随连接一起保存；不会发送任何消息。"
+  },
+  "logExport": {
+    "startFromCurrentPosition": "从当前位置开始（跳过现有日志）"
   }
 }

@@ -14877,5 +14877,8 @@
     "saveMessage": "Spremi poruku",
     "defaultModel": "Zadani testni model",
     "defaultModelHint": "Automatski se upotrebljava putem gumba Testna poruka za ovaj račun. Sprema se s vezom; poruka se ne šalje."
+  },
+  "logExport": {
+    "startFromCurrentPosition": "Počni od trenutačnog položaja (preskoči postojeće zapise)"
   }
 }
