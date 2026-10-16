@@ -82,6 +82,8 @@ export type ConnectionTestOptions = {
    * allowLocalRuntimeProbe above. Defaults to permissive for the internal scheduler.
    */
   allowLocalSpawn?: boolean;
+  /** #16190: false keeps an unverifiable (skipped) test from switching a connection on. */
+  activateUnverified?: boolean;
 };
 
 export async function getProviderRuntimeStatus(
@@ -1062,13 +1064,11 @@ export async function testSingleConnection(
     connection) as typeof connection;
   const operatorDisabled = isOperatorDisabled(latest);
 
-  // Unsupported validation capability is neutral: the provider cannot be verified through the
-  // generic test surface, which says nothing about its credential. Do not mutate persisted
-  // credential health (testStatus/lastError/etc.) — but DO activate it if it isn't already: under
-  // the "only advertise tested connections" default (connections start isActive:false, see
-  // POST /api/providers) it would stay hidden from /v1/models forever. Operator-disabled stays off.
+  // An unsupported validation says nothing about the credential: keep its health as is, but switch
+  // it on (new connections start isActive:false and would stay off /v1/models forever), unless an
+  // operator switched it off or the caller passed activateUnverified:false (#16190).
   if (result.skipped === true) {
-    if (latest.isActive !== true && !operatorDisabled) {
+    if (latest.isActive !== true && !operatorDisabled && options.activateUnverified !== false) {
       try {
         await updateProviderConnection(connectionId, { isActive: true });
       } catch (activateError) {

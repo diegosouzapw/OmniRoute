@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 
 import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
+import { applyOperatorActivationIntent } from "@/lib/providers/operatorDisable";
 import { clearProviderFailure, clearModelLock } from "@omniroute/open-sse/services/accountFallback";
 import { resolveProviderAlias } from "@omniroute/open-sse/services/model";
 
@@ -740,7 +741,15 @@ export async function executeProviderHealthAutopilotAction(
         return { status: 409, body: { success: false, error: "terminal connection state" } };
       }
       const isActive = input.type === "reactivate_connection";
-      await updateProviderConnection(connectionId, { isActive });
+      // An operator action, recorded like the connection toggle: the connection test and the
+      // credential-health retest never switch an operator-disabled connection back on (#16190).
+      await updateProviderConnection(connectionId, {
+        isActive,
+        providerSpecificData: applyOperatorActivationIntent(
+          connection.providerSpecificData,
+          isActive
+        ),
+      });
       changed = { isActive };
       break;
     }

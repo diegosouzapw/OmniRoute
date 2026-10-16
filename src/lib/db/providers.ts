@@ -13,6 +13,7 @@ import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache"
 import { invalidateConnectionUpdate, type UpdateOpts } from "./readCache";
 import { reorderConnections } from "./providers/deletion";
 import { normalizeConnectionProviderSpecificData } from "./providers/providerSpecificData";
+import { applyAutomaticDisableMarker } from "@/lib/providers/operatorDisable";
 import { bumpProxyConfigGeneration, getSettings } from "./settings";
 import {
   getStoredManagementPassword,
@@ -973,6 +974,12 @@ export async function updateProviderConnection(id: string, data: JsonRecord, opt
       merged,
       existingCamel.providerSpecificData
     )
+  );
+  // #16190: an automated switch-off is marked so the health sweep can retest it.
+  merged.providerSpecificData = applyAutomaticDisableMarker(
+    merged.providerSpecificData,
+    existingCamel.isActive,
+    data.isActive
   );
   // Mirror the sanitization the create path applies — keep the returned
   // object in lockstep with what we persist.

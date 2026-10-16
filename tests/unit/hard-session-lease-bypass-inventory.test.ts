@@ -213,6 +213,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/cloudSync.ts": 1,
     "src/lib/combos/builderOptions.ts": 1,
     "src/lib/copilot/tools.ts": 1,
+    // #16190: the retest of gateway-disabled connections loads the inactive rows once per
+    // sweep and re-reads a row by id after its test to see whether it was switched back on.
+    // State reads only: the retest dispatches through testSingleConnection, which defers
+    // while an exclusive lease is active, so it never selects a connection itself (class C).
+    "src/lib/credentialHealth/autoDisabledRevalidation.ts": 2,
     "src/lib/credentialHealth/scheduler.ts": 1,
     // Base drift (already present before #11754 boarded, from earlier-merged
     // #11698/#11720 retirement PRs' combined getProviderConnectionById
