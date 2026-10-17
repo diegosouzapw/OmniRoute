@@ -89,13 +89,25 @@ test("provider models route fetches the live AI/ML API catalog from the auth-fre
     apiKey: "aiml-key",
   });
   let calledUrl = "";
+  // The real endpoint answers with the OpenAI-style envelope and the
+  // `openai/chat-completions` type. The previous version of this mock returned a
+  // bare array of `chat-completion` rows — neither of which the live catalog has
+  // produced since the schema change — so the route passed here while returning
+  // zero models in production.
   globalThis.fetch = async (url) => {
     calledUrl = String(url);
-    return Response.json([
-      { id: "openai/gpt-5.5", type: "chat-completion", info: { name: "GPT-5.5" } },
-      { id: "zhipu/glm-5.2", type: "chat-completion", info: { name: "GLM 5.2" } },
-      { id: "flux/flux-pro", type: "image", info: { name: "FLUX Pro" } },
-    ]);
+    return Response.json({
+      object: "list",
+      data: [
+        { id: "openai/gpt-5", type: "openai/chat-completions", info: { name: "GPT-5" } },
+        {
+          id: "anthropic/claude-sonnet-4-6",
+          type: "openai/chat-completions",
+          info: { name: "Claude 4.6 Sonnet" },
+        },
+        { id: "flux/flux-pro", type: "openai/image-generations", info: { name: "FLUX Pro" } },
+      ],
+    });
   };
 
   const response = await callRoute(connection.id);
@@ -107,7 +119,7 @@ test("provider models route fetches the live AI/ML API catalog from the auth-fre
   assert.equal(body.source, "api");
   assert.equal(calledUrl, "https://api.aimlapi.com/models");
   const ids = body.models.map((m: any) => m.id);
-  assert.ok(ids.includes("openai/gpt-5.5") && ids.includes("zhipu/glm-5.2"));
+  assert.ok(ids.includes("openai/gpt-5") && ids.includes("anthropic/claude-sonnet-4-6"));
   assert.ok(!ids.includes("flux/flux-pro"), "non-chat model types are filtered out");
 });
 

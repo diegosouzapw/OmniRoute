@@ -212,16 +212,28 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/diegosouzapw/OmniRoute",
+        "X-AIMLAPI-Partner-ID": "part_T2iNtMuQ3JBmEPwyOKCLOxaP",
+        "X-AIMLAPI-Source": "agent/omniroute",
+        "X-Title": "OmniRoute"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/diegosouzapw/OmniRoute",
+        "X-AIMLAPI-Partner-ID": "part_T2iNtMuQ3JBmEPwyOKCLOxaP",
+        "X-AIMLAPI-Source": "agent/omniroute",
+        "X-Title": "OmniRoute"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/diegosouzapw/OmniRoute",
+        "X-AIMLAPI-Partner-ID": "part_T2iNtMuQ3JBmEPwyOKCLOxaP",
+        "X-AIMLAPI-Source": "agent/omniroute",
+        "X-Title": "OmniRoute"
       }
     },
     "url": {
