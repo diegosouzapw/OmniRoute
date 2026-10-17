@@ -1,0 +1,1 @@
+- Discover Muse Code models from the authenticated Meta API and expose synchronized models through the CLI catalog with the shared access filters.
