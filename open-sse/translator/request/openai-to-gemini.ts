@@ -703,11 +703,29 @@ function openaiToGeminiBase(
     return t.type === "function" && (fn?.name === "google_search" || fn?.name === "googleSearch");
   });
 
+  // Antigravity's v1internal endpoint returns HTTP 400 when a native googleSearch
+  // tool is mixed with functionDeclarations in the same request. Promoting a
+  // function-declared google_search to native grounding is therefore only safe
+  // while it is the sole tool: as soon as the caller declares any other callable
+  // function (or already sent a native grounding entry), keep google_search as a
+  // plain callable declaration — the endpoint accepts declaration ids using
+  // builtin names, and the client executes the search itself (live-verified:
+  // functionDeclarations [google_search, weather] → 200; native {googleSearch:{}
+  // } + functionDeclarations → 400).
+  const hasCallableFunctionTools = geminiTools?.some(
+    (t) =>
+      Array.isArray(t.functionDeclarations) &&
+      t.functionDeclarations.some((fn) => !GEMINI_BUILTIN_TOOL_NAMES.has(fn.name))
+  );
+  const hasNativeGroundingTool = geminiTools?.some(
+    (t) => (t as { googleSearch?: unknown }).googleSearch !== undefined
+  );
+
   type ToolEntry = NonNullable<GeminiRequest["tools"]>[number];
 
   if (geminiTools && geminiTools.length > 0) {
     result.tools = geminiTools;
-    if (hasGoogleSearch) {
+    if (hasGoogleSearch && !hasCallableFunctionTools && !hasNativeGroundingTool) {
       result.tools.push({ googleSearch: {} });
     }
     result.toolConfig = {
@@ -866,25 +884,34 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
     }
   }
 
-  // Strip Gemini built-in tool *names* out of functionDeclarations: Antigravity's
-  // v1internal endpoint returns 400 when a built-in tool (google_search etc.) is
-  // mixed with functionDeclarations in the same request. Native grounding entries
-  // (e.g. `{ googleSearch: {} }`) are left intact; only the functionDeclarations
-  // arrays are cleaned, and a declarations entry that becomes empty is dropped.
+  // Strip Gemini built-in tool *names* out of functionDeclarations — but only while
+  // a native grounding entry (e.g. `{ googleSearch: {} }`) is actually present.
+  // The v1internal 400 fires on the *mix* of native grounding and
+  // functionDeclarations, not on the declaration name: a plain declaration named
+  // google_search that coexists with other callable functions is accepted upstream
+  // and lets the model issue an ordinary functionCall the client executes. Stripping
+  // unconditionally would silently delete the client's search tool from every
+  // mixed-tools request. When grounding IS present, the builtin-named duplicate is
+  // redundant and is removed; a declarations entry that becomes empty is dropped.
   if (envelope.request.tools && envelope.request.tools.length > 0) {
-    const cleanedTools = envelope.request.tools
-      .map((tool) => {
-        if (!Array.isArray(tool.functionDeclarations)) {
-          return tool;
-        }
-        const customDecls = tool.functionDeclarations.filter(
-          (fn) => !GEMINI_BUILTIN_TOOL_NAMES.has(fn.name)
-        );
-        return { ...tool, functionDeclarations: customDecls };
-      })
-      .filter(
-        (tool) => !Array.isArray(tool.functionDeclarations) || tool.functionDeclarations.length > 0
-      );
+    const hasNativeGrounding = envelope.request.tools.some(
+      (tool) => (tool as { googleSearch?: unknown }).googleSearch !== undefined
+    );
+    const cleanedTools = hasNativeGrounding
+      ? envelope.request.tools
+          .map((tool) => {
+            if (!Array.isArray(tool.functionDeclarations)) {
+              return tool;
+            }
+            const customDecls = tool.functionDeclarations.filter(
+              (fn) => !GEMINI_BUILTIN_TOOL_NAMES.has(fn.name)
+            );
+            return { ...tool, functionDeclarations: customDecls };
+          })
+          .filter(
+            (tool) => !Array.isArray(tool.functionDeclarations) || tool.functionDeclarations.length > 0
+          )
+      : envelope.request.tools;
     envelope.request.tools = cleanedTools.length > 0 ? cleanedTools : undefined;
   }
 

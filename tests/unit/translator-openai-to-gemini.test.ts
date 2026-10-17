@@ -18,6 +18,7 @@ const { clearGeminiThoughtSignatures } =
   await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 type UnknownRecord = Record<string, unknown>;
+type GeminiTools = NonNullable<ReturnType<typeof openaiToGeminiRequest>["tools"]>;
 type GeminiRequestWithConfig = { generationConfig: UnknownRecord };
 type GeminiRequestWithSystem = { systemInstruction: { role?: unknown; parts?: unknown } };
 
@@ -1232,6 +1233,157 @@ test("OpenAI -> Gemini request maps google_search tool", () => {
   assert.ok(
     (result as any).tools.some((t: any) => t.googleSearch),
     "expected googleSearch tool"
+  );
+});
+
+// Regression: a function-declared google_search alongside OTHER function tools must
+// NOT be promoted to native grounding — Antigravity's v1internal endpoint rejects a
+// native googleSearch tool mixed with functionDeclarations with HTTP 400, which broke
+// every coding-agent request whose toolset happens to include a google_search function.
+// The declaration is kept as a plain callable instead (upstream accepts builtin NAMES).
+test("OpenAI -> Gemini keeps function-declared google_search callable when mixed with other tools", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [{ role: "user", content: "Search the web" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "google_search",
+            description: "Search the web",
+            parameters: {
+              type: "object",
+              properties: { query: { type: "string" } },
+              required: ["query"],
+            },
+          },
+        },
+        {
+          type: "function",
+          function: {
+            name: "weather",
+            description: "Fetch weather",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false
+  );
+
+  assert.ok(Array.isArray(result.tools), "expected tools array");
+  assert.ok(
+    !result.tools.some((t) => t.googleSearch),
+    "native googleSearch must not be mixed with functionDeclarations (upstream 400)"
+  );
+  const decls = result.tools.find((t) => Array.isArray(t.functionDeclarations))
+    ?.functionDeclarations as { name: string }[];
+  assert.ok(decls, "expected functionDeclarations");
+  assert.deepEqual(
+    decls.map((fn) => fn.name).sort(),
+    ["google_search", "weather"],
+    "google_search declaration must stay callable alongside the other tools"
+  );
+});
+
+// Same regression through the base Cloud Code translator (no envelope): the mixed
+// request must carry both declarations and no native grounding entry.
+test("OpenAI -> Cloud Code Gemini keeps mixed google_search declaration without native grounding", () => {
+  const result = openaiToCloudCodeGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [{ role: "user", content: "Search the web" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "google_search",
+            parameters: { type: "object", properties: { query: { type: "string" } } },
+          },
+        },
+        {
+          type: "function",
+          function: { name: "weather", parameters: { type: "object", properties: {} } },
+        },
+      ],
+    },
+    false
+  );
+
+  assert.ok(Array.isArray(result.tools), "expected tools array");
+  assert.ok(
+    !result.tools.some((t) => t.googleSearch),
+    "native googleSearch must not be present in the mixed-tools request"
+  );
+  const decls = result.tools.find((t) => Array.isArray(t.functionDeclarations))
+    ?.functionDeclarations as { name: string }[];
+  assert.ok(decls, "expected functionDeclarations");
+  assert.deepEqual(
+    decls.map((fn) => fn.name).sort(),
+    ["google_search", "weather"],
+    "mixed google_search must stay a callable declaration"
+  );
+});
+
+// Sole-tool case must keep the native grounding promotion, and the Antigravity
+// envelope strip must drop the now-redundant builtin-named declaration (the
+// envelope cleanup lives in wrapInCloudCodeEnvelope, reached only via
+// openaiToAntigravityRequest).
+test("OpenAI -> Antigravity promotes sole google_search tool to native grounding", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [{ role: "user", content: "What happened today?" }],
+      tools: [
+        {
+          type: "function",
+          function: { name: "google_search", parameters: { type: "object", properties: {} } },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-search" }
+  );
+
+  assert.deepEqual(result.request?.tools, [{ googleSearch: {} }]);
+});
+
+// Envelope-level regression: with native grounding present (sole-tool promotion),
+// the builtin-named declaration is stripped; in the mixed case (no native entry)
+// nothing is stripped.
+test("OpenAI -> Antigravity envelope keeps mixed declarations and strips none", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [{ role: "user", content: "Search the web" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "google_search",
+            parameters: { type: "object", properties: { query: { type: "string" } } },
+          },
+        },
+        {
+          type: "function",
+          function: { name: "weather", parameters: { type: "object", properties: {} } },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-search" }
+  );
+
+  const tools = (result.request?.tools ?? []) as GeminiTools;
+  assert.ok(!tools.some((t) => t.googleSearch), "no native grounding in mixed case");
+  const decls = tools.find((t) => Array.isArray(t.functionDeclarations))?.functionDeclarations as {
+    name: string;
+  }[];
+  assert.deepEqual(
+    (decls ?? []).map((fn) => fn.name).sort(),
+    ["google_search", "weather"],
+    "envelope cleanup must not strip google_search when no native grounding exists"
   );
 });
 
