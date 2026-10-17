@@ -1,5 +1,6 @@
 import { createSseTextTransform, type FieldCategory } from "./sseTextTransform";
 import { redactCredentials } from "./guardrails/credentialMasker";
+import type { resolveDisabledGuardrails } from "./guardrails/registry";
 
 export interface CredentialTransformOptions {
   windowSize?: number;
@@ -49,17 +50,12 @@ export function isCredentialTransformEnabled(gate: CredentialGate): boolean {
  * `resolveDisabledGuardrails` default to the production readers; tests inject
  * fakes. Fail-open to the historical behavior on reader errors.
  */
-export async function resolveCredentialGate(args: {
-  getSettings?: () => Promise<{ credentialRedactionEnabled?: unknown } | null>;
-  resolveDisabledGuardrails?: (input: {
-    apiKeyInfo?: unknown;
-    body?: unknown;
-    headers?: unknown;
-  }) => string[];
-  apiKeyInfo?: unknown;
-  body?: unknown;
-  headers?: unknown;
-}): Promise<CredentialGate> {
+export async function resolveCredentialGate(
+  args: Parameters<typeof resolveDisabledGuardrails>[0] & {
+    getSettings?: () => Promise<{ credentialRedactionEnabled?: unknown } | null>;
+    resolveDisabledGuardrails?: typeof resolveDisabledGuardrails;
+  }
+): Promise<CredentialGate> {
   let enabled = false;
   try {
     const reader = args.getSettings ?? (await import("./db/settings")).getSettings;

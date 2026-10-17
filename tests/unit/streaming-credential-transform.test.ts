@@ -4,12 +4,31 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+const originalDataDir = process.env.DATA_DIR;
+const originalFileLogging = process.env.APP_LOG_TO_FILE;
+const originalPluginsDir = process.env.OMNIROUTE_PLUGINS_DIR;
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-streaming-credential-"));
 process.env.DATA_DIR = tmpDir;
+process.env.APP_LOG_TO_FILE = "false";
+process.env.OMNIROUTE_PLUGINS_DIR = path.join(tmpDir, "plugins");
 
 const { createCredentialSseTransform, findCredentialPartialTailIndex } =
   await import("../../src/lib/streamingCredentialTransform.ts");
-import { redactCredentials } from "../../src/lib/guardrails/credentialMasker.ts";
+const { redactCredentials } = await import("../../src/lib/guardrails/credentialMasker.ts");
+const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+
+test.after(() => {
+  resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  for (const [key, value] of [
+    ["DATA_DIR", originalDataDir],
+    ["APP_LOG_TO_FILE", originalFileLogging],
+    ["OMNIROUTE_PLUGINS_DIR", originalPluginsDir],
+  ]) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+});
 
 async function runTransform(transform: TransformStream, inputChunks: string[]): Promise<string> {
   const writer = transform.writable.getWriter();
@@ -223,42 +242,85 @@ test("partial-tail probe finds a truncated fixed prefix touching the buffer end"
   assert.equal(findCredentialPartialTailIndex("data AKIAIOSFODNN7EX"), 5);
 });
 
-test("gate resolution honors the flag, the env fallback, and the opt-out", async () => {
-  const { resolveCredentialGate, isCredentialTransformEnabled } =
-    await import("../../src/lib/streamingCredentialTransform.ts");
-  const on = await resolveCredentialGate({
-    getSettings: async () => ({ credentialRedactionEnabled: true }),
-    resolveDisabledGuardrails: () => [],
-  });
-  assert.equal(on.credentialRedactionEnabled, true);
-  assert.equal(
-    isCredentialTransformEnabled({
-      credentialRedactionEnabled: on.credentialRedactionEnabled,
-      credentialDisabledGuardrails: on.credentialDisabledGuardrails,
-    }),
-    true
-  );
-  const optedOut = await resolveCredentialGate({
-    getSettings: async () => ({ credentialRedactionEnabled: true }),
-    resolveDisabledGuardrails: () => ["credential-masker"],
-  });
-  assert.equal(
-    isCredentialTransformEnabled({
-      credentialRedactionEnabled: optedOut.credentialRedactionEnabled,
-      credentialDisabledGuardrails: optedOut.credentialDisabledGuardrails,
-    }),
-    false
-  );
-  const original = process.env.CREDENTIAL_REDACTION_ENABLED;
-  process.env.CREDENTIAL_REDACTION_ENABLED = "true";
-  try {
-    const viaEnv = await resolveCredentialGate({
-      getSettings: async () => ({ credentialRedactionEnabled: false }),
-      resolveDisabledGuardrails: () => [],
-    });
-    assert.equal(viaEnv.credentialRedactionEnabled, true);
-  } finally {
-    if (original === undefined) delete process.env.CREDENTIAL_REDACTION_ENABLED;
-    else process.env.CREDENTIAL_REDACTION_ENABLED = original;
+test(
+  "gate resolution honors request fields, flags, reader failures and opt-out",
+  { timeout: 5000 },
+  async () => {
+    const { resolveCredentialGate, isCredentialTransformEnabled } =
+      await import("../../src/lib/streamingCredentialTransform.ts");
+    const { resolveDisabledGuardrails } = await import("../../src/lib/guardrails/registry.ts");
+    const original = process.env.CREDENTIAL_REDACTION_ENABLED;
+    delete process.env.CREDENTIAL_REDACTION_ENABLED;
+    try {
+      const on = await resolveCredentialGate({
+        getSettings: async () => ({ credentialRedactionEnabled: true }),
+        resolveDisabledGuardrails: () => [],
+      });
+      assert.equal(on.credentialRedactionEnabled, true);
+      assert.equal(isCredentialTransformEnabled(on), true);
+
+      const apiKeyInfo = { disabledGuardrails: ["prompt-injection"] };
+      const body = { metadata: { disabledGuardrails: "pii-masker" } };
+      const headers = new Headers({ "x-omniroute-disabled-guardrails": "credential-masker" });
+      const optedOut = await resolveCredentialGate({
+        getSettings: async () => ({ credentialRedactionEnabled: true }),
+        apiKeyInfo,
+        body,
+        headers,
+        resolveDisabledGuardrails: (input) => {
+          assert.equal(input.apiKeyInfo, apiKeyInfo);
+          assert.equal(input.body, body);
+          assert.equal(input.headers, headers);
+          return resolveDisabledGuardrails(input);
+        },
+      });
+      assert.deepEqual(optedOut.credentialDisabledGuardrails, [
+        "prompt-injection",
+        "pii-masker",
+        "credential-masker",
+      ]);
+      assert.equal(isCredentialTransformEnabled(optedOut), false);
+
+      for (const requestHeaders of [headers, { "X-Disabled-Guardrails": "credential-masker" }]) {
+        const defaultResolver = await resolveCredentialGate({
+          getSettings: async () => ({ credentialRedactionEnabled: true }),
+          headers: requestHeaders,
+        });
+        assert.deepEqual(defaultResolver.credentialDisabledGuardrails, ["credential-masker"]);
+        assert.equal(isCredentialTransformEnabled(defaultResolver), false);
+      }
+
+      const failedReaders = await resolveCredentialGate({
+        getSettings: async () => {
+          throw new Error("fixture settings unavailable");
+        },
+        resolveDisabledGuardrails: () => {
+          throw new Error("fixture resolver unavailable");
+        },
+      });
+      assert.deepEqual(failedReaders, {
+        credentialRedactionEnabled: false,
+        credentialDisabledGuardrails: [],
+      });
+      assert.equal(isCredentialTransformEnabled(failedReaders), false);
+
+      process.env.CREDENTIAL_REDACTION_ENABLED = "true";
+      for (const getSettings of [
+        async () => ({ credentialRedactionEnabled: false }),
+        async () => {
+          throw new Error("fixture settings unavailable");
+        },
+      ]) {
+        const viaEnv = await resolveCredentialGate({
+          getSettings,
+          resolveDisabledGuardrails: () => [],
+        });
+        assert.equal(viaEnv.credentialRedactionEnabled, true);
+        assert.equal(isCredentialTransformEnabled(viaEnv), true);
+      }
+    } finally {
+      if (original === undefined) delete process.env.CREDENTIAL_REDACTION_ENABLED;
+      else process.env.CREDENTIAL_REDACTION_ENABLED = original;
+    }
   }
-});
+);
