@@ -1,0 +1,63 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Caches & Logs
+*.log
+*.tmp
+*.temp
+/tmp/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Qt & QML Caches
+*.qmlc
+*.jsc
+.qmlcache/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Local configuration
+*.local.json
+
+# AI Assistant Artifacts
+.claude/
+.gemini/
+.agent/
+.kilo/
+

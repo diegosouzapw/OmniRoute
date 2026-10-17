@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="General">
+        <entry name="serverUrl" type="String">
+            <default>http://127.0.0.1:20128</default>
+        </entry>
+        <entry name="showUsed" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="costRange" type="String">
+            <default>30d</default>
+        </entry>
+        <entry name="showCostPct" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showHealth" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showUsage" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showCost" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showTrend" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="refreshIntervalSec" type="Int">
+            <default>10</default>
+        </entry>
+    </group>
+</kcfg>

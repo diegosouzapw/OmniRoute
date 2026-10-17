@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+  <!-- Vertical spokes (Top & Bottom) -->
+  <line x1="12" y1="12" x2="12" y2="4.5" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="12" x2="12" y2="19.5" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Diagonal spokes to 4 corner nodes -->
+  <line x1="12" y1="12" x2="5.5" y2="7.0" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="12" x2="18.5" y2="7.0" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="12" x2="5.5" y2="17.0" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="12" x2="18.5" y2="17.0" stroke="#ff4d6d" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Center Hub -->
+  <circle cx="12" cy="12" r="2.8" fill="#ff4d6d"/>
+  <!-- Top & Bottom nodes (smaller, matching official logo) -->
+  <circle cx="12" cy="4.5" r="1.8" fill="#ff4d6d"/>
+  <circle cx="12" cy="19.5" r="1.8" fill="#ff4d6d"/>
+  <!-- 4 Corner nodes (larger, matching official logo) -->
+  <circle cx="5.5" cy="7.0" r="2.4" fill="#ff4d6d"/>
+  <circle cx="18.5" cy="7.0" r="2.4" fill="#ff4d6d"/>
+  <circle cx="5.5" cy="17.0" r="2.4" fill="#ff4d6d"/>
+  <circle cx="18.5" cy="17.0" r="2.4" fill="#ff4d6d"/>
+</svg>
