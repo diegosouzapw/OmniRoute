@@ -88,12 +88,27 @@ export function getCredentialHealth(connectionId: string): CredentialHealthStatu
  *   - false → known-bad, skip
  *   - undefined → unknown / not cached (proceed but mark as unchecked)
  */
+const INVALID_CREDENTIAL_DIAGNOSES = new Set([
+  "upstream_auth_error",
+  "auth_missing",
+  "token_expired",
+  "reauth_required",
+  "account_deactivated",
+  "auth_required",
+]);
+
 export function isCredentialHealthy(connectionId: string): boolean | undefined {
   const status = getCredentialHealth(connectionId);
   if (!status) return undefined;
 
   if (status.status === "active") return true;
-  if (status.status === "error") return false;
+  // A failed probe is not proof of bad credentials: timeouts, quota and outages are inconclusive.
+  if (
+    status.status === "error" &&
+    typeof status.lastErrorType === "string" &&
+    INVALID_CREDENTIAL_DIAGNOSES.has(status.lastErrorType)
+  )
+    return false;
 
   return undefined;
 }

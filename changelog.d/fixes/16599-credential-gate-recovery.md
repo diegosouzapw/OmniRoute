@@ -1,0 +1,1 @@
+- **fix(oauth):** keep transient and inconclusive credential probes from blocking routing for five minutes, and recover the credential-health cache after successful persisted manual validation without clearing independent quota cooldowns ([#16599](https://github.com/diegosouzapw/OmniRoute/pull/16599)) — thanks @KiaroSama

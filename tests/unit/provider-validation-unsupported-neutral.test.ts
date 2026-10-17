@@ -13,6 +13,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK = "true";
 
 const originalFetch = globalThis.fetch;
+const { __test_resetCredentialHealthCache, getCredentialHealth, setCredentialHealth } =
+  await import("../../src/lib/credentialHealth/cache.ts");
 
 const core = await import("../../src/lib/db/core.ts");
 
@@ -46,6 +48,7 @@ function mockUnsupportedValidationSurface() {
 }
 
 test.after(() => {
+  __test_resetCredentialHealthCache();
   credentialHealthScheduler.stopCredentialHealthCheck();
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
@@ -138,7 +141,17 @@ test("unsupported provider verification is neutral and does not poison stored co
   assert.equal(before.last_error_at, null);
   assert.equal(before.error_code, null);
 
+  __test_resetCredentialHealthCache();
+  setCredentialHealth(
+    "unsupported-probe-test",
+    "openai",
+    "error",
+    "Rejected",
+    "upstream_auth_error"
+  );
+  const cachedBefore = getCredentialHealth("unsupported-probe-test");
   const result = await testSingleConnection("unsupported-probe-test");
+  assert.deepEqual(getCredentialHealth("unsupported-probe-test"), cachedBefore);
 
   assert.equal(
     getCalls(),

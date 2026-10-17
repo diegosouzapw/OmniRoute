@@ -10,6 +10,8 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 process.env.OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK = "true";
 
 const originalFetch = globalThis.fetch;
+const { __test_resetCredentialHealthCache, isCredentialHealthy, setCredentialHealth } =
+  await import("../../src/lib/credentialHealth/cache.ts");
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
@@ -69,6 +71,7 @@ async function createConnection(args: {
 }
 
 test.beforeEach(async () => {
+  __test_resetCredentialHealthCache();
   await resetStorage();
   globalThis.fetch = (async () =>
     new Response(JSON.stringify({ data: [{ id: "available-model" }] }), {
@@ -79,6 +82,7 @@ test.beforeEach(async () => {
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  __test_resetCredentialHealthCache();
 });
 
 test.after(() => {
@@ -95,8 +99,11 @@ test("authoritative validation clears only the exact primary credential during a
     extra: WARNING_HEALTH,
   });
 
+  setCredentialHealth(connection.id, "openai", "error", "Rejected", "upstream_auth_error");
+  assert.equal(isCredentialHealthy(connection.id), false);
   const result = await testSingleConnection(connection.id);
   assert.equal(result.valid, true);
+  assert.equal(isCredentialHealthy(connection.id), true, "manual validation must recover the gate");
 
   const updated = await providersDb.getProviderConnectionById(connection.id);
   const health = updated.providerSpecificData?.apiKeyHealth as Record<string, StoredKeyHealth>;
@@ -123,8 +130,11 @@ test("validating the primary key cannot clear a warning on another key", async (
     extra: WARNING_HEALTH,
   });
 
+  setCredentialHealth(connection.id, "openai", "error", "Rejected", "upstream_auth_error");
+  assert.equal(isCredentialHealthy(connection.id), false);
   const result = await testSingleConnection(connection.id);
   assert.equal(result.valid, true);
+  assert.equal(isCredentialHealthy(connection.id), true, "manual validation must recover the gate");
 
   const updated = await providersDb.getProviderConnectionById(connection.id);
   const health = updated.providerSpecificData?.apiKeyHealth as Record<string, StoredKeyHealth>;

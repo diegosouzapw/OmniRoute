@@ -222,7 +222,7 @@ const CASES: Case[] = [
     message: /Credential gate blocked/,
     async arrange() {
       const provider = uniqueProvider("credgate");
-      setCredentialHealth("c-credgate", provider, "error", "probe failed");
+      setCredentialHealth("c-credgate", provider, "error", "probe failed", "upstream_auth_error");
       const target = protectedTarget(provider, "c-credgate");
       return { target, st: state(target), d: deps() };
     },
