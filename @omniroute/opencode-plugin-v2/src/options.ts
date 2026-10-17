@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { DEFAULT_MODEL_CACHE_TTL_MS } from "./cache.js";
 import type { ResolvedOptions } from "./catalog.js";
+import { DEFAULT_FREE_SIGNALS, FREE_SIGNALS } from "./shared/free-signals.js";
 import { isHttpUrl } from "./shared/models-map.js";
 
 const apiFormatSchema = z
@@ -49,6 +50,12 @@ const pluginOptionsSchema = z
     providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
     freeOnly: z.boolean().default(false),
+    // Extra signals that admit a model under `freeOnly` besides the declared
+    // free-tier catalog. Opt-in: the default keeps the declared-only rule.
+    freeSignals: z.array(z.enum(FREE_SIGNALS)).default([...DEFAULT_FREE_SIGNALS]),
+    // Provider prefixes whose models count as free under the
+    // `provider-named` signal (prefixes ending in `-free` always do).
+    freeProviders: z.array(z.string()).optional(),
     toolsOnly: z.boolean().default(false),
     visionOnly: z.boolean().default(false),
     // Per-provider showcase size: how many models each provider keeps in
@@ -164,6 +171,8 @@ export function toResolvedOptions(parsed: PluginOptions): ResolvedOptions {
     providersAllow: parsed.providersAllow,
     usableOnly: parsed.usableOnly,
     freeOnly: parsed.freeOnly,
+    freeSignals: parsed.freeSignals,
+    freeProviders: parsed.freeProviders,
     toolsOnly: parsed.toolsOnly,
     visionOnly: parsed.visionOnly,
     showcasePerOwner: parsed.showcasePerOwner,

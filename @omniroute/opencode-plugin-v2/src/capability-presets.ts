@@ -7,6 +7,8 @@ import { isFreeOnlyFreeType } from "./shared/naming.js";
 
 export interface CapabilityPresetFlags {
   freeOnly?: boolean;
+  /** The caller's inferred-free verdict for this entry (see `inferFreeSignal`). */
+  freeInferred?: boolean;
   toolsOnly?: boolean;
   visionOnly?: boolean;
 }
@@ -24,7 +26,12 @@ export function passesCapabilityPresets(
   enrichment: OmniRouteEnrichmentEntry | undefined,
   flags: CapabilityPresetFlags
 ): boolean {
-  if (flags.freeOnly === true && !isFreeOnlyFreeType(enrichment?.freeType)) return false;
+  if (
+    flags.freeOnly === true &&
+    !isFreeOnlyFreeType(enrichment?.freeType) &&
+    flags.freeInferred !== true
+  )
+    return false;
   if (flags.toolsOnly === true && mapped.capabilities.toolcall !== true) return false;
   if (
     flags.visionOnly === true &&
@@ -49,7 +56,12 @@ export function passesRawPreset(
   enrichment: OmniRouteEnrichmentEntry | undefined,
   flags: CapabilityPresetFlags
 ): boolean {
-  if (flags.freeOnly === true && !isFreeOnlyFreeType(enrichment?.freeType)) return false;
+  if (
+    flags.freeOnly === true &&
+    !isFreeOnlyFreeType(enrichment?.freeType) &&
+    flags.freeInferred !== true
+  )
+    return false;
   if (flags.toolsOnly === true && Boolean(raw.capabilities?.tool_calling ?? false) !== true)
     return false;
   if (
@@ -78,14 +90,18 @@ export function filterRawPoolByPreset(
   entries: readonly OmniRouteRawModelEntry[],
   enrichment: OmniRouteEnrichmentMap | undefined,
   canonicalToAlias: Map<string, string>,
-  flags: CapabilityPresetFlags
+  flags: CapabilityPresetFlags,
+  isFreeInferred?: (id: string, entry: OmniRouteEnrichmentEntry | undefined) => boolean
 ): OmniRouteRawModelEntry[] {
   if (!presetsActive(flags)) return [...entries];
-  return entries.filter(
-    (entry) =>
-      entry.id &&
-      passesRawPreset(entry, lookupEnrichment(entry.id, enrichment, canonicalToAlias), flags)
-  );
+  return entries.filter((entry) => {
+    if (!entry.id) return false;
+    const row = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+    return passesRawPreset(entry, row, {
+      ...flags,
+      freeInferred: isFreeInferred?.(entry.id, row) ?? flags.freeInferred,
+    });
+  });
 }
 
 interface ComboPresetStep {
@@ -114,7 +130,8 @@ export function foldComboPresetSteps(
   presetByName: ReadonlyMap<string, boolean>,
   enrichment: OmniRouteEnrichmentMap | undefined,
   canonicalToAlias: Map<string, string>,
-  flags: CapabilityPresetFlags
+  flags: CapabilityPresetFlags,
+  isFreeInferred?: (id: string, entry: OmniRouteEnrichmentEntry | undefined) => boolean
 ): ComboPresetStep {
   const memberEntries: OmniRouteRawModelEntry[] = [];
   const active = presetsActive(flags);
@@ -149,8 +166,12 @@ export function foldComboPresetSteps(
     }
     if (active) {
       countable = true;
+      const memberRow = lookupEnrichment(member.id, enrichment, canonicalToAlias);
       if (
-        !passesRawPreset(member, lookupEnrichment(member.id, enrichment, canonicalToAlias), flags)
+        !passesRawPreset(member, memberRow, {
+          ...flags,
+          freeInferred: isFreeInferred?.(member.id, memberRow) ?? flags.freeInferred,
+        })
       ) {
         failsPreset = true;
         break;

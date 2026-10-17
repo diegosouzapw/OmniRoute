@@ -1,0 +1,1 @@
+- **feat(plugin):** `@omniroute/opencode-plugin-v2` gains an opt-in `freeSignals` option so `freeOnly` can also admit models the pricing table prices at zero, ids ending in `-free`/`:free`, and `*-free` providers, labelled `(free, inferred)` ([#16800](https://github.com/diegosouzapw/OmniRoute/pull/16800)) — thanks @maxmad64bis

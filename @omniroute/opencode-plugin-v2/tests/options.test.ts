@@ -289,12 +289,12 @@ describe("providerId is bounded because it reaches a filesystem path", () => {
 });
 
 describe("resolved relay defaults", () => {
-  it("relays the four catalog filter defaults from parse to resolved options", () => {
+  it("relays the two free-signal defaults from parse to resolved options", () => {
     const parsed = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    assert.deepEqual(parsed.freeSignals, ["declared"]);
+    assert.equal(parsed.freeProviders, undefined);
     const resolved = toResolvedOptions(parsed);
-    assert.equal(resolved.usableOnly, parsed.usableOnly);
-    assert.equal(resolved.freeOnly, parsed.freeOnly);
-    assert.equal(resolved.toolsOnly, parsed.toolsOnly);
-    assert.equal(resolved.visionOnly, parsed.visionOnly);
+    assert.deepEqual(resolved.freeSignals, ["declared"]);
+    assert.equal(resolved.freeProviders, undefined);
   });
 });
