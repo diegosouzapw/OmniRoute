@@ -2,9 +2,12 @@
  * modelIntelligence.ts — DB domain module for model task-fitness scores.
  *
  * Persists per-model intelligence from arena ELO, models.dev tier rankings,
- * and user overrides. Resolution chain: user_override → arena_elo → models_dev_tier.
+ * and user overrides. Resolution chain rank order lives in INTEL_PRECEDENCE
+ * below — the single source of truth consumed by the SQL ORDER BY CASE here
+ * and the TS resolution chain in taskFitness.ts.
  *
  * @see Migration 097_model_intelligence.sql
+ * @see Migration 206_add_model_intel_canonical.sql
  */
 
 import { getDbInstance, rowToCamel } from "./core";
@@ -22,6 +25,37 @@ export interface ModelIntelligenceEntry {
   expiresAt: string | null;
   votes?: number;
   rank?: number;
+  canonicalId?: string | null;
+  sourceId?: string | null;
+  matchConfidence?: number | null;
+}
+
+// ──────────────── Precedence ────────────────
+
+/**
+ * Canonical rank order for intelligence sources (highest priority first).
+ * Single source of truth: getModelIntelligence() builds its SQL IN-list and
+ * ORDER BY CASE from this, and taskFitness.ts drives its resolution chain
+ * and inherited-source loop from it. Do not duplicate this list elsewhere.
+ */
+export const INTEL_PRECEDENCE: string[] = [
+  "user_override",
+  "arena_elo",
+  "modelgrep_intel",
+  "publicai_index",
+  "arena_elo_external",
+  "huggingface_meta",
+  "models_dev_tier",
+];
+
+/** SQL IN-list fragment derived from INTEL_PRECEDENCE (literals only — values stay in ? bindings). */
+function intelInList(): string {
+  return INTEL_PRECEDENCE.map((s) => `'${s}'`).join(", ");
+}
+
+/** SQL CASE fragment deriving rank from INTEL_PRECEDENCE position (literals only). */
+function intelOrderCase(): string {
+  return INTEL_PRECEDENCE.map((s, i) => `WHEN '${s}' THEN ${i + 1}`).join("\n          ");
 }
 
 // ──────────────── Helpers ────────────────
@@ -37,6 +71,9 @@ function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
     confidence: typeof camel.confidence === "string" ? camel.confidence : null,
     syncedAt: String(camel.syncedAt ?? ""),
     expiresAt: typeof camel.expiresAt === "string" ? camel.expiresAt : null,
+    canonicalId: typeof camel.canonicalId === "string" ? camel.canonicalId : null,
+    sourceId: typeof camel.sourceId === "string" ? camel.sourceId : null,
+    matchConfidence: typeof camel.matchConfidence === "number" ? camel.matchConfidence : null,
   };
 }
 
@@ -51,12 +88,10 @@ export function getModelIntelligence(
     .prepare(
       `SELECT * FROM model_intelligence
        WHERE model = ? AND category = ?
-         AND source IN ('user_override', 'arena_elo', 'models_dev_tier')
+         AND source IN (${intelInList()})
          AND (expires_at IS NULL OR datetime(expires_at) > datetime('now'))
        ORDER BY CASE source
-         WHEN 'user_override' THEN 1
-         WHEN 'arena_elo' THEN 2
-         WHEN 'models_dev_tier' THEN 3
+         ${intelOrderCase()}
        END
        LIMIT 1`
     )
@@ -87,8 +122,8 @@ export function upsertModelIntelligence(entry: Omit<ModelIntelligenceEntry, "syn
 
   db.prepare(
     `INSERT OR REPLACE INTO model_intelligence
-       (model, source, category, score, elo_raw, confidence, synced_at, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)`
+       (model, source, category, score, elo_raw, confidence, synced_at, expires_at, canonical_id, source_id, match_confidence)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
   ).run(
     entry.model,
     entry.source,
@@ -96,7 +131,10 @@ export function upsertModelIntelligence(entry: Omit<ModelIntelligenceEntry, "syn
     entry.score,
     entry.eloRaw ?? null,
     entry.confidence ?? null,
-    entry.expiresAt ?? null
+    entry.expiresAt ?? null,
+    entry.canonicalId ?? null,
+    entry.sourceId ?? null,
+    entry.matchConfidence ?? null
   );
 }
 
@@ -165,8 +203,8 @@ export function bulkUpsertModelIntelligence(
   const db = getDbInstance();
   const stmt = db.prepare(
     `INSERT OR REPLACE INTO model_intelligence
-       (model, source, category, score, elo_raw, confidence, synced_at, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)`
+       (model, source, category, score, elo_raw, confidence, synced_at, expires_at, canonical_id, source_id, match_confidence)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
   );
 
   const upsertAll = db.transaction(() => {
@@ -179,7 +217,10 @@ export function bulkUpsertModelIntelligence(
         entry.score,
         entry.eloRaw ?? null,
         entry.confidence ?? null,
-        entry.expiresAt ?? null
+        entry.expiresAt ?? null,
+        entry.canonicalId ?? null,
+        entry.sourceId ?? null,
+        entry.matchConfidence ?? null
       );
       count++;
     }
@@ -222,8 +263,8 @@ export function applyArenaEloRefresh(
   const db = getDbInstance();
   const upsertStmt = db.prepare(
     `INSERT OR REPLACE INTO model_intelligence
-       (model, source, category, score, elo_raw, confidence, synced_at, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)`
+       (model, source, category, score, elo_raw, confidence, synced_at, expires_at, canonical_id, source_id, match_confidence)
+     VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
   );
 
   const refresh = db.transaction(() => {
@@ -236,7 +277,10 @@ export function applyArenaEloRefresh(
         entry.score,
         entry.eloRaw ?? null,
         entry.confidence ?? null,
-        entry.expiresAt ?? null
+        entry.expiresAt ?? null,
+        entry.canonicalId ?? null,
+        entry.sourceId ?? null,
+        entry.matchConfidence ?? null
       );
       upserted++;
     }

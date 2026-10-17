@@ -14,7 +14,6 @@ import { resolveScoresAs } from "@omniroute/open-sse/services/autoCombo/scoresAs
 
 import { isArenaEloSyncEnabled } from "@/shared/utils/featureFlags";
 
-import { getDbInstance } from "./db/core";
 import { backupDbFile } from "./db/backup";
 import {
   applyArenaEloRefresh,
@@ -22,6 +21,7 @@ import {
   getLatestSyncedAt,
   type ModelIntelligenceEntry,
 } from "./db/modelIntelligence";
+import { clearKvTimestamp, readKvTimestamp, writeKvTimestamp } from "./db/kv";
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -174,41 +174,16 @@ function getErrorMessage(error: unknown): string {
 // window (remediation 2026-09-12: prevents boot-loop retry storms).
 const BACKOFF_MS = SYNC_INTERVAL_MS / 4; // 6h for the default 24h interval
 
-const KV_READ_SQL = `SELECT value FROM key_value WHERE namespace = ? AND key = ? LIMIT 1`;
-const KV_WRITE_SQL = `INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)`;
-
 function readLastFailedAt(): number | null {
-  try {
-    const db = getDbInstance();
-    const row = db.prepare(KV_READ_SQL).get("arena_elo", "lastFailedAt") as
-      { value: string } | undefined;
-    if (!row?.value) return null;
-    const ts = Date.parse(row.value);
-    return Number.isFinite(ts) ? ts : null;
-  } catch {
-    return null; // kv problems must never break the sync itself
-  }
+  return readKvTimestamp("arena_elo", "lastFailedAt");
 }
 
 function writeLastFailedAt(ts: number): void {
-  try {
-    const db = getDbInstance();
-    db.prepare(KV_WRITE_SQL).run("arena_elo", "lastFailedAt", new Date(ts).toISOString());
-  } catch (err) {
-    console.warn(`[ARENA_ELO_SYNC] Failed to persist lastFailedAt: ${getErrorMessage(err)}`);
-  }
+  writeKvTimestamp("arena_elo", "lastFailedAt", ts, "ARENA_ELO_SYNC");
 }
 
 function clearLastFailedAt(): void {
-  try {
-    const db = getDbInstance();
-    db.prepare(`DELETE FROM key_value WHERE namespace = ? AND key = ?`).run(
-      "arena_elo",
-      "lastFailedAt"
-    );
-  } catch {
-    // Swallow: a stuck kv row only costs one redundant fetch later.
-  }
+  clearKvTimestamp("arena_elo", "lastFailedAt", "ARENA_ELO_SYNC");
 }
 
 function getEffectiveArenaEloSyncEnabled(): boolean {
@@ -435,7 +410,10 @@ function withSynthesizedBaseRows(
 ): Array<Omit<ModelIntelligenceEntry, "syncedAt">> {
   const keyOf = (model: string, category: string) => `${model}|${category}`;
   const indexByKey = new Map<string, number>();
-  entries.forEach((entry, index) => indexByKey.set(keyOf(entry.model, entry.category), index));
+  for (let index = 0; index < entries.length; index++) {
+    const entry = entries[index];
+    indexByKey.set(keyOf(entry.model, entry.category), index);
+  }
 
   const best = new Map<string, Omit<ModelIntelligenceEntry, "syncedAt">>();
   for (const entry of entries) {

@@ -43,6 +43,7 @@ import {
   getModelIntelligenceBySource,
   setUserFitnessOverrideEntry,
   deleteUserFitnessOverrideEntry,
+  INTEL_PRECEDENCE,
 } from "../../../src/lib/db/modelIntelligence.ts";
 import { readFileSync } from "node:fs";
 import { resolveScoresAs } from "./scoresAs.ts";
@@ -506,6 +507,14 @@ export function getTaskFitnessWithSource(
       return inherited;
     }
 
+    for (const source of INTEL_PRECEDENCE) {
+      if (source === "user_override" || source === "arena_elo" || source === "models_dev_tier") continue;
+      const score = queryModelIntelligence(normalizedModel, normalizedTask, source);
+      if (score !== null) {
+        return { score, source };
+      }
+    }
+
     const tierScore = getModelsDevTierFitness(normalizedModel, normalizedTask);
     if (tierScore !== null) {
       return { score: tierScore, source: "models_dev_tier" };
@@ -542,7 +551,8 @@ function lookupInheritedFitness(
   const normalizedBase = base.toLowerCase();
   if (isVendorRetiredId(normalizedBase)) return null;
 
-  for (const source of ["user_override", "arena_elo"] as const) {
+  for (const source of INTEL_PRECEDENCE) {
+    if (source === "models_dev_tier") continue;
     const score = queryModelIntelligence(normalizedBase, normalizedTask, source);
     if (score !== null) return { score, source: `${source}:inherited` };
   }
