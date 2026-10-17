@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Pasirinktinė User Agent žyma",
     "huggingfaceBillToHint": "Neprivaloma. Jūsų Hugging Face atsiskaitymo paskyros identifikatorius, siunčiamas kaip X-HF-Bill-To antraštė išlaidoms priskirti.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To paskyra",
+    "commandCodeZdrLabel": "Reikalauti nulinio duomenų saugojimo (ZDR)",
+    "commandCodeZdrHint": "Su kiekviena šiuo API raktu atliekama užklausa siunčia x-cmd-zdr: 1. Modeliai be ZDR upstream gali būti nepasiekiami.",
     "databricksBaseUrlHint": "Databricks bazinio URL paaiškinimas",
     "defaultThinkingStrengthHint": "Naudojama, kai užklausoje nenurodytas samprotavimo pastangų lygis.",
     "defaultThinkingStrengthLabel": "Numatytasis mąstymo intensyvumas",

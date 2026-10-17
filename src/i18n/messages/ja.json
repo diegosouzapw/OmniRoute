@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "カスタムユーザーエージェントのラベル",
     "huggingfaceBillToHint": "任意。コストの帰属先を指定するために X-HF-Bill-To ヘッダーとして送信される、Hugging Face 請求アカウントの識別子です。",
     "huggingfaceBillToLabel": "Hugging Face Bill-To アカウント",
+    "commandCodeZdrLabel": "ゼロデータ保持(ZDR)を必須にする",
+    "commandCodeZdrHint": "この API キーで行うすべてのリクエストに x-cmd-zdr: 1 を送信します。ZDR 対応のアップストリームがないモデルは利用できない場合があります。",
     "databricksBaseUrlHint": "Databricks ベース URL のヒント",
     "defaultThinkingStrengthHint": "リクエストで推論の強度が指定されていない場合に使用されます。",
     "defaultThinkingStrengthLabel": "デフォルトの思考強度",

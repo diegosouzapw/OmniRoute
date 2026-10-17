@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "కస్టమ్ యూజర్ ఏజెంట్ లేబుల్",
     "huggingfaceBillToHint": "ఐచ్ఛికం. ఖర్చు కేటాయింపు కోసం X-HF-Bill-To హెడర్గా పంపబడే మీ Hugging Face బిల్లింగ్ ఖాతా గుర్తింపు.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To ఖాతా",
+    "commandCodeZdrLabel": "సున్నా డేటా నిలుపుదల (ZDR) తప్పనిసరి చేయండి",
+    "commandCodeZdrHint": "ఈ API కీతో చేసే ప్రతి అభ్యర్థనతో x-cmd-zdr: 1 పంపుతుంది. ZDR upstream లేని మోడల్‌లు అందుబాటులో ఉండకపోవచ్చు.",
     "databricksBaseUrlHint": "Databricks బేస్ URL సూచన",
     "defaultThinkingStrengthHint": "అభ్యర్థనలో రీజనింగ్ ప్రయత్న స్థాయి పేర్కొననప్పుడు ఉపయోగించబడుతుంది.",
     "defaultThinkingStrengthLabel": "డిఫాల్ట్ థింకింగ్ తీవ్రత",

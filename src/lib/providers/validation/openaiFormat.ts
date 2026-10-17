@@ -5,6 +5,11 @@ import { randomUUID } from "node:crypto";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { COMMAND_CODE_VERSION } from "@omniroute/open-sse/executors/commandCode.ts";
 import {
+  COMMAND_CODE_ZDR_HEADER,
+  applyCommandCodeZdrHeader,
+  isCommandCodeZdrEnabled,
+} from "@omniroute/open-sse/executors/commandCode/zdr.ts";
+import {
   detectReasoningControl,
   getReasoningControlEndpointFingerprint,
 } from "@omniroute/open-sse/utils/reasoningControl.ts";
@@ -215,6 +220,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       Accept: "text/event-stream",
+      ...(isCommandCodeZdrEnabled(providerSpecificData) ? { [COMMAND_CODE_ZDR_HEADER]: "1" } : {}),
     },
     body: {
       model: validationModelId,
@@ -243,6 +249,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       "x-session-id": randomUUID(),
     };
     applyCustomUserAgent(alphaHeaders, providerSpecificData);
+    applyCommandCodeZdrHeader(alphaHeaders, providerSpecificData);
 
     const alphaBody = {
       config: { environment: "external" },

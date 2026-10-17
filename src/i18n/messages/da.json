@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Etiket for brugerdefineret brugeragent",
     "huggingfaceBillToHint": "Valgfrit. Id'et for din Hugging Face-faktureringskonto, der sendes som X-HF-Bill-To-headeren med henblik på omkostningsfordeling.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To-konto",
+    "commandCodeZdrLabel": "Kræv nul dataopbevaring (ZDR)",
+    "commandCodeZdrHint": "Sender x-cmd-zdr: 1 med hver anmodning foretaget med denne API-nøgle. Modeller uden en ZDR-upstream er muligvis ikke tilgængelige.",
     "databricksBaseUrlHint": "Tip til Databricks-basis-URL",
     "defaultThinkingStrengthHint": "Bruges, når en anmodning ikke angiver ræsonneringsindsatsen.",
     "defaultThinkingStrengthLabel": "Standardstyrke for tænkning",

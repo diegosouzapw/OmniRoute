@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "برچسب عامل کاربر سفارشی",
     "huggingfaceBillToHint": "اختیاری. شناسه حساب صورتحساب Hugging Face شما که برای انتساب هزینه بهعنوان سرآیند X-HF-Bill-To ارسال میشود.",
     "huggingfaceBillToLabel": "حساب Bill-To در Hugging Face",
+    "commandCodeZdrLabel": "الزام به عدم نگهداری داده (ZDR)",
+    "commandCodeZdrHint": "با هر درخواستی که با این کلید API انجام شود x-cmd-zdr: 1 ارسال می‌کند. مدل‌هایی که upstream دارای ZDR ندارند ممکن است در دسترس نباشند.",
     "databricksBaseUrlHint": "راهنمای URL پایه Databricks",
     "defaultThinkingStrengthHint": "زمانی استفاده میشود که درخواستی میزان تلاش برای استدلال را مشخص نکرده باشد.",
     "defaultThinkingStrengthLabel": "قدرت پیشفرض تفکر",

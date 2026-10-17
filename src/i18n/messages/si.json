@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "අභිරුචි පරිශීලක නියෝජිත ලේබලය",
     "huggingfaceBillToHint": "විකල්පයකි. පිරිවැය වෙන් කිරීම සඳහා X-HF-Bill-To ශීර්ෂය ලෙස යවනු ලබන ඔබගේ Hugging Face බිල්පත් ගිණුම් හඳුනාගැනීමේ අංකය.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To ගිණුම",
+    "commandCodeZdrLabel": "ශුන්‍ය දත්ත රඳවා ගැනීම (ZDR) අවශ්‍ය කරන්න",
+    "commandCodeZdrHint": "මෙම API යතුර සමඟ කරන සෑම ඉල්ලීමක් සමඟම x-cmd-zdr: 1 යවයි. ZDR upstream නොමැති මාදිලි ලබා ගත නොහැකි විය හැක.",
     "databricksBaseUrlHint": "Databricks මූලික URL ඉඟිය",
     "defaultThinkingStrengthHint": "ඉල්ලීමක තර්කන ප්රයත්නය සඳහන් කර නොමැති විට භාවිත වේ.",
     "defaultThinkingStrengthLabel": "පෙරනිමි සිතීමේ තීව්රතාව",

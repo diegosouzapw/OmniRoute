@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "ಕಸ್ಟಮ್ ಯೂಸರ್ ಏಜೆಂಟ್ ಲೇಬಲ್",
     "huggingfaceBillToHint": "ಐಚ್ಛಿಕ. ವೆಚ್ಚ ಹಂಚಿಕೆಗಾಗಿ X-HF-Bill-To ಹೆಡರ್ ಆಗಿ ಕಳುಹಿಸಲಾಗುವ ನಿಮ್ಮ Hugging Face ಬಿಲ್ಲಿಂಗ್ ಖಾತೆಯ ಗುರುತಿಸುವಿಕೆ.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To ಖಾತೆ",
+    "commandCodeZdrLabel": "ಶೂನ್ಯ ಡೇಟಾ ಉಳಿಕೆ (ZDR) ಅಗತ್ಯಪಡಿಸಿ",
+    "commandCodeZdrHint": "ಈ API ಕೀ ಮೂಲಕ ಮಾಡಿದ ಪ್ರತಿ ವಿನಂತಿಯೊಂದಿಗೆ x-cmd-zdr: 1 ಕಳುಹಿಸುತ್ತದೆ. ZDR upstream ಇಲ್ಲದ ಮಾದರಿಗಳು ಲಭ್ಯವಿಲ್ಲದಿರಬಹುದು.",
     "databricksBaseUrlHint": "Databricks ಬೇಸ್ URL ಸುಳಿವು",
     "defaultThinkingStrengthHint": "ವಿನಂತಿಯು ತಾರ್ಕಿಕ ಪ್ರಯತ್ನದ ಮಟ್ಟವನ್ನು ನಿರ್ದಿಷ್ಟಪಡಿಸದಿದ್ದಾಗ ಬಳಸಲಾಗುತ್ತದೆ.",
     "defaultThinkingStrengthLabel": "ಡೀಫಾಲ್ಟ್ ಚಿಂತನಾ ಸಾಮರ್ಥ್ಯ",

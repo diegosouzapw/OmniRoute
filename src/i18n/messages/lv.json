@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Pielāgota lietotāja aģenta etiķete",
     "huggingfaceBillToHint": "Neobligāti. Jūsu Hugging Face norēķinu konta identifikators, kas tiek nosūtīts kā X-HF-Bill-To galvene izmaksu attiecināšanai.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To konts",
+    "commandCodeZdrLabel": "Pieprasīt nulles datu saglabāšanu (ZDR)",
+    "commandCodeZdrHint": "Ar katru pieprasījumu, kas veikts ar šo API atslēgu, nosūta x-cmd-zdr: 1. Modeļi bez ZDR upstream var nebūt pieejami.",
     "databricksBaseUrlHint": "Databricks bāzes URL norāde",
     "defaultThinkingStrengthHint": "Tiek izmantota, ja pieprasījumā nav norādīta spriešanas intensitāte.",
     "defaultThinkingStrengthLabel": "Noklusējuma domāšanas intensitāte",

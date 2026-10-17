@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Label Ejen Pengguna Tersuai",
     "huggingfaceBillToHint": "Pilihan. Pengecam akaun pengebilan Hugging Face anda, yang dihantar sebagai pengepala X-HF-Bill-To untuk pengagihan kos.",
     "huggingfaceBillToLabel": "Akaun Bill-To Hugging Face",
+    "commandCodeZdrLabel": "Wajibkan pengekalan data sifar (ZDR)",
+    "commandCodeZdrHint": "Menghantar x-cmd-zdr: 1 bersama setiap permintaan yang dibuat dengan kunci API ini. Model tanpa upstream ZDR mungkin tidak tersedia.",
     "databricksBaseUrlHint": "Petunjuk URL Asas Databricks",
     "defaultThinkingStrengthHint": "Digunakan apabila permintaan tidak menentukan tahap usaha penaakulan.",
     "defaultThinkingStrengthLabel": "Kekuatan pemikiran lalai",

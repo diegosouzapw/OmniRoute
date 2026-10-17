@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Label voor aangepaste user-agent",
     "huggingfaceBillToHint": "Optioneel. De identificatie van je Hugging Face-factureringsaccount, verzonden als de X-HF-Bill-To-header voor kostentoewijzing.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To-account",
+    "commandCodeZdrLabel": "Zero Data Retention (ZDR) vereisen",
+    "commandCodeZdrHint": "Stuurt x-cmd-zdr: 1 mee met elk verzoek dat met deze API-sleutel wordt gedaan. Modellen zonder ZDR-upstream zijn mogelijk niet beschikbaar.",
     "databricksBaseUrlHint": "Hint voor Databricks-basis-URL",
     "defaultThinkingStrengthHint": "Wordt gebruikt wanneer in een verzoek geen redeneerinspanning is opgegeven.",
     "defaultThinkingStrengthLabel": "Standaard denkkracht",

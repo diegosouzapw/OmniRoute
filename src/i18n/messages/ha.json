@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Lakabin User Agent na Musamman",
     "huggingfaceBillToHint": "Na zaɓi ne. Mai gano asusun cajin ku na Hugging Face, wanda ake aikawa a matsayin taken X-HF-Bill-To don danganta kuɗin da aka kashe.",
     "huggingfaceBillToLabel": "Asusun Hugging Face Bill-To",
+    "commandCodeZdrLabel": "Bukaci rashin ajiye bayanai (ZDR)",
+    "commandCodeZdrHint": "Yana aika x-cmd-zdr: 1 tare da kowace buƙata da aka yi da wannan maɓallin API. Samfuran da ba su da upstream na ZDR ƙila ba za su samu ba.",
     "databricksBaseUrlHint": "Alamar Bayani ta Databricks Base Url",
     "defaultThinkingStrengthHint": "Ana amfani da wannan idan buƙata ba ta fayyace matakin ƙoƙarin tunani ba.",
     "defaultThinkingStrengthLabel": "Ƙarfin tunani na asali",

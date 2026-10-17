@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Custom User Agent Label",
     "huggingfaceBillToHint": "Optional. Your Hugging Face billing account identifier, sent as the X-HF-Bill-To header for cost attribution.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To Account",
+    "commandCodeZdrLabel": "Require Zero Data Retention (ZDR)",
+    "commandCodeZdrHint": "Sends x-cmd-zdr: 1 with every request made with this API key. Models without a ZDR upstream may be unavailable.",
     "databricksBaseUrlHint": "Databricks Base Url Hint",
     "defaultThinkingStrengthHint": "Used when a request does not specify reasoning effort.",
     "defaultThinkingStrengthLabel": "Default thinking strength",

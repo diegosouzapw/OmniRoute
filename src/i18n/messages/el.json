@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Ετικέτα προσαρμοσμένου User Agent",
     "huggingfaceBillToHint": "Προαιρετικό. Το αναγνωριστικό του λογαριασμού χρέωσης Hugging Face, το οποίο αποστέλλεται ως κεφαλίδα X-HF-Bill-To για την απόδοση του κόστους.",
     "huggingfaceBillToLabel": "Λογαριασμός Bill-To του Hugging Face",
+    "commandCodeZdrLabel": "Απαίτηση μηδενικής διατήρησης δεδομένων (ZDR)",
+    "commandCodeZdrHint": "Στέλνει x-cmd-zdr: 1 με κάθε αίτημα που γίνεται με αυτό το κλειδί API. Μοντέλα χωρίς upstream με ZDR ενδέχεται να μην είναι διαθέσιμα.",
     "databricksBaseUrlHint": "Υπόδειξη βασικής διεύθυνσης URL του Databricks",
     "defaultThinkingStrengthHint": "Χρησιμοποιείται όταν ένα αίτημα δεν καθορίζει τον βαθμό συλλογιστικής προσπάθειας.",
     "defaultThinkingStrengthLabel": "Προεπιλεγμένη ένταση σκέψης",

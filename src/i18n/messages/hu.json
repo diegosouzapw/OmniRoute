@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Egyéni User-Agent címkéje",
     "huggingfaceBillToHint": "Nem kötelező. A Hugging Face számlázási fiók azonosítója, amelyet a költségek hozzárendeléséhez X-HF-Bill-To fejlécként küldünk el.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To-fiók",
+    "commandCodeZdrLabel": "Nulla adatmegőrzés (ZDR) megkövetelése",
+    "commandCodeZdrHint": "Minden, ezzel az API-kulccsal küldött kéréssel x-cmd-zdr: 1 fejlécet küld. A ZDR-képes upstream nélküli modellek elérhetetlenek lehetnek.",
     "databricksBaseUrlHint": "Databricks alap-URL súgója",
     "defaultThinkingStrengthHint": "Akkor használatos, ha a kérelem nem határozza meg az érvelés intenzitását.",
     "defaultThinkingStrengthLabel": "Alapértelmezett gondolkodási intenzitás",

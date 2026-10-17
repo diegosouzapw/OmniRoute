@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Kohandatud User Agenti silt",
     "huggingfaceBillToHint": "Valikuline. Teie Hugging Face arvelduskonto identifikaator, mis saadetakse kulude omistamiseks päisena X-HF-Bill-To.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To konto",
+    "commandCodeZdrLabel": "Nõua andmete nullsäilitamist (ZDR)",
+    "commandCodeZdrHint": "Saadab x-cmd-zdr: 1 iga selle API-võtmega tehtud päringuga. Mudelid ilma ZDR-toega upstreamita ei pruugi olla saadaval.",
     "databricksBaseUrlHint": "Databricksi baas-URL-i vihje",
     "defaultThinkingStrengthHint": "Kasutatakse siis, kui päringus pole arutluskäigu põhjalikkust määratud.",
     "defaultThinkingStrengthLabel": "Arutluskäigu vaikimisi põhjalikkus",

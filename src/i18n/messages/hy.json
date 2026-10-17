@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Օգտատիրոջ հատուկ գործակալի պիտակ",
     "huggingfaceBillToHint": "Ընտրովի։ Ձեր Hugging Face վճարային հաշվի նույնացուցիչը, որն ուղարկվում է որպես X-HF-Bill-To վերնագիր՝ ծախսերի վերագրման համար։",
     "huggingfaceBillToLabel": "Hugging Face Bill-To հաշիվ",
+    "commandCodeZdrLabel": "Պահանջել տվյալների զրոյական պահպանում (ZDR)",
+    "commandCodeZdrHint": "Ուղարկում է x-cmd-zdr: 1 այս API բանալիով կատարված յուրաքանչյուր հարցման հետ։ ZDR upstream չունեցող մոդելները կարող են անհասանելի լինել։",
     "databricksBaseUrlHint": "Databricks-ի բազային URL-ի հուշում",
     "defaultThinkingStrengthHint": "Օգտագործվում է, երբ հարցումը չի նշում տրամաբանման ջանքի մակարդակը։",
     "defaultThinkingStrengthLabel": "Մտածողության կանխադրված խորություն",

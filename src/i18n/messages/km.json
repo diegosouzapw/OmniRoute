@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "ស្លាក User Agent ផ្ទាល់ខ្លួន",
     "huggingfaceBillToHint": "ជាជម្រើស។ ឧបករណ៍កំណត់អត្តសញ្ញាណគណនីចេញវិក្កយបត្រ Hugging Face របស់អ្នក ដែលត្រូវបានផ្ញើជាបឋមកថា X-HF-Bill-To សម្រាប់ការកំណត់ថ្លៃចំណាយ។",
     "huggingfaceBillToLabel": "គណនី Hugging Face Bill-To",
+    "commandCodeZdrLabel": "តម្រូវឱ្យមានការរក្សាទុកទិន្នន័យសូន្យ (ZDR)",
+    "commandCodeZdrHint": "ផ្ញើ x-cmd-zdr: 1 ជាមួយសំណើនីមួយៗដែលធ្វើឡើងដោយសោ API នេះ។ ម៉ូដែលដែលគ្មាន upstream ZDR ប្រហែលជាមិនអាចប្រើបាន។",
     "databricksBaseUrlHint": "ព័ត៌មានណែនាំអំពី URL មូលដ្ឋានរបស់ Databricks",
     "defaultThinkingStrengthHint": "ប្រើនៅពេលសំណើមិនបានបញ្ជាក់កម្រិតនៃកិច្ចខិតខំប្រឹងប្រែងក្នុងការវែកញែក។",
     "defaultThinkingStrengthLabel": "កម្រិតនៃការគិតលំនាំដើម",

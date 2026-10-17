@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Fərdi User Agent etiketi",
     "huggingfaceBillToHint": "İstəyə bağlıdır. Xərclərin aid edilməsi üçün X-HF-Bill-To başlığı kimi göndərilən Hugging Face fakturalandırma hesabı identifikatorunuz.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To hesabı",
+    "commandCodeZdrLabel": "Sıfır məlumat saxlanmasını (ZDR) tələb et",
+    "commandCodeZdrHint": "Bu API açarı ilə edilən hər sorğu ilə x-cmd-zdr: 1 göndərir. ZDR dəstəkli upstream-i olmayan modellər əlçatan olmaya bilər.",
     "databricksBaseUrlHint": "Databricks əsas URL-i üçün ipucu",
     "defaultThinkingStrengthHint": "Sorğuda düşünmə səyi göstərilmədikdə istifadə olunur.",
     "defaultThinkingStrengthLabel": "Standart düşünmə gücü",

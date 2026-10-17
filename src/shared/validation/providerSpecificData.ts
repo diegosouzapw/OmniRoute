@@ -292,6 +292,14 @@ export function validateProviderSpecificData(
     });
   }
 
+  if (data.zdrEnabled !== undefined && typeof data.zdrEnabled !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.zdrEnabled must be a boolean",
+      path: ["zdrEnabled"],
+    });
+  }
+
   const blockExtraUsage = data.blockExtraUsage;
   if (data.allowPaidCredits !== undefined && typeof data.allowPaidCredits !== "boolean") {
     ctx.addIssue({

@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Lipéad Gníomhaire Úsáideora Saincheaptha",
     "huggingfaceBillToHint": "Roghnach. Aitheantóir do chuntais billeála Hugging Face, a sheoltar mar an ceanntásc X-HF-Bill-To chun costais a chur i leith.",
     "huggingfaceBillToLabel": "Cuntas Bill-To Hugging Face",
+    "commandCodeZdrLabel": "Éiligh coinneáil nialasach sonraí (ZDR)",
+    "commandCodeZdrHint": "Seolann sé x-cmd-zdr: 1 le gach iarratas a dhéantar leis an eochair API seo. B'fhéidir nach mbeidh samhlacha gan upstream ZDR ar fáil.",
     "databricksBaseUrlHint": "Leid maidir le Bun-URL Databricks",
     "defaultThinkingStrengthHint": "Úsáidtear é nuair nach sonraíonn iarratas iarracht réasúnaíochta.",
     "defaultThinkingStrengthLabel": "Neart smaointeoireachta réamhshocraithe",

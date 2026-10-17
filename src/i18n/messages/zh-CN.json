@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "自定义 User-Agent",
     "huggingfaceBillToHint": "可选。您的 Hugging Face 账单账户标识符，将作为 X-HF-Bill-To 标头发送，用于费用归属。",
     "huggingfaceBillToLabel": "Hugging Face Bill-To 账户",
+    "commandCodeZdrLabel": "要求零数据保留 (ZDR)",
+    "commandCodeZdrHint": "使用此 API 密钥发出的每个请求都会发送 x-cmd-zdr: 1。没有 ZDR 上游的模型可能不可用。",
     "databricksBaseUrlHint": "Databricks Serving Endpoint 的 Base URL。",
     "defaultThinkingStrengthHint": "请求未指定 reasoning effort 时使用。",
     "defaultThinkingStrengthLabel": "默认思考强度",

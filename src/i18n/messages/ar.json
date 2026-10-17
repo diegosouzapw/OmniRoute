@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "وكيل المستخدم المخصص",
     "huggingfaceBillToHint": "اختياري. معرّف حساب الفوترة الخاص بك في Hugging Face، ويُرسل في ترويسة X-HF-Bill-To لإسناد التكلفة.",
     "huggingfaceBillToLabel": "حساب Bill-To في Hugging Face",
+    "commandCodeZdrLabel": "طلب عدم الاحتفاظ بالبيانات (ZDR)",
+    "commandCodeZdrHint": "يرسل x-cmd-zdr: 1 مع كل طلب يتم بمفتاح API هذا. قد لا تتوفر النماذج التي لا تملك مزوّدًا يدعم ZDR.",
     "databricksBaseUrlHint": "عنوان URL الأساسي لـ Databricks",
     "defaultThinkingStrengthHint": "يُستخدم عندما لا يحدد الطلب جهد الاستدلال.",
     "defaultThinkingStrengthLabel": "قوة التفكير الافتراضية",

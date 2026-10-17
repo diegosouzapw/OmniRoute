@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "अनुकूलित प्रयोगकर्ता एजेन्ट लेबल",
     "huggingfaceBillToHint": "ऐच्छिक। लागत छुट्याउन X-HF-Bill-To हेडरका रूपमा पठाइने तपाईंको Hugging Face बिलिङ खाता पहिचानकर्ता।",
     "huggingfaceBillToLabel": "Hugging Face Bill-To खाता",
+    "commandCodeZdrLabel": "शून्य डेटा अवधारण (ZDR) आवश्यक गर्नुहोस्",
+    "commandCodeZdrHint": "यो API कुञ्जीबाट गरिने हरेक अनुरोधसँग x-cmd-zdr: 1 पठाउँछ। ZDR upstream नभएका मोडेलहरू उपलब्ध नहुन सक्छन्।",
     "databricksBaseUrlHint": "Databricks आधार URL सङ्केत",
     "defaultThinkingStrengthHint": "अनुरोधले तर्कको प्रयास निर्दिष्ट नगर्दा प्रयोग गरिन्छ।",
     "defaultThinkingStrengthLabel": "पूर्वनिर्धारित सोचाइको तीव्रता",

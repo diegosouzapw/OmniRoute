@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Mukautettu User-Agent",
     "huggingfaceBillToHint": "Valinnainen. Hugging Face -laskutustilisi tunniste, joka lähetetään X-HF-Bill-To-otsakkeena kustannusten kohdistamista varten.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To-tili",
+    "commandCodeZdrLabel": "Vaadi tietojen nollasäilytys (ZDR)",
+    "commandCodeZdrHint": "Lähettää x-cmd-zdr: 1 jokaisen tällä API-avaimella tehdyn pyynnön mukana. Mallit, joilla ei ole ZDR-upstreamia, eivät välttämättä ole käytettävissä.",
     "databricksBaseUrlHint": "Databricks-perus-URL:n ohje",
     "defaultThinkingStrengthHint": "Käytetään, kun pyynnössä ei määritetä päättelyn vaativuustasoa.",
     "defaultThinkingStrengthLabel": "Päättelyn oletusvaativuustaso",

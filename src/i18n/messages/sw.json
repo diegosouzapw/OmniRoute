@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Lebo ya User Agent maalum",
     "huggingfaceBillToHint": "Si lazima. Kitambulisho cha akaunti yako ya bili ya Hugging Face, kinachotumwa kama kichwa cha X-HF-Bill-To kwa ajili ya kuhusisha gharama.",
     "huggingfaceBillToLabel": "Akaunti ya Hugging Face Bill-To",
+    "commandCodeZdrLabel": "Hitaji uhifadhi sifuri wa data (ZDR)",
+    "commandCodeZdrHint": "Hutuma x-cmd-zdr: 1 pamoja na kila ombi linalofanywa kwa ufunguo huu wa API. Miundo isiyo na upstream ya ZDR huenda isipatikane.",
     "databricksBaseUrlHint": "Kidokezo cha URL ya msingi ya Databricks",
     "defaultThinkingStrengthHint": "Hutumika wakati ombi halibainishi kiwango cha juhudi za kufikiri.",
     "defaultThinkingStrengthLabel": "Kiwango chaguomsingi cha uwezo wa kufikiri",

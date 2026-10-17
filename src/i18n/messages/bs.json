@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Oznaka za prilagođeni User Agent",
     "huggingfaceBillToHint": "Opcionalno. Identifikator vašeg Hugging Face računa za naplatu, koji se šalje kao zaglavlje X-HF-Bill-To radi pripisivanja troškova.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To račun",
+    "commandCodeZdrLabel": "Zahtijevaj nulto zadržavanje podataka (ZDR)",
+    "commandCodeZdrHint": "Šalje x-cmd-zdr: 1 sa svakim zahtjevom napravljenim ovim API ključem. Modeli bez ZDR upstreama možda neće biti dostupni.",
     "databricksBaseUrlHint": "Hint za Databricks osnovni URL",
     "defaultThinkingStrengthHint": "Koristi se kada zahtjev ne specifikuje napor razmišljanja (reasoning effort).",
     "defaultThinkingStrengthLabel": "Podrazumijevana snaga razmišljanja",

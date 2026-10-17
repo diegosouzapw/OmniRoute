@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Àkọlé Aṣojú Olumulo Àdáni",
     "huggingfaceBillToHint": "Kì í ṣe dandan. Ohun ìdánimọ̀ àkọọ́lẹ̀ ìsanwó Hugging Face rẹ, tí a fi ránṣẹ́ gẹ́gẹ́ bí àkọlé X-HF-Bill-To fún pípin iye owó.",
     "huggingfaceBillToLabel": "Àkọọ́lẹ̀ Hugging Face Bill-To",
+    "commandCodeZdrLabel": "Béèrè ìdádúró dátà òdo (ZDR)",
+    "commandCodeZdrHint": "Ó ń fi x-cmd-zdr: 1 ránṣẹ́ pẹ̀lú gbogbo ìbéèrè tí a ṣe pẹ̀lú kọ́kọ́rọ́ API yìí. Àwọn àwòṣe tí kò ní upstream ZDR lè má sí.",
     "databricksBaseUrlHint": "Ìtọ́kasí URL Ìpìlẹ̀ Databricks",
     "defaultThinkingStrengthHint": "A máa ń lò ó nígbà tí ìbéèrè kò bá sọ ìpele ìsapá ìrònú pàtó.",
     "defaultThinkingStrengthLabel": "Agbára ìrònú àiyipada",

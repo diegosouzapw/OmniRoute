@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "ഇഷ്ടാനുസൃത User Agent ലേബൽ",
     "huggingfaceBillToHint": "ഐച്ഛികം. ചെലവ് നിർണ്ണയിക്കുന്നതിനായി X-HF-Bill-To ഹെഡറായി അയയ്ക്കുന്ന നിങ്ങളുടെ Hugging Face ബില്ലിംഗ് അക്കൗണ്ട് ഐഡന്റിഫയർ.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To അക്കൗണ്ട്",
+    "commandCodeZdrLabel": "പൂജ്യം ഡാറ്റ നിലനിർത്തൽ (ZDR) ആവശ്യപ്പെടുക",
+    "commandCodeZdrHint": "ഈ API കീ ഉപയോഗിച്ചുള്ള ഓരോ അഭ്യർത്ഥനയ്‌ക്കൊപ്പവും x-cmd-zdr: 1 അയയ്ക്കുന്നു. ZDR upstream ഇല്ലാത്ത മോഡലുകൾ ലഭ്യമല്ലാതിരിക്കാം.",
     "databricksBaseUrlHint": "Databricks അടിസ്ഥാന URL സൂചന",
     "defaultThinkingStrengthHint": "ഒരു അഭ്യർത്ഥനയിൽ റീസണിംഗ് എഫർട്ട് വ്യക്തമാക്കിയിട്ടില്ലെങ്കിൽ ഇത് ഉപയോഗിക്കും.",
     "defaultThinkingStrengthLabel": "ഡിഫോൾട്ട് ചിന്താശക്തി",

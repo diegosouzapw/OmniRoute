@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "தனிப்பயன் பயனர் முகவர் லேபல்",
     "huggingfaceBillToHint": "விருப்பத்தேர்வு. செலவு ஒதுக்கீட்டிற்காக X-HF-Bill-To தலைப்பாக அனுப்பப்படும் உங்கள் Hugging Face பில்லிங் கணக்கு அடையாளங்காட்டி.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To கணக்கு",
+    "commandCodeZdrLabel": "பூஜ்ஜிய தரவு தக்கவைப்பு (ZDR) தேவை",
+    "commandCodeZdrHint": "இந்த API விசையுடன் செய்யப்படும் ஒவ்வொரு கோரிக்கையுடனும் x-cmd-zdr: 1 அனுப்பப்படும். ZDR upstream இல்லாத மாடல்கள் கிடைக்காமல் போகலாம்.",
     "databricksBaseUrlHint": "Databricks அடிப்படை URL குறிப்பு",
     "defaultThinkingStrengthHint": "ஒரு கோரிக்கையில் பகுத்தறிவு முயற்சி குறிப்பிடப்படாதபோது பயன்படுத்தப்படும்.",
     "defaultThinkingStrengthLabel": "இயல்புநிலை சிந்தனை வலிமை",

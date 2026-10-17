@@ -73,6 +73,8 @@ import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecif
 import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";
 import ProviderTierField from "./ProviderTierField";
 import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
+import CommandCodeZdrToggle from "./CommandCodeZdrToggle";
+import { buildProviderValidateRequestBody } from "./providerValidateRequestBody";
 import { getVertexCredentialCopy } from "./vertexCredentialCopy";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
@@ -176,6 +178,7 @@ export default function EditConnectionModal({
     passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
     disableCooling: connectionProviderSpecificData?.disableCooling === true,
     importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
+    commandCodeZdrEnabled: connectionProviderSpecificData?.zdrEnabled === true,
     tunnelId: stringField(connectionProviderSpecificData?.tunnelId),
     runtimeKey: "",
     connectorName:
@@ -404,6 +407,7 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+        commandCodeZdrEnabled: connection.providerSpecificData?.zdrEnabled === true,
         tunnelId: stringField(connection.providerSpecificData?.tunnelId),
         runtimeKey: "",
         connectorName:
@@ -474,6 +478,18 @@ export default function EditConnectionModal({
       setTesting(false);
     }
   };
+  const validateRequestBody = (apiKey: string) =>
+    JSON.stringify(
+      buildProviderValidateRequestBody({
+        provider,
+        apiKey,
+        formData,
+        isAwsPolly,
+        showsRegion,
+        defaultRegion,
+        isChatGptWebCodex,
+      })
+    );
   const handleValidate = async () => {
     if (
       !provider ||
@@ -489,24 +505,7 @@ export default function EditConnectionModal({
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider,
-          apiKey: formData.apiKey,
-          validationModelId: formData.validationModelId || undefined,
-          customUserAgent: formData.customUserAgent.trim() || undefined,
-          baseUrl: formData.baseUrl.trim() || undefined,
-          region: isAwsPolly
-            ? formData.region.trim() || "us-east-1"
-            : showsRegion
-              ? formData.region.trim() || defaultRegion
-              : undefined,
-          accessKeyId: isAwsPolly ? formData.awsAccessKeyId.trim() || undefined : undefined,
-          sessionToken: isAwsPolly ? formData.awsSessionToken.trim() || undefined : undefined,
-          cx: formData.cx.trim() || undefined,
-          runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
-          tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
-          connectorName: isChatGptWebCodex ? formData.connectorName.trim() || undefined : undefined,
-        }),
+        body: validateRequestBody(formData.apiKey),
       });
       const data = await res.json();
       setValidationResult(data.valid ? "success" : "failed");
@@ -593,26 +592,7 @@ export default function EditConnectionModal({
             const res = await fetch("/api/providers/validate", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                provider,
-                apiKey: formData.apiKey,
-                validationModelId: formData.validationModelId || undefined,
-                customUserAgent: formData.customUserAgent.trim() || undefined,
-                baseUrl: formData.baseUrl.trim() || undefined,
-                region: isAwsPolly
-                  ? formData.region.trim() || "us-east-1"
-                  : showsRegion
-                    ? formData.region.trim() || defaultRegion
-                    : undefined,
-                accessKeyId: isAwsPolly ? formData.awsAccessKeyId.trim() || undefined : undefined,
-                sessionToken: isAwsPolly ? formData.awsSessionToken.trim() || undefined : undefined,
-                cx: formData.cx.trim() || undefined,
-                runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
-                tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
-                connectorName: isChatGptWebCodex
-                  ? formData.connectorName.trim() || undefined
-                  : undefined,
-              }),
+              body: validateRequestBody(formData.apiKey),
             });
             const data = await res.json();
             isValid = !!data.valid;
@@ -869,6 +849,11 @@ export default function EditConnectionModal({
           )}
           {preserveEncryptedReasoningToggle}
           {openaiResponsesStoreToggle}
+          <CommandCodeZdrToggle
+            provider={provider}
+            checked={formData.commandCodeZdrEnabled}
+            onChange={(checked) => setFormData({ ...formData, commandCodeZdrEnabled: checked })}
+          />
           <Toggle
             checked={formData.disableCooling}
             onChange={(checked) => setFormData({ ...formData, disableCooling: checked })}

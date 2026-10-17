@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Akara User Agent Ahaziri",
     "huggingfaceBillToHint": "Nhọrọ. Ihe njirimara akaụntụ ịgba ụgwọ Hugging Face gị, nke a na-eziga dị ka nkụnyeisi X-HF-Bill-To maka ikenye ụgwọ.",
     "huggingfaceBillToLabel": "Akaụntụ Hugging Face Bill-To",
+    "commandCodeZdrLabel": "Chọọ enweghị nchekwa data (ZDR)",
+    "commandCodeZdrHint": "Na-eziga x-cmd-zdr: 1 na arịrịọ ọ bụla e ji igodo API a mee. Ụdị ndị na-enweghị upstream ZDR nwere ike ọ gaghị adị.",
     "databricksBaseUrlHint": "Ndụmọdụ maka Databricks Base Url",
     "defaultThinkingStrengthHint": "A na-eji ya mgbe arịrịọ akọwapụtaghị mgbalị ntụgharị uche.",
     "defaultThinkingStrengthLabel": "Ike iche echiche ndabara",

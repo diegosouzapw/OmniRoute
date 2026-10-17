@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Nhãn User Agent tùy chỉnh",
     "huggingfaceBillToHint": "Không bắt buộc. Mã định danh tài khoản thanh toán Hugging Face của bạn, được gửi dưới dạng tiêu đề X-HF-Bill-To để phân bổ chi phí.",
     "huggingfaceBillToLabel": "Tài khoản Bill-To của Hugging Face",
+    "commandCodeZdrLabel": "Yêu cầu không lưu giữ dữ liệu (ZDR)",
+    "commandCodeZdrHint": "Gửi x-cmd-zdr: 1 kèm mọi yêu cầu thực hiện bằng khóa API này. Các mô hình không có upstream hỗ trợ ZDR có thể không khả dụng.",
     "databricksBaseUrlHint": "Gợi ý URL cơ sở của Databricks",
     "defaultThinkingStrengthHint": "Được sử dụng khi một yêu cầu không chỉ định mức độ suy luận.",
     "defaultThinkingStrengthLabel": "Mức độ suy luận mặc định",

@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "حسبِ ضرورت User Agent کا لیبل",
     "huggingfaceBillToHint": "اختیاری۔ آپ کے Hugging Face بلنگ اکاؤنٹ کا شناخت کنندہ، جو لاگت منسوب کرنے کے لیے X-HF-Bill-To ہیڈر کے طور پر بھیجا جاتا ہے۔",
     "huggingfaceBillToLabel": "Hugging Face Bill-To اکاؤنٹ",
+    "commandCodeZdrLabel": "صفر ڈیٹا ریٹینشن (ZDR) لازمی کریں",
+    "commandCodeZdrHint": "اس API کلید سے کی جانے والی ہر درخواست کے ساتھ x-cmd-zdr: 1 بھیجتا ہے۔ ZDR upstream کے بغیر ماڈلز دستیاب نہیں ہو سکتے۔",
     "databricksBaseUrlHint": "Databricks کے بنیادی URL کا اشارہ",
     "defaultThinkingStrengthHint": "اس وقت استعمال ہوتا ہے جب درخواست میں استدلال کی کوشش متعین نہ کی گئی ہو۔",
     "defaultThinkingStrengthLabel": "سوچنے کی طے شدہ شدت",

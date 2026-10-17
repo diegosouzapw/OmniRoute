@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "사용자 지정 User-Agent",
     "huggingfaceBillToHint": "선택 사항입니다. 비용 귀속을 위해 X-HF-Bill-To 헤더로 전송되는 Hugging Face 결제 계정 식별자입니다.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To 계정",
+    "commandCodeZdrLabel": "제로 데이터 보존(ZDR) 필수",
+    "commandCodeZdrHint": "이 API 키로 보내는 모든 요청에 x-cmd-zdr: 1을 전송합니다. ZDR 업스트림이 없는 모델은 사용할 수 없을 수 있습니다.",
     "databricksBaseUrlHint": "Databricks 기본 URL 안내",
     "defaultThinkingStrengthHint": "요청에 추론 강도가 지정되지 않은 경우 사용됩니다.",
     "defaultThinkingStrengthLabel": "기본 사고 강도",

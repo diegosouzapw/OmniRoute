@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "მორგებული User Agent-ის იარლიყი",
     "huggingfaceBillToHint": "არასავალდებულო. თქვენი Hugging Face ბილინგის ანგარიშის იდენტიფიკატორი, რომელიც ხარჯების მისაკუთვნებლად X-HF-Bill-To სათაურის სახით იგზავნება.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To ანგარიში",
+    "commandCodeZdrLabel": "მოითხოვე მონაცემთა ნულოვანი შენახვა (ZDR)",
+    "commandCodeZdrHint": "აგზავნის x-cmd-zdr: 1-ს ამ API გასაღებით შესრულებულ ყველა მოთხოვნასთან ერთად. მოდელები ZDR upstream-ის გარეშე შეიძლება მიუწვდომელი იყოს.",
     "databricksBaseUrlHint": "Databricks-ის საბაზისო URL-ის მინიშნება",
     "defaultThinkingStrengthHint": "გამოიყენება, როდესაც მოთხოვნაში მსჯელობის ძალისხმევა მითითებული არ არის.",
     "defaultThinkingStrengthLabel": "აზროვნების ნაგულისხმევი ინტენსივობა",

@@ -9,6 +9,7 @@ import {
   isResponsesShapedBody,
   projectResponsesForCli,
 } from "./commandCode/responsesProjection.ts";
+import { applyCommandCodeZdrHeader } from "./commandCode/zdr.ts";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -1012,6 +1013,7 @@ export class CommandCodeExecutor extends BaseExecutor {
     apiKey: string;
     signal?: AbortSignal;
     upstreamExtraHeaders?: Record<string, string>;
+    providerSpecificData?: unknown;
   }) {
     const { model, sanitizedBody, stream, apiKey, signal, upstreamExtraHeaders } = input;
     const cliUrl = this.buildCliUrl();
@@ -1026,6 +1028,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       "x-session-id": randomUUID(),
     };
     mergeUpstreamExtraHeaders(cliHeaders, upstreamExtraHeaders);
+    applyCommandCodeZdrHeader(cliHeaders, input.providerSpecificData);
 
     const abortSignal = signal || undefined;
     const { body: initialCliTransformedBody, toolNameMap } = buildCommandCodeCliBody(
@@ -1108,6 +1111,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       headers["anthropic-version"] = ANTHROPIC_VERSION_HEADER;
     }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
+    applyCommandCodeZdrHeader(headers, credentials?.providerSpecificData);
 
     let upstream = await fetch(url, {
       method: "POST",
@@ -1164,6 +1168,7 @@ export class CommandCodeExecutor extends BaseExecutor {
           apiKey,
           signal,
           upstreamExtraHeaders,
+          providerSpecificData: credentials?.providerSpecificData,
         });
       }
     }

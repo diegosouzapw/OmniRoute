@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "User Agent Personalizado",
     "huggingfaceBillToHint": "Opcional. O identificador da sua conta de faturação do Hugging Face, enviado como cabeçalho X-HF-Bill-To para atribuição de custos.",
     "huggingfaceBillToLabel": "Conta Bill-To do Hugging Face",
+    "commandCodeZdrLabel": "Exigir retenção zero de dados (ZDR)",
+    "commandCodeZdrHint": "Envia x-cmd-zdr: 1 em cada pedido feito com esta chave de API. Modelos sem um upstream com ZDR podem ficar indisponíveis.",
     "databricksBaseUrlHint": "Dica de URL Base do Databricks",
     "defaultThinkingStrengthHint": "Usado quando um pedido não especifica esforço de raciocínio.",
     "defaultThinkingStrengthLabel": "Força de thinking padrão",

@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "ਕਸਟਮ ਯੂਜ਼ਰ ਏਜੰਟ ਲੇਬਲ",
     "huggingfaceBillToHint": "ਵਿਕਲਪਿਕ। ਲਾਗਤ ਨਿਰਧਾਰਨ ਲਈ X-HF-Bill-To ਹੈਡਰ ਵਜੋਂ ਭੇਜਿਆ ਜਾਣ ਵਾਲਾ ਤੁਹਾਡੇ Hugging Face ਬਿਲਿੰਗ ਖਾਤੇ ਦਾ ਪਛਾਣਕਰਤਾ।",
     "huggingfaceBillToLabel": "Hugging Face Bill-To ਖਾਤਾ",
+    "commandCodeZdrLabel": "ਜ਼ੀਰੋ ਡਾਟਾ ਰਿਟੈਂਸ਼ਨ (ZDR) ਲਾਜ਼ਮੀ ਕਰੋ",
+    "commandCodeZdrHint": "ਇਸ API ਕੁੰਜੀ ਨਾਲ ਕੀਤੀ ਹਰ ਬੇਨਤੀ ਨਾਲ x-cmd-zdr: 1 ਭੇਜਦਾ ਹੈ। ZDR upstream ਤੋਂ ਬਿਨਾਂ ਮਾਡਲ ਉਪਲਬਧ ਨਹੀਂ ਹੋ ਸਕਦੇ।",
     "databricksBaseUrlHint": "Databricks ਬੇਸ URL ਸੰਕੇਤ",
     "defaultThinkingStrengthHint": "ਜਦੋਂ ਕਿਸੇ ਬੇਨਤੀ ਵਿੱਚ ਤਰਕ ਲਈ ਯਤਨ ਦਾ ਪੱਧਰ ਨਿਰਧਾਰਤ ਨਹੀਂ ਕੀਤਾ ਜਾਂਦਾ, ਤਾਂ ਇਸਦੀ ਵਰਤੋਂ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।",
     "defaultThinkingStrengthLabel": "ਡਿਫੌਲਟ ਸੋਚਣ ਦੀ ਤੀਬਰਤਾ",

@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Benutzerdefinierter User-Agent",
     "huggingfaceBillToHint": "Optional. Die Kennung deines Hugging Face-Abrechnungskontos, die zur Kostenzuordnung als X-HF-Bill-To-Header gesendet wird.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To-Konto",
+    "commandCodeZdrLabel": "Zero Data Retention (ZDR) erzwingen",
+    "commandCodeZdrHint": "Sendet x-cmd-zdr: 1 bei jeder Anfrage mit diesem API-Schlüssel. Modelle ohne ZDR-fähigen Upstream sind möglicherweise nicht verfügbar.",
     "databricksBaseUrlHint": "Hinweis zur Databricks-Basis-URL",
     "defaultThinkingStrengthHint": "Wird verwendet, wenn in einer Anfrage kein Denkaufwand angegeben ist.",
     "defaultThinkingStrengthLabel": "Standardmäßige Denkintensität",

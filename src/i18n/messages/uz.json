@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "Maxsus User Agent yorligʻi",
     "huggingfaceBillToHint": "Ixtiyoriy. Xarajatlarni tegishli hisobga biriktirish uchun X-HF-Bill-To sarlavhasi sifatida yuboriladigan Hugging Face billing hisobingiz identifikatori.",
     "huggingfaceBillToLabel": "Hugging Face Bill-To hisobi",
+    "commandCodeZdrLabel": "Nol ma'lumot saqlashni (ZDR) talab qilish",
+    "commandCodeZdrHint": "Ushbu API kaliti bilan yuborilgan har bir so'rov bilan x-cmd-zdr: 1 yuboradi. ZDR upstreamiga ega bo'lmagan modellar mavjud bo'lmasligi mumkin.",
     "databricksBaseUrlHint": "Databricks asosiy URL manzili uchun izoh",
     "defaultThinkingStrengthHint": "Soʻrovda fikrlash darajasi koʻrsatilmaganda ishlatiladi.",
     "defaultThinkingStrengthLabel": "Standart fikrlash kuchi",

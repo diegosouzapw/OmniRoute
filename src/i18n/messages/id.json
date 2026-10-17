@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Label Agen Pengguna Khusus",
     "huggingfaceBillToHint": "Opsional. Pengidentifikasi akun penagihan Hugging Face Anda, yang dikirim sebagai header X-HF-Bill-To untuk atribusi biaya.",
     "huggingfaceBillToLabel": "Akun Bill-To Hugging Face",
+    "commandCodeZdrLabel": "Wajibkan Zero Data Retention (ZDR)",
+    "commandCodeZdrHint": "Mengirim x-cmd-zdr: 1 pada setiap permintaan yang dibuat dengan kunci API ini. Model tanpa upstream ZDR mungkin tidak tersedia.",
     "databricksBaseUrlHint": "Petunjuk URL Dasar Databricks",
     "defaultThinkingStrengthHint": "Digunakan saat permintaan tidak menentukan tingkat upaya penalaran.",
     "defaultThinkingStrengthLabel": "Kekuatan pemikiran default",

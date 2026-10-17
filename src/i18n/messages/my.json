@@ -6118,6 +6118,8 @@
     "customUserAgentLabel": "စိတ်ကြိုက် User Agent အညွှန်း",
     "huggingfaceBillToHint": "ချန်လှပ်နိုင်သည်။ ကုန်ကျစရိတ် သတ်မှတ်ရန်အတွက် X-HF-Bill-To ခေါင်းစီးအဖြစ် ပေးပို့သည့် သင်၏ Hugging Face ငွေတောင်းခံလွှာအကောင့် အမှတ်သညာ။",
     "huggingfaceBillToLabel": "Hugging Face Bill-To အကောင့်",
+    "commandCodeZdrLabel": "ဒေတာ သုည သိမ်းဆည်းမှု (ZDR) လိုအပ်စေရန်",
+    "commandCodeZdrHint": "ဤ API ကီးဖြင့် ပြုလုပ်သော တောင်းဆိုမှုတိုင်းတွင် x-cmd-zdr: 1 ကို ပို့သည်။ ZDR upstream မရှိသော မော်ဒယ်များကို အသုံးပြု၍ မရနိုင်ပါ။",
     "databricksBaseUrlHint": "Databricks Base Url အရိပ်အမြွက်",
     "defaultThinkingStrengthHint": "request တစ်ခုတွင် reasoning effort ကို မသတ်မှတ်ထားသည့်အခါ အသုံးပြုသည်။",
     "defaultThinkingStrengthLabel": "မူလ thinking strength",

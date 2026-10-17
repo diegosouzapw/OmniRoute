@@ -1,0 +1,1 @@
+- **feat(command-code):** per-connection Zero Data Retention toggle for Command Code API keys — when on, every upstream call and the key-validation probe send `x-cmd-zdr: 1` ([#16751](https://github.com/diegosouzapw/OmniRoute/pull/16751)) — thanks @ZeroOttantotto

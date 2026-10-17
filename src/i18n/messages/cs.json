@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Vlastní uživatelský agent",
     "huggingfaceBillToHint": "Volitelné. Identifikátor vašeho fakturačního účtu Hugging Face, odesílaný jako hlavička X-HF-Bill-To pro přiřazení nákladů.",
     "huggingfaceBillToLabel": "Účet Bill-To služby Hugging Face",
+    "commandCodeZdrLabel": "Vyžadovat nulové uchovávání dat (ZDR)",
+    "commandCodeZdrHint": "Odesílá x-cmd-zdr: 1 s každým požadavkem provedeným tímto klíčem API. Modely bez upstreamu se ZDR nemusí být dostupné.",
     "databricksBaseUrlHint": "Nápověda k základní URL Databricks",
     "defaultThinkingStrengthHint": "Použije se, když požadavek neurčuje míru úsilí při uvažování.",
     "defaultThinkingStrengthLabel": "Výchozí intenzita uvažování",

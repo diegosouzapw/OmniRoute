@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "תווית לסוכן משתמש מותאם אישית",
     "huggingfaceBillToHint": "אופציונלי. המזהה של חשבון החיוב שלך ב-Hugging Face, הנשלח ככותרת X-HF-Bill-To לצורך שיוך עלויות.",
     "huggingfaceBillToLabel": "חשבון Bill-To של Hugging Face",
+    "commandCodeZdrLabel": "דרוש אפס שמירת נתונים (ZDR)",
+    "commandCodeZdrHint": "שולח x-cmd-zdr: 1 עם כל בקשה שנעשית עם מפתח API זה. ייתכן שמודלים ללא upstream התומך ב-ZDR לא יהיו זמינים.",
     "databricksBaseUrlHint": "רמז לכתובת URL בסיסית של Databricks",
     "defaultThinkingStrengthHint": "משמש כאשר לא צוינה מידת מאמץ החשיבה בבקשה.",
     "defaultThinkingStrengthLabel": "עוצמת החשיבה המוגדרת כברירת מחדל",

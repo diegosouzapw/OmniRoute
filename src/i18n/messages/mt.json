@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Tikketta tal-Aġent tal-Utent Personalizzat",
     "huggingfaceBillToHint": "Mhux obbligatorju. L-identifikatur tal-kont tal-kontijiet Hugging Face tiegħek, mibgħut bħala l-intestatura X-HF-Bill-To għall-attribuzzjoni tal-ispejjeż.",
     "huggingfaceBillToLabel": "Kont Bill-To ta’ Hugging Face",
+    "commandCodeZdrLabel": "Itlob żamma żero tad-data (ZDR)",
+    "commandCodeZdrHint": "Jibgħat x-cmd-zdr: 1 ma' kull talba magħmula b'din iċ-ċavetta API. Mudelli mingħajr upstream ZDR jistgħu ma jkunux disponibbli.",
     "databricksBaseUrlHint": "Ħjiel għall-URL Bażi ta’ Databricks",
     "defaultThinkingStrengthHint": "Jintuża meta talba ma tispeċifikax il-livell ta’ sforz ta’ raġunament.",
     "defaultThinkingStrengthLabel": "Intensità predefinita tal-ħsieb",

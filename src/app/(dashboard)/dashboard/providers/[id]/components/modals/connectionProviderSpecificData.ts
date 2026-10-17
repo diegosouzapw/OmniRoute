@@ -22,6 +22,7 @@ type FormData = QuotaScrapingFieldValues &
     ccCompatibleContext1m: boolean;
     ccCompatibleRedactThinking: boolean;
     ccCompatibleSummarizeThinking: boolean;
+    commandCodeZdrEnabled?: boolean;
     consoleApiKey: string;
     customUserAgent: string;
     huggingfaceBillTo: string;
@@ -94,6 +95,9 @@ export function buildAddProviderSpecificData(options: {
   if (provider === "agentrouter" && formData.newApiUserId.trim()) {
     data.newApiUserId = formData.newApiUserId.trim();
   }
+  if (provider === "command-code" && formData.commandCodeZdrEnabled === true) {
+    data.zdrEnabled = true;
+  }
   assignQuotaScrapingProviderData(provider, formData, data);
   if (isGooglePse && formData.cx.trim()) data.cx = formData.cx.trim();
   if (provider === "aws-polly") {
@@ -164,6 +168,10 @@ export function assignEditApiKeyProviderSpecificData(options: {
   }
   if (o.provider === "agentrouter") {
     o.target.newApiUserId = o.formData.newApiUserId.trim() || undefined;
+  }
+  // Explicit boolean (never undefined) so the PUT merge can turn ZDR back off.
+  if (o.provider === "command-code") {
+    o.target.zdrEnabled = o.formData.commandCodeZdrEnabled === true;
   }
   assignQuotaScrapingProviderData(o.provider, o.formData, o.target);
   if (o.formData.validationModelId) o.target.validationModelId = o.formData.validationModelId;

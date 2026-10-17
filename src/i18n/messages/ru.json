@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Метка пользовательского User-Agent",
     "huggingfaceBillToHint": "Необязательно. Идентификатор вашего платежного аккаунта Hugging Face, передаваемый в заголовке X-HF-Bill-To для отнесения затрат.",
     "huggingfaceBillToLabel": "Аккаунт Bill-To в Hugging Face",
+    "commandCodeZdrLabel": "Требовать нулевое хранение данных (ZDR)",
+    "commandCodeZdrHint": "Отправляет x-cmd-zdr: 1 с каждым запросом, выполненным с этим API-ключом. Модели без upstream с поддержкой ZDR могут быть недоступны.",
     "databricksBaseUrlHint": "Подсказка для базового URL Databricks",
     "defaultThinkingStrengthHint": "Используется, если в запросе не указана глубина рассуждений.",
     "defaultThinkingStrengthLabel": "Глубина рассуждений по умолчанию",

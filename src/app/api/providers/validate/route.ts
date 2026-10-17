@@ -67,6 +67,7 @@ export async function POST(request) {
       runtimeKey,
       tunnelId,
       connectorName,
+      zdrEnabled,
     } = validation.data;
 
     const retirementResponse = rejectRetiredCommonChatGptWebProvider(provider);
@@ -94,6 +95,7 @@ export async function POST(request) {
     if (runtimeKey) providerSpecificData.runtimeKey = runtimeKey;
     if (tunnelId) providerSpecificData.tunnelId = tunnelId;
     if (connectorName) providerSpecificData.connectorName = connectorName;
+    if (zdrEnabled === true) providerSpecificData.zdrEnabled = true;
 
     if (isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider)) {
       const node: any = await getProviderNodeById(provider);

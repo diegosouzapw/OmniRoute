@@ -6111,6 +6111,8 @@
     "customUserAgentLabel": "Etichetă pentru User-Agent personalizat",
     "huggingfaceBillToHint": "Opțional. Identificatorul contului tău de facturare Hugging Face, trimis ca antet X-HF-Bill-To pentru atribuirea costurilor.",
     "huggingfaceBillToLabel": "Cont Bill-To Hugging Face",
+    "commandCodeZdrLabel": "Solicită retenție zero a datelor (ZDR)",
+    "commandCodeZdrHint": "Trimite x-cmd-zdr: 1 cu fiecare cerere făcută cu această cheie API. Modelele fără un upstream ZDR pot fi indisponibile.",
     "databricksBaseUrlHint": "Sugestie pentru URL-ul de bază Databricks",
     "defaultThinkingStrengthHint": "Utilizat atunci când o solicitare nu specifică efortul de raționament.",
     "defaultThinkingStrengthLabel": "Nivelul implicit de raționament",
