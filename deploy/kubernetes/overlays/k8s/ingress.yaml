@@ -1,0 +1,42 @@
+# ingress-nginx.
+#
+# proxy-buffering MUST be off: with buffering on, nginx accumulates the SSE
+# stream and the client sees nothing until the provider turn ends — which reads
+# as a hung request, not as streaming. The long timeouts cover slow reasoning
+# models; the body-size bump covers large /v1/responses payloads.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omniroute
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/part-of: omniroute
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Matches OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES (50 MB, see
+    # src/shared/middleware/chatBodyAdmission.ts). A smaller value here makes
+    # nginx return 413 for bodies the application would have accepted, and the
+    # app's own 413 handling — which tells the client to compact — never runs.
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+    # Replace with your real host before applying.
+    - host: omniroute.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omniroute
+                port:
+                  name: http
+  # Uncomment once cert-manager (or your own cert) is in place.
+  # tls:
+  #   - hosts:
+  #       - omniroute.example.com
+  #     secretName: omniroute-tls

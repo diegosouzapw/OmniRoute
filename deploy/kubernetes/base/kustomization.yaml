@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: omniroute
+
+# includeSelectors keeps app.kubernetes.io/name in the Deployment selector and
+# the Service selector so they keep matching. A selector is immutable after
+# creation — do not add or remove pairs here on a live release.
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: omniroute
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: omniroute
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  # secret.example.yaml is deliberately NOT listed: create the Secret out of
+  # band (see the comment header in that file) so real values never enter git.

@@ -1,0 +1,36 @@
+# Non-secret runtime configuration.
+#
+# Secrets (JWT_SECRET, API_KEY_SECRET, STORAGE_ENCRYPTION_KEY, INITIAL_PASSWORD)
+# live in the Secret — never add them here. See secret.example.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omniroute-config
+data:
+  # DATA_DIR must match the volumeMount path in deployment.yaml.
+  DATA_DIR: "/app/data"
+  PORT: "20128"
+  DASHBOARD_PORT: "20128"
+  # API_PORT is deliberately unset. Setting it makes the API listen on a
+  # separate port (src/lib/runtime/ports.ts); with only 20128 and 20132
+  # exposed on the container and Service, that listener would be
+  # unreachable. Unset, the API and dashboard share PORT.
+  API_HOST: "0.0.0.0"
+  LIVE_WS_PORT: "20132"
+  LIVE_WS_HOST: "0.0.0.0"
+  # Comma-separated origins allowed to open the dashboard live WebSocket.
+  # Set this to your real ingress host before exposing the dashboard.
+  LIVE_WS_ALLOWED_ORIGINS: "http://localhost:20128,http://127.0.0.1:20128"
+  APP_LOG_LEVEL: "info"
+  # Require an API key on /v1/* — strongly recommended once the Service is
+  # reachable beyond the cluster.
+  REQUIRE_API_KEY: "false"
+  # Graceful shutdown budget for in-flight SSE only. It bounds the request
+  # drain, not the WAL checkpoint that closeDbInstance() runs afterwards — the
+  # checkpoint has no timeout, which is why terminationGracePeriodSeconds (300)
+  # is far larger than the drain needs (300 - 15 preStop = 285s of headroom).
+  SHUTDOWN_TIMEOUT_MS: "30000"
+  # Keep in sync with resources.limits.memory in deployment.yaml: the V8 old
+  # space must stay below the cgroup ceiling or the pod is OOMKilled instead of
+  # throwing a recoverable heap error.
+  NODE_OPTIONS: "--max-old-space-size=3072"

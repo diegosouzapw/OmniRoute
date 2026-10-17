@@ -1,0 +1,33 @@
+OmniRoute {{ .Chart.AppVersion }} installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Watch it come up (cold start runs SQLite migrations and can take a minute):
+
+  kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "omniroute.fullname" . }}
+
+{{- if .Values.ingress.enabled }}
+
+Reachable at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+
+No Ingress is enabled. Reach the dashboard over a port-forward:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "omniroute.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+Then open http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+Before putting this in front of anyone else:
+
+  1. Log in and change the initial admin password immediately.
+{{- if not .Values.config.requireApiKey }}
+  2. config.requireApiKey is false — /v1/* accepts unauthenticated requests.
+     Set it to true before the Service is reachable outside the cluster.
+{{- end }}
+  3. Set config.liveWsAllowedOrigins to your real host, or the dashboard's
+     live WebSocket will be rejected by the origin check.
+
+Upgrades restart the only pod: every in-flight SSE stream and dashboard session
+drops. That is inherent to the single-SQLite-writer topology, not a bug.
