@@ -234,6 +234,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // #15485: the priority-0 move-to-top edit re-reads the row by id after reorderConnections (3 -> 4).
     "src/lib/db/providers.ts": 4,
     "src/lib/db/readCache.ts": 2,
+    // #16472: guarded session-affinity eviction resolves the failed connection's shared
+    // account identity before a compare-and-delete on the optional Redis store. Read-only
+    // identity lookup; it never selects a connection or dispatches (class C).
+    "src/lib/db/sessionAffinity/requestEviction.ts": 1,
     // Local embedding providers: reads the active rows only to build the allowlist of
     // connections whose default model does not conflict with the requested one; the
     // connection itself is still selected by getProviderCredentials (class C).

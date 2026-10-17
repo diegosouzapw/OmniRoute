@@ -13,7 +13,7 @@ import {
 import { recoverAnthropicThinkingSignature } from "../chatCore/thinkingSignatureRecovery.ts";
 import { runProviderExecutionPipeline } from "../chatCore/providerExecutionPipeline.ts";
 import { markCodexScopeRateLimited } from "../chatCore/codexFailover.ts";
-import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
+import { deleteSessionAccountAffinityBestEffort } from "@/lib/db/sessionAccountAffinity";
 import { buildStreamingResponseHeaders, stripStaleForwardingHeaders } from "./responseHeaders.ts";
 
 // Re-export the previously inline-defined helpers so existing importers of these
@@ -292,11 +292,7 @@ export async function runStreamingResponse(deps: StreamingDeps) {
             extractSessionAffinityKey(body, clientRawRequest?.headers) ||
             null;
           if (!key) return;
-          try {
-            deleteSessionAccountAffinity(key, "codex");
-          } catch {
-            // best-effort
-          }
+          deleteSessionAccountAffinityBestEffort(key, "codex");
         },
         onAuditAccountRotation: (params) => {
           logAuditEvent({

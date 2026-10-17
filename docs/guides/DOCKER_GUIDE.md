@@ -716,6 +716,64 @@ To **multiply heaps** (independent V8 old-spaces) **today**:
 | Duplicate provider secrets into each instance (or accept partitioned dashboards)                                                        | Expect one dashboard / one call-log across instances |
 | Front with any load balancer; sticky by API key or session is enough                                                                    | Require a vendor-specific size-aware middleware      |
 
+Session-to-account affinity can also be shared through Redis: set
+`OMNIROUTE_SESSION_AFFINITY_STORE=redis` and `REDIS_URL` on each process, with the
+same `REDIS_KEY_PREFIX` and a positive `sessionAffinityTtlMs` setting. Pins resolve
+hashed usage-account identities to each process's eligible local connection, so
+OAuth accounts with matching identity metadata need not have matching connection
+IDs. Known account identities take precedence over contradictory local IDs in
+pin resolution and guarded eviction; records without identity (or eviction callers
+without identity) retain the legacy ID guard. Accounts without a stable usage
+identity still require matching IDs. Redis
+errors or calls exceeding 100 ms fall back to local SQLite. Each Redis affinity
+store caps outstanding operations at 8, bypasses Redis immediately when full, and
+releases slots only when the underlying work settles, not at the caller deadline.
+During a Redis outage
+there is no shared truth: each instance falls back to its own local affinity,
+sessions may re-pin once per instance, and instances may diverge. Stickiness
+re-converges through Redis when it recovers. The timeout bounds waiting, not a sent
+EVAL, which may land after fallback. Routing writes compare the exact value
+observed by the routing decision, not a fresh mutation-time read; an observed miss
+or a SQLite fallback observation compares as an absent Redis key. Obsolete pins
+are replaced in one CAS, so a late command cannot replace or delete a newer,
+different pin. Redis reads atomically return the value and remaining server TTL;
+positive PTTL (or no expiry) determines liveness, not the writer's JSON timestamp
+or the reader's clock. Local snapshots map that remaining TTL to a local deadline;
+existing JSON keys remain readable and their raw bytes are retained for CAS.
+Redis is the only source of truth while it answers. Confirmed shared upserts,
+touches and deletes remove the local entry, never install or refresh it. SQLite
+on the Redis path holds only this instance's own fallback decisions from Redis
+errors, timeouts or admission saturation,
+TTL-bounded as before. A missing local pin on a later outage costs one fresh pick
+(one prompt-cache miss), not a wrong or evicted account. Rejected upserts return
+the shared winner and its remaining TTL atomically: ordinary selection rechecks
+the mapped local deadline
+and uses a still-live eligible winner, touching usage and logging for that account
+without another shared write.
+If it is unavailable, selection keeps the local candidate, leaves the
+shared pin unchanged and emits one debug message. Rejected CAS does not write
+SQLite; Redis errors, timeouts or admission saturation apply the existing local
+operation instead. If a
+sent mutation's reply arrives after timeout (accepted, rejected or error), a
+synchronous exact serialized-value compare-and-delete removes only the
+byte-identical timeout fallback row. There is no await between that comparison
+and deletion; a newer outage write is preserved. Guarded eviction removes the
+failed account's own local pin even with Redis down, and cleans it again after
+confirmed shared eviction. Pending earlier shared replies cannot restore an
+evicted local pin because shared successes never write SQLite. A later outage
+fallback can repin an account; a later accepted shared write exists only in Redis.
+Redis misses do not consult local fallback state. With the driver off, newly selected pins
+retain the legacy four-field SQLite JSON shape; only Redis routing adds the hashed
+account identity. Prefetched pins are rechecked at their expiry boundary. Redis
+non-lease selection re-reads the store, but synchronous lease planning can still
+use a pin evicted between prefetch and planning (an accepted best-effort window).
+A lease commit cannot switch accounts after a durable claim: on rejected upsert it
+keeps the claimed candidate for that request only and leaves the shared winner
+untouched, so agreement across instances is bounded on that path.
+The rest of the table still applies:
+this does not share combo session stickiness, native Codex turn pins, account
+semaphores, lockouts, spend limits, configuration or call logs.
+
 Hardware: per-instance concurrent long `/v1/responses` is a **memory-budget** question (heap + inflight-byte / #10110). `N` independent `DATA_DIR`s still multiply heaps: host RAM must cover `N × cgroup`, not “one 16 Gi pod with N=8.” Never `replicas > 1` on one SQLite file.
 
 Compose sketch (two heaps, two volumes — not `deploy.replicas: 2`):

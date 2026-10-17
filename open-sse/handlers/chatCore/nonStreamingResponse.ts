@@ -58,7 +58,7 @@ import { runNonStreamingProviderLeg } from "../chatCore/nonStreamingProviderLeg.
 import type { NonStreamingProviderLegResult } from "@/lib/skills/toolLoopTypes.ts";
 import { finalizeToolLoopError } from "../chatCore/nonStreamingFinalization.ts";
 import { markCodexScopeRateLimited } from "../chatCore/codexFailover.ts";
-import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
+import { deleteSessionAccountAffinityBestEffort } from "@/lib/db/sessionAccountAffinity";
 import { writeTerminalStatus } from "@/shared/utils/terminalStatus";
 import { MEMORY_BUILTIN_TOOL_NAMES } from "@/lib/skills/memoryBuiltins";
 
@@ -306,11 +306,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
               extractSessionAffinityKey(body, clientRawRequest?.headers) ||
               null;
             if (!key) return;
-            try {
-              deleteSessionAccountAffinity(key, "codex");
-            } catch {
-              // best-effort
-            }
+            deleteSessionAccountAffinityBestEffort(key, "codex");
           },
           onAuditAccountRotation: (params) => {
             logAuditEvent({

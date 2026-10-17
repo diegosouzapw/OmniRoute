@@ -10,7 +10,7 @@
 
 import { executeChatWithBreaker } from "./chatHelpers";
 import { resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
-import { evictSessionAffinityOnComboTimeout } from "../services/sessionAffinityPin";
+import { evictSessionAffinityOnComboTimeoutAsync as evictSessionAffinityOnComboTimeout } from "../services/sessionAffinityPin";
 
 /** The dispatch arguments chat.ts already assembles, plus what the eviction reads. */
 type DispatchArgs = {
@@ -59,7 +59,8 @@ export async function dispatchChatWithAffinityEviction(
       ),
     });
   } catch (dispatchErr) {
-    evict();
+    const evicted = evict();
+    if (evicted instanceof Promise) await evicted;
     throw dispatchErr;
   }
 
@@ -67,6 +68,9 @@ export async function dispatchChatWithAffinityEviction(
   // combo per-model timeout — never treat it as one.
   if ("localResourcePressureResult" in dispatched) return dispatched;
 
-  if (!dispatched.result?.success) evict();
+  if (!dispatched.result?.success) {
+    const evicted = evict();
+    if (evicted instanceof Promise) await evicted;
+  }
   return dispatched;
 }

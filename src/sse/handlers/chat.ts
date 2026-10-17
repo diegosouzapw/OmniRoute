@@ -77,8 +77,8 @@ import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
-  evictSessionAccountAffinityForConnection,
   getSessionAccountAffinity,
+  evictSessionAccountAffinityForConnectionAsync as evictSessionAccountAffinityForConnection,
 } from "@/lib/db/sessionAccountAffinity";
 import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
@@ -2303,11 +2303,12 @@ async function handleSingleModelChat(
 
         if (isTerminalStreamEarlyEof && runtimeOptions.sessionAffinityKey) {
           try {
-            evictSessionAccountAffinityForConnection(
+            const evicted = evictSessionAccountAffinityForConnection(
               runtimeOptions.sessionAffinityKey,
               provider,
               credentials.connectionId
             );
+            if (evicted instanceof Promise) await evicted;
           } catch {
             // Best-effort: the current response still surfaces the original 502.
           }
@@ -2657,17 +2658,16 @@ async function handleSingleModelChat(
           requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
-        // #6219: evict the sticky session pin when the pinned account fails over,
-        // otherwise the next request re-pins the same throttled account until
-        // restart. Guarded by connection match so a pin for a different (healthy)
-        // account is left intact.
+        // #6219: evict the sticky pin when its account fails over, so it is not reused.
+        // Connection matching preserves pins for other healthy accounts.
         if (runtimeOptions.sessionAffinityKey) {
           try {
-            evictSessionAccountAffinityForConnection(
+            const evicted = evictSessionAccountAffinityForConnection(
               runtimeOptions.sessionAffinityKey,
               provider,
               credentials.connectionId
             );
+            if (evicted instanceof Promise) await evicted;
           } catch {
             // best-effort: selection also excludes this connection for the current retry.
           }
