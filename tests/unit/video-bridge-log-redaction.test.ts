@@ -104,7 +104,7 @@ async function pollForCallLog(traceId: string, deadlineMs = POLL_DEADLINE_MS) {
   const deadline = Date.now() + deadlineMs;
   for (;;) {
     const rows = await getCallLogs({ correlationId: traceId, limit: 5 });
-    if (rows[0]?.id) {
+    if (rows[0]?.id && rows[0].detailState === "ready") {
       const row = await getCallLogById(rows[0].id);
       if (row) return row as Record<string, unknown>;
     }

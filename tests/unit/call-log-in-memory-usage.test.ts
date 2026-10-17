@@ -142,7 +142,7 @@ test("late artifact enrichment does not erase usage recorded after finalization"
   );
   getDbInstance()
     .prepare(
-      "INSERT INTO call_logs (id, timestamp, model, connection_id, artifact_relpath) VALUES (?, ?, ?, ?, ?)"
+      "INSERT INTO call_logs (id, timestamp, model, connection_id, artifact_relpath, detail_state) VALUES (?, ?, ?, ?, ?, 'ready')"
     )
     .run(`artifact-${id}`, timestamp, "enrichment-model", "connection", artifactPath);
 

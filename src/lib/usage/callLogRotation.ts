@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getDbInstance } from "../db/core";
+import { expirePendingCallLogDetails } from "../db/callLogDetails";
 import {
   findReferencedArtifacts,
   selectCallLogIdsBefore,
@@ -343,6 +344,9 @@ export function rotateCallLogs() {
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - retentionMs).toISOString();
 
+    // A process that died mid-write leaves its row 'pending'; once the insert-time
+    // deadline passes, the write can no longer publish, so make it terminal 'missing'.
+    expirePendingCallLogDetails(getDbInstance());
     deleteCallLogsBefore(cutoff, CALL_LOG_ROTATE_BATCH_SIZE);
     trimCallLogsToMaxRows(getCallLogsTableMaxRows(), CALL_LOG_ROTATE_BATCH_SIZE);
     cleanupOverflowCallLogFiles(CALL_LOGS_DIR, getCallLogMaxEntries(), CALL_LOG_ROTATE_BATCH_SIZE);
