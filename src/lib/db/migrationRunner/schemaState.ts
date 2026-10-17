@@ -145,18 +145,29 @@ export function detectNameMismatches(
   return mismatches;
 }
 
+function hasRenamedMigrationFiles(
+  compatibility: (typeof RENAMED_MIGRATION_COMPATIBILITY)[number],
+  files: MigrationFile[]
+): boolean {
+  const hasTarget = files.some(
+    (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
+  );
+  const hasReplacement = files.some(
+    (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
+  );
+  // Retired slots without a replacement need an explicit, migration-specific opt-in.
+  const retiredSource =
+    "allowMissingSourceFile" in compatibility &&
+    compatibility.allowMissingSourceFile &&
+    !files.some((file) => file.version === compatibility.fromVersion);
+  return hasTarget && (hasReplacement || retiredSource);
+}
+
 export function reconcileRenumberedMigrations(db: SqliteAdapter, files: MigrationFile[]): boolean {
   let repaired = false;
 
   for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
-    const hasTargetFile = files.some(
-      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
-    );
-    const hasSourceFile = files.some(
-      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
-    );
-
-    if (!hasTargetFile || !hasSourceFile) {
+    if (!hasRenamedMigrationFiles(compatibility, files)) {
       continue;
     }
 
@@ -293,13 +304,7 @@ export function hasLedgerRepairCandidates(db: SqliteAdapter, files: MigrationFil
   }
 
   for (const compatibility of RENAMED_MIGRATION_COMPATIBILITY) {
-    const hasTargetFile = files.some(
-      (file) => file.version === compatibility.toVersion && file.name === compatibility.toName
-    );
-    const hasSourceFile = files.some(
-      (file) => file.version === compatibility.fromVersion && file.name !== compatibility.fromName
-    );
-    if (!hasTargetFile || !hasSourceFile) continue;
+    if (!hasRenamedMigrationFiles(compatibility, files)) continue;
     const row = db
       .prepare("SELECT 1 FROM _omniroute_migrations WHERE version = ? AND name = ?")
       .get(compatibility.fromVersion, compatibility.fromName);

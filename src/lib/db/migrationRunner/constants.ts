@@ -167,6 +167,14 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "inspector_custom_hosts",
   },
   {
+    // The standalone traffic PR published 207 while 206 was only reserved elsewhere.
+    fromVersion: "207",
+    fromName: "proxy_payload_traffic",
+    toVersion: "206",
+    toName: "proxy_payload_traffic",
+    allowMissingSourceFile: true,
+  },
+  {
     fromVersion: "134",
     fromName: "ccr_blocks",
     toVersion: "139",

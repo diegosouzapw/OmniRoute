@@ -212,6 +212,24 @@ scripts/i18n/_pending-keys.json
 # Fumadocs generated source
 .source/
 
+/.ai/
+/.specify/
+/specs/
+/secrets.md
+/explain-AI.md
+/reference.md
+/CLAUDE.md
+/AGENTS.md
+/.kiro/
+/.codex/
+/.cursor/
+/.cline/
+/graphify-out/
+/.codebase-memory/
+/plans/
+.ignoreme
+**/.ignoreme
+
 # AI agent local settings and configs
 .agents/
 .antigravitycli/

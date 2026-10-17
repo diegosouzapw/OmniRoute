@@ -138,6 +138,7 @@ export function toRegistryProxyResolution(row: unknown, level: ProxyScope, level
   const relayAuth = isRelayProxyType(record.type) ? extractRelayAuth(record.notes) : undefined;
   return {
     proxy: {
+      ...(typeof record.id === "string" ? { proxyId: record.id } : {}),
       type: record.type,
       host: record.host,
       port: record.port,

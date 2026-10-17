@@ -5,6 +5,7 @@ import ProxyRegistryManager from "../ProxyRegistryManager";
 import VercelRelayModal from "./VercelRelayModal";
 import DenoRelayModal from "./DenoRelayModal";
 import CloudflareRelayModal from "./CloudflareRelayModal";
+import ProxyTrafficPanel from "./ProxyTrafficPanel";
 import type { ProxyItem } from "../proxyRegistryTypes";
 
 export default function ProxyPoolTab() {
@@ -32,6 +33,7 @@ export default function ProxyPoolTab() {
 
   return (
     <div className="space-y-4">
+      <ProxyTrafficPanel />
       <ProxyRegistryManager
         onRedeployRelay={handleRedeployRelay}
         showVercelRelay={showVercelRelay}
