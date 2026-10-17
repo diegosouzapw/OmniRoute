@@ -1,0 +1,1 @@
+- fix(copilot-m365): preserve trusted current and regional ChatHub hosts when importing HAR credentials, share parsing between validation and execution, and reject malformed or unsafe imported URLs. (#16327)

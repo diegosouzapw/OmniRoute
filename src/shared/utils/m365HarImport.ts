@@ -1,3 +1,9 @@
+import {
+  inspectM365ChatHubUrl,
+  type M365CredentialParts,
+  serializeM365Credential,
+} from "@omniroute/open-sse/utils/m365Credentials.ts";
+
 /**
  * Pure, transport-free helpers that extract a `copilot-m365-web` credential
  * (`access_token=...; chathubPath=...`) directly from a DevTools HAR export,
@@ -57,40 +63,27 @@ export function extractM365CredentialFromHar(text: string): M365HarImportResult 
     return { ok: false, error: "notJson" };
   }
 
-  const entries = har.log?.entries;
+  const entries = har?.log?.entries;
   if (!Array.isArray(entries)) {
     return { ok: false, error: "noEntries" };
   }
 
-  let matchedUrl: string | null = null;
+  let matched: Required<M365CredentialParts> | null = null;
+  let error = "noChathubUrl";
   for (const entry of entries as HarEntryLike[]) {
     const url = entry?.request?.url;
-    if (typeof url === "string" && url.startsWith(M365_CHATHUB_WS_PREFIX)) {
-      matchedUrl = url;
-    }
+    if (typeof url !== "string") continue;
+    const parsed = inspectM365ChatHubUrl(url);
+    if ("credential" in parsed) matched = parsed.credential;
+    else if (parsed.error !== "noChathubUrl") error = parsed.error;
   }
-
-  if (!matchedUrl) {
-    return { ok: false, error: "noChathubUrl" };
-  }
-
-  let parsed: URL;
-  try {
-    parsed = new URL(matchedUrl);
-  } catch {
-    return { ok: false, error: "unparsableUrl" };
-  }
-
-  const token = parsed.searchParams.get("access_token");
-  const chathubPath = decodeURIComponent(parsed.pathname.split("/m365Copilot/Chathub/")[1] || "");
-
-  if (!token || !chathubPath) {
-    return { ok: false, error: "missingFields" };
-  }
+  if (!matched) return { ok: false, error };
+  const token = matched.accessToken;
+  const chathubPath = matched.chathubPath;
 
   return {
     ok: true,
-    apiKey: `access_token=${token}; chathubPath=${chathubPath}`,
+    apiKey: serializeM365Credential(matched),
     chathubPath,
     expiresAt: decodeJwtExpiry(token),
   };

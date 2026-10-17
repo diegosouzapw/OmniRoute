@@ -8,8 +8,9 @@
  * the URL MUST go through redactWsUrl().
  */
 
-import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { randomUUID, randomBytes } from "node:crypto";
+import { parseM365PastedCredential } from "../utils/m365Credentials.ts";
+import { resolvePublicCred } from "../utils/publicCreds.ts";
 import type { ProviderCredentials } from "./base.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -118,38 +119,6 @@ export function newChatSessionId(): string {
   return randomBytes(16).toString("hex");
 }
 
-function parsePastedCredential(
-  raw: string
-): Partial<Pick<M365ConnectionParams, "accessToken" | "chathubPath">> {
-  const value = raw.trim();
-  const parts: Record<string, string> = {};
-
-  for (const segment of value.split(/[;\n]/)) {
-    const separator = segment.indexOf("=");
-    if (separator <= 0) continue;
-    const key = segment.slice(0, separator).trim();
-    const partValue = segment.slice(separator + 1).trim();
-    if (key && partValue) parts[key] = partValue;
-  }
-
-  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(value)) {
-    try {
-      const url = new URL(value);
-      parts.access_token ||= url.searchParams.get("access_token") || "";
-      parts.chathubPath ||= decodeURIComponent(
-        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
-      );
-    } catch {
-      // Keep any key/value fields already parsed from the pasted text.
-    }
-  }
-
-  return {
-    accessToken: parts.access_token || parts.accessToken,
-    chathubPath: parts.chathubPath || parts.userTenant,
-  };
-}
-
 /**
  * Read the pasted credential bits. The individual access_token is opaque (JWE),
  * so it is consumed verbatim. The Chathub path (`user@tenant`) is pasted
@@ -160,7 +129,7 @@ export function resolveConnectionParams(
 ): M365ConnectionParams | { error: string } {
   const psd = (credentials?.providerSpecificData ?? {}) as JsonRecord;
   const parsedApiKey =
-    typeof credentials?.apiKey === "string" ? parsePastedCredential(credentials.apiKey) : {};
+    typeof credentials?.apiKey === "string" ? parseM365PastedCredential(credentials.apiKey) : {};
   // A JWT in credentials.accessToken (3 dot-separated parts — the individual-tier
   // token is an opaque JWE with 5) is the freshest copy: the executor refreshes it
   // in place before resolving params, and the framework mutates it after a refresh.
@@ -174,6 +143,7 @@ export function resolveConnectionParams(
     (typeof credentials?.apiKey === "string" &&
       credentials.apiKey &&
       !credentials.apiKey.includes("access_token=") &&
+      !/^[a-z][a-z\d+.-]*:\/\//i.test(credentials.apiKey.trim()) &&
       credentials.apiKey) ||
     (typeof psd.accessToken === "string" && psd.accessToken) ||
     (typeof psd.access_token === "string" && psd.access_token) ||
@@ -192,7 +162,10 @@ export function resolveConnectionParams(
         "Missing M365 Chathub path. Paste the '<user-oid>@<tenant-id>' segment from the WebSocket URL.",
     };
   }
-  const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
+  const host =
+    (typeof psd.host === "string" && psd.host) ||
+    parsedApiKey.host ||
+    M365_INDIVIDUAL_DEFAULTS.host;
   const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
 
   return { host, chathubPath, accessToken, variants, ...resolveTierOverrides(psd) };
@@ -316,7 +289,7 @@ export function currentM365AccessToken(credentials: ProviderCredentials | undefi
     return credentials.accessToken;
   }
   if (typeof credentials?.apiKey === "string") {
-    const parsed = parsePastedCredential(credentials.apiKey);
+    const parsed = parseM365PastedCredential(credentials.apiKey);
     if (parsed.accessToken && parsed.accessToken.split(".").length === 3) return parsed.accessToken;
     // Opaque (JWE) individual-tier token — still a usable credential, just not refreshable.
     return parsed.accessToken || "";
@@ -332,7 +305,7 @@ export function currentM365ChathubPath(credentials: ProviderCredentials | undefi
   const psd = (credentials?.providerSpecificData ?? {}) as JsonRecord;
   return (
     (typeof credentials?.apiKey === "string"
-      ? parsePastedCredential(credentials.apiKey).chathubPath
+      ? parseM365PastedCredential(credentials.apiKey).chathubPath
       : "") ||
     (typeof psd.chathubPath === "string" && psd.chathubPath) ||
     (typeof psd.userTenant === "string" && psd.userTenant) ||
