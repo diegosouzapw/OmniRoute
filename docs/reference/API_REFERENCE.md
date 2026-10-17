@@ -1309,14 +1309,14 @@ GET response includes `agents[]` (id, name, binary, version, installed, protocol
 
 ### Resilience & Rate Limits
 
-| Endpoint                          | Method    | Description                                                                          |
-| --------------------------------- | --------- | ------------------------------------------------------------------------------------ |
-| `/api/resilience`                 | GET/PATCH | Get/update request queue, connection cooldown, provider breaker, and wait settings   |
-| `/api/resilience/reset`           | POST      | Reset provider circuit breakers                                                      |
-| `/api/resilience/model-cooldowns` | GET       | List active per-(provider, connection, model) lockouts, sorted by remaining time     |
-| `/api/resilience/model-cooldowns` | DELETE    | Clear a model lockout — body `{provider, model}` or `{all: true}` to wipe everything |
-| `/api/rate-limits`                | GET       | Per-account rate limit status                                                        |
-| `/api/rate-limit`                 | GET       | Global rate limit configuration                                                      |
+| Endpoint                          | Method    | Description                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Get/update request queue, connection cooldown, provider breaker, and wait settings                                                                                                                                                                                                                                                                                                              |
+| `/api/resilience/reset`           | POST      | Reset provider circuit breakers                                                                                                                                                                                                                                                                                                                                                                 |
+| `/api/resilience/model-cooldowns` | GET       | List active per-(provider, connection, model) lockouts, sorted by remaining time                                                                                                                                                                                                                                                                                                                |
+| `/api/resilience/model-cooldowns` | DELETE    | Clear a model lockout — body `{provider, model}` or `{all: true}` to wipe everything                                                                                                                                                                                                                                                                                                            |
+| `/api/rate-limits`                | GET/POST  | Per-account rate limit status (GET) or toggle rate-limit protection for a connection (POST `{connectionId, enabled}`). Supported write path for `rateLimitProtection` (never modified via `PUT /api/providers/[id]`). Note: `enabled: false` disables explicit protection but does not opt an active API-key connection out of the global auto-enable safety net (`autoEnableApiKeyProviders`). |
+| `/api/rate-limit`                 | GET       | Global rate limit configuration (deprecated; alias to `/api/rate-limits`)                                                                                                                                                                                                                                                                                                                       |
 
 > All four `/api/resilience/*` routes require **management auth** (`requireManagementAuth`). See [Resilience (extended)](#resilience-extended) for a full breakdown of provider breaker vs connection cooldown vs model lockout.
 
@@ -1718,7 +1718,13 @@ curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
   -d '{"all":true}'
 ```
 
-Full conceptual reference and breaker defaults: see [`CLAUDE.md`](../../CLAUDE.md) → "Resilience Runtime State".
+Full conceptual reference and breaker defaults: see [`CLAUDE.md`](../../CLAUDE.md) → "Resilience Runtime State" and [`docs/architecture/RESILIENCE_GUIDE.md`](../architecture/RESILIENCE_GUIDE.md).
+
+### Rate-Limit Queue & Auto-Enable Safety Net
+
+- **Supported write path**: `POST /api/rate-limits` with body `{"connectionId": "<id>", "enabled": true|false}` is the supported management endpoint to toggle rate-limit protection for a connection. `PUT /api/providers/[id]` deliberately does not modify or flip `rateLimitProtection` (#11278).
+- **Semantics of `enabled: false`**: Setting `enabled: false` removes explicit protection for the connection, but **does not** opt an active API-key connection out of the global auto-enable safety net (`autoEnableApiKeyProviders = true`). In `reconcileEnabledConnections` (`open-sse/services/rateLimitManager.ts`), `false` and `undefined` are equivalent; active API-key connections without explicit protection remain protected under the auto-enable safety net.
+- **Global disable**: To run API-key connections without rate-limit queues, disable the safety net globally via `RATE_LIMIT_AUTO_ENABLE=false` (env) or `resilienceSettings.requestQueue.autoEnableApiKeyProviders = false` (Settings → Resilience / `PATCH /api/resilience`).
 
 ---
 

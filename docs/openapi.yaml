@@ -7287,6 +7287,42 @@ paths:
       responses:
         "200":
           description: Rate limit status by account
+    post:
+      tags: [System]
+      summary: Toggle rate limit protection for a connection
+      description: Supported write path to toggle rateLimitProtection for a connection (PUT /api/providers/[id] deliberately does not modify this field). Setting enabled to false disables explicit protection, but does not opt an active API-key connection out of the global auto-enable safety net.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [connectionId, enabled]
+              properties:
+                connectionId:
+                  type: string
+                  description: Provider connection ID
+                enabled:
+                  type: boolean
+                  description: Whether explicit rate limit protection is enabled
+      responses:
+        "200":
+          description: Rate limit protection updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  connectionId:
+                    type: string
+                  enabled:
+                    type: boolean
+        "400":
+          description: Invalid request body
+        "500":
+          description: Failed to toggle rate limit
 
   /api/sessions:
     get:
