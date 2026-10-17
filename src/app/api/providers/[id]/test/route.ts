@@ -29,6 +29,7 @@ import { shouldUseApiKeyConnectionTest } from "./webSessionTestDispatch";
 import { testCodexAppServerConnection, makeDiagnosis } from "./codexAppServerHealth";
 import { recoverKeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { lockModelIfPerModelQuota } from "@omniroute/open-sse/services/accountFallback.ts";
+import { clearTestedBreakers } from "@omniroute/open-sse/services/connectionCircuitBreaker.ts";
 import { shouldClearErrorStateOnValidProbe } from "@/lib/usage/providerLimits";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import * as apiKeyTestResult from "./apiKeyTestResult";
@@ -1149,11 +1150,8 @@ export async function testSingleConnection(
         : result.valid
           ? connection.rateLimitedUntil || null
           : new Date(Date.now() + testFailureCooldownMs).toISOString(),
+    ...(clearErrorState ? { backoffLevel: 0 } : {}),
   };
-
-  if (clearErrorState) {
-    updateData.backoffLevel = 0;
-  }
 
   if (result.valid && (connection.apiKey || connection.accessToken)) {
     const recovered = recoverKeyHealth(connectionId, "primary", latest.providerSpecificData);
@@ -1172,6 +1170,8 @@ export async function testSingleConnection(
 
   // Update status in db
   await updateProviderConnection(connectionId, updateData);
+  // Once persisted, same gate as the error state: a valid probe also closes a DEGRADED breaker.
+  if (clearErrorState) clearTestedBreakers(provider, connectionId);
 
   // Sync to cloud if token was refreshed
   if (result.refreshed) {

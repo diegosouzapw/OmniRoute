@@ -115,7 +115,9 @@ upstream/service level, so one unhealthy provider does not slow down every reque
 
 - `CLOSED`: normal traffic is allowed.
 - `DEGRADED`: early-warning band — failures crossed the degradation threshold but not the
-  breaker threshold yet; traffic still flows, dashboards show the warning.
+  breaker threshold yet; traffic still flows, dashboards show the warning. A valid connection
+  test or a quiet window with no new failure returns it to `CLOSED`
+  (`docs/architecture/RESILIENCE_GUIDE.md` has the window).
 - `OPEN`: provider is temporarily blocked; callers get a provider-circuit-open response
   or combo routing skips to another target.
 - `HALF_OPEN`: reset timeout has elapsed; allow a probe request. Success closes the

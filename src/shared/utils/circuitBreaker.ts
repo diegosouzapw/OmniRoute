@@ -441,6 +441,21 @@ export class CircuitBreaker {
     return this._timeUntilReset();
   }
 
+  /**
+   * Close a DEGRADED breaker and forget its failure counts. Any other state is left alone: a
+   * CLOSED partial count still recovers one success at a time, and only an acquired probe may
+   * settle OPEN or HALF_OPEN. Returns whether the breaker closed.
+   */
+  closeDegraded(reason: string): boolean {
+    if (this.state !== STATE.DEGRADED) return false;
+    this._transition(STATE.CLOSED, reason);
+    this.failureCount = 0;
+    this.lastFailureKind = null;
+    this.kindFailureCounts = {};
+    this._persistToDb();
+    return true;
+  }
+
   reset() {
     this._transition(STATE.CLOSED, "manual-reset");
     this.failureCount = 0;
@@ -504,6 +519,7 @@ export class CircuitBreaker {
   }
 
   _onFailure(kind?: FailureKind | null) {
+    this._decayStaleDegradation();
     const failureKind = kind ?? null;
     this.failureCount++;
     this.lastFailureTime = Date.now();
@@ -570,22 +586,29 @@ export class CircuitBreaker {
     return Date.now() - this.lastFailureTime >= cooldown;
   }
 
+  /** Cooldown override configured for the last failure's kind, or null when there is none. */
+  _kindCooldownOverride(): number | null {
+    if (this.lastFailureKind === null) return null;
+    const override = this.cooldownByKind[this.lastFailureKind];
+    return typeof override === "number" && Number.isFinite(override) && override >= 0
+      ? override
+      : null;
+  }
+
   _effectiveCooldown() {
     const baseTimeout = this._effectiveResetTimeout();
-    if (this.lastFailureKind !== null) {
-      const override = this.cooldownByKind[this.lastFailureKind];
-      if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
-        // #14960: the per-kind override replaces the BASE reset timeout but must
-        // still honor open-cycle escalation — otherwise a quota_exhausted
-        // provider re-probes at the same fixed interval forever while
-        // openCycleCount grows. Apply the same doubling the base timeout gets,
-        // capped at override * maxBackoffMultiplier.
-        if (this.openCycleCount <= this.backoffEscalationCount) {
-          return override;
-        }
-        const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
-        return Math.min(override * escalationFactor, override * this.maxBackoffMultiplier);
+    const override = this._kindCooldownOverride();
+    if (override !== null) {
+      // #14960: the per-kind override replaces the BASE reset timeout but must
+      // still honor open-cycle escalation — otherwise a quota_exhausted
+      // provider re-probes at the same fixed interval forever while
+      // openCycleCount grows. Apply the same doubling the base timeout gets,
+      // capped at override * maxBackoffMultiplier.
+      if (this.openCycleCount <= this.backoffEscalationCount) {
+        return override;
       }
+      const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
+      return Math.min(override * escalationFactor, override * this.maxBackoffMultiplier);
     }
     return baseTimeout;
   }
@@ -599,7 +622,25 @@ export class CircuitBreaker {
     return Math.max(0, cooldown - (Date.now() - this.lastFailureTime));
   }
 
+  /**
+   * DEGRADED is left only on a success, so a provider that stopped receiving traffic stayed
+   * DEGRADED forever. Once it has gone the longest the breaker would hold it OPEN for the same
+   * failure kind (the kind's cooldown override, else `resetTimeout`, times
+   * `maxBackoffMultiplier`, never less than one cooldown) without a new failure, forget the
+   * warning. A DEGRADED state with no recorded failure time (a persisted row with a zero
+   * timestamp) has no recent failure to keep it, so it decays at once. Lazy, like OPEN.
+   */
+  _decayStaleDegradation() {
+    if (this.state !== STATE.DEGRADED) return;
+    const cooldown = this._kindCooldownOverride() ?? this.resetTimeout;
+    const quietWindowMs = cooldown * Math.max(1, this.maxBackoffMultiplier);
+    if (this.lastFailureTime === null || Date.now() - this.lastFailureTime >= quietWindowMs) {
+      this.closeDegraded("failure-decay");
+    }
+  }
+
   _refreshOpenState() {
+    this._decayStaleDegradation();
     if (this.state === STATE.OPEN && this._shouldAttemptReset()) {
       this._transition(STATE.HALF_OPEN, "timeout-elapsed");
       this._persistToDb();
