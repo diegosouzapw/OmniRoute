@@ -133,6 +133,123 @@ describe("memory-embedding-static-potion loader against the repo file names", ()
     assert.equal(model.vocab["world"], 6);
   });
 
+  it("recovers from a corrupt existing tokenizer cache on the next request (#16444)", async () => {
+    const modelDir = path.join(cacheDir, "potion-base-8M");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "tokenizer.json"), "{broken json");
+
+    const first = await embedStatic("hello");
+    assert.ok(!("vector" in first));
+    assert.equal(first.reason, "model_load_failed");
+    await assert.rejects(fs.access(path.join(modelDir, "tokenizer.json")));
+
+    const second = await embedStatic("hello");
+    assert.ok("vector" in second, JSON.stringify(second));
+    assert.deepEqual(Array.from(second.vector), [5, 0, 0, 0]);
+    assert.equal(requested.filter((url) => url.endsWith("/tokenizer.json")).length, 1);
+    assert.deepEqual((await fs.readdir(modelDir)).sort(), ["model.safetensors", "tokenizer.json"]);
+  });
+
+  it("recovers from a truncated safetensors cache without restarting (#16444)", async () => {
+    const modelDir = path.join(cacheDir, "potion-base-8M");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "model.safetensors"), Buffer.alloc(4));
+
+    const first = await embedStatic("hello");
+    assert.ok(!("vector" in first));
+    assert.equal(first.reason, "model_load_failed");
+    await assert.rejects(fs.access(path.join(modelDir, "model.safetensors")));
+
+    const second = await embedStatic("hello");
+    assert.ok("vector" in second, JSON.stringify(second));
+    assert.deepEqual(Array.from(second.vector), [5, 0, 0, 0]);
+    assert.equal(requested.filter((url) => url.endsWith("/model.safetensors")).length, 1);
+  });
+
+  it("rejects forged tensor offsets and retries a valid weight file (#16444)", async () => {
+    const modelDir = path.join(cacheDir, "potion-base-8M");
+    await fs.mkdir(modelDir, { recursive: true });
+    // Small file claiming an enormous tensor range must never allocate based
+    // on its unchecked offsets or keep the corrupt bytes in the cache.
+    const bad = Buffer.from(HF_FILES["model.safetensors"]);
+    const headerLength = Number(bad.readBigUInt64LE(0));
+    const header = JSON.parse(bad.subarray(8, 8 + headerLength).toString("utf8"));
+    header.embeddings.data_offsets = [0, 1000000000];
+    const headerBytes = Buffer.from(JSON.stringify(header));
+    const headerSize = Buffer.alloc(8);
+    headerSize.writeBigUInt64LE(BigInt(headerBytes.length));
+    await fs.writeFile(
+      path.join(modelDir, "model.safetensors"),
+      Buffer.concat([headerSize, headerBytes, Buffer.alloc(16)])
+    );
+
+    const first = await embedStatic("hello");
+    assert.ok(!("vector" in first));
+    assert.equal(first.reason, "model_load_failed");
+    assert.match(first.message, /tensor shape or offsets/);
+    await assert.rejects(fs.access(path.join(modelDir, "model.safetensors")));
+
+    const retry = await embedStatic("hello");
+    assert.ok("vector" in retry, JSON.stringify(retry));
+    assert.deepEqual(Array.from(retry.vector), [5, 0, 0, 0]);
+  });
+
+  it("retries a transient model download failure without restarting (#16444)", async () => {
+    // Make only the tokenizer download fail; avoid a racing weights write
+    // from the parallel Promise.all download affecting this retry test.
+    const modelDir = path.join(cacheDir, "potion-base-8M");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "model.safetensors"), HF_FILES["model.safetensors"]);
+    const firstFetch = globalThis.fetch;
+    let tokenizerRequests = 0;
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      if (String(input).endsWith("/tokenizer.json") && ++tokenizerRequests === 1) {
+        return new Response("Temporarily unavailable", { status: 503 });
+      }
+      return firstFetch(input);
+    }) as typeof fetch;
+
+    const first = await embedStatic("hello");
+    assert.equal("vector" in first, false);
+    if ("vector" in first) assert.fail("initial download should have failed");
+    assert.equal(first.reason, "model_load_failed");
+
+    // Without a reset/restart this previously re-awaited a cached rejected Promise.
+    const second = await embedStatic("hello");
+    assert.ok("vector" in second, JSON.stringify(second));
+    assert.deepEqual(Array.from(second.vector), [5, 0, 0, 0]);
+    assert.equal(tokenizerRequests, 2, "a fresh load must retry the missing tokenizer");
+  });
+
+  it("deduplicates concurrent failed loads and permits a later retry (#16444)", async () => {
+    // Make only the tokenizer download fail; avoid a racing weights write
+    // from the parallel Promise.all download affecting this retry test.
+    const modelDir = path.join(cacheDir, "potion-base-8M");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "model.safetensors"), HF_FILES["model.safetensors"]);
+    const firstFetch = globalThis.fetch;
+    let tokenizerRequests = 0;
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      if (String(input).endsWith("/tokenizer.json") && ++tokenizerRequests === 1) {
+        return new Response("Temporarily unavailable", { status: 503 });
+      }
+      return firstFetch(input);
+    }) as typeof fetch;
+
+    const firstWave = await Promise.allSettled([getOrLoadModel(), getOrLoadModel()]);
+    assert.deepEqual(
+      firstWave.map((entry) => entry.status),
+      ["rejected", "rejected"]
+    );
+    assert.equal(tokenizerRequests, 1, "concurrent callers must share one first load");
+
+    const model = await getOrLoadModel();
+    assert.equal(model.vocab["hello"], 5);
+    assert.equal(tokenizerRequests, 2);
+    const cached = await getOrLoadModel();
+    assert.equal(cached, model, "after successful retry the loaded model stays cached");
+  });
+
   const NOT_A_WORDPIECE_VOCAB: Array<[string, unknown]> = [
     ["no model.vocab at all", { model: { type: "Unigram" } }],
     [

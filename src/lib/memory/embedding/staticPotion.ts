@@ -9,6 +9,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import { randomUUID } from "node:crypto";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import type { EmbeddingResult, EmbeddingError } from "./types";
 
@@ -48,7 +49,19 @@ async function downloadFile(url: string, dest: string): Promise<void> {
     throw new Error(`Failed to download ${url}: HTTP ${resp.status}`);
   }
   const buf = await resp.arrayBuffer();
-  await fs.writeFile(dest, Buffer.from(buf));
+
+  // The previous direct write could leave a truncated file behind on disk.
+  // ensureFile() only checks for existence, so that partial file poisoned all
+  // future loads. Rename an entirely written temporary file into place.
+  const tempPath = `${dest}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await fs.writeFile(tempPath, Buffer.from(buf));
+    await fs.rename(tempPath, dest);
+  } finally {
+    // Best effort: preserving the original write/rename failure is more useful
+    // than replacing it with a temporary-file cleanup error.
+    await fs.rm(tempPath, { force: true }).catch(() => {});
+  }
 }
 
 async function ensureFile(filePath: string, url: string): Promise<void> {
@@ -66,8 +79,13 @@ async function ensureFile(filePath: string, url: string): Promise<void> {
  */
 function parseSafetensors(buf: Buffer): { matrix: Float32Array; shape: number[] } {
   // Read 8-byte header size (little-endian)
-  const headerLen = Number(buf.readBigUInt64LE(0));
-  const headerJson = buf.slice(8, 8 + headerLen).toString("utf8");
+  if (buf.length < 8) throw new Error("Invalid safetensors: missing header length");
+  const headerSize = buf.readBigUInt64LE(0);
+  if (headerSize > BigInt(buf.length - 8)) {
+    throw new Error("Invalid safetensors: truncated header");
+  }
+  const headerLen = Number(headerSize);
+  const headerJson = buf.subarray(8, 8 + headerLen).toString("utf8");
   const header = JSON.parse(headerJson) as Record<
     string,
     { dtype?: string; shape?: number[]; data_offsets?: [number, number] }
@@ -81,11 +99,28 @@ function parseSafetensors(buf: Buffer): { matrix: Float32Array; shape: number[] 
     if (dtype !== "f32" && dtype !== "float32") continue;
 
     const [startOffset, endOffset] = meta.data_offsets;
+    const dataLength = buf.length - (8 + headerLen);
+    // Offsets are untrusted metadata from the downloaded file. Validate before
+    // allocating or reading, including the 2D matrix shape required by pooling.
+    if (
+      !Number.isSafeInteger(startOffset) ||
+      !Number.isSafeInteger(endOffset) ||
+      startOffset < 0 ||
+      endOffset < startOffset ||
+      endOffset > dataLength ||
+      (endOffset - startOffset) % 4 !== 0 ||
+      meta.shape.length !== 2 ||
+      !meta.shape.every((size) => Number.isSafeInteger(size) && size > 0)
+    ) {
+      throw new Error("Invalid safetensors: tensor shape or offsets");
+    }
+    const floatCount = (endOffset - startOffset) / 4;
+    if (meta.shape[0] * meta.shape[1] !== floatCount) {
+      throw new Error("Invalid safetensors: matrix size does not match tensor shape");
+    }
     const dataStart = 8 + headerLen + startOffset;
     const dataEnd = 8 + headerLen + endOffset;
-    const dataSlice = buf.slice(dataStart, dataEnd);
-
-    const floatCount = (dataEnd - dataStart) / 4;
+    const dataSlice = buf.subarray(dataStart, dataEnd);
     const arr = new Float32Array(floatCount);
     for (let i = 0; i < floatCount; i++) {
       arr[i] = dataSlice.readFloatLE(i * 4);
@@ -122,15 +157,24 @@ async function loadModel(): Promise<PotionModel> {
     ensureFile(tokenizerPath, `${hfBase}/tokenizer.json`),
   ]);
 
-  // Load vocab (the model repo ships tokenizer.json and vocab.txt, no vocab.json)
-  const vocab = parseTokenizerVocab(await fs.readFile(tokenizerPath, "utf8"));
+  // A previously interrupted or malformed download can exist in the cache
+  // even after the failed loader promise is cleared. Evict only the proven
+  // invalid file so the next invocation can fetch a clean copy.
+  let vocab: Record<string, number>;
+  try {
+    vocab = parseTokenizerVocab(await fs.readFile(tokenizerPath, "utf8"));
+  } catch (error) {
+    await fs.rm(tokenizerPath, { force: true }).catch(() => {});
+    throw error;
+  }
 
-  // Load matrix from safetensors
-  const modelBuf = await fs.readFile(modelPath);
-  const { matrix, shape } = parseSafetensors(modelBuf);
-
-  if (shape.length < 2) {
-    throw new Error(`Unexpected safetensors shape: ${JSON.stringify(shape)}`);
+  let matrix: Float32Array;
+  let shape: number[];
+  try {
+    ({ matrix, shape } = parseSafetensors(await fs.readFile(modelPath)));
+  } catch (error) {
+    await fs.rm(modelPath, { force: true }).catch(() => {});
+    throw error;
   }
   const vocabSize = shape[0];
   const dim = shape[1];
@@ -143,11 +187,20 @@ async function loadModel(): Promise<PotionModel> {
 export function getOrLoadModel(): Promise<PotionModel> {
   if (_model) return Promise.resolve(_model);
   if (_loading) return _loading;
-  _loading = loadModel().then((m) => {
-    _model = m;
-    _loading = null;
-    return m;
-  });
+  _loading = loadModel().then(
+    (m) => {
+      _model = m;
+      _loading = null;
+      return m;
+    },
+    (error: unknown) => {
+      // A transient CDN/network error or a malformed cached file must not
+      // poison the in-process promise for the rest of the server's lifetime.
+      // Callers still receive this failure; the next request may retry.
+      _loading = null;
+      throw error;
+    }
+  );
   return _loading;
 }
 
