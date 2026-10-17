@@ -300,6 +300,9 @@ export const updateSettingsSchema = z.object({
       z.object({
         fallbackStrategy: accountFallbackStrategySchema.optional(),
         stickyRoundRobinLimit: z.number().int().min(1).max(1000).optional(),
+        planWeights: z
+          .record(z.string().trim().min(1).max(40), z.number().finite().min(0.01).max(100))
+          .optional(),
       })
     )
     .optional(),

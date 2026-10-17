@@ -25,11 +25,24 @@ test("global comboStickyRoundRobinLimit accepts up to 1000 (was 100)", () => {
 
 test("per-provider stickyRoundRobinLimit accepts up to 1000 (was 10)", () => {
   const ok = updateSettingsSchema.safeParse({
-    providerStrategies: { "opencode-go": { fallbackStrategy: "round-robin", stickyRoundRobinLimit: 1000 } },
+    providerStrategies: {
+      "opencode-go": { fallbackStrategy: "round-robin", stickyRoundRobinLimit: 1000 },
+    },
   });
   assert.equal(ok.success, true);
   const tooHigh = updateSettingsSchema.safeParse({
     providerStrategies: { "opencode-go": { stickyRoundRobinLimit: 1001 } },
   });
   assert.equal(tooHigh.success, false);
+});
+
+test("per-provider planWeights accepts bounded positive overrides", () => {
+  const ok = updateSettingsSchema.safeParse({
+    providerStrategies: { agy: { planWeights: { Ultra: 4, Pro: 2 } } },
+  });
+  assert.equal(ok.success, true);
+  const bad = updateSettingsSchema.safeParse({
+    providerStrategies: { agy: { planWeights: { Ultra: 0 } } },
+  });
+  assert.equal(bad.success, false);
 });

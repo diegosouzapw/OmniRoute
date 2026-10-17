@@ -1,0 +1,1 @@
+- **feat(providers):** extend `expiry-first` account rotation with requested quota-family scoping, plan-capacity weights, and observed reset-window burn metrics. Gemini and Claude windows no longer compete across families; Codex Spark uses its own quota windows. Accounts without burn history retain the existing quota/reset scoring.
