@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { Worker } from "node:worker_threads";
 
+import { resolveWritableDataDir } from "../dataPaths";
+
 import type { CallLogArtifact, CallLogArtifactWriteResult } from "./callLogArtifacts.ts";
 
 const MAX_QUEUED_JOBS = 128;
@@ -22,6 +24,7 @@ type QueueItem = {
     pipelineMaxSizeKb?: string;
     chatDebugFile?: string;
     appLogLevel?: string;
+    dataDir?: string;
   };
   resolve: (result: CallLogArtifactWriteResult | null) => void;
 };
@@ -210,6 +213,8 @@ export function writeCallArtifactAsync(
         pipelineMaxSizeKb: process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB,
         chatDebugFile: process.env.CHAT_DEBUG_FILE,
         appLogLevel: process.env.APP_LOG_LEVEL,
+        // Resolved, not raw: a redirected parent has no DATA_DIR in its env.
+        dataDir: resolveWritableDataDir(),
       },
       resolve,
     };

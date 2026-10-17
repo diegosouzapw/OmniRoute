@@ -13,6 +13,7 @@ type WriteRequest = {
     pipelineMaxSizeKb?: string;
     chatDebugFile?: string;
     appLogLevel?: string;
+    dataDir?: string;
   };
 };
 
@@ -26,6 +27,9 @@ function applyWriteEnvironment(environment: WriteRequest["environment"]): void {
     CALL_LOG_PIPELINE_MAX_SIZE_KB: environment.pipelineMaxSizeKb,
     CHAT_DEBUG_FILE: environment.chatDebugFile,
     APP_LOG_LEVEL: environment.appLogLevel,
+    // The worker resolves its paths lazily like the parent; pin it to the
+    // parent's resolved dir so both executors share one target.
+    DATA_DIR: environment.dataDir,
   };
   for (const [name, value] of Object.entries(values)) {
     if (value === undefined) delete process.env[name];

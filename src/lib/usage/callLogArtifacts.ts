@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
-import { resolveDataDir } from "../dataPaths";
+import { resolveWritableDataDir } from "../dataPaths";
 import { getCallLogPipelineMaxSizeBytes, isChatDebugFileEnabled } from "../logEnv";
 import {
   CALL_LOG_SIZE_LIMIT_REASON as SIZE_LIMIT_EXCEEDED_REASON,
@@ -13,9 +13,17 @@ import {
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase =
   process.env.NEXT_PHASE === "phase-production-build" || process.env.OMNIROUTE_BUILDING === "1";
-const DATA_DIR = resolveDataDir({ isCloud });
 
-export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
+/**
+ * Directory holding per-request artifact files. Resolved lazily on every call
+ * so a test-context redirect picked up after import (see `resolveWritableDataDir`)
+ * carries the artifacts along with the database instead of leaving them in the
+ * operator's real data directory.
+ */
+export function getCallLogsDir(): string | null {
+  if (isCloud) return null;
+  return path.join(resolveWritableDataDir({ isCloud }), "call_logs");
+}
 export const MAX_CALL_LOG_ARTIFACT_BYTES = 512 * 1024;
 
 // Artifacts hold full request/response bodies (prompts, tool output): keep them
@@ -311,9 +319,10 @@ export function writeCallArtifact(
   artifact: CallLogArtifact,
   relativePath = buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
 ): CallLogArtifactWriteResult | null {
-  if (!CALL_LOGS_DIR || isBuildPhase) return null;
+  const logsDir = getCallLogsDir();
+  if (!logsDir || isBuildPhase) return null;
 
-  const absPath = path.join(CALL_LOGS_DIR, relativePath);
+  const absPath = path.join(logsDir, relativePath);
   const tmpPath = `${absPath}.${process.pid}.${Date.now()}.tmp`;
 
   try {
@@ -323,7 +332,7 @@ export function writeCallArtifact(
     // so artifact bookkeeping is not treated as password hashing by static analysis.
     const fileChecksum = computeArtifactChecksum(serialized);
 
-    ensurePrivateArtifactDir(CALL_LOGS_DIR, path.dirname(absPath));
+    ensurePrivateArtifactDir(logsDir, path.dirname(absPath));
     // The mode is applied at creation and survives the atomic rename.
     fs.writeFileSync(tmpPath, serialized, { mode: PRIVATE_FILE_MODE });
     fs.renameSync(tmpPath, absPath);
@@ -348,12 +357,16 @@ export function readCallArtifact(relativePath: string | null): {
   artifact: CallLogArtifact | null;
   state: "ready" | "missing" | "corrupt";
 } {
-  if (!CALL_LOGS_DIR || !relativePath) {
+  if (!relativePath) {
+    return { artifact: null, state: "missing" };
+  }
+  const logsDir = getCallLogsDir();
+  if (!logsDir) {
     return { artifact: null, state: "missing" };
   }
 
   try {
-    const absPath = path.join(CALL_LOGS_DIR, relativePath);
+    const absPath = path.join(logsDir, relativePath);
     if (!fs.existsSync(absPath)) {
       return { artifact: null, state: "missing" };
     }
@@ -367,7 +380,10 @@ export function readCallArtifact(relativePath: string | null): {
   }
 }
 
-export function deleteCallArtifact(relativePath: string | null, baseDir = CALL_LOGS_DIR): boolean {
+export function deleteCallArtifact(
+  relativePath: string | null,
+  baseDir: string | null = getCallLogsDir()
+): boolean {
   if (!baseDir || !relativePath) return false;
 
   try {
@@ -389,7 +405,7 @@ export function deleteCallArtifact(relativePath: string | null, baseDir = CALL_L
   }
 }
 
-export function cleanupEmptyCallLogDirs(baseDir = CALL_LOGS_DIR) {
+export function cleanupEmptyCallLogDirs(baseDir: string | null = getCallLogsDir()) {
   if (!baseDir || !fs.existsSync(baseDir)) return;
 
   try {
@@ -406,7 +422,7 @@ export function cleanupEmptyCallLogDirs(baseDir = CALL_LOGS_DIR) {
   }
 }
 
-export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
+export function listCallLogArtifactFiles(baseDir: string | null = getCallLogsDir()) {
   if (!baseDir || !fs.existsSync(baseDir)) return [];
 
   return fs
@@ -437,7 +453,7 @@ export function listCallLogArtifactFiles(baseDir = CALL_LOGS_DIR) {
 }
 
 export function purgeCallLogArtifactDirectory(
-  baseDir = CALL_LOGS_DIR
+  baseDir: string | null = getCallLogsDir()
 ): PurgeCallLogArtifactDirectoryResult {
   const result = { deletedArtifacts: 0, errors: 0 };
   if (!baseDir || !fs.existsSync(baseDir)) return result;

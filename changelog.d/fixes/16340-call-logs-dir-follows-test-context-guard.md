@@ -1,0 +1,1 @@
+- **fix(usage):** keep request detail files with the redirected test database ([#16340](https://github.com/diegosouzapw/OmniRoute/pull/16340)) — thanks @maxmad64bis

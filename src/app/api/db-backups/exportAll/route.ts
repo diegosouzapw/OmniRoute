@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { exportAllSummaryRows } from "@/lib/db/backup";
-import { CALL_LOGS_DIR } from "@/lib/usage/callLogArtifacts";
+import { getCallLogsDir } from "@/lib/usage/callLogArtifacts";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -67,8 +67,9 @@ async function buildFullExportResponse(): Promise<Response> {
       );
 
       // 6. Export call log artifacts directory
-      if (CALL_LOGS_DIR && fs.existsSync(CALL_LOGS_DIR)) {
-        fs.cpSync(CALL_LOGS_DIR, path.join(payloadDir, "call_logs"), { recursive: true });
+      const callLogsDir = getCallLogsDir();
+      if (callLogsDir && fs.existsSync(callLogsDir)) {
+        fs.cpSync(callLogsDir, path.join(payloadDir, "call_logs"), { recursive: true });
       }
 
       // 7. Export metadata

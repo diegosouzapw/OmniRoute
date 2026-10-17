@@ -42,7 +42,7 @@ import {
 } from "../logPayloads";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import {
-  CALL_LOGS_DIR,
+  getCallLogsDir,
   readCallArtifact,
   type CallLogArtifact,
   type CallLogDetailState,
@@ -405,7 +405,8 @@ function readLegacyLogFromDisk(entry: {
   model: string | null;
   status: number;
 }) {
-  if (!CALL_LOGS_DIR || !entry.timestamp) return null;
+  const logsDir = getCallLogsDir();
+  if (!logsDir || !entry.timestamp) return null;
 
   try {
     const date = new Date(entry.timestamp);
@@ -415,7 +416,7 @@ function readLegacyLogFromDisk(entry: {
       2,
       "0"
     )}-${String(date.getDate()).padStart(2, "0")}`;
-    const dir = path.join(CALL_LOGS_DIR, dateFolder);
+    const dir = path.join(logsDir, dateFolder);
     if (!fs.existsSync(dir)) return null;
 
     const time = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(

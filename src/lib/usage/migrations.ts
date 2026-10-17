@@ -17,7 +17,7 @@ import { getAppLogFilePath } from "../logEnv";
 import { protectPayloadForLog } from "../logPayloads";
 import { sanitizePII } from "../piiSanitizer";
 import { resolveProviderId } from "@/shared/constants/providers";
-import { writeCallArtifact, type CallLogArtifact } from "./callLogArtifacts";
+import { writeCallArtifact, getCallLogsDir, type CallLogArtifact } from "./callLogArtifacts";
 import {
   resolveImportedUsageAccountIdentity,
   resolveOrphanedUsageAccountIdentity,
@@ -28,7 +28,6 @@ export const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 
-export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
 export const LOG_ARCHIVES_DIR = isCloud ? null : path.join(DATA_DIR, "log_archives");
 
 const LEGACY_LAYOUT_MARKER =
@@ -184,9 +183,10 @@ function listArchiveTargets(): ArchiveTarget[] {
     });
   }
 
-  if (CALL_LOGS_DIR && containsLegacyCallLogLayout(CALL_LOGS_DIR)) {
+  const callLogsDir = getCallLogsDir();
+  if (callLogsDir && containsLegacyCallLogLayout(callLogsDir)) {
     targets.push({
-      sourcePath: CALL_LOGS_DIR,
+      sourcePath: callLogsDir,
       archiveRoot: "data/call_logs",
       deleteAfterArchive: true,
     });

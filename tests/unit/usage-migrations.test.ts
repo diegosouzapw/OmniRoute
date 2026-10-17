@@ -18,6 +18,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.NEXT_PHASE;
 
 const migrations = await import("../../src/lib/usage/migrations.ts");
+const { getCallLogsDir } = await import("../../src/lib/usage/callLogArtifacts.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
 const LEGACY_DATA_DIR = path.join(TEST_HOME_DIR, ".omniroute");
@@ -67,7 +68,7 @@ test.beforeEach(() => {
   removePath(`${CALL_LOGS_JSON_FILE}.migrated`);
   removePath(CURRENT_REQUEST_LOGS_DIR);
   removePath(CURRENT_REQUEST_SUMMARY_FILE);
-  removePath(migrations.CALL_LOGS_DIR);
+  removePath(getCallLogsDir());
   removePath(migrations.LOG_ARCHIVES_DIR);
   resetDbTables();
 });

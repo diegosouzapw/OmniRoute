@@ -14,7 +14,7 @@ import {
   selectCallLogIdsBefore,
   selectOverflowArtifactPaths,
 } from "./callLogsBoundedQueries";
-import { CALL_LOGS_DIR, deleteCallArtifact, type CallLogDetailState } from "./callLogArtifacts";
+import { getCallLogsDir, deleteCallArtifact, type CallLogDetailState } from "./callLogArtifacts";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
 import { isSqlitePagerCorruptError, notePagerCorruption } from "../db/healthCheck";
 
@@ -186,7 +186,7 @@ function readOrphanCandidates(
 }
 
 export function cleanupOrphanCallLogFiles(
-  baseDir = CALL_LOGS_DIR,
+  baseDir: string | null = getCallLogsDir(),
   options: { maxCandidates?: number; maxScanEntries?: number; minAgeMs?: number } = {}
 ) {
   if (!baseDir || !fs.existsSync(baseDir)) return 0;
@@ -231,7 +231,7 @@ export function cleanupOrphanCallLogFiles(
 }
 
 export function cleanupOverflowCallLogFiles(
-  baseDir = CALL_LOGS_DIR,
+  baseDir: string | null = getCallLogsDir(),
   maxEntries?: number,
   maxDeletes = Number.POSITIVE_INFINITY
 ) {
@@ -338,15 +338,16 @@ export function handleCallLogRotateError(error: unknown): void {
 export function rotateCallLogs() {
   if (callLogRotatePaused) return;
   try {
-    if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+    const logsDir = getCallLogsDir();
+    if (!logsDir || !fs.existsSync(logsDir)) return;
 
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - retentionMs).toISOString();
 
     deleteCallLogsBefore(cutoff, CALL_LOG_ROTATE_BATCH_SIZE);
     trimCallLogsToMaxRows(getCallLogsTableMaxRows(), CALL_LOG_ROTATE_BATCH_SIZE);
-    cleanupOverflowCallLogFiles(CALL_LOGS_DIR, getCallLogMaxEntries(), CALL_LOG_ROTATE_BATCH_SIZE);
-    cleanupOrphanCallLogFiles(CALL_LOGS_DIR, {
+    cleanupOverflowCallLogFiles(logsDir, getCallLogMaxEntries(), CALL_LOG_ROTATE_BATCH_SIZE);
+    cleanupOrphanCallLogFiles(logsDir, {
       maxCandidates: CALL_LOG_ROTATE_BATCH_SIZE,
       maxScanEntries: CALL_LOG_ROTATE_BATCH_SIZE,
       minAgeMs: CALL_LOG_ORPHAN_MIN_AGE_MS,
@@ -371,7 +372,7 @@ function runScheduledCallLogRotation() {
 }
 
 export function scheduleCallLogRotation() {
-  if (!CALL_LOGS_DIR) return;
+  if (!getCallLogsDir()) return;
   const elapsed = Date.now() - lastCallLogRotationScheduledAt;
   if (elapsed >= CALL_LOG_ROTATE_THROTTLE_MS) {
     lastCallLogRotationScheduledAt = Date.now();

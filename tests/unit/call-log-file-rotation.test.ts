@@ -20,8 +20,9 @@ process.env.CALL_LOG_MAX_ENTRIES = "2";
 const core = await import("../../src/lib/db/core.ts");
 const { rotateCallLogs, cleanupOverflowCallLogFiles, cleanupOrphanCallLogFiles } =
   await import("../../src/lib/usage/callLogs.ts");
-const { CALL_LOGS_DIR, deleteCallArtifact } =
+const { getCallLogsDir, deleteCallArtifact } =
   await import("../../src/lib/usage/callLogArtifacts.ts");
+const CALL_LOGS_DIR = getCallLogsDir();
 
 async function resetTestDataDir() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
