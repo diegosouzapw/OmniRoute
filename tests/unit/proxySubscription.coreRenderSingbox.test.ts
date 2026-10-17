@@ -16,7 +16,10 @@ function modelOf(count: number, opts?: { clash?: boolean; uri?: boolean }) {
     name: `node-${i + 1}`,
     source:
       opts?.clash || opts?.uri
-        ? { kind: "uri" as const, value: `vless://u@example.com:443#node-${i + 1}` }
+        ? {
+            kind: "uri" as const,
+            value: `vless://11111111-2222-4333-8444-55555555555${i}@example.com:443#node-${i + 1}`,
+          }
         : {
             kind: "object" as const,
             value: {
@@ -107,22 +110,39 @@ test("refuses {} / not-json / array roots", () => {
   assert.deepEqual(renderSingBox(modelOf(1), "[]"), { ok: false, reason: "not_an_object" });
 });
 
-test("clash or uri nodes are skipped, never converted", () => {
+test("standard uri nodes render through the canonical form, irreducible ones are rejected", () => {
   const m = modelOf(2, { uri: true });
   const res = renderSingBox(m, null);
   assert.equal(res.ok, true);
   if (!res.ok) return;
+  const rejected = res.skipped.filter((s) => s.reason === "converter_unsupported");
+  assert.equal(rejected.length, 0);
   const shape = res.skipped.filter((s) => s.reason === "source_not_singbox_shape");
-  assert.equal(shape.length, 2);
-  const empty = res.skipped.filter((s) => s.reason === "empty_group");
-  assert.equal(empty.length, m.groups.filter((g) => g.members.length > 0).length);
+  assert.equal(shape.length, 0);
   const after = JSON.parse(res.text);
-  assert.ok(!after.outbounds.some((o: { tag: string }) => m.nodes.some((n) => n.tag === o.tag)));
+  assert.equal(after.outbounds.filter((o: { type: string }) => o.type === "vless").length, 2);
+  for (const n of m.nodes)
+    assert.ok(
+      after.outbounds.some((o: { tag: string }) => o.tag === `${OWNED_TAG_PREFIX}${n.tag}`)
+    );
 });
 
-test("group with only skipped nodes emits neither group nor listener", () => {
+test("uri nodes with an unsupported flow are rejected, never degraded", () => {
+  const irreducible = buildCoreModel(["socks5://127.0.0.1:1080 selector=a"], [
+    { name: "bad", source: { kind: "uri", value: "vless://u@10.9.0.1:443?flow=bogus#bad" } },
+  ] as never);
+  const res = renderSingBox(irreducible, null);
+  assert.equal(res.ok, true);
+  if (!res.ok) return;
+  const rejected = res.skipped.filter((s) => s.reason === "converter_unsupported");
+  assert.equal(rejected.length, 1);
+  const after = JSON.parse(res.text);
+  assert.ok(!after.outbounds.some((o: { type: string }) => o.type === "vless"));
+});
+
+test("group with only irreducible nodes emits neither group nor listener", () => {
   const single = buildCoreModel(["socks5://127.0.0.1:1080 selector=solo"], [
-    { name: "x", source: { kind: "uri", value: "vless://u@1.1.1.1:443#x" } },
+    { name: "x", source: { kind: "uri", value: "vless://u@1.1.1.1:443?flow=bogus#x" } },
   ] as never);
   const res = renderSingBox(single, null);
   assert.equal(res.ok, true);
@@ -170,10 +190,10 @@ test("functional: realistic file with 2 listeners, 2 groups, 6 nodes", () => {
   assert.deepEqual(after.log, JSON.parse(realisticExisting()).log);
 });
 
-test("groups with only unrenderable members are reported as empty_group", () => {
+test("groups with only irreducible members are reported as empty_group", () => {
   const nodes = Array.from({ length: 6 }, (_, i) => ({
     name: `u${i + 1}`,
-    source: { kind: "uri" as const, value: `vless://u@10.2.0.${i + 1}:443#u${i + 1}` },
+    source: { kind: "uri" as const, value: `vless://u@10.2.0.${i + 1}:443?flow=bogus#u${i + 1}` },
   })) as never[];
   const m = buildCoreModel(
     [
@@ -192,7 +212,7 @@ test("groups with only unrenderable members are reported as empty_group", () => 
   assert.deepEqual(empty.map((s) => s.node).sort(), m.groups.map((g) => g.tag).sort());
 });
 
-test("mixed rendered and unrenderable groups report only the unrenderable ones", () => {
+test("mixed rendered and irreducible groups report only the irreducible ones", () => {
   const rendered = {
     name: "ok",
     source: {
@@ -202,8 +222,12 @@ test("mixed rendered and unrenderable groups report only the unrenderable ones",
   } as never;
   const m = buildCoreModel(
     ["socks5://127.0.0.1:1080 selector=solo", "socks5://127.0.0.1:1081 selector=other"],
-    [rendered, { name: "x", source: { kind: "uri", value: "vless://u@10.3.0.2:443#x" } } as never]
+    [
+      rendered,
+      { name: "x", source: { kind: "uri", value: "vless://u@10.3.0.2:443?flow=bogus#x" } } as never,
+    ]
   );
+  assert.ok(m.groups.every((g) => g.members.length > 0));
   const res = renderSingBox(m, null);
   assert.equal(res.ok, true);
   if (!res.ok) return;

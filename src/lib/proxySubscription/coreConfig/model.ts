@@ -2,9 +2,9 @@
  * Core-agnostic generation model: what OmniRoute owns (local listeners,
  * selector groups, node tags) — never how a protocol is translated.
  *
- * It doesn't model outbound protocol payloads: each node carries its
- * original definition untouched (`source`), and a renderer passes it through
- * verbatim or skips it with a reason.
+ * It doesn't model core payloads: each node carries its original definition
+ * untouched (`source`), and a renderer passes it through verbatim or projects
+ * the canonical translation from `normalize.ts`.
  */
 import { createHash } from "node:crypto";
 import type { NeedsCoreNode, NodeSource, SubscriptionNode } from "../parse";
@@ -31,6 +31,17 @@ export interface CoreNode {
   tag: string;
   source: NodeSource;
 }
+
+// The canonical translation lives in `normalize.ts`; re-exported here so
+// renderers and tests keep one import site for the generation model.
+export {
+  isSingBoxLike,
+  normalizeSource,
+  type CanonicalNode,
+  type NormalizeFail,
+  type NormalizeOk,
+  type NormalizeResult,
+} from "./normalize";
 
 export interface CoreModel {
   listeners: CoreListener[];

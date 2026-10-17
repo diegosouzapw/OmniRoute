@@ -118,14 +118,11 @@ test("beside path merges model and render skips with an exact detail", async (t)
     );
     assert.ok(warning.warning?.includes("CORE_CONFIG_ENTRIES_SKIPPED"), `got: ${warning.warning}`);
     const parsed = JSON.parse(warning.warning!);
-    assert.equal(
-      parsed.detail,
-      "skipped:4:empty_group=2,invalid_endpoint=1,source_not_singbox_shape=1"
-    );
+    assert.equal(parsed.detail, "skipped:2:empty_group=1,invalid_endpoint=1");
     assert.equal(cap.length, 1);
-    assert.ok(cap[0].includes("empty_group=2"));
+    assert.ok(cap[0].includes("empty_group=1"));
     assert.ok(cap[0].includes("invalid_endpoint=1"));
-    assert.ok(cap[0].includes("source_not_singbox_shape=1"));
+    assert.ok(!cap[0].includes("source_not_singbox_shape"));
   } finally {
     console.warn = orig;
   }
@@ -165,10 +162,10 @@ test("verified path keeps the same detail as the beside path", async (t) => {
       `got: ${intention.warning}`
     );
     // model.skipped is the array already spread into initialSkipped. Counting
-    // both reports 6 (empty_group=3, invalid_endpoint=2) instead of 4.
+    // both reports 6 (empty_group=3, invalid_endpoint=2) instead of 2.
     assert.equal(
       JSON.parse(intention.warning!).detail,
-      "skipped:4:empty_group=2,invalid_endpoint=1,source_not_singbox_shape=1",
+      "skipped:2:empty_group=1,invalid_endpoint=1",
       "model.skipped is already inside initialSkipped; the warning must not count it twice"
     );
     delete process.env.OMNIROUTE_PROXY_CORE_BINARY_PATH;

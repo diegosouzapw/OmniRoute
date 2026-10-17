@@ -215,7 +215,7 @@ test("unassigned groups log one empty_group line per group", async () => {
     cap.restore();
   }
   assert.equal(cap.lines.length, 1);
-  assert.ok(cap.lines[0].includes("empty_group=3"));
+  assert.ok(cap.lines[0].includes("empty_group=2"));
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -351,7 +351,7 @@ test("repeated generations leave no accumulated state", async () => {
     cap.restore();
   }
   assert.equal(cap.lines.length, 5);
-  assert.ok(cap.lines.every((l) => l.includes("empty_group=3")));
+  assert.ok(cap.lines.every((l) => l.includes("empty_group=2")));
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

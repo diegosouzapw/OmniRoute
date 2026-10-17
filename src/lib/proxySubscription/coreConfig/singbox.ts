@@ -8,21 +8,34 @@
  * verbatim, key order included. An adopted file without an `inbounds` or
  * `outbounds` array is refused (`no_ownable_section`), never rewritten.
  *
- * Skipped (reported, never converted): a URI/Clash to sing-box outbound
- * converter doesn't exist here — nodes whose source isn't sing-box-shaped
- * are listed with `source_not_singbox_shape`. When the feed offers a variant
+ * Skipped (reported, never converted): nodes that are neither sing-box-shaped
+ * nor translatable to the canonical form are listed with a reason —
+ * `converter_unsupported` for a supported scheme that cannot translate whole
+ * (with the offending `wire-param:`/`unknown-param:` key in `detail`),
+ * `source_not_singbox_shape` for anything else. When the feed offers a variant
  * already shaped for this core, point the subscription at it instead.
  */
-import { OWNED_TAG_PREFIX, type CoreListener, type CoreModel } from "./model";
+import {
+  OWNED_TAG_PREFIX,
+  isSingBoxLike,
+  type CanonicalNode,
+  type CoreListener,
+  type CoreModel,
+  type CoreNode,
+} from "./model";
+import {
+  collectEmptyGroups,
+  collectSkips,
+  logDroppedParams,
+  normalizeAll,
+  type RenderVerdicts,
+} from "./renderShared";
 import { createHash } from "node:crypto";
 import type { RenderRefused, RenderResult } from "./renderers";
 
 export function isSingBoxShape(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== "object") return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.type === "string" && typeof v.server === "string" && typeof v.server_port === "number"
-  );
+  return isSingBoxLike(value as Record<string, unknown>);
 }
 
 function inboundFor(listener: CoreListener): Record<string, unknown> {
@@ -66,27 +79,88 @@ function parseBase(existingText: string | null): Record<string, unknown> | Rende
   return base;
 }
 
-function renderedTagSet(model: CoreModel): Set<string> {
-  const tags = new Set<string>();
-  for (const node of model.nodes) {
-    if (node.source.kind === "object" && isSingBoxShape(node.source.value)) {
-      tags.add(node.tag);
-    }
+/** Already sing-box-shaped objects render verbatim, without the normalizer. */
+function isPassthrough(node: CoreNode): boolean {
+  return node.source.kind === "object" && isSingBoxShape(node.source.value);
+}
+
+function tlsBlock(node: CanonicalNode): Record<string, unknown> {
+  const tls: Record<string, unknown> = { enabled: true, server_name: node.security.serverName };
+  if (node.security.insecure) tls.insecure = true;
+  if (node.security.kind === "reality") {
+    tls.reality = {
+      enabled: true,
+      public_key: node.security.publicKey ?? "",
+      short_id: node.security.shortId ?? "",
+    };
   }
-  return tags;
+  // uTLS only when the source asks for a fingerprint, or for Reality (which
+  // needs it); hysteria2 runs over QUIC, where uTLS doesn't apply.
+  if (
+    node.type !== "hysteria2" &&
+    (node.security.fingerprint || node.security.kind === "reality")
+  ) {
+    tls.utls = { enabled: true, fingerprint: node.security.fingerprint ?? "chrome" };
+  }
+  return tls;
+}
+
+function transportBlock(node: CanonicalNode): Record<string, unknown> | null {
+  if (node.transport.kind === "ws") {
+    return {
+      type: "ws",
+      path: node.transport.path ?? "/",
+      ...(node.transport.host ? { headers: { Host: node.transport.host } } : {}),
+    };
+  }
+  if (node.transport.kind === "grpc") {
+    return { type: "grpc", service_name: node.transport.service ?? "" };
+  }
+  return null;
+}
+
+function credentialFields(node: CanonicalNode): Record<string, unknown> {
+  if (node.credentials.kind === "uuid") return { uuid: node.credentials.secret };
+  if (node.credentials.kind === "password") return { password: node.credentials.secret };
+  return { method: node.credentials.method, password: node.credentials.secret };
+}
+
+/** Project one canonical node to a sing-box outbound (tag added by the caller). */
+export function projectCanonical(node: CanonicalNode): Record<string, unknown> {
+  const outbound: Record<string, unknown> = {
+    type: node.type,
+    server: node.server,
+    server_port: node.serverPort,
+    ...credentialFields(node),
+  };
+  if (node.flow) outbound.flow = node.flow;
+  if (node.security.kind !== "none") outbound.tls = tlsBlock(node);
+  const transport = transportBlock(node);
+  if (transport) outbound.transport = transport;
+  return outbound;
 }
 
 function selectorOutbounds(
   model: CoreModel,
   renderedTags: Set<string>,
+  verdicts: RenderVerdicts,
   keptOutbounds: Array<Record<string, unknown>>
 ): string[] {
   const emittedGroups = model.groups.filter((g) => g.members.some((m) => renderedTags.has(m)));
   const emittedTags = new Set(emittedGroups.map((g) => g.tag));
   for (const node of model.nodes) {
     if (!renderedTags.has(node.tag)) continue;
-    const value = (node.source as { kind: "object"; value: Record<string, unknown> }).value;
-    keptOutbounds.push({ ...value, tag: `${OWNED_TAG_PREFIX}${node.tag}` });
+    const normalized = verdicts.get(node.tag);
+    if (!normalized) {
+      const value = (node.source as { kind: "object"; value: Record<string, unknown> }).value;
+      keptOutbounds.push({ ...value, tag: `${OWNED_TAG_PREFIX}${node.tag}` });
+      continue;
+    }
+    if (!normalized.ok) continue;
+    keptOutbounds.push({
+      ...projectCanonical(normalized.node),
+      tag: `${OWNED_TAG_PREFIX}${node.tag}`,
+    });
   }
   for (const group of emittedGroups) {
     const members = group.members
@@ -131,7 +205,8 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
   if (isRefused(baseOrRefused)) return baseOrRefused;
   const base: Record<string, unknown> = baseOrRefused;
 
-  const renderedTags = renderedTagSet(model);
+  const { verdicts, rendered: renderedTags } = normalizeAll(model, isPassthrough);
+  logDroppedParams(verdicts);
   const out: Record<string, unknown> = { ...base };
   const inbounds = (Array.isArray(base.inbounds) ? base.inbounds : []).slice() as Array<
     Record<string, unknown>
@@ -143,25 +218,13 @@ export function renderSingBox(model: CoreModel, existingText: string | null): Re
   const keptInbounds = withoutOwned(inbounds, (i) => (i as Record<string, unknown>).tag);
   const keptOutbounds = withoutOwned(outbounds, (o) => (o as Record<string, unknown>).tag);
 
-  const skipped: Array<{ node: string; reason: string }> = [];
-  for (const node of model.nodes) {
-    if (!renderedTags.has(node.tag))
-      skipped.push({ node: node.tag, reason: "source_not_singbox_shape" });
-  }
+  const skipped: Array<{ node: string; reason: string }> = collectSkips(model, verdicts);
 
   const operatorCount = keptOutbounds.length;
-  const emittedTags = selectorOutbounds(model, renderedTags, keptOutbounds);
+  const emittedTags = selectorOutbounds(model, renderedTags, verdicts, keptOutbounds);
   const emittedGroupTags = new Set(emittedTags);
 
-  // Groups with members assigned but none renderable emit nothing (see
-  // selectorOutbounds above): report each once so an unemitted listener never
-  // goes silent. Groups already reported by the model layer (no members
-  // assigned at all) are excluded here — no double count at the sync merge.
-  for (const group of model.groups) {
-    if (group.members.length === 0) continue;
-    if (group.members.some((m) => renderedTags.has(m))) continue;
-    skipped.push({ node: group.tag, reason: "empty_group" });
-  }
+  skipped.push(...collectEmptyGroups(model, renderedTags));
   // Owned-position table, aligned with the final `outbounds` array:
   // operator entries (kept) and selectors (appended by selectorOutbounds
   // after the node entries) are unowned; node entries carry the model tag.

@@ -1,0 +1,1 @@
+- **feat(core-config):** translate subscription URI and Clash nodes into outbounds instead of skipping them ([#16432](https://github.com/diegosouzapw/OmniRoute/pull/16432)) — thanks @maxmad64bis
