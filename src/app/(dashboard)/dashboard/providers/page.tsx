@@ -59,6 +59,10 @@ const ImportProvidersFromFileModal = dynamic(
     import("./components/ImportProvidersFromFileModal").then((m) => m.ImportProvidersFromFileModal),
   { ssr: false }
 );
+const OAuthExportImportModal = dynamic(
+  () => import("./components/OAuthExportImportModal").then((m) => m.OAuthExportImportModal),
+  { ssr: false }
+);
 import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import HighlightableProviderCard from "./components/HighlightableProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
@@ -229,6 +233,7 @@ function ProvidersPageContent() {
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
   const [showImportFromFileModal, setShowImportFromFileModal] = useState(false);
+  const [showOAuthExportImportModal, setShowOAuthExportImportModal] = useState(false);
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
   const [providerDisplayMode, setProviderDisplayMode] = useState<ProviderDisplayMode>("all");
@@ -933,6 +938,7 @@ function ProvidersPageContent() {
           onDisplayModeChange={setProviderDisplayMode}
           onNewProvider={() => router.push("/dashboard/providers/new")}
           onImportFromFile={() => setShowImportFromFileModal(true)}
+          onImportOAuthExport={() => setShowOAuthExportImportModal(true)}
           searchQuery={searchQuery}
           setModelSearchQuery={setModelSearchQuery}
           setSearchQuery={setSearchQuery}
@@ -1874,6 +1880,11 @@ function ProvidersPageContent() {
         <ImportProvidersFromFileModal
           isOpen={showImportFromFileModal}
           onClose={() => setShowImportFromFileModal(false)}
+          onImported={async () => setConnections((await loadProviderPageData()).connections)}
+        />
+        <OAuthExportImportModal
+          isOpen={showOAuthExportImportModal}
+          onClose={() => setShowOAuthExportImportModal(false)}
           onImported={async () => setConnections((await loadProviderPageData()).connections)}
         />
         {/* Test Results Modal */}
