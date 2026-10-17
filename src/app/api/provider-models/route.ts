@@ -1,3 +1,4 @@
+import { clearLegacyVisionOverride } from "@/lib/providerModels/visionOverrides";
 import {
   listProviderOutputOverrides,
   persistOutputTokenOverride,
@@ -290,6 +291,7 @@ export async function PUT(request) {
     const model = await updateCustomModel(provider, modelId, updates, {
       createIfMissing: maxOutputTokenOverride === undefined || Object.keys(updates).length > 0,
     });
+    clearLegacyVisionOverride(provider, modelId, updates);
 
     if (!model) {
       const rawKeys = Object.keys(raw);

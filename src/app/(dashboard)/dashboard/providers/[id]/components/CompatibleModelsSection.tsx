@@ -1,5 +1,4 @@
 "use client";
-import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelListing";
 /**
  * CompatibleModelsSection — Issue #3501 Phase 1e
  *
@@ -9,6 +8,8 @@ import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelLi
  * Never imports from ProviderDetailPageClient.
  */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelListing";
+import { sortModelsFreeFirst, isModelFreeBadge } from "@/shared/utils/freeModels";
 import { Button } from "@/shared/components";
 import {
   matchesModelCatalogQuery,
@@ -24,8 +25,8 @@ import {
   type CompatModelRow,
 } from "../providerPageHelpers";
 import { ModelVisibilityToolbar } from "./ModelRow";
-import { sortModelsFreeFirst, isModelFreeBadge } from "@/shared/utils/freeModels";
 import { useStrictFreeBadge } from "./useStrictFreeBadge";
+import { useModelVisionOverrides } from "../hooks/useModelVisionOverrides";
 import { useModelOutputOverrides } from "../hooks/useModelOutputOverrides";
 import PassthroughModelRow, { type PassthroughModelRowProps } from "./PassthroughModelRow";
 
@@ -159,6 +160,7 @@ export default function CompatibleModelsSection({
 
   const notify = useNotificationStore();
   const outputOverrides = useModelOutputOverrides(providerStorageAlias, t);
+  const visionOverrides = useModelVisionOverrides(providerStorageAlias, t, onModelsChanged);
 
   // #14337: context-window overrides for rows that have no customModels entry.
   // GET /api/provider-models returns them per provider; without this the value a
@@ -591,7 +593,10 @@ export default function CompatibleModelsSection({
                     testStatus={modelTestStatus?.[modelId] || null}
                     testingModel={testingModelId === modelId}
                     provider={providerStorageAlias}
-                    supportsVision={supportsVision}
+                    supportsVision={visionOverrides.overrides[modelId] ?? supportsVision}
+                    visionOverride={visionOverrides.overrides[modelId]}
+                    onSaveVisionOverride={visionOverrides.save}
+                    savingVisionOverride={visionOverrides.savingModelId !== null}
                     maxOutputTokenOverride={outputOverrides.overrides[modelId] ?? null}
                     onSaveMaxOutputTokenOverride={outputOverrides.save}
                     savingOutputOverride={outputOverrides.savingModelId === modelId}

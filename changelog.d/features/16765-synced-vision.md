@@ -1,0 +1,1 @@
+- feat(providers): edit manual vision overrides on synced models and clear legacy vision overrides explicitly. (#16765)
