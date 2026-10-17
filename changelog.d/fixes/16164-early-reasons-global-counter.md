@@ -1,0 +1,1 @@
+- **fix(proxy-subscriptions):** count early selector skips with readable labels ([#16164](https://github.com/diegosouzapw/OmniRoute/pull/16164)) — thanks @maxmad64bis
