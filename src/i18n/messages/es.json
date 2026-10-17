@@ -8764,6 +8764,8 @@
     "qdrantHost": "Anfitrión",
     "qdrantCollection": "Colección",
     "catalogVisibilityHint": "Los identificadores de modelos ocultos se pueden seguir invocando con los mismos permisos de acceso.",
+    "exposeCombosOnly": "Listar solo combinaciones en /v1/models",
+    "exposeCombosOnlyDesc": "Los clientes que descubren modelos automáticamente ven tus combinaciones (y auto/*, salvo que estén ocultos) en lugar de los modelos sin procesar de los proveedores. Los ID explícitos provider/model siguen enrutándose.",
     "catalogScopeTitle": "Listado de la API de modelos",
     "catalogScopeDesc": "Lo que GET /v1/models anuncia para esta clave. Limitar la lista nunca cambia los modelos que la clave puede invocar.",
     "catalogScopeAll": "Ambos",

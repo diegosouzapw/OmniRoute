@@ -8764,6 +8764,8 @@
     "qdrantHost": "Hôte",
     "qdrantCollection": "Collection",
     "catalogVisibilityHint": "Les identifiants des modèles masqués restent utilisables avec les mêmes droits d’accès.",
+    "exposeCombosOnly": "Lister uniquement les combos dans /v1/models",
+    "exposeCombosOnlyDesc": "Les clients qui découvrent automatiquement les modèles voient vos combos (et auto/* sauf s’ils sont masqués) au lieu des modèles bruts des fournisseurs. Les identifiants provider/model explicites restent routés.",
     "catalogScopeTitle": "Liste de l’API Models",
     "catalogScopeDesc": "Ce que GET /v1/models annonce pour cette clé. Restreindre la liste ne modifie jamais ce que la clé peut appeler.",
     "catalogScopeAll": "Les deux",

@@ -180,6 +180,8 @@ export type { CachedCatalog, BackgroundRefreshScheduler } from "./catalogCache";
  */
 export type CatalogResponseOptions = {
   scheduleBackgroundRefresh?: BackgroundRefreshScheduler;
+  /** Management/lookup callers keep provider rows even when `exposeCombosOnly` is on. */
+  ignoreExposeCombosOnly?: boolean;
 };
 
 const BUILTIN_AUTO_YIELD_INTERVAL = 2;
@@ -200,7 +202,7 @@ function yieldCatalogBuildTurn(): Promise<void> {
 export async function getUnifiedModelsResponse(
   request: Request,
   corsHeaders: Record<string, string> = {},
-  options: { scheduleBackgroundRefresh?: BackgroundRefreshScheduler } = {}
+  options: CatalogResponseOptions = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
 
@@ -230,11 +232,13 @@ export async function getUnifiedModelsResponse(
     incrementCcDiscoveryHitCount();
   }
 
+  const combosOnly =
+    settingsForAuth?.exposeCombosOnly === true && options.ignoreExposeCombosOnly !== true;
   try {
     return await resolveCachedCatalogResponse(
       request,
       { corsHeaders, diagnosticHeaders },
-      buildCatalogPayload,
+      combosOnly ? (req) => buildCatalogPayload(req, true) : buildCatalogPayload,
       {
         // #10831: a disabled router hides auto/* just as hideAutoCombos does, so
         // the two collapse into one cache dimension — the resulting catalogs are
@@ -242,6 +246,7 @@ export async function getUnifiedModelsResponse(
         hideAutoCombos:
           settingsForAuth?.hideAutoCombos === true || settingsForAuth?.autoRoutingEnabled === false,
         hideNoThinkVariants: settingsForAuth?.hideNoThinkVariants === true,
+        exposeCombosOnly: combosOnly,
         scheduleBackgroundRefresh: options.scheduleBackgroundRefresh,
       }
     );
@@ -261,9 +266,10 @@ export async function getUnifiedModelsResponse(
 }
 
 async function buildCatalogPayload(
-  request: Request
+  request: Request,
+  combosOnly = false
 ): Promise<{ body: string; headers: Record<string, string>; status: number; cacheTTL: number }> {
-  const built = await buildUnifiedModelsResponseCore(request);
+  const built = await buildUnifiedModelsResponseCore(request, {}, combosOnly);
   const body = await built.text();
   const headers: Record<string, string> = {};
   built.headers.forEach((value, key) => {
@@ -289,7 +295,8 @@ async function buildCatalogPayload(
  */
 async function buildUnifiedModelsResponseCore(
   request: Request,
-  corsHeaders: Record<string, string> = {}
+  corsHeaders: Record<string, string> = {},
+  combosOnly = false
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   // #9147: this builder walks connections + model registries at catalog scale with no
@@ -2019,7 +2026,9 @@ async function buildUnifiedModelsResponseCore(
 
     // Filter by API key permissions if requested
     const apiKey = extractApiKey(request);
-    let finalModels = models;
+    // exposeCombosOnly: same row test as the per-key `catalogScope: "combos"`; the
+    // per-key filter below then intersects with it.
+    let finalModels = combosOnly ? models.filter((m) => m.owned_by === "combo") : models;
     if (apiKey) {
       const apiKeyPermissions = await import("@/lib/db/apiKeys");
       const { filterCatalogModelsForKey } = await import("./catalogKeyFilter");
@@ -2047,7 +2056,7 @@ async function buildUnifiedModelsResponseCore(
       } else {
         finalModels = await filterCatalogModelsForKey(
           apiKey,
-          models,
+          finalModels,
           keyMeta,
           apiKeyPermissions,
           maybeYieldCatalogBuild

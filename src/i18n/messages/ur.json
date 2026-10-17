@@ -8764,6 +8764,8 @@
     "qdrantHost": "میزبان",
     "qdrantCollection": "اجتماع",
     "catalogVisibilityHint": "چھپے ہوئے ماڈل ID کو انہی رسائی اجازتوں کے ساتھ اب بھی کال کیا جا سکتا ہے۔",
+    "exposeCombosOnly": "/v1/models میں صرف کومبوز درج کریں",
+    "exposeCombosOnlyDesc": "جو کلائنٹس ماڈلز خودکار طور پر دریافت کرتے ہیں وہ خام پرووائیڈر ماڈلز کے بجائے آپ کے کومبوز (اور اگر چھپائے نہ گئے ہوں تو auto/*) دیکھیں گے۔ واضح provider/model IDs بدستور روٹ ہوتی رہیں گی۔",
     "catalogScopeTitle": "Models API کی فہرست",
     "catalogScopeDesc": "یہ کلید GET /v1/models میں کیا ظاہر کرتی ہے۔ فہرست محدود کرنے سے کبھی بھی اس بات پر اثر نہیں پڑتا کہ کلید کن ماڈلز کو کال کر سکتی ہے۔",
     "catalogScopeAll": "دونوں",

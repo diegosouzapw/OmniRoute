@@ -8764,6 +8764,8 @@
     "qdrantHost": "Host",
     "qdrantCollection": "Kogumik",
     "catalogVisibilityHint": "Peidetud mudelite ID-sid saab endiselt kutsuda samade juurdepääsuõigustega.",
+    "exposeCombosOnly": "Näita /v1/models loendis ainult kombinatsioone",
+    "exposeCombosOnlyDesc": "Kliendid, kes avastavad mudeleid automaatselt, näevad teie kombinatsioone (ja auto/*, kui need pole peidetud) toorete teenusepakkuja mudelite asemel. Selgesõnalised provider/model ID-d suunatakse endiselt edasi.",
     "catalogScopeTitle": "Models API loend",
     "catalogScopeDesc": "Mida GET /v1/models selle võtme kohta avaldab. Loendi kitsendamine ei muuda kunagi seda, milliseid mudeleid võti saab kutsuda.",
     "catalogScopeAll": "Mõlemad",

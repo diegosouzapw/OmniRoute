@@ -8764,6 +8764,8 @@
     "qdrantHost": "主機",
     "qdrantCollection": "集合",
     "catalogVisibilityHint": "隱藏的模型 ID 仍可使用相同的存取權限呼叫。",
+    "exposeCombosOnly": "在 /v1/models 中僅列出組合",
+    "exposeCombosOnlyDesc": "自動探索模型的用戶端將看到你的組合（以及未隱藏的 auto/*），而非原始的提供者模型。明確的 provider/model ID 仍會正常路由。",
     "catalogScopeTitle": "Models API 列表",
     "catalogScopeDesc": "GET /v1/models 針對此金鑰所列出的內容。縮小列表範圍絕不會變更此金鑰可呼叫的模型。",
     "catalogScopeAll": "兩者",

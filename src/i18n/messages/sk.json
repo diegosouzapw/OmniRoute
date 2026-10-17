@@ -8764,6 +8764,8 @@
     "qdrantHost": "Hostiteľ",
     "qdrantCollection": "Zbierka",
     "catalogVisibilityHint": "Skryté identifikátory modelov je možné naďalej volať s rovnakými prístupovými oprávneniami.",
+    "exposeCombosOnly": "V /v1/models zobrazovať iba kombinácie",
+    "exposeCombosOnlyDesc": "Klienti, ktorí modely zisťujú automaticky, uvidia vaše kombinácie (a auto/*, ak nie sú skryté) namiesto surových modelov poskytovateľov. Explicitné ID provider/model sa naďalej smerujú.",
     "catalogScopeTitle": "Zoznam rozhrania Models API",
     "catalogScopeDesc": "Čo GET /v1/models uvádza pre tento kľúč. Zúženie zoznamu nikdy nemení, čo môže kľúč volať.",
     "catalogScopeAll": "Oboje",

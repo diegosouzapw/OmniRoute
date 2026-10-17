@@ -8764,6 +8764,8 @@
     "qdrantHost": "ਹੋਸਟ",
     "qdrantCollection": "ਕਲੈਕਸ਼ਨ",
     "catalogVisibilityHint": "ਲੁਕਾਏ ਮਾਡਲ ID ਨੂੰ ਉਹੀ ਪਹੁੰਚ ਇਜਾਜ਼ਤਾਂ ਨਾਲ ਅਜੇ ਵੀ ਕਾਲ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ।",
+    "exposeCombosOnly": "/v1/models ਵਿੱਚ ਸਿਰਫ਼ ਕੌਂਬੋ ਸੂਚੀਬੱਧ ਕਰੋ",
+    "exposeCombosOnlyDesc": "ਜੋ ਕਲਾਇੰਟ ਮਾਡਲ ਆਪਣੇ-ਆਪ ਲੱਭਦੇ ਹਨ, ਉਹ ਕੱਚੇ ਪ੍ਰੋਵਾਈਡਰ ਮਾਡਲਾਂ ਦੀ ਥਾਂ ਤੁਹਾਡੇ ਕੌਂਬੋ (ਅਤੇ ਜੇ ਲੁਕਾਏ ਨਹੀਂ ਤਾਂ auto/*) ਦੇਖਣਗੇ। ਸਪਸ਼ਟ provider/model ID ਰੂਟ ਹੁੰਦੇ ਰਹਿਣਗੇ।",
     "catalogScopeTitle": "Models API ਸੂਚੀ",
     "catalogScopeDesc": "ਇਸ ਕੁੰਜੀ ਲਈ GET /v1/models ਕੀ ਦਰਸਾਉਂਦਾ ਹੈ। ਸੂਚੀ ਨੂੰ ਸੀਮਤ ਕਰਨ ਨਾਲ ਇਹ ਕਦੇ ਨਹੀਂ ਬਦਲਦਾ ਕਿ ਕੁੰਜੀ ਕਿਹੜੇ ਮਾਡਲ ਨੂੰ ਕਾਲ ਕਰ ਸਕਦੀ ਹੈ।",
     "catalogScopeAll": "ਦੋਵੇਂ",

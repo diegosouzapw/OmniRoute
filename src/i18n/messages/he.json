@@ -8764,6 +8764,8 @@
     "qdrantHost": "מארח",
     "qdrantCollection": "אוסף",
     "catalogVisibilityHint": "אפשר עדיין לקרוא למזהי מודלים מוסתרים עם אותן הרשאות גישה.",
+    "exposeCombosOnly": "הצג רק שילובים ב-/v1/models",
+    "exposeCombosOnlyDesc": "לקוחות שמגלים מודלים אוטומטית יראו את השילובים שלך (ו-auto/* אלא אם הם מוסתרים) במקום מודלים גולמיים של ספקים. מזהי provider/model מפורשים ממשיכים להיות מנותבים.",
     "catalogScopeTitle": "רשימת Models API",
     "catalogScopeDesc": "מה ש-GET /v1/models מפרסם עבור מפתח זה. צמצום הרשימה לעולם אינו משנה את המודלים שהמפתח יכול לקרוא להם.",
     "catalogScopeAll": "שניהם",

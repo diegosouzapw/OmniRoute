@@ -8764,6 +8764,8 @@
     "qdrantHost": "โฮสต์",
     "qdrantCollection": "การรวบรวม",
     "catalogVisibilityHint": "ยังเรียกใช้รหัสโมเดลที่ซ่อนไว้ได้ด้วยสิทธิ์การเข้าถึงเดิม",
+    "exposeCombosOnly": "แสดงเฉพาะคอมโบใน /v1/models",
+    "exposeCombosOnlyDesc": "ไคลเอนต์ที่ค้นหาโมเดลอัตโนมัติจะเห็นคอมโบของคุณ (และ auto/* หากไม่ได้ซ่อนไว้) แทนโมเดลดิบของผู้ให้บริการ ID แบบ provider/model ที่ระบุชัดเจนยังคงถูกกำหนดเส้นทางตามปกติ",
     "catalogScopeTitle": "รายการ Models API",
     "catalogScopeDesc": "สิ่งที่ GET /v1/models แสดงสำหรับคีย์นี้ การจำกัดรายการให้แคบลงจะไม่เปลี่ยนแปลงสิ่งที่คีย์สามารถเรียกใช้ได้",
     "catalogScopeAll": "ทั้งสองอย่าง",

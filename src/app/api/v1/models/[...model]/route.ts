@@ -31,5 +31,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ mode
   const { model } = await params;
   const segments = Array.isArray(model) ? model : [model];
   const requestedId = decodeURIComponent(segments.join("/"));
-  return handleGetModelById(request, requestedId, getUnifiedModelsResponse);
+  // Lookup follows dispatch: an explicit provider/model id still routes when the
+  // public listing is narrowed by `exposeCombosOnly`, so it still resolves here.
+  return handleGetModelById(request, requestedId, (req, cors) =>
+    getUnifiedModelsResponse(req, cors, { ignoreExposeCombosOnly: true })
+  );
 }

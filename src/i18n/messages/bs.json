@@ -8764,6 +8764,8 @@
     "qdrantHost": "Host",
     "qdrantCollection": "Kolekcija",
     "catalogVisibilityHint": "Skriveni ID-jevi modela i dalje se mogu pozivati uz iste dozvole pristupa.",
+    "exposeCombosOnly": "Prikaži samo kombinacije u /v1/models",
+    "exposeCombosOnlyDesc": "Klijenti koji automatski otkrivaju modele vide vaše kombinacije (i auto/* osim ako nisu skrivene) umjesto sirovih modela provajdera. Eksplicitni provider/model ID-ovi i dalje se rutiraju.",
     "catalogScopeTitle": "Lista Models API-ja",
     "catalogScopeDesc": "Ono što GET /v1/models oglašava za ovaj ključ. Sužavanje liste nikada ne mijenja ono što ključ može pozvati.",
     "catalogScopeAll": "Oba",

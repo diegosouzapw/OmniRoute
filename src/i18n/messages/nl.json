@@ -8764,6 +8764,8 @@
     "qdrantHost": "Host",
     "qdrantCollection": "Verzameling",
     "catalogVisibilityHint": "Verborgen model-ID’s kunnen nog steeds worden aangeroepen met dezelfde toegangsrechten.",
+    "exposeCombosOnly": "Alleen combo's tonen in /v1/models",
+    "exposeCombosOnlyDesc": "Clients die modellen automatisch ontdekken zien je combo's (en auto/*, tenzij verborgen) in plaats van de ruwe providermodellen. Expliciete provider/model-id's worden nog steeds gerouteerd.",
     "catalogScopeTitle": "Vermelding in Models API",
     "catalogScopeDesc": "Wat GET /v1/models voor deze sleutel weergeeft. Het beperken van de lijst verandert nooit welke modellen met de sleutel kunnen worden aangeroepen.",
     "catalogScopeAll": "Beide",

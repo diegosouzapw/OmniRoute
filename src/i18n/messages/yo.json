@@ -8764,6 +8764,8 @@
     "qdrantHost": "Olùgbàlejò",
     "qdrantCollection": "Àkójọpọ̀",
     "catalogVisibilityHint": "A ṣì lè pe ID àwòṣe tí a fi pamọ́ pẹ̀lú àwọn àṣẹ ìwọlé kan náà.",
+    "exposeCombosOnly": "Ṣe àkójọ àwọn àkópọ̀ nìkan ní /v1/models",
+    "exposeCombosOnlyDesc": "Àwọn oníbàárà tí ń ṣàwárí àwòṣe fúnra wọn yóò rí àwọn àkópọ̀ rẹ (àti auto/* àyàfi tí wọ́n bá farapamọ́) dípò àwọn àwòṣe olùpèsè tí a kò ṣàtúnṣe. Àwọn ID provider/model tí a sọ ní kedere ṣì ń jẹ́ dídarí.",
     "catalogScopeTitle": "Àkójọ àwòṣe API",
     "catalogScopeDesc": "Ohun tí GET /v1/models fi hàn fún kọ́kọ́rọ́ yìí. Dídín àkójọ náà kù kì í yí ohun tí kọ́kọ́rọ́ náà lè pè padà.",
     "catalogScopeAll": "Méjèèjì",

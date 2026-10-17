@@ -10,7 +10,8 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 export async function GET(request: Request) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    const response = await getUnifiedModelsResponse(request, {});
+    // Dashboard model pickers need provider rows even when /v1/models lists combos only.
+    const response = await getUnifiedModelsResponse(request, {}, { ignoreExposeCombosOnly: true });
     const body = await response.json();
 
     if (!response.ok) {

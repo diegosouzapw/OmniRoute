@@ -8764,6 +8764,8 @@
     "qdrantHost": "Värd",
     "qdrantCollection": "Samling",
     "catalogVisibilityHint": "Dolda modell-ID:n kan fortfarande anropas med samma åtkomstbehörigheter.",
+    "exposeCombosOnly": "Visa endast kombinationer i /v1/models",
+    "exposeCombosOnlyDesc": "Klienter som upptäcker modeller automatiskt ser dina kombinationer (och auto/* om de inte är dolda) i stället för leverantörernas råa modeller. Explicita provider/model-id:n fortsätter att routas.",
     "catalogScopeTitle": "Modellista i API:et",
     "catalogScopeDesc": "Vad GET /v1/models visar för denna nyckel. Att begränsa listan ändrar aldrig vad nyckeln kan anropa.",
     "catalogScopeAll": "Båda",

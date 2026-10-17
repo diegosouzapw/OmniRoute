@@ -8764,6 +8764,8 @@
     "qdrantHost": "Host",
     "qdrantCollection": "Koleksi",
     "catalogVisibilityHint": "ID model yang disembunyikan tetap dapat dipanggil dengan izin akses yang sama.",
+    "exposeCombosOnly": "Tampilkan hanya kombinasi di /v1/models",
+    "exposeCombosOnlyDesc": "Klien yang menemukan model secara otomatis akan melihat kombinasi Anda (dan auto/* kecuali disembunyikan) alih-alih model mentah penyedia. ID provider/model eksplisit tetap dirutekan.",
     "catalogScopeTitle": "Daftar Models API",
     "catalogScopeDesc": "Yang ditampilkan oleh GET /v1/models untuk kunci ini. Mempersempit daftar tidak akan mengubah model yang dapat dipanggil oleh kunci tersebut.",
     "catalogScopeAll": "Keduanya",

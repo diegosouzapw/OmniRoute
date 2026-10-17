@@ -8764,6 +8764,8 @@
     "qdrantHost": "హోస్ట్",
     "qdrantCollection": "సేకరణ",
     "catalogVisibilityHint": "దాచిన మోడల్ IDలను అదే యాక్సెస్ అనుమతులతో ఇప్పటికీ పిలవవచ్చు.",
+    "exposeCombosOnly": "/v1/models లో కాంబోలను మాత్రమే జాబితా చేయండి",
+    "exposeCombosOnlyDesc": "మోడళ్లను స్వయంచాలకంగా కనుగొనే క్లయింట్‌లు ముడి ప్రొవైడర్ మోడళ్లకు బదులుగా మీ కాంబోలను (దాచకపోతే auto/* కూడా) చూస్తారు. స్పష్టమైన provider/model ID లు రూట్ అవుతూనే ఉంటాయి.",
     "catalogScopeTitle": "Models API జాబితా",
     "catalogScopeDesc": "ఈ కీ కోసం GET /v1/models చూపించేవి. జాబితాను పరిమితం చేయడం వల్ల ఈ కీ కాల్ చేయగలిగేవి ఎప్పటికీ మారవు.",
     "catalogScopeAll": "రెండూ",

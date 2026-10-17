@@ -8764,6 +8764,8 @@
     "qdrantHost": "होस्ट",
     "qdrantCollection": "संग्रह",
     "catalogVisibilityHint": "छिपे हुए मॉडल ID को उन्हीं पहुँच अनुमतियों के साथ अब भी कॉल किया जा सकता है।",
+    "exposeCombosOnly": "/v1/models में केवल कॉम्बो सूचीबद्ध करें",
+    "exposeCombosOnlyDesc": "जो क्लाइंट मॉडल अपने-आप खोजते हैं, वे कच्चे प्रोवाइडर मॉडल के बजाय आपके कॉम्बो (और छिपाए न गए हों तो auto/*) देखेंगे। स्पष्ट provider/model ID रूट होते रहेंगे।",
     "catalogScopeTitle": "Models API सूचीकरण",
     "catalogScopeDesc": "यह कुंजी GET /v1/models में क्या दिखाती है। सूची को सीमित करने से यह कभी नहीं बदलता कि कुंजी किन्हें कॉल कर सकती है।",
     "catalogScopeAll": "दोनों",

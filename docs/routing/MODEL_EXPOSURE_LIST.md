@@ -1,7 +1,7 @@
 ---
 title: "Model Exposure Allow/Deny List"
-version: 3.8.51
-lastUpdated: 2026-08-29
+version: 3.8.52
+lastUpdated: 2026-10-16
 ---
 
 # Model Exposure Allow/Deny List
@@ -20,10 +20,10 @@ independent of pricing). #11481 adds that as two independent, opt-in string-arra
 
 ## Settings
 
-| Key                          | Type       | Default | Meaning                                                          |
-| ----------------------------- | ---------- | ------- | ----------------------------------------------------------------- |
-| `modelVisibilityDenylist`     | `string[]` | `[]`    | Entries matching a candidate hide it from the catalog/candidate pool. |
-| `modelVisibilityAllowlist`    | `string[]` | `[]`    | When non-empty, ONLY entries matching a candidate stay exposed.   |
+| Key                        | Type       | Default | Meaning                                                               |
+| -------------------------- | ---------- | ------- | --------------------------------------------------------------------- |
+| `modelVisibilityDenylist`  | `string[]` | `[]`    | Entries matching a candidate hide it from the catalog/candidate pool. |
+| `modelVisibilityAllowlist` | `string[]` | `[]`    | When non-empty, ONLY entries matching a candidate stay exposed.       |
 
 Both accept up to 500 entries of up to 200 characters each (Zod-validated in
 `src/shared/validation/settingsSchemas.ts`). An entry is either:
@@ -64,3 +64,21 @@ Settings export (`GET /api/settings/export-json`) includes both arrays verbatim,
 settings field — unlike `hidePaidModels`'s combo-step export filter, there is no re-hydration
 risk here: a denied id embedded in an exported combo step is the operator's own explicit routing
 choice, not something the export boundary needs to strip.
+
+## Combos-only listing (`exposeCombosOnly`)
+
+A separate boolean, also opt-in and `false` by default, for deployments where combos are the
+public model surface and providers are only backends. When it is `true`, the public listing
+(`GET /v1/models`, `GET /v1`, and the other `/v1` discovery routes built on
+`getUnifiedModelsResponse()`) keeps only rows with `owned_by: "combo"`: user combos plus the
+built-in `auto/*` combos (unless `hideAutoCombos` hides them). It uses the same row test as the
+per-key `catalogScope: "combos"`, and a key's own allow/deny/scope filters still apply on top.
+
+Toggle it in **Settings → Routing → Models API listing**, or with
+`PATCH /api/settings {"exposeCombosOnly": true}`.
+
+Like the lists above, it only changes advertisement:
+
+- an explicit `provider/model` id still dispatches, and `GET /v1/models/{id}` still resolves it;
+- the dashboard catalog (`GET /api/models/catalog`, used by the model pickers) is not narrowed;
+- it is not mirrored into the `auto/*` candidate pools, so `auto/*` combos keep their full pool.

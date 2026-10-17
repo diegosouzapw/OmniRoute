@@ -8764,6 +8764,8 @@
     "qdrantHost": "مضيف",
     "qdrantCollection": "مجموعة",
     "catalogVisibilityHint": "تظل معرّفات النماذج المخفية قابلة للاستدعاء بصلاحيات الوصول نفسها.",
+    "exposeCombosOnly": "عرض التركيبات فقط في /v1/models",
+    "exposeCombosOnlyDesc": "يرى العملاء الذين يكتشفون النماذج تلقائيًا تركيباتك (و auto/* ما لم تكن مخفية) بدلًا من نماذج المزوّدين الخام. تستمر معرّفات provider/model الصريحة في التوجيه.",
     "catalogScopeTitle": "قائمة Models API",
     "catalogScopeDesc": "ما تعرضه GET /v1/models لهذا المفتاح. لا يؤدي تضييق القائمة مطلقًا إلى تغيير ما يمكن للمفتاح استدعاؤه.",
     "catalogScopeAll": "كلاهما",

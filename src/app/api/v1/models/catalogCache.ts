@@ -100,6 +100,8 @@ export function defaultBackgroundRefreshScheduler(task: () => Promise<unknown>):
 export type CatalogCacheOptions = {
   hideAutoCombos?: boolean;
   hideNoThinkVariants?: boolean;
+  /** Public listing advertises only combos (`settings.exposeCombosOnly`). */
+  exposeCombosOnly?: boolean;
   /**
    * Overrides `CATALOG_STALE_WHILE_REVALIDATE_MS` for this call only.
    *
@@ -209,7 +211,9 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
   const hideAuto = catalogSettings?.hideAutoCombos ? "1" : "0";
   const hideNoThink = catalogSettings?.hideNoThinkVariants ? "1" : "0";
   const page = catalogPageCacheKey(parseCatalogPage(request));
-  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}`;
+  // Appended only when set, so every key built with the flag off stays byte-identical.
+  const combosOnly = catalogSettings?.exposeCombosOnly ? "|combosOnly" : "";
+  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}${combosOnly}`;
 }
 
 // Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last

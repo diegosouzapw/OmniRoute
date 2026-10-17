@@ -8764,6 +8764,8 @@
     "qdrantHost": "Onye nnabata",
     "qdrantCollection": "Nchịkọta",
     "catalogVisibilityHint": "A ka nwere ike ịkpọ ID ụdị ndị ezoro ezo site na otu ikike nnweta ahụ.",
+    "exposeCombosOnly": "Depụta naanị ngwakọta na /v1/models",
+    "exposeCombosOnlyDesc": "Ndị ahịa na-achọpụta ụdị n'onwe ha ga-ahụ ngwakọta gị (na auto/* ma ọ bụrụ na ezoghị ha) kama ụdị ndị na-enye ọrụ nke a na-edozighị. ID provider/model doro anya ka ga-aga n'ụzọ ha.",
     "catalogScopeTitle": "Ndepụta Models API",
     "catalogScopeDesc": "Ihe GET /v1/models na-egosi maka igodo a. Ibelata ndepụta ahụ anaghị agbanwe ụdịdị igodo ahụ nwere ike ịkpọ.",
     "catalogScopeAll": "Ha abụọ",

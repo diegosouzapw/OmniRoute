@@ -8764,6 +8764,8 @@
     "qdrantHost": "Ana Bilgisayar",
     "qdrantCollection": "Koleksiyon",
     "catalogVisibilityHint": "Gizlenen model kimlikleri aynı erişim izinleriyle çağrılmaya devam edebilir.",
+    "exposeCombosOnly": "/v1/models içinde yalnızca kombinasyonları listele",
+    "exposeCombosOnlyDesc": "Modelleri otomatik keşfeden istemciler ham sağlayıcı modelleri yerine kombinasyonlarınızı (ve gizlenmedikçe auto/*) görür. Açık provider/model kimlikleri yönlendirilmeye devam eder.",
     "catalogScopeTitle": "Models API listelemesi",
     "catalogScopeDesc": "GET /v1/models uç noktasının bu anahtar için gösterdiği modeller. Listeyi daraltmak, anahtarın çağırabileceği modelleri değiştirmez.",
     "catalogScopeAll": "Her ikisi",

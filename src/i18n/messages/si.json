@@ -8764,6 +8764,8 @@
     "qdrantHost": "සත්කාරකය",
     "qdrantCollection": "එකතුව",
     "catalogVisibilityHint": "සඟවා ඇති මාදිලි ID එම ප්‍රවේශ අවසර සමඟ තවමත් ඇමතිය හැක.",
+    "exposeCombosOnly": "/v1/models හි සංයෝජන පමණක් ලැයිස්තුගත කරන්න",
+    "exposeCombosOnlyDesc": "ආකෘති ස්වයංක්‍රීයව සොයා ගන්නා සේවාලාභීන්ට අමු සැපයුම්කරු ආකෘති වෙනුවට ඔබගේ සංයෝජන (සහ සඟවා නොමැති නම් auto/*) පෙනේ. පැහැදිලි provider/model ID දිගටම මාර්ගගත වේ.",
     "catalogScopeTitle": "Models API ලැයිස්තුගත කිරීම",
     "catalogScopeDesc": "මෙම යතුර සඳහා GET /v1/models මඟින් ප්රචාරය කරන දේ. ලැයිස්තුව සීමා කිරීමෙන් යතුරට ඇමතිය හැකි දේ කිසිවිටෙක වෙනස් නොවේ.",
     "catalogScopeAll": "දෙකම",

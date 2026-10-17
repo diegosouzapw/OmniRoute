@@ -8764,6 +8764,8 @@
     "qdrantHost": "Uwar garke",
     "qdrantCollection": "Tarin",
     "catalogVisibilityHint": "Har yanzu ana iya kiran ID na samfurori da aka ɓoye da izinin shiga iri ɗaya.",
+    "exposeCombosOnly": "Jera haɗe-haɗe kawai a /v1/models",
+    "exposeCombosOnlyDesc": "Abokan ciniki da ke gano samfura kai tsaye za su ga haɗe-haɗenka (da auto/* sai dai idan an ɓoye su) maimakon ɗanyen samfuran masu samarwa. ID na provider/model da aka bayyana a fili za su ci gaba da tura su.",
     "catalogScopeTitle": "Jerin Models API",
     "catalogScopeDesc": "Abin da GET /v1/models ke nuna wa wannan maɓalli. Taƙaita jerin ba ya taɓa canza abin da maɓallin zai iya kira.",
     "catalogScopeAll": "Duka biyun",

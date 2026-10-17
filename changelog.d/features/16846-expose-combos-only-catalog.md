@@ -1,0 +1,1 @@
+- **feat(api):** opt-in "expose combos only" setting so `/v1/models` advertises only combos (user combos + `auto/*`) while explicit provider/model ids keep routing ([#16846](https://github.com/diegosouzapw/OmniRoute/pull/16846)) — thanks @snower

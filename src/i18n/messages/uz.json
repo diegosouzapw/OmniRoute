@@ -8764,6 +8764,8 @@
     "qdrantHost": "Xost",
     "qdrantCollection": "Toʻplam",
     "catalogVisibilityHint": "Yashirilgan model identifikatorlarini bir xil kirish ruxsatlari bilan chaqirish mumkin.",
+    "exposeCombosOnly": "/v1/models roʻyxatida faqat kombinatsiyalarni koʻrsatish",
+    "exposeCombosOnlyDesc": "Modellarni avtomatik aniqlaydigan mijozlar provayderlarning xom modellari oʻrniga sizning kombinatsiyalaringizni (va yashirilmagan boʻlsa auto/*) koʻradi. Aniq provider/model identifikatorlari yoʻnaltirilishda davom etadi.",
     "catalogScopeTitle": "Models API roʻyxati",
     "catalogScopeDesc": "GET /v1/models ushbu kalit uchun nimalarni koʻrsatishi. Roʻyxatni qisqartirish kalit qaysi modellarni chaqira olishiga taʼsir qilmaydi.",
     "catalogScopeAll": "Ikkalasi ham",

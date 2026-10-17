@@ -8764,6 +8764,8 @@
     "qdrantHost": "Isäntä",
     "qdrantCollection": "Kokoelma",
     "catalogVisibilityHint": "Piilotettuja mallitunnuksia voi edelleen kutsua samoilla käyttöoikeuksilla.",
+    "exposeCombosOnly": "Listaa /v1/models-luettelossa vain yhdistelmät",
+    "exposeCombosOnlyDesc": "Mallit automaattisesti löytävät asiakkaat näkevät yhdistelmäsi (ja auto/*, ellei niitä ole piilotettu) palveluntarjoajien raakamallien sijaan. Eksplisiittiset provider/model-tunnisteet reititetään edelleen.",
     "catalogScopeTitle": "Models API -luettelo",
     "catalogScopeDesc": "Mitä GET /v1/models ilmoittaa tälle avaimelle. Luettelon rajaaminen ei koskaan muuta sitä, mitä avain voi kutsua.",
     "catalogScopeAll": "Molemmat",

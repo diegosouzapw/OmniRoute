@@ -8764,6 +8764,8 @@
     "qdrantHost": "Gazda",
     "qdrantCollection": "Gyűjtemény",
     "catalogVisibilityHint": "A rejtett modellazonosítók továbbra is hívhatók ugyanazokkal a hozzáférési jogosultságokkal.",
+    "exposeCombosOnly": "Csak kombinációk listázása a /v1/models alatt",
+    "exposeCombosOnlyDesc": "A modelleket automatikusan felderítő kliensek a nyers szolgáltatói modellek helyett a kombinációidat (és az auto/* elemeket, ha nincsenek elrejtve) látják. A kifejezett provider/model azonosítók továbbra is továbbításra kerülnek.",
     "catalogScopeTitle": "A Models API listája",
     "catalogScopeDesc": "Amit a GET /v1/models ennél a kulcsnál elérhetőként jelez. A lista szűkítése soha nem módosítja, hogy a kulcs mely modelleket hívhatja meg.",
     "catalogScopeAll": "Mindkettő",

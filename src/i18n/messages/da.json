@@ -8764,6 +8764,8 @@
     "qdrantHost": "Vært",
     "qdrantCollection": "Samling",
     "catalogVisibilityHint": "Skjulte model-id’er kan stadig kaldes med de samme adgangsrettigheder.",
+    "exposeCombosOnly": "Vis kun kombinationer i /v1/models",
+    "exposeCombosOnlyDesc": "Klienter, der automatisk finder modeller, ser dine kombinationer (og auto/*, medmindre de er skjult) i stedet for rå udbydermodeller. Eksplicitte provider/model-id'er bliver fortsat routet.",
     "catalogScopeTitle": "Modelliste i API'et",
     "catalogScopeDesc": "Hvad GET /v1/models viser for denne nøgle. En begrænsning af listen ændrer aldrig, hvad nøglen kan kalde.",
     "catalogScopeAll": "Begge",

@@ -8764,6 +8764,8 @@
     "qdrantHost": "Resursdators",
     "qdrantCollection": "Kolekcija",
     "catalogVisibilityHint": "Slēptos modeļu ID joprojām var izsaukt ar tām pašām piekļuves atļaujām.",
+    "exposeCombosOnly": "/v1/models sarakstā rādīt tikai kombinācijas",
+    "exposeCombosOnlyDesc": "Klienti, kas modeļus atklāj automātiski, redz jūsu kombinācijas (un auto/*, ja tās nav paslēptas), nevis neapstrādātos nodrošinātāju modeļus. Skaidri norādīti provider/model ID joprojām tiek maršrutēti.",
     "catalogScopeTitle": "Models API saraksts",
     "catalogScopeDesc": "Ko GET /v1/models uzrāda šai atslēgai. Saraksta sašaurināšana nekad nemaina to, ko atslēga var izsaukt.",
     "catalogScopeAll": "Abi",

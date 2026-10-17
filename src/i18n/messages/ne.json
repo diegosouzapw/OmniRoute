@@ -8764,6 +8764,8 @@
     "qdrantHost": "होस्ट",
     "qdrantCollection": "सङ्कलन",
     "catalogVisibilityHint": "लुकाइएका मोडेल ID हरूलाई उही पहुँच अनुमतिसहित अझै पनि कल गर्न सकिन्छ।",
+    "exposeCombosOnly": "/v1/models मा कम्बोहरू मात्र सूचीबद्ध गर्नुहोस्",
+    "exposeCombosOnlyDesc": "मोडेलहरू स्वतः पत्ता लगाउने क्लाइन्टहरूले कच्चा प्रदायक मोडेलहरूको सट्टा तपाईंका कम्बोहरू (र लुकाइएको छैन भने auto/*) देख्नेछन्। स्पष्ट provider/model ID हरू राउट भइरहनेछन्।",
     "catalogScopeTitle": "Models API सूचीकरण",
     "catalogScopeDesc": "यस कुञ्जीका लागि GET /v1/models ले के देखाउँछ। सूची सीमित गर्दा पनि कुञ्जीले कल गर्न सक्ने कुरामा कहिल्यै परिवर्तन हुँदैन।",
     "catalogScopeAll": "दुवै",

@@ -8764,6 +8764,8 @@
     "qdrantHost": "Mwenyeji",
     "qdrantCollection": "Mkusanyiko",
     "catalogVisibilityHint": "Vitambulisho vya miundo vilivyofichwa bado vinaweza kuitwa kwa ruhusa zilezile za ufikiaji.",
+    "exposeCombosOnly": "Orodhesha mijumuisho pekee katika /v1/models",
+    "exposeCombosOnlyDesc": "Wateja wanaogundua miundo kiotomatiki wataona mijumuisho yako (na auto/* isipokuwa imefichwa) badala ya miundo ghafi ya watoa huduma. Vitambulisho dhahiri vya provider/model vinaendelea kuelekezwa.",
     "catalogScopeTitle": "Orodha ya API ya Models",
     "catalogScopeDesc": "Kile ambacho GET /v1/models hutangaza kwa ufunguo huu. Kupunguza orodha hakubadilishi kamwe kile ambacho ufunguo unaweza kuita.",
     "catalogScopeAll": "Zote mbili",

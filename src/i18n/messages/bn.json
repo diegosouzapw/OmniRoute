@@ -8764,6 +8764,8 @@
     "qdrantHost": "হোস্ট",
     "qdrantCollection": "সংগ্রহ",
     "catalogVisibilityHint": "লুকানো মডেল আইডিগুলো একই প্রবেশাধিকারে কল করা যাবে।",
+    "exposeCombosOnly": "/v1/models-এ শুধু কম্বো তালিকাভুক্ত করুন",
+    "exposeCombosOnlyDesc": "যে ক্লায়েন্টরা স্বয়ংক্রিয়ভাবে মডেল খুঁজে নেয় তারা কাঁচা প্রোভাইডার মডেলের বদলে আপনার কম্বো (এবং লুকানো না থাকলে auto/*) দেখবে। স্পষ্ট provider/model আইডি রাউট হতে থাকবে।",
     "catalogScopeTitle": "Models API তালিকা",
     "catalogScopeDesc": "এই কী-এর জন্য GET /v1/models যা প্রদর্শন করে। তালিকা সীমিত করলেও কী-টি কী কল করতে পারবে তা কখনোই পরিবর্তিত হয় না।",
     "catalogScopeAll": "উভয়ই",

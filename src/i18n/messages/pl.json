@@ -8764,6 +8764,8 @@
     "qdrantHost": "Host",
     "qdrantCollection": "Kolekcja",
     "catalogVisibilityHint": "Ukryte identyfikatory modeli nadal można wywoływać z tymi samymi uprawnieniami dostępu.",
+    "exposeCombosOnly": "Wyświetlaj w /v1/models tylko kombinacje",
+    "exposeCombosOnlyDesc": "Klienci, którzy automatycznie wykrywają modele, zobaczą Twoje kombinacje (oraz auto/*, o ile nie są ukryte) zamiast surowych modeli dostawców. Jawne identyfikatory provider/model nadal są routowane.",
     "catalogScopeTitle": "Lista interfejsu API modeli",
     "catalogScopeDesc": "Modele udostępniane dla tego klucza przez GET /v1/models. Zawężenie listy nie zmienia modeli, które można wywołać za pomocą klucza.",
     "catalogScopeAll": "Oba",

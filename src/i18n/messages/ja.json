@@ -8764,6 +8764,8 @@
     "qdrantHost": "ホスト",
     "qdrantCollection": "コレクション",
     "catalogVisibilityHint": "非表示のモデルIDは、同じアクセス権限で引き続き呼び出せます。",
+    "exposeCombosOnly": "/v1/models にコンボのみを表示",
+    "exposeCombosOnlyDesc": "モデルを自動検出するクライアントには、生のプロバイダーモデルではなくコンボ（非表示でなければ auto/* も）が表示されます。明示的な provider/model ID は引き続きルーティングされます。",
     "catalogScopeTitle": "Models API の一覧",
     "catalogScopeDesc": "このキーに対して GET /v1/models が表示する内容です。一覧を絞り込んでも、キーが呼び出せる対象は変わりません。",
     "catalogScopeAll": "両方",

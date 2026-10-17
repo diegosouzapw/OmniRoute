@@ -8764,6 +8764,8 @@
     "qdrantHost": "Gazdă",
     "qdrantCollection": "Colecție",
     "catalogVisibilityHint": "ID-urile modelelor ascunse pot fi în continuare apelate cu aceleași permisiuni de acces.",
+    "exposeCombosOnly": "Listează doar combinațiile în /v1/models",
+    "exposeCombosOnlyDesc": "Clienții care descoperă automat modelele văd combinațiile tale (și auto/*, dacă nu sunt ascunse) în locul modelelor brute ale furnizorilor. ID-urile explicite provider/model sunt în continuare rutate.",
     "catalogScopeTitle": "Listarea API-ului de modele",
     "catalogScopeDesc": "Ce afișează GET /v1/models pentru această cheie. Restrângerea listei nu modifică niciodată ce poate apela cheia.",
     "catalogScopeAll": "Ambele",

@@ -8764,6 +8764,8 @@
     "qdrantHost": "होस्ट",
     "qdrantCollection": "संग्रह",
     "catalogVisibilityHint": "लपवलेले मॉडेल ID त्याच प्रवेश परवानग्यांसह अजूनही कॉल करता येतात.",
+    "exposeCombosOnly": "/v1/models मध्ये फक्त कॉम्बो दाखवा",
+    "exposeCombosOnlyDesc": "मॉडेल आपोआप शोधणारे क्लायंट कच्च्या प्रोव्हायडर मॉडेलऐवजी तुमचे कॉम्बो (आणि लपवलेले नसल्यास auto/*) पाहतील. स्पष्ट provider/model ID राउट होत राहतील.",
     "catalogScopeTitle": "Models API सूची",
     "catalogScopeDesc": "या कीसाठी GET /v1/models काय दर्शवते. सूची मर्यादित केल्याने ही की काय कॉल करू शकते, यात कधीही बदल होत नाही.",
     "catalogScopeAll": "दोन्ही",

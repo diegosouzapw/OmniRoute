@@ -8764,6 +8764,8 @@
     "qdrantHost": "હોસ્ટ",
     "qdrantCollection": "સંગ્રહ",
     "catalogVisibilityHint": "છુપાયેલા મોડેલ ID ને સમાન ઍક્સેસ પરવાનગીઓ સાથે હજી પણ કૉલ કરી શકાય છે.",
+    "exposeCombosOnly": "/v1/models માં ફક્ત કોમ્બોઝ સૂચિબદ્ધ કરો",
+    "exposeCombosOnlyDesc": "મોડેલ આપમેળે શોધતા ક્લાયન્ટ્સ કાચા પ્રોવાઇડર મોડેલને બદલે તમારા કોમ્બોઝ (અને છુપાવેલ ન હોય તો auto/*) જુએ છે. સ્પષ્ટ provider/model ID રૂટ થતા રહે છે.",
     "catalogScopeTitle": "Models API સૂચિ",
     "catalogScopeDesc": "આ કી માટે GET /v1/models શું દર્શાવે છે. સૂચિને મર્યાદિત કરવાથી કી કયા મોડલને કૉલ કરી શકે છે તેમાં ક્યારેય ફેરફાર થતો નથી.",
     "catalogScopeAll": "બંને",

@@ -8764,6 +8764,8 @@
     "qdrantHost": "Pagrindinis kompiuteris",
     "qdrantCollection": "Rinkinys",
     "catalogVisibilityHint": "Paslėptus modelių ID ir toliau galima iškviesti turint tas pačias prieigos teises.",
+    "exposeCombosOnly": "/v1/models sąraše rodyti tik derinius",
+    "exposeCombosOnlyDesc": "Klientai, automatiškai aptinkantys modelius, matys jūsų derinius (ir auto/*, jei jie nepaslėpti), o ne neapdorotus tiekėjų modelius. Aiškiai nurodyti provider/model ID ir toliau nukreipiami.",
     "catalogScopeTitle": "Models API sąrašas",
     "catalogScopeDesc": "Ką GET /v1/models nurodo šiam raktui. Sąrašo susiaurinimas niekada nekeičia, ką raktas gali iškviesti.",
     "catalogScopeAll": "Abu",

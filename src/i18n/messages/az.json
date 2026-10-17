@@ -8764,6 +8764,8 @@
     "qdrantHost": "Ev sahibi",
     "qdrantCollection": "Kolleksiya",
     "catalogVisibilityHint": "Gizlədilmiş model identifikatorlarını eyni giriş icazələri ilə çağırmaq mümkündür.",
+    "exposeCombosOnly": "/v1/models-də yalnız kombinasiyaları göstər",
+    "exposeCombosOnlyDesc": "Modelləri avtomatik aşkar edən müştərilər xam provayder modelləri əvəzinə kombinasiyalarınızı (və gizlədilməyibsə auto/*) görür. Açıq provider/model identifikatorları marşrutlanmağa davam edir.",
     "catalogScopeTitle": "Models API siyahısı",
     "catalogScopeDesc": "GET /v1/models sorğusunun bu açar üçün göstərdiyi siyahı. Siyahının daraldılması açarın hansı modelləri çağıra biləcəyini heç vaxt dəyişmir.",
     "catalogScopeAll": "Hər ikisi",

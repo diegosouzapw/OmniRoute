@@ -42,7 +42,7 @@ const { default: SettingsRoutingPage } =
   await import("@/app/(dashboard)/dashboard/settings/routing/page");
 const { NextIntlClientProvider } = await import("next-intl");
 const fetchMock = vi.fn<typeof fetch>();
-let stored = { hideAutoCombos: false, hideNoThinkVariants: false };
+let stored = { hideAutoCombos: false, hideNoThinkVariants: false, exposeCombosOnly: false };
 const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 const mount = (locale = "en") =>
   render(
@@ -58,7 +58,7 @@ const autoSwitch = () => screen.getByRole("switch", { name: "Hide auto/*" });
 const noThinkSwitch = () => screen.getByRole("switch", { name: "Hide no-think/*" });
 
 beforeEach(() => {
-  stored = { hideAutoCombos: false, hideNoThinkVariants: false };
+  stored = { hideAutoCombos: false, hideNoThinkVariants: false, exposeCombosOnly: false };
   fetchMock.mockReset();
   fetchMock.mockImplementation(async (_url, options) => {
     if (options?.method === "PATCH") stored = { ...stored, ...JSON.parse(String(options.body)) };
@@ -87,6 +87,7 @@ test("both catalog visibility switches are reachable and use persisted defaults"
 test.each([
   ["hideAutoCombos", "Hide auto/*"],
   ["hideNoThinkVariants", "Hide no-think/*"],
+  ["exposeCombosOnly", "List only combos in /v1/models"],
 ] as const)("saves only %s and keeps it after a page reload", async (key, label) => {
   const view = mount();
   await waitFor(() =>
