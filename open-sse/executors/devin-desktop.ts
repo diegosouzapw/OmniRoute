@@ -99,6 +99,7 @@ export type DevinDesktopPromptInput = {
   prompt: string;
   toolCalls?: DevinDesktopToolCallInput[];
   toolCallId?: string;
+  images?: DevinDesktopImageInput[];
 };
 
 export type DevinDesktopToolInput = {
@@ -168,6 +169,13 @@ function encodeChatMessagePrompt(prompt: DevinDesktopPromptInput): Uint8Array {
     fields.push(encodeField(6, encodeChatToolCall(toolCall)));
   }
   fields.push(encodeString(7, prompt.toolCallId ?? ""));
+  for (const image of prompt.images ?? []) {
+    const imageFields: Uint8Array[] = [];
+    if (image.base64Data) imageFields.push(encodeString(1, image.base64Data));
+    if (image.mimeType) imageFields.push(encodeString(2, image.mimeType));
+    if (image.uri) imageFields.push(encodeString(4, image.uri));
+    fields.push(encodeField(10, concatBytes(imageFields)));
+  }
   return concatBytes(fields);
 }
 
@@ -227,6 +235,34 @@ type OpenAIMessage = {
   }>;
 };
 
+export type DevinDesktopImageInput = {
+  base64Data?: string;
+  mimeType?: string;
+  uri?: string;
+};
+
+function messageImages(content: unknown): DevinDesktopImageInput[] {
+  if (!Array.isArray(content)) return [];
+  const images: DevinDesktopImageInput[] = [];
+  for (const part of content) {
+    if (!part || typeof part !== "object") continue;
+    const p = part as Record<string, unknown>;
+    if (p.type !== "image_url") continue;
+    const imageUrl =
+      p.image_url && typeof p.image_url === "object"
+        ? (p.image_url as Record<string, unknown>).url
+        : p.image_url;
+    if (typeof imageUrl !== "string" || !imageUrl) continue;
+    const dataUri = /^data:([^;,]+);base64,(.+)$/s.exec(imageUrl);
+    if (dataUri) {
+      images.push({ base64Data: dataUri[2], mimeType: dataUri[1] });
+    } else if (/^https?:\/\//.test(imageUrl)) {
+      images.push({ uri: imageUrl });
+    }
+  }
+  return images;
+}
+
 function messageText(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -282,6 +318,10 @@ function convertMessages(messages: OpenAIMessage[]): {
       prompt,
       ...(source === 2 ? { toolCalls: convertHistoryToolCalls(message.tool_calls) } : {}),
       ...(source === 4 && message.tool_call_id ? { toolCallId: message.tool_call_id } : {}),
+      ...(() => {
+        const images = messageImages(message.content);
+        return images.length ? { images } : {};
+      })(),
     });
   }
   return { systemPrompt: systemParts.join("\n\n"), prompts };
@@ -463,7 +503,7 @@ function decodeToolCall(bytes: Uint8Array): DevinToolCallDelta {
     if (field.wireType !== 2) continue;
     if (field.fieldNumber === 1) result.id = TEXT_DECODER.decode(field.value);
     else if (field.fieldNumber === 2) result.name = TEXT_DECODER.decode(field.value);
-    else if (field.fieldNumber === 3) result.arguments = TEXT_DECODER.decode(field.value);
+    else if (field.fieldNumber === 3) result.arguments += TEXT_DECODER.decode(field.value);
   }
   return result;
 }
@@ -483,7 +523,9 @@ function decodeGetChatMessageResponse(bytes: Uint8Array): DecodedResponse {
       result.stopReason = field.value;
     } else if (field.wireType === 2 && field.fieldNumber === 6) {
       const toolCall = decodeToolCall(field.value);
-      if (toolCall.id) result.toolCalls.push(toolCall);
+      // Tool call argument fragments arrive as id-less submessages; keep them
+      // so the emit loop can forward them as continuation deltas.
+      if (toolCall.id || toolCall.name || toolCall.arguments) result.toolCalls.push(toolCall);
     } else if (field.wireType === 2 && field.fieldNumber === 7) {
       result.usage = decodeUsage(field.value);
     } else if (field.wireType === 2 && field.fieldNumber === 9) {
@@ -768,6 +810,7 @@ export class DevinDesktopExecutor extends BaseExecutor {
         let roleEmitted = false;
         let stopReason = 0;
         const toolCallIndexes = new Map<string, number>();
+        let lastToolCallIndex = 0;
         let usage: DevinUsage | null = null;
         let trailerError: ConnectTrailerError | null = null;
         let sawEndStream = false;
@@ -800,10 +843,17 @@ export class DevinDesktopExecutor extends BaseExecutor {
             if (response.thinking) emitChunk({ reasoning_content: response.thinking });
             if (response.text) emitChunk({ content: response.text });
             for (const toolCall of response.toolCalls) {
-              const existingIndex = toolCallIndexes.get(toolCall.id);
+              // Argument fragments have no id: they continue the previous tool
+              // call and must be emitted as deltas on that same index.
+              const existingIndex = toolCall.id
+                ? toolCallIndexes.get(toolCall.id)
+                : lastToolCallIndex;
               const index = existingIndex ?? toolCallIndexes.size;
-              const firstDelta = existingIndex === undefined;
-              if (firstDelta) toolCallIndexes.set(toolCall.id, index);
+              const firstDelta = Boolean(toolCall.id) && existingIndex === undefined;
+              if (toolCall.id) {
+                if (firstDelta) toolCallIndexes.set(toolCall.id, index);
+                lastToolCallIndex = index;
+              }
               const functionDelta: Record<string, string> = {};
               if (toolCall.name) functionDelta.name = toolCall.name;
               if (toolCall.arguments) functionDelta.arguments = toolCall.arguments;
