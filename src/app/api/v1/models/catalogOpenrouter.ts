@@ -65,8 +65,9 @@ export function openRouterCapabilityEntry(
     attachment: null,
     structured_output: capabilities.structured_output === true,
     temperature: null,
-    modalities_input: JSON.stringify(inputModalities),
-    modalities_output: JSON.stringify(outputModalities),
+    // Modalities are sets: order and duplicates must not invalidate stored capabilities.
+    modalities_input: JSON.stringify([...new Set(inputModalities)].sort()),
+    modalities_output: JSON.stringify([...new Set(outputModalities)].sort()),
     knowledge_cutoff: null,
     release_date: null,
     last_updated: null,

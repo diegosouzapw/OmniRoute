@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import Select from "./Select";
-import Input from "./Input";
 import { cn } from "@/shared/utils/cn";
 import { isVisionModelId } from "@/shared/constants/visionModels";
+import { fetchModelSelection } from "@/shared/utils/fetchModelSelection";
+import Select from "./Select";
+import Input from "./Input";
 
 export interface ApiModel {
   provider: string;
@@ -143,12 +144,11 @@ export default function ModelSelectField({
   const [state, setState] = useState<FetchState>({ status: "loading", options: [] });
 
   useEffect(() => {
-    let cancelled = false;
-    const endpoint = modelSource === "catalog" ? "/api/models/catalog" : "/api/models";
-    fetch(endpoint)
+    const controller = new AbortController();
+    fetchModelSelection(modelSource, controller.signal)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("fetch failed"))))
       .then((data) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         const models: ApiModel[] =
           modelSource === "catalog"
             ? readCatalogModels(data)
@@ -163,10 +163,10 @@ export default function ModelSelectField({
         setState({ status: "ready", options });
       })
       .catch(() => {
-        if (!cancelled) setState({ status: "error", options: [] });
+        if (!controller.signal.aborted) setState({ status: "error", options: [] });
       });
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [modelFilter, modelSource]);
 

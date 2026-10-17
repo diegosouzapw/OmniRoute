@@ -24,6 +24,7 @@
 import { getDbInstance } from "./db/core";
 import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
+import { preserveStoredModalitySets } from "./db/models/capabilityModalities";
 
 import {
   transformModelsDevToPricing,
@@ -602,11 +603,31 @@ export function upsertSyncedCapabilities(
       interleaved_field=excluded.interleaved_field,
       reasoning_efforts=excluded.reasoning_efforts,
       last_synced=excluded.last_synced
+    WHERE (
+      model_capabilities.tool_call, model_capabilities.reasoning,
+      model_capabilities.attachment, model_capabilities.structured_output,
+      model_capabilities.temperature, model_capabilities.modalities_input,
+      model_capabilities.modalities_output, model_capabilities.knowledge_cutoff,
+      model_capabilities.release_date, model_capabilities.last_updated,
+      model_capabilities.status, model_capabilities.family, model_capabilities.open_weights,
+      model_capabilities.limit_context, model_capabilities.limit_input,
+      model_capabilities.limit_output, model_capabilities.interleaved_field,
+      model_capabilities.reasoning_efforts
+    ) IS NOT (
+      excluded.tool_call, excluded.reasoning, excluded.attachment, excluded.structured_output,
+      excluded.temperature, excluded.modalities_input, excluded.modalities_output,
+      excluded.knowledge_cutoff, excluded.release_date, excluded.last_updated,
+      excluded.status, excluded.family, excluded.open_weights,
+      excluded.limit_context, excluded.limit_input, excluded.limit_output,
+      excluded.interleaved_field, excluded.reasoning_efforts
+    )
   `);
   const now = new Date().toISOString();
   let changed = false;
+  let persistedModels = models;
   const tx = db.transaction(() => {
-    for (const [modelId, cap] of Object.entries(models)) {
+    persistedModels = preserveStoredModalitySets(provider, models);
+    for (const [modelId, cap] of Object.entries(persistedModels)) {
       const info = insert.run(
         provider,
         modelId,
@@ -630,6 +651,8 @@ export function upsertSyncedCapabilities(
         cap.reasoning_efforts ? JSON.stringify(cap.reasoning_efforts) : null,
         now
       );
+      // A catalog read must not invalidate its own generation just by refreshing
+      // last_synced. The null-safe SQL predicate counts only semantic changes.
       if (info.changes > 0) changed = true;
     }
   });
@@ -637,7 +660,7 @@ export function upsertSyncedCapabilities(
   if (cachedCapabilities) {
     cachedCapabilities[provider] = {
       ...(cachedCapabilities[provider] || {}),
-      ...models,
+      ...persistedModels,
     };
   }
   if (changed) invalidateDbCache("model-capabilities");

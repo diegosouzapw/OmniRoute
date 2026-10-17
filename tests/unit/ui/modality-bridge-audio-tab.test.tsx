@@ -103,7 +103,9 @@ describe("ModalityBridgeAudioTab", () => {
 
   it("shows only transcription models and exposes selectable Auto", async () => {
     const el = await render();
-    expect(fetchMock).toHaveBeenCalledWith("/api/models/catalog");
+    expect(fetchMock).toHaveBeenCalledWith("/api/models/catalog", {
+      signal: expect.any(AbortSignal),
+    });
     await waitFor(
       () =>
         Array.from(el.querySelectorAll("option")).some(
