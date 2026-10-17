@@ -1,5 +1,4 @@
 import type { OmniRouteEnrichmentMap } from "./enrich.js";
-import type { OmniRouteRawCombo } from "./combos-map.js";
 
 /** Subset of `/api/providers` connections read by the usableOnly filter. */
 export interface OmniRouteProviderConnection {
@@ -145,27 +144,4 @@ export function isUsableRawModelId(id: string, usable: UsableProviderSet): boole
   if (usable.aliases.has(prefix) || usable.canonicals.has(prefix)) return true;
   if (usable.knownAliases.has(prefix)) return false;
   return true;
-}
-
-/**
- * Decide whether a combo passes the usableOnly filter. A combo keeps when AT
- * LEAST ONE member maps to a usable provider; unknown prefixes keep (cannot
- * prove unroutable); combos with zero resolvable members keep.
- */
-export function isUsableCombo(combo: OmniRouteRawCombo, usable: UsableProviderSet): boolean {
-  const steps = Array.isArray(combo.models) ? combo.models : [];
-  if (steps.length === 0) return true;
-  let sawResolvableMember = false;
-  for (const step of steps) {
-    if (step?.kind === "combo-ref") continue;
-    const modelId = typeof step?.model === "string" ? step.model : "";
-    const slash = modelId.indexOf("/");
-    if (slash <= 0) continue;
-    sawResolvableMember = true;
-    const prefix = modelId.slice(0, slash);
-    if (usable.aliases.has(prefix) || usable.canonicals.has(prefix)) return true;
-    if (!usable.knownAliases.has(prefix)) return true;
-  }
-  if (!sawResolvableMember) return true;
-  return false;
 }

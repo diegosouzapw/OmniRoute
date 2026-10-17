@@ -21,7 +21,7 @@ type BetaDraft = {
 };
 
 const MODELS_URL = "https://gw.example.com/v1/models";
-const COMBOS_URL = "https://gw.example.com/api/combos";
+const PROVIDERS_URL = "https://gw.example.com/api/providers";
 const PRICING_MODELS_URL = "https://gw.example.com/api/pricing/models";
 
 const MGMT_ENV_VAR = "OMNIROUTE_MANAGEMENT_API_KEY";
@@ -37,7 +37,7 @@ interface Harness {
   restore: () => void;
 }
 
-function installHarness(combos: unknown[]): Harness {
+function installHarness(): Harness {
   const seen = new Map<string, string>();
   const warns: string[] = [];
   const origFetch = globalThis.fetch;
@@ -56,7 +56,7 @@ function installHarness(combos: unknown[]): Harness {
     seen.set(href, String(init?.headers?.Authorization ?? ""));
     if (href.includes("/api/pricing")) return okJson({});
     if (href.includes("/api/free-tier/summary")) return okJson({ perModel: [] });
-    if (href.includes("/api/combos")) return okJson({ combos });
+    if (href.includes("/api/providers")) return okJson({ connections: [] });
     return okJson({ data: [{ id: "m1" }] });
   }) as typeof fetch;
   return {
@@ -151,7 +151,7 @@ async function runSetup(ctx: unknown): Promise<void> {
 describe("plugin-v2 management token environment source", () => {
   it("uses the managementReadToken option for /api/* while models keep apiKey", async () => {
     await withIsolatedEnv(undefined, undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -163,7 +163,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.deepEqual(fallbackWarns(h.warns), []);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer mgmt-option-token");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer mgmt-option-token");
         assert.equal(h.seen.get(MODELS_URL), "Bearer chat-key");
       } finally {
         h.restore();
@@ -173,7 +173,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("reads the management token from the environment when the option is absent", async () => {
     await withIsolatedEnv("mgmt-env-token", undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -184,7 +184,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.deepEqual(fallbackWarns(h.warns), []);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer mgmt-env-token");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer mgmt-env-token");
         assert.equal(h.seen.get(MODELS_URL), "Bearer chat-key");
       } finally {
         h.restore();
@@ -194,7 +194,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("prefers the option over the environment", async () => {
     await withIsolatedEnv("mgmt-env-token", undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -206,7 +206,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.deepEqual(fallbackWarns(h.warns), []);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer mgmt-option-token");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer mgmt-option-token");
       } finally {
         h.restore();
       }
@@ -215,7 +215,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("falls back to the inference key with a single early warning when neither is set", async () => {
     await withIsolatedEnv(undefined, undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -234,7 +234,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.ok(!(atSetup[0] ?? "").includes("chat-key"), "warning must not leak the key");
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer chat-key");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer chat-key");
         assert.equal(
           fallbackWarns(h.warns).length,
           1,
@@ -248,7 +248,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("treats an empty option as absent so the environment wins", async () => {
     await withIsolatedEnv("mgmt-env-token", undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -260,7 +260,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.deepEqual(fallbackWarns(h.warns), []);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer mgmt-env-token");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer mgmt-env-token");
       } finally {
         h.restore();
       }
@@ -269,7 +269,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("treats an empty environment value as absent so the option wins", async () => {
     await withIsolatedEnv("", undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -281,7 +281,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.deepEqual(fallbackWarns(h.warns), []);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer mgmt-option-token");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer mgmt-option-token");
       } finally {
         h.restore();
       }
@@ -290,7 +290,7 @@ describe("plugin-v2 management token environment source", () => {
 
   it("falls back with a warning when both the option and the environment are empty", async () => {
     await withIsolatedEnv("", undefined, async () => {
-      const h = installHarness([]);
+      const h = installHarness();
       try {
         const { catalogCallbacks, ctx } = setupHarness({
           baseURL: "https://gw.example.com",
@@ -302,7 +302,7 @@ describe("plugin-v2 management token environment source", () => {
         assert.equal(fallbackWarns(h.warns).length, 1);
         const { draft } = stubDraft();
         await catalogCallbacks[0](draft);
-        assert.equal(h.seen.get(COMBOS_URL), "Bearer chat-key");
+        assert.equal(h.seen.get(PRICING_MODELS_URL), "Bearer chat-key");
       } finally {
         h.restore();
       }
@@ -335,7 +335,7 @@ describe("plugin-v2 management token environment source", () => {
         default: { get: () => undefined, set: () => {} },
       },
     } as unknown as BetaDraft;
-    let seenCombos = "";
+    let seenProviders = "";
     let seenPricing = "";
     const res = await withIsolatedEnv("mgmt-env-token", undefined, async () =>
       publishCatalog(
@@ -347,15 +347,15 @@ describe("plugin-v2 management token environment source", () => {
           managementReadToken: process.env[MGMT_ENV_VAR],
           timeoutMs: 1000,
           modelCacheTtlMs: 300000,
-          usableOnly: false,
+          usableOnly: true,
         },
         {
-          fetcher: async () => [{ id: "m1" }],
-          combosFetcher: async (_base, token) => {
-            seenCombos = token;
-            return [{ id: "team-combo", models: [{ kind: "model", model: "m1" }] }];
+          fetcher: async () => [{ id: "m1" }, { id: "team-combo", owned_by: "combo" }],
+          providersFetcher: async (_base: string, token: string) => {
+            seenProviders = token;
+            return [];
           },
-          enrichmentFetcher: async (_base, token) => {
+          enrichmentFetcher: async (_base: string, token: string) => {
             seenPricing = token;
             // The process env is the source under test: the resolver output
             // flows in through the option above, so report success only when
@@ -366,8 +366,8 @@ describe("plugin-v2 management token environment source", () => {
         }
       )
     );
-    assert.deepEqual(res, { models: 1, combos: 1 });
-    assert.equal(seenCombos, "mgmt-env-token");
+    assert.deepEqual(res, { models: 2 });
+    assert.equal(seenProviders, "mgmt-env-token");
     assert.equal(seenPricing, "mgmt-env-token");
     const entry = models.get("omniroute/team-combo");
     assert.ok(entry, "expected the combo entry in the published catalog");

@@ -35,7 +35,6 @@ function isolateDisk(): { dir: string; restore: () => void } {
 function makeSnapshot(models: string[] = ["m-a"]): CatalogSnapshot {
   return {
     models: models.map((id) => ({ id })),
-    combos: [],
     providers: [],
     fetchedAt: Date.now(),
   } as unknown as CatalogSnapshot;
@@ -87,7 +86,6 @@ describe("disk snapshot atomic write, strict version, traced give-ups", () => {
           v: 3,
           identityFingerprint: "fp-1",
           models: [{ id: "m-future" }],
-          combos: [],
           writtenAt: Date.now(),
         })
       );
@@ -134,7 +132,6 @@ describe("disk snapshot atomic write, strict version, traced give-ups", () => {
         ["m-before"]
       );
       assert.deepEqual(Object.keys((back ?? {}) as object).sort(), [
-        "combos",
         "enrichment",
         "fetchedAt",
         "models",

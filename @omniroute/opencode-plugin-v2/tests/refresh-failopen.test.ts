@@ -2,9 +2,10 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import plugin from "../src/index.js";
 
-// Fail-open refresh: a combos 403/500/abort must not escape setup. Setup
-// resolves with a models-only provider payload plus a combos warn.
-describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
+// Fail-open refresh: the retired combos route is never requested, so even a
+// gateway that would have refused it cannot escape setup. Setup resolves
+// with a models-only provider payload and issues no combos request.
+describe("plugin-v2 fail-open refresh (retired combos route)", () => {
   let diskSeq = 0;
   async function isolateDisk(): Promise<() => void> {
     const { mkdtempSync } = await import("node:fs");
@@ -20,7 +21,6 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     };
   }
   function setupCtx(opts: {
-    combosStatus: number;
     modelsStatus?: number;
     reloads: { count: number };
     added: unknown[];
@@ -30,8 +30,8 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     const ctx = {
       options: {
         baseURL: "https://gw.example.com",
-        providerId: "fo-" + String(opts.combosStatus) + "-" + String(opts.modelsStatus ?? 200),
-        apiKey: "k-fo-" + String(opts.combosStatus),
+        providerId: "fo-" + String(opts.modelsStatus ?? 200),
+        apiKey: "k-fo-" + String(opts.modelsStatus ?? 200),
       },
       provider: {
         transform: (cb: (editor: { add: (input: unknown) => void }) => void) => {
@@ -52,18 +52,11 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     return { ctx };
   }
 
-  function stubFetch(opts: { combosStatus: number; modelsStatus?: number }): typeof fetch {
+  function stubFetch(opts: { modelsStatus?: number; requested: string[] }): typeof fetch {
     const modelsStatus = opts.modelsStatus ?? 200;
     return (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos")) {
-        return {
-          ok: opts.combosStatus === 200,
-          status: opts.combosStatus,
-          statusText: opts.combosStatus === 403 ? "Forbidden" : "Error",
-          json: async () => ({ combos: [] }),
-        };
-      }
+      opts.requested.push(new URL(href).pathname);
       return {
         ok: modelsStatus === 200,
         status: modelsStatus,
@@ -99,81 +92,16 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
     return out;
   }
 
-  it("combos 403: setup resolves (models-only + warn), never rejects", async () => {
+  it("setup resolves with models-only and never requests the retired route", async () => {
     const restoreDisk = await isolateDisk();
     const reloads = { count: 0 };
     const added: unknown[] = [];
-    const { ctx } = setupCtx({ combosStatus: 403, reloads, added });
-    const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ combosStatus: 403 });
-    try {
-      const { warns } = await silenceConsole(async () => {
-        // MUST resolve — today it rejects with the 403 error.
-        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        assert.ok(
-          modelIds(added).includes("m1"),
-          `models-only fallback must publish m1, got: ${JSON.stringify(modelIds(added))}`
-        );
-      });
-      assert.ok(
-        warns.some((w) => w.includes("combos") && w.includes("403")),
-        `expected a combos 403 warn, got: ${JSON.stringify(warns)}`
-      );
-    } finally {
-      globalThis.fetch = origFetch;
-      restoreDisk();
-    }
-  });
-
-  it("combos 500: setup resolves (models-only + warn), never rejects", async () => {
-    const restoreDisk = await isolateDisk();
-    const reloads = { count: 0 };
-    const added: unknown[] = [];
-    const { ctx } = setupCtx({ combosStatus: 500, reloads, added });
-    const origFetch = globalThis.fetch;
-    globalThis.fetch = stubFetch({ combosStatus: 500 });
-    try {
-      const { warns } = await silenceConsole(async () => {
-        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
-        assert.ok(
-          modelIds(added).includes("m1"),
-          `models-only fallback must publish m1, got: ${JSON.stringify(modelIds(added))}`
-        );
-      });
-      assert.ok(
-        warns.some((w) => w.includes("combos")),
-        `expected a combos warn, got: ${JSON.stringify(warns)}`
-      );
-    } finally {
-      globalThis.fetch = origFetch;
-      restoreDisk();
-    }
-  });
-
-  it("combos timeout (abort): setup resolves, never rejects", async () => {
-    const restoreDisk = await isolateDisk();
-    const reloads = { count: 0 };
-    const added: unknown[] = [];
-    const { ctx } = setupCtx({ combosStatus: 200, reloads, added });
-    const origFetch = globalThis.fetch;
+    const { ctx } = setupCtx({ reloads, added });
     const requested: string[] = [];
-    globalThis.fetch = (async (url: unknown) => {
-      const href = String(url);
-      requested.push(new URL(href).pathname);
-      if (href.includes("/api/combos")) {
-        const err = new Error("This operation was aborted");
-        err.name = "AbortError";
-        throw err;
-      }
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => ({ data: [{ id: "m1", capabilities: { tool_calling: true } }] }),
-      };
-    }) as typeof fetch;
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = stubFetch({ requested });
     try {
-      const { warns } = await silenceConsole(async () => {
+      await silenceConsole(async () => {
         await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
         assert.ok(
           modelIds(added).includes("m1"),
@@ -181,11 +109,29 @@ describe("plugin-v2 fail-open refresh (PROD 403 combos)", () => {
         );
       });
       assert.ok(
-        warns.some((w) => w.includes("combos")),
-        `expected a combos warn, got: ${JSON.stringify(warns)}`
+        !requested.some((p) => p === "/api/combos"),
+        `retired route must never be requested, got ${JSON.stringify(requested)}`
       );
+    } finally {
+      globalThis.fetch = origFetch;
+      restoreDisk();
+    }
+  });
+
+  it("models 500: setup still resolves, never rejects", async () => {
+    const restoreDisk = await isolateDisk();
+    const reloads = { count: 0 };
+    const added: unknown[] = [];
+    const { ctx } = setupCtx({ modelsStatus: 500, reloads, added });
+    const requested: string[] = [];
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = stubFetch({ modelsStatus: 500, requested });
+    try {
+      await silenceConsole(async () => {
+        await (plugin as unknown as { setup: (ctx: unknown) => Promise<void> }).setup(ctx);
+      });
       assert.ok(
-        !requested.some((p) => p === "/api/combos/auto"),
+        !requested.some((p) => p === "/api/combos"),
         `retired route must never be requested, got ${JSON.stringify(requested)}`
       );
     } finally {

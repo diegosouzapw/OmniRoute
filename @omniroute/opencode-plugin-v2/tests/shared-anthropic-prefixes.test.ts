@@ -160,11 +160,10 @@ describe("deprecated anthropicPrefixes", () => {
         },
         {
           fetcher: async () => [{ id: "cc/claude-x" }],
-          combosFetcher: async () => [],
           enrichmentFetcher: async () => new Map(),
         }
       );
-      assert.deepEqual(collected.counts, { models: 1, combos: 0 });
+      assert.deepEqual(collected.counts, { models: 1 });
       const payload = buildProviderPayload(collected, {
         providerId: "omniroute",
         baseURL: GW,

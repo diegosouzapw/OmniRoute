@@ -1,0 +1,1 @@
+- **fix(plugin):** stop requesting the retired combos route in the v2 plugin ([#16167](https://github.com/diegosouzapw/OmniRoute/pull/16167)) — thanks @maxmad64bis

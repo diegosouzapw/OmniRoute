@@ -4,7 +4,6 @@ import {
   buildProviderResolve,
   compileProviderFilter,
   matchesAllow,
-  passesProviderCombo,
   passesProviderFilter,
   providerOf,
   unknownProviders,
@@ -99,73 +98,6 @@ describe("passesProviderFilter", () => {
     const filter = compileProviderFilter(["claude"]);
     assert.ok(filter);
     assert.equal(passesProviderFilter("kiro/y", filter, resolve), false);
-  });
-});
-
-describe("passesProviderCombo", () => {
-  it("multi-provider combo survives when one member is allowed", () => {
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    assert.equal(
-      passesProviderCombo(
-        {
-          id: "mix",
-          models: [
-            { kind: "model", model: "cc/a" },
-            { kind: "model", model: "kiro/b" },
-          ],
-        },
-        filter,
-        buildProviderResolve(
-          [
-            { alias: "cc", canonical: "claude" },
-            { alias: "kiro", canonical: "kiro" },
-          ],
-          ["claude", "kiro"]
-        )
-      ),
-      true
-    );
-  });
-
-  it("combo drops when no member is allowed", () => {
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    const resolveOnlyClaude = buildProviderResolve(
-      [{ alias: "cc", canonical: "claude" }],
-      ["claude"]
-    );
-    // "kiro/b" is unknown to this vocabulary so it keeps fail-open; add a
-    // companion member known-but-excluded to prove the drop path instead.
-    assert.equal(
-      passesProviderCombo(
-        { id: "other", models: [{ kind: "model", model: "cc/a" }] },
-        compileProviderFilter(["zzz-absent"])!,
-        buildProviderResolve(
-          [
-            { alias: "cc", canonical: "claude" },
-            { alias: "zzz-absent", canonical: "zzz-absent" },
-          ],
-          ["claude"]
-        )
-      ),
-      false
-    );
-    void filter;
-    void resolveOnlyClaude;
-  });
-
-  it("combo-ref-only combos keep (nothing resolvable to exclude)", () => {
-    const filter = compileProviderFilter(["claude"]);
-    assert.ok(filter);
-    assert.equal(
-      passesProviderCombo(
-        { id: "nested", models: [{ kind: "combo-ref", comboName: "child" }] },
-        filter,
-        resolveCcClaude()
-      ),
-      true
-    );
   });
 });
 

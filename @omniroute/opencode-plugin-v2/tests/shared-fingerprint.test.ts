@@ -8,37 +8,31 @@ describe("catalogContentFingerprint", () => {
       { id: "b", release_date: "2026-01-02" },
       { id: "a", release_date: "2026-01-01" },
     ];
-    const combos = [{ id: "combo-b" }, { id: "combo-a" }];
     assert.equal(
-      catalogContentFingerprint(models, combos),
-      catalogContentFingerprint([...models].reverse(), [...combos].reverse())
+      catalogContentFingerprint(models),
+      catalogContentFingerprint([...models].reverse())
     );
   });
   it("returns a different hash when one model id changes", () => {
-    const combos = [{ id: "combo-a" }];
-    const before = catalogContentFingerprint([{ id: "a" }], combos);
-    const after = catalogContentFingerprint([{ id: "a2" }], combos);
+    const before = catalogContentFingerprint([{ id: "a" }]);
+    const after = catalogContentFingerprint([{ id: "a2" }]);
     assert.notEqual(before, after);
   });
-  it("takes exactly the models and combos entries", () => {
-    assert.equal(catalogContentFingerprint.length, 2);
+  it("takes exactly the models entries", () => {
+    assert.equal(catalogContentFingerprint.length, 1);
     const models = [{ id: "a" }];
-    const combos = [{ id: "combo-a" }];
-    assert.equal(
-      catalogContentFingerprint(models, combos),
-      catalogContentFingerprint([...models], [...combos])
-    );
+    assert.equal(catalogContentFingerprint(models), catalogContentFingerprint([...models]));
   });
 });
 
 describe("optionalTierFingerprint", () => {
-  it("takes providers, enrichment, then combos, with no legacy first entry", () => {
+  it("takes providers then enrichment", () => {
     assert.equal(optionalTierFingerprint.length, 2);
     const providers = [{ id: "c1", testStatus: "active", isActive: true }];
     const priced = (input: number) =>
       new Map([["example/model", { name: "Model One", pricing: { input, output: 1 } }]]);
-    const first = optionalTierFingerprint(providers, priced(3), [{ id: "combo-a" }]);
-    const moved = optionalTierFingerprint(providers, priced(99), [{ id: "combo-a" }]);
+    const first = optionalTierFingerprint(providers, priced(3));
+    const moved = optionalTierFingerprint(providers, priced(99));
     assert.notEqual(first, moved);
   });
 
@@ -51,12 +45,13 @@ describe("optionalTierFingerprint", () => {
     );
   });
 
-  it("moves when a combo loses a member without changing id", () => {
-    const one = [{ id: "combo-a", name: "A", models: [{ model: "m1" }] }];
-    const two = [{ id: "combo-a", name: "A", models: [{ model: "m1" }, { model: "m2" }] }];
-    assert.notEqual(
-      optionalTierFingerprint([], undefined, one),
-      optionalTierFingerprint([], undefined, two)
+  it("ignores extra trailing arguments the retired caller used to pass", () => {
+    const providers = [{ id: "c1", testStatus: "active", isActive: true }];
+    assert.equal(
+      optionalTierFingerprint(providers, undefined),
+      (optionalTierFingerprint as (...args: unknown[]) => string)(providers, undefined, [
+        { id: "combo-a" },
+      ])
     );
   });
 

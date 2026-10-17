@@ -43,9 +43,7 @@ describe("plugin-v2 publish guard (mapper/host throws)", () => {
   function stubFetch(): typeof fetch {
     return (async (url: unknown) => {
       const href = String(url);
-      if (href.includes("/api/combos")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
+      void href;
       return {
         ok: true,
         status: 200,
@@ -103,9 +101,6 @@ describe("plugin-v2 publish guard (mapper/host throws)", () => {
     globalThis.fetch = (async (url: unknown) => {
       const href = String(url);
       requested.push(new URL(href).pathname);
-      if (href.includes("/api/combos")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
       }
@@ -128,6 +123,10 @@ describe("plugin-v2 publish guard (mapper/host throws)", () => {
           `unexpected refresh path ${pathname} in ${JSON.stringify(requested)}`
         );
       }
+      assert.ok(
+        !requested.some((pathname) => pathname === "/api/combos"),
+        `retired route must never be requested, got ${JSON.stringify(requested)}`
+      );
     } finally {
       globalThis.fetch = origFetch;
       restoreDisk();

@@ -57,7 +57,6 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
     const opts = parsePluginOptions({ baseURL: BER });
     assert.deepEqual(resolveTimeouts(opts), {
       models: 10000,
-      combos: 10000,
       enrichment: 10000,
     });
   });
@@ -70,7 +69,6 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
     });
     assert.deepEqual(resolveTimeouts(opts), {
       models: 1111,
-      combos: 3000,
       enrichment: 3000,
     });
   });
@@ -100,13 +98,13 @@ describe("plugin-v2 P2 parity: per-endpoint timeouts", () => {
           // A per-endpoint value must win over the global one: the 20ms
           // models budget is what this test asserts, not the 10s fallback.
           timeoutMs: 10000,
-          timeouts: { models: 20, combos: 10000 },
+          timeouts: { models: 20 },
           modelCacheTtlMs: 300000,
           usableOnly: false,
         },
-        { fetcher: slowModels, combosFetcher: async () => [] }
+        { fetcher: slowModels }
       );
-      assert.deepEqual(res, { models: 0, combos: 0 });
+      assert.deepEqual(res, { models: 0 });
     } finally {
       console.warn = origWarn;
     }
