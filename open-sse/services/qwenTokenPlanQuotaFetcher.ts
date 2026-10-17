@@ -30,6 +30,7 @@
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 
 const DEFAULT_GATEWAY_HOST = "https://cs-data.qwencloud.com";
 const DEFAULT_DASHBOARD_URL = "https://home.qwencloud.com/";
@@ -214,7 +215,7 @@ async function resolveSecToken(
   }
 
   try {
-    const response = await fetch(getDashboardUrl(site), {
+    const response = await fetchWithConnectionProxy(connectionId, getDashboardUrl(site), {
       method: "GET",
       headers: {
         Cookie: cookie,
@@ -225,6 +226,7 @@ async function resolveSecToken(
       redirect: "follow",
       signal: AbortSignal.timeout(8_000),
     });
+    if (!response) return "";
     const html = await response.text();
     const token = extractQwenSecToken(html);
     if (token) {
@@ -240,6 +242,7 @@ async function resolveSecToken(
 // ─── Gateway transport ───────────────────────────────────────────────────────
 
 async function callGateway(
+  connectionId: string,
   endpoint: string,
   cookie: string,
   secToken: string,
@@ -275,7 +278,7 @@ async function callGateway(
   try {
     // #6911: space concurrent upstream quota fetches (mirrors bailianQuotaFetcher.ts).
     await throttleQuotaFetch();
-    const response = await fetch(url, {
+    const response = await fetchWithConnectionProxy(connectionId, url, {
       method: "POST",
       headers: {
         Cookie: cookie,
@@ -287,6 +290,7 @@ async function callGateway(
       body: body.toString(),
       signal: AbortSignal.timeout(8_000),
     });
+    if (!response) return null;
 
     const raw = await response.json();
     return parseGatewayEnvelope(raw);
@@ -339,8 +343,8 @@ async function resolveTierInfo(
   }
 
   const [quotaConfig, subscription] = await Promise.all([
-    callGateway("quota-config", cookie, secToken, site),
-    callGateway("subscription", cookie, secToken, site),
+    callGateway(connectionId, "quota-config", cookie, secToken, site),
+    callGateway(connectionId, "subscription", cookie, secToken, site),
   ]);
 
   const specCode = toTrimmedString(toRecord(subscription)["specCode"]) || null;
@@ -394,7 +398,7 @@ export async function fetchQwenTokenPlanQuota(
     getConfiguredSecToken(providerSpecificData) ||
     (await resolveSecToken(connectionId, cookie, site));
 
-  const usagePayload = await callGateway("usage", cookie, secToken, site);
+  const usagePayload = await callGateway(connectionId, "usage", cookie, secToken, site);
   if (usagePayload === null) return null;
 
   const windows = parseUsageWindows(usagePayload);
