@@ -17,6 +17,11 @@ import {
 } from "@/shared/utils/modelCatalogSearch";
 import { providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
+import {
+  ContextWindowOverrideEditButton,
+  ContextWindowOverrideField,
+  useContextWindowOverrideEditor,
+} from "./ContextWindowOverrideEditor";
 
 // ---------------------------------------------------------------------------
 // Shared prop types
@@ -280,6 +285,11 @@ export interface ModelRowProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   testStatus?: "ok" | "error" | "quota" | null;
   testingModel?: boolean;
+  // Manual context-window override for catalog models. Opt-in: without the
+  // callback the row renders exactly as before (no badge, no editor).
+  contextWindowOverride?: number | null;
+  onSaveContextWindowOverride?: (modelId: string, value: number | null) => Promise<void>;
+  savingContextOverride?: boolean;
 }
 
 export default function ModelRow({
@@ -303,8 +313,16 @@ export default function ModelRow({
   onTestModel,
   testStatus,
   testingModel,
+  contextWindowOverride,
+  onSaveContextWindowOverride,
+  savingContextOverride,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
+  const contextEditor = useContextWindowOverrideEditor({
+    modelId: model.id,
+    override: contextWindowOverride,
+    onSave: onSaveContextWindowOverride,
+  });
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -359,6 +377,14 @@ export default function ModelRow({
           {fullModel}
         </code>
         <ModelSourceBadge source={model.source} />
+        {onSaveContextWindowOverride && (
+          <ContextWindowOverrideField
+            editor={contextEditor}
+            override={contextWindowOverride}
+            saving={savingContextOverride}
+            t={t}
+          />
+        )}
         {onSetAlias && (
           <span className="flex min-w-0 items-center text-[9px] gap-1">
             {editing ? (
@@ -416,6 +442,9 @@ export default function ModelRow({
             </span>
             <span>{providerText(t, "blacklistModel", "Blacklist")}</span>
           </button>
+        )}
+        {onSaveContextWindowOverride && (
+          <ContextWindowOverrideEditButton editor={contextEditor} t={t} />
         )}
         {onTestModel && (
           <button

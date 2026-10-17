@@ -8,7 +8,7 @@ import { filterUnavailableModelRows } from "@/lib/providers/mergeProviderModelLi
  *
  * Never imports from ProviderDetailPageClient.
  */
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/shared/components";
 import {
   matchesModelCatalogQuery,
@@ -18,7 +18,6 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   buildCompatMap,
-  formatProviderModelsErrorResponse,
   getDisplayModelAlias,
   providerText,
   type CompatModelRow,
@@ -28,6 +27,7 @@ import { sortModelsFreeFirst, isModelFreeBadge } from "@/shared/utils/freeModels
 import { useStrictFreeBadge } from "./useStrictFreeBadge";
 import { useModelOutputOverrides } from "../hooks/useModelOutputOverrides";
 import PassthroughModelRow, { type PassthroughModelRowProps } from "./PassthroughModelRow";
+import { useProviderContextOverrides } from "../hooks/useProviderContextOverrides";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -85,30 +85,6 @@ export interface CompatibleModelsSectionProps {
 // Component
 // ---------------------------------------------------------------------------
 
-// #14337: fetch + parse kept out of the component so the mount effect sets state
-// only after the await — the same shape CustomModelsSection uses, and what the
-// set-state-in-effect rule requires.
-async function fetchProviderContextOverrides(
-  providerId: string
-): Promise<Record<string, number> | null> {
-  try {
-    const res = await fetch(`/api/provider-models?provider=${encodeURIComponent(providerId)}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const rows = Array.isArray(data?.modelContextOverrides) ? data.modelContextOverrides : [];
-    const next: Record<string, number> = {};
-    for (const row of rows) {
-      const id = typeof row?.modelId === "string" ? row.modelId : null;
-      const value = row?.contextWindowOverride;
-      if (id && typeof value === "number") next[id] = value;
-    }
-    return next;
-  } catch {
-    // A failed read leaves the badges absent; editing still works.
-    return null;
-  }
-}
-
 export default function CompatibleModelsSection({
   providerStorageAlias,
   providerDisplayAlias,
@@ -160,78 +136,10 @@ export default function CompatibleModelsSection({
   const notify = useNotificationStore();
   const outputOverrides = useModelOutputOverrides(providerStorageAlias, t);
 
-  // #14337: context-window overrides for rows that have no customModels entry.
-  // GET /api/provider-models returns them per provider; without this the value a
-  // synced row can already store was never read back, so the UI had nothing to
-  // show or seed the editor with.
-  const [contextOverrides, setContextOverrides] = useState<Record<string, number>>({});
-  const [savingContextModelId, setSavingContextModelId] = useState<string | null>(null);
-
-  const loadContextOverrides = useCallback(async () => {
-    const next = await fetchProviderContextOverrides(providerStorageAlias);
-    if (next) setContextOverrides(next);
-  }, [providerStorageAlias]);
-
-  useEffect(() => {
-    const run = async () => {
-      const next = await fetchProviderContextOverrides(providerStorageAlias);
-      if (next) setContextOverrides(next);
-    };
-    void run();
-  }, [providerStorageAlias]);
-
-  const saveContextWindowOverride = useCallback(
-    async (modelId: string, value: number | null) => {
-      // The row signals invalid input as NaN rather than guessing a value.
-      if (typeof value === "number" && Number.isNaN(value)) {
-        notify.error(t("contextWindowOverrideInvalid"));
-        return;
-      }
-      setSavingContextModelId(modelId);
-      try {
-        const res = await fetch("/api/provider-models", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider: providerStorageAlias,
-            modelId,
-            // #4125 semantics, unchanged: a number sets the override, null clears
-            // it and the model falls back to the discovered/catalog value.
-            contextWindowOverride: value,
-          }),
-        });
-        if (!res.ok) {
-          const detail = await formatProviderModelsErrorResponse(res);
-          throw new Error(
-            detail ||
-              providerText(
-                t,
-                "failedSaveModelEndpointSettings",
-                "Failed to save model endpoint settings"
-              )
-          );
-        }
-        await loadContextOverrides();
-        notify.success(
-          providerText(t, "savedModelEndpointSettings", "Saved model endpoint settings")
-        );
-      } catch (e) {
-        console.error("Failed to save context window override:", e);
-        notify.error(
-          e instanceof Error && e.message
-            ? e.message
-            : providerText(
-                t,
-                "failedSaveModelEndpointSettings",
-                "Failed to save model endpoint settings"
-              )
-        );
-      } finally {
-        setSavingContextModelId(null);
-      }
-    },
-    [providerStorageAlias, loadContextOverrides, notify, t]
-  );
+  // #14337: context-window overrides for rows that have no customModels entry
+  // (GET returns them per provider; see useProviderContextOverrides).
+  const { contextOverrides, savingContextModelId, saveContextWindowOverride } =
+    useProviderContextOverrides(providerStorageAlias, t);
   const strictFreeBadge = useStrictFreeBadge();
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 

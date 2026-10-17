@@ -1,0 +1,1 @@
+- **feat(dashboard):** set a model's context window when adding a custom model and from the catalog model list of native providers, so a model whose window the catalog does not know yet no longer falls back to 128k; a context-only override no longer turns a catalog model into a custom one ([#16178](https://github.com/diegosouzapw/OmniRoute/pull/16178))
