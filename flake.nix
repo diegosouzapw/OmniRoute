@@ -19,6 +19,9 @@
         nodejs = pkgs.nodejs_24;
       in
       {
+        packages.default = pkgs.callPackage ./nix/omniroute.nix { nodejs = pkgs.nodejs_24; };
+        packages.omniroute = self.packages.${system}.default;
+
         devShells.default = pkgs.mkShell {
           buildInputs = [
             nodejs
