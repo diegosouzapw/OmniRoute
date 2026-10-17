@@ -1,0 +1,1 @@
+- **feat(providers):** Display each connection's last successful model-sync timestamp beside Auto-Sync and trigger an immediate per-connection model refresh when enabling it, with safe cache invalidation and user-visible sync-failure feedback (refs [#16940](https://github.com/diegosouzapw/OmniRoute/issues/16940)) — thanks @fabioKoruja00

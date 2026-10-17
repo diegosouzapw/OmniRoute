@@ -133,7 +133,7 @@ describe("useModelImportHandlers — master autoSync", () => {
       await hook.get().handleToggleAutoSync();
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/providers/conn-a",
@@ -144,6 +144,7 @@ describe("useModelImportHandlers — master autoSync", () => {
       "/api/providers/conn-b",
       expect.objectContaining({ method: "PUT" })
     );
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/sync-models"))).toHaveLength(2);
     expect(fetchConnections).toHaveBeenCalled();
   });
 
@@ -160,7 +161,7 @@ describe("useModelImportHandlers — master autoSync", () => {
       await hook.get().handleToggleAutoSync();
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/providers/conn-a",
@@ -182,7 +183,7 @@ describe("useModelImportHandlers — master autoSync", () => {
     });
 
     expect(hook.get().isAutoSyncEnabled).toBe(false);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/providers/conn-a",
@@ -197,6 +198,7 @@ describe("useModelImportHandlers — master autoSync", () => {
     const secondBody = JSON.parse(fetchMock.mock.calls[1][1].body as string);
     expect(firstBody.providerSpecificData).toEqual({ autoSync: true });
     expect(secondBody.providerSpecificData).toEqual({ autoSync: true });
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/sync-models"))).toHaveLength(1);
     expect(notify.success).toHaveBeenCalled();
   });
 
@@ -210,6 +212,7 @@ describe("useModelImportHandlers — master autoSync", () => {
     );
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+    fetchMock.mockResolvedValueOnce({ ok: true } as Response);
     fetchMock.mockResolvedValueOnce({ ok: true } as Response);
 
     await act(async () => {

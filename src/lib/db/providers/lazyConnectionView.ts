@@ -55,6 +55,7 @@ export interface ProviderConnectionView {
   defaultModel: string | null;
   providerSpecificData: JsonRecord;
   lastUsedAt: string | null;
+  syncedModelsAt: string | null;
   consecutiveUseCount: number;
   priority: number;
   lastError: string | null;
@@ -107,6 +108,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
     defaultModel: toStringOrNull(row.defaultModel),
     providerSpecificData: asRecord(row.providerSpecificData),
     lastUsedAt: toStringOrNull(row.lastUsedAt),
+    syncedModelsAt: toStringOrNull(row.syncedModelsAt),
     consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
     priority: toNumber(row.priority, 999),
     lastError: toStringOrNull(row.lastError),

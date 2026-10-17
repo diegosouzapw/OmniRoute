@@ -15,12 +15,14 @@ export function useConnectionAutoSync(
   connections: ConnectionRowConnection[],
   setConnections: Dispatch<SetStateAction<ConnectionRowConnection[]>>,
   notify: NotificationStore,
-  t: ProviderMessageTranslator
+  t: ProviderMessageTranslator,
+  refresh: () => Promise<void> = async () => {}
 ) {
   return useCallback(
     async (connectionId: string, enabled: boolean) => {
       try {
         const existingPsd = connections.find((c) => c.id === connectionId)?.providerSpecificData;
+        const newlyEnabled = enabled && existingPsd?.autoSync !== true;
         const response = await fetch(`/api/providers/${connectionId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -43,14 +45,31 @@ export function useConnectionAutoSync(
               : connection
           )
         );
-        notify[enabled ? "success" : "info"](
-          enabled ? t("autoSyncEnabled") : t("autoSyncDisabled")
-        );
+        let immediateSyncFailed = false;
+        if (newlyEnabled) {
+          try {
+            const sync = await fetch(`/api/providers/${connectionId}/sync-models`, {
+              method: "POST",
+              signal: AbortSignal.timeout(60_000),
+            });
+            if (!sync.ok) throw new Error(`HTTP ${sync.status}`);
+            await refresh();
+          } catch (syncError) {
+            console.error("Immediate connection model sync failed:", syncError);
+            immediateSyncFailed = true;
+            notify.error(t("autoSyncImmediateFailed"));
+          }
+        }
+        if (!immediateSyncFailed) {
+          notify[enabled ? "success" : "info"](
+            enabled ? t("autoSyncEnabled") : t("autoSyncDisabled")
+          );
+        }
       } catch (error) {
         console.error("Error toggling connection auto-sync:", error);
         notify.error(t("autoSyncToggleFailed"));
       }
     },
-    [notify, setConnections, t, connections]
+    [notify, setConnections, t, connections, refresh]
   );
 }

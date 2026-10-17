@@ -16,6 +16,7 @@ const notify = { success: vi.fn(), error: vi.fn(), info: vi.fn() };
 const roots: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
 function renderHandler(initial: ConnectionRowConnection[]) {
+  const refresh = vi.fn().mockResolvedValue(undefined);
   let latest: {
     handler: (id: string, enabled: boolean) => Promise<void>;
     connections: ConnectionRowConnection[];
@@ -26,7 +27,8 @@ function renderHandler(initial: ConnectionRowConnection[]) {
       connections,
       setConnections as React.Dispatch<React.SetStateAction<ConnectionRowConnection[]>>,
       notify,
-      t
+      t,
+      refresh
     );
     React.useEffect(() => {
       latest = { handler, connections };
@@ -43,6 +45,7 @@ function renderHandler(initial: ConnectionRowConnection[]) {
       if (!latest) throw new Error("Hook did not render");
       return latest;
     },
+    refresh,
   };
 }
 
@@ -69,13 +72,13 @@ describe("useConnectionAutoSync", () => {
     ];
     const h = renderHandler(conns);
     const fetchMock = vi.mocked(fetch);
-    fetchMock.mockResolvedValueOnce({ ok: true } as Response);
+    fetchMock.mockResolvedValue({ ok: true } as Response);
 
     await act(async () => {
       await h.get().handler("conn-1", true);
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/providers/conn-1",
@@ -86,6 +89,8 @@ describe("useConnectionAutoSync", () => {
         }),
       })
     );
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/providers/conn-1/sync-models", expect.objectContaining({ method: "POST" }));
+    expect(h.refresh).toHaveBeenCalledTimes(1);
     expect(notify.success).toHaveBeenCalled();
   });
 
@@ -95,7 +100,7 @@ describe("useConnectionAutoSync", () => {
     ];
     const h = renderHandler(conns);
     const fetchMock = vi.mocked(fetch);
-    fetchMock.mockResolvedValueOnce({ ok: true } as Response);
+    fetchMock.mockResolvedValue({ ok: true } as Response);
 
     await act(async () => {
       await h.get().handler("conn-1", true);
@@ -138,7 +143,27 @@ describe("useConnectionAutoSync", () => {
       await h.get().handler("conn-1", false);
     });
 
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(h.refresh).not.toHaveBeenCalled();
     expect(notify.info).toHaveBeenCalledWith("autoSyncDisabled");
     expect(notify.success).not.toHaveBeenCalled();
+  });
+  it("does not resync a connection already enabled", async () => {
+    const h = renderHandler([{ id: "conn-1", providerSpecificData: { autoSync: true } }]);
+    const mock = vi.mocked(fetch);
+    mock.mockResolvedValue({ ok: true } as Response);
+    await act(async () => { await h.get().handler("conn-1", true); });
+    expect(mock).toHaveBeenCalledTimes(1);
+    expect(h.refresh).not.toHaveBeenCalled();
+  });
+
+  it("retains the enabled flag after an immediate sync failure", async () => {
+    const h = renderHandler([{ id: "conn-1", providerSpecificData: { autoSync: false } }]);
+    const mock = vi.mocked(fetch);
+    mock.mockResolvedValueOnce({ ok: true } as Response);
+    mock.mockResolvedValueOnce({ ok: false, status: 502 } as Response);
+    await act(async () => { await h.get().handler("conn-1", true); });
+    expect(h.get().connections[0].providerSpecificData?.autoSync).toBe(true);
+    expect(notify.error).toHaveBeenCalledWith("autoSyncImmediateFailed");
   });
 });

@@ -1121,6 +1121,9 @@ export async function touchConnectionSyncedModelsAt(id: string): Promise<void> {
     updatedAt: now,
     id,
   });
+  // New successful-sync timestamp must be visible without waiting for the
+  // connection row cache to expire.
+  invalidateDbCache("connections", id, { skipModelCatalog: true });
 }
 
 /**

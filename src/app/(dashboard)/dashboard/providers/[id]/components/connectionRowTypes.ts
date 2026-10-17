@@ -23,6 +23,7 @@ export interface ConnectionRowConnection {
   defaultModel?: string | null;
   expiresAt?: string;
   tokenExpiresAt?: string;
+  syncedModelsAt?: string | null;
   maxConcurrent?: number | null;
   authType?: string;
   proxyEnabled?: boolean;
