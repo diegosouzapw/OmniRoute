@@ -261,11 +261,11 @@ const nextConfig = {
     ],
   },
   outputFileTracingExcludes: {
-    // Planning/task docs, tests, and non-production worktrees are not runtime assets
-    // and break standalone copies when broad NFT tracing pulls the whole repository into memory.
-    // Using "**/*" ensures the exclusion applies across all app and API routes, not just "/".
+    // Exclude private state and development files from every traced route.
     "**/*": [
-      "**/.git/**",
+      ..."**/.git/** **/.ci-work/** **/.ai/** **/.specify/** **/specs/** **/graphify-out/** **/.codebase-memory/** **/secrets.md **/.env*".split(
+        " "
+      ),
       "**/.eslintcache",
       "**/_tasks/**",
       "**/_references/**",

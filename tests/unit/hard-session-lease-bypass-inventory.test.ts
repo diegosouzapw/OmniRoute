@@ -51,12 +51,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
     // removed as dead redundant code, 6->5. #12653 added combo target
     // resolution with the same shape as imageCombo, 5->6.
-    // #15513: added Antigravity/Gemini image edits support branch, 6->7.
-    // #14269: SYNTX.ai image edits branch, same quota-preflight credential lookup
-    // shape as the sibling provider branches, 7->8.
-    // #14619 extracted Firefly's credential lookup into adobeFireflyEdit.ts;
-    // the same class-B site moves with it, 8->7 here and 0->1 in the helper.
-    "src/app/api/v1/images/edits/route.ts": 7,
+    // Shared SYNTX/Muse selection, Muse's allowlisted credential fallback, and combo
+    // selection stay in editDispatch. Firefly selection lives in adobeFireflyEdit.ts.
+    "src/app/api/v1/images/edits/editDispatch.ts": 3,
+    "src/app/api/v1/images/edits/route.ts": 6,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -249,8 +247,6 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // volcPlanAutoSyncBackfill is a one-shot boot backfill that patches a providerSpecificData
     // flag and issues no upstream call. Neither selects a connection to serve a request, so
     // both stay class C (see CLASSIFICATION below).
-    "src/lib/providers/volcPlanAutoSyncBackfill.ts": 1,
-    "src/lib/providers/volcenginePlanBinding.ts": 1,
     "src/lib/proxyEgress.ts": 1,
     "src/lib/quota/connectionRecovery.ts": 2,
     "src/lib/sync/bundle.ts": 1,

@@ -1,5 +1,27 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Local workspace protection
+/.ai/
+/.specify/
+/specs/
+/secrets.md
+/explain-AI.md
+/reference.md
+/CLAUDE.md
+/AGENTS.md
+/.agents/
+/.claude/
+/.kiro/
+/.codex/
+/.cursor/
+/.cline/
+/graphify-out/
+/.codebase-memory/
+/plans/
+.ignoreme
+**/.ignoreme
+/.ci-work/
+
 # project-specific directories
 /output/
 .slim/deepwork/
@@ -301,3 +323,15 @@ docker-compose.yml.bak
 
 # run-translation.mjs writes the state atomically via a per-process temp file
 /.i18n-state.json.*.tmp
+
+# Hook Maker: local/private files (auto-managed)
+/.env
+/.env.*
+!/.env.example
+!/.env.sample
+!/.env.template
+!/.env.dist
+# Public templates intentionally shipped by the upstream repository
+!/.env.devin-bridge.example
+!/.env.homolog.example
+!/.env.selfhost.example

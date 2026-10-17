@@ -43,6 +43,7 @@ test("handleImageGeneration treats a 200 whose only item has a blank url as a re
   try {
     const result = await handleImageGeneration(usableImageRequest);
     assert.equal(result.success, false);
+    assert.ok("status" in result && "error" in result);
     assert.equal(result.status, 502);
     assert.match(String(result.error), /without an image payload/);
   } finally {
@@ -56,6 +57,7 @@ test("handleImageGeneration treats a 200 whose only item is not an object as a r
   try {
     const result = await handleImageGeneration(usableImageRequest);
     assert.equal(result.success, false);
+    assert.ok("status" in result && "error" in result);
     assert.equal(result.status, 502);
     // LEDGER-66 (same run): pin the message so this case proves `isJsonObject(item)` rejected
     // the item rather than any 502 the outer catch would also produce.
@@ -74,7 +76,8 @@ test("handleImageGeneration keeps a well-formed 200 image payload as success", a
   try {
     const result = await handleImageGeneration(usableImageRequest);
     assert.equal(result.success, true);
-    assert.equal(result.status, undefined);
+    assert.ok("data" in result);
+    assert.equal("status" in result ? result.status : undefined, undefined);
     assert.deepEqual(result.data, { created: 123, data: [{ url: "" }, { b64_json: "ZmFrZQ==" }] });
   } finally {
     globalThis.fetch = originalFetch;
@@ -132,7 +135,7 @@ async function captureAntigravityImageRequest(extraBody: Record<string, unknown>
     },
   };
   let captured;
-  globalThis.fetch = async (_url, options = {}) => {
+  globalThis.fetch = async (_url, options: RequestInit = {}) => {
     captured = JSON.parse(String(options.body || "{}"));
     // LEDGER-47: a REAL success payload, so these cases fail when the request/response wiring
     // breaks rather than only when the envelope changes.
@@ -146,34 +149,29 @@ async function captureAntigravityImageRequest(extraBody: Record<string, unknown>
     );
   };
   try {
+    assert.ok(await waitForCallLogSaves(5_000), "previous call-log save did not settle");
+    const existingIds = new Set((await getCallLogs({ provider: "antigravity", limit: 50 })).map((row) => row.id));
     const result = await handleImageGeneration({
       body: { model: ANTIGRAVITY_IMAGE_MODEL, prompt, aspect_ratio: "3:4", ...extraBody },
       credentials: { accessToken: "ag-token", projectId: "project-123" },
       log,
     });
     assert.equal(result.success, true);
-    assert.equal(result.data.data.length, 1);
-    assert.equal(result.data.data[0].b64_json, "ZmFrZQ==");
+    assert.ok("data" in result);
+    const images = result.data.data;
+    assert.ok(Array.isArray(images));
+    assert.equal(images.length, 1);
+    assert.equal(images[0].b64_json, "ZmFrZQ==");
 
-    assert.ok(await waitForCallLogSaves(60_000), "call-log save did not settle");
-    // The persisted `model` carries the resolved alias (`…-flash-image`), so match on provider
-    // + the unique prompt rather than on the requested model string. `getCallLogs` only ever
-    // returns the list-level SUMMARY row — `requestSummary`, populated exclusively for
-    // `requestType: "search"` rows (see `buildRequestSummary`) — never the full `requestBody`
-    // this handler persists via `saveCallLog`. That body lives solely in the per-row artifact
-    // file, reachable only through `getCallLogById`, so each candidate row must be re-read
-    // through it before its `requestBody.prompt` can be compared.
+    assert.ok(await waitForCallLogSaves(5_000), "call-log save did not settle");
     const rows = await getCallLogs({ provider: "antigravity", limit: 50 });
-    let row: Awaited<ReturnType<typeof getCallLogById>> | null = null;
-    for (const candidate of rows) {
-      const detail = await getCallLogById(candidate.id);
-      const candidateBody = detail?.requestBody as Record<string, unknown> | null | undefined;
-      if (candidateBody && candidateBody.prompt === prompt) {
-        row = detail;
-        break;
-      }
-    }
-    assert.ok(row, `no call log persisted for prompt ${prompt}`);
+    const added = rows.filter((candidate) => !existingIds.has(candidate.id));
+    assert.equal(added.length, 1, "expected exactly one new Antigravity call log");
+    const row = await getCallLogById(added[0].id);
+    assert.ok(row, "new Antigravity call log has no detail");
+    const requestBody = row.requestBody as Record<string, unknown>;
+    assert.equal(requestBody.prompt_chars, prompt.length);
+    assert.equal(Object.hasOwn(requestBody, "prompt"), false);
     return {
       imageConfig: captured.request.generationConfig.imageConfig,
       requestBody: row.requestBody as Record<string, unknown>,
@@ -216,9 +214,9 @@ test("handleImageGeneration clamps an unrecognised Antigravity image_size string
     image_size: "1024x1024",
   });
   assert.deepEqual(imageConfig, { aspectRatio: "3:4", imageSize: "1K" });
-  // LEDGER-48: the downgrade is greppable — exactly one warn line naming the raw value.
+  // The downgrade is observable without echoing arbitrary caller values in warnings.
   assert.equal(warnings.length, 1, `expected one warn line, got ${JSON.stringify(warnings)}`);
-  assert.match(warnings[0], /unsupported image_size "1024x1024"/);
+  assert.match(warnings[0], /unsupported image_size/);
   assert.match(warnings[0], /clamped to 1K/);
   // LEDGER-54/59/60: the call log keeps the caller's raw value next to what went upstream.
   assert.equal(requestBody.image_size, "1024x1024");

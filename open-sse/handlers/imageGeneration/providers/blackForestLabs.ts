@@ -18,7 +18,7 @@ import {
   resolveImageSource,
   saveImageErrorResult,
   saveImageSuccessResult,
-} from "../../imageGeneration.ts";
+} from "../shared.ts";
 
 const BFL_MODEL_ENDPOINTS = {
   "flux-2-max": "/v1/flux-2-max",

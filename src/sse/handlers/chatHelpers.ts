@@ -980,7 +980,7 @@ export function isEarlyEofSiblingFailoverOn(): boolean {
 
 export function decideProxyResolutionFailure(
   err: unknown,
-  env: { PROXY_FAIL_OPEN?: string } = process.env
+  env: { PROXY_FAIL_OPEN?: string } = { PROXY_FAIL_OPEN: process.env.PROXY_FAIL_OPEN }
 ): null {
   if ((env.PROXY_FAIL_OPEN ?? "").trim().toLowerCase() === "true") {
     log.warn(

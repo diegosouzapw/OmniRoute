@@ -7,13 +7,15 @@ import {
 } from "@/sse/services/auth";
 import { getImageProvider, parseImageModel } from "@omniroute/open-sse/config/imageRegistry.ts";
 import * as log from "@/sse/utils/logger";
-import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
+import { toJsonErrorPayload, extractErrorMessage } from "@/shared/utils/upstreamError";
+import { isUsableImageCredentials } from "@/sse/services/imageCredentials";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runImageRequestWithAccounting } from "@/lib/usage/imageRequestAccounting";
 import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
+import { isCodexImagesModel } from "@omniroute/open-sse/handlers/codexImages.ts";
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 /**
@@ -42,17 +44,9 @@ export async function POST(request, { params }) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `Unknown image provider: ${rawProvider}`);
   }
 
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
-  }
-  const validation = validateBody(v1ImageGenerationSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
+  const input = await readImageProviderBody(request);
+  if ("rejection" in input) return input.rejection;
+  const body = input.body;
   const startTime = Date.now();
 
   // Ensure model has provider prefix
@@ -99,13 +93,17 @@ export async function POST(request, { params }) {
       `No credentials for image provider: ${rawProvider}`
     );
   }
-  if (credentials.allRateLimited) {
+  if ("allRateLimited" in credentials && credentials.allRateLimited) {
     return unavailableResponse(
       HTTP_STATUS.RATE_LIMITED,
       `[${rawProvider}] All accounts rate limited`,
-      credentials.retryAfter,
-      credentials.retryAfterHuman
+      "retryAfter" in credentials ? credentials.retryAfter : null,
+      "retryAfterHuman" in credentials ? credentials.retryAfterHuman : null
     );
+  }
+
+  if (!isUsableImageCredentials(credentials)) {
+    return errorResponse(401, "Image credential selection did not return usable credentials");
   }
 
   const execution = await executeImageWithCredentialFallback({
@@ -121,25 +119,47 @@ export async function POST(request, { params }) {
           apiKeyInfo: policy.apiKeyInfo,
           credentials: attemptCredentials,
           startTime,
+          recordCallLog: parsedModel.provider === "codex" && isCodexImagesModel(parsedModel.model),
         },
         () => handleImageGeneration({ body, credentials: attemptCredentials, log })
       ),
   });
   credentials = execution.credentials;
   const result = execution.result;
+  return imageProviderResultResponse(result, credentials);
+}
 
+async function imageProviderResultResponse(
+  result: Awaited<ReturnType<typeof handleImageGeneration>>,
+  credentials: Parameters<typeof clearRecoveredProviderState>[0]
+): Promise<Response> {
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    return new Response(JSON.stringify((result as any).data), {
+    return new Response(JSON.stringify("data" in result ? result.data : undefined), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const errorPayload = toJsonErrorPayload((result as any).error, "Image generation provider error");
+  const errorPayload = toJsonErrorPayload(
+    "error" in result ? result.error : undefined,
+    "Image generation provider error"
+  );
   const message =
-    typeof errorPayload?.error?.message === "string"
-      ? errorPayload.error.message
-      : "Image generation provider error";
-  return errorResponse((result as any).status, message);
+    extractErrorMessage("error" in errorPayload ? errorPayload.error : errorPayload) ??
+    "Image generation provider error";
+  return errorResponse("status" in result ? result.status : undefined, message);
+}
+
+async function readImageProviderBody(request: Request) {
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return { rejection: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body") };
+  }
+  const validation = validateBody(v1ImageGenerationSchema, rawBody);
+  if (isValidationFailure(validation))
+    return { rejection: errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message) };
+  return { body: validation.data };
 }

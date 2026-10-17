@@ -135,9 +135,10 @@ export async function executeImageWithCredentialFallback({
     lastCredentials = currentCredentials;
     lastResult = await execute(currentCredentials);
     const shouldTryAnotherAccount =
-      Number(lastResult.status) === 401 ||
-      lastResult.retryable === true ||
-      isAntigravityImageQuotaExhausted(provider, lastResult);
+      lastResult.retryable !== false &&
+      (Number(lastResult.status) === 401 ||
+        lastResult.retryable === true ||
+        isAntigravityImageQuotaExhausted(provider, lastResult));
     if (lastResult.success || !shouldTryAnotherAccount || !connectionId) {
       return { credentials: lastCredentials, result: lastResult };
     }

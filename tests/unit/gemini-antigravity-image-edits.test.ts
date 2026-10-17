@@ -19,7 +19,20 @@ process.on("exit", () => {
   (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
 });
 
+await import("../_setup/imageCallLogLifecycle.ts");
 const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+  "base64"
+);
+
+test.after(async () => {
+  (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+  const { resetDbInstance } = await import("../../src/lib/db/core.ts");
+  resetDbInstance();
+  const { rmSync } = await import("node:fs");
+  rmSync(process.env.DATA_DIR!, { recursive: true, force: true });
+});
 
 interface CapturedGeminiImageRequest {
   url: string;
@@ -42,7 +55,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   const originalFetch = globalThis.fetch;
   let captured: CapturedGeminiImageRequest | undefined;
 
-  globalThis.fetch = async (url, options = {}) => {
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
     captured = {
       url: String(url),
       headers: options.headers,
@@ -72,7 +85,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   };
 
   try {
-    const imageBuffer = Buffer.from("fake-png-binary-data");
+    const imageBuffer = PNG;
     const result = await handleImageGeneration({
       body: {
         model: "antigravity/gemini-3.1-flash-image-preview",
@@ -90,9 +103,9 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
 
     const parts = captured.body.request.contents[0].parts;
     assert.equal(parts.length, 2);
-    assert.equal(parts[0].inlineData.mimeType, "image/png");
-    assert.equal(parts[0].inlineData.data, imageBuffer.toString("base64"));
-    assert.equal(parts[1].text, "add a sunset in the background");
+    assert.equal(parts[1].inlineData.mimeType, "image/png");
+    assert.equal(parts[1].inlineData.data, imageBuffer.toString("base64"));
+    assert.equal(parts[0].text, "add a sunset in the background");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -102,7 +115,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   const originalFetch = globalThis.fetch;
   let captured: CapturedGeminiImageRequest | undefined;
 
-  globalThis.fetch = async (url, options = {}) => {
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
     captured = {
       url: String(url),
       headers: options.headers,
@@ -131,7 +144,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   };
 
   try {
-    const dataUri = "data:image/jpeg;base64,dGVzdC1qcGVnLWRhdGE=";
+    const dataUri = `data:image/png;base64,${PNG.toString("base64")}`;
     const result = await handleImageGeneration({
       body: {
         model: "antigravity/gemini-3.1-flash-image-preview",
@@ -145,9 +158,9 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
     assert.equal(result.success, true);
     const parts = captured.body.request.contents[0].parts;
     assert.equal(parts.length, 2);
-    assert.equal(parts[0].inlineData.mimeType, "image/jpeg");
-    assert.equal(parts[0].inlineData.data, "dGVzdC1qcGVnLWRhdGE=");
-    assert.equal(parts[1].text, "remove person from background");
+    assert.equal(parts[1].inlineData.mimeType, "image/png");
+    assert.equal(parts[1].inlineData.data, PNG.toString("base64"));
+    assert.equal(parts[0].text, "remove person from background");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -157,7 +170,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   const originalFetch = globalThis.fetch;
   let captured: CapturedGeminiImageRequest | undefined;
 
-  globalThis.fetch = async (url, options = {}) => {
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
     captured = {
       url: String(url),
       headers: options.headers,
@@ -186,7 +199,7 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
   };
 
   try {
-    const dataUri = "data:image/jpeg;base64,aW1hZ2UtZmllbGQtZGF0YQ==";
+    const dataUri = `data:image/png;base64,${PNG.toString("base64")}`;
     const result = await handleImageGeneration({
       body: {
         model: "antigravity/gemini-3.1-flash-image-preview",
@@ -200,9 +213,9 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
     assert.equal(result.success, true);
     const parts = captured.body.request.contents[0].parts;
     assert.equal(parts.length, 2);
-    assert.equal(parts[0].inlineData.mimeType, "image/jpeg");
-    assert.equal(parts[0].inlineData.data, "aW1hZ2UtZmllbGQtZGF0YQ==");
-    assert.equal(parts[1].text, "change clothing to uniform");
+    assert.equal(parts[1].inlineData.mimeType, "image/png");
+    assert.equal(parts[1].inlineData.data, PNG.toString("base64"));
+    assert.equal(parts[0].text, "change clothing to uniform");
   } finally {
     globalThis.fetch = originalFetch;
   }

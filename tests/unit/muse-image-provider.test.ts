@@ -6,12 +6,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import dns from "node:dns";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
+import "../_setup/nativeImageState.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-muse-image-"));
+assert.ok(process.env.DATA_DIR?.includes(`${path.sep}isolated-`));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(process.env.DATA_DIR, "muse-image-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
-process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "muse-image-test-secret";
+process.env.API_KEY_SECRET = "muse-image-test-secret";
 
 const { getImageProvider, parseImageModel, getAllImageModels } =
   await import("../../open-sse/config/imageRegistry.ts");
@@ -232,33 +233,61 @@ test("upstream errors keep their status and are sanitized", async () => {
   assert.equal(text.includes("at /"), false);
 });
 
-test("POST /v1/images/edits routes muse-code to the Meta edits endpoint", async () => {
-  await providersDb.createProviderConnection({
-    provider: "muse-code",
-    authType: "apikey",
-    name: "muse-image-test",
-    apiKey: "meta-route-key",
-    isActive: true,
-    testStatus: "active",
-  });
-  const requests = capture({ data: [{ b64_json: PNG_B64 }] });
-  const response = await imageEditRoute.POST(
-    new Request("http://localhost/api/v1/images/edits", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        model: "muse-code/muse-image-1.0",
-        prompt: "add a red hat",
-        images: [`data:image/png;base64,${PNG_B64}`],
-      }),
-    })
-  );
-  assert.equal(response.status, 200);
-  const body = (await response.json()) as { data: Array<{ b64_json?: string }> };
-  assert.equal(body.data[0].b64_json, PNG_B64);
-  assert.equal(requests.length, 1);
-  assert.equal(requests[0].url, "https://api.meta.ai/v1/images/edits");
-  assert.equal(requests[0].headers.get("authorization"), "Bearer meta-route-key");
-  const part = (requests[0].body as FormData).get("image") as Blob;
-  assert.equal(Buffer.from(await part.arrayBuffer()).toString("base64"), PNG_B64);
-});
+test(
+  "POST /v1/images/edits routes muse-code to the Meta edits endpoint",
+  { timeout: 5_000 },
+  async () => {
+    const selected = await providersDb.createProviderConnection({
+      provider: "muse-code",
+      authType: "apikey",
+      name: "muse-image-test",
+      apiKey: "meta-route-key",
+      isActive: true,
+      testStatus: "active",
+    });
+    await providersDb.createProviderConnection({
+      provider: "muse-code",
+      authType: "apikey",
+      name: "muse-image-excluded",
+      apiKey: "meta-excluded-key",
+      isActive: true,
+      testStatus: "active",
+    });
+    assert.ok(typeof selected.id === "string", "selected fixture connection must have an ID");
+    const key = await apiKeysDb.createApiKey("muse-image-client", "fixture-machine", [], {
+      allowedConnections: [selected.id],
+    });
+    const request = (extra: Record<string, unknown> = {}) =>
+      new Request("http://localhost/api/v1/images/edits", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${key.key}`,
+        },
+        body: JSON.stringify({
+          model: "muse-code/muse-image-1.0",
+          prompt: "add a red hat",
+          images: [`data:image/png;base64,${PNG_B64}`],
+          ...extra,
+        }),
+      });
+    const requests = capture({ data: [{ b64_json: PNG_B64 }] });
+    const response = await imageEditRoute.POST(request());
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as { data: Array<{ b64_json?: string }> };
+    assert.equal(body.data[0].b64_json, PNG_B64);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url, "https://api.meta.ai/v1/images/edits");
+    assert.equal(requests[0].headers.get("authorization"), "Bearer meta-route-key");
+    const part = (requests[0].body as FormData).get("image") as Blob;
+    assert.equal(Buffer.from(await part.arrayBuffer()).toString("base64"), PNG_B64);
+
+    assert.equal((await imageEditRoute.POST(request({ mask: "unsupported" }))).status, 400);
+    assert.equal(requests.length, 1, "unsupported masks must not submit an edit");
+
+    const rejected = capture({ error: { message: "Synthetic credential rejection" } }, 401);
+    assert.equal((await imageEditRoute.POST(request())).status, 401);
+    assert.equal(rejected.length, 1, "fallback must not leave the client's connection allowlist");
+    assert.equal(rejected[0].headers.get("authorization"), "Bearer meta-route-key");
+  }
+);

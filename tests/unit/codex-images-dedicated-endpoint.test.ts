@@ -17,18 +17,32 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-codex-ima
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "codex-images-test-api-key-secret";
 
+await import("../_setup/imageCallLogLifecycle.ts");
+
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
-const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
+const imageHandler = await import("../../open-sse/handlers/imageGeneration.ts");
+const handleImageGeneration = imageHandler.handleImageGeneration as (
+  options: Parameters<typeof imageHandler.handleImageGeneration>[0]
+) => Promise<{
+  success: boolean;
+  status?: number;
+  error?: unknown;
+  retryable?: boolean;
+  data?: {
+    created?: number;
+    data?: Array<{ b64_json?: string; generation_id?: string }>;
+    usage?: { output_tokens_details: { image_tokens: number } };
+  };
+}>;
 const { getAllImageModels } = await import("../../open-sse/config/imageRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 const IMAGES_BASE = "https://chatgpt.com/backend-api/codex/images";
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Captured = { url: string; headers: Record<string, string>; body: Record<string, unknown> };
 
@@ -90,7 +104,7 @@ test("Codex GPT Image generation posts to the dedicated Images route and forward
       model: "codex/gpt-image-2.5-flare",
       prompt: "a ceramic teacup",
       size: "1024x1536",
-      quality: "hd",
+      quality: "high",
     },
     credentials: { accessToken: "codex-token", providerSpecificData: { workspaceId: "ws-1" } },
     log: null,
@@ -111,45 +125,31 @@ test("Codex GPT Image generation posts to the dedicated Images route and forward
   assert.equal(call.headers["chatgpt-account-id"], "ws-1");
   assert.equal(call.headers.originator, "codex_cli_rs");
   assert.equal(call.headers.Accept, "application/json");
-  assert.match(call.headers["x-codex-image-turn-id"], UUID_RE);
+  assert.equal(call.headers.session_id, "ws-1");
 
   // OpenAI gpt-image envelope: bytes in b64_json by default, plus the upstream usage block.
   assert.equal(result.data.created, 1790000000);
-  assert.deepEqual(result.data.data, [{ b64_json: "ZmxhcmU=" }]);
+  assert.deepEqual(result.data.data, [{ b64_json: "ZmxhcmU=", generation_id: "gen_1" }]);
   assert.equal(result.data.usage.output_tokens_details.image_tokens, 472);
 });
 
-test("Codex GPT Image generation fans out n>1, sums usage, and honors response_format=url", async () => {
+test("Codex GPT Image rejects fanout and URL output before submission", async () => {
   const calls: Captured[] = [];
-  let index = 0;
-  captureFetch(calls, () => imagesResponse(index++ === 0 ? "Zmlyc3Q=" : "c2Vjb25k", 429));
-
-  const result = await handleImageGeneration({
-    body: { model: "cx/gpt-image-2", prompt: "kitten", n: 2, response_format: "url" },
-    credentials: { accessToken: "codex-token" },
-    log: null,
-  });
-
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  for (const call of calls) {
-    assert.equal(call.url, `${IMAGES_BASE}/generations`);
-    assert.equal(call.body.model, "gpt-image-2");
-    assert.equal(call.body.n, 1);
+  captureFetch(calls);
+  for (const body of [{ n: 2 }, { response_format: "url" }]) {
+    const result = await handleImageGeneration({
+      body: { model: "cx/gpt-image-2", prompt: "kitten", ...body },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.equal(result.retryable, false);
   }
-  assert.notEqual(
-    calls[0].headers["x-codex-image-turn-id"],
-    calls[1].headers["x-codex-image-turn-id"]
-  );
-  assert.deepEqual(result.data.data, [
-    { url: "data:image/png;base64,Zmlyc3Q=" },
-    { url: "data:image/png;base64,c2Vjb25k" },
-  ]);
-  assert.equal(result.data.usage.output_tokens, 858);
-  assert.equal(result.data.usage.total_tokens, 896);
+  assert.equal(calls.length, 0);
 });
 
-test("Codex Images errors keep the free-plan guard, retryable access errors, and sanitization", async () => {
+test("Codex Images errors keep plan guards, terminal outcomes, and privacy", async () => {
   let fetchCalls = 0;
   globalThis.fetch = async () => {
     fetchCalls += 1;
@@ -161,7 +161,7 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     log: null,
   });
   assert.equal(tooMany.status, 400);
-  assert.match(String(tooMany.error), /between 1 and 10/);
+  assert.match(String(tooMany.error), /n=1/);
   assert.equal(fetchCalls, 0);
 
   globalThis.fetch = async () => {
@@ -174,7 +174,8 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     log: null,
   });
   assert.equal(freePlan.success, false);
-  assert.equal(freePlan.retryable, true);
+  assert.equal(freePlan.status, 403);
+  assert.equal(freePlan.retryable, false);
   assert.equal(fetchCalls, 0);
 
   globalThis.fetch = async () =>
@@ -190,8 +191,9 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     credentials: { accessToken: "codex-token" },
     log: null,
   });
+  assert.equal(accessError.success, false);
   assert.equal(accessError.status, 400);
-  assert.equal(accessError.retryable, true);
+  assert.equal(accessError.retryable, false);
 
   globalThis.fetch = async () =>
     new Response(JSON.stringify({ error: "boom", authorization: "Bearer upstream-secret" }), {
@@ -203,8 +205,9 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     credentials: { accessToken: "codex-token" },
     log: null,
   });
+  assert.equal(upstreamError.success, false);
   assert.equal(upstreamError.status, 403);
-  assert.equal(upstreamError.retryable, undefined);
+  assert.equal(upstreamError.retryable, false);
   assert.doesNotMatch(JSON.stringify(upstreamError.error), /upstream-secret/);
 
   globalThis.fetch = async () => new Response(JSON.stringify({ data: [] }), { status: 200 });
@@ -213,13 +216,17 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     credentials: { accessToken: "codex-token" },
     log: null,
   });
+  assert.equal(empty.success, false);
   assert.equal(empty.status, 502);
-  assert.match(String(empty.error), /no b64_json/);
+  assert.equal(empty.retryable, false);
+  assert.match(String(empty.error), /no usable image data/);
 
   globalThis.fetch = async () =>
     ({
       ok: true,
-      text: async () => {
+      status: 200,
+      headers: new Headers(),
+      json: async () => {
         throw new Error("socket reset while reading response");
       },
     }) as unknown as Response;
@@ -229,15 +236,15 @@ test("Codex Images errors keep the free-plan guard, retryable access errors, and
     log: null,
   })) as { success: false; status: number; error: unknown };
   assert.equal(unreadable.status, 502);
-  assert.match(String(unreadable.error), /response error/i);
+  assert.match(String(unreadable.error), /request or response failed/i);
 });
 
 test("v1 image generation route serves codex/gpt-image-2.5-flare from the Images route", async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
-    authType: "apikey",
+    authType: "oauth",
     name: "codex-images",
-    apiKey: "codex-oauth-token",
+    accessToken: "codex-oauth-token",
     isActive: true,
     testStatus: "active",
     providerSpecificData: {},
@@ -267,9 +274,9 @@ test("v1 image generation route serves codex/gpt-image-2.5-flare from the Images
 test("v1 image edit route sends Codex GPT Image references to the Images edits route", async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
-    authType: "apikey",
+    authType: "oauth",
     name: "codex-images-edit",
-    apiKey: "codex-oauth-token",
+    accessToken: "codex-oauth-token",
     isActive: true,
     testStatus: "active",
     providerSpecificData: {},
@@ -302,16 +309,16 @@ test("v1 image edit route sends Codex GPT Image references to the Images edits r
     { image_url: `data:image/jpeg;base64,${Buffer.from(jpeg).toString("base64")}` },
     { image_url: `data:image/png;base64,${Buffer.from(png).toString("base64")}` },
   ]);
-  assert.match(call.headers["x-codex-image-turn-id"], UUID_RE);
+  assert.equal(call.headers.Accept, "application/json");
   assert.equal(body.data[0].b64_json, "ZWRpdGVk");
 });
 
 test("v1 image edit route sends Codex GPT Image 2.5 Sunburst references to the Images edits route", async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
-    authType: "apikey",
+    authType: "oauth",
     name: "codex-sunburst-edit",
-    apiKey: "codex-oauth-token",
+    accessToken: "codex-oauth-token",
     isActive: true,
     testStatus: "active",
     providerSpecificData: {},
@@ -341,16 +348,18 @@ test("v1 image edit route sends Codex GPT Image 2.5 Sunburst references to the I
   assert.deepEqual(call.body.images, [
     { image_url: `data:image/png;base64,${Buffer.from(png).toString("base64")}` },
   ]);
-  assert.match(call.headers["x-codex-image-turn-id"], UUID_RE);
+  assert.equal(call.headers.Authorization, "Bearer codex-oauth-token");
+  assert.equal(call.headers.originator, "codex_cli_rs");
+  assert.equal(call.headers.Accept, "application/json");
   assert.equal(body.data[0].b64_json, "ZWRpdGVk");
 });
 
 test("v1 image generation route serves codex/gpt-image-2.5-sunburst from the Images route", async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
-    authType: "apikey",
+    authType: "oauth",
     name: "codex-sunburst-generation",
-    apiKey: "codex-oauth-token",
+    accessToken: "codex-oauth-token",
     isActive: true,
     testStatus: "active",
     providerSpecificData: {},

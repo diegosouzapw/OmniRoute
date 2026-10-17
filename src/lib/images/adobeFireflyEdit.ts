@@ -10,6 +10,7 @@ import {
   runImageRequestWithAccounting,
   type ImageRequestAccounting,
 } from "@/lib/usage/imageRequestAccounting";
+import { isUsableImageCredentials } from "@/sse/services/imageCredentials";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 
@@ -82,12 +83,14 @@ export async function handleAdobeFireflyEditRequest(params: {
     allowedConnections,
     resolvedModel
   );
-  if (!credentials) {
+  if (!credentials || "allExpired" in credentials) {
     return errorResponse(
       HTTP_STATUS.UNAUTHORIZED,
       `No credentials for provider: ${parsed.provider}`
     );
   }
+  if ("blockedByKeyPolicy" in credentials)
+    return errorResponse(403, "Image provider connection is not allowed by API key policy");
   if ("allRateLimited" in credentials && credentials.allRateLimited) {
     return unavailableResponse(
       HTTP_STATUS.RATE_LIMITED,
@@ -96,6 +99,13 @@ export async function handleAdobeFireflyEditRequest(params: {
       credentials.retryAfterHuman
     );
   }
+
+  if ("allRateLimited" in credentials)
+    return errorResponse(503, "Image provider credentials unavailable");
+  if ("leaseUnavailable" in credentials)
+    return errorResponse(429, "Selected image account is already leased; try again later");
+  if (!isUsableImageCredentials(credentials))
+    return errorResponse(401, "Image credential selection did not return usable credentials");
 
   // Prefer multi-image list when present; fall back to the primary imageBytes.
   const dataUrls = buildAdobeFireflyEditDataUrls(images, imageBytes, imageMime);
@@ -126,15 +136,7 @@ export async function handleAdobeFireflyEditRequest(params: {
           image_urls: dataUrls,
           images: dataUrls,
         },
-        // The all-expired sentinel has no auth fields. Preserve every selected
-        // field while making its already-absent apiKey explicit for the handler.
-        credentials: {
-          ...credentials,
-          apiKey:
-            "apiKey" in credentials && typeof credentials.apiKey === "string"
-              ? credentials.apiKey
-              : undefined,
-        },
+        credentials,
         log,
       })
   );

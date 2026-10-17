@@ -13,7 +13,11 @@ const EXE = join(HERE, "../../open-sse/executors");
 test("leaf hosts the tool normalizers and does not import the host", () => {
   const src = readFileSync(join(EXE, "codex/tools.ts"), "utf8");
   assert.match(src, /export function normalizeCodexTools\b/);
-  assert.match(src, /export function isCodexFreePlan\b/);
+  assert.match(src, /import \{ isCodexFreePlan \} from "\.\.\/\.\.\/config\/codexPlan\.ts"/);
+  assert.match(src, /export \{ isCodexFreePlan \}/);
+  const predicate = readFileSync(join(EXE, "../config/codexPlan.ts"), "utf8");
+  assert.match(predicate, /export function isCodexFreePlan\b/);
+  assert.doesNotMatch(predicate, /\bimport\b/);
   assert.doesNotMatch(src, /from "\.\.\/codex\.ts"/);
 });
 

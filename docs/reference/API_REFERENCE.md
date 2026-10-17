@@ -1583,7 +1583,7 @@ curl -X DELETE http://localhost:20128/api/resilience/model-cooldowns \
   -d '{"all":true}'
 ```
 
-Full conceptual reference and breaker defaults: see [`CLAUDE.md`](../../CLAUDE.md) → "Resilience Runtime State".
+Full conceptual reference and breaker defaults: see [Resilience Guide](../architecture/RESILIENCE_GUIDE.md).
 
 ---
 

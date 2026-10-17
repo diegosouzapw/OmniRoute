@@ -1,0 +1,63 @@
+name: Native image repair
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      OMNIROUTE_BUILD_BACKEND_ONLY: "1"
+      OMNIROUTE_USE_TURBOPACK: "0"
+      NEXT_DIST_DIR: .build/next
+      OMNIROUTE_MAX_TEST_WORKERS: "2"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.21.0"
+      - name: Install, check changed sources, test image seams, build once
+        run: node scripts/check/image-repair-ci.mjs
+      - name: Upload verified standalone build only
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: native-image-backend-${{ github.sha }}
+          path: .build/next/standalone/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+      - name: Remove owned CI state
+        if: always()
+        run: rm -rf -- .ci-work/image-repair
+
+  windows-runtime:
+    needs: image-repair
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.21.0"
+      - name: Build full Windows runtime and verify portable assets
+        run: node scripts/check/image-runtime-package.mjs
+      - name: Upload verified full Windows runtime
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: native-image-windows-${{ github.sha }}
+          path: .build/next/standalone/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3

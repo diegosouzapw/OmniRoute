@@ -35,22 +35,22 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-// ── imageGeneration.ts must not carry its own copy (LEDGER-22 follow-up) ──
+// ── generation log sink must not carry its own copy (LEDGER-22 follow-up) ──
 
-test("imageGeneration.ts imports the shared stringifyImageErrorForLog instead of redefining it", () => {
+test("generation log sink imports the shared stringifyImageErrorForLog instead of redefining it", () => {
   const handlerPath = fileURLToPath(
-    new URL("../../open-sse/handlers/imageGeneration.ts", import.meta.url)
+    new URL("../../open-sse/handlers/imageGeneration/shared.ts", import.meta.url)
   );
   const source = fs.readFileSync(handlerPath, "utf8");
   assert.ok(
     !/^function stringifyImageErrorForLog\(/m.test(source),
-    "imageGeneration.ts must not redefine stringifyImageErrorForLog — import it from ./imageErrorLog"
+    "generation log sink must not redefine stringifyImageErrorForLog — import it from ../imageErrorLog"
   );
   assert.ok(
-    /import\s*\{[^}]*\bstringifyImageErrorForLog\b[^}]*\}\s*from\s*["']\.\/imageErrorLog(?:\.ts)?["']/.test(
+    /import\s*\{[^}]*\bstringifyImageErrorForLog\b[^}]*\}\s*from\s*["']\.\.\/imageErrorLog(?:\.ts)?["']/.test(
       source
     ),
-    "imageGeneration.ts must import stringifyImageErrorForLog from ./imageErrorLog"
+    "generation log sink must import stringifyImageErrorForLog from ../imageErrorLog"
   );
 });
 

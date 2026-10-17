@@ -26,16 +26,8 @@ export const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
 // id_token) cannot run the server-side `image_generation` hosted tool. The Codex
 // CLI injects it into every Responses request regardless of plan, so it must be
 // dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
-export function isCodexFreePlan(providerSpecificData: unknown): boolean {
-  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
-  const data = providerSpecificData as {
-    workspacePlanType?: unknown;
-    chatgptPlanType?: unknown;
-  };
-  const plan =
-    typeof data.workspacePlanType === "string" ? data.workspacePlanType : data.chatgptPlanType;
-  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
-}
+import { isCodexFreePlan } from "../../config/codexPlan.ts";
+export { isCodexFreePlan };
 
 type JsonRecord = Record<string, unknown>;
 

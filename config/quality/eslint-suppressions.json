@@ -189,11 +189,6 @@
       "count": 1
     }
   },
-  "open-sse/handlers/imageGeneration.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
   "open-sse/handlers/musicGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -3711,11 +3706,6 @@
     }
   },
   "tests/unit/image-generation-handler.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/image-generation-route.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }

@@ -28,6 +28,7 @@
 import { runWithCallLogApiKeyContext } from "./callLogApiKeyContext";
 import { calculateCostDetailed } from "./costCalculator";
 import { saveRequestUsage } from "./usageHistory";
+import { saveCallLog } from "./callLogs";
 
 export interface ImageRequestAccounting {
   /** Public route the client called, stored in `usage_history.endpoint`. */
@@ -40,6 +41,8 @@ export interface ImageRequestAccounting {
   credentials?: unknown;
   startTime: number;
   comboStrategy?: string | null;
+  /** State-free native transports do not write their own call log. */
+  recordCallLog?: boolean;
 }
 
 function connectionIdOf(credentials: unknown): string | null {
@@ -72,6 +75,26 @@ export async function runImageRequestWithAccounting<T>(
   const apiKeyName = accounting.apiKeyInfo?.name || null;
 
   const result = await runWithCallLogApiKeyContext({ apiKeyId, apiKeyName, connectionId }, attempt);
+
+  if (accounting.recordCallLog) {
+    const outcome = result as { success?: boolean; status?: number } | null;
+    await saveCallLog({
+      method: "POST",
+      path: accounting.endpoint,
+      provider: accounting.provider,
+      model: `${accounting.provider}/${toProviderLocalModel(accounting.provider, accounting.model)}`,
+      status: outcome?.success === true ? 200 : outcome?.status || 502,
+      duration: Date.now() - accounting.startTime,
+      apiKeyId,
+      apiKeyName,
+      connectionId,
+      requestBody: null,
+      responseBody: null,
+      ...(outcome?.success === true
+        ? {}
+        : { error: "Native image request failed; details withheld" }),
+    });
+  }
 
   const usage = upstreamUsageOf(result);
   if ((result as { success?: unknown } | null)?.success === true && usage) {
