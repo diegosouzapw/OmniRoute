@@ -81,7 +81,30 @@ function splitGenericEffortSuffix(model: string): {
 } {
   const claude = model.toLowerCase().includes("claude") ? splitClaudeEffortSuffix(model) : null;
   if (claude?.effort) return { model: claude.baseModel, effort: claude.effort };
+  const kimi = splitKimiEffortSuffix(model);
+  if (kimi) return kimi;
   return splitCodexEffortSuffix(model) ?? { model, effort: null };
+}
+
+function splitKimiEffortSuffix(model: string): { model: string; effort: ReasoningEffort } | null {
+  // Kimi upstream serves bare ids (k3, kimi-k2.7, kimi-k2.7-code, ...) and takes
+  // reasoning effort as a REQUEST property — it rejects effort-suffixed ids
+  // outright ("Your model id does not exist ... Please set model id as `k3`").
+  // Accept the family's spec/alias names as bases (MODEL_SPECS["kimi-k3"] is
+  // aliased to the k3 wire id) and turn the suffix into the request effort,
+  // mirroring the codex/claude handling. Only low/medium/high/none: xhigh/max/
+  // ultra are not part of Kimi's effort vocabulary. Genuine ids never end in
+  // these tokens today (kimi-for-coding-highspeed does not end in "-high").
+  const lower = model.toLowerCase();
+  for (const candidate of ["high", "medium", "low", "none"] as const) {
+    if (!lower.endsWith(`-${candidate}`)) continue;
+    const baseModel = model.slice(0, -(candidate.length + 1));
+    const normalizedBase = baseModel.toLowerCase().replace(/^(?:kimi-coding|kimi-code|kmc)\//, "");
+    if (/^k3$/.test(normalizedBase) || /^kimi-k/.test(normalizedBase)) {
+      return { model: baseModel, effort: candidate };
+    }
+  }
+  return null;
 }
 
 function supportsCodexSuffix(candidate: string, normalizedBase: string): boolean {
