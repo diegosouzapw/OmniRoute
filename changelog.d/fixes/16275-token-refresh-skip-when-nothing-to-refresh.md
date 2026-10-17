@@ -1,0 +1,1 @@
+- **fix(token-refresh):** skip the retry loop when there is nothing to refresh ([#16275](https://github.com/diegosouzapw/OmniRoute/pull/16275)) — thanks @maxmad64bis

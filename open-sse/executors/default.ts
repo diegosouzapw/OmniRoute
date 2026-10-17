@@ -3,7 +3,7 @@ import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { mapBasetenReasoningParams } from "./base/basetenReasoning.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { getAccessToken } from "../services/tokenRefresh.ts";
+import { getAccessToken, NO_REFRESH_NEEDED } from "../services/tokenRefresh.ts";
 
 import {
   buildClaudeCodeCompatibleHeaders,
@@ -1138,7 +1138,7 @@ export class DefaultExecutor extends BaseExecutor {
         return null;
       }
     }
-    if (!credentials.refreshToken) return null;
+    if (!credentials.refreshToken) return NO_REFRESH_NEEDED;
     try {
       return await getAccessToken(this.provider, credentials, log);
     } catch (error) {
