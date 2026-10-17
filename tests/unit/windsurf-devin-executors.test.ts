@@ -92,13 +92,18 @@ test("legacy windsurf provider is no longer public", () => {
   assert.throws(() => getProvider("windsurf"), /Unknown provider/i);
 });
 
-test("devin-desktop provider: generateAuthData returns no authUrl", () => {
-  const data = generateAuthData("devin-desktop", "http://localhost:0/auth/callback");
-  assert.equal(data.authUrl, undefined);
-  assert.equal(data.supported, false);
-  assert.match(data.error ?? "", /import-token|disabled/i);
-  assert.match(data.error ?? "", /vary by Devin version and account/i);
-  assert.doesNotMatch(data.error ?? "", /Copy API Key to Clipboard/i);
+// contract changed by the Devin CLI browser sign-in: devin-desktop keeps import-token as its
+// default flowType but now also builds a PKCE authUrl. The disabled-flow guidance below is
+// still asserted, now on devin-cli, which stays import-only.
+test("devin-desktop provider: generateAuthData returns the Devin CLI browser authUrl", () => {
+  const data = generateAuthData("devin-desktop", "http://127.0.0.1:59653/callback");
+  assert.match(data.authUrl ?? "", /^https:\/\/app\.devin\.ai\/auth\/cli\/continue\?/);
+  assert.notEqual(data.supported, false);
+  assert.equal(data.error, undefined);
+  const cli = generateAuthData("devin-cli", "http://localhost:0/auth/callback");
+  assert.match(cli.error ?? "", /import-token|disabled/i);
+  assert.match(cli.error ?? "", /vary by Devin version and account/i);
+  assert.doesNotMatch(cli.error ?? "", /Copy API Key to Clipboard/i);
 });
 
 test("devin-cli provider: generateAuthData returns no authUrl", () => {
@@ -110,11 +115,13 @@ test("devin-cli provider: generateAuthData returns no authUrl", () => {
 // ─── Phase 1 hotfix: retired PKCE actions return 410 Gone ────────────────────
 import { GET as oauthGet, POST as oauthPost } from "@/app/api/oauth/[provider]/[action]/route";
 
-test("OAuth route: GET devin-desktop/start-callback-server returns Devin guidance", async () => {
-  const url = "http://localhost:20128/api/oauth/devin-desktop/start-callback-server";
+// devin-desktop left RETIRED_PKCE_PROVIDERS (browser sign-in); the 410 contract is pinned on
+// devin-cli, which still retires every PKCE action.
+test("OAuth route: GET devin-cli/start-callback-server returns Devin guidance", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-cli/start-callback-server";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
-    params: Promise.resolve({ provider: "devin-desktop", action: "start-callback-server" }),
+    params: Promise.resolve({ provider: "devin-cli", action: "start-callback-server" }),
   } as never);
   assert.equal(response.status, 410);
   const body = await response.json();
@@ -134,24 +141,24 @@ test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
   assert.match(body.error, /import-token|disabled|410|show-auth-token/i);
 });
 
-test("OAuth route: GET devin-desktop/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/devin-desktop/poll-callback";
+test("OAuth route: GET devin-cli/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-cli/poll-callback";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
-    params: Promise.resolve({ provider: "devin-desktop", action: "poll-callback" }),
+    params: Promise.resolve({ provider: "devin-cli", action: "poll-callback" }),
   } as never);
   assert.equal(response.status, 410);
 });
 
-test("OAuth route: POST devin-desktop/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/devin-desktop/poll-callback";
+test("OAuth route: POST devin-cli/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-cli/poll-callback";
   const request = new Request(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   const response = await oauthPost(request, {
-    params: Promise.resolve({ provider: "devin-desktop", action: "poll-callback" }),
+    params: Promise.resolve({ provider: "devin-cli", action: "poll-callback" }),
   } as never);
   assert.equal(response.status, 410);
 });

@@ -12,24 +12,26 @@ import { dirname, resolve } from "node:path";
 // popup/fetch orchestration); pinning the exact provider-set membership by
 // source inspection is the lightweight, reliable check for this regression.
 const here = dirname(fileURLToPath(import.meta.url));
-const modal = readFileSync(
-  resolve(here, "../../src/shared/components/OAuthModal.tsx"),
-  "utf8"
-);
+const modal = readFileSync(resolve(here, "../../src/shared/components/OAuthModal.tsx"), "utf8");
 
 function extractSet(constName: string): string[] {
   const match = modal.match(new RegExp(`const ${constName} = new Set\\(\\[([^\\]]*)\\]\\)`));
   assert.ok(match, `expected to find ${constName} in OAuthModal.tsx`);
-  return match![1].split(",").map((s) => s.trim().replace(/^"|"$/g, "")).filter(Boolean);
+  return match![1]
+    .split(",")
+    .map((s) => s.trim().replace(/^"|"$/g, ""))
+    .filter(Boolean);
 }
 
 test("grok-cli is NOT import-token-only — the Browser Login tab renders", () => {
   assert.ok(!extractSet("IMPORT_TOKEN_ONLY_PROVIDERS").includes("grok-cli"));
 });
 
-test("devin-desktop/devin-cli stay import-token-only", () => {
+// contract changed by the Devin CLI browser sign-in: devin-desktop gained a Browser Login tab
+// (callback server on 127.0.0.1:59653); devin-cli stays import-token-only.
+test("devin-cli stays import-token-only; devin-desktop gets the Browser Login tab", () => {
   const set = extractSet("IMPORT_TOKEN_ONLY_PROVIDERS");
-  assert.ok(set.includes("devin-desktop"));
+  assert.ok(!set.includes("devin-desktop"));
   assert.ok(set.includes("devin-cli"));
 });
 

@@ -150,7 +150,9 @@ test("OAuth provider registry: ids and flow types", () => {
   // Aliases share the same module object.
   assert.equal(registry.PROVIDERS["amazon-q"], registry.PROVIDERS.kiro);
   assert.equal(registry.PROVIDERS.clinepass, registry.PROVIDERS.cline);
-  assert.equal(registry.PROVIDERS["devin-cli"], registry.PROVIDERS["devin-desktop"]);
+  // contract changed by the Devin CLI browser sign-in: devin-cli no longer aliases the
+  // devin-desktop module (which gained supportsBrowserPkce) but still shares its token config.
+  assert.equal(registry.PROVIDERS["devin-cli"].config, registry.PROVIDERS["devin-desktop"].config);
   // Every provider exposes config + mapTokens.
   for (const [id, p] of Object.entries(registry.PROVIDERS)) {
     const provider = p as { config: unknown; mapTokens: unknown };

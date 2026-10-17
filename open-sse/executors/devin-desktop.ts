@@ -13,7 +13,7 @@ import { PROVIDERS } from "../config/constants.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 
-const DEVIN_DESKTOP_BASE_URL = "https://server.codeium.com";
+export const DEVIN_DESKTOP_BASE_URL = "https://server.codeium.com";
 const DEVIN_DESKTOP_CHAT_PATH = "/exa.api_server_pb.ApiServerService/GetChatMessage";
 const DEVIN_DESKTOP_AUTH_PATH = "/exa.auth_pb.AuthService/GetUserJwt";
 const DEVIN_DESKTOP_CHAT_URL = `${DEVIN_DESKTOP_BASE_URL}${DEVIN_DESKTOP_CHAT_PATH}`;

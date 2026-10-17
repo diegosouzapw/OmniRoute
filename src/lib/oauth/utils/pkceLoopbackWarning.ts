@@ -32,6 +32,7 @@ const PKCE_LOOPBACK_REDIRECT_HINT: Record<string, string> = {
   codex: "http://localhost:1455/auth/callback",
   "xai-oauth": "http://127.0.0.1:56121/callback",
   "grok-cli": "http://127.0.0.1:56122/callback",
+  "devin-desktop": "http://127.0.0.1:59653/callback",
 };
 
 /** Ports the upstream OAuth apps hardcode; kept in sync with OAuthModal's redirectUri branch. */
@@ -39,6 +40,7 @@ const PKCE_LOOPBACK_CALLBACK_PORT: Record<string, number> = {
   codex: 1455,
   "xai-oauth": 56121,
   "grok-cli": 56122,
+  "devin-desktop": 59653,
 };
 
 /** @deprecated alias kept for callers; the shared shape lives in ./loopbackTunnel. */

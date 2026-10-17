@@ -476,6 +476,15 @@ export const DEVIN_DESKTOP_CONFIG = {
   inferenceUrl: "https://inference.codeium.com",
   ideName: "windsurf",
   defaultVersion: "3.6.27",
+  // Browser sign-in reuses the Devin CLI login: PKCE (S256) on app.devin.ai, then a JSON
+  // {code, code_verifier} exchange on api.devin.ai that returns a session token. The CLI
+  // registers this exact loopback redirect, so the port is fixed.
+  authorizeUrl: "https://app.devin.ai/auth/cli/continue",
+  tokenUrl: "https://api.devin.ai/auth/cli/token",
+  codeChallengeMethod: "S256",
+  callbackPort: 59653,
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
 };
 
 // Zed IDE credential import — no standard OAuth flow.

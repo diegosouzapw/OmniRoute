@@ -1,0 +1,1 @@
+- **feat(oauth):** Devin Desktop browser sign-in (Devin CLI PKCE login, fixed 127.0.0.1:59653 callback with paste-URL fallback) and live per-account model discovery via GetCliModelConfigs with a curated-catalog fallback ([#16843](https://github.com/diegosouzapw/OmniRoute/pull/16843)) — thanks @fadlee @kl3inIT
