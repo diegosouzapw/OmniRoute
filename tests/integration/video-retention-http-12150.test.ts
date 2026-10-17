@@ -4,7 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { MockAgent, getGlobalDispatcher, setGlobalDispatcher } from "undici";
+import { Socket } from "node:net";
+import { fetch as httpFetch, MockAgent, getGlobalDispatcher, setGlobalDispatcher } from "undici";
 import { eventually, serveRetentionRoutes, syntheticReply } from "./_videoRetentionHttp.ts";
 
 // Probe only: actual HTTP + real routes/guardrail/SQLite. Only video description
@@ -22,6 +23,7 @@ Object.assign(process.env, {
   OMNIROUTE_LOG_REQUEST_SHAPE: "0",
 });
 const nativeFetch = globalThis.fetch;
+const originalConnect = Socket.prototype.connect;
 const originalDispatcher = getGlobalDispatcher();
 const networkGuard = new MockAgent();
 networkGuard.disableNetConnect();
@@ -30,43 +32,66 @@ let upstream: typeof fetch = async () => {
   throw new Error("unconfigured synthetic upstream");
 };
 globalThis.fetch = (...args) => upstream(...args);
+// Installed Undici and native fetch may use different dispatcher registries.
+// Deny raw sockets before application imports, then allow only the fixture.
+let allowedPort = 0;
+Socket.prototype.connect = function (...args: unknown[]) {
+  const normalized = Array.isArray(args[0]) ? args[0] : args;
+  const first = normalized[0];
+  const options = first && typeof first === "object" ? (first as Record<string, unknown>) : null;
+  const host = options?.host ?? normalized[1];
+  const port = Number(options?.port ?? first);
+  assert(
+    // Node gives an IPC path precedence over TCP host/port when both are supplied.
+    options?.path === undefined && allowedPort > 0 && host === "127.0.0.1" && port === allowedPort,
+    "retention fixture blocks sockets outside its HTTP server"
+  );
+  return Reflect.apply(originalConnect, this, args);
+};
 
 test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
-  console.error("RETENTION_IMPORT start");
+  let cleanupApplication: (() => Promise<void>) | undefined;
+  // Registered before imports so a failed setup cannot leave global hooks behind.
+  t.after(async () => {
+    try {
+      await cleanupApplication?.();
+    } finally {
+      globalThis.fetch = nativeFetch;
+      setGlobalDispatcher(originalDispatcher);
+      Socket.prototype.connect = originalConnect;
+      await networkGuard.close();
+    }
+  });
+  // Import-time application initialization must be isolated too, before the
+  // HTTP fixture has selected its one allowed loopback port.
+  const bootstrapSocket = new Socket();
+  bootstrapSocket.on("error", () => {});
+  try {
+    assert.throws(
+      () => bootstrapSocket.connect(9, "127.0.0.1"),
+      /retention fixture blocks sockets/,
+      "raw sockets must be blocked before application imports"
+    );
+  } finally {
+    bootstrapSocket.destroy();
+  }
   const core = await import("../../src/lib/db/core.ts");
-  console.error("RETENTION_IMPORT core");
   const providers = await import("../../src/lib/db/providers.ts");
-  console.error("RETENTION_IMPORT providers");
   const keys = await import("../../src/lib/db/apiKeys.ts");
-  console.error("RETENTION_IMPORT keys");
   const settings = await import("../../src/lib/db/settings.ts");
-  console.error("RETENTION_IMPORT settings");
   const readCache = await import("../../src/lib/db/readCache.ts");
-  console.error("RETENTION_IMPORT readCache");
   const logs = await import("../../src/lib/usage/callLogs.ts");
-  console.error("RETENTION_IMPORT logs");
   const pending = await import("../../src/lib/usage/usageHistory.ts");
-  console.error("RETENTION_IMPORT pending");
   const memory = await import("../../src/lib/memory/store.ts");
-  console.error("RETENTION_IMPORT memory");
   const memorySettings = await import("../../src/lib/memory/settings.ts");
-  console.error("RETENTION_IMPORT memorySettings");
   const semantic = await import("../../src/lib/semanticCache.ts");
-  console.error("RETENTION_IMPORT semantic");
   const manager = await import("../../open-sse/services/cache/semanticCacheManager.ts");
-  console.error("RETENTION_IMPORT manager");
   const idempotency = await import("../../src/lib/idempotencyLayer.ts");
-  console.error("RETENTION_IMPORT idempotency");
   const reasoning = await import("../../open-sse/services/reasoningCache.ts");
-  console.error("RETENTION_IMPORT reasoning");
   const registry = await import("../../src/lib/guardrails/registry.ts");
-  console.error("RETENTION_IMPORT registry");
   const { VideoBridgeGuardrail } = await import("../../src/lib/guardrails/videoBridge.ts");
-  console.error("RETENTION_IMPORT VideoBridgeGuardrail");
   const chatRoute = await import("../../src/app/api/v1/chat/completions/route.ts");
-  console.error("RETENTION_IMPORT chatRoute");
   const responsesRoute = await import("../../src/app/api/v1/responses/route.ts");
-  console.error("RETENTION_IMPORT responsesRoute");
   const pressure = await import("../../open-sse/utils/resourcePressure.ts");
   const loggerResource = await import("../../src/shared/utils/loggerResource.ts");
   // Importing proxyFetch installs its global wrapper. Install the synthetic seam
@@ -106,7 +131,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
         psi: null,
       }),
     });
-    await assert.rejects(nativeFetch("https://retention-egress-blocked.invalid/"), /fetch failed/);
+    await assert.rejects(httpFetch("https://retention-egress-blocked.invalid/"), /fetch failed/);
     await providers.createProviderConnection({
       provider: "openai",
       authType: "apikey",
@@ -166,6 +191,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       "/v1/responses": responsesRoute.POST,
     });
     networkGuard.enableNetConnect(new URL(server.url).host);
+    allowedPort = Number(new URL(server.url).port);
   });
 
   t.beforeEach(async () => {
@@ -175,17 +201,19 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     reasoning.clearReasoningCacheAll();
   });
 
-  t.after(async () => {
-    globalThis.fetch = nativeFetch;
+  cleanupApplication = async () => {
+    assert.notEqual(
+      Socket.prototype.connect,
+      originalConnect,
+      "network isolation must remain active while application resources are flushed"
+    );
     await logs.closeCallLogSaves(30_000);
     await server?.close();
     await loggerResource.closeSharedLoggerResource();
     const proxyLogs = await import("../../src/lib/proxyLogger.ts");
     proxyLogs.flushProxyLogsSync();
-    pressureFixture.dispose();
+    pressureFixture?.dispose();
     core.closeDbInstance({ checkpointMode: null });
-    setGlobalDispatcher(originalDispatcher);
-    await networkGuard.close();
     const finalApplicationLog = fs.readFileSync(path.join(dataDir, "logs", "app.log"), "utf8");
     assert(finalApplicationLog.includes("video-bridge pre-call"), "final debug log must exist");
     assert(
@@ -193,7 +221,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       "flushed application debug log retained a transcript from the matrix"
     );
     fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  });
+  };
 
   function bodyFor(stream: boolean, padding: number, responses = false) {
     const content = [
@@ -253,7 +281,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     const endpoint = responses ? "/v1/responses" : "/v1/chat/completions";
     const requestBody = bodyFor(stream, padding, responses);
     if (reasoningModel) requestBody.model = "deepseek/deepseek-v4-flash";
-    const responsePromise = nativeFetch(server.url + endpoint, {
+    const responsePromise = httpFetch(server.url + endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -330,12 +358,44 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     const otherPort = new URL(server.url);
     otherPort.port = String(Number(otherPort.port) === 65535 ? 65534 : Number(otherPort.port) + 1);
     for (const url of [otherPort.href, "https://retention-egress-blocked.invalid/"]) {
-      await assert.rejects(nativeFetch(url), (error: unknown) => {
+      await assert.rejects(httpFetch(url), (error: unknown) => {
         assert(error instanceof TypeError);
         assert(error.cause instanceof Error && "code" in error.cause);
         assert.equal(error.cause.code, "UND_MOCK_ERR_MOCK_NOT_MATCHED");
         return true;
       });
+    }
+    assert.throws(
+      () => new Socket().connect(Number(otherPort.port), "127.0.0.1"),
+      /retention fixture blocks sockets/
+    );
+    await assert.rejects(nativeFetch(otherPort.href), (error: unknown) => {
+      assert(error instanceof TypeError && error.cause instanceof Error);
+      // Runtimes sharing the registry can reject before reaching the socket;
+      // others must hit our socket guard. ECONNREFUSED is never sufficient.
+      if ("code" in error.cause && error.cause.code === "UND_MOCK_ERR_MOCK_NOT_MATCHED")
+        return true;
+      assert.match(error.cause.message, /retention fixture blocks sockets/);
+      return true;
+    });
+  });
+
+  await t.test("network guard blocks IPC even with the allowed TCP host and port", () => {
+    const socket = new Socket();
+    socket.on("error", () => {});
+    try {
+      assert.throws(
+        () =>
+          socket.connect({
+            host: "127.0.0.1",
+            port: allowedPort,
+            path: path.join(dataDir, "outside-http-fixture.sock"),
+          }),
+        /retention fixture blocks sockets/,
+        "IPC must be rejected by the guard, not by a missing socket path"
+      );
+    } finally {
+      socket.destroy();
     }
   });
 
@@ -374,7 +434,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
           responseId,
           "continuation must target the persisted response"
         );
-        const response = await nativeFetch(server.url + "/v1/responses", {
+        const response = await httpFetch(server.url + "/v1/responses", {
           method: "POST",
           headers: { "content-type": "application/json", authorization: `Bearer ${key.key}` },
           body: JSON.stringify({
@@ -410,7 +470,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
         throw new Error("rejection reached upstream");
       };
       const correlationId = randomUUID();
-      const response = await nativeFetch(server.url + "/v1/chat/completions", {
+      const response = await httpFetch(server.url + "/v1/chat/completions", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -451,7 +511,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
         authorization: `Bearer ${key.key}`,
         "idempotency-key": randomUUID(),
       };
-      const response = await nativeFetch(server.url + "/v1/chat/completions", {
+      const response = await httpFetch(server.url + "/v1/chat/completions", {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify(requestBody),
@@ -465,7 +525,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       );
       assert((await idempotency.getIdempotencyStats()).activeKeys > 0);
       assert(reasoning.getReasoningCacheServiceStats().totalEntries > 0);
-      const repeated = await nativeFetch(server.url + "/v1/chat/completions", {
+      const repeated = await httpFetch(server.url + "/v1/chat/completions", {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify(requestBody),

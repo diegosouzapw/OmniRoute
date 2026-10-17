@@ -1,0 +1,1 @@
+- Keep the video retention HTTP fixture isolated from raw-socket egress during application imports and resource cleanup, including mixed IPC/TCP socket options, in addition to the installed Undici dispatcher guard (#16634).
