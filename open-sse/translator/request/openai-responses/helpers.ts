@@ -54,22 +54,33 @@ const CODEX_MAX_EFFORT_MODEL_PATTERN =
   /^(?:gpt-5\.6-(?:sol|terra|luna)|gpt-6(?:\.1)?-(?:astra|sol|luna))(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
 const KIRO_GPT_5_6_MODEL_PATTERN =
   /^(?:kiro|kr)\/gpt-5\.6-(?:sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max))?$/;
+const KIRO_OPUS_5_5_MODEL_PATTERN = /^(?:kiro|kr)\/claude-opus-5(?:\.|-)5(?:-thinking)?$/;
 
-function supportsNativeMaxReasoningEffort(model: unknown): boolean {
+function supportsNativeMaxReasoningEffort(model: unknown, targetFormat?: unknown): boolean {
+  const originalModel = toString(model).trim().toLowerCase();
+  const kiroModel =
+    targetFormat === "kiro" && !originalModel.includes("/")
+      ? `kiro/${originalModel}`
+      : originalModel;
   const normalizedModel = toString(model)
     .trim()
     .toLowerCase()
     .replace(/^(?:codex|cx)\//, "");
   return (
     CODEX_MAX_EFFORT_MODEL_PATTERN.test(normalizedModel) ||
-    KIRO_GPT_5_6_MODEL_PATTERN.test(toString(model).trim().toLowerCase())
+    KIRO_GPT_5_6_MODEL_PATTERN.test(kiroModel) ||
+    KIRO_OPUS_5_5_MODEL_PATTERN.test(kiroModel)
   );
 }
 
-export function normalizeResponsesReasoningEffort(value: unknown, model?: unknown): string {
+export function normalizeResponsesReasoningEffort(
+  value: unknown,
+  model?: unknown,
+  targetFormat?: unknown
+): string {
   const effort = toString(value).toLowerCase();
   if (effort !== "max") return effort;
-  return supportsNativeMaxReasoningEffort(model) ? "max" : "xhigh";
+  return supportsNativeMaxReasoningEffort(model, targetFormat) ? "max" : "xhigh";
 }
 
 export function shouldRequestClaudeSummarizedThinking(value: unknown): boolean {
