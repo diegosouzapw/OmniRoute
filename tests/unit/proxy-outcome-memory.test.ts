@@ -31,10 +31,16 @@ test("a received refusal from an in-scope provider sets the member aside", () =>
 });
 
 test("a refusal from a provider outside the scope writes nothing", () => {
-  for (const provider of ["opencode-zen", "openai", null]) {
+  for (const provider of ["openai", null]) {
     noteProxyOutcome(provider, { proxy: PROXY, upstreamStatus: 429 });
   }
   assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 0);
+});
+
+test("a received refusal for opencode-zen sets the member aside", () => {
+  noteProxyOutcome("opencode-zen", { proxy: PROXY, upstreamStatus: 429 });
+  assert.equal(memory.isProxyAvoided(KEY), true);
+  assert.equal(memory.__proxyRefusalMemorySizeForTesting(), 1);
 });
 
 test("no received status, no proxy or no proxyInfo writes nothing", () => {

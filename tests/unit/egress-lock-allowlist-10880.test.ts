@@ -5,8 +5,9 @@ const { isEgressBucketedLockScope } = await import(
   "../../open-sse/config/providerErrorRules.ts"
 );
 
-test("allowlist matches the three opencode provider ids", () => {
+test("allowlist matches the opencode provider ids", () => {
   assert.equal(isEgressBucketedLockScope("opencode"), true);
+  assert.equal(isEgressBucketedLockScope("opencode-zen"), true);
   assert.equal(isEgressBucketedLockScope("opencode-go"), true);
   assert.equal(isEgressBucketedLockScope("opencode-cli"), true);
   assert.equal(isEgressBucketedLockScope("OPENCODE"), true, "case-insensitive");

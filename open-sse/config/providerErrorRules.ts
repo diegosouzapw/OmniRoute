@@ -384,6 +384,7 @@ export function honorsRuleLockScope(provider: string | null | undefined): boolea
 // (dynamic membership), so a Set is the right structure there.
 const EGRESS_BUCKETED_LOCK_PROVIDERS_DEFAULT: Record<string, true> = {
   opencode: true,
+  "opencode-zen": true,
   "opencode-go": true,
   "opencode-cli": true,
 };
@@ -442,8 +443,11 @@ export function egressBucketedLockProviders(): string[] {
  * `hasOperatorRuleForProvider`): the operator's `match` is a literal substring
  * of the error body by construction, so a rule that never sees body text could
  * never match anything, defeating the point of declaring it.
+ *
+ * A provider joins this set only when its catalog rules match on body-text
+ * markers — adding one is an explicit opt-in, never an open mode.
  */
-const FULL_TEXT_RULE_PROVIDERS = new Set(["agentrouter"]);
+const FULL_TEXT_RULE_PROVIDERS = new Set(["agentrouter", ...OPENCODE_RULE_FAMILY, "cloudflare-ai"]);
 
 /**
  * True when an operator has declared at least one rule for this provider via

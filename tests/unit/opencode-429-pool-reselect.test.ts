@@ -220,11 +220,24 @@ describe("opencode 429 pool re-selection per attempt", () => {
       ports[0],
       2,
       1,
-      "opencode-zen"
+      "openai"
     )) as { response: Response };
     assert.strictEqual(result.response.status, 200);
     assert.ok(observed.length >= 2, `expected 2 dispatches, got ${observed.length}`);
     for (const port of observed) assert.strictEqual(String(port), String(ports[0]));
+  });
+
+  it("reselects after an egress-bucketed 429 for opencode-zen", async () => {
+    const result = (await runWith(
+      { reselectPoolMember: async () => memberB() },
+      ports[0],
+      2,
+      1,
+      "opencode-zen"
+    )) as { response: Response };
+    assert.strictEqual(result.response.status, 200);
+    assert.ok(observed.length >= 2, `expected 2 dispatches, got ${observed.length}`);
+    assert.strictEqual(String(observed[1]), String(ports[1]));
   });
 
   it("keeps the same member when the pool offers nothing (null resolver result)", async () => {

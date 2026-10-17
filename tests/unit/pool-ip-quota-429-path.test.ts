@@ -147,6 +147,12 @@ test("a locally generated failure (no dispatch) leaves the member in rotation", 
 
 test("a refusal for a provider outside the scope leaves the member in rotation", async () => {
   const [first, second] = await twoMemberPool();
-  await chatRequest("opencode-zen", first, 429);
+  await chatRequest("openai", first, 429);
   assert.deepEqual([await pickPort(), await pickPort()], [first.port, second.port]);
+});
+
+test("a received refusal for opencode-zen makes the next pick skip it", async () => {
+  const [first, second] = await twoMemberPool();
+  await chatRequest("opencode-zen", first, 429);
+  assert.deepEqual([await pickPort(), await pickPort()], [second.port, second.port]);
 });

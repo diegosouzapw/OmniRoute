@@ -1,0 +1,1 @@
+- **fix(sse):** cover `opencode-zen` with the egress-IP lockout and feed body-text error rules for the opencode family and `cloudflare-ai` ([#16797](https://github.com/diegosouzapw/OmniRoute/pull/16797)) — thanks @maxmad64bis

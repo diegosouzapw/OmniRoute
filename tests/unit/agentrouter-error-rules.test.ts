@@ -110,23 +110,18 @@ test("A9: resolveRuleMatchBody hands full text ONLY to allowlisted providers", a
   );
   const structured = { code: "rate_limited", type: "requests" };
   assert.equal(resolveRuleMatchBody("agentrouter", structured, "用户额度不足"), "用户额度不足");
-  assert.equal(resolveRuleMatchBody("opencode", structured, "monthly usage limit reached"), structured);
+  assert.equal(
+    resolveRuleMatchBody("opencode", structured, "monthly usage limit reached"),
+    "monthly usage limit reached"
+  );
   assert.equal(resolveRuleMatchBody("openrouter", null, "some error text"), null);
   assert.equal(resolveRuleMatchBody("agentrouter", structured, ""), structured);
 });
 
-test("A10: other providers' checkFallbackError behavior is unchanged (exclusivity)", () => {
-  // opencode's body-text rule ("organization_quota_exceeded") must still NOT
-  // fire through checkFallbackError — the allowlist is agentrouter-only, so
-  // opencode keeps getting only the stripped structuredError as the match
-  // body (null here, since no structuredError arg is passed), same as before
-  // this fix. Baseline captured on the pre-fix code with this exact input:
-  //   { shouldFallback: true, cooldownMs: 3000, baseCooldownMs: 3000,
-  //     newBackoffLevel: 1, usedUpstreamRetryHint: false,
-  //     reason: "rate_limit_exceeded" }
-  // i.e. it falls through to the generic 429 configured rule, NOT the
-  // opencode-quota-exhausted-body provider rule — asserting `reason` here is
-  // exactly what proves the allowlist didn't leak to opencode.
+test("opencode body-text markers route to the quota rule through checkFallbackError", () => {
+  // opencode's body-text rule ("organization_quota_exceeded") fires through
+  // checkFallbackError — opencode receives the full error text, so the
+  // opencode-quota-exhausted-body provider rule declares the verdict.
   const result = checkFallbackError(
     429,
     '{"error":{"message":"organization_quota_exceeded"}}',
@@ -136,8 +131,21 @@ test("A10: other providers' checkFallbackError behavior is unchanged (exclusivit
     null
   );
   assert.ok(result.shouldFallback);
-  assert.equal(result.reason, "rate_limit_exceeded");
+  assert.equal(result.reason, "quota_exhausted");
   assert.equal(result.cooldownMs, 3000);
+});
+
+test("cloudflare-ai daily allocation routes to the quota rule through checkFallbackError", () => {
+  const result = checkFallbackError(
+    429,
+    "you have used up your daily free allocation of 10,000 neurons, please upgrade",
+    0,
+    null,
+    "cloudflare-ai",
+    null
+  );
+  assert.ok(result.shouldFallback);
+  assert.equal(result.reason, "quota_exhausted");
 });
 
 test("A11: checkFallbackError surfaces ruleScope=connection for agentrouter quota", () => {
@@ -154,7 +162,7 @@ test("A12: checkFallbackError 403 无权访问模型 carries the rule's scope + 
   assert.equal(result.baseCooldownMs, 6 * 60 * 60 * 1000);
 });
 
-test("A13: exclusivity — ruleScope stays undefined for other providers", () => {
+test("rule scope is surfaced for providers with a body rule, undefined otherwise", () => {
   const opencode = checkFallbackError(
     429,
     '{"error":{"message":"organization_quota_exceeded"}}',
@@ -163,7 +171,8 @@ test("A13: exclusivity — ruleScope stays undefined for other providers", () =>
     "opencode",
     null
   );
-  assert.equal(opencode.ruleScope, undefined);
+  assert.equal(opencode.ruleScope, "connection");
+  assert.equal(opencode.reason, "quota_exhausted");
   const openrouter = checkFallbackError(402, "credits exhausted", 0, null, "openrouter", null);
   assert.equal(openrouter.ruleScope, undefined);
 });

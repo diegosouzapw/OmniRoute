@@ -1,5 +1,5 @@
 // #10880 — egress-bucketed cooldown: when an allowlisted provider (opencode,
-// opencode-go, opencode-cli) confirms quota_exhausted OR rate_limit_exceeded,
+// opencode-zen, opencode-go, opencode-cli) confirms quota_exhausted OR rate_limit_exceeded,
 // markAccountUnavailable cools down the failing connection C AND every sibling
 // sharing C's last known egress IP BEFORE they are tried (N-1 wasted upstream
 // calls avoided — same shape as #10460/#10525). The first section pins the
@@ -34,8 +34,7 @@ const accountFallback = await import("../../open-sse/services/accountFallback.ts
 
 // Real opencode 429 envelopes (providerErrorRules.ts:67-72). On the
 // markAccountUnavailable path no headers/structuredError reach
-// checkFallbackError and opencode is not in FULL_TEXT_RULE_PROVIDERS, so the
-// opencode-specific rules never match. Verified empirically: the first body
+// checkFallbackError, so only the text fallbacks match here: the first body
 // is intercepted by the subscription-quota text fallback
 // (quotaTextCooldowns.ts — "usage limit reached" is a substring of "monthly
 // usage limit reached") → quota_exhausted with a 1h cooldown and no
@@ -215,6 +214,28 @@ test("three connections sharing one egress IP: ONE upstream call for the whole p
   );
   assert.equal(b!.testStatus, "unavailable");
   assert.equal(c!.testStatus, "unavailable");
+});
+
+test("a 429 for opencode-zen cools the connections sharing its egress IP", async () => {
+  await resetStorage();
+  const connA = await seedConnection("opencode-zen");
+  const connB = await seedConnection("opencode-zen");
+  seedProxyLog(connA, SHARED_EGRESS_IP, "opencode-zen");
+  seedProxyLog(connB, SHARED_EGRESS_IP, "opencode-zen");
+
+  const { upstreamCalls, tried } = await rotateWholePool(
+    [connA, connB],
+    REAL_OPENCODE_429,
+    "opencode-zen"
+  );
+  assert.equal(upstreamCalls, 1, "exactly one upstream call for the zen pool");
+  assert.deepEqual(tried, [connA], "only the first zen connection was ever tried");
+  const b = await providersDb.getProviderConnectionById(connB);
+  assert.ok(
+    new Date(String(b!.rateLimitedUntil)).getTime() > Date.now(),
+    "zen sibling cooled before being tried"
+  );
+  assert.equal(b!.testStatus, "unavailable");
 });
 
 test("counter-test: the SAME rotation burns N calls for a non-allowlisted provider", async () => {

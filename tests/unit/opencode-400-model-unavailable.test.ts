@@ -125,10 +125,10 @@ test("opencode 400 model-unavailable", async (t) => {
     }
   );
 
-  await t.test("quota-body markers stay inert without FULL_TEXT", () => {
-    // FULL_TEXT_RULE_PROVIDERS is still agentrouter-only: quota-body markers
+  await t.test("quota-body markers resolve through the quota rule", () => {
+    // FULL_TEXT covers the opencode family: quota-body markers
     // (organization_quota_exceeded, plan_limit_reached, account_quota_exceeded)
-    // must NOT surface a rule scope — the #10880 egress block stays reachable.
+    // surface the quota rule verdict with its declared connection scope.
     for (const marker of [
       "organization_quota_exceeded",
       "plan_limit_reached",
@@ -142,8 +142,8 @@ test("opencode 400 model-unavailable", async (t) => {
         "opencode",
         null
       );
-      assert.equal(r.reason, "rate_limit_exceeded", marker);
-      assert.equal((r as { ruleScope?: string }).ruleScope, undefined, marker);
+      assert.equal(r.reason, "quota_exhausted", marker);
+      assert.equal((r as { ruleScope?: string }).ruleScope, "connection", marker);
     }
   });
 
