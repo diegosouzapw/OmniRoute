@@ -202,17 +202,39 @@ function toFirstToken(entry: UsageEntry): number {
  * the retry attempts the write once and, on failure, writes the existing log
  * line and stops.
  */
-export function scheduleWriteRetry(entry: UsageEntry, options: UsageWriteOptions = {}): void {
-  const timer = setTimeout(() => {
-    try {
-      attemptWrite(entry, options);
-    } catch (retryError) {
-      console.error("Failed to save usage stats:", retryError);
-    }
-  }, RETRY_DELAY_MS);
-  // Allow Node.js to exit naturally even if the timer is still pending
-  // (avoids keeping the event loop alive for a stray retry).
-  detachTimer(timer);
+export function scheduleWriteRetry(
+  task: () => void,
+  onFinalFailure: (error: unknown) => void
+): Promise<void>;
+export function scheduleWriteRetry(entry: UsageEntry, options?: UsageWriteOptions): void;
+export function scheduleWriteRetry(
+  taskOrEntry: (() => void) | UsageEntry,
+  optionsOrFailure?: UsageWriteOptions | ((error: unknown) => void)
+): Promise<void> | void {
+  if (typeof taskOrEntry !== "function") {
+    const entry = taskOrEntry;
+    void scheduleWriteRetry(
+      () => attemptWrite(entry, typeof optionsOrFailure === "object" ? optionsOrFailure : {}),
+      (retryError) => console.error("Failed to save usage stats:", retryError)
+    );
+    return;
+  }
+  const task = taskOrEntry;
+  const fail = typeof optionsOrFailure === "function" ? optionsOrFailure : () => {};
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(() => {
+      try {
+        task();
+      } catch (retryError) {
+        fail(retryError);
+      } finally {
+        resolve();
+      }
+    }, RETRY_DELAY_MS);
+    // Allow Node.js to exit naturally even if the timer is still pending
+    // (avoids keeping the event loop alive for a stray retry).
+    detachTimer(timer);
+  });
 }
 
 type DetachableTimer = { unref?: () => void };

@@ -1,10 +1,11 @@
 /**
- * Gate tests for a usage write blocked by a locked database.
+ * Gate tests for the shared deferred write retry.
  *
- * A first attempt that meets a lock is deferred once, off the request path,
- * and retried a single time. A second lock drops the row with the existing
- * log line. Any other error keeps the current behaviour: logged at once,
- * never retried. A first-attempt success never schedules a second write.
+ * The lock predicate accepts every lock shape and rejects any other error.
+ * The generic scheduler runs a deferred task once after the delay, reports
+ * a second failure through the abandon callback, and never chains a third
+ * run. The usage entry point keeps its deferred single retry through the
+ * usage writer below.
  */
 
 import { test } from "node:test";
@@ -95,6 +96,16 @@ async function waitFor(check: () => boolean, timeoutMs = 5000): Promise<boolean>
   }
 }
 
+/** Ref'd polling handle that keeps the loop alive past an unref'd retry timer. */
+async function waitForGeneric(check: () => boolean, timeoutMs = 8000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if (check()) return true;
+    if (Date.now() >= deadline) return false;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 // ── predicate ────────────────────────────────────────────────────────────────
 
 test("write lock predicate accepts lock shapes and rejects other errors", async () => {
@@ -111,6 +122,49 @@ test("write lock predicate accepts lock shapes and rejects other errors", async 
   assert.equal(isWriteLockError("database is locked"), true);
   assert.equal(isWriteLockError(new Error("UNIQUE constraint failed: usage_history.id")), false);
   assert.equal(isWriteLockError(new Error("no such table: usage_history")), false);
+});
+
+// ── generic scheduler: deferred task runs once, failure reported, never chained ──
+
+test("generic retry runs the deferred task once after the delay", async () => {
+  const { scheduleWriteRetry } = await import("../../../src/lib/usage/usageWriteRetry.ts");
+  let calls = 0;
+  let failures = 0;
+  // The retry rides an unref'd timer, so awaiting it alone would let the
+  // loop drain; the polling waitFor below keeps a ref'd handle alive instead.
+  const done = scheduleWriteRetry(
+    () => {
+      calls++;
+    },
+    () => {
+      failures++;
+    }
+  );
+  assert.equal(await waitForGeneric(() => calls === 1), true);
+  await done;
+  assert.equal(calls, 1);
+  assert.equal(failures, 0);
+});
+
+test("generic retry reports the second failure and never chains a third run", async () => {
+  const { scheduleWriteRetry } = await import("../../../src/lib/usage/usageWriteRetry.ts");
+  let calls = 0;
+  const seen: unknown[] = [];
+  const failing = () => {
+    calls++;
+    throw new Error("database is locked");
+  };
+  const done = scheduleWriteRetry(failing, (err) => {
+    seen.push(err);
+  });
+  assert.equal(await waitForGeneric(() => calls === 1), true);
+  await done;
+  assert.equal(calls, 1);
+  assert.equal(seen.length, 1);
+  assert.match(String((seen[0] as Error)?.message ?? seen[0]), /database is locked/);
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  assert.equal(calls, 1);
+  assert.equal(seen.length, 1);
 });
 
 // ── gate 1: locked first, free second → one row ──────────────────────────────

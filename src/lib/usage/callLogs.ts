@@ -48,6 +48,7 @@ import {
   type CallLogDetailState,
 } from "./callLogArtifacts";
 import { closeCallLogArtifactWriter, writeCallArtifactAsync } from "./callLogArtifactWriter";
+import { isWriteLockError, scheduleWriteRetry } from "./usageWriteRetry";
 import {
   toNumber,
   toStringOrNull,
@@ -552,248 +553,307 @@ function getLegacyInlineDetail(id: string) {
 }
 
 async function saveCallLogOperation(entry: any): Promise<void> {
+  let prepared: PreparedCallLogRow;
   try {
-    // Bind the DB instance up front, before any await (resolveAccountName,
-    // writeCallArtifactAsync). If the singleton is reset/closed while this
-    // operation awaits, the insert must target the instance this request
-    // started against — a closed handle fails into the catch below instead of
-    // silently writing into whatever database opened afterwards (#12780).
-    const db = getDbInstance();
-    const apiKeyContext = getCallLogApiKeyContext();
-    // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
-    // same as before this fallback existed — it must not be persisted verbatim
-    // nor block the request-scoped context.
-    const apiKeyId = entry.apiKeyId || apiKeyContext?.apiKeyId || null;
-    const apiKeyName = entry.apiKeyName || apiKeyContext?.apiKeyName || null;
-    const connectionId = entry.connectionId || apiKeyContext?.connectionId || null;
-    const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
+    prepared = await buildCallLogRow(entry);
+  } catch (error) {
+    logCallLogSaveFailure(error);
+    return;
+  }
+  try {
+    insertCallLogRow(prepared);
+  } catch (error) {
+    if (!isWriteLockError(error)) {
+      logCallLogSaveFailure(error);
+      return;
+    }
+    const retry = scheduleWriteRetry(() => insertCallLogRow(prepared), logCallLogSaveFailure);
+    pendingCallLogSaves.add(retry);
+    try {
+      await retry;
+    } finally {
+      pendingCallLogSaves.delete(retry);
+    }
+  }
+}
 
-    const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
-    const responseStatus = Number(entry.status);
-    const failedResponse = Number.isFinite(responseStatus) && responseStatus >= 400;
-    const protectedResponseBody = noLogEnabled
-      ? null
-      : failedResponse
-        ? protectErrorPayloadForLog(entry.responseBody)
-        : protectPayloadForLog(entry.responseBody);
-    const protectedPipelinePayloads = noLogEnabled
-      ? null
-      : protectPipelinePayloads(
-          entry.pipelinePayloads ?? entry.pipeline ?? null,
-          failedResponse ? responseStatus : undefined
-        );
-    const protectedError = sanitizeErrorForLog(entry.error);
+type PreparedCallLogRow = {
+  db: ReturnType<typeof getDbInstance>;
+  logEntry: Record<string, unknown>;
+  insertParams: Record<string, unknown>;
+  hasResilienceColumn: boolean;
+  detailState: CallLogDetailState;
+  responseId: string | null;
+};
 
-    // Bridges the window before this row's own artifact write (queued below,
-    // async) lands with detail_state = 'ready': a client that fires its next
-    // turn immediately -- normal in a tight tool-calling loop -- can reach
-    // resolvePreviousResponseState before that write exists at all. Seeded
-    // synchronously, before any await, from the same protected pipeline
-    // payload the artifact will eventually hold (and the same
-    // videoContentRemoved/fail-closed rules), so it is available the instant
-    // this function is called. See responsesContinuationStore.ts.
-    if (typeof entry.responseId === "string" && entry.responseId.length > 0) {
-      seedPendingContinuationState(
-        entry.responseId,
-        apiKeyId,
-        // The store's own contract, not a looser restatement of it: the inline shape
-        // widened both fields to `unknown`, which does not assign to
-        // ContinuationPipeline's typed members (TS2345 under typecheck:core).
-        protectedPipelinePayloads as ContinuationPipeline | null,
-        Boolean(entry.videoContentRemoved)
+function logCallLogSaveFailure(error: unknown): void {
+  if (String((error as Error)?.message ?? error).includes("no such column")) {
+    invalidateCallLogsColumnCache();
+  }
+  console.error(
+    "[callLogs] Failed to save call log:",
+    sanitizeErrorMessage(error) || "Call log persistence failed"
+  );
+}
+
+async function buildCallLogRow(entry: any): Promise<PreparedCallLogRow> {
+  // Bind before any await: a reset must never redirect this request or its retry
+  // into a replacement database (#12780). Closed handles fail normally.
+  const db = getDbInstance();
+  const apiKeyContext = getCallLogApiKeyContext();
+  // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
+  // same as before this fallback existed — it must not be persisted verbatim
+  // nor block the request-scoped context.
+  const apiKeyId = entry.apiKeyId || apiKeyContext?.apiKeyId || null;
+  const apiKeyName = entry.apiKeyName || apiKeyContext?.apiKeyName || null;
+  const connectionId = entry.connectionId || apiKeyContext?.connectionId || null;
+  const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
+
+  const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
+  const responseStatus = Number(entry.status);
+  const failedResponse = Number.isFinite(responseStatus) && responseStatus >= 400;
+  const protectedResponseBody = noLogEnabled
+    ? null
+    : failedResponse
+      ? protectErrorPayloadForLog(entry.responseBody)
+      : protectPayloadForLog(entry.responseBody);
+  const protectedPipelinePayloads = noLogEnabled
+    ? null
+    : protectPipelinePayloads(
+        entry.pipelinePayloads ?? entry.pipeline ?? null,
+        failedResponse ? responseStatus : undefined
       );
-    }
+  const protectedError = sanitizeErrorForLog(entry.error);
 
-    // resilience resilience summary for this attempt (implicit ALS store opened
-    // around the attempt; null outside a store or when nothing was noted).
-    // Read BEFORE any await: the ALS context is synchronous and later awaits
-    // (resolveAccountName, artifact write) may cross async boundaries.
-    const resilienceActions = serializeResilienceActions();
-    const hasResilienceColumn = hasCallLogsColumn("resilience_actions");
-
-    const account = await resolveAccountName(connectionId);
-    const rawProvider: string = entry.provider || "-";
-    const rawRequestedModel: string | null = entry.requestedModel || null;
-    let resolvedRequestedModel = rawRequestedModel;
-    if (rawRequestedModel && isCompatibleProviderId(rawProvider)) {
-      const nodePrefix = await resolveProviderPrefix(rawProvider);
-      resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
-    }
-    // #6187: usage-derived reasoning tokens stay UNCHANGED (cost math reads this),
-    // while reasoning source/char-count are recorded separately for observability.
-    const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
-    const streamReasoningMeta =
-      entry.reasoningMeta !== null && typeof entry.reasoningMeta === "object"
-        ? (entry.reasoningMeta as { encryptedSeen?: boolean; durationMs?: unknown })
-        : null;
-    const reasoningObservation = resolveReasoningObservation(
-      tokensReasoning,
-      entry.responseBody,
-      streamReasoningMeta
-    );
-    // Encrypted-reasoning observability (nullable, additive): stream-side
-    // flag+duration win when present; the sink scan above already forced
-    // source='encrypted' for opaque snapshots (duration NULL there).
-    const streamDurationRaw = streamReasoningMeta?.durationMs;
-    const streamDurationMs =
-      typeof streamDurationRaw === "number" &&
-      Number.isFinite(streamDurationRaw) &&
-      streamDurationRaw >= 0 &&
-      streamDurationRaw <= 86_400_000
-        ? Math.round(streamDurationRaw)
-        : null;
-    const reasoningEncrypted =
-      streamReasoningMeta?.encryptedSeen === true || reasoningObservation.source === "encrypted"
-        ? 1
-        : null;
-    const reasoningDurationMs =
-      reasoningObservation.source === "encrypted" ? streamDurationMs : null;
-    const readEffortValue = (body: unknown): string | null => {
-      if (body === null || typeof body !== "object" || Array.isArray(body)) return null;
-      const record = body as Record<string, unknown>;
-      const direct = record.reasoning_effort;
-      if (typeof direct === "string" && direct.trim().length > 0) return direct;
-      const nested = record.reasoning;
-      if (nested !== null && typeof nested === "object" && !Array.isArray(nested)) {
-        const effort = (nested as Record<string, unknown>).effort;
-        if (typeof effort === "string" && effort.trim().length > 0) return effort;
-      }
-      return null;
-    };
-    const reasoningEffortRequested =
-      reasoningObservation.source === "encrypted"
-        ? readEffortValue(entry.clientRequestBody ?? entry.requestBody)
-        : null;
-    const reasoningEffortUpstream =
-      reasoningObservation.source === "encrypted"
-        ? readEffortValue(entry.upstreamRequestBody)
-        : null;
-    const errorType = toStoredErrorType(
-      classifyCallLogError(entry.status, entry.error, entry.provider)
-    );
-    // Rendered-content presence plus usage provenance: success-only, additive,
-    // nullable. A 2xx is a success even with token counts at zero, so the
-    // success bound is 200-299 (not <400).
-    const numericStatus = Number(entry.status);
-    const isSuccess = Number.isFinite(numericStatus) && numericStatus >= 200 && numericStatus < 300;
-    const clientVisibleBody =
-      entry.clientResponse ??
-      (entry.pipelinePayloads as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
-      (entry.pipeline as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
-      entry.responseBody;
-    const measurableContent =
-      isSuccess &&
-      !noLogEnabled &&
-      !isNonTextRequest(entry.requestType, entry.path ?? entry.method);
-    const renderedContent = measurableContent ? hasRenderedContent(clientVisibleBody) : null;
-    const hasContent = renderedContent === null ? null : renderedContent ? 1 : 0;
-    const usageProvenance = resolveUsageProvenance({
-      usageEstimated: entry.usageEstimated === true,
-      tokens: entry.tokens,
-      isSuccess,
-    });
-    const logEntry = {
-      id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
-      timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
-      method: entry.method || "POST",
-      path: entry.path || "/v1/chat/completions",
-      status: entry.status || 0,
-      errorType,
-      model: entry.model || "-",
-      requestedModel: resolvedRequestedModel,
-      provider: rawProvider,
-      account,
-      connectionId,
-      duration: entry.duration || 0,
-      // #13130: TTFT (ms to first forwarded stream chunk) when the streaming
-      // pipeline measured it; null for non-streaming rows. The dashboard TPS
-      // divides by duration - ttft so queueing/prefill wait does not drag the
-      // reported generation rate down.
-      ttftMs: toNullableTtftMs(entry.ttftMs ?? entry.ttft),
-      tokensIn: toNumber(getLoggedInputTokens(entry.tokens)),
-      tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
-      tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
-      tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
-      tokensReasoning,
-      reasoningSource: reasoningObservation.source,
-      reasoningChars: reasoningObservation.chars,
-      reasoningDurationMs,
-      reasoningEffortRequested,
-      reasoningEffortUpstream,
-      reasoningEncrypted,
-      tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
-      cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
-      requestType: entry.requestType || null,
-      sourceFormat: entry.sourceFormat || null,
-      targetFormat: entry.targetFormat || null,
+  // Bridges the window before this row's own artifact write (queued below,
+  // async) lands with detail_state = 'ready': a client that fires its next
+  // turn immediately -- normal in a tight tool-calling loop -- can reach
+  // resolvePreviousResponseState before that write exists at all. Seeded
+  // synchronously, before any await, from the same protected pipeline
+  // payload the artifact will eventually hold (and the same
+  // videoContentRemoved/fail-closed rules), so it is available the instant
+  // this function is called. See responsesContinuationStore.ts.
+  if (typeof entry.responseId === "string" && entry.responseId.length > 0) {
+    seedPendingContinuationState(
+      entry.responseId,
       apiKeyId,
-      apiKeyName,
-      comboName: entry.comboName || null,
-      comboStepId: toStringOrNull(entry.comboStepId),
-      comboExecutionKey:
-        toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
-      correlationId: entry.correlationId || null,
-      // Ms of pacing/park wait imposed before dispatch (null = none).
-      addedWaitMs:
-        typeof entry.addedWaitMs === "number" && Number.isFinite(entry.addedWaitMs)
-          ? entry.addedWaitMs
-          : null,
-      addedWaitCause: toStringOrNull(entry.addedWaitCause),
-      modelPinned: entry.modelPinned ? 1 : 0,
-      sessionTag: entry.sessionTag || null,
-      // OpenAI Responses API response id, when this attempt produced one --
-      // indexed so a later request's `previous_response_id` can resolve
-      // this row's artifact for OmniRoute-native continuation. See
-      // src/lib/db/responsesContinuationStore.ts.
-      responseId: typeof entry.responseId === "string" ? entry.responseId : null,
-      // #12150 P2 surface 2: 1 when this request's persisted client snapshot had
-      // its video transcript cues structurally redacted, so
-      // resolvePreviousResponseState refuses to rehydrate it as continuation
-      // history. See src/lib/db/responsesContinuationStore.ts.
-      videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
-      hasContent,
-      usageProvenance,
-    };
+      // The store's own contract, not a looser restatement of it: the inline shape
+      // widened both fields to `unknown`, which does not assign to
+      // ContinuationPipeline's typed members (TS2345 under typecheck:core).
+      protectedPipelinePayloads as ContinuationPipeline | null,
+      Boolean(entry.videoContentRemoved)
+    );
+  }
 
-    const requestSummary = noLogEnabled
-      ? null
-      : buildRequestSummary(logEntry.requestType, protectedRequestBody);
-    const detailExpected =
-      !noLogEnabled &&
-      (protectedRequestBody !== null ||
-        protectedResponseBody !== null ||
-        protectedError !== null ||
-        protectedPipelinePayloads !== null);
+  // resilience resilience summary for this attempt (implicit ALS store opened
+  // around the attempt; null outside a store or when nothing was noted).
+  // Read BEFORE any await: the ALS context is synchronous and later awaits
+  // (resolveAccountName, artifact write) may cross async boundaries.
+  const resilienceActions = serializeResilienceActions();
+  const hasResilienceColumn = hasCallLogsColumn("resilience_actions");
 
-    let detailState: CallLogDetailState = "none";
-    let artifactRelPath: string | null = null;
-    let artifactSizeBytes: number | null = null;
-    let artifactSha256: string | null = null;
-
-    if (detailExpected) {
-      const artifact = buildArtifact(
-        logEntry,
-        protectedRequestBody,
-        protectedResponseBody,
-        protectedError,
-        protectedPipelinePayloads
-      );
-      const artifactResult = await writeCallArtifactAsync(artifact);
-      if (artifactResult) {
-        detailState = "ready";
-        artifactRelPath = artifactResult.relPath;
-        artifactSizeBytes = artifactResult.sizeBytes;
-        artifactSha256 = artifactResult.sha256;
-      } else {
-        detailState = "missing";
-      }
+  const account = await resolveAccountName(connectionId);
+  const rawProvider: string = entry.provider || "-";
+  const rawRequestedModel: string | null = entry.requestedModel || null;
+  let resolvedRequestedModel = rawRequestedModel;
+  if (rawRequestedModel && isCompatibleProviderId(rawProvider)) {
+    const nodePrefix = await resolveProviderPrefix(rawProvider);
+    resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
+  }
+  // #6187: usage-derived reasoning tokens stay UNCHANGED (cost math reads this),
+  // while reasoning source/char-count are recorded separately for observability.
+  const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
+  const streamReasoningMeta =
+    entry.reasoningMeta !== null && typeof entry.reasoningMeta === "object"
+      ? (entry.reasoningMeta as { encryptedSeen?: boolean; durationMs?: unknown })
+      : null;
+  const reasoningObservation = resolveReasoningObservation(
+    tokensReasoning,
+    entry.responseBody,
+    streamReasoningMeta
+  );
+  // Encrypted-reasoning observability (nullable, additive): stream-side
+  // flag+duration win when present; the sink scan above already forced
+  // source='encrypted' for opaque snapshots (duration NULL there).
+  const streamDurationRaw = streamReasoningMeta?.durationMs;
+  const streamDurationMs =
+    typeof streamDurationRaw === "number" &&
+    Number.isFinite(streamDurationRaw) &&
+    streamDurationRaw >= 0 &&
+    streamDurationRaw <= 86_400_000
+      ? Math.round(streamDurationRaw)
+      : null;
+  const reasoningEncrypted =
+    streamReasoningMeta?.encryptedSeen === true || reasoningObservation.source === "encrypted"
+      ? 1
+      : null;
+  const reasoningDurationMs = reasoningObservation.source === "encrypted" ? streamDurationMs : null;
+  const readEffortValue = (body: unknown): string | null => {
+    if (body === null || typeof body !== "object" || Array.isArray(body)) return null;
+    const record = body as Record<string, unknown>;
+    const direct = record.reasoning_effort;
+    if (typeof direct === "string" && direct.trim().length > 0) return direct;
+    const nested = record.reasoning;
+    if (nested !== null && typeof nested === "object" && !Array.isArray(nested)) {
+      const effort = (nested as Record<string, unknown>).effort;
+      if (typeof effort === "string" && effort.trim().length > 0) return effort;
     }
+    return null;
+  };
+  const reasoningEffortRequested =
+    reasoningObservation.source === "encrypted"
+      ? readEffortValue(entry.clientRequestBody ?? entry.requestBody)
+      : null;
+  const reasoningEffortUpstream =
+    reasoningObservation.source === "encrypted" ? readEffortValue(entry.upstreamRequestBody) : null;
+  const errorType = toStoredErrorType(
+    classifyCallLogError(entry.status, entry.error, entry.provider)
+  );
+  // Rendered-content presence plus usage provenance: success-only, additive,
+  // nullable. A 2xx is a success even with token counts at zero, so the
+  // success bound is 200-299 (not <400).
+  const numericStatus = Number(entry.status);
+  const isSuccess = Number.isFinite(numericStatus) && numericStatus >= 200 && numericStatus < 300;
+  const clientVisibleBody =
+    entry.clientResponse ??
+    (entry.pipelinePayloads as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+    (entry.pipeline as { clientResponse?: unknown } | null | undefined)?.clientResponse ??
+    entry.responseBody;
+  const measurableContent =
+    isSuccess && !noLogEnabled && !isNonTextRequest(entry.requestType, entry.path ?? entry.method);
+  const renderedContent = measurableContent ? hasRenderedContent(clientVisibleBody) : null;
+  const hasContent = renderedContent === null ? null : renderedContent ? 1 : 0;
+  const usageProvenance = resolveUsageProvenance({
+    usageEstimated: entry.usageEstimated === true,
+    tokens: entry.tokens,
+    isSuccess,
+  });
+  const logEntry = {
+    id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
+    timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
+    method: entry.method || "POST",
+    path: entry.path || "/v1/chat/completions",
+    status: entry.status || 0,
+    errorType,
+    model: entry.model || "-",
+    requestedModel: resolvedRequestedModel,
+    provider: rawProvider,
+    account,
+    connectionId,
+    duration: entry.duration || 0,
+    // #13130: TTFT (ms to first forwarded stream chunk) when the streaming
+    // pipeline measured it; null for non-streaming rows. The dashboard TPS
+    // divides by duration - ttft so queueing/prefill wait does not drag the
+    // reported generation rate down.
+    ttftMs: toNullableTtftMs(entry.ttftMs ?? entry.ttft),
+    tokensIn: toNumber(getLoggedInputTokens(entry.tokens)),
+    tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
+    tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
+    tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
+    tokensReasoning,
+    reasoningSource: reasoningObservation.source,
+    reasoningChars: reasoningObservation.chars,
+    reasoningDurationMs,
+    reasoningEffortRequested,
+    reasoningEffortUpstream,
+    reasoningEncrypted,
+    tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
+    cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
+    requestType: entry.requestType || null,
+    sourceFormat: entry.sourceFormat || null,
+    targetFormat: entry.targetFormat || null,
+    apiKeyId,
+    apiKeyName,
+    comboName: entry.comboName || null,
+    comboStepId: toStringOrNull(entry.comboStepId),
+    comboExecutionKey: toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
+    correlationId: entry.correlationId || null,
+    // Ms of pacing/park wait imposed before dispatch (null = none).
+    addedWaitMs:
+      typeof entry.addedWaitMs === "number" && Number.isFinite(entry.addedWaitMs)
+        ? entry.addedWaitMs
+        : null,
+    addedWaitCause: toStringOrNull(entry.addedWaitCause),
+    modelPinned: entry.modelPinned ? 1 : 0,
+    sessionTag: entry.sessionTag || null,
+    // OpenAI Responses API response id, when this attempt produced one --
+    // indexed so a later request's `previous_response_id` can resolve
+    // this row's artifact for OmniRoute-native continuation. See
+    // src/lib/db/responsesContinuationStore.ts.
+    responseId: typeof entry.responseId === "string" ? entry.responseId : null,
+    // Second redaction surface for #12150: 1 when this request's persisted client snapshot had
+    // its video transcript cues structurally redacted, so
+    // resolvePreviousResponseState refuses to rehydrate it as continuation
+    // history. See src/lib/db/responsesContinuationStore.ts.
+    videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
+    hasContent,
+    usageProvenance,
+  };
 
-    // Optional column (migration 191) — only fixed identifiers are spliced in.
-    const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
-    const resilienceParam = hasResilienceColumn ? ", @resilienceActions" : "";
-    const insertStmt = db.prepare(
-      `
+  const requestSummary = noLogEnabled
+    ? null
+    : buildRequestSummary(logEntry.requestType, protectedRequestBody);
+  const detailExpected =
+    !noLogEnabled &&
+    (protectedRequestBody !== null ||
+      protectedResponseBody !== null ||
+      protectedError !== null ||
+      protectedPipelinePayloads !== null);
+
+  let detailState: CallLogDetailState = "none";
+  let artifactRelPath: string | null = null;
+  let artifactSizeBytes: number | null = null;
+  let artifactSha256: string | null = null;
+
+  if (detailExpected) {
+    const artifact = buildArtifact(
+      logEntry,
+      protectedRequestBody,
+      protectedResponseBody,
+      protectedError,
+      protectedPipelinePayloads
+    );
+    const artifactResult = await writeCallArtifactAsync(artifact);
+    if (artifactResult) {
+      detailState = "ready";
+      artifactRelPath = artifactResult.relPath;
+      artifactSizeBytes = artifactResult.sizeBytes;
+      artifactSha256 = artifactResult.sha256;
+    } else {
+      detailState = "missing";
+    }
+  }
+
+  const insertParams = {
+    ...logEntry,
+    errorSummary: toStoredErrorSummary(protectedError),
+    detailState,
+    artifactRelPath,
+    artifactSizeBytes,
+    artifactSha256,
+    hasRequestBody: protectedRequestBody !== null ? 1 : 0,
+    hasResponseBody: protectedResponseBody !== null ? 1 : 0,
+    resilienceActions,
+    hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
+    requestSummary,
+  };
+  return {
+    db,
+    logEntry,
+    insertParams,
+    hasResilienceColumn,
+    detailState,
+    responseId: typeof logEntry.responseId === "string" ? logEntry.responseId : null,
+  };
+}
+
+function insertCallLogRow(prepared: PreparedCallLogRow): void {
+  const { db, insertParams, hasResilienceColumn, detailState, responseId } = prepared;
+  // Optional column (migration 191) — only fixed identifiers are spliced in.
+  const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
+  const resilienceParam = hasResilienceColumn ? ", @resilienceActions" : "";
+  const insertStmt = db.prepare(
+    `
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, ttft_ms, tokens_in, tokens_out,
@@ -825,52 +885,30 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @addedWaitMs, @addedWaitCause${resilienceParam}
       )
     `
-    );
-    const insertParams = {
-      ...logEntry,
-      errorSummary: toStoredErrorSummary(protectedError),
-      detailState,
-      artifactRelPath,
-      artifactSizeBytes,
-      artifactSha256,
-      hasRequestBody: protectedRequestBody !== null ? 1 : 0,
-      hasResponseBody: protectedResponseBody !== null ? 1 : 0,
-      resilienceActions,
-      hasPipelineDetails: protectedPipelinePayloads ? 1 : 0,
-      requestSummary,
-    };
-    // #14451: a 6-char dashboard traceId (or any reused explicit id) can collide.
-    // Keep the already-written artifact path; only the SQLite primary key is regenerated.
-    for (let attempt = 0; ; attempt++) {
-      try {
-        insertStmt.run(insertParams);
-        break;
-      } catch (error) {
-        if (!isCallLogIdCollision(error) || attempt >= CALL_LOG_ID_RETRY_LIMIT) throw error;
-        insertParams.id = generateLogId();
-      }
+  );
+  // #14451: a 6-char dashboard traceId (or any reused explicit id) can collide.
+  // Keep the already-written artifact path; only the SQLite primary key is regenerated.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      insertStmt.run(insertParams);
+      break;
+    } catch (error) {
+      if (!isCallLogIdCollision(error) || attempt >= CALL_LOG_ID_RETRY_LIMIT) throw error;
+      insertParams.id = generateLogId();
     }
-    // sink note: the sink is the unique consumer — reset only after a successful
-    // INSERT, so a failed write (or a second persistence of the same
-    // attempt) keeps the summary instead of silently writing NULL.
-    resetResilienceActions();
-
-    if (detailState === "ready" && typeof logEntry.responseId === "string") {
-      // The durable row is now authoritative; drop the bridge entry instead
-      // of letting it idle until its TTL.
-      clearPendingContinuationState(logEntry.responseId);
-    }
-
-    scheduleCallLogRotation();
-  } catch (error) {
-    if (String((error as Error)?.message ?? error).includes("no such column")) {
-      invalidateCallLogsColumnCache();
-    }
-    console.error(
-      "[callLogs] Failed to save call log:",
-      sanitizeErrorMessage(error) || "Call log persistence failed"
-    );
   }
+  // sink note: the sink is the unique consumer — reset only after a successful
+  // INSERT, so a failed write (or a second persistence of the same
+  // attempt) keeps the summary instead of silently writing NULL.
+  resetResilienceActions();
+
+  if (detailState === "ready" && typeof responseId === "string") {
+    // The durable row is now authoritative; drop the bridge entry instead
+    // of letting it idle until its TTL.
+    clearPendingContinuationState(responseId);
+  }
+
+  scheduleCallLogRotation();
 }
 
 export function saveCallLog(entry: any): Promise<void> {
