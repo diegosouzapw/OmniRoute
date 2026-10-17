@@ -58,6 +58,10 @@ export async function getEmbeddingOptions(): Promise<EmbeddingProviderOption[]> 
     const hasConnection = conns.length > 0;
 
     const curated = getEmbeddingProvider(providerId);
+    // Native-invoke providers (Bedrock) have a URL template, not an
+    // OpenAI-compatible endpoint; the semantic-cache generator can only speak
+    // `/v1/embeddings`, so offering them here would produce a broken URL.
+    if (curated?.nativeInvokeProtocol) continue;
     const configuredBaseUrl = activeConn
       ? getProviderBaseUrl(activeConn.providerSpecificData)
       : undefined;

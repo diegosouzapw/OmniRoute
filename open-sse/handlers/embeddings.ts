@@ -41,6 +41,18 @@ import {
   isGeminiEmbedding2Family,
   isGeminiNativeEmbeddingInput,
 } from "@/shared/validation/geminiNativeEmbeddingInput";
+import {
+  bedrockEmbeddingFamily,
+  bedrockPartialFailureMessage,
+  type BedrockEmbeddingFamily,
+  bedrockFamilyIsSingleItem,
+  buildBedrockEmbeddingBody,
+  extractBedrockEmbeddings,
+  extractBedrockPromptTokens,
+  resolveBedrockEmbeddingUrl,
+  type BedrockEmbeddingItem,
+} from "./bedrockEmbeddings.ts";
+import { resolveBedrockRegion } from "../config/bedrock.ts";
 
 interface ClientRawRequest {
   endpoint: string;
@@ -109,11 +121,23 @@ interface EmbeddingRuntime extends HandleEmbeddingParams {
   logRequestBody: Record<string, unknown>;
 }
 
+interface BedrockEmbeddingPlan {
+  family: BedrockEmbeddingFamily;
+  /** Requested model id, echoed back in the merged OpenAI-shaped response. */
+  model: string;
+  /** Number of client input items — the merged response must carry exactly this many vectors. */
+  itemCount: number;
+  /** One InvokeModel body per upstream call (Titan: one per item; Cohere: one for the batch). */
+  bodies: Record<string, unknown>[];
+}
+
 interface PreparedEmbeddingRequest {
   upstreamBody: Record<string, unknown>;
   upstreamUrl: string;
   headers: Record<string, string>;
   normalizeProviderResponse: ProviderResponseNormalizer;
+  /** Set only for `nativeInvokeProtocol: "bedrock-invoke"`; built in the prepare stage so client errors are 400s. */
+  bedrock?: BedrockEmbeddingPlan;
 }
 
 interface ParsedEmbeddingResponse {
@@ -326,6 +350,13 @@ function isLocalEmbeddingProvider(provider: string): boolean {
 }
 
 function resolveUpstreamUrl(runtime: EmbeddingRuntime): string {
+  // Bedrock's registry baseUrl is a template — the region comes from the
+  // connection (shared with the Bedrock chat executor) and the model from the
+  // request, so it cannot be a fixed endpoint like the OpenAI-compatible ones.
+  if (runtime.providerConfig.nativeInvokeProtocol === "bedrock-invoke") {
+    const region = resolveBedrockRegion(runtime.credentials?.providerSpecificData);
+    return resolveBedrockEmbeddingUrl(runtime.providerConfig.baseUrl, region, runtime.model || "");
+  }
   return isLocalEmbeddingProvider(runtime.provider)
     ? resolveLocalEmbeddingUrl(runtime)
     : runtime.providerConfig.baseUrl;
@@ -407,6 +438,15 @@ async function applyStructuredTransport(
   prepared: PreparedEmbeddingRequest,
   token: string | null
 ): Promise<void> {
+  // Bedrock has no OpenAI-compatible transport: input parsing, media fetching and
+  // per-family body construction all happen HERE so that any client-side problem
+  // (mixed text+image for Cohere, token arrays, bad image URL, base64 encoding)
+  // surfaces as a 400 from prepareEmbeddingRequest's catch — never as a 502 that
+  // would push the Bedrock connection into cooldown (service.ts HARD_ERROR_STATUSES).
+  if (runtime.providerConfig.nativeInvokeProtocol === "bedrock-invoke") {
+    await prepareBedrockTransport(runtime, prepared);
+    return;
+  }
   const jinaNative = isJinaNativeEmbeddingInput(runtime.body.input);
   const geminiNative = isGeminiNativeEmbeddingInput(runtime.body.input);
   const canonical = hasStructuredEmbeddingInput(runtime.body.input);
@@ -530,11 +570,213 @@ async function fetchClovaEmbeddingBatch(
   });
 }
 
+/** Build a `data:` URL for Bedrock, keeping only the MIME type and refusing non-images. */
+function bedrockImageDataUrl(mediaType: unknown, base64: string): string {
+  const mime =
+    (typeof mediaType === "string" ? mediaType : "image/png").split(";")[0].trim() || "image/png";
+  if (!mime.startsWith("image/")) {
+    throw new Error(`Bedrock image embeddings require an image/* media type, got ${mime}`);
+  }
+  return `data:${mime};base64,${base64}`;
+}
+
+async function fetchBedrockImage(url: string): Promise<string> {
+  // Shared public-only, DNS-pinned fetcher with the inline media size limit.
+  const media = await fetchEmbeddingMedia(url);
+  return bedrockImageDataUrl(media.contentType || "image/png", media.buffer.toString("base64"));
+}
+
+/** Re-validate a client `data:` URL: it must be base64 and carry an image/* MIME type. */
+function normalizeBedrockDataUrl(ref: string): string {
+  const match = /^data:([^;,]*)((?:;[^;,]*)*?);base64,(.+)$/is.exec(ref);
+  if (!match) throw new Error("Bedrock image data URLs must be base64-encoded");
+  return bedrockImageDataUrl(match[1] || "image/png", match[3]);
+}
+
+/** Jina-native `image` shorthand may be a data URL, a public https URL, or bare base64. */
+async function resolveBedrockImageRef(ref: string): Promise<string> {
+  if (/^data:/i.test(ref)) return normalizeBedrockDataUrl(ref);
+  if (/^https?:\/\//i.test(ref)) return fetchBedrockImage(ref);
+  return bedrockImageDataUrl("image/png", ref);
+}
+
+/**
+ * Raised for a per-item rejection Bedrock reports in-band (HTTP 200 with
+ * `failureCount > 0`). It is the CLIENT's item that is bad, so it must surface
+ * as a 400 without touching connection cooldown.
+ */
+class BedrockItemRejectedError extends Error {}
+
+/**
+ * Flatten an OpenAI `input` into Bedrock items.
+ *
+ * Accepts a bare string, an array of strings, and the repo's canonical
+ * structured item `{type:"image"|"text", source:{type:"base64"|"url", data|url}}`
+ * (see `tests/unit/embeddings-multimodal-7956.test.ts`) plus the Jina-native
+ * `{image: …}` shorthand. Token arrays are rejected explicitly — Bedrock
+ * embedding models take text/images, not token ids.
+ *
+ * Every input entry must map to exactly ONE item: an entry that cannot be
+ * converted (blank text, unknown object, nested `content`/`parts`) is rejected
+ * instead of skipped, because skipping would shift every later `index` and
+ * silently misalign vectors against the caller's input.
+ */
+export async function collectBedrockEmbeddingItems(
+  input: unknown
+): Promise<BedrockEmbeddingItem[]> {
+  const raw = Array.isArray(input) ? input : [input];
+  const items: BedrockEmbeddingItem[] = [];
+  for (const [position, entry] of raw.entries()) {
+    const item = await toBedrockEmbeddingItem(entry);
+    if (!item) {
+      throw new Error(
+        `Embedding input item ${position} is empty or not a supported text/image shape for Bedrock`
+      );
+    }
+    items.push(item);
+  }
+  return items;
+}
+
+async function toBedrockEmbeddingItem(entry: unknown): Promise<BedrockEmbeddingItem | null> {
+  if (typeof entry === "string") return entry.trim() ? { text: entry } : null;
+  if (
+    typeof entry === "number" ||
+    (Array.isArray(entry) && entry.every((value) => typeof value === "number"))
+  ) {
+    throw new Error("Bedrock embeddings accept text strings and images only, not token arrays");
+  }
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+  const part = entry as Record<string, unknown>;
+  const type = typeof part.type === "string" ? part.type : "";
+
+  if (type === "text" || type === "input_text") {
+    return typeof part.text === "string" && part.text.trim() ? { text: part.text } : null;
+  }
+
+  if (type === "image") {
+    // Canonical shape: { type: "image", source: { type: "base64"|"url", data|url, media_type } }
+    const source = part.source;
+    if (source && typeof source === "object") {
+      const src = source as Record<string, unknown>;
+      if (typeof src.data === "string" && src.data.trim()) {
+        return {
+          imageBase64: /^data:/i.test(src.data)
+            ? normalizeBedrockDataUrl(src.data)
+            : bedrockImageDataUrl(src.media_type, src.data),
+        };
+      }
+      if (typeof src.url === "string" && src.url.trim()) {
+        return { imageBase64: await resolveBedrockImageRef(src.url) };
+      }
+    }
+    if (typeof part.image === "string" && part.image.trim()) {
+      return { imageBase64: await resolveBedrockImageRef(part.image) };
+    }
+    return null;
+  }
+
+  // Jina-native shorthand without a `type` discriminator — exactly one of text/image.
+  const hasImage = typeof part.image === "string" && part.image.trim();
+  const hasText = typeof part.text === "string" && part.text.trim();
+  if (hasImage && hasText) {
+    throw new Error("Bedrock embeddings take text OR an image per input item, not both");
+  }
+  if (hasImage) return { imageBase64: await resolveBedrockImageRef(part.image as string) };
+  if (hasText) return { text: part.text as string };
+  return null;
+}
+
+/** Prepare-stage half of the Bedrock transport: everything that can fail because of the CLIENT. */
+async function prepareBedrockTransport(
+  runtime: EmbeddingRuntime,
+  prepared: PreparedEmbeddingRequest
+): Promise<void> {
+  const family = bedrockEmbeddingFamily(runtime.model || "");
+  if (!family) throw new Error(`Unsupported Bedrock embedding model: ${runtime.model}`);
+  if (runtime.body.encoding_format === "base64") {
+    throw new Error("Bedrock embeddings support float encoding only");
+  }
+  const items = await collectBedrockEmbeddingItems(runtime.body.input);
+  if (items.length === 0) throw new Error("Embedding input was empty");
+
+  const options = {
+    dimensions: runtime.body.dimensions !== undefined ? Number(runtime.body.dimensions) : undefined,
+    inputType: typeof runtime.body.input_type === "string" ? runtime.body.input_type : undefined,
+    normalize: typeof runtime.body.normalize === "boolean" ? runtime.body.normalize : undefined,
+  };
+  // Titan: one invoke per item. Cohere: a single invoke for the whole batch.
+  const batches = bedrockFamilyIsSingleItem(family) ? items.map((item) => [item]) : [items];
+  prepared.bedrock = {
+    family,
+    model: runtime.model || "",
+    itemCount: items.length,
+    bodies: batches.map((batch) => buildBedrockEmbeddingBody(family, batch, options)),
+  };
+}
+
+/**
+ * Dispatch-stage half of the Bedrock transport: only the upstream calls live here,
+ * so a thrown error genuinely means "the provider misbehaved" (502 + cooldown is
+ * then the right outcome). Client-caused failures were already rejected in
+ * prepareBedrockTransport with a 400.
+ */
+async function fetchBedrockEmbeddingBatch(
+  prepared: PreparedEmbeddingRequest,
+  plan: BedrockEmbeddingPlan,
+  reqLogger: RequestLogger
+): Promise<Response> {
+  const vectors: number[][] = [];
+  const usage = { prompt_tokens: 0, total_tokens: 0 };
+  let lastHeaders = new Headers();
+
+  for (const upstreamBody of plan.bodies) {
+    reqLogger.logTargetRequest(prepared.upstreamUrl, prepared.headers, upstreamBody);
+    const response = await fetch(prepared.upstreamUrl, {
+      method: "POST",
+      headers: prepared.headers,
+      body: JSON.stringify(upstreamBody),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    lastHeaders = response.headers;
+    // Relay upstream failures untouched — Bedrock's own message (invalid model
+    // id, on-demand throughput unsupported, access denied) is the useful signal.
+    if (!response.ok) return response;
+    const raw = (await response.json()) as Record<string, unknown>;
+    // Titan multimodal reports per-item rejections (e.g. image too large) in-band
+    // with HTTP 200. That is a problem with the CLIENT's item, so it is raised as
+    // a typed error that executeEmbedding turns into a plain 400 — bypassing
+    // handleUpstreamFailure so the connection is never marked unavailable.
+    const partial = bedrockPartialFailureMessage(raw);
+    if (partial) throw new BedrockItemRejectedError(partial);
+    for (const vector of extractBedrockEmbeddings(plan.family, raw)) vectors.push(vector);
+    const promptTokens = extractBedrockPromptTokens(raw);
+    usage.prompt_tokens += promptTokens;
+    usage.total_tokens += promptTokens;
+  }
+
+  // A count mismatch would silently misalign `index` against the caller's input
+  // and poison whatever vector store consumes this response — fail loudly instead.
+  if (vectors.length !== plan.itemCount) {
+    throw new Error(
+      `Bedrock returned ${vectors.length} embedding(s) for ${plan.itemCount} input item(s)`
+    );
+  }
+
+  const data = vectors.map((embedding, index) => ({ object: "embedding", index, embedding }));
+  return new Response(JSON.stringify({ object: "list", data, model: plan.model, usage }), {
+    status: 200,
+    headers: lastHeaders,
+  });
+}
+
 async function dispatchEmbeddingRequest(
   prepared: PreparedEmbeddingRequest,
   singleTexts: string[] | null,
   reqLogger: RequestLogger
 ): Promise<Response> {
+  // The plan is only ever set for `nativeInvokeProtocol: "bedrock-invoke"`.
+  if (prepared.bedrock) return fetchBedrockEmbeddingBatch(prepared, prepared.bedrock, reqLogger);
   if (singleTexts) return fetchClovaEmbeddingBatch(prepared, singleTexts, reqLogger);
   reqLogger.logTargetRequest(prepared.upstreamUrl, prepared.headers, prepared.upstreamBody);
   return fetch(prepared.upstreamUrl, {
@@ -740,10 +982,15 @@ async function executeEmbedding(
   const singleTexts = Array.isArray(singleTextsOrFailure) ? singleTextsOrFailure : null;
   try {
     const response = await dispatchEmbeddingRequest(prepared, singleTexts, runtime.reqLogger);
+    // Fan-out providers make one upstream call per body/text; count each one.
+    const requestCount = prepared.bedrock?.bodies.length ?? singleTexts?.length ?? 1;
     return response.ok
-      ? handleUpstreamSuccess(runtime, prepared, response, singleTexts?.length ?? 1)
+      ? handleUpstreamSuccess(runtime, prepared, response, requestCount)
       : handleUpstreamFailure(runtime, response);
   } catch (error) {
+    if (error instanceof BedrockItemRejectedError) {
+      return failure(400, `Embedding provider error: ${sanitizeErrorMessage(error.message)}`);
+    }
     return handleEmbeddingException(runtime, prepared, error);
   }
 }

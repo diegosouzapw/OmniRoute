@@ -13,6 +13,13 @@ import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 export type EmbeddingModality = "text" | "image" | "audio" | "video" | "document";
 export type StructuredEmbeddingProtocol = "jina-v1" | "gemini-embed-content" | "llama-cpp-mtmd";
 export type SingleTextEmbeddingProtocol = "clova-v2";
+/**
+ * Providers reached through a non-OpenAI, model-specific invoke API rather than
+ * an OpenAI-compatible `/v1/embeddings` endpoint. The request body and response
+ * shape are chosen per MODEL family, not per provider — see
+ * `open-sse/handlers/embeddings.ts` for the four Bedrock shapes.
+ */
+export type NativeInvokeEmbeddingProtocol = "bedrock-invoke";
 
 export interface EmbeddingModel {
   id: string;
@@ -50,6 +57,13 @@ export interface EmbeddingProvider {
    * merged back into a single OpenAI list response.
    */
   singleTextProtocol?: SingleTextEmbeddingProtocol;
+  /**
+   * Set when the provider is NOT OpenAI-compatible and each model family has its
+   * own invoke body/response shape (Amazon Bedrock). `baseUrl` is then a URL
+   * TEMPLATE containing `{region}` and `{model}` placeholders rather than a
+   * ready-to-use endpoint.
+   */
+  nativeInvokeProtocol?: NativeInvokeEmbeddingProtocol;
 }
 
 export interface EmbeddingProviderNodeRow {
@@ -82,6 +96,71 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
 }
 
 export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
+  /**
+   * Amazon Bedrock — reached through the model-specific `InvokeModel` REST API,
+   * not an OpenAI-compatible endpoint, so it carries `nativeInvokeProtocol`.
+   *
+   * `baseUrl` is a template: `{region}` is filled from the connection's
+   * `providerSpecificData.region` (via `resolveBedrockRegion`, shared with the
+   * Bedrock chat executor) and `{model}` from the requested model id.
+   *
+   * Model availability is REGION-dependent and deliberately not encoded here —
+   * an unavailable model returns Bedrock's own
+   * `The provided model identifier is invalid.` / `on-demand throughput isn't
+   * supported` message, which is relayed verbatim. Verified 2026-09-10:
+   * `titan-embed-image-v1` is absent in ap-northeast-1/ap-southeast-1, and
+   * `cohere.embed-v4:0` rejects on-demand invokes outside
+   * us-east-1/eu-west-1/ap-northeast-1.
+   */
+  bedrock: {
+    id: "bedrock",
+    baseUrl: "https://bedrock-runtime.{region}.amazonaws.com/model/{model}/invoke",
+    authType: "apikey",
+    authHeader: "bearer",
+    nativeInvokeProtocol: "bedrock-invoke",
+    models: [
+      // Titan text — one text per request, fanned out for batched input.
+      {
+        id: "amazon.titan-embed-text-v2:0",
+        name: "Titan Text Embeddings V2",
+        dimensions: 1024,
+        modalities: ["text"],
+      },
+      {
+        id: "amazon.titan-embed-text-v1",
+        name: "Titan Text Embeddings G1",
+        dimensions: 1536,
+        modalities: ["text"],
+      },
+      // Titan multimodal — accepts inputText and/or inputImage.
+      {
+        id: "amazon.titan-embed-image-v1",
+        name: "Titan Multimodal Embeddings G1",
+        dimensions: 1024,
+        modalities: ["text", "image"],
+      },
+      // Cohere — batched texts[] or images[] per request.
+      {
+        id: "cohere.embed-v4:0",
+        name: "Cohere Embed v4",
+        dimensions: 1536,
+        modalities: ["text", "image"],
+      },
+      {
+        id: "cohere.embed-english-v3",
+        name: "Cohere Embed English v3",
+        dimensions: 1024,
+        modalities: ["text", "image"],
+      },
+      {
+        id: "cohere.embed-multilingual-v3",
+        name: "Cohere Embed Multilingual v3",
+        dimensions: 1024,
+        modalities: ["text", "image"],
+      },
+    ],
+  },
+
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/embed",
