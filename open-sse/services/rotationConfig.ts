@@ -24,6 +24,8 @@
 
 import { RateLimitReason } from "../config/constants.ts";
 import { COOLDOWN_MS } from "../config/errorConfig.ts";
+import { getProviderRateLimitCooldownOverrideMs } from "./providerDefaultRateLimit.ts";
+import { resolveProviderId } from "../../src/shared/constants/providers";
 
 export interface RotationErrorClassConfig {
   enabled: boolean;
@@ -170,7 +172,9 @@ export function resolveRotationConfig(overrides?: Record<string, unknown> | null
     enabled: enableKey in overrides ? coerceBool(overrides[enableKey], src.enabled) : src.enabled,
     threshold: thrKey in overrides ? coerceInt(overrides[thrKey], src.threshold, 1) : src.threshold,
     windowMs:
-      winKey in overrides ? coerceInt(overrides[winKey], src.windowMs / 1000, 1) * 1000 : src.windowMs,
+      winKey in overrides
+        ? coerceInt(overrides[winKey], src.windowMs / 1000, 1) * 1000
+        : src.windowMs,
   });
 
   return {
@@ -180,15 +184,38 @@ export function resolveRotationConfig(overrides?: Record<string, unknown> | null
         ? coerceInt(overrides.rateLimitResetSeconds, base.rateLimitResetMs / 1000, 0) * 1000
         : base.rateLimitResetMs,
     disableTagWithoutReset: base.disableTagWithoutReset,
-    rateLimit429: cls(base.rateLimit429, "rotateOn429", "error429Threshold", "error429WindowSeconds"),
-    serverError500: cls(base.serverError500, "rotateOn500", "error500Threshold", "error500WindowSeconds"),
-    badGateway502: cls(base.badGateway502, "rotateOn502", "error502Threshold", "error502WindowSeconds"),
-    badRequest400: cls(base.badRequest400, "rotateOn400", "error400Threshold", "error400WindowSeconds"),
+    rateLimit429: cls(
+      base.rateLimit429,
+      "rotateOn429",
+      "error429Threshold",
+      "error429WindowSeconds"
+    ),
+    serverError500: cls(
+      base.serverError500,
+      "rotateOn500",
+      "error500Threshold",
+      "error500WindowSeconds"
+    ),
+    badGateway502: cls(
+      base.badGateway502,
+      "rotateOn502",
+      "error502Threshold",
+      "error502WindowSeconds"
+    ),
+    badRequest400: cls(
+      base.badRequest400,
+      "rotateOn400",
+      "error400Threshold",
+      "error400WindowSeconds"
+    ),
   };
 }
 
 /** Maps an HTTP status to its configured error class (or null for statuses this config doesn't gate). */
-export function classForStatus(status: number, cfg: RotationConfig): RotationErrorClassConfig | null {
+export function classForStatus(
+  status: number,
+  cfg: RotationConfig
+): RotationErrorClassConfig | null {
   if (status === 429) return cfg.rateLimit429;
   if (status === 502) return cfg.badGateway502;
   if (status >= 500 && status < 600) return cfg.serverError500;
@@ -359,10 +386,38 @@ export function gateFor(status: number, account?: unknown): RotationGateDecision
   return evaluateRotationGate(status, resolveRotationConfig(rotationOverrides), rotationKey);
 }
 
-/** Combines extractRotationContext + resolveRotationConfig + rotationRateLimitFallback for an account. */
-export function overrideFor(reason: string, account?: unknown): RotationRateLimitFallback | null {
+/**
+ * Per-provider rate-limit retry delay (ms) from resilience `providerQuotaOverrides`, looked up
+ * by the given id and then its canonical id (so aliases share the setting). null = unset/Auto.
+ */
+export function getProviderRateLimitCooldownMs(provider?: string | null): number | null {
+  if (!provider) return null;
+  const direct = getProviderRateLimitCooldownOverrideMs(provider);
+  if (direct !== null) return direct;
+  const canonical = resolveProviderId(provider);
+  return canonical && canonical !== provider
+    ? getProviderRateLimitCooldownOverrideMs(canonical)
+    : null;
+}
+
+/**
+ * Combines extractRotationContext + resolveRotationConfig + rotationRateLimitFallback for an
+ * account. Cooldown precedence (no upstream hint): per-connection `rateLimitResetSeconds` >
+ * per-provider retry delay > env OMNIROUTE_ROTATION_RATE_LIMIT_RESET_SECONDS > engine backoff.
+ */
+export function overrideFor(
+  reason: string,
+  account?: unknown,
+  provider?: string | null
+): RotationRateLimitFallback | null {
   const { rotationOverrides } = extractRotationContext(account);
-  return rotationRateLimitFallback(reason, resolveRotationConfig(rotationOverrides));
+  const cfg = resolveRotationConfig(rotationOverrides);
+  const connectionPinned = !!rotationOverrides && "rateLimitResetSeconds" in rotationOverrides;
+  const providerMs = connectionPinned ? null : getProviderRateLimitCooldownMs(provider);
+  return rotationRateLimitFallback(
+    reason,
+    providerMs !== null ? { ...cfg, rateLimitResetMs: providerMs } : cfg
+  );
 }
 
 /**

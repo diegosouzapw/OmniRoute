@@ -96,6 +96,15 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 - API-key 429: prefers upstream `Retry-After`/reset headers/parseable reset text
 - Backoff: `baseCooldownMs * 2 ** failureIndex`
 
+**Per-provider retry delay.** The provider detail page has a **Retry delay** select (Auto,
+15s up to 1h). It saves `resilienceSettings.providerQuotaOverrides[<providerId>].rateLimitCooldownSeconds`
+(1–21600, through `PATCH /api/resilience`). When a rate-limit error carries no upstream retry
+hint, that value replaces the scaled backoff for the provider and resets `backoffLevel` to 0
+(`open-sse/services/rotationConfig.ts::overrideFor`). Precedence for a rate-limited error, highest
+first: upstream retry hint, then per-connection `providerSpecificData.rotationOverrides.rateLimitResetSeconds`,
+then the per-provider retry delay, then env `OMNIROUTE_ROTATION_RATE_LIMIT_RESET_SECONDS`, then the
+scaled backoff. Auto removes the field. It only affects the rate-limit reason, never terminal states.
+
 **Anti-thundering-herd guard:** prevents concurrent failures from over-extending cooldown or double-incrementing `backoffLevel`.
 
 **Concurrency-limit 429s do not climb the backoff ladder.** A `429` whose body reports a

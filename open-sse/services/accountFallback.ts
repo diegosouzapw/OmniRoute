@@ -1853,7 +1853,7 @@ export function checkFallbackError(
       };
     }
 
-    const ro = rot.overrideFor(reason, rotation?.account);
+    const ro = rot.overrideFor(reason, rotation?.account, provider);
     if (ro) return ro;
     const scaled = getScaledBaseCooldown(reason, backoffLevel);
     return {

@@ -224,6 +224,12 @@ export interface ProviderQuotaOverrideSettings {
   concurrency?: number;
   /** Shared concurrency cap across every connection for this provider. */
   providerConcurrency?: number;
+  /**
+   * Fixed connection cooldown (seconds) after a rate-limit error when the upstream sent no
+   * retry hint. Replaces the scaled exponential backoff for this provider; a per-connection
+   * `rotationOverrides.rateLimitResetSeconds` still wins. Missing = engine default ("Auto").
+   */
+  rateLimitCooldownSeconds?: number;
 }
 
 export interface StreamRecoverySettings {

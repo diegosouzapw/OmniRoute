@@ -489,6 +489,11 @@ function normalizeProviderQuotaOverrideEntry(raw: unknown): ProviderQuotaOverrid
   if (Number.isFinite(providerConcurrency) && providerConcurrency >= 0) {
     out.providerConcurrency = Math.trunc(providerConcurrency);
   }
+  // Per-provider rate-limit retry delay: <=0/non-finite means "Auto" (dropped); capped at 6h.
+  const cooldownSeconds = Number(record.rateLimitCooldownSeconds);
+  if (Number.isFinite(cooldownSeconds) && cooldownSeconds >= 1) {
+    out.rateLimitCooldownSeconds = Math.min(Math.trunc(cooldownSeconds), 21_600);
+  }
   return Object.keys(out).length > 0 ? out : null;
 }
 

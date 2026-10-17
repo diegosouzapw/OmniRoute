@@ -43,9 +43,16 @@ const limiter = new SlidingWindowLimiter();
  * (see `src/lib/resilience/settings.ts`) by `rateLimitManager.ts` on init/refresh.
  * `rpm` overrides the static sliding-window budget; `concurrency` overrides the
  * default per-connection concurrency cap. A 0/missing field falls back to the
- * static default for that field.
+ * static default for that field. `rateLimitCooldownSeconds` is the per-provider
+ * rate-limit retry delay (see `getProviderRateLimitCooldownOverrideMs`).
  */
-let providerQuotaOverrides: Record<string, { rpm?: number; concurrency?: number }> | null = null;
+interface ProviderQuotaOverrideEntry {
+  rpm?: number;
+  concurrency?: number;
+  rateLimitCooldownSeconds?: number;
+}
+
+let providerQuotaOverrides: Record<string, ProviderQuotaOverrideEntry> | null = null;
 
 /** Test hook: override the provider-default map and clear accumulated history. */
 export function __setProviderDefaultRateLimitsForTests(
@@ -61,9 +68,19 @@ export function __setProviderDefaultRateLimitsForTests(
  * `applyRequestQueueSettings()` after resolving `ResilienceSettings`.
  */
 export function setProviderQuotaOverrides(
-  map: Record<string, { rpm?: number; concurrency?: number }> | null
+  map: Record<string, ProviderQuotaOverrideEntry> | null
 ): void {
   providerQuotaOverrides = map;
+}
+
+/**
+ * Operator-configured per-provider rate-limit retry delay (ms), or null when unset ("Auto").
+ * Consumed by `rotationConfig.ts::overrideFor` when the upstream gave no retry hint.
+ */
+export function getProviderRateLimitCooldownOverrideMs(provider: string): number | null {
+  if (!provider) return null;
+  const seconds = providerQuotaOverrides?.[provider]?.rateLimitCooldownSeconds;
+  return typeof seconds === "number" && seconds > 0 ? seconds * 1000 : null;
 }
 
 export function getProviderDefaultRateLimit(provider: string): RateLimitWindow | undefined {
