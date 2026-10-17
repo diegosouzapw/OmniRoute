@@ -1,0 +1,1 @@
+- **fix(plugin):** the v1 plugin no longer fetches `/api/combos/auto` on each catalog refresh; the `auto/*` entries come from `/v1/models` as served by the gateway ([#16228](https://github.com/diegosouzapw/OmniRoute/pull/16228)) — thanks @maxmad64bis
