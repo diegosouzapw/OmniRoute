@@ -81,7 +81,9 @@ function issuesRefreshLessLongLivedTokens(provider: unknown): boolean {
  * (`tokenExpiresAt || expiresAt`): with no known expiry the badge cannot claim
  * "Token Expired" either, so there is no mismatch to correct and condemning the
  * row is pure loss. Where an expiry IS known and has passed, the terminal write
- * still happens and #5326 is preserved.
+ * still happens and #5326 is preserved. Conversely, a KNOWN FUTURE expiry is
+ * never condemned regardless of provider (#16984): the token still works, so
+ * `testStatus: "active"` is simply the truth.
  *
  * @param conn Provider connection row.
  * @param supportsRefresh Result of `supportsTokenRefresh(conn.provider)`, injected
@@ -102,7 +104,14 @@ export function shouldMarkRefreshCapableExpired(
   if (conn.testStatus && conn.testStatus !== "active") return false;
   // API-key-only connections do not need refresh tokens at all.
   if (conn.apiKey && conn.apiKey.length > 0) return false;
-  if (!issuesRefreshLessLongLivedTokens(conn.provider)) return true;
+  // A refresh-less connection whose KNOWN token expiry is still in the future
+  // is still usable — condemning it now would kill grants that are
+  // intermittently refresh-less (kimi-coding device flow: 15-minute tokens,
+  // refresh token sometimes absent — #16984) well before the token stops
+  // working. Wait for the actual expiry; the request path surfaces the 401
+  // when the token really dies.
   const expiryMs = getEffectiveTokenExpiryMs(conn);
+  if (expiryMs > nowMs) return false;
+  if (!issuesRefreshLessLongLivedTokens(conn.provider)) return true;
   return expiryMs > 0 && expiryMs <= nowMs;
 }
