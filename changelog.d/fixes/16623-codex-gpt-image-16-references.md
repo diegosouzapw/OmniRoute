@@ -1,0 +1,1 @@
+- **fix(codex-images):** allow up to 16 GPT Image edit references on the dedicated Codex Images route while retaining the existing eight-reference bound for the hosted Responses image tool ([#16623](https://github.com/diegosouzapw/OmniRoute/pull/16623)) — thanks @Bl0ck154

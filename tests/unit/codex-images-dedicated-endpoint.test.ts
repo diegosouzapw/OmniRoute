@@ -306,6 +306,54 @@ test("v1 image edit route sends Codex GPT Image references to the Images edits r
   assert.equal(body.data[0].b64_json, "ZWRpdGVk");
 });
 
+test("GPT Image 2.5 forwards 16 references and rejects 17 before upstream", async () => {
+  await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "apikey",
+    name: "codex-images-16",
+    apiKey: "codex-oauth-token",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {},
+  });
+  const calls: Captured[] = [];
+  captureFetch(calls, () => imagesResponse("ZWRpdGVk"));
+
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+  const requestFor = (count: number) => {
+    const formData = new FormData();
+    formData.set("prompt", "combine the color references");
+    formData.set("model", "codex/gpt-image-2.5-flare");
+    for (let index = 0; index < count; index += 1) {
+      formData.append(
+        "image[]",
+        new File([png], "reference-" + (index + 1) + ".png", { type: "image/png" })
+      );
+    }
+    return new Request("http://localhost/api/v1/images/edits", {
+      method: "POST",
+      body: formData,
+    });
+  };
+
+  const valid = await imageEditRoute.POST(requestFor(16));
+  assert.equal(valid.status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, IMAGES_BASE + "/edits");
+  assert.equal(calls[0].body.model, "gpt-image-2.5-flare");
+  const forwarded = calls[0].body.images as Array<{ image_url: string }>;
+  assert.equal(forwarded.length, 16);
+  assert.ok(
+    forwarded.every((image) => image.image_url.startsWith("data:image/png;base64,"))
+  );
+
+  const oversized = await imageEditRoute.POST(requestFor(17));
+  assert.equal(oversized.status, 400);
+  const error = (await oversized.json()) as { error: { message: string } };
+  assert.match(error.error.message, /at most 16 reference images/i);
+  assert.equal(calls.length, 1, "invalid edit must not reach upstream");
+});
+
 test("v1 image edit route sends Codex GPT Image 2.5 Sunburst references to the Images edits route", async () => {
   await providersDb.createProviderConnection({
     provider: "codex",
