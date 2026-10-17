@@ -1,14 +1,15 @@
 ---
 title: "Guardrails"
-version: 3.8.51
-lastUpdated: 2026-08-29
+version: 3.8.52
+lastUpdated: 2026-10-16
 ---
 
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`
-> **Last updated:** 2026-08-29 — v3.8.51 (Video Bridge transcript provenance is caller-declared,
-> not yet server-verified — clarified per #11661)
+> **Last updated:** 2026-10-16 — v3.8.52 (added [Coverage and limits](#coverage-and-limits):
+> which routes and response paths the hooks reach, the #16412 header caveat, injection block mode
+> as a mandatory boundary (#16413), and what sees a response before post-call)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
 between OmniRoute and upstream providers. Each guardrail can inspect (and
@@ -18,6 +19,12 @@ upstream responses (`postCall`).
 The system is **fail-open**: if a guardrail throws while executing, the registry
 records the error and continues with the next guardrail rather than failing the
 request. Blocking is an explicit decision (`block: true`), never an accident.
+The one exception is an aborted request: when the caller's `signal` is aborted,
+a throwing guardrail rejects the hook run instead of being skipped.
+
+The hooks do **not** run on every route or every response. Read
+[Coverage and limits](#coverage-and-limits) before relying on a guardrail as a
+security control.
 
 ## Built-in Guardrails
 
@@ -841,23 +848,43 @@ useful for tracing.
 
 `resolveDisabledGuardrails({ apiKeyInfo, body, headers })` aggregates a
 de-duplicated list of guardrail names that should be skipped for the current
-request. Sources (all optional, all merged):
+request. There are five channels, read in this order (first occurrence wins
+when de-duplicating):
 
-- `apiKeyInfo.disabledGuardrails`
-- Request body `disabledGuardrails` (top-level)
-- Request body `metadata.disabledGuardrails`
-- Header `x-omniroute-disabled-guardrails` (or legacy
-  `x-disabled-guardrails`)
+1. `apiKeyInfo.disabledGuardrails`
+2. Request body `disabledGuardrails` (top-level)
+3. Request body `metadata.disabledGuardrails` (only when `metadata` is an object)
+4. Header `x-omniroute-disabled-guardrails`
+5. Legacy header `x-disabled-guardrails`
 
-Values may be arrays of strings or a comma-separated string; names are
-normalized to lowercase kebab-case (`pii_masker` → `pii-masker`). The result
-is passed through `context.disabledGuardrails` to the registry, which skips
-matching guardrails (`skipped: true` in `results`).
+Channels 1–4 are merged. The two headers are **either/or**: the legacy header is
+read only when `x-omniroute-disabled-guardrails` is absent, so sending both drops
+the legacy list ([#16412](https://github.com/diegosouzapw/OmniRoute/issues/16412)).
+
+Values may be arrays of strings or a comma-separated string; names are trimmed
+and normalized to lowercase kebab-case (`pii_masker` → `pii-masker`), and empty
+entries are dropped. The result is passed through `context.disabledGuardrails`
+to the registry, which skips matching guardrails (`skipped: true` in `results`).
+
+The disable list only affects the **registry**. Prompt-injection `block` mode is
+a mandatory boundary: the injection-guard middleware
+(`src/middleware/promptInjectionGuard.ts`) does not read any disable channel, so
+a request that disables `prompt-injection` is still rejected in `block` mode.
+This is by design. The disable channels are caller-controlled (request body,
+metadata, headers), and a caller must not be able to switch off a security
+control the operator set
+([#16413](https://github.com/diegosouzapw/OmniRoute/issues/16413)). The planned
+union of the two headers ([#16412](https://github.com/diegosouzapw/OmniRoute/issues/16412))
+changes only which registry guardrails are skipped; it does not let a client
+bypass the middleware. Mandatory per-key and per-group guardrail policies are
+tracked in the v4 RFC [#16417](https://github.com/diegosouzapw/OmniRoute/issues/16417).
+See [Coverage and limits](#coverage-and-limits).
 
 ## Execution Order
 
 For each request flowing through `src/sse/handlers/chat.ts` and
-`open-sse/handlers/chatCore.ts`:
+`open-sse/handlers/chatCore.ts` (the chat-family routes listed under
+[Coverage and limits](#coverage-and-limits)):
 
 1. `resolveDisabledGuardrails(...)` builds the skip list from API key, body,
    and headers.
@@ -869,12 +896,62 @@ For each request flowing through `src/sse/handlers/chat.ts` and
      a guardrail rejection response.
 3. The (potentially rewritten) payload flows into combo routing and upstream
    dispatch.
-4. After the response is assembled, `guardrailRegistry.runPostCallHooks(...)`
-   runs the same chain on the response. `block: true` here drops the upstream
-   response.
+4. **Non-streaming only:** after the response is assembled,
+   `guardrailRegistry.runPostCallHooks(...)` runs the same chain on the
+   response. `block: true` here drops the upstream response and returns HTTP 400. Streamed responses skip this step entirely.
 
 Guardrails that throw are recorded with `error: <message>` and logged via
 `logger.warn`, but the chain continues — fail-open by design.
+
+## Coverage and limits
+
+The guardrail registry is wired into the chat pipeline only. These limits are
+pinned by `tests/unit/guardrail-pipeline-wiring-characterization.test.ts` and
+`tests/unit/guardrail-pipeline-characterization.test.ts`; update those tests
+deliberately when the behavior changes.
+
+### Where the hooks run
+
+| Hook / control                      | Runs on                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runPreCallHooks`                   | Requests handled by `handleChat` (`src/sse/handlers/chat.ts`): `/v1/chat/completions`, `/v1/completions`, `/v1/messages`, `/v1/responses` (and `/v1/responses/*`), `/v1/relay/chat/completions`, `/v1/providers/{provider}/chat/completions`, `/v1/api/chat`, `/v1/antigravity`, `/v1beta/models/*`, and the Telegram chat proxy. Also the dashboard test endpoint `/api/guardrails/test`. A pre-call block returns HTTP 400. |
+| `runPostCallHooks`                  | **Non-streaming** chat responses only (`open-sse/handlers/chatCore/nonStreamingResponse.ts`). Streamed responses never reach it.                                                                                                                                                                                                                                                                                              |
+| Streaming PII                       | `createPiiSseTransform` (`src/lib/streamingPiiTransform.ts`), piped in `streamingPipeline.ts` when `PII_RESPONSE_SANITIZATION` is on. It is not a guardrail, so the disable channels don't affect it.                                                                                                                                                                                                                         |
+| Injection-guard middleware (legacy) | Every prompt-bearing `/v1` route, chat-family included (see [route coverage](#injection-guard-route-coverage--red-team-phase-8--block-d)). Prompt injection only.                                                                                                                                                                                                                                                             |
+
+### What is not covered
+
+- **Media, embeddings and data routes** (`/v1/images/*`, `/v1/embeddings`,
+  `/v1/audio/*`, `/v1/videos/generations`, `/v1/music/generations`,
+  `/v1/rerank`, `/v1/search`, `/v1/moderations`) never reach the registry. No
+  PII masking, credential masking or modality bridge runs there. Their only
+  check is the legacy injection-guard middleware.
+- **Streamed responses** get no post-call guardrails: no `pii-masker` or
+  `credential-masker` post-call, and no post-call block. Only the streaming PII
+  transform applies (when `PII_RESPONSE_SANITIZATION` is on). A credential
+  echoed back in a streamed response is not redacted.
+- **Disable channels vs. the middleware (by design):** the middleware evaluates
+  prompt injection with its own call to `evaluatePromptInjection()` and does not
+  read the disable list. `block` mode is a mandatory boundary that
+  caller-controlled disables cannot bypass, on chat-family routes included
+  ([#16413](https://github.com/diegosouzapw/OmniRoute/issues/16413)). Disabling
+  `prompt-injection` only skips the registry guardrail.
+
+### What sees a response before post-call
+
+On the non-streaming path the order is: memory extraction → built-in tool
+execution → post-call guardrails → post-call block exit → semantic-cache store.
+
+- **Memory extraction** and **tool execution** see the response before post-call
+  guardrails can rewrite or block it. Since
+  [#16401](https://github.com/diegosouzapw/OmniRoute/pull/16401), memory
+  extraction runs the extracted text through `sanitizePII` when
+  `PII_RESPONSE_SANITIZATION` is on (both streaming and non-streaming), but a
+  response that post-call later blocks has still been offered to memory and
+  tools.
+- **The semantic cache** stores the response after post-call, so it stores the
+  rewritten response, and a blocked response is never cached. Cache entries are
+  keyed per API key.
 
 ## Configuration
 
@@ -986,8 +1063,9 @@ Text extraction (`extractMessageContents`) covers `messages`/`input`/`prompt`/`q
 
 **Red-team (nightly, `nightly-llm-security.yml`):** promptfoo validates that each route blocks
 the OWASP-LLM corpus in `INJECTION_GUARD_MODE=block`; garak runs probes (skips without secret).
-`moderations` is included for consistency — operators in block-mode can exempt it via
-`resolveDisabledGuardrails`.
+`moderations` is included for consistency. Block mode is a mandatory boundary: the middleware
+does not read the per-request disable channels, so `disabledGuardrails` does **not** exempt a
+route from it ([#16413](https://github.com/diegosouzapw/OmniRoute/issues/16413)).
 
 The nightly workflow (`.github/workflows/nightly-llm-security.yml`, cron + manual
 dispatch) has two jobs:
