@@ -1,0 +1,76 @@
+name: Managed proxy cores
+
+on:
+  pull_request:
+    paths:
+      - "src/lib/services/managedProxy/**"
+      - "src/lib/services/ServiceSupervisor.ts"
+      - "src/lib/services/healthCheck.ts"
+      - "src/lib/services/types.ts"
+      - "src/app/api/services/managed-proxy/**"
+      - "src/shared/components/ProxyCustomFields.tsx"
+      - "tests/unit/managedProxy*.test.ts"
+      - "tests/unit/managedProxy*.test.tsx"
+      - "tests/_setup/managedProxyFixture.mjs"
+      - "tests/fixtures/managedProxyChild.mjs"
+      - "scripts/test/*managed-proxy*.mjs"
+      - "scripts/test/check-managed-proxy-native.ts"
+      - ".github/workflows/managed-proxy-cores.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-config:
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Check official core configuration fixtures
+        run: node --import tsx/esm scripts/test/check-managed-proxy-native.ts
+        env:
+          CI: "true"
+          NODE_ENV: test
+          DATA_DIR: ${{ runner.temp }}/managed-core-data
+          HOME: ${{ runner.temp }}/managed-core-home
+          USERPROFILE: ${{ runner.temp }}/managed-core-home
+          APPDATA: ${{ runner.temp }}/managed-core-home
+          LOCALAPPDATA: ${{ runner.temp }}/managed-core-home
+          HOOKMAKER_MAX_TEST_WORKERS: "1"
+  isolated-runtime:
+    # Actual supervisor child lifecycle and management seams; no core listener/upstream traffic.
+    needs: native-config
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Verify isolated lifecycle, rollback, deletion and existing-field save
+        timeout-minutes: 5
+        run: node scripts/test/run-managed-proxy-runtime.mjs
+        env:
+          HOOKMAKER_MAX_TEST_WORKERS: "1"

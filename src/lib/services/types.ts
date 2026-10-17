@@ -10,6 +10,10 @@ export interface ServiceConfig {
     cwd: string;
   };
   healthUrl: () => string;
+  /** Native services without HTTP health endpoints supply a bounded protocol probe. */
+  healthProbe?: (signal: AbortSignal) => Promise<boolean>;
+  requireHealthy?: boolean;
+  sanitizeLogLine?: (line: string) => string;
   healthIntervalMs: number;
   stopTimeoutMs: number;
   logsBufferBytes: number;

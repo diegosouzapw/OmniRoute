@@ -34,14 +34,14 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 Seven services are embedded:
 
-| Service         | npm package                        | Default port | Purpose                                                                                                                                                                                |
-| --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                          |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                                                                                          |
-| **CLIProxyAPI** | GitHub release binary (`cliproxy`) |     8317     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire                                                                                   |
-| **Mux**         | `mux` (headless `mux server`)      |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).                                                                         |
-| **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                             |
-| **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane |
-| **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                              |
+| Service         | npm package                        | Default port | Purpose                                                                                                                                                                                                                                                                                                                          |
+| --------------- | ---------------------------------- | :----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                          |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                                                                                                                                                                                                                                    |
+| **CLIProxyAPI** | GitHub release binary (`cliproxy`) |     8317     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire                                                                                                                                                                                                                             |
+| **Mux**         | `mux` (headless `mux server`)      |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).                                                                                                                                                                                                                   |
+| **Bifrost**     | `@maximhq/bifrost`                 |     8080     | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                                                                                                                                                                                                                                       |
+| **Dario**       | `@askalf/dario`                    |     3456     | Claude-subscription proxy — alternative/failover to CLIProxyAPI for Claude-Code-shaped traffic; the injected key becomes `DARIO_ADMIN_TOKEN` gating its `/admin/*` OAuth control plane                                                                                                                                           |
+| **open-wa**     | `@open-wa/wa-automate`             |     8323     | WhatsApp Web automation (headless Chromium via Puppeteer). Lifecycle-managed only — not a routing target.                                                                                                                                                                                                                        |
 | **LLMLingua**   | `@atjsh/llmlingua-2`               |    20135     | Prompt-compression sidecar — real LLMLingua-2 ONNX model (JS/TS port of Microsoft's algorithm). `open-sse/services/compression/engines/llmlingua/index.ts` dispatches `/compress` over HTTP to it, falling back to the in-process worker-thread backend when the sidecar is down. Lifecycle-managed only — not a routing target. |
 
 All seven follow the same supervisory model:
@@ -50,6 +50,45 @@ All seven follow the same supervisory model:
 - OmniRoute spawns and monitors them as child processes
 - OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
 - All management routes (`/api/services/*`) are **LOCAL_ONLY** — accessible only from loopback (hard rule #17)
+
+### Managed proxy cores
+
+The Custom proxy host field also accepts a V2Ray source link. Select **sing-box** or **Xray**
+explicitly, then click Save. Typing never downloads or starts a core. Save verifies the official
+release archive, validates native configuration, starts a distinct localhost SOCKS listener, and
+only then writes the proxy registry assignment. Failed activation restores the previous managed
+configuration and process. `STORAGE_ENCRYPTION_KEY` is required; source links are encrypted.
+
+Managed files live under `DATA_DIR/services/managed-proxy/`, separate from TPROXY. There is one
+owned process per selected core, up to 100 listeners. No autostart or global routing default is
+changed. Successful Save remembers activation for this managed core only; application startup
+restores enabled saved cores using the already verified binary, never a boot-time download.
+Explicit Stop clears that activation flag. A missing or damaged binary requires re-saving a source.
+Registry deletion removes the source and listener locally; ordinary endpoint edits are rejected for
+managed rows so the saved source cannot silently drift from its routed listener.
+
+| Source format                         | sing-box                                                          | Xray                                                              |
+| ------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| VLESS, VMess, Trojan, Shadowsocks URI | Supported conversion                                              | Supported conversion                                              |
+| Hysteria2/hy2, TUIC, AnyTLS URI       | Supported conversion                                              | Rejected; use a compatible core                                   |
+| TCP/raw, WebSocket, gRPC, HTTPUpgrade | Supported for VLESS/VMess/Trojan                                  | Supported for VLESS/VMess/Trojan                                  |
+| XHTTP URI transport                   | Rejected                                                          | Supported conversion                                              |
+| Native outbound JSON                  | Selected core's allowed proxy protocols/options, checked natively | Selected core's allowed proxy protocols/options, checked natively |
+
+Unknown wire options, insecure TLS flags, external plugins, local file-path options and unsupported
+combinations are rejected rather than silently discarded. Native objects are outbound definitions,
+not whole-core configurations; control/direct/bypass outbounds are not accepted. WireGuard on
+sing-box 1.14 uses endpoints, so it is not accepted as a native outbound. This is not an all-format
+converter; SSR, legacy whole-base64 Shadowsocks links, arbitrary Clash objects and transport
+variants absent from the table need a separately supported source format.
+
+`/api/services/managed-proxy` is authenticated and loopback-only: GET lists redacted metadata,
+POST saves `{core,name,sourceLink,id?,assignment?}`, PATCH accepts `{core,action:"start"|"stop"}`.
+The host's trusted peer-stamp pipeline must be present. Native core diagnostics are suppressed
+because they can contain credentials; lifecycle events use the existing structured application
+file logger without source links or upstream payloads. Attach only sanitized application logs for
+support. Official versions are pinned to sing-box 1.14.3 and Xray 26.3.27 with release-asset
+SHA-256 manifests; future updates require changing the version and all verified digests together.
 
 ### Key decisions (from design plan)
 
@@ -154,7 +193,7 @@ All seven follow the same supervisory model:
 | `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
 | `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
 | `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall for open-wa         |
-| `src/lib/services/installers/llmlingua.ts`   | npm install/update/uninstall for LLMLingua       |
+| `src/lib/services/installers/llmlingua.ts`  | npm install/update/uninstall for LLMLingua       |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
 | `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
 | `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |

@@ -173,6 +173,8 @@ function buildSpawnArgsFactory(
 }
 
 export async function bootstrapEmbeddedServices(): Promise<void> {
+  const { restoreManagedProxyCores } = await import("./managedProxy/manager");
+  await restoreManagedProxyCores();
   for (const cfg of SERVICES) {
     if (getSupervisor(cfg.tool)) continue;
 

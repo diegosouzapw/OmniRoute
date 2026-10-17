@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { deleteProxyById } from "@/lib/db/proxies";
+import { deleteProxyWithManagedCleanup } from "@/lib/api/managedProxyRegistry";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     for (const id of ids) {
       try {
-        if (await deleteProxyById(id, { force })) {
+        if (await deleteProxyWithManagedCleanup(request, id, force)) {
           results.push({ id, success: true });
           deletedCount++;
         } else {

@@ -1,7 +1,6 @@
 import {
   createProxy,
   createProxyAndAssign,
-  deleteProxyById,
   getProxyById,
   getProxyWhereUsed,
   updateProxy,
@@ -11,6 +10,7 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { createProxyRegistrySchema, updateProxyRegistrySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
+import { rejectManagedEndpointEdit, deleteProxyWithManagedCleanup } from "./managedProxyRegistry";
 
 async function readJsonBody(request: Request) {
   try {
@@ -101,6 +101,8 @@ export async function handleProxyUpdate(request: Request) {
     const changes = Object.fromEntries(
       Object.entries(rawChanges).filter(([_, v]) => v !== undefined)
     );
+    const managedEditError = await rejectManagedEndpointEdit(id, changes);
+    if (managedEditError) return managedEditError;
     if (assignment) {
       const result = await updateProxyAndAssign(id, changes, assignment);
       if (!result?.proxy) {
@@ -136,7 +138,7 @@ export async function handleProxyDelete(request: Request) {
       });
     }
 
-    const deleted = await deleteProxyById(id, { force });
+    const deleted = await deleteProxyWithManagedCleanup(request, id, force);
     if (!deleted) {
       return createErrorResponse({ status: 404, message: "Proxy not found", type: "not_found" });
     }

@@ -289,6 +289,25 @@ docker-compose.yml.bak
 # e impede que um git add -A recapture o symlink (incidente 2026-08-08).
 /_tasks
 
+# Local development protection
+/.ai/
+/.specify/
+/specs/
+/secrets.md
+/explain-AI.md
+/reference.md
+/CLAUDE.md
+/AGENTS.md
+/.kiro/
+/.codex/
+/.cursor/
+/.cline/
+/graphify-out/
+/.codebase-memory/
+/plans/
+.ignoreme
+**/.ignoreme
+
 # CLI local cache/state
 .playwright-cli
 

@@ -163,6 +163,38 @@ function defaultProxyConfigResponses(url: string): MockResponse | null {
 }
 
 describe("ProxyConfigModal custom registry saves", () => {
+  it("downloads and activates a tunnel only on Save with an explicit core", async () => {
+    installFetchMock((url, init) => {
+      if (url === "/api/services/managed-proxy" && init?.method === "POST") {
+        return { status: 201, body: { id: "managed-registry", host: "127.0.0.1", port: 24001 } };
+      }
+      return defaultProxyConfigResponses(url) || { status: 404, body: {} };
+    });
+    const { container } = await renderProxyConfigModal();
+    const link = "vless://11111111-1111-4111-8111-111111111111@example.invalid:443?security=tls";
+    await setInputValue(getInput(container, "hostPlaceholder"), link);
+    expect(fetchCalls.some((call) => call.url === "/api/services/managed-proxy")).toBe(false);
+    await clickButton(container, "save");
+    expect(fetchCalls.some((call) => call.url === "/api/services/managed-proxy")).toBe(false);
+    const select = container.querySelector<HTMLSelectElement>("#proxy-managed-core");
+    expect(select).toBeTruthy();
+    await act(async () => {
+      select!.value = "xray";
+      select!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await clickButton(container, "save");
+    const saved = fetchCalls.find(
+      (call) => call.method === "POST" && call.url === "/api/services/managed-proxy"
+    );
+    expect(saved?.body).toMatchObject({
+      core: "xray",
+      sourceLink: link,
+      assignment: { scope: "provider", scopeId: "claude" },
+    });
+    expect(
+      fetchCalls.some((call) => call.method === "POST" && call.url === "/api/settings/proxies")
+    ).toBe(false);
+  }, 5000);
   beforeEach(() => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -432,7 +464,10 @@ describe("ProxyConfigModal test connection (saved proxy)", () => {
       }
       if (url.startsWith("/api/settings/proxies/assignments?") && url.includes("scope=provider")) {
         return {
-          body: { items: [{ proxyId: "socks5-1", scope: "provider", scopeId: "claude" }], total: 1 },
+          body: {
+            items: [{ proxyId: "socks5-1", scope: "provider", scopeId: "claude" }],
+            total: 1,
+          },
         };
       }
       if (method === "POST" && url === "/api/settings/proxy/test") {

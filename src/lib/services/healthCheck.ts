@@ -16,7 +16,8 @@ export class HealthChecker {
   constructor(
     private readonly healthUrl: () => string,
     private readonly intervalMs: number,
-    private readonly onChange: OnHealthChange
+    private readonly onChange: OnHealthChange,
+    private readonly probe?: (signal: AbortSignal) => Promise<boolean>
   ) {}
 
   start(): void {
@@ -49,10 +50,13 @@ export class HealthChecker {
     const timeout = setTimeout(() => controller.abort(), HEALTH_FETCH_TIMEOUT_MS);
 
     try {
-      const res = await fetch(this.healthUrl(), { signal: controller.signal });
+      const healthy = this.probe
+        ? await this.probe(controller.signal)
+        : (await fetch(this.healthUrl(), { signal: controller.signal })).ok;
       clearTimeout(timeout);
+      if (!this.active) return;
 
-      if (res.ok) {
+      if (healthy) {
         this.consecutiveFailures = 0;
         this.setHealth("healthy");
       } else {
