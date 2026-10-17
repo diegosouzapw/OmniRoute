@@ -25,6 +25,7 @@ import {
   type LMArenaModelMetadata,
 } from "./lmarena/models.ts";
 import { formatArenaPrompt, parseArenaSSE } from "./lmarena/stream.ts";
+import { encodeProgrammaticCx } from "./lmarena/clientInteraction.ts";
 import {
   buildArenaUpstreamHttpResponse,
   createOpenAIArenaStream,
@@ -72,6 +73,30 @@ function readRecaptchaToken(credentials: unknown, body: unknown): string | null 
     if (psd && typeof psd === "object") {
       const nested = psd as Record<string, unknown>;
       const t = nested.recaptchaV3Token ?? nested.recaptchaToken;
+      if (typeof t === "string" && t.trim()) return t.trim();
+    }
+    return null;
+  };
+  return fromObj(credentials) ?? fromObj(body);
+}
+
+/**
+ * Optional browser-issued `cx` client-interaction blob (operator-supplied).
+ *
+ * A real browser always sends one; operators replaying a captured session can
+ * pass theirs through. When absent we synthesise the same blob arena.ai emits
+ * for a page with no recorded interaction — see `./lmarena/clientInteraction.ts`.
+ */
+function readClientInteractionToken(credentials: unknown, body: unknown): string | null {
+  const fromObj = (v: unknown): string | null => {
+    if (!v || typeof v !== "object") return null;
+    const rec = v as Record<string, unknown>;
+    const direct = rec.cx;
+    if (typeof direct === "string" && direct.trim()) return direct.trim();
+    const psd = rec.providerSpecificData;
+    if (psd && typeof psd === "object") {
+      const nested = psd as Record<string, unknown>;
+      const t = nested.cx;
       if (typeof t === "string" && t.trim()) return t.trim();
     }
     return null;
@@ -128,6 +153,7 @@ export class LMArenaExecutor extends BaseExecutor {
       },
       modality: "chat",
       recaptchaV3Token: readRecaptchaToken(credentials, body),
+      cx: readClientInteractionToken(credentials, body) ?? encodeProgrammaticCx(),
     };
   }
 

@@ -71,6 +71,22 @@ function resolveWebCookieProbe(
     return { rejection: UNSUPPORTED };
   }
 
+  // lmarena's baseUrl is the create-evaluation POST endpoint, so `${baseUrl}/models` is a
+  // 404 and its catalog routes (`/nextjs-api/model-catalog`) answer 200 with no session at
+  // all — neither discriminates a live cookie. `/api/me/pulse` is the session-scoped
+  // identity endpoint: 200 with a live cookie, 401 {"message":"User not found"} without
+  // one (verified live 2026-10).
+  if (provider === "lmarena") {
+    return {
+      testUrl: new URL("/api/me/pulse", baseUrl).toString(),
+      headers: {
+        Accept: "application/json",
+        "User-Agent": STANDARD_USER_AGENT,
+        Cookie: cookie,
+      },
+    };
+  }
+
   // zai-web is the one web-cookie provider whose session is a localStorage Bearer JWT
   // rather than a cookie: chat.z.ai serves its catalog at /api/models and authenticates
   // with `Authorization: Bearer`, so probing `${baseUrl}/models` with a Cookie header

@@ -48,7 +48,7 @@ const ARENA_PUBLIC_MESSAGES = {
   cloudflareBot:
     "Arena blocked by Cloudflare bot management. Use a residential/browser-grade network if needed, paste a fresh full Cookie header (include cf_clearance / __cf_bm when present), and optionally set providerSpecificData.recaptchaV3Token from a live browser session.",
   botTokenNeeded:
-    "If this persists, supply a browser reCAPTCHA v3 token via credentials.providerSpecificData.recaptchaV3Token (in addition to the session cookie).",
+    "If this persists, supply a browser reCAPTCHA v3 token via credentials.providerSpecificData.recaptchaV3Token (in addition to the session cookie). Arena also expects the `cx` client-interaction telemetry blob on create-evaluation — it is sent automatically, and a captured browser value can be replayed via credentials.providerSpecificData.cx.",
   tlsUnavailable:
     "Arena TLS impersonation unavailable: Arena upstream error. Verify the wreq-js 3.2 native binding.",
   upstream: "Arena upstream error",
