@@ -1,7 +1,7 @@
 ---
 title: "Log Export"
-version: 3.8.51
-lastUpdated: 2026-08-29
+version: 3.8.52
+lastUpdated: 2026-10-13
 ---
 
 # Log export
@@ -18,11 +18,12 @@ pipeline is a registry, so more destinations are additive.
 ## 1. How it works
 
 ```
-call_logs (SQLite)
-  → callLogExportSource.getCallLogsForExport(cursor, batchSize)
-    → LogExportRecord[]  (the Logs-tab field set)
-      → destination client.send(batch)
-        → advanceLogExportCursor(id, lastRowId, count)
+server (decrypt + validate config, reconcile cursor)
+  → start IPC → isolated exportChild OS process
+    → read-only storage.sqlite → shared call-log query/mapping
+      → async artifact hydration → destination prepare()/send()
+        → batch IPC → server persists cursor → ack IPC
+          → next batch; done IPC → server records success
 ```
 
 - **Schedule** — one `JobRegistry` cron job, `log_export`, defaulting to `0 * * * *` (hourly,
@@ -44,6 +45,69 @@ call_logs (SQLite)
 - **Purge recovery** — if `cursor_row_id` ends up above `MAX(rowid)` (the whole table was
   purged and rowids restarted), the runner rewinds to 0 rather than going permanently blind.
 
+### Isolated runner and limits
+
+Every destination run on Node starts a separate, short-lived OS child process (`child_process`
+with IPC, not `worker_threads`). Body reads, payload JSON parsing/serialization, destination
+`prepare()` and destination network I/O all run there, not on the server's event loop.
+Only configuration and small progress messages cross IPC; exported records never return to
+the server. The cron job and Run now route keep the same public result and overlap guard.
+
+The child opens the server's resolved `DATA_DIR/storage.sqlite` read-only using `node:sqlite`,
+with `busy_timeout=5000` and `query_only=ON`. It imports no DB singleton and performs no
+migrations, backups or SQLite updates. Missing/corrupt artifact bookkeeping (including the
+corrupt-artifact UPDATE) remains in the dashboard detail path only. Both paths share a pure
+detail resolver; export uses asynchronous filesystem reads and the same artifact → legacy
+inline → legacy disk → none resolution order. A run snapshots the maximum insertion rowid
+when the child opens its reader; later inserts wait for the next run. This is an insertion
+boundary, not a long-lived SQLite transaction: WAL writers and checkpoints remain free during
+network waits. Updates/deletions of existing rows are not frozen by this boundary.
+
+After each accepted batch, the child waits for an acknowledgement. The server first persists
+the cursor with `advanceLogExportCursor`, then sends `ack`; no next batch starts before it.
+A send failure, crash or timeout records failure without advancing that batch. Previously
+acknowledged batches stay committed; at most the one unacknowledged batch can be re-sent.
+Success is recorded only after `done` and a clean child exit. Failures terminate the child
+with SIGTERM, escalating to SIGKILL after 500 ms, and the runner waits for process closure.
+
+| Environment variable                          | Default | Purpose                          |
+| --------------------------------------------- | ------- | -------------------------------- |
+| `OMNIROUTE_LOG_EXPORT_RUN_TIMEOUT_MS`         | 900000  | Per-destination wall-clock limit |
+| `OMNIROUTE_LOG_EXPORT_CHILD_MAX_OLD_SPACE_MB` | 1024    | Child V8 old-space limit in MB   |
+
+Invalid/non-positive/non-integer values use the defaults. The heap setting is not a total
+RSS limit; very large batches can still exhaust child memory and fail the run safely.
+The 1024 MB default leaves headroom for the default 500-row batch of 512 KiB artifacts with
+bodies enabled, including BigQuery's byte-chunked JSON serialization. It does not make a
+10000-row bodies batch safe. V8 heap exhaustion records an actionable failure: lower batch
+size or raise `OMNIROUTE_LOG_EXPORT_CHILD_MAX_OLD_SPACE_MB`; the cursor stays at the last
+acknowledged batch. Historical inline/disk bodies are not covered by the modern artifact cap.
+Operators must budget RSS separately, especially inside memory-limited containers.
+
+The child inherits only the resolved `DATA_DIR`, `NODE_ENV`, explicit `TZ` (legacy filename
+local-time resolution), `ELECTRON_RUN_AS_NODE` when present, and the following outbound inputs:
+`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY` (and their lowercase forms),
+`OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS`, `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE`, `SSL_CERT_DIR`.
+A global Undici dispatcher shares the server's pure environment-proxy resolution and local-host
+bypass rules, including `NO_PROXY`; it does not import `proxyFetch.ts` or its DB/feature flags.
+Proxy credentials are redacted from forwarded output and recorded errors. Destination credentials
+travel only in one start IPC message, never argv or environment; output/error forwarding is
+prefixed and sanitized. Only `ExperimentalWarning` is disabled in child exec arguments to avoid
+repeating Node's SQLite warning each cron run; other warning types remain visible.
+
+Destination modules must be importable without Next.js/server-only dependencies. The existing
+BigQuery implementation already meets that contract. Access-token caches last only for the child
+run, not across runs. Node is the supported runtime (`package.json` engines), but README's Bun
+installation section and `Dockerfile.bun` also advertise a production compatibility path using
+`bun:sqlite` (`src/lib/db/core.ts` / adapters). Under Bun, exports therefore retain the previous
+in-process path and emit a one-time warning: child heap/timeout isolation is unavailable. Use
+Node for event-loop and OOM isolation; Bun is not treated as dev-only here.
+
+When `includeBodies` is enabled, prefer a minute-level cadence such as
+`OMNIROUTE_LOG_EXPORT_CRON="*/5 * * * *"` rather than accumulating an hourly payload backlog.
+Batch and row limits still bound each run. Process startup is paid per destination per run;
+this trades a small startup cost for server event-loop isolation, not reduced total CPU use.
+
 ### Payloads (prompts and completions)
 
 By default the export carries only the summary fields the Logs **list** shows. Turning on
@@ -63,7 +127,8 @@ pane shows for each call:
 | `bodies_truncated`               | True when any field above hit `maxBodyBytes`       |
 
 This is prompt content, so it is **off by default** and deliberately a per-destination choice.
-What ships is what the dashboard shows, because both read through `getCallLogById`: payloads are
+What ships is what the dashboard shows, because export and `getCallLogById` share detail
+resolution: payloads are
 already PII-sanitised and secret-redacted when they are written, and a call made with a
 `noLog` API key stores no payload at all, so there is nothing to export.
 
@@ -85,7 +150,12 @@ already in `pipeline_provider_response` and `pipeline_client_response`.
 | Destination contract | `src/lib/logExport/types.ts`                 |
 | Registry             | `src/lib/logExport/registry.ts`              |
 | Secret handling      | `src/lib/logExport/secrets.ts`               |
-| Runner (cursor loop) | `src/lib/logExport/runner.ts`                |
+| Runner (parent IPC)  | `src/lib/logExport/runner.ts`                |
+| Process lifecycle    | `src/lib/logExport/childRunner.ts`           |
+| Child entry          | `src/lib/logExport/exportChild.ts`           |
+| Read-only opener     | `src/lib/db/logExportReadOnly.ts`            |
+| Shared query/mapping | `src/lib/usage/callLogExportQueries.ts`      |
+| Detail resolver      | `src/lib/usage/callLogDetailResolver.ts`     |
 | API projection       | `src/lib/logExport/presenter.ts`             |
 | BigQuery destination | `src/lib/logExport/destinations/bigquery.ts` |
 | Google SA auth       | `src/lib/logExport/googleServiceAccount.ts`  |

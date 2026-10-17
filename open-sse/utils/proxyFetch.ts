@@ -11,7 +11,6 @@ import {
   isLocalEgressHostname,
   isRelayType,
   isUpstreamHttp2Enabled,
-  normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
@@ -25,6 +24,7 @@ import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransp
 import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import { isDirectBypassHost } from "./proxyDirectBypass.ts";
+import { noProxyMatch, resolveEnvProxyUrl } from "./proxyEnv.ts";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
@@ -465,64 +465,6 @@ const originalFetchWithDispatcher = originalFetch as FetchWithDispatcher;
 const proxyContext = patchState.proxyContext;
 const tlsFingerprintContext = patchState.tlsFingerprintContext;
 
-function noProxyMatch(targetUrl) {
-  const noProxy = process.env.NO_PROXY || process.env.no_proxy;
-  if (!noProxy) return false;
-
-  let target;
-  try {
-    target = new URL(targetUrl);
-  } catch {
-    return false;
-  }
-
-  const hostname = target.hostname.toLowerCase();
-  const port = target.port || (target.protocol === "https:" ? "443" : "80");
-  const patterns = noProxy
-    .split(",")
-    .map((p) => p.trim().toLowerCase())
-    .filter(Boolean);
-
-  return patterns.some((pattern) => {
-    if (pattern === "*") return true;
-
-    const [patternHost, patternPort] = pattern.split(":");
-    if (patternPort && patternPort !== port) return false;
-
-    if (!patternHost) return false;
-
-    // Support wildcard matching (e.g. 192.168.* or *.local).
-    // Uses a linear glob scan instead of dynamic RegExp to avoid ReDoS.
-    if (patternHost.includes("*")) {
-      const parts = patternHost.split("*");
-      let pos = 0;
-      let ok = hostname.startsWith(parts[0]);
-      if (ok) {
-        pos = parts[0].length;
-        for (let i = 1; i < parts.length && ok; i++) {
-          const seg = parts[i];
-          if (i === parts.length - 1) {
-            ok = seg === "" || (hostname.endsWith(seg) && hostname.length - seg.length >= pos);
-          } else {
-            const idx = seg ? hostname.indexOf(seg, pos) : pos;
-            if (idx === -1) {
-              ok = false;
-            } else {
-              pos = idx + seg.length;
-            }
-          }
-        }
-      }
-      if (ok) return true;
-    }
-
-    if (patternHost.startsWith(".")) {
-      return hostname.endsWith(patternHost) || hostname === patternHost.slice(1);
-    }
-    return hostname === patternHost || hostname.endsWith(`.${patternHost}`);
-  });
-}
-
 /**
  * A loopback target is this process. Private-network peers are not loopback:
  * they must retain the outbound bound-and-replay policy.
@@ -534,31 +476,6 @@ function isLoopbackHost(hostname: string): boolean {
     .replace(/^::ffff:/i, "")
     .toLowerCase();
   return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
-}
-
-function resolveEnvProxyUrl(targetUrl) {
-  if (noProxyMatch(targetUrl)) return null;
-
-  let protocol;
-  try {
-    protocol = new URL(targetUrl).protocol;
-  } catch {
-    return null;
-  }
-
-  const proxyUrl =
-    protocol === "https:"
-      ? process.env.HTTPS_PROXY ||
-        process.env.https_proxy ||
-        process.env.ALL_PROXY ||
-        process.env.all_proxy
-      : process.env.HTTP_PROXY ||
-        process.env.http_proxy ||
-        process.env.ALL_PROXY ||
-        process.env.all_proxy;
-
-  if (!proxyUrl) return null;
-  return normalizeProxyUrl(proxyUrl, "environment proxy");
 }
 
 export function resolveProxyForRequest(targetUrl) {

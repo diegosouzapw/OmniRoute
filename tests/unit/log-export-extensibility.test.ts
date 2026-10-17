@@ -82,6 +82,7 @@ test.beforeEach(() => {
 
 test.afterEach(() => {
   registry.__resetLogExportDestinationTypesForTest();
+  runner.__setLogExportChildOptionsForTest(null);
 });
 
 test.after(() => {
@@ -103,7 +104,15 @@ test("runner_ThirdPartyDestination_DrivesTheWholePipelineWithNoBigQueryCode", as
     }),
   });
 
+  runner.__setLogExportChildOptionsForTest({
+    modulePath: path.join(import.meta.dirname, "fixtures/logExportExtensibilityDestination.ts"),
+  });
   const result = await runner.runDestinationExport(destination);
+  const childOutput = JSON.parse(
+    fs.readFileSync(path.join(TEST_DATA_DIR, "ext-sent.json"), "utf8")
+  ) as { sent: unknown[][]; prepareCalls: number };
+  sent.push(...childOutput.sent);
+  prepareCalls = childOutput.prepareCalls;
 
   assert.equal(result.success, true, result.error ?? "");
   assert.equal(result.exported, 5);

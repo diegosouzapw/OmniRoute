@@ -43,35 +43,27 @@ interface InsertedBatch {
 }
 
 function installFetchStub(options: { failInsert?: boolean; insertDelayMs?: number } = {}) {
-  const batches: InsertedBatch[] = [];
-  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
-    const href = String(url);
-    const body = typeof init?.body === "string" ? init.body : "";
-    if (href.includes("oauth2.googleapis.com/token")) {
-      return jsonResponse(200, { access_token: "stub-token", expires_in: 3600 });
-    }
-    if (href.endsWith("/insertAll")) {
-      if (options.failInsert) {
-        return jsonResponse(500, { error: { message: "backend error" } });
-      }
-      if (options.insertDelayMs) {
-        await new Promise((resolve) => setTimeout(resolve, options.insertDelayMs));
-      }
-      batches.push({ rows: (JSON.parse(body) as { rows: InsertRow[] }).rows });
-      return jsonResponse(200, {});
-    }
-    // Dataset and table both already exist, so prepare() is a no-op.
-    return jsonResponse(200, {});
-  }) as unknown as typeof fetch;
-  return batches;
-}
-
-function jsonResponse(status: number, json: unknown): Response {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    json: async () => json,
-  } as unknown as Response;
+  const output = path.join(TEST_DATA_DIR, "bigquery-batches.jsonl");
+  fs.rmSync(output, { force: true });
+  runner.__setLogExportChildOptionsForTest({
+    modulePath: path.join(import.meta.dirname, "fixtures/logExportTestDestination.ts"),
+    config: { fixtureFailInsert: options.failInsert, fixtureInsertDelayMs: options.insertDelayMs },
+  });
+  // Preserve the original tests' live collection shape; fetch now runs in a child.
+  return new Proxy([] as InsertedBatch[], {
+    get(_target, property) {
+      const batches = fs.existsSync(output)
+        ? fs
+            .readFileSync(output, "utf8")
+            .trim()
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => JSON.parse(line) as InsertedBatch)
+        : [];
+      const value = Reflect.get(batches, property);
+      return typeof value === "function" ? value.bind(batches) : value;
+    },
+  });
 }
 
 function insertCallLogs(count: number, startIndex = 0) {
@@ -115,6 +107,7 @@ test.beforeEach(() => {
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  runner.__setLogExportChildOptionsForTest(null);
 });
 
 test.after(() => {
