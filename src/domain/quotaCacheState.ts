@@ -29,6 +29,8 @@ export interface QuotaInfo {
   displayName?: string;
   windowSeconds?: number | null;
   claudeQuota?: ClaudeQuotaMetadata;
+  /** GitHub Copilot AI Credits consumed (telemetry for the local credit cutoff). */
+  creditsUsed?: number;
 }
 
 export interface QuotaCacheEntry {

@@ -157,9 +157,18 @@ function parseGeneric(data: any) {
 }
 
 function parseGithub(data: any) {
+  // The AI Credits row is an unbounded counter when no local limit is set —
+  // keep it even though it looks "unlimited & empty", and carry the figure.
   return quotaEntries(data)
-    .filter(([, quota]) => !isUnlimitedEmpty(quota))
-    .map(([name, quota]) => normalizeQuotaEntry(name, quota));
+    .filter(([, quota]) => quota?.creditsUsed !== undefined || !isUnlimitedEmpty(quota))
+    .map(([name, quota]) =>
+      quota?.creditsUsed !== undefined
+        ? normalizeQuotaEntry(name, quota, {
+            creditsUsed: Number(quota.creditsUsed) || 0,
+            unlimited: quota.unlimited === true,
+          })
+        : normalizeQuotaEntry(name, quota)
+    );
 }
 
 function parseGlmFamily(data: any) {

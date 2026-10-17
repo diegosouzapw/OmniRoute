@@ -18,8 +18,6 @@ import {
 } from "@/shared/constants/antigravityClientProfile";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { providerHasFreeModels } from "@/shared/utils/freeModels";
-import { maskEmail } from "@/shared/utils/maskEmail";
-import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { type CodexServiceTier } from "@/lib/providers/requestDefaults";
 import type { ConnectionRateLimitOverrides } from "@/lib/db/providers/columns";
@@ -75,6 +73,8 @@ import ProviderTierField from "./ProviderTierField";
 import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import { getVertexCredentialCopy } from "./vertexCredentialCopy";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import { useGitHubCreditLimitDraft } from "./GitHubCreditLimitField";
+import ConnectionEmailCard from "./ConnectionEmailCard";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 import ProviderRegionField, { getProviderRegionConfig } from "./AlibabaProviderRegionField";
 import PeakHourProtectionEditor, {
@@ -195,12 +195,12 @@ export default function EditConnectionModal({
   const [doctorLoading, setDoctorLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const testModel = useConnectionTestModelDraft(isOpen ? connection : null, saving);
+  const credits = useGitHubCreditLimitDraft(isOpen ? connection : null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [extraApiKeys, setExtraApiKeys] = useState<string[]>([]);
   const [newExtraKey, setNewExtraKey] = useState("");
   const [apiKeyHealth, setApiKeyHealth] = useState<ApiKeyHealthMap>({});
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
   // #6147 — built-in providers can opt in to an advanced base-URL override.
   // OAuth connections are excluded: their save path does not persist
   // providerSpecificData.baseUrl.
@@ -755,6 +755,7 @@ export default function EditConnectionModal({
         updates.providerSpecificData.importFreeModelsOnly = formData.importFreeModelsOnly === true;
       }
       testModel.applyTo(updates.providerSpecificData);
+      if (!credits.applyTo(updates.providerSpecificData)) return setSaveError(credits.error);
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
@@ -840,6 +841,7 @@ export default function EditConnectionModal({
             onChange={(patch) => setFormData({ ...formData, ...patch })}
           />
         )}
+        {credits.field}
         {isClaude && (
           <ClaudeConnectionFields
             values={formData}
@@ -917,14 +919,7 @@ export default function EditConnectionModal({
             />
           </div>
         )}
-        {isOAuth && connection.email && (
-          <div className="bg-sidebar/50 p-3 rounded-lg">
-            <p className="text-sm text-text-muted mb-1">{t("email")}</p>
-            <p className="font-medium" title={showEmail ? connection.email : undefined}>
-              {showEmail ? connection.email : maskEmail(connection.email)}
-            </p>
-          </div>
-        )}
+        {isOAuth && <ConnectionEmailCard email={connection.email} label={t("email")} />}
         <Input
           label={t("healthCheckMinutes")}
           type="number"

@@ -3,6 +3,7 @@ import {
   OPENROUTER_PRESET_MAX_LENGTH,
   isOpenRouterPresetValue,
 } from "@/shared/constants/openRouterPreset";
+import { isValidGitHubCreditLimit } from "@omniroute/open-sse/services/githubCreditLimit.ts";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -207,6 +208,15 @@ export function validateProviderSpecificData(
       code: z.ZodIssueCode.custom,
       message: "providerSpecificData.customUserAgent must be a string up to 500 chars",
       path: ["customUserAgent"],
+    });
+  }
+
+  const githubCreditLimit = data.githubCreditLimit;
+  if (githubCreditLimit !== undefined && !isValidGitHubCreditLimit(githubCreditLimit)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.githubCreditLimit must be a non-negative number or null",
+      path: ["githubCreditLimit"],
     });
   }
 

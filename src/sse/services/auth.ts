@@ -70,6 +70,7 @@ import {
   persistAntigravityFamilyCooldownIfQuota,
 } from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
 import { markQuotaPreflightAccountUnavailable } from "./quotaPreflightUnavailable.ts";
+import { seedGitHubCreditLimitReasons } from "./githubCreditLimitPolicy.ts";
 import { buildNoAuthModelCooldown, pauseCooldownIfPaused } from "./noAuthModelCooldown.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
@@ -385,12 +386,11 @@ export function evaluateQuotaLimitPolicy(
     return { blocked: false, reasons: [], resetAt: null };
   }
   const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
+  // GitHub local AI Credits cutoff (fail-open) seeds the reasons, independent of the windows.
+  const { reasons, resetCandidates } = seedGitHubCreditLimitReasons(provider, connection);
   if (!policy.enabled || policy.windows.length === 0) {
-    return { blocked: false, reasons: [], resetAt: null };
+    return { blocked: reasons.length > 0, reasons, resetAt: resetCandidates[0] ?? null };
   }
-
-  const reasons: string[] = [];
-  const resetCandidates: Array<string | null> = [];
 
   for (const windowName of policy.windows) {
     const effectiveWindowName =

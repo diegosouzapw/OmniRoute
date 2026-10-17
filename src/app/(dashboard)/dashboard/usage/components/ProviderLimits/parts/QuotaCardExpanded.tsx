@@ -308,11 +308,18 @@ function QuotaDetailRow({
       {!q.unlimited && <QuotaMiniBar percent={pct} size="sm" />}
       <div className="flex items-center justify-between gap-2 text-[10px] text-text-muted tabular-nums">
         <span>
-          {showUsage && (
+          {showUsage ? (
             <>
               {usedNum.toLocaleString()} / {totalNum.toLocaleString()}
             </>
-          )}
+          ) : q.creditsUsed !== undefined ? (
+            translateUsageOrFallback(
+              t,
+              "aiCreditsUsed",
+              `${Number(q.creditsUsed).toLocaleString()} AI Credits used`,
+              { count: Number(q.creditsUsed).toLocaleString() }
+            )
+          ) : null}
         </span>
         {q.staleAfterReset ? (
           <span title={t("refreshing")}>⟳</span>

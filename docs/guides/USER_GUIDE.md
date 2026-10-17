@@ -176,6 +176,22 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
+**AI Credits (token-based billing).** When GitHub reports `credits_used` for the
+account, the Provider Limits card shows an **AI Credits** row with the credits
+consumed in the current billing period, including on unlimited organization plans.
+
+**Local AI Credits limit.** Edit a GitHub connection and set **AI Credits limit per
+billing period** (`providerSpecificData.githubCreditLimit`). Blank disables it; `0`
+always skips the connection. When the last usage reading is at or above the limit,
+account selection skips that connection and routing falls back to your other
+connections, the same way a quota-policy cutoff does. The check reads the usage that
+the periodic quota refresh already collects — it never calls GitHub on the request
+path — and it fails open: a missing or stale reading (older than 15 minutes, or from
+a billing period that already reset) does not block the connection. This is a local
+safeguard, **not a guaranteed spending ceiling**: GitHub reporting delays, the refresh
+interval, in-flight requests and usage outside OmniRoute can exceed it. Use GitHub's
+own spending controls for a hard cap.
+
 ### 💰 Cheap Providers
 
 #### GLM-4.7 (Daily reset, $0.6/1M)

@@ -41,6 +41,8 @@ export type UsageQuota = {
     used: number;
   }>;
   currency?: string;
+  /** GitHub Copilot AI Credits consumed in the billing period (`credits_used`). */
+  creditsUsed?: number;
   grantedBalance?: number;
   toppedUpBalance?: number;
   claudeQuota?: ClaudeQuotaMetadata;

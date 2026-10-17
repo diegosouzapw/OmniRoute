@@ -279,6 +279,9 @@ function normalizeQuotas(rawQuotas: Record<string, unknown>): Record<string, Quo
         ...(isClaudeQuotaMetadata(quota.claudeQuota)
           ? { claudeQuota: { ...quota.claudeQuota } }
           : {}),
+        ...(typeof quota.creditsUsed === "number" && Number.isFinite(quota.creditsUsed)
+          ? { creditsUsed: quota.creditsUsed }
+          : {}),
       };
     }
   }
