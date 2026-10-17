@@ -60,6 +60,15 @@ export interface GeminiWebModeDescriptor {
  */
 export const GEMINI_WEB_MODEL_MODES: Readonly<Record<string, GeminiWebModeDescriptor>> = {
   "gemini-3.1-pro": { id: "gemini-3.1-pro", isDefault: true },
+  "gemini-4-argon": {
+    id: "gemini-4-argon",
+    isDefault: false,
+    toggleSelector:
+      '[data-test-id="bard-mode-menu-button"], button[aria-haspopup="menu"][aria-label*="model" i]',
+    activeIndicatorSelector:
+      '[data-test-id="bard-mode-menu-button"] .mode-title, [data-test-id="bard-mode-menu-button"]',
+    expectedIndicatorPattern: /\b(argon|gemini\s*4)\b/i,
+  },
   "gemini-3.7-flash": {
     id: "gemini-3.7-flash",
     isDefault: false,

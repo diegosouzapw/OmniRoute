@@ -208,6 +208,26 @@ test("#13381: a confirmed model-mode read-back lets the request proceed to the p
   );
 });
 
+test("#13381: gemini-4-argon model-mode read-back confirmed lets request proceed", async () => {
+  const descriptor = GEMINI_WEB_MODEL_MODES["gemini-4-argon"];
+  assert.ok(descriptor.toggleSelector && descriptor.activeIndicatorSelector);
+
+  const { status, calls } = await runWithFakePage("gemini-4-argon", {
+    selectors: {
+      [descriptor.toggleSelector!]: { found: true },
+      [descriptor.activeIndicatorSelector!]: { found: true, text: "Gemini 4 Argon" },
+    },
+  });
+
+  assert.equal(
+    status,
+    502,
+    "a CONFIRMED mode switch for gemini-4-argon must proceed to the prompt, not 400"
+  );
+  assert.ok(calls.some((c) => c.fn === "mode.click"));
+  assert.ok(calls.some((c) => c.fn === "editor.click"));
+});
+
 // ─── (b) Control missing -> 400, never a silent 200 ─────────────────────────
 
 test("#13381: a missing model-mode control fails closed with 400, not a silent 200", async () => {
