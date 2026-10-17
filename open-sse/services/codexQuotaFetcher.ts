@@ -25,6 +25,7 @@ import {
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 import { getCodexBackendIdentityHeaders } from "../config/codexClient.ts";
 import { parseCodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
@@ -240,11 +241,12 @@ export async function fetchCodexQuota(
     // configurable (OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS, 0 = disabled).
     await throttleQuotaFetch();
 
-    const response = await fetch(CODEX_USAGE_URL, {
+    const response = await fetchWithConnectionProxy(connectionId, CODEX_USAGE_URL, {
       method: "GET",
       headers,
       signal: AbortSignal.timeout(8_000),
     });
+    if (!response) return null;
 
     if (!response.ok) {
       // Non-2xx: could be token expired or quota API down.

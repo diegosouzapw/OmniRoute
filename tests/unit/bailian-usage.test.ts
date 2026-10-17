@@ -41,6 +41,7 @@ test("getUsageForProvider with bailian-coding-plan and consoleApiKey returns quo
   };
 
   const result = await getUsageForProvider({
+    id: "test-conn-xyz",
     provider: "bailian-coding-plan",
     apiKey: "sk-test",
     providerSpecificData: { consoleApiKey: "ck-test" },
@@ -94,6 +95,7 @@ test("getUsageForProvider with bailian-coding-plan and only apiKey falls back to
   };
 
   const result = await getUsageForProvider({
+    id: "test-conn-xyz",
     provider: "bailian-coding-plan",
     apiKey: "sk-test-fallback",
     providerSpecificData: {},
@@ -150,6 +152,7 @@ test("getUsageForProvider with bailian-coding-plan returns quota with percentUse
   };
 
   const result = await getUsageForProvider({
+    id: "test-conn-xyz",
     provider: "bailian-coding-plan",
     apiKey: "sk-test",
     providerSpecificData: { consoleApiKey: "ck-test" },
@@ -170,4 +173,24 @@ test("getUsageForProvider with bailian-coding-plan returns quota with percentUse
     0.8,
     "percentUsed should be 0.8 from most restrictive window (weekly 80%)"
   );
+});
+
+test("getUsageForProvider without a connection id reports no reading instead of fetching directly", async () => {
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    return new Response(JSON.stringify({ code: "Success", data: {} }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  const result = await getUsageForProvider({
+    provider: "bailian-coding-plan",
+    apiKey: "sk-test",
+    providerSpecificData: { consoleApiKey: "ck-test" },
+  });
+
+  assert.equal(result?.used, undefined, "Should not return quota without a connection id");
+  assert.equal(fetchCalls, 0, "Should not fetch outside the connection proxy");
 });

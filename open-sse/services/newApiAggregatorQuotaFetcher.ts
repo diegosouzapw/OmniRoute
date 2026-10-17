@@ -33,6 +33,7 @@
 
 import type { QuotaInfo } from "./quotaPreflight.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 import { toNumber } from "@/shared/utils/numeric";
 
 const SELF_PATH = "/api/user/self";
@@ -174,7 +175,7 @@ export async function fetchNewApiAggregatorQuota(
   try {
     await throttleQuotaFetch();
 
-    const response = await fetch(url, {
+    const response = await fetchWithConnectionProxy(connectionId, url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${systemAccessToken}`,
@@ -184,6 +185,7 @@ export async function fetchNewApiAggregatorQuota(
       },
       signal: AbortSignal.timeout(8_000),
     });
+    if (!response) return null;
 
     if (response.status === 401 || response.status === 403) {
       quotaCache.delete(connectionId);

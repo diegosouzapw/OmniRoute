@@ -12,6 +12,7 @@
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 import { buildOpencodeBackgroundHeaders } from "../utils/opencodeHeaders.ts";
 
 const OPENCODE_QUOTA_URL =
@@ -40,6 +41,15 @@ interface CacheEntry {
 
 // In-memory cache: connectionId → successful quota bound to its normalized API key
 const quotaCache = new Map<string, CacheEntry>();
+
+function normalizeApiKey(connection?: Record<string, unknown>): string {
+  return typeof connection?.apiKey === "string"
+    ? connection.apiKey
+        .trim()
+        .replace(/^Bearer\s+/i, "")
+        .trim()
+    : "";
+}
 
 // One-time 404 warning per URL (avoids spamming on every request)
 const _warned404Urls = new Set<string>();
@@ -160,23 +170,21 @@ export async function fetchOpencodeQuota(
   connectionId: string,
   connection?: Record<string, unknown>
 ): Promise<OpencodeTripleWindowQuota | null> {
-  const apiKey =
-    typeof connection?.apiKey === "string"
-      ? connection.apiKey
-          .trim()
-          .replace(/^Bearer\s+/i, "")
-          .trim()
-      : "";
+  // The dashboard usage path calls without a stored connection identifier; keep
+  // the previous behaviour there by resolving the shared no-auth fallback
+  // instead of reporting an unknown reading.
+  const effectiveConnectionId = connectionId || "noauth";
+  const apiKey = normalizeApiKey(connection);
   if (!apiKey) return null;
 
-  const cached = quotaCache.get(connectionId);
+  const cached = quotaCache.get(effectiveConnectionId);
   if (cached && cached.apiKey === apiKey && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
     return cached.quota;
   }
 
   try {
     await throttleQuotaFetch();
-    const response = await fetch(OPENCODE_QUOTA_URL, {
+    const response = await fetchWithConnectionProxy(effectiveConnectionId, OPENCODE_QUOTA_URL, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -186,10 +194,11 @@ export async function fetchOpencodeQuota(
         // ("Bun fetch") without x-opencode-session are flagged, with hard
         // errors announced from 2026-09-06. Send the CLI identity + a stable
         // per-connection session fingerprint (see buildOpencodeBackgroundHeaders).
-        ...buildOpencodeBackgroundHeaders({ seed: connectionId }),
+        ...buildOpencodeBackgroundHeaders({ seed: effectiveConnectionId }),
       },
       signal: AbortSignal.timeout(8_000),
     });
+    if (!response) return null;
 
     if (!response.ok) {
       if (response.status === 404 && !_warned404Urls.has(OPENCODE_QUOTA_URL)) {
@@ -199,7 +208,8 @@ export async function fetchOpencodeQuota(
             "Verify OMNIROUTE_OPENCODE_QUOTA_URL when using a relay or test server."
         );
       }
-      if (response.status === 401 || response.status === 403) quotaCache.delete(connectionId);
+      if (response.status === 401 || response.status === 403)
+        quotaCache.delete(effectiveConnectionId);
       return null;
     }
 
@@ -213,7 +223,7 @@ export async function fetchOpencodeQuota(
     const quota = parseOpencodeQuotaResponse(data);
     if (!quota) return null;
 
-    quotaCache.set(connectionId, { quota, fetchedAt: Date.now(), apiKey });
+    quotaCache.set(effectiveConnectionId, { quota, fetchedAt: Date.now(), apiKey });
     return quota;
   } catch {
     return null;
@@ -226,7 +236,7 @@ export async function fetchOpencodeQuota(
  * Force-invalidate the cache for a connection (e.g., after receiving quota headers).
  */
 export function invalidateOpencodeQuotaCache(connectionId: string): void {
-  quotaCache.delete(connectionId);
+  quotaCache.delete(connectionId || "noauth");
 }
 
 // ─── Registration ─────────────────────────────────────────────────────────────

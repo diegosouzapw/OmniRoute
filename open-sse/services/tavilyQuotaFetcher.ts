@@ -20,6 +20,7 @@
 import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 import { isUrlHost } from "../utils/urlHost.ts";
 import { toNumberOrNull } from "@/shared/utils/numeric";
 
@@ -180,7 +181,7 @@ export async function fetchTavilyQuota(
   try {
     await throttleQuotaFetch();
 
-    const response = await fetch(TAVILY_USAGE_URL, {
+    const response = await fetchWithConnectionProxy(connectionId, TAVILY_USAGE_URL, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -188,6 +189,10 @@ export async function fetchTavilyQuota(
       },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
+    if (!response) {
+      quotaCache.set(connectionId, { quota: null, fetchedAt: Date.now() });
+      return null;
+    }
 
     if (!response.ok) {
       quotaCache.set(connectionId, { quota: null, fetchedAt: Date.now() });

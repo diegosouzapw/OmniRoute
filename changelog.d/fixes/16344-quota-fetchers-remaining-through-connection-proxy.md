@@ -1,0 +1,1 @@
+- **fix(quota):** remaining console quota readings use the assigned connection egress path ([#16344](https://github.com/diegosouzapw/OmniRoute/pull/16344)) — thanks @maxmad64bis
