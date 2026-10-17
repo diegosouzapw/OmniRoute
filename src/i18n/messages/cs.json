@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Počet Selhání",
       "retryAfterMs": "Zkusit Znovu Po (ms)",
-      "lastFailureKind": "Poslední Typ Selhání"
+      "lastFailureKind": "Poslední Typ Selhání",
+      "lastClose": "Poslední zavírací"
     },
     "empty": {
       "title": "Žádná připojení",

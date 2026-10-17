@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Hibák Száma",
       "retryAfterMs": "Újrapróbálás Után (ms)",
-      "lastFailureKind": "Utolsó Hiba Típusa"
+      "lastFailureKind": "Utolsó Hiba Típusa",
+      "lastClose": "Utolsó zárás"
     },
     "empty": {
       "title": "Nincs kapcsolat",

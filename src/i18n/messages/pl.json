@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Liczba Błędów",
       "retryAfterMs": "Ponów Po (ms)",
-      "lastFailureKind": "Ostatni Typ Błędu"
+      "lastFailureKind": "Ostatni Typ Błędu",
+      "lastClose": "Ostatnie zamknięcie"
     },
     "empty": {
       "title": "Brak połączeń",

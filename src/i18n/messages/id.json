@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Jumlah Kegagalan",
       "retryAfterMs": "Coba Lagi Setelah (ms)",
-      "lastFailureKind": "Tipe Kegagalan Terakhir"
+      "lastFailureKind": "Tipe Kegagalan Terakhir",
+      "lastClose": "Penutupan Terakhir"
     },
     "empty": {
       "title": "Tidak ada koneksi",

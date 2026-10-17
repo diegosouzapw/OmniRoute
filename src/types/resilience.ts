@@ -50,6 +50,7 @@ export interface ConnectionState {
     failureCount: number;
     retryAfterMs: number;
     lastFailureKind: string | null;
+    lastClose?: { at: number; from: string; reason: string | null } | null;
   } | null;
   lockouts: Array<{ model: string; reason: string; remainingMs: number }>;
   /** Per-account rotation state (loopback-gated read-only) — null when the

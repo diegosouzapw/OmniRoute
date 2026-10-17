@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Muvaffaqiyatsizliklar soni",
       "retryAfterMs": "Qayta urinishgacha (ms)",
-      "lastFailureKind": "Soʻnggi muvaffaqiyatsizlik turi"
+      "lastFailureKind": "Soʻnggi muvaffaqiyatsizlik turi",
+      "lastClose": "Oxirgi yopilish"
     },
     "empty": {
       "title": "Ulanishlar yoʻq",

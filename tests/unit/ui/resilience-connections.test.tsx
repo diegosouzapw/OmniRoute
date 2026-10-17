@@ -344,6 +344,35 @@ describe("ConnectionsTable", () => {
     expect(el!.textContent).toContain("gpt-4");
   });
 
+  it("ConnectionDetail shows the last close verdict beside the failure kind", async () => {
+    const { default: Table } =
+      await import("../../../src/app/(dashboard)/dashboard/resilience/connections/components/ConnectionsTable");
+    const conn = makeConnection({
+      breaker: {
+        state: "CLOSED",
+        failureCount: 0,
+        retryAfterMs: 0,
+        lastFailureKind: null,
+        lastClose: { at: Date.now(), from: "HALF_OPEN", reason: "probe-success" },
+      },
+      lockouts: [],
+    });
+    let el: HTMLDivElement;
+    act(() => {
+      el = render(
+        <Table connections={[conn]} receivedAt={Date.now()} degraded={[]} />
+      ) as HTMLDivElement;
+    });
+    const row = el!.querySelector("tbody tr") as HTMLTableRowElement;
+    expect(row).toBeTruthy();
+    act(() => {
+      row.click();
+    });
+    await waitFor(() => el!.textContent?.includes("detail.title"));
+    expect(el!.textContent).toContain("HALF_OPEN");
+    expect(el!.textContent).toContain("probe-success");
+  });
+
   it("selected connection deleted -> ConnectionDetail closes gracefully", async () => {
     const { default: Table } =
       await import("../../../src/app/(dashboard)/dashboard/resilience/connections/components/ConnectionsTable");

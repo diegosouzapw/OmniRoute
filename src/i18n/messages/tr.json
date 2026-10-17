@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Hata Sayısı",
       "retryAfterMs": "Sonra Yeniden Dene (ms)",
-      "lastFailureKind": "Son Hata Türü"
+      "lastFailureKind": "Son Hata Türü",
+      "lastClose": "Son Kapanış"
     },
     "empty": {
       "title": "Bağlantı yok",

@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Nombre d'Échecs",
       "retryAfterMs": "Réessayer Après (ms)",
-      "lastFailureKind": "Dernier Type d'Échec"
+      "lastFailureKind": "Dernier Type d'Échec",
+      "lastClose": "Dernière clôture"
     },
     "empty": {
       "title": "Aucune connexion",

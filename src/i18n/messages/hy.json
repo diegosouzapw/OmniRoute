@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Ձախողումների քանակ",
       "retryAfterMs": "Կրկին փորձել՝ (մվ) անց",
-      "lastFailureKind": "Վերջին ձախողման տեսակը"
+      "lastFailureKind": "Վերջին ձախողման տեսակը",
+      "lastClose": "Վերջին փակման գին"
     },
     "empty": {
       "title": "Կապեր չկան",

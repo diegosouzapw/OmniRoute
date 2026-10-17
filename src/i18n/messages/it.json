@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Conteggio Fallimenti",
       "retryAfterMs": "Riprova Dopo (ms)",
-      "lastFailureKind": "Ultimo Tipo di Fallimento"
+      "lastFailureKind": "Ultimo Tipo di Fallimento",
+      "lastClose": "Ultima chiusura"
     },
     "empty": {
       "title": "Nessuna connessione",

@@ -14308,7 +14308,8 @@
       "never": "-",
       "failureCount": "Failure Count",
       "retryAfterMs": "Retry After (ms)",
-      "lastFailureKind": "Last Failure Kind"
+      "lastFailureKind": "Last Failure Kind",
+      "lastClose": "Last Close"
     },
     "empty": {
       "title": "No connections",
