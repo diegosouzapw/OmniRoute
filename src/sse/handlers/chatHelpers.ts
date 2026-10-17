@@ -13,7 +13,10 @@ import { maybeReactivateAfterExplicitProbe } from "../services/explicitInactiveP
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { clearRequestRejectedStreak } from "@omniroute/open-sse/services/requestRejectedStreak.ts";
 import { clearAntigravityVerificationUrl } from "@omniroute/open-sse/handlers/chatCore/antigravityVerificationState.ts";
-import { createBuiltinAutoCombo } from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
+import {
+  createBuiltinAutoCombo,
+  prepareBuiltinAutoComboInputs,
+} from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import { detectFormatFromEndpoint } from "@omniroute/open-sse/services/provider.ts";
@@ -203,8 +206,13 @@ export async function resolveModelOrError(
       }
     }
 
+    // Build the shared snapshot on first use: persisted exact and fuzzy hits
+    // above return before it is needed, so those paths skip the bulk reads.
+    let prepared: Awaited<ReturnType<typeof prepareBuiltinAutoComboInputs>> | undefined;
+    const loadPrepared = async () => (prepared ??= await prepareBuiltinAutoComboInputs());
+
     try {
-      const virtualCombo = await createBuiltinAutoCombo(modelStr, suffix);
+      const virtualCombo = await createBuiltinAutoCombo(modelStr, suffix, await loadPrepared());
       const poolSize = virtualCombo.candidatePool?.length || 0;
       log.info(
         "AUTO",
@@ -229,7 +237,8 @@ export async function resolveModelOrError(
       try {
         const virtualCombo = await createBuiltinAutoCombo(
           candidate,
-          candidate.replace(/^auto\/?/, "")
+          candidate.replace(/^auto\/?/, ""),
+          await loadPrepared()
         );
         log.info(
           "AUTO",

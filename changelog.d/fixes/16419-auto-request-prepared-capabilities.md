@@ -1,0 +1,1 @@
+- **fix(auto):** `auto/*` requests now prepare the candidate pool with resolved capabilities, cutting per-request database reads ([#16419](https://github.com/diegosouzapw/OmniRoute/pull/16419)) — thanks @maxmad64bis

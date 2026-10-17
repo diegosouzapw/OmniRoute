@@ -1225,9 +1225,13 @@ export async function createVirtualAutoCombo(
   spec?: AutoComboSpec,
   apiKeyId?: string,
   autoChannel?: string,
-  traceInvocationId?: string
+  traceInvocationId?: string,
+  includeResolvedCapabilities?: boolean
 ): Promise<VirtualAutoCombo> {
-  const prepared = await prepareVirtualAutoComboInputs({ traceInvocationId });
+  const prepared = await prepareVirtualAutoComboInputs({
+    includeResolvedCapabilities,
+    traceInvocationId,
+  });
   return createVirtualAutoComboFromPrepared(
     prepared,
     variant,
