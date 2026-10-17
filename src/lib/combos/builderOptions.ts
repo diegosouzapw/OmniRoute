@@ -443,6 +443,11 @@ function buildModelOptions(
         : variant.id;
       if (modelMap.has(rawId)) continue;
       const baseId = baseRawIdByVariantId.get(variant.id) ?? rawId;
+      // #16977: a hidden base's generated effort variants must not surface
+      // either — the base's visibility carries into everything expanded from
+      // it. (The variant's own exact-id hidden state is still checked inside
+      // addModelOption; this guards the base that no longer reaches the map.)
+      if (getModelIsHidden(providerId, baseId)) continue;
       const base = modelMap.get(baseId);
       addModelOption(modelMap, providerId, {
         id: rawId,
@@ -507,6 +512,8 @@ function buildModelOptions(
         : variant.id;
       if (modelMap.has(rawId)) continue;
       const baseId = baseRawIdByVariantId.get(variant.id) ?? rawId;
+      // #16977: same hidden-base guard as the synced-expansion loop above.
+      if (getModelIsHidden(providerId, baseId)) continue;
       const base = modelMap.get(baseId);
       addModelOption(modelMap, providerId, {
         id: rawId,
