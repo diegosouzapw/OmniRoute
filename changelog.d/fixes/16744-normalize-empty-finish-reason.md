@@ -1,0 +1,1 @@
+- **fix(api):** treat empty streaming `finish_reason` strings as `null` so clients do not see a blank reason ([#16744](https://github.com/diegosouzapw/OmniRoute/pull/16744)) — thanks @alltomatos.
