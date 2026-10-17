@@ -46,7 +46,7 @@ import { isProxyReachable } from "../proxyHealth";
 import { removeStaleSubscriptionNodes } from "./staleNodes";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
-import { stripSelectorSuffix } from "./selectorEndpoint";
+import { SELECTOR_TAG_RE, parseSelectorTag, stripSelectorSuffix } from "./selectorEndpoint";
 import { removeSubscriptionSideFiles } from "./coreConfig/apply";
 import {
   isSubscriptionFetchUrlAllowed,
@@ -87,6 +87,13 @@ export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?:
   return JSON.stringify(detail ? { code, detail } : { code });
 }
 
+export interface SelectorLastSwitchEntry {
+  at: string;
+  result: string;
+  member: string | null;
+  kind: string | null;
+}
+
 export interface ProxySubscriptionRecord {
   id: string;
   name: string;
@@ -104,6 +111,7 @@ export interface ProxySubscriptionRecord {
   selectorLastSwitchResult: string | null;
   selectorLastSwitchMember: string | null;
   selectorLastSwitchKind: string | null;
+  selectorLastSwitchBySelector: Record<string, SelectorLastSwitchEntry> | null;
   coreReloadMode: CoreReloadModeValue;
   lastFetchedAt: string | null;
   status: ProxySubscriptionStatus;
@@ -157,6 +165,51 @@ function readSelectorBase(r: Record<string, unknown>): {
   };
 }
 
+/** Narrow one raw trace entry to the stored shape. Never throws. */
+function asSelectorLastSwitchEntry(tag: string, entry: unknown): SelectorLastSwitchEntry | null {
+  if (!SELECTOR_TAG_RE.test(tag)) return null;
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+  const e = entry as Record<string, unknown>;
+  if (typeof e.at !== "string" || typeof e.result !== "string") return null;
+  return {
+    at: e.at,
+    result: e.result,
+    member: typeof e.member === "string" ? e.member : null,
+    kind: typeof e.kind === "string" ? e.kind : null,
+  };
+}
+
+/** Parse the per-selector switch trace column. Invalid JSON or keys
+ * outside the selector tag shape are dropped, never thrown. */
+export function parseSelectorLastSwitchBySelector(
+  value: unknown
+): Record<string, SelectorLastSwitchEntry> | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const out: Record<string, SelectorLastSwitchEntry> = {};
+    for (const [tag, entry] of Object.entries(parsed as Record<string, unknown>)) {
+      const kept = asSelectorLastSwitchEntry(tag, entry);
+      if (kept) out[tag] = kept;
+    }
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+/** Tags of the subscription's `localCoreEndpoint` lines (same parser as the
+ * switch trigger, so the stored keys stay bounded to the declared lines). */
+export function selectorTagsForEndpoint(field: string | null): string[] {
+  const tags: string[] = [];
+  for (const line of parseLocalCoreEndpoints(field ?? null)) {
+    const tag = parseSelectorTag(line);
+    if (tag && !tags.includes(tag)) tags.push(tag);
+  }
+  return tags;
+}
+
 function readControlMeta(r: Record<string, unknown>): {
   controlUrl: string | null;
   coreConfigPath: string | null;
@@ -166,6 +219,7 @@ function readControlMeta(r: Record<string, unknown>): {
   selectorLastSwitchResult: string | null;
   selectorLastSwitchMember: string | null;
   selectorLastSwitchKind: string | null;
+  selectorLastSwitchBySelector: Record<string, SelectorLastSwitchEntry> | null;
 } {
   // control_secret_enc is write-only: exposed only as a presence bit, never
   // in clear. Any future writer of control_url MUST update the selector
@@ -183,6 +237,9 @@ function readControlMeta(r: Record<string, unknown>): {
       typeof r.selector_last_switch_member === "string" ? r.selector_last_switch_member : null,
     selectorLastSwitchKind:
       typeof r.selector_last_switch_kind === "string" ? r.selector_last_switch_kind : null,
+    selectorLastSwitchBySelector: parseSelectorLastSwitchBySelector(
+      r.selector_last_switch_by_selector
+    ),
   };
 }
 
@@ -229,22 +286,41 @@ function mapSubscriptionRow(row: unknown): ProxySubscriptionRecord {
 
 export async function listSubscriptions(): Promise<ProxySubscriptionRecord[]> {
   const db = getDbInstance();
-  const rows = db
-    .prepare(
-      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions ORDER BY datetime(updated_at) DESC, name ASC"
-    )
-    .all();
-  return rows.map(mapSubscriptionRow);
+  try {
+    const rows = db
+      .prepare(
+        "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, selector_last_switch_by_selector, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions ORDER BY datetime(updated_at) DESC, name ASC"
+      )
+      .all();
+    return rows.map(mapSubscriptionRow);
+  } catch {
+    // Old DB without the per-selector column: fall back to the summary row.
+    const rows = db
+      .prepare(
+        "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions ORDER BY datetime(updated_at) DESC, name ASC"
+      )
+      .all();
+    return rows.map(mapSubscriptionRow);
+  }
 }
 
 export async function getSubscriptionById(id: string): Promise<ProxySubscriptionRecord | null> {
   const db = getDbInstance();
-  const row = db
-    .prepare(
-      "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions WHERE id = ?"
-    )
-    .get(id);
-  return row ? mapSubscriptionRow(row) : null;
+  try {
+    const row = db
+      .prepare(
+        "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, selector_last_switch_by_selector, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions WHERE id = ?"
+      )
+      .get(id);
+    return row ? mapSubscriptionRow(row) : null;
+  } catch {
+    const row = db
+      .prepare(
+        "SELECT id, name, url, enabled, mode, rule_providers, local_core_endpoint, update_interval_minutes, control_url, core_config_path, control_secret_enc, selector_min_gap_seconds, selector_last_switch_at, selector_last_switch_result, selector_last_switch_member, selector_last_switch_kind, last_fetched_at, status, error, last_nodes, last_error_at, consecutive_failures, created_at, updated_at FROM proxy_subscriptions WHERE id = ?"
+      )
+      .get(id);
+    return row ? mapSubscriptionRow(row) : null;
+  }
 }
 
 export async function createSubscription(
@@ -1001,6 +1077,28 @@ export function readStaleSwitchWarning(subscriptionId: string): string | null {
   }
 }
 
+/** Merge one selector entry into the stored trace map, keeping only the
+ * subscription's current line tags plus the written selector. Never throws. */
+function mergeSelectorSwitchEntry(
+  stored: Record<string, SelectorLastSwitchEntry> | null,
+  tags: Set<string>,
+  selector: string,
+  entry: SelectorLastSwitchEntry
+): string | null {
+  try {
+    const next: Record<string, SelectorLastSwitchEntry> = {};
+    if (stored) {
+      for (const [tag, kept] of Object.entries(stored)) {
+        if (tags.has(tag)) next[tag] = kept;
+      }
+    }
+    next[selector] = entry;
+    return JSON.stringify(next);
+  } catch {
+    return null;
+  }
+}
+
 /** Record a switch outcome on the subscription row (columns from the
  * selector-control migration). On failure also sets `error` directly —
  * without touching `status` — so the warning shows before the next sync.
@@ -1008,6 +1106,7 @@ export function readStaleSwitchWarning(subscriptionId: string): string | null {
  * outcomes: a failed attempt still documents why it was tried. Never throws. */
 export async function recordSelectorSwitchOutcome(args: {
   subscriptionId: string;
+  selector: string;
   result: string;
   member?: string | null;
   kind?: string | null;
@@ -1015,12 +1114,60 @@ export async function recordSelectorSwitchOutcome(args: {
   try {
     const db = getDbInstance();
     const now = new Date().toISOString();
-    db.prepare(
-      `UPDATE proxy_subscriptions
-          SET selector_last_switch_at = ?, selector_last_switch_result = ?,
-              selector_last_switch_member = ?, selector_last_switch_kind = ?, updated_at = ?
-        WHERE id = ?`
-    ).run(now, args.result, args.member ?? null, args.kind ?? null, now, args.subscriptionId);
+    // Merge the per-selector entry into the stored map, bounded to the
+    // subscription's current line tags: a tag removed from the lines drops
+    // out on the next write, so the map never grows past the declared lines.
+    let merged: string | null = null;
+    try {
+      const current = db
+        .prepare(
+          "SELECT selector_last_switch_by_selector, local_core_endpoint FROM proxy_subscriptions WHERE id = ?"
+        )
+        .get(args.subscriptionId) as
+        { selector_last_switch_by_selector?: unknown; local_core_endpoint?: unknown } | undefined;
+      if (current) {
+        const stored = parseSelectorLastSwitchBySelector(current.selector_last_switch_by_selector);
+        const tags = new Set(
+          selectorTagsForEndpoint(
+            typeof current.local_core_endpoint === "string" ? current.local_core_endpoint : null
+          )
+        );
+        tags.add(args.selector);
+        merged = mergeSelectorSwitchEntry(stored, tags, args.selector, {
+          at: now,
+          result: args.result,
+          member: args.member ?? null,
+          kind: args.kind ?? null,
+        });
+      }
+    } catch {
+      merged = null;
+    }
+    try {
+      db.prepare(
+        `UPDATE proxy_subscriptions
+            SET selector_last_switch_at = ?, selector_last_switch_result = ?,
+                selector_last_switch_member = ?, selector_last_switch_kind = ?,
+                selector_last_switch_by_selector = ?, updated_at = ?
+          WHERE id = ?`
+      ).run(
+        now,
+        args.result,
+        args.member ?? null,
+        args.kind ?? null,
+        merged,
+        now,
+        args.subscriptionId
+      );
+    } catch {
+      // Old DB without the per-selector column: keep the summary write.
+      db.prepare(
+        `UPDATE proxy_subscriptions
+            SET selector_last_switch_at = ?, selector_last_switch_result = ?,
+                selector_last_switch_member = ?, selector_last_switch_kind = ?, updated_at = ?
+          WHERE id = ?`
+      ).run(now, args.result, args.member ?? null, args.kind ?? null, now, args.subscriptionId);
+    }
     if (args.result !== "ok" && args.result !== "throttled") {
       db.prepare(
         `UPDATE proxy_subscriptions SET error = ?, updated_at = ? WHERE id = ? AND status = 'ok'`

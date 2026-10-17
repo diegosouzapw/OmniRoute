@@ -1,0 +1,1 @@
+- **fix(proxy-subscriptions):** keep the last switch trace per selector so multi-selector subscriptions show each selector's member, time and cause ([#16339](https://github.com/diegosouzapw/OmniRoute/pull/16339)) — thanks @maxmad64bis
