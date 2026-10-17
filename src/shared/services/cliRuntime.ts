@@ -395,12 +395,12 @@ const parseBoolean = (value: unknown, defaultValue = true) => {
 };
 
 export const shouldUseShellForCommand = (command: string): boolean => {
-  if (!isWindows()) return false;
-
   // Windows npm CLI wrappers are usually .cmd/.bat files and require cmd.exe.
   // Direct executables should not go through the shell: absolute paths with spaces
   // (for example C:\Users\Name With Spaces\...\claude.exe) are split by cmd.exe.
-  return /\.(?:cmd|bat)$/i.test(command);
+  // Keep the platform guard in the expression: Turbopack can drop the return
+  // after an early platform branch in a Linux-built Windows bundle (#16547).
+  return isWindows() && /\.(?:cmd|bat)$/i.test(command);
 };
 
 const runProcess = (
