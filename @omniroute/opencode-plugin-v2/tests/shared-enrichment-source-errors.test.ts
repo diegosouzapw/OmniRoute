@@ -22,6 +22,9 @@ describe("enrichment source failures are reported", () => {
       "/api/free-tier/summary",
       "/api/pricing",
       "/api/pricing/models",
+      // #14966: the connection-registry label source is best-effort like the
+      // free-tier one — refused here, so it is named too.
+      "/api/providers",
     ]);
     for (const [, reason] of seen) assert.match(reason, /403/);
   });
@@ -37,7 +40,7 @@ describe("enrichment source failures are reported", () => {
       ),
       /enrichment (catalog source|sources) failed/
     );
-    assert.equal(seen.length, 3);
+    assert.equal(seen.length, 4);
     for (const reason of seen) assert.match(reason, /ECONNREFUSED/);
   });
 

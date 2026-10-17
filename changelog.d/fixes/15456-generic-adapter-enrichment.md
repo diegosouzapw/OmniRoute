@@ -1,0 +1,1 @@
+- **fix(plugin):** attribute generic adapter prefixes from the connection registry ([#15456](https://github.com/diegosouzapw/OmniRoute/pull/15456)) — thanks @skygunner

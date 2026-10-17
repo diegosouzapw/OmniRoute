@@ -25,6 +25,9 @@ function stubFetch(
       if (counter.enrichment !== undefined) counter.enrichment += 1;
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }
+    if (href.includes("/api/providers")) {
+      return { ok: true, status: 200, statusText: "OK", json: async () => ({ connections: [] }) };
+    }
     requestedPaths.push(new URL(href).pathname);
     if (href.includes("/api/combos")) {
       counter.combos += 1;
