@@ -149,14 +149,71 @@ function getOrCreateRotationRow(
 // keep the plain behavior: nothing set aside, every member set aside (an all-failed pool
 // keeps today's selection and its #6246 fail-closed contract), or PROXY_SKIP_RECENTLY_FAILED
 // off. The flag is read last, only when skipping would actually change the pick.
-function eligibleMemberIndexes(candidates: unknown[]): number[] | null {
+// With an egress-bucketed provider scope, a refusal on one entry also sets aside
+// the entries sharing one of its observed egress addresses for that scope; other
+// scopes and a null provider keep the entry-level behavior. The scope gate is
+// isEgressBucketedLockScope (case-insensitive, the same gate as
+// buildHotEgressPredicate). Model and endpoint stay reserved and are never compared.
+function eligibleMemberIndexes(
+  candidates: unknown[],
+  provider?: string | null,
+  nowMs: number = Date.now()
+): number[] | null {
   if (!hasProxyRefusals()) return null;
+  const addressScope = addressScopeFor(provider, candidates, nowMs);
   const eligible: number[] = [];
   candidates.forEach((row, index) => {
-    if (!isProxyAvoided(proxyEgressKey(row))) eligible.push(index);
+    if (!isProxyAvoided(proxyEgressKey(row), nowMs) && !addressScope.isShared(row))
+      eligible.push(index);
   });
   if (eligible.length === 0 || eligible.length === candidates.length) return null;
   return isProxySkipRecentlyFailedEnabled() ? eligible : null;
+}
+
+// Observed egress addresses seeded only from members the refusal memory already
+// sets aside; matches buildHotEgressPredicate's seed discipline. Only scopes in
+// the egress-bucketed lock set expand: a refusal for one bucketed scope never
+// sets aside members picked for another scope.
+function addressScopeFor(
+  provider: string | null | undefined,
+  candidates: unknown[],
+  nowMs: number
+): { isShared: (row: unknown) => boolean; isAvoidedKey: (key: string | null) => boolean } {
+  const none = {
+    isShared: () => false,
+    isAvoidedKey: (key: string | null) => isProxyAvoided(key, nowMs),
+  };
+  if (provider == null) return none;
+  if (!isEgressBucketedLockScope(provider)) return none;
+  const hot = new Set<string>();
+  for (const row of candidates) {
+    if (!isProxyAvoided(proxyEgressKey(row), nowMs)) continue;
+    for (const address of readEgressAddressSetForMember(row, nowMs).addresses) hot.add(address);
+  }
+  if (hot.size === 0) return none;
+  const byKey = new Map<string, unknown>();
+  for (const row of candidates) {
+    const key = proxyEgressKey(row);
+    if (key !== null) byKey.set(key, row);
+  }
+  return {
+    isShared: (row: unknown) => {
+      for (const address of readEgressAddressSetForMember(row, nowMs).addresses) {
+        if (hot.has(address)) return true;
+      }
+      return false;
+    },
+    isAvoidedKey: (key: string | null) => {
+      if (isProxyAvoided(key, nowMs)) return true;
+      if (key === null) return false;
+      const row = byKey.get(key);
+      if (row === undefined) return false;
+      for (const address of readEgressAddressSetForMember(row, nowMs).addresses) {
+        if (hot.has(address)) return true;
+      }
+      return false;
+    },
+  };
 }
 
 // True once the sticky window elapsed (or never started): the held member is due
@@ -490,10 +547,15 @@ type RotationPickState = {
 
 // A held sticky member is served untouched (replaced for this pick only when set
 // aside): no extra write, no ranking. Returns undefined when not held.
-function pickHeldStickyMember<T>(state: RotationPickState, candidates: T[]): T | undefined {
+function pickHeldStickyMember<T>(
+  state: RotationPickState,
+  candidates: T[],
+  provider?: string | null,
+  nowMs: number = Date.now()
+): T | undefined {
   if (state.strategy !== "sticky" || isStickyExpired(state)) return undefined;
   const idx = ((state.cursor % candidates.length) + candidates.length) % candidates.length;
-  const eligible = eligibleMemberIndexes(candidates);
+  const eligible = eligibleMemberIndexes(candidates, provider, nowMs);
   return candidates[eligible ? firstEligibleFrom(idx, eligible, candidates.length) : idx];
 }
 
@@ -595,18 +657,22 @@ function pickFromCandidates<T>(
 ): T {
   // Pool-exhausted check first: a single-member pool set aside is exhausted
   // too, and this runs before the length-1 early return below. Flag-gated
-  // inside (zero cost when off), rebound window shared with the bridge.
+  // inside (zero cost when off), rebound window shared with the bridge. The
+  // check shares the selection predicate: a pool whose every address is set
+  // aside emits like an all-set-aside legacy pool.
+  const nowMs = Date.now();
+  const addressScope = addressScopeFor(provider, candidates, nowMs);
   maybeEmitPoolExhausted(
     normalizedScope,
     candidates,
     (row) => proxyEgressKey(row),
-    (key) => isProxyAvoided(key)
+    (key) => addressScope.isAvoidedKey(key)
   );
   if (candidates.length === 1) return candidates[0];
 
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
 
-  const held = pickHeldStickyMember(state, candidates);
+  const held = pickHeldStickyMember(state, candidates, provider, nowMs);
   if (held !== undefined) return held;
 
   // Sticky past its window and every other strategy rank normally; a held sticky
@@ -614,7 +680,7 @@ function pickFromCandidates<T>(
   // ranked list, so a set-aside member stays skipped while another is eligible and
   // the cursor advances past the member actually served.
   const ranked = rankCandidatesForPick(candidates, provider);
-  const eligible = eligibleMemberIndexes(ranked);
+  const eligible = eligibleMemberIndexes(ranked, provider, nowMs);
 
   if (state.strategy === "random") return pickRandomCandidate(ranked, eligible);
   if (state.strategy === "latency") return pickLatencyCandidate(db, ranked, eligible);

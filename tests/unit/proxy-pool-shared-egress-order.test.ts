@@ -218,16 +218,20 @@ test("normalizeEgressAddressForRanking: v4 whole, v6 /64, mapped, invalid", () =
 });
 
 test("functional: the second request avoids the refused egress address", async () => {
-  const [a, b] = await dbPool(2);
+  const [a, b, c] = await dbPool(3);
   logEgress(a, "203.0.113.7");
   logEgress(b, "203.0.113.7");
+  logEgress(c, "203.0.113.44");
   flush();
   assert.equal(await pick(), a.host);
   noteProxyOutcome("opencode", {
     proxy: { type: "http", host: a.host, port: a.port },
     upstreamStatus: 429,
   });
-  assert.equal(await pick(), b.host);
+  // The refusal memory now decides by (address, provider) at read time: the
+  // member sharing the refused address is skipped too, so the healthy member
+  // serves (before, this pick served b — the address-sharing member).
+  assert.equal(await pick(), c.host);
 });
 
 test("functional: with the flag off the pool serves the head even when egress is shared", async () => {

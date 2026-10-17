@@ -1,0 +1,1 @@
+- **feat(db):** a refused egress address is skipped on every pool member sharing it inside the same egress-bucketed provider scope ([#16421](https://github.com/diegosouzapw/OmniRoute/pull/16421)) — thanks @maxmad64bis
