@@ -32,8 +32,9 @@ const GENERATED_COMMENT =
 const CUSTOM_START_MARKER = "<!-- skill:custom-start -->";
 const CUSTOM_END_MARKER = "<!-- skill:custom-end -->";
 
-// Runnable examples for commands whose syntax alone would omit safety-critical flags.
+// Runnable examples for commands that need concrete arguments or safety-critical flags.
 const CLI_PREVIEW_EXAMPLES: Record<string, string> = {
+  "sync pull [outPath]": "sync pull omniroute-export.tar.gz",
   "models test-add <model>":
     "models test-add example-model --provider example-provider --connection example-connection --dry-run",
 };

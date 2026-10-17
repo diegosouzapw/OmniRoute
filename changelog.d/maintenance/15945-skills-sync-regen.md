@@ -1,0 +1,2 @@
+- **fix(skills):** generate a concrete archive filename for the current `sync pull [outPath]` download contract and keep the example free of unsupported source/merge/replace/dry-run flags (#15945). Regression coverage compares both generated and published examples with the real CLI registry. Thanks @BenjaminAronsson for the generator-drift diagnosis and original repair.
+- **maintenance(skills):** synchronize the generated provider and inference references with the current OpenAPI descriptions. Environment-independent generation remains a separate fix in #15948.

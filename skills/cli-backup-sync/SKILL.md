@@ -234,7 +234,7 @@ omniroute sync push
 **Example:**
 
 ```bash
-omniroute sync pull [outPath]
+omniroute sync pull omniroute-export.tar.gz
 ```
 
 ### `sync bundle <outPath>`
