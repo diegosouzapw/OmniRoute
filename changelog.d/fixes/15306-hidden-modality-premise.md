@@ -1,0 +1,1 @@
+- **fix(tests):** the hidden-model dashboard premise test now checks the stored override row for the absence of the legacy `isHidden` flag, instead of the `GET /api/provider-models` projection that #15900 decorates with a derived chat-scope `isHidden`; it also asserts that projection, clearing a v3.8.52 base-red (#15306) — thanks @shipsfromrio
