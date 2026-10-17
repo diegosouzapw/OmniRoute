@@ -90,3 +90,32 @@ export async function refreshGithubCopilotSubTokenIfNeeded(params: {
     logError(`${logPrefix} Error refreshing Copilot sub-token:`, copilotErr?.message || copilotErr);
   }
 }
+
+/**
+ * When the Copilot sub-token is still healthy, skip rotating it — but still
+ * ask GitHub whether the parent access token is alive. A verified 401 must
+ * demote the connection (`github_access_token_invalid`); other statuses and
+ * network errors stay active.
+ */
+export async function probeGitHubAccessToken(params: {
+  accessToken: string;
+  apiBaseUrl: string;
+}): Promise<{ status: number } | null> {
+  const base = String(params.apiBaseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+  if (!base || !params.accessToken) return null;
+  try {
+    const response = await fetch(`${base}/user`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${params.accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "OmniRoute",
+      },
+    });
+    return { status: response.status };
+  } catch {
+    return null;
+  }
+}
