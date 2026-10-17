@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 // can get a Codex OAuth token revoked). MinIntervalThrottle serializes the actual
 // network calls and spaces each start >= minIntervalMs after the previous one.
 
-const { MinIntervalThrottle, resolveQuotaFetchMinIntervalMs } = await import(
+const { MinIntervalThrottle, resolveQuotaFetchMinIntervalMs, resolveQuotaFetchJitterMs } = await import(
   "../../open-sse/services/quotaFetchThrottle.ts"
 );
 
@@ -32,6 +32,15 @@ test("#6009 spaces concurrent fetch starts by at least minIntervalMs", async () 
   // the four network calls start at t = 1000, 1250, 1500, 1750 (spaced, not bursty).
   assert.deepEqual(clock.slept, [250, 250, 250]);
   assert.equal(clock.now(), 1750);
+});
+
+test("#16948 zero-valued clocks still enforce spacing on the second acquisition", async () => {
+  const clock = new FakeClock();
+  clock.t = 0;
+  const throttle = new MinIntervalThrottle({ minIntervalMs: 250, jitterMs: 0, clock });
+  await Promise.all([throttle.acquire(), throttle.acquire(), throttle.acquire()]);
+  assert.deepEqual(clock.slept, [250, 250]);
+  assert.equal(clock.now(), 500);
 });
 
 test("#6009 minIntervalMs=0 disables throttling (no sleeps)", async () => {
@@ -76,9 +85,32 @@ test("#6009 env resolver clamps to sane bounds and defaults", () => {
     250
   );
   assert.equal(resolveQuotaFetchMinIntervalMs({ OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS: "-5" }), 250);
-  // absurdly high → clamped to max 5000
+  // absurdly high → clamped to max 60000
   assert.equal(
     resolveQuotaFetchMinIntervalMs({ OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS: "999999" }),
-    5000
+    60000
   );
+});
+
+test("#16948 quota spacing supports bounded larger intervals and configurable jitter", () => {
+  assert.equal(resolveQuotaFetchMinIntervalMs({ OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS: "30000" }), 30000);
+  assert.equal(resolveQuotaFetchMinIntervalMs({ OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS: "999999" }), 60000);
+  assert.equal(resolveQuotaFetchJitterMs({}), 120);
+  assert.equal(resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "0" }), 0);
+  assert.equal(resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "30000" }), 30000);
+  assert.equal(resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "999999" }), 60000);
+  assert.equal(resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "NaN" }), 120);
+  assert.equal(resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "-5" }), 120);
+});
+
+test("#16948 larger configured spacing is honored across simultaneous quota calls", async () => {
+  const clock = new FakeClock();
+  const throttle = new MinIntervalThrottle({
+    minIntervalMs: resolveQuotaFetchMinIntervalMs({ OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS: "10000" }),
+    jitterMs: resolveQuotaFetchJitterMs({ OMNIROUTE_QUOTA_FETCH_JITTER_MS: "10000" }),
+    clock,
+    rand: () => 0.5,
+  });
+  await Promise.all(Array.from({ length: 4 }, () => throttle.acquire()));
+  assert.deepEqual(clock.slept, [15000, 15000, 15000]);
 });
