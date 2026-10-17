@@ -434,12 +434,28 @@ function applyAdaptiveBudget(body: unknown, cfg: Partial<ThinkingBudgetConfig>) 
     EFFORT_BUDGETS[typeof cfg.effortLevel === "string" ? cfg.effortLevel : "medium"] ||
     getDefaultThinkingBudget(getStringField(bodyRecord, "model")) ||
     EFFORT_BUDGETS.medium;
-  const budget = capThinkingBudget(
-    getStringField(bodyRecord, "model"),
-    Math.ceil(baseBudget * multiplier)
-  );
+  const scaledBudget = Math.ceil(baseBudget * multiplier);
+  const budget = capThinkingBudget(getStringField(bodyRecord, "model"), scaledBudget);
 
-  return setCustomBudget(body, budget);
+  // The effort→budget table collapses high, xhigh and max onto the same number,
+  // and setCustomBudget then reads any budget at that ceiling back as xhigh.
+  // Adaptive only scales a budget. Keep the selected effort when the multiplier
+  // itself did not raise the budget, so a client "high" is not promoted to an
+  // "xhigh" the upstream rejects (#16662). Compare the pre-cap value: a model
+  // cap that pulls a genuinely scaled budget back under the ceiling is not the
+  // same as "the request was not complex".
+  const result = setCustomBudget(body, budget);
+  const selected = typeof cfg.effortLevel === "string" ? cfg.effortLevel : "";
+  const selectedBudget = EFFORT_BUDGETS[selected];
+  if (
+    selected &&
+    selectedBudget !== undefined &&
+    scaledBudget <= selectedBudget &&
+    result.reasoning_effort !== undefined
+  ) {
+    result.reasoning_effort = selected;
+  }
+  return result;
 }
 
 /**
