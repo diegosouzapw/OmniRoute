@@ -17,6 +17,9 @@ const API_BRIDGE_TIMEOUTS = getApiBridgeTimeoutConfig(process.env, (message) => 
 
 const OPENAI_COMPAT_PATHS = [
   /^\/v1(?:\/|$)/,
+  // Gemini-native generateContent (Gemini CLI, google-genai SDK); case-insensitive like
+  // the v1beta matcher in src/proxy.ts. /api/v1beta stays blocked.
+  /^\/v1beta(?:\/|$)/i,
   /^\/chat\/completions(?:\?|$)/,
   /^\/responses(?:\?|$)/,
   /^\/models(?:\?|$)/,

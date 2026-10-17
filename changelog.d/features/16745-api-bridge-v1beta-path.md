@@ -1,0 +1,1 @@
+- **feat(api):** the API-only port (`API_PORT`) now also relays Gemini-native `/v1beta/*` routes, so Gemini CLI and google-genai SDK clients work against it ([#16745](https://github.com/diegosouzapw/OmniRoute/pull/16745)) — thanks @MuhammadUsamaMX
