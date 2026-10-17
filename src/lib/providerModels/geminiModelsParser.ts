@@ -12,6 +12,8 @@
  * Imagen and Veo via long-running methods on the same endpoint:
  *   - id contains "veo"    → ensure "videos"
  *   - id contains "imagen" → force "images" (never "videos")
+ *   - Gemini *-tts[-preview] via generateContent → "audio-speech"
+ *   - Gemini *-transcribe via generateContent  → "audio-transcriptions"
  *
  * Note: `gemini-*-image` models (e.g. gemini-3-pro-image) generate images via the
  * regular `generateContent` path, so they stay "chat" (image output is a chat
@@ -46,6 +48,7 @@ export interface GeminiDiscoveryModel {
   id: string;
   name: string;
   supportedEndpoints: string[];
+  endpointCapabilitySource: "declared" | "inferred" | "defaulted";
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
@@ -68,15 +71,43 @@ export function parseGeminiModelsList(data: any): GeminiDiscoveryModel[] {
 
       const id = ((m.name as string) || (m.id as string) || "").replace(/^models\//, "");
       const lowerId = id.toLowerCase();
+      let inferredById = false;
 
       // Google exposes Imagen (image) and Veo (video) via long-running methods; the
       // method alone can't always distinguish them, so refine by model id.
       if (lowerId.includes("veo")) {
+        inferredById = true;
         endpoints.add("videos");
       }
       if (lowerId.includes("imagen")) {
+        inferredById = true;
         endpoints.delete("videos");
         endpoints.add("images");
+      }
+
+      // Lyria generates music, not chat responses, even when advertised via
+      // generateContent. A matching Vertex music adapter exists, but AI Studio
+      // must remain visibly unsupported until it has its own adapter.
+      if (lowerId.startsWith("lyria-") && methods.includes("generateContent")) {
+        inferredById = true;
+        endpoints.delete("chat");
+        endpoints.add("music");
+      }
+
+      // Google serves specialized speech/transcription models through
+      // generateContent too. They do NOT support Chat Completions: importing
+      // them as "chat" makes the router try an incompatible endpoint (#16929).
+      // Only override the method-derived chat tag, preserving any other
+      // explicitly advertised endpoint. Image-capable Gemini chat models
+      // intentionally remain chat-selectable.
+      if (methods.includes("generateContent") && /-transcribe(?:-|$)/.test(lowerId)) {
+        inferredById = true;
+        endpoints.delete("chat");
+        endpoints.add("audio-transcriptions");
+      } else if (methods.includes("generateContent") && /-tts(?:-|$)/.test(lowerId)) {
+        inferredById = true;
+        endpoints.delete("chat");
+        endpoints.add("audio-speech");
       }
 
       if (
@@ -93,6 +124,11 @@ export function parseGeminiModelsList(data: any): GeminiDiscoveryModel[] {
         id,
         name: (m.displayName as string) || id,
         supportedEndpoints: [...endpoints],
+        endpointCapabilitySource: inferredById
+          ? "inferred"
+          : methods.some((method) => ["embedContent", "predict", "predictLongRunning"].includes(method))
+            ? "declared"
+            : "defaulted",
         ...(typeof m.inputTokenLimit === "number" ? { inputTokenLimit: m.inputTokenLimit } : {}),
         ...(typeof m.outputTokenLimit === "number" ? { outputTokenLimit: m.outputTokenLimit } : {}),
         ...(typeof m.description === "string" ? { description: m.description } : {}),

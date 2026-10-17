@@ -17,6 +17,7 @@ import {
 } from "@/shared/utils/modelCatalogSearch";
 import { providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
+import ModelEndpointTagsEditor, { type ModelEndpointEditorInfo } from "./ModelEndpointTagsEditor";
 
 // ---------------------------------------------------------------------------
 // Shared prop types
@@ -280,6 +281,7 @@ export interface ModelRowProps {
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
   testStatus?: "ok" | "error" | "quota" | null;
   testingModel?: boolean;
+  endpointInfo?: ModelEndpointEditorInfo;
 }
 
 export default function ModelRow({
@@ -303,6 +305,7 @@ export default function ModelRow({
   onTestModel,
   testStatus,
   testingModel,
+  endpointInfo,
 }: ModelRowProps) {
   const isHidden = Boolean(model.isHidden);
   const [editing, setEditing] = useState(false);
@@ -359,6 +362,7 @@ export default function ModelRow({
           {fullModel}
         </code>
         <ModelSourceBadge source={model.source} />
+        {endpointInfo && <ModelEndpointTagsEditor provider={provider} modelId={model.id} t={t} {...endpointInfo} />}
         {onSetAlias && (
           <span className="flex min-w-0 items-center text-[9px] gap-1">
             {editing ? (

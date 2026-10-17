@@ -45,8 +45,12 @@ export interface ProviderModelsSectionProps {
   allowModelImport: boolean;
 
   // Models data
-  models: Array<{ id: string; name?: string; source?: string }>;
-  modelMeta: { customModels: any[]; modelCompatOverrides?: any[] };
+  models: Array<{ id: string; name?: string; source?: string; supportedEndpoints?: string[]; endpointCapabilitySource?: string }>;
+  modelMeta: {
+    customModels: any[];
+    modelCompatOverrides?: any[];
+    endpointAdapters?: Record<string, "available" | "unavailable" | "unknown">;
+  };
   modelAliases: Record<string, string>;
   syncedAvailableModels: any[];
   syncedCatalogAuthoritative?: boolean;
@@ -273,6 +277,7 @@ export default function ProviderModelsSection({
           syncedCatalogAuthoritative={syncedCatalogAuthoritative}
           customModels={modelMeta.customModels}
           fallbackModels={compatibleFallbackModels}
+          endpointAdapters={(modelMeta.endpointAdapters ?? {})}
           description={description}
           inputLabel={inputLabel}
           inputPlaceholder={inputPlaceholder}
@@ -354,6 +359,7 @@ export default function ProviderModelsSection({
           syncedCatalogAuthoritative={syncedCatalogAuthoritative}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
+          endpointAdapters={(modelMeta.endpointAdapters ?? {})}
           description={passthroughDescription}
           inputLabel={passthroughInputLabel}
           inputPlaceholder={passthroughInputPlaceholder}
@@ -375,6 +381,7 @@ export default function ProviderModelsSection({
           bulkTogglePending={bulkVisibilityAction !== null}
           togglingModelId={togglingModelId}
           onTestModel={onTestModel}
+          onModelsChanged={fetchProviderModelMeta}
           modelTestStatus={modelTestStatus}
           onModelTestStatusChange={onModelTestStatusChange}
           testingModelId={testingModelId}
@@ -503,6 +510,18 @@ export default function ProviderModelsSection({
             <ModelRow
               key={model.id}
               model={model}
+              endpointInfo={(() => {
+                const discovered = syncedAvailableModels.find((row) => row.id === model.id);
+                const operator = modelMeta.customModels.find((row) => row.id === model.id);
+                return {
+                  supportedEndpoints: operator?.supportedEndpoints ?? model.supportedEndpoints ?? discovered?.supportedEndpoints,
+                  endpointCapabilitySource: operator?.endpointCapabilitySource ?? model.endpointCapabilitySource ?? discovered?.endpointCapabilitySource,
+                  discoveredEndpoints: discovered?.supportedEndpoints,
+                  resettable: Boolean(discovered && operator?.endpointCapabilitySource === "operator"),
+                  onChanged: fetchProviderModelMeta,
+                  adapterStatuses: modelMeta.endpointAdapters ?? {},
+                };
+              })()}
               fullModel={`${providerDisplayAlias}/${model.id}`}
               provider={providerId}
               alias={aliasByModelId[model.id]}

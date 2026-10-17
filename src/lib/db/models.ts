@@ -156,6 +156,7 @@ export async function addCustomModel(
     dimensions?: number;
     supportedInputTypes?: string[];
     modelType?: "chat" | "embedding" | "image" | "rerank";
+    endpointCapabilitySource?: "declared" | "inferred" | "defaulted" | "operator";
   }
 ) {
   const db = getDbInstance();
@@ -174,6 +175,7 @@ export async function addCustomModel(
     source,
     apiFormat,
     supportedEndpoints,
+    endpointCapabilitySource: extraMeta?.endpointCapabilitySource || (source === "manual" ? "operator" : "defaulted"),
     ...(targetFormat ? { targetFormat } : {}),
     ...(tokenLimits.inputTokenLimit != null
       ? { inputTokenLimit: tokenLimits.inputTokenLimit }
@@ -256,7 +258,12 @@ export async function replaceCustomModels(
       name: m.name || m.id,
       source: m.source || "auto-sync",
       apiFormat: m.apiFormat || (prev as any)?.apiFormat || "chat-completions",
-      supportedEndpoints: m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      supportedEndpoints: (prev as any)?.endpointCapabilitySource === "operator"
+        ? (prev as any).supportedEndpoints
+        : m.supportedEndpoints || (prev as any)?.supportedEndpoints || ["chat"],
+      endpointCapabilitySource: (prev as any)?.endpointCapabilitySource === "operator"
+        ? "operator"
+        : (m as any).endpointCapabilitySource || (prev as any)?.endpointCapabilitySource || "defaulted",
       // #2905: preserve a per-model targetFormat override (new value wins, else prev).
       ...(m.targetFormat
         ? { targetFormat: m.targetFormat }
@@ -776,13 +783,20 @@ export async function updateCustomModel(
     // llama.cpp connection's auto-discovered embedding model had no way to be
     // marked "supports embeddings" because it had never been explicitly
     // imported as a custom model first.
-    models.push({
-      id: modelId,
-      name: modelId,
-      source: "manual",
-      apiFormat: "chat-completions",
-      supportedEndpoints: ["chat"],
-    });
+    // Endpoint-only edits are virtual overlays, not manually declared chat
+    // models. Do not persist guessed name/apiFormat fields: doing so would
+    // overwrite the real synced metadata when catalog rows are merged.
+    if (Object.keys(updates).length === 1 && "supportedEndpoints" in updates) {
+      models.push({ id: modelId, source: "endpoint-override" });
+    } else {
+      models.push({
+        id: modelId,
+        name: modelId,
+        source: "manual",
+        apiFormat: "chat-completions",
+        supportedEndpoints: ["chat"],
+      });
+    }
     index = models.length - 1;
   }
 
@@ -822,6 +836,9 @@ export async function updateCustomModel(
   // id-based heuristic in getCustomVisionCapabilityFields().
   applyTriStateBooleanOverride(next, updates, "supportsVision");
   applyTriStateBooleanOverride(next, updates, "isFree");
+  if (updates.supportedEndpoints !== undefined) {
+    next.endpointCapabilitySource = "operator";
+  }
   if (updates.compatByProtocol !== undefined) {
     if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
       next.compatByProtocol = mergedCompat;
@@ -864,6 +881,44 @@ export async function updateCustomModel(
 
   finishModelCatalogWriteWithBackup();
   return next;
+}
+
+/**
+ * Reset ONLY endpoint tags to the latest discovered catalog. This deliberately
+ * preserves visibility, aliases, output limits and other operator settings.
+ * The row created solely for endpoint editing is removed entirely.
+ */
+export async function resetModelEndpointOverride(
+  providerId: string,
+  modelId: string
+): Promise<boolean> {
+  const db = getDbInstance();
+  const rows = await getCustomModels(providerId);
+  if (!Array.isArray(rows)) return false;
+  const index = rows.findIndex((row) => row.id === modelId);
+  if (index < 0 || rows[index].endpointCapabilitySource !== "operator") return false;
+  const discovered = (await getSyncedAvailableModels(providerId)).find((m) => m.id === modelId);
+  if (!discovered) return false;
+
+  if (rows[index].source === "endpoint-override") {
+    rows.splice(index, 1);
+  } else {
+    rows[index] = {
+      ...rows[index],
+      supportedEndpoints: discovered.supportedEndpoints || ["chat"],
+      endpointCapabilitySource: discovered.endpointCapabilitySource || "defaulted",
+    };
+  }
+  if (rows.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(providerId);
+  } else {
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('customModels', ?, ?)"
+    ).run(providerId, JSON.stringify(rows));
+  }
+  finishModelCatalogWriteWithBackup();
+  notifyQuotaCombosForProvider(providerId);
+  return true;
 }
 
 /** Single custom model row from key_value customModels, or null */

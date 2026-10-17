@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { parseGeminiModelsList } from "../../src/lib/providerModels/geminiModelsParser";
+import { isChatSelectableModel } from "../../open-sse/services/modelEndpointPolicy.ts";
 
 // A representative slice of the live generativelanguage v1beta/models response.
 const SAMPLE = {
@@ -102,4 +103,77 @@ test("parseGeminiModelsList defaults to chat and tolerates empty/missing input",
   const [m] = parseGeminiModelsList({ models: [{ name: "models/mystery" }] });
   assert.equal(m.id, "mystery");
   assert.deepEqual(m.supportedEndpoints, ["chat"]);
+});
+
+test("#16929 maps Gemini transcription and TTS generateContent models to their audio endpoints", () => {
+  const models = parseGeminiModelsList({
+    models: [
+      { name: "models/gemini-3.5-transcribe", supportedGenerationMethods: ["generateContent", "countTokens"] },
+      { name: "models/gemini-3.5-transcribe-preview", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.8-flash-tts", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.1-flash-tts-preview", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.1-flash-image", supportedGenerationMethods: ["generateContent"], thinking: true },
+      { name: "models/gemini-3.8-flash", supportedGenerationMethods: ["generateContent"], thinking: true },
+    ],
+  });
+  const endpoints = (id: string) => models.find((model) => model.id === id)?.supportedEndpoints;
+
+  assert.deepEqual(endpoints("gemini-3.5-transcribe"), ["audio-transcriptions"]);
+  assert.deepEqual(endpoints("gemini-3.5-transcribe-preview"), ["audio-transcriptions"]);
+  assert.deepEqual(endpoints("gemini-3.8-flash-tts"), ["audio-speech"]);
+  assert.deepEqual(endpoints("gemini-3.1-flash-tts-preview"), ["audio-speech"]);
+  assert.deepEqual(endpoints("gemini-3.1-flash-image"), ["chat"]);
+  assert.deepEqual(endpoints("gemini-3.8-flash"), ["chat"]);
+});
+
+test("#16929 respects actual supported methods and preserves non-chat endpoint tags", () => {
+  const parsed = parseGeminiModelsList({
+    models: [
+      { name: "models/gemini-3.5-transcribe", supportedGenerationMethods: ["embedContent"] },
+      { name: "models/gemini-3.8-flash-tts", supportedGenerationMethods: ["generateContent", "embedContent"] },
+      { name: "models/gemini-transcribe-live", supportedGenerationMethods: ["bidiGenerateContent"] },
+    ],
+  });
+  assert.deepEqual(
+    parsed.find((model) => model.id === "gemini-3.5-transcribe")?.supportedEndpoints,
+    ["embeddings"],
+    "Name heuristics must not add an audio endpoint without generateContent"
+  );
+  assert.deepEqual(
+    parsed.find((model) => model.id === "gemini-3.8-flash-tts")?.supportedEndpoints,
+    ["embeddings", "audio-speech"],
+    "Specialized models must retain unrelated advertised endpoints"
+  );
+  assert.equal(parsed.some((model) => model.id === "gemini-transcribe-live"), false);
+});
+
+test("#16929 audio-only Gemini imports are never chat selectable", () => {
+  const models = parseGeminiModelsList({
+    models: [
+      { name: "models/gemini-3.5-transcribe", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.1-flash-tts-preview", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3-pro-image", supportedGenerationMethods: ["generateContent"] },
+    ],
+  });
+  const selectable = models.filter((model) => isChatSelectableModel("gemini", model)).map((m) => m.id);
+  assert.deepEqual(selectable, ["gemini-3-pro-image"]);
+});
+
+test("#16929 marks Gemini generateContent TTS and transcription as non-chat", () => {
+  const models = parseGeminiModelsList({
+    models: [
+      { name: "models/gemini-3.5-transcribe", supportedGenerationMethods: ["generateContent", "countTokens"] },
+      { name: "models/gemini-3.8-flash-tts", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.1-flash-tts-preview", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.1-flash-image", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.8-flash", supportedGenerationMethods: ["generateContent"] },
+      { name: "models/gemini-3.5-transcribe", supportedGenerationMethods: ["embedContent", "generateContent"] },
+    ],
+  });
+  assert.deepEqual(models[0].supportedEndpoints, ["audio-transcriptions"]);
+  assert.deepEqual(models[1].supportedEndpoints, ["audio-speech"]);
+  assert.deepEqual(models[2].supportedEndpoints, ["audio-speech"]);
+  assert.deepEqual(models[3].supportedEndpoints, ["chat"]);
+  assert.deepEqual(models[4].supportedEndpoints, ["chat"]);
+  assert.deepEqual(models[5].supportedEndpoints, ["embeddings", "audio-transcriptions"]);
 });

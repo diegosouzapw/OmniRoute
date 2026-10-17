@@ -293,6 +293,7 @@ export const providerModelMutationSchema = z.object({
     .array(z.enum(MODEL_SUPPORTED_ENDPOINT_VALUES))
     .transform(normalizeModelSupportedEndpoints)
     .default(["chat"]),
+  endpointCapabilitySource: z.enum(["declared", "inferred", "defaulted", "operator"]).optional(),
   // #2905: optional per-model wire format override for custom models (e.g. a
   // custom opencode-go model that must use the Anthropic Messages shape).
   targetFormat: z

@@ -260,6 +260,9 @@ export function useModelImportHandlers({
             ...(Array.isArray(model.supportedEndpoints)
               ? { supportedEndpoints: model.supportedEndpoints }
               : {}),
+            ...(typeof model.endpointCapabilitySource === "string"
+              ? { endpointCapabilitySource: model.endpointCapabilitySource }
+              : {}),
             ...(typeof model.dimensions === "number" && model.dimensions > 0
               ? { dimensions: model.dimensions }
               : {}),

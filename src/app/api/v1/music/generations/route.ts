@@ -1,3 +1,4 @@
+import { getRequestedModelEndpointMismatch } from "@/lib/providerModels/modelEndpointGuard";
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
@@ -61,6 +62,9 @@ async function postHandler(request, context) {
   // the same scope chat applies.
   const scope = await enforceApiKeyPolicyWithScope(request, body.model);
   if (scope.rejection) return scope.rejection;
+  // Respect the authenticated API key's credential scope before checking model capabilities.
+  const mismatch = await getRequestedModelEndpointMismatch(body.model, "music");
+  if (mismatch) return errorResponse(HTTP_STATUS.BAD_REQUEST, mismatch);
 
   // Parse model to get provider
   const { provider } = parseMusicModel(body.model);

@@ -64,6 +64,7 @@ const MODEL_ENDPOINT_OPTIONS: ModelSupportedEndpoint[] = [
   "videos",
   "audio-speech",
   "audio-transcriptions",
+  "music",
 ];
 
 function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => string): string {
@@ -75,6 +76,7 @@ function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => str
     videos: "🎬 Video",
     "audio-speech": `🔊 ${t("audioSpeech")}`,
     "audio-transcriptions": `🎙️ ${t("audioTranscriptions")}`,
+    music: "🎵 Music",
   };
   return labels[endpoint] || endpoint;
 }

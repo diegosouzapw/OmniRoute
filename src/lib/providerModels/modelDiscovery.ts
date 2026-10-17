@@ -605,6 +605,18 @@ export function normalizeDiscoveredModels(
             ? ["images"]
             : undefined;
 
+    const endpointCapabilitySource: NonNullable<SyncedAvailableModel["endpointCapabilitySource"]> =
+      record.endpointCapabilitySource === "operator" ||
+      record.endpointCapabilitySource === "declared" ||
+      record.endpointCapabilitySource === "inferred" ||
+      record.endpointCapabilitySource === "defaulted"
+        ? record.endpointCapabilitySource
+        : Array.isArray(record.supportedEndpoints) && record.supportedEndpoints.length > 0
+          ? "declared"
+          : modality.isEmbedding || modality.isRerank || modality.isImage
+            ? "inferred"
+            : "defaulted";
+
     const apiFormat =
       toNonEmptyString(record.apiFormat) ||
       (modality.isEmbedding
@@ -689,6 +701,7 @@ export function normalizeDiscoveredModels(
         ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
         : {}),
       ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+      endpointCapabilitySource,
       ...(supportedThinkingEfforts !== undefined ? { supportedThinkingEfforts } : {}),
       ...(defaultThinkingEffort !== undefined ? { defaultThinkingEffort } : {}),
       ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),

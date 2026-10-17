@@ -7,6 +7,7 @@ export const MODEL_SUPPORTED_ENDPOINT_VALUES = [
   "videos",
   "audio-speech",
   "audio-transcriptions",
+  "music",
   "images-generations",
   // Persisted legacy values remain valid input and normalize on write/edit.
   "video",
@@ -35,7 +36,7 @@ export function normalizeModelSupportedEndpoints(endpoints: readonly string[]): 
 }
 
 export function classifyModelSupportedEndpoints(endpoints: readonly string[]): {
-  type?: "embedding" | "rerank" | "image" | "video" | "audio";
+  type?: "embedding" | "rerank" | "image" | "video" | "audio" | "music";
   subtype?: "speech" | "transcription";
 } {
   // "chat" and "responses" are text-conversation endpoints; they carry no
@@ -46,6 +47,7 @@ export function classifyModelSupportedEndpoints(endpoints: readonly string[]): {
   if (endpoints.includes("rerank")) return { type: "rerank" };
   if (endpoints.includes("images")) return { type: "image" };
   if (endpoints.includes("videos") || endpoints.includes("video")) return { type: "video" };
+  if (endpoints.includes("music")) return { type: "music" };
 
   const supportsSpeech = endpoints.includes("audio-speech");
   const supportsTranscription =

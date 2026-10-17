@@ -230,3 +230,24 @@ test("#12866: agy CLI catalog is visible after parseModel folds the prefix to an
     "antigravity live lookup must union the sibling agy CLI catalog"
   );
 });
+
+test("#16929: batched /v1/models source honors same-id operator endpoints", async () => {
+  const [original] = (await getAllActiveSyncedModels())[PROVIDER] || [];
+  assert.ok(original, "synced row must be visible before operator override");
+
+  const { updateCustomModel } = await import("../../src/lib/db/models.ts");
+  await updateCustomModel(PROVIDER, LIVE_MODEL, {
+    supportedEndpoints: ["embeddings"],
+  });
+  const [withOverride] = (await getAllActiveSyncedModels())[PROVIDER] || [];
+  assert.deepEqual(withOverride.supportedEndpoints, ["embeddings"]);
+  assert.equal(withOverride.endpointCapabilitySource, "operator");
+
+  // A fresh discovery does not wipe the operator's choice.
+  await replaceSyncedAvailableModelsForConnection(PROVIDER, CONNECTION_ID, [
+    { id: LIVE_MODEL, name: LIVE_MODEL, source: "imported",
+      supportedEndpoints: ["chat"], endpointCapabilitySource: "declared" },
+  ]);
+  const [afterSync] = (await getAllActiveSyncedModels())[PROVIDER] || [];
+  assert.deepEqual(afterSync.supportedEndpoints, ["embeddings"]);
+});

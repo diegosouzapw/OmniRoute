@@ -12,6 +12,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/shared/components";
 import { parseContextWindowOverrideInput, providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
+import ModelEndpointTagsEditor, { type ModelEndpointEditorInfo } from "./ModelEndpointTagsEditor";
 import ModelOutputTokenEditor from "./ModelOutputTokenEditor";
 import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 
@@ -58,6 +59,7 @@ export interface PassthroughModelRowProps {
   contextWindowOverride?: number | null;
   onSaveContextWindowOverride?: (modelId: string, value: number | null) => Promise<void>;
   savingContextOverride?: boolean;
+  endpointInfo?: ModelEndpointEditorInfo;
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +98,7 @@ export default function PassthroughModelRow({
   contextWindowOverride,
   onSaveContextWindowOverride,
   savingContextOverride,
+  endpointInfo,
 }: PassthroughModelRowProps) {
   const [editing, setEditing] = useState(false);
   const [aliasValue, setAliasValue] = useState(alias || "");
@@ -232,6 +235,7 @@ export default function PassthroughModelRow({
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <ModelSourceBadge source={source} />
+          {endpointInfo && <ModelEndpointTagsEditor provider={provider} modelId={modelId} t={t} {...endpointInfo} />}
           {supportsVision === true && (
             <Badge variant="success" className="shrink-0 px-1.5 py-0 text-[10px]">
               {t("visionCapableLabel")}

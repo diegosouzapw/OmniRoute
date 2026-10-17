@@ -83,6 +83,7 @@ export type CompatModelRow = {
   source?: string;
   apiFormat?: string;
   supportedEndpoints?: string[];
+  endpointCapabilitySource?: string;
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;

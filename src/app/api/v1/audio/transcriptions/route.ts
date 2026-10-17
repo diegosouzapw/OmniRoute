@@ -1,5 +1,6 @@
 // Allow large audio/video file uploads — 5min for processing large files (up to 2GB)
 export const maxDuration = 300;
+import { getRequestedModelEndpointMismatch } from "@/lib/providerModels/modelEndpointGuard";
 import { handleAudioTranscription } from "@omniroute/open-sse/handlers/audioTranscription.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,
@@ -106,6 +107,9 @@ async function transcribeWithModel(
     "/audio/transcriptions",
     "audio-transcriptions"
   );
+
+  const endpointMismatch = await getRequestedModelEndpointMismatch(modelStr, "audio-transcriptions");
+  if (endpointMismatch) return errorResponse(HTTP_STATUS.BAD_REQUEST, endpointMismatch);
 
   const parsed = parseTranscriptionModel(modelStr, dynamicProviders);
   let provider = parsed.provider;

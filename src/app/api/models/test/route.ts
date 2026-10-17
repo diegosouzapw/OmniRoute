@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { DEFAULT_MODEL_TEST_TIMEOUT_MS, runSingleModelTest } from "@/lib/api/modelTestRunner";
+import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
+import { getRegisteredEndpointAdapterStatuses } from "@/lib/providerModels/endpointAdapterAvailability";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { getSettings } from "@/lib/db/settings";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
@@ -40,6 +42,14 @@ export async function POST(request: Request) {
       );
     }
     const { providerId, modelId, connectionId } = validation.data;
+    const catalog = await getActiveSyncedCatalog(providerId);
+    const model = catalog.models.find((row) => row.id === modelId);
+    const statuses = getRegisteredEndpointAdapterStatuses(providerId);
+    const declared = model?.supportedEndpoints || [];
+    if (model?.endpointCapabilitySource !== "defaulted" && declared.length > 0 &&
+      declared.every((endpoint) => statuses[endpoint] === "unavailable")) {
+      return NextResponse.json({ status: "error", error: "Provider has no runnable adapter for this model\u0027s endpoint." }, { status: 422 });
+    }
 
     // #6328 (follow-up to #6495): REMOVE — not just hide — paid Test dispatches
     // when hidePaidModels is on. 403 (distinct from validation-400) so callers
