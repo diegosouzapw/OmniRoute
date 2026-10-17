@@ -18,7 +18,9 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const compliance = await import("../../src/lib/compliance/index.ts");
 const scheduler = await import("../../src/shared/services/modelSyncScheduler.ts");
 const modelSyncRoute = await import("../../src/app/api/providers/[id]/sync-models/route.ts");
-const { findStaleComboModelRefs } = await import("../../src/lib/combos/staleModelRefs.ts");
+const builderOptionsRoute = await import("../../src/app/api/combos/builder/options/route.ts");
+const { findStaleComboModelRefs, findAllStaleComboModelRefs } =
+  await import("../../src/lib/combos/staleModelRefs.ts");
 
 const PROVIDER = "openrouter";
 const AUDIT_ACTION = "combo.stale_model_refs.flagged";
@@ -143,6 +145,36 @@ test("#13505 successful sync returns staleComboRefs and writes one audit entry",
   const again = (await (await postSync(connectionId)).json()) as SyncBody;
   assert.equal(again.staleComboRefs?.length, 1);
   assert.equal(compliance.getAuditLog({ action: AUDIT_ACTION }).length, 1);
+});
+
+test("#13505 builder options expose stale refs across providers for the editor badge", async () => {
+  await seedConnection([{ id: "live-model" }]);
+  await combosDb.createCombo({
+    name: "editor-13505",
+    strategy: "priority",
+    models: [
+      `${PROVIDER}/live-model`,
+      `${PROVIDER}/gone-model`,
+      { kind: "provider-wildcard", providerId: PROVIDER },
+      "openai/no-catalog-here",
+    ],
+  });
+
+  const all = await findAllStaleComboModelRefs();
+  assert.deepEqual(
+    all.map((ref) => [ref.comboName, ref.model]),
+    [["editor-13505", `${PROVIDER}/gone-model`]]
+  );
+
+  const response = await builderOptionsRoute.GET(
+    new Request("http://localhost/api/combos/builder/options")
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as SyncBody;
+  assert.deepEqual(
+    body.staleComboRefs?.map((ref) => ref.model),
+    [`${PROVIDER}/gone-model`]
+  );
 });
 
 const SKIPPED_SYNCS: Array<[string, () => Response]> = [

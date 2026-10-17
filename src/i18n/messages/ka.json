@@ -3927,6 +3927,7 @@
     "builderComboRefStep": "კომბოს მითითების დამატება",
     "builderPinnedAccount": "მიმაგრებული ანგარიში",
     "builderLegacyEntry": "მოძველებული ჩანაწერი",
+    "builderStaleModel": "არ არის ცოცხალ კატალოგში",
     "reviewName": "სახელი",
     "reviewStrategy": "სტრატეგია",
     "reviewSteps": "ეტაპები",

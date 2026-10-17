@@ -3927,6 +3927,7 @@
     "builderComboRefStep": "Kombinációhivatkozás hozzáadása",
     "builderPinnedAccount": "Rögzített fiók",
     "builderLegacyEntry": "Örökölt bejegyzés",
+    "builderStaleModel": "Nincs az élő katalógusban",
     "reviewName": "Név",
     "reviewStrategy": "Stratégia",
     "reviewSteps": "Lépések",

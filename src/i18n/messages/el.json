@@ -3927,6 +3927,7 @@
     "builderComboRefStep": "Προσθήκη αναφοράς συνδυασμού",
     "builderPinnedAccount": "Καρφιτσωμένος λογαριασμός",
     "builderLegacyEntry": "Καταχώρηση παλαιού τύπου",
+    "builderStaleModel": "Δεν υπάρχει στον ζωντανό κατάλογο",
     "reviewName": "Όνομα",
     "reviewStrategy": "Στρατηγική",
     "reviewSteps": "Βήματα",

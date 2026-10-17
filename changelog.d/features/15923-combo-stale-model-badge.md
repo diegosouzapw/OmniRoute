@@ -1,0 +1,1 @@
+- **feat(combos):** the combo editor marks steps whose model is no longer in the provider's live catalog with a "Not in live catalog" badge, using the stale refs that `GET /api/combos/builder/options` now returns ([#15923](https://github.com/diegosouzapw/OmniRoute/pull/15923)) — thanks @tiagovilasboas

@@ -3927,6 +3927,7 @@
     "builderComboRefStep": "Żid referenza għall-kombinazzjoni",
     "builderPinnedAccount": "Kont Ippinnjat",
     "builderLegacyEntry": "Entrata minn verżjoni preċedenti",
+    "builderStaleModel": "Mhux fil-katalgu live",
     "reviewName": "Isem",
     "reviewStrategy": "Strateġija",
     "reviewSteps": "Passi",

@@ -3927,6 +3927,7 @@
     "builderComboRefStep": "Adaugă o referință la combinație",
     "builderPinnedAccount": "Cont fixat",
     "builderLegacyEntry": "Intrare moștenită",
+    "builderStaleModel": "Nu este în catalogul live",
     "reviewName": "Nume",
     "reviewStrategy": "Strategie",
     "reviewSteps": "Pași",
