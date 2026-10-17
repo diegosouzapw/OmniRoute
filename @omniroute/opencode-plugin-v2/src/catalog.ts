@@ -945,7 +945,12 @@ export async function collectCatalog(
       baseURL: opts.baseURL,
       apiFormat: opts.apiFormat,
     });
-    const enrichmentEntry = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+    const enrichmentEntry = lookupEnrichment(
+      entry.id,
+      enrichment,
+      canonicalToAlias,
+      entry.owned_by
+    );
     applyEnrichment(mapped, enrichmentEntry, {
       providerTag: opts.providerTag !== false,
     });
@@ -983,7 +988,12 @@ export async function collectCatalog(
         baseURL: opts.baseURL,
         apiFormat: opts.apiFormat,
       });
-      const restoreEnrichment = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+      const restoreEnrichment = lookupEnrichment(
+        entry.id,
+        enrichment,
+        canonicalToAlias,
+        entry.owned_by
+      );
       applyEnrichment(mapped, restoreEnrichment, {
         providerTag: opts.providerTag !== false,
       });
