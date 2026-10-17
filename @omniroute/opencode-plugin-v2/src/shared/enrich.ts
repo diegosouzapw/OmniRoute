@@ -116,8 +116,17 @@ export function buildCanonicalToAliasMap(
  *      a mapping for `canonical`, try `<alias>/<modelId>`. This rescues
  *      duplicate rows like `claude/claude-opus-4-7` (canonical) when
  *      enrichment only indexed under `cc/claude-opus-4-7` (alias).
- *   3. Bare `<modelId>` as a last resort. Already covered by step 1 in
- *      practice (fetcher writes bare keys), but kept defensive.
+ *   3. Bare `<modelId>` as a last resort — kept defensive, but sanitized.
+ *      When a namespaced id (`<prefix>/<modelId>`) falls through to the
+ *      bare-key entry the match is model-scoped evidence only. The entry
+ *      belongs to whichever provider happened to write that bare key first;
+ *      its provider-scoped metadata (alias, display name, free-tier budget)
+ *      belongs to that other provider, NOT to the caller's prefix.
+ *      Returning it as-is causes generic-adapter prefixes (`ih/`, `si/`)
+ *      to inherit a foreign provider's label and free-tier budget.
+ *      We therefore return a sanitized copy: only `name` and `pricing`
+ *      survive — provider identity fields are deliberately dropped so the
+ *      model surfaces with its raw id rather than a misleading provider tag.
  *
  * Returns `undefined` when no lookup hits.
  */
@@ -139,7 +148,18 @@ export function lookupEnrichment(
       if (viaAlias) return viaAlias;
     }
     const bare = enrichment.get(modelId);
-    if (bare) return bare;
+    if (bare) {
+      // Bare-key hit for a namespaced id: the entry's provider-scoped metadata
+      // (providerAlias, providerCanonical, providerDisplayName, freeType,
+      // monthlyTokens, creditTokens) belongs to a *different* provider.
+      // Return a sanitized copy that keeps only model-scoped fields so that
+      // generic-adapter models (e.g. `ih/glm-5.3`) do not inherit a foreign
+      // provider's display name or free-tier budget. See issue #14966.
+      const sanitized: OmniRouteEnrichmentEntry = {};
+      if (bare.name !== undefined) sanitized.name = bare.name;
+      if (bare.pricing !== undefined) sanitized.pricing = bare.pricing;
+      return sanitized;
+    }
   }
   return undefined;
 }
@@ -577,6 +597,68 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
   }
   if (freeStatus !== 0 && (freeStatus < 200 || freeStatus >= 300)) {
     report("/api/free-tier/summary", `HTTP ${freeStatus}`);
+  }
+
+  // 4. Generic-adapter prefix labels from /api/providers (best-effort).
+  //
+  //    /api/pricing/models only lists first-party providers, so generic
+  //    openai-compatible-chat-* connections that carry a
+  //    `providerSpecificData.prefix` (e.g. `ih`) and
+  //    `providerSpecificData.nodeName` (e.g. `InferHub`) have no entry in
+  //    the enrichment map. Without this step, lookupEnrichment falls through
+  //    to the bare-key fallback and returns a sanitized entry with no
+  //    provider label (correct, per the fix above), but the model is then
+  //    shown with its raw id rather than e.g. "InferHub - GLM 5.3".
+  //
+  //    We seed one enrichment entry per prefix keyed by `<prefix>` alone
+  //    (no model suffix). buildAliasIndex picks it up and resolveProviderTagEntry
+  //    uses it to synthesise the provider label without touching model-scoped
+  //    fields. The entry intentionally has no `name` or `pricing` so it never
+  //    overrides a model display name — only the provider tag. See #14966.
+  const providersAc = new AbortController();
+  const providersTimer = setTimeout(() => providersAc.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${root}/api/providers`, {
+      method: "GET",
+      headers,
+      signal: providersAc.signal,
+    });
+    if (res.ok) {
+      const body = (await res.json()) as unknown;
+      const list: unknown[] = Array.isArray(body)
+        ? body
+        : Array.isArray((body as { connections?: unknown[] })?.connections)
+          ? (body as { connections: unknown[] }).connections
+          : Array.isArray((body as { data?: unknown[] })?.data)
+            ? (body as { data: unknown[] }).data
+            : [];
+      for (const raw of list) {
+        if (!raw || typeof raw !== "object") continue;
+        const r = raw as Record<string, unknown>;
+        const provider = typeof r.provider === "string" ? r.provider : "";
+        if (!provider.startsWith("openai-compatible-chat-")) continue;
+        const psd = r.providerSpecificData;
+        if (!psd || typeof psd !== "object") continue;
+        const p = psd as Record<string, unknown>;
+        const prefix = typeof p.prefix === "string" ? p.prefix.trim() : "";
+        const nodeName = typeof p.nodeName === "string" ? p.nodeName.trim() : "";
+        if (!prefix || !nodeName) continue;
+        // Seed a provider-label entry for this prefix. Keyed by bare prefix so
+        // buildAliasIndex indexes it under that alias. No `name` or `pricing`
+        // fields — this entry is for provider-tag resolution only.
+        if (!out.has(prefix)) {
+          out.set(prefix, {
+            providerAlias: prefix,
+            providerDisplayName: nodeName,
+          });
+        }
+      }
+    }
+  } catch {
+    // Fail-open: a missing or erroring /api/providers response must never
+    // hide models. We just won't have a provider label for generic adapters.
+  } finally {
+    clearTimeout(providersTimer);
   }
 
   // A source that failed contributes nothing — but the overlay keeps its own

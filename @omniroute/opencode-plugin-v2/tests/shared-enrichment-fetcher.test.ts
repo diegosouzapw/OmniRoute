@@ -122,6 +122,84 @@ describe("defaultOmniRouteEnrichmentFetcher", () => {
     const map = await defaultOmniRouteEnrichmentFetcher("https://gw.example.com", "", 1000);
     assert.equal(map.size, 0);
   });
+
+  // Regression tests for issue #14966 (fetcher step 4):
+  // /api/providers is now fetched to seed prefix→nodeName label entries for
+  // openai-compatible-chat-* connections so the alias index can resolve the
+  // correct provider display name for generic-adapter models.
+  it("#14966: seeds generic-adapter prefix labels from /api/providers", async () => {
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = stubFetch((url) =>
+      url.endsWith("/api/pricing/models")
+        ? {}
+        : url.endsWith("/api/pricing")
+          ? {}
+          : url.endsWith("/api/free-tier/summary")
+            ? { perModel: [] }
+            : url.endsWith("/api/providers")
+              ? {
+                  connections: [
+                    {
+                      id: "conn-1",
+                      provider: "openai-compatible-chat-abc",
+                      isActive: true,
+                      providerSpecificData: { prefix: "ih", nodeName: "InferHub" },
+                    },
+                    {
+                      id: "conn-2",
+                      provider: "openai-compatible-chat-def",
+                      isActive: true,
+                      providerSpecificData: { prefix: "si", nodeName: "SiliconFlow" },
+                    },
+                    // First-party — must not produce a bare-prefix seed.
+                    { id: "conn-3", provider: "claude", isActive: true },
+                  ],
+                }
+              : {}
+    );
+    try {
+      const map = await defaultOmniRouteEnrichmentFetcher("https://gw.example.com", "k", 1000);
+      const ih = map.get("ih");
+      assert.ok(ih, "expected a seed entry for the 'ih' prefix");
+      assert.equal(ih?.providerAlias, "ih");
+      assert.equal(ih?.providerDisplayName, "InferHub");
+      // No model-scoped fields on a provider-label seed entry.
+      assert.equal(ih?.name, undefined);
+      assert.equal(ih?.pricing, undefined);
+      assert.equal(ih?.freeType, undefined);
+      const si = map.get("si");
+      assert.ok(si);
+      assert.equal(si?.providerDisplayName, "SiliconFlow");
+      // First-party providers must NOT get a bare-prefix seed via this path.
+      assert.equal(map.get("claude"), undefined);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it("#14966: /api/providers failure is fail-open (catalog still returned)", async () => {
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: unknown) => {
+      const href = String(url);
+      if (href.endsWith("/api/providers")) throw new Error("network error");
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () =>
+          href.endsWith("/api/pricing/models")
+            ? { cc: { id: "claude", models: [{ id: "m1", name: "Model One" }] } }
+            : {},
+      };
+    }) as unknown as typeof fetch;
+    try {
+      // Must not throw — /api/providers is best-effort.
+      const map = await defaultOmniRouteEnrichmentFetcher("https://gw.example.com", "k", 1000);
+      assert.ok(map.has("cc/m1"), "catalog names must survive a /api/providers failure");
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
 });
 
 describe("free-tier canonical fan-out", () => {

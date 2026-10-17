@@ -22,6 +22,98 @@ describe("lookupEnrichment", () => {
     const found = lookupEnrichment("claude/model-x", enrichment, canonicalToAlias);
     assert.equal(found?.name, "Model X");
   });
+
+  // Regression tests for issue #14966: bare-key fallback must NOT carry over
+  // provider-scoped metadata from an unrelated provider that happens to share
+  // the same bare model id.
+  it("#14966: strips provider-scoped metadata from a bare-key fallback hit", () => {
+    // Simulates: enrichment has 'cc/glm-5.3' + bare 'glm-5.3' both owned by
+    // Claude (alias='cc'). A generic-adapter model 'ih/glm-5.3' (InferHub)
+    // should NOT inherit Claude's alias or display name via the bare-key hit.
+    const map: OmniRouteEnrichmentMap = new Map([
+      [
+        "cc/glm-5.3",
+        {
+          name: "GLM 5.3",
+          providerAlias: "cc",
+          providerCanonical: "claude",
+          providerDisplayName: "Claude",
+          freeType: "credits" as const,
+          creditTokens: 1_000_000,
+        },
+      ],
+      [
+        "glm-5.3",
+        {
+          name: "GLM 5.3",
+          providerAlias: "cc",
+          providerCanonical: "claude",
+          providerDisplayName: "Claude",
+          freeType: "credits" as const,
+          creditTokens: 1_000_000,
+        },
+      ],
+    ]);
+    const canonicalToAlias = buildCanonicalToAliasMap(map);
+    const result = lookupEnrichment("ih/glm-5.3", map, canonicalToAlias);
+    assert.ok(result, "expected a result from bare-key fallback");
+    // Model name is model-scoped — kept.
+    assert.equal(result.name, "GLM 5.3");
+    // Provider identity is provider-scoped — must be stripped.
+    assert.equal(
+      result.providerAlias,
+      undefined,
+      "providerAlias must not bleed through from a foreign provider"
+    );
+    assert.equal(
+      result.providerDisplayName,
+      undefined,
+      "providerDisplayName must not bleed through from a foreign provider"
+    );
+    assert.equal(
+      result.providerCanonical,
+      undefined,
+      "providerCanonical must not bleed through from a foreign provider"
+    );
+    // Free-tier budget belongs to the other provider — must be stripped.
+    assert.equal(
+      result.freeType,
+      undefined,
+      "freeType must not bleed through from a foreign provider"
+    );
+    assert.equal(
+      result.creditTokens,
+      undefined,
+      "creditTokens must not bleed through from a foreign provider"
+    );
+  });
+
+  it("#14966: bare-key sanitization keeps pricing for the model", () => {
+    const map: OmniRouteEnrichmentMap = new Map([
+      [
+        "glm-5.3",
+        {
+          name: "GLM 5.3",
+          providerAlias: "cc",
+          providerDisplayName: "Claude",
+          pricing: { input: 1, output: 2 },
+        },
+      ],
+    ]);
+    const result = lookupEnrichment("ih/glm-5.3", map, new Map());
+    assert.ok(result);
+    assert.deepEqual(result.pricing, { input: 1, output: 2 }, "pricing must survive sanitization");
+    assert.equal(result.providerAlias, undefined);
+    assert.equal(result.providerDisplayName, undefined);
+  });
+
+  it("#14966: direct namespaced hit is returned as-is (no sanitization)", () => {
+    // 'cc/model-x' is a direct hit — it should be the full entry.
+    const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
+    const found = lookupEnrichment("cc/model-x", enrichment, canonicalToAlias);
+    assert.equal(found?.providerAlias, "cc");
+    assert.equal(found?.providerCanonical, "claude");
+  });
 });
 
 describe("applyEnrichment", () => {

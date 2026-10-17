@@ -1,0 +1,1 @@
+- **fix(providers):** a namespaced generic-adapter model no longer inherits another provider's label or free-tier budget from a bare-key enrichment hit; prefix labels are seeded from `/api/providers` instead ([#16669](https://github.com/diegosouzapw/OmniRoute/pull/16669)) — thanks @sagarithm. Refs #14966.

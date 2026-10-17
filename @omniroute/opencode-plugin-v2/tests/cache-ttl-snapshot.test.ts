@@ -21,7 +21,7 @@ function stubFetch(
 ) {
   return (async (url: unknown) => {
     const href = String(url);
-    if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
+    if (href.includes("/api/pricing") || href.includes("/api/free-tier") || href.includes("/api/providers")) {
       if (counter.enrichment !== undefined) counter.enrichment += 1;
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }

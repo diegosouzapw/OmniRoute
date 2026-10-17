@@ -58,7 +58,7 @@ function strayEntries(file: string): string[] {
   } catch {
     return [];
   }
-  return entries.filter((entry) => entry !== file.split("/").pop());
+  return entries.filter((entry) => entry !== file.split(/[/\\]/).pop());
 }
 
 // The writer names its temp file `${file}.${pid}.${counter}` with a
