@@ -35,6 +35,7 @@
  */
 import { randomUUID } from "crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { isMissingBrowserExecutable } from "./browserExecutableCheck.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 import { connectObscuraBrowser } from "../services/obscura.ts";
 import type { Browser, Page } from "playwright";
@@ -210,6 +211,78 @@ export function toCfMessages(
   return out;
 }
 
+/**
+ * The Cloudflare Playground bridge uses text-only cf_agent chat parts. It has
+ * no image-upload frame. Do not silently strip a client's image or launch a
+ * browser for a request the bridge cannot fulfill (#16460).
+ */
+function isUnsupportedCfImagePart(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const part = value as Record<string, unknown>;
+  return (
+    part.type === "image_url" ||
+    part.type === "input_image" ||
+    part.type === "image" ||
+    Object.hasOwn(part, "image_url")
+  );
+}
+
+export function hasUnsupportedCfImageParts(messages: unknown): boolean {
+  // Scan only known message/content/output/input envelopes. An iterative walk
+  // catches deeply nested image parts without recursion overflow, while a
+  // bounded budget and repeat-reference guard fail closed for malformed input.
+  // Well-formed deeply nested TEXT is still safe and is not falsely rejected.
+  const pending: unknown[] = [messages];
+  const visited = new WeakSet<object>();
+  const maxNodes = 2048;
+  let scanned = 0;
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (!value || typeof value !== "object") continue;
+    if (visited.has(value)) return true; // cycle or non-JSON repeated reference
+    visited.add(value);
+    if (++scanned > maxNodes) return true;
+    if (Array.isArray(value)) {
+      if (value.length > maxNodes) return true;
+      for (const part of value) pending.push(part);
+      continue;
+    }
+    if (isUnsupportedCfImagePart(value)) return true;
+    const record = value as Record<string, unknown>;
+    if (Array.isArray(record.images) && record.images.length > 0) return true;
+    pending.push(record.content, record.output, record.input);
+  }
+  return false;
+}
+
+/**
+ * A missing Playwright package/browser is a local runtime configuration
+ * problem, not a transient Cloudflare upstream failure (#16460).
+ */
+export function classifyCfBrowserStartFailure(error: unknown): {
+  status: number;
+  message: string;
+  fallbackHint?: "connection_cooldown";
+} {
+  const message = error instanceof Error ? error.message : String(error);
+  if (isMissingBrowserExecutable(message)) {
+    return {
+      status: 503,
+      fallbackHint: "connection_cooldown",
+      message:
+        "Cloudflare Playground needs Playwright and its Chromium browser. " +
+        "Install the browser runtime (npm i playwright && npx playwright install chromium) " +
+        "or use an OmniRoute browser-enabled deployment.",
+    };
+  }
+  // Raw browser startup messages may contain local paths, proxy credentials,
+  // or environment values. Never return them to a client (HR #12).
+  return {
+    status: 502,
+    message: "Cloudflare Playground browser session failed. Check server logs for details.",
+  };
+}
+
 // ── Transport ────────────────────────────────────────────────────────────────
 
 export interface CfTransportConfig {
@@ -219,10 +292,14 @@ export interface CfTransportConfig {
   signal?: AbortSignal | null;
 }
 
+export type CfTransportStartResult =
+  | { ok: true }
+  | { ok: false; status: number; message: string; fallbackHint?: "connection_cooldown" };
+
 export interface CfTransport {
   start(
     config: CfTransportConfig
-  ): Promise<{ ok: true } | { ok: false; status: number; message: string }>;
+  ): Promise<CfTransportStartResult>;
   frames(): AsyncGenerator<string>;
   close(): Promise<void>;
 }
@@ -295,7 +372,7 @@ export class PlaywrightCfTransport implements CfTransport {
 
   async start(
     config: CfTransportConfig
-  ): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  ): Promise<CfTransportStartResult> {
     try {
       // #12274: prefer the shared Obscura browser (browser-grade TLS fingerprint
       // on the WS upgrade, ~30MB) over a full Chromium per request; fall back to
@@ -350,11 +427,7 @@ export class PlaywrightCfTransport implements CfTransport {
       return { ok: true };
     } catch (error) {
       await this.close().catch(() => {});
-      return {
-        ok: false,
-        status: 502,
-        message: `Cloudflare Playground browser session failed: ${error instanceof Error ? error.message : String(error)}`,
-      };
+      return { ok: false, ...classifyCfBrowserStartFailure(error) };
     }
   }
 
@@ -435,6 +508,14 @@ export class CloudflarePlaygroundExecutor extends BaseExecutor {
   async execute(input: ExecuteInput) {
     const { body, signal, stream: wantStream } = input;
     const bodyObj = (body || {}) as Record<string, unknown>;
+    if (hasUnsupportedCfImageParts(bodyObj.messages) || hasUnsupportedCfImageParts(bodyObj.input)) {
+      return makeErrorResult(
+        400,
+        "Cloudflare Playground accepts text-only chat. Image inputs are not supported.",
+        body,
+        PLAYGROUND_URL
+      );
+    }
     const rawModel = (bodyObj.model as string) || DEFAULT_MODEL;
     const model = rawModel.startsWith(MODEL_PREFIX) ? rawModel : MODEL_PREFIX + rawModel;
     const temperature =
@@ -452,7 +533,15 @@ export class CloudflarePlaygroundExecutor extends BaseExecutor {
       signal,
     });
     if (started.ok !== true) {
-      return makeErrorResult(started.status, started.message, body, PLAYGROUND_URL);
+      return makeErrorResult(
+        started.status,
+        started.message,
+        body,
+        PLAYGROUND_URL,
+        started.fallbackHint
+          ? { "X-Omni-Fallback-Hint": started.fallbackHint }
+          : undefined
+      );
     }
 
     const timedOut = { current: false };

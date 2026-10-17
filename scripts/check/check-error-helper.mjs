@@ -122,7 +122,6 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
 
   // --- Executors forwarding a raw caught error into the response body.
   "open-sse/executors/copilot-web.ts",
-  "open-sse/executors/cloudflare-playground.ts",
   "open-sse/executors/veoaifree-web.ts",
   "open-sse/executors/yuanbao-web.ts",
 

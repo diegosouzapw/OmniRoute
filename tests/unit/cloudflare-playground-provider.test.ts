@@ -21,7 +21,10 @@ import {
   CfStreamParser,
   PlaywrightCfTransport,
   toCfMessages,
+  hasUnsupportedCfImageParts,
+  classifyCfBrowserStartFailure,
   type CfTransport,
+  type CfTransportStartResult,
 } from "../../open-sse/executors/cloudflare-playground.ts";
 
 const CHAT_ID = "chatcmpl-cfp-test123";
@@ -83,13 +86,15 @@ const buildRateLimitFrame = (chatId: string) =>
     type: "cf_agent_use_chat_response",
   });
 
+type CfTransportFailure = Omit<Extract<CfTransportStartResult, { ok: false }>, "ok">;
+
 class FakeTransport implements CfTransport {
   constructor(
     private framesList: string[],
-    private fail: { status: number; message: string } | null = null
+    private fail: CfTransportFailure | null = null
   ) {}
 
-  async start(): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  async start(): Promise<CfTransportStartResult> {
     return this.fail ? { ok: false, ...this.fail } : { ok: true };
   }
 
@@ -102,7 +107,7 @@ class FakeTransport implements CfTransport {
 
 function makeExecutor(
   buildFrames: (chatId: string) => string[],
-  fail?: { status: number; message: string }
+  fail?: CfTransportFailure
 ) {
   return new CloudflarePlaygroundExecutor((chatId) => new FakeTransport(buildFrames(chatId), fail));
 }
@@ -237,6 +242,252 @@ test("toCfMessages drops system/tool, flattens parts, keeps user/assistant", () 
   assert.equal(out[2].parts[0].text, "a\nb");
   assert.equal(out[0].role, "user");
   assert.equal(out[1].role, "assistant");
+});
+
+test("#16460 missing Playwright package or Chromium binary is a 503 host error", () => {
+  for (const message of [
+    "Playwright is not available. Install it (npm i playwright && npx playwright install chromium).",
+    "browserType.launch: Executable doesn't exist at /home/node/.cache/ms-playwright/chromium",
+  ]) {
+    const result = classifyCfBrowserStartFailure(new Error(message));
+    assert.equal(result.status, 503);
+    assert.match(result.message, /playwright.*chromium/i);
+    assert.ok(!result.message.includes("/home/node"), "no local executable path leaks");
+  }
+
+  const upstream = classifyCfBrowserStartFailure(new Error("Navigation timeout of 45000 ms exceeded"));
+  assert.equal(upstream.status, 502);
+  assert.match(upstream.message, /browser session failed/i);
+
+  // A browser/proxy exception may contain local paths, bearer values or
+  // environment details. Never project the exception into an HTTP error.
+  const sensitive = "proxy token=sk-test-sensitive-16868 at /home/node/.cache/private";
+  const privateFailure = classifyCfBrowserStartFailure(new Error(sensitive));
+  assert.equal(privateFailure.status, 502);
+  assert.match(privateFailure.message, /browser session failed/i);
+  assert.ok(!privateFailure.message.includes("sk-test-sensitive-16868"));
+  assert.ok(!privateFailure.message.includes("/home/node/.cache/private"));
+  assert.ok(!privateFailure.message.includes("token="));
+});
+
+test("#16460 Cloudflare text-only bridge detects image content without rejecting text", () => {
+  assert.equal(hasUnsupportedCfImageParts([{ role: "user", content: "hello" }]), false);
+  assert.equal(
+    hasUnsupportedCfImageParts([{ role: "user", content: [{ type: "text", text: "hello" }] }]),
+    false
+  );
+  for (const part of [
+    { type: "image_url", image_url: { url: "data:image/png;base64,eA==" } },
+    { type: "input_image", image_url: "https://example.com/test.png" },
+    { type: "image", source: { type: "base64", data: "eA==" } },
+    { image_url: "https://example.com/test.png" },
+  ]) {
+    assert.equal(
+      hasUnsupportedCfImageParts([
+        { role: "user", content: [{ type: "text", text: "describe this" }, part] },
+      ]),
+      true
+    );
+  }
+  assert.equal(hasUnsupportedCfImageParts([{ role: "user", images: ["base64-image"] }]), true);
+  // Responses API callers may supply one message object or an array of
+  // direct image parts instead of the Chat Completions message envelope.
+  assert.equal(
+    hasUnsupportedCfImageParts({
+      role: "user",
+      content: [{ type: "input_image", image_url: "https://example.com/a.png" }],
+    }),
+    true
+  );
+  assert.equal(
+    hasUnsupportedCfImageParts([{ type: "input_image", image_url: "https://example.com/a.png" }]),
+    true
+  );
+  assert.equal(
+    hasUnsupportedCfImageParts([{ role: "user", content: { type: "image_url" } }]),
+    true
+  );
+  assert.equal(hasUnsupportedCfImageParts("hello"), false);
+
+  assert.equal(
+    hasUnsupportedCfImageParts([
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_image", image_url: "data:image/png;base64,eA==" }],
+      },
+    ]),
+    true
+  );
+});
+
+test("#16460 deeply nested image wrappers fail closed instead of being silently lost", async () => {
+  let image: unknown = { type: "input_image", image_url: "https://example.com/image.png" };
+  for (let depth = 0; depth < 18; depth++) image = { content: image };
+  const messages = [{ role: "user", content: image }];
+  assert.equal(hasUnsupportedCfImageParts(messages), true);
+  let created = 0;
+  const executor = new CloudflarePlaygroundExecutor((chatId) => {
+    created++;
+    return new FakeTransport(buildSuccessFrames(chatId));
+  });
+  const result = await executor.execute(
+    executeArgs({ model: "zai-org/glm-4.7-flash", messages }, false)
+  );
+  assert.equal(result.response.status, 400);
+  assert.equal(created, 0);
+
+  // Depth alone is not an error: legitimate text stays valid even after
+  // many wrappers, while image payloads remain detectable regardless of depth.
+  let textOnly: unknown = "plain text, image_url is a literal string";
+  for (let depth = 0; depth < 18; depth++) textOnly = { content: textOnly };
+  assert.equal(hasUnsupportedCfImageParts([{ role: "user", content: textOnly }]), false);
+
+  // Extremely broad JSON-like bodies are rejected conservatively rather than
+  // scanning an unbounded number of objects on the request hot path.
+  const oversized = Array.from({ length: 2050 }, () => ({ type: "text", text: "x" }));
+  assert.equal(hasUnsupportedCfImageParts(oversized), true);
+
+  const cyclic: { content?: unknown } = {};
+  cyclic.content = cyclic;
+  assert.equal(hasUnsupportedCfImageParts(cyclic), true);
+});
+
+test("#16460 nested tool-output images are rejected before starting Playwright", async () => {
+  const nestedImageInputs = [
+    [
+      {
+        type: "function_call_output",
+        call_id: "call_1",
+        output: [{ type: "input_image", image_url: "https://example.com/screenshot.png" }],
+      },
+    ],
+    [
+      {
+        role: "tool",
+        content: [
+          { type: "output", content: [{ type: "image", source: { data: "cG5n" } }] },
+        ],
+      },
+    ],
+  ];
+  for (const input of nestedImageInputs) {
+    assert.equal(hasUnsupportedCfImageParts(input), true);
+    let created = 0;
+    const executor = new CloudflarePlaygroundExecutor((chatId) => {
+      created++;
+      return new FakeTransport(buildSuccessFrames(chatId));
+    });
+    const result = await executor.execute(
+      executeArgs({ model: "zai-org/glm-4.7-flash", input }, false)
+    );
+    assert.equal(result.response.status, 400);
+    assert.equal(created, 0);
+  }
+  assert.equal(
+    hasUnsupportedCfImageParts([
+      { type: "function_call_output", call_id: "call_2", output: "image_url: just text" },
+    ]),
+    false,
+    "Textual tool output is not an image"
+  );
+});
+
+test("#16460 direct Responses image parts are rejected before creating a transport", async () => {
+  for (const input of [
+    [{ type: "input_image", image_url: "https://example.com/a.png" }],
+    { role: "user", content: [{ type: "input_image", image_url: "data:image/png;base64,eA==" }] },
+    [{ role: "user", content: { type: "image_url" } }],
+  ]) {
+    let started = 0;
+    const executor = new CloudflarePlaygroundExecutor((chatId) => {
+      started++;
+      return new FakeTransport(buildSuccessFrames(chatId));
+    });
+    const result = await executor.execute(
+      executeArgs({ model: "zai-org/glm-4.7-flash", input }, false)
+    );
+    assert.equal(result.response.status, 400);
+    assert.equal(started, 0, "unsupported images must never create a browser transport");
+  }
+});
+
+test("#16460 Responses images are rejected before creating a transport", async () => {
+  let created = 0;
+  const executor = new CloudflarePlaygroundExecutor((chatId) => {
+    created += 1;
+    return new FakeTransport(buildSuccessFrames(chatId));
+  });
+  const result = await executor.execute(
+    executeArgs(
+      {
+        model: "zai-org/glm-4.7-flash",
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_image", image_url: "data:image/png;base64,eA==" }],
+          },
+        ],
+      },
+      false
+    )
+  );
+  assert.equal(result.response.status, 400);
+  assert.equal(created, 0);
+});
+
+test("#16460 image request returns a clear 400 before creating a Playwright transport", async () => {
+  let created = 0;
+  const executor = new CloudflarePlaygroundExecutor((chatId) => {
+    created += 1;
+    return new FakeTransport(buildSuccessFrames(chatId));
+  });
+  const result = await executor.execute(
+    executeArgs(
+      {
+        model: "zai-org/glm-4.7-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "what is in this picture?" },
+              { type: "image_url", image_url: { url: "data:image/png;base64,eA==" } },
+            ],
+          },
+        ],
+      },
+      true
+    )
+  );
+  assert.equal(result.response.status, 400);
+  assert.equal(created, 0, "no browser transport should start for unsupported vision");
+  const response = JSON.parse(await result.response.text()) as { error: { message: string } };
+  assert.match(response.error.message, /text-only|images? not supported/i);
+});
+
+test("#16460 browser dependency errors must not poison the provider circuit breaker", async () => {
+  const hostFailure = classifyCfBrowserStartFailure(
+    new Error("Playwright is not available. Run npx playwright install chromium.")
+  );
+  assert.equal(hostFailure.status, 503);
+  assert.equal(hostFailure.fallbackHint, "connection_cooldown");
+  const body = {
+    model: "zai-org/glm-4.7-flash",
+    messages: [{ role: "user", content: "hello" }],
+  };
+  const local = await makeExecutor(buildSuccessFrames, hostFailure).execute(
+    executeArgs(body, false)
+  );
+  assert.equal(local.response.status, 503);
+  assert.equal(local.response.headers.get("X-Omni-Fallback-Hint"), "connection_cooldown");
+
+  const remote = await makeExecutor(buildSuccessFrames, {
+    status: 502,
+    message: "Cloudflare Playground navigation failed",
+  }).execute(executeArgs(body, false));
+  assert.equal(remote.response.status, 502);
+  assert.equal(remote.response.headers.get("X-Omni-Fallback-Hint"), null);
 });
 
 // ── Executor behavior (fake transport, real frames) ─────────────────────────
