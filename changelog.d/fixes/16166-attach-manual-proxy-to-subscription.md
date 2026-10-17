@@ -1,0 +1,1 @@
+- **fix(proxy):** attach a manually added proxy to an existing subscription from the proxy update route, and detach it again with a null subscription ([#16166](https://github.com/diegosouzapw/OmniRoute/pull/16166)) — thanks @maxmad64bis

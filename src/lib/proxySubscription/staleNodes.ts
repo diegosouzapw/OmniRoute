@@ -1,7 +1,18 @@
 import type { getDbInstance } from "../db/core";
-import { deleteProxyById } from "../db/proxies";
+import { deleteProxyById, updateProxy } from "../db/proxies";
 
 type DbHandle = ReturnType<typeof getDbInstance>;
+
+export async function detachOrDeleteSubscriptionRow(row: {
+  id: string;
+  source: string;
+}): Promise<void> {
+  if (row.source === "subscription") {
+    await deleteProxyById(row.id, { force: true });
+  } else {
+    await updateProxy(row.id, { subscriptionId: null });
+  }
+}
 
 /**
  * Delete registry rows of a subscription that are missing from the fetched
@@ -18,23 +29,23 @@ export async function removeStaleSubscriptionNodes(
     const placeholders = keptIds.map(() => "?").join(",");
     const stale = db
       .prepare(
-        `SELECT id FROM proxy_registry WHERE subscription_id = ? AND id NOT IN (${placeholders})`
+        `SELECT id, source FROM proxy_registry WHERE subscription_id = ? AND id NOT IN (${placeholders})`
       )
-      .all(id, ...keptIds) as Array<{ id: string }>;
+      .all(id, ...keptIds) as Array<{ id: string; source: string }>;
     for (const r of stale) {
       try {
-        await deleteProxyById(r.id, { force: true });
+        await detachOrDeleteSubscriptionRow(r);
       } catch {
         // ignore
       }
     }
   } else {
     const stale = db
-      .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
-      .all(id) as Array<{ id: string }>;
+      .prepare("SELECT id, source FROM proxy_registry WHERE subscription_id = ?")
+      .all(id) as Array<{ id: string; source: string }>;
     for (const r of stale) {
       try {
-        await deleteProxyById(r.id, { force: true });
+        await detachOrDeleteSubscriptionRow(r);
       } catch {
         // ignore
       }
