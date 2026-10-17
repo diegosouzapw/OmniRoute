@@ -100,10 +100,9 @@ import { lockModel, recordCoreOwnedAntigravityQuotaState } from "../../services/
 
 import {
   isModelUnavailableError,
-  getNextFamilyFallback,
+  getNextEligibleFamilyFallback,
   isContextOverflowError,
-  findLargerContextModel,
-  getModelFamily,
+  getContextFamilyFallback,
 } from "../../services/modelFamilyFallback.ts";
 
 import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
@@ -1004,7 +1003,12 @@ export async function runStreamingResponse(deps: StreamingDeps) {
     // from the same family. This keeps the request alive on the same account
     // instead of failing the entire combo.
     if (!pipelineRecovered && isModelUnavailableError(statusCode, message, provider)) {
-      const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
+      const nextModel = getNextEligibleFamilyFallback(
+        currentModel,
+        triedModels,
+        provider,
+        String(getCurrentConnectionId() || connectionId || "")
+      );
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;
@@ -1127,12 +1131,8 @@ export async function runStreamingResponse(deps: StreamingDeps) {
         };
       }
     } else if (isContextOverflowError(statusCode, message)) {
-      const familyCandidates = getModelFamily(currentModel, provider).filter(
-        (m) => m !== currentModel && !triedModels.has(m)
-      );
-      const nextModel =
-        findLargerContextModel(currentModel, familyCandidates, provider) ??
-        getNextFamilyFallback(currentModel, triedModels, provider);
+      const connection = String(getCurrentConnectionId() || connectionId || "");
+      const nextModel = getContextFamilyFallback(currentModel, triedModels, provider, connection);
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;

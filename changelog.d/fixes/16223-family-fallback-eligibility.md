@@ -1,0 +1,1 @@
+- Family fallback now skips hidden models and active connection-scoped model lockouts while preserving eligible sibling order (#16223, fixes #16227; thanks @turbolego).

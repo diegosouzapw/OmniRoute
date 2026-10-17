@@ -29,10 +29,9 @@ import { unwrapClinepassEnvelope } from "../../utils/clinepassEnvelope.ts";
 import { unwrapClineNonStreamingEnvelope } from "./clineResponseEnvelope.ts";
 import {
   isModelUnavailableError,
-  getNextFamilyFallback,
+  getNextEligibleFamilyFallback,
   isContextOverflowError,
-  findLargerContextModel,
-  getModelFamily,
+  getContextFamilyFallback,
 } from "../../services/modelFamilyFallback.ts";
 import { isEmptyContentResponse } from "../../services/errorClassifier.ts";
 import { hasTrustedEmptyTurn } from "../../utils/emptyTurnPolicy.ts";
@@ -596,7 +595,13 @@ export async function runNonStreamingProviderLeg(
     // -- Model-unavailable -> family fallback (initial only) --------------------
     if (allowModelFallback && isModelUnavailableError(statusCode, message, provider)) {
       const triedModels = new Set<string>([currentModel]);
-      const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
+      const currentConnectionId = input.getCurrentConnectionId?.() ?? connectionId;
+      const nextModel = getNextEligibleFamilyFallback(
+        currentModel,
+        triedModels,
+        provider,
+        currentConnectionId
+      );
       if (nextModel) {
         triedModels.add(nextModel);
         input.setRequestWireState({
@@ -670,12 +675,8 @@ export async function runNonStreamingProviderLeg(
     // -- Context overflow -> family fallback (initial only) ---------------------
     if (allowModelFallback && isContextOverflowError(statusCode, message)) {
       const triedModels = new Set<string>([currentModel]);
-      const familyCandidates = getModelFamily(currentModel, provider).filter(
-        (m) => m !== currentModel && !triedModels.has(m)
-      );
-      const nextModel =
-        findLargerContextModel(currentModel, familyCandidates, provider) ??
-        getNextFamilyFallback(currentModel, triedModels, provider);
+      const connection = input.getCurrentConnectionId?.() ?? connectionId;
+      const nextModel = getContextFamilyFallback(currentModel, triedModels, provider, connection);
       if (nextModel) {
         triedModels.add(nextModel);
         input.setRequestWireState({
@@ -992,7 +993,12 @@ export async function runNonStreamingProviderLeg(
     const errMsg = "Provider returned empty content";
     if (allowModelFallback) {
       const triedModels = new Set<string>([currentModel]);
-      const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
+      const nextModel = getNextEligibleFamilyFallback(
+        currentModel,
+        triedModels,
+        provider,
+        input.getCurrentConnectionId?.() ?? connectionId
+      );
       if (nextModel) {
         triedModels.add(nextModel);
         input.setRequestWireState({
