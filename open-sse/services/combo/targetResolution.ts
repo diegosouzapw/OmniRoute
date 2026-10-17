@@ -42,6 +42,7 @@ import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { applyStrategyOrdering } from "./applyStrategyOrdering.ts";
 import { expandTargetsForAllStrategies } from "./connectionAwareExpansion.ts";
+import { excludeNoauthOcTargetsUnlessClient } from "./opencodePassthrough.ts";
 import { clampComboDepth } from "./comboPredicates.ts";
 import {
   describeCapabilityFilterExhaustion,
@@ -120,6 +121,12 @@ export interface ResolveComboTargetPipelineDeps {
    */
   buildAutoCandidates: ResolveAutoStrategyDeps["buildAutoCandidates"];
   hiddenModelsByProvider?: HiddenModelsByProvider;
+  /**
+   * True when the caller presents the OpenCode client identity. No-auth `oc`
+   * candidates are excluded without it; keyed `opencode-zen`/`opencode-go`
+   * candidates are unaffected.
+   */
+  isOpencodePassthroughClient?: boolean;
 }
 
 export interface ResolvedComboTargetPipeline {
@@ -841,6 +848,11 @@ export async function resolveComboTargetPipeline(
         deps.hiddenModelsByProvider
       );
 
+  // No-auth `oc` candidates serve only the OpenCode client relay: without the
+  // client identity they would be refused at dispatch, so exclude them on the
+  // final pool (declared targets, strategy ordering and auto-expanded entries
+  // included) — a single application point after the last widening stage.
+  // Keyed `opencode-zen`/`opencode-go` candidates are unaffected.
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
   // Connection-aware expansion for group-B strategies is opt-in. Runs
@@ -901,6 +913,11 @@ export async function resolveComboTargetPipeline(
         () => new Map<string, PreScreenResult>()
       )
     : new Map<string, PreScreenResult>();
+
+  // No-auth `oc` serves only the OpenCode client relay: without the client
+  // identity such candidates would be refused at dispatch, so drop them from
+  // the final pool. Keyed `opencode-zen`/`opencode-go` stay.
+  orderedTargets = excludeNoauthOcTargetsUnlessClient(orderedTargets, deps);
 
   return {
     orderedTargets,

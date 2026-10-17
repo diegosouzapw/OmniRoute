@@ -121,9 +121,25 @@ test("R4: Go keeps a genuine OpenCode CLI User-Agent", () => {
   });
 });
 
-test("R5: the Zen free tier still replaces a non-CLI User-Agent", () => {
+test("the no-auth oc relay forwards a third-party User-Agent untouched", () => {
   withEnv(CLEAN_ENV, () => {
     const executor = new OpencodeExecutor("opencode");
+    const headers = executor.buildHeaders(
+      null,
+      true,
+      {
+        "User-Agent": "my-coding-agent/1.0",
+        "x-opencode-session": SESSION,
+      },
+      "nemotron-3.5-lightning-free"
+    );
+    assert.equal(userAgentOf(headers), "my-coding-agent/1.0");
+  });
+});
+
+test("the keyed Zen tier still replaces a non-CLI User-Agent", () => {
+  withEnv(CLEAN_ENV, () => {
+    const executor = new OpencodeExecutor("opencode-zen");
     const headers = executor.buildHeaders(
       null,
       true,

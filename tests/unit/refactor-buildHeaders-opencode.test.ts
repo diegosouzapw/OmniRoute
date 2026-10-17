@@ -92,20 +92,20 @@ test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA and synt
   }
 });
 
-test("OpencodeExecutor.buildHeaders: preserves a client User-Agent that satisfies the upstream contract", () => {
-  // The rule is now the upstream one: a UA carrying `opencode/<version >= 1.17>` is kept,
-  // anything else is replaced by the synthesized default. `opencode-cli/…` carries no
-  // parsable version, and the free tier refuses it, so it is no longer preserved.
+test("OpencodeExecutor.buildHeaders: no-auth oc forwards the client User-Agent untouched", () => {
+  // The no-auth oc relay synthesizes nothing: the client identity travels
+  // verbatim, including non-CLI values — non-client callers are refused by
+  // the executor gate, not by header rewriting.
   const executor = new OpencodeExecutor("opencode");
   const kept = executor.buildHeaders({ apiKey: "key-1" }, true, {
     "User-Agent": "opencode/1.17.12",
   });
   assert.equal(kept["User-Agent"], "opencode/1.17.12");
 
-  const replaced = executor.buildHeaders({ apiKey: "key-1" }, true, {
+  const forwarded = executor.buildHeaders({ apiKey: "key-1" }, true, {
     "User-Agent": "opencode-cli/1.17.12",
   });
-  assert.notEqual(replaced["User-Agent"], "opencode-cli/1.17.12");
+  assert.equal(forwarded["User-Agent"], "opencode-cli/1.17.12");
 });
 
 test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent and synthesis is explicitly off", () => {

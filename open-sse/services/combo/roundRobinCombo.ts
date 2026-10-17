@@ -117,6 +117,7 @@ import {
   expandProviderWildcardsInCollection,
 } from "./providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./shadowRouting.ts";
+import { excludeNoauthOcTargetsUnlessClient } from "./opencodePassthrough.ts";
 import {
   computeCompatRejectedTargets,
   describeCapabilityFilterExhaustion,
@@ -160,6 +161,7 @@ export async function handleRoundRobinCombo({
   requestHeaders: _requestHeaders = null,
   relayOptions,
   perTargetAdmission = null,
+  isOpencodePassthroughClient = false,
 }: HandleRoundRobinOptions): Promise<Response> {
   const config = settings
     ? resolveComboConfig(combo, settings)
@@ -226,7 +228,14 @@ export async function handleRoundRobinCombo({
     apiKeyAllowedConnectionIds: apiKeyAllowedConnections,
   });
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
-  const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
+  // No-auth `oc` serves only the OpenCode client relay: drop it from the pool
+  // before rotation so a caller without the client identity never dispatches
+  // to it (the main pipeline applies the same predicate after ordering;
+  // round-robin rotates outside that pipeline). Keyed `opencode-zen` stays.
+  const ocEligibleTargets = excludeNoauthOcTargetsUnlessClient(tagFilteredTargets, {
+    isOpencodePassthroughClient,
+  });
+  const evalRankedTargets = orderTargetsByEvalScores(ocEligibleTargets, config.evalRouting, log);
   // Align with the main/auto paths: combo config OR top-level settings (#8488 / #8494).
   const rrCompatFailOpen =
     (config as { compatFilterFailOpen?: unknown }).compatFilterFailOpen === true ||
@@ -250,6 +259,8 @@ export async function handleRoundRobinCombo({
   // BEFORE availability is known; if every compat-kept target then turns out to be
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
+  // No-auth `oc` already excluded above, so only the compat split remains.
+  // (The compat helper is #6238's genuine fallback tier.)
   const compatRejectedTargets = computeCompatRejectedTargets(
     evalRankedTargets,
     filteredTargets,

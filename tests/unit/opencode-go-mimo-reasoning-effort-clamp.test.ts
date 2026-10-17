@@ -40,6 +40,15 @@ async function captureOutbound(
     model,
     stream: false,
     credentials: { apiKey: "test-key" },
+    clientHeaders:
+      provider === "opencode"
+        ? {
+            "user-agent": "opencode/1.18.31",
+            "User-Agent": "opencode/1.18.31",
+            "x-opencode-session": "ses_abc123",
+            "x-opencode-session-id": "ses_abc123",
+          }
+        : undefined,
     body,
   });
   assert.equal(result.response.status, 200);
@@ -166,19 +175,13 @@ describe("OpenCode provider family shares the clamp", () => {
       "mimo-v2.5-free",
       chatBody("mimo-v2.5-free", "max")
     );
-    // The free-tier contract also forces stream:true and a placeholder tool.
-    // Those fields are unrelated to the effort clamp; the effort itself is high.
+    // The no-auth oc relay forwards the client body untouched: the effort clamp
+    // applies, no stream flag or placeholder tool is added.
     assert.equal(sent.model, "mimo-v2.5-free");
     assert.equal(sent.reasoning_effort, "high");
-    assert.equal(sent.stream, true);
-    assert.ok(Array.isArray(sent.tools));
-    assert.deepEqual(Object.keys(sent).sort(), [
-      "messages",
-      "model",
-      "reasoning_effort",
-      "stream",
-      "tools",
-    ]);
+    assert.equal(sent.stream, undefined);
+    assert.equal(sent.tools, undefined);
+    assert.deepEqual(sent, chatBody("mimo-v2.5-free", "high"));
   });
 
   it("opencode_go alias is in the same provider family", () => {

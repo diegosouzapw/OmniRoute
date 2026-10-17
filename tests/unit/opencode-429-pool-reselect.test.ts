@@ -91,6 +91,13 @@ function credentialsMixedOwnProxy(): ProviderCredentials {
   };
 }
 
+const CLIENT_HEADERS = {
+  "user-agent": "opencode/1.18.31",
+  "User-Agent": "opencode/1.18.31",
+  "x-opencode-session": "ses_abc123",
+  "x-opencode-session-id": "ses_abc123",
+};
+
 const QUOTA_429 = JSON.stringify({ error: { message: "rate limit reached, try again" } });
 
 /** First call(s) 429, then 200. Records the egress proxy port per dispatch. */
@@ -142,6 +149,7 @@ async function runWith(
           stream: false,
           signal: null,
           credentials: credentialsNoProxy(count),
+          clientHeaders: { ...CLIENT_HEADERS },
           log,
         })
       )
@@ -150,6 +158,24 @@ async function runWith(
 }
 
 describe("opencode 429 pool re-selection per attempt", () => {
+  it("no-auth oc without the OpenCode client identity is refused before dispatch", async () => {
+    installFetch(0);
+    const exec = new OpencodeExecutor("opencode");
+    const result = (await runInRequestContext(() =>
+      exec.execute({
+        model: "muse-spark-1.3-contributor-free",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: credentialsNoProxy(2),
+        log,
+      })
+    )) as { response: Response };
+    // The passthrough gate refuses before any upstream call: no dispatch.
+    assert.strictEqual(result.response.status, 403);
+    assert.strictEqual(observed.length, 0);
+  });
+
   it("second attempt uses another pool member after an egress-bucketed 429", async () => {
     const result = (await runWith(
       { reselectPoolMember: async () => memberB() },
@@ -193,6 +219,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
               stream: false,
               signal: null,
               credentials: credentialsNoProxy(2),
+              clientHeaders: { ...CLIENT_HEADERS },
               log: spyLog,
             })
           )
@@ -280,6 +307,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
               stream: false,
               signal: null,
               credentials: credentialsNoProxy(2),
+              clientHeaders: { ...CLIENT_HEADERS },
               log: quietLog,
             })
           )
@@ -312,6 +340,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
               stream: false,
               signal: null,
               credentials: credentialsMixedOwnProxy(),
+              clientHeaders: { ...CLIENT_HEADERS },
               log,
             })
           )

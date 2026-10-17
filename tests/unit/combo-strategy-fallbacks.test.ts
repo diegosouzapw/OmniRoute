@@ -13,6 +13,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const { handleComboChat, preScreenTargets } = await import("../../open-sse/services/combo.ts");
+const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts");
 const { weightedStickyTargets, rrStickyTargets } =
   await import("../../open-sse/services/combo/rrState.ts");
 const core = await import("../../src/lib/db/core.ts");
@@ -35,6 +36,13 @@ function createLog() {
     entries,
   };
 }
+
+const OPENCODE_CLIENT_REQUEST_HEADERS = {
+  "user-agent": "opencode/1.18.31",
+  "User-Agent": "opencode/1.18.31",
+  "x-opencode-session": "ses_abc123",
+  "x-opencode-session-id": "ses_abc123",
+};
 
 function okResponse(body: any = { choices: [{ message: { content: "ok" } }] }) {
   return new Response(JSON.stringify(body), {
@@ -496,6 +504,39 @@ test("weighted sticky limit follows fallback success", async () => {
   assert.deepEqual(calls, ["claude/b", "openai/a", "openai/a", "claude/b", "openai/a", "openai/a"]);
 });
 
+test("no-auth oc executor refuses callers without the OpenCode client identity", async () => {
+  let dispatched = 0;
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  delete process.env.HTTP_PROXY;
+  delete process.env.HTTPS_PROXY;
+  delete process.env.http_proxy;
+  delete process.env.https_proxy;
+  globalThis.fetch = (async () => {
+    dispatched += 1;
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }) as typeof globalThis.fetch;
+  try {
+    const exec = new OpencodeExecutor("opencode");
+    const result = (await exec.execute({
+      model: "m3",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      signal: null,
+      credentials: { apiKey: "sk-test", accessToken: null, connectionId: "noauth" },
+      log: createLog(),
+    })) as { response: Response };
+    assert.strictEqual(result.response.status, 403);
+    assert.strictEqual(dispatched, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
 test("weighted sticky keeps a top-level step if one nested leaf remains available", async () => {
   const calls: string[] = [];
   const step0Key = "weighted-nested-sticky-ref-1-minimax";
@@ -521,6 +562,7 @@ test("weighted sticky keeps a top-level step if one nested leaf remains availabl
     log: createLog(),
     settings: null,
     allCombos,
+    requestHeaders: { ...OPENCODE_CLIENT_REQUEST_HEADERS },
   });
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["oc/m3"]);
@@ -822,4 +864,54 @@ test("preScreenTargets marks an expired-OPEN (HALF_OPEN) target as available", a
     true,
     "HALF_OPEN (expired OPEN) target must be available for a probe request"
   );
+});
+
+test("round-robin drops no-auth oc candidates without the OpenCode client identity", async () => {
+  const calls: string[] = [];
+  const combo = {
+    name: "rr-oc-passthrough-drop",
+    strategy: "round-robin",
+    models: ["oc/big-pickle", "openai/gpt-4o"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    requestHeaders: { "user-agent": "curl/8.4.0" },
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/gpt-4o"]);
+});
+
+test("round-robin keeps no-auth oc candidates for the OpenCode client", async () => {
+  const calls: string[] = [];
+  const combo = {
+    name: "rr-oc-passthrough-keep",
+    strategy: "round-robin",
+    models: ["oc/big-pickle", "openai/gpt-4o"],
+    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+  };
+  const result = await handleComboChat({
+    body: {},
+    combo,
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    requestHeaders: { ...OPENCODE_CLIENT_REQUEST_HEADERS },
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["oc/big-pickle"]);
 });

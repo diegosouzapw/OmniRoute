@@ -1,0 +1,1 @@
+- **fix(sse):** the no-auth OpenCode provider now serves only the OpenCode client as a verbatim relay, refusing other callers with 403 before any upstream call ([#16900](https://github.com/diegosouzapw/OmniRoute/pull/16900)) — thanks @maxmad64bis

@@ -60,6 +60,40 @@ test("#8841 advertised vs compat-filter limit agree", () => {
   );
 });
 
+test("no-auth oc executor refuses callers without the OpenCode client identity", async () => {
+  const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts");
+  let dispatched = 0;
+  const originalFetch = globalThis.fetch;
+  const originalEnv = { ...process.env };
+  delete process.env.HTTP_PROXY;
+  delete process.env.HTTPS_PROXY;
+  delete process.env.http_proxy;
+  delete process.env.https_proxy;
+  globalThis.fetch = (async () => {
+    dispatched += 1;
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }) as typeof globalThis.fetch;
+  try {
+    const exec = new OpencodeExecutor("opencode");
+    const result = (await exec.execute({
+      model: "north-mini-code-free",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      signal: null,
+      credentials: { apiKey: "sk-test", accessToken: null, connectionId: "noauth" },
+      log: noopLog,
+    })) as { response: Response };
+    assert.strictEqual(result.response.status, 403);
+    assert.strictEqual(dispatched, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env = originalEnv;
+  }
+});
+
 test("#8841 real upstream context overflow remains a fatal 400 after dispatch", async () => {
   const body = largeBody();
   let dispatches = 0;
@@ -80,6 +114,12 @@ test("#8841 real upstream context overflow remains a fatal 400 after dispatch", 
     log: noopLog,
     settings: {},
     allCombos: [],
+    requestHeaders: {
+      "user-agent": "opencode/1.18.31",
+      "User-Agent": "opencode/1.18.31",
+      "x-opencode-session": "ses_abc123",
+      "x-opencode-session-id": "ses_abc123",
+    },
   });
 
   assert.equal(dispatches, 1, "real upstream overflow must short-circuit fallback");

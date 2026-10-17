@@ -231,6 +231,30 @@
     "tests/unit/qwen-web-models-discovery-3931.test.ts": {
       "replacement": "tests/unit/provider-models-discovery-split.test.ts",
       "reason": "v3.8.51 #11713 Qwen Web provenance HOLD: the retired chat.qwen.ai discovery integration no longer has a positive model-discovery contract. The replacement asserts qwen-web is absent from PROVIDER_MODELS_CONFIG while the remaining discovery providers retain their mappings; tests/unit/qwen-web-retirement.test.ts supplies the end-to-end retirement guard. Feature retirement, not masking."
+    },
+    "tests/unit/opencode-free-tier-refusal-rotation.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): rotation of refused free-tier requests is retired with the fabrication contract; the 403 passthrough verdict is covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
+    },
+    "tests/unit/opencode-free-tier-request-contract.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): placeholder-tool injection contract is retired; relay of the client body untouched is covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
+    },
+    "tests/unit/opencode-quota-retry-own-tools.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): quota retry with observed tools is retired; upstream verdicts are returned as-is, covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
+    },
+    "tests/unit/opencode-request-shape-retry.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): request-shape retry wrapper is retired with its module; passthrough without replay is covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
+    },
+    "tests/unit/opencode-shape-replay-insufficient-quota.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): shape-replay on insufficient quota is retired; the verdict is returned unchanged, covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
+    },
+    "tests/unit/opencode-shape-replay-verdict-reread.test.ts": {
+      "replacement": "tests/unit/opencode-client-gate.test.ts",
+      "reason": "oc passthrough-only (16900): shape-replay verdict reread is retired; single-dispatch 403 passthrough is covered by tests/unit/opencode-client-gate.test.ts and tests/unit/opencode-combo-passthrough-exclusion.test.ts. Spec removes identity, tool and shape fabrication on oc/."
     }
   },
   "tests/unit/catalog-updates-v3x.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — os 5 asserts removidos pinavam specs de modelos mimo-v2-* que deixaram de existir no catálogo (54→49). Asserts seguem a remoção dos modelos, não enfraquecimento. Verificado legítimo. Prune após v3.8.45 mergear para main.",

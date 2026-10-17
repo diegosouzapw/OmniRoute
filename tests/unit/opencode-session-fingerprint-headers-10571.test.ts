@@ -171,13 +171,16 @@ test("OpencodeExecutor.buildHeaders derives a stable x-opencode-session from the
   assert.equal(headersFirst["x-opencode-session"], headersSecond["x-opencode-session"]);
 });
 
-test("Responses requests use the same canonical session as every other surface", () => {
+test("Responses requests on the no-auth relay keep a canonical client session as-is", () => {
   const executor = new OpencodeExecutor("opencode");
   executor._requestFormat = "openai-responses";
-  const headers = executor.buildHeaders(
+  const relayed = executor.buildHeaders(
     null,
     true,
-    null,
+    {
+      "user-agent": "opencode/1.18.31",
+      "x-opencode-session": "ses_8a6d5e3bccc4WN8wgLW7iLWxJQ",
+    },
     "muse-spark-1.2-contributor-free",
     undefined,
     {
@@ -185,10 +188,15 @@ test("Responses requests use the same canonical session as every other surface",
       input: [],
     }
   );
-  // The UUID this path used to force is now refused upstream. Measured 2026-09-17 on
-  // muse-spark-1.3-contributor-free: the Responses surface answers 200 with a canonical
-  // `ses_` session, so the transport no longer needs a shape of its own.
-  assert.match(headers["x-opencode-session"] ?? "", SESSION_HASH_RE);
+  // Passthrough: a client session already in canonical shape travels verbatim,
+  // and the client User-Agent is kept. Keyed providers keep the fingerprint
+  // behaviour (covered by the subtests above).
+  assert.equal(relayed["x-opencode-session"], "ses_8a6d5e3bccc4WN8wgLW7iLWxJQ");
+  assert.equal(relayed["User-Agent"] ?? relayed["user-agent"], "opencode/1.18.31");
+  // No synthesis on the relay path: nothing is added beyond what the client sent.
+  assert.equal(relayed["x-opencode-client"], undefined);
+  assert.equal(relayed["x-opencode-project"], undefined);
+  assert.equal(relayed["x-opencode-request"], undefined);
 });
 
 test("OpencodeExecutor.buildHeaders derives a DIFFERENT x-opencode-session for a different conversation body", () => {

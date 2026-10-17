@@ -115,6 +115,7 @@ import {
   resolveComboTargets,
 } from "./combo/comboStructure.ts";
 import { createInvocationId, getComboTrace, startComboTrace } from "./combo/decisionTrace.ts";
+import { isOcPt } from "./combo/opencodePassthrough.ts";
 import {
   QUOTA_SOFT_DEPRIORITIZE_FACTOR,
   setCandidateQuotaSoftPenalty,
@@ -874,6 +875,7 @@ async function handleComboChatInner({
       requestHeaders,
       relayOptions,
       perTargetAdmission,
+      isOpencodePassthroughClient: isOcPt(requestHeaders),
     });
   }
 
@@ -900,6 +902,7 @@ async function handleComboChatInner({
     handleSingleModelWithTimeout,
     buildAutoCandidates,
     hiddenModelsByProvider,
+    isOpencodePassthroughClient: isOcPt(requestHeaders),
   });
   if ("earlyResponse" in targetResolution) return targetResolution.earlyResponse;
   const { stickyWeightedLimit, getWeightedStepKeyForTarget, preScreenMap } = targetResolution;

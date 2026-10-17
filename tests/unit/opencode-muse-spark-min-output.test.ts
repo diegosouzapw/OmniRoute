@@ -106,7 +106,7 @@ test("RED: stream normalizer passes through [DONE], comments and non-JSON lines"
   assert.equal(norm("data: not-json"), "data: not-json");
 });
 
-test("closes the Muse Responses stream at response.completed before post-completion pings", async () => {
+test("no-auth oc relays the Muse Responses stream untouched, post-completion pings included", async () => {
   const originalFetch = globalThis.fetch;
   try {
     globalThis.fetch = (async () =>
@@ -131,6 +131,12 @@ test("closes the Muse Responses stream at response.completed before post-complet
         stream: true,
       },
       stream: true,
+      clientHeaders: {
+        "user-agent": "opencode/1.18.31",
+        "User-Agent": "opencode/1.18.31",
+        "x-opencode-session": "ses_abc123",
+        "x-opencode-session-id": "ses_abc123",
+      },
       credentials: {
         providerSpecificData: {
           fingerprints: ["test-account-a", "test-account-b"],
@@ -142,8 +148,10 @@ test("closes the Muse Responses stream at response.completed before post-complet
       result.response.text(),
       new Promise<string>((_, reject) => setTimeout(() => reject(new Error("stream hung")), 1000)),
     ]);
+    // The no-auth oc relay returns the upstream verdict exactly as sent: no
+    // stream normalization applies on the passthrough path.
     assert.match(text, /response.completed/);
-    assert.doesNotMatch(text, /\"type\":\"ping\"/);
+    assert.match(text, /\"type\":\"ping\"/);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -210,7 +218,7 @@ test("chat path is unchanged: muse-spark max_tokens floor stays 512, other model
   assert.equal(other.max_tokens, 1);
 });
 
-test("OpencodeExecutor floors max_output_tokens before dispatching a Responses body", async () => {
+test("keyed executor floors max_output_tokens before dispatching a Responses body", async () => {
   const originalFetch = globalThis.fetch;
   const sentBodies: Record<string, unknown>[] = [];
   try {
@@ -224,16 +232,17 @@ test("OpencodeExecutor floors max_output_tokens before dispatching a Responses b
         ].join("\n"),
         { status: 200, headers: { "Content-Type": "text/event-stream" } }
       );
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
-    const result = await new OpencodeExecutor("opencode").execute({
-      model: "muse-spark-1.2-contributor-free",
-      body: { model: "muse-spark-1.2-contributor-free", max_output_tokens: 100, stream: true },
-      stream: true,
-      credentials: {
-        providerSpecificData: { fingerprints: ["test-account-a"], accountProxies: [] },
-      },
-    });
+    const { runWithProxyContext } = await import("../../open-sse/utils/proxyFetch.ts");
+    const result = await runWithProxyContext(null, () =>
+      new OpencodeExecutor("opencode-go").execute({
+        model: "muse-spark-1.2-contributor-free",
+        body: { model: "muse-spark-1.2-contributor-free", max_output_tokens: 100, stream: true },
+        stream: true,
+        credentials: { apiKey: "test-key" },
+      })
+    );
     await result.response.text();
     assert.ok(sentBodies.length > 0);
     assert.equal(sentBodies[0].max_output_tokens, MUSE_SPARK_RESPONSES_MIN_OUTPUT_TOKENS);

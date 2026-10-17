@@ -165,6 +165,12 @@ export type HandleComboChatOptions = {
   sourceFormat?: string | null;
   endpointPath?: string | null;
   requestHeaders?: Headers | Record<string, unknown> | null;
+  /**
+   * True when the caller presents the OpenCode client identity. Derived in
+   * `handleComboChatInner` from `requestHeaders` via the passthrough gate;
+   * no-auth `oc` candidates are excluded without it.
+   */
+  isOpencodePassthroughClient?: boolean;
 };
 
 export type HandleRoundRobinOptions = HandleComboChatOptions;

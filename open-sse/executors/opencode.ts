@@ -57,6 +57,7 @@ import {
   poolReselectKeyOf,
   isOpencodeUserBlocked,
 } from "./opencodeGeoBlock.ts";
+import { isOpencodePassthroughClient, buildNonClientRefusal } from "./opencodeClientGate.ts";
 import {
   FREE_TIER_INFERENCE_BASE_URL,
   attemptFor,
@@ -66,7 +67,16 @@ import {
   prepareFreeTierRequest,
   rebuildJsonFromForcedStream,
   surfaceFromBaseUrl,
+  type OpencodeSurface,
 } from "./opencodeFreeTierContract.ts";
+/**
+ * Free-vs-premium classification for the keyless 402 gate. The catalog lives
+ * in the contract module (synced live catalog with legacy fallback); this
+ * executor re-exports its surface helpers so existing importers keep
+ * resolving them here.
+ */
+export { isPremiumOpencodeModel, surfaceFromBaseUrl, isGatedFreeTierRequest };
+export type { OpencodeSurface };
 import {
   applyOpencodeOutputBudgetFloors,
   createMuseSparkStreamFinishNormalizer,
@@ -81,10 +91,6 @@ import {
 } from "./opencodeFreeTierRetry.ts";
 import { withRequestShapeRetry } from "./opencodeRequestShape.ts";
 import { trimOversizedToolEnums } from "./opencodeEnumTrim.ts";
-
-// Re-exported: the free-model catalog moved to the contract module (it decides whether the
-// contract applies), and existing importers keep resolving it from the executor.
-export { isPremiumOpencodeModel };
 import {
   isResponsesFirstByteTimeout,
   makeStallGuardedCall,
@@ -221,7 +227,8 @@ export class OpencodeExecutor extends BaseExecutor {
   /**
    * Note the outcome of a forced-stream response without reading its body: a success
    * confirms the borrowed shape, anything else carries no verdict (the paths that hold
-   * the verdict note it explicitly where they already read it).
+   * the verdict note it explicitly where they already read it). Keyed providers only;
+   * the no-auth `oc` relay never forces a stream.
    */
   private noteForcedStreamOutcome(input: ExecuteInput, result: ExecutorExecuteResult): void {
     const attempt = attemptFor(input.body);
@@ -232,6 +239,23 @@ export class OpencodeExecutor extends BaseExecutor {
       status: response?.ok ? (response.status ?? null) : null,
       bodyText: null,
     });
+  }
+
+  /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
+  private freeTierRetryCtx(input: ExecuteInput) {
+    // #14148 moved the contract attempt off the executor: it is keyed by the
+    // request body, so read it back from there instead of a shared field.
+    // Unused on the no-auth `oc` relay (single dispatch, verdict as-is), kept
+    // for the keyed `opencode-zen`/`opencode-go` retry arms below.
+    const attempt = attemptFor(input.body);
+    return {
+      surface: this._surface(),
+      provider: this.provider,
+      requestFormat: this._requestFormat,
+      clientSession: this._clientSession,
+      borrowed: attempt?.borrowed,
+      clientToolNames: attempt?.clientToolNames ?? [],
+    };
   }
 
   /**
@@ -260,21 +284,6 @@ export class OpencodeExecutor extends BaseExecutor {
     else this._sessionFallback = value;
   }
   private _surface = () => surfaceFromBaseUrl(this.config?.baseUrl);
-
-  /** Free-tier retry context: the request-scoped contract state the retry helper needs. */
-  private freeTierRetryCtx(input: ExecuteInput) {
-    // #14148 moved the contract attempt off the executor: it is keyed by the
-    // request body, so read it back from there instead of a shared field.
-    const attempt = attemptFor(input.body);
-    return {
-      surface: this._surface(),
-      provider: this.provider,
-      requestFormat: this._requestFormat,
-      clientSession: this._clientSession,
-      borrowed: attempt?.borrowed,
-      clientToolNames: attempt?.clientToolNames ?? [],
-    };
-  }
 
   // Not `private`: passed as the shared pick cursor to
   // pickRotatableAccount(), which needs a plain `{ nextAccountIdx }` shape —
@@ -315,9 +324,19 @@ export class OpencodeExecutor extends BaseExecutor {
     sleepAbortable;
   parkSleep: (ms: number, signal?: AbortSignal | null) => Promise<boolean> = sleepAbortable;
 
-  constructor(provider: string) {
+  constructor(provider: string, opts?: { noauthPassthrough?: boolean }) {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
+    this.noauthPassthrough = opts?.noauthPassthrough ?? provider === "opencode";
   }
+
+  /**
+   * True on the no-auth `oc` relay executor (the `opencode` map entry), false
+   * on the keyed `opencode-zen`/`opencode-go` executors. The executor is
+   * picked by provider id before any per-request credential check, so the
+   * flag — not the resolved provider string — tells the gate which traffic
+   * this instance serves. Set once at construction, never per request.
+   */
+  readonly noauthPassthrough: boolean;
 
   /** Round-robin pick from this request's list, skipping members not ready. */
   private pickAccountWith(
@@ -357,19 +376,16 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   /**
-   * Rewrite muse-spark's bogus `finish_reason:"length"` (see the
-   * normalizeMuseSparkFinishReason note) to `"stop"` on both streaming and
-   * non-streaming success responses. Non-muse-spark models pass through
-   * untouched.
-   */
-  /**
    * Hand a JSON caller a JSON body even though the free-tier contract forced the upstream
    * request to stream. A streaming caller, a refusal and an already-JSON body pass through.
+   * Disabled on the no-auth `oc` passthrough path (no forced stream there: the
+   * client body travels untouched and the upstream verdict is returned as-is).
    */
   private finalizeForcedStream(
     input: ExecuteInput,
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
+    if (this.noauthPassthrough) return result;
     this.noteForcedStreamOutcome(input, result);
     if (input.stream) return result;
     if (!(result instanceof Response)) {
@@ -389,7 +405,8 @@ export class OpencodeExecutor extends BaseExecutor {
   /**
    * Count a refusal that says something about the borrowed tools, on a path
    * that already holds the verdict. Only 403/451 carry that verdict, so only
-   * they pay for a body read — anything else leaves the store alone.
+   * they pay for a body read — anything else leaves the store alone. Keyed
+   * providers only; the no-auth `oc` relay never borrows tools.
    */
   private async noteFreeTierRefusal(
     input: ExecuteInput,
@@ -406,6 +423,22 @@ export class OpencodeExecutor extends BaseExecutor {
       log?.debug?.("OPENCODE", "body read failed on borrowed-shape check");
     }
     noteFreeTierOutcome(attempt, { ok: false, status: response.status, bodyText });
+  }
+
+  /**
+   * Rewrite muse-spark's bogus `finish_reason:"length"` (see the
+   * normalizeMuseSparkFinishReason note) to `"stop"` on both streaming and
+   * non-streaming success responses. Non-muse-spark models pass through
+   * untouched. Disabled on the no-auth `oc` passthrough path: the client
+   * receives the upstream verdict exactly as sent.
+   */
+
+  private passthroughMuseSparkResponse(
+    input: ExecuteInput,
+    result: ExecutorExecuteResult
+  ): ExecutorExecuteResult {
+    if (this.noauthPassthrough) return result;
+    return this.normalizeMuseSparkResponse(input, result);
   }
 
   private normalizeMuseSparkResponse(
@@ -529,6 +562,9 @@ export class OpencodeExecutor extends BaseExecutor {
         const reselect = currentAppliedProxySink()?.reselectPoolMember;
         const ctx = currentRequestContext();
         if (ctx && typeof reselect === "function") ctx.reselectPoolMember = reselect;
+        // Keyed providers keep the request-shape retry wrapper; the no-auth
+        // `oc` relay unwraps to a single dispatch (verdict as-is).
+        if (this.noauthPassthrough) return this.executeOnce(input);
         return withRequestShapeRetry(input, (i) => this.executeOnce(i));
       });
     } finally {
@@ -537,6 +573,17 @@ export class OpencodeExecutor extends BaseExecutor {
   }
 
   private async executeOnce(input: ExecuteInput) {
+    // No-auth `oc` serves only the OpenCode client relay: callers without the
+    // client identity are refused before any account selection or upstream
+    // call. Keyed `opencode-zen`/`opencode-go` providers skip this gate. The
+    // gate reads only the strict client identity (User-Agent plus session
+    // header); any wider identification would re-admit the fabrication the
+    // spec retires, so bare `provider: "opencode"` calls without headers are
+    // refused here rather than dispatched upstream.
+    if (this.noauthPassthrough && !isOpencodePassthroughClient(input.clientHeaders ?? null)) {
+      return buildNonClientRefusal();
+    }
+
     this._requestFormat = resolveOpencodeTargetFormat(this.provider, input.model);
 
     // #8681: Gate premium opencode models behind a usable API key.
@@ -566,11 +613,15 @@ export class OpencodeExecutor extends BaseExecutor {
     }
 
     try {
-      // muse-spark reasoning models consume the entire output budget on hidden
-      // server-side reasoning; small caller budgets come back as empty-message
-      // 200s ("Provider returned empty content"). Raise tiny budgets to the
-      // floor before dispatch (see applyOpencodeOutputBudgetFloors).
-      if (input.body && typeof input.body === "object" && !Array.isArray(input.body)) {
+      // Keyed providers keep the output-budget floors; the no-auth `oc`
+      // passthrough relays the client budget untouched so the upstream
+      // verdict matches the official client exactly.
+      if (
+        !this.noauthPassthrough &&
+        input.body &&
+        typeof input.body === "object" &&
+        !Array.isArray(input.body)
+      ) {
         applyOpencodeOutputBudgetFloors(
           String(input.model ?? ""),
           input.body as Record<string, unknown>
@@ -638,28 +689,35 @@ export class OpencodeExecutor extends BaseExecutor {
         const single = (await guardStall(
           await (hasAmbientProxyContext() ? dispatch() : runWithDirectFetchContext(dispatch))
         )) as HttpExecuteResult;
-        const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
-          this.freeTierRetryCtx(input),
-          input,
-          single,
-          log,
-          cid,
-          (retryInput) =>
-            guardStall(
-              hasAmbientProxyContext()
-                ? super.execute(retryInput)
-                : runWithDirectFetchContext(() => super.execute(retryInput))
-            ) as unknown as Promise<HttpExecuteResult>
-        );
-        if (retryAfterRefusal) {
-          await this.noteFreeTierRefusal(input, retryAfterRefusal.response, log);
-          return this.finalizeForcedStream(
+        // Keyed providers retry a free-tier refusal with observed tools; the
+        // no-auth `oc` relay returns the verdict as-is (single dispatch).
+        // The cast below matches the pre-existing call shape on the base: the
+        // retry helper types its dispatch as `{ response: Response }` while
+        // `super.execute` returns the wider `ExecutorExecuteResult` union.
+        if (!this.noauthPassthrough) {
+          const retryAfterRefusal = await retryFreeTierRefusalWithObservedTools(
+            this.freeTierRetryCtx(input),
             input,
-            this.normalizeMuseSparkResponse(input, retryAfterRefusal)
+            single,
+            log,
+            cid,
+            (retryInput) =>
+              guardStall(
+                hasAmbientProxyContext()
+                  ? super.execute(retryInput)
+                  : runWithDirectFetchContext(() => super.execute(retryInput))
+              ) as unknown as Promise<HttpExecuteResult>
           );
-        }
-        if (single.response.status === 403 || single.response.status === 451) {
-          await this.noteFreeTierRefusal(input, single.response, log);
+          if (retryAfterRefusal) {
+            await this.noteFreeTierRefusal(input, retryAfterRefusal.response, log);
+            return this.finalizeForcedStream(
+              input,
+              this.normalizeMuseSparkResponse(input, retryAfterRefusal)
+            );
+          }
+          if (single.response.status === 403 || single.response.status === 451) {
+            await this.noteFreeTierRefusal(input, single.response, log);
+          }
         }
         if (single.response.status === 400) {
           let bodyText: string | null = null;
@@ -677,7 +735,10 @@ export class OpencodeExecutor extends BaseExecutor {
               );
               return this.finalizeForcedStream(
                 input,
-                this.normalizeMuseSparkResponse(input, await guardStall(await super.execute(input)))
+                this.passthroughMuseSparkResponse(
+                  input,
+                  await guardStall(await super.execute(input))
+                )
               );
             }
             log?.debug?.(
@@ -686,7 +747,7 @@ export class OpencodeExecutor extends BaseExecutor {
             );
           }
         }
-        return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, single));
+        return this.finalizeForcedStream(input, this.passthroughMuseSparkResponse(input, single));
       }
 
       // This loop only ever dispatches through super.execute() (the HTTP request
@@ -1061,7 +1122,10 @@ export class OpencodeExecutor extends BaseExecutor {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
                   noteReplayed();
-                  return this.normalizeMuseSparkResponse(input, p);
+                  return this.finalizeForcedStream(
+                    input,
+                    this.passthroughMuseSparkResponse(input, p)
+                  );
                 }
                 if (p) {
                   discardResponseBody(abandonedResponse);
@@ -1069,7 +1133,10 @@ export class OpencodeExecutor extends BaseExecutor {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
                   noteStoredFallback();
-                  return this.normalizeMuseSparkResponse(input, result);
+                  return this.finalizeForcedStream(
+                    input,
+                    this.passthroughMuseSparkResponse(input, result)
+                  );
                 }
               }
             }
@@ -1173,8 +1240,9 @@ export class OpencodeExecutor extends BaseExecutor {
               continue;
             }
             // Free-tier refusal: upstream rejected the REQUEST (client identity or
-            // request shape), not this account. Handled in opencodeFreeTierRetry.ts
-            // (one bounded retry with observed tools appended, then unchanged return).
+            // request shape), not this account. Keyed providers get one bounded
+            // retry with observed tools appended, then the unchanged return;
+            // the no-auth `oc` relay returns the refusal as-is.
             if (bodyText !== null && isOwnToolsRetryableRefusal(status, bodyText)) {
               noteFreeTierOutcome(attemptFor(input.body), {
                 ok: false,
@@ -1184,6 +1252,7 @@ export class OpencodeExecutor extends BaseExecutor {
               if (attributionOn && skippedCooldown.size > 0) {
                 this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
               }
+              if (this.noauthPassthrough) return result;
               return await handleLoopFreeTierRefusal(
                 (retried) =>
                   this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, retried)),
@@ -1241,7 +1310,7 @@ export class OpencodeExecutor extends BaseExecutor {
           if (attributionOn && skippedCooldown.size > 0) {
             this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
           }
-          return this.finalizeForcedStream(input, this.normalizeMuseSparkResponse(input, result));
+          return this.finalizeForcedStream(input, this.passthroughMuseSparkResponse(input, result));
         } finally {
           // Single release point for every post-dispatch arm (5xx, 403/451,
           // free-tier, 429, 400, success): the released-guard makes the 429
@@ -1266,7 +1335,7 @@ export class OpencodeExecutor extends BaseExecutor {
       }
       return this.finalizeForcedStream(
         input,
-        this.normalizeMuseSparkResponse(
+        this.passthroughMuseSparkResponse(
           input,
           lastResult ?? (await guardStall(await super.execute(input)))
         )
@@ -1342,15 +1411,32 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["anthropic-version"] = "2023-06-01";
     }
 
-    // The free tier only answers streamed requests (measured 2026-09-17: a non-streamed
-    // body answers 403 FreeTierError), so a JSON client is served by streaming upstream and
-    // rebuilding the JSON body from the event stream — the path chatCore already takes for
-    // any buffered event-stream response. Announcing the stream here keeps that buffering an
-    // expected outcome rather than a warning.
+    // The keyed free tier only answers streamed requests, so a JSON client is
+    // served by streaming upstream and buffering the event stream — the path
+    // chatCore already takes for any buffered event-stream response.
+    // Announcing the stream here keeps that buffering an expected outcome
+    // rather than a warning. The no-auth `oc` relay below never announces it:
+    // the client body travels untouched and the upstream verdict is returned
+    // as-is, streamed or not.
     const gatedScope =
       Boolean(model) && isGatedFreeTierRequest(this._surface(), this.provider, model);
-    if (stream || gatedScope) {
+    if (stream || (gatedScope && !this.noauthPassthrough)) {
       headers["Accept"] = "text/event-stream";
+    }
+
+    // No-auth `oc` relays the OpenCode client untouched: forward the client
+    // headers the shared forwarder carries (User-Agent, the full `x-opencode-*`
+    // set including the session id) and synthesize nothing — a caller already
+    // carrying the client identity keeps its own values verbatim, and missing
+    // keys stay missing. Keyed `opencode-zen`/`opencode-go` providers keep the
+    // existing synthesis path below.
+    if (this.noauthPassthrough) {
+      this._clientSession = clientSuppliedOpencodeSession(clientHeaders, body);
+      if (clientHeaders) {
+        forwardOpencodeClientHeaders(headers, clientHeaders);
+      }
+      void model;
+      return headers;
     }
 
     // Synthesize OpenCode CLI identity headers by default so Cloudflare in front of
@@ -1360,7 +1446,7 @@ export class OpencodeExecutor extends BaseExecutor {
     // looks like the OpenCode CLI. Default values match 9router's proven defaults.
     const cliDefaults = resolveOpencodeCliDefaults(
       this.config?.id || this.provider || "opencode",
-      gatedScope
+      Boolean(model) && isGatedFreeTierRequest(this._surface(), this.provider, model)
     );
 
     this._clientSession = clientSuppliedOpencodeSession(clientHeaders, body);
@@ -1368,7 +1454,7 @@ export class OpencodeExecutor extends BaseExecutor {
       forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
         cliDefaults,
-        keepAgentUserAgent: this._surface() === "go" && !gatedScope, // #15311
+        keepAgentUserAgent: this._surface() === "go", // #15311
         sessionBody: projectOpencodeSessionBody(body),
         reencodeSession: gatedScope,
       });
@@ -1391,7 +1477,7 @@ export class OpencodeExecutor extends BaseExecutor {
   private applyDeepSeekJsonSchemaFallback<T>(model: string, body: T): T {
     if (
       model !== "deepseek-v4-flash-free" ||
-      (this.provider !== "opencode" && this.provider !== "opencode-zen")
+      (!this.noauthPassthrough && this.provider !== "opencode-zen")
     ) {
       return body;
     }
@@ -1461,19 +1547,25 @@ export class OpencodeExecutor extends BaseExecutor {
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
     modifiedBody = this.applyDeepSeekJsonSchemaFallback(model, modifiedBody);
-    // Free-tier request contract (see opencodeFreeTierContract.ts): streaming plus a
-    // non-empty tools array, in the shape of the surface this model is served on. Paid
-    // models on the same host are not gated and stay untouched.
-    const prepared = prepareFreeTierRequest(
-      modifiedBody,
-      this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model),
-      this._surface(),
-      this.provider,
-      model,
-      this._clientSession,
-      body
-    );
-    modifiedBody = prepared.body;
+    // Free-tier request contract (keyed providers only): streaming plus a
+    // non-empty tools array on gated models. The no-auth `oc` relay keeps the
+    // client body untouched — `executeOnce` refuses non-clients before
+    // dispatch, so this line only shapes keyed traffic. The trims below are
+    // request hygiene, not fabrication: they cap or drop fields the upstream
+    // 400s, never add tools or identity.
+    if (!this.noauthPassthrough) {
+      const prepared = prepareFreeTierRequest(
+        modifiedBody,
+        this._requestFormat ?? resolveOpencodeTargetFormat(this.provider, model),
+        this._surface(),
+        this.provider,
+        model,
+        this._clientSession,
+        body
+      );
+      modifiedBody = prepared.body;
+    }
+    // they cap or drop fields the upstream 400s, never add tools or identity.
     // OpenCode's upstream 400s a request when a single enum property carries
     // more than 250 values or 15000 combined characters (VSCode-shaped caller
     // tools hit this). Cap oversized enums on every surface before dispatch —
