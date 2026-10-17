@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { ConfirmModal } from "./Modal";
 
 type ButtonState = "idle" | "distributing" | "complete";
 
@@ -23,6 +24,7 @@ export default function DistributeProxiesButton({
   size = "md",
 }: DistributeProxiesButtonProps) {
   const [state, setState] = useState<ButtonState>("idle");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const t = useTranslations("sharedComponents.distributeProxies");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -34,6 +36,7 @@ export default function DistributeProxiesButton({
 
   const handleClick = useCallback(async () => {
     if (disabled || state === "distributing") return;
+    setConfirmOpen(false);
     setState("distributing");
     try {
       await onDistribute();
@@ -64,19 +67,31 @@ export default function DistributeProxiesButton({
         : label || t("defaultLabel");
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isDisabled}
-      className={`flex items-center gap-1.5 rounded-lg font-medium border transition-colors ${sizeClasses} ${stateClasses}`}
-      title={displayLabel}
-      aria-label={displayLabel}
-    >
-      <span
-        className={`material-symbols-outlined text-[14px] ${state === "distributing" ? "animate-spin" : ""}`}
+    <>
+      <button
+        onClick={() => setConfirmOpen(true)}
+        disabled={isDisabled}
+        className={`flex items-center gap-1.5 rounded-lg font-medium border transition-colors ${sizeClasses} ${stateClasses}`}
+        title={displayLabel}
+        aria-label={displayLabel}
       >
-        {icon}
-      </span>
-      {displayLabel}
-    </button>
+        <span
+          className={`material-symbols-outlined text-[14px] ${state === "distributing" ? "animate-spin" : ""}`}
+        >
+          {icon}
+        </span>
+        {displayLabel}
+      </button>
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleClick}
+        title={displayLabel}
+        message={t("confirmMessage")}
+        confirmText={t("confirmDistribute")}
+        cancelText={t("cancel")}
+        variant="primary"
+      />
+    </>
   );
 }

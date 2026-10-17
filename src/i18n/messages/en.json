@@ -5376,6 +5376,12 @@
     "reorderByAvailabilityTitle": "Reorder connections by availability",
     "reorderByAvailabilityError": "Failed to reorder connections by availability",
     "distributeProxies": "Distribute Proxies",
+    "clearAccountProxies": "Remove account proxies",
+    "clearAccountProxyAssignments": "Remove assignments",
+    "clearAccountProxiesConfirm": "Remove individual proxy assignments from all {count} accounts of this provider, including disabled accounts? Saved proxies and provider/global assignments are preserved. Accounts will inherit provider/global proxy settings again.",
+    "accountProxiesCleared": "Account proxy assignments removed.",
+    "clearAccountProxiesPartial": "Could not completely reset {count} account(s). The displayed assignments have been refreshed; you can retry.",
+    "clearAccountProxiesError": "Could not reset account proxies or refresh their status. Please reload and retry.",
     "distributing": "Distributing...",
     "selectedCount": "{count, plural, one {# selected} other {# selected}}",
     "accountsCount": "{count, plural, one {# account} other {# accounts}}",
@@ -14627,7 +14633,10 @@
     "distributeProxies": {
       "distributing": "Distributing...",
       "complete": "Complete",
-      "defaultLabel": "Distribute Proxies"
+      "defaultLabel": "Distribute Proxies",
+      "confirmMessage": "Assign saved proxies to every account in this group? This replaces existing account assignments and enables proxy routing, including for disabled accounts.",
+      "confirmDistribute": "Distribute proxies",
+      "cancel": "Cancel"
     }
   },
   "providerTest": {

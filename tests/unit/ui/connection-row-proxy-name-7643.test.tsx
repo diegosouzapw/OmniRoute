@@ -82,10 +82,7 @@ describe("ConnectionRow proxy badge name-vs-host (#7643)", () => {
   });
 
   function getBadge(container: HTMLElement): HTMLElement {
-    // The proxy badge is the only `title`-bearing <span> rendered by this
-    // minimal prop set (no onToggleProxyEnabled/onTogglePerKeyProxyEnabled
-    // callbacks are wired, so those other proxy chips don't render).
-    const badge = container.querySelector("span[title]");
+    const badge = container.querySelector('button[title="proxyConfiguredBySource"]');
     expect(badge).not.toBeNull();
     return badge as HTMLElement;
   }
@@ -98,6 +95,13 @@ describe("ConnectionRow proxy badge name-vs-host (#7643)", () => {
     const badge = getBadge(container);
     expect(badge.textContent).toContain("My US Proxy");
     expect(badge.textContent).not.toContain("203.0.113.10");
+  });
+
+  it("opens the proxy configuration when the assigned proxy name is clicked", () => {
+    const onProxy = vi.fn();
+    const container = renderRow(connection, { proxyName: "My proxy", onProxy });
+    act(() => getBadge(container).click());
+    expect(onProxy).toHaveBeenCalledOnce();
   });
 
   it("falls back to the host when no proxy name is available", () => {

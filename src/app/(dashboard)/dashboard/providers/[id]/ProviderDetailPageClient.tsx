@@ -653,6 +653,10 @@ export default function ProviderDetailPageClient() {
             loadCodexSettings={loadCodexSettings}
             onSetProxyTarget={setProxyTarget}
             handleDistributeProxies={handleDistributeProxies}
+            onAccountProxiesReset={async () => {
+              await fetchConnections();
+              await refreshProxyState();
+            }}
             handleBatchTestAll={handleBatchTestAll}
             gateConnectionFlow={gateConnectionFlow}
             openApiKeyAddFlow={openApiKeyAddFlow}

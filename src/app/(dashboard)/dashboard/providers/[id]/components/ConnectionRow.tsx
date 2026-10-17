@@ -620,7 +620,10 @@ export default function ConnectionRow({
                 return (
                   <>
                     <span className="text-text-muted/30 select-none">|</span>
-                    <span
+                    <button
+                      type="button"
+                      onClick={onProxy}
+                      disabled={!onProxy}
                       className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium ${colorClass}`}
                       title={t("proxyConfiguredBySource", {
                         source: label,
@@ -629,7 +632,7 @@ export default function ConnectionRow({
                     >
                       <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
                       {proxyName || proxyHost || t("proxy")}
-                    </span>
+                    </button>
                   </>
                 );
               })()}

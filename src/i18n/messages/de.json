@@ -5376,6 +5376,12 @@
     "reorderByAvailabilityTitle": "Verbindungen nach Verfügbarkeit neu ordnen",
     "reorderByAvailabilityError": "Verbindungen konnten nicht nach Verfügbarkeit neu geordnet werden",
     "distributeProxies": "Proxys verteilen",
+    "clearAccountProxies": "Account-Proxys entfernen",
+    "clearAccountProxyAssignments": "Zuordnungen entfernen",
+    "clearAccountProxiesConfirm": "Eigene Proxy-Zuordnungen aller {count} Accounts dieses Anbieters entfernen, einschließlich deaktivierter Accounts? Gespeicherte Proxys und Anbieter-/globale Zuordnungen bleiben erhalten. Die Accounts übernehmen anschließend wieder die Anbieter-/globalen Proxy-Einstellungen.",
+    "accountProxiesCleared": "Proxy-Zuordnungen der Accounts entfernt.",
+    "clearAccountProxiesPartial": "Bei {count} Account(s) konnte das Zurücksetzen nicht vollständig abgeschlossen werden. Die angezeigten Zuordnungen wurden aktualisiert; du kannst es erneut versuchen.",
+    "clearAccountProxiesError": "Account-Proxys oder deren Status konnten nicht zurückgesetzt werden. Bitte neu laden und erneut versuchen.",
     "distributing": "Verteilen...",
     "selectedCount": "{count, plural, one {# ausgewählt} other {# ausgewählt}}",
     "accountsCount": "{count, plural, one {# Konto} other {# Konten}}",
@@ -14627,7 +14633,10 @@
     "distributeProxies": {
       "distributing": "Verteilen...",
       "complete": "Vollständig",
-      "defaultLabel": "Proxys verteilen"
+      "defaultLabel": "Proxys verteilen",
+      "confirmMessage": "Gespeicherte Proxys allen Accounts dieser Gruppe zuweisen? Vorhandene Account-Zuordnungen werden ersetzt und die Proxy-Nutzung wird auch für deaktivierte Accounts aktiviert.",
+      "confirmDistribute": "Proxys verteilen",
+      "cancel": "Abbrechen"
     }
   },
   "providerTest": {

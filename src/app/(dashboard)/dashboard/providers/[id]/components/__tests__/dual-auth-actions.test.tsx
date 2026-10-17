@@ -111,6 +111,7 @@ function renderPopulatedCodeBuddy() {
     loadCodexSettings: vi.fn(),
     onSetProxyTarget: vi.fn(),
     handleDistributeProxies: vi.fn(),
+    onAccountProxiesReset: vi.fn().mockResolvedValue(undefined),
     handleBatchTestAll: vi.fn(),
     ...actions,
     openExternalLinkFlow: vi.fn(),

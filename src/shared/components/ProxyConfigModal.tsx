@@ -449,7 +449,7 @@ export default function ProxyConfigModal({
     try {
       const scope = getAssignmentScope(level);
       const scopeId = getAssignmentScopeId(level, levelId);
-      await fetch("/api/settings/proxies/assignments", {
+      const assignmentRes = await fetch("/api/settings/proxies/assignments", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -458,6 +458,11 @@ export default function ProxyConfigModal({
           proxyId: null,
         }),
       });
+      if (!assignmentRes.ok) {
+        const payload = await readJson(assignmentRes);
+        setFormError(payload?.error?.message || t("errorClearProxy"));
+        return;
+      }
 
       const params = new URLSearchParams({ level });
       if (levelId) params.set("id", levelId);

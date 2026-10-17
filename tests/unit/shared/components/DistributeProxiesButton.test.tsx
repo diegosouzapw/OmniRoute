@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 
-import messages from "../../i18n/messages/en.json";
+import messages from "../../../../src/i18n/messages/en.json";
 
 const cleanupCallbacks: Array<() => void> = [];
 
@@ -36,18 +36,20 @@ describe("DistributeProxiesButton", () => {
   });
 
   async function renderButton(
-    props: Partial<React.ComponentProps<typeof import("./DistributeProxiesButton").default>> = {}
+    props: Partial<
+      React.ComponentProps<typeof import("@/shared/components/DistributeProxiesButton").default>
+    > = {}
   ) {
-    const { default: DistributeProxiesButton } = await import(
-      "./DistributeProxiesButton.tsx"
-    );
+    const { default: DistributeProxiesButton } =
+      await import("@/shared/components/DistributeProxiesButton");
     const container = makeContainer();
     const root = createRoot(container);
+    cleanupCallbacks.push(() => act(() => root.unmount()));
     await act(async () => {
       root.render(
         <NextIntlClientProvider
           locale="en"
-          messages={{ sharedComponents: messages.sharedComponents }}
+          messages={{ common: messages.common, sharedComponents: messages.sharedComponents }}
         >
           <DistributeProxiesButton
             onDistribute={props.onDistribute ?? vi.fn().mockResolvedValue(undefined)}
@@ -57,6 +59,16 @@ describe("DistributeProxiesButton", () => {
       );
     });
     return { container, root };
+  }
+
+  async function confirmDistribution(container: HTMLElement) {
+    const trigger = container.querySelector("button") as HTMLButtonElement;
+    await act(async () => trigger.click());
+    const confirm = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Distribute proxies"
+    );
+    expect(confirm).toBeTruthy();
+    await act(async () => confirm!.click());
   }
 
   it("renders with default label", async () => {
@@ -84,29 +96,25 @@ describe("DistributeProxiesButton", () => {
     expect(button.disabled).toBe(true);
   });
 
-  it("calls onDistribute when clicked", async () => {
+  it("calls onDistribute after confirmation", async () => {
     const onDistribute = vi.fn().mockResolvedValue(undefined);
     const { container } = await renderButton({ onDistribute });
-    const button = container.querySelector("button") as HTMLButtonElement;
-
-    await act(async () => {
-      button.click();
-    });
+    await confirmDistribution(container);
 
     expect(onDistribute).toHaveBeenCalledTimes(1);
   });
 
-  it("enters distributing state on click", async () => {
+  it("enters distributing state after confirmation", async () => {
     let resolveDistribute: () => void;
     const onDistribute = vi.fn().mockImplementation(
-      () => new Promise<void>((resolve) => { resolveDistribute = resolve; })
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDistribute = resolve;
+        })
     );
     const { container } = await renderButton({ onDistribute });
     const button = container.querySelector("button") as HTMLButtonElement;
-
-    await act(async () => {
-      button.click();
-    });
+    await confirmDistribution(container);
 
     // Should show distributing state
     expect(button.textContent).toContain("Distributing...");
@@ -125,10 +133,7 @@ describe("DistributeProxiesButton", () => {
     const onDistribute = vi.fn().mockResolvedValue(undefined);
     const { container } = await renderButton({ onDistribute });
     const button = container.querySelector("button") as HTMLButtonElement;
-
-    await act(async () => {
-      button.click();
-    });
+    await confirmDistribution(container);
 
     // Wait for distributing to complete
     await act(async () => {
@@ -145,10 +150,7 @@ describe("DistributeProxiesButton", () => {
     const onDistribute = vi.fn().mockResolvedValue(undefined);
     const { container } = await renderButton({ onDistribute });
     const button = container.querySelector("button") as HTMLButtonElement;
-
-    await act(async () => {
-      button.click();
-    });
+    await confirmDistribution(container);
 
     // Wait for distributing to complete
     await act(async () => {
@@ -171,10 +173,7 @@ describe("DistributeProxiesButton", () => {
     const onDistribute = vi.fn().mockRejectedValue(new Error("fail"));
     const { container } = await renderButton({ onDistribute });
     const button = container.querySelector("button") as HTMLButtonElement;
-
-    await act(async () => {
-      button.click();
-    });
+    await confirmDistribution(container);
 
     // Wait for error handling
     await act(async () => {
