@@ -217,11 +217,15 @@ test("an unknown member is counted ignored, never a batch error", async () => {
     stored: number;
     ignored: number;
     rejected: unknown[];
+    refusalsStored: number;
+    refusalsIgnored: number;
   };
   assert.equal(body.version, 1);
   assert.equal(body.stored, 3);
   assert.equal(body.ignored, 3);
   assert.deepEqual(body.rejected, []);
+  assert.equal(body.refusalsStored, 0);
+  assert.equal(body.refusalsIgnored, 0);
 });
 
 test("happy path: three addresses for one member are stored", async () => {
@@ -239,6 +243,8 @@ test("happy path: three addresses for one member are stored", async () => {
     stored: 3,
     ignored: 0,
     rejected: [],
+    refusalsStored: 0,
+    refusalsIgnored: 0,
   });
   const now = Date.now();
   const read = store.readOperatorEgressForMember("203.0.113.1", 8080, now);

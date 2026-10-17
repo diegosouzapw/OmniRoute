@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP നിരക്ക് പരിധി (429)",
     "poolSetAsideKindSlow": "മന്ദഗതിയുള്ള പ്രതികരണങ്ങൾ",
     "poolSetAsideKindGeoBlocked": "പ്രദേശം നിരോധിച്ചത് (403/451)",
+    "poolSetAsideKindOperatorReported": "ഓപ്പറേറ്റർ റിപ്പോർട്ട് ചെയ്ത തടസ്സം",
     "poolSetAsideUntil": "റൊട്ടേഷനിലേക്ക് തിരികെ {endsAt}",
     "poolSetAsideRepeat": "മാറ്റിവച്ചു {count, plural, one {# തവണ} other {# തവണ}}",
     "poolUnknownAddress": "അജ്ഞാത വിലാസം",

@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "ograničenje brzine po IP-u (429)",
     "poolSetAsideKindSlow": "spori odgovori",
     "poolSetAsideKindGeoBlocked": "regija blokirana (403/451)",
+    "poolSetAsideKindOperatorReported": "neispravnost prijavio operater",
     "poolSetAsideUntil": "Nazad u rotaciji {endsAt}",
     "poolSetAsideRepeat": "Sklonjeno {count, plural, one {# put} other {# puta}}",
     "poolUnknownAddress": "Nepoznata adresa",

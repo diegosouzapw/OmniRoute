@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP tezlik cheklovi (429)",
     "poolSetAsideKindSlow": "sekin javoblar",
     "poolSetAsideKindGeoBlocked": "hudud boʻyicha bloklangan (403/451)",
+    "poolSetAsideKindOperatorReported": "operator tomonidan xabar qilingan uzilish",
     "poolSetAsideUntil": "Rotatsiyaga qaytish {endsAt}",
     "poolSetAsideRepeat": "Chetga qo‘yilgan {count, plural, one {# marta} other {# marta}}",
     "poolUnknownAddress": "Noma’lum manzil",

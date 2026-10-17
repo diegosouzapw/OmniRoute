@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP شرح کی حد (429)",
     "poolSetAsideKindSlow": "سست جوابات",
     "poolSetAsideKindGeoBlocked": "علاقہ مسدود (403/451)",
+    "poolSetAsideKindOperatorReported": "آپریٹر کی جانب سے اطلاع دی گئی خرابی",
     "poolSetAsideUntil": "روٹیشن میں واپس {endsAt}",
     "poolSetAsideRepeat": "الگ رکھا گیا {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نامعلوم پتہ",

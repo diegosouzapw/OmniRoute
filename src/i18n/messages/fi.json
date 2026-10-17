@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP-nopeusrajoitus (429)",
     "poolSetAsideKindSlow": "hitaat vastaukset",
     "poolSetAsideKindGeoBlocked": "alue estetty (403/451)",
+    "poolSetAsideKindOperatorReported": "operaattorin ilmoitama häiriö",
     "poolSetAsideUntil": "Takaisin kierrossa {endsAt}",
     "poolSetAsideRepeat": "Syrjään {count, plural, one {# kerran} other {# kertaa}}",
     "poolUnknownAddress": "Tuntematon osoite",

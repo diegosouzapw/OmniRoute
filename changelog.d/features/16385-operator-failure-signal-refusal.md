@@ -1,0 +1,1 @@
+- **feat(proxy):** Operator-reported outages set a pool member aside briefly, with automatic return at expiry or on served traffic ([#16385](https://github.com/diegosouzapw/OmniRoute/pull/16385)) — thanks @maxmad64bis

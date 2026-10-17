@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP ದರ ಮಿತಿ (429)",
     "poolSetAsideKindSlow": "ಮಂದ ಪ್ರತಿಕ್ರಿಯೆಗಳು",
     "poolSetAsideKindGeoBlocked": "ಪ್ರದೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ (403/451)",
+    "poolSetAsideKindOperatorReported": "ನಿರ್ವಾಹಕರಿಂದ ವರದಿಯಾದ ವ್ಯತ್ಯಯ",
     "poolSetAsideUntil": "ತಿರುಗುವಿಕೆಗೆ ಹಿಂತಿರುಗಿ {endsAt}",
     "poolSetAsideRepeat": "ಪಕ್ಕಕ್ಕೆ ಇರಿಸಲಾಗಿದೆ {count, plural, one {# ಬಾರಿ} other {# ಬಾರಿ}}",
     "poolUnknownAddress": "ಅಜ್ಞಾತ ವಿಳಾಸ",

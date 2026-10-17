@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "όριο ρυθμού ανά IP (429)",
     "poolSetAsideKindSlow": "αργές απαντήσεις",
     "poolSetAsideKindGeoBlocked": "αποκλεισμός περιοχής (403/451)",
+    "poolSetAsideKindOperatorReported": "διακοπή που αναφέρθηκε από τον λειτουργό",
     "poolSetAsideUntil": "Πίσω σε rotation {endsAt}",
     "poolSetAsideRepeat": "Στην άκρη {count, plural, one {# φορά} other {# φορές}}",
     "poolUnknownAddress": "Άγνωστη διεύθυνση",

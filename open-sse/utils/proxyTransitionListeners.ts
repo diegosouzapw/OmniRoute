@@ -8,7 +8,7 @@
  */
 
 export type ProxyTransitionKind =
-  "ip_quota_429" | "proxy_unreachable" | "transport" | "slow" | "geo_blocked";
+  "ip_quota_429" | "proxy_unreachable" | "transport" | "slow" | "geo_blocked" | "operator_reported";
 
 export interface ProxyTransition {
   key: string;

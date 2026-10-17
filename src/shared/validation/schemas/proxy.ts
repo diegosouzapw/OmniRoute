@@ -253,7 +253,19 @@ export const proxyRotationStrategySchema = z
 // address in that member's batch; the store keeps the freshest timestamp per
 // address. Bounds: at most 10 addresses per member, at most 100 members per
 // batch. Liveness checks (routable literal, no far-future date) live in the
-// route — Zod pins the shape here.
+// route — Zod pins the shape here. An optional `refusals` batch carries dated
+// outage signals for the refusal memory under the operator reason.
+export const proxyOperatorRefusalSchema = z
+  .object({
+    entry: z.union([z.string().trim().min(1), z.record(z.string(), z.unknown())]),
+    host: z.string().trim().min(1),
+    port: z.coerce.number().int().min(1).max(65535),
+    reason: z.literal("operator_reported"),
+    observedAt: z.string().datetime(),
+    recovered: z.boolean().optional(),
+  })
+  .strict();
+
 export const proxyOperatorEgressPushSchema = z
   .object({
     version: z.literal(1),
@@ -270,5 +282,6 @@ export const proxyOperatorEgressPushSchema = z
       )
       .min(1)
       .max(100),
+    refusals: z.array(proxyOperatorRefusalSchema).max(100).optional(),
   })
   .strict();

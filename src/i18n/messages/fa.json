@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "محدودیت نرخ IP ‏(429)",
     "poolSetAsideKindSlow": "پاسخ‌های کند",
     "poolSetAsideKindGeoBlocked": "منع منطقه (403/451)",
+    "poolSetAsideKindOperatorReported": "قطعی گزارش‌شده توسط اپراتور",
     "poolSetAsideUntil": "بازگشت به چرخه {endsAt}",
     "poolSetAsideRepeat": "کنار گذاشته شده {count, plural, one {# بار} other {# بار}}",
     "poolUnknownAddress": "نشانی ناشناس",

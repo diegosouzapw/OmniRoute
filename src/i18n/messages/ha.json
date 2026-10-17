@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "iyakar saurin IP (429)",
     "poolSetAsideKindSlow": "amsoshi masu jinkiri",
     "poolSetAsideKindGeoBlocked": "Yankin an toshe (403/451)",
+    "poolSetAsideKindOperatorReported": "ragar da mai mulki ya ba da rahoto",
     "poolSetAsideUntil": "Komawa cikin juyawa {endsAt}",
     "poolSetAsideRepeat": "An ajiye a gefe {count, plural, one {# sau} other {# sau}}",
     "poolUnknownAddress": "Adireshi mara sani",

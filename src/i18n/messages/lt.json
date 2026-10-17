@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP užklausų ribojimas (429)",
     "poolSetAsideKindSlow": "lėti atsakymai",
     "poolSetAsideKindGeoBlocked": "regionas užblokuotas (403/451)",
+    "poolSetAsideKindOperatorReported": "praradimą pranešė operatorius",
     "poolSetAsideUntil": "Grįžta į rotaciją {endsAt}",
     "poolSetAsideRepeat": "Atidėta {count, plural, one {# kartą} other {# kartus}}",
     "poolUnknownAddress": "Nežinomas adresas",

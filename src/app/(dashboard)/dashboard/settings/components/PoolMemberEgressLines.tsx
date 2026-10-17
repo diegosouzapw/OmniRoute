@@ -109,6 +109,8 @@ const SET_ASIDE_KIND_KEYS: Record<string, string> = {
   slow: "poolSetAsideKindSlow",
   // Region refusal through this member (403/451 with a region signal): set aside briefly.
   geo_blocked: "poolSetAsideKindGeoBlocked",
+  // Outage reported by the operator: set aside briefly.
+  operator_reported: "poolSetAsideKindOperatorReported",
 };
 
 function setAsideKindLabel(

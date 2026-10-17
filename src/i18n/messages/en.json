@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP rate-limited (429)",
     "poolSetAsideKindSlow": "slow responses",
     "poolSetAsideKindGeoBlocked": "region-blocked (403/451)",
+    "poolSetAsideKindOperatorReported": "outage reported by operator",
     "poolSetAsideUntil": "Back in rotation {endsAt}",
     "poolSetAsideRepeat": "Set aside {count, plural, one {# time} other {# times}}",
     "poolUnknownAddress": "Unknown address",

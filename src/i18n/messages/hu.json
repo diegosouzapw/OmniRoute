@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP-alapú sebességkorlát (429)",
     "poolSetAsideKindSlow": "lassú válaszok",
     "poolSetAsideKindGeoBlocked": "régió blokkolva (403/451)",
+    "poolSetAsideKindOperatorReported": "üzemszünet, amelyet az üzemeltető jelentett",
     "poolSetAsideUntil": "Vissza a rotációba {endsAt}",
     "poolSetAsideRepeat": "Félretéve {count, plural, one {# alkalommal} other {# alkalommal}}",
     "poolUnknownAddress": "Ismeretlen cím",

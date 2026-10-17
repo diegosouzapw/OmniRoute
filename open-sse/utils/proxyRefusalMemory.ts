@@ -69,6 +69,7 @@ export const REFUSAL_POLICIES: {
   transport: { baseMs: 60_000; maxMs: 600_000 };
   slow: { baseMs: 60_000; maxMs: 600_000 };
   geo_blocked: { baseMs: 60_000; maxMs: 600_000 };
+  operator_reported: { baseMs: 60_000; maxMs: 600_000 };
 } = {
   /** The TCP probe could not open a connection to the proxy. */
   proxy_unreachable: { baseMs: 60_000, maxMs: 600_000 },
@@ -88,6 +89,8 @@ export const REFUSAL_POLICIES: {
   slow: { baseMs: 60_000, maxMs: 600_000 },
   /** The provider refused this region through this member; short set-aside. */
   geo_blocked: { baseMs: 60_000, maxMs: 600_000 },
+  /** The operator reported this member as failed; short set-aside. */
+  operator_reported: { baseMs: 60_000, maxMs: 600_000 },
 };
 
 export type ProxyRefusalKind = keyof typeof REFUSAL_POLICIES;

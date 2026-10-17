@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP-hastighetsbegränsning (429)",
     "poolSetAsideKindSlow": "långsamma svar",
     "poolSetAsideKindGeoBlocked": "regionsblockerad (403/451)",
+    "poolSetAsideKindOperatorReported": "avbrott rapporterat av operatör",
     "poolSetAsideUntil": "Tillbaka i rotation {endsAt}",
     "poolSetAsideRepeat": "Åsidosatt {count, plural, one {# gång} other {# gånger}}",
     "poolUnknownAddress": "Okänd adress",

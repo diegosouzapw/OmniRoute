@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "limitu tar-rata tal-IP (429)",
     "poolSetAsideKindSlow": "risposti bil-mod",
     "poolSetAsideKindGeoBlocked": "blokkat fir-reġjun (403/451)",
+    "poolSetAsideKindOperatorReported": "ħsara rrapportata mill-operatur",
     "poolSetAsideUntil": "Lura fir-rotazzjoni {endsAt}",
     "poolSetAsideRepeat": "Imwarrab {count, plural, one {# darba} other {# darbiet}}",
     "poolUnknownAddress": "Indirizz mhux magħruf",

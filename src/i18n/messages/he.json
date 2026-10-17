@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "הגבלת קצב לפי IP ‏(429)",
     "poolSetAsideKindSlow": "תגובות איטיות",
     "poolSetAsideKindGeoBlocked": "אזור חסום (403/451)",
+    "poolSetAsideKindOperatorReported": "תקלה שדווחה על ידי מפעיל",
     "poolSetAsideUntil": "חוזר לרוטציה {endsAt}",
     "poolSetAsideRepeat": "הושם בצד {count, plural, one {# פעם} other {# פעמים}}",
     "poolUnknownAddress": "כתובת לא ידועה",

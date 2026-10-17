@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP სიჩქარის ლიმიტი (429)",
     "poolSetAsideKindSlow": "ნელი პასუხები",
     "poolSetAsideKindGeoBlocked": "რეგიონი დაბლოკილია (403/451)",
+    "poolSetAsideKindOperatorReported": "ოპერატორის მიერ გამოცხადებული გათიშვა",
     "poolSetAsideUntil": "როტაციაში დაბრუნება {endsAt}",
     "poolSetAsideRepeat": "გვერდზე გადადებული {count, plural, one {# ჯერ} other {# ჯერ}}",
     "poolUnknownAddress": "უცნობი მისამართი",

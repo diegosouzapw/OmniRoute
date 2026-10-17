@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP ਦਰ ਸੀਮਾ (429)",
     "poolSetAsideKindSlow": "ਧੀਮੇ ਜਵਾਬ",
     "poolSetAsideKindGeoBlocked": "ਖੇਤਰ-ਬਲੌਕ ਕੀਤਾ (403/451)",
+    "poolSetAsideKindOperatorReported": "ਆਪਰੇਟਰ ਦੁਆਰਾ ਦਰਜ ਕੀਤੀ ਆਉਟੇਜ",
     "poolSetAsideUntil": "ਰੋਟੇਸ਼ਨ ਵਿੱਚ ਵਾਪਸ {endsAt}",
     "poolSetAsideRepeat": "ਪਾਸੇ ਰੱਖਿਆ {count, plural, one {# ਵਾਰ} other {# ਵਾਰ}}",
     "poolUnknownAddress": "ਅਣਜਾਣ ਪਤਾ",

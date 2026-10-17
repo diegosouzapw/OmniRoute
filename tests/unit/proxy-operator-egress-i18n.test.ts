@@ -42,6 +42,10 @@ test("operator-egress keys are present in all 67 locale catalogs and wired to co
     component.includes("poolMemberEgressOperator"),
     "PoolMemberEgressLines renders poolMemberEgressOperator"
   );
+  assert.ok(
+    component.includes("poolSetAsideKindOperatorReported"),
+    "PoolMemberEgressLines renders poolSetAsideKindOperatorReported"
+  );
 
   // Locale side: every catalog carries both keys.
   const files = fs.readdirSync(MESSAGES_DIR).filter((f) => f.endsWith(".json"));
@@ -58,6 +62,9 @@ test("operator-egress keys are present in all 67 locale catalogs and wired to co
     const registry = data.proxyRegistry as Record<string, unknown> | undefined;
     if (typeof registry?.poolMemberEgressOperator !== "string") {
       missing.push(`${file}:proxyRegistry.poolMemberEgressOperator`);
+    }
+    if (typeof registry?.poolSetAsideKindOperatorReported !== "string") {
+      missing.push(`${file}:proxyRegistry.poolSetAsideKindOperatorReported`);
     }
   }
   assert.deepEqual(missing, []);

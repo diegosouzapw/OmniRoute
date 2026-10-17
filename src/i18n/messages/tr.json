@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP hız sınırı (429)",
     "poolSetAsideKindSlow": "yavaş yanıtlar",
     "poolSetAsideKindGeoBlocked": "bölge engelli (403/451)",
+    "poolSetAsideKindOperatorReported": "operatör tarafından bildirilen kesinti",
     "poolSetAsideUntil": "Rotasyona geri döndü {endsAt}",
     "poolSetAsideRepeat": "Kenara ayrıldı {count, plural, one {# kez} other {# kez}}",
     "poolUnknownAddress": "Bilinmeyen adres",

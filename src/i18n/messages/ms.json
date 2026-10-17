@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "had kadar IP (429)",
     "poolSetAsideKindSlow": "respons perlahan",
     "poolSetAsideKindGeoBlocked": "wilayah-diblokir (403/451)",
+    "poolSetAsideKindOperatorReported": "gangguan dilaporkan oleh pengendali",
     "poolSetAsideUntil": "Kembali dalam putaran {endsAt}",
     "poolSetAsideRepeat": "Diketepikan {count, plural, one {# kali} other {# kali}}",
     "poolUnknownAddress": "Alamat tidak diketahui",

@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP နှုန်းကန့်သတ်ချက် (429)",
     "poolSetAsideKindSlow": "နှေးကွေးသော တုံ့ပြန်ချက်များ",
     "poolSetAsideKindGeoBlocked": "ဒေသကတားမြစ်ထားသည် (403/451)",
+    "poolSetAsideKindOperatorReported": "လုပ်ငန်းဆောင်ရွက်သူမှ အစီရင်ခံသော ပြတ်တောက်မှု",
     "poolSetAsideUntil": "အလှည့်သို့ ပြန်ရောက်မည် {endsAt}",
     "poolSetAsideRepeat": "ဖယ်ထားသည် {count, plural, one {# ကြိမ်} other {# ကြိမ်}}",
     "poolUnknownAddress": "မသိသောလိပ်စာ",

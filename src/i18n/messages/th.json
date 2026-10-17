@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "จำกัดอัตราตาม IP (429)",
     "poolSetAsideKindSlow": "การตอบสนองช้า",
     "poolSetAsideKindGeoBlocked": "ถูกบล็อกตามภูมิภาค (403/451)",
+    "poolSetAsideKindOperatorReported": "การขัดข้องที่ผู้ให้บริการรายงาน",
     "poolSetAsideUntil": "กลับเข้าหมุนเวียน {endsAt}",
     "poolSetAsideRepeat": "กันไว้ {count, plural, one {# ครั้ง} other {# ครั้ง}}",
     "poolUnknownAddress": "ที่อยู่ไม่ทราบ",

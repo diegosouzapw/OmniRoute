@@ -94,7 +94,13 @@ export interface CredentialHealthChangedPayload {
 }
 
 export interface ProxySetAsidePayload {
-  reason: "ip_quota_429" | "proxy_unreachable" | "transport" | "slow" | "geo_blocked";
+  reason:
+    | "ip_quota_429"
+    | "proxy_unreachable"
+    | "transport"
+    | "slow"
+    | "geo_blocked"
+    | "operator_reported";
   setAsideUntil: string;
   durationMs: number;
   egressKeyMasked: string;

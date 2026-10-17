@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP-Ratenlimit (429)",
     "poolSetAsideKindSlow": "langsame Antworten",
     "poolSetAsideKindGeoBlocked": "regionen-blockiert (403/451)",
+    "poolSetAsideKindOperatorReported": "Störung vom Betreiber gemeldet",
     "poolSetAsideUntil": "Zurück in Rotation {endsAt}",
     "poolSetAsideRepeat": "Zurückgestellt {count, plural, one {# Mal} other {# Mal}}",
     "poolUnknownAddress": "Unbekannte Adresse",

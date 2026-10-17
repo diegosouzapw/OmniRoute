@@ -11516,6 +11516,7 @@
     "poolSetAsideKindIpQuota429": "IP દર મર્યાદા (429)",
     "poolSetAsideKindSlow": "ધીમા પ્રતિસાદો",
     "poolSetAsideKindGeoBlocked": "પ્રદેશ અવરોધિત (403/451)",
+    "poolSetAsideKindOperatorReported": "ઓપરેટર દ્વારા જાણ કરાયેલ આઉટેજ",
     "poolSetAsideUntil": "રોટેશનમાં પાછા {endsAt}",
     "poolSetAsideRepeat": "બાજુએ રાખેલ {count, plural, one {# વખત} other {# વખત}}",
     "poolUnknownAddress": "અજ્ઞાત સરનામું",
