@@ -78,3 +78,13 @@ test("the nightly schemathesis job timeout fits a webpack backend-only build on 
     `timeout-minutes is ${job["timeout-minutes"]}; a webpack backend-only build plus the probes needs 120`
   );
 });
+
+test("the manual hosted artifact build avoids Turbopack's OOM footprint (#16169)", () => {
+  const builds = buildSteps("build.yml", /npm run build:release/);
+  assert.equal(builds.length, 1, "manual artifact workflow must have exactly one release build");
+
+  const env = builds[0].step.env;
+  assert.equal(String(env?.OMNIROUTE_USE_TURBOPACK), "0");
+  assert.equal(String(env?.NODE_OPTIONS), "--max-old-space-size=10240");
+  assert.equal(String(env?.OMNIROUTE_BUILD_MEMORY_MB), "10240");
+});

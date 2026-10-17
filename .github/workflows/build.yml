@@ -50,9 +50,12 @@ jobs:
         run: |
           npm run build:release
         env:
-          NODE_OPTIONS: "--max-old-space-size=12288"
-          OMNIROUTE_BUILD_MEMORY_MB: "12288"
-          OMNIROUTE_USE_TURBOPACK: "1"
+          # Hosted artifact builds run with less memory than the opt-in 64 GB
+          # CI build slot. Keep Webpack here without overriding the latter's
+          # separately measured Turbopack policy (#16169).
+          NODE_OPTIONS: "--max-old-space-size=10240"
+          OMNIROUTE_BUILD_MEMORY_MB: "10240"
+          OMNIROUTE_USE_TURBOPACK: "0"
 
       - name: Archive build outputs
         run: |

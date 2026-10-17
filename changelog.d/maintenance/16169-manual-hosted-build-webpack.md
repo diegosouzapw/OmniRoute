@@ -1,0 +1,1 @@
+- **ci(build):** Use the measured Webpack + 10 GB V8 heap path in the manually dispatched hosted artifact workflow, matching the memory-safe release CI configuration instead of retrying the Turbopack OOM path (refs [#16169](https://github.com/diegosouzapw/OmniRoute/issues/16169)) — thanks @fabioKoruja00
