@@ -561,7 +561,11 @@ export async function POST(
         : null;
 
       let connection: any;
-      if (tokenData.email) {
+      // Update-in-place when we can identify the account: by email, or by an
+      // explicit connectionId from a re-auth (providers whose token response
+      // has no email — kimi-coding — would otherwise DUPLICATE the connection
+      // on every re-auth; #16984).
+      if (tokenData.email || connectionId) {
         const existing = await getProviderConnections({ provider });
         // Codex accounts sharing an email require workspaceId/chatgptUserId
         // agreement to be treated as the same account (#7737).
@@ -646,7 +650,9 @@ export async function POST(
           : null;
 
         let connection: any;
-        if (result.tokens.email) {
+        // Email-less providers: honor an explicit connectionId re-auth signal
+        // (#16984) — see the exchange branch comment above.
+        if (result.tokens.email || connectionId) {
           const existing = await getProviderConnections({ provider });
           // Codex accounts sharing an email require workspaceId/chatgptUserId
           // agreement to be treated as the same account (#7737).
@@ -782,7 +788,9 @@ export async function POST(
           : null;
 
         let connection: any;
-        if (tokenData.email) {
+        // Email-less providers: honor an explicit connectionId re-auth signal
+        // (#16984) — see the exchange branch comment above.
+        if (tokenData.email || connectionId) {
           const existing = await getProviderConnections({ provider });
           // Codex accounts sharing an email require workspaceId/chatgptUserId
           // agreement to be treated as the same account (#7737).
