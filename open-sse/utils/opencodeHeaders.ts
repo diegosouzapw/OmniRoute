@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { setUserAgentHeader } from "../executors/base.ts";
 import { generateSessionId } from "../services/sessionManager.ts";
 import { getCachedOpencodeCliVersion, refreshOpencodeCliVersion } from "./opencodeCliVersion.ts";
@@ -16,8 +16,6 @@ export const DEFAULT_OPENCODE_USER_AGENT = "opencode/1.18.31";
 
 /** Canonical OpenCode session id shape: `ses_` + 12 hex + 14 base62. */
 export const OPENCODE_SESSION_PATTERN = /^ses_[0-9a-f]{12}[0-9A-Za-z]{14}$/;
-/** Same shape for the request id, which the upstream accepts but does not validate. */
-export const OPENCODE_REQUEST_PATTERN = /^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$/;
 
 /**
  * The free-tier gate is the session id's *value*, not its shape: the upstream decodes the
@@ -132,7 +130,7 @@ function base62From(bytes: Buffer, length: number): string {
 }
 
 /**
- * Render an id in the canonical OpenCode shape (`<prefix>` + 12 hex + 14 base62).
+ * Render a session id in the canonical OpenCode shape (`ses_` + 12 hex + 14 base62).
  *
  * For `ses_` the hex half must reproduce OpenCode CLI's `Identifier.descending()`
  * encoding: `descending(ts) = ~(ts << 12 | counter)` over 48 bits, rendered as 12 hex
@@ -161,11 +159,14 @@ function canonicalId(prefix: "ses_" | "msg_", seed?: string): string {
         (BigInt(bytes[4]) >> 4n)) &
       OPENCODE_SESSION_TS_MAX;
     // OpenCode's own math, counter pinned to 1: ~(ts << 12 | 1) over 48 bits.
-    const value = (~((ts36 << 12n) | OPENCODE_SESSION_COUNTER)) & OPENCODE_SESSION_MASK_48;
+    const value = ~((ts36 << 12n) | OPENCODE_SESSION_COUNTER) & OPENCODE_SESSION_MASK_48;
     return `${prefix}${value.toString(16).padStart(12, "0")}${base62From(bytes.subarray(6), 14)}`;
   }
   return `${prefix}${bytes.subarray(0, 6).toString("hex")}${base62From(bytes.subarray(6), 14)}`;
 }
+
+/** Client headers with this prefix are forwarded as-is (the client is the reference). */
+const OPENCODE_HEADER_PREFIX = "x-opencode-";
 
 /**
  * Case-insensitively replace any existing entry before setting: a registry static
@@ -191,15 +192,16 @@ function attributionForwardingEnabled(): boolean {
 }
 
 /**
- * Header keys that are forwarded from the client to the upstream provider.
- * Used by both OpencodeExecutor and DefaultExecutor.
+ * An org id from another workspace than the key's gets the request refused (403
+ * "Workspace access denied"), so it is never forwarded.
  */
-const OPENCODE_HEADER_KEYS = [
-  "x-opencode-session",
-  "x-opencode-request",
-  "x-opencode-project",
-  "x-opencode-client",
-] as const;
+const OPENCODE_ORG_ID_HEADER = "x-opencode-org-id";
+
+/**
+ * Its presence gets an opencode.ai request refused, and the OpenCode client no longer
+ * sends one: never produced, never relayed to that upstream (other providers keep it).
+ */
+const OPENCODE_REQUEST_HEADER = "x-opencode-request";
 
 /**
  * Common agent-metadata headers used by non-OpenCode clients (custom agents/
@@ -224,8 +226,8 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  *
  * Shared logic used by OpencodeExecutor and DefaultExecutor:
  * 1. Forwards User-Agent from clientHeaders via `setUserAgentHeader()`
- * 2. Forwards x-opencode-session, x-opencode-request, x-opencode-project,
- *    x-opencode-client headers (case-insensitive match)
+ * 2. Forwards every x-opencode-* header (case-insensitive prefix) except
+ *    x-opencode-org-id, and x-opencode-request on the opencode.ai upstream
  * 3. Forwards x-session-id, x-title and http-referer agent-metadata headers
  *    (case-insensitive match) — common conventions used by non-OpenCode agent
  *    clients (9router#2413); http-referer carries app attribution upstreams
@@ -233,13 +235,13 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  *
  * @param headers - The outbound headers record to mutate
  * @param clientHeaders - The client-provided headers to forward from
- * @param options.synthesizeRequestId - When true (OpencodeExecutor only), maps
+ * @param options.opencodeUpstream - When true (OpencodeExecutor only), maps
  *   x-session-affinity / x-session-id to x-opencode-session when the latter is
- *   missing, and synthesizes a UUID for x-opencode-request if also missing.
+ *   missing, and never relays x-opencode-request (nor synthesizes one).
  * @param options.cliDefaults - When provided (OpencodeExecutor only), synthesize
  *   the OpenCode CLI identity headers that Cloudflare requires on VPS egress
- *   (User-Agent, x-opencode-client, x-opencode-project) plus fresh request/session
- *   UUIDs, but ONLY for keys the client did not already supply. Client values always
+ *   (User-Agent, x-opencode-client, x-opencode-project) plus a canonical session
+ *   id, but ONLY for keys the client did not already supply. Client values always
  *   win; these defaults only fill gaps. User-Agent is the one exception: a client UA
  *   that is not already the OpenCode CLI (e.g. curl/8.5.0) is REPLACED with the
  *   synthesized CLI UA, because opencode.ai's free tier rejects generic client UAs
@@ -266,7 +268,7 @@ export function forwardOpencodeClientHeaders(
   headers: Record<string, string>,
   clientHeaders: Record<string, string>,
   options?: {
-    synthesizeRequestId?: boolean;
+    opencodeUpstream?: boolean;
     cliDefaults?: { userAgent: string; client: string; project: string };
     keepAgentUserAgent?: boolean;
     sessionBody?: OpencodeSessionBody;
@@ -280,13 +282,9 @@ export function forwardOpencodeClientHeaders(
     setUserAgentHeader(headers, clientUA);
   }
 
-  // 2. Forward x-opencode-* metadata headers
-  for (const headerName of OPENCODE_HEADER_KEYS) {
-    const value = findHeader(clientHeaders, headerName);
-    if (value) {
-      setForwardedHeader(headers, headerName, value);
-    }
-  }
+  // 2. Forward x-opencode-* metadata headers, minus the excluded ones
+  const opencodeUpstream = Boolean(options?.opencodeUpstream || options?.cliDefaults);
+  forwardPrefixedOpencodeHeaders(headers, clientHeaders, opencodeUpstream);
 
   // 2b. Forward agent-metadata headers (x-session-id, x-title, http-referer) — 9router#2413.
   // http-referer carries app attribution OpenRouter publisher gates key on (e.g. the
@@ -300,9 +298,9 @@ export function forwardOpencodeClientHeaders(
     }
   }
 
-  // 3. OpencodeExecutor-only: synthesize session/request id from fallback headers
-  if (options?.synthesizeRequestId || options?.cliDefaults) {
-    applySessionFallback(headers, clientHeaders, options.sessionBody);
+  // 3. OpencodeExecutor-only: map the session id from fallback headers
+  if (opencodeUpstream) {
+    applySessionFallback(headers, clientHeaders, options?.sessionBody);
   }
 
   // 4. OpencodeExecutor-only: synthesize the OpenCode CLI identity Cloudflare expects
@@ -318,7 +316,22 @@ export function forwardOpencodeClientHeaders(
   }
 }
 
-/** Fill missing session/request identity without changing the CLI synthesis policy. */
+/** Copy every client `x-opencode-*` header, lower-cased, except the excluded ones. */
+function forwardPrefixedOpencodeHeaders(
+  headers: Record<string, string>,
+  clientHeaders: Record<string, string>,
+  opencodeUpstream: boolean
+): void {
+  for (const [key, value] of Object.entries(clientHeaders)) {
+    const name = key.toLowerCase();
+    if (!value || !name.startsWith(OPENCODE_HEADER_PREFIX)) continue;
+    if (name === OPENCODE_ORG_ID_HEADER) continue;
+    if (opencodeUpstream && name === OPENCODE_REQUEST_HEADER) continue;
+    setForwardedHeader(headers, name, value);
+  }
+}
+
+/** Fill a missing session identity without changing the CLI synthesis policy. */
 function applySessionFallback(
   headers: Record<string, string>,
   clientHeaders: Record<string, string>,
@@ -330,7 +343,6 @@ function applySessionFallback(
   // Keep the caller's identity as-is when CLI synthesis is disabled; applyCliDefaults
   // renders it in the canonical shape only when that policy is enabled.
   headers["x-opencode-session"] = sessionAffinity;
-  headers["x-opencode-request"] ||= randomUUID();
 }
 
 /**
@@ -366,21 +378,13 @@ function applyCliDefaults(
   }
   headers["x-opencode-client"] ||= cliDefaults.client;
   headers["x-opencode-project"] ||= cliDefaults.project;
-  // Both ids go out in the canonical shape. A client value already in that shape is kept;
-  // anything else (a UUID from a generic client, an opaque conversation key) is translated
-  // deterministically, so one client conversation still maps to one upstream session.
-  const clientRequestId = headers["x-opencode-request"]?.trim();
-  headers["x-opencode-request"] =
-    clientRequestId && OPENCODE_REQUEST_PATTERN.test(clientRequestId)
-      ? clientRequestId
-      : canonicalId("msg_", clientRequestId || undefined);
-  // The free tier (zen) validates the session's *value*, not just its shape: a caller id
-  // that matches `OPENCODE_SESSION_PATTERN` but carries an out-of-window counter (a
-  // foreign or ascending encoding) still 403s upstream, so on that path only a genuine
-  // descending id is kept and everything else is re-minted from the client's own value
-  // (opencode2api v1.3.8 `CanonicalSessionID` — same conversation, same stable session,
-  // compliant encoding). The ungated surfaces (opencode-go, #15311) keep the client's
-  // session untouched, so the value check applies only when `reencodeSession` is set.
+  // No request id is produced: its presence gets the request refused. The free tier
+  // (zen) validates the session's *value*, not just its shape: a caller id that matches
+  // `OPENCODE_SESSION_PATTERN` but carries an out-of-window counter (a foreign or
+  // ascending encoding) still 403s upstream, so on that path only a genuine descending
+  // id is kept and everything else is re-minted from the client's own value. The
+  // ungated surfaces (opencode-go, #15311) keep the client's session untouched, so the
+  // value check applies only when `reencodeSession` is set.
   const clientSessionId = headers["x-opencode-session"]?.trim();
   const canonicalClientSession = reencodeSession
     ? isValidOpencodeSessionValue(clientSessionId)

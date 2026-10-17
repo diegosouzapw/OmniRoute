@@ -253,14 +253,14 @@ describe("forwardOpencodeClientHeaders – HTTP-Referer attribution", () => {
   });
 });
 
-// ── synthesizeRequestId ─────────────────────────────────────────────────────
+// ── opencodeUpstream ────────────────────────────────────────────────────────
 
-describe("forwardOpencodeClientHeaders – synthesizeRequestId", () => {
+describe("forwardOpencodeClientHeaders – opencodeUpstream", () => {
   it("maps x-session-affinity → x-opencode-session when latter is missing", () => {
     const headers = h();
     const clientHeaders = { "x-session-affinity": "affinity-abc" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
     assert.equal(headers["x-opencode-session"], "affinity-abc");
   });
@@ -269,7 +269,7 @@ describe("forwardOpencodeClientHeaders – synthesizeRequestId", () => {
     const headers = h();
     const clientHeaders = { "x-session-id": "sid-xyz" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
     assert.equal(headers["x-opencode-session"], "sid-xyz");
   });
@@ -281,46 +281,41 @@ describe("forwardOpencodeClientHeaders – synthesizeRequestId", () => {
       "x-session-id": "sid-1",
     };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
     assert.equal(headers["x-opencode-session"], "aff-1");
   });
 
-  it("synthesizes x-opencode-request (UUID) when session and request are missing", () => {
+  it("maps the session but never synthesizes x-opencode-request", () => {
     const headers = h();
     const clientHeaders = { "x-session-affinity": "aff-2" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
-    // x-opencode-request should be a valid UUID string
-    assert.ok(headers["x-opencode-request"], "should have synthesized x-opencode-request");
-    assert.match(
-      headers["x-opencode-request"],
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-      "synthesized request id should be a UUID"
-    );
+    assert.equal(headers["x-opencode-session"], "aff-2");
+    assert.equal(headers["x-opencode-request"], undefined);
   });
 
   it("does NOT overwrite existing x-opencode-session", () => {
     const headers = { "x-opencode-session": "existing-sess" } as Record<string, string>;
     const clientHeaders = { "x-session-affinity": "aff-3" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
     assert.equal(headers["x-opencode-session"], "existing-sess");
   });
 
-  it("does NOT synthesize when synthesizeRequestId is false", () => {
+  it("does NOT synthesize when opencodeUpstream is false", () => {
     const headers = h();
     const clientHeaders = { "x-session-affinity": "aff-4" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: false,
+      opencodeUpstream: false,
     });
     assert.equal(headers["x-opencode-session"], undefined);
     assert.equal(headers["x-opencode-request"], undefined);
   });
 
-  it("does NOT synthesize when synthesizeRequestId is absent", () => {
+  it("does NOT synthesize when opencodeUpstream is absent", () => {
     const headers = h();
     const clientHeaders = { "x-session-affinity": "aff-5" };
     forwardOpencodeClientHeaders(headers, clientHeaders);
@@ -332,7 +327,7 @@ describe("forwardOpencodeClientHeaders – synthesizeRequestId", () => {
     const headers = h();
     const clientHeaders = { "x-random": "value" };
     forwardOpencodeClientHeaders(headers, clientHeaders, {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     });
     assert.equal(headers["x-opencode-session"], undefined);
     assert.equal(headers["x-opencode-request"], undefined);

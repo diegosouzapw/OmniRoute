@@ -30,10 +30,10 @@ import assert from "node:assert/strict";
 import { forwardOpencodeClientHeaders } from "../../open-sse/utils/opencodeHeaders.ts";
 import { OpencodeExecutor } from "../../open-sse/executors/opencode.ts";
 
-// Since 2026-09-17 the free tier requires the canonical OpenCode id shapes; a UUID is
-// refused with a 403. The synthesized ids therefore match these patterns, not a UUID.
+// Since 2026-09-17 the upstream requires the canonical OpenCode session shape; a UUID is
+// refused with a 403. Since 2026-10-14 a request carrying x-opencode-request is refused
+// too, so no request id is synthesized or relayed any more.
 const SESSION_RE = /^ses_[0-9a-f]{12}[0-9A-Za-z]{14}$/;
-const REQUEST_RE = /^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$/;
 
 // Values passed explicitly to forwardOpencodeClientHeaders()'s `cliDefaults` option in
 // the tests below — these are caller-supplied, independent of OpencodeExecutor's own
@@ -65,12 +65,16 @@ test("forwardOpencodeClientHeaders: cliDefaults synthesize all CLI identity head
   assert.equal(headers["User-Agent"], CLI_DEFAULTS.userAgent);
   assert.equal(headers["x-opencode-client"], "cli");
   assert.equal(headers["x-opencode-project"], "default");
-  assert.match(headers["x-opencode-request"] ?? "", REQUEST_RE);
+  assert.equal(headers["x-opencode-request"], undefined);
   assert.match(headers["x-opencode-session"] ?? "", SESSION_RE);
-  assert.notEqual(headers["x-opencode-request"], headers["x-opencode-session"]);
+  assert.equal(
+    Object.keys(headers).filter((k) => k.toLowerCase() === "x-opencode-request").length,
+    0,
+    "no request id under any casing"
+  );
 });
 
-test("forwardOpencodeClientHeaders: non-CLI client UA is REPLACED with the CLI UA; client-wins survives as a deterministic mapping for the ids [#5997 follow-up]", () => {
+test("forwardOpencodeClientHeaders: non-CLI client UA is REPLACED with the CLI UA; client-wins survives as a deterministic mapping for the session [#5997 follow-up]", () => {
   const headers: Record<string, string> = {};
   const clientHeaders = {
     "User-Agent": "curl/8.5.0",
@@ -84,10 +88,11 @@ test("forwardOpencodeClientHeaders: non-CLI client UA is REPLACED with the CLI U
   assert.equal(headers["User-Agent"], CLI_DEFAULTS.userAgent);
   assert.equal(headers["x-opencode-client"], "vscode");
   assert.equal(headers["x-opencode-project"], "acme");
-  // The client's own ids cannot go out as they are (the upstream refuses any other shape),
-  // so they are translated deterministically: the same client value always maps to the
-  // same upstream id, which is what session continuity and prompt caching need.
-  assert.match(headers["x-opencode-request"] ?? "", REQUEST_RE);
+  // The client's own session cannot go out as it is (the upstream refuses any other shape),
+  // so it is translated deterministically: the same client value always maps to the
+  // same upstream id, which is what session continuity and prompt caching need. Its
+  // request id is dropped: the upstream refuses a request that carries one.
+  assert.equal(headers["x-opencode-request"], undefined);
   assert.match(headers["x-opencode-session"] ?? "", SESSION_RE);
   const again: Record<string, string> = {};
   forwardOpencodeClientHeaders(again, clientHeaders, { cliDefaults: CLI_DEFAULTS });
@@ -133,7 +138,7 @@ test("OpencodeExecutor.buildHeaders: synthesizes CLI defaults by default — fla
     assert.equal(headers["User-Agent"], OPENCODE_DEFAULTS.userAgent);
     assert.equal(headers["x-opencode-client"], OPENCODE_DEFAULTS.client);
     assert.equal(headers["x-opencode-project"], OPENCODE_DEFAULTS.project);
-    assert.match(headers["x-opencode-request"] ?? "", REQUEST_RE);
+    assert.equal(headers["x-opencode-request"], undefined);
   });
 });
 
@@ -145,7 +150,7 @@ test("OpencodeExecutor.buildHeaders: synthesizes CLI defaults with flag explicit
     assert.equal(headers["User-Agent"], OPENCODE_DEFAULTS.userAgent);
     assert.equal(headers["x-opencode-client"], OPENCODE_DEFAULTS.client);
     assert.equal(headers["x-opencode-project"], OPENCODE_DEFAULTS.project);
-    assert.match(headers["x-opencode-request"] ?? "", REQUEST_RE);
+    assert.equal(headers["x-opencode-request"], undefined);
     assert.match(headers["x-opencode-session"] ?? "", SESSION_RE);
   });
 });

@@ -13,9 +13,11 @@
  * that model, at that moment. This module remembers those names so a later request
  * carrying none can borrow them, and forgets them when a borrowed set is refused.
  *
- * Only names are kept — never a schema, a description, or any conversation content — and
- * the placeholder rebuilt from them declares an empty parameter object, so a borrowed name
- * is an entry in a list rather than a callable tool.
+ * Names are kept per surface and model. Next to them, the parameter schema the client last
+ * sent for each name is kept, so a borrowed entry declares the client's own schema: the
+ * upstream refuses a client tool name declared with an empty schema (measured 2026-10-14).
+ * Never a description and never conversation content; schemas only enter from a request the
+ * upstream accepted, and the table is bounded by name count and schema size.
  *
  * Leaf module: no internal imports, so the executor and the contract can both use it.
  */
@@ -174,8 +176,60 @@ export function resolvePlaceholderNames(
   return getObservedToolNames(provider, model) ?? configured;
 }
 
+/** Bounds of the schema table: arbitrary, they cap memory. A larger schema is not kept. */
+const MAX_SCHEMAS = 64;
+const MAX_SCHEMA_BYTES = 8192;
+/** Tool name → parameter schema (JSON text), insertion-ordered for eviction. */
+const schemas = new Map<string, string>();
+
+function toolEntry(tool: unknown): { name: unknown; parameters: unknown } | null {
+  if (!tool || typeof tool !== "object") return null;
+  const entry = tool as {
+    name?: unknown;
+    parameters?: unknown;
+    function?: Record<string, unknown>;
+  };
+  return entry.function
+    ? { name: entry.function.name, parameters: entry.function.parameters }
+    : { name: entry.name, parameters: entry.parameters };
+}
+
+/**
+ * Record the parameter schema of each tool an accepted gated request carried, by name.
+ * Chat (`function.parameters`) and Responses (`parameters`) entries are both read.
+ */
+export function recordAcceptedToolSchemas(tools: readonly unknown[]): void {
+  for (const tool of tools) {
+    const entry = toolEntry(tool);
+    if (!entry || typeof entry.name !== "string" || !NAME_PATTERN.test(entry.name)) continue;
+    const parameters = entry.parameters;
+    if (!parameters || typeof parameters !== "object" || Array.isArray(parameters)) continue;
+    const text = JSON.stringify(parameters);
+    if (text.length > MAX_SCHEMA_BYTES) continue;
+    schemas.delete(entry.name);
+    schemas.set(entry.name, text);
+  }
+  while (schemas.size > MAX_SCHEMAS) {
+    const oldest = schemas.keys().next();
+    if (oldest.done) break;
+    schemas.delete(oldest.value);
+  }
+}
+
+/** A fresh copy of the schema last accepted for this tool name, or `null`. */
+export function getObservedToolParameters(name: string): Record<string, unknown> | null {
+  const text = schemas.get(name);
+  return text === undefined ? null : (JSON.parse(text) as Record<string, unknown>);
+}
+
+/** Reserved for tests. */
+export function _observedSchemaCountForTests(): number {
+  return schemas.size;
+}
+
 /** Reserved for tests. */
 export function _resetToolObservationForTests(): void {
   observed.clear();
   consecutiveRefusals.clear();
+  schemas.clear();
 }

@@ -1,5 +1,9 @@
 import { generateModels, generateAliasMap, type RegistryModel } from "./providerRegistry.ts";
 import { getVertexModelTargetFormat } from "./vertexModels.ts";
+import {
+  getPublishedModelNpm,
+  surfaceTargetFormatForNpm,
+} from "../utils/opencodePublishedCatalog.ts";
 
 // Lazy PROVIDER_MODELS: deferred until first property access to speed up startup.
 // The Proxy defers `generateModels()` from module-evaluation time to the first read.
@@ -233,6 +237,39 @@ export function stripOpencodeModelPrefix(model: unknown): unknown {
   return model;
 }
 
+/**
+ * The published catalog declares each model's surface per model id; an explicit
+ * registry entry stays an override and wins. Unmeasured SDKs decide nothing.
+ */
+function publishedCatalogFormat(aliasOrId: string, bareModelId: string): string | null {
+  return surfaceTargetFormatForNpm(getPublishedModelNpm(aliasOrId, bareModelId));
+}
+
+/**
+ * OpenCode's Muse Spark family is Responses-only. Resolved models can still carry
+ * the raw provider id (for example "opencode/muse-spark-1.3-contributor-free")
+ * even when the public alias is "oc": match the family against the final model
+ * segment so both forms work.
+ */
+function museSparkTargetFormat(alias: string, bareModelId: string): string | null {
+  if (!OPENCODE_MUSE_SPARK_ALIASES.has(alias)) return null;
+  const modelFamilyId = bareModelId.split("/").pop() || bareModelId;
+  if (!MUSE_SPARK_MODEL_PATTERN.test(modelFamilyId)) return null;
+  return "openai-responses";
+}
+
+/**
+ * Effort suffixes (gpt-6-astra-high, gpt-5.6-sol-xhigh) are not separate
+ * catalog rows on the public OpenAI provider. They must keep the base
+ * model's endpoint, or tools+reasoning land on /v1/chat/completions and
+ * OpenAI returns a 400 that the Responses API would have accepted.
+ */
+function effortBaseTargetFormat(alias: string, bareModelId: string): string | null {
+  const effortStripped = bareModelId.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
+  if (effortStripped === bareModelId) return null;
+  return PROVIDER_MODELS[alias]?.find((m) => m.id === effortStripped)?.targetFormat ?? null;
+}
+
 export function getModelTargetFormat(aliasOrId: string, modelId: string): string | null {
   // Accept either the public alias ("cmd") or the raw provider id ("command-code"),
   // mirroring getProviderModels (same pattern as #2798/#3870).
@@ -243,22 +280,12 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   const bareModelId = prefix ? modelId.slice(prefix.length) : modelId;
   const found = PROVIDER_MODELS[alias]?.find((m) => m.id === bareModelId);
   if (found?.targetFormat) return found.targetFormat;
-  // Resolved models can still carry the raw provider id (for example
-  // "opencode/muse-spark-1.3-contributor-free") even when the public alias is
-  // "oc". Match the family against the final model segment so both forms work.
-  const modelFamilyId = bareModelId.split("/").pop() || bareModelId;
-  if (OPENCODE_MUSE_SPARK_ALIASES.has(alias) && MUSE_SPARK_MODEL_PATTERN.test(modelFamilyId)) {
-    return "openai-responses";
-  }
-  // Effort suffixes (gpt-6-astra-high, gpt-5.6-sol-xhigh) are not separate
-  // catalog rows on the public OpenAI provider. They must keep the base
-  // model's endpoint, or tools+reasoning land on /v1/chat/completions and
-  // OpenAI returns a 400 that the Responses API would have accepted.
-  const effortStripped = bareModelId.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
-  if (effortStripped !== bareModelId) {
-    const base = PROVIDER_MODELS[alias]?.find((m) => m.id === effortStripped);
-    if (base?.targetFormat) return base.targetFormat;
-  }
+  const catalogFormat = publishedCatalogFormat(aliasOrId, bareModelId);
+  if (catalogFormat) return catalogFormat;
+  const sparkFormat = museSparkTargetFormat(alias, bareModelId);
+  if (sparkFormat) return sparkFormat;
+  const effortFormat = effortBaseTargetFormat(alias, bareModelId);
+  if (effortFormat) return effortFormat;
   // #5842: OpenAI "*-pro" reasoning models (o1-pro, gpt-5.x-pro) are only served by
   // the native /v1/responses endpoint — /v1/chat/completions 404s ("only supported
   // in v1/responses"). Curated catalog entries are tagged explicitly; this heuristic

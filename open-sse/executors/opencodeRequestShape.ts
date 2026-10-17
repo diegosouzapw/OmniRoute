@@ -32,9 +32,9 @@ export interface InjectionContext {
   readonly replayNote: (verdict: FreeTierOutcome) => void;
 }
 
-/** Prompt classes that the upstream accepts bare. Bounded; least recently confirmed goes first. */
+/** The shape each prompt class was last accepted in. Bounded; least recently confirmed goes first. */
 const MAX_CLASSES = 64;
-const bareClasses = new Set<string>();
+const learned = new Map<string, RequestShape>();
 
 /** Both shapes were refused: no replay for this class until the stamp passes. */
 const PAUSE_MS = 60_000;
@@ -87,10 +87,19 @@ export function shapeKeyOf(provider: string, model: string, body: unknown): stri
 }
 
 /** Which shape this request goes out in, and whether a refusal may still be replayed. */
-export function planShape(origin: object, key: string): { shape: RequestShape; probe: boolean } {
+/**
+ * The shape to send first. `preferred` is the shape used for a class nothing was learned
+ * about: the caller's own (`bare`) for a request from the OpenCode client, which already
+ * carries the contract, and `tools` for any other caller.
+ */
+export function planShape(
+  origin: object,
+  key: string,
+  preferred: RequestShape = "tools"
+): { shape: RequestShape; probe: boolean } {
   const imposed = forced.get(origin);
   if (imposed) return { shape: imposed, probe: false };
-  return { shape: bareClasses.has(key) ? "bare" : "tools", probe: !isPaused(key) };
+  return { shape: learned.get(key) ?? preferred, probe: !isPaused(key) };
 }
 
 function isPaused(key: string): boolean {
@@ -111,13 +120,13 @@ function pause(key: string): void {
   }
 }
 
-function rememberBare(key: string): void {
-  bareClasses.delete(key);
-  bareClasses.add(key);
-  while (bareClasses.size > MAX_CLASSES) {
-    const oldest = bareClasses.values().next();
+function remember(key: string, shape: RequestShape): void {
+  learned.delete(key);
+  learned.set(key, shape);
+  while (learned.size > MAX_CLASSES) {
+    const oldest = learned.keys().next();
     if (oldest.done) break;
-    bareClasses.delete(oldest.value);
+    learned.delete(oldest.value);
   }
 }
 
@@ -175,10 +184,9 @@ function learnFromReplay(ctx: InjectionContext, accepted: boolean, verdict: Free
   if (!accepted) {
     pause(ctx.key);
     ctx.replayNote(verdict);
-  } else if (ctx.shape === "tools") {
-    rememberBare(ctx.key);
   } else {
-    bareClasses.delete(ctx.key);
+    // The replay went out in the other shape and was accepted: that shape is the class's.
+    remember(ctx.key, ctx.shape === "tools" ? "bare" : "tools");
   }
 }
 
@@ -233,7 +241,7 @@ export async function withRequestShapeRetry(
 }
 
 export function _resetShapeMemoForTests(): void {
-  bareClasses.clear();
+  learned.clear();
   pausedUntil.clear();
 }
 

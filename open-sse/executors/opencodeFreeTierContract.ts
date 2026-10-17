@@ -37,11 +37,14 @@ import { getModelsDevPricing, getSyncedCapability } from "@/lib/modelsDevSync";
 import {
   confirmBorrowedToolNames,
   getObservedToolNames,
+  getObservedToolParameters,
   noteRefusedBorrowedToolNames,
   recordAcceptedToolNames,
+  recordAcceptedToolSchemas,
   resolvePlaceholderNames,
 } from "./opencodeToolObservation.ts";
 import { isOpencodeFreeTierRefusal } from "./opencodeGeoBlock.ts";
+import { requestPublishedEndpointRefresh } from "../utils/opencodePublishedEndpoint.ts";
 import {
   forgetAttempt,
   planShape,
@@ -64,6 +67,8 @@ export interface FreeTierContractAttempt {
   readonly session: string | undefined;
   readonly borrowed: boolean;
   readonly clientToolNames: readonly string[];
+  /** The caller's own tool entries, kept so an accepted request teaches their schemas. */
+  readonly clientTools?: readonly unknown[];
   /** A refusal may still be replayed in the other shape: its outcome is noted afterwards. */
   readonly probe?: boolean;
   /**
@@ -212,7 +217,11 @@ export function isPremiumOpencodeModel(model: string, provider: string): boolean
  */
 export type OpencodeSurface = "zen" | "go" | "other";
 
-const ZEN_SURFACE_BASE_URL = "https://opencode.ai/zen/v1";
+const ZEN_SURFACE_BASE_URLS = new Set([
+  "https://opencode.ai/zen/v1",
+  // Published endpoint since 2026-10 (models.opencode.ai catalog `api` field).
+  "https://opencode.ai/inference/v1",
+]);
 const GO_SURFACE_BASE_URL = "https://opencode.ai/zen/go/v1";
 
 /**
@@ -223,10 +232,40 @@ const GO_SURFACE_BASE_URL = "https://opencode.ai/zen/go/v1";
  */
 export const FREE_TIER_INFERENCE_BASE_URL = "https://opencode.ai/inference/v1";
 
-/** Tell the surfaces apart by registry `baseUrl`, so provider ids and aliases stay out. */
+/** Tell the surfaces apart by a known `baseUrl`, so provider ids and aliases stay out. */
 export function surfaceFromBaseUrl(baseUrl: string | null | undefined): OpencodeSurface {
-  if (baseUrl === ZEN_SURFACE_BASE_URL) return "zen";
+  if (baseUrl && ZEN_SURFACE_BASE_URLS.has(baseUrl)) return "zen";
   if (baseUrl === GO_SURFACE_BASE_URL) return "go";
+  return "other";
+}
+
+function isOpencodeHost(url: string): boolean {
+  try {
+    return new URL(url).hostname === "opencode.ai";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The surface a provider is served on. Decided by provider rather than by URL equality, so
+ * the surface holds when the endpoint moves (the URL now follows the published catalog).
+ * A connection base URL outside opencode.ai (a local relay) is `other`: no contract is
+ * imposed on it.
+ */
+export function surfaceForProvider(
+  provider: string | null | undefined,
+  connectionBaseUrl?: unknown
+): OpencodeSurface {
+  if (
+    typeof connectionBaseUrl === "string" &&
+    connectionBaseUrl &&
+    !isOpencodeHost(connectionBaseUrl)
+  ) {
+    return "other";
+  }
+  if (provider === "opencode-go") return "go";
+  if (provider === "opencode" || provider === "oc" || provider === "opencode-zen") return "zen";
   return "other";
 }
 
@@ -296,8 +335,6 @@ export function configuredPlaceholderToolNames(): string[] {
 }
 const PLACEHOLDER_TOOL_DESCRIPTION =
   "Do not call this tool. It exists only for API compatibility and must never be invoked.";
-const PLACEHOLDER_TOOL_PARAMETERS = { type: "object", properties: {} } as const;
-
 /**
  * Minimal parameter schemas for injected placeholder tools, mirroring the OpenCode client's
  * argument names. Since 2026-10-14 the free tier refuses a declared `read` or `bash` whose
@@ -313,9 +350,21 @@ const PLACEHOLDER_TOOL_PARAMETER_SCHEMAS: Readonly<Record<string, Record<string,
   read: { type: "object", properties: { filePath: { type: "string" } }, required: ["filePath"] },
 };
 
-/** Parameter schema for an injected placeholder tool named `name`. */
+/**
+ * Parameter schema for an injected placeholder tool named `name`: the schema the client
+ * last sent for that name when one was seen, else the quartet's minimal schema, else an
+ * inert optional property. Never an empty schema: the upstream refuses a client tool name
+ * declared with `properties: {}` and accepts the same name with any property (measured
+ * 2026-10-14).
+ */
 export function placeholderToolParameters(name: string): Record<string, unknown> {
-  return PLACEHOLDER_TOOL_PARAMETER_SCHEMAS[name] ?? PLACEHOLDER_TOOL_PARAMETERS;
+  return (
+    getObservedToolParameters(name) ??
+    PLACEHOLDER_TOOL_PARAMETER_SCHEMAS[name] ?? {
+      type: "object",
+      properties: { unused: { type: "string", description: "Unused." } },
+    }
+  );
 }
 
 /**
@@ -392,9 +441,9 @@ export function applyFreeTierRequestContract<T>(
  * FreeTierError. When such a refusal comes back, this rebuilds the same body with the
  * observed names appended after the client's own entries: the client tools keep their
  * full shape (description, parameters) so the model can still call them, while the
- * appended names are list entries carrying the minimal parameter schema
- * `placeholderToolParameters` gives them — the same shape the placeholder path uses,
- * never a callable tool.
+ * appended names carry the schema the client last sent for them when one was seen,
+ * else the minimal parameter schema `placeholderToolParameters` gives — the same
+ * entries the placeholder path builds.
  *
  * Pure: returns the input body unchanged when no observed names are missing, so the
  * caller can skip the retry on identity alone. Resolution order is the store's own:
@@ -481,6 +530,28 @@ function isTrackable(value: unknown): value is object {
   return typeof value === "object" && value !== null;
 }
 
+/**
+ * The shape a request goes out in first. The OpenCode client already sends what the upstream
+ * expects, so its request goes out as written (`bare` = streaming only) and is replayed in
+ * the other shape if refused; any other caller gets the tools first, as before.
+ */
+function firstShape(
+  origin: object | undefined,
+  eligible: boolean,
+  key: string,
+  fromOpencodeClient: boolean
+): { shape: "tools" | "bare"; probe: boolean } {
+  const preferred = fromOpencodeClient ? "bare" : "tools";
+  return origin && eligible
+    ? planShape(origin, key, preferred)
+    : { shape: preferred, probe: false };
+}
+
+function ownToolsOf(body: unknown): unknown[] {
+  const tools = (body as { tools?: unknown } | null)?.tools;
+  return Array.isArray(tools) ? tools : [];
+}
+
 export function prepareFreeTierRequest<T>(
   body: T,
   requestFormat: string | null,
@@ -488,7 +559,8 @@ export function prepareFreeTierRequest<T>(
   provider: string,
   model: string,
   session?: string,
-  origin?: object
+  origin?: object,
+  fromOpencodeClient = false
 ): { body: T; attempt: FreeTierContractAttempt | null } {
   const clientToolNames = clientToolNamesOf(body);
   if (!requiresFreeTierRequestContract(surface, provider, model)) {
@@ -497,10 +569,7 @@ export function prepareFreeTierRequest<T>(
   }
   const eligible = isTrackable(origin) && clientToolNames.length === 0;
   const key = eligible ? shapeKeyOf(provider, model, body) : "";
-  const plan =
-    isTrackable(origin) && eligible
-      ? planShape(origin, key)
-      : { shape: "tools" as const, probe: false };
+  const plan = firstShape(origin, eligible, key, fromOpencodeClient);
   const chosen = plan.shape;
   const names = resolvePlaceholderNames(provider, model, session, configuredPlaceholderToolNames());
   const borrowed = clientToolNames.length === 0 && names.length > 0 && chosen === "tools";
@@ -510,6 +579,7 @@ export function prepareFreeTierRequest<T>(
     session,
     borrowed,
     clientToolNames,
+    clientTools: clientToolNames.length > 0 ? ownToolsOf(body) : [],
     probe: plan.probe,
   };
   if (isTrackable(origin)) rememberAttempt(origin, attempt);
@@ -570,15 +640,22 @@ export function noteFreeTierOutcome(
         attempt.session,
         attempt.clientToolNames
       );
+      recordAcceptedToolSchemas(attempt.clientTools ?? []);
     } else if (attempt.borrowed && !attempt.probe) {
       confirmBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
     }
     return;
   }
+  if (decided.status === null) return;
+  const refused = isOpencodeFreeTierRefusal(decided.status, decided.bodyText);
+  // A moved endpoint answers with this same refusal: re-read the published catalog
+  // (coalesced, fire-and-forget). Nothing is replayed — the next request uses the value.
+  if (refused && surfaceForProvider(attempt.provider) === "zen") {
+    requestPublishedEndpointRefresh();
+  }
   if (attempt.probe) return;
   if (!attempt.borrowed) return;
-  if (decided.status === null) return;
-  if (isOpencodeFreeTierRefusal(decided.status, decided.bodyText)) {
+  if (refused) {
     noteRefusedBorrowedToolNames(attempt.provider, attempt.model, attempt.session);
   }
 }

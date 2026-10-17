@@ -78,17 +78,18 @@ test("opencode-go declares grok-4.6 as a reasoning model with its effort vocabul
   assert.deepEqual(row.supportedThinkingEfforts, ["low", "medium", "high", "xhigh"]);
 });
 
-test("opencode-zen Grok models route to the Zen /responses URL with x-api-key auth", () => {
+test("opencode-zen Grok models route to the Zen /responses URL with Bearer auth", () => {
   for (const model of ZEN_GROK_MODELS) {
     const row = opencode_zenProvider.models.find((m) => m.id === model);
     assert.ok(row, `opencode-zen must register ${model}`);
     assert.equal(row.targetFormat, "openai-responses");
     assert.equal(resolveOpencodeTargetFormat("opencode-zen", model), "openai-responses");
     assert.equal(urlFor("opencode-zen", model), "https://opencode.ai/zen/v1/responses");
-    // #12633: Zen's /responses endpoint authenticates with x-api-key, not Bearer.
+    // Zen's /responses endpoint authenticates with Bearer like chat: the x-api-key form
+    // of #12633 answers 403 FreeTierError there (measured 2026-10-14).
     const headers = headersFor("opencode-zen", model);
-    assert.equal(headers["x-api-key"], "sk-test");
-    assert.equal(headers["Authorization"], undefined);
+    assert.equal(headers["Authorization"], "Bearer sk-test");
+    assert.equal(headers["x-api-key"], undefined);
   }
 });
 

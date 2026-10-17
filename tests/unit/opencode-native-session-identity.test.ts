@@ -12,7 +12,7 @@ const body = { model: "big-pickle", messages: [{ role: "user", content: "same pr
 function session(headers: Record<string, string>) {
   const output: Record<string, string> = {};
   forwardOpencodeClientHeaders(output, headers, {
-    synthesizeRequestId: true,
+    opencodeUpstream: true,
     cliDefaults: defaults,
     sessionBody: body,
   });
@@ -70,15 +70,15 @@ test("untrusted native IDs reject controls and excessive length", () => {
   }
 });
 
-test("native fallback preserves raw identity and an existing request when CLI synthesis is off", () => {
+test("native fallback preserves raw identity and drops a client request id when CLI synthesis is off", () => {
   const output: Record<string, string> = {};
   forwardOpencodeClientHeaders(
     output,
     { thread_id: "native-conversation", "x-opencode-request": "existing-request" },
-    { synthesizeRequestId: true }
+    { opencodeUpstream: true }
   );
   assert.equal(output["x-opencode-session"], "native-conversation");
-  assert.equal(output["x-opencode-request"], "existing-request");
+  assert.equal(output["x-opencode-request"], undefined);
 });
 
 test("an existing outbound session bypasses fallback request synthesis", () => {
@@ -87,7 +87,7 @@ test("an existing outbound session bypasses fallback request synthesis", () => {
     output,
     { thread_id: "native-conversation" },
     {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
     }
   );
   assert.deepEqual(output, { "x-opencode-session": "existing-session" });
@@ -99,7 +99,7 @@ test("invalid body identity does not synthesize a request without CLI defaults",
     output,
     {},
     {
-      synthesizeRequestId: true,
+      opencodeUpstream: true,
       sessionBody: { metadata: { session_id: "bad\nidentity" } },
     }
   );

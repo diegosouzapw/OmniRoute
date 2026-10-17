@@ -16,6 +16,7 @@ import {
   shouldUseNativeXaiResponsesPassthrough,
 } from "./passthroughHelpers.ts";
 import { FORMATS } from "../../translator/formats.ts";
+import { isOpencodeClient } from "../../utils/opencodeClient.ts";
 
 /** True when the request originates from a Copilot client (matched by user-agent or any header). */
 function isCopilotClient(
@@ -34,39 +35,6 @@ function isCopilotClient(
   } else if (headers && typeof headers === "object") {
     for (const [key, value] of Object.entries(headers)) {
       if (isMatch(key) || isMatch(value)) return true;
-    }
-  }
-
-  return false;
-}
-
-function isOpencodeClient(
-  headers: Headers | Record<string, unknown> | null | undefined,
-  userAgent?: string | null
-): boolean {
-  const matchesUserAgent = (value: unknown) =>
-    typeof value === "string" && value.toLowerCase().includes("opencode");
-  const matchesHeaderKey = (key: string) => key.toLowerCase().startsWith("x-opencode-");
-
-  if (matchesUserAgent(userAgent)) return true;
-
-  if (headers instanceof Headers) {
-    for (const [key, value] of headers as unknown as Iterable<[string, string]>) {
-      if (
-        matchesHeaderKey(key) ||
-        (key.toLowerCase() === "user-agent" && matchesUserAgent(value))
-      ) {
-        return true;
-      }
-    }
-  } else if (headers && typeof headers === "object") {
-    for (const [key, value] of Object.entries(headers)) {
-      if (
-        matchesHeaderKey(key) ||
-        (key.toLowerCase() === "user-agent" && matchesUserAgent(value))
-      ) {
-        return true;
-      }
     }
   }
 

@@ -114,6 +114,7 @@ test("with the synced catalog pinned, only its ids count as free", () => {
 
 test("the surface is told apart by base url, so the `oc` alias needs no special case", () => {
   assert.equal(surfaceFromBaseUrl("https://opencode.ai/zen/v1"), "zen");
+  assert.equal(surfaceFromBaseUrl("https://opencode.ai/inference/v1"), "zen");
   assert.equal(surfaceFromBaseUrl("https://opencode.ai/zen/go/v1"), "go");
   assert.equal(surfaceFromBaseUrl("https://api.groq.com/openai/v1"), "other");
   assert.equal(surfaceFromBaseUrl(undefined), "other");
@@ -156,11 +157,11 @@ test("the placeholder carries the names it is given, one entry each", () => {
   });
 });
 
-test("placeholderToolParameters: quartet members get a minimal schema, others stay empty", () => {
+test("placeholderToolParameters: quartet members get a minimal schema, others stay inert", () => {
   // Measured 2026-10-14 on /inference/v1: `read` + `bash` with `properties: {}` is refused
   // 403, the same pair with `{command}` on `bash` passes, and a request with no
-  // property-bearing `read` is refused — while an empty schema on a name outside the
-  // quartet (`webfetch`, `_noop`) still passes.
+  // property-bearing `read` is refused — while a name outside the quartet
+  // (`webfetch`, `_noop`) gets an inert property, never `{}`.
   assert.deepEqual(placeholderToolParameters("bash"), {
     type: "object",
     properties: { command: { type: "string" } },
@@ -170,8 +171,10 @@ test("placeholderToolParameters: quartet members get a minimal schema, others st
     const schema = placeholderToolParameters(name) as { properties: Record<string, unknown> };
     assert.ok(Object.keys(schema.properties).length > 0, name);
   }
-  assert.deepEqual(placeholderToolParameters("_noop"), { type: "object", properties: {} });
-  assert.deepEqual(placeholderToolParameters("webfetch"), { type: "object", properties: {} });
+  for (const name of ["_noop", "webfetch"]) {
+    const schema = placeholderToolParameters(name) as { properties: Record<string, unknown> };
+    assert.ok(Object.keys(schema.properties).length > 0, name);
+  }
 });
 
 test("responses: several placeholder names keep the flat shape and no tool_choice", () => {
@@ -301,7 +304,7 @@ test("the user-agent contract accepts a versioned opencode client and rejects th
   assert.equal(satisfiesOpencodeUserAgentContract(undefined), false);
 });
 
-test("synthesized identity headers carry a canonical session and request id", () => {
+test("synthesized identity headers carry a canonical session and no request id", () => {
   const headers: Record<string, string> = {};
   forwardOpencodeClientHeaders(
     headers,
@@ -317,7 +320,7 @@ test("synthesized identity headers carry a canonical session and request id", ()
   );
   assert.equal(headers["User-Agent"], DEFAULT_OPENCODE_USER_AGENT);
   assertDescendingSession(headers["x-opencode-session"]);
-  assert.match(headers["x-opencode-request"] ?? "", /^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$/);
+  assert.equal(headers["x-opencode-request"], undefined);
 });
 
 test("the same conversation keeps the same session id, a different one does not", () => {
@@ -913,7 +916,7 @@ test("a client session id is read case-insensitively, a synthesized one is not b
   assert.equal(clientSuppliedOpencodeSession(undefined), undefined);
 });
 
-test("mergeClientToolsWithObserved: keeps client tools first and appends missing observed names with empty schemas [free-tier-observed-tools]", () => {
+test("mergeClientToolsWithObserved: keeps client tools first and appends missing observed names with a non-empty schema [free-tier-observed-tools]", () => {
   _resetToolObservationForTests();
   const body = {
     ...CHAT_BODY(),
@@ -934,8 +937,11 @@ test("mergeClientToolsWithObserved: keeps client tools first and appends missing
     ["glob", "read", "edit"]
   );
   // Appended entries are list entries, not callable tools; `edit` is outside the quartet,
-  // so it keeps the empty schema.
-  assert.deepEqual(tools[2].function.parameters, { type: "object", properties: {} });
+  // so it gets the inert property, never `{}`.
+  assert.deepEqual(tools[2].function.parameters, {
+    type: "object",
+    properties: { unused: { type: "string", description: "Unused." } },
+  });
 });
 
 test("mergeClientToolsWithObserved: an appended quartet member carries a non-empty schema [free-tier-observed-tools]", () => {

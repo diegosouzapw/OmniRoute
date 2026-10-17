@@ -7,7 +7,7 @@
  * Fix under test:
  * 1. `buildOpencodeBackgroundHeaders()` (open-sse/utils/opencodeHeaders.ts)
  *    synthesizes the OpenCode CLI identity (UA + x-opencode-client/project/
- *    request/session) for non-chat fetches, with a STABLE per-caller session
+ *    session; no request id, which the upstream refuses) for non-chat fetches, with a STABLE per-caller session
  *    fingerprint seeded by the calling connection/workspace.
  * 2. `PROVIDER_MODELS_CONFIG` entries for opencode / opencode-zen /
  *    opencode-go (src/app/api/providers/[id]/models/discovery/
@@ -21,7 +21,6 @@ import assert from "node:assert/strict";
 import {
   buildOpencodeBackgroundHeaders,
   isValidOpencodeSessionValue,
-  OPENCODE_REQUEST_PATTERN,
 } from "../../open-sse/utils/opencodeHeaders.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
 
@@ -40,7 +39,7 @@ test("background headers carry the OpenCode CLI identity, not the bare runtime U
   assert.equal(headers["User-Agent"], "opencode");
   assert.equal(headers["x-opencode-client"], "desktop");
   assert.equal(headers["x-opencode-project"], "global");
-  assert.match(headers["x-opencode-request"] ?? "", OPENCODE_REQUEST_PATTERN);
+  assert.equal(headers["x-opencode-request"], undefined);
 });
 
 test("background session id is a stable per-seed fingerprint (same hash family as the chat path)", () => {

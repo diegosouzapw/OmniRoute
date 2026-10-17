@@ -72,7 +72,7 @@ test("executor resolves muse-spark-1.3 models to the Responses API", () => {
   }
 });
 
-test("Responses-format executor hits /responses with x-api-key auth and no Bearer header", () => {
+test("Responses-format executor hits /responses with Bearer auth and no x-api-key header", () => {
   for (const { id } of PROVIDERS) {
     for (const modelId of MODEL_IDS) {
       const executor = new OpencodeExecutor(id);
@@ -83,8 +83,9 @@ test("Responses-format executor hits /responses with x-api-key auth and no Beare
         `${id}/${modelId} must build a /responses URL, got ${url}`
       );
       const headers = executor.buildHeaders({ apiKey: "sk-test" }, true, null, modelId);
-      assert.equal(headers["x-api-key"], "sk-test");
-      assert.equal(headers["Authorization"], undefined);
+      // x-api-key on Zen /responses answers 403 FreeTierError (measured 2026-10-14).
+      assert.equal(headers["Authorization"], "Bearer sk-test");
+      assert.equal(headers["x-api-key"], undefined);
     }
   }
 });
