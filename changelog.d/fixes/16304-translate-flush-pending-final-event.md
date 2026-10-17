@@ -1,0 +1,1 @@
+- **fix(sse):** a translated stream ending without a closing blank line now forwards the final usage event instead of replacing it with an estimate, so local quota counters report the provider counts ([#16304](https://github.com/diegosouzapw/OmniRoute/pull/16304)) — thanks @maxmad64bis
