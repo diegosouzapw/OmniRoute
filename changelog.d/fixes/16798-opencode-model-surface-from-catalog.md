@@ -1,0 +1,1 @@
+- **fix(opencode):** route each key-based model to the endpoint the published catalog declares ([#16798](https://github.com/diegosouzapw/OmniRoute/pull/16798)) — thanks @maxmad64bis

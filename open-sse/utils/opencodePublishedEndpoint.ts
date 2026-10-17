@@ -17,10 +17,21 @@
  * cache starts one coalesced background refresh, and nothing ever throws. The last good
  * value is persisted under `DATA_DIR/cache` (as `cursorAgentCliVersion.ts` does) so a
  * restart while the catalog is unreachable keeps the moved endpoint.
+ *
+ * The same catalog read carries each model's surface (`provider.npm`); that map lives in
+ * `opencodePublishedCatalog.ts`, which `open-sse/config/providerModels.ts` reads without
+ * pulling this module's `node:` imports into the client bundle.
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+
+import {
+  clearPublishedCatalogNpm,
+  readPublishedNpmByModel,
+  replacePublishedCatalogNpm,
+  setPublishedCatalogRefreshTrigger,
+} from "./opencodePublishedCatalog.ts";
 
 const CATALOG_URL = "https://models.opencode.ai/api.json";
 const CATALOG_KEY = "opencode";
@@ -104,7 +115,12 @@ function loadPersisted(): void {
     const raw = JSON.parse(readFileSync(join(resolveCacheDir(), CACHE_FILE), "utf8"));
     if (!cached && isAcceptedPublishedEndpoint(raw?.url)) {
       // A persisted value is a fallback, never fresh: the first read refreshes it.
-      cached = { url: normalize(raw.url), fetchedAt: 0, source: "persisted" };
+      cached = {
+        url: normalize(raw.url),
+        fetchedAt: 0,
+        source: "persisted",
+      };
+      clearPublishedCatalogNpm();
     }
   } catch {
     // No file yet (first start) or unreadable: the registry URL stays the fallback.
@@ -159,11 +175,23 @@ export function refreshPublishedEndpoint(options?: {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
-      const url = response.ok ? readPublishedEndpoint(await response.json()) : undefined;
+      const catalog = response.ok ? await response.json() : undefined;
+      const url = response.ok ? readPublishedEndpoint(catalog) : undefined;
+      const npmByModel = readPublishedNpmByModel(catalog);
       if (url) {
         const fetchedAt = Date.now();
         cached = { url, fetchedAt, source: "catalog" };
+        replacePublishedCatalogNpm(npmByModel);
         persist(url, fetchedAt);
+      } else if (npmByModel.size > 0) {
+        // The catalog answered but moved no endpoint: the surface map is still usable.
+        const fetchedAt = cached?.fetchedAt ?? 0;
+        cached = {
+          url: cached?.url ?? "",
+          fetchedAt,
+          source: cached?.source ?? "persisted",
+        };
+        replacePublishedCatalogNpm(npmByModel);
       }
     } catch {
       // Catalog unreachable or not JSON: the persisted or registry value stays in place.
@@ -194,7 +222,15 @@ export async function ensurePublishedEndpoint(
 ): Promise<void> {
   if (!providerId || !FOLLOWING_PROVIDERS.has(providerId) || !backgroundRefreshAllowed()) return;
   loadPersisted();
-  if (cached || Date.now() - lastAttemptAt < FORCED_REFRESH_FLOOR_MS) return;
+  if (cached) return;
+  // A catalog read is already in flight (started by the sync surface lookup on this
+  // same request): join it instead of falling back to the registry URL. Costs no
+  // extra fetch; concurrent callers share the one in-flight read.
+  if (inFlight) {
+    await refreshPublishedEndpoint();
+    return;
+  }
+  if (Date.now() - lastAttemptAt < FORCED_REFRESH_FLOOR_MS) return;
   await refreshPublishedEndpoint();
 }
 
@@ -238,6 +274,7 @@ export function resetPublishedEndpointCache(): void {
   lastAttemptAt = 0;
   testFetch = null;
   testCacheDir = null;
+  clearPublishedCatalogNpm();
 }
 
 /**
@@ -252,15 +289,30 @@ export function configurePublishedEndpointForTests(options: {
 }): void {
   if (options.fetchImpl) testFetch = options.fetchImpl;
   if (options.cacheDir) testCacheDir = options.cacheDir;
-  if (options.url !== undefined) {
-    if (!isAcceptedPublishedEndpoint(options.url)) {
-      throw new TypeError(`Invalid published endpoint: ${options.url}`);
-    }
-    cached = {
-      url: normalize(options.url),
-      fetchedAt: options.fetchedAt ?? Date.now(),
-      source: "catalog",
-    };
-    diskLoaded = true;
-  }
+  if (options.url !== undefined) seedPublishedUrl(options.url, options.fetchedAt);
 }
+
+/** Test seam helper: seed the memory cache with an accepted endpoint URL. */
+function seedPublishedUrl(url: string, fetchedAt?: number): void {
+  if (!isAcceptedPublishedEndpoint(url)) {
+    throw new TypeError(`Invalid published endpoint: ${url}`);
+  }
+  cached = {
+    url: normalize(url),
+    fetchedAt: fetchedAt ?? Date.now(),
+    source: "catalog",
+  };
+  diskLoaded = true;
+}
+
+/**
+ * The endpoint module owns the catalog reads; the sync surface lookup in
+ * `opencodePublishedCatalog.ts` hands its refresh rhythm back here. Same check that lookup
+ * ran while it lived in this module: a stale or cold surface map starts one coalesced
+ * background refresh, under the same floor and test-runner guards.
+ */
+setPublishedCatalogRefreshTrigger(() => {
+  loadPersisted();
+  const due = Date.now() - lastAttemptAt >= OPENCODE_PUBLISHED_ENDPOINT_TTL_MS;
+  if (!isFresh(cached) && due && backgroundRefreshAllowed()) void refreshPublishedEndpoint();
+});
