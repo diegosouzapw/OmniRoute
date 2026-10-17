@@ -192,7 +192,7 @@ test("all known-too-small context targets still fall back to strategy order", ()
   );
 });
 
-test("output-token limits remain a hard compatibility requirement", () => {
+test("output-token limits are adjustable per-target dispatch budgets", () => {
   saveModelsDevCapabilities({
     "unit-output-limit": {
       insufficient: capabilityEntryWithLimits(128_000, 128_000, 128),
@@ -208,7 +208,7 @@ test("output-token limits remain a hard compatibility requirement", () => {
 
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
-    ["unit-output-limit/sufficient"]
+    ["unit-output-limit/insufficient", "unit-output-limit/sufficient"]
   );
 });
 
@@ -451,15 +451,9 @@ test("without an override the small-catalog target is ordered last for the large
   );
 });
 
-// #12273: real Claude Code requests always carry `tools`, and the auto/coding
-// pool mixes coding-capable providers with providers whose catalog marks
-// toolCalling=false. Those non-coding targets are HARD-rejected (tools), so the
-// compat filter can collapse the whole pool to a single too-small-context
-// coding model (e.g. mimo-v2.5-free at 200k) for a much larger request — the
-// larger-context model was never assembled into the candidate pool. Routing to
-// that sole survivor is a guaranteed context_length_exceeded, so the filter
-// must fall back to the full pool instead of silently pinning the request.
-test("#12273 single known-too-small survivor falls back to the full pool", () => {
+// #12273 / #16726: a context-advisory fallback must not restore a target
+// explicitly lacking the requested tools, even when the sole survivor is small.
+test("#12273 small-context survivor does not restore a hard tool mismatch", () => {
   saveModelsDevCapabilities({
     "unit-collapse": {
       small: capabilityEntry(200_000),
@@ -479,12 +473,10 @@ test("#12273 single known-too-small survivor falls back to the full pool", () =>
     noopLog
   );
 
-  // nocoder is hard-rejected (toolCalling=false); small (200k) is the only
-  // compatible survivor but is known to be too small for a 300k request, so the
-  // filter returns the full pool rather than dispatch to a guaranteed failure.
+  // Context is advisory; tool support is mandatory. Runtime can reject small.
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
-    ["unit-collapse/small", "unit-noncoding/nocoder"]
+    ["unit-collapse/small"]
   );
 });
 
@@ -517,10 +509,9 @@ test("#12273 single compatible target that fits is still collapsed", () => {
   );
 });
 
-// #12278: unknown context is advisory, not "known too small". Collapsing to a
-// single survivor whose context limit is unknown must NOT restore hard-rejected
-// targets (output_tokens here; vision is covered by combo-vision-aware-routing).
-test("#12273 unknown-context sole survivor does not restore hard-rejected targets", () => {
+// #12278 / #16726: unknown context stays advisory, and a known output cap
+// can be satisfied at dispatch; neither target has a hard capability mismatch.
+test("unknown context and clampable output both remain eligible", () => {
   saveModelsDevCapabilities({
     "unit-output": {
       tiny: capabilityEntryWithLimits(128_000, 128_000, 4096),
@@ -539,7 +530,7 @@ test("#12273 unknown-context sole survivor does not restore hard-rejected target
 
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
-    ["unit-unknown/mystery"]
+    ["unit-unknown/mystery", "unit-output/tiny"]
   );
 });
 

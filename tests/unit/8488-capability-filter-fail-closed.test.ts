@@ -12,6 +12,9 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
+const { PROVIDER_MAX_TOKENS } = await import("../../open-sse/config/constants.ts");
+const { enforceOutputTokenBudget } =
+  await import("../../open-sse/handlers/chatCore/outputTokenBudget.ts");
 const {
   filterTargetsByRequestCompatibility,
   describeCapabilityFilterExhaustion,
@@ -119,6 +122,38 @@ test("#8488 filter: zero tool-capable targets → empty (fail closed)", () => {
   assert.match(exhaustion!.message, /supports tool calling/i);
   assert.equal(exhaustion!.terminalReason, "capability_mismatch");
   assert.ok(exhaustion!.excluded.some((e) => e.reason.includes("tools")));
+});
+
+test("combo keeps clampable output requests for the per-target dispatch budget", () => {
+  saveModelsDevCapabilities({
+    sensenova: {
+      "deepseek-v4-flash": capabilityEntry(1_000_000, { limit_output: 384_000 }),
+    },
+  });
+
+  const targets = [target("sensenova", "sensenova/deepseek-v4-flash")];
+  const body = {
+    messages: [{ role: "user", content: "hello" }],
+    max_completion_tokens: 983_293,
+  };
+  const kept = filterTargetsByRequestCompatibility(targets, body, log);
+  assert.deepEqual(
+    kept.map((entry) => entry.modelStr),
+    ["sensenova/deepseek-v4-flash"]
+  );
+
+  const budget = enforceOutputTokenBudget(body, 1, 1_000_000, 0, 384_000);
+  assert.equal(budget.ok, true);
+  if (budget.ok) {
+    assert.equal(budget.body.max_completion_tokens, 384_000);
+    assert.equal(
+      Math.min(budget.body.max_completion_tokens, PROVIDER_MAX_TOKENS.sensenova),
+      65_536
+    );
+  }
+
+  const exhausted = enforceOutputTokenBudget(body, 1_000_000, 1_000_000, 0, 384_000);
+  assert.equal(exhausted.ok, false);
 });
 
 test("#8488 filter: Gemini Web emulation stays eligible for tools (#5240)", () => {
@@ -321,7 +356,7 @@ test("auto context estimate still dispatches when all known limits look too smal
   assert.deepEqual(dispatches, ["openai/tiny"]);
 });
 
-test("#12229 exhaustion: output_tokens exclusion names max_tokens vs the model ceiling", () => {
+test("clampable output does not report structured-output or hard-capability exhaustion", () => {
   saveModelsDevCapabilities({
     claude: {
       "claude-haiku-4-5-20251001": capabilityEntry(200000, {
@@ -339,13 +374,9 @@ test("#12229 exhaustion: output_tokens exclusion names max_tokens vs the model c
   };
 
   const exhaustion = describeCapabilityFilterExhaustion(targets, body, "hermes-main");
-  assert.ok(exhaustion);
-  assert.deepEqual(exhaustion!.unmet, ["output_tokens"]);
-  assert.equal(exhaustion!.excluded[0].reason, "output_tokens");
-  assert.equal(
-    exhaustion!.message,
-    "No target in combo hermes-main can produce the requested max_tokens=100000; the highest known output limit in the pool is 64000"
-  );
-  assert.doesNotMatch(exhaustion!.message, /structured output/i);
-  assert.equal(exhaustion!.terminalReason, "capability_mismatch");
+  assert.equal(exhaustion, null);
+  assert.deepEqual(filterTargetsByRequestCompatibility(targets, body, log), targets);
+  const budget = enforceOutputTokenBudget(body, 10, 200000, 0, 64000);
+  assert.equal(budget.ok, true);
+  if (budget.ok) assert.equal(budget.body.max_tokens, 64000);
 });

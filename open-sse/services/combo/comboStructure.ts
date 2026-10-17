@@ -15,6 +15,7 @@
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
 import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
+import { PROVIDER_MAX_TOKENS } from "../../config/constants.ts";
 import {
   getComboModelString,
   implicitPinAllowlist,
@@ -527,12 +528,21 @@ export function deriveRequestCompatibilityRequirements(
   };
 }
 
-function exceedsKnownOutputLimit(
-  requestedOutputTokens: number,
-  maxOutputTokens: number | null
-): boolean {
-  if (requestedOutputTokens <= 0 || maxOutputTokens === null) return false;
-  return maxOutputTokens < requestedOutputTokens;
+/** Output above a target's provider/model ceiling is clamped before dispatch. */
+function withTargetOutputBudget(
+  requirements: RequestCompatibilityRequirements,
+  capabilities: { maxOutputTokens: number | null; provider?: string | null }
+): RequestCompatibilityRequirements {
+  const caps = [capabilities.maxOutputTokens, PROVIDER_MAX_TOKENS[capabilities.provider || ""]]
+    .filter((cap): cap is number => typeof cap === "number" && Number.isFinite(cap) && cap >= 1)
+    .map(Math.floor);
+  const requestedOutputTokens = Math.min(requirements.requestedOutputTokens, ...caps);
+  if (requestedOutputTokens === requirements.requestedOutputTokens) return requirements;
+  return {
+    ...requirements,
+    requestedOutputTokens,
+    requiredContextTokens: requirements.estimatedInputTokens + requestedOutputTokens,
+  };
 }
 
 function hasKnownCompatibleContextLimit(
@@ -544,7 +554,13 @@ function hasKnownCompatibleContextLimit(
     provider: target.providerId || target.provider || null,
     model: target.modelStr,
   });
-  return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
+  return (
+    evaluateContextLimit(
+      capabilities,
+      withTargetOutputBudget(requirements, capabilities),
+      target.modelStr
+    ) === true
+  );
 }
 
 /**
@@ -573,8 +589,13 @@ function isNearBoundaryOverrideReject(
   if (requirements.requiredContextTokens <= 0) return false;
   const override = getModelContextOverrideValue(target.modelStr);
   if (override == null || override <= 0) return false;
-  if (override >= requirements.requiredContextTokens) return false;
-  return requirements.requiredContextTokens <= override * OVERRIDE_REJECT_TRUST_MARGIN;
+  const capabilities = getResolvedModelCapabilities({
+    provider: target.providerId || target.provider || null,
+    model: target.modelStr,
+  });
+  const effective = withTargetOutputBudget(requirements, capabilities);
+  if (override >= effective.requiredContextTokens) return false;
+  return effective.requiredContextTokens <= override * OVERRIDE_REJECT_TRUST_MARGIN;
 }
 
 const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output", "output_tokens"]);
@@ -647,12 +668,9 @@ function getTargetCompatibilityFailures(
     failures.push("structured_output");
   }
 
-  if (exceedsKnownOutputLimit(requirements.requestedOutputTokens, capabilities.maxOutputTokens)) {
-    failures.push("output_tokens");
-  }
-
-  const contextVerdict = evaluateContextLimit(capabilities, requirements, target.modelStr);
-  if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
+  const effective = withTargetOutputBudget(requirements, capabilities);
+  const contextVerdict = evaluateContextLimit(capabilities, effective, target.modelStr);
+  if (effective.requiredContextTokens > 0 && contextVerdict === false) {
     failures.push("context_window");
   }
 
@@ -896,26 +914,8 @@ export function filterTargetsByRequestCompatibility(
     return [];
   }
 
-  // #12273: a sole survivor whose catalog window is known-too-small is a
-  // guaranteed context_length_exceeded. Restore the remaining pool so combo.ts
-  // can still try larger-context targets. Unknown context (`null`) is advisory
-  // and must not resurrect hard-rejected targets (vision / output / tools).
-  if (
-    compatible.length === 1 &&
-    (targetReasons.get(compatible[0]) || []).includes("context_window")
-  ) {
-    // #8332: never restore a confirmed-non-vision target onto an image request.
-    const restored = requirements.requiresVision
-      ? targets.filter((target) => !isVisionIncompatibleTarget(target, requirements))
-      : targets;
-    if (restored.length > compatible.length) {
-      log.warn(
-        "COMBO",
-        `${label}: single compatible target ${compatible[0].modelStr} has known context too small for ${requirements.requiredContextTokens} token request; falling back to full pool (#12273)`
-      );
-      return restored;
-    }
-  }
+  // Context metadata is advisory, but it cannot override hard exclusions.
+  // `compatible` already contains every target without a hard mismatch.
 
   log.info(
     "COMBO",

@@ -1,0 +1,1 @@
+- fix(combos): apply provider and model output budgets consistently during compatibility ranking, preserving hard capability exclusions (#16652).
