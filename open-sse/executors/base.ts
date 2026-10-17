@@ -569,9 +569,38 @@ export class BaseExecutor {
               }
               return { ...toolRecord, function: func };
             }
+            // Anthropic-format tools have no `function` key. Copy the tool so a
+            // later Claude-only rename (read -> Read) does not rewrite the body
+            // the combo replays on the next step (#16631).
+            return { ...toolRecord };
           }
           return tool;
         });
+      }
+
+      // Same for the conversation: tool_use blocks and tool_choice share the
+      // caller's objects unless copied, and the remap writes their name in place.
+      if (Array.isArray(cloned.messages)) {
+        cloned.messages = cloned.messages.map((message: unknown) => {
+          if (!message || typeof message !== "object" || Array.isArray(message)) return message;
+          const record = message as JsonRecord;
+          if (!Array.isArray(record.content)) return { ...record };
+          return {
+            ...record,
+            content: record.content.map((block: unknown) =>
+              block && typeof block === "object" && !Array.isArray(block)
+                ? { ...(block as JsonRecord) }
+                : block
+            ),
+          };
+        });
+      }
+      if (
+        cloned.tool_choice &&
+        typeof cloned.tool_choice === "object" &&
+        !Array.isArray(cloned.tool_choice)
+      ) {
+        cloned.tool_choice = { ...(cloned.tool_choice as JsonRecord) };
       }
 
       // Fix #1884: Cursor sends prompt_cache_retention which breaks strict upstream endpoints
