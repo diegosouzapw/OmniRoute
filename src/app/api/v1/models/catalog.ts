@@ -830,6 +830,13 @@ async function buildUnifiedModelsResponseCore(
     const models = [];
     const timestamp = Math.floor(Date.now() / 1000);
     const listedIds = new Set<string>();
+    const postFilterContext = {
+      connections,
+      prefixMode,
+      aliasToProviderId,
+      hideNoThinkVariants: settings.hideNoThinkVariants === true,
+      blockedProviders: settings.blockedProviders,
+    };
 
     // #8770 follow-up: a quota-exclusive key (allowedQuotas non-empty) only ever
     // receives the pool's `qtSd/*` combos — the key-permission step further down
@@ -854,12 +861,7 @@ async function buildUnifiedModelsResponseCore(
           timestamp,
           (c) => buildComboCatalogMetadata(c, combos)
         );
-        const quotaFinal = await applyCatalogPostFilters(request, quotaModels, {
-          connections,
-          prefixMode,
-          aliasToProviderId,
-          hideNoThinkVariants: settings.hideNoThinkVariants === true,
-        });
+        const quotaFinal = await applyCatalogPostFilters(request, quotaModels, postFilterContext);
         return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
           ...corsHeaders,
           ...diagnosticHeaders,
@@ -2055,12 +2057,7 @@ async function buildUnifiedModelsResponseCore(
       }
     }
     // ?configuredOnly — hide models that have no eligible DB connection.
-    finalModels = await applyCatalogPostFilters(request, finalModels, {
-      connections,
-      prefixMode,
-      aliasToProviderId,
-      hideNoThinkVariants: settings.hideNoThinkVariants === true,
-    });
+    finalModels = await applyCatalogPostFilters(request, finalModels, postFilterContext);
 
     const getDefaultContextFallback = (model: any): number | undefined => {
       if (typeof model.context_length === "number") return undefined;

@@ -25,6 +25,9 @@ import {
 import { buildFunctionalGatewayPredicate } from "./functionalGatewayPredicate";
 import { getPassthroughProviders, REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import { getActiveSyncedCatalog } from "@/lib/db/models/activeSyncedCatalog";
+import { getCustomModels } from "@/lib/db/models";
+import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import { dedupeExactCatalogIds } from "./catalogDedupe";
 import { sortCatalogModelsProviderGrouped } from "./catalogOrder";
 import {
@@ -95,6 +98,8 @@ export async function applyCatalogPostFilters(
     prefixMode: string;
     aliasToProviderId: Record<string, string>;
     hideNoThinkVariants?: boolean;
+    /** Raw settings.blockedProviders; blocked gateways never carry mirrors. */
+    blockedProviders?: unknown;
     authorizeSyntheticModel?: CatalogVariantAuthorizer;
   }
 ): Promise<Array<Record<string, any>>> {
@@ -186,7 +191,37 @@ export async function applyCatalogPostFilters(
   const fgGlobal = isFunctionalGatewayGlobalEnabled();
   const fgSettings = getFunctionalGatewaySettingsBulk();
   if (fgGlobal || fgSettings.providers.size > 0 || fgSettings.models.size > 0) {
-    const gatewayProviderIds = [...getPassthroughProviders()];
+    // A gateway disabled via settings.blockedProviders has no usable credential at
+    // request time even when a connection row exists, so it cannot carry mirrors.
+    const gatewayProviderIds = [...getPassthroughProviders()].filter(
+      (provider) => !isProviderBlockedByIdOrAlias(provider, ctx.blockedProviders)
+    );
+    // A gateway whose live catalog is authoritative rejects any model outside it at
+    // request time ("not available in the active live catalog"), so a mirror for
+    // such a model is advertised-but-dead. Match the request path (lookupModelMeta),
+    // which receives the mirrored id verbatim: an exact synced id or a custom model
+    // (case-insensitive). Deliberately NOT catalogContainsModel — its after-the-slash
+    // fallback accepts `dva/claude-sonnet-4-6` because `claude-sonnet-4-6` is listed,
+    // yet dispatch rejects it. No authoritative catalog = fail open, as there.
+    const gatewayLiveIds = new Map<string, { synced: Set<string>; custom: Set<string> }>();
+    for (const provider of gatewayProviderIds) {
+      if (!ctx.connections.some((c) => c.provider === provider)) continue;
+      const catalog = await getActiveSyncedCatalog(provider);
+      if (!catalog.authoritative) continue;
+      const custom: unknown = await getCustomModels(provider);
+      gatewayLiveIds.set(provider, {
+        synced: new Set(catalog.models.map((model) => model.id)),
+        custom: new Set(
+          (Array.isArray(custom) ? custom : []).flatMap((model: { id?: unknown }) =>
+            typeof model?.id === "string" ? [model.id.toLowerCase()] : []
+          )
+        ),
+      });
+    }
+    const gatewayServes = (provider: string, modelId: string): boolean => {
+      const ids = gatewayLiveIds.get(provider);
+      return !ids || ids.synced.has(modelId) || ids.custom.has(modelId.toLowerCase());
+    };
     finalModels = appendFunctionalGatewayMirrors(finalModels, {
       gatewayProviderIds,
       isGateway: (provider) => getPassthroughProviders().has(provider),
@@ -195,7 +230,7 @@ export async function applyCatalogPostFilters(
         hasEligibleConnectionForModel(
           ctx.connections.filter((c) => c.provider === provider),
           modelId
-        ),
+        ) && gatewayServes(provider, modelId),
       gatewayHasConnection: (provider) => ctx.connections.some((c) => c.provider === provider),
       canonicalOwnerHasConnection: (owner) =>
         hasEligibleConnectionForModel(

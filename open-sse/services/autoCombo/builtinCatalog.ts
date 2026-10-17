@@ -104,6 +104,7 @@ export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAu
  * decide whether an `auto/` model is a valid built-in before materializing it.
  */
 export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boolean {
+  if (!suffix || modelStr !== `auto/${suffix}`) return false;
   return (
     resolveAutoVariant(modelStr, suffix).recognized ||
     parseAutoSuffix(suffix).valid ||
@@ -182,6 +183,15 @@ export function resolveBuiltinAutoSpec(modelStr: string, suffix: string): Builti
   return { variant: undefined };
 }
 
+/**
+ * True iff `createBuiltinAutoCombo` will materialize `modelStr` instead of
+ * throwing "Unknown built-in auto combo". Discovery and materialization share
+ * the recognition rule instead of maintaining separate acceptance branches.
+ */
+export function isResolvableBuiltinAutoId(modelStr: string): boolean {
+  return isRecognizedBuiltinAuto(modelStr, modelStr.slice("auto/".length));
+}
+
 export async function prepareBuiltinAutoComboInputs(
   resolutionSnapshot?: ModelCapabilityResolutionSnapshot
 ): Promise<PreparedVirtualAutoComboInputs> {
@@ -197,6 +207,9 @@ export async function createBuiltinAutoCombo(
   suffix: string,
   prepared?: PreparedVirtualAutoComboInputs
 ) {
+  if (!isRecognizedBuiltinAuto(modelStr, suffix)) {
+    throw new Error(`Unknown built-in auto combo: ${modelStr}`);
+  }
   const { createVirtualAutoCombo, createVirtualAutoComboFromPrepared } =
     await import("./virtualFactory.ts");
   const materialize = (
@@ -208,63 +221,15 @@ export async function createBuiltinAutoCombo(
       : createVirtualAutoCombo(variant, spec);
 
   const spec = resolveBuiltinAutoSpec(modelStr, suffix);
-
-  if ("category" in spec) {
-    // #4235 Phase B category/tier path (incl. vision ids like auto/best-vision).
-    const virtualCombo = await materialize(undefined, {
-      category: spec.category,
-      ...(spec.tier ? { tier: spec.tier } : {}),
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  if ("variant" in spec && spec.variant !== undefined) {
-    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
-    const virtualCombo = await materialize(spec.variant, {
-      ...(overlayTier ? { tier: overlayTier } : {}),
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // Advertised `auto/*` ids whose template maps to no variant (auto/chat,
-  // auto/best-chat, auto/pro-chat) still materialize via the default
-  // (unconstrained) virtual combo rather than throwing "Unknown built-in".
-  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) {
-    const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
-    const virtualCombo = await materialize(
-      undefined,
-      overlayTier ? { tier: overlayTier } : undefined
-    );
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // #4235 Phase B: `auto/<category>[:<tier>]` (e.g. auto/coding:fast, auto/vision).
-  const parsed = parseAutoSuffix(suffix);
-  if (parsed.valid) {
-    const virtualCombo = await materialize(undefined, {
-      category: parsed.category,
-      tier: parsed.tier,
-    });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  // #6453: `auto/<family>` (e.g. auto/glm, auto/minimax, auto/zai, auto/mimo,
-  // auto/gemma, auto/llama, auto/gemini) — spans whatever installed backends
-  // currently expose that model family, degrading gracefully as backends rotate.
-  if (isValidModelFamily(suffix)) {
-    const virtualCombo = await materialize(undefined, { family: suffix });
-    virtualCombo.name = modelStr;
-    virtualCombo.id = modelStr;
-    return virtualCombo;
-  }
-
-  throw new Error(`Unknown built-in auto combo: ${modelStr}`);
+  const overlayTier = FLAT_TIER_OVERLAY_IDS[modelStr];
+  const virtualCombo =
+    "variant" in spec
+      ? await materialize(
+          spec.variant,
+          overlayTier ? { tier: overlayTier } : spec.variant !== undefined ? {} : undefined
+        )
+      : await materialize(undefined, spec);
+  virtualCombo.name = modelStr;
+  virtualCombo.id = modelStr;
+  return virtualCombo;
 }

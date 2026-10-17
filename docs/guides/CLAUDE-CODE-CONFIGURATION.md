@@ -70,6 +70,12 @@ When you pick one of these in Claude Code, OmniRoute strips the `claude/` wrappe
 back to the real id before routing — a genuine `claude/<real-claude-model>` id
 (the actual Claude OAuth provider) is always left untouched.
 
+Reasoning-effort variants that the catalog already lists (e.g.
+`codex/gpt-6-sol-high`) are mirrored like any other id, so Claude Code can pick an
+explicit effort level. Whether those variants are listed at all is still governed
+by `OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS` — the mirror never adds a variant
+the base catalog doesn't have.
+
 **This is off by default** and controlled by a three-level gate (most specific
 wins), so a plain OmniRoute never doubles its catalog for clients that don't use
 Claude Code:

@@ -160,19 +160,23 @@ test("never generates variants-of-variants when the list already contains effort
 // ── cross-module drift guard: CLAUDE_EFFORT_SUFFIX_RE parity ────────────────
 //
 // `CLAUDE_EFFORT_SUFFIX_RE` (`/-(?:xhigh|high|medium|low)$/i`) is intentionally
-// duplicated as a local, non-exported constant in THREE sibling modules: this
-// file's module (claudeEffortVariants.ts), noThinkingAlias.ts, and
-// ccDiscoveryAliases.ts. A cross-import consolidation of that constant was
-// already proposed and explicitly reverted earlier in this project's review
-// cycle — the plan deliberately kept local duplication for these three
-// sibling modules (accepted by the Reduction Analyst). This test does NOT
-// argue for reversing that decision and must NOT be read as one. Its only
-// purpose is a behavioral drift guard: if a future edit changes the effort
-// levels recognized by one copy (e.g. adds a new level, or narrows/widens the
-// suffix pattern) without updating the other two, this test fails instead of
-// the three modules silently disagreeing about which ids carry an
+// duplicated as a local, non-exported constant in TWO sibling modules: this
+// file's module (claudeEffortVariants.ts) and noThinkingAlias.ts. A cross-import
+// consolidation of that constant was already proposed and explicitly reverted
+// earlier in this project's review cycle — the plan deliberately kept local
+// duplication for these sibling modules (accepted by the Reduction Analyst).
+// This test does NOT argue for reversing that decision and must NOT be read as
+// one. Its only purpose is a behavioral drift guard: if a future edit changes
+// the effort levels recognized by one copy (e.g. adds a new level, or
+// narrows/widens the suffix pattern) without updating the other, this test
+// fails instead of the modules silently disagreeing about which ids carry an
 // effort-level suffix.
-test("CLAUDE_EFFORT_SUFFIX_RE stays in sync across claudeEffortVariants/noThinkingAlias/ccDiscoveryAliases (drift guard — do not consolidate, see comment above)", () => {
+//
+// ccDiscoveryAliases.ts used to hold a third copy to skip effort variants; it no
+// longer does — it mirrors every listed id, effort variants included, so that
+// Claude Code can pick `-low`…`-xhigh` of a model, not only its base id. The
+// test pins that contract too, so the skip cannot silently come back.
+test("CLAUDE_EFFORT_SUFFIX_RE stays in sync across claudeEffortVariants/noThinkingAlias, and ccDiscoveryAliases mirrors effort variants (drift guard — do not consolidate, see comment above)", () => {
   // Real, registered, thinking-capable Claude model that does NOT reject
   // `thinking:{type:"disabled"}` — satisfies every module's registry-lookup
   // gate identically, so any behavioral difference below is attributable only
@@ -199,10 +203,10 @@ test("CLAUDE_EFFORT_SUFFIX_RE stays in sync across claudeEffortVariants/noThinki
       [{ id: `cc/${BASE}${suffix}`, owned_by: "cc" }],
       () => true
     );
-    assert.equal(
-      mirrored.length,
-      1,
-      `ccDiscoveryAliases must never mirror an effort-suffixed id (${suffix})`
+    assert.deepEqual(
+      mirrored.map((m) => m.id),
+      [`cc/${BASE}${suffix}`, `claude/cc/${BASE}${suffix}`],
+      `ccDiscoveryAliases must mirror an effort-suffixed id the catalog lists (${suffix})`
     );
   }
 

@@ -44,8 +44,8 @@ export type ClaudeEffortVariantLevel =
   (typeof CLAUDE_EFFORT_VARIANT_LEVELS)[number] | typeof CLAUDE_XHIGH_EFFORT_LEVEL;
 
 // Ids that already carry a reasoning-effort suffix — never double-suffix them.
-// Kept byte-identical to the sibling copies in noThinkingAlias.ts and
-// ccDiscoveryAliases.ts (drift guard: tests/unit/claude-effort-variants.test.ts)
+// Kept byte-identical to the sibling copy in noThinkingAlias.ts
+// (drift guard: tests/unit/claude-effort-variants.test.ts)
 // — do NOT add "max" here. Kiro's synthesized "-max" variant (below) is guarded
 // separately by KIRO_OPUS_5_MAX_VARIANT_RE, scoped to that one id, so the shared
 // pattern stays exactly what upstream expects for every other Claude model.

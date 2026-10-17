@@ -1,10 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { dedupeExactCatalogIds } from "../../src/app/api/v1/models/catalogDedupe.ts";
 
 import {
   CC_DISCOVERY_PREFIX,
   CC_DISCOVERY_COMBO_PREFIX,
   appendCcDiscoveryAliases,
+  isCcDiscoveryAlias,
 } from "../../open-sse/utils/ccDiscoveryAliases.ts";
 
 interface CatalogEntry {
@@ -68,15 +70,55 @@ test("never re-mirrors ids that already start with claude or anthropic", () => {
   assert.equal(out[out.length - 1].id, "claude/claudeish/not-actually-claude");
 });
 
-test("never aliases no-think/ ids or effort-suffixed ids", () => {
+test("tags each alias so later catalog passes can recognise it", () => {
+  const models: CatalogEntry[] = [{ id: "kimi/kimi-k2.6", owned_by: "kimi" }];
+  const out = appendCcDiscoveryAliases(models, () => true);
+  assert.equal(isCcDiscoveryAlias(out[0]), false);
+  assert.equal(isCcDiscoveryAlias(out[1]), true);
+  assert.equal(
+    Object.keys(out[1]).some((k) => k.includes("ccDiscovery")),
+    false,
+    "the tag must not serialize into the /v1/models payload"
+  );
+});
+
+test("never aliases no-think/ ids or ids already in the claude namespace", () => {
   const models: CatalogEntry[] = [
     { id: "no-think/claude/claude-fable-5", owned_by: "claude" },
+    { id: "no-think/kimi/kimi-k2.6", owned_by: "kimi" },
     { id: "claude/claude-fable-5-high", owned_by: "claude" },
     { id: "claude/claude-fable-5-xhigh", owned_by: "claude" },
-    { id: "kimi/kimi-k2.6-medium", owned_by: "kimi" },
   ];
   const out = appendCcDiscoveryAliases(models, alwaysEnabled);
   assert.equal(out, models);
+});
+
+test("mirrors reasoning-effort variants like any other id (all effort tiers reachable)", () => {
+  // Registered effort variants (codex/gpt-6-sol-low … -ultra) are routable ids; the
+  // mirror must cover every tier, not only -max/-ultra, or Claude Code discovery
+  // can pick gpt-6-sol-max but never gpt-6-sol-low.
+  const models: CatalogEntry[] = [
+    { id: "codex/gpt-6-sol", owned_by: "codex", name: "GPT 6 Sol" },
+    { id: "codex/gpt-6-sol-low", owned_by: "codex", name: "GPT 6 Sol (Low)" },
+    { id: "codex/gpt-6-sol-xhigh", owned_by: "codex", name: "GPT 6 Sol (xHigh)" },
+    { id: "codex/gpt-6-sol-max", owned_by: "codex", name: "GPT 6 Sol (Max)" },
+    { id: "kimi/kimi-k2.6-medium", owned_by: "kimi" },
+  ];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  const mirrors = out.slice(models.length);
+  assert.deepEqual(
+    mirrors.map((m) => m.id),
+    [
+      "claude/codex/gpt-6-sol",
+      "claude/codex/gpt-6-sol-low",
+      "claude/codex/gpt-6-sol-xhigh",
+      "claude/codex/gpt-6-sol-max",
+      "claude/kimi/kimi-k2.6-medium",
+    ]
+  );
+  const low = mirrors.find((m) => m.id === "claude/codex/gpt-6-sol-low");
+  assert.equal(low?.root, "gpt-6-sol-low", "root keeps the suffix the request path dispatches on");
+  assert.equal(low?.display_name, "GPT 6 Sol (Low) (OmniRoute)");
 });
 
 test("mirrors combo entries under claude/combo/", () => {
@@ -117,11 +159,11 @@ test("skips disabled entries and returns the same array reference when nothing i
   assert.equal(out, models);
 });
 
-test("mirrors built-in auto/* combos alongside DB combos", () => {
-  // contract changed by #15301: built-in auto/* combos used to be skipped because the
-  // request path could not resolve them; ccDiscoveryAliasResolve now materializes
-  // `claude/combo/auto/<suffix>` through createBuiltinAutoCombo, so they are mirrored
-  // like any other combo (resolve side covered in cc-discovery-alias-resolve.test.ts).
+test("mirrors only built-in auto/* combos the request path resolves", () => {
+  // createBuiltinAutoCombo accepts category/tier (auto/glm, auto/best-vision), valid
+  // variants/families and AUTO_TEMPLATE_VARIANTS keys, and throws "Unknown built-in"
+  // for the rest (auto/pro:pro, auto/nonsense). Mirror must advertise exactly the
+  // resolvable ones, so claude/combo/* never points at an id the request path rejects.
   const models: CatalogEntry[] = [
     { id: "auto/glm", owned_by: "combo", name: "Auto GLM" },
     { id: "auto/pro:pro", owned_by: "combo", name: "Auto Pro" },
@@ -129,13 +171,7 @@ test("mirrors built-in auto/* combos alongside DB combos", () => {
   ];
   const out = appendCcDiscoveryAliases(models, alwaysEnabled);
   const aliasIds = out.filter((m) => String(m.id).startsWith("claude/")).map((m) => m.id);
-  assert.deepEqual(aliasIds, [
-    "claude/combo/auto/glm",
-    "claude/combo/auto/pro:pro",
-    "claude/combo/real-combo",
-  ]);
-  const glm = out.find((m) => m.id === "claude/combo/auto/glm");
-  assert.equal(glm?.root, "auto/glm", "auto combo root stays the full name verbatim");
+  assert.deepEqual(aliasIds, ["claude/combo/auto/glm", "claude/combo/real-combo"]);
 });
 
 test("returns the same array reference when the input is empty", () => {
@@ -144,7 +180,7 @@ test("returns the same array reference when the input is empty", () => {
   assert.equal(out, models);
 });
 
-test("idempotent: running twice never double-prefixes (alias entries are skipped as already-claude)", () => {
+test("idempotent: running twice neither duplicates nor double-prefixes aliases", () => {
   const models: CatalogEntry[] = [
     { id: "kimi/kimi-k2.6", owned_by: "kimi", name: "Kimi K2.6" },
     { id: "custo-otimizado", owned_by: "combo", name: "Custo Otimizado" },
@@ -152,20 +188,84 @@ test("idempotent: running twice never double-prefixes (alias entries are skipped
   const once = appendCcDiscoveryAliases(models, alwaysEnabled);
   const twice = appendCcDiscoveryAliases(once, alwaysEnabled);
 
-  // The alias entries synthesized in `once` already start with "claude/", so the
-  // second pass's ALREADY_CLAUDE_RE guard skips them — only the still-present
-  // original entries are (re-)mirrored. Critically, no id is ever double-prefixed.
+  assert.equal(twice, once, "an already-mirrored catalog needs no allocation or duplicate aliases");
   const doublePrefixed = twice.filter(
     (m) => m.id.startsWith("claude/claude/") || m.id.startsWith("claude/combo/combo/")
   );
   assert.equal(doublePrefixed.length, 0);
 
-  // Every alias id that resulted from re-processing `once` is a stable mirror of an
-  // original entry, never a mirror of an already-mirrored one.
   const aliasIds = twice.filter((m) => m.id.startsWith(CC_DISCOVERY_PREFIX)).map((m) => m.id);
   for (const id of aliasIds) {
     assert.equal(id.startsWith("claude/claude/"), false);
   }
+});
+
+test("preserves an existing alias and emits each new alias id only once", () => {
+  const existing: CatalogEntry = {
+    id: "claude/kimi/kimi-k2.6",
+    owned_by: "kimi",
+    name: "Operator-provided alias",
+  };
+  const models: CatalogEntry[] = [
+    { id: "kimi/kimi-k2.6", owned_by: "kimi" },
+    { id: "kimi/kimi-k2.6", owned_by: "kimi" },
+    existing,
+    { id: "team/primary", owned_by: "combo" },
+    { id: "team/primary", owned_by: "combo" },
+  ];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  assert.deepEqual(
+    out.slice(models.length).map((m) => m.id),
+    ["claude/combo/team/primary"]
+  );
+  assert.equal(
+    out.find((m) => m.id === existing.id),
+    existing
+  );
+  assert.equal(models.length, 5, "the input catalog must not be mutated");
+});
+
+test("preserves distinct audio surfaces while deduplicating repeated mirror listings", () => {
+  const models: CatalogEntry[] = [
+    { id: "gemini/gemini-audio-live", type: "audio", subtype: "speech" },
+    { id: "gemini/gemini-audio-live", type: "audio", subtype: "transcription" },
+    { id: "gemini/gemini-audio-live", type: "audio", subtype: "speech" },
+  ];
+  const once = appendCcDiscoveryAliases(models, alwaysEnabled);
+  const mirrors = once.slice(models.length);
+  assert.deepEqual(
+    mirrors.map((model) => model.subtype),
+    ["speech", "transcription"]
+  );
+  assert.equal(appendCcDiscoveryAliases(once, alwaysEnabled), once);
+});
+
+test("an existing mirror only suppresses its own listing identity", () => {
+  const existing: CatalogEntry = {
+    id: "claude/gemini/gemini-audio-live",
+    type: "audio",
+    subtype: "speech",
+  };
+  const models: CatalogEntry[] = [
+    { id: "gemini/gemini-audio-live", type: "audio", subtype: "speech" },
+    { id: "gemini/gemini-audio-live", type: "audio", subtype: "transcription" },
+    existing,
+  ];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  assert.equal(out[2], existing);
+  assert.equal(out.length, models.length + 1);
+  assert.equal(out[3].subtype, "transcription");
+});
+
+test("a generic source row cannot hide its typed mirror during final catalog dedupe", () => {
+  const models: CatalogEntry[] = [
+    { id: "openai/whisper-1", type: "chat" },
+    { id: "openai/whisper-1", type: "audio", subtype: "transcription" },
+  ];
+  const out = dedupeExactCatalogIds(appendCcDiscoveryAliases(models, alwaysEnabled));
+  const mirror = out.find((model) => model.id === "claude/openai/whisper-1");
+  assert.equal(mirror?.type, "audio");
+  assert.equal(mirror?.subtype, "transcription");
 });
 
 test("non-array input is returned unchanged", () => {
