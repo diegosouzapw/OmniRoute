@@ -28,6 +28,63 @@ describe("estimateCompressionTokens", () => {
     assert.ok(tokens > 0);
   });
 
+  it("image-free body with array-content messages keeps the exact char-count estimate", () => {
+    // Array-content messages force the content-array walk; with no images the
+    // copy-on-write walk must not change the number vs the plain char-count.
+    const body = {
+      model: "claude-sonnet-5",
+      messages: [
+        { role: "system", content: "sys" },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "hello" },
+            { type: "text", text: "world" },
+          ],
+        },
+        { role: "assistant", content: "ok" },
+        { role: "user", content: [{ type: "text", text: "again" }] },
+      ],
+      system: [{ type: "text", text: "sys blocks" }],
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "resp" }] }],
+    };
+    const expected = Math.ceil(JSON.stringify(body).length / 4);
+    assert.equal(estimateCompressionTokens(body), expected);
+  });
+
+  it("image-bearing estimate never mutates the input body", () => {
+    const body = {
+      model: "claude-sonnet-5",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "look" },
+            // Recognized shape with undecodable data → bounded estimate branch.
+            {
+              type: "image",
+              source: { type: "base64", media_type: "image/png", data: "not-a-png" },
+            },
+          ],
+        },
+      ],
+    };
+    const before = JSON.parse(JSON.stringify(body));
+    const estimate = estimateCompressionTokens(body);
+    assert.ok(estimate > 0);
+    assert.deepEqual(body, before, "input body must stay untouched");
+  });
+
+  it("frozen image-free bodies do not throw", () => {
+    const body = Object.freeze({
+      model: "claude-sonnet-5",
+      messages: Object.freeze([
+        Object.freeze({ role: "user", content: Object.freeze([{ type: "text", text: "hi" }]) }),
+      ]),
+    });
+    assert.ok(estimateCompressionTokens(body) > 0);
+  });
+
   it("handles long strings", () => {
     const tokens = estimateCompressionTokens("x".repeat(400));
     assert.equal(tokens, 100);

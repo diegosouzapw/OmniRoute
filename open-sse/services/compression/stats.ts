@@ -140,6 +140,11 @@ function charTokensOf(value: unknown): number {
  * Tier is fixed to "standard": production resolves every tier to standard today (measured
  * in the omniglyph billing sweep — see anthropic-vision.ts), so there is no model-specific
  * signal available here that would change the result.
+ *
+ * Copy-on-write: arrays, messages, and the root body are cloned only when a descendant
+ * actually changed. Image-free bodies — the common case — keep their original references
+ * and pay no per-request allocation; the returned `clone` is then the input itself, which
+ * is safe because the caller only reads it.
  */
 function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
   clone: Record<string, unknown>;
@@ -147,77 +152,106 @@ function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
 } {
   let imageTokens = 0;
   const model = typeof body.model === "string" ? body.model : "";
-  const clone: Record<string, unknown> = { ...body };
+  let clone: Record<string, unknown> | null = null;
 
-  const processContentArray = (content: unknown): unknown => {
-    if (!Array.isArray(content)) return content;
-    return content.map((block) => {
-      if (isAnthropicPngImageBlock(block)) {
-        const dims = decodePngDimensions(block.source.data);
-        if (!dims) {
-          // Recognized image block that can't be decoded: use a bounded estimate rather
-          // than char-counting the raw base64, which would inflate the token estimate
-          // multi-MB (the #7847 OOM/drift class).
-          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
-          return { ...block, source: { ...block.source, data: "" } };
-        }
-        imageTokens += anthropicImageTokens(dims.width, dims.height, "standard");
-        imageTokens += ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS;
-        return { ...block, source: { ...block.source, data: "" } };
-      }
-      if (isOpenAIChatPngImagePart(block)) {
-        const dims = pngDimensionsFromDataUrl(block.image_url.url);
-        if (!dims) {
-          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
-          return { ...block, image_url: { ...block.image_url, url: "" } };
-        }
-        imageTokens += openAIVisionTokens(model, dims.width, dims.height);
-        return { ...block, image_url: { ...block.image_url, url: "" } };
-      }
-      if (isOpenAIResponsesPngImagePart(block)) {
-        const dims = pngDimensionsFromDataUrl(block.image_url);
-        if (!dims) {
-          imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
-          return { ...block, image_url: "" };
-        }
-        imageTokens += openAIVisionTokens(model, dims.width, dims.height);
-        return { ...block, image_url: "" };
-      }
-      if (isInlineBase64ImageBlock(block as Record<string, unknown>)) {
-        // Inline-base64 image content-block shape (AI SDK / Gemini / flat) not
-        // covered by the PNG decoders above. Keep the estimate bounded so a
-        // multi-MB screenshot doesn't inflate the token count (#7847 drift).
+  const transformBlock = (block: unknown): unknown => {
+    if (!block || typeof block !== "object") return block;
+    const b = block as Record<string, unknown>;
+    if (isAnthropicPngImageBlock(b)) {
+      const dims = decodePngDimensions(b.source.data);
+      if (!dims) {
+        // Recognized image block that can't be decoded: use a bounded estimate rather
+        // than char-counting the raw base64, which would inflate the token estimate
+        // multi-MB (the #7847 OOM/drift class).
         imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
-        return { ...block, image: "" };
+        return { ...b, source: { ...b.source, data: "" } };
       }
-      return block;
-    });
+      imageTokens += anthropicImageTokens(dims.width, dims.height, "standard");
+      imageTokens += ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS;
+      return { ...b, source: { ...b.source, data: "" } };
+    }
+    if (isOpenAIChatPngImagePart(b)) {
+      const dims = pngDimensionsFromDataUrl(b.image_url.url);
+      if (!dims) {
+        imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+        return { ...b, image_url: { ...b.image_url, url: "" } };
+      }
+      imageTokens += openAIVisionTokens(model, dims.width, dims.height);
+      return { ...b, image_url: { ...b.image_url, url: "" } };
+    }
+    if (isOpenAIResponsesPngImagePart(b)) {
+      const dims = pngDimensionsFromDataUrl(b.image_url);
+      if (!dims) {
+        imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+        return { ...b, image_url: "" };
+      }
+      imageTokens += openAIVisionTokens(model, dims.width, dims.height);
+      return { ...b, image_url: "" };
+    }
+    if (isInlineBase64ImageBlock(b)) {
+      // Inline-base64 image content-block shape (AI SDK / Gemini / flat) not
+      // covered by the PNG decoders above. Keep the estimate bounded so a
+      // multi-MB screenshot doesn't inflate the token count (#7847 drift).
+      imageTokens += DEFAULT_IMAGE_TOKEN_ESTIMATE;
+      return { ...b, image: "" };
+    }
+    return b;
   };
 
-  if (Array.isArray(clone.messages)) {
-    clone.messages = clone.messages.map((message) => {
+  // Returns the SAME array reference when no element changed; otherwise a copy
+  // whose prefix is shared references and whose changed entries are new objects.
+  const processArray = (items: unknown[], transform: (item: unknown) => unknown): unknown[] => {
+    let out: unknown[] | null = null;
+    for (let i = 0; i < items.length; i++) {
+      const next = transform(items[i]);
+      if (next !== items[i] && out === null) out = items.slice(0, i);
+      if (out !== null) out.push(next);
+    }
+    return out ?? items;
+  };
+
+  const processContentArray = (content: unknown): unknown =>
+    Array.isArray(content) ? processArray(content, transformBlock) : content;
+
+  if (Array.isArray(body.messages)) {
+    const next = processArray(body.messages, (message) => {
       if (!message || typeof message !== "object") return message;
       const m = message as Record<string, unknown>;
       if (!Array.isArray(m.content)) return message;
-      return { ...m, content: processContentArray(m.content) };
+      const nextContent = processContentArray(m.content);
+      if (nextContent === m.content) return message;
+      return { ...m, content: nextContent };
     });
+    if (next !== body.messages) {
+      clone = clone ?? { ...body };
+      clone.messages = next;
+    }
   }
 
-  if (Array.isArray(clone.system)) {
-    clone.system = processContentArray(clone.system);
+  if (Array.isArray(body.system)) {
+    const next = processContentArray(body.system);
+    if (next !== body.system) {
+      clone = clone ?? { ...body };
+      clone.system = next;
+    }
   }
 
-  if (Array.isArray(clone.input)) {
-    clone.input = clone.input.map((item) => {
+  if (Array.isArray(body.input)) {
+    const next = processArray(body.input, (item) => {
       if (!item || typeof item !== "object") return item;
       const record = item as Record<string, unknown>;
-      return Array.isArray(record.content)
-        ? { ...record, content: processContentArray(record.content) }
-        : record;
+      if (!Array.isArray(record.content)) return item;
+      const nextContent = processContentArray(record.content);
+      if (nextContent === record.content) return item;
+      return { ...record, content: nextContent };
     });
+    if (next !== body.input) {
+      clone = clone ?? { ...body };
+      clone.input = next;
+    }
   }
 
-  return { clone, imageTokens };
+  return { clone: clone ?? body, imageTokens };
 }
 
 export function estimateCompressionTokens(text: string | object | null | undefined): number {
