@@ -2,6 +2,7 @@
   "title": "Getting Started",
   "description": "Get started with OmniRoute in minutes — no technical background needed",
   "pages": [
+    "WHAT-IS-OMNIROUTE",
     "QUICK-START",
     "SELF_HOST_GUIDE",
     "AUTO-COMBO-GUIDE",

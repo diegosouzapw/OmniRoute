@@ -18,6 +18,7 @@ Simple guides for using OmniRoute — no technical background needed.
 
 ### getting-started/
 
+- [WHAT-IS-OMNIROUTE.md](getting-started/WHAT-IS-OMNIROUTE.md) — plain-English overview of what OmniRoute does and how to use it with Claude Code.
 - [QUICK-START.md](getting-started/QUICK-START.md) — install and run OmniRoute in 3 minutes.
 - [AUTO-COMBO-GUIDE.md](getting-started/AUTO-COMBO-GUIDE.md) — let OmniRoute pick the best AI for you.
 - [PROVIDERS-GUIDE.md](getting-started/PROVIDERS-GUIDE.md) — how to connect AI providers.
