@@ -1,0 +1,1 @@
+- **feat(dashboard):** add model intelligence comparison panel — Compare button on the provider detail page overlays per-model intelligence bars with search, Free-only filter, and per-model toggles ([#15907](https://github.com/diegosouzapw/OmniRoute/pull/15907))
