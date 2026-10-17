@@ -174,6 +174,21 @@ export function buildGeminiThinkingConfig(
   return { thinkingBudget, includeThoughts };
 }
 
+// Gemini models without thinking support reject ANY thinkingConfig — even
+// `{ includeThoughts: false }` or `thinkingBudget: 0` — with 400 INVALID_ARGUMENT
+// ("Thinking is not enabled for this model" / "Thinking level is not supported
+// for this model"). Their upstream listings carry no `thinking: true` flag
+// (#16928): the TTS models (`*-tts`, `*-tts-preview`), the transcription
+// models (`*-transcribe`) and gemini-2.5-flash-image. The 3.x image models DO
+// support thinking, so this is deliberately not a blanket "-image" rule.
+const GEMINI_NO_THINKING_PATTERN = /(?:-tts(?:$|-)|-transcribe$|^gemini-2\.5-flash-image$)/;
+
+export function geminiModelRejectsThinkingConfig(model: unknown): boolean {
+  if (typeof model !== "string" || model === "") return false;
+  const id = model.slice(model.lastIndexOf("/") + 1).toLowerCase();
+  return GEMINI_NO_THINKING_PATTERN.test(id);
+}
+
 function normalizeAudioMimeType(format: unknown): string {
   const normalized =
     typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";
