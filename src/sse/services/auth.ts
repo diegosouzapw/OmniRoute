@@ -50,6 +50,8 @@ import {
   type ProviderConnectionView,
 } from "@/lib/db/providers/lazyConnectionView";
 import { buildConnectionConcurrencyFields } from "./connectionConcurrencyFields.ts"; // #13700
+import { getConnectionErrorPenalty, getConnectionRecencyPenalty } from "./p2cScoreTerms.ts";
+import { getP2CLatencyPenalties } from "@omniroute/open-sse/services/connectionLatencyTracker.ts";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getCachedClaudeQuotaScopeDecision as readClaudeScope,
@@ -519,38 +521,6 @@ function getConnectionQuotaHeadroomPercent(
 
   return percentages.length > 0 ? Math.min(...percentages) : null;
 }
-function getConnectionErrorPenalty(connection: ProviderConnectionView): number {
-  const errorType = normalizeStatus(connection.lastErrorType);
-  const errorSource = normalizeStatus(connection.lastErrorSource);
-  const numericErrorCode = toNumber(connection.errorCode, 0);
-
-  let penalty = 0;
-  if (connection.lastError) penalty += 6;
-
-  if (
-    errorType === "rate_limited" ||
-    errorType === "quota_exhausted" ||
-    errorType === "quota" ||
-    numericErrorCode === 429
-  ) {
-    penalty += 24;
-  } else if (numericErrorCode === 401 || numericErrorCode === 403 || errorSource === "oauth") {
-    penalty += 18;
-  } else if (numericErrorCode >= 500) {
-    penalty += 10;
-  }
-
-  return penalty;
-}
-function getConnectionRecencyPenalty(connection: ProviderConnectionView): number {
-  if (!connection.lastUsedAt) return 0;
-  const ageMs = Date.now() - new Date(connection.lastUsedAt).getTime();
-  if (!Number.isFinite(ageMs)) return 0;
-  if (ageMs < 15_000) return 3;
-  if (ageMs < 60_000) return 2;
-  if (ageMs < 5 * 60_000) return 1;
-  return 0;
-}
 function getP2CConnectionScore(
   provider: string,
   connection: ProviderConnectionView,
@@ -606,12 +576,14 @@ function compareP2CConnections(
   a: ProviderConnectionView,
   b: ProviderConnectionView,
   requestedModel: string | null = null,
-  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
+  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>,
+  latencyWeight = 0
 ): number {
   const aScore = getP2CConnectionScore(provider, a, requestedModel, quotaResults);
   const bScore = getP2CConnectionScore(provider, b, requestedModel, quotaResults);
-  if (aScore.score !== bScore.score) {
-    return aScore.score - bScore.score;
+  const [aLatency, bLatency] = getP2CLatencyPenalties(a.id, b.id, requestedModel, latencyWeight);
+  if (aScore.score + aLatency !== bScore.score + bLatency) {
+    return aScore.score + aLatency - (bScore.score + bLatency);
   }
 
   const aHeadroom = aScore.quotaHeadroomPercent ?? -1;
@@ -1955,11 +1927,12 @@ export async function getProviderCredentials(
       }
     } else if (strategy === "p2c") {
       const candidatePool = orderedConnections;
+      const latencyWeight = resolveResilienceSettings(settings).p2cLatency.weight; // 0 = off
       // Power of Two Choices: sample from the quota-eligible pool and compare
       // health instead of defaulting to random-first selection.
       if (candidatePool.length <= 2) {
         connection = [...candidatePool].sort((a, b) =>
-          compareP2CConnections(provider, a, b, requestedModel, quotaResults)
+          compareP2CConnections(provider, a, b, requestedModel, quotaResults, latencyWeight)
         )[0];
       } else {
         const i =
@@ -1970,7 +1943,9 @@ export async function getProviderCredentials(
         const a = candidatePool[i];
         const b = candidatePool[j];
         connection =
-          compareP2CConnections(provider, a, b, requestedModel, quotaResults) <= 0 ? a : b;
+          compareP2CConnections(provider, a, b, requestedModel, quotaResults, latencyWeight) <= 0
+            ? a
+            : b;
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick

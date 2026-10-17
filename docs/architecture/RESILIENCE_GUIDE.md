@@ -116,6 +116,19 @@ cooldown: the stall belongs to that request, most often a long reasoning turn wi
 output yet. Operators can opt back in with `resilienceSettings.streamStallCooldown.enabled`
 (default `false`).
 
+**Opt-in latency signal for `p2c` account selection.** Each dispatched attempt records its
+time-to-first-byte and outcome per connection (and per connection + model) in an in-memory
+rolling window: the last 20 samples within 15 minutes
+(`open-sse/services/connectionLatencyTracker.ts`, recorded from `safeLogEvents()` in
+`src/sse/handlers/chatHelpers.ts`). When `resilienceSettings.p2cLatency.weight` is above `0`
+(range 0-20, default `0` = off), `compareP2CConnections()` in `src/sse/services/auth.ts` adds
+up to `weight` points to each candidate of the pair. Half of that comes from latency as a ratio to
+the faster candidate (twice as slow takes the full half) and half from the rolling error rate.
+The term applies only when both candidates have at least 3 samples, so new accounts are not
+penalized, and its ceiling stays below the quota-blocked and quota-exhausted penalties. It
+adds no circuit of its own: failing accounts are still handled by the cooldown, lockout and
+breaker layers. Set it with `PATCH /api/resilience` `{ "p2cLatency": { "weight": 10 } }`.
+
 **Reasoning frames restart the content-stall budget.** A reasoning model can think for
 minutes before its first visible token: Claude streams `thinking_delta` frames whose
 thinking text may be empty, and the Responses API streams one reasoning item after

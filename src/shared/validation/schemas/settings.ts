@@ -120,6 +120,13 @@ export const streamStallCooldownSettingsSchema = z
   })
   .strict();
 
+// Opt-in latency term for p2c account selection. Bounds mirror normalizeP2CLatencySettings.
+export const p2cLatencySettingsSchema = z
+  .object({
+    weight: z.number().int().min(0).max(20).optional(),
+  })
+  .strict();
+
 // Mid-stream recovery block. Bounds mirror normalizeStreamRecoverySettings in
 // src/lib/resilience/settings/normalize.ts.
 export const throughputWatchdogSettingsSchema = z
@@ -217,6 +224,7 @@ export const updateResilienceSchema = z
     comboCooldownWait: comboCooldownWaitSettingsSchema.optional(),
     quotaShareConcurrencyLimit: quotaShareConcurrencyLimitSettingsSchema.optional(),
     streamStallCooldown: streamStallCooldownSettingsSchema.optional(),
+    p2cLatency: p2cLatencySettingsSchema.optional(),
     streamRecovery: streamRecoverySettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
     // Quota preflight cutoff (auth-level account skipping) — surfaced in the
@@ -261,6 +269,7 @@ export const updateResilienceSchema = z
       value.comboCooldownWait,
       value.quotaShareConcurrencyLimit,
       value.streamStallCooldown,
+      value.p2cLatency,
       value.streamRecovery,
       value.providerCooldown,
       value.quotaPreflight,

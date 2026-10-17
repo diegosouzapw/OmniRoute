@@ -1,0 +1,1 @@
+- **feat(routing):** opt-in per-connection latency signal for p2c account selection (`resilienceSettings.p2cLatency.weight`, default off) ([#16737](https://github.com/diegosouzapw/OmniRoute/pull/16737)) — thanks @berthojoris

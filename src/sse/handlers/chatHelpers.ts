@@ -62,6 +62,7 @@ import { logProxyJournal } from "./proxyJournal";
 import type { AttemptJournalEntry } from "./proxyJournal";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
+import { recordConnectionOutcome } from "@omniroute/open-sse/services/connectionLatencyTracker.ts";
 import { describeConnectionRestriction } from "../services/credentialSelectionDiagnostics.ts";
 
 // #14960: circuit-open 503 that also names the breaker's classified failure kind.
@@ -1128,6 +1129,8 @@ export async function safeLogEvents({
   } catch {
     // proxy selection feedback is best-effort; never break the request path
   }
+  // Rolling per-connection TTFB/outcome for the opt-in p2c latency term (never throws).
+  recordConnectionOutcome(credentials?.connectionId, model, proxyLatency, result?.success === true);
 
   try {
     await logProxyJournal({

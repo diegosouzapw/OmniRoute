@@ -20,6 +20,7 @@ import type {
   ComboCooldownWaitSettings,
   QuotaShareConcurrencyLimitSettings,
   StreamStallCooldownSettings,
+  P2CLatencySettings,
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
@@ -415,6 +416,14 @@ export function normalizeStreamStallCooldownSettings(
 ): StreamStallCooldownSettings {
   const record = asRecord(next);
   return { enabled: toBoolean(record.enabled, fallback.enabled) };
+}
+
+export function normalizeP2CLatencySettings(
+  next: unknown,
+  fallback: P2CLatencySettings
+): P2CLatencySettings {
+  const record = asRecord(next);
+  return { weight: toInteger(record.weight, fallback.weight, { min: 0, max: 20 }) };
 }
 
 export function normalizeProviderCooldownSettings(

@@ -151,6 +151,16 @@ export interface StreamStallCooldownSettings {
   enabled: boolean;
 }
 
+/**
+ * Opt-in latency term for p2c account selection. `weight` is the most score points
+ * the rolling per-connection TTFB/error-rate signal can add to a p2c candidate
+ * (open-sse/services/connectionLatencyTracker.ts). Default 0 = off, so p2c picks
+ * exactly as before. Bounded 0-20, below the quota-blocked/exhausted penalties.
+ */
+export interface P2CLatencySettings {
+  weight: number;
+}
+
 export interface ProviderCooldownSettings {
   /**
    * Minimum cooldown (ms) before a failed provider/connection can be retried.
@@ -270,6 +280,7 @@ export interface ResilienceSettings {
   comboCooldownWait: ComboCooldownWaitSettings;
   quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
   streamStallCooldown: StreamStallCooldownSettings;
+  p2cLatency: P2CLatencySettings;
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
@@ -286,6 +297,7 @@ export interface ResilienceSettingsPatch {
   comboCooldownWait?: Partial<ComboCooldownWaitSettings>;
   quotaShareConcurrencyLimit?: Partial<QuotaShareConcurrencyLimitSettings>;
   streamStallCooldown?: Partial<StreamStallCooldownSettings>;
+  p2cLatency?: Partial<P2CLatencySettings>;
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
