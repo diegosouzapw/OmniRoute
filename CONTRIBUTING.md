@@ -13,7 +13,7 @@ coverage, and reconciliation steps.
 
 ### Prerequisites
 
-- **Node.js** `>=22.22.3 <23`, or `>=24.0.0 <27` (recommended: 24 LTS)
+- **Node.js** `>=22.22.2 <23`, or `>=24.0.0 <27` (recommended: 24 LTS)
 - **npm** 10+
 
 > **npm v11+ users (Node 24+):** After `npm install`, verify native modules were installed:

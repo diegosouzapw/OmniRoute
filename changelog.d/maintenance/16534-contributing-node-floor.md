@@ -1,0 +1,1 @@
+- **docs:** align the CONTRIBUTING Node.js floor with `engines.node` ([#16534](https://github.com/diegosouzapw/OmniRoute/pull/16534)) — thanks @trabgarmarjc-maker.
