@@ -29,6 +29,7 @@ import {
 } from "@/lib/providers/modelListingCapability";
 import { mergeProviderModelListing } from "@/lib/providers/mergeProviderModelListing";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
+import { isAdmittedByModelVisibilityAllowlist } from "@/shared/utils/modelVisibility";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -500,7 +501,18 @@ export default function ProviderDetailPageClient() {
   const { customMap } = compat;
   const effectiveModelNormalize = compat.effectiveModelNormalize;
   const effectiveModelPreserveDeveloper = compat.effectiveModelPreserveDeveloper;
-  const effectiveModelHidden = compat.isModelHidden;
+  const visibilityAllowlist = useMemo(
+    () => modelMeta.visibilityAllowlist === null
+      ? null
+      : new Set(modelMeta.visibilityAllowlist),
+    [modelMeta.visibilityAllowlist]
+  );
+  const effectiveModelHidden = useCallback(
+    (id: string) =>
+      compat.isModelHidden(id) ||
+      !isAdmittedByModelVisibilityAllowlist(id, visibilityAllowlist),
+    [compat.isModelHidden, visibilityAllowlist]
+  );
   const getUpstreamHeadersRecordForModel = compat.getUpstreamHeadersRecord;
 
   const compatibleFallbackModels = useMemo(

@@ -407,6 +407,9 @@ function buildModelOptions(
     .filter(
       (m): m is SyncedModelLike & { id: string; supportedThinkingEfforts: string[] } =>
         typeof m.id === "string" &&
+        // Do not expand a hidden base into fresh, independently visible tier ids.
+        // modelMap contains only base models admitted by addModelOption().
+        modelMap.has(m.id) &&
         Array.isArray(m.supportedThinkingEfforts) &&
         m.supportedThinkingEfforts.length > 0
     )
@@ -444,6 +447,9 @@ function buildModelOptions(
       if (modelMap.has(rawId)) continue;
       const baseId = baseRawIdByVariantId.get(variant.id) ?? rawId;
       const base = modelMap.get(baseId);
+      // A generated alias never outlives its base, including after visibility
+      // changes or if an upstream tier is not mapped to a known base.
+      if (!base) continue;
       addModelOption(modelMap, providerId, {
         id: rawId,
         name: base ? `${base.name} (${rawId.slice(baseId.length + 1)})` : rawId,
@@ -479,6 +485,9 @@ function buildModelOptions(
     .filter(
       (m): m is RegistryModel & { supportedThinkingEfforts: readonly string[] } =>
         typeof m.id === "string" &&
+        // Do not expand a hidden base into fresh, independently visible tier ids.
+        // modelMap contains only base models admitted by addModelOption().
+        modelMap.has(m.id) &&
         Array.isArray(m.supportedThinkingEfforts) &&
         m.supportedThinkingEfforts.length > 0
     )
@@ -508,6 +517,9 @@ function buildModelOptions(
       if (modelMap.has(rawId)) continue;
       const baseId = baseRawIdByVariantId.get(variant.id) ?? rawId;
       const base = modelMap.get(baseId);
+      // A generated alias never outlives its base, including after visibility
+      // changes or if an upstream tier is not mapped to a known base.
+      if (!base) continue;
       addModelOption(modelMap, providerId, {
         id: rawId,
         name: base ? `${base.name} (${rawId.slice(baseId.length + 1)})` : rawId,

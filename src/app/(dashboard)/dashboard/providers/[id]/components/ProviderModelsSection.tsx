@@ -15,6 +15,8 @@ import { useState } from "react";
 import { Button } from "@/shared/components";
 import { matchesModelCatalogQuery } from "@/shared/utils/modelCatalogSearch";
 import { isFreeModel, sortModelsFreeFirst } from "@/shared/utils/freeModels";
+import { broadcastModelVisibilityChange } from "@/shared/utils/modelVisibility";
+import { useNotificationStore } from "@/store/notificationStore";
 import {
   getDisplayModelAlias,
   providerText,
@@ -46,7 +48,7 @@ export interface ProviderModelsSectionProps {
 
   // Models data
   models: Array<{ id: string; name?: string; source?: string }>;
-  modelMeta: { customModels: any[]; modelCompatOverrides?: any[] };
+  modelMeta: { customModels: any[]; modelCompatOverrides?: any[]; visibilityAllowlist?: string[] | null };
   modelAliases: Record<string, string>;
   syncedAvailableModels: any[];
   syncedCatalogAuthoritative?: boolean;
@@ -180,6 +182,63 @@ export default function ProviderModelsSection({
 }: ProviderModelsSectionProps) {
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
+  const [savingVisibilityPolicy, setSavingVisibilityPolicy] = useState(false);
+  const notify = useNotificationStore();
+  const isAllowlistActive = Array.isArray(modelMeta.visibilityAllowlist);
+
+  const changeVisibilityPolicy = async () => {
+    if (savingVisibilityPolicy) return;
+    // Capture unfiltered visible IDs, not only the current search result.
+    const ids = [...new Set([
+      ...models, ...syncedAvailableModels, ...modelMeta.customModels,
+      ...compatibleFallbackModels,
+    ].map((model) => model?.id).filter(
+      (id): id is string => typeof id === "string" && id.length > 0
+    ))].filter((id) => !effectiveModelHidden(id));
+    const nextMode = isAllowlistActive ? "off" : "allowlist";
+    if (!isAllowlistActive && !window.confirm(
+      providerText(t, "confirmModelVisibilityLock",
+        `Keep only these ${ids.length} visible model IDs after future syncs? New models will stay hidden until shown manually.`)
+    )) return;
+    setSavingVisibilityPolicy(true);
+    try {
+      const response = await fetch(
+        `/api/provider-models?provider=${encodeURIComponent(providerId)}`,
+        { method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            visibilityPolicy: nextMode, modality: "chat",
+            ...(nextMode === "allowlist" ? { modelIds: ids } : {}),
+          }) }
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      broadcastModelVisibilityChange();
+      await fetchProviderModelMeta();
+      notify.success(providerText(t, "savedModelVisibilityPolicy", "Model visibility policy saved"));
+    } catch {
+      notify.error(providerText(t, "failedSaveCustomModel", "Failed to save model visibility"));
+    } finally {
+      setSavingVisibilityPolicy(false);
+    }
+  };
+  const visibilityPolicyButton = (
+    <button
+      type="button"
+      onClick={() => { void changeVisibilityPolicy(); }}
+      disabled={savingVisibilityPolicy || bulkVisibilityAction !== null}
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+      title={isAllowlistActive
+        ? providerText(t, "disableModelVisibilityLock", "Allow new synced models again")
+        : providerText(t, "enableModelVisibilityLock", "Keep only visible models across future syncs")}
+      aria-pressed={isAllowlistActive}
+    >
+      <span className="material-symbols-outlined text-[16px]">
+        {isAllowlistActive ? "lock" : "lock_open"}
+      </span>
+      {isAllowlistActive
+        ? providerText(t, "modelVisibilityLocked", "Only selected models")
+        : providerText(t, "lockVisibleModels", "Lock visible models")}
+    </button>
+  );
   const canConfigureAutoFetchModels = connections.some(
     (connection) => connection.isActive !== false && typeof connection.id === "string"
   );
@@ -263,6 +322,7 @@ export default function ProviderModelsSection({
       <div>
         <div className="flex items-center gap-2 mb-4">
           {modelDiscoveryControls}
+          {visibilityPolicyButton}
           {clearAllButton}
         </div>
         <CompatibleModelsSection
@@ -342,6 +402,7 @@ export default function ProviderModelsSection({
             </Button>
           )}
           {modelDiscoveryControls}
+          {visibilityPolicyButton}
           {clearAllButton}
           {allowModelImport && !canImportModels && (
             <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
@@ -387,23 +448,26 @@ export default function ProviderModelsSection({
     );
   }
 
-  const importButton = allowModelImport ? (
-    <div className="flex items-center gap-2 mb-4">
-      <Button
-        size="sm"
-        variant="secondary"
-        icon="download"
-        onClick={handleImportModels}
-        disabled={!canImportModels || importingModels}
-      >
-        {importingModels ? t("importingModels") : t("importFromModels")}
-      </Button>
+  const importButton = (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      {allowModelImport && (
+        <Button
+          size="sm"
+          variant="secondary"
+          icon="download"
+          onClick={handleImportModels}
+          disabled={!canImportModels || importingModels}
+        >
+          {importingModels ? t("importingModels") : t("importFromModels")}
+        </Button>
+      )}
       {modelDiscoveryControls}
-      {!canImportModels && (
+      {visibilityPolicyButton}
+      {allowModelImport && !canImportModels && (
         <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
       )}
     </div>
-  ) : null;
+  );
 
   if (models.length === 0) {
     return (

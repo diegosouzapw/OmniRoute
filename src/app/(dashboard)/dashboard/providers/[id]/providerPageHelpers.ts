@@ -569,12 +569,10 @@ export function isModelHiddenFn(
   overrideMap: CompatModelMap
 ): boolean {
   const customHidden = readActiveHiddenFlag(customMap.get(modelId));
-  if (customHidden !== undefined) return customHidden;
-
   const overrideHidden = readActiveHiddenFlag(overrideMap.get(modelId));
-  if (overrideHidden !== undefined) return overrideHidden;
-
-  return false;
+  // #16977: a newly imported custom row must not overrule an explicit
+  // hidden flag on the matching synced/compat model (or vice versa).
+  return customHidden === true || overrideHidden === true;
 }
 
 export function effectiveNormalizeForProtocol(

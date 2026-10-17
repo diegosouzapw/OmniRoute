@@ -14,6 +14,9 @@ import {
   getModelCompatOverrides,
   mergeModelCompatOverride,
   getHiddenModelsByProvider,
+  getModelVisibilityAllowlist,
+  getModelVisibilityAllowlists,
+  setModelVisibilityAllowlist,
   type ModelCompatPatch,
 } from "@/lib/db/models";
 import {
@@ -126,6 +129,13 @@ export async function GET(request) {
       modelContextOverrides,
       modelOutputOverrides,
       hiddenModelsByProvider,
+      // Presence of a stored [] matters: it represents an intentional hide-all.
+      visibilityAllowlist: provider
+        ? (() => { const p = getModelVisibilityAllowlist(provider); return p === null ? null : [...p]; })()
+        : null,
+      modelVisibilityAllowlists: Object.fromEntries(
+        [...getModelVisibilityAllowlists()].map(([id, list]) => [id, [...list]])
+      ),
     });
   } catch {
     return Response.json(
@@ -436,6 +446,39 @@ export async function PATCH(request) {
       );
     }
 
+    // #16977: an explicit allowlist is opt-in. It is deliberately distinct
+    // from modelCompatOverrides so newly discovered/renamed IDs stay hidden
+    // after a provider catalog re-sync. Empty list means hide all.
+    if ("visibilityPolicy" in body) {
+      const mode = body.visibilityPolicy;
+      if (mode !== "allowlist" && mode !== "off") {
+        return Response.json(
+          { error: { message: "Invalid visibility policy", type: "validation_error" } },
+          { status: 400 }
+        );
+      }
+      if (body.modality !== undefined && body.modality !== "chat") {
+        return Response.json(
+          { error: { message: "Visibility allowlist is chat-only", type: "validation_error" } },
+          { status: 400 }
+        );
+      }
+      const allowed = body.modelIds;
+      if (
+        mode === "allowlist" &&
+        (!Array.isArray(allowed) || allowed.length > 20000 ||
+          !allowed.every((id) => typeof id === "string" && id.length > 0 && id.length <= 512))
+      ) {
+        return Response.json(
+          { error: { message: "modelIds must be an array of valid IDs", type: "validation_error" } },
+          { status: 400 }
+        );
+      }
+      setModelVisibilityAllowlist(provider, mode === "off" ? null : allowed as string[]);
+      const saved = getModelVisibilityAllowlist(provider);
+      return Response.json({ ok: true, visibilityAllowlist: saved === null ? null : [...saved] });
+    }
+
     if (typeof body.isHidden !== "boolean") {
       return Response.json(
         { error: { message: "isHidden boolean is required", type: "validation_error" } },
@@ -467,11 +510,23 @@ export async function PATCH(request) {
       );
     }
 
+    const currentAllowlist = modality === undefined || modality === "chat"
+      ? getModelVisibilityAllowlist(provider)
+      : null;
+    const nextAllowlist = currentAllowlist === null ? null : new Set(currentAllowlist);
+
     for (const modelId of modelIds) {
-      const updatedModel = await updateCustomModel(provider, modelId, { isHidden: body.isHidden });
-      if (!updatedModel) {
-        mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden, modality });
+      // Both inventories must agree: hiding a synced model must survive a
+      // future import of a custom row with the same raw provider-relative ID.
+      await updateCustomModel(provider, modelId, { isHidden: body.isHidden });
+      mergeModelCompatOverride(provider, modelId, { isHidden: body.isHidden, modality });
+      if (nextAllowlist !== null) {
+        if (body.isHidden) nextAllowlist.delete(modelId);
+        else nextAllowlist.add(modelId);
       }
+    }
+    if (nextAllowlist !== null) {
+      setModelVisibilityAllowlist(provider, [...nextAllowlist]);
     }
 
     const aliasChanges =
@@ -490,6 +545,7 @@ export async function PATCH(request) {
       aliasChanges,
       models: await getCustomModels(provider),
       modelCompatOverrides: getModelCompatOverrides(provider),
+      visibilityAllowlist: nextAllowlist === null ? null : [...nextAllowlist],
     });
   } catch (error) {
     console.error("Error patching provider models:", error);

@@ -32,6 +32,7 @@ import {
 } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
+import { broadcastModelVisibilityChange } from "@/shared/utils/modelVisibility";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -223,6 +224,7 @@ export function useModelVisibilityHandlers({
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
+      broadcastModelVisibilityChange();
       await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
@@ -250,6 +252,7 @@ export function useModelVisibilityHandlers({
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
+      broadcastModelVisibilityChange();
       await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
@@ -268,6 +271,7 @@ export function useModelVisibilityHandlers({
         { method: "DELETE" }
       );
       if (res.ok) {
+        broadcastModelVisibilityChange();
         // Also delete all aliases that belong to this provider
         await Promise.all(
           providerAliasEntries.map(([alias]) =>

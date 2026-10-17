@@ -8,6 +8,7 @@ import {
   buildNodeAliasModels,
   shouldConfirmSelectAll,
   parseHiddenModelsByProvider,
+  parseModelVisibilityAllowlists,
   isProviderModelHidden,
   buildProviderTestTargets,
   toggleProviderSelection,
@@ -33,6 +34,7 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import { subscribeModelVisibilityChanges } from "@/shared/utils/modelVisibility";
 import { useNotificationStore } from "@/store/notificationStore";
 
 // Provider order: OAuth first, then no-auth, then API Key (matches dashboard/providers)
@@ -129,6 +131,16 @@ export default function ModelSelectModal({
   const [hiddenModelsByProvider, setHiddenModelsByProvider] = useState<Map<string, Set<string>>>(
     new Map()
   );
+  const [visibilityAllowlists, setVisibilityAllowlists] = useState<Map<string, Set<string>>>(
+    new Map()
+  );
+  const [visibilityRevision, setVisibilityRevision] = useState(0);
+  useEffect(() => {
+    if (!isOpen) return;
+    return subscribeModelVisibilityChanges(
+      () => setVisibilityRevision((revision) => revision + 1)
+    );
+  }, [isOpen]);
   // Models discovered live from a custom provider's upstream `/models` endpoint,
   // keyed by provider id. Merged into the alias/custom/fallback list below and
   // tagged with the `auto` source badge. Ported from upstream PR
@@ -196,21 +208,26 @@ export default function ModelSelectModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    let cancelled = false;
     const fetchCustomModels = async () => {
       try {
-        const res = await fetch("/api/provider-models");
+        const res = await fetch("/api/provider-models", { cache: "no-store" });
         if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
         const data = await res.json();
+        if (cancelled) return;
         setCustomModels(data.models || {});
-        // #9203: keep the unified hidden-model map in sync with the model list.
         setHiddenModelsByProvider(parseHiddenModelsByProvider(data.hiddenModelsByProvider));
+        setVisibilityAllowlists(parseModelVisibilityAllowlists(data.modelVisibilityAllowlists));
       } catch (error) {
+        if (cancelled) return;
         console.error("Error fetching custom models:", error);
-        setCustomModels({});
+        // Fail closed on refresh errors: preserve the last known visibility
+        // snapshot rather than inadvertently showing hidden models.
       }
     };
-    fetchCustomModels();
-  }, [isOpen]);
+    void fetchCustomModels();
+    return () => { cancelled = true; };
+  }, [isOpen, visibilityRevision]);
 
   // Fetch the live model catalog for one custom provider from its connection's
   // upstream `/models` endpoint. Returns the model array, or null on any failure.
@@ -273,7 +290,7 @@ export default function ModelSelectModal({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, activeProviders]);
+  }, [isOpen, activeProviders, visibilityRevision]);
 
   const allProviders = useMemo(
     () => ({ ...OAUTH_PROVIDERS, ...NOAUTH_PROVIDERS, ...APIKEY_PROVIDERS }),
@@ -323,7 +340,7 @@ export default function ModelSelectModal({
       // auto-fetched model is filtered exactly like a hidden custom row.
       const providerCustomModels = (customModels[providerId] || []).filter((cm) => !cm.isHidden);
       const isHiddenForProvider = (modelId: string) =>
-        isProviderModelHidden(hiddenModelsByProvider, providerId, modelId);
+        isProviderModelHidden(hiddenModelsByProvider, providerId, modelId, visibilityAllowlists);
 
       if (providerInfo.passthroughModels) {
         // Passthrough aliases are stored prefixed by the canonical providerId
@@ -485,6 +502,7 @@ export default function ModelSelectModal({
     customModels,
     fetchedModels,
     hiddenModelsByProvider,
+    visibilityAllowlists,
   ]);
 
   // Filter combos by search query

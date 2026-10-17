@@ -91,6 +91,7 @@ import { modelFamily } from "@/lib/combos/invariants";
 import { resolveProviderAlias } from "@omniroute/open-sse/services/providerAlias.ts";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
+import { subscribeModelVisibilityChanges } from "@/shared/utils/modelVisibility";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
   ssr: false,
@@ -2162,6 +2163,7 @@ function ComboFormModal({
   const [providerNodes, setProviderNodes] = useState([]);
   const [builderOptions, setBuilderOptions] = useState({ providers: [], comboRefs: [] });
   const [builderLoading, setBuilderLoading] = useState(false);
+  const builderFetchRevisionRef = useRef(0);
   const [builderProviderId, setBuilderProviderId] = useState("");
   const [builderModelId, setBuilderModelId] = useState("");
   const [builderConnectionId, setBuilderConnectionId] = useState(COMBO_BUILDER_AUTO_CONNECTION);
@@ -2498,13 +2500,15 @@ function ComboFormModal({
   const showInlineReadinessPanel = !isExpertMode || saveBlockers.length > 0;
 
   const fetchModalData = async () => {
+    // Ignore older responses when a visibility update races an in-flight load.
+    const revision = ++builderFetchRevisionRef.current;
     setBuilderLoading(true);
     try {
       const [aliasesRes, nodesRes, pricingRes, builderRes] = await Promise.all([
         fetch("/api/models/alias"),
         fetch("/api/provider-nodes"),
         fetch("/api/pricing"),
-        fetch("/api/combos/builder/options"),
+        fetch("/api/combos/builder/options", { cache: "no-store" }),
       ]);
 
       if (!aliasesRes.ok || !nodesRes.ok) {
@@ -2516,6 +2520,7 @@ function ComboFormModal({
       const builderData = builderRes.ok ? await builderRes.json() : {};
 
       const [aliasesData, nodesData] = await Promise.all([aliasesRes.json(), nodesRes.json()]);
+      if (revision !== builderFetchRevisionRef.current) return;
       setPricingByProvider(
         pricingData && typeof pricingData === "object" && !Array.isArray(pricingData)
           ? pricingData
@@ -2528,12 +2533,25 @@ function ComboFormModal({
         comboRefs: builderData.comboRefs || [],
       });
     } catch (error) {
-      console.error("Error fetching modal data:", error);
-      setBuilderOptions({ providers: [], comboRefs: [] });
+      if (revision === builderFetchRevisionRef.current) {
+        console.error("Error fetching modal data:", error);
+        // Preserve the previous known-safe snapshot on transient refresh errors.
+      }
     } finally {
-      setBuilderLoading(false);
+      if (revision === builderFetchRevisionRef.current) setBuilderLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const unsubscribe = subscribeModelVisibilityChanges(() => { void fetchModalData(); });
+    return () => {
+      ++builderFetchRevisionRef.current;
+      unsubscribe();
+    };
+    // Visibility updates are received through events, not a render dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   useEffect(() => {
     // Async continuation — see react-hooks/set-state-in-effect.

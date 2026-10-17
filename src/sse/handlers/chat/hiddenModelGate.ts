@@ -1,5 +1,6 @@
 import { getHiddenChatModels } from "@/lib/hiddenChatModels";
 import { createHiddenModelLookup } from "@/lib/hiddenModelLookup";
+import { getModelVisibilityAllowlists } from "@/lib/db/models/visibilityAllowlist";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 
 type ModelGate = (targets: Iterable<string>) => Promise<Response | null>;
@@ -11,7 +12,9 @@ export function withHiddenModelGate(authorize: ModelGate): ModelGate {
     const resolvedTargets = [...targets];
     const denied = await authorize(resolvedTargets);
     if (denied) return denied;
-    isHidden ??= createHiddenModelLookup(await getHiddenChatModels());
+    isHidden ??= createHiddenModelLookup(
+      await getHiddenChatModels(), [], "chat", getModelVisibilityAllowlists()
+    );
     for (const target of resolvedTargets) {
       const separator = target.indexOf("/");
       const provider = target.slice(0, separator);

@@ -20,6 +20,11 @@ import {
 } from "./comboConfig.ts";
 
 import { getHiddenModelsByProvider } from "@/models";
+import { getModelVisibilityAllowlists } from "@/lib/db/models/visibilityAllowlist";
+import {
+  isAdmittedByModelVisibilityAllowlist,
+  isHiddenByModelVisibilityList,
+} from "@/shared/utils/modelVisibility";
 import { getHiddenChatModels } from "../../src/lib/hiddenChatModels";
 
 import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
@@ -325,6 +330,7 @@ export async function buildAutoCandidates(
   resilienceSettings: ResilienceSettings | null = null
 ): Promise<AutoProviderCandidate[]> {
   const hiddenModelsMap = getHiddenModelsByProvider();
+  const visibilityAllowlists = getModelVisibilityAllowlists();
   const metrics = getComboMetrics(comboName);
   // Opt-in hard quota cutoff (default OFF). When disabled, candidates are never
   // dropped for low quota here — the soft quota penalty + connection cooldown still
@@ -598,7 +604,8 @@ export async function buildAutoCandidates(
   return rejectRetiredAutoComboCandidates(
     candidates.filter((c) => {
       const hiddenModels = hiddenModelsMap.get(c.provider);
-      return !hiddenModels?.has(c.model);
+      return !isHiddenByModelVisibilityList(c.model, hiddenModels) &&
+        isAdmittedByModelVisibilityAllowlist(c.model, visibilityAllowlists.get(c.provider));
     })
   );
 }

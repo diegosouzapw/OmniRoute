@@ -1,6 +1,7 @@
 import { getHiddenModelsByProvider } from "../../../src/lib/db/models";
 import { parseModel } from "../model.ts";
 import { createHiddenModelLookup } from "../../../src/lib/hiddenModelLookup";
+import { getModelVisibilityAllowlists } from "../../../src/lib/db/models/visibilityAllowlist";
 import type { HiddenModelsByProvider } from "./types.ts";
 
 // Snapshots are readonly and scoped to an invocation; WeakMap adds no TTL or stale DB cache.
@@ -17,7 +18,9 @@ export function isComboModelVisible(
   const rawModel = hasExplicitProvider ? modelStr : parsed.model || modelStr;
   let isHidden = lookups.get(hiddenModelsByProvider);
   if (!isHidden) {
-    isHidden = createHiddenModelLookup(hiddenModelsByProvider);
+    isHidden = createHiddenModelLookup(
+      hiddenModelsByProvider, [], "chat", getModelVisibilityAllowlists()
+    );
     lookups.set(hiddenModelsByProvider, isHidden);
   }
   return !isHidden(providerId || parsed.provider || parsed.providerAlias, rawModel);

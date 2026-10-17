@@ -48,7 +48,12 @@ import {
   getSyncedAvailableModels,
   getCustomModels,
   getHiddenModelsByProvider,
+  getModelVisibilityAllowlists,
 } from "../../../src/lib/db/models";
+import {
+  isAdmittedByModelVisibilityAllowlist,
+  isHiddenByModelVisibilityList,
+} from "../../../src/shared/utils/modelVisibility";
 import { getProviderModels } from "../../config/providerModels.ts";
 import {
   getConnectionRoutingTags,
@@ -529,6 +534,7 @@ export async function expandAutoComboCandidatePool(
     // (zero-config auto combo expanding to 1000s of provider/model targets).
     const seenModelStrs = new Set(eligibleTargets.map((t) => t.modelStr));
     const hiddenModelsMap = getHiddenModelsByProvider();
+    const visibilityAllowlists = getModelVisibilityAllowlists();
     for (const providerId of providerIds) {
       // #auto-pool-visible-only: when the operator has synced/custom models for
       // this provider, expand ONLY those (minus hidden); fall back to the static
@@ -547,19 +553,24 @@ export async function expandAutoComboCandidatePool(
       // media provider's local catalog or added by hand; they are not chat targets.
       const chatCustomModels = filterChatSelectableModels(providerId, customModels);
       const hiddenModels = hiddenModelsMap.get(providerId);
+      const admitted = visibilityAllowlists.get(providerId);
+      const isVisible = (id: string) =>
+        !isHiddenByModelVisibilityList(id, hiddenModels) &&
+        isAdmittedByModelVisibilityAllowlist(id, admitted);
       const userVisibleIds = new Set<string>();
-      for (const m of syncedModels) if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+      for (const m of syncedModels) if (m.id && isVisible(m.id)) userVisibleIds.add(m.id);
       for (const m of chatCustomModels)
-        if (m.id && !hiddenModels?.has(m.id)) userVisibleIds.add(m.id);
+        if (m.id && isVisible(m.id)) userVisibleIds.add(m.id);
       // A provider whose custom rows are all non-chat still has user models, so it
       // must not fall back to its static chat catalog.
       const hasUserModels =
         userVisibleIds.size > 0 ||
-        customModels.some((m: { id?: string }) => m.id && !hiddenModels?.has(m.id));
+        customModels.some((m: { id?: string }) => m.id && isVisible(m.id));
       const expandIds = hasUserModels
         ? Array.from(userVisibleIds)
         : getProviderModels(providerId).map((m) => m.id);
       for (const modelId of expandIds) {
+        if (!isVisible(modelId)) continue;
         const modelStr = `${providerId}/${modelId}`;
         if (!seenModelStrs.has(modelStr)) {
           seenModelStrs.add(modelStr);

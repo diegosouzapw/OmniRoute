@@ -23,6 +23,8 @@ import { providerText, type CompatModelRow } from "../providerPageHelpers";
 export interface ModelMeta {
   customModels: CompatModelRow[];
   modelCompatOverrides: Array<CompatModelRow & { id: string }>;
+  /** null => legacy per-model visibility, [] => intentionally hide all. */
+  visibilityAllowlist: string[] | null;
 }
 
 export interface UseProviderModelsReturn {
@@ -46,6 +48,7 @@ export function useProviderModels(
   const [modelMeta, setModelMeta] = useState<ModelMeta>({
     customModels: [],
     modelCompatOverrides: [],
+    visibilityAllowlist: null,
   });
   const [syncedCatalog, setSyncedCatalog] = useState({
     providerId: "",
@@ -133,6 +136,9 @@ export function useProviderModels(
       setModelMeta({
         customModels: data.models || [],
         modelCompatOverrides: data.modelCompatOverrides || [],
+        visibilityAllowlist: Array.isArray(data.visibilityAllowlist)
+          ? data.visibilityAllowlist
+          : null,
       });
       try {
         const syncRes = await fetch(

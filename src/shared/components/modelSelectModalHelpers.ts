@@ -1,3 +1,5 @@
+import { isAdmittedByModelVisibilityAllowlist } from "@/shared/utils/modelVisibility";
+
 // Pure helpers extracted from ModelSelectModal so the grouping logic is
 // unit-testable (the component itself lives inside a useMemo and is not
 // directly exercisable by node:test). Keep these free of React imports.
@@ -130,15 +132,33 @@ export function parseHiddenModelsByProvider(raw: unknown): Map<string, Set<strin
  * Uses the canonical provider id and raw model id — callers pass the same ids
  * they pass to `buildPassthroughAliasModels` / `buildNodeAliasModels`.
  */
+/** Parse persisted allowlists, preserving empty sets (hide-all) and vendor slash IDs. */
+export function parseModelVisibilityAllowlists(raw: unknown): Map<string, Set<string>> {
+  const result = new Map<string, Set<string>>();
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return result;
+  for (const [providerId, ids] of Object.entries(raw as Record<string, unknown>)) {
+    if (!providerId || !Array.isArray(ids) || !ids.every((id) => typeof id === "string")) continue;
+    result.set(providerId, new Set(ids as string[]));
+  }
+  return result;
+}
+
 export function isProviderModelHidden(
   hiddenModelsByProvider: Map<string, Set<string>>,
   providerId: string,
-  modelId: string
+  modelId: string,
+  visibilityAllowlists: ReadonlyMap<string, ReadonlySet<string>> = new Map()
 ): boolean {
   if (typeof providerId !== "string" || typeof modelId !== "string" || modelId.length === 0) {
     return false;
   }
-  return hiddenModelsByProvider.get(providerId)?.has(modelId) ?? false;
+  const explicit = hiddenModelsByProvider.get(providerId);
+  if (explicit?.has(modelId)) return true;
+  // An explicitly hidden base must suppress its generated effort-tier aliases.
+  const tier = modelId.match(/-(?:none|low|medium|high|xhigh|max)$/);
+  if (tier && explicit?.has(modelId.slice(0, -tier[0].length))) return true;
+  const allowlist = visibilityAllowlists.get(providerId);
+  return !isAdmittedByModelVisibilityAllowlist(modelId, allowlist);
 }
 
 /** Matches the provider-page "Test All Models" concurrency (#chunks of 3). */

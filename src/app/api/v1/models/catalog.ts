@@ -48,6 +48,7 @@ import {
   getAllCustomModels,
   getModelAliases,
   getHiddenModelsByProvider,
+  getModelVisibilityAllowlists,
 } from "@/lib/db/models";
 import { getAllActiveSyncedModels } from "@/lib/db/models/activeSyncedCatalog";
 import {
@@ -313,7 +314,10 @@ async function buildUnifiedModelsResponseCore(
     const getHiddenModelsForModality = (modality: string) => {
       let m = hiddenModelsByModality.get(modality);
       if (!m) {
-        m = createHiddenModelLookup(getHiddenModelsByProvider(modality), providerNodes, modality);
+        m = createHiddenModelLookup(
+          getHiddenModelsByProvider(modality), providerNodes, modality,
+          modality === "chat" ? getModelVisibilityAllowlists() : undefined
+        );
         hiddenModelsByModality.set(modality, m);
       }
       return m;

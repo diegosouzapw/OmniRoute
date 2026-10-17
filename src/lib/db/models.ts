@@ -7,6 +7,8 @@
 import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
 
 import { getDbInstance } from "./core";
+import { isAdmittedByModelVisibilityAllowlist } from "@/shared/utils/modelVisibility";
+import { getModelVisibilityAllowlist, setModelVisibilityAllowlist } from "./models/visibilityAllowlist";
 import { isSyncedAtFresh } from "./models/syncedCatalogFreshness";
 import { getProviderConnectionsCount, touchConnectionSyncedModelsAt } from "./providers";
 import { type JsonRecord, getKeyValue } from "./models/shared";
@@ -58,6 +60,11 @@ export {
   unmarkManagedModelAlias,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
+export {
+  getModelVisibilityAllowlist,
+  getModelVisibilityAllowlists,
+  setModelVisibilityAllowlist,
+} from "./models/visibilityAllowlist";
 export type { SyncedAvailableModel } from "./models/synced";
 export {
   getCustomModelVisionOverride,
@@ -982,12 +989,26 @@ export function getModelIsHidden(
   modelId: string,
   modality: string = "chat"
 ): boolean {
-  const m = getCustomModelRow(providerId, modelId);
-  if (m && Object.prototype.hasOwnProperty.call(m, "isHidden")) {
-    return Boolean(m.isHidden);
+  // The optional provider allowlist is fail-closed for newly discovered IDs.
+  // No remapping of provider-relative IDs is performed (including vendor/model).
+  if (
+    modality === "chat" &&
+    !isAdmittedByModelVisibilityAllowlist(modelId, getModelVisibilityAllowlist(providerId))
+  ) {
+    return true;
   }
-  const co = readCompatList(providerId).find((e) => e.id === modelId);
-  return isOverrideHiddenForModality(co, modality);
+  const compat = readCompatList(providerId);
+  const explicitlyHidden = (id: string) =>
+    Boolean(getCustomModelRow(providerId, id)?.isHidden) ||
+    isOverrideHiddenForModality(compat.find((entry) => entry.id === id), modality);
+  if (explicitlyHidden(modelId)) return true;
+  if (modality === "chat") {
+    // Generated tier aliases inherit the base's hidden state even when no
+    // provider allowlist is enabled.
+    const tier = modelId.match(/-(?:none|low|medium|high|xhigh|max)$/);
+    if (tier && explicitlyHidden(modelId.slice(0, -tier[0].length))) return true;
+  }
+  return false;
 }
 
 /**
@@ -1040,7 +1061,7 @@ export function getHiddenModelsByProvider(modality: string = "chat"): Map<string
             visibility = new Map<string, boolean>();
             visibilityByProvider.set(row.key, visibility);
           }
-          visibility.set(modelId, isHidden);
+          visibility.set(modelId, isHidden || visibility.get(modelId) === true);
         }
       } catch {
         // Skip malformed entries
@@ -1069,13 +1090,22 @@ export function setModelIsHidden(
   hidden: boolean,
   modality?: string
 ): void {
+  const currentAllowlist = modality === undefined || modality === "chat"
+    ? getModelVisibilityAllowlist(providerId)
+    : null;
+  if (currentAllowlist !== null) {
+    const updated = new Set(currentAllowlist);
+    if (hidden) updated.delete(modelId);
+    else updated.add(modelId);
+    setModelVisibilityAllowlist(providerId, [...updated]);
+  }
   const customRow = getCustomModelRow(providerId, modelId);
   if (customRow) {
-    if (hidden) {
-      updateCustomModel(providerId, modelId, { isHidden: true });
-    } else if (Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
-      updateCustomModel(providerId, modelId, { isHidden: false });
+    if (hidden || Object.prototype.hasOwnProperty.call(customRow, "isHidden")) {
+      updateCustomModel(providerId, modelId, { isHidden: hidden });
     }
+    // Hides/unhides must survive a transition between custom and synced rows.
+    mergeModelCompatOverride(providerId, modelId, { isHidden: hidden, modality });
     return;
   }
 
