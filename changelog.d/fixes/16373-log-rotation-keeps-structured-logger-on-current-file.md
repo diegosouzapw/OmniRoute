@@ -1,0 +1,1 @@
+- **fix(logs):** keep writing structured logs to the current file after rotation ([#16373](https://github.com/diegosouzapw/OmniRoute/pull/16373)) — thanks @maxmad64bis

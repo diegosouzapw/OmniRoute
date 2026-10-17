@@ -78,12 +78,49 @@ export function ensureLogDir(logFilePath: string): void {
 /**
  * Rotate the log file if it exceeds the max size.
  * Renames current file to app.YYYY-MM-DD_HHmmss.log
+ *
+ * Returns the rotated file path when a rotation happened, `null` otherwise
+ * (missing file, below the size limit, or a failed rotation — the documented
+ * policy keeps writing to the same file in that case).
  */
-export function rotateIfNeeded(logFilePath: string, maxFileSize: number): void {
+
+/** Listener notified with the current log path after a rotation. */
+export type LogRotationListener = (currentPath: string) => void;
+
+const rotationListeners = new Set<LogRotationListener>();
+
+/**
+ * Register a listener notified after each rotation. Returns an unsubscribe
+ * function. Backed by a Set, so subscribing the same listener twice
+ * notifies it once (HMR re-evaluation safety).
+ */
+export function onLogRotation(listener: LogRotationListener): () => void {
+  rotationListeners.add(listener);
+  return () => {
+    rotationListeners.delete(listener);
+  };
+}
+
+function notifyLogRotationListeners(currentPath: string): void {
+  for (const listener of rotationListeners) {
+    try {
+      listener(currentPath);
+    } catch (error) {
+      try {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[logRotation] rotation listener failed: ${message}`);
+      } catch {
+        // Never let logging break rotation.
+      }
+    }
+  }
+}
+
+export function rotateIfNeeded(logFilePath: string, maxFileSize: number): string | null {
   try {
-    if (!existsSync(logFilePath)) return;
+    if (!existsSync(logFilePath)) return null;
     const stats = statSync(logFilePath);
-    if (stats.size < maxFileSize) return;
+    if (stats.size < maxFileSize) return null;
 
     const dir = dirname(logFilePath);
     const ext = extname(logFilePath);
@@ -97,8 +134,11 @@ export function rotateIfNeeded(logFilePath: string, maxFileSize: number): void {
 
     const rotatedPath = join(dir, `${base}.${ts}${ext}`);
     renameSync(logFilePath, rotatedPath);
+    notifyLogRotationListeners(logFilePath);
+    return rotatedPath;
   } catch {
     // If rotation fails, continue writing to the same file
+    return null;
   }
 }
 
@@ -194,9 +234,35 @@ export function initLogRotation(): void {
   cleanupOverflowLogs(config.logFilePath, config.maxFiles);
 
   const intervalMs = getAppLogRotationCheckInterval();
+  // Tracks the last rotation this process consumed: an own rotation notifies
+  // listeners directly, so the check below must not re-notify for it. Only an
+  // external rotation (another process renamed the file) reopens here.
+  let lastConsumedRotation: string | null = null;
   state.timer = setInterval(
     (filePath: string, maxSize: number, maxFiles: number) => {
-      rotateIfNeeded(filePath, maxSize);
+      const rotatedPath = rotateIfNeeded(filePath, maxSize);
+      if (rotatedPath !== null) {
+        // Own rotation: listeners were already notified inside rotateIfNeeded.
+        // Record it so the external-rotation check below skips this tick —
+        // without this, an idle process would reopen once per tick (mP2).
+        lastConsumedRotation = filePath;
+      } else if (
+        !existsSync(filePath) &&
+        rotationListeners.size > 0 &&
+        lastConsumedRotation !== filePath
+      ) {
+        // Another process rotated the file (or removed it): reopen the current
+        // path instead of writing into the rotated file until our own rotation.
+        // Residual window (declared): if another process rotated AND we rewrote
+        // the current file between their rotation and our tick, the current
+        // path exists and this check cannot tell our descriptor still points
+        // at the rotated file — those lines stay in the rotated file (readable,
+        // none lost) until our next own rotation rebuilds the descriptor.
+        notifyLogRotationListeners(filePath);
+      }
+      // A recreated current file means the rotation was consumed: clear the
+      // marker so the next external rotation notifies again.
+      if (existsSync(filePath)) lastConsumedRotation = null;
       cleanupOverflowLogs(filePath, maxFiles);
     },
     intervalMs,
