@@ -408,7 +408,7 @@ describe("catalog capability presets", () => {
     assert.ok(!draft.models.has("omniroute/paid-m"));
   });
 
-  it("freeOnly without enrichment publishes nothing and warns once", async () => {
+  it("freeOnly without enrichment publishes unfiltered and warns once", async () => {
     const draft = fakeDraft();
     const { warns, restore } = captureWarns();
     try {
@@ -422,19 +422,21 @@ describe("catalog capability presets", () => {
         }
       );
       // #15392 stopped publishing auto combos, so counts no longer include autoCombos.
-      assert.deepEqual(res, { models: 0, combos: 0 });
+      assert.deepEqual(res, { models: 2, combos: 0 });
+      assert.ok(draft.models.has("omniroute/m1"));
+      assert.ok(draft.models.has("omniroute/m2"));
     } finally {
       restore();
     }
     assert.equal(warns.filter((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w)).length, 1);
     assert.match(
       warns.find((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w))!,
-      /freeOnly.*enrichment|enrichment.*free/i
+      /disabled for this refresh/i
     );
     assert.ok(warns.some((w) => /catalog refresh:/.test(w)));
   });
 
-  it("freeOnly with enrichment disabled publishes nothing", async () => {
+  it("freeOnly with enrichment disabled publishes unfiltered", async () => {
     const draft = fakeDraft();
     const { warns, restore } = captureWarns();
     try {
@@ -446,14 +448,44 @@ describe("catalog capability presets", () => {
           combosFetcher: async () => [],
         }
       );
-      assert.equal(res.models, 0);
+      assert.equal(res.models, 1);
+      assert.ok(draft.models.has("omniroute/m1"));
     } finally {
       restore();
     }
     assert.equal(warns.filter((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w)).length, 1);
     assert.match(
       warns.find((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w))!,
-      /freeOnly.*enrichment|enrichment.*free/i
+      /disabled for this refresh/i
+    );
+    assert.ok(warns.some((w) => /catalog refresh:/.test(w)));
+  });
+
+  it("freeOnly without enrichment publishes combos unfiltered and warns once", async () => {
+    const draft = fakeDraft();
+    const { warns, restore } = captureWarns();
+    try {
+      const res = await publishCatalog(
+        draft,
+        { ...baseOpts, freeOnly: true },
+        {
+          fetcher: async () => [{ id: "m1" }],
+          enrichmentFetcher: async () => new Map(),
+          combosFetcher: async () => [
+            { id: "combo-a", name: "Combo A", models: [{ kind: "model", model: "m1" }] },
+          ],
+        }
+      );
+      assert.equal(res.models, 1);
+      assert.equal(res.combos, 1);
+      assert.ok(draft.models.has("omniroute/Combo A"));
+    } finally {
+      restore();
+    }
+    assert.equal(warns.filter((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w)).length, 1);
+    assert.match(
+      warns.find((w) => /freeOnly.*enrichment|enrichment.*free/i.test(w))!,
+      /disabled for this refresh/i
     );
     assert.ok(warns.some((w) => /catalog refresh:/.test(w)));
   });

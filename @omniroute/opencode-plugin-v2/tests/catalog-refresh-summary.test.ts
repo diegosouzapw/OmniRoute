@@ -119,7 +119,7 @@ describe("catalog refresh summary", () => {
     assert.match(summary, /unmatched-free=16/);
   });
 
-  it("freeOnly with an empty overlay keeps the existing warning unchanged", async () => {
+  it("freeOnly with an empty overlay publishes unfiltered and warns once", async () => {
     const d = draft();
     const { warns, restore } = captureWarns();
     try {
@@ -132,13 +132,14 @@ describe("catalog refresh summary", () => {
           combosFetcher: async () => [],
         }
       );
-      assert.deepEqual(res, { models: 0, combos: 0 });
+      assert.deepEqual(res, { models: 2, combos: 0 });
     } finally {
       restore();
     }
     const existing = warns.find((w) => w.includes("no free-tier entries"));
     assert.ok(existing, "expected the existing empty-overlay warning");
     assert.match(existing, /freeOnly is on but the enrichment overlay has no free-tier entries/);
+    assert.match(existing, /disabled for this refresh/i);
     assert.ok(
       !warns.some((w) => w.includes("free-tier entries match")),
       "no match ratio on an empty overlay"

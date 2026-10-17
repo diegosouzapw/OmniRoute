@@ -1,0 +1,1 @@
+- **fix(catalog):** publish the unfiltered catalog when the free-tier preset has no overlay entries instead of an empty catalog ([#16103](https://github.com/diegosouzapw/OmniRoute/pull/16103)) — thanks @maxmad64bis

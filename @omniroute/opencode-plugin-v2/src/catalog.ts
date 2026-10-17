@@ -17,6 +17,7 @@ import {
   type CapabilityPresetFlags,
   passesCapabilityPresets,
 } from "./capability-presets.js";
+import { resolveFreeOnlyActive } from "./free-only-fallback.js";
 import {
   isHttpUrl,
   type ApiFormatV2,
@@ -603,6 +604,8 @@ interface PublishContext {
   providerResolve: ProviderResolve | undefined;
   /** Precomputed once per publish: every allow entry sits outside the vocabulary. */
   providerAllUnknown: boolean;
+  /** Same refresh fallback as the model pass: skip the free-tier preset when the overlay proves nothing. */
+  freeOnly: boolean;
   combosFetcher: CatalogFetchers["combos"] | undefined;
   combosTimeout: number;
   /** Shared with the combos pass: one collision warning per key, per run. */
@@ -644,6 +647,7 @@ async function publishCombos(
     combosTimeout,
     warnedCombos,
     cacheKey,
+    freeOnly,
   } = ctx;
   let rawCombos: OmniRouteRawCombo[];
   try {
@@ -681,7 +685,7 @@ async function publishCombos(
   const resolvedByName = new Map<string, LegacyModel>();
   const presetByName = new Map<string, boolean>();
   const activeFlags: CapabilityPresetFlags = {
-    freeOnly: opts.freeOnly,
+    freeOnly,
     toolsOnly: opts.toolsOnly,
     visionOnly: opts.visionOnly,
   };
@@ -720,7 +724,7 @@ async function publishCombos(
         presetsActive(activeFlags)
           ? !passesMembers
           : !passesCapabilityPresets(mapped, comboEnrichment, {
-              freeOnly: opts.freeOnly,
+              freeOnly,
               toolsOnly: opts.toolsOnly,
               visionOnly: opts.visionOnly,
             } satisfies CapabilityPresetFlags)
@@ -821,10 +825,9 @@ export async function collectCatalog(
   const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
   const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
   // `freeOnly` reads the overlay: an empty overlay (no management token,
-  // `enrichment: false`, or fetch failure) would otherwise empty the catalog
-  // silently. Warn once per refresh and keep filtering (fail-closed).
-  // A sparse overlay (free-tier lines that never meet a served id) warns
-  // with its match ratio instead, so a short catalog names its cause.
+  // `enrichment: false`, or fetch failure) proves nothing, so the preset is
+  // disabled for this refresh instead of publishing an empty catalog.
+  // The match counters below still feed the refresh summary line.
   const {
     total: freeTotal,
     matched: freeMatched,
@@ -834,16 +837,11 @@ export async function collectCatalog(
     enrichment,
     canonicalToAlias
   );
-  if (opts.freeOnly === true) {
-    if (freeTotal === 0) {
-      log.warn(
-        `[omniroute-v2] freeOnly is on but the enrichment overlay has no free-tier entries (no management token, enrichment disabled, or free-tier fetch failed); publishing an empty catalog. Disable freeOnly or configure the management token.`
-      );
-    } else if (freeUnmatched > 0) {
-      log.warn(
-        `[omniroute-v2] freeOnly dropped ${freeUnmatched} of ${freeTotal} free-tier lines: ${freeMatched}/${freeTotal} free-tier entries match the served catalog.`
-      );
-    }
+  const effectiveFreeOnly = resolveFreeOnlyActive(opts.freeOnly, enrichment, log);
+  if (opts.freeOnly === true && effectiveFreeOnly && freeUnmatched > 0) {
+    log.warn(
+      `[omniroute-v2] freeOnly dropped ${freeUnmatched} of ${freeTotal} free-tier lines: ${freeMatched}/${freeTotal} free-tier entries match the served catalog.`
+    );
   }
 
   const usable = await resolveUsableAliases(
@@ -883,7 +881,7 @@ export async function collectCatalog(
   // Showcase ranks the allowlisted pool so the default picker stays usable
   // without pinning plus the curated dates and pinned ids below.
   const presetFlags: CapabilityPresetFlags = {
-    freeOnly: opts.freeOnly,
+    freeOnly: effectiveFreeOnly,
     toolsOnly: opts.toolsOnly,
     visionOnly: opts.visionOnly,
   };
@@ -951,7 +949,7 @@ export async function collectCatalog(
     });
     if (
       !passesCapabilityPresets(mapped, enrichmentEntry, {
-        freeOnly: opts.freeOnly,
+        freeOnly: effectiveFreeOnly,
         toolsOnly: opts.toolsOnly,
         visionOnly: opts.visionOnly,
       } satisfies CapabilityPresetFlags)
@@ -989,7 +987,7 @@ export async function collectCatalog(
       });
       if (
         !passesCapabilityPresets(mapped, restoreEnrichment, {
-          freeOnly: opts.freeOnly,
+          freeOnly: effectiveFreeOnly,
           toolsOnly: opts.toolsOnly,
           visionOnly: opts.visionOnly,
         } satisfies CapabilityPresetFlags)
@@ -1025,6 +1023,7 @@ export async function collectCatalog(
     combosTimeout,
     warnedCombos,
     cacheKey,
+    freeOnly: effectiveFreeOnly,
   });
   // One summary line per successful refresh: the stage counters plus the
   // free-tier lines the served catalog never reached. Audible at the
