@@ -15,9 +15,17 @@
  * reason, timestamps, terminal status. Never prompts, request/response bodies,
  * headers, credentials, account ids, or raw upstream error strings.
  *
+ * An unknown skip reason is a caller defect: it is logged and the decision is
+ * recorded without a reason, so diagnostic tracing never fails the observed
+ * request.
+ *
  * Retention: bounded in-memory (TTL + LRU cap) — see TRACE_TTL_MS/MAX_TRACES.
  */
 import { randomUUID } from "node:crypto";
+
+import { logger } from "../../utils/logger.ts";
+
+const log = logger("COMBO");
 
 export const COMBO_SKIP_REASONS = [
   "circuit_open",
@@ -231,16 +239,19 @@ export function recordComboDecision(
 ): void {
   const trace = traces.get(invocationId);
   if (!trace) return;
-  if (entry.reason !== undefined && !isComboSkipReason(entry.reason)) {
-    throw new Error(
-      `invalid combo skip reason: ${String(entry.reason)} (allowlist: ${COMBO_SKIP_REASONS.join(", ")})`
+  const reason = isComboSkipReason(entry.reason) ? entry.reason : undefined;
+  if (entry.reason !== undefined && reason === undefined) {
+    // Diagnostics are fail-open by contract (see the module header): an unknown
+    // skip reason never fails the observed request.
+    log.warn(
+      `unknown combo skip reason ${String(entry.reason)} (decision recorded without a reason; allowlist: ${COMBO_SKIP_REASONS.join(", ")})`
     );
   }
   trace.decisions.push({
     step: entry.step,
     target: entry.target,
     decision: entry.decision,
-    reason: entry.reason as ComboSkipReason | undefined,
+    reason,
     ts: Date.now(),
     detail: entry.detail,
   });

@@ -8,6 +8,9 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-trace-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "combo-decision-trace-secret";
+// The logger reads APP_LOG_LEVEL at import and a test below asserts on the warn
+// line; pin the level so an ambient APP_LOG_LEVEL=error cannot silence it.
+process.env.APP_LOG_LEVEL = "info";
 
 const {
   COMBO_SKIP_REASONS,
@@ -49,25 +52,48 @@ test("createInvocationId yields unique opaque ids", () => {
   assert.notEqual(a, b);
 });
 
-test("skip reasons are allowlisted (unknown reason is rejected)", () => {
-  startComboTrace("combo-t", { strategy: "priority", comboName: "x" });
-  for (const reason of COMBO_SKIP_REASONS) {
+test("unknown skip reason is logged and traced without a reason; allowlisted and undefined reasons are unchanged", () => {
+  const originalWarn = console.warn;
+  const warnCalls: string[] = [];
+  console.warn = ((...args: unknown[]) => {
+    warnCalls.push(args.map(String).join(" "));
+  }) as typeof console.warn;
+  try {
+    startComboTrace("combo-t", { strategy: "priority", comboName: "x" });
+    for (const reason of COMBO_SKIP_REASONS) {
+      recordComboDecision("combo-t", {
+        step: "s",
+        target: "p/m",
+        decision: "skipped_before_dispatch",
+        reason,
+      });
+    }
     recordComboDecision("combo-t", {
       step: "s",
       target: "p/m",
       decision: "skipped_before_dispatch",
-      reason,
     });
+    assert.deepEqual(warnCalls, []);
+    assert.doesNotThrow(() =>
+      recordComboDecision("combo-t", {
+        step: "s",
+        target: "p/m",
+        decision: "skipped_before_dispatch",
+        reason: "freeform upstream error",
+      })
+    );
+    recordComboDecision("combo-t", { step: "s", target: "p/m", decision: "dispatched" });
+    const trace = getComboTrace("combo-t")!;
+    assert.deepEqual(
+      trace.decisions.map((d) => d.reason ?? null),
+      [...COMBO_SKIP_REASONS, null, null, null]
+    );
+    assert.equal(warnCalls.length, 1);
+    assert.match(warnCalls[0], /freeform upstream error/);
+    assert.equal(trace.decisions[trace.decisions.length - 1]!.decision, "dispatched");
+  } finally {
+    console.warn = originalWarn;
   }
-  assert.throws(() =>
-    recordComboDecision("combo-t", {
-      step: "s",
-      target: "p/m",
-      decision: "skipped_before_dispatch",
-      reason: "freeform upstream error",
-    })
-  );
-  assert.equal(getComboTrace("combo-t")!.decisions.length, COMBO_SKIP_REASONS.length);
 });
 
 test("finalize marks never-iterated targets as not_reached", () => {
