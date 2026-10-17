@@ -55,6 +55,7 @@ import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { resolveProviderAlias } from "../model.ts";
 import { filterExcludedCandidates } from "./candidateOverrides";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
+import { isNoAuthProviderReadyForAutoRouting } from "@/lib/providers/noAuthAutoRoutingReadiness";
 import {
   filterResilienceBlockedCandidates,
   buildConnectionResilienceMap,
@@ -347,12 +348,17 @@ function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
 
 const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 
+// No-auth providers must opt into prompt-emulated tool calling before entering
+// reliability-curated auto/* pools. Local CLI providers additionally need a
+// successful readiness probe before they are admitted; direct provider/model
+// routing remains unaffected.
 function isChatAutoComboNoAuthProvider(
   providerDef: NoAuthProviderDefinition,
   bypassAllowlist: boolean
 ): boolean {
   if (providerDef.noAuth !== true) return false;
   if (!bypassAllowlist && !EMULATED_TOOL_CALLING_NOAUTH_PROVIDERS.has(providerDef.id)) return false;
+  if (!bypassAllowlist && !isNoAuthProviderReadyForAutoRouting(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");
