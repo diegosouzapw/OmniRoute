@@ -71,6 +71,16 @@ export function parseResetTime(value) {
   return null;
 }
 
+/**
+ * How the 429 log names a `retry-after` header: the parsed wait, the header as sent
+ * when it does not parse to a positive wait, or its absence.
+ */
+export function describeRetryAfter(value: string | null): string {
+  if (!value) return "no retry-after header";
+  const ms = parseResetTime(value);
+  return `retry-after ${ms ? `${Math.ceil(ms / 1000)}s` : value}`;
+}
+
 export function toPlainHeaders(headers: unknown): Record<string, string> {
   if (!headers) return {};
   const plain: Record<string, string> = {};

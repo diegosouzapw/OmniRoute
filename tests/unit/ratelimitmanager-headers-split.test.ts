@@ -22,6 +22,7 @@ import assert from "node:assert/strict";
 import {
   STANDARD_HEADERS,
   ANTHROPIC_HEADERS,
+  describeRetryAfter,
   parseResetTime,
   toPlainHeaders,
 } from "../../open-sse/services/rateLimitManager/headers.ts";
@@ -42,6 +43,16 @@ test("rateLimitManager/headers — parseResetTime: duration strings → ms", () 
 
 test("rateLimitManager/headers — parseResetTime: bare number → seconds*1000", () => {
   assert.equal(parseResetTime("5"), 5_000);
+});
+
+// The 429 log names the header the response carried; it used to claim a 60 s pause.
+test("rateLimitManager/headers — describeRetryAfter: parsed wait, raw value, or absence", () => {
+  assert.equal(describeRetryAfter("30"), "retry-after 30s");
+  assert.equal(describeRetryAfter("1500ms"), "retry-after 2s");
+  assert.equal(describeRetryAfter("0"), "retry-after 0");
+  assert.equal(describeRetryAfter("soon"), "retry-after soon");
+  assert.equal(describeRetryAfter(null), "no retry-after header");
+  assert.equal(describeRetryAfter(""), "no retry-after header");
 });
 
 // anthropic-ratelimit-*-reset carries an RFC 3339 timestamp. parseFloat read its

@@ -91,7 +91,7 @@ export function parseDelayString(value: unknown): number | null {
 
 // Gemini/Google RPC 429 bodies embed the short throttle hint as
 // `error.details[].{"@type": ".../google.rpc.RetryInfo", "retryDelay": "26s"}`.
-function retryInfoDetailsMs(details: unknown): number | null {
+export function retryInfoDetailsMs(details: unknown): number | null {
   for (const detail of Array.isArray(details) ? details : []) {
     const detailRecord = objectRecord(detail);
     const type = String(detailRecord["@type"] ?? "");
