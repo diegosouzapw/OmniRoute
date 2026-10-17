@@ -1,0 +1,1 @@
+- **feat(dashboard):** the home Provider Topology now shows live per-model sub-nodes with an On/Auto/Off toolbar (Auto, the default, draws only in-flight models) ([#16739](https://github.com/diegosouzapw/OmniRoute/pull/16739)) — thanks @maulinul

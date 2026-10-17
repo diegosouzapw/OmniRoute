@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
@@ -11,6 +11,13 @@ import { StatusDot } from "@/shared/components/flow/StatusDot";
 import { edgeStyle, FLOW_EDGE_COLORS, flowColorAlpha } from "@/shared/components/flow/edgeStyles";
 import { getFallbackProviderColor } from "@/shared/utils/providerFallbackColor";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
+import {
+  buildModelSubNodes,
+  getHandles,
+  selectTopologyModels,
+  type ModelNodeData,
+  type TopologyModelMode,
+} from "./topologyUtils";
 
 // Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
 const RINGS: [number, number, number][] = [
@@ -96,6 +103,16 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
         id="right"
         className="!bg-transparent !border-0 !w-0 !h-0"
       />
+      {/* Source handles for the edges out to this provider's model sub-nodes. */}
+      {(["top", "bottom", "left", "right"] as const).map((side) => (
+        <Handle
+          key={side}
+          type="source"
+          position={HANDLE_POSITIONS[side]}
+          id={`s-${side}`}
+          className="!bg-transparent !border-0 !w-0 !h-0"
+        />
+      ))}
 
       <div
         className="size-6 rounded flex items-center justify-center shrink-0"
@@ -116,6 +133,46 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
       {(active || error || healthy || last) && (
         <StatusDot color={dotColor} error={error} pulse={active || error} />
       )}
+    </div>
+  );
+}
+
+const HANDLE_POSITIONS = {
+  top: Position.Top,
+  bottom: Position.Bottom,
+  left: Position.Left,
+  right: Position.Right,
+} as const;
+
+function ModelNode({ data }: { data: ModelNodeData }) {
+  const { label, active, color, overflow } = data;
+  return (
+    <div
+      className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border bg-bg font-mono text-[10px] transition-all duration-300 cursor-pointer max-w-[136px] motion-reduce:[&_.animate-ping]:hidden"
+      style={{
+        borderColor: active ? color : "var(--color-border)",
+        boxShadow: active ? `0 0 10px ${color}40` : "none",
+        color: active ? color : "var(--color-text-muted)",
+      }}
+      title={label}
+    >
+      {(["top", "bottom", "left", "right"] as const).map((side) => (
+        <Handle
+          key={side}
+          type="target"
+          position={HANDLE_POSITIONS[side]}
+          id={side}
+          className="!bg-transparent !border-0 !w-0 !h-0"
+        />
+      ))}
+      {!overflow && (
+        <StatusDot
+          color={active ? color : FLOW_EDGE_COLORS.idle}
+          sizeClass="size-1.5"
+          pulse={active}
+        />
+      )}
+      <span className="truncate">{label}</span>
     </div>
   );
 }
@@ -166,27 +223,20 @@ function RouterNode({ data }: { data: RouterNodeData }) {
 const nodeTypes: NodeTypes = {
   provider: ProviderNode as any,
   router: RouterNode as any,
+  model: ModelNode as any,
 };
 
 type ProviderHealth = "active" | "error" | "idle";
 type ProviderEntry = { id?: string; provider: string; name?: string; status?: ProviderHealth };
 
-function getHandles(angle: number, cx: number): { sourceHandle: string; targetHandle: string } {
-  const rel = (((angle + Math.PI / 2) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  if (rel < Math.PI / 4 || rel > (7 * Math.PI) / 4)
-    return { sourceHandle: "top", targetHandle: "bottom" };
-  if (rel > (3 * Math.PI) / 4 && rel < (5 * Math.PI) / 4)
-    return { sourceHandle: "bottom", targetHandle: "top" };
-  return cx > 0
-    ? { sourceHandle: "right", targetHandle: "left" }
-    : { sourceHandle: "left", targetHandle: "right" };
-}
-
 function buildLayout(
   providers: ProviderEntry[],
   activeSet: Set<string>,
   lastSet: Set<string>,
-  errorSet: Set<string>
+  errorSet: Set<string>,
+  modelMode: TopologyModelMode = "auto",
+  activeRequests: ModelRef[] = [],
+  recentRequests: ModelRef[] = []
 ): { nodes: Node[]; edges: Edge[] } {
   const nodeW = 156;
   const nodeH = 28;
@@ -219,6 +269,16 @@ function buildLayout(
     const d = rank(a) - rank(b);
     return d !== 0 ? d : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
   });
+
+  // Model sub-nodes orbit just outside the outermost ring in use, so they never land
+  // between two provider rings.
+  let outerRing = 0;
+  for (let left = sorted.length - RINGS[0][0]; left > 0 && outerRing < RINGS.length - 1;) {
+    outerRing++;
+    left -= RINGS[outerRing][0];
+  }
+  const orbit = { rx: RINGS[outerRing][1], ry: RINGS[outerRing][2] };
+  const modelNodes: Node[] = [];
 
   let provIdx = 0;
   for (let ri = 0; ri < RINGS.length && provIdx < sorted.length; ri++) {
@@ -275,15 +335,45 @@ function buildLayout(
         animated: active,
         style: edgeStyle(active, last, error, healthy),
       });
+
+      const sub = buildModelSubNodes(
+        { nodeId, providerId: p.provider, angle, color: config.color || "#6b7280" },
+        selectTopologyModels(p.provider, modelMode, activeRequests, recentRequests),
+        orbit,
+        (2 * Math.PI) / count
+      );
+      modelNodes.push(...sub.nodes);
+      edges.push(...sub.edges);
     }
   }
 
+  // Model nodes go last so ReactFlow paints them above the provider ring.
+  nodes.push(...modelNodes);
   return { nodes, edges };
 }
 
+type ModelRef = { provider?: string; model?: string };
+
+/** Stable string identity for a provider/model list, so memos re-run only on real change. */
+function modelRefsKey(refs: ModelRef[]): string {
+  return refs
+    .filter((r) => r.provider && r.model)
+    .map((r) => `${r.provider}\u0000${r.model}`)
+    .join("\u0001");
+}
+
+const MODEL_MODES: TopologyModelMode[] = ["on", "auto", "off"];
+const MODEL_MODE_LABEL_KEYS = {
+  on: ["topologyModelsOn", "topologyModelsOnHint"],
+  auto: ["topologyModelsAuto", "topologyModelsAutoHint"],
+  off: ["topologyModelsOff", "topologyModelsOffHint"],
+} as const;
+
 type Props = {
   providers?: ProviderEntry[];
-  activeRequests?: Array<{ provider?: string; model?: string }>;
+  activeRequests?: ModelRef[];
+  /** Recently finished requests; ON mode draws their models as idle sub-nodes. */
+  recentRequests?: ModelRef[];
   lastProvider?: string;
   errorProvider?: string;
 };
@@ -291,6 +381,7 @@ type Props = {
 export default function ProviderTopology({
   providers = [],
   activeRequests = [],
+  recentRequests = [],
   lastProvider = "",
   errorProvider = "",
 }: Props) {
@@ -314,10 +405,24 @@ export default function ProviderTopology({
   const lastSet = useMemo(() => new Set<string>(lastKey ? [lastKey] : []), [lastKey]);
   const errorSet = useMemo(() => new Set<string>(errorKey ? [errorKey] : []), [errorKey]);
 
+  // AUTO (default) only draws models with a request in flight, so an idle map is unchanged.
+  const [modelMode, setModelMode] = useState<TopologyModelMode>("auto");
+  const activeModelsKey = modelRefsKey(activeRequests);
+  const recentModelsKey = modelMode === "on" ? modelRefsKey(recentRequests) : "";
+
   const { nodes, edges } = useMemo(
-    () => buildLayout(providers, activeSet, lastSet, errorSet),
+    () =>
+      buildLayout(
+        providers,
+        activeSet,
+        lastSet,
+        errorSet,
+        modelMode,
+        activeRequests,
+        recentRequests
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [providers, activeSet, lastKey, errorKey]
+    [providers, activeSet, lastKey, errorKey, modelMode, activeModelsKey, recentModelsKey]
   );
 
   const providersKey = useMemo(
@@ -333,9 +438,9 @@ export default function ProviderTopology({
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
-      if (node.type !== "provider") return;
+      if (node.type !== "provider" && node.type !== "model") return;
       const providerId =
-        (node.data as ProviderNodeData | undefined)?.providerId ||
+        (node.data as ProviderNodeData | ModelNodeData | undefined)?.providerId ||
         node.id.replace(/^provider-/, "");
       if (providerId) {
         router.push(`/dashboard/providers/${providerId}`);
@@ -359,13 +464,40 @@ export default function ProviderTopology({
   }
 
   return (
-    <FlowCanvas
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      fitKey={providersKey}
-      className={containerClass}
-      onNodeClick={handleNodeClick}
-    />
+    <div className="relative">
+      <div
+        role="group"
+        aria-label={t("topologyModels")}
+        className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded-md border border-border bg-bg/90 p-1 text-[11px] shadow-sm"
+      >
+        <span className="px-1 font-semibold text-text-muted">{t("topologyModels")}</span>
+        {MODEL_MODES.map((mode) => {
+          const [labelKey, hintKey] = MODEL_MODE_LABEL_KEYS[mode];
+          const selected = modelMode === mode;
+          return (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={selected}
+              title={t(hintKey)}
+              onClick={() => setModelMode(mode)}
+              className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                selected ? "bg-primary text-white" : "text-text-muted hover:bg-bg-subtle"
+              }`}
+            >
+              {t(labelKey)}
+            </button>
+          );
+        })}
+      </div>
+      <FlowCanvas
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        fitKey={providersKey}
+        className={containerClass}
+        onNodeClick={handleNodeClick}
+      />
+    </div>
   );
 }
