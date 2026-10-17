@@ -1,3 +1,4 @@
+import { resolveLocalProviderBaseUrl } from "@/shared/utils/localProviderBaseUrl";
 import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import {
   parseEmbeddingModel,
@@ -243,7 +244,7 @@ export async function createEmbeddingResponse(
 
     const providerSpecificData = (credentials as { providerSpecificData?: Record<string, unknown> })
       .providerSpecificData;
-    const configuredBaseUrl = providerSpecificData?.baseUrl;
+    const configuredBaseUrl = resolveLocalProviderBaseUrl(provider, providerSpecificData?.baseUrl);
     if (typeof configuredBaseUrl !== "string" || configuredBaseUrl.trim().length === 0) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -258,7 +259,7 @@ export async function createEmbeddingResponse(
     providerConfig = {
       id: provider,
       baseUrl: baseUrl.endsWith("/embeddings") ? baseUrl : `${baseUrl}/embeddings`,
-      authType: "apikey",
+      authType: provider === "docker-model-runner" ? "none" : "apikey",
       authHeader: "bearer",
       models: [],
       structuredInputProtocol: registryConfig?.structuredInputProtocol,

@@ -1,3 +1,4 @@
+import { resolveLocalProviderBaseUrl } from "@/shared/utils/localProviderBaseUrl";
 import { isSelfHostedChatProvider } from "@/shared/constants/providers";
 import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
@@ -19,10 +20,10 @@ export function toNonEmptyString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export function getProviderBaseUrl(providerSpecificData: unknown): string | null {
+export function getProviderBaseUrl(providerSpecificData: unknown, provider = ""): string | null {
   const data = asRecord(providerSpecificData);
   const baseUrl = data.baseUrl;
-  return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
+  return resolveLocalProviderBaseUrl(provider, baseUrl);
 }
 
 export function normalizeAzureOpenAIBaseUrl(baseUrl: string) {

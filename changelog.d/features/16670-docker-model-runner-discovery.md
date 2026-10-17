@@ -1,0 +1,1 @@
+- Use registered local-provider URLs for model discovery and synchronized embedding routes, and align Docker Model Runner's default with its engine-neutral OpenAI endpoint. Docker Model Runner embedding requests now accept keyless connections while preserving configured credentials and per-model capability checks. (#16670)

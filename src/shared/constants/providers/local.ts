@@ -139,8 +139,8 @@ export const LOCAL_PROVIDERS = {
     textIcon: "DM",
     website: "https://docs.docker.com/ai/model-runner/",
     authHint:
-      "API key optional. Configure the local Docker Model Runner OpenAI-compatible base URL (default: http://localhost:12434/v1).",
-    localDefault: "http://localhost:12434/v1",
+      "API key optional. Configure the local Docker Model Runner OpenAI-compatible base URL (default: http://localhost:12434/engines/v1).",
+    localDefault: "http://localhost:12434/engines/v1",
     passthroughModels: true,
   },
   xinference: {
