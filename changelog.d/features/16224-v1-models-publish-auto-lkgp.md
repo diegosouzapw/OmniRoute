@@ -1,0 +1,1 @@
+- **feat(v1-models):** publish the routable `auto` and `auto/lkgp` ids in `GET /v1/models` with the pool limits ([#16224](https://github.com/diegosouzapw/OmniRoute/pull/16224)) — thanks @maxmad64bis
