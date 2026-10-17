@@ -1,0 +1,1 @@
+- **feat(combos):** export/import combos as a standalone, secret-free JSON file — merge by default, explicit transactional replace, connections and credentials never travel ([#16747](https://github.com/diegosouzapw/OmniRoute/pull/16747)) — thanks @vianhanif

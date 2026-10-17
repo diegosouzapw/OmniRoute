@@ -187,6 +187,11 @@ export async function getComboByNameInsensitive(name: string) {
 }
 
 export async function createCombo(data: JsonRecord) {
+  return insertComboRow(data);
+}
+
+/** Synchronous insert so batch writers can run it inside one `db.transaction`. */
+function insertComboRow(data: JsonRecord): JsonRecord {
   const db = getDbInstance();
   const now = new Date().toISOString();
   const sortOrder = typeof data.sortOrder === "number" ? data.sortOrder : getNextSortOrder();
@@ -350,27 +355,29 @@ export async function reorderCombos(comboIds: string[]): Promise<ComboReorderRes
   };
 }
 
+function deleteComboRow(db: ReturnType<typeof getDbInstance>, id: string) {
+  const combo = db.prepare("SELECT name FROM combos WHERE id = ?").get(id) as
+    { name?: string } | undefined;
+  const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
+  if (result.changes === 0) return { deleted: false, lkgpKeys: [] as string[], purged: 0 };
+  // Purge the combo's proxy assignments and rotation cursor with the combo row
+  // (#14553, same shape as the account-scope purge in providers/deletion.ts
+  // for #9232): orphaned proxy_assignments rows would keep answering for a
+  // scope_id that no longer exists.
+  const purged = db
+    .prepare("DELETE FROM proxy_assignments WHERE scope = 'combo' AND scope_id IS ?")
+    .run(id).changes;
+  clearRotationState(db, "combo", id);
+  return {
+    deleted: true,
+    lkgpKeys: combo?.name ? deleteLKGPRowsByComboName(combo.name) : ([] as string[]),
+    purged,
+  };
+}
+
 export async function deleteCombo(id: string) {
   const db = getDbInstance();
-  const deleteTransaction = db.transaction(() => {
-    const combo = db.prepare("SELECT name FROM combos WHERE id = ?").get(id) as
-      { name?: string } | undefined;
-    const result = db.prepare("DELETE FROM combos WHERE id = ?").run(id);
-    if (result.changes === 0) return { deleted: false, lkgpKeys: [] as string[], purged: 0 };
-    // Purge the combo's proxy assignments and rotation cursor with the combo row
-    // (#14553, same shape as the account-scope purge in providers/deletion.ts
-    // for #9232): orphaned proxy_assignments rows would keep answering for a
-    // scope_id that no longer exists.
-    const purged = db
-      .prepare("DELETE FROM proxy_assignments WHERE scope = 'combo' AND scope_id IS ?")
-      .run(id).changes;
-    clearRotationState(db, "combo", id);
-    return {
-      deleted: true,
-      lkgpKeys: combo?.name ? deleteLKGPRowsByComboName(combo.name) : ([] as string[]),
-      purged,
-    };
-  });
+  const deleteTransaction = db.transaction(() => deleteComboRow(db, id));
 
   const { deleted, lkgpKeys, purged } = deleteTransaction();
   if (!deleted) return false;
@@ -387,6 +394,48 @@ export async function deleteCombo(id: string) {
   }
 
   return true;
+}
+
+export interface ComboImportBatchResult {
+  created: JsonRecord[];
+  removed: number;
+  lkgpKeys: string[];
+}
+
+/**
+ * Write a batch of already-validated combos in ONE transaction: any failure
+ * (UNIQUE name race, combo invariant) rolls back every insert and, with
+ * `replaceVisible`, every deletion. Hidden system-managed combos (quota pools)
+ * are never removed.
+ */
+export function importComboBatch(
+  entries: JsonRecord[],
+  options: { replaceVisible: boolean }
+): ComboImportBatchResult {
+  const db = getDbInstance();
+  const run = db.transaction(() => {
+    const lkgpKeys: string[] = [];
+    let removed = 0;
+    let purged = 0;
+    if (options.replaceVisible) {
+      const rows = db.prepare("SELECT id, data FROM combos").all();
+      for (const row of rows) {
+        const combo = parseComboRow(row);
+        if (!combo || combo.isHidden === true || typeof combo.id !== "string") continue;
+        const outcome = deleteComboRow(db, combo.id);
+        if (!outcome.deleted) continue;
+        removed += 1;
+        purged += outcome.purged;
+        lkgpKeys.push(...outcome.lkgpKeys);
+      }
+    }
+    const created = entries.map((entry) => insertComboRow(entry));
+    return { created, removed, lkgpKeys, purged };
+  });
+
+  const { created, removed, lkgpKeys, purged } = run();
+  if (purged > 0) bumpProxyRegistryGeneration();
+  return { created, removed, lkgpKeys };
 }
 
 export const sqliteComboRepository: ComboRepository = {

@@ -63,6 +63,7 @@ import {
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
 import AutoComboCatalog from "./AutoComboCatalog";
+import ComboHeaderActions from "./ComboHeaderActions";
 import { AutoComboTruncatedNote, getI18nOrFallback } from "./comboPageHelpers";
 import KimiComboPresetCard from "./KimiComboPresetCard";
 import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
@@ -1223,9 +1224,7 @@ function CombosPageContent() {
               {getI18nOrFallback(t, "usageGuideShow", "Show guide")}
             </Button>
           )}
-          <Button icon="add" onClick={() => setShowCreateModal(true)}>
-            {t("createCombo")}
-          </Button>
+          <ComboHeaderActions onImported={fetchData} onCreate={() => setShowCreateModal(true)} />
         </div>
       </div>
 

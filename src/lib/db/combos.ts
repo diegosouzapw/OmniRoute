@@ -10,7 +10,7 @@ import type { ComboRecord } from "@/domain/persistence/comboRepositories";
 import { backupDbFile } from "./backup";
 import { clearSessionModelHistoryForCombo } from "./contextHandoffs";
 import { getDbInstance } from "./core";
-import { invalidateDbCache } from "./readCache";
+import { invalidateCachedLKGP, invalidateDbCache } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { routingConfigRepositories } from "./repositories/routingConfigRepositories";
 
@@ -83,6 +83,23 @@ export async function deleteComboByName(name: string): Promise<boolean> {
   const combo = await repository.findByName(name);
   if (!combo || typeof combo.id !== "string") return false;
   return deleteCombo(combo.id);
+}
+
+/**
+ * Atomically import validated combos (combos-only export/import). With
+ * `replaceVisible`, every user-visible combo is removed in the same
+ * transaction; hidden system-managed combos are kept.
+ */
+export async function importCombos(
+  entries: ComboRecord[],
+  options: { replaceVisible: boolean }
+): Promise<{ created: ComboRecord[]; removed: number }> {
+  backupDbFile("pre-write");
+  const result = routingConfigRepositories.legacySync.importComboBatch(entries, options);
+  for (const key of result.lkgpKeys) invalidateCachedLKGP(key);
+  if (result.removed > 0) invalidateReasoningRoutingRuleCache();
+  invalidateDbCache("combos");
+  return { created: result.created, removed: result.removed };
 }
 
 export function setActiveCombo(name: string, db = getDbInstance()): void {

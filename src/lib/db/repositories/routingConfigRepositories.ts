@@ -4,7 +4,9 @@ import type {
 } from "@/domain/persistence/comboRepositories";
 import {
   getCombosCount as getSqliteCombosCount,
+  importComboBatch,
   sqliteComboRepository,
+  type ComboImportBatchResult,
 } from "./sqliteComboRepository";
 import { sqliteModelComboMappingRepository } from "./sqliteModelComboMappingRepository";
 
@@ -13,6 +15,10 @@ export interface RoutingConfigRepositories {
   modelComboMappings: ModelComboMappingRepository;
   legacySync: {
     getCombosCount(): number;
+    importComboBatch(
+      entries: Record<string, unknown>[],
+      options: { replaceVisible: boolean }
+    ): ComboImportBatchResult;
   };
 }
 
@@ -28,5 +34,6 @@ export const routingConfigRepositories: RoutingConfigRepositories = {
   modelComboMappings: sqliteModelComboMappingRepository,
   legacySync: {
     getCombosCount: getSqliteCombosCount,
+    importComboBatch,
   },
 };
