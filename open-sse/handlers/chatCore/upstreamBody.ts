@@ -12,6 +12,7 @@ import { getEffectiveToolLimit, getKnownToolLimit } from "../../services/toolLim
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "../../services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "../../services/webFetchInterception.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../../translator/request/openai-to-claude.ts";
+import { applyToolDisclosure, type ToolDisclosureConfig } from "../../utils/toolDisclosure.ts";
 import {
   providerSupportsCaching,
   resolveConnectionCacheOverride,
@@ -317,6 +318,8 @@ type PrepareUpstreamBodyOptions = {
   rawBody?: { messages?: unknown } | undefined;
   /** Incoming client request — read for the x-omniroute-effort header (#13448). */
   clientRawRequest?: { headers?: unknown } | undefined;
+  /** Opt-in relevance-based tool selection (settings.toolDisclosure); null/absent = off. */
+  toolDisclosure?: ToolDisclosureConfig | null;
   log?: LoggerLike;
 };
 
@@ -461,6 +464,21 @@ export async function prepareUpstreamBody(opts: PrepareUpstreamBodyOptions): Pro
     }
   }
   bodyToSend = defaultImageDetail(bodyToSend, isOpencodeClient);
+  // Relevance selection runs before the provider cap so the cap keeps the useful tools.
+  const disclosure = applyToolDisclosure(bodyToSend, opts.toolDisclosure, {
+    rawBody: opts.rawBody,
+    toolNamePrefix: CLAUDE_OAUTH_TOOL_PREFIX,
+    isPinnedTool: isFallbackTool,
+    onError: (error) =>
+      log?.warn?.("TOOL_DISCLOSURE", `Selection failed, sending all tools: ${String(error)}`),
+  });
+  if (disclosure.stats) {
+    bodyToSend = disclosure.body;
+    log?.debug?.(
+      "TOOL_DISCLOSURE",
+      `Kept ${disclosure.stats.after}/${disclosure.stats.before} tools by relevance`
+    );
+  }
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);
   bodyToSend = await injectPromptCacheKey(

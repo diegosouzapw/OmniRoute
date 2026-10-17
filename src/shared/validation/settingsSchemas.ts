@@ -225,6 +225,21 @@ export const updateSettingsSchema = z.object({
   probeCanDisable: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   logToolSources: z.boolean().optional(),
+  // Opt-in (absent = off): keep only the `maxTools` client tools most relevant to the
+  // current user turn (BM25) before the provider tool cap. See open-sse/utils/toolDisclosure.ts.
+  toolDisclosure: z
+    .object({
+      enabled: z.boolean(),
+      maxTools: z.number().int().min(1).max(500).optional(),
+      alwaysInclude: z.array(z.string().min(1).max(256)).max(500).optional(),
+      // "zeroOverlap" drops only tools sharing no word with recent messages (bounded below).
+      mode: z.enum(["topK", "zeroOverlap"]).optional(),
+      minTools: z.number().int().min(1).max(500).optional(),
+      keepRatio: z.number().min(0).max(1).optional(),
+      dropCap: z.number().min(0).max(1).optional(),
+    })
+    .strict()
+    .optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   hiddenSidebarSections: z
     .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
