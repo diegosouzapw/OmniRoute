@@ -49,9 +49,10 @@ export interface StreamTiming {
   /** Mark the first forwarded chunk that carries output the user can see. */
   markOutput(): void;
   /**
-   * Inspect a forwarded SSE chunk and mark the first one that carries output. Only the first
-   * MAX_OUTPUT_PROBES chunks are parsed, so an unrecognized client format cannot turn this into
-   * per-chunk parsing for the whole stream; TTFT then falls back to latency, as before.
+   * Inspect a forwarded SSE chunk and mark the first one that carries output. The first
+   * MAX_OUTPUT_PROBES chunks are parsed in full, then one chunk out of OUTPUT_PROBE_STRIDE, so
+   * output that starts after the window is still seen and an unrecognized client format cannot
+   * turn this into per-chunk parsing for the whole stream.
    */
   observeOutput(bytes: Uint8Array): void;
   markInterrupted(): void;
@@ -83,6 +84,8 @@ export interface StreamTiming {
 const MAX_INTER_CHUNK_GAPS = 32;
 /** Max number of forwarded chunks parsed while looking for the first output. */
 const MAX_OUTPUT_PROBES = 64;
+/** Beyond the full window, probe one forwarded chunk out of this many. */
+const OUTPUT_PROBE_STRIDE = 16;
 
 /**
  * Request start → first chunk with text, reasoning or a tool call: `originOffsetMs` is the time
@@ -110,9 +113,11 @@ export function registerStreamTiming<T extends object>(stream: T, timing: Stream
 
 /**
  * True once the stream forwarded a chunk carrying text, reasoning or a tool call to the
- * client. A failure after that point cannot be retried on another target. Only the first
- * MAX_OUTPUT_PROBES forwarded chunks are probed, so a stream whose output starts later reads
- * false here — the conservative answer (callers keep their pre-output behavior).
+ * client. A failure after that point cannot be retried on another target. Forwarded chunks are
+ * parsed in full up to MAX_OUTPUT_PROBES, then one out of OUTPUT_PROBE_STRIDE, so output that
+ * starts later is still reported. A probe only sees the chunk it receives: output that stops
+ * before the next probed chunk reads false here — the conservative answer (callers keep their
+ * pre-output behavior).
  */
 export function streamEmittedOutput(stream: object | null | undefined): boolean {
   if (!stream) return false;
@@ -121,7 +126,7 @@ export function streamEmittedOutput(stream: object | null | undefined): boolean 
 
 export function createStreamTiming(): StreamTiming {
   const outputDecoder = new TextDecoder();
-  let outputProbes = 0;
+  let observedChunks = 0;
   const timing: StreamTiming = {
     startedAt: performance.now(),
     firstByteAt: null,
@@ -147,8 +152,10 @@ export function createStreamTiming(): StreamTiming {
       if (this.firstOutputAt === null) this.firstOutputAt = performance.now();
     },
     observeOutput(bytes) {
-      if (this.firstOutputAt !== null || outputProbes >= MAX_OUTPUT_PROBES) return;
-      outputProbes += 1;
+      if (this.firstOutputAt !== null) return;
+      const observed = observedChunks;
+      observedChunks += 1;
+      if (observed >= MAX_OUTPUT_PROBES && observed % OUTPUT_PROBE_STRIDE !== 0) return;
       if (sseChunkCarriesOutput(outputDecoder.decode(bytes))) this.markOutput();
     },
     markInterrupted() {

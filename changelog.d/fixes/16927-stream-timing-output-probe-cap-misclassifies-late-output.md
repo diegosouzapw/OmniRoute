@@ -1,0 +1,1 @@
+- **fix(sse):** a stream whose visible output starts after the first 64 forwarded chunks is now reported as having emitted output, so a 5xx after that point no longer records a model-only lockout that benched the model for every other client; three such failures in a row still lock it ([#16927](https://github.com/diegosouzapw/OmniRoute/pull/16927)) — thanks @maxmad64bis
