@@ -1,0 +1,1 @@
+- **refactor(security):** remove unused caller-controlled disable-list resolution from mandatory prompt-injection middleware; regression tests ensure body, metadata and both disable headers cannot bypass block mode (refs [#16413](https://github.com/diegosouzapw/OmniRoute/issues/16413)) — thanks @fabioKoruja00
