@@ -3,13 +3,8 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
-import {
-  chromium,
-  type Browser,
-  type BrowserContext,
-  type BrowserContextOptions,
-  type Page,
-} from "playwright-core";
+import type { Browser, BrowserContext, BrowserContextOptions, Page } from "playwright-core";
+import { loadPlaywrightCore } from "../../utils/optionalPlaywrightCore.ts";
 import { cdpConnectOptions } from "./cdp-auth";
 import type { AppConfig } from "./config";
 import { atomicWriteFile } from "./config";
@@ -111,6 +106,7 @@ async function inspectStoredState(
   if (!config.cdpEndpoint && !config.chromeExecutablePath) {
     throw new Error("ChatGPT browser verification requires Chrome or a CDP endpoint");
   }
+  const { chromium } = await loadPlaywrightCore();
   const verifierBrowser = config.cdpEndpoint
     ? await chromium.connectOverCDP(config.cdpEndpoint, cdpConnectOptions())
     : await chromium.launch({
@@ -189,6 +185,7 @@ export async function loginToChatGpt(
       `Google Chrome was not found at ${config.chromeExecutablePath}. Pass --chrome with its executable path.`
     );
   }
+  const { chromium } = await loadPlaywrightCore();
   const profileDir = join(dirname(config.storageStatePath), "login-profile");
   mkdirSync(profileDir, { recursive: true, mode: 0o700 });
   process.stdout.write(
@@ -275,6 +272,7 @@ export function browserLoginStateExists(
 export async function checkBrowserEngine(config: AppConfig): Promise<void> {
   if (!existsSync(config.chromeExecutablePath))
     throw new Error(`Google Chrome was not found at ${config.chromeExecutablePath}`);
+  const { chromium } = await loadPlaywrightCore();
   const browser = await chromium.launch({
     executablePath: config.chromeExecutablePath,
     headless: true,

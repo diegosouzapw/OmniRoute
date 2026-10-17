@@ -1,7 +1,8 @@
 /* Adapted from miuuyy/codex-chatgpt-web v4.0.7 commit b59d7dc51b84fb1f465ff1d00f5207f3b2b4a494 (MIT). */
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
+import { loadPlaywrightCore } from "../../utils/optionalPlaywrightCore.ts";
 import { expandUserPath } from "./config";
 import { processRunning } from "./process";
 
@@ -251,6 +252,7 @@ export async function connectLauncherBrowserHost(
   if (abortSignal?.aborted) {
     throw new DOMException("Launcher browser connection aborted", "AbortError");
   }
+  const { chromium } = await loadPlaywrightCore();
   const descriptor = readLauncherBrowserHostDescriptor(descriptorPath);
   await assertCdpReady(descriptor, Math.min(timeoutMs, 5_000));
   let browser: Browser;
