@@ -1,0 +1,1 @@
+- **fix(codebuddy-intl):** send the `X-Conversation-*` header family on CodeBuddy International chat requests to pass upstream channel verification and avoid HTTP 400 code 11128
