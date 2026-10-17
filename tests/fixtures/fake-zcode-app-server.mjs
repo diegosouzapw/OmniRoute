@@ -1,8 +1,6 @@
 const HEADER_SIZE = 13;
 let input = Buffer.alloc(0);
 let handshaken = false;
-let sessionId = "fake-zcode-session";
-let selectedModel = null;
 
 function vql(value) {
   if (!Number.isSafeInteger(value) || value < 0) throw new Error("invalid vql value");
@@ -105,31 +103,79 @@ function handleFrame(body) {
   const request = Array.isArray(args) && args[0] && typeof args[0] === "object" ? args[0] : {};
 
   switch (method) {
-    case "initialize":
-      response(id, { available: true, protocolName: "ZCode Protocol", protocolVersion: 1, transportKind: "stdio" });
-      break;
-    case "createSession":
-      sessionId = "fake-zcode-session";
-      response(id, { session: { sessionId, status: "idle", workspace: { workspacePath: request.workspacePath } }, messages: [] });
-      break;
-    case "setModel":
-      selectedModel = request.model;
-      response(id, { ok: true, model: selectedModel });
-      break;
-    case "sendPrompt":
-      response(id, { session: { sessionId, status: "running" }, accepted: true });
-      break;
-    case "readSession":
+    case "getView":
       response(id, {
-        session: { sessionId, status: "completed", model: selectedModel },
-        messages: [
-          { info: { messageId: "fake-user-message", role: "user" }, parts: [{ type: "text", text: request.content || "prompt" }] },
-          { info: { messageId: "fake-assistant-message", role: "assistant" }, parts: [{ type: "text", text: "fake zcode response" }] },
+        providers: [
+          {
+            providerId: "account:zai-individual-coding-plan",
+            models: [
+              { modelId: "GLM-5.2", config: { enabled: true } },
+              {
+                modelId: "GLM-5.3-Flash",
+                config: {
+                  enabled: true,
+                  optionSpecs: { reasoningLevel: { values: ["low", "high", "max"] } },
+                },
+              },
+            ],
+          },
         ],
       });
       break;
-    case "closeSession":
-      response(id, { ok: true });
+    case "initialize":
+      response(id, {
+        available: true,
+        protocolName: "ZCode Protocol",
+        protocolVersion: 1,
+        transportKind: "stdio",
+      });
+      break;
+    case "generateWorkspaceText":
+      if (
+        request.selection?.providerId !== "account:zai-individual-coding-plan" ||
+        !Array.isArray(request.messages)
+      )
+        process.exit(2);
+      response(id, {
+        text: request.messages.some(
+          (message) =>
+            Array.isArray(message.content) &&
+            message.content.some(
+              (part) =>
+                part.type === "image" &&
+                part.dataUrl === "data:image/png;base64,aGVsbG8=" &&
+                part.mediaType === "image/png"
+            )
+        )
+          ? "native image received"
+          : request.messages.some((message) => message.role === "tool")
+            ? "tool result consumed"
+            : request.tools?.length
+              ? ""
+              : "fake zcode response",
+        selection: request.selection,
+        ...(request.tools?.length && !request.messages.some((message) => message.role === "tool")
+          ? {
+              toolCalls: [
+                { id: "call_lookup", name: request.tools[0].name, input: { key: "bridge-check" } },
+              ],
+              finishReason: "tool-calls",
+            }
+          : { finishReason: "stop" }),
+        usage: {
+          inputTokens: 100,
+          outputTokens: 12,
+          totalTokens: 112,
+          cacheReadTokens: 30,
+          reasoningTokens: 4,
+        },
+      });
+      break;
+    case "createSession":
+    case "sendPrompt":
+    case "setModel":
+    case "readSession":
+      send([202, id], { message: "Inference must not launch an autonomous coding session" });
       break;
     default:
       response(id, { ok: true });
@@ -148,7 +194,9 @@ function consumeFrames() {
   }
 }
 
-process.stdout.write(`${JSON.stringify({ type: "zcode-hello", version: "fixture", platform: "test", arch: "test", pid: process.pid })}\n`);
+process.stdout.write(
+  `${JSON.stringify({ type: "zcode-hello", version: "fixture", platform: "test", arch: "test", pid: process.pid })}\n`
+);
 
 process.stdin.on("data", (chunk) => {
   input = Buffer.concat([input, chunk]);
