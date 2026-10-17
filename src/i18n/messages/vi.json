@@ -14360,6 +14360,63 @@
       "saved": "Đã lưu quy tắc thời gian chờ",
       "saveFailed": "Không thể lưu quy tắc thời gian chờ"
     },
+    "errorRules": {
+      "title": "Quy tắc thời gian chờ khi lỗi",
+      "subtitle": "Nhận diện lỗi của nhà cung cấp theo trạng thái HTTP, nội dung lỗi hoặc cả hai, rồi chọn tạm dừng cái gì và trong bao lâu. Các quy tắc này chạy trước quy tắc tích hợp sẵn.",
+      "rulesHeading": "Quy tắc",
+      "rulesEmpty": "Chưa có quy tắc nào.",
+      "addRule": "Thêm quy tắc",
+      "provider": "Nhà cung cấp",
+      "providerPlaceholder": "ví dụ openai",
+      "status": "Trạng thái HTTP",
+      "statusPlaceholder": "Bất kỳ",
+      "match": "Nội dung lỗi chứa",
+      "matchPlaceholder": "Bất kỳ nội dung nào",
+      "matchHint": "Quy tắc khớp đầu tiên sẽ được áp dụng. Nội dung lỗi là văn bản thường, không phân biệt hoa thường, không phải biểu thức chính quy. Để trống một trường để khớp với mọi giá trị.",
+      "scope": "Tạm dừng",
+      "scopes": {
+        "connection": "Kết nối này",
+        "model": "Chỉ mô hình này",
+        "provider": "Toàn bộ nhà cung cấp"
+      },
+      "reason": "Lý do",
+      "reasonAuto": "Tự động",
+      "reasons": {
+        "quota_exhausted": "Hết hạn mức",
+        "rate_limit_exceeded": "Vượt giới hạn tốc độ",
+        "auth_error": "Lỗi xác thực",
+        "model_capacity": "Mô hình quá tải",
+        "server_error": "Lỗi máy chủ",
+        "unknown": "Khác"
+      },
+      "duration": "Thời lượng",
+      "durations": {
+        "auto": "Mặc định",
+        "30m": "30 phút",
+        "1h": "1 giờ",
+        "5h": "5 giờ",
+        "24h": "24 giờ",
+        "custom": "Tùy chỉnh"
+      },
+      "customMinutes": "Phút (từ 1 đến 43200)",
+      "remove": "Xóa",
+      "defaultsHeading": "Mặc định cho lỗi không khớp quy tắc",
+      "defaultsHint": "Không bắt buộc, theo từng nhà cung cấp. Chỉ áp dụng khi không có quy tắc nào khớp với lỗi 402, 403, 408, 429 hoặc 5xx. Lỗi yêu cầu như 400 không bao giờ bị ảnh hưởng.",
+      "defaultsEmpty": "Chưa đặt mặc định. Lỗi không khớp quy tắc giữ nguyên hành vi tích hợp sẵn.",
+      "addDefault": "Thêm mặc định",
+      "errors": {
+        "provider": "Nhập nhà cung cấp.",
+        "condition": "Đặt trạng thái HTTP, nội dung lỗi hoặc cả hai.",
+        "status": "Dùng trạng thái từ 100 đến 599.",
+        "duration": "Nhập từ 1 đến 43200 phút.",
+        "duplicateDefault": "Nhà cung cấp này đã có mặc định.",
+        "tooMany": "Tối đa 50 quy tắc."
+      },
+      "save": "Lưu quy tắc lỗi",
+      "saved": "Đã lưu quy tắc lỗi",
+      "saveFailed": "Không thể lưu quy tắc lỗi",
+      "loadFailed": "Không thể tải quy tắc lỗi"
+    },
     "list": {
       "title": "Kết nối nằm ngoài định tuyến",
       "subtitle": "Thời gian chờ và khóa mô hình sẽ tự động kết thúc. Hãy xóa chúng để đưa kết nối trở lại định tuyến ngay bây giờ.",

@@ -14360,6 +14360,63 @@
       "saved": "Regole di cooldown salvate",
       "saveFailed": "Impossibile salvare le regole di cooldown"
     },
+    "errorRules": {
+      "title": "Regole di cooldown per errore",
+      "subtitle": "Riconosci gli errori del provider per stato HTTP, testo dell'errore o entrambi, e scegli cosa mettere in pausa e per quanto. Queste regole vengono applicate prima di quelle integrate.",
+      "rulesHeading": "Regole",
+      "rulesEmpty": "Ancora nessuna regola.",
+      "addRule": "Aggiungi regola",
+      "provider": "Provider",
+      "providerPlaceholder": "es. openai",
+      "status": "Stato HTTP",
+      "statusPlaceholder": "Qualsiasi",
+      "match": "Il testo dell'errore contiene",
+      "matchPlaceholder": "Qualsiasi testo",
+      "matchHint": "Vince la prima regola che corrisponde. Il testo dell'errore è testo semplice, senza distinzione tra maiuscole e minuscole, non un'espressione regolare. Lascia un campo vuoto per accettare tutto.",
+      "scope": "Metti in pausa",
+      "scopes": {
+        "connection": "Questa connessione",
+        "model": "Solo questo modello",
+        "provider": "Intero provider"
+      },
+      "reason": "Motivo",
+      "reasonAuto": "Automatico",
+      "reasons": {
+        "quota_exhausted": "Quota esaurita",
+        "rate_limit_exceeded": "Limite di frequenza raggiunto",
+        "auth_error": "Errore di autenticazione",
+        "model_capacity": "Modello saturo",
+        "server_error": "Errore del server",
+        "unknown": "Altro"
+      },
+      "duration": "Durata",
+      "durations": {
+        "auto": "Predefinita",
+        "30m": "30 minuti",
+        "1h": "1 ora",
+        "5h": "5 ore",
+        "24h": "24 ore",
+        "custom": "Personalizzata"
+      },
+      "customMinutes": "Minuti (da 1 a 43200)",
+      "remove": "Rimuovi",
+      "defaultsHeading": "Predefinito per gli errori non coperti",
+      "defaultsHint": "Facoltativo, per provider. Si applica solo quando nessuna regola corrisponde a un errore 402, 403, 408, 429 o 5xx. Gli errori di richiesta come 400 non sono mai interessati.",
+      "defaultsEmpty": "Nessun predefinito impostato. Gli errori non coperti mantengono il comportamento integrato.",
+      "addDefault": "Aggiungi predefinito",
+      "errors": {
+        "provider": "Inserisci un provider.",
+        "condition": "Imposta uno stato HTTP, un testo di errore o entrambi.",
+        "status": "Usa uno stato tra 100 e 599.",
+        "duration": "Inserisci da 1 a 43200 minuti.",
+        "duplicateDefault": "Questo provider ha già un predefinito.",
+        "tooMany": "Al massimo 50 regole."
+      },
+      "save": "Salva regole di errore",
+      "saved": "Regole di errore salvate",
+      "saveFailed": "Impossibile salvare le regole di errore",
+      "loadFailed": "Impossibile caricare le regole di errore"
+    },
     "list": {
       "title": "Connessioni escluse dal routing",
       "subtitle": "I cooldown e i blocchi modello terminano automaticamente. Azzerali per reinserire subito una connessione nel routing.",

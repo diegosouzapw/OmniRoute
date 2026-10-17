@@ -14360,6 +14360,63 @@
       "saved": "クールダウンルールを保存しました",
       "saveFailed": "クールダウンルールを保存できませんでした"
     },
+    "errorRules": {
+      "title": "エラー時のクールダウンルール",
+      "subtitle": "上流のエラーを HTTP ステータス、エラーテキスト、またはその両方で判定し、何をどれだけ休止するかを選びます。これらのルールは組み込みルールより先に評価されます。",
+      "rulesHeading": "ルール",
+      "rulesEmpty": "ルールはまだありません。",
+      "addRule": "ルールを追加",
+      "provider": "プロバイダー",
+      "providerPlaceholder": "例: openai",
+      "status": "HTTP ステータス",
+      "statusPlaceholder": "すべて",
+      "match": "エラーテキストに含む",
+      "matchPlaceholder": "任意のテキスト",
+      "matchHint": "最初に一致したルールが適用されます。エラーテキストは大文字と小文字を区別しないプレーンテキストで、正規表現ではありません。空欄はすべてに一致します。",
+      "scope": "休止の対象",
+      "scopes": {
+        "connection": "この接続",
+        "model": "このモデルのみ",
+        "provider": "プロバイダー全体"
+      },
+      "reason": "理由",
+      "reasonAuto": "自動",
+      "reasons": {
+        "quota_exhausted": "クォータ枯渇",
+        "rate_limit_exceeded": "レート制限",
+        "auth_error": "認証エラー",
+        "model_capacity": "モデルの容量不足",
+        "server_error": "サーバーエラー",
+        "unknown": "その他"
+      },
+      "duration": "期間",
+      "durations": {
+        "auto": "デフォルト",
+        "30m": "30 分",
+        "1h": "1 時間",
+        "5h": "5 時間",
+        "24h": "24 時間",
+        "custom": "カスタム"
+      },
+      "customMinutes": "分 (1〜43200)",
+      "remove": "削除",
+      "defaultsHeading": "一致しない失敗のデフォルト",
+      "defaultsHint": "任意、プロバイダーごと。402、403、408、429、5xx のエラーにどのルールも一致しない場合にのみ適用されます。400 などのリクエストエラーには適用されません。",
+      "defaultsEmpty": "デフォルトは未設定です。一致しないエラーは組み込みの動作のままです。",
+      "addDefault": "デフォルトを追加",
+      "errors": {
+        "provider": "プロバイダーを入力してください。",
+        "condition": "HTTP ステータス、エラーテキスト、またはその両方を設定してください。",
+        "status": "100〜599 のステータスを指定してください。",
+        "duration": "1〜43200 分を入力してください。",
+        "duplicateDefault": "このプロバイダーにはすでにデフォルトがあります。",
+        "tooMany": "ルールは最大 50 件です。"
+      },
+      "save": "エラールールを保存",
+      "saved": "エラールールを保存しました",
+      "saveFailed": "エラールールを保存できませんでした",
+      "loadFailed": "エラールールを読み込めませんでした"
+    },
     "list": {
       "title": "ルーティング対象外の接続",
       "subtitle": "クールダウンやモデルのロックアウトは自動的に終了します。今すぐ接続をルーティングに復帰させるには解除してください。",

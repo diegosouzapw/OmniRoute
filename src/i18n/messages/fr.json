@@ -14360,6 +14360,63 @@
       "saved": "Règles de cooldown enregistrées",
       "saveFailed": "Impossible d'enregistrer les règles de cooldown"
     },
+    "errorRules": {
+      "title": "Règles de cooldown sur erreur",
+      "subtitle": "Repérez les erreurs du fournisseur par statut HTTP, texte d'erreur ou les deux, et choisissez quoi mettre en pause et pour combien de temps. Ces règles passent avant les règles intégrées.",
+      "rulesHeading": "Règles",
+      "rulesEmpty": "Aucune règle pour l'instant.",
+      "addRule": "Ajouter une règle",
+      "provider": "Fournisseur",
+      "providerPlaceholder": "ex. openai",
+      "status": "Statut HTTP",
+      "statusPlaceholder": "N'importe lequel",
+      "match": "Le texte d'erreur contient",
+      "matchPlaceholder": "N'importe quel texte",
+      "matchHint": "La première règle qui correspond l'emporte. Le texte d'erreur est du texte brut, insensible à la casse, pas une expression régulière. Laissez un champ vide pour tout accepter.",
+      "scope": "Mettre en pause",
+      "scopes": {
+        "connection": "Cette connexion",
+        "model": "Ce modèle uniquement",
+        "provider": "Tout le fournisseur"
+      },
+      "reason": "Motif",
+      "reasonAuto": "Automatique",
+      "reasons": {
+        "quota_exhausted": "Quota épuisé",
+        "rate_limit_exceeded": "Limite de débit atteinte",
+        "auth_error": "Erreur d'authentification",
+        "model_capacity": "Modèle saturé",
+        "server_error": "Erreur serveur",
+        "unknown": "Autre"
+      },
+      "duration": "Durée",
+      "durations": {
+        "auto": "Par défaut",
+        "30m": "30 minutes",
+        "1h": "1 heure",
+        "5h": "5 heures",
+        "24h": "24 heures",
+        "custom": "Personnalisée"
+      },
+      "customMinutes": "Minutes (de 1 à 43200)",
+      "remove": "Supprimer",
+      "defaultsHeading": "Valeur par défaut pour les échecs non couverts",
+      "defaultsHint": "Facultatif, par fournisseur. S'applique uniquement quand aucune règle ne correspond à une erreur 402, 403, 408, 429 ou 5xx. Les erreurs de requête comme 400 ne sont jamais concernées.",
+      "defaultsEmpty": "Aucune valeur par défaut. Les erreurs non couvertes gardent le comportement intégré.",
+      "addDefault": "Ajouter une valeur par défaut",
+      "errors": {
+        "provider": "Saisissez un fournisseur.",
+        "condition": "Indiquez un statut HTTP, un texte d'erreur ou les deux.",
+        "status": "Utilisez un statut entre 100 et 599.",
+        "duration": "Saisissez de 1 à 43200 minutes.",
+        "duplicateDefault": "Ce fournisseur a déjà une valeur par défaut.",
+        "tooMany": "50 règles au maximum."
+      },
+      "save": "Enregistrer les règles d'erreur",
+      "saved": "Règles d'erreur enregistrées",
+      "saveFailed": "Impossible d'enregistrer les règles d'erreur",
+      "loadFailed": "Impossible de charger les règles d'erreur"
+    },
     "list": {
       "title": "Connexions hors routage",
       "subtitle": "Les cooldowns et les verrouillages de modèles se terminent d'eux-mêmes. Réinitialisez-les pour réintégrer immédiatement une connexion au routage.",

@@ -1,7 +1,9 @@
 import { clearHealthCheckLogCache } from "@/lib/tokenHealthCheck";
 import { setCustomBannedSignals } from "@omniroute/open-sse/services/accountFallback.ts";
 import {
+  setOperatorProviderErrorDefaults,
   setOperatorProviderErrorRules,
+  type OperatorProviderErrorDefault,
   type OperatorProviderErrorRule,
 } from "@omniroute/open-sse/config/providerErrorRules.ts";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
@@ -54,6 +56,7 @@ interface RuntimeSettingsSnapshot {
   authzBypass: AuthzBypassSnapshot;
   customBannedSignals: string[];
   providerErrorRules: Record<string, OperatorProviderErrorRule[]> | null;
+  providerErrorDefaults: Record<string, OperatorProviderErrorDefault> | null;
 }
 
 // Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
@@ -82,6 +85,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
   customBannedSignals: [],
   providerErrorRules: null,
+  providerErrorDefaults: null,
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -185,11 +189,26 @@ function normalizeOperatorProviderErrorRules(
       (entry): entry is OperatorProviderErrorRule =>
         !!entry &&
         typeof entry === "object" &&
-        typeof (entry as OperatorProviderErrorRule).status === "number" &&
-        typeof (entry as OperatorProviderErrorRule).match === "string" &&
+        (typeof (entry as OperatorProviderErrorRule).status === "number" ||
+          typeof (entry as OperatorProviderErrorRule).match === "string") &&
         typeof (entry as OperatorProviderErrorRule).scope === "string"
     );
     if (rules.length > 0) result[provider.toLowerCase()] = rules;
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+/** Same defensive shape-check for the operator catch-all defaults. */
+function normalizeOperatorProviderErrorDefaults(
+  value: unknown
+): Record<string, OperatorProviderErrorDefault> | null {
+  if (value === null || typeof value !== "object") return null;
+  const result: Record<string, OperatorProviderErrorDefault> = {};
+  for (const [provider, entry] of Object.entries(value as Record<string, unknown>)) {
+    const cooldownMs = (entry as OperatorProviderErrorDefault | null)?.cooldownMs;
+    if (typeof cooldownMs === "number" && cooldownMs > 0) {
+      result[provider.toLowerCase()] = entry as OperatorProviderErrorDefault;
+    }
   }
   return Object.keys(result).length > 0 ? result : null;
 }
@@ -311,6 +330,7 @@ export function buildRuntimeSettingsSnapshot(
     authzBypass: normalizeAuthzBypass(settings),
     customBannedSignals: normalizeStringArray(settings.customBannedSignals),
     providerErrorRules: normalizeOperatorProviderErrorRules(settings.providerErrorRules),
+    providerErrorDefaults: normalizeOperatorProviderErrorDefaults(settings.providerErrorDefaults),
   };
 }
 
@@ -632,6 +652,13 @@ export async function applyRuntimeSettings(
     hasChanged(currentSnapshot.providerErrorRules, previousSnapshot.providerErrorRules)
   ) {
     setOperatorProviderErrorRules(currentSnapshot.providerErrorRules ?? undefined);
+  }
+
+  if (
+    force ||
+    hasChanged(currentSnapshot.providerErrorDefaults, previousSnapshot.providerErrorDefaults)
+  ) {
+    setOperatorProviderErrorDefaults(currentSnapshot.providerErrorDefaults ?? undefined);
   }
 
   lastAppliedSnapshot = currentSnapshot;

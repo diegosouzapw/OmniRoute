@@ -14360,6 +14360,63 @@
       "saved": "Reglas de enfriamiento guardadas",
       "saveFailed": "No se pudieron guardar las reglas de enfriamiento"
     },
+    "errorRules": {
+      "title": "Reglas de enfriamiento por error",
+      "subtitle": "Detecta errores del proveedor por estado HTTP, texto del error o ambos, y elige qué enfriar y durante cuánto tiempo. Estas reglas se aplican antes que las integradas.",
+      "rulesHeading": "Reglas",
+      "rulesEmpty": "Aún no hay reglas.",
+      "addRule": "Añadir regla",
+      "provider": "Proveedor",
+      "providerPlaceholder": "p. ej. openai",
+      "status": "Estado HTTP",
+      "statusPlaceholder": "Cualquiera",
+      "match": "El texto del error contiene",
+      "matchPlaceholder": "Cualquier texto",
+      "matchHint": "Gana la primera regla que coincida. El texto del error es texto plano sin distinguir mayúsculas, no una expresión regular. Deja un campo vacío para que coincida con todo.",
+      "scope": "Enfriar",
+      "scopes": {
+        "connection": "Esta conexión",
+        "model": "Solo este modelo",
+        "provider": "Todo el proveedor"
+      },
+      "reason": "Motivo",
+      "reasonAuto": "Automático",
+      "reasons": {
+        "quota_exhausted": "Cuota agotada",
+        "rate_limit_exceeded": "Límite de tasa alcanzado",
+        "auth_error": "Error de autenticación",
+        "model_capacity": "Modelo saturado",
+        "server_error": "Error del servidor",
+        "unknown": "Otro"
+      },
+      "duration": "Duración",
+      "durations": {
+        "auto": "Predeterminada",
+        "30m": "30 minutos",
+        "1h": "1 hora",
+        "5h": "5 horas",
+        "24h": "24 horas",
+        "custom": "Personalizada"
+      },
+      "customMinutes": "Minutos (de 1 a 43200)",
+      "remove": "Quitar",
+      "defaultsHeading": "Valor predeterminado para fallos sin regla",
+      "defaultsHint": "Opcional, por proveedor. Solo se aplica cuando ninguna regla coincide con un error 402, 403, 408, 429 o 5xx. Los errores de solicitud como 400 nunca se ven afectados.",
+      "defaultsEmpty": "Sin valor predeterminado. Los errores sin regla mantienen el comportamiento integrado.",
+      "addDefault": "Añadir valor predeterminado",
+      "errors": {
+        "provider": "Introduce un proveedor.",
+        "condition": "Indica un estado HTTP, un texto de error o ambos.",
+        "status": "Usa un estado entre 100 y 599.",
+        "duration": "Introduce de 1 a 43200 minutos.",
+        "duplicateDefault": "Este proveedor ya tiene un valor predeterminado.",
+        "tooMany": "Como máximo 50 reglas."
+      },
+      "save": "Guardar reglas de error",
+      "saved": "Reglas de error guardadas",
+      "saveFailed": "No se pudieron guardar las reglas de error",
+      "loadFailed": "No se pudieron cargar las reglas de error"
+    },
     "list": {
       "title": "Conexiones fuera de enrutamiento",
       "subtitle": "Los enfriamientos y bloqueos de modelos terminan por sí solos. Restablécelos para volver a incluir una conexión en el enrutamiento ahora.",

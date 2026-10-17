@@ -14360,6 +14360,63 @@
       "saved": "Kutish vaqti qoidalari saqlandi",
       "saveFailed": "Kutish vaqti qoidalarini saqlab boʻlmadi"
     },
+    "errorRules": {
+      "title": "Xatolar uchun kutish vaqti qoidalari",
+      "subtitle": "Provayder xatolarini HTTP holati, xato matni yoki ikkalasi bo'yicha aniqlang va nimani qancha vaqtga to'xtatishni tanlang. Bu qoidalar ichki qoidalardan oldin ishlaydi.",
+      "rulesHeading": "Qoidalar",
+      "rulesEmpty": "Hali qoidalar yo'q.",
+      "addRule": "Qoida qo'shish",
+      "provider": "Provayder",
+      "providerPlaceholder": "masalan, openai",
+      "status": "HTTP holati",
+      "statusPlaceholder": "Istalgan",
+      "match": "Xato matnida bor",
+      "matchPlaceholder": "Istalgan matn",
+      "matchHint": "Birinchi mos kelgan qoida qo'llanadi. Xato matni katta-kichik harfni farqlamaydigan oddiy matn, muntazam ifoda emas. Bo'sh maydon hamma narsaga mos keladi.",
+      "scope": "To'xtatish",
+      "scopes": {
+        "connection": "Bu ulanish",
+        "model": "Faqat shu model",
+        "provider": "Butun provayder"
+      },
+      "reason": "Sabab",
+      "reasonAuto": "Avtomatik",
+      "reasons": {
+        "quota_exhausted": "Kvota tugagan",
+        "rate_limit_exceeded": "Tezlik chegarasi oshdi",
+        "auth_error": "Autentifikatsiya xatosi",
+        "model_capacity": "Model sig'imi to'lgan",
+        "server_error": "Server xatosi",
+        "unknown": "Boshqa"
+      },
+      "duration": "Davomiylik",
+      "durations": {
+        "auto": "Standart",
+        "30m": "30 daqiqa",
+        "1h": "1 soat",
+        "5h": "5 soat",
+        "24h": "24 soat",
+        "custom": "Maxsus"
+      },
+      "customMinutes": "Daqiqa (1 dan 43200 gacha)",
+      "remove": "Olib tashlash",
+      "defaultsHeading": "Mos kelmagan nosozliklar uchun standart",
+      "defaultsHint": "Ixtiyoriy, har bir provayder uchun. Faqat hech bir qoida 402, 403, 408, 429 yoki 5xx xatosiga mos kelmaganda qo'llanadi. 400 kabi so'rov xatolariga hech qachon ta'sir qilmaydi.",
+      "defaultsEmpty": "Standart belgilanmagan. Mos kelmagan xatolar ichki xatti-harakatni saqlaydi.",
+      "addDefault": "Standart qo'shish",
+      "errors": {
+        "provider": "Provayderni kiriting.",
+        "condition": "HTTP holati, xato matni yoki ikkalasini belgilang.",
+        "status": "100 dan 599 gacha bo'lgan holatdan foydalaning.",
+        "duration": "1 dan 43200 gacha daqiqa kiriting.",
+        "duplicateDefault": "Bu provayderda allaqachon standart bor.",
+        "tooMany": "Ko'pi bilan 50 ta qoida."
+      },
+      "save": "Xato qoidalarini saqlash",
+      "saved": "Xato qoidalari saqlandi",
+      "saveFailed": "Xato qoidalarini saqlab bo'lmadi",
+      "loadFailed": "Xato qoidalarini yuklab bo'lmadi"
+    },
     "list": {
       "title": "Marshrutlashdan tashqaridagi ulanishlar",
       "subtitle": "Kutish vaqtlari va model blokirovkalari oʻz-oʻzidan tugaydi. Ulanishni hoziroq marshrutlashga qaytarish uchun ularni tozalang.",

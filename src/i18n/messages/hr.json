@@ -14360,6 +14360,63 @@
       "saved": "Pravila hlađenja su spremljena",
       "saveFailed": "Spremanje pravila hlađenja nije uspjelo"
     },
+    "errorRules": {
+      "title": "Pravila hlađenja za pogreške",
+      "subtitle": "Prepoznajte pogreške pružatelja po HTTP statusu, tekstu pogreške ili oboje i odaberite što i koliko dugo pauzirati. Ova se pravila primjenjuju prije ugrađenih.",
+      "rulesHeading": "Pravila",
+      "rulesEmpty": "Još nema pravila.",
+      "addRule": "Dodaj pravilo",
+      "provider": "Pružatelj",
+      "providerPlaceholder": "npr. openai",
+      "status": "HTTP status",
+      "statusPlaceholder": "Bilo koji",
+      "match": "Tekst pogreške sadrži",
+      "matchPlaceholder": "Bilo koji tekst",
+      "matchHint": "Vrijedi prvo pravilo koje se podudara. Tekst pogreške je običan tekst bez razlikovanja velikih i malih slova, a ne regularni izraz. Prazno polje odgovara svemu.",
+      "scope": "Pauziraj",
+      "scopes": {
+        "connection": "Ovu vezu",
+        "model": "Samo ovaj model",
+        "provider": "Cijelog pružatelja"
+      },
+      "reason": "Razlog",
+      "reasonAuto": "Automatski",
+      "reasons": {
+        "quota_exhausted": "Kvota potrošena",
+        "rate_limit_exceeded": "Prekoračeno ograničenje zahtjeva",
+        "auth_error": "Pogreška autentifikacije",
+        "model_capacity": "Model je preopterećen",
+        "server_error": "Pogreška poslužitelja",
+        "unknown": "Ostalo"
+      },
+      "duration": "Trajanje",
+      "durations": {
+        "auto": "Zadano",
+        "30m": "30 minuta",
+        "1h": "1 sat",
+        "5h": "5 sati",
+        "24h": "24 sata",
+        "custom": "Prilagođeno"
+      },
+      "customMinutes": "Minute (od 1 do 43200)",
+      "remove": "Ukloni",
+      "defaultsHeading": "Zadano za pogreške bez pravila",
+      "defaultsHint": "Neobavezno, po pružatelju. Primjenjuje se samo kad nijedno pravilo ne odgovara pogrešci 402, 403, 408, 429 ili 5xx. Pogreške zahtjeva, poput 400, nikad nisu obuhvaćene.",
+      "defaultsEmpty": "Zadana vrijednost nije postavljena. Pogreške bez pravila zadržavaju ugrađeno ponašanje.",
+      "addDefault": "Dodaj zadanu vrijednost",
+      "errors": {
+        "provider": "Unesite pružatelja.",
+        "condition": "Postavite HTTP status, tekst pogreške ili oboje.",
+        "status": "Koristite status između 100 i 599.",
+        "duration": "Unesite od 1 do 43200 minuta.",
+        "duplicateDefault": "Ovaj pružatelj već ima zadanu vrijednost.",
+        "tooMany": "Najviše 50 pravila."
+      },
+      "save": "Spremi pravila pogrešaka",
+      "saved": "Pravila pogrešaka spremljena",
+      "saveFailed": "Pravila pogrešaka nije moguće spremiti",
+      "loadFailed": "Pravila pogrešaka nije moguće učitati"
+    },
     "list": {
       "title": "Veze izvan usmjeravanja",
       "subtitle": "Periodi hlađenja i blokade modela prestaju automatski. Očistite ih kako biste vezu odmah vratili u usmjeravanje.",

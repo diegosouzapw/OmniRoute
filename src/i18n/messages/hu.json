@@ -14360,6 +14360,63 @@
       "saved": "Cooldown-szabályok mentve",
       "saveFailed": "Nem sikerült menteni a cooldown-szabályokat"
     },
+    "errorRules": {
+      "title": "Hibákra vonatkozó cooldown-szabályok",
+      "subtitle": "Ismerje fel a szolgáltatói hibákat HTTP-állapot, hibaszöveg vagy mindkettő alapján, és válassza ki, mit és mennyi ideig szüneteltessen. Ezek a szabályok a beépítettek előtt futnak.",
+      "rulesHeading": "Szabályok",
+      "rulesEmpty": "Még nincsenek szabályok.",
+      "addRule": "Szabály hozzáadása",
+      "provider": "Szolgáltató",
+      "providerPlaceholder": "pl. openai",
+      "status": "HTTP-állapot",
+      "statusPlaceholder": "Bármely",
+      "match": "A hibaszöveg tartalmazza",
+      "matchPlaceholder": "Bármilyen szöveg",
+      "matchHint": "Az első egyező szabály érvényes. A hibaszöveg egyszerű, kis- és nagybetűt nem megkülönböztető szöveg, nem reguláris kifejezés. Az üres mező bármire illeszkedik.",
+      "scope": "Szüneteltetés",
+      "scopes": {
+        "connection": "Ez a kapcsolat",
+        "model": "Csak ez a modell",
+        "provider": "A teljes szolgáltató"
+      },
+      "reason": "Ok",
+      "reasonAuto": "Automatikus",
+      "reasons": {
+        "quota_exhausted": "Kvóta kimerült",
+        "rate_limit_exceeded": "Sebességkorlát túllépve",
+        "auth_error": "Hitelesítési hiba",
+        "model_capacity": "A modell túlterhelt",
+        "server_error": "Szerverhiba",
+        "unknown": "Egyéb"
+      },
+      "duration": "Időtartam",
+      "durations": {
+        "auto": "Alapértelmezett",
+        "30m": "30 perc",
+        "1h": "1 óra",
+        "5h": "5 óra",
+        "24h": "24 óra",
+        "custom": "Egyéni"
+      },
+      "customMinutes": "Perc (1–43200)",
+      "remove": "Eltávolítás",
+      "defaultsHeading": "Alapértelmezés a szabály nélküli hibákhoz",
+      "defaultsHint": "Opcionális, szolgáltatónként. Csak akkor érvényes, ha egyetlen szabály sem illeszkedik egy 402-es, 403-as, 408-as, 429-es vagy 5xx-es hibára. A kéréshibákat, például a 400-at, sosem érinti.",
+      "defaultsEmpty": "Nincs alapértelmezés. A szabály nélküli hibák a beépített viselkedést követik.",
+      "addDefault": "Alapértelmezés hozzáadása",
+      "errors": {
+        "provider": "Adjon meg egy szolgáltatót.",
+        "condition": "Adjon meg HTTP-állapotot, hibaszöveget vagy mindkettőt.",
+        "status": "100 és 599 közötti állapotot használjon.",
+        "duration": "Adjon meg 1 és 43200 közötti percet.",
+        "duplicateDefault": "Ennek a szolgáltatónak már van alapértelmezése.",
+        "tooMany": "Legfeljebb 50 szabály."
+      },
+      "save": "Hibaszabályok mentése",
+      "saved": "Hibaszabályok mentve",
+      "saveFailed": "Nem sikerült menteni a hibaszabályokat",
+      "loadFailed": "Nem sikerült betölteni a hibaszabályokat"
+    },
     "list": {
       "title": "Útválasztásból kiesett kapcsolatok",
       "subtitle": "A cooldownok és modellzárolások maguktól lejárnak. Törölje őket, ha azonnal vissza szeretné állítani a kapcsolatot az útválasztásba.",

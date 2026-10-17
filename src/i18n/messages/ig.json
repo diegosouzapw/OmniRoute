@@ -14360,6 +14360,63 @@
       "saved": "Echekwala iwu oge izumike",
       "saveFailed": "Enweghị ike ịchekwa iwu oge izumike"
     },
+    "errorRules": {
+      "title": "Iwu oge izumike maka njehie",
+      "subtitle": "Mata njehie onye na-enye ọrụ site na ọnọdụ HTTP, ederede njehie, ma ọ bụ ha abụọ, ma họrọ ihe a ga-akwụsị na ogologo oge ole. Iwu ndị a na-arụ ọrụ tupu iwu ndị e wuru n'ime ya.",
+      "rulesHeading": "Iwu",
+      "rulesEmpty": "Enweghị iwu ọ bụla ugbu a.",
+      "addRule": "Tinye iwu",
+      "provider": "Onye na-enye ọrụ",
+      "providerPlaceholder": "dịka openai",
+      "status": "Ọnọdụ HTTP",
+      "statusPlaceholder": "Nke ọ bụla",
+      "match": "Ederede njehie nwere",
+      "matchPlaceholder": "Ederede ọ bụla",
+      "matchHint": "Iwu mbụ dabara bụ nke na-arụ ọrụ. Ederede njehie bụ ederede nkịtị na-adịghị ele mkpụrụedemede ukwu na nta anya, ọ bụghị nkwupụta oge niile. Mpaghara efu dabara n'ihe niile.",
+      "scope": "Kwụsịtụ",
+      "scopes": {
+        "connection": "Njikọ a",
+        "model": "Naanị ụdị a",
+        "provider": "Onye na-enye ọrụ niile"
+      },
+      "reason": "Ihe kpatara ya",
+      "reasonAuto": "Na-akpaghị aka",
+      "reasons": {
+        "quota_exhausted": "Oke ojiji agwụla",
+        "rate_limit_exceeded": "Agafeela oke ọsọ",
+        "auth_error": "Njehie nkwenye",
+        "model_capacity": "Ụdị ahụ ejupụtala",
+        "server_error": "Njehie sava",
+        "unknown": "Ndị ọzọ"
+      },
+      "duration": "Ogologo oge",
+      "durations": {
+        "auto": "Ndabara",
+        "30m": "Nkeji 30",
+        "1h": "Awa 1",
+        "5h": "Awa 5",
+        "24h": "Awa 24",
+        "custom": "Nke ahaziri"
+      },
+      "customMinutes": "Nkeji (1 ruo 43200)",
+      "remove": "Wepụ",
+      "defaultsHeading": "Ndabara maka ọdịda na-enweghị iwu",
+      "defaultsHint": "Nhọrọ, maka onye ọ bụla na-enye ọrụ. Ọ na-arụ ọrụ naanị mgbe iwu ọ bụla adabaghị na njehie 402, 403, 408, 429 ma ọ bụ 5xx. Njehie arịrịọ dịka 400 anaghị emetụta ya.",
+      "defaultsEmpty": "Enweghị ndabara edobere. Njehie na-enweghị iwu na-ejigide omume e wuru n'ime ya.",
+      "addDefault": "Tinye ndabara",
+      "errors": {
+        "provider": "Tinye onye na-enye ọrụ.",
+        "condition": "Debe ọnọdụ HTTP, ederede njehie, ma ọ bụ ha abụọ.",
+        "status": "Jiri ọnọdụ dị n'etiti 100 na 599.",
+        "duration": "Tinye nkeji 1 ruo 43200.",
+        "duplicateDefault": "Onye na-enye ọrụ a enweelarị ndabara.",
+        "tooMany": "Iwu 50 kachasị."
+      },
+      "save": "Chekwaa iwu njehie",
+      "saved": "Echekwala iwu njehie",
+      "saveFailed": "Enweghị ike ịchekwa iwu njehie",
+      "loadFailed": "Enweghị ike ibunye iwu njehie"
+    },
     "list": {
       "title": "Njikọ ndị wepụtara na nzipu",
       "subtitle": "Oge izumike na mkpọchi ụdị na-agwụ n'onwe ha. Kpochapụ ha iji weghachite njikọ na nzipu ugbu a.",

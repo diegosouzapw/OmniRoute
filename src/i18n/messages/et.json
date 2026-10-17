@@ -14360,6 +14360,63 @@
       "saved": "Jahtumisreeglid salvestatud",
       "saveFailed": "Jahtumisreegleid ei õnnestunud salvestada"
     },
+    "errorRules": {
+      "title": "Vigade jahtumisreeglid",
+      "subtitle": "Tuvasta teenusepakkuja vead HTTP-oleku, veateksti või mõlema järgi ja vali, mida ja kui kauaks peatada. Need reeglid käivad enne sisseehitatud reegleid.",
+      "rulesHeading": "Reeglid",
+      "rulesEmpty": "Reegleid veel pole.",
+      "addRule": "Lisa reegel",
+      "provider": "Teenusepakkuja",
+      "providerPlaceholder": "nt openai",
+      "status": "HTTP-olek",
+      "statusPlaceholder": "Mis tahes",
+      "match": "Veatekst sisaldab",
+      "matchPlaceholder": "Mis tahes tekst",
+      "matchHint": "Kehtib esimene sobiv reegel. Veatekst on tavaline tekst, suur- ja väiketähti ei eristata, ning see pole regulaaravaldis. Tühi väli sobib kõigega.",
+      "scope": "Peata",
+      "scopes": {
+        "connection": "See ühendus",
+        "model": "Ainult see mudel",
+        "provider": "Kogu teenusepakkuja"
+      },
+      "reason": "Põhjus",
+      "reasonAuto": "Automaatne",
+      "reasons": {
+        "quota_exhausted": "Kvoot ammendatud",
+        "rate_limit_exceeded": "Päringupiirang ületatud",
+        "auth_error": "Autentimisviga",
+        "model_capacity": "Mudel ülekoormatud",
+        "server_error": "Serveri viga",
+        "unknown": "Muu"
+      },
+      "duration": "Kestus",
+      "durations": {
+        "auto": "Vaikimisi",
+        "30m": "30 minutit",
+        "1h": "1 tund",
+        "5h": "5 tundi",
+        "24h": "24 tundi",
+        "custom": "Kohandatud"
+      },
+      "customMinutes": "Minutid (1 kuni 43200)",
+      "remove": "Eemalda",
+      "defaultsHeading": "Vaikeväärtus sobimatute tõrgete jaoks",
+      "defaultsHint": "Valikuline, teenusepakkuja kaupa. Kehtib ainult siis, kui ükski reegel ei sobi veaga 402, 403, 408, 429 või 5xx. Päringuvigu, nagu 400, see kunagi ei mõjuta.",
+      "defaultsEmpty": "Vaikeväärtust pole. Sobimatud vead säilitavad sisseehitatud käitumise.",
+      "addDefault": "Lisa vaikeväärtus",
+      "errors": {
+        "provider": "Sisesta teenusepakkuja.",
+        "condition": "Määra HTTP-olek, veatekst või mõlemad.",
+        "status": "Kasuta olekut vahemikus 100–599.",
+        "duration": "Sisesta 1 kuni 43200 minutit.",
+        "duplicateDefault": "Sellel teenusepakkujal on juba vaikeväärtus.",
+        "tooMany": "Kõige rohkem 50 reeglit."
+      },
+      "save": "Salvesta veareeglid",
+      "saved": "Veareeglid salvestatud",
+      "saveFailed": "Veareegleid ei õnnestunud salvestada",
+      "loadFailed": "Veareegleid ei õnnestunud laadida"
+    },
     "list": {
       "title": "Marsruutimisest väljas olevad ühendused",
       "subtitle": "Jahtumisajad ja mudeliblokeeringud lõppevad iseenesest. Tühjenda need, et viia ühendus kohe tagasi marsruutimisse.",

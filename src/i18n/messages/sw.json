@@ -14360,6 +14360,63 @@
       "saved": "Sheria za muda wa kupumzika zimehifadhiwa",
       "saveFailed": "Haikuweza kuhifadhi sheria za muda wa kupumzika"
     },
+    "errorRules": {
+      "title": "Sheria za muda wa kupumzika kwa hitilafu",
+      "subtitle": "Tambua hitilafu za mtoa huduma kwa hali ya HTTP, maandishi ya hitilafu, au yote mawili, kisha uchague kitakachositishwa na kwa muda gani. Sheria hizi hutekelezwa kabla ya zile zilizojengwa ndani.",
+      "rulesHeading": "Sheria",
+      "rulesEmpty": "Bado hakuna sheria.",
+      "addRule": "Ongeza sheria",
+      "provider": "Mtoa huduma",
+      "providerPlaceholder": "mf. openai",
+      "status": "Hali ya HTTP",
+      "statusPlaceholder": "Yoyote",
+      "match": "Maandishi ya hitilafu yana",
+      "matchPlaceholder": "Maandishi yoyote",
+      "matchHint": "Sheria ya kwanza inayolingana ndiyo hutumika. Maandishi ya hitilafu ni maandishi ya kawaida yasiyojali herufi kubwa au ndogo, si usemi wa kawaida (regex). Sehemu tupu inalingana na chochote.",
+      "scope": "Sitisha",
+      "scopes": {
+        "connection": "Muunganisho huu",
+        "model": "Muundo huu pekee",
+        "provider": "Mtoa huduma wote"
+      },
+      "reason": "Sababu",
+      "reasonAuto": "Kiotomatiki",
+      "reasons": {
+        "quota_exhausted": "Kiwango kimeisha",
+        "rate_limit_exceeded": "Kikomo cha kasi kimezidiwa",
+        "auth_error": "Hitilafu ya uthibitishaji",
+        "model_capacity": "Muundo umejaa",
+        "server_error": "Hitilafu ya seva",
+        "unknown": "Nyingine"
+      },
+      "duration": "Muda",
+      "durations": {
+        "auto": "Chaguomsingi",
+        "30m": "Dakika 30",
+        "1h": "Saa 1",
+        "5h": "Saa 5",
+        "24h": "Saa 24",
+        "custom": "Maalum"
+      },
+      "customMinutes": "Dakika (1 hadi 43200)",
+      "remove": "Ondoa",
+      "defaultsHeading": "Chaguomsingi kwa hitilafu zisizo na sheria",
+      "defaultsHint": "Si lazima, kwa kila mtoa huduma. Hutumika tu wakati hakuna sheria inayolingana na hitilafu ya 402, 403, 408, 429 au 5xx. Hitilafu za ombi kama 400 haziathiriwi kamwe.",
+      "defaultsEmpty": "Hakuna chaguomsingi kilichowekwa. Hitilafu zisizo na sheria hubaki na tabia iliyojengwa ndani.",
+      "addDefault": "Ongeza chaguomsingi",
+      "errors": {
+        "provider": "Weka mtoa huduma.",
+        "condition": "Weka hali ya HTTP, maandishi ya hitilafu, au yote mawili.",
+        "status": "Tumia hali kati ya 100 na 599.",
+        "duration": "Weka dakika 1 hadi 43200.",
+        "duplicateDefault": "Mtoa huduma huyu tayari ana chaguomsingi.",
+        "tooMany": "Sheria 50 kwa upeo."
+      },
+      "save": "Hifadhi sheria za hitilafu",
+      "saved": "Sheria za hitilafu zimehifadhiwa",
+      "saveFailed": "Imeshindwa kuhifadhi sheria za hitilafu",
+      "loadFailed": "Imeshindwa kupakia sheria za hitilafu"
+    },
     "list": {
       "title": "Miunganisho iliyo nje ya uelekezaji",
       "subtitle": "Vipindi vya kupumzika na uzuiaji wa modeli humalizika vyenyewe. Viondoe ili kurudisha muunganisho kwenye uelekezaji sasa.",

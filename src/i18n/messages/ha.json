@@ -14360,6 +14360,63 @@
       "saved": "An ajiye ƙa'idojin dakatawa",
       "saveFailed": "An kasa ajiye ƙa'idojin dakatawa"
     },
+    "errorRules": {
+      "title": "Ƙa'idojin dakatawa saboda kurakurai",
+      "subtitle": "Gane kurakuran mai bayarwa ta matsayin HTTP, rubutun kuskure ko duka biyun, kuma zaɓi abin da za a dakatar da tsawon lokaci. Waɗannan ƙa'idoji suna aiki kafin ginannun ƙa'idoji.",
+      "rulesHeading": "Ƙa'idoji",
+      "rulesEmpty": "Babu ƙa'idoji tukuna.",
+      "addRule": "Ƙara ƙa'ida",
+      "provider": "Mai bayarwa",
+      "providerPlaceholder": "misali openai",
+      "status": "Matsayin HTTP",
+      "statusPlaceholder": "Kowane",
+      "match": "Rubutun kuskure ya ƙunshi",
+      "matchPlaceholder": "Kowane rubutu",
+      "matchHint": "Ƙa'ida ta farko da ta dace ce ke aiki. Rubutun kuskure rubutu ne mai sauƙi wanda baya bambanta manya da ƙananan haruffa, ba furuci na yau da kullum ba ne. Fili mara komai yana dacewa da komai.",
+      "scope": "Dakatar",
+      "scopes": {
+        "connection": "Wannan haɗin",
+        "model": "Wannan samfurin kawai",
+        "provider": "Duk mai bayarwa"
+      },
+      "reason": "Dalili",
+      "reasonAuto": "Ta atomatik",
+      "reasons": {
+        "quota_exhausted": "Adadin izini ya ƙare",
+        "rate_limit_exceeded": "An wuce iyakar gudu",
+        "auth_error": "Kuskuren tantancewa",
+        "model_capacity": "Samfurin ya cika",
+        "server_error": "Kuskuren sabar",
+        "unknown": "Wani"
+      },
+      "duration": "Tsawon lokaci",
+      "durations": {
+        "auto": "Tsoho",
+        "30m": "Minti 30",
+        "1h": "Awa 1",
+        "5h": "Awa 5",
+        "24h": "Awa 24",
+        "custom": "Na musamman"
+      },
+      "customMinutes": "Mintuna (1 zuwa 43200)",
+      "remove": "Cire",
+      "defaultsHeading": "Tsoho don gazawar da babu ƙa'ida",
+      "defaultsHint": "Na zaɓi, ga kowane mai bayarwa. Yana aiki ne kawai idan babu ƙa'idar da ta dace da kuskuren 402, 403, 408, 429 ko 5xx. Kurakuran buƙata kamar 400 ba a taɓa shafar su.",
+      "defaultsEmpty": "Ba a saita tsoho ba. Kurakuran da babu ƙa'ida suna riƙe da ginannen hali.",
+      "addDefault": "Ƙara tsoho",
+      "errors": {
+        "provider": "Shigar da mai bayarwa.",
+        "condition": "Saita matsayin HTTP, rubutun kuskure ko duka biyun.",
+        "status": "Yi amfani da matsayi tsakanin 100 da 599.",
+        "duration": "Shigar da minti 1 zuwa 43200.",
+        "duplicateDefault": "Wannan mai bayarwa yana da tsoho tuni.",
+        "tooMany": "Ƙa'idoji 50 a mafi yawa."
+      },
+      "save": "Ajiye ƙa'idojin kuskure",
+      "saved": "An ajiye ƙa'idojin kuskure",
+      "saveFailed": "Ba a iya ajiye ƙa'idojin kuskure ba",
+      "loadFailed": "Ba a iya loda ƙa'idojin kuskure ba"
+    },
     "list": {
       "title": "Hanyoyin haɗi da ke wajen routing",
       "subtitle": "Lokutan dakatawa da kullen samfuri suna ƙarewa da kansu. Share su don mayar da hanyar haɗi cikin routing yanzu.",

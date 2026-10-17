@@ -14360,6 +14360,63 @@
       "saved": "Pravidla cooldownů byla uložena",
       "saveFailed": "Pravidla cooldownů se nepodařilo uložit"
     },
+    "errorRules": {
+      "title": "Pravidla cooldownu pro chyby",
+      "subtitle": "Rozpoznávejte chyby poskytovatele podle stavu HTTP, textu chyby nebo obojího a zvolte, co a na jak dlouho pozastavit. Tato pravidla se uplatní před vestavěnými.",
+      "rulesHeading": "Pravidla",
+      "rulesEmpty": "Zatím žádná pravidla.",
+      "addRule": "Přidat pravidlo",
+      "provider": "Poskytovatel",
+      "providerPlaceholder": "např. openai",
+      "status": "Stav HTTP",
+      "statusPlaceholder": "Libovolný",
+      "match": "Text chyby obsahuje",
+      "matchPlaceholder": "Libovolný text",
+      "matchHint": "Platí první odpovídající pravidlo. Text chyby je prostý text bez rozlišení velikosti písmen, nikoli regulární výraz. Prázdné pole odpovídá čemukoli.",
+      "scope": "Pozastavit",
+      "scopes": {
+        "connection": "Toto připojení",
+        "model": "Pouze tento model",
+        "provider": "Celého poskytovatele"
+      },
+      "reason": "Důvod",
+      "reasonAuto": "Automaticky",
+      "reasons": {
+        "quota_exhausted": "Kvóta vyčerpána",
+        "rate_limit_exceeded": "Překročen limit požadavků",
+        "auth_error": "Chyba ověření",
+        "model_capacity": "Model je přetížen",
+        "server_error": "Chyba serveru",
+        "unknown": "Jiné"
+      },
+      "duration": "Doba trvání",
+      "durations": {
+        "auto": "Výchozí",
+        "30m": "30 minut",
+        "1h": "1 hodina",
+        "5h": "5 hodin",
+        "24h": "24 hodin",
+        "custom": "Vlastní"
+      },
+      "customMinutes": "Minuty (1 až 43200)",
+      "remove": "Odebrat",
+      "defaultsHeading": "Výchozí hodnota pro chyby bez pravidla",
+      "defaultsHint": "Volitelné, pro každého poskytovatele. Použije se jen tehdy, když na chybu 402, 403, 408, 429 nebo 5xx neplatí žádné pravidlo. Chyby požadavku, například 400, nejsou nikdy dotčeny.",
+      "defaultsEmpty": "Výchozí hodnota není nastavena. Chyby bez pravidla si ponechají vestavěné chování.",
+      "addDefault": "Přidat výchozí hodnotu",
+      "errors": {
+        "provider": "Zadejte poskytovatele.",
+        "condition": "Nastavte stav HTTP, text chyby nebo obojí.",
+        "status": "Použijte stav od 100 do 599.",
+        "duration": "Zadejte 1 až 43200 minut.",
+        "duplicateDefault": "Tento poskytovatel už výchozí hodnotu má.",
+        "tooMany": "Nejvýše 50 pravidel."
+      },
+      "save": "Uložit pravidla chyb",
+      "saved": "Pravidla chyb uložena",
+      "saveFailed": "Pravidla chyb se nepodařilo uložit",
+      "loadFailed": "Pravidla chyb se nepodařilo načíst"
+    },
     "list": {
       "title": "Spojení vyřazená ze směrování",
       "subtitle": "Cooldowny a blokace modelů končí automaticky. Vymažte je, chcete-li spojení vrátit do směrování hned.",

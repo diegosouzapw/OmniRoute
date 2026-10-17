@@ -14360,6 +14360,63 @@
       "saved": "A ti fi àwọn òfin ìdádúró pamọ́",
       "saveFailed": "Kò lè fi àwọn òfin ìdádúró pamọ́"
     },
+    "errorRules": {
+      "title": "Àwọn òfin ìdádúró fún àṣìṣe",
+      "subtitle": "Dá àwọn àṣìṣe olùpèsè mọ̀ nípa ipò HTTP, ọ̀rọ̀ àṣìṣe, tàbí méjèèjì, kí o sì yan ohun tí a ó dá dúró àti fún ìgbà mélòó. Àwọn òfin wọ̀nyí ń ṣiṣẹ́ ṣáájú àwọn tí a kọ́ sínú rẹ̀.",
+      "rulesHeading": "Àwọn òfin",
+      "rulesEmpty": "Kò sí òfin kankan síbẹ̀.",
+      "addRule": "Ṣàfikún òfin",
+      "provider": "Olùpèsè",
+      "providerPlaceholder": "àpẹẹrẹ openai",
+      "status": "Ipò HTTP",
+      "statusPlaceholder": "Èyíkéyìí",
+      "match": "Ọ̀rọ̀ àṣìṣe ní",
+      "matchPlaceholder": "Ọ̀rọ̀ èyíkéyìí",
+      "matchHint": "Òfin àkọ́kọ́ tí ó bá mu ni a ó lò. Ọ̀rọ̀ àṣìṣe jẹ́ ọ̀rọ̀ lásán tí kò ka lẹ́tà ńlá àti kékeré sí, kì í ṣe ìfihàn déédéé (regex). Àyè òfìfo bá ohun gbogbo mu.",
+      "scope": "Dá dúró",
+      "scopes": {
+        "connection": "Ìsopọ̀ yìí",
+        "model": "Àwòṣe yìí nìkan",
+        "provider": "Gbogbo olùpèsè"
+      },
+      "reason": "Ìdí",
+      "reasonAuto": "Aládàáṣe",
+      "reasons": {
+        "quota_exhausted": "Ìpín ti tán",
+        "rate_limit_exceeded": "Ó ti kọjá ààlà ìyára",
+        "auth_error": "Àṣìṣe ìfàṣẹsí",
+        "model_capacity": "Àwòṣe ti kún",
+        "server_error": "Àṣìṣe olùpín",
+        "unknown": "Òmíràn"
+      },
+      "duration": "Ìgbà",
+      "durations": {
+        "auto": "Àìyípadà",
+        "30m": "Ìṣẹ́jú 30",
+        "1h": "Wákàtí 1",
+        "5h": "Wákàtí 5",
+        "24h": "Wákàtí 24",
+        "custom": "Àdáni"
+      },
+      "customMinutes": "Ìṣẹ́jú (1 sí 43200)",
+      "remove": "Yọ kúrò",
+      "defaultsHeading": "Àìyípadà fún ìkùnà tí kò ní òfin",
+      "defaultsHint": "Àṣàyàn, fún olùpèsè kọ̀ọ̀kan. A máa lò ó nìkan nígbà tí kò sí òfin tí ó bá àṣìṣe 402, 403, 408, 429 tàbí 5xx mu. Àwọn àṣìṣe ìbéèrè bíi 400 kì í ní ipa rárá.",
+      "defaultsEmpty": "A kò ṣètò àìyípadà. Àwọn àṣìṣe tí kò ní òfin máa ń tẹ̀lé ìhùwàsí tí a kọ́ sínú rẹ̀.",
+      "addDefault": "Ṣàfikún àìyípadà",
+      "errors": {
+        "provider": "Tẹ olùpèsè sí i.",
+        "condition": "Ṣètò ipò HTTP, ọ̀rọ̀ àṣìṣe, tàbí méjèèjì.",
+        "status": "Lo ipò láàárín 100 àti 599.",
+        "duration": "Tẹ ìṣẹ́jú 1 sí 43200.",
+        "duplicateDefault": "Olùpèsè yìí ti ní àìyípadà tẹ́lẹ̀.",
+        "tooMany": "Òfin 50 ní pàtàkì jùlọ."
+      },
+      "save": "Fi àwọn òfin àṣìṣe pamọ́",
+      "saved": "A ti fi àwọn òfin àṣìṣe pamọ́",
+      "saveFailed": "A kò lè fi àwọn òfin àṣìṣe pamọ́",
+      "loadFailed": "A kò lè gbé àwọn òfin àṣìṣe wọlé"
+    },
     "list": {
       "title": "Àwọn ìsopọ̀ tí kò sí nínú ìtọ́sọ́nà",
       "subtitle": "Àwọn ìdádúró àti títìpa àwòṣe máa ń parí fúnra wọn. Pa wọ́n rẹ́ láti mú ìsopọ̀ padà sí ìtọ́sọ́nà ní báyìí.",

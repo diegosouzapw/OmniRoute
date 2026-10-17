@@ -14360,6 +14360,63 @@
       "saved": "已儲存冷卻規則",
       "saveFailed": "無法儲存冷卻規則"
     },
+    "errorRules": {
+      "title": "錯誤冷卻規則",
+      "subtitle": "依 HTTP 狀態碼、錯誤文字或兩者比對上游錯誤，並選擇冷卻的對象與時長。這些規則會先於內建規則執行。",
+      "rulesHeading": "規則",
+      "rulesEmpty": "尚無規則。",
+      "addRule": "新增規則",
+      "provider": "供應商",
+      "providerPlaceholder": "例如 openai",
+      "status": "HTTP 狀態碼",
+      "statusPlaceholder": "任意",
+      "match": "錯誤文字包含",
+      "matchPlaceholder": "任意文字",
+      "matchHint": "第一條符合的規則生效。錯誤文字為不分大小寫的純文字，不是正規表示式。留空表示符合任何內容。",
+      "scope": "冷卻對象",
+      "scopes": {
+        "connection": "此連線",
+        "model": "僅此模型",
+        "provider": "整個供應商"
+      },
+      "reason": "原因",
+      "reasonAuto": "自動",
+      "reasons": {
+        "quota_exhausted": "配額用盡",
+        "rate_limit_exceeded": "觸發速率限制",
+        "auth_error": "驗證錯誤",
+        "model_capacity": "模型容量不足",
+        "server_error": "伺服器錯誤",
+        "unknown": "其他"
+      },
+      "duration": "時長",
+      "durations": {
+        "auto": "預設",
+        "30m": "30 分鐘",
+        "1h": "1 小時",
+        "5h": "5 小時",
+        "24h": "24 小時",
+        "custom": "自訂"
+      },
+      "customMinutes": "分鐘（1 至 43200）",
+      "remove": "移除",
+      "defaultsHeading": "未符合失敗的預設值",
+      "defaultsHint": "選用，依供應商設定。僅在沒有規則符合 402、403、408、429 或 5xx 錯誤時套用。400 等請求錯誤不受影響。",
+      "defaultsEmpty": "未設定預設值。未符合的錯誤維持內建行為。",
+      "addDefault": "新增預設值",
+      "errors": {
+        "provider": "請輸入供應商。",
+        "condition": "請設定 HTTP 狀態碼、錯誤文字或兩者。",
+        "status": "請使用 100 到 599 之間的狀態碼。",
+        "duration": "請輸入 1 到 43200 分鐘。",
+        "duplicateDefault": "此供應商已有預設值。",
+        "tooMany": "最多 50 條規則。"
+      },
+      "save": "儲存錯誤規則",
+      "saved": "已儲存錯誤規則",
+      "saveFailed": "無法儲存錯誤規則",
+      "loadFailed": "無法載入錯誤規則"
+    },
     "list": {
       "title": "退出路由的連線",
       "subtitle": "冷卻與模型鎖定會自動結束。立即清除它們可讓連線重新加入路由。",

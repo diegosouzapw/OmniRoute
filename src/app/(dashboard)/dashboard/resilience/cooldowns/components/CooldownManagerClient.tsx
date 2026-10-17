@@ -5,6 +5,7 @@ import EmptyState from "@/shared/components/EmptyState";
 import { useNotificationStore } from "@/store/notificationStore";
 import CooldownConnectionsCard from "./CooldownConnectionsCard";
 import CooldownRulesCard from "./CooldownRulesCard";
+import ProviderErrorRulesCard from "./ProviderErrorRulesCard";
 import { useCooldownData, type CooldownRules } from "./useCooldownData";
 
 export default function CooldownManagerClient() {
@@ -52,6 +53,7 @@ export default function CooldownManagerClient() {
         onClear={handleClear}
         onRefresh={() => void refresh()}
       />
+      <ProviderErrorRulesCard />
     </>
   );
 }

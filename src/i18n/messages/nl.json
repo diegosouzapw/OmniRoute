@@ -14360,6 +14360,63 @@
       "saved": "Cooldown-regels opgeslagen",
       "saveFailed": "Kon de cooldown-regels niet opslaan"
     },
+    "errorRules": {
+      "title": "Cooldownregels bij fouten",
+      "subtitle": "Herken providerfouten op HTTP-status, fouttekst of beide, en kies wat er wordt gepauzeerd en hoe lang. Deze regels gaan vóór de ingebouwde regels.",
+      "rulesHeading": "Regels",
+      "rulesEmpty": "Nog geen regels.",
+      "addRule": "Regel toevoegen",
+      "provider": "Provider",
+      "providerPlaceholder": "bijv. openai",
+      "status": "HTTP-status",
+      "statusPlaceholder": "Elke",
+      "match": "Fouttekst bevat",
+      "matchPlaceholder": "Elke tekst",
+      "matchHint": "De eerste regel die overeenkomt wint. Fouttekst is gewone tekst, niet hoofdlettergevoelig en geen reguliere expressie. Laat een veld leeg om alles te laten overeenkomen.",
+      "scope": "Pauzeren",
+      "scopes": {
+        "connection": "Deze verbinding",
+        "model": "Alleen dit model",
+        "provider": "Hele provider"
+      },
+      "reason": "Reden",
+      "reasonAuto": "Automatisch",
+      "reasons": {
+        "quota_exhausted": "Quotum op",
+        "rate_limit_exceeded": "Snelheidslimiet bereikt",
+        "auth_error": "Authenticatiefout",
+        "model_capacity": "Model op capaciteit",
+        "server_error": "Serverfout",
+        "unknown": "Overig"
+      },
+      "duration": "Duur",
+      "durations": {
+        "auto": "Standaard",
+        "30m": "30 minuten",
+        "1h": "1 uur",
+        "5h": "5 uur",
+        "24h": "24 uur",
+        "custom": "Aangepast"
+      },
+      "customMinutes": "Minuten (1 tot 43200)",
+      "remove": "Verwijderen",
+      "defaultsHeading": "Standaard voor fouten zonder regel",
+      "defaultsHint": "Optioneel, per provider. Geldt alleen als geen regel overeenkomt met een 402-, 403-, 408-, 429- of 5xx-fout. Verzoekfouten zoals 400 worden nooit geraakt.",
+      "defaultsEmpty": "Geen standaard ingesteld. Fouten zonder regel houden het ingebouwde gedrag.",
+      "addDefault": "Standaard toevoegen",
+      "errors": {
+        "provider": "Voer een provider in.",
+        "condition": "Stel een HTTP-status, een fouttekst of beide in.",
+        "status": "Gebruik een status tussen 100 en 599.",
+        "duration": "Voer 1 tot 43200 minuten in.",
+        "duplicateDefault": "Deze provider heeft al een standaard.",
+        "tooMany": "Maximaal 50 regels."
+      },
+      "save": "Foutregels opslaan",
+      "saved": "Foutregels opgeslagen",
+      "saveFailed": "Kan de foutregels niet opslaan",
+      "loadFailed": "Kan de foutregels niet laden"
+    },
     "list": {
       "title": "Verbindingen buiten routering",
       "subtitle": "Cooldowns en modelblokkades verlopen vanzelf. Wis ze om een verbinding direct weer in de routering op te nemen.",

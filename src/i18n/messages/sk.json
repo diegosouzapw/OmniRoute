@@ -14360,6 +14360,63 @@
       "saved": "Pravidlá cooldownu boli uložené",
       "saveFailed": "Nepodarilo sa uložiť pravidlá cooldownu"
     },
+    "errorRules": {
+      "title": "Pravidlá cooldownu pre chyby",
+      "subtitle": "Rozpoznávajte chyby poskytovateľa podľa stavu HTTP, textu chyby alebo oboch a zvoľte, čo a na ako dlho pozastaviť. Tieto pravidlá sa uplatnia pred vstavanými.",
+      "rulesHeading": "Pravidlá",
+      "rulesEmpty": "Zatiaľ žiadne pravidlá.",
+      "addRule": "Pridať pravidlo",
+      "provider": "Poskytovateľ",
+      "providerPlaceholder": "napr. openai",
+      "status": "Stav HTTP",
+      "statusPlaceholder": "Ľubovoľný",
+      "match": "Text chyby obsahuje",
+      "matchPlaceholder": "Ľubovoľný text",
+      "matchHint": "Platí prvé zhodné pravidlo. Text chyby je obyčajný text bez rozlišovania veľkosti písmen, nie regulárny výraz. Prázdne pole sa zhoduje s čímkoľvek.",
+      "scope": "Pozastaviť",
+      "scopes": {
+        "connection": "Toto pripojenie",
+        "model": "Iba tento model",
+        "provider": "Celého poskytovateľa"
+      },
+      "reason": "Dôvod",
+      "reasonAuto": "Automaticky",
+      "reasons": {
+        "quota_exhausted": "Kvóta vyčerpaná",
+        "rate_limit_exceeded": "Prekročený limit požiadaviek",
+        "auth_error": "Chyba overenia",
+        "model_capacity": "Model je preťažený",
+        "server_error": "Chyba servera",
+        "unknown": "Iné"
+      },
+      "duration": "Trvanie",
+      "durations": {
+        "auto": "Predvolené",
+        "30m": "30 minút",
+        "1h": "1 hodina",
+        "5h": "5 hodín",
+        "24h": "24 hodín",
+        "custom": "Vlastné"
+      },
+      "customMinutes": "Minúty (1 až 43200)",
+      "remove": "Odstrániť",
+      "defaultsHeading": "Predvolená hodnota pre chyby bez pravidla",
+      "defaultsHint": "Voliteľné, pre každého poskytovateľa. Použije sa iba vtedy, keď na chybu 402, 403, 408, 429 alebo 5xx neplatí žiadne pravidlo. Chyby požiadavky, napríklad 400, nie sú nikdy dotknuté.",
+      "defaultsEmpty": "Predvolená hodnota nie je nastavená. Chyby bez pravidla si ponechajú vstavané správanie.",
+      "addDefault": "Pridať predvolenú hodnotu",
+      "errors": {
+        "provider": "Zadajte poskytovateľa.",
+        "condition": "Nastavte stav HTTP, text chyby alebo oboje.",
+        "status": "Použite stav od 100 do 599.",
+        "duration": "Zadajte 1 až 43200 minút.",
+        "duplicateDefault": "Tento poskytovateľ už má predvolenú hodnotu.",
+        "tooMany": "Najviac 50 pravidiel."
+      },
+      "save": "Uložiť pravidlá chýb",
+      "saved": "Pravidlá chýb uložené",
+      "saveFailed": "Pravidlá chýb sa nepodarilo uložiť",
+      "loadFailed": "Pravidlá chýb sa nepodarilo načítať"
+    },
     "list": {
       "title": "Pripojenia mimo smerovania",
       "subtitle": "Cooldowny a uzamknutia modelov vypršia samy. Vymažte ich, ak chcete vrátiť pripojenie späť do smerovania hneď.",

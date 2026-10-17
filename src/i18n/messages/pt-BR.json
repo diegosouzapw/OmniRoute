@@ -14360,6 +14360,63 @@
       "saved": "Regras de cooldown salvas",
       "saveFailed": "Não foi possível salvar as regras de cooldown"
     },
+    "errorRules": {
+      "title": "Regras de cooldown por erro",
+      "subtitle": "Identifique erros do provedor por status HTTP, texto do erro ou ambos, e escolha o que pausar e por quanto tempo. Estas regras rodam antes das embutidas.",
+      "rulesHeading": "Regras",
+      "rulesEmpty": "Nenhuma regra ainda.",
+      "addRule": "Adicionar regra",
+      "provider": "Provedor",
+      "providerPlaceholder": "ex.: openai",
+      "status": "Status HTTP",
+      "statusPlaceholder": "Qualquer",
+      "match": "Texto do erro contém",
+      "matchPlaceholder": "Qualquer texto",
+      "matchHint": "Vale a primeira regra que bater. O texto do erro é texto simples, sem diferenciar maiúsculas, e não uma expressão regular. Deixe um campo vazio para aceitar qualquer coisa.",
+      "scope": "Pausar",
+      "scopes": {
+        "connection": "Esta conexão",
+        "model": "Só este modelo",
+        "provider": "Provedor inteiro"
+      },
+      "reason": "Motivo",
+      "reasonAuto": "Automático",
+      "reasons": {
+        "quota_exhausted": "Cota esgotada",
+        "rate_limit_exceeded": "Limite de requisições atingido",
+        "auth_error": "Erro de autenticação",
+        "model_capacity": "Modelo sem capacidade",
+        "server_error": "Erro do servidor",
+        "unknown": "Outro"
+      },
+      "duration": "Duração",
+      "durations": {
+        "auto": "Padrão",
+        "30m": "30 minutos",
+        "1h": "1 hora",
+        "5h": "5 horas",
+        "24h": "24 horas",
+        "custom": "Personalizada"
+      },
+      "customMinutes": "Minutos (1 a 43200)",
+      "remove": "Remover",
+      "defaultsHeading": "Padrão para falhas sem regra",
+      "defaultsHint": "Opcional, por provedor. Vale só quando nenhuma regra bate com um erro 402, 403, 408, 429 ou 5xx. Erros de requisição como 400 nunca são afetados.",
+      "defaultsEmpty": "Nenhum padrão definido. Erros sem regra mantêm o comportamento embutido.",
+      "addDefault": "Adicionar padrão",
+      "errors": {
+        "provider": "Informe um provedor.",
+        "condition": "Defina um status HTTP, um texto de erro ou ambos.",
+        "status": "Use um status entre 100 e 599.",
+        "duration": "Informe de 1 a 43200 minutos.",
+        "duplicateDefault": "Este provedor já tem um padrão.",
+        "tooMany": "No máximo 50 regras."
+      },
+      "save": "Salvar regras de erro",
+      "saved": "Regras de erro salvas",
+      "saveFailed": "Não foi possível salvar as regras de erro",
+      "loadFailed": "Não foi possível carregar as regras de erro"
+    },
     "list": {
       "title": "Conexões fora do roteamento",
       "subtitle": "Cooldowns e bloqueios de modelo expiram sozinhos. Limpe-os para colocar uma conexão de volta no roteamento agora.",

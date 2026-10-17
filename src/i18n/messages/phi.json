@@ -14360,6 +14360,63 @@
       "saved": "Nai-save ang mga panuntunan sa cooldown",
       "saveFailed": "Hindi mai-save ang mga panuntunan sa cooldown"
     },
+    "errorRules": {
+      "title": "Mga panuntunan sa cooldown para sa error",
+      "subtitle": "Kilalanin ang mga error ng provider ayon sa HTTP status, text ng error, o pareho, at piliin kung ano ang ihihinto at gaano katagal. Tumatakbo ang mga panuntunang ito bago ang mga built-in.",
+      "rulesHeading": "Mga panuntunan",
+      "rulesEmpty": "Wala pang panuntunan.",
+      "addRule": "Magdagdag ng panuntunan",
+      "provider": "Provider",
+      "providerPlaceholder": "hal. openai",
+      "status": "HTTP status",
+      "statusPlaceholder": "Kahit ano",
+      "match": "Naglalaman ang text ng error ng",
+      "matchPlaceholder": "Kahit anong text",
+      "matchHint": "Ang unang tumugmang panuntunan ang masusunod. Ang text ng error ay simpleng text na hindi tumitingin sa malaki o maliit na titik, hindi regular expression. Tumutugma sa lahat ang blangkong field.",
+      "scope": "Ihinto",
+      "scopes": {
+        "connection": "Ang koneksyong ito",
+        "model": "Ang modelong ito lang",
+        "provider": "Ang buong provider"
+      },
+      "reason": "Dahilan",
+      "reasonAuto": "Awtomatiko",
+      "reasons": {
+        "quota_exhausted": "Ubos na ang quota",
+        "rate_limit_exceeded": "Lumampas sa rate limit",
+        "auth_error": "Error sa pag-authenticate",
+        "model_capacity": "Puno ang kapasidad ng modelo",
+        "server_error": "Error sa server",
+        "unknown": "Iba pa"
+      },
+      "duration": "Tagal",
+      "durations": {
+        "auto": "Default",
+        "30m": "30 minuto",
+        "1h": "1 oras",
+        "5h": "5 oras",
+        "24h": "24 oras",
+        "custom": "Custom"
+      },
+      "customMinutes": "Minuto (1 hanggang 43200)",
+      "remove": "Alisin",
+      "defaultsHeading": "Default para sa mga pagkabigong walang panuntunan",
+      "defaultsHint": "Opsyonal, bawat provider. Ilalapat lang kapag walang panuntunang tumugma sa 402, 403, 408, 429 o 5xx na error. Hindi kailanman naaapektuhan ang mga error sa request gaya ng 400.",
+      "defaultsEmpty": "Walang nakatakdang default. Pinapanatili ng mga error na walang panuntunan ang built-in na pag-uugali.",
+      "addDefault": "Magdagdag ng default",
+      "errors": {
+        "provider": "Maglagay ng provider.",
+        "condition": "Magtakda ng HTTP status, text ng error, o pareho.",
+        "status": "Gumamit ng status mula 100 hanggang 599.",
+        "duration": "Maglagay ng 1 hanggang 43200 minuto.",
+        "duplicateDefault": "May default na ang provider na ito.",
+        "tooMany": "Hanggang 50 panuntunan lang."
+      },
+      "save": "I-save ang mga panuntunan sa error",
+      "saved": "Na-save ang mga panuntunan sa error",
+      "saveFailed": "Hindi ma-save ang mga panuntunan sa error",
+      "loadFailed": "Hindi ma-load ang mga panuntunan sa error"
+    },
     "list": {
       "title": "Mga koneksyong labas sa routing",
       "subtitle": "Kusa ring natatapos ang mga cooldown at lockout ng modelo. I-clear ang mga ito upang maibalik agad ang isang koneksyon sa routing.",

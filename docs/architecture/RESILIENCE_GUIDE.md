@@ -307,6 +307,12 @@ and edits the most-tuned cooldown rules: `streamStallCooldown.enabled` and the O
 `PATCH /api/resilience`). Terminal states (`banned`, `expired`, `credits_exhausted`) are
 listed but never cleared here.
 
+The **Error cooldown rules** card on the same page edits the operator error rules
+(`settings.providerErrorRules`) and the per-provider catch-all defaults
+(`settings.providerErrorDefaults`) through `PATCH /api/settings` — see "Operator-declared
+rules" under §7 for how they match. Durations are Default (no explicit cooldown), 30 min,
+1 h, 5 h, 24 h, or a custom 1 to 43,200 minutes (30 days).
+
 **REST API** (`src/lib/resilience/cooldownManager.ts`, auth: management):
 
 - `GET /api/resilience/cooldowns[?provider=]` — connections with status, remaining cooldown,
@@ -705,6 +711,29 @@ opt-in. `resolveRuleMatchBody()` and `honorsRuleLockScope()` both check
 `hasOperatorRuleForProvider()` first: a provider with an operator rule gets
 the raw error text and has its declared `scope` honored, regardless of
 whether it also appears in either allowlist.
+
+**Operator-declared rules** (`OperatorProviderErrorRule`): each rule has an
+optional `status` and an optional `match` (a plain, case-insensitive substring
+of the error text, never a RegExp, so it cannot cause ReDoS), and must set at
+least one of the two. When both are set they are AND-ed; an omitted field
+matches anything, so `{match: "insufficient_quota"}` matches any status that
+carries that code. The first matching rule wins. `cooldownMs` accepts up to
+30 days; at most 50 rules in total.
+
+**Catch-all defaults** (`settings.providerErrorDefaults`, opt-in, set through
+`setOperatorProviderErrorDefaults`): `{[provider]: {cooldownMs, scope?, reason?}}`
+with `cooldownMs` from 1 minute to 30 days. A default applies only when no
+operator rule and no built-in catalog rule matched, and only to 402, 403, 408,
+429 and 5xx errors. Request-shape errors (400, 404, 409, 413, 422) and bare
+401s keep their own handling. With no explicit `reason`, the reason comes from
+the status, the same way `classifyError` does it. Declaring a default counts as
+an operator rule for `hasOperatorRuleForProvider()`, so its `scope` (default
+`"connection"`) is honored. Neither a rule nor a default bypasses the
+connection-cooldown guards in `markAccountUnavailable`: an active, longer
+cooldown is never shortened and a terminal status is never overwritten. The
+built-in text detectors that run earlier in `checkFallbackError` (credits
+exhausted, daily quota, account deactivated) still take precedence for their
+own phrases.
 
 **Known gap — `providerRuleRegistry` is never consulted for HTTP 400.**
 `checkFallbackError`'s `BAD_REQUEST` branch classifies status 400 entirely

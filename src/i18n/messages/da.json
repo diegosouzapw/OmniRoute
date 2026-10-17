@@ -14360,6 +14360,63 @@
       "saved": "Cooldown-regler er gemt",
       "saveFailed": "Kunne ikke gemme cooldown-reglerne"
     },
+    "errorRules": {
+      "title": "Cooldown-regler for fejl",
+      "subtitle": "Genkend udbyderfejl på HTTP-status, fejltekst eller begge dele, og vælg hvad der sættes på pause og hvor længe. Disse regler køres før de indbyggede.",
+      "rulesHeading": "Regler",
+      "rulesEmpty": "Ingen regler endnu.",
+      "addRule": "Tilføj regel",
+      "provider": "Udbyder",
+      "providerPlaceholder": "f.eks. openai",
+      "status": "HTTP-status",
+      "statusPlaceholder": "Alle",
+      "match": "Fejltekst indeholder",
+      "matchPlaceholder": "Al tekst",
+      "matchHint": "Den første regel, der passer, vinder. Fejlteksten er almindelig tekst uden skelnen mellem store og små bogstaver, ikke et regulært udtryk. Lad et felt være tomt for at matche alt.",
+      "scope": "Sæt på pause",
+      "scopes": {
+        "connection": "Denne forbindelse",
+        "model": "Kun denne model",
+        "provider": "Hele udbyderen"
+      },
+      "reason": "Årsag",
+      "reasonAuto": "Automatisk",
+      "reasons": {
+        "quota_exhausted": "Kvote opbrugt",
+        "rate_limit_exceeded": "Hastighedsgrænse nået",
+        "auth_error": "Godkendelsesfejl",
+        "model_capacity": "Model ved kapacitetsgrænsen",
+        "server_error": "Serverfejl",
+        "unknown": "Andet"
+      },
+      "duration": "Varighed",
+      "durations": {
+        "auto": "Standard",
+        "30m": "30 minutter",
+        "1h": "1 time",
+        "5h": "5 timer",
+        "24h": "24 timer",
+        "custom": "Brugerdefineret"
+      },
+      "customMinutes": "Minutter (1 til 43200)",
+      "remove": "Fjern",
+      "defaultsHeading": "Standard for fejl uden regel",
+      "defaultsHint": "Valgfrit, pr. udbyder. Gælder kun, når ingen regel passer på en 402-, 403-, 408-, 429- eller 5xx-fejl. Anmodningsfejl som 400 påvirkes aldrig.",
+      "defaultsEmpty": "Ingen standard angivet. Fejl uden regel beholder den indbyggede adfærd.",
+      "addDefault": "Tilføj standard",
+      "errors": {
+        "provider": "Angiv en udbyder.",
+        "condition": "Angiv en HTTP-status, en fejltekst eller begge dele.",
+        "status": "Brug en status mellem 100 og 599.",
+        "duration": "Angiv 1 til 43200 minutter.",
+        "duplicateDefault": "Denne udbyder har allerede en standard.",
+        "tooMany": "Højst 50 regler."
+      },
+      "save": "Gem fejlregler",
+      "saved": "Fejlregler gemt",
+      "saveFailed": "Fejlreglerne kunne ikke gemmes",
+      "loadFailed": "Fejlreglerne kunne ikke indlæses"
+    },
     "list": {
       "title": "Forbindelser ude af routing",
       "subtitle": "Cooldowns og modellåsninger udløber af sig selv. Ryd dem for at bringe en forbindelse tilbage i routing nu.",

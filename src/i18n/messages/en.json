@@ -14360,6 +14360,63 @@
       "saved": "Cooldown rules saved",
       "saveFailed": "Couldn't save the cooldown rules"
     },
+    "errorRules": {
+      "title": "Error cooldown rules",
+      "subtitle": "Match upstream errors by HTTP status, error text, or both, and choose what to cool down and for how long. These rules run before the built-in ones.",
+      "rulesHeading": "Rules",
+      "rulesEmpty": "No rules yet.",
+      "addRule": "Add rule",
+      "provider": "Provider",
+      "providerPlaceholder": "e.g. openai",
+      "status": "HTTP status",
+      "statusPlaceholder": "Any",
+      "match": "Error text contains",
+      "matchPlaceholder": "Any text",
+      "matchHint": "The first matching rule wins. Error text is plain, case-insensitive text, not a regular expression. Leave a field empty to match anything.",
+      "scope": "Cool down",
+      "scopes": {
+        "connection": "This connection",
+        "model": "This model only",
+        "provider": "Whole provider"
+      },
+      "reason": "Reason",
+      "reasonAuto": "Automatic",
+      "reasons": {
+        "quota_exhausted": "Quota exhausted",
+        "rate_limit_exceeded": "Rate limited",
+        "auth_error": "Authentication error",
+        "model_capacity": "Model at capacity",
+        "server_error": "Server error",
+        "unknown": "Other"
+      },
+      "duration": "Duration",
+      "durations": {
+        "auto": "Default",
+        "30m": "30 minutes",
+        "1h": "1 hour",
+        "5h": "5 hours",
+        "24h": "24 hours",
+        "custom": "Custom"
+      },
+      "customMinutes": "Minutes (1 to 43200)",
+      "remove": "Remove",
+      "defaultsHeading": "Default for unmatched failures",
+      "defaultsHint": "Optional, per provider. Applies only when no rule matches a 402, 403, 408, 429 or 5xx error. Request errors such as 400 are never affected.",
+      "defaultsEmpty": "No default set. Unmatched errors keep the built-in behavior.",
+      "addDefault": "Add default",
+      "errors": {
+        "provider": "Enter a provider.",
+        "condition": "Set an HTTP status, an error text, or both.",
+        "status": "Use a status between 100 and 599.",
+        "duration": "Enter 1 to 43200 minutes.",
+        "duplicateDefault": "This provider already has a default.",
+        "tooMany": "At most 50 rules."
+      },
+      "save": "Save error rules",
+      "saved": "Error rules saved",
+      "saveFailed": "Couldn't save the error rules",
+      "loadFailed": "Couldn't load the error rules"
+    },
     "list": {
       "title": "Connections out of routing",
       "subtitle": "Cooldowns and model lockouts end on their own. Clear them to put a connection back into routing now.",

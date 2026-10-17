@@ -14360,6 +14360,63 @@
       "saved": "Cooldown-Regeln gespeichert",
       "saveFailed": "Cooldown-Regeln konnten nicht gespeichert werden"
     },
+    "errorRules": {
+      "title": "Fehler-Cooldown-Regeln",
+      "subtitle": "Upstream-Fehler nach HTTP-Status, Fehlertext oder beidem erkennen und festlegen, was wie lange pausiert wird. Diese Regeln laufen vor den integrierten.",
+      "rulesHeading": "Regeln",
+      "rulesEmpty": "Noch keine Regeln.",
+      "addRule": "Regel hinzufügen",
+      "provider": "Anbieter",
+      "providerPlaceholder": "z. B. openai",
+      "status": "HTTP-Status",
+      "statusPlaceholder": "Beliebig",
+      "match": "Fehlertext enthält",
+      "matchPlaceholder": "Beliebiger Text",
+      "matchHint": "Die erste passende Regel gewinnt. Der Fehlertext ist reiner Text ohne Groß-/Kleinschreibung, kein regulärer Ausdruck. Ein leeres Feld passt auf alles.",
+      "scope": "Pausieren",
+      "scopes": {
+        "connection": "Diese Verbindung",
+        "model": "Nur dieses Modell",
+        "provider": "Gesamter Anbieter"
+      },
+      "reason": "Grund",
+      "reasonAuto": "Automatisch",
+      "reasons": {
+        "quota_exhausted": "Kontingent erschöpft",
+        "rate_limit_exceeded": "Ratenlimit erreicht",
+        "auth_error": "Authentifizierungsfehler",
+        "model_capacity": "Modell ausgelastet",
+        "server_error": "Serverfehler",
+        "unknown": "Sonstiges"
+      },
+      "duration": "Dauer",
+      "durations": {
+        "auto": "Standard",
+        "30m": "30 Minuten",
+        "1h": "1 Stunde",
+        "5h": "5 Stunden",
+        "24h": "24 Stunden",
+        "custom": "Benutzerdefiniert"
+      },
+      "customMinutes": "Minuten (1 bis 43200)",
+      "remove": "Entfernen",
+      "defaultsHeading": "Standard für nicht erfasste Fehler",
+      "defaultsHint": "Optional, pro Anbieter. Gilt nur, wenn keine Regel auf einen 402-, 403-, 408-, 429- oder 5xx-Fehler passt. Anfragefehler wie 400 sind nie betroffen.",
+      "defaultsEmpty": "Kein Standard festgelegt. Nicht erfasste Fehler behalten das integrierte Verhalten.",
+      "addDefault": "Standard hinzufügen",
+      "errors": {
+        "provider": "Gib einen Anbieter ein.",
+        "condition": "Lege einen HTTP-Status, einen Fehlertext oder beides fest.",
+        "status": "Verwende einen Status zwischen 100 und 599.",
+        "duration": "Gib 1 bis 43200 Minuten ein.",
+        "duplicateDefault": "Dieser Anbieter hat bereits einen Standard.",
+        "tooMany": "Höchstens 50 Regeln."
+      },
+      "save": "Fehlerregeln speichern",
+      "saved": "Fehlerregeln gespeichert",
+      "saveFailed": "Die Fehlerregeln konnten nicht gespeichert werden",
+      "loadFailed": "Die Fehlerregeln konnten nicht geladen werden"
+    },
     "list": {
       "title": "Verbindungen außerhalb des Routings",
       "subtitle": "Cooldowns und Modellsperren enden automatisch. Heben Sie sie auf, um eine Verbindung sofort wieder ins Routing aufzunehmen.",

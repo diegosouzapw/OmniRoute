@@ -14360,6 +14360,63 @@
       "saved": "Ir-regoli tal-cooldown ġew salvati",
       "saveFailed": "Ma setgħux jiġu salvati r-regoli tal-cooldown"
     },
+    "errorRules": {
+      "title": "Regoli tal-cooldown għall-iżbalji",
+      "subtitle": "Agħraf l-iżbalji tal-fornitur skont l-istatus HTTP, it-test tal-iżball jew it-tnejn, u agħżel x'għandu jitwaqqaf u għal kemm żmien. Dawn ir-regoli jaħdmu qabel dawk integrati.",
+      "rulesHeading": "Regoli",
+      "rulesEmpty": "Għad m'hemmx regoli.",
+      "addRule": "Żid regola",
+      "provider": "Fornitur",
+      "providerPlaceholder": "eż. openai",
+      "status": "Status HTTP",
+      "statusPlaceholder": "Kwalunkwe",
+      "match": "It-test tal-iżball fih",
+      "matchPlaceholder": "Kwalunkwe test",
+      "matchHint": "L-ewwel regola li taqbel tapplika. It-test tal-iżball huwa test sempliċi li ma jagħmilx distinzjoni bejn ittri kbar u żgħar, mhux espressjoni regolari. Qasam vojt jaqbel ma' kollox.",
+      "scope": "Waqqaf",
+      "scopes": {
+        "connection": "Din il-konnessjoni",
+        "model": "Dan il-mudell biss",
+        "provider": "Il-fornitur kollu"
+      },
+      "reason": "Raġuni",
+      "reasonAuto": "Awtomatika",
+      "reasons": {
+        "quota_exhausted": "Kwota eżawrita",
+        "rate_limit_exceeded": "Limitu tar-rata maqbuż",
+        "auth_error": "Żball fl-awtentikazzjoni",
+        "model_capacity": "Il-mudell mimli",
+        "server_error": "Żball tas-server",
+        "unknown": "Oħrajn"
+      },
+      "duration": "Tul ta' żmien",
+      "durations": {
+        "auto": "Default",
+        "30m": "30 minuta",
+        "1h": "Siegħa",
+        "5h": "5 sigħat",
+        "24h": "24 siegħa",
+        "custom": "Personalizzat"
+      },
+      "customMinutes": "Minuti (minn 1 sa 43200)",
+      "remove": "Neħħi",
+      "defaultsHeading": "Default għal fallimenti mingħajr regola",
+      "defaultsHint": "Mhux obbligatorju, għal kull fornitur. Japplika biss meta l-ebda regola ma taqbel ma' żball 402, 403, 408, 429 jew 5xx. L-iżbalji tat-talba bħal 400 qatt ma jintlaqtu.",
+      "defaultsEmpty": "M'hemm l-ebda default issettjat. L-iżbalji mingħajr regola jżommu l-imġiba integrata.",
+      "addDefault": "Żid default",
+      "errors": {
+        "provider": "Daħħal fornitur.",
+        "condition": "Issettja status HTTP, test tal-iżball jew it-tnejn.",
+        "status": "Uża status bejn 100 u 599.",
+        "duration": "Daħħal minn 1 sa 43200 minuta.",
+        "duplicateDefault": "Dan il-fornitur diġà għandu default.",
+        "tooMany": "L-iktar 50 regola."
+      },
+      "save": "Issejvja r-regoli tal-iżbalji",
+      "saved": "Ir-regoli tal-iżbalji ġew issejvjati",
+      "saveFailed": "Ma kienx possibbli li jiġu ssejvjati r-regoli tal-iżbalji",
+      "loadFailed": "Ma kienx possibbli li jittellgħu r-regoli tal-iżbalji"
+    },
     "list": {
       "title": "Konnessjonijiet barra mir-routing",
       "subtitle": "Il-cooldowns u l-lockouts tal-mudelli jispiċċaw waħedhom. Neħħihom biex terġa' tpoġġi konnessjoni fir-routing issa.",

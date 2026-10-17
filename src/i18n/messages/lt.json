@@ -14360,6 +14360,63 @@
       "saved": "Atvėsimo taisyklės išsaugotos",
       "saveFailed": "Nepavyko išsaugoti atvėsimo taisyklių"
     },
+    "errorRules": {
+      "title": "Klaidų atvėsimo taisyklės",
+      "subtitle": "Atpažinkite tiekėjo klaidas pagal HTTP būseną, klaidos tekstą arba abu ir pasirinkite, ką ir kiek laiko pristabdyti. Šios taisyklės vykdomos prieš įtaisytąsias.",
+      "rulesHeading": "Taisyklės",
+      "rulesEmpty": "Taisyklių dar nėra.",
+      "addRule": "Pridėti taisyklę",
+      "provider": "Tiekėjas",
+      "providerPlaceholder": "pvz., openai",
+      "status": "HTTP būsena",
+      "statusPlaceholder": "Bet kuri",
+      "match": "Klaidos tekste yra",
+      "matchPlaceholder": "Bet koks tekstas",
+      "matchHint": "Galioja pirmoji atitikusi taisyklė. Klaidos tekstas yra paprastas tekstas, neskiriantis didžiųjų ir mažųjų raidžių, o ne reguliarioji išraiška. Tuščias laukas atitinka bet ką.",
+      "scope": "Pristabdyti",
+      "scopes": {
+        "connection": "Šį ryšį",
+        "model": "Tik šį modelį",
+        "provider": "Visą tiekėją"
+      },
+      "reason": "Priežastis",
+      "reasonAuto": "Automatiškai",
+      "reasons": {
+        "quota_exhausted": "Kvota išnaudota",
+        "rate_limit_exceeded": "Viršyta užklausų riba",
+        "auth_error": "Autentifikavimo klaida",
+        "model_capacity": "Modelis perkrautas",
+        "server_error": "Serverio klaida",
+        "unknown": "Kita"
+      },
+      "duration": "Trukmė",
+      "durations": {
+        "auto": "Numatytoji",
+        "30m": "30 minučių",
+        "1h": "1 valanda",
+        "5h": "5 valandos",
+        "24h": "24 valandos",
+        "custom": "Pasirinktinė"
+      },
+      "customMinutes": "Minutės (nuo 1 iki 43200)",
+      "remove": "Pašalinti",
+      "defaultsHeading": "Numatytoji reikšmė neatitikusioms klaidoms",
+      "defaultsHint": "Neprivaloma, kiekvienam tiekėjui. Taikoma tik tada, kai jokia taisyklė neatitinka 402, 403, 408, 429 ar 5xx klaidos. Užklausos klaidoms, pvz., 400, netaikoma.",
+      "defaultsEmpty": "Numatytoji reikšmė nenustatyta. Neatitikusios klaidos tvarkomos įtaisytu būdu.",
+      "addDefault": "Pridėti numatytąją reikšmę",
+      "errors": {
+        "provider": "Įveskite tiekėją.",
+        "condition": "Nustatykite HTTP būseną, klaidos tekstą arba abu.",
+        "status": "Naudokite būseną nuo 100 iki 599.",
+        "duration": "Įveskite nuo 1 iki 43200 minučių.",
+        "duplicateDefault": "Šis tiekėjas jau turi numatytąją reikšmę.",
+        "tooMany": "Daugiausia 50 taisyklių."
+      },
+      "save": "Išsaugoti klaidų taisykles",
+      "saved": "Klaidų taisyklės išsaugotos",
+      "saveFailed": "Nepavyko išsaugoti klaidų taisyklių",
+      "loadFailed": "Nepavyko įkelti klaidų taisyklių"
+    },
     "list": {
       "title": "Maršrutizavime nedalyvaujantys ryšiai",
       "subtitle": "Atvėsimai ir modelių blokavimai baigiasi savaime. Išvalykite juos, kad ryšys vėl būtų įtrauktas į maršrutizavimą.",

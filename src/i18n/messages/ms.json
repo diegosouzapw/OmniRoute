@@ -14360,6 +14360,63 @@
       "saved": "Peraturan tempoh bertenang disimpan",
       "saveFailed": "Tidak dapat menyimpan peraturan tempoh bertenang"
     },
+    "errorRules": {
+      "title": "Peraturan tempoh bertenang ralat",
+      "subtitle": "Kenal pasti ralat pembekal mengikut status HTTP, teks ralat atau kedua-duanya, dan pilih apa yang dijeda serta berapa lama. Peraturan ini dijalankan sebelum peraturan terbina dalam.",
+      "rulesHeading": "Peraturan",
+      "rulesEmpty": "Belum ada peraturan.",
+      "addRule": "Tambah peraturan",
+      "provider": "Pembekal",
+      "providerPlaceholder": "cth. openai",
+      "status": "Status HTTP",
+      "statusPlaceholder": "Mana-mana",
+      "match": "Teks ralat mengandungi",
+      "matchPlaceholder": "Mana-mana teks",
+      "matchHint": "Peraturan pertama yang sepadan akan digunakan. Teks ralat ialah teks biasa yang tidak membezakan huruf besar dan kecil, bukan ungkapan nalar. Medan kosong sepadan dengan apa sahaja.",
+      "scope": "Jeda",
+      "scopes": {
+        "connection": "Sambungan ini",
+        "model": "Model ini sahaja",
+        "provider": "Seluruh pembekal"
+      },
+      "reason": "Sebab",
+      "reasonAuto": "Automatik",
+      "reasons": {
+        "quota_exhausted": "Kuota habis",
+        "rate_limit_exceeded": "Had kadar dilampaui",
+        "auth_error": "Ralat pengesahan",
+        "model_capacity": "Kapasiti model penuh",
+        "server_error": "Ralat pelayan",
+        "unknown": "Lain-lain"
+      },
+      "duration": "Tempoh",
+      "durations": {
+        "auto": "Lalai",
+        "30m": "30 minit",
+        "1h": "1 jam",
+        "5h": "5 jam",
+        "24h": "24 jam",
+        "custom": "Tersuai"
+      },
+      "customMinutes": "Minit (1 hingga 43200)",
+      "remove": "Buang",
+      "defaultsHeading": "Lalai untuk kegagalan tanpa peraturan",
+      "defaultsHint": "Pilihan, bagi setiap pembekal. Hanya digunakan apabila tiada peraturan yang sepadan dengan ralat 402, 403, 408, 429 atau 5xx. Ralat permintaan seperti 400 tidak pernah terjejas.",
+      "defaultsEmpty": "Tiada lalai ditetapkan. Ralat tanpa peraturan mengekalkan tingkah laku terbina dalam.",
+      "addDefault": "Tambah lalai",
+      "errors": {
+        "provider": "Masukkan pembekal.",
+        "condition": "Tetapkan status HTTP, teks ralat atau kedua-duanya.",
+        "status": "Gunakan status antara 100 hingga 599.",
+        "duration": "Masukkan 1 hingga 43200 minit.",
+        "duplicateDefault": "Pembekal ini sudah mempunyai lalai.",
+        "tooMany": "Paling banyak 50 peraturan."
+      },
+      "save": "Simpan peraturan ralat",
+      "saved": "Peraturan ralat disimpan",
+      "saveFailed": "Tidak dapat menyimpan peraturan ralat",
+      "loadFailed": "Tidak dapat memuatkan peraturan ralat"
+    },
     "list": {
       "title": "Sambungan di luar penghalaan",
       "subtitle": "Tempoh bertenang dan sekatan model tamat dengan sendirinya. Kosongkannya untuk mengembalikan sambungan ke dalam penghalaan sekarang.",

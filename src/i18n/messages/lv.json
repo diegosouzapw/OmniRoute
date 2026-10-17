@@ -14360,6 +14360,63 @@
       "saved": "Atdzišanas kārtulas saglabātas",
       "saveFailed": "Neizdevās saglabāt atdzišanas kārtulas"
     },
+    "errorRules": {
+      "title": "Kļūdu atdzišanas kārtulas",
+      "subtitle": "Atpazīstiet pakalpojumu sniedzēja kļūdas pēc HTTP statusa, kļūdas teksta vai abiem un izvēlieties, ko un cik ilgi apturēt. Šīs kārtulas darbojas pirms iebūvētajām.",
+      "rulesHeading": "Kārtulas",
+      "rulesEmpty": "Vēl nav kārtulu.",
+      "addRule": "Pievienot kārtulu",
+      "provider": "Pakalpojumu sniedzējs",
+      "providerPlaceholder": "piem., openai",
+      "status": "HTTP statuss",
+      "statusPlaceholder": "Jebkurš",
+      "match": "Kļūdas teksts satur",
+      "matchPlaceholder": "Jebkurš teksts",
+      "matchHint": "Uzvar pirmā atbilstošā kārtula. Kļūdas teksts ir vienkāršs teksts bez reģistra nošķiršanas, nevis regulārā izteiksme. Tukšs lauks atbilst jebkam.",
+      "scope": "Apturēt",
+      "scopes": {
+        "connection": "Šo savienojumu",
+        "model": "Tikai šo modeli",
+        "provider": "Visu pakalpojumu sniedzēju"
+      },
+      "reason": "Iemesls",
+      "reasonAuto": "Automātiski",
+      "reasons": {
+        "quota_exhausted": "Kvota izsmelta",
+        "rate_limit_exceeded": "Pārsniegts pieprasījumu limits",
+        "auth_error": "Autentifikācijas kļūda",
+        "model_capacity": "Modelis ir pārslogots",
+        "server_error": "Servera kļūda",
+        "unknown": "Cits"
+      },
+      "duration": "Ilgums",
+      "durations": {
+        "auto": "Noklusējums",
+        "30m": "30 minūtes",
+        "1h": "1 stunda",
+        "5h": "5 stundas",
+        "24h": "24 stundas",
+        "custom": "Pielāgots"
+      },
+      "customMinutes": "Minūtes (no 1 līdz 43200)",
+      "remove": "Noņemt",
+      "defaultsHeading": "Noklusējums neatbilstošām kļūmēm",
+      "defaultsHint": "Neobligāti, katram pakalpojumu sniedzējam. Tiek lietots tikai tad, ja neviena kārtula neatbilst kļūdai 402, 403, 408, 429 vai 5xx. Pieprasījuma kļūdas, piemēram, 400, netiek ietekmētas.",
+      "defaultsEmpty": "Noklusējums nav iestatīts. Neatbilstošām kļūdām saglabājas iebūvētā darbība.",
+      "addDefault": "Pievienot noklusējumu",
+      "errors": {
+        "provider": "Ievadiet pakalpojumu sniedzēju.",
+        "condition": "Iestatiet HTTP statusu, kļūdas tekstu vai abus.",
+        "status": "Izmantojiet statusu no 100 līdz 599.",
+        "duration": "Ievadiet no 1 līdz 43200 minūtēm.",
+        "duplicateDefault": "Šim pakalpojumu sniedzējam jau ir noklusējums.",
+        "tooMany": "Ne vairāk kā 50 kārtulas."
+      },
+      "save": "Saglabāt kļūdu kārtulas",
+      "saved": "Kļūdu kārtulas saglabātas",
+      "saveFailed": "Neizdevās saglabāt kļūdu kārtulas",
+      "loadFailed": "Neizdevās ielādēt kļūdu kārtulas"
+    },
     "list": {
       "title": "Savienojumi ārpus maršrutēšanas",
       "subtitle": "Atdzišanas periodi un modeļu bloķējumi beidzas paši. Notīriet tos, lai savienojumu atgrieztu maršrutēšanā tūlīt.",

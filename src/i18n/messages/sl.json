@@ -14360,6 +14360,63 @@
       "saved": "Pravila ohlajanja so shranjena",
       "saveFailed": "Pravil ohlajanja ni bilo mogoče shraniti"
     },
+    "errorRules": {
+      "title": "Pravila ohlajanja ob napakah",
+      "subtitle": "Prepoznajte napake ponudnika po stanju HTTP, besedilu napake ali obojem in izberite, kaj in za koliko časa ustaviti. Ta pravila veljajo pred vgrajenimi.",
+      "rulesHeading": "Pravila",
+      "rulesEmpty": "Pravil še ni.",
+      "addRule": "Dodaj pravilo",
+      "provider": "Ponudnik",
+      "providerPlaceholder": "npr. openai",
+      "status": "Stanje HTTP",
+      "statusPlaceholder": "Katero koli",
+      "match": "Besedilo napake vsebuje",
+      "matchPlaceholder": "Katero koli besedilo",
+      "matchHint": "Velja prvo ujemajoče se pravilo. Besedilo napake je navadno besedilo brez razlikovanja velikih in malih črk, ne regularni izraz. Prazno polje se ujema z vsem.",
+      "scope": "Začasno ustavi",
+      "scopes": {
+        "connection": "To povezavo",
+        "model": "Samo ta model",
+        "provider": "Celotnega ponudnika"
+      },
+      "reason": "Razlog",
+      "reasonAuto": "Samodejno",
+      "reasons": {
+        "quota_exhausted": "Kvota porabljena",
+        "rate_limit_exceeded": "Presežena omejitev zahtev",
+        "auth_error": "Napaka preverjanja pristnosti",
+        "model_capacity": "Model je preobremenjen",
+        "server_error": "Napaka strežnika",
+        "unknown": "Drugo"
+      },
+      "duration": "Trajanje",
+      "durations": {
+        "auto": "Privzeto",
+        "30m": "30 minut",
+        "1h": "1 ura",
+        "5h": "5 ur",
+        "24h": "24 ur",
+        "custom": "Po meri"
+      },
+      "customMinutes": "Minute (od 1 do 43200)",
+      "remove": "Odstrani",
+      "defaultsHeading": "Privzeto za napake brez pravila",
+      "defaultsHint": "Neobvezno, za vsakega ponudnika. Velja samo, ko se nobeno pravilo ne ujema z napako 402, 403, 408, 429 ali 5xx. Napak zahteve, kot je 400, nikoli ne zajame.",
+      "defaultsEmpty": "Privzeta vrednost ni nastavljena. Napake brez pravila ohranijo vgrajeno vedenje.",
+      "addDefault": "Dodaj privzeto vrednost",
+      "errors": {
+        "provider": "Vnesite ponudnika.",
+        "condition": "Nastavite stanje HTTP, besedilo napake ali oboje.",
+        "status": "Uporabite stanje med 100 in 599.",
+        "duration": "Vnesite od 1 do 43200 minut.",
+        "duplicateDefault": "Ta ponudnik že ima privzeto vrednost.",
+        "tooMany": "Največ 50 pravil."
+      },
+      "save": "Shrani pravila napak",
+      "saved": "Pravila napak shranjena",
+      "saveFailed": "Pravil napak ni bilo mogoče shraniti",
+      "loadFailed": "Pravil napak ni bilo mogoče naložiti"
+    },
     "list": {
       "title": "Povezave izven usmerjanja",
       "subtitle": "Ohlajanja in zapore modelov se zaključijo sami. Počistite jih, če želite povezavo takoj vrniti v usmerjanje.",

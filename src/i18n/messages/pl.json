@@ -14360,6 +14360,63 @@
       "saved": "Zapisano reguły cooldownu",
       "saveFailed": "Nie udało się zapisać reguł cooldownu"
     },
+    "errorRules": {
+      "title": "Reguły cooldownu dla błędów",
+      "subtitle": "Rozpoznawaj błędy dostawcy po statusie HTTP, treści błędu lub obu i wybierz, co wstrzymać i na jak długo. Te reguły działają przed wbudowanymi.",
+      "rulesHeading": "Reguły",
+      "rulesEmpty": "Brak reguł.",
+      "addRule": "Dodaj regułę",
+      "provider": "Dostawca",
+      "providerPlaceholder": "np. openai",
+      "status": "Status HTTP",
+      "statusPlaceholder": "Dowolny",
+      "match": "Treść błędu zawiera",
+      "matchPlaceholder": "Dowolny tekst",
+      "matchHint": "Wygrywa pierwsza pasująca reguła. Treść błędu to zwykły tekst bez rozróżniania wielkości liter, a nie wyrażenie regularne. Puste pole pasuje do wszystkiego.",
+      "scope": "Wstrzymaj",
+      "scopes": {
+        "connection": "To połączenie",
+        "model": "Tylko ten model",
+        "provider": "Cały dostawca"
+      },
+      "reason": "Powód",
+      "reasonAuto": "Automatyczny",
+      "reasons": {
+        "quota_exhausted": "Limit wyczerpany",
+        "rate_limit_exceeded": "Przekroczony limit żądań",
+        "auth_error": "Błąd uwierzytelniania",
+        "model_capacity": "Model przeciążony",
+        "server_error": "Błąd serwera",
+        "unknown": "Inny"
+      },
+      "duration": "Czas trwania",
+      "durations": {
+        "auto": "Domyślny",
+        "30m": "30 minut",
+        "1h": "1 godzina",
+        "5h": "5 godzin",
+        "24h": "24 godziny",
+        "custom": "Własny"
+      },
+      "customMinutes": "Minuty (od 1 do 43200)",
+      "remove": "Usuń",
+      "defaultsHeading": "Domyślne dla niedopasowanych błędów",
+      "defaultsHint": "Opcjonalne, dla każdego dostawcy. Działa tylko, gdy żadna reguła nie pasuje do błędu 402, 403, 408, 429 lub 5xx. Błędy żądania, takie jak 400, nigdy nie są objęte.",
+      "defaultsEmpty": "Brak ustawienia domyślnego. Niedopasowane błędy zachowują wbudowane działanie.",
+      "addDefault": "Dodaj ustawienie domyślne",
+      "errors": {
+        "provider": "Podaj dostawcę.",
+        "condition": "Ustaw status HTTP, treść błędu lub oba.",
+        "status": "Użyj statusu od 100 do 599.",
+        "duration": "Podaj od 1 do 43200 minut.",
+        "duplicateDefault": "Ten dostawca ma już ustawienie domyślne.",
+        "tooMany": "Maksymalnie 50 reguł."
+      },
+      "save": "Zapisz reguły błędów",
+      "saved": "Zapisano reguły błędów",
+      "saveFailed": "Nie udało się zapisać reguł błędów",
+      "loadFailed": "Nie udało się wczytać reguł błędów"
+    },
     "list": {
       "title": "Połączenia wyłączone z routingu",
       "subtitle": "Cooldowny i blokady modeli kończą się same. Wyczyść je, aby natychmiast przywrócić połączenie do routingu.",

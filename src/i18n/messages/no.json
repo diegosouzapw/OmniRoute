@@ -14360,6 +14360,63 @@
       "saved": "Regler for nedkjøling lagret",
       "saveFailed": "Kunne ikke lagre reglene for nedkjøling"
     },
+    "errorRules": {
+      "title": "Nedkjølingsregler for feil",
+      "subtitle": "Gjenkjenn leverandørfeil på HTTP-status, feiltekst eller begge deler, og velg hva som skal settes på pause og hvor lenge. Disse reglene kjøres før de innebygde.",
+      "rulesHeading": "Regler",
+      "rulesEmpty": "Ingen regler ennå.",
+      "addRule": "Legg til regel",
+      "provider": "Leverandør",
+      "providerPlaceholder": "f.eks. openai",
+      "status": "HTTP-status",
+      "statusPlaceholder": "Alle",
+      "match": "Feilteksten inneholder",
+      "matchPlaceholder": "All tekst",
+      "matchHint": "Den første regelen som passer, gjelder. Feilteksten er vanlig tekst uten skille mellom store og små bokstaver, ikke et regulært uttrykk. La et felt stå tomt for å treffe alt.",
+      "scope": "Sett på pause",
+      "scopes": {
+        "connection": "Denne tilkoblingen",
+        "model": "Bare denne modellen",
+        "provider": "Hele leverandøren"
+      },
+      "reason": "Årsak",
+      "reasonAuto": "Automatisk",
+      "reasons": {
+        "quota_exhausted": "Kvoten er brukt opp",
+        "rate_limit_exceeded": "Hastighetsgrense nådd",
+        "auth_error": "Autentiseringsfeil",
+        "model_capacity": "Modellen er fullt belastet",
+        "server_error": "Serverfeil",
+        "unknown": "Annet"
+      },
+      "duration": "Varighet",
+      "durations": {
+        "auto": "Standard",
+        "30m": "30 minutter",
+        "1h": "1 time",
+        "5h": "5 timer",
+        "24h": "24 timer",
+        "custom": "Egendefinert"
+      },
+      "customMinutes": "Minutter (1 til 43200)",
+      "remove": "Fjern",
+      "defaultsHeading": "Standard for feil uten regel",
+      "defaultsHint": "Valgfritt, per leverandør. Gjelder bare når ingen regel passer på en 402-, 403-, 408-, 429- eller 5xx-feil. Forespørselsfeil som 400 berøres aldri.",
+      "defaultsEmpty": "Ingen standard angitt. Feil uten regel beholder den innebygde oppførselen.",
+      "addDefault": "Legg til standard",
+      "errors": {
+        "provider": "Oppgi en leverandør.",
+        "condition": "Angi en HTTP-status, en feiltekst eller begge deler.",
+        "status": "Bruk en status mellom 100 og 599.",
+        "duration": "Oppgi 1 til 43200 minutter.",
+        "duplicateDefault": "Denne leverandøren har allerede en standard.",
+        "tooMany": "Maks 50 regler."
+      },
+      "save": "Lagre feilregler",
+      "saved": "Feilreglene er lagret",
+      "saveFailed": "Kunne ikke lagre feilreglene",
+      "loadFailed": "Kunne ikke laste inn feilreglene"
+    },
     "list": {
       "title": "Tilkoblinger ute av ruting",
       "subtitle": "Nedkjølinger og modellutestengelser utløper av seg selv. Fjern dem for å sette en tilkobling tilbake i ruting nå.",

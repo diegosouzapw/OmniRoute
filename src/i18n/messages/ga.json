@@ -14360,6 +14360,63 @@
       "saved": "Rialacha fuaraithe sábháilte",
       "saveFailed": "Níorbh fhéidir na rialacha fuaraithe a shábháil"
     },
+    "errorRules": {
+      "title": "Rialacha fuaraithe d'earráidí",
+      "subtitle": "Aithin earráidí an tsoláthraí de réir stádas HTTP, téacs na hearráide nó an dá cheann, agus roghnaigh cad atá le cur ar sos agus ar feadh cá fhad. Ritheann na rialacha seo roimh na rialacha ionsuite.",
+      "rulesHeading": "Rialacha",
+      "rulesEmpty": "Níl aon rialacha fós.",
+      "addRule": "Cuir riail leis",
+      "provider": "Soláthraí",
+      "providerPlaceholder": "m.sh. openai",
+      "status": "Stádas HTTP",
+      "statusPlaceholder": "Aon cheann",
+      "match": "Tá sa téacs earráide",
+      "matchPlaceholder": "Aon téacs",
+      "matchHint": "Is í an chéad riail a mheaitseálann a bhíonn i bhfeidhm. Is gnáth-théacs gan idirdhealú cáis é téacs na hearráide, ní slonn ionadaíochta é. Meaitseálann réimse folamh gach rud.",
+      "scope": "Cuir ar sos",
+      "scopes": {
+        "connection": "An nasc seo",
+        "model": "An tsamhail seo amháin",
+        "provider": "An soláthraí ar fad"
+      },
+      "reason": "Cúis",
+      "reasonAuto": "Uathoibríoch",
+      "reasons": {
+        "quota_exhausted": "Cuóta ídithe",
+        "rate_limit_exceeded": "Teorainn ráta sáraithe",
+        "auth_error": "Earráid fíordheimhnithe",
+        "model_capacity": "Samhail ag a hacmhainn",
+        "server_error": "Earráid freastalaí",
+        "unknown": "Eile"
+      },
+      "duration": "Fad",
+      "durations": {
+        "auto": "Réamhshocrú",
+        "30m": "30 nóiméad",
+        "1h": "1 uair an chloig",
+        "5h": "5 huaire an chloig",
+        "24h": "24 uair an chloig",
+        "custom": "Saincheaptha"
+      },
+      "customMinutes": "Nóiméid (1 go 43200)",
+      "remove": "Bain",
+      "defaultsHeading": "Réamhshocrú do theipeanna gan riail",
+      "defaultsHint": "Roghnach, in aghaidh an tsoláthraí. Ní bhíonn sé i bhfeidhm ach nuair nach meaitseálann aon riail earráid 402, 403, 408, 429 nó 5xx. Ní chuirtear isteach riamh ar earráidí iarratais mar 400.",
+      "defaultsEmpty": "Níl aon réamhshocrú socraithe. Coinníonn earráidí gan riail an t-iompar ionsuite.",
+      "addDefault": "Cuir réamhshocrú leis",
+      "errors": {
+        "provider": "Cuir soláthraí isteach.",
+        "condition": "Socraigh stádas HTTP, téacs earráide nó an dá cheann.",
+        "status": "Úsáid stádas idir 100 agus 599.",
+        "duration": "Cuir 1 go 43200 nóiméad isteach.",
+        "duplicateDefault": "Tá réamhshocrú ag an soláthraí seo cheana.",
+        "tooMany": "50 riail ar a mhéad."
+      },
+      "save": "Sábháil rialacha earráide",
+      "saved": "Sábháladh rialacha earráide",
+      "saveFailed": "Níorbh fhéidir na rialacha earráide a shábháil",
+      "loadFailed": "Níorbh fhéidir na rialacha earráide a lódáil"
+    },
     "list": {
       "title": "Naisc as ródú",
       "subtitle": "Tagann deireadh le tréimhsí fuaraithe agus frithdhúnta samhlacha leo féin. Glan iad chun nasc a chur ar ais sa ródú anois.",

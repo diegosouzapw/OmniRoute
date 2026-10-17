@@ -14360,6 +14360,63 @@
       "saved": "Regulile pentru perioadele de repaus au fost salvate",
       "saveFailed": "Nu s-au putut salva regulile pentru perioadele de repaus"
     },
+    "errorRules": {
+      "title": "Reguli de repaus pentru erori",
+      "subtitle": "Recunoașteți erorile furnizorului după starea HTTP, textul erorii sau ambele și alegeți ce să puneți în repaus și pentru cât timp. Aceste reguli rulează înaintea celor integrate.",
+      "rulesHeading": "Reguli",
+      "rulesEmpty": "Încă nu există reguli.",
+      "addRule": "Adaugă regulă",
+      "provider": "Furnizor",
+      "providerPlaceholder": "de ex. openai",
+      "status": "Stare HTTP",
+      "statusPlaceholder": "Oricare",
+      "match": "Textul erorii conține",
+      "matchPlaceholder": "Orice text",
+      "matchHint": "Se aplică prima regulă care se potrivește. Textul erorii este text simplu, fără a ține cont de majuscule, nu o expresie regulată. Un câmp gol se potrivește cu orice.",
+      "scope": "Pune în repaus",
+      "scopes": {
+        "connection": "Această conexiune",
+        "model": "Doar acest model",
+        "provider": "Întregul furnizor"
+      },
+      "reason": "Motiv",
+      "reasonAuto": "Automat",
+      "reasons": {
+        "quota_exhausted": "Cotă epuizată",
+        "rate_limit_exceeded": "Limită de rată atinsă",
+        "auth_error": "Eroare de autentificare",
+        "model_capacity": "Model la capacitate maximă",
+        "server_error": "Eroare de server",
+        "unknown": "Altele"
+      },
+      "duration": "Durată",
+      "durations": {
+        "auto": "Implicită",
+        "30m": "30 de minute",
+        "1h": "1 oră",
+        "5h": "5 ore",
+        "24h": "24 de ore",
+        "custom": "Personalizată"
+      },
+      "customMinutes": "Minute (între 1 și 43200)",
+      "remove": "Elimină",
+      "defaultsHeading": "Implicit pentru eșecurile fără regulă",
+      "defaultsHint": "Opțional, pentru fiecare furnizor. Se aplică doar când nicio regulă nu se potrivește unei erori 402, 403, 408, 429 sau 5xx. Erorile de cerere, precum 400, nu sunt afectate niciodată.",
+      "defaultsEmpty": "Nu este setată nicio valoare implicită. Erorile fără regulă păstrează comportamentul integrat.",
+      "addDefault": "Adaugă valoare implicită",
+      "errors": {
+        "provider": "Introduceți un furnizor.",
+        "condition": "Setați o stare HTTP, un text de eroare sau ambele.",
+        "status": "Folosiți o stare între 100 și 599.",
+        "duration": "Introduceți între 1 și 43200 de minute.",
+        "duplicateDefault": "Acest furnizor are deja o valoare implicită.",
+        "tooMany": "Cel mult 50 de reguli."
+      },
+      "save": "Salvează regulile de erori",
+      "saved": "Regulile de erori au fost salvate",
+      "saveFailed": "Regulile de erori nu au putut fi salvate",
+      "loadFailed": "Regulile de erori nu au putut fi încărcate"
+    },
     "list": {
       "title": "Conexiuni scoase din rutare",
       "subtitle": "Perioadele de repaus și blocările de model se încheie de la sine. Elimină-le pentru a reintroduce o conexiune în rutare acum.",

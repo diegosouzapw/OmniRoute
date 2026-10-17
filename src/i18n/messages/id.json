@@ -14360,6 +14360,63 @@
       "saved": "Aturan cooldown berhasil disimpan",
       "saveFailed": "Gagal menyimpan aturan cooldown"
     },
+    "errorRules": {
+      "title": "Aturan cooldown kesalahan",
+      "subtitle": "Kenali kesalahan penyedia berdasarkan status HTTP, teks kesalahan, atau keduanya, lalu pilih apa yang dijeda dan berapa lama. Aturan ini dijalankan sebelum aturan bawaan.",
+      "rulesHeading": "Aturan",
+      "rulesEmpty": "Belum ada aturan.",
+      "addRule": "Tambah aturan",
+      "provider": "Penyedia",
+      "providerPlaceholder": "mis. openai",
+      "status": "Status HTTP",
+      "statusPlaceholder": "Apa saja",
+      "match": "Teks kesalahan berisi",
+      "matchPlaceholder": "Teks apa saja",
+      "matchHint": "Aturan pertama yang cocok yang berlaku. Teks kesalahan adalah teks biasa yang tidak membedakan huruf besar-kecil, bukan ekspresi reguler. Bidang kosong cocok dengan apa pun.",
+      "scope": "Jeda",
+      "scopes": {
+        "connection": "Koneksi ini",
+        "model": "Hanya model ini",
+        "provider": "Seluruh penyedia"
+      },
+      "reason": "Alasan",
+      "reasonAuto": "Otomatis",
+      "reasons": {
+        "quota_exhausted": "Kuota habis",
+        "rate_limit_exceeded": "Batas laju terlampaui",
+        "auth_error": "Kesalahan autentikasi",
+        "model_capacity": "Kapasitas model penuh",
+        "server_error": "Kesalahan server",
+        "unknown": "Lainnya"
+      },
+      "duration": "Durasi",
+      "durations": {
+        "auto": "Bawaan",
+        "30m": "30 menit",
+        "1h": "1 jam",
+        "5h": "5 jam",
+        "24h": "24 jam",
+        "custom": "Kustom"
+      },
+      "customMinutes": "Menit (1 hingga 43200)",
+      "remove": "Hapus",
+      "defaultsHeading": "Bawaan untuk kegagalan tanpa aturan",
+      "defaultsHint": "Opsional, per penyedia. Hanya berlaku jika tidak ada aturan yang cocok dengan kesalahan 402, 403, 408, 429, atau 5xx. Kesalahan permintaan seperti 400 tidak pernah terpengaruh.",
+      "defaultsEmpty": "Tidak ada bawaan. Kesalahan tanpa aturan tetap memakai perilaku bawaan.",
+      "addDefault": "Tambah bawaan",
+      "errors": {
+        "provider": "Masukkan penyedia.",
+        "condition": "Atur status HTTP, teks kesalahan, atau keduanya.",
+        "status": "Gunakan status antara 100 dan 599.",
+        "duration": "Masukkan 1 hingga 43200 menit.",
+        "duplicateDefault": "Penyedia ini sudah memiliki bawaan.",
+        "tooMany": "Maksimal 50 aturan."
+      },
+      "save": "Simpan aturan kesalahan",
+      "saved": "Aturan kesalahan disimpan",
+      "saveFailed": "Tidak dapat menyimpan aturan kesalahan",
+      "loadFailed": "Tidak dapat memuat aturan kesalahan"
+    },
     "list": {
       "title": "Koneksi di luar routing",
       "subtitle": "Cooldown dan penguncian model akan berakhir dengan sendirinya. Hapus untuk mengembalikan koneksi ke routing sekarang.",

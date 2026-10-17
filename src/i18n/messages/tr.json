@@ -14360,6 +14360,63 @@
       "saved": "Bekleme süresi kuralları kaydedildi",
       "saveFailed": "Bekleme süresi kuralları kaydedilemedi"
     },
+    "errorRules": {
+      "title": "Hata bekleme süresi kuralları",
+      "subtitle": "Sağlayıcı hatalarını HTTP durumuna, hata metnine veya ikisine göre tanıyın ve neyin ne kadar süre bekletileceğini seçin. Bu kurallar yerleşik kurallardan önce çalışır.",
+      "rulesHeading": "Kurallar",
+      "rulesEmpty": "Henüz kural yok.",
+      "addRule": "Kural ekle",
+      "provider": "Sağlayıcı",
+      "providerPlaceholder": "ör. openai",
+      "status": "HTTP durumu",
+      "statusPlaceholder": "Herhangi",
+      "match": "Hata metni şunu içerir",
+      "matchPlaceholder": "Herhangi bir metin",
+      "matchHint": "İlk eşleşen kural geçerli olur. Hata metni büyük/küçük harf duyarsız düz metindir, düzenli ifade değildir. Boş bırakılan alan her şeyle eşleşir.",
+      "scope": "Bekletilecek",
+      "scopes": {
+        "connection": "Bu bağlantı",
+        "model": "Yalnızca bu model",
+        "provider": "Tüm sağlayıcı"
+      },
+      "reason": "Neden",
+      "reasonAuto": "Otomatik",
+      "reasons": {
+        "quota_exhausted": "Kota tükendi",
+        "rate_limit_exceeded": "Hız sınırına ulaşıldı",
+        "auth_error": "Kimlik doğrulama hatası",
+        "model_capacity": "Model kapasitesi dolu",
+        "server_error": "Sunucu hatası",
+        "unknown": "Diğer"
+      },
+      "duration": "Süre",
+      "durations": {
+        "auto": "Varsayılan",
+        "30m": "30 dakika",
+        "1h": "1 saat",
+        "5h": "5 saat",
+        "24h": "24 saat",
+        "custom": "Özel"
+      },
+      "customMinutes": "Dakika (1 ile 43200 arası)",
+      "remove": "Kaldır",
+      "defaultsHeading": "Eşleşmeyen hatalar için varsayılan",
+      "defaultsHint": "İsteğe bağlı, sağlayıcı başına. Yalnızca 402, 403, 408, 429 veya 5xx hatasıyla hiçbir kural eşleşmediğinde uygulanır. 400 gibi istek hataları hiçbir zaman etkilenmez.",
+      "defaultsEmpty": "Varsayılan ayarlanmadı. Eşleşmeyen hatalar yerleşik davranışı korur.",
+      "addDefault": "Varsayılan ekle",
+      "errors": {
+        "provider": "Bir sağlayıcı girin.",
+        "condition": "Bir HTTP durumu, hata metni veya ikisini birden ayarlayın.",
+        "status": "100 ile 599 arasında bir durum kullanın.",
+        "duration": "1 ile 43200 dakika arasında girin.",
+        "duplicateDefault": "Bu sağlayıcının zaten bir varsayılanı var.",
+        "tooMany": "En fazla 50 kural."
+      },
+      "save": "Hata kurallarını kaydet",
+      "saved": "Hata kuralları kaydedildi",
+      "saveFailed": "Hata kuralları kaydedilemedi",
+      "loadFailed": "Hata kuralları yüklenemedi"
+    },
     "list": {
       "title": "Yönlendirme dışı bağlantılar",
       "subtitle": "Bekleme süreleri ve model kilitlemeleri kendiliğinden sona erer. Bir bağlantıyı hemen yeniden yönlendirmeye almak için bunları temizleyin.",

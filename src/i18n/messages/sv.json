@@ -14360,6 +14360,63 @@
       "saved": "Cooldown-regler sparade",
       "saveFailed": "Kunde inte spara cooldown-reglerna"
     },
+    "errorRules": {
+      "title": "Cooldown-regler för fel",
+      "subtitle": "Känn igen leverantörsfel på HTTP-status, feltext eller båda, och välj vad som pausas och hur länge. Reglerna körs före de inbyggda.",
+      "rulesHeading": "Regler",
+      "rulesEmpty": "Inga regler ännu.",
+      "addRule": "Lägg till regel",
+      "provider": "Leverantör",
+      "providerPlaceholder": "t.ex. openai",
+      "status": "HTTP-status",
+      "statusPlaceholder": "Alla",
+      "match": "Feltexten innehåller",
+      "matchPlaceholder": "Valfri text",
+      "matchHint": "Den första regeln som matchar gäller. Feltexten är vanlig text utan skillnad på versaler och gemener, inte ett reguljärt uttryck. Lämna ett fält tomt för att matcha allt.",
+      "scope": "Pausa",
+      "scopes": {
+        "connection": "Den här anslutningen",
+        "model": "Bara den här modellen",
+        "provider": "Hela leverantören"
+      },
+      "reason": "Orsak",
+      "reasonAuto": "Automatisk",
+      "reasons": {
+        "quota_exhausted": "Kvoten slut",
+        "rate_limit_exceeded": "Hastighetsgräns nådd",
+        "auth_error": "Autentiseringsfel",
+        "model_capacity": "Modellen är fullbelastad",
+        "server_error": "Serverfel",
+        "unknown": "Annat"
+      },
+      "duration": "Varaktighet",
+      "durations": {
+        "auto": "Standard",
+        "30m": "30 minuter",
+        "1h": "1 timme",
+        "5h": "5 timmar",
+        "24h": "24 timmar",
+        "custom": "Anpassad"
+      },
+      "customMinutes": "Minuter (1 till 43200)",
+      "remove": "Ta bort",
+      "defaultsHeading": "Standard för fel utan regel",
+      "defaultsHint": "Valfritt, per leverantör. Gäller bara när ingen regel matchar ett 402-, 403-, 408-, 429- eller 5xx-fel. Begärandefel som 400 påverkas aldrig.",
+      "defaultsEmpty": "Ingen standard angiven. Fel utan regel behåller det inbyggda beteendet.",
+      "addDefault": "Lägg till standard",
+      "errors": {
+        "provider": "Ange en leverantör.",
+        "condition": "Ange en HTTP-status, en feltext eller båda.",
+        "status": "Använd en status mellan 100 och 599.",
+        "duration": "Ange 1 till 43200 minuter.",
+        "duplicateDefault": "Den här leverantören har redan en standard.",
+        "tooMany": "Högst 50 regler."
+      },
+      "save": "Spara felregler",
+      "saved": "Felreglerna har sparats",
+      "saveFailed": "Det gick inte att spara felreglerna",
+      "loadFailed": "Det gick inte att läsa in felreglerna"
+    },
     "list": {
       "title": "Anslutningar utanför routing",
       "subtitle": "Cooldowns och modellspärrar upphör automatiskt. Rensa dem för att återställa en anslutning till routing nu.",

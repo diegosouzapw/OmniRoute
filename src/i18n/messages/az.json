@@ -14360,6 +14360,63 @@
       "saved": "Gözləmə müddəti qaydaları saxlanıldı",
       "saveFailed": "Gözləmə müddəti qaydalarını saxlamaq mümkün olmadı"
     },
+    "errorRules": {
+      "title": "Xəta gözləmə müddəti qaydaları",
+      "subtitle": "Provayder xətalarını HTTP statusu, xəta mətni və ya hər ikisi ilə tanıyın, nəyin nə qədər dayandırılacağını seçin. Bu qaydalar daxili qaydalardan əvvəl işləyir.",
+      "rulesHeading": "Qaydalar",
+      "rulesEmpty": "Hələ qayda yoxdur.",
+      "addRule": "Qayda əlavə et",
+      "provider": "Provayder",
+      "providerPlaceholder": "məs. openai",
+      "status": "HTTP statusu",
+      "statusPlaceholder": "İstənilən",
+      "match": "Xəta mətnində var",
+      "matchPlaceholder": "İstənilən mətn",
+      "matchHint": "İlk uyğun gələn qayda tətbiq olunur. Xəta mətni böyük-kiçik hərfə həssas olmayan sadə mətndir, müntəzəm ifadə deyil. Boş sahə hər şeyə uyğun gəlir.",
+      "scope": "Dayandır",
+      "scopes": {
+        "connection": "Bu bağlantı",
+        "model": "Yalnız bu model",
+        "provider": "Bütün provayder"
+      },
+      "reason": "Səbəb",
+      "reasonAuto": "Avtomatik",
+      "reasons": {
+        "quota_exhausted": "Kvota tükənib",
+        "rate_limit_exceeded": "Sürət limiti aşılıb",
+        "auth_error": "Autentifikasiya xətası",
+        "model_capacity": "Modelin tutumu dolub",
+        "server_error": "Server xətası",
+        "unknown": "Digər"
+      },
+      "duration": "Müddət",
+      "durations": {
+        "auto": "Defolt",
+        "30m": "30 dəqiqə",
+        "1h": "1 saat",
+        "5h": "5 saat",
+        "24h": "24 saat",
+        "custom": "Fərdi"
+      },
+      "customMinutes": "Dəqiqə (1-dən 43200-ə qədər)",
+      "remove": "Sil",
+      "defaultsHeading": "Uyğun gəlməyən xətalar üçün defolt",
+      "defaultsHint": "İstəyə bağlı, hər provayder üçün. Yalnız heç bir qayda 402, 403, 408, 429 və ya 5xx xətasına uyğun gəlmədikdə tətbiq olunur. 400 kimi sorğu xətalarına heç vaxt təsir etmir.",
+      "defaultsEmpty": "Defolt təyin edilməyib. Uyğun gəlməyən xətalar daxili davranışı saxlayır.",
+      "addDefault": "Defolt əlavə et",
+      "errors": {
+        "provider": "Provayder daxil edin.",
+        "condition": "HTTP statusu, xəta mətni və ya hər ikisini təyin edin.",
+        "status": "100 ilə 599 arasında status istifadə edin.",
+        "duration": "1 ilə 43200 dəqiqə arasında daxil edin.",
+        "duplicateDefault": "Bu provayderin artıq defoltu var.",
+        "tooMany": "Ən çox 50 qayda."
+      },
+      "save": "Xəta qaydalarını yadda saxla",
+      "saved": "Xəta qaydaları yadda saxlanıldı",
+      "saveFailed": "Xəta qaydalarını yadda saxlamaq mümkün olmadı",
+      "loadFailed": "Xəta qaydalarını yükləmək mümkün olmadı"
+    },
     "list": {
       "title": "Marşrutlaşdırmadan kənarlaşdırılmış bağlantılar",
       "subtitle": "Gözləmə müddətləri və model kilidlənmələri öz-özünə başa çatır. Bağlantını dərhal yenidən marşrutlaşdırmaya daxil etmək üçün onları təmizləyin.",

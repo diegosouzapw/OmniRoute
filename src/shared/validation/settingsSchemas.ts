@@ -102,6 +102,18 @@ const transformObfuscateWordsSchema = z.object({
     .optional(),
 });
 
+/** Operator error rules accept a custom cooldown of up to 30 days. */
+const OPERATOR_ERROR_MAX_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+const operatorErrorScopeSchema = z.enum(["model", "provider", "connection"]);
+const operatorErrorReasonSchema = z.enum([
+  "auth_error",
+  "quota_exhausted",
+  "rate_limit_exceeded",
+  "model_capacity",
+  "server_error",
+  "unknown",
+]);
+
 export const updateSettingsSchema = z.object({
   connectionTestPrompt: z.string().trim().min(1).max(CONNECTION_TEST_PROMPT_MAX_LENGTH).optional(),
   /** #7784: opt-in optimistic concurrency — must match GET settingsRevision / ETag. */
@@ -310,28 +322,24 @@ export const updateSettingsSchema = z.object({
    * editing the catalog. Matches are plain case-insensitive SUBSTRINGS of the
    * error body (never RegExp) to keep the classification hot path ReDoS-safe.
    * Bounded to 50 rules total so a misconfigured setting cannot blow up the
-   * matcher.
+   * matcher. `status` and `match` are each optional (omitted = any) but a rule
+   * must set at least one of them; when both are set, both must match.
    */
   providerErrorRules: z
     .record(
       z.string().trim().min(1).max(100),
       z.array(
-        z.object({
-          status: z.number().int().min(100).max(599),
-          match: z.string().min(1).max(200),
-          scope: z.enum(["model", "provider", "connection"]),
-          reason: z
-            .enum([
-              "auth_error",
-              "quota_exhausted",
-              "rate_limit_exceeded",
-              "model_capacity",
-              "server_error",
-              "unknown",
-            ])
-            .optional(),
-          cooldownMs: z.number().int().min(0).max(86_400_000).optional(),
-        })
+        z
+          .object({
+            status: z.number().int().min(100).max(599).optional(),
+            match: z.string().min(1).max(200).optional(),
+            scope: operatorErrorScopeSchema,
+            reason: operatorErrorReasonSchema.optional(),
+            cooldownMs: z.number().int().min(0).max(OPERATOR_ERROR_MAX_COOLDOWN_MS).optional(),
+          })
+          .refine((rule) => rule.status !== undefined || rule.match !== undefined, {
+            message: "providerErrorRules: each rule needs a status, a match, or both",
+          })
       )
     )
     .optional()
@@ -344,6 +352,24 @@ export const updateSettingsSchema = z.object({
           message: `providerErrorRules: at most 50 rules total, got ${total}`,
         });
       }
+    }),
+  /**
+   * Opt-in per-provider catch-all cooldown for failures no operator rule and no
+   * built-in rule matched. Applies to 402/403/408/429/5xx only — request-shape
+   * 4xx errors and bare 401s keep their own handling. Absent = current behavior.
+   */
+  providerErrorDefaults: z
+    .record(
+      z.string().trim().min(1).max(100),
+      z.object({
+        cooldownMs: z.number().int().min(60_000).max(OPERATOR_ERROR_MAX_COOLDOWN_MS),
+        scope: operatorErrorScopeSchema.optional(),
+        reason: operatorErrorReasonSchema.optional(),
+      })
+    )
+    .optional()
+    .refine((value) => !value || Object.keys(value).length <= 100, {
+      message: "providerErrorDefaults: at most 100 providers",
     }),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
