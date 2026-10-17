@@ -8915,7 +8915,12 @@
       "statsTitle": "Erkennungen seit dem Neustart",
       "statsEmpty": "Noch keine Erkennungen.",
       "statsRequest": "Anfragen"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Abgeleitete Videoframes aufbewahren",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Die vorübergehende Aufbewahrung von JPEGs nur zulassen, wenn die authentifizierte Anfrage zusätzlich drilldown: true festlegt. Rohvideos werden niemals aufbewahrt.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Authentifizierten Frame-Drill-down zulassen",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API-Schlüsseln nur erlauben, ihre eigenen undurchsichtigen Handles zu lesen und zu löschen. Kein anonymer oder schlüsselübergreifender Zugriff.",
+    "modalityBridgeVideoDrilldownUsage": "Aufbewahrte JPEGs / Bytes"
   },
   "contextRtk": {
     "title": "RTK-Engine",

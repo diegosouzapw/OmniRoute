@@ -1,0 +1,2 @@
+- Preserve retained Video Bridge drill-down artifacts after a focused read selects no frames, keep private handles out of guardrail diagnostic logs, and enforce the API key's video endpoint permission on both reads and deletion (#16074).
+- Publish one parseable OpenAPI drill-down contract and retain its complete cross-key error description so generated endpoint references cannot be emptied by a duplicate route definition (#16074).

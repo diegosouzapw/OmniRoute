@@ -8915,7 +8915,12 @@
       "statsTitle": "ዳግም ከተጀመረ ወዲህ የተገኙ",
       "statsEmpty": "እስካሁን የተገኘ የለም።",
       "statsRequest": "ጥያቄዎች"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "የተገኙ የቪዲዮ ፍሬሞችን ያቆዩ",
+    "modalityBridgeVideoDrilldownEnabledDesc": "የተረጋገጠው ጥያቄ drilldown: true ን ሲያቀናብር ብቻ ጊዜያዊ የJPEG ማቆየትን ይፍቀዱ። ጥሬ ቪዲዮዎች በፍጹም አይቆዩም።",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "የተረጋገጠ የፍሬም ዝርዝር እይታን ይፍቀዱ",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "የAPI ቁልፎች የራሳቸውን ግልጽ ያልሆኑ መያዣዎች ብቻ እንዲያነቡና እንዲሰርዙ ይፍቀዱ። ማንነት ያልተገለጸ ወይም በተለያዩ ቁልፎች መካከል የሚደረግ መዳረሻ አይፈቀድም።",
+    "modalityBridgeVideoDrilldownUsage": "የተቆዩ JPEGዎች / ባይቶች"
   },
   "contextRtk": {
     "title": "RTK ሞተር",

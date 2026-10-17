@@ -8915,7 +8915,12 @@
       "statsTitle": "Tuvastused alates taaskäivitusest",
       "statsEmpty": "Tuvastusi veel pole.",
       "statsRequest": "Päringud"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Säilita tuletatud videokaadrid",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Luba ajutine JPEG-failide säilitamine ainult siis, kui autenditud päring määrab ka drilldown: true. Toorvideoid ei säilitata kunagi.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Luba autenditud kaadrite üksikasjalik vaatamine",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Luba API-võtmetel lugeda ja kustutada ainult neile kuuluvaid läbipaistmatuid pidemeid. Anonüümne ega võtmeülene juurdepääs pole lubatud.",
+    "modalityBridgeVideoDrilldownUsage": "Säilitatud JPEG-failid / baidid"
   },
   "contextRtk": {
     "title": "RTK Engine",

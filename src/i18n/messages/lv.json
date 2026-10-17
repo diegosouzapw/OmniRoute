@@ -8915,7 +8915,12 @@
       "statsTitle": "Atklājumi kopš restartēšanas",
       "statsEmpty": "Atklājumu vēl nav.",
       "statsRequest": "Pieprasījumi"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Saglabāt iegūtos video kadrus",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Atļaut īslaicīgu JPEG failu saglabāšanu tikai tad, ja autentificētajā pieprasījumā ir iestatīts arī drilldown: true. Neapstrādātie video nekad netiek saglabāti.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Atļaut autentificētu kadru detalizētu izpēti",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Atļaut API atslēgām lasīt un dzēst tikai savus necaurspīdīgos identifikatorus. Anonīma piekļuve vai piekļuve ar citu atslēgu nav atļauta.",
+    "modalityBridgeVideoDrilldownUsage": "Saglabātie JPEG faili / baiti"
   },
   "contextRtk": {
     "title": "RTK dzinējs",

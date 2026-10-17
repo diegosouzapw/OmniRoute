@@ -8915,7 +8915,12 @@
       "statsTitle": "Yeniden başlatmadan bu yana tespitler",
       "statsEmpty": "Henüz tespit yok.",
       "statsRequest": "İstekler"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Türetilmiş video karelerini sakla",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Geçici JPEG saklamaya yalnızca kimliği doğrulanmış istek drilldown: true değerini de ayarladığında izin ver. Ham videolar hiçbir zaman saklanmaz.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Kimliği doğrulanmış kare ayrıntı incelemesine izin ver",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API anahtarlarının yalnızca kendi opak tanıtıcılarını okumasına ve silmesine izin ver. Anonim veya farklı anahtarlar arası erişime izin verilmez.",
+    "modalityBridgeVideoDrilldownUsage": "Saklanan JPEG'ler / baytlar"
   },
   "contextRtk": {
     "title": "RTK Motoru",

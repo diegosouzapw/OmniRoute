@@ -8915,7 +8915,12 @@
       "statsTitle": "పునఃప్రారంభం నుండి గుర్తింపులు",
       "statsEmpty": "ఇంకా గుర్తింపులు లేవు.",
       "statsRequest": "అభ్యర్థనలు"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "ఉత్పన్నమైన వీడియో ఫ్రేమ్లను నిల్వ ఉంచండి",
+    "modalityBridgeVideoDrilldownEnabledDesc": "ప్రామాణీకరించిన అభ్యర్థనలో drilldown: true కూడా సెట్ చేసినప్పుడు మాత్రమే తాత్కాలిక JPEG నిల్వను అనుమతించండి. ముడి వీడియోలు ఎప్పటికీ నిల్వ చేయబడవు.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "ప్రామాణీకరించిన ఫ్రేమ్ డ్రిల్-డౌన్ను అనుమతించండి",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API కీలు తమ స్వంత అపారదర్శక హ్యాండిల్లను మాత్రమే చదవడానికి మరియు తొలగించడానికి అనుమతించండి. అనామక లేదా క్రాస్-కీ యాక్సెస్ అనుమతించబడదు.",
+    "modalityBridgeVideoDrilldownUsage": "నిల్వ ఉంచిన JPEGలు / బైట్లు"
   },
   "contextRtk": {
     "title": "RTK ఇంజిన్",

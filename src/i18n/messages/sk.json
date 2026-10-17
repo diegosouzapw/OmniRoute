@@ -8915,7 +8915,12 @@
       "statsTitle": "Detekcie od reštartu",
       "statsEmpty": "Zatiaľ žiadne detekcie.",
       "statsRequest": "Požiadavky"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Uchovávať odvodené snímky videa",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Povoliť dočasné uchovávanie súborov JPEG iba vtedy, keď overená požiadavka zároveň nastaví drilldown: true. Nespracované videá sa nikdy neuchovávajú.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Povoliť overenú podrobnú analýzu snímok",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Povoliť kľúčom API čítať a odstraňovať iba vlastné nepriehľadné identifikátory. Anonymný prístup ani prístup medzi kľúčmi nie je povolený.",
+    "modalityBridgeVideoDrilldownUsage": "Uchované súbory JPEG / bajty"
   },
   "contextRtk": {
     "title": "RTK Engine",

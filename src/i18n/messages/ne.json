@@ -8915,7 +8915,12 @@
       "statsTitle": "पुनः सुरु भएदेखिका पहिचानहरू",
       "statsEmpty": "अहिलेसम्म कुनै पहिचान छैन।",
       "statsRequest": "अनुरोधहरू"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "व्युत्पन्न भिडियो फ्रेमहरू कायम राख्नुहोस्",
+    "modalityBridgeVideoDrilldownEnabledDesc": "प्रमाणीकृत अनुरोधले drilldown: true पनि सेट गरेको अवस्थामा मात्र अस्थायी JPEG कायम राख्न अनुमति दिनुहोस्। कच्चा भिडियोहरू कहिल्यै कायम राखिँदैनन्।",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "प्रमाणीकृत फ्रेम ड्रिल-डाउन अनुमति दिनुहोस्",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API कुञ्जीहरूलाई आफ्नै अपारदर्शी ह्यान्डलहरू मात्र पढ्न र मेटाउन अनुमति दिनुहोस्। बेनामी वा अन्य कुञ्जीबाट पहुँच अनुमति छैन।",
+    "modalityBridgeVideoDrilldownUsage": "कायम राखिएका JPEGहरू / बाइटहरू"
   },
   "contextRtk": {
     "title": "RTK इन्जिन",

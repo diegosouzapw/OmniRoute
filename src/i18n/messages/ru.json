@@ -8915,7 +8915,12 @@
       "statsTitle": "Обнаружения с момента перезапуска",
       "statsEmpty": "Пока нет обнаружений.",
       "statsRequest": "Запросы"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Хранить извлечённые видеокадры",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Разрешить временное хранение JPEG только в том случае, если в аутентифицированном запросе также задано drilldown: true. Исходные видео никогда не сохраняются.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Разрешить аутентифицированный детальный просмотр кадров",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Разрешить API-ключам читать и удалять только собственные непрозрачные дескрипторы. Анонимный доступ и доступ между ключами запрещены.",
+    "modalityBridgeVideoDrilldownUsage": "Сохранённые JPEG / байты"
   },
   "contextRtk": {
     "title": "RTK Engine",

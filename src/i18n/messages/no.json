@@ -8915,7 +8915,12 @@
       "statsTitle": "Funn siden omstart",
       "statsEmpty": "Ingen funn ennå.",
       "statsRequest": "Forespørsler"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Behold avledede videobilder",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Tillat midlertidig lagring av JPEG-filer bare når den autentiserte forespørselen også setter drilldown: true. Råvideoer lagres aldri.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Tillat autentisert detaljvisning av bilderammer",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Tillat API-nøkler å lese og slette bare sine egne ugjennomsiktige referanser. Ingen anonym tilgang eller tilgang på tvers av nøkler.",
+    "modalityBridgeVideoDrilldownUsage": "Lagrede JPEG-filer / byte"
   },
   "contextRtk": {
     "title": "RTK-motor",

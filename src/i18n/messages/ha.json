@@ -8915,7 +8915,12 @@
       "statsTitle": "Ganowa tun sake farawa",
       "statsEmpty": "Babu ganowa tukuna.",
       "statsRequest": "Buƙatu"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Riƙe firamomin bidiyo da aka samo",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Ba da izinin riƙe JPEG na ɗan lokaci kawai idan ingantacciyar buƙatar ta kuma saita drilldown: true. Ba a taɓa riƙe bidiyoyin asali ba.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Ba da izinin zurfafa binciken firam ga waɗanda aka tantance",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Ba da izinin maɓallan API su karanta kuma su share alamomin sarrafawarsu marasa bayyana kawai. Ba a yarda da shiga ba tare da tantancewa ba ko ta wani maɓalli daban.",
+    "modalityBridgeVideoDrilldownUsage": "JPEG da aka riƙe / baitoci"
   },
   "contextRtk": {
     "title": "Injin RTK",

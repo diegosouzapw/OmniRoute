@@ -8915,7 +8915,12 @@
       "statsTitle": "পুনরায় চালুর পর থেকে শনাক্তকরণ",
       "statsEmpty": "এখনও কোনো শনাক্তকরণ নেই।",
       "statsRequest": "অনুরোধ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "উৎপন্ন ভিডিও ফ্রেম সংরক্ষণ করুন",
+    "modalityBridgeVideoDrilldownEnabledDesc": "শুধুমাত্র প্রমাণীকৃত অনুরোধে drilldown: true সেট করা থাকলেই অস্থায়ীভাবে JPEG সংরক্ষণের অনুমতি দিন। কাঁচা ভিডিও কখনোই সংরক্ষণ করা হয় না।",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "প্রমাণীকৃত ফ্রেম ড্রিল-ডাউনের অনুমতি দিন",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API কীগুলোকে শুধুমাত্র তাদের নিজস্ব অস্বচ্ছ হ্যান্ডেল পড়তে ও মুছতে দিন। বেনামী বা অন্য কী থেকে কোনো অ্যাক্সেসের অনুমতি নেই।",
+    "modalityBridgeVideoDrilldownUsage": "সংরক্ষিত JPEG / বাইট"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",

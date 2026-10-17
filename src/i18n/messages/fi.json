@@ -8915,7 +8915,12 @@
       "statsTitle": "Havainnot uudelleenkäynnistyksen jälkeen",
       "statsEmpty": "Ei vielä havaintoja.",
       "statsRequest": "Pyynnöt"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Säilytä videosta johdetut kuvaruudut",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Salli tilapäinen JPEG-kuvien säilytys vain, kun todennetussa pyynnössä on myös asetettu drilldown: true. Raakavideoita ei koskaan säilytetä.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Salli todennettu kuvaruutujen tarkastelu",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Salli API-avainten lukea ja poistaa vain omia läpinäkymättömiä tunnisteitaan. Anonyymi käyttö tai käyttö eri avainten välillä ei ole sallittua.",
+    "modalityBridgeVideoDrilldownUsage": "Säilytetyt JPEG-kuvat / tavut"
   },
   "contextRtk": {
     "title": "RTK Engine",

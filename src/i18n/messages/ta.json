@@ -8915,7 +8915,12 @@
       "statsTitle": "மறுதொடக்கத்திற்குப் பின் கண்டறிதல்கள்",
       "statsEmpty": "இதுவரை கண்டறிதல்கள் இல்லை.",
       "statsRequest": "கோரிக்கைகள்"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "பெறப்பட்ட வீடியோ சட்டகங்களைத் தக்கவைத்தல்",
+    "modalityBridgeVideoDrilldownEnabledDesc": "அங்கீகரிக்கப்பட்ட கோரிக்கை drilldown: true என்பதையும் அமைத்தால் மட்டுமே தற்காலிக JPEG தக்கவைப்பை அனுமதிக்கவும். மூல வீடியோக்கள் ஒருபோதும் தக்கவைக்கப்படாது.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "அங்கீகரிக்கப்பட்ட சட்டக விரிவாய்வை அனுமதிக்கவும்",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API விசைகள் தங்களுக்குச் சொந்தமான ஒளிபுகா கைப்பிடிகளை மட்டுமே படிக்கவும் நீக்கவும் அனுமதிக்கவும். அநாமதேய அல்லது வேறு விசை வழி அணுகல் இல்லை.",
+    "modalityBridgeVideoDrilldownUsage": "தக்கவைக்கப்பட்ட JPEGகள் / பைட்டுகள்"
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",

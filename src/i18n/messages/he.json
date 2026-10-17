@@ -8915,7 +8915,12 @@
       "statsTitle": "זיהויים מאז ההפעלה מחדש",
       "statsEmpty": "אין זיהויים עדיין.",
       "statsRequest": "בקשות"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "שמירת פריימים שנגזרו מסרטונים",
+    "modalityBridgeVideoDrilldownEnabledDesc": "יש לאפשר שמירה זמנית של קובצי JPEG רק כאשר הבקשה המאומתת מגדירה גם drilldown: true. סרטונים גולמיים לעולם אינם נשמרים.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "מתן אפשרות לתחקור פריימים למשתמשים מאומתים",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "יש לאפשר למפתחות API לקרוא ולמחוק רק את המזהים האטומים שלהם. אין לאפשר גישה אנונימית או גישה בין מפתחות.",
+    "modalityBridgeVideoDrilldownUsage": "קובצי JPEG שמורים / בתים"
   },
   "contextRtk": {
     "title": "מנוע RTK",

@@ -8915,7 +8915,12 @@
       "statsTitle": "Zaznave od ponovnega zagona",
       "statsEmpty": "Še ni zaznav.",
       "statsRequest": "Zahteve"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Ohrani izpeljane video sličice",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Dovoli začasno hrambo datotek JPEG samo, ko overjena zahteva nastavi tudi drilldown: true. Neobdelani videoposnetki se nikoli ne hranijo.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Dovoli overjeno podrobno pregledovanje sličic",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Dovoli ključem API, da berejo in brišejo samo lastne neprosojne identifikatorje. Anonimni dostop ali dostop med različnimi ključi ni dovoljen.",
+    "modalityBridgeVideoDrilldownUsage": "Shranjene datoteke JPEG/bajti"
   },
   "contextRtk": {
     "title": "Pogon RTK",

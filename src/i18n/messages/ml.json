@@ -8915,7 +8915,12 @@
       "statsTitle": "പുനരാരംഭിച്ചതിന് ശേഷമുള്ള കണ്ടെത്തലുകൾ",
       "statsEmpty": "ഇതുവരെ കണ്ടെത്തലുകളൊന്നുമില്ല.",
       "statsRequest": "അഭ്യർത്ഥനകൾ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "വീഡിയോയിൽ നിന്ന് വേർതിരിച്ചെടുത്ത ഫ്രെയിമുകൾ നിലനിർത്തുക",
+    "modalityBridgeVideoDrilldownEnabledDesc": "പ്രാമാണീകരിച്ച അഭ്യർത്ഥനയിൽ drilldown: true എന്നും സജ്ജീകരിച്ചിട്ടുണ്ടെങ്കിൽ മാത്രം താൽക്കാലികമായി JPEG നിലനിർത്താൻ അനുവദിക്കുക. അസംസ്കൃത വീഡിയോകൾ ഒരിക്കലും നിലനിർത്തില്ല.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "പ്രാമാണീകരിച്ച ഫ്രെയിം ഡ്രിൽ-ഡൗൺ അനുവദിക്കുക",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API കീകൾക്ക് അവയുടേതായ അതാര്യ ഹാൻഡിലുകൾ മാത്രം വായിക്കാനും ഇല്ലാതാക്കാനും അനുവദിക്കുക. അജ്ഞാത ആക്സസോ വ്യത്യസ്ത കീകൾക്കിടയിലെ ആക്സസോ അനുവദനീയമല്ല.",
+    "modalityBridgeVideoDrilldownUsage": "നിലനിർത്തിയ JPEG-കൾ / ബൈറ്റുകൾ"
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",

@@ -4,13 +4,13 @@
 // (principalId, sessionId, videoRef) and already refuses cross-principal reads/deletes
 // without revealing whether an entry exists. This module adds the missing lifecycle on
 // top of it, without touching the frozen-shape substrate file:
-//   - opaque hashed handles, so a consumer never needs (and never sees) the raw
+//   - opaque random handles (only their hashes are retained), hiding the raw
 //     sessionId/videoRef the substrate indexes by — both are minted server-side here;
 //   - preview/standard/detail multiresolution variants, resampled on read (never stored
 //     more than once, so producing stays "zero overhead" beyond the opt-in call itself);
 //   - response pagination capped at 8 frames and a bounded response-byte budget;
 //   - a small handle registry with its own TTL/quota, cleaned up alongside the cache.
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import sharp from "sharp";
 
@@ -23,6 +23,7 @@ import {
   type VideoDrilldownResult,
 } from "./videoBridgeDrilldown";
 import { JPEG_FRAME_DATA_URI_PREFIX } from "./videoBridgeFrameContract";
+import { VIDEO_DRILLDOWN_HANDLE_PATTERN } from "./videoBridgeDrilldownHandle";
 
 export type VideoDrilldownVariant = "preview" | "standard" | "detail";
 
@@ -51,7 +52,9 @@ export const VIDEO_DRILLDOWN_VARIANT_PRESETS: Record<
 export const VIDEO_DRILLDOWN_MAX_PAGE_FRAMES = 8;
 export const VIDEO_DRILLDOWN_MAX_PAGE_BYTES = VIDEO_DRILLDOWN_MAX_ENTRY_BYTES;
 
-const HANDLE_PATTERN = /^[0-9a-f]{64}$/;
+function handleDigest(handle: string): string {
+  return createHash("sha256").update(handle, "utf8").digest("hex");
+}
 
 function truthyFlag(value: string | undefined): boolean {
   if (!value) return false;
@@ -104,6 +107,7 @@ export interface VideoDrilldownResolveQuery {
   maxPageBytes?: number;
   page?: number;
   startSeconds?: number;
+  signal?: AbortSignal;
   variant?: VideoDrilldownVariant;
 }
 
@@ -211,7 +215,36 @@ function trimToByteBudget(
   // A single oversized frame is still returned alone rather than producing an empty page —
   // the underlying cache already enforces the 32 MiB per-entry ceiling, so this only trims
   // multi-frame pages down.
-  return { frames: kept.length > 0 ? kept : frames.slice(0, 1), trimmed: kept.length < frames.length };
+  return {
+    frames: kept.length > 0 ? kept : frames.slice(0, 1),
+    trimmed: kept.length < frames.length,
+  };
+}
+
+function deriveVariantMetadata(
+  source: VideoDrilldownResult["derivation"],
+  frames: readonly VideoDrilldownFrame[],
+  variant: VideoDrilldownVariant
+): VideoDrilldownResult["derivation"] {
+  const hash = createHash("sha256").update(
+    JSON.stringify(["video-drilldown/variant-v1", source.contentHash, variant])
+  );
+  for (const frame of frames) {
+    hash.update(
+      JSON.stringify([frame.timestampSeconds, frame.width, frame.height, frame.dataUri.length])
+    );
+    hash.update(frame.dataUri);
+  }
+  return {
+    ...source,
+    contentHash: `sha256:${hash.digest("hex")}`,
+    parent: { ...source.parent, contentHash: source.contentHash },
+    policy: `${source.policy}/${variant}`,
+    resolution: frames[0]
+      ? { width: frames[0].width, height: frames[0].height }
+      : { width: 0, height: 0 },
+    version: "video-drilldown/variant-v1",
+  };
 }
 
 /**
@@ -227,6 +260,7 @@ export class VideoDrilldownLifecycle {
   private readonly maxHandlesPerPrincipal: number;
   private readonly now: () => number;
   private readonly ttlMs: number;
+  private expiryTimer?: ReturnType<typeof setTimeout>;
 
   constructor(options: VideoDrilldownLifecycleOptions) {
     this.cache = options.cache;
@@ -241,11 +275,26 @@ export class VideoDrilldownLifecycle {
     let removed = 0;
     for (const [handle, entry] of this.handles) {
       if (entry.expiresAt <= now) {
-        this.dropHandle(handle, entry);
+        this.releaseEvictedHandle(handle, entry);
         removed += 1;
       }
     }
     return removed;
+  }
+
+  private armExpiryTimer(): void {
+    if (this.expiryTimer) clearTimeout(this.expiryTimer);
+    this.expiryTimer = undefined;
+    const oldest = this.handles.values().next().value;
+    if (!oldest) return;
+    this.expiryTimer = setTimeout(
+      () => {
+        this.expiryTimer = undefined;
+        this.cleanup();
+      },
+      Math.max(1, Math.min(2_147_483_647, oldest.expiresAt - this.now()))
+    );
+    this.expiryTimer.unref?.();
   }
 
   private dropHandle(handle: string, entry: HandleEntry): void {
@@ -256,8 +305,7 @@ export class VideoDrilldownLifecycle {
   }
 
   /**
-   * A handle evicted for quota is unreachable forever (its digest can never be re-derived
-   * without the minted sessionId/videoRef), so its cache entry must be released here too —
+   * A handle evicted for quota is unreachable forever, so release its cache entry too —
    * otherwise it would sit as unreclaimable, invisible quota usage until TTL expiry.
    */
   private releaseEvictedHandle(handle: string, entry: HandleEntry): void {
@@ -284,14 +332,8 @@ export class VideoDrilldownLifecycle {
   private registerHandle(principalId: string, sessionId: string, videoRef: string): string {
     const principalKey = principalDigest(principalId);
     const createdAt = this.now();
-    const handle = createHash("sha256")
-      .update(principalKey, "utf8")
-      .update(":", "utf8")
-      .update(sessionId, "utf8")
-      .update(":", "utf8")
-      .update(videoRef, "utf8")
-      .digest("hex");
-    this.handles.set(handle, {
+    const handle = `v1.${randomBytes(32).toString("base64url")}`;
+    this.handles.set(handleDigest(handle), {
       createdAt,
       expiresAt: createdAt + this.ttlMs,
       principalId,
@@ -311,13 +353,14 @@ export class VideoDrilldownLifecycle {
       this.evictOldestHandleGlobally();
       if (this.handles.size === before) break;
     }
+    this.armExpiryTimer();
     return handle;
   }
 
   private resolveHandleEntry(principalId: string, handle: string): HandleEntry | null {
-    if (!HANDLE_PATTERN.test(handle)) return null;
+    if (!VIDEO_DRILLDOWN_HANDLE_PATTERN.test(handle)) return null;
     this.sweepExpiredHandles();
-    const entry = this.handles.get(handle);
+    const entry = this.handles.get(handleDigest(handle));
     if (!entry || entry.principalKey !== principalDigest(principalId)) return null;
     return entry;
   }
@@ -333,8 +376,12 @@ export class VideoDrilldownLifecycle {
     await this.cache.put(principalId, sessionId, videoRef, value as VideoDrilldownPutValue, {
       signal: options.signal,
     });
+    if (options.signal?.aborted) {
+      this.cache.clearSession(principalId, sessionId);
+      options.signal.throwIfAborted();
+    }
     const handle = this.registerHandle(principalId, sessionId, videoRef);
-    const entry = this.handles.get(handle);
+    const entry = this.handles.get(handleDigest(handle));
     return { expiresAt: entry?.expiresAt ?? this.now() + this.ttlMs, handle };
   }
 
@@ -343,6 +390,7 @@ export class VideoDrilldownLifecycle {
     handle: string,
     query: VideoDrilldownResolveQuery
   ): Promise<VideoDrilldownPage | null> {
+    query.signal?.throwIfAborted();
     const entry = this.resolveHandleEntry(principalId, handle);
     if (!entry) return null;
     const stored = this.cache.get(principalId, entry.sessionId, entry.videoRef, {
@@ -351,7 +399,12 @@ export class VideoDrilldownLifecycle {
       startSeconds: query.startSeconds,
     });
     if (!stored) {
-      this.dropHandle(handle, entry);
+      // A valid retained artifact can have no frames in the requested window.
+      // Only evict bookkeeping when an unfiltered read confirms the source is gone;
+      // otherwise later reads, explicit deletion and scheduled cleanup still need it.
+      if (!this.cache.get(principalId, entry.sessionId, entry.videoRef)) {
+        this.dropHandle(handleDigest(handle), entry);
+      }
       return null;
     }
     const variant = query.variant ?? "detail";
@@ -362,10 +415,20 @@ export class VideoDrilldownLifecycle {
       query.frameCount,
       variant
     );
-    const shrunk = await Promise.all(slice.map((frame) => shrinkFrameForVariant(frame, preset)));
-    const { frames, trimmed } = trimToByteBudget(shrunk, query.maxPageBytes ?? VIDEO_DRILLDOWN_MAX_PAGE_BYTES);
+    const shrunk: VideoDrilldownFrame[] = [];
+    for (const frame of slice) {
+      query.signal?.throwIfAborted();
+      shrunk.push(await shrinkFrameForVariant(frame, preset));
+      query.signal?.throwIfAborted();
+    }
+    // A concurrent DELETE/TTL expiry must not deliver already-revoked derived data.
+    if (!this.resolveHandleEntry(principalId, handle)) return null;
+    const { frames, trimmed } = trimToByteBudget(
+      shrunk,
+      query.maxPageBytes ?? VIDEO_DRILLDOWN_MAX_PAGE_BYTES
+    );
     return {
-      derivation: stored.derivation,
+      derivation: deriveVariantMetadata(stored.derivation, frames, variant),
       durationSeconds: stored.durationSeconds,
       ...(stored.focusWindow ? { focusWindow: stored.focusWindow } : {}),
       frames,
@@ -379,13 +442,16 @@ export class VideoDrilldownLifecycle {
     const entry = this.resolveHandleEntry(principalId, handle);
     if (!entry) return 0;
     const removed = this.cache.clearSession(principalId, entry.sessionId);
-    this.dropHandle(handle, entry);
+    this.dropHandle(handleDigest(handle), entry);
+    this.armExpiryTimer();
     return removed;
   }
 
   /** Explicit sweep for scheduled cleanup; returns the number of stale handles reclaimed. */
   cleanup(): number {
-    return this.sweepExpiredHandles();
+    const removed = this.sweepExpiredHandles();
+    this.armExpiryTimer();
+    return removed;
   }
 
   getUsage(principalId: string): VideoDrilldownUsage {
@@ -393,6 +459,8 @@ export class VideoDrilldownLifecycle {
   }
 
   clearAll(): void {
+    if (this.expiryTimer) clearTimeout(this.expiryTimer);
+    this.expiryTimer = undefined;
     this.cache.clearAll();
     this.handles.clear();
     this.handleCountByPrincipal.clear();

@@ -8915,7 +8915,12 @@
       "statsTitle": "Deteksi sejak dimulai ulang",
       "statsEmpty": "Belum ada deteksi.",
       "statsRequest": "Permintaan"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Simpan frame video turunan",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Izinkan penyimpanan JPEG sementara hanya jika permintaan terautentikasi juga menetapkan drilldown: true. Video mentah tidak pernah disimpan.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Izinkan penelusuran mendetail frame terautentikasi",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Izinkan kunci API untuk membaca dan menghapus hanya handle buram miliknya sendiri. Tidak ada akses anonim atau lintas-kunci.",
+    "modalityBridgeVideoDrilldownUsage": "JPEG / byte yang disimpan"
   },
   "contextRtk": {
     "title": "Mesin RTK",

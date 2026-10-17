@@ -8915,7 +8915,12 @@
       "statsTitle": "Detecții de la repornire",
       "statsEmpty": "Nicio detecție încă.",
       "statsRequest": "Cereri"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Păstrează cadrele video derivate",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Permite păstrarea temporară a fișierelor JPEG numai atunci când solicitarea autentificată setează și drilldown: true. Videoclipurile brute nu sunt păstrate niciodată.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Permite analiza detaliată autentificată a cadrelor",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permite cheilor API să citească și să șteargă numai propriile identificatoare opace. Fără acces anonim sau între chei.",
+    "modalityBridgeVideoDrilldownUsage": "Fișiere JPEG păstrate / octeți"
   },
   "contextRtk": {
     "title": "Motor RTK",

@@ -8915,7 +8915,12 @@
       "statsTitle": "الاكتشافات منذ إعادة التشغيل",
       "statsEmpty": "لا توجد اكتشافات بعد.",
       "statsRequest": "الطلبات"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "الاحتفاظ بإطارات الفيديو المشتقة",
+    "modalityBridgeVideoDrilldownEnabledDesc": "السماح بالاحتفاظ المؤقت بملفات JPEG فقط عندما يضبط الطلب المُصادَق عليه أيضًا drilldown: true. لا يتم الاحتفاظ بمقاطع الفيديو الخام مطلقًا.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "السماح بالتعمق في الإطارات للمستخدمين المُصادَق عليهم",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "السماح لمفاتيح API بقراءة مقابضها المبهمة وحذفها فقط. لا يُسمح بالوصول المجهول أو عبر مفاتيح أخرى.",
+    "modalityBridgeVideoDrilldownUsage": "ملفات JPEG المحتفظ بها / البايتات"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

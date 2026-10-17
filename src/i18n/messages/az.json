@@ -8915,7 +8915,12 @@
       "statsTitle": "Yenidən başladılandan bəri aşkarlamalar",
       "statsEmpty": "Hələ aşkarlama yoxdur.",
       "statsRequest": "Sorğular"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Törəmə video kadrlarını saxla",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Müvəqqəti JPEG fayllarının saxlanmasına yalnız autentifikasiya olunmuş sorğuda drilldown: true təyin edildikdə icazə verin. Xam videolar heç vaxt saxlanmır.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Autentifikasiya olunmuş kadrların təfərrüatlarına baxmağa icazə verin",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API açarlarına yalnız öz qeyri-şəffaf identifikatorlarını oxumağa və silməyə icazə verin. Anonim və ya digər açarlar vasitəsilə giriş qadağandır.",
+    "modalityBridgeVideoDrilldownUsage": "Saxlanılan JPEG faylları / baytlar"
   },
   "contextRtk": {
     "title": "RTK Mühərriki",

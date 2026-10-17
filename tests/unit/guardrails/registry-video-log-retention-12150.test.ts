@@ -14,58 +14,66 @@ test("guardrail diagnostics exclude transient video redaction shadows", async (t
   const { BaseGuardrail } = await import("../../../src/lib/guardrails/base.ts");
   t.after(() => fs.rmSync(fixtureDir, { recursive: true, force: true }));
 
-  for (const stage of ["pre", "post"] as const) {
-    await t.test(
-      `${stage}-call logs omit private shadows while runtime metadata remains intact`,
-      async () => {
-        const shadow = Object.freeze({
-          fullText: "PRIVATE_TRANSCRIPT_12150",
-          redactedText: "safe caption",
-        });
-        const meta = Object.freeze({
-          videoBridgeObserved: true,
-          videosProcessed: 1,
-          videoBridgeLogRedaction: Object.freeze([shadow]),
-        });
-        class VideoMetadataGuardrail extends BaseGuardrail {
-          constructor() {
-            super("video-bridge");
+  for (const includeShadow of [false, true]) {
+    for (const stage of ["pre", "post"] as const) {
+      await t.test(
+        `${stage}-call logs omit private video metadata (shadow=${includeShadow}) while runtime metadata remains intact`,
+        async () => {
+          const handle = `v1.${"A".repeat(43)}`;
+          const shadow = Object.freeze({
+            fullText: "PRIVATE_TRANSCRIPT_12150",
+            redactedText: "safe caption",
+          });
+          const meta = Object.freeze({
+            videoBridgeObserved: true,
+            videosProcessed: 1,
+            videoDrilldownHandles: Object.freeze([handle]),
+            ...(includeShadow ? { videoBridgeLogRedaction: Object.freeze([shadow]) } : {}),
+          });
+          class VideoMetadataGuardrail extends BaseGuardrail {
+            constructor() {
+              super("video-bridge");
+            }
+            async preCall() {
+              return { meta };
+            }
+            async postCall() {
+              return { meta };
+            }
           }
-          async preCall() {
-            return { meta };
-          }
-          async postCall() {
-            return { meta };
-          }
-        }
-        const registry = new GuardrailRegistry();
-        registry.register(new VideoMetadataGuardrail());
-        const logged: unknown[] = [];
-        const context = {
-          log: {
-            debug: (...args: unknown[]) => {
-              logged.push(args);
+          const registry = new GuardrailRegistry();
+          registry.register(new VideoMetadataGuardrail());
+          const logged: unknown[] = [];
+          const context = {
+            log: {
+              debug: (...args: unknown[]) => {
+                logged.push(args);
+              },
             },
-          },
-        };
-        const result =
-          stage === "pre"
-            ? await registry.runPreCallHooks({}, context)
-            : await registry.runPostCallHooks({}, context);
-        assert.equal(
-          result.results[0].meta,
-          meta,
-          "redaction pipeline must retain original shadow identity"
-        );
-        assert.equal(meta.videoBridgeLogRedaction[0].fullText, "PRIVATE_TRANSCRIPT_12150");
-        assert.equal(logged.length, 1);
-        assert.deepEqual((logged[0] as unknown[])[2], {
-          videoBridgeObserved: true,
-          videosProcessed: 1,
-        });
-        assert(!JSON.stringify(logged).includes("PRIVATE_TRANSCRIPT_12150"));
-      }
-    );
+          };
+          const result =
+            stage === "pre"
+              ? await registry.runPreCallHooks({}, context)
+              : await registry.runPostCallHooks({}, context);
+          assert.equal(
+            result.results[0].meta,
+            meta,
+            "redaction pipeline must retain original shadow identity"
+          );
+          assert.equal(meta.videoDrilldownHandles[0], handle);
+          if (includeShadow) {
+            assert.equal(meta.videoBridgeLogRedaction![0].fullText, "PRIVATE_TRANSCRIPT_12150");
+          }
+          assert.equal(logged.length, 1);
+          assert.deepEqual((logged[0] as unknown[])[2], {
+            videoBridgeObserved: true,
+            videosProcessed: 1,
+          });
+          assert(!JSON.stringify(logged).includes("PRIVATE_TRANSCRIPT_12150"));
+          assert(!JSON.stringify(logged).includes(handle));
+        }
+      );
+    }
   }
 
   await t.test("ordinary metadata and no-metadata diagnostics remain available", async () => {

@@ -8915,7 +8915,12 @@
       "statsTitle": "აღმოჩენები გადატვირთვის შემდეგ",
       "statsEmpty": "აღმოჩენები ჯერ არ არის.",
       "statsRequest": "მოთხოვნები"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "წარმოებული ვიდეოკადრების შენახვა",
+    "modalityBridgeVideoDrilldownEnabledDesc": "დაუშვით JPEG-ების დროებით შენახვა მხოლოდ მაშინ, როცა ავთენტიფიცირებულ მოთხოვნაში ასევე მითითებულია drilldown: true. დაუმუშავებელი ვიდეოები არასოდეს ინახება.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "ავთენტიფიცირებული წვდომით კადრების დეტალური დათვალიერების დაშვება",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "დაუშვით, რომ API გასაღებებმა წაიკითხონ და წაშალონ მხოლოდ საკუთარი გაუმჭვირვალე იდენტიფიკატორები. ანონიმური ან სხვა გასაღებით წვდომა დაუშვებელია.",
+    "modalityBridgeVideoDrilldownUsage": "შენახული JPEG-ები / ბაიტები"
   },
   "contextRtk": {
     "title": "RTK ძრავა",

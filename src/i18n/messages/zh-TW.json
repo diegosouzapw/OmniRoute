@@ -8915,7 +8915,12 @@
       "statsTitle": "自重新啟動以來的偵測",
       "statsEmpty": "尚無偵測。",
       "statsRequest": "請求"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "保留衍生的影片影格",
+    "modalityBridgeVideoDrilldownEnabledDesc": "僅當已驗證的請求同時設定 drilldown: true 時，才允許暫時保留 JPEG。原始影片絕不會被保留。",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "允許已驗證的影格深入檢視",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "允許 API 金鑰僅讀取及刪除其自身的不透明控制代碼。不允許匿名或跨金鑰存取。",
+    "modalityBridgeVideoDrilldownUsage": "保留的 JPEG／位元組"
   },
   "contextRtk": {
     "title": "RTK 引擎",

@@ -8915,7 +8915,12 @@
       "statsTitle": "การตรวจพบตั้งแต่รีสตาร์ต",
       "statsEmpty": "ยังไม่มีการตรวจพบ",
       "statsRequest": "คำขอ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "เก็บเฟรมวิดีโอที่แยกออกมา",
+    "modalityBridgeVideoDrilldownEnabledDesc": "อนุญาตให้เก็บไฟล์ JPEG ชั่วคราวเฉพาะเมื่อคำขอที่ผ่านการยืนยันตัวตนกำหนด drilldown: true ด้วยเท่านั้น โดยจะไม่มีการเก็บวิดีโอต้นฉบับไว้",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "อนุญาตการเจาะดูรายละเอียดเฟรมสำหรับผู้ใช้ที่ผ่านการยืนยันตัวตน",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "อนุญาตให้คีย์ API อ่านและลบได้เฉพาะแฮนเดิลแบบทึบของตนเองเท่านั้น ไม่อนุญาตการเข้าถึงแบบไม่ระบุตัวตนหรือข้ามคีย์",
+    "modalityBridgeVideoDrilldownUsage": "ไฟล์ JPEG ที่เก็บไว้ / ไบต์"
   },
   "contextRtk": {
     "title": "RTK Engine",

@@ -8915,7 +8915,12 @@
       "statsTitle": "ಮರುಪ್ರಾರಂಭದ ನಂತರದ ಪತ್ತೆಗಳು",
       "statsEmpty": "ಇನ್ನೂ ಯಾವುದೇ ಪತ್ತೆ ಇಲ್ಲ.",
       "statsRequest": "ವಿನಂತಿಗಳು"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "ಪಡೆದ ವೀಡಿಯೊ ಫ್ರೇಮ್ಗಳನ್ನು ಉಳಿಸಿಕೊಳ್ಳಿ",
+    "modalityBridgeVideoDrilldownEnabledDesc": "ದೃಢೀಕೃತ ವಿನಂತಿಯು drilldown: true ಅನ್ನು ಸಹ ಹೊಂದಿಸಿದಾಗ ಮಾತ್ರ ತಾತ್ಕಾಲಿಕ JPEG ಉಳಿಸಿಕೊಳ್ಳುವಿಕೆಯನ್ನು ಅನುಮತಿಸಿ. ಮೂಲ ವೀಡಿಯೊಗಳನ್ನು ಎಂದಿಗೂ ಉಳಿಸಿಕೊಳ್ಳಲಾಗುವುದಿಲ್ಲ.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "ದೃಢೀಕೃತ ಫ್ರೇಮ್ ಡ್ರಿಲ್-ಡೌನ್ ಅನ್ನು ಅನುಮತಿಸಿ",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API ಕೀಗಳಿಗೆ ತಮ್ಮದೇ ಅಪಾರದರ್ಶಕ ಹ್ಯಾಂಡಲ್ಗಳನ್ನು ಮಾತ್ರ ಓದಲು ಮತ್ತು ಅಳಿಸಲು ಅನುಮತಿಸಿ. ಅನಾಮಧೇಯ ಅಥವಾ ಬೇರೆ ಕೀಗಳ ನಡುವಿನ ಪ್ರವೇಶವಿಲ್ಲ.",
+    "modalityBridgeVideoDrilldownUsage": "ಉಳಿಸಿಕೊಂಡ JPEGಗಳು / ಬೈಟ್ಗಳು"
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",

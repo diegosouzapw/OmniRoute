@@ -8915,7 +8915,12 @@
       "statsTitle": "ការរកឃើញតាំងពីចាប់ផ្ដើមឡើងវិញ",
       "statsEmpty": "មិនទាន់មានការរកឃើញទេ។",
       "statsRequest": "សំណើ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "រក្សាទុកស៊ុមវីដេអូដែលបានដកស្រង់",
+    "modalityBridgeVideoDrilldownEnabledDesc": "អនុញ្ញាតឱ្យរក្សាទុក JPEG ជាបណ្ដោះអាសន្ន តែនៅពេលសំណើដែលបានផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវកំណត់ drilldown: true ផងដែរ។ វីដេអូដើមមិនត្រូវបានរក្សាទុកឡើយ។",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "អនុញ្ញាតការពិនិត្យលម្អិតតាមស៊ុមដែលបានផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "អនុញ្ញាតឱ្យ API keys អាន និងលុបបានតែ opaque handles របស់ខ្លួនប៉ុណ្ណោះ។ មិនអនុញ្ញាតការចូលប្រើដោយអនាមិក ឬឆ្លងកាត់ key ផ្សេងទេ។",
+    "modalityBridgeVideoDrilldownUsage": "JPEGs ដែលបានរក្សាទុក / បៃ"
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",

@@ -8915,7 +8915,12 @@
       "statsTitle": "Засичания от рестарта",
       "statsEmpty": "Все още няма засичания.",
       "statsRequest": "Заявки"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Запазване на извлечените видеокадри",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Разрешава временно запазване на JPEG файлове само когато удостоверената заявка също задава drilldown: true. Необработените видеоклипове никога не се запазват.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Разрешаване на детайлен преглед на кадри за удостоверени потребители",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Разрешава на API ключовете да четат и изтриват само собствените си непрозрачни идентификатори. Не се допуска анонимен достъп или достъп между различни ключове.",
+    "modalityBridgeVideoDrilldownUsage": "Запазени JPEG файлове / байтове"
   },
   "contextRtk": {
     "title": "RTK Engine",

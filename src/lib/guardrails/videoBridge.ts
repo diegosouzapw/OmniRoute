@@ -32,6 +32,8 @@ import { appendVideoFallbackTranscripts } from "./videoBridgeFallbackTranscript"
 import { type VisionModelConfig } from "./visionBridgeHelpers";
 import { getBestVisionModel } from "./visionBridgeRouter";
 import { createVideoSttAdapter, type VideoSttAdapterDependencies } from "./videoBridgeSttAdapter";
+import { createVideoDrilldownAdapter } from "./videoBridgeDrilldownAdapter";
+import { isVideoDrilldownRequestEnabled } from "./videoBridgeDrilldownStore";
 import {
   resolveVisionBridgeKeyScope,
   scopedCredentialCheck,
@@ -243,14 +245,19 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         fetchRemote: this.deps.fetchRemote,
       },
       transcription: {
-        describePart: createVideoSttAdapter({
-          cache,
-          dependencies: this.deps,
-          keyScope:
-            keyScope && scopedCheck ? { scope: keyScope, hasUsableCredentials: scopedCheck } : null,
-          principalId: context.apiKeyInfo?.id,
-          settings: persisted,
-        }),
+        describePart: createVideoDrilldownAdapter(
+          { principalId: context.apiKeyInfo?.id, settings: persisted },
+          createVideoSttAdapter({
+            cache,
+            dependencies: this.deps,
+            keyScope:
+              keyScope && scopedCheck
+                ? { scope: keyScope, hasUsableCredentials: scopedCheck }
+                : null,
+            principalId: context.apiKeyInfo?.id,
+            settings: persisted,
+          })
+        ),
       },
       // Whole-result cache predates STT consent/model identity. Do not let a visual-only
       // entry satisfy a consented request or an STT entry satisfy an opted-out request.
@@ -289,6 +296,7 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
     let samplingPolicyEffective: "uniform" | "scene_aware" | "segment_aware" = "uniform";
     let failures = 0;
     const logRedactionEntries: VideoBridgeLogRedactionEntry[] = [];
+    const videoDrilldownHandles: Array<{ handle: string; expiresAt: number }> = [];
 
     const attemptedParts = parts.slice(0, runtime.maxVideos);
     for (let index = 0; index < attemptedParts.length; index++) {
@@ -296,7 +304,9 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
       const result = await processVideoPart({
         analysis,
         context,
-        deps: pipelineDeps,
+        deps: isVideoDrilldownRequestEnabled(part, persisted, context.apiKeyInfo?.id)
+          ? { ...pipelineDeps, cache: null }
+          : pipelineDeps,
         part,
         partIndex: index,
         runtime,
@@ -318,6 +328,8 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
       }
 
       descriptions.push(result.description);
+      if (result.drilldown && videoDrilldownHandles.length < 4)
+        videoDrilldownHandles.push(result.drilldown);
       if (result.descriptionRedacted !== undefined) {
         logRedactionEntries.push({
           container: part.container,
@@ -399,6 +411,7 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         videoModel: combineModelIdentities(successfulModels, routingPlanModel),
         videosProcessed,
         videosReplaced,
+        ...(videoDrilldownHandles.length ? { videoDrilldownHandles } : {}),
       },
     };
   }

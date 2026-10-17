@@ -8915,7 +8915,12 @@
       "statsTitle": "પુનઃપ્રારંભ પછીની શોધો",
       "statsEmpty": "હજી કોઈ શોધ નથી.",
       "statsRequest": "વિનંતીઓ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "વિડિયોમાંથી મેળવેલી ફ્રેમ્સ જાળવી રાખો",
+    "modalityBridgeVideoDrilldownEnabledDesc": "પ્રમાણિત વિનંતીમાં drilldown: true પણ સેટ કરેલું હોય ત્યારે જ કામચલાઉ JPEG જાળવણીની મંજૂરી આપો. મૂળ વિડિયો ક્યારેય જાળવવામાં આવતા નથી.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "પ્રમાણિત ફ્રેમ ડ્રિલ-ડાઉનની મંજૂરી આપો",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API કીઓને ફક્ત તેમના પોતાના અપારદર્શક હેન્ડલ્સ વાંચવા અને કાઢી નાખવાની મંજૂરી આપો. અનામી અથવા અન્ય કી દ્વારા ઍક્સેસની મંજૂરી નથી.",
+    "modalityBridgeVideoDrilldownUsage": "જાળવેલા JPEG / બાઇટ્સ"
   },
   "contextRtk": {
     "title": "RTK એન્જિન",

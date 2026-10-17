@@ -8915,7 +8915,12 @@
       "statsTitle": "Виявлення від перезапуску",
       "statsEmpty": "Виявлень поки немає.",
       "statsRequest": "Запити"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Зберігати отримані відеокадри",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Дозволити тимчасове зберігання JPEG, лише якщо автентифікований запит також задає drilldown: true. Необроблені відео ніколи не зберігаються.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Дозволити автентифікований деталізований перегляд кадрів",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Дозволити API-ключам читати й видаляти лише власні непрозорі дескриптори. Анонімний доступ або доступ між ключами заборонено.",
+    "modalityBridgeVideoDrilldownUsage": "Збережені JPEG / байти"
   },
   "contextRtk": {
     "title": "Двигун RTK",

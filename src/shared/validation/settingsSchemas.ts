@@ -481,6 +481,9 @@ export const updateSettingsSchema = z.object({
   // Audio Bridge STT over Video Bridge audio extraction — defaults false
   // (Hard Rule #20). A request-side opt-in is required in addition to this.
   modalityBridgeVideoAudioTranscriptionEnabled: z.boolean().optional(),
+  // Independent retention and remote-read consent; both are off unless explicitly enabled.
+  modalityBridgeVideoDrilldownEnabled: z.boolean().optional(),
+  modalityBridgeVideoDrilldownRemoteEnabled: z.boolean().optional(),
   modalityBridgeCacheEnabled: z.boolean().optional(),
   modalityBridgeCacheTtlMinutes: z.number().int().min(1).max(1440).optional(),
   modalityBridgeCacheMaxEntries: z.number().int().min(10).max(5000).optional(),

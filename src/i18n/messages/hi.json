@@ -8915,7 +8915,12 @@
       "statsTitle": "पुनरारंभ के बाद से पहचान",
       "statsEmpty": "अभी तक कोई पहचान नहीं।",
       "statsRequest": "अनुरोध"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "व्युत्पन्न वीडियो फ़्रेम बनाए रखें",
+    "modalityBridgeVideoDrilldownEnabledDesc": "अस्थायी JPEG को बनाए रखने की अनुमति केवल तभी दें, जब प्रमाणित अनुरोध में drilldown: true भी सेट हो। रॉ वीडियो कभी भी बनाए नहीं रखे जाते।",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "प्रमाणित फ़्रेम ड्रिल-डाउन की अनुमति दें",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API कुंजियों को केवल अपने स्वयं के अपारदर्शी हैंडल पढ़ने और हटाने की अनुमति दें। अनाम या क्रॉस-की एक्सेस की अनुमति नहीं है।",
+    "modalityBridgeVideoDrilldownUsage": "बनाए रखे गए JPEG / बाइट्स"
   },
   "contextRtk": {
     "title": "RTK इंजन",

@@ -8915,7 +8915,12 @@
       "statsTitle": "නැවත ආරම්භයෙන් පසු අනාවරණ",
       "statsEmpty": "තවම අනාවරණ නැත.",
       "statsRequest": "ඉල්ලීම්"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "ව්යුත්පන්න වීඩියෝ රාමු රඳවා තබාගන්න",
+    "modalityBridgeVideoDrilldownEnabledDesc": "සත්යාපිත ඉල්ලීම drilldown: true ලෙසද සකසා ඇති විට පමණක් තාවකාලික JPEG රඳවා තබාගැනීමට ඉඩ දෙන්න. අමු වීඩියෝ කිසිවිටෙක රඳවා නොගැනේ.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "සත්යාපිත රාමු සවිස්තර පරීක්ෂාවට ඉඩ දෙන්න",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API යතුරුවලට තමන්ගේම අපැහැදිලි හැන්ඩල පමණක් කියවීමට සහ මැකීමට ඉඩ දෙන්න. නිර්නාමික හෝ වෙනත් යතුරු හරහා ප්රවේශ වීමට ඉඩ නොදෙන්න.",
+    "modalityBridgeVideoDrilldownUsage": "රඳවාගත් JPEG / බයිට්"
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",

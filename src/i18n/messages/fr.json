@@ -8915,7 +8915,12 @@
       "statsTitle": "Détections depuis le redémarrage",
       "statsEmpty": "Aucune détection pour l’instant.",
       "statsRequest": "Requêtes"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Conserver les images extraites de la vidéo",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Autoriser la conservation temporaire des fichiers JPEG uniquement lorsque la requête authentifiée définit également drilldown: true. Les vidéos brutes ne sont jamais conservées.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Autoriser l’exploration détaillée des images pour les requêtes authentifiées",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Autoriser les clés API à lire et supprimer uniquement leurs propres identifiants opaques. Aucun accès anonyme ou inter-clés.",
+    "modalityBridgeVideoDrilldownUsage": "Fichiers JPEG conservés / octets"
   },
   "contextRtk": {
     "title": "Moteur RTK",

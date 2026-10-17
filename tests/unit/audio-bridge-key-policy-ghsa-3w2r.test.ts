@@ -26,6 +26,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import sharp from "sharp";
+
 import { useDecollidedMigrationsDir } from "./helpers/decollidedMigrationsDir.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-audio-bridge-ghsa-3w2r-"));
@@ -267,79 +269,98 @@ test("GHSA-3w2r audio: the transcription self-loop sends the caller key id heade
 
 // ── Video Bridge (frames via vision describe + STT via audio boundary) ──────
 
-test("GHSA-3w2r video: frame describe and STT both stay inside the key's connections", async () => {
-  const visionCalls: Array<Record<string, unknown>> = [];
-  const sttCalls: Array<Record<string, unknown>> = [];
-  const guardrail = new VideoBridgeGuardrail({
-    deps: {
-      getSettings: async () => ({
-        modalityBridgeVideoEnabled: true,
-        modalityBridgeVideoAudioTranscriptionEnabled: true,
-        modalityBridgeAudioEnabled: true,
-        modalityBridgeAudioModel: "auto",
-        modalityBridgeVisionModel: "openai/gpt-4o-mini",
-        modalityBridgeCacheEnabled: false,
-      }),
-      getCapabilities: () => ({ supportsVideo: false as const }),
-      hasUsableCredentials: async () => true,
-      keyScope: {
-        // Only gemini (vision) and groq (STT) have a usable connection in scope.
-        hasUsableCredentials: async (model: string, options: CredentialOptions = {}) =>
-          options.allowedConnectionIds?.includes("conn-A")
-            ? model.startsWith("gemini/") || model.startsWith("groq/")
-            : true,
-      },
-      extractAudio: async () => ({
-        audio: { channels: 1, dataUri: "data:audio/wav;base64,UklGRg==", sampleRateHz: 16000 },
-        durationSeconds: 2,
-      }),
-      transcribeAudio: async (_part, config) => {
-        sttCalls.push(config as unknown as Record<string, unknown>);
-        return { text: "spoken words" };
-      },
-      extractFrames: async () => ({
-        durationSeconds: 2,
-        frames: [{ dataUri: "data:image/jpeg;base64,/9j/4AAQ", timestampSeconds: 1 }],
-      }),
-      callVisionModel: async (_image, config) => {
-        visionCalls.push(config as unknown as Record<string, unknown>);
-        return "a blue screen";
-      },
-    },
-  });
-
-  await guardrail.preCall(
-    {
-      model: TEXT_ONLY_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_video",
-              video_url: `data:video/mp4;base64,${Buffer.from("ghsa-3w2r-video").toString("base64")}`,
-              audioTranscription: true,
-            },
-            { type: "text", text: "what happens?" },
-          ],
+for (const drilldown of [false, true]) {
+  test(`GHSA-3w2r video: frame describe and STT stay in key scope with drilldown=${drilldown}`, async (t) => {
+    const { getSharedVideoDrilldownLifecycle } =
+      await import("../../src/lib/guardrails/videoBridgeDrilldownStore.ts");
+    t.after(() => getSharedVideoDrilldownLifecycle().clearAll());
+    const jpeg = await sharp({ create: { width: 64, height: 64, channels: 3, background: "blue" } })
+      .jpeg()
+      .toBuffer();
+    const visionCalls: Array<Record<string, unknown>> = [];
+    const sttCalls: Array<Record<string, unknown>> = [];
+    const guardrail = new VideoBridgeGuardrail({
+      deps: {
+        getSettings: async () => ({
+          modalityBridgeVideoEnabled: true,
+          modalityBridgeVideoDrilldownEnabled: true,
+          modalityBridgeVideoAudioTranscriptionEnabled: true,
+          modalityBridgeAudioEnabled: true,
+          modalityBridgeAudioModel: "auto",
+          modalityBridgeVisionModel: "openai/gpt-4o-mini",
+          modalityBridgeCacheEnabled: false,
+        }),
+        getCapabilities: () => ({ supportsVideo: false as const }),
+        hasUsableCredentials: async () => true,
+        keyScope: {
+          // Only gemini (vision) and groq (STT) have a usable connection in scope.
+          hasUsableCredentials: async (model: string, options: CredentialOptions = {}) =>
+            options.allowedConnectionIds?.includes("conn-A")
+              ? model.startsWith("gemini/") || model.startsWith("groq/")
+              : true,
         },
-      ],
-    },
-    {
-      model: TEXT_ONLY_MODEL,
-      apiKeyInfo: { id: "key-video-conn-A", allowedConnections: ["conn-A"] },
-    }
-  );
+        extractAudio: async () => ({
+          audio: { channels: 1, dataUri: "data:audio/wav;base64,UklGRg==", sampleRateHz: 16000 },
+          durationSeconds: 2,
+        }),
+        transcribeAudio: async (_part, config) => {
+          sttCalls.push(config as unknown as Record<string, unknown>);
+          return { text: "spoken words" };
+        },
+        extractFrames: async () => ({
+          durationSeconds: 2,
+          frames: [
+            { dataUri: `data:image/jpeg;base64,${jpeg.toString("base64")}`, timestampSeconds: 1 },
+          ],
+        }),
+        callVisionModel: async (_image, config) => {
+          visionCalls.push(config as unknown as Record<string, unknown>);
+          return "a blue screen";
+        },
+      },
+    });
 
-  assert.ok(visionCalls.length > 0, "frames are still described by an allowed model");
-  for (const config of visionCalls) {
-    assert.ok(String(config.model).startsWith("gemini/"), `vision model ${config.model}`);
-    assert.equal(keyScopeOf(config)?.apiKeyId, "key-video-conn-A");
-  }
-  assert.equal(sttCalls.length, 1, "the soundtrack is still transcribed by an allowed model");
-  assert.ok(String(sttCalls[0].model).startsWith("groq/"), `STT model ${sttCalls[0].model}`);
-  assert.equal(keyScopeOf(sttCalls[0])?.apiKeyId, "key-video-conn-A");
-});
+    const result = await guardrail.preCall(
+      {
+        model: TEXT_ONLY_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_video",
+                video_url: `data:video/mp4;base64,${Buffer.from("ghsa-3w2r-video").toString("base64")}`,
+                audioTranscription: true,
+                drilldown,
+              },
+              { type: "text", text: "what happens?" },
+            ],
+          },
+        ],
+      },
+      {
+        model: TEXT_ONLY_MODEL,
+        apiKeyInfo: { id: "key-video-conn-A", allowedConnections: ["conn-A"] },
+      }
+    );
+
+    assert.ok(visionCalls.length > 0, "frames are still described by an allowed model");
+    for (const config of visionCalls) {
+      assert.ok(String(config.model).startsWith("gemini/"), `vision model ${config.model}`);
+      assert.equal(keyScopeOf(config)?.apiKeyId, "key-video-conn-A");
+    }
+    assert.equal(sttCalls.length, 1, "the soundtrack is still transcribed by an allowed model");
+    assert.ok(String(sttCalls[0].model).startsWith("groq/"), `STT model ${sttCalls[0].model}`);
+    assert.equal(keyScopeOf(sttCalls[0])?.apiKeyId, "key-video-conn-A");
+    const handles = result.meta?.videoDrilldownHandles as Array<{ handle: string }> | undefined;
+    if (drilldown) {
+      assert.equal(handles?.length, 1, "consented retention remains active with key-scoped STT");
+      assert.match(handles![0].handle, /^v1\.[A-Za-z0-9_-]{43}$/);
+    } else {
+      assert.equal(handles, undefined, "operator enablement alone must not retain frames");
+    }
+  });
+}
 
 // ── /v1/audio/transcriptions route ──────────────────────────────────────────
 

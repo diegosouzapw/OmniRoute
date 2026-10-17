@@ -74,11 +74,14 @@ function getGuardrailLogger(context: GuardrailContext) {
 }
 
 function guardrailLogMetadata(meta: Record<string, unknown> | null) {
-  if (!meta || !("videoBridgeLogRedaction" in meta)) return meta ?? undefined;
-  // The shadow contains the original transcript for downstream log redaction.
-  // Keep it in execution results, but never emit it to diagnostic transports.
+  if (!meta || (!("videoBridgeLogRedaction" in meta) && !("videoDrilldownHandles" in meta))) {
+    return meta ?? undefined;
+  }
+  // Retain transcript shadows and private drill-down handles for runtime use,
+  // but never emit either to diagnostic transports.
   const diagnostic = { ...meta };
   delete diagnostic.videoBridgeLogRedaction;
+  delete diagnostic.videoDrilldownHandles;
   return diagnostic;
 }
 

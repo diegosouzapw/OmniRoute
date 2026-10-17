@@ -8915,7 +8915,12 @@
       "statsTitle": "Εντοπισμοί από την επανεκκίνηση",
       "statsEmpty": "Δεν υπάρχουν ακόμη εντοπισμοί.",
       "statsRequest": "Αιτήματα"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Διατήρηση παραγόμενων καρέ βίντεο",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Να επιτρέπεται η προσωρινή διατήρηση JPEG μόνο όταν το πιστοποιημένο αίτημα ορίζει επίσης drilldown: true. Τα ανεπεξέργαστα βίντεο δεν διατηρούνται ποτέ.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Να επιτρέπεται η λεπτομερής εξέταση καρέ με πιστοποίηση",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Να επιτρέπεται στα κλειδιά API να διαβάζουν και να διαγράφουν μόνο τα δικά τους αδιαφανή αναγνωριστικά. Δεν επιτρέπεται ανώνυμη πρόσβαση ή πρόσβαση μεταξύ διαφορετικών κλειδιών.",
+    "modalityBridgeVideoDrilldownUsage": "Διατηρούμενα JPEG / byte"
   },
   "contextRtk": {
     "title": "Μηχανή RTK",

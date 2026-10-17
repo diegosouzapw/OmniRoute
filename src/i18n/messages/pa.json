@@ -8915,7 +8915,12 @@
       "statsTitle": "ਮੁੜ-ਚਾਲੂ ਹੋਣ ਤੋਂ ਬਾਅਦ ਦੀਆਂ ਪਛਾਣਾਂ",
       "statsEmpty": "ਅਜੇ ਕੋਈ ਪਛਾਣ ਨਹੀਂ।",
       "statsRequest": "ਬੇਨਤੀਆਂ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "ਪ੍ਰਾਪਤ ਕੀਤੇ ਵੀਡੀਓ ਫ੍ਰੇਮਾਂ ਨੂੰ ਸੰਭਾਲ ਕੇ ਰੱਖੋ",
+    "modalityBridgeVideoDrilldownEnabledDesc": "ਅਸਥਾਈ JPEG ਸੰਭਾਲ ਦੀ ਆਗਿਆ ਸਿਰਫ਼ ਉਦੋਂ ਦਿਓ ਜਦੋਂ ਪ੍ਰਮਾਣਿਤ ਬੇਨਤੀ drilldown: true ਵੀ ਸੈੱਟ ਕਰਦੀ ਹੋਵੇ। ਕੱਚੇ ਵੀਡੀਓ ਕਦੇ ਵੀ ਸੰਭਾਲੇ ਨਹੀਂ ਜਾਂਦੇ।",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "ਪ੍ਰਮਾਣਿਤ ਫ੍ਰੇਮ ਡ੍ਰਿਲ-ਡਾਊਨ ਦੀ ਆਗਿਆ ਦਿਓ",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API ਕੁੰਜੀਆਂ ਨੂੰ ਸਿਰਫ਼ ਆਪਣੇ ਅਸਪਸ਼ਟ ਹੈਂਡਲ ਪੜ੍ਹਨ ਅਤੇ ਮਿਟਾਉਣ ਦੀ ਆਗਿਆ ਦਿਓ। ਅਗਿਆਤ ਜਾਂ ਵੱਖਰੀ ਕੁੰਜੀ ਰਾਹੀਂ ਪਹੁੰਚ ਦੀ ਆਗਿਆ ਨਹੀਂ ਹੈ।",
+    "modalityBridgeVideoDrilldownUsage": "ਸੰਭਾਲੇ ਗਏ JPEGs / ਬਾਈਟ"
   },
   "contextRtk": {
     "title": "RTK ਇੰਜਣ",

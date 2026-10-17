@@ -8915,7 +8915,12 @@
       "statsTitle": "Ugunduzi tangu kuanzishwa upya",
       "statsEmpty": "Bado hakuna ugunduzi.",
       "statsRequest": "Maombi"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Hifadhi fremu zilizotolewa kwenye video",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Ruhusu uhifadhi wa muda wa JPEG pale tu ambapo ombi lililothibitishwa pia linaweka drilldown: true. Video ghafi hazihifadhiwi kamwe.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Ruhusu uchunguzi wa kina wa fremu uliothibitishwa",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Ruhusu funguo za API kusoma na kufuta vishikio vyao fiche pekee. Hakuna ufikiaji bila uthibitishaji au kwa kutumia ufunguo mwingine.",
+    "modalityBridgeVideoDrilldownUsage": "JPEG zilizohifadhiwa / baiti"
   },
   "contextRtk": {
     "title": "Injini ya RTK",

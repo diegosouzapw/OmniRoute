@@ -8915,7 +8915,12 @@
       "statsTitle": "دوبارہ شروع ہونے کے بعد سے نشاندہیاں",
       "statsEmpty": "ابھی تک کوئی نشاندہی نہیں۔",
       "statsRequest": "درخواستیں"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "اخذ کردہ ویڈیو فریمز محفوظ رکھیں",
+    "modalityBridgeVideoDrilldownEnabledDesc": "عارضی JPEG محفوظ رکھنے کی اجازت صرف اس وقت دیں جب توثیق شدہ درخواست میں drilldown: true بھی سیٹ ہو۔ خام ویڈیوز کبھی محفوظ نہیں کی جاتیں۔",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "توثیق شدہ فریم ڈرل ڈاؤن کی اجازت دیں",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API کلیدوں کو صرف اپنے مبہم ہینڈلز پڑھنے اور حذف کرنے کی اجازت دیں۔ گمنام یا مختلف کلید کے ذریعے رسائی کی اجازت نہیں ہے۔",
+    "modalityBridgeVideoDrilldownUsage": "محفوظ کردہ JPEGs / بائٹس"
   },
   "contextRtk": {
     "title": "RTK انجن",

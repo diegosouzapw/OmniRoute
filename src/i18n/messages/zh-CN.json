@@ -8915,7 +8915,12 @@
       "statsTitle": "自重启以来的检测",
       "statsEmpty": "暂无检测。",
       "statsRequest": "请求"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "保留派生的视频帧",
+    "modalityBridgeVideoDrilldownEnabledDesc": "仅当经过身份验证的请求同时设置 drilldown: true 时，才允许临时保留 JPEG。原始视频绝不会被保留。",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "允许经过身份验证的帧下钻",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "允许 API 密钥仅查看和删除其自身的不透明句柄。禁止匿名访问或跨密钥访问。",
+    "modalityBridgeVideoDrilldownUsage": "已保留的 JPEG / 字节"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",

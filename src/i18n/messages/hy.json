@@ -8915,7 +8915,12 @@
       "statsTitle": "Հայտնաբերումներ վերագործարկումից ի վեր",
       "statsEmpty": "Դեռ հայտնաբերումներ չկան։",
       "statsRequest": "Հարցումներ"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Պահպանել տեսանյութից ստացված կադրերը",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Թույլատրել ժամանակավոր JPEG-ների պահպանումը միայն այն դեպքում, երբ նույնականացված հարցումը նաև սահմանում է drilldown: true։ Չմշակված տեսանյութերը երբեք չեն պահպանվում։",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Թույլատրել նույնականացված կադրերի մանրամասն դիտումը",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Թույլատրել API բանալիներին կարդալ և ջնջել միայն իրենց սեփական անթափանց նույնացուցիչները։ Անանուն կամ տարբեր բանալիների միջև հասանելիություն չկա։",
+    "modalityBridgeVideoDrilldownUsage": "Պահպանված JPEG-ներ / բայթեր"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",

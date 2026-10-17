@@ -8915,7 +8915,12 @@
       "statsTitle": "Detecties sinds herstart",
       "statsEmpty": "Nog geen detecties.",
       "statsRequest": "Verzoeken"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Afgeleide videoframes bewaren",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Sta tijdelijke bewaring van JPEG's alleen toe wanneer het geauthenticeerde verzoek ook drilldown: true instelt. Onbewerkte video's worden nooit bewaard.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Geauthenticeerde frameanalyse toestaan",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Sta API-sleutels alleen toe hun eigen ondoorzichtige handles te lezen en te verwijderen. Geen anonieme toegang of toegang tussen verschillende sleutels.",
+    "modalityBridgeVideoDrilldownUsage": "Bewaarde JPEG's / bytes"
   },
   "contextRtk": {
     "title": "RTK Engine",

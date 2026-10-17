@@ -33,6 +33,8 @@
 - [`DELETE /api/v1/management/proxy-subscriptions/{id}`](#delete-apiv1managementproxy-subscriptionsid)
 - [`GET /api/v1/management/proxy-subscriptions/{id}/nodes`](#get-apiv1managementproxy-subscriptionsidnodes)
 - [`POST /api/v1/management/proxy-subscriptions/{id}/refresh`](#post-apiv1managementproxy-subscriptionsidrefresh)
+- [`GET /api/v1/video-bridge/drilldown`](#get-apiv1video-bridgedrilldown)
+- [`DELETE /api/v1/video-bridge/drilldown`](#delete-apiv1video-bridgedrilldown)
 - [`POST /api/v1/ocr`](#post-apiv1ocr)
 - [`POST /api/v1/audio/translations`](#post-apiv1audiotranslations)
 - [`GET /api/v1/voices`](#get-apiv1voices)
@@ -102,8 +104,6 @@
 - [`POST /api/v1/responses/{path}`](#post-apiv1responsespath)
 - [`GET /api/v1/search/analytics`](#get-apiv1searchanalytics)
 - [`POST /api/v1/segment`](#post-apiv1segment)
-- [`GET /api/v1/video-bridge/drilldown`](#get-apiv1video-bridgedrilldown)
-- [`DELETE /api/v1/video-bridge/drilldown`](#delete-apiv1video-bridgedrilldown)
 - [`GET /api/v1/videos/generations`](#get-apiv1videosgenerations)
 - [`POST /api/v1/videos/generations`](#post-apiv1videosgenerations)
 - [`GET /api/v1/vscode/{token}`](#get-apiv1vscodetoken)
@@ -482,6 +482,34 @@ curl -X POST http://localhost:20128/api/v1/management/proxy-subscriptions/{id}/r
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
+```
+
+### GET /api/v1/video-bridge/drilldown
+
+Read authenticated tenant-bound video frame variants
+
+Requires explicit remote drill-down operator consent and an authenticated API key. A nonempty API-key endpoint allowlist must include video. Resolves an opaque handle from the x-omniroute-video-drilldown chat response header; never accepts a client principal, raw video or session ID. JSON including Base64 is limited to 32 MiB. Unknown, expired and cross-key handles return indistinguishable 404 responses. Handles are process-local and expire after ten minutes or a restart.
+
+```bash
+# Set OMNIROUTE_VIDEO_HANDLE to one handle from the chat response's
+# x-omniroute-video-drilldown header, obtained with the same API key.
+curl --get http://localhost:20128/api/v1/video-bridge/drilldown \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  --data-urlencode "handle=$OMNIROUTE_VIDEO_HANDLE"
+```
+
+### DELETE /api/v1/video-bridge/drilldown
+
+Delete an authenticated owner's video drill-down handle
+
+Idempotent; unknown, expired or cross-key handles remove zero entries. Releases retained frames and accounting for the owner only. Remote operator consent and a valid API key are always required. A nonempty API-key endpoint allowlist must include video.
+
+```bash
+# Set OMNIROUTE_VIDEO_HANDLE to one handle from the chat response's
+# x-omniroute-video-drilldown header, obtained with the same API key.
+curl --get -X DELETE http://localhost:20128/api/v1/video-bridge/drilldown \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  --data-urlencode "handle=$OMNIROUTE_VIDEO_HANDLE"
 ```
 
 ### POST /api/v1/ocr
@@ -1198,24 +1226,6 @@ curl -X POST http://localhost:20128/api/v1/segment \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
-```
-
-### GET /api/v1/video-bridge/drilldown
-
-GET video bridge › drilldown
-
-```bash
-curl http://localhost:20128/api/v1/video-bridge/drilldown \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### DELETE /api/v1/video-bridge/drilldown
-
-DELETE video bridge › drilldown
-
-```bash
-curl -X DELETE http://localhost:20128/api/v1/video-bridge/drilldown \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
 ### GET /api/v1/videos/generations

@@ -8915,7 +8915,12 @@
       "statsTitle": "재시작 이후 감지",
       "statsEmpty": "아직 감지된 항목이 없습니다.",
       "statsRequest": "요청"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "추출된 비디오 프레임 보관",
+    "modalityBridgeVideoDrilldownEnabledDesc": "인증된 요청에서 drilldown: true도 설정한 경우에만 임시 JPEG 보관을 허용합니다. 원본 비디오는 절대 보관되지 않습니다.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "인증된 프레임 드릴다운 허용",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API 키가 자체 불투명 핸들만 읽고 삭제할 수 있도록 허용합니다. 익명 액세스 또는 키 간 액세스는 허용되지 않습니다.",
+    "modalityBridgeVideoDrilldownUsage": "보관된 JPEG / 바이트"
   },
   "contextRtk": {
     "title": "RTK 엔진",

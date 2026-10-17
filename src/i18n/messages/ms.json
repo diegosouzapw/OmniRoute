@@ -8915,7 +8915,12 @@
       "statsTitle": "Pengesanan sejak dimulakan semula",
       "statsEmpty": "Belum ada pengesanan.",
       "statsRequest": "Permintaan"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Kekalkan bingkai video terbitan",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Benarkan pengekalan JPEG sementara hanya apabila permintaan yang disahkan turut menetapkan drilldown: true. Video mentah tidak pernah dikekalkan.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Benarkan perincian bingkai yang disahkan",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Benarkan kunci API membaca dan memadamkan hanya pemegang legap milik mereka sendiri. Tiada akses tanpa nama atau merentas kunci.",
+    "modalityBridgeVideoDrilldownUsage": "JPEG / bait yang dikekalkan"
   },
   "contextRtk": {
     "title": "Enjin RTK",

@@ -8915,7 +8915,12 @@
       "statsTitle": "Aptikimai nuo paleidimo iš naujo",
       "statsEmpty": "Aptikimų dar nėra.",
       "statsRequest": "Užklausos"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Išsaugoti iš vaizdo įrašų gautus kadrus",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Leisti laikinai saugoti JPEG failus tik tada, kai autentifikuotoje užklausoje taip pat nustatyta drilldown: true. Neapdoroti vaizdo įrašai niekada nesaugomi.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Leisti autentifikuotą išsamią kadrų peržiūrą",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Leisti API raktams skaityti ir šalinti tik savo nepermatomus identifikatorius. Anoniminė arba kitų raktų prieiga neleidžiama.",
+    "modalityBridgeVideoDrilldownUsage": "Išsaugoti JPEG failai / baitai"
   },
   "contextRtk": {
     "title": "RTK variklis",

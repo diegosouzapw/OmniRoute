@@ -8915,7 +8915,12 @@
       "statsTitle": "Àwọn àwárí láti ìgbà àtúnbẹ̀rẹ̀",
       "statsEmpty": "Kò sí àwárí kankan síbẹ̀.",
       "statsRequest": "Àwọn ìbéèrè"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Pa àwọn férémù fídíò tí a yọ jáde mọ́",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Fàyè gba pípa JPEG fún ìgbà díẹ̀ mọ́ nígbà tí ìbéèrè tí a ti fìdí rẹ̀ múlẹ̀ bá tún ṣètò drilldown: true nìkan. A kì í pa àwọn fídíò gidi mọ́ láéláé.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Fàyè gba ìṣàwárí férémù jinlẹ̀ tí a ti fìdí rẹ̀ múlẹ̀",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Fàyè gba àwọn kọ́kọ́rọ́ API láti ka àti pa àwọn àmì ìdánimọ̀ àìhàn tiwọn nìkan. Kò sí ààyè fún ìwọlé aláìlórúkọ tàbí ìwọlé láti ọ̀dọ̀ kọ́kọ́rọ́ mìíràn.",
+    "modalityBridgeVideoDrilldownUsage": "Àwọn JPEG / báìtì tí a pa mọ́"
   },
   "contextRtk": {
     "title": "Ẹ́ńjìnnì RTK",

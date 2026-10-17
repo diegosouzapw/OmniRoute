@@ -8915,7 +8915,12 @@
       "statsTitle": "Mga natukoy mula nang mag-restart",
       "statsEmpty": "Wala pang natukoy.",
       "statsRequest": "Mga request"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Panatilihin ang mga hinangong frame ng video",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Payagan lamang ang pansamantalang pagpapanatili ng JPEG kapag itinatakda rin ng napatotohanang kahilingan ang drilldown: true. Hindi kailanman pinapanatili ang mga raw na video.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Payagan ang napatotohanang masusing pagtingin sa frame",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Payagan ang mga API key na basahin at burahin lamang ang sarili nilang mga opaque handle. Walang anonymous o cross-key na access.",
+    "modalityBridgeVideoDrilldownUsage": "Mga pinanatiling JPEG / byte"
   },
   "contextRtk": {
     "title": "Engine ng RTK",

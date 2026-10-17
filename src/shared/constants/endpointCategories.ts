@@ -57,8 +57,8 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
   {
     id: "video",
     label: "Video",
-    description: "Video generation",
-    prefixes: ["/v1/videos"],
+    description: "Video generation and retained Video Bridge frame access",
+    prefixes: ["/v1/videos", "/v1/video-bridge/drilldown"],
   },
   {
     id: "music",

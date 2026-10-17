@@ -8915,7 +8915,12 @@
       "statsTitle": "شناسایی‌ها از زمان راه‌اندازی مجدد",
       "statsEmpty": "هنوز موردی شناسایی نشده است.",
       "statsRequest": "درخواست‌ها"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "نگهداری فریمهای استخراجشده از ویدیو",
+    "modalityBridgeVideoDrilldownEnabledDesc": "نگهداری موقت فایلهای JPEG را فقط زمانی مجاز کنید که درخواست احراز هویتشده، drilldown: true را نیز تنظیم کرده باشد. ویدیوهای خام هرگز نگهداری نمیشوند.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "اجازه بررسی جزئیات فریم برای کاربران احراز هویتشده",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "به کلیدهای API فقط اجازه دهید شناسههای مبهم متعلق به خود را بخوانند و حذف کنند. دسترسی ناشناس یا بینکلیدی مجاز نیست.",
+    "modalityBridgeVideoDrilldownUsage": "فایلهای JPEG نگهداریشده / بایتها"
   },
   "contextRtk": {
     "title": "موتور RTK",

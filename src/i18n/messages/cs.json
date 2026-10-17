@@ -8915,7 +8915,12 @@
       "statsTitle": "Detekce od restartu",
       "statsEmpty": "Zatím žádné detekce.",
       "statsRequest": "Požadavky"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Uchovávat odvozené snímky videa",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Povolit dočasné uchování souborů JPEG pouze tehdy, když ověřený požadavek zároveň nastaví drilldown: true. Nezpracovaná videa se nikdy neuchovávají.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Povolit ověřený detailní rozbor snímků",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Povolit klíčům API číst a mazat pouze jejich vlastní neprůhledné identifikátory. Anonymní přístup ani přístup napříč klíči není povolen.",
+    "modalityBridgeVideoDrilldownUsage": "Uchované soubory JPEG / bajty"
   },
   "contextRtk": {
     "title": "Modul RTK",

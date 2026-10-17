@@ -8915,7 +8915,12 @@
       "statsTitle": "Sejbiet mill-bidu mill-ġdid",
       "statsEmpty": "Għad m'hemm l-ebda sejba.",
       "statsRequest": "Talbiet"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Żomm il-frejms derivati mill-vidjo",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Ippermetti ż-żamma temporanja ta’ JPEGs biss meta t-talba awtentikata tissettja wkoll drilldown: true. Il-vidjows mhux ipproċessati qatt ma jinżammu.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Ippermetti analiżi dettaljata awtentikata tal-frejms",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Ippermetti liċ-ċwievet tal-API jaqraw u jħassru biss l-identifikaturi opaki tagħhom stess. Ebda aċċess anonimu jew bejn ċwievet differenti.",
+    "modalityBridgeVideoDrilldownUsage": "JPEGs miżmuma / bytes"
   },
   "contextRtk": {
     "title": "Magna RTK",

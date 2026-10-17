@@ -8915,7 +8915,12 @@
       "statsTitle": "再起動以降の検出",
       "statsEmpty": "まだ検出はありません。",
       "statsRequest": "リクエスト"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "派生した動画フレームを保持",
+    "modalityBridgeVideoDrilldownEnabledDesc": "認証済みリクエストで drilldown: true も設定されている場合にのみ、一時的な JPEG の保持を許可します。元の動画は保持されません。",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "認証済みのフレーム詳細表示を許可",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API キーには、それぞれ自身の不透明なハンドルの読み取りと削除のみを許可します。匿名アクセスや他のキーからのアクセスは許可されません。",
+    "modalityBridgeVideoDrilldownUsage": "保持された JPEG / バイト"
   },
   "contextRtk": {
     "title": "RTKエンジン",

@@ -8915,7 +8915,12 @@
       "statsTitle": "Észlelések az újraindítás óta",
       "statsEmpty": "Még nincs észlelés.",
       "statsRequest": "Kérések"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Származtatott videóképkockák megőrzése",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Az ideiglenes JPEG-megőrzés csak akkor engedélyezett, ha a hitelesített kérés a drilldown: true értéket is beállítja. A nyers videókat soha nem őrizzük meg.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Hitelesített képkocka-részletezés engedélyezése",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Az API-kulcsok csak a saját átlátszatlan azonosítóikat olvashatják és törölhetik. Névtelen vagy kulcsok közötti hozzáférés nem engedélyezett.",
+    "modalityBridgeVideoDrilldownUsage": "Megőrzött JPEG-ek / bájtok"
   },
   "contextRtk": {
     "title": "RTK-motor",

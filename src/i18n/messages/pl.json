@@ -8915,7 +8915,12 @@
       "statsTitle": "Wykrycia od ponownego uruchomienia",
       "statsEmpty": "Brak wykryć.",
       "statsRequest": "Żądania"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Zachowuj wyodrębnione klatki wideo",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Zezwalaj na tymczasowe przechowywanie plików JPEG tylko wtedy, gdy uwierzytelnione żądanie zawiera również ustawienie drilldown: true. Surowe nagrania wideo nigdy nie są przechowywane.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Zezwalaj na uwierzytelnione przechodzenie do szczegółów klatek",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Zezwalaj kluczom API na odczytywanie i usuwanie wyłącznie własnych nieprzejrzystych uchwytów. Dostęp anonimowy ani między kluczami nie jest dozwolony.",
+    "modalityBridgeVideoDrilldownUsage": "Przechowywane pliki JPEG / bajty"
   },
   "contextRtk": {
     "title": "Silnik RTK",

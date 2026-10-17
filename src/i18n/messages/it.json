@@ -8915,7 +8915,12 @@
       "statsTitle": "Rilevamenti dal riavvio",
       "statsEmpty": "Ancora nessun rilevamento.",
       "statsRequest": "Richieste"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Conserva i fotogrammi video derivati",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Consenti la conservazione temporanea dei file JPEG solo quando la richiesta autenticata imposta anche drilldown: true. I video originali non vengono mai conservati.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Consenti l'analisi dettagliata dei fotogrammi autenticata",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Consenti alle chiavi API di leggere ed eliminare solo i propri handle opachi. Nessun accesso anonimo o tra chiavi diverse.",
+    "modalityBridgeVideoDrilldownUsage": "JPEG conservati / byte"
   },
   "contextRtk": {
     "title": "Motore RTK",

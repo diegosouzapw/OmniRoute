@@ -8915,7 +8915,12 @@
       "statsTitle": "Phát hiện kể từ khi khởi động lại",
       "statsEmpty": "Chưa có phát hiện nào.",
       "statsRequest": "Yêu cầu"
-    }
+    },
+    "modalityBridgeVideoDrilldownEnabled": "Lưu giữ các khung hình được trích xuất từ video",
+    "modalityBridgeVideoDrilldownEnabledDesc": "Chỉ cho phép lưu giữ tạm thời các tệp JPEG khi yêu cầu đã xác thực cũng đặt drilldown: true. Video gốc không bao giờ được lưu giữ.",
+    "modalityBridgeVideoDrilldownRemoteEnabled": "Cho phép xem chi tiết khung hình sau khi xác thực",
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Chỉ cho phép khóa API đọc và xóa các mã định danh không rõ nghĩa thuộc về chính khóa đó. Không cho phép truy cập ẩn danh hoặc truy cập chéo giữa các khóa.",
+    "modalityBridgeVideoDrilldownUsage": "Tệp JPEG được lưu giữ / byte"
   },
   "contextRtk": {
     "title": "Công cụ RTK",
