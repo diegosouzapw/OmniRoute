@@ -1,3 +1,4 @@
+import { REASONING_EFFORT_ORDER } from "@omniroute/open-sse/services/learnedReasoningEffortCaps";
 /**
  * modelsDevSync/transform — pure data model + transform layer.
  *
@@ -247,7 +248,11 @@ function modelsDevEffortValues(
   const values = options.flatMap((option) =>
     option?.type === "effort" && Array.isArray(option.values) ? option.values : []
   );
-  const efforts = values.filter((value) => typeof value === "string" && value.length > 0);
+  const efforts = values.filter(
+    (value): value is string =>
+      typeof value === "string" &&
+      (REASONING_EFFORT_ORDER as readonly string[]).includes(value)
+  );
   return efforts.length > 0 ? [...new Set(efforts)] : null;
 }
 
