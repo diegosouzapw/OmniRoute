@@ -98,6 +98,7 @@ export interface DatabaseSettings {
     lastVacuumAt: string | null;
     lastOptimizationAt: string | null;
     integrityCheck: "ok" | "error" | null;
+    lastIntegrityCheckAt: string | null;
     /**
      * #13432 — non-null while the configured `optimization.autoVacuumMode`
      * has not yet been applied to the live SQLite file. Cleared once the

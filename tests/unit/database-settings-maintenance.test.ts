@@ -11,6 +11,7 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("../../src/lib/db/core.ts");
 const databaseSettings = await import("../../src/lib/db/databaseSettings.ts");
 const databaseSettingsRoute = await import("../../src/app/api/settings/database/route.ts");
+const cacheConfigRoute = await import("../../src/app/api/settings/cache-config/route.ts");
 const purgeRequestHistoryRoute =
   await import("../../src/app/api/settings/purge-request-history/route.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -111,6 +112,169 @@ test("database settings route returns mapped stats and persists editable section
   assert.equal(getResponse.status, 200);
   assert.equal(getBody.retention.callLogs, 12);
   assert.equal(getBody.aggregation.rawDataRetentionDays, 8);
+});
+
+test("database settings readers report the stored integrity result without a full scan", async (t) => {
+  await t.test("GET returns the stored result and date without running a scan", async () => {
+    const db = core.getDbInstance();
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', ?, ?)"
+    ).run(
+      "integrity.lastCheck",
+      JSON.stringify({ status: "ok", checkedAt: "2026-10-01T10:00:00.000Z" })
+    );
+    let scans = 0;
+    const originalPragma = db.pragma;
+    db.pragma = ((sql: string, options?: unknown) => {
+      if (/quick_check|integrity_check/i.test(sql)) scans += 1;
+      return (originalPragma as (...args: unknown[]) => unknown).call(db, sql, options);
+    }) as typeof db.pragma;
+    try {
+      const response = await databaseSettingsRoute.GET(makeJsonRequest("GET") as never);
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(scans, 0);
+      assert.equal(body.stats.integrityCheck, "ok");
+      assert.equal(body.stats.lastIntegrityCheckAt, "2026-10-01T10:00:00.000Z");
+    } finally {
+      db.pragma = originalPragma;
+    }
+  });
+
+  await t.test("PATCH persists settings without running a scan", async () => {
+    const db = core.getDbInstance();
+    let scans = 0;
+    const originalPragma = db.pragma;
+    db.pragma = ((sql: string, options?: unknown) => {
+      if (/quick_check|integrity_check/i.test(sql)) scans += 1;
+      return (originalPragma as (...args: unknown[]) => unknown).call(db, sql, options);
+    }) as typeof db.pragma;
+    try {
+      const current = databaseSettings.getUserDatabaseSettings();
+      const response = await databaseSettingsRoute.PATCH(
+        makeJsonRequest("PATCH", {
+          retention: { ...current.retention, callLogs: 11 },
+        }) as never
+      );
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(scans, 0);
+      assert.equal(body.retention.callLogs, 11);
+    } finally {
+      db.pragma = originalPragma;
+    }
+  });
+
+  await t.test("cache config GET serves cache keys without running a scan", async () => {
+    const db = core.getDbInstance();
+    let scans = 0;
+    const originalPragma = db.pragma;
+    db.pragma = ((sql: string, options?: unknown) => {
+      if (/quick_check|integrity_check/i.test(sql)) scans += 1;
+      return (originalPragma as (...args: unknown[]) => unknown).call(db, sql, options);
+    }) as typeof db.pragma;
+    try {
+      const response = await cacheConfigRoute.GET(
+        new Request("http://localhost/api/settings/cache-config", { method: "GET" }) as never
+      );
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(scans, 0);
+      assert.equal(typeof body.modelCatalogCacheTtlMs, "number");
+    } finally {
+      db.pragma = originalPragma;
+    }
+  });
+});
+
+test("explicit integrity check runs a scan and stores the dated result", async () => {
+  const { POST } = await import("../../src/app/api/settings/database/integrity-check/route.ts");
+  const db = core.getDbInstance();
+  let scans = 0;
+  const originalPragma = db.pragma;
+  db.pragma = ((sql: string, options?: unknown) => {
+    if (/quick_check/i.test(sql)) scans += 1;
+    return (originalPragma as (...args: unknown[]) => unknown).call(db, sql, options);
+  }) as typeof db.pragma;
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/settings/database/integrity-check", {
+        method: "POST",
+      }) as never
+    );
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(scans, 1);
+    assert.ok(body.integrityCheck === "ok" || body.integrityCheck === "error");
+    const checkedAt = Date.parse(body.lastIntegrityCheckAt);
+    assert.ok(Number.isFinite(checkedAt));
+    assert.ok(Math.abs(Date.now() - checkedAt) < 5 * 60 * 1000);
+
+    const stored = db
+      .prepare(
+        "SELECT value FROM key_value WHERE namespace = 'databaseSettings' AND key = 'integrity.lastCheck'"
+      )
+      .get() as { value: string } | undefined;
+    assert.equal(JSON.parse(stored?.value ?? "null").status, body.integrityCheck);
+
+    const settings = databaseSettings.getDatabaseSettings();
+    assert.equal(settings.stats.integrityCheck, body.integrityCheck);
+    assert.equal(settings.stats.lastIntegrityCheckAt, body.lastIntegrityCheckAt);
+  } finally {
+    db.pragma = originalPragma;
+  }
+});
+
+test("database settings readers report unknown when no check was ever stored", async (t) => {
+  await t.test("missing row returns nulls without an error", async () => {
+    const settings = databaseSettings.getDatabaseSettings();
+    assert.equal(settings.stats.integrityCheck, null);
+    assert.equal(settings.stats.lastIntegrityCheckAt, null);
+
+    const response = await databaseSettingsRoute.GET(makeJsonRequest("GET") as never);
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.stats.integrityCheck, null);
+    assert.equal(body.stats.lastIntegrityCheckAt, null);
+  });
+
+  await t.test("corrupt stored result returns nulls without an error", async () => {
+    const db = core.getDbInstance();
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', ?, ?)"
+    ).run("integrity.lastCheck", "not-json{");
+
+    const settings = databaseSettings.getDatabaseSettings();
+    assert.equal(settings.stats.integrityCheck, null);
+    assert.equal(settings.stats.lastIntegrityCheckAt, null);
+
+    const response = await databaseSettingsRoute.GET(makeJsonRequest("GET") as never);
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(body.stats.integrityCheck, null);
+    assert.equal(body.stats.lastIntegrityCheckAt, null);
+  });
+
+  await t.test("stored settings namespaces keep their values next to the result", async () => {
+    const db = core.getDbInstance();
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', ?, ?)"
+    ).run("retention.callLogs", JSON.stringify(9));
+    db.prepare(
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', ?, ?)"
+    ).run("integrity.lastCheck", JSON.stringify({ status: "nope", checkedAt: "bogus" }));
+
+    assert.equal(databaseSettings.getUserDatabaseSettings().retention.callLogs, 9);
+    assert.equal(databaseSettings.getDatabaseSettings().stats.integrityCheck, null);
+  });
+
+  await t.test("stored failure text names the integrity check, not the compaction", async () => {
+    const catalog = (await import("../../src/i18n/messages/en.json", {
+      with: { type: "json" },
+    })) as { default: { settings: Record<string, string> } };
+    assert.equal(typeof catalog.default.settings.storageIntegrityCheckFailed, "string");
+    assert.ok(!catalog.default.settings.storageIntegrityCheckFailed.includes("VACUUM"));
+  });
 });
 
 test("database settings reader supports legacy flat keys and lets nested saves win", () => {

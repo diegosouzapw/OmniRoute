@@ -234,13 +234,65 @@ function getFreelistCount(): number {
   }
 }
 
-function getIntegrityCheck(): "ok" | "error" | null {
+const INTEGRITY_CHECK_KEY = "integrity.lastCheck";
+
+export type StoredIntegrityCheck = {
+  integrityCheck: "ok" | "error" | null;
+  lastIntegrityCheckAt: string | null;
+};
+
+function isStoredIntegrityStatus(value: unknown): value is "ok" | "error" {
+  return value === "ok" || value === "error";
+}
+
+export function readLastIntegrityCheck(): StoredIntegrityCheck {
+  const fallback: StoredIntegrityCheck = { integrityCheck: null, lastIntegrityCheckAt: null };
+  let raw: string | null = null;
+  try {
+    const row = getDbInstance()
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ? LIMIT 1")
+      .get(DATABASE_SETTINGS_NAMESPACE, INTEGRITY_CHECK_KEY) as { value: string } | undefined;
+    raw = row?.value ?? null;
+  } catch {
+    return fallback;
+  }
+  if (raw === null) return fallback;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    console.warn("[DB] Ignoring malformed stored integrity result.");
+    return fallback;
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return fallback;
+  const record = parsed as Record<string, unknown>;
+  if (!isStoredIntegrityStatus(record.status)) return fallback;
+  if (typeof record.checkedAt !== "string" || !Number.isFinite(Date.parse(record.checkedAt))) {
+    return fallback;
+  }
+  return { integrityCheck: record.status, lastIntegrityCheckAt: record.checkedAt };
+}
+
+export function runIntegrityCheck(): StoredIntegrityCheck {
+  let status: "ok" | "error";
   try {
     const result = getDbInstance().pragma("quick_check", { simple: true }) as string;
-    return result === "ok" ? "ok" : "error";
+    status = result === "ok" ? "ok" : "error";
   } catch {
-    return null;
+    status = "error";
   }
+  const checkedAt = new Date().toISOString();
+  // Concurrent explicit checks resolve last-writer-wins: the scan is
+  // idempotent and short, so no lock or 409 is needed.
+  try {
+    getDbInstance()
+      .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+      .run(DATABASE_SETTINGS_NAMESPACE, INTEGRITY_CHECK_KEY, JSON.stringify({ status, checkedAt }));
+  } catch (error) {
+    console.warn("[DB] Failed to persist integrity result:", (error as Error)?.message ?? error);
+    throw error;
+  }
+  return { integrityCheck: status, lastIntegrityCheckAt: checkedAt };
 }
 
 export function getUserDatabaseSettings(): UserDatabaseSettings {
@@ -264,6 +316,7 @@ export function getUserDatabaseSettings(): UserDatabaseSettings {
 export function getDatabaseSettings(): DatabaseSettings {
   const dbStats = getDatabaseStats();
   const vacuumState = getVacuumSchedulerState();
+  const lastCheck = readLastIntegrityCheck();
 
   return {
     ...getUserDatabaseSettings(),
@@ -280,7 +333,8 @@ export function getDatabaseSettings(): DatabaseSettings {
       lastVacuumAt:
         vacuumState.lastRunAt !== null ? new Date(vacuumState.lastRunAt).toISOString() : null,
       lastOptimizationAt: null,
-      integrityCheck: getIntegrityCheck(),
+      integrityCheck: lastCheck.integrityCheck,
+      lastIntegrityCheckAt: lastCheck.lastIntegrityCheckAt,
       autoVacuumDrift: vacuumState.autoVacuumDrift,
       lastReclaimedPages: vacuumState.lastReclaimedPages,
     },

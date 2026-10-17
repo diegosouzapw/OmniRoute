@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getDatabaseSettings,
+  getUserDatabaseSettings,
   updateDatabaseSettings,
   type UserDatabaseSettings,
 } from "@/lib/db/databaseSettings";
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const dbSettings = getDatabaseSettings();
+    const dbSettings = getUserDatabaseSettings();
     const cache = dbSettings.cache ?? {};
     // idempotencyWindowMs is not part of the databaseSettings "cache" section —
     // it lives in the flat general settings (src/lib/db/settings.ts), which is

@@ -1,0 +1,1 @@
+- **perf(db):** opening or saving storage settings no longer scans the whole database; the stored integrity result is shown with its date and a manual check runs it on demand ([#16374](https://github.com/diegosouzapw/OmniRoute/pull/16374)) — thanks @maxmad64bis
