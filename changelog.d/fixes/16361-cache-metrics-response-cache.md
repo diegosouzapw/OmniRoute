@@ -1,0 +1,1 @@
+- **perf(cache):** serve the usage-history part of the cache page from the shared response cache; history totals may lag up to a minute ([#16361](https://github.com/diegosouzapw/OmniRoute/pull/16361)) — thanks @maxmad64bis

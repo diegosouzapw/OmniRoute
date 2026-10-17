@@ -25,15 +25,10 @@ function readSource(rel: string): string {
   return fs.readFileSync(path.join(repoRoot, rel), "utf8");
 }
 
-// Body of the first `await Promise.all([...]);` in `src` (non-greedy).
-function firstPromiseAllBody(src: string): string | null {
-  const m = src.match(/await Promise\.all\(\[([\s\S]*?)\]\);/);
-  return m ? m[1] : null;
-}
-
 // All `await Promise.all([...]);` batch bodies in `src`, in file order.
 // Used where a file legitimately contains more than one batch site (deletion.ts
-// has one per delete function) so a regression at ANY site fails the guard.
+// has one per delete function, the cache route has one per history/fresh part)
+// so a regression at ANY site fails the guard.
 function allPromiseAllBodies(src: string): string[] {
   const bodies: string[] = [];
   const regex = /await Promise\.all\(\[([\s\S]*?)\]\);/g;
@@ -71,17 +66,38 @@ test("A1: home page fetches settings + machineId concurrently (#11396)", () => {
 });
 
 // ─── F1: /api/cache GET ─────────────────────────────────────────────────────
-test("F1: cache route GET batches its four async reads (#11396)", () => {
+test("cache route GET batches its fresh reads, history via the response cache (#11396)", () => {
   const src = readSource("src/app/api/cache/route.ts");
-  const body = firstPromiseAllBody(src);
-  assert.ok(body, "expected an `await Promise.all([...])` batch in the cache route");
 
-  assert.match(body, /getIdempotencyStats\(\)/);
-  assert.match(body, /getCacheMetrics\(\)/);
-  assert.match(body, /getCacheTrend\(trendHours\)/);
+  // History (usage_history aggregates) is served through the shared response
+  // cache keyed by the clamped trend window; fresh counters are never cached.
+  assert.match(src, /serveAnalyticsCached\(\s*cacheKey,/);
+  assert.match(src, /`cache-metrics\?trendHours=\$\{trendHours\}`/);
+  assert.match(src, /getCacheMetricsMinComputeMs\(\)/);
+  assert.match(src, /invalidateAnalyticsCachePrefix\("cache-metrics\?"\)/);
+  // hit/miss describes the cached history part only; fresh counters are always live.
+  assert.match(src, /history part only; fresh counters are always live/);
+  assert.match(src, /getCacheMetrics\(\),/);
+  assert.match(src, /getCacheTrend\(trendHours\)/);
+  assert.match(src, /historyCacheState/);
+
+  const bodies = allPromiseAllBodies(src);
+  assert.ok(bodies.length >= 2, "expected a history batch and a fresh batch");
+  const historyBatch = bodies.find(
+    (body) => /getCacheMetrics\(\)/.test(body) && /getCacheTrend\(trendHours\)/.test(body)
+  );
+  assert.ok(historyBatch, "expected a history `Promise.all` batch");
+  assert.doesNotMatch(historyBatch!, /getIdempotencyStats\(\)/);
+  assert.doesNotMatch(historyBatch!, /getCachedSettings\(\)/);
+  const freshBatch = bodies.find(
+    (body) => /getIdempotencyStats\(\)/.test(body) && /getCachedSettings\(\)/.test(body)
+  );
+  assert.ok(freshBatch, "expected a fresh-counters `Promise.all` batch");
   // settings-load failure must degrade to {} *inside* the batch, not reject
   // the whole Promise.all and 500 the stats endpoint
-  assert.match(body, /getCachedSettings\(\)\.catch\(\s*\(\s*\)\s*=>\s*\(\s*\{\}\s*\)\s*\)/);
+  assert.match(freshBatch!, /getCachedSettings\(\)\.catch\(\s*\(\s*\)\s*=>\s*\(\s*\{\}\s*\)\s*\)/);
+  assert.doesNotMatch(freshBatch!, /getCacheMetrics\(\)/);
+  assert.doesNotMatch(freshBatch!, /getCacheTrend\(trendHours\)/);
 
   // no serial waterfall remains for the same reads
   assert.doesNotMatch(src, /await getIdempotencyStats\(\)\s*;/);

@@ -10,6 +10,11 @@ import {
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
 import { getCachedSettings } from "@/lib/db/readCache";
+import {
+  getCacheMetricsMinComputeMs,
+  invalidateAnalyticsCachePrefix,
+  serveAnalyticsCached,
+} from "@/lib/usage/analyticsResponseCache";
 import { isTrustedLoopbackInternalServiceRequest } from "@/lib/api/internalServiceAuth";
 import { isAuthenticated, isCacheScopedKey } from "@/shared/utils/apiAuth";
 import { CACHE_READ_SCOPE, CACHE_WRITE_SCOPE } from "@/shared/constants/managementScopes";
@@ -32,26 +37,45 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const rawHours = parseInt(searchParams.get("trendHours") || "24", 10);
     const trendHours = Math.min(720, Math.max(1, Number.isNaN(rawHours) ? 24 : rawHours));
+    const cacheKey = `cache-metrics?trendHours=${trendHours}`;
+
+    const historyResponse = await serveAnalyticsCached(
+      cacheKey,
+      async () => {
+        const [promptCacheMetrics, trend] = await Promise.all([
+          getCacheMetrics(),
+          getCacheTrend(trendHours),
+        ]);
+        return NextResponse.json({ promptCache: promptCacheMetrics, trend });
+      },
+      { minComputeMs: getCacheMetricsMinComputeMs() }
+    );
+    const historyCacheState = historyResponse.headers.get("x-analytics-cache");
+    const historyBody = (await historyResponse.json()) as {
+      promptCache: unknown;
+      trend: unknown;
+    };
 
     const cacheStats = getCacheStats();
     // Promise.all allows concurrent execution; if one rejects, others still resolve,
     // which is safe for this read-only stats endpoint.
-    const [idempotencyStats, promptCacheMetrics, trend, settings] = await Promise.all([
+    const [idempotencyStats, settings] = await Promise.all([
       getIdempotencyStats(),
-      getCacheMetrics(),
-      getCacheTrend(trendHours),
       getCachedSettings().catch(() => ({})),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       semanticCache: cacheStats,
-      promptCache: promptCacheMetrics,
-      trend,
+      promptCache: historyBody.promptCache,
+      trend: historyBody.trend,
       idempotency: idempotencyStats,
       config: {
         semanticCacheEnabled: settings.semanticCacheEnabled !== false,
       },
     });
+    // hit/miss describes the cached history part only; fresh counters are always live.
+    if (historyCacheState) response.headers.set("x-analytics-cache", historyCacheState);
+    return response;
   } catch (error) {
     return NextResponse.json({ error: errorMessage(error) }, { status: 500 });
   }
@@ -86,11 +110,13 @@ export async function DELETE(req: NextRequest) {
 
     if (model) {
       const removed = invalidateByModel(model);
+      invalidateAnalyticsCachePrefix("cache-metrics?");
       return NextResponse.json({ ok: true, invalidated: removed, scope: "model", model });
     }
 
     if (signature) {
       const removed = invalidateBySignature(signature);
+      invalidateAnalyticsCachePrefix("cache-metrics?");
       return NextResponse.json({ ok: true, invalidated: removed ? 1 : 0, scope: "signature" });
     }
 
@@ -103,11 +129,13 @@ export async function DELETE(req: NextRequest) {
         );
       }
       const removed = invalidateStale(maxAgeMs);
+      invalidateAnalyticsCachePrefix("cache-metrics?");
       return NextResponse.json({ ok: true, invalidated: removed, scope: "stale", maxAgeMs });
     }
 
     // Full clear
     const cleared = clearCache();
+    invalidateAnalyticsCachePrefix("cache-metrics?");
     return NextResponse.json({ ok: true, cleared, scope: "all" });
   } catch (error) {
     return NextResponse.json({ error: errorMessage(error) }, { status: 500 });
