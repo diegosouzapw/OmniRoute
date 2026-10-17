@@ -149,3 +149,74 @@ describe("expiry-first account rotation", () => {
     );
   });
 });
+
+/**
+ * Claude subscription pool, measured 2026-10-12/13: a Team account whose week
+ * resets on Friday and a Max account whose week resets on Wednesday, each with a
+ * 5h session inside the weekly cap. Ranked on the nearest reset, the account
+ * whose session happened to roll over next won every few hours, so the Max
+ * account reached its Wednesday reset with 59% of the week unspent.
+ */
+type WindowReading = [remainingPercent: number, resetInHours: number | null];
+
+function claudeView(session: WindowReading, weekly: WindowReading, now: number) {
+  const reading = ([remaining, resetIn]: WindowReading) => ({
+    percentUsed: 1 - remaining / 100,
+    resetAt: resetIn === null ? null : new Date(now + resetIn * HOUR).toISOString(),
+  });
+  return { windows: { "session (5h)": reading(session), "weekly (7d)": reading(weekly) } };
+}
+
+describe("expiry-first with a 5h session inside a weekly cap", () => {
+  const pool: Account[] = [
+    { id: "team", priority: 1 },
+    { id: "max", priority: 2 },
+  ];
+  const pickAt = (now: number, views: Record<string, Record<string, unknown>>) =>
+    selectExpiryFirstConnection(pool, null, (id) => views[id] ?? null, now)?.id;
+  const config = resolveExpiryFirstConfig(null);
+
+  it("ranks on the weekly reset, not on whichever session rolls over first", () => {
+    const t1 = Date.UTC(2026, 9, 12, 12);
+    const t2 = Date.UTC(2026, 9, 13, 22);
+    assert.equal(
+      pickAt(t1, {
+        team: claudeView([95, 3.5], [93, 96], t1),
+        max: claudeView([98, 4.33], [70, 47], t1),
+      }),
+      "max"
+    );
+    assert.equal(
+      pickAt(t2, {
+        team: claudeView([59, 0.5], [69, 62], t2),
+        max: claudeView([92, 1.67], [61, 13], t2),
+      }),
+      "max"
+    );
+  });
+
+  it("hands over to the other account once a weekly window has reset", () => {
+    assert.equal(
+      pickAt(NOW, {
+        team: claudeView([100, 4], [63, 49], NOW),
+        max: claudeView([100, 5], [100, 168], NOW),
+      }),
+      "team"
+    );
+  });
+
+  it("still lets a nearly spent session cap what the account can take now", () => {
+    const score = scoreExpiryFirstQuota(claudeView([2, 1], [60, 2], NOW), config, NOW).score;
+    assert.ok(Math.abs(score - 0.01) < 1e-9, `${score} should be 0.02 / 2h`);
+  });
+
+  it("treats a session whose reset has passed as refilled, not as a deadline", () => {
+    const score = scoreExpiryFirstQuota(claudeView([10, -0.5], [60, 5], NOW), config, NOW).score;
+    assert.ok(Math.abs(score - 0.12) < 1e-9, `${score} should be 0.6 / 5h`);
+  });
+
+  it("falls back to the session reset when the weekly window reports none", () => {
+    const score = scoreExpiryFirstQuota(claudeView([50, 2], [80, null], NOW), config, NOW).score;
+    assert.ok(Math.abs(score - 0.25) < 1e-9, `${score} should be 0.5 / 2h`);
+  });
+});

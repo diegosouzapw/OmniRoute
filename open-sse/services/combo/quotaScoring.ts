@@ -413,14 +413,22 @@ export function resolveExpiryFirstConfig(config: Record<string, unknown> | null 
 
 /**
  * Scores an account for `expiry-first`: how much quota it must spend PER HOUR to
- * avoid losing it at the next reset. Higher score = more urgent to spend here.
+ * avoid losing it at its deadline. Higher score = more urgent to spend here.
  *
- *   score = usable / hoursUntilNearestReset
+ *   score = usable / hoursUntilDeadline
  *
  * `usable` is the tightest window's remaining fraction, because nested windows
  * (a 5h session inside a weekly cap) all decrement together and an account can
- * never spend more than its most constrained window allows. The deadline is the
- * NEAREST reset for the same reason: that is when the first tranche is lost.
+ * never spend more than its most constrained window allows.
+ *
+ * The deadline is the nearest reset of a window longer than the session (weekly,
+ * monthly) when the account has one. A 5h session refills many times before a
+ * weekly cap resets, so what an account loses is what its longer window still
+ * holds at that reset; the session only caps what can be spent right now. Taking
+ * the session reset as the deadline made two subscription accounts trade places
+ * every few hours and ignore weekly resets two days apart. A session whose reset
+ * has already passed has refilled and caps nothing. The session reset is still
+ * the deadline when it is the only window, or when no longer window reports one.
  *
  * Deliberately different from `scoreResetAwareQuota`, which ranks mostly on
  * leftover and adds `resetUrgency * (1 - remaining)` — a RECOVERY signal that
@@ -441,23 +449,30 @@ export function scoreExpiryFirstQuota(
   if (!quota || !isRecord(quota)) return { score: 0 };
   if (quota.limitReached === true) return { score: 0 };
 
-  const windows: QuotaWindowSnapshot[] = [];
+  const windows: Array<{ window: QuotaWindowSnapshot; session: boolean }> = [];
   for (const windowName of RESET_WINDOW_NAMES) {
     const window = resolveQuotaWindowByName(quota, windowName);
-    if (window) windows.push(window);
+    if (window) windows.push({ window, session: windowName === "session" });
   }
   if (windows.length === 0) {
-    for (const { window } of getQuotaWindowEntries(quota)) windows.push(window);
+    for (const { window } of getQuotaWindowEntries(quota)) windows.push({ window, session: false });
   }
   if (windows.length === 0) return { score: 0 };
+  const hasLongerWindow = windows.some((entry) => !entry.session);
 
   let usable = 1;
   let msUntilReset = Number.POSITIVE_INFINITY;
-  for (const window of windows) {
-    usable = Math.min(usable, clamp01(1 - (window.percentUsed ?? 0.5)));
+  let msUntilSessionReset = Number.POSITIVE_INFINITY;
+  for (const { window, session } of windows) {
     const resetMs = parseResetTimeMs(window.resetAt);
-    if (Number.isFinite(resetMs)) msUntilReset = Math.min(msUntilReset, resetMs - nowMs);
+    const msLeft = Number.isFinite(resetMs) ? resetMs - nowMs : Number.POSITIVE_INFINITY;
+    const capOnly = session && hasLongerWindow;
+    if (capOnly && msLeft <= 0) continue;
+    usable = Math.min(usable, clamp01(1 - (window.percentUsed ?? 0.5)));
+    if (capOnly) msUntilSessionReset = Math.min(msUntilSessionReset, msLeft);
+    else msUntilReset = Math.min(msUntilReset, msLeft);
   }
+  if (!Number.isFinite(msUntilReset)) msUntilReset = msUntilSessionReset;
 
   if (usable <= config.exhaustedFloor) return { score: 0 };
   // No reset telemetry at all: the deadline half is unknowable, so rank on

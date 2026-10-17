@@ -1,0 +1,1 @@
+- **fix(providers):** `expiry-first` ranks accounts on the reset of their weekly (or monthly) window instead of the nearest 5h session reset, so subscription pools spend the account whose week ends first ([#16586](https://github.com/diegosouzapw/OmniRoute/pull/16586)) — thanks @feci
