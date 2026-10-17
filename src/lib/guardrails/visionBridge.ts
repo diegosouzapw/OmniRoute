@@ -11,6 +11,11 @@
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import { getSettings as defaultGetSettings } from "@/lib/db/settings";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import { getProviderNodePrefixSync } from "@/lib/db/providers/nodePrefix";
+import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
+import { getExactCustomModelVisionOverride } from "@/lib/db/models/customVisionOverride";
+import { getModelCompatVisionOverride } from "@/lib/db/models/compat";
+import { getSyncedAvailableModelVision } from "@/lib/db/models/syncedAvailableModelVision";
 import {
   extractImageParts,
   callVisionModel as defaultCallVisionModel,
@@ -52,6 +57,43 @@ function evaluateModelStepCapability(s: Record<string, unknown>): "vision" | "no
       : typeof s.provider === "string"
         ? s.provider
         : null;
+  // A public prefix, an internal node ID and a raw vendor/model path can all
+  // refer to one configured compatible provider. A generic capability lookup
+  // is NOT sufficient proof for such a node: its fallback may find the same
+  // model name in a completely different provider's customModels rows.
+  const internalProvider =
+    provider && isCompatibleProviderConnectionId(provider) ? provider : null;
+  if (internalProvider) {
+    const slash = targetModel.indexOf("/");
+    const prefix = slash > 0 ? targetModel.slice(0, slash) : null;
+    const ownPrefix = getProviderNodePrefixSync(internalProvider);
+    const hasOwnPrefix = Boolean(
+      prefix && (prefix === internalProvider ||
+        (ownPrefix && prefix.toLowerCase() === ownPrefix.toLowerCase()))
+    );
+    const candidates = hasOwnPrefix
+      ? [targetModel.slice(slash + 1), targetModel]
+      : [targetModel];
+
+    // Preserve source precedence: an explicit false from this node must win
+    // before positive discoveries and must not be overridden by a foreign
+    // public-model verdict. Slash-shaped upstream IDs stay unmodified.
+    for (const id of candidates) {
+      const custom = getExactCustomModelVisionOverride(internalProvider, id);
+      if (custom !== null) return custom ? "vision" : "non-vision";
+    }
+    for (const id of candidates) {
+      const compat = getModelCompatVisionOverride(internalProvider, [id]);
+      if (compat !== null) return compat ? "vision" : "non-vision";
+    }
+    for (const id of candidates) {
+      if (getSyncedAvailableModelVision(internalProvider, id) === true) return "vision";
+    }
+    // No exact source owned by this node confirmed vision support. Do not
+    // treat an unrelated provider's row or a name heuristic as a pass.
+    return "non-vision";
+  }
+
   const caps = getResolvedModelCapabilities({ provider, model: targetModel });
   return caps.supportsVision === true ? "vision" : "non-vision";
 }

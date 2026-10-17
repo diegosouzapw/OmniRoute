@@ -77,6 +77,29 @@ function readVisionOverrideFromModels(value: string | null, modelId: string): bo
   }
 }
 
+/**
+ * Read only this provider's exact custom-model id, without the broader
+ * path-shaped fallback that can match an identically named model in another
+ * node. Vision Bridge uses this when a slash-bearing id may be either a
+ * foreign routing prefix or an upstream vendor namespace (#16801).
+ *
+ * null means no owned explicit evidence, not a non-vision verdict.
+ */
+export function getExactCustomModelVisionOverride(
+  providerId: string,
+  modelId: string
+): boolean | null {
+  if (!providerId || !modelId) return null;
+  try {
+    const row = getDbInstance()
+      .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+      .get(providerId);
+    return readVisionOverrideFromModels(getKeyValue(row).value, modelId);
+  } catch {
+    return null;
+  }
+}
+
 function collectOverrideHits(map: CustomModelVisionOverrideMap): OverrideHit[] {
   const hits: OverrideHit[] = [];
   for (const [providerId, byModel] of map) {
