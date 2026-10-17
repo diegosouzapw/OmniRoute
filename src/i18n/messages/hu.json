@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Az ideiglenes JPEG-megőrzés csak akkor engedélyezett, ha a hitelesített kérés a drilldown: true értéket is beállítja. A nyers videókat soha nem őrizzük meg.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Hitelesített képkocka-részletezés engedélyezése",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Az API-kulcsok csak a saját átlátszatlan azonosítóikat olvashatják és törölhetik. Névtelen vagy kulcsok közötti hozzáférés nem engedélyezett.",
-    "modalityBridgeVideoDrilldownUsage": "Megőrzött JPEG-ek / bájtok"
+    "modalityBridgeVideoDrilldownUsage": "Megőrzött JPEG-ek / bájtok",
+    "modalityBridgeVideoPromotionTitle": "Speciális szabályzat érettsége",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Kísérleti",
+    "modalityBridgeVideoPromotionEligible": "Jogosult",
+    "modalityBridgeVideoPromotionContextRequired": "Az előléptetéshez két független, minősítő futtatás szükséges pontosan ugyanazzal a modellverzióval, szabályzattal, korpusszal és builddel. Az ellenőrizetlen kontextus továbbra is HOLD állapotban marad; egy kísérleti szabályzat kiválasztása nem jelent jóváhagyást."
   },
   "contextRtk": {
     "title": "RTK-motor",

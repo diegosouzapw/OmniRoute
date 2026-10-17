@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Sta tijdelijke bewaring van JPEG's alleen toe wanneer het geauthenticeerde verzoek ook drilldown: true instelt. Onbewerkte video's worden nooit bewaard.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Geauthenticeerde frameanalyse toestaan",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Sta API-sleutels alleen toe hun eigen ondoorzichtige handles te lezen en te verwijderen. Geen anonieme toegang of toegang tussen verschillende sleutels.",
-    "modalityBridgeVideoDrilldownUsage": "Bewaarde JPEG's / bytes"
+    "modalityBridgeVideoDrilldownUsage": "Bewaarde JPEG's / bytes",
+    "modalityBridgeVideoPromotionTitle": "Gereedheid voor geavanceerd beleid",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimenteel",
+    "modalityBridgeVideoPromotionEligible": "In aanmerking komend",
+    "modalityBridgeVideoPromotionContextRequired": "Promotie vereist twee onafhankelijke kwalificerende uitvoeringen voor exact dezelfde modelrevisie, hetzelfde beleid, corpus en dezelfde build. Een niet-geverifieerde context blijft op HOLD staan; het selecteren van een experimenteel beleid geldt niet als goedkeuring."
   },
   "contextRtk": {
     "title": "RTK Engine",

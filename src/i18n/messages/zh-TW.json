@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "僅當已驗證的請求同時設定 drilldown: true 時，才允許暫時保留 JPEG。原始影片絕不會被保留。",
     "modalityBridgeVideoDrilldownRemoteEnabled": "允許已驗證的影格深入檢視",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "允許 API 金鑰僅讀取及刪除其自身的不透明控制代碼。不允許匿名或跨金鑰存取。",
-    "modalityBridgeVideoDrilldownUsage": "保留的 JPEG／位元組"
+    "modalityBridgeVideoDrilldownUsage": "保留的 JPEG／位元組",
+    "modalityBridgeVideoPromotionTitle": "進階政策就緒狀態",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "實驗性",
+    "modalityBridgeVideoPromotionEligible": "符合資格",
+    "modalityBridgeVideoPromotionContextRequired": "升級需要針對完全相同的模型修訂版本、政策、語料庫與建置，完成兩次彼此獨立且符合資格的執行。未經驗證的情境仍維持「HOLD」狀態；選取實驗性政策並不代表已獲核准。"
   },
   "contextRtk": {
     "title": "RTK 引擎",

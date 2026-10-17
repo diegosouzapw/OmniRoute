@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Povolit dočasné uchování souborů JPEG pouze tehdy, když ověřený požadavek zároveň nastaví drilldown: true. Nezpracovaná videa se nikdy neuchovávají.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Povolit ověřený detailní rozbor snímků",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Povolit klíčům API číst a mazat pouze jejich vlastní neprůhledné identifikátory. Anonymní přístup ani přístup napříč klíči není povolen.",
-    "modalityBridgeVideoDrilldownUsage": "Uchované soubory JPEG / bajty"
+    "modalityBridgeVideoDrilldownUsage": "Uchované soubory JPEG / bajty",
+    "modalityBridgeVideoPromotionTitle": "Připravenost pokročilé zásady",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimentální",
+    "modalityBridgeVideoPromotionEligible": "Způsobilé",
+    "modalityBridgeVideoPromotionContextRequired": "Povýšení vyžaduje dvě nezávislá kvalifikační spuštění pro přesně stejnou revizi modelu, zásadu, korpus a sestavení. Neověřený kontext zůstává ve stavu HOLD; výběr experimentální zásady nepředstavuje schválení."
   },
   "contextRtk": {
     "title": "Modul RTK",

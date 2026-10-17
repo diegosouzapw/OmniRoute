@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Luba ajutine JPEG-failide säilitamine ainult siis, kui autenditud päring määrab ka drilldown: true. Toorvideoid ei säilitata kunagi.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Luba autenditud kaadrite üksikasjalik vaatamine",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Luba API-võtmetel lugeda ja kustutada ainult neile kuuluvaid läbipaistmatuid pidemeid. Anonüümne ega võtmeülene juurdepääs pole lubatud.",
-    "modalityBridgeVideoDrilldownUsage": "Säilitatud JPEG-failid / baidid"
+    "modalityBridgeVideoDrilldownUsage": "Säilitatud JPEG-failid / baidid",
+    "modalityBridgeVideoPromotionTitle": "Täiustatud poliitika valmidus",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentaalne",
+    "modalityBridgeVideoPromotionEligible": "Nõuetele vastav",
+    "modalityBridgeVideoPromotionContextRequired": "Edutamiseks on vaja kahte sõltumatut kvalifitseeruvat käitust täpselt sama mudelirevisiooni, poliitika, korpuse ja kooste jaoks. Kontrollimata kontekst jääb OOTELE; eksperimentaalse poliitika valimine ei tähenda heakskiitu."
   },
   "contextRtk": {
     "title": "RTK Engine",

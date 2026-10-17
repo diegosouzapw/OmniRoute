@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Izinkan penyimpanan JPEG sementara hanya jika permintaan terautentikasi juga menetapkan drilldown: true. Video mentah tidak pernah disimpan.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Izinkan penelusuran mendetail frame terautentikasi",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Izinkan kunci API untuk membaca dan menghapus hanya handle buram miliknya sendiri. Tidak ada akses anonim atau lintas-kunci.",
-    "modalityBridgeVideoDrilldownUsage": "JPEG / byte yang disimpan"
+    "modalityBridgeVideoDrilldownUsage": "JPEG / byte yang disimpan",
+    "modalityBridgeVideoPromotionTitle": "Kesiapan kebijakan lanjutan",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimental",
+    "modalityBridgeVideoPromotionEligible": "Memenuhi syarat",
+    "modalityBridgeVideoPromotionContextRequired": "Promosi memerlukan dua proses yang memenuhi syarat secara independen untuk revisi model, kebijakan, korpus, dan build yang sama persis. Konteks yang belum diverifikasi tetap berstatus HOLD; memilih kebijakan eksperimental bukanlah persetujuan."
   },
   "contextRtk": {
     "title": "Mesin RTK",

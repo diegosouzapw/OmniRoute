@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "დაუშვით JPEG-ების დროებით შენახვა მხოლოდ მაშინ, როცა ავთენტიფიცირებულ მოთხოვნაში ასევე მითითებულია drilldown: true. დაუმუშავებელი ვიდეოები არასოდეს ინახება.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "ავთენტიფიცირებული წვდომით კადრების დეტალური დათვალიერების დაშვება",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "დაუშვით, რომ API გასაღებებმა წაიკითხონ და წაშალონ მხოლოდ საკუთარი გაუმჭვირვალე იდენტიფიკატორები. ანონიმური ან სხვა გასაღებით წვდომა დაუშვებელია.",
-    "modalityBridgeVideoDrilldownUsage": "შენახული JPEG-ები / ბაიტები"
+    "modalityBridgeVideoDrilldownUsage": "შენახული JPEG-ები / ბაიტები",
+    "modalityBridgeVideoPromotionTitle": "გაფართოებული პოლიტიკის მზადყოფნა",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ექსპერიმენტული",
+    "modalityBridgeVideoPromotionEligible": "დაშვებული",
+    "modalityBridgeVideoPromotionContextRequired": "დაწინაურებისთვის საჭიროა ორი დამოუკიდებელი საკვალიფიკაციო გაშვება მოდელის ზუსტად იმავე რევიზიის, პოლიტიკის, კორპუსისა და ბილდისთვის. დაუდასტურებელი კონტექსტი რჩება HOLD სტატუსში; ექსპერიმენტული პოლიტიკის არჩევა დამტკიცებას არ ნიშნავს."
   },
   "contextRtk": {
     "title": "RTK ძრავა",

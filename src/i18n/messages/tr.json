@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Geçici JPEG saklamaya yalnızca kimliği doğrulanmış istek drilldown: true değerini de ayarladığında izin ver. Ham videolar hiçbir zaman saklanmaz.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Kimliği doğrulanmış kare ayrıntı incelemesine izin ver",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API anahtarlarının yalnızca kendi opak tanıtıcılarını okumasına ve silmesine izin ver. Anonim veya farklı anahtarlar arası erişime izin verilmez.",
-    "modalityBridgeVideoDrilldownUsage": "Saklanan JPEG'ler / baytlar"
+    "modalityBridgeVideoDrilldownUsage": "Saklanan JPEG'ler / baytlar",
+    "modalityBridgeVideoPromotionTitle": "Gelişmiş politika hazırlığı",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Deneysel",
+    "modalityBridgeVideoPromotionEligible": "Uygun",
+    "modalityBridgeVideoPromotionContextRequired": "Terfi, tam olarak aynı model revizyonu, politika, derlem ve yapı için birbirinden bağımsız iki uygun çalıştırma gerektirir. Doğrulanmamış bir bağlam HOLD durumunda kalır; deneysel bir politikanın seçilmesi onay anlamına gelmez."
   },
   "contextRtk": {
     "title": "RTK Motoru",

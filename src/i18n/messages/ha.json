@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Ba da izinin riƙe JPEG na ɗan lokaci kawai idan ingantacciyar buƙatar ta kuma saita drilldown: true. Ba a taɓa riƙe bidiyoyin asali ba.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Ba da izinin zurfafa binciken firam ga waɗanda aka tantance",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Ba da izinin maɓallan API su karanta kuma su share alamomin sarrafawarsu marasa bayyana kawai. Ba a yarda da shiga ba tare da tantancewa ba ko ta wani maɓalli daban.",
-    "modalityBridgeVideoDrilldownUsage": "JPEG da aka riƙe / baitoci"
+    "modalityBridgeVideoDrilldownUsage": "JPEG da aka riƙe / baitoci",
+    "modalityBridgeVideoPromotionTitle": "Shirye-shiryen manufofi na ci gaba",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Na gwaji",
+    "modalityBridgeVideoPromotionEligible": "Ya cancanta",
+    "modalityBridgeVideoPromotionContextRequired": "Ɗaukakawa na buƙatar gudanawa biyu masu zaman kansu da suka cika sharuɗɗa don ainihin bita ta samfurin, manufa, kundin bayanai da gini. Mahallin da ba a tabbatar da shi ba zai ci gaba da kasancewa HOLD; zaɓin manufar gwaji ba amincewa ba ne."
   },
   "contextRtk": {
     "title": "Injin RTK",

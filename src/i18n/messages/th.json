@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "อนุญาตให้เก็บไฟล์ JPEG ชั่วคราวเฉพาะเมื่อคำขอที่ผ่านการยืนยันตัวตนกำหนด drilldown: true ด้วยเท่านั้น โดยจะไม่มีการเก็บวิดีโอต้นฉบับไว้",
     "modalityBridgeVideoDrilldownRemoteEnabled": "อนุญาตการเจาะดูรายละเอียดเฟรมสำหรับผู้ใช้ที่ผ่านการยืนยันตัวตน",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "อนุญาตให้คีย์ API อ่านและลบได้เฉพาะแฮนเดิลแบบทึบของตนเองเท่านั้น ไม่อนุญาตการเข้าถึงแบบไม่ระบุตัวตนหรือข้ามคีย์",
-    "modalityBridgeVideoDrilldownUsage": "ไฟล์ JPEG ที่เก็บไว้ / ไบต์"
+    "modalityBridgeVideoDrilldownUsage": "ไฟล์ JPEG ที่เก็บไว้ / ไบต์",
+    "modalityBridgeVideoPromotionTitle": "ความพร้อมของนโยบายขั้นสูง",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ทดลอง",
+    "modalityBridgeVideoPromotionEligible": "มีสิทธิ์",
+    "modalityBridgeVideoPromotionContextRequired": "การเลื่อนระดับต้องมีการรันที่ผ่านเกณฑ์อย่างเป็นอิสระต่อกันสองครั้งสำหรับรุ่นแก้ไขโมเดล นโยบาย ชุดข้อมูล และบิลด์ที่ตรงกันทุกประการ บริบทที่ยังไม่ได้รับการตรวจสอบจะยังคงมีสถานะ HOLD การเลือกนโยบายทดลองไม่ถือเป็นการอนุมัติ"
   },
   "contextRtk": {
     "title": "RTK Engine",

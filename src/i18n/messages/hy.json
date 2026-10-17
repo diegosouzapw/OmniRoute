@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Թույլատրել ժամանակավոր JPEG-ների պահպանումը միայն այն դեպքում, երբ նույնականացված հարցումը նաև սահմանում է drilldown: true։ Չմշակված տեսանյութերը երբեք չեն պահպանվում։",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Թույլատրել նույնականացված կադրերի մանրամասն դիտումը",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Թույլատրել API բանալիներին կարդալ և ջնջել միայն իրենց սեփական անթափանց նույնացուցիչները։ Անանուն կամ տարբեր բանալիների միջև հասանելիություն չկա։",
-    "modalityBridgeVideoDrilldownUsage": "Պահպանված JPEG-ներ / բայթեր"
+    "modalityBridgeVideoDrilldownUsage": "Պահպանված JPEG-ներ / բայթեր",
+    "modalityBridgeVideoPromotionTitle": "Ընդլայնված քաղաքականության պատրաստվածություն",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Փորձարարական",
+    "modalityBridgeVideoPromotionEligible": "Համապատասխանում է պահանջներին",
+    "modalityBridgeVideoPromotionContextRequired": "Առաջխաղացման համար պահանջվում է երկու անկախ որակավորման գործարկում՝ մոդելի ճշգրիտ վերանայման, քաղաքականության, կորպուսի և բիլդի համար։ Չստուգված համատեքստը մնում է HOLD կարգավիճակում․ փորձարարական քաղաքականություն ընտրելը հաստատում չէ։"
   },
   "contextRtk": {
     "title": "RTK շարժիչ",

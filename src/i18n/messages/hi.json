@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "अस्थायी JPEG को बनाए रखने की अनुमति केवल तभी दें, जब प्रमाणित अनुरोध में drilldown: true भी सेट हो। रॉ वीडियो कभी भी बनाए नहीं रखे जाते।",
     "modalityBridgeVideoDrilldownRemoteEnabled": "प्रमाणित फ़्रेम ड्रिल-डाउन की अनुमति दें",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API कुंजियों को केवल अपने स्वयं के अपारदर्शी हैंडल पढ़ने और हटाने की अनुमति दें। अनाम या क्रॉस-की एक्सेस की अनुमति नहीं है।",
-    "modalityBridgeVideoDrilldownUsage": "बनाए रखे गए JPEG / बाइट्स"
+    "modalityBridgeVideoDrilldownUsage": "बनाए रखे गए JPEG / बाइट्स",
+    "modalityBridgeVideoPromotionTitle": "उन्नत नीति तत्परता",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "प्रायोगिक",
+    "modalityBridgeVideoPromotionEligible": "पात्र",
+    "modalityBridgeVideoPromotionContextRequired": "प्रोन्नयन के लिए ठीक उसी मॉडल संशोधन, नीति, कॉर्पस और बिल्ड हेतु दो स्वतंत्र अर्हकारी रन आवश्यक हैं। असत्यापित संदर्भ HOLD ही रहता है; किसी प्रायोगिक नीति का चयन अनुमोदन नहीं है।"
   },
   "contextRtk": {
     "title": "RTK इंजन",

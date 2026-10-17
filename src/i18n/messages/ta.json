@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "அங்கீகரிக்கப்பட்ட கோரிக்கை drilldown: true என்பதையும் அமைத்தால் மட்டுமே தற்காலிக JPEG தக்கவைப்பை அனுமதிக்கவும். மூல வீடியோக்கள் ஒருபோதும் தக்கவைக்கப்படாது.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "அங்கீகரிக்கப்பட்ட சட்டக விரிவாய்வை அனுமதிக்கவும்",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API விசைகள் தங்களுக்குச் சொந்தமான ஒளிபுகா கைப்பிடிகளை மட்டுமே படிக்கவும் நீக்கவும் அனுமதிக்கவும். அநாமதேய அல்லது வேறு விசை வழி அணுகல் இல்லை.",
-    "modalityBridgeVideoDrilldownUsage": "தக்கவைக்கப்பட்ட JPEGகள் / பைட்டுகள்"
+    "modalityBridgeVideoDrilldownUsage": "தக்கவைக்கப்பட்ட JPEGகள் / பைட்டுகள்",
+    "modalityBridgeVideoPromotionTitle": "மேம்பட்ட கொள்கை தயார்நிலை",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "சோதனைநிலை",
+    "modalityBridgeVideoPromotionEligible": "தகுதியுடையது",
+    "modalityBridgeVideoPromotionContextRequired": "சரியான மாதிரித் திருத்தம், கொள்கை, தரவுத்தொகுப்பு மற்றும் உருவாக்கத்திற்காக தனித்தனியாகத் தகுதிபெறும் இரண்டு இயக்கங்கள் பதவி உயர்வுக்கு அவசியம். சரிபார்க்கப்படாத சூழல் HOLD நிலையிலேயே இருக்கும்; சோதனைக் கொள்கையைத் தேர்ந்தெடுப்பது ஒப்புதலாகாது."
   },
   "contextRtk": {
     "title": "RTK எஞ்சின்",

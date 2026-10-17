@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "အထောက်အထားစိစစ်ပြီးသော တောင်းဆိုမှုတွင် drilldown: true ဟုလည်း သတ်မှတ်ထားမှသာ ယာယီ JPEG များကို ထိန်းသိမ်းခွင့်ပြုပါ။ မူရင်းဗီဒီယိုများကို မည်သည့်အခါမျှ ထိန်းသိမ်းမထားပါ။",
     "modalityBridgeVideoDrilldownRemoteEnabled": "အထောက်အထားစိစစ်ပြီးသော ဖရိမ်အသေးစိတ် ကြည့်ရှုမှုကို ခွင့်ပြုရန်",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API key များအား ၎င်းတို့ကိုယ်ပိုင် opaque handle များကိုသာ ဖတ်ရှုခြင်းနှင့် ဖျက်ခြင်း ပြုလုပ်ခွင့်ပေးပါ။ အမည်မဖော်ဘဲ သို့မဟုတ် အခြား key မှ ဝင်ရောက်ခွင့်မပြုပါ။",
-    "modalityBridgeVideoDrilldownUsage": "ထိန်းသိမ်းထားသော JPEG များ / ဘိုက်များ"
+    "modalityBridgeVideoDrilldownUsage": "ထိန်းသိမ်းထားသော JPEG များ / ဘိုက်များ",
+    "modalityBridgeVideoPromotionTitle": "အဆင့်မြင့် မူဝါဒ အသင့်ဖြစ်မှု",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "စမ်းသပ်ဆဲ",
+    "modalityBridgeVideoPromotionEligible": "အရည်အချင်းပြည့်မီသည်",
+    "modalityBridgeVideoPromotionContextRequired": "အဆင့်မြှင့်တင်ရန် မော်ဒယ်ပြင်ဆင်ချက်၊ မူဝါဒ၊ စာသားစုနှင့် တည်ဆောက်မှုတို့ အတိအကျတူညီသည့် သီးခြားအရည်အချင်းပြည့်မီသော စမ်းသပ်လုပ်ဆောင်မှု နှစ်ကြိမ် လိုအပ်သည်။ အတည်မပြုရသေးသော အခြေအနေသည် HOLD အဖြစ် ဆက်လက်ရှိနေမည်ဖြစ်ပြီး စမ်းသပ်ဆဲမူဝါဒကို ရွေးချယ်ခြင်းသည် အတည်ပြုချက်မဟုတ်ပါ။"
   },
   "contextRtk": {
     "title": "RTK Engine",

@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "仅当经过身份验证的请求同时设置 drilldown: true 时，才允许临时保留 JPEG。原始视频绝不会被保留。",
     "modalityBridgeVideoDrilldownRemoteEnabled": "允许经过身份验证的帧下钻",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "允许 API 密钥仅查看和删除其自身的不透明句柄。禁止匿名访问或跨密钥访问。",
-    "modalityBridgeVideoDrilldownUsage": "已保留的 JPEG / 字节"
+    "modalityBridgeVideoDrilldownUsage": "已保留的 JPEG / 字节",
+    "modalityBridgeVideoPromotionTitle": "高级策略就绪状态",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "实验性",
+    "modalityBridgeVideoPromotionEligible": "符合条件",
+    "modalityBridgeVideoPromotionContextRequired": "晋升需要针对完全相同的模型修订版、策略、语料库和构建版本进行两次相互独立且符合条件的运行。未经验证的上下文将保持为 HOLD；选择实验性策略并不表示已获批准。"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",

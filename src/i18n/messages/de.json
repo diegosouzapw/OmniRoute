@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Die vorübergehende Aufbewahrung von JPEGs nur zulassen, wenn die authentifizierte Anfrage zusätzlich drilldown: true festlegt. Rohvideos werden niemals aufbewahrt.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Authentifizierten Frame-Drill-down zulassen",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API-Schlüsseln nur erlauben, ihre eigenen undurchsichtigen Handles zu lesen und zu löschen. Kein anonymer oder schlüsselübergreifender Zugriff.",
-    "modalityBridgeVideoDrilldownUsage": "Aufbewahrte JPEGs / Bytes"
+    "modalityBridgeVideoDrilldownUsage": "Aufbewahrte JPEGs / Bytes",
+    "modalityBridgeVideoPromotionTitle": "Bereitschaft für erweiterte Richtlinien",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimentell",
+    "modalityBridgeVideoPromotionEligible": "Berechtigt",
+    "modalityBridgeVideoPromotionContextRequired": "Die Hochstufung erfordert zwei unabhängige qualifizierende Durchläufe für exakt dieselbe Modellrevision, Richtlinie, denselben Korpus und Build. Ein nicht verifizierter Kontext verbleibt im Status HOLD; die Auswahl einer experimentellen Richtlinie stellt keine Genehmigung dar."
   },
   "contextRtk": {
     "title": "RTK-Engine",

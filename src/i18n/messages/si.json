@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "සත්යාපිත ඉල්ලීම drilldown: true ලෙසද සකසා ඇති විට පමණක් තාවකාලික JPEG රඳවා තබාගැනීමට ඉඩ දෙන්න. අමු වීඩියෝ කිසිවිටෙක රඳවා නොගැනේ.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "සත්යාපිත රාමු සවිස්තර පරීක්ෂාවට ඉඩ දෙන්න",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API යතුරුවලට තමන්ගේම අපැහැදිලි හැන්ඩල පමණක් කියවීමට සහ මැකීමට ඉඩ දෙන්න. නිර්නාමික හෝ වෙනත් යතුරු හරහා ප්රවේශ වීමට ඉඩ නොදෙන්න.",
-    "modalityBridgeVideoDrilldownUsage": "රඳවාගත් JPEG / බයිට්"
+    "modalityBridgeVideoDrilldownUsage": "රඳවාගත් JPEG / බයිට්",
+    "modalityBridgeVideoPromotionTitle": "උසස් ප්රතිපත්ති සූදානම",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "පර්යේෂණාත්මක",
+    "modalityBridgeVideoPromotionEligible": "සුදුසුකම් ලත්",
+    "modalityBridgeVideoPromotionContextRequired": "උසස් කිරීම සඳහා නිශ්චිත ආකෘති සංශෝධනය, ප්රතිපත්තිය, පාඨ සංග්රහය සහ බිල්ඩ් එක සඳහා ස්වාධීන සුදුසුකම් ලබන ධාවන දෙකක් අවශ්ය වේ. සත්යාපනය නොකළ සන්දර්භයක් HOLD තත්ත්වයේම පවතී; පර්යේෂණාත්මක ප්රතිපත්තියක් තේරීම අනුමැතියක් නොවේ."
   },
   "contextRtk": {
     "title": "RTK එන්ජිම",

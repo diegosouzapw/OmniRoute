@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Vaqtinchalik JPEG fayllarini faqat autentifikatsiyadan o‘tgan so‘rovda drilldown: true ham o‘rnatilgan bo‘lsa saqlashga ruxsat bering. Xom videolar hech qachon saqlanmaydi.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Autentifikatsiyadan o‘tgan kadrlarni batafsil ko‘rib chiqishga ruxsat berish",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API kalitlariga faqat o‘zlarining shaffof bo‘lmagan identifikatorlarini o‘qish va o‘chirishga ruxsat bering. Anonim yoki boshqa kalit orqali kirishga ruxsat berilmaydi.",
-    "modalityBridgeVideoDrilldownUsage": "Saqlab qolingan JPEG fayllari / baytlar"
+    "modalityBridgeVideoDrilldownUsage": "Saqlab qolingan JPEG fayllari / baytlar",
+    "modalityBridgeVideoPromotionTitle": "Kengaytirilgan siyosatga tayyorlik",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Tajribaviy",
+    "modalityBridgeVideoPromotionEligible": "Talablarga javob beradi",
+    "modalityBridgeVideoPromotionContextRequired": "Yuqori bosqichga oʻtkazish uchun aynan shu model tahriri, siyosat, korpus va yigʻilma boʻyicha talablarga javob beradigan ikkita mustaqil ishga tushirish talab etiladi. Tasdiqlanmagan kontekst HOLD holatida qoladi; tajribaviy siyosatni tanlash tasdiqlash hisoblanmaydi."
   },
   "contextRtk": {
     "title": "RTK mexanizmi",

@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Kwe ka e debe JPEG nwa oge naanị mgbe arịrịọ e nyochakwara njirimara ya tinyekwara drilldown: true. A naghị edebe vidio ndị mbụ.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Kwe ka e jiri njirimara e nyochara mee nnyocha miri emi na fremụ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Kwe ka igodo API gụọ ma hichapụ naanị ihe njirimara zoro ezo nke ha. Enweghị ohere maka ndị na-enweghị njirimara ma ọ bụ iji igodo ọzọ nweta ha.",
-    "modalityBridgeVideoDrilldownUsage": "JPEG / baitị ndị e debere"
+    "modalityBridgeVideoDrilldownUsage": "JPEG / baitị ndị e debere",
+    "modalityBridgeVideoPromotionTitle": "Njikere maka amụma dị elu",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Nnwale",
+    "modalityBridgeVideoPromotionEligible": "Tozuru oke",
+    "modalityBridgeVideoPromotionContextRequired": "Nkwalite chọrọ ọsọ nnwale abụọ nọọrọ onwe ha nke tozuru oke maka ndegharị model, amụma, nchịkọta data na build ahụ kpọmkwem. Ọnọdụ a na-enyochabeghị ka dị na HOLD; ịhọrọ amụma nnwale abụghị nkwado."
   },
   "contextRtk": {
     "title": "Injin RTK",

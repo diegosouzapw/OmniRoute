@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Salli tilapäinen JPEG-kuvien säilytys vain, kun todennetussa pyynnössä on myös asetettu drilldown: true. Raakavideoita ei koskaan säilytetä.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Salli todennettu kuvaruutujen tarkastelu",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Salli API-avainten lukea ja poistaa vain omia läpinäkymättömiä tunnisteitaan. Anonyymi käyttö tai käyttö eri avainten välillä ei ole sallittua.",
-    "modalityBridgeVideoDrilldownUsage": "Säilytetyt JPEG-kuvat / tavut"
+    "modalityBridgeVideoDrilldownUsage": "Säilytetyt JPEG-kuvat / tavut",
+    "modalityBridgeVideoPromotionTitle": "Edistyneen käytännön valmius",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Kokeellinen",
+    "modalityBridgeVideoPromotionEligible": "Kelvollinen",
+    "modalityBridgeVideoPromotionContextRequired": "Ylennys edellyttää kahta toisistaan riippumatonta hyväksyttävää suoritusta täsmälleen samalla malliversiolla, käytännöllä, korpuksella ja koontiversiolla. Vahvistamaton konteksti pysyy HOLD-tilassa; kokeellisen käytännön valitseminen ei merkitse hyväksyntää."
   },
   "contextRtk": {
     "title": "RTK Engine",

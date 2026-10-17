@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Дозволити тимчасове зберігання JPEG, лише якщо автентифікований запит також задає drilldown: true. Необроблені відео ніколи не зберігаються.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Дозволити автентифікований деталізований перегляд кадрів",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Дозволити API-ключам читати й видаляти лише власні непрозорі дескриптори. Анонімний доступ або доступ між ключами заборонено.",
-    "modalityBridgeVideoDrilldownUsage": "Збережені JPEG / байти"
+    "modalityBridgeVideoDrilldownUsage": "Збережені JPEG / байти",
+    "modalityBridgeVideoPromotionTitle": "Готовність розширеної політики",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Експериментальна",
+    "modalityBridgeVideoPromotionEligible": "Відповідає вимогам",
+    "modalityBridgeVideoPromotionContextRequired": "Для просування потрібні два незалежні кваліфікаційні запуски для точної ревізії моделі, політики, корпусу та збірки. Неперевірений контекст залишається в статусі HOLD; вибір експериментальної політики не є схваленням."
   },
   "contextRtk": {
     "title": "Двигун RTK",

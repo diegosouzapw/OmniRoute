@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "יש לאפשר שמירה זמנית של קובצי JPEG רק כאשר הבקשה המאומתת מגדירה גם drilldown: true. סרטונים גולמיים לעולם אינם נשמרים.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "מתן אפשרות לתחקור פריימים למשתמשים מאומתים",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "יש לאפשר למפתחות API לקרוא ולמחוק רק את המזהים האטומים שלהם. אין לאפשר גישה אנונימית או גישה בין מפתחות.",
-    "modalityBridgeVideoDrilldownUsage": "קובצי JPEG שמורים / בתים"
+    "modalityBridgeVideoDrilldownUsage": "קובצי JPEG שמורים / בתים",
+    "modalityBridgeVideoPromotionTitle": "מוכנות למדיניות מתקדמת",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ניסיוני",
+    "modalityBridgeVideoPromotionEligible": "כשיר",
+    "modalityBridgeVideoPromotionContextRequired": "קידום דורש שתי הרצות מזכות ובלתי תלויות עבור אותה גרסה מדויקת של המודל, המדיניות, הקורפוס והבנייה. הקשר שלא אומת נשאר במצב HOLD; בחירה במדיניות ניסיונית אינה מהווה אישור."
   },
   "contextRtk": {
     "title": "מנוע RTK",

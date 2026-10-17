@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Дозволи привремено задржавање JPEG датотека само када аутентификовани захтев такође поставља drilldown: true. Изворни видео-снимци се никада не задржавају.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Дозволи аутентификовани детаљни преглед кадрова",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Дозволи API кључевима да читају и бришу само сопствене непрозирне идентификаторе. Анонимни приступ или приступ помоћу другог кључа није дозвољен.",
-    "modalityBridgeVideoDrilldownUsage": "Задржане JPEG датотеке / бајтови"
+    "modalityBridgeVideoDrilldownUsage": "Задржане JPEG датотеке / бајтови",
+    "modalityBridgeVideoPromotionTitle": "Спремност напредне политике",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Експериментално",
+    "modalityBridgeVideoPromotionEligible": "Испуњава услове",
+    "modalityBridgeVideoPromotionContextRequired": "Промоција захтева два независна квалификациона покретања за потпуно исту ревизију модела, политику, корпус и верзију израде. Непроверени контекст остаје у статусу HOLD; избор експерименталне политике не представља одобрење."
   },
   "contextRtk": {
     "title": "RTK Engine",

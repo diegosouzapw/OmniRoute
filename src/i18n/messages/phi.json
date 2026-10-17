@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Payagan lamang ang pansamantalang pagpapanatili ng JPEG kapag itinatakda rin ng napatotohanang kahilingan ang drilldown: true. Hindi kailanman pinapanatili ang mga raw na video.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Payagan ang napatotohanang masusing pagtingin sa frame",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Payagan ang mga API key na basahin at burahin lamang ang sarili nilang mga opaque handle. Walang anonymous o cross-key na access.",
-    "modalityBridgeVideoDrilldownUsage": "Mga pinanatiling JPEG / byte"
+    "modalityBridgeVideoDrilldownUsage": "Mga pinanatiling JPEG / byte",
+    "modalityBridgeVideoPromotionTitle": "Kahandaan para sa advanced na patakaran",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimental",
+    "modalityBridgeVideoPromotionEligible": "Kwalipikado",
+    "modalityBridgeVideoPromotionContextRequired": "Ang pag-promote ay nangangailangan ng dalawang magkahiwalay na kwalipikadong pagpapatakbo para sa eksaktong rebisyon ng modelo, patakaran, corpus, at build. Mananatiling HOLD ang isang hindi beripikadong konteksto; ang pagpili ng eksperimental na patakaran ay hindi nangangahulugang pag-apruba."
   },
   "contextRtk": {
     "title": "Engine ng RTK",

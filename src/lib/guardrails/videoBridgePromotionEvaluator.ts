@@ -5,8 +5,8 @@
  * aggregated metrics (see videoBridgePromotionAggregator.ts) for one (case, model) pair
  * and returns exactly one of `"experimental" | "eligible" | "hold"` by applying the
  * ticket's frozen numeric thresholds. Both functions are pure (no I/O, no clock reads) so
- * identical input always yields an identical verdict — the mechanism behind #11656's "two
- * consecutive runs produce the same eligible verdict" requirement.
+ * identical input always yields an identical verdict. Determinism does NOT establish
+ * two independent evidence runs; that requires separately bound execution receipts.
  *
  * Status model (not fully specified by the ticket beyond "missing usage remains HOLD" —
  * documented explicitly here since the PR that introduces this file calls it out as a
@@ -33,17 +33,23 @@ function verdictFromGates(hardBlockers: string[], softFailures: string[]): Promo
   return { reasons: [], status: "eligible" };
 }
 
+function validMeasurement(value: number | null, min = -Infinity, max = Infinity): boolean {
+  return value === null || (Number.isFinite(value) && value >= min && value <= max);
+}
+
 // ── FU-07: segment-aware structural sampling ────────────────────────────────
 
 export const FU07_PROMOTION_THRESHOLDS = {
   maxP95LatencyRatio: 1.2,
+  minCaptionEfficiencyGain: 0.1,
+  minAbsoluteQualityGain: 0.05,
   minQualityRetention: 0.98,
 } as const;
 
 export interface Fu07PromotionInput {
   /** Any critical fact lost by the candidate relative to the baseline. Hard blocker. */
   criticalFactLoss: boolean;
-  /** At least one of these must be strictly positive for a "material" gain. */
+  /** +0.05 absolute recall with equivalent calls, OR >=10% fewer captions. */
   materialGain: { captionEfficiencyGain: number | null; qualityGain: number | null };
   /** candidate p95 latency / baseline p95 latency. null counts as failing (never assumed passing). */
   p95LatencyRatio: number | null;
@@ -57,6 +63,13 @@ export interface Fu07PromotionInput {
 
 function fu07HardBlockers(input: Fu07PromotionInput): string[] {
   const blockers: string[] = [];
+  if (
+    !validMeasurement(input.qualityRetention, 0) ||
+    !validMeasurement(input.p95LatencyRatio, 0) ||
+    !validMeasurement(input.materialGain.qualityGain, -1, 1) ||
+    !validMeasurement(input.materialGain.captionEfficiencyGain, -Infinity, 1)
+  )
+    blockers.push("INVALID_MEASUREMENT");
   if (!input.tokenUsageAvailable) blockers.push("USAGE_DATA_MISSING");
   if (input.criticalFactLoss) blockers.push("CRITICAL_FACT_LOSS");
   if (!input.securityCasesPassed) blockers.push("SECURITY_CASE_FAILED");
@@ -75,7 +88,11 @@ function fu07SoftFailures(input: Fu07PromotionInput): string[] {
     failures.push("P95_LATENCY_RATIO_EXCEEDED");
   }
   const hasMaterialGain =
-    (input.materialGain.qualityGain ?? 0) > 0 || (input.materialGain.captionEfficiencyGain ?? 0) > 0;
+    (input.materialGain.captionEfficiencyGain === 0 &&
+      (input.materialGain.qualityGain ?? 0) >=
+        FU07_PROMOTION_THRESHOLDS.minAbsoluteQualityGain - Number.EPSILON) ||
+    (input.materialGain.captionEfficiencyGain ?? 0) >=
+      FU07_PROMOTION_THRESHOLDS.minCaptionEfficiencyGain - Number.EPSILON;
   if (!hasMaterialGain) failures.push("NO_MATERIAL_GAIN");
   return failures;
 }
@@ -111,6 +128,13 @@ export interface Fu09PromotionInput {
 
 function fu09HardBlockers(input: Fu09PromotionInput): string[] {
   const blockers: string[] = [];
+  if (
+    !validMeasurement(input.absoluteQuality, 0, 1) ||
+    !validMeasurement(input.qualityRetention, 0) ||
+    !validMeasurement(input.latencyReductionRatio, -Infinity, 1) ||
+    !validMeasurement(input.tokenReductionRatio, -Infinity, 1)
+  )
+    blockers.push("INVALID_MEASUREMENT");
   if (!input.tokenUsageAvailable) blockers.push("USAGE_DATA_MISSING");
   if (input.criticalOrSecurityLoss) blockers.push("CRITICAL_OR_SECURITY_LOSS");
   return blockers;

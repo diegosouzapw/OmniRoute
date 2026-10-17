@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Zezwalaj na tymczasowe przechowywanie plików JPEG tylko wtedy, gdy uwierzytelnione żądanie zawiera również ustawienie drilldown: true. Surowe nagrania wideo nigdy nie są przechowywane.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Zezwalaj na uwierzytelnione przechodzenie do szczegółów klatek",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Zezwalaj kluczom API na odczytywanie i usuwanie wyłącznie własnych nieprzejrzystych uchwytów. Dostęp anonimowy ani między kluczami nie jest dozwolony.",
-    "modalityBridgeVideoDrilldownUsage": "Przechowywane pliki JPEG / bajty"
+    "modalityBridgeVideoDrilldownUsage": "Przechowywane pliki JPEG / bajty",
+    "modalityBridgeVideoPromotionTitle": "Gotowość zaawansowanej polityki",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperymentalna",
+    "modalityBridgeVideoPromotionEligible": "Spełnia wymagania",
+    "modalityBridgeVideoPromotionContextRequired": "Promocja wymaga dwóch niezależnych przebiegów spełniających kryteria dla dokładnie tej samej wersji modelu, polityki, korpusu i kompilacji. Niezweryfikowany kontekst pozostaje w stanie HOLD; wybranie eksperymentalnej polityki nie stanowi zatwierdzenia."
   },
   "contextRtk": {
     "title": "Silnik RTK",

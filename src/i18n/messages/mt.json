@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Ippermetti ż-żamma temporanja ta’ JPEGs biss meta t-talba awtentikata tissettja wkoll drilldown: true. Il-vidjows mhux ipproċessati qatt ma jinżammu.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Ippermetti analiżi dettaljata awtentikata tal-frejms",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Ippermetti liċ-ċwievet tal-API jaqraw u jħassru biss l-identifikaturi opaki tagħhom stess. Ebda aċċess anonimu jew bejn ċwievet differenti.",
-    "modalityBridgeVideoDrilldownUsage": "JPEGs miżmuma / bytes"
+    "modalityBridgeVideoDrilldownUsage": "JPEGs miżmuma / bytes",
+    "modalityBridgeVideoPromotionTitle": "Prontezza tal-politika avvanzata",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Sperimentali",
+    "modalityBridgeVideoPromotionEligible": "Eliġibbli",
+    "modalityBridgeVideoPromotionContextRequired": "Il-promozzjoni teħtieġ żewġ eżekuzzjonijiet indipendenti li jikkwalifikaw għall-istess reviżjoni eżatta tal-mudell, politika, korpus u build. Kuntest mhux ivverifikat jibqa’ HOLD; l-għażla ta’ politika sperimentali ma tikkostitwixxix approvazzjoni."
   },
   "contextRtk": {
     "title": "Magna RTK",

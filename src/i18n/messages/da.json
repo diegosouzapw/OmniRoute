@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Tillad kun midlertidig opbevaring af JPEG-filer, når den godkendte anmodning også angiver drilldown: true. Rå videoer opbevares aldrig.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Tillad godkendt detaljevisning af videobilleder",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Tillad kun API-nøgler at læse og slette deres egne uigennemsigtige handles. Ingen anonym adgang eller adgang på tværs af nøgler.",
-    "modalityBridgeVideoDrilldownUsage": "Opbevarede JPEG-filer / byte"
+    "modalityBridgeVideoDrilldownUsage": "Opbevarede JPEG-filer / byte",
+    "modalityBridgeVideoPromotionTitle": "Parathed til avanceret politik",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentel",
+    "modalityBridgeVideoPromotionEligible": "Kvalificeret",
+    "modalityBridgeVideoPromotionContextRequired": "Oprykning kræver to uafhængige kvalificerende kørsler for den nøjagtige modelrevision, politik, det pågældende korpus og build. En ubekræftet kontekst forbliver på HOLD; valg af en eksperimentel politik er ikke en godkendelse."
   },
   "contextRtk": {
     "title": "RTK Engine",

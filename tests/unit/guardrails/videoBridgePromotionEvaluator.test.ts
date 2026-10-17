@@ -13,7 +13,7 @@ import {
 function fu07Input(overrides: Partial<Fu07PromotionInput> = {}): Fu07PromotionInput {
   return {
     criticalFactLoss: false,
-    materialGain: { captionEfficiencyGain: 0.05, qualityGain: null },
+    materialGain: { captionEfficiencyGain: 0.1, qualityGain: null },
     p95LatencyRatio: 1.1,
     qualityRetention: 0.99,
     securityCasesPassed: true,
@@ -94,11 +94,12 @@ test("FU-07: zero material gain (neither quality nor caption-efficiency) demotes
   assert.ok(verdict.reasons.includes("NO_MATERIAL_GAIN"));
 });
 
-test("FU-07: a strictly positive quality gain alone counts as material even with zero caption-efficiency gain", () => {
+test("FU-07: a sub-threshold positive quality gain is not material", () => {
   const verdict = evaluateFu07Promotion(
     fu07Input({ materialGain: { captionEfficiencyGain: 0, qualityGain: 0.001 } })
   );
-  assert.equal(verdict.status, "eligible");
+  assert.equal(verdict.status, "experimental");
+  assert.ok(verdict.reasons.includes("NO_MATERIAL_GAIN"));
 });
 
 test("FU-07: hold gates take priority over soft gates in the reason list (hard blockers reported, soft ones suppressed)", () => {
@@ -114,7 +115,7 @@ test("FU-07: threshold constants match the frozen #11656 acceptance bars", () =>
   assert.equal(FU07_PROMOTION_THRESHOLDS.maxP95LatencyRatio, 1.2);
 });
 
-test("FU-07: identical input evaluated twice (simulating two consecutive runs) yields the identical verdict", () => {
+test("FU-07: pure evaluation is deterministic, not evidence of independent executions", () => {
   const input = fu07Input({ qualityRetention: 0.981 });
   assert.deepEqual(evaluateFu07Promotion(input), evaluateFu07Promotion(input));
 });
@@ -190,10 +191,10 @@ test("FU-09: null latency/token reduction ratios (usage nominally available) fai
     fu09Input({ latencyReductionRatio: null, tokenReductionRatio: null })
   );
   assert.equal(verdict.status, "experimental");
-  assert.deepEqual(
-    [...verdict.reasons].sort(),
-    ["LATENCY_REDUCTION_BELOW_THRESHOLD", "TOKEN_REDUCTION_BELOW_THRESHOLD"]
-  );
+  assert.deepEqual([...verdict.reasons].sort(), [
+    "LATENCY_REDUCTION_BELOW_THRESHOLD",
+    "TOKEN_REDUCTION_BELOW_THRESHOLD",
+  ]);
 });
 
 test("FU-09: threshold constants match the frozen #11656 acceptance bars", () => {
@@ -203,7 +204,7 @@ test("FU-09: threshold constants match the frozen #11656 acceptance bars", () =>
   assert.equal(FU09_PROMOTION_THRESHOLDS.minTokenReductionRatio, 0.1);
 });
 
-test("FU-09: identical input evaluated twice (simulating two consecutive runs) yields the identical verdict", () => {
+test("FU-09: pure evaluation is deterministic, not evidence of independent executions", () => {
   const input = fu09Input({ absoluteQuality: 0.86 });
   assert.deepEqual(evaluateFu09Promotion(input), evaluateFu09Promotion(input));
 });

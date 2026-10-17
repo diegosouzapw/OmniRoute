@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Tillat midlertidig lagring av JPEG-filer bare når den autentiserte forespørselen også setter drilldown: true. Råvideoer lagres aldri.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Tillat autentisert detaljvisning av bilderammer",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Tillat API-nøkler å lese og slette bare sine egne ugjennomsiktige referanser. Ingen anonym tilgang eller tilgang på tvers av nøkler.",
-    "modalityBridgeVideoDrilldownUsage": "Lagrede JPEG-filer / byte"
+    "modalityBridgeVideoDrilldownUsage": "Lagrede JPEG-filer / byte",
+    "modalityBridgeVideoPromotionTitle": "Beredskap for avansert policy",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentell",
+    "modalityBridgeVideoPromotionEligible": "Kvalifisert",
+    "modalityBridgeVideoPromotionContextRequired": "Promotering krever to uavhengige kvalifiserende kjøringer for nøyaktig samme modellrevisjon, policy, korpus og bygg. En ubekreftet kontekst forblir HOLD. Valg av en eksperimentell policy innebærer ikke godkjenning."
   },
   "contextRtk": {
     "title": "RTK-motor",

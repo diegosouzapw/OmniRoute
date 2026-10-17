@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "អនុញ្ញាតឱ្យរក្សាទុក JPEG ជាបណ្ដោះអាសន្ន តែនៅពេលសំណើដែលបានផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវកំណត់ drilldown: true ផងដែរ។ វីដេអូដើមមិនត្រូវបានរក្សាទុកឡើយ។",
     "modalityBridgeVideoDrilldownRemoteEnabled": "អនុញ្ញាតការពិនិត្យលម្អិតតាមស៊ុមដែលបានផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "អនុញ្ញាតឱ្យ API keys អាន និងលុបបានតែ opaque handles របស់ខ្លួនប៉ុណ្ណោះ។ មិនអនុញ្ញាតការចូលប្រើដោយអនាមិក ឬឆ្លងកាត់ key ផ្សេងទេ។",
-    "modalityBridgeVideoDrilldownUsage": "JPEGs ដែលបានរក្សាទុក / បៃ"
+    "modalityBridgeVideoDrilldownUsage": "JPEGs ដែលបានរក្សាទុក / បៃ",
+    "modalityBridgeVideoPromotionTitle": "ភាពត្រៀមរួចរាល់នៃគោលការណ៍កម្រិតខ្ពស់",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ពិសោធន៍",
+    "modalityBridgeVideoPromotionEligible": "មានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់",
+    "modalityBridgeVideoPromotionContextRequired": "ការលើកកម្រិតតម្រូវឱ្យមានការដំណើរការដែលបំពេញលក្ខខណ្ឌដោយឯករាជ្យពីរដង សម្រាប់កំណែម៉ូដែល គោលការណ៍ កម្រងទិន្នន័យ និងប៊ីលដ៍ដូចគ្នាបេះបិទ។ បរិបទដែលមិនទាន់បានផ្ទៀងផ្ទាត់នៅតែស្ថិតក្នុងស្ថានភាព HOLD; ការជ្រើសរើសគោលការណ៍ពិសោធន៍មិនមែនជាការអនុម័តទេ។"
   },
   "contextRtk": {
     "title": "ម៉ាស៊ីន RTK",

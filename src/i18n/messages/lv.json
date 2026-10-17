@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Atļaut īslaicīgu JPEG failu saglabāšanu tikai tad, ja autentificētajā pieprasījumā ir iestatīts arī drilldown: true. Neapstrādātie video nekad netiek saglabāti.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Atļaut autentificētu kadru detalizētu izpēti",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Atļaut API atslēgām lasīt un dzēst tikai savus necaurspīdīgos identifikatorus. Anonīma piekļuve vai piekļuve ar citu atslēgu nav atļauta.",
-    "modalityBridgeVideoDrilldownUsage": "Saglabātie JPEG faili / baiti"
+    "modalityBridgeVideoDrilldownUsage": "Saglabātie JPEG faili / baiti",
+    "modalityBridgeVideoPromotionTitle": "Paplašinātās politikas gatavība",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentāla",
+    "modalityBridgeVideoPromotionEligible": "Atbilstoša",
+    "modalityBridgeVideoPromotionContextRequired": "Paaugstināšanai ir nepieciešamas divas neatkarīgas kvalificējošas izpildes tieši tai pašai modeļa versijai, politikai, korpusam un būvējumam. Nepārbaudīts konteksts saglabā statusu HOLD; eksperimentālas politikas atlase nav apstiprinājums."
   },
   "contextRtk": {
     "title": "RTK dzinējs",

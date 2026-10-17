@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Müvəqqəti JPEG fayllarının saxlanmasına yalnız autentifikasiya olunmuş sorğuda drilldown: true təyin edildikdə icazə verin. Xam videolar heç vaxt saxlanmır.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Autentifikasiya olunmuş kadrların təfərrüatlarına baxmağa icazə verin",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API açarlarına yalnız öz qeyri-şəffaf identifikatorlarını oxumağa və silməyə icazə verin. Anonim və ya digər açarlar vasitəsilə giriş qadağandır.",
-    "modalityBridgeVideoDrilldownUsage": "Saxlanılan JPEG faylları / baytlar"
+    "modalityBridgeVideoDrilldownUsage": "Saxlanılan JPEG faylları / baytlar",
+    "modalityBridgeVideoPromotionTitle": "Qabaqcıl siyasətə hazırlıq",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimental",
+    "modalityBridgeVideoPromotionEligible": "Uyğundur",
+    "modalityBridgeVideoPromotionContextRequired": "İrəli çəkilmə üçün dəqiq model reviziyası, siyasət, korpus və yığım üzrə tələblərə cavab verən iki müstəqil icra tələb olunur. Yoxlanılmamış kontekst HOLD statusunda qalır; eksperimental siyasətin seçilməsi təsdiq demək deyil."
   },
   "contextRtk": {
     "title": "RTK Mühərriki",

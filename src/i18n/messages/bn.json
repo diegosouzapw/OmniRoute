@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "শুধুমাত্র প্রমাণীকৃত অনুরোধে drilldown: true সেট করা থাকলেই অস্থায়ীভাবে JPEG সংরক্ষণের অনুমতি দিন। কাঁচা ভিডিও কখনোই সংরক্ষণ করা হয় না।",
     "modalityBridgeVideoDrilldownRemoteEnabled": "প্রমাণীকৃত ফ্রেম ড্রিল-ডাউনের অনুমতি দিন",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API কীগুলোকে শুধুমাত্র তাদের নিজস্ব অস্বচ্ছ হ্যান্ডেল পড়তে ও মুছতে দিন। বেনামী বা অন্য কী থেকে কোনো অ্যাক্সেসের অনুমতি নেই।",
-    "modalityBridgeVideoDrilldownUsage": "সংরক্ষিত JPEG / বাইট"
+    "modalityBridgeVideoDrilldownUsage": "সংরক্ষিত JPEG / বাইট",
+    "modalityBridgeVideoPromotionTitle": "উন্নত নীতির প্রস্তুতি",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "পরীক্ষামূলক",
+    "modalityBridgeVideoPromotionEligible": "যোগ্য",
+    "modalityBridgeVideoPromotionContextRequired": "উন্নীতকরণের জন্য ঠিক একই মডেল রিভিশন, নীতি, কর্পাস ও বিল্ডে দুটি স্বতন্ত্র যোগ্যতাসম্পন্ন রান প্রয়োজন। যাচাই না করা কোনো কনটেক্সট HOLD অবস্থাতেই থাকে; পরীক্ষামূলক নীতি নির্বাচন করা অনুমোদন নয়।"
   },
   "contextRtk": {
     "title": "RTK ইঞ্জিন",

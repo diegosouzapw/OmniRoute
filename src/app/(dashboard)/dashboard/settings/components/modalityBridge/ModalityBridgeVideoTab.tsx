@@ -119,6 +119,7 @@ export default function ModalityBridgeVideoTab({
   const tRoot = useTranslations();
   const [settings, setSettings] = useState<VideoState | null>(null);
   const [runtime, setRuntime] = useState<RuntimeStatus>({ state: "unknown" });
+  const [promotion, setPromotion] = useState<Record<string, unknown>>({});
   const [errorState, setErrorState] = useState<"load" | "save" | null>(null);
   const persistedSettings = useRef<VideoState | null>(null);
   const isVisionModel = useCallback((model: ApiModel) => model.supportsVision === true, []);
@@ -147,6 +148,7 @@ export default function ModalityBridgeVideoTab({
         persistedSettings.current = loadedSettings;
         setSettings(loadedSettings);
         setRuntime(parseRuntimeStatus(runtimeValue));
+        setPromotion(asRecord(asRecord(asRecord(statsValue).video).promotion));
         setErrorState(null);
       })
       .catch(() => {
@@ -184,6 +186,18 @@ export default function ModalityBridgeVideoTab({
 
   const setLocal = (patch: Partial<VideoState>) => {
     setSettings((previous) => (previous ? { ...previous, ...patch } : previous));
+  };
+  const promotionStatus = (policy: "segmentAware" | "contactSheet") => {
+    // A stale status from a different selected model must not survive a settings edit.
+    const value =
+      promotion.contextVerified === true && promotion.model === settings.modalityBridgeVideoModel
+        ? promotion[policy]
+        : "hold";
+    return value === "eligible"
+      ? t("modalityBridgeVideoPromotionEligible")
+      : value === "experimental"
+        ? t("modalityBridgeVideoPromotionExperimental")
+        : t("modalityBridgeVideoPromotionHold");
   };
   const commitNumber = (
     key:
@@ -306,6 +320,19 @@ export default function ModalityBridgeVideoTab({
           onChange={(value) => void update({ modalityBridgeVideoModel: value })}
           className="text-sm"
         />
+
+        <div
+          data-testid="video-promotion-readiness"
+          className="rounded-control border border-border p-3 text-sm"
+          aria-live="polite"
+        >
+          <strong>{t("modalityBridgeVideoPromotionTitle")}</strong>
+          <div className="mt-1">segment_aware: {promotionStatus("segmentAware")}</div>
+          <div>contact_sheet: {promotionStatus("contactSheet")}</div>
+          <p className="mt-2 text-xs text-text-muted">
+            {t("modalityBridgeVideoPromotionContextRequired")}
+          </p>
+        </div>
 
         <details className="rounded-control border border-border p-3">
           <summary className="cursor-pointer text-sm font-medium">

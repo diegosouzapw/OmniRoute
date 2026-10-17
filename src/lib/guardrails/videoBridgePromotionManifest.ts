@@ -5,7 +5,7 @@
  *
  * The manifest is the CONTRACT a promotion-evidence run must satisfy before any verdict
  * (see videoBridgePromotionEvaluator.ts) can be computed: it freezes the 8 required
- * scenario kinds, the minimum repetition count per case/model, and the closed metric set
+ * synthetic scenario kinds plus a private sanitized clip, repetitions, and metric set
  * that must be recorded. It does not describe HOW a case's fixture is generated (see
  * videoBridgePromotionFixtures.ts for the declarative recipes) or execute anything.
  */
@@ -24,12 +24,21 @@ export const VIDEO_BRIDGE_PROMOTION_CASE_KINDS = [
   "prompt_injection",
 ] as const;
 
-export type VideoBridgePromotionCaseKind = (typeof VIDEO_BRIDGE_PROMOTION_CASE_KINDS)[number];
+export type VideoBridgePromotionCaseKind =
+  | (typeof VIDEO_BRIDGE_PROMOTION_CASE_KINDS)[number]
+  | "real_sanitized";
 
 /** #11656 requires "at least three repetitions per case and model". */
 export const VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS = 3;
 
-const caseKindSchema = z.enum(VIDEO_BRIDGE_PROMOTION_CASE_KINDS);
+/** Promotion admission caps, frozen before collecting observations (not runtime RSS enforcement). */
+export const VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS = {
+  maxCpuMs: 30_000,
+  maxRssKiB: 524_288,
+  maxPreAnalysisMs: 30_000,
+} as const;
+
+const caseKindSchema = z.enum(VIDEO_BRIDGE_PROMOTION_CASE_KINDS).or(z.literal("real_sanitized"));
 
 /**
  * The closed metric set #11656 requires: "medians and p95 for latency plus tokens, calls,
@@ -60,7 +69,19 @@ export const videoBridgePromotionCaseSchema = z
     id: z.string().min(1),
     isSecurityCase: z.boolean(),
     kind: caseKindSchema,
+    promptDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     repetitions: z.number().int().min(VIDEO_BRIDGE_PROMOTION_MIN_REPETITIONS),
+    mediaDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
+    expectedFactsDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
   .strict();
 
@@ -104,7 +125,22 @@ export const videoBridgePromotionManifestSchema = z
     cases: z.array(videoBridgePromotionCaseSchema).min(1),
     id: z.string().min(1),
     metrics: z.array(videoBridgePromotionMetricNameSchema).min(1),
+    configurationDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     schemaVersion: z.literal(1),
+    resourceCaps: z
+      .object({
+        maxCpuMs: z.number().positive().max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxCpuMs),
+        maxRssKiB: z.number().positive().max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxRssKiB),
+        maxPreAnalysisMs: z
+          .number()
+          .positive()
+          .max(VIDEO_BRIDGE_PROMOTION_RESOURCE_CAPS.maxPreAnalysisMs),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((manifest, ctx) => {

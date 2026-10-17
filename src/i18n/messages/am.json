@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "የተረጋገጠው ጥያቄ drilldown: true ን ሲያቀናብር ብቻ ጊዜያዊ የJPEG ማቆየትን ይፍቀዱ። ጥሬ ቪዲዮዎች በፍጹም አይቆዩም።",
     "modalityBridgeVideoDrilldownRemoteEnabled": "የተረጋገጠ የፍሬም ዝርዝር እይታን ይፍቀዱ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "የAPI ቁልፎች የራሳቸውን ግልጽ ያልሆኑ መያዣዎች ብቻ እንዲያነቡና እንዲሰርዙ ይፍቀዱ። ማንነት ያልተገለጸ ወይም በተለያዩ ቁልፎች መካከል የሚደረግ መዳረሻ አይፈቀድም።",
-    "modalityBridgeVideoDrilldownUsage": "የተቆዩ JPEGዎች / ባይቶች"
+    "modalityBridgeVideoDrilldownUsage": "የተቆዩ JPEGዎች / ባይቶች",
+    "modalityBridgeVideoPromotionTitle": "የላቀ ፖሊሲ ዝግጁነት",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ሙከራዊ",
+    "modalityBridgeVideoPromotionEligible": "ብቁ",
+    "modalityBridgeVideoPromotionContextRequired": "ማሳደግ ለተመሳሳዩ ትክክለኛ የሞዴል ክለሳ፣ ፖሊሲ፣ ኮርፐስ እና ቢልድ መስፈርቱን የሚያሟሉ ሁለት ገለልተኛ አሂዶችን ይጠይቃል። ያልተረጋገጠ አውድ HOLD ሆኖ ይቆያል፤ ሙከራዊ ፖሊሲን መምረጥ ማጽደቅ አይደለም።"
   },
   "contextRtk": {
     "title": "RTK ሞተር",

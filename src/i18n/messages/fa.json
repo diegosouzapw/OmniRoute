@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "نگهداری موقت فایلهای JPEG را فقط زمانی مجاز کنید که درخواست احراز هویتشده، drilldown: true را نیز تنظیم کرده باشد. ویدیوهای خام هرگز نگهداری نمیشوند.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "اجازه بررسی جزئیات فریم برای کاربران احراز هویتشده",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "به کلیدهای API فقط اجازه دهید شناسههای مبهم متعلق به خود را بخوانند و حذف کنند. دسترسی ناشناس یا بینکلیدی مجاز نیست.",
-    "modalityBridgeVideoDrilldownUsage": "فایلهای JPEG نگهداریشده / بایتها"
+    "modalityBridgeVideoDrilldownUsage": "فایلهای JPEG نگهداریشده / بایتها",
+    "modalityBridgeVideoPromotionTitle": "آمادگی سیاست پیشرفته",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "آزمایشی",
+    "modalityBridgeVideoPromotionEligible": "واجد شرایط",
+    "modalityBridgeVideoPromotionContextRequired": "ارتقا مستلزم دو اجرای واجد شرایط و مستقل برای نسخه دقیق مدل، سیاست، پیکره و بیلد است. زمینه تأییدنشده در حالت HOLD باقی میماند؛ انتخاب یک سیاست آزمایشی بهمعنای تأیید نیست."
   },
   "contextRtk": {
     "title": "موتور RTK",

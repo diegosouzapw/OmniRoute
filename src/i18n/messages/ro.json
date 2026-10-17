@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Permite păstrarea temporară a fișierelor JPEG numai atunci când solicitarea autentificată setează și drilldown: true. Videoclipurile brute nu sunt păstrate niciodată.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Permite analiza detaliată autentificată a cadrelor",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permite cheilor API să citească și să șteargă numai propriile identificatoare opace. Fără acces anonim sau între chei.",
-    "modalityBridgeVideoDrilldownUsage": "Fișiere JPEG păstrate / octeți"
+    "modalityBridgeVideoDrilldownUsage": "Fișiere JPEG păstrate / octeți",
+    "modalityBridgeVideoPromotionTitle": "Pregătirea politicii avansate",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimentală",
+    "modalityBridgeVideoPromotionEligible": "Eligibilă",
+    "modalityBridgeVideoPromotionContextRequired": "Promovarea necesită două rulări independente eligibile pentru exact aceeași revizie a modelului, politică, corpus și versiune. Un context neverificat rămâne în starea HOLD; selectarea unei politici experimentale nu reprezintă o aprobare."
   },
   "contextRtk": {
     "title": "Motor RTK",

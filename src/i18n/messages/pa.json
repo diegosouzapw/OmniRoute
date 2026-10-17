@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "ਅਸਥਾਈ JPEG ਸੰਭਾਲ ਦੀ ਆਗਿਆ ਸਿਰਫ਼ ਉਦੋਂ ਦਿਓ ਜਦੋਂ ਪ੍ਰਮਾਣਿਤ ਬੇਨਤੀ drilldown: true ਵੀ ਸੈੱਟ ਕਰਦੀ ਹੋਵੇ। ਕੱਚੇ ਵੀਡੀਓ ਕਦੇ ਵੀ ਸੰਭਾਲੇ ਨਹੀਂ ਜਾਂਦੇ।",
     "modalityBridgeVideoDrilldownRemoteEnabled": "ਪ੍ਰਮਾਣਿਤ ਫ੍ਰੇਮ ਡ੍ਰਿਲ-ਡਾਊਨ ਦੀ ਆਗਿਆ ਦਿਓ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API ਕੁੰਜੀਆਂ ਨੂੰ ਸਿਰਫ਼ ਆਪਣੇ ਅਸਪਸ਼ਟ ਹੈਂਡਲ ਪੜ੍ਹਨ ਅਤੇ ਮਿਟਾਉਣ ਦੀ ਆਗਿਆ ਦਿਓ। ਅਗਿਆਤ ਜਾਂ ਵੱਖਰੀ ਕੁੰਜੀ ਰਾਹੀਂ ਪਹੁੰਚ ਦੀ ਆਗਿਆ ਨਹੀਂ ਹੈ।",
-    "modalityBridgeVideoDrilldownUsage": "ਸੰਭਾਲੇ ਗਏ JPEGs / ਬਾਈਟ"
+    "modalityBridgeVideoDrilldownUsage": "ਸੰਭਾਲੇ ਗਏ JPEGs / ਬਾਈਟ",
+    "modalityBridgeVideoPromotionTitle": "ਉੱਨਤ ਨੀਤੀ ਤਿਆਰੀ",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ਪ੍ਰਯੋਗਾਤਮਕ",
+    "modalityBridgeVideoPromotionEligible": "ਯੋਗ",
+    "modalityBridgeVideoPromotionContextRequired": "ਤਰੱਕੀ ਲਈ ਬਿਲਕੁਲ ਉਸੇ ਮਾਡਲ ਸੰਸ਼ੋਧਨ, ਨੀਤੀ, ਕੋਰਪਸ ਅਤੇ ਬਿਲਡ ਵਾਸਤੇ ਦੋ ਸੁਤੰਤਰ ਯੋਗਤਾ-ਪੂਰਨ ਰਨ ਲੋੜੀਂਦੇ ਹਨ। ਇੱਕ ਅਪ੍ਰਮਾਣਿਤ ਸੰਦਰਭ HOLD ਹੀ ਰਹਿੰਦਾ ਹੈ; ਕਿਸੇ ਪ੍ਰਯੋਗਾਤਮਕ ਨੀਤੀ ਦੀ ਚੋਣ ਮਨਜ਼ੂਰੀ ਨਹੀਂ ਹੈ।"
   },
   "contextRtk": {
     "title": "RTK ਇੰਜਣ",

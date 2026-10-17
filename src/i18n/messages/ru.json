@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Разрешить временное хранение JPEG только в том случае, если в аутентифицированном запросе также задано drilldown: true. Исходные видео никогда не сохраняются.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Разрешить аутентифицированный детальный просмотр кадров",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Разрешить API-ключам читать и удалять только собственные непрозрачные дескрипторы. Анонимный доступ и доступ между ключами запрещены.",
-    "modalityBridgeVideoDrilldownUsage": "Сохранённые JPEG / байты"
+    "modalityBridgeVideoDrilldownUsage": "Сохранённые JPEG / байты",
+    "modalityBridgeVideoPromotionTitle": "Готовность расширенной политики",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Экспериментальная",
+    "modalityBridgeVideoPromotionEligible": "Соответствует требованиям",
+    "modalityBridgeVideoPromotionContextRequired": "Для продвижения необходимы два независимых успешных запуска с точно совпадающими ревизией модели, политикой, корпусом и сборкой. Непроверенный контекст сохраняет статус HOLD; выбор экспериментальной политики не означает одобрения."
   },
   "contextRtk": {
     "title": "RTK Engine",

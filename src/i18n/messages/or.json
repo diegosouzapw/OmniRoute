@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "ପ୍ରମାଣୀକୃତ ଅନୁରୋଧରେ drilldown: true ମଧ୍ୟ ସେଟ୍ କରାଯାଇଥିଲେ ମାତ୍ର ଅସ୍ଥାୟୀ JPEG ସଂରକ୍ଷଣକୁ ଅନୁମତି ଦିଅନ୍ତୁ। କଚ୍ଚା ଭିଡିଓଗୁଡ଼ିକୁ କେବେବି ସଂରକ୍ଷିତ ରଖାଯାଏ ନାହିଁ।",
     "modalityBridgeVideoDrilldownRemoteEnabled": "ପ୍ରମାଣୀକୃତ ଫ୍ରେମ୍ ଡ୍ରିଲ୍-ଡାଉନ୍କୁ ଅନୁମତି ଦିଅନ୍ତୁ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API କିଗୁଡ଼ିକୁ କେବଳ ସେମାନଙ୍କର ନିଜସ୍ୱ ଅସ୍ପଷ୍ଟ ହ୍ୟାଣ୍ଡଲ୍ଗୁଡ଼ିକ ପଢ଼ିବା ଏବଂ ବିଲୋପ କରିବାକୁ ଅନୁମତି ଦିଅନ୍ତୁ। ବେନାମୀ କିମ୍ବା କ୍ରସ୍-କି ଆକ୍ସେସ୍ ନାହିଁ।",
-    "modalityBridgeVideoDrilldownUsage": "ସଂରକ୍ଷିତ JPEGଗୁଡ଼ିକ / ବାଇଟ୍ଗୁଡ଼ିକ"
+    "modalityBridgeVideoDrilldownUsage": "ସଂରକ୍ଷିତ JPEGଗୁଡ଼ିକ / ବାଇଟ୍ଗୁଡ଼ିକ",
+    "modalityBridgeVideoPromotionTitle": "ଉନ୍ନତ ନୀତି ପ୍ରସ୍ତୁତି",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ପରୀକ୍ଷାମୂଳକ",
+    "modalityBridgeVideoPromotionEligible": "ଯୋଗ୍ୟ",
+    "modalityBridgeVideoPromotionContextRequired": "ପଦୋନ୍ନତି ପାଇଁ ଠିକ୍ ସେହି ମଡେଲ୍ ସଂଶୋଧନ, ନୀତି, କର୍ପସ୍ ଏବଂ ବିଲ୍ଡ ନିମନ୍ତେ ଦୁଇଟି ସ୍ୱାଧୀନ ଯୋଗ୍ୟତାପ୍ରାପ୍ତ ନିର୍ବାହ ଆବଶ୍ୟକ। ଏକ ଅସତ୍ୟାପିତ ପ୍ରସଙ୍ଗ HOLD ଅବସ୍ଥାରେ ରହେ; ଏକ ପରୀକ୍ଷାମୂଳକ ନୀତି ଚୟନ କରିବା ଅନୁମୋଦନ ନୁହେଁ।"
   },
   "contextRtk": {
     "title": "RTK ଇଞ୍ଜିନ୍",

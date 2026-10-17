@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "عارضی JPEG محفوظ رکھنے کی اجازت صرف اس وقت دیں جب توثیق شدہ درخواست میں drilldown: true بھی سیٹ ہو۔ خام ویڈیوز کبھی محفوظ نہیں کی جاتیں۔",
     "modalityBridgeVideoDrilldownRemoteEnabled": "توثیق شدہ فریم ڈرل ڈاؤن کی اجازت دیں",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API کلیدوں کو صرف اپنے مبہم ہینڈلز پڑھنے اور حذف کرنے کی اجازت دیں۔ گمنام یا مختلف کلید کے ذریعے رسائی کی اجازت نہیں ہے۔",
-    "modalityBridgeVideoDrilldownUsage": "محفوظ کردہ JPEGs / بائٹس"
+    "modalityBridgeVideoDrilldownUsage": "محفوظ کردہ JPEGs / بائٹس",
+    "modalityBridgeVideoPromotionTitle": "اعلیٰ پالیسی کی تیاری",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "تجرباتی",
+    "modalityBridgeVideoPromotionEligible": "اہل",
+    "modalityBridgeVideoPromotionContextRequired": "ترقی کے لیے ماڈل کی عین اسی ترمیم، پالیسی، کارپس اور بلڈ پر دو آزاد، اہلیت پر پورا اترنے والے رنز درکار ہیں۔ غیر تصدیق شدہ سیاق HOLD ہی رہتا ہے؛ تجرباتی پالیسی کا انتخاب منظوری نہیں ہے۔"
   },
   "contextRtk": {
     "title": "RTK انجن",

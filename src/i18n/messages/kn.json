@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "ದೃಢೀಕೃತ ವಿನಂತಿಯು drilldown: true ಅನ್ನು ಸಹ ಹೊಂದಿಸಿದಾಗ ಮಾತ್ರ ತಾತ್ಕಾಲಿಕ JPEG ಉಳಿಸಿಕೊಳ್ಳುವಿಕೆಯನ್ನು ಅನುಮತಿಸಿ. ಮೂಲ ವೀಡಿಯೊಗಳನ್ನು ಎಂದಿಗೂ ಉಳಿಸಿಕೊಳ್ಳಲಾಗುವುದಿಲ್ಲ.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "ದೃಢೀಕೃತ ಫ್ರೇಮ್ ಡ್ರಿಲ್-ಡೌನ್ ಅನ್ನು ಅನುಮತಿಸಿ",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API ಕೀಗಳಿಗೆ ತಮ್ಮದೇ ಅಪಾರದರ್ಶಕ ಹ್ಯಾಂಡಲ್ಗಳನ್ನು ಮಾತ್ರ ಓದಲು ಮತ್ತು ಅಳಿಸಲು ಅನುಮತಿಸಿ. ಅನಾಮಧೇಯ ಅಥವಾ ಬೇರೆ ಕೀಗಳ ನಡುವಿನ ಪ್ರವೇಶವಿಲ್ಲ.",
-    "modalityBridgeVideoDrilldownUsage": "ಉಳಿಸಿಕೊಂಡ JPEGಗಳು / ಬೈಟ್ಗಳು"
+    "modalityBridgeVideoDrilldownUsage": "ಉಳಿಸಿಕೊಂಡ JPEGಗಳು / ಬೈಟ್ಗಳು",
+    "modalityBridgeVideoPromotionTitle": "ಸುಧಾರಿತ ನೀತಿ ಸಿದ್ಧತೆ",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "ಪ್ರಾಯೋಗಿಕ",
+    "modalityBridgeVideoPromotionEligible": "ಅರ್ಹ",
+    "modalityBridgeVideoPromotionContextRequired": "ನಿಖರವಾದ ಮಾದರಿ ಪರಿಷ್ಕರಣೆ, ನೀತಿ, ಕಾರ್ಪಸ್ ಮತ್ತು ಬಿಲ್ಡ್ಗಾಗಿ ಎರಡು ಸ್ವತಂತ್ರ ಅರ್ಹತಾ ರನ್ಗಳು ಅಗತ್ಯವಿವೆ. ಪರಿಶೀಲಿಸದ ಸಂದರ್ಭವು HOLD ಆಗಿಯೇ ಉಳಿಯುತ್ತದೆ; ಪ್ರಾಯೋಗಿಕ ನೀತಿಯನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದು ಅನುಮೋದನೆಯಲ್ಲ."
   },
   "contextRtk": {
     "title": "RTK ಎಂಜಿನ್",

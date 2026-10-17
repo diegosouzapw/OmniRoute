@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Chỉ cho phép lưu giữ tạm thời các tệp JPEG khi yêu cầu đã xác thực cũng đặt drilldown: true. Video gốc không bao giờ được lưu giữ.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Cho phép xem chi tiết khung hình sau khi xác thực",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Chỉ cho phép khóa API đọc và xóa các mã định danh không rõ nghĩa thuộc về chính khóa đó. Không cho phép truy cập ẩn danh hoặc truy cập chéo giữa các khóa.",
-    "modalityBridgeVideoDrilldownUsage": "Tệp JPEG được lưu giữ / byte"
+    "modalityBridgeVideoDrilldownUsage": "Tệp JPEG được lưu giữ / byte",
+    "modalityBridgeVideoPromotionTitle": "Mức độ sẵn sàng của chính sách nâng cao",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Thử nghiệm",
+    "modalityBridgeVideoPromotionEligible": "Đủ điều kiện",
+    "modalityBridgeVideoPromotionContextRequired": "Việc thăng hạng yêu cầu hai lượt chạy đủ điều kiện độc lập cho đúng phiên bản mô hình, chính sách, tập ngữ liệu và bản dựng. Ngữ cảnh chưa được xác minh vẫn ở trạng thái HOLD; việc chọn một chính sách thử nghiệm không đồng nghĩa với phê duyệt."
   },
   "contextRtk": {
     "title": "Công cụ RTK",

@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Fàyè gba pípa JPEG fún ìgbà díẹ̀ mọ́ nígbà tí ìbéèrè tí a ti fìdí rẹ̀ múlẹ̀ bá tún ṣètò drilldown: true nìkan. A kì í pa àwọn fídíò gidi mọ́ láéláé.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Fàyè gba ìṣàwárí férémù jinlẹ̀ tí a ti fìdí rẹ̀ múlẹ̀",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Fàyè gba àwọn kọ́kọ́rọ́ API láti ka àti pa àwọn àmì ìdánimọ̀ àìhàn tiwọn nìkan. Kò sí ààyè fún ìwọlé aláìlórúkọ tàbí ìwọlé láti ọ̀dọ̀ kọ́kọ́rọ́ mìíràn.",
-    "modalityBridgeVideoDrilldownUsage": "Àwọn JPEG / báìtì tí a pa mọ́"
+    "modalityBridgeVideoDrilldownUsage": "Àwọn JPEG / báìtì tí a pa mọ́",
+    "modalityBridgeVideoPromotionTitle": "Ìmúrasílẹ̀ fún ìlànà tó ti ní ìlọsíwájú",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Ti àdánwò",
+    "modalityBridgeVideoPromotionEligible": "Tó yẹ",
+    "modalityBridgeVideoPromotionContextRequired": "Ìgbéga nílò ìṣiṣẹ́ méjì tó kúnjú ìwọ̀n, tí ọ̀kọ̀ọ̀kan kò gbára lé èkejì, fún àtúnṣe módẹ́lì pàtó kan náà, ìlànà, àkójọpọ̀ dátà àti ẹ̀yà ìkọ́lé. Àyíká-ọ̀rọ̀ tí a kò tíì jẹ́rìí sí máa wà ní HOLD; yíyan ìlànà àdánwò kì í ṣe ìfọwọ́sí."
   },
   "contextRtk": {
     "title": "Ẹ́ńjìnnì RTK",

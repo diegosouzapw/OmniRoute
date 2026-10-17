@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Permitir a retenção temporária de JPEG apenas quando o pedido autenticado também define drilldown: true. Os vídeos originais nunca são retidos.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Permitir a análise detalhada de fotogramas autenticada",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permitir que as chaves de API leiam e eliminem apenas os seus próprios identificadores opacos. Sem acesso anónimo ou entre chaves.",
-    "modalityBridgeVideoDrilldownUsage": "JPEG retidos / bytes"
+    "modalityBridgeVideoDrilldownUsage": "JPEG retidos / bytes",
+    "modalityBridgeVideoPromotionTitle": "Preparação para políticas avançadas",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimental",
+    "modalityBridgeVideoPromotionEligible": "Elegível",
+    "modalityBridgeVideoPromotionContextRequired": "A promoção requer duas execuções de qualificação independentes para a revisão exata do modelo, a política, o corpus e a compilação. Um contexto não verificado permanece em HOLD; selecionar uma política experimental não constitui uma aprovação."
   },
   "contextRtk": {
     "title": "Motor RTK",

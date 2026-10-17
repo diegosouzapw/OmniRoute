@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Leisti laikinai saugoti JPEG failus tik tada, kai autentifikuotoje užklausoje taip pat nustatyta drilldown: true. Neapdoroti vaizdo įrašai niekada nesaugomi.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Leisti autentifikuotą išsamią kadrų peržiūrą",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Leisti API raktams skaityti ir šalinti tik savo nepermatomus identifikatorius. Anoniminė arba kitų raktų prieiga neleidžiama.",
-    "modalityBridgeVideoDrilldownUsage": "Išsaugoti JPEG failai / baitai"
+    "modalityBridgeVideoDrilldownUsage": "Išsaugoti JPEG failai / baitai",
+    "modalityBridgeVideoPromotionTitle": "Pažangios politikos parengtis",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentinė",
+    "modalityBridgeVideoPromotionEligible": "Atitinka reikalavimus",
+    "modalityBridgeVideoPromotionContextRequired": "Perkėlimui į aukštesnį lygį reikalingi du nepriklausomi kvalifikacinius reikalavimus atitinkantys vykdymai su ta pačia modelio versija, politika, tekstynu ir komponavimo versija. Nepatvirtintam kontekstui išlaikoma būsena HOLD; eksperimentinės politikos pasirinkimas nėra patvirtinimas."
   },
   "contextRtk": {
     "title": "RTK variklis",

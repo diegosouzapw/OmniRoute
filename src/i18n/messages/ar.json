@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "السماح بالاحتفاظ المؤقت بملفات JPEG فقط عندما يضبط الطلب المُصادَق عليه أيضًا drilldown: true. لا يتم الاحتفاظ بمقاطع الفيديو الخام مطلقًا.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "السماح بالتعمق في الإطارات للمستخدمين المُصادَق عليهم",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "السماح لمفاتيح API بقراءة مقابضها المبهمة وحذفها فقط. لا يُسمح بالوصول المجهول أو عبر مفاتيح أخرى.",
-    "modalityBridgeVideoDrilldownUsage": "ملفات JPEG المحتفظ بها / البايتات"
+    "modalityBridgeVideoDrilldownUsage": "ملفات JPEG المحتفظ بها / البايتات",
+    "modalityBridgeVideoPromotionTitle": "جاهزية السياسة المتقدمة",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "تجريبي",
+    "modalityBridgeVideoPromotionEligible": "مؤهل",
+    "modalityBridgeVideoPromotionContextRequired": "تتطلب الترقية عمليتي تشغيل مؤهلتين مستقلتين لمراجعة النموذج والسياسة ومجموعة البيانات والإصدار نفسها تمامًا. ويظل السياق غير المتحقق منه في حالة HOLD؛ ولا يُعد اختيار سياسة تجريبية موافقة."
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

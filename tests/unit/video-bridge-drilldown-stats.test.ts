@@ -28,6 +28,7 @@ test("management stats report effective consent and bounded retained usage, neve
   await settingsDb.updateSettings({
     modalityBridgeVideoDrilldownEnabled: true,
     modalityBridgeVideoDrilldownRemoteEnabled: false,
+    modalityBridgeVideoModel: "openai/gpt-4o-mini",
   });
   const jpeg = await sharp({ create: { width: 48, height: 32, channels: 3, background: "blue" } })
     .jpeg()
@@ -49,6 +50,12 @@ test("management stats report effective consent and bounded retained usage, neve
   assert.ok(body.video.drilldown.retainedBytes > 0);
   assert.equal(body.video.drilldown.enabled, true);
   assert.equal(body.video.drilldown.remoteEnabled, false);
+  assert.deepEqual(body.video.promotion, {
+    model: "openai/gpt-4o-mini",
+    segmentAware: "hold",
+    contactSheet: "hold",
+    contextVerified: false,
+  });
   assert.equal(response.headers.get("Cache-Control"), "no-store");
   assert.ok(!JSON.stringify(body).includes(handle));
   assert.ok(!JSON.stringify(body).includes("data:image"));

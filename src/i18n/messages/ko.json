@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "인증된 요청에서 drilldown: true도 설정한 경우에만 임시 JPEG 보관을 허용합니다. 원본 비디오는 절대 보관되지 않습니다.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "인증된 프레임 드릴다운 허용",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "API 키가 자체 불투명 핸들만 읽고 삭제할 수 있도록 허용합니다. 익명 액세스 또는 키 간 액세스는 허용되지 않습니다.",
-    "modalityBridgeVideoDrilldownUsage": "보관된 JPEG / 바이트"
+    "modalityBridgeVideoDrilldownUsage": "보관된 JPEG / 바이트",
+    "modalityBridgeVideoPromotionTitle": "고급 정책 준비 상태",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "실험적",
+    "modalityBridgeVideoPromotionEligible": "적격",
+    "modalityBridgeVideoPromotionContextRequired": "승격하려면 정확히 동일한 모델 리비전, 정책, 코퍼스 및 빌드에 대해 서로 독립적인 적격 실행이 두 번 필요합니다. 검증되지 않은 컨텍스트는 HOLD 상태로 유지되며, 실험적 정책을 선택하는 것은 승인을 의미하지 않습니다."
   },
   "contextRtk": {
     "title": "RTK 엔진",

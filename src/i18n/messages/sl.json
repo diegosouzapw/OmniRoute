@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Dovoli začasno hrambo datotek JPEG samo, ko overjena zahteva nastavi tudi drilldown: true. Neobdelani videoposnetki se nikoli ne hranijo.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Dovoli overjeno podrobno pregledovanje sličic",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Dovoli ključem API, da berejo in brišejo samo lastne neprosojne identifikatorje. Anonimni dostop ali dostop med različnimi ključi ni dovoljen.",
-    "modalityBridgeVideoDrilldownUsage": "Shranjene datoteke JPEG/bajti"
+    "modalityBridgeVideoDrilldownUsage": "Shranjene datoteke JPEG/bajti",
+    "modalityBridgeVideoPromotionTitle": "Pripravljenost naprednega pravilnika",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Poskusno",
+    "modalityBridgeVideoPromotionEligible": "Upravičeno",
+    "modalityBridgeVideoPromotionContextRequired": "Napredovanje zahteva dva neodvisna ustrezna zagona za popolnoma enako revizijo modela, pravilnik, korpus in graditev. Nepreverjen kontekst ostane v stanju HOLD; izbira poskusnega pravilnika ne pomeni odobritve."
   },
   "contextRtk": {
     "title": "Pogon RTK",

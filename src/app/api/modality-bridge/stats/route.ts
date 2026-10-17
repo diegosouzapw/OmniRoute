@@ -3,6 +3,11 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getBridgeStats } from "@/lib/guardrails/modalityBridge/bridgeStats";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getVideoDrilldownSnapshot } from "@/lib/guardrails/videoBridgeDrilldownStore";
+import { getVideoBridgePromotionStatus } from "@/lib/guardrails/videoBridgePromotionAllowlist";
+import {
+  resolveVideoBridgeRuntimeSettings,
+  resolveVisionBridgeRuntimeSettings,
+} from "@/shared/constants/modalityBridgeDefaults";
 
 /**
  * GET /api/modality-bridge/stats — read-only, in-memory Modality Bridge
@@ -20,9 +25,21 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   const stats = getBridgeStats();
-  const drilldown = getVideoDrilldownSnapshot(await getCachedSettings());
+  const settings = await getCachedSettings();
+  const drilldown = getVideoDrilldownSnapshot(settings);
+  const model =
+    resolveVideoBridgeRuntimeSettings(settings).model.trim() ||
+    resolveVisionBridgeRuntimeSettings(settings).model.trim();
+  // Settings contain a model alias, not a verified provider revision + build SHA.
+  // Never infer eligibility from an entry belonging to a different execution context.
+  const promotion = {
+    model: model || null,
+    segmentAware: getVideoBridgePromotionStatus(model),
+    contactSheet: getVideoBridgePromotionStatus(model),
+    contextVerified: false,
+  };
   return NextResponse.json(
-    { ...stats, video: { ...stats.video, drilldown } },
+    { ...stats, video: { ...stats.video, drilldown, promotion } },
     { headers: { "Cache-Control": "no-store" } }
   );
 }

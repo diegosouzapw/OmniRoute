@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Να επιτρέπεται η προσωρινή διατήρηση JPEG μόνο όταν το πιστοποιημένο αίτημα ορίζει επίσης drilldown: true. Τα ανεπεξέργαστα βίντεο δεν διατηρούνται ποτέ.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Να επιτρέπεται η λεπτομερής εξέταση καρέ με πιστοποίηση",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Να επιτρέπεται στα κλειδιά API να διαβάζουν και να διαγράφουν μόνο τα δικά τους αδιαφανή αναγνωριστικά. Δεν επιτρέπεται ανώνυμη πρόσβαση ή πρόσβαση μεταξύ διαφορετικών κλειδιών.",
-    "modalityBridgeVideoDrilldownUsage": "Διατηρούμενα JPEG / byte"
+    "modalityBridgeVideoDrilldownUsage": "Διατηρούμενα JPEG / byte",
+    "modalityBridgeVideoPromotionTitle": "Ετοιμότητα προηγμένης πολιτικής",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Πειραματικό",
+    "modalityBridgeVideoPromotionEligible": "Επιλέξιμο",
+    "modalityBridgeVideoPromotionContextRequired": "Η προώθηση απαιτεί δύο ανεξάρτητες εκτελέσεις που πληρούν τα κριτήρια για την ακριβή αναθεώρηση μοντέλου, την πολιτική, το σώμα κειμένων και την έκδοση. Ένα μη επαληθευμένο περιβάλλον παραμένει σε HOLD· η επιλογή μιας πειραματικής πολιτικής δεν συνιστά έγκριση."
   },
   "contextRtk": {
     "title": "Μηχανή RTK",

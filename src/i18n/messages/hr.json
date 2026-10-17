@@ -8920,7 +8920,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Dopusti privremeno zadržavanje JPEG datoteka samo kada autentificirani zahtjev također postavi drilldown: true. Izvorni videozapisi nikada se ne zadržavaju.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Dopusti autentificirani detaljni pregled okvira",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Dopusti API ključevima čitanje i brisanje samo vlastitih neprozirnih identifikatora. Anonimni pristup i pristup između različitih ključeva nisu dopušteni.",
-    "modalityBridgeVideoDrilldownUsage": "Zadržane JPEG datoteke / bajtovi"
+    "modalityBridgeVideoDrilldownUsage": "Zadržane JPEG datoteke / bajtovi",
+    "modalityBridgeVideoPromotionTitle": "Spremnost naprednog pravila",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Eksperimentalno",
+    "modalityBridgeVideoPromotionEligible": "Ispunjava uvjete",
+    "modalityBridgeVideoPromotionContextRequired": "Promocija zahtijeva dva neovisna kvalificirajuća pokretanja za potpuno istu reviziju modela, pravilo, korpus i međuverziju. Neprovjereni kontekst ostaje na ČEKANJU; odabir eksperimentalnog pravila ne predstavlja odobrenje."
   },
   "contextRtk": {
     "title": "RTK mehanizam",
