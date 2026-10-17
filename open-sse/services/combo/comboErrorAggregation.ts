@@ -17,6 +17,8 @@
  * strings (ops/PII leak).
  */
 
+import { isOpencodeFreeTierRefusalForProvider } from "../../executors/opencodeGeoBlock.ts";
+
 export type ComboOutcomeKind =
   "quality" | "auth" | "rate_limit" | "model" | "provider" | "timeout" | "skipped" | "upstream";
 
@@ -97,6 +99,20 @@ export function buildRedactedSummary(
   return entries.length > 5 ? `${parts}... (+${entries.length - 5})` : parts;
 }
 
+function isFreeTierRefusalOutcome(entry: {
+  model: string;
+  status: number;
+  error: string;
+}): boolean {
+  const separator = entry.model.indexOf("/");
+  const provider = separator > 0 ? entry.model.slice(0, separator) : null;
+  return isOpencodeFreeTierRefusalForProvider(
+    provider?.toLowerCase() === "oc" ? "opencode" : provider,
+    entry.status,
+    entry.error
+  );
+}
+
 /**
  * Format per-target terminal outcomes into one client-facing sentence that keeps
  * every distinct reason separate (and classification-labelled) instead of
@@ -112,7 +128,11 @@ export function formatComboOutcomes(
   const slice = entries.slice(0, 5);
   const parts = slice.map((e) => {
     const label = redact ? redactConnectionLabel(e.model) : e.model;
-    const kind = e.kind ? (KIND_LABELS[e.kind] ?? e.kind) : null;
+    const kind = isFreeTierRefusalOutcome(e)
+      ? "access restriction"
+      : e.kind
+        ? (KIND_LABELS[e.kind] ?? e.kind)
+        : null;
     // #10501: the raw upstream error TEXT can itself carry a connection/account
     // identifier (some openai-compatible proxies echo it back in the error body,
     // e.g. "invalid key for connection <uuid>") — redact it here too, not just
@@ -182,5 +202,7 @@ export function resolveComboTerminalCode(
   if (terminal?.status !== status || entries.some((entry) => entry.kind !== terminal.kind)) {
     return undefined;
   }
+  if (entries.every(isFreeTierRefusalOutcome)) return "FreeTierError";
+  if (terminal.code?.toLowerCase() === "freetiererror") return undefined;
   return terminal.code;
 }
