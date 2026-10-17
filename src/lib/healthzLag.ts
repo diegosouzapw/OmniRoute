@@ -27,7 +27,16 @@ export function getEventLoopLagMs(): number {
     histogram = monitorEventLoopDelay({ resolution: 20 });
     histogram.enable();
   }
-  return histogram.mean / 1e6;
+  return consumeEventLoopPeakMs(histogram);
+}
+
+/** Peak since the previous sample; a long uptime must not dilute a recent stall. */
+export function consumeEventLoopPeakMs(
+  sample: Pick<ReturnType<typeof monitorEventLoopDelay>, "max" | "reset">
+): number {
+  const peakMs = sample.max / 1e6;
+  sample.reset();
+  return Number.isFinite(peakMs) && peakMs > 0 ? peakMs : 0;
 }
 
 export function observeHealthzEventLoopLag(

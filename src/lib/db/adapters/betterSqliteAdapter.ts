@@ -1,4 +1,5 @@
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
+import { instrumentSqliteAdapter } from "./slowDiagnostics";
 
 // Same bound as the node:sqlite adapter (nodeSqliteShared.ts).
 const MAX_STMT_CACHE_SIZE = 200;
@@ -27,7 +28,7 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
     return stmt;
   }
 
-  return {
+  const adapter: SqliteAdapter = {
     driver: "better-sqlite3",
 
     get open() {
@@ -86,4 +87,5 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
       return db;
     },
   };
+  return instrumentSqliteAdapter(adapter);
 }
