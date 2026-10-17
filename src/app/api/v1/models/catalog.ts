@@ -200,7 +200,7 @@ function yieldCatalogBuildTurn(): Promise<void> {
 export async function getUnifiedModelsResponse(
   request: Request,
   corsHeaders: Record<string, string> = {},
-  options: { scheduleBackgroundRefresh?: BackgroundRefreshScheduler } = {}
+  options: { scheduleBackgroundRefresh?: BackgroundRefreshScheduler; revealHidden?: boolean } = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
 
@@ -234,7 +234,7 @@ export async function getUnifiedModelsResponse(
     return await resolveCachedCatalogResponse(
       request,
       { corsHeaders, diagnosticHeaders },
-      buildCatalogPayload,
+      options.revealHidden ? (req) => buildCatalogPayload(req, true) : buildCatalogPayload,
       {
         // #10831: a disabled router hides auto/* just as hideAutoCombos does, so
         // the two collapse into one cache dimension — the resulting catalogs are
@@ -243,6 +243,7 @@ export async function getUnifiedModelsResponse(
           settingsForAuth?.hideAutoCombos === true || settingsForAuth?.autoRoutingEnabled === false,
         hideNoThinkVariants: settingsForAuth?.hideNoThinkVariants === true,
         scheduleBackgroundRefresh: options.scheduleBackgroundRefresh,
+        revealHidden: options.revealHidden === true,
       }
     );
   } catch (err) {
@@ -261,9 +262,10 @@ export async function getUnifiedModelsResponse(
 }
 
 async function buildCatalogPayload(
-  request: Request
+  request: Request,
+  revealHidden = false
 ): Promise<{ body: string; headers: Record<string, string>; status: number; cacheTTL: number }> {
-  const built = await buildUnifiedModelsResponseCore(request);
+  const built = await buildUnifiedModelsResponseCore(request, {}, revealHidden);
   const body = await built.text();
   const headers: Record<string, string> = {};
   built.headers.forEach((value, key) => {
@@ -289,7 +291,8 @@ async function buildCatalogPayload(
  */
 async function buildUnifiedModelsResponseCore(
   request: Request,
-  corsHeaders: Record<string, string> = {}
+  corsHeaders: Record<string, string> = {},
+  revealHidden = false
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   // #9147: this builder walks connections + model registries at catalog scale with no
@@ -443,7 +446,7 @@ async function buildUnifiedModelsResponseCore(
     // diverged. Check every key a model could plausibly have been hidden under:
     // the raw key passed in, its resolved canonical provider id, that canonical id's
     // alias, and the compatible-provider-node prefix for either.
-    const isModelHiddenBulk = (
+    const isModelHiddenStrict = (
       providerKey: string | null | undefined,
       modelId: string,
       canonicalProviderId?: string | null,
@@ -462,6 +465,9 @@ async function buildUnifiedModelsResponseCore(
       const isHidden = getHiddenModelsForModality(modality);
       return keysToCheck.some((key) => isHidden(key, modelId));
     };
+    // `revealHidden` (management catalog only) keeps hidden model rows; combos still drop hidden targets.
+    const isModelHiddenBulk: typeof isModelHiddenStrict = (...args) =>
+      !revealHidden && isModelHiddenStrict(...args);
 
     // Get combos
     let combos = [];
@@ -981,7 +987,7 @@ async function buildUnifiedModelsResponseCore(
       ) as ComboCatalogTarget[];
       const visibleTargets = comboTargets.filter((target) => {
         const resolved = getComboTargetModelId(target);
-        return resolved ? !isModelHiddenBulk(resolved.providerId, resolved.modelId) : true;
+        return resolved ? !isModelHiddenStrict(resolved.providerId, resolved.modelId) : true;
       });
       if (visibleTargets.length === 0) continue;
 
@@ -1725,7 +1731,7 @@ async function buildUnifiedModelsResponseCore(
           if (!modelId) continue;
           if (!isUnifiedChatSourceModelSelectable(canonicalProviderId, { ...model, id: modelId }))
             continue;
-          if (model.isHidden === true) continue;
+          if (model.isHidden === true && !revealHidden) continue;
           if (isModelHiddenBulk(providerId, modelId, canonicalProviderId)) continue;
           if (isExcludedByProviderConnections(canonicalProviderId, modelId)) continue;
           // #6328: apply hidePaidModels to user-defined custom rows too. A local custom

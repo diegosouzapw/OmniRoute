@@ -100,6 +100,8 @@ export function defaultBackgroundRefreshScheduler(task: () => Promise<unknown>):
 export type CatalogCacheOptions = {
   hideAutoCombos?: boolean;
   hideNoThinkVariants?: boolean;
+  /** Management-only build that keeps operator-hidden models (`/api/models/catalog`). */
+  revealHidden?: boolean;
   /**
    * Overrides `CATALOG_STALE_WHILE_REVALIDATE_MS` for this call only.
    *
@@ -209,7 +211,9 @@ function buildCatalogCacheKey(request: Request, catalogSettings?: CatalogCacheOp
   const hideAuto = catalogSettings?.hideAutoCombos ? "1" : "0";
   const hideNoThink = catalogSettings?.hideNoThinkVariants ? "1" : "0";
   const page = catalogPageCacheKey(parseCatalogPage(request));
-  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}`;
+  // Appended only when set, so every public /v1/models key stays byte-identical.
+  const reveal = catalogSettings?.revealHidden ? "|reveal" : "";
+  return `${prefix}|${isCodex}|${fingerprintCatalogAuthKey(apiKey)}|${configuredOnly}|${hideAuto}|${hideNoThink}|${page}${reveal}`;
 }
 
 // Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last

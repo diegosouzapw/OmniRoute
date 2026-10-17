@@ -2,6 +2,12 @@ import { isFreeModel } from "@/shared/utils/freeModels";
 import type { CatalogTestResult } from "./catalogTestStorage";
 import { getModelTestKey } from "./catalogTestStorage";
 
+/** Where a hide/show is written (`PATCH /api/provider-models`), from `?includeHidden=1`. */
+export interface CatalogModelVisibility {
+  modality: string;
+  targets: Array<{ provider: string; modelId: string }>;
+}
+
 export interface CatalogModel {
   id: string;
   name: string;
@@ -15,6 +21,9 @@ export interface CatalogModel {
   input_modalities?: string[];
   output_modalities?: string[];
   supported_endpoints?: string[];
+  /** Hidden from `/v1/models` by the operator; only listed by the management catalog. */
+  hidden?: boolean;
+  visibility?: CatalogModelVisibility;
 }
 
 export interface CatalogModelRow extends CatalogModel {
@@ -36,6 +45,7 @@ export interface CatalogFilters {
   pricing?: string; // "all" | "free" | "paid"
   providerHealth?: string; // "all" | "healthy" | "degraded" | "down"
   testResult?: string; // "all" | "untested" | "ok" | "slow" | "error"
+  visibility?: string; // "all" | "visible" | "hidden"
 }
 
 export interface CatalogFilterOptions {
@@ -51,6 +61,18 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
+function parseVisibility(value: unknown): CatalogModelVisibility | undefined {
+  if (!isRecord(value) || !isString(value.modality) || !Array.isArray(value.targets)) {
+    return undefined;
+  }
+  const targets = value.targets.flatMap((target) =>
+    isRecord(target) && isString(target.provider) && isString(target.modelId)
+      ? [{ provider: target.provider, modelId: target.modelId }]
+      : []
+  );
+  return targets.length > 0 ? { modality: value.modality, targets } : undefined;
+}
+
 /** Convert the provider-grouped API payload into stable rows for the dashboard table. */
 export function flattenCatalog(catalog: unknown): CatalogModelRow[] {
   if (!isRecord(catalog)) return [];
@@ -63,6 +85,7 @@ export function flattenCatalog(catalog: unknown): CatalogModelRow[] {
     for (const rawModel of rawBucket.models) {
       if (!isRecord(rawModel) || typeof rawModel.id !== "string") continue;
       const id = rawModel.id;
+      const visibility = parseVisibility(rawModel.visibility);
       rows.push({
         providerId,
         provider,
@@ -88,6 +111,8 @@ export function flattenCatalog(catalog: unknown): CatalogModelRow[] {
         ...(Array.isArray(rawModel.supported_endpoints)
           ? { supported_endpoints: rawModel.supported_endpoints.filter(isString) }
           : {}),
+        ...(rawModel.hidden === true ? { hidden: true } : {}),
+        ...(visibility ? { visibility } : {}),
       });
     }
   }
@@ -184,6 +209,11 @@ function meetsMinimum(value: number | undefined, minimum: number | undefined): b
   return true;
 }
 
+function matchesVisibility(model: CatalogModelRow, visibility: string | undefined): boolean {
+  if (!isActiveChoice(visibility)) return true;
+  return visibility === "hidden" ? model.hidden === true : model.hidden !== true;
+}
+
 function matchesPricing(model: CatalogModelRow, pricing: string | undefined): boolean {
   if (!isActiveChoice(pricing)) return true;
   const free = isModelFree(model);
@@ -229,6 +259,7 @@ export function filterCatalogModels(
     if (!meetsMinimum(model.context_length, filters.minContextLength)) return false;
     if (!meetsMinimum(model.max_output_tokens, filters.minMaxOutputTokens)) return false;
     if (!matchesPricing(model, filters.pricing)) return false;
+    if (!matchesVisibility(model, filters.visibility)) return false;
     if (!matchesProviderHealth(model, filters.providerHealth, providerHealthMap)) return false;
     if (!matchesModelTestResult(model, filters.testResult, testResults)) return false;
     return query === "" || searchableText(model).includes(query);

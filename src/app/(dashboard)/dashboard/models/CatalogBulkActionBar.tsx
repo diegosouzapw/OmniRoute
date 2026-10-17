@@ -46,6 +46,43 @@ function CatalogBulkProgress({ running, progress }: { running: boolean; progress
   ) : null;
 }
 
+/** Hide/show every filtered model; omitted when the catalog has no visibility data. */
+export interface CatalogVisibilityActions {
+  hideCount: number;
+  showCount: number;
+  busy: boolean;
+  onHideFiltered: () => void;
+  onShowFiltered: () => void;
+}
+
+function CatalogVisibilityButtons({ actions }: { actions: CatalogVisibilityActions }) {
+  const t = useTranslations("modelCatalog");
+  return (
+    <>
+      <Button
+        variant="secondary"
+        size="sm"
+        icon="visibility_off"
+        disabled={actions.hideCount === 0 || actions.busy}
+        onClick={actions.onHideFiltered}
+        data-testid="hide-filtered-btn"
+      >
+        {t("hideFiltered", { count: actions.hideCount })}
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        icon="visibility"
+        disabled={actions.showCount === 0 || actions.busy}
+        onClick={actions.onShowFiltered}
+        data-testid="show-filtered-btn"
+      >
+        {t("showFiltered", { count: actions.showCount })}
+      </Button>
+    </>
+  );
+}
+
 export default function CatalogBulkActionBar({
   selectedCount,
   filteredCount,
@@ -56,6 +93,7 @@ export default function CatalogBulkActionBar({
   onTestFiltered,
   onCancel,
   onClearResults,
+  visibilityActions,
 }: {
   selectedCount: number;
   filteredCount: number;
@@ -66,6 +104,7 @@ export default function CatalogBulkActionBar({
   onTestFiltered: () => void;
   onCancel: () => void;
   onClearResults: () => void;
+  visibilityActions?: CatalogVisibilityActions;
 }) {
   const t = useTranslations("modelCatalog");
 
@@ -107,6 +146,8 @@ export default function CatalogBulkActionBar({
             {t("clearResults")}
           </Button>
         )}
+
+        {visibilityActions && <CatalogVisibilityButtons actions={visibilityActions} />}
       </div>
 
       <CatalogBulkProgress running={running} progress={progress} />

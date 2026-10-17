@@ -2,13 +2,53 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { INTERNAL_PROXY_ERROR, getCatalogDiagnosticsHeaders } from "@/lib/modelMetadataRegistry";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getHiddenModelsByProvider } from "@/lib/db/models";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
+import { createCatalogVisibilityAnnotator } from "@/lib/modelCatalogVisibility";
+
+type CatalogRow = Record<string, unknown>;
+type VisibilityAnnotator = ReturnType<typeof createCatalogVisibilityAnnotator>;
+
+/**
+ * `?includeHidden=1`: rebuild the catalog with operator-hidden models kept, and tag each
+ * row with its visibility (`hidden`, plus the provider-models keys a toggle writes).
+ * Returns null when the hidden-inclusive build fails, so the regular catalog is served.
+ */
+async function loadHiddenInclusiveRows(
+  request: Request,
+  visibleRows: CatalogRow[]
+): Promise<{ rows: CatalogRow[]; annotate: VisibilityAnnotator } | null> {
+  const revealed = await getUnifiedModelsResponse(request, {}, { revealHidden: true });
+  if (!revealed.ok) return null;
+  const revealedBody = await revealed.json();
+  let nodes: Awaited<ReturnType<typeof getCachedProviderNodes>> = [];
+  try {
+    nodes = await getCachedProviderNodes();
+  } catch {
+    // No compatible nodes known: prefix rows keep their public owner id.
+  }
+  const annotate = createCatalogVisibilityAnnotator(visibleRows, {
+    nodes,
+    getHiddenModels: getHiddenModelsByProvider,
+  });
+  return { rows: revealedBody.data || [], annotate };
+}
 
 /**
  * GET /api/models/catalog
- * Returns all models grouped by provider, with metadata (type, custom flag)
+ * Returns all models grouped by provider, with metadata (type, custom flag).
+ * `?includeHidden=1` (management auth) also lists hidden models, tagged `hidden: true`.
  */
 export async function GET(request: Request) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
+  const includeHidden = ["1", "true"].includes(
+    new URL(request.url).searchParams.get("includeHidden") || ""
+  );
+  if (includeHidden) {
+    const authError = await requireManagementAuth(request);
+    if (authError) return authError;
+  }
   try {
     const response = await getUnifiedModelsResponse(request, {});
     const body = await response.json();
@@ -22,8 +62,15 @@ export async function GET(request: Request) {
       });
     }
 
+    let rows: CatalogRow[] = body.data || [];
+    let annotate: VisibilityAnnotator | null = null;
+    if (includeHidden) {
+      const revealed = await loadHiddenInclusiveRows(request, rows);
+      if (revealed) ({ rows, annotate } = revealed);
+    }
+
     const catalog: Record<string, any> = {};
-    for (const model of body.data || []) {
+    for (const model of rows) {
       const providerId =
         typeof model.owned_by === "string" && model.owned_by.length > 0
           ? model.owned_by
@@ -57,6 +104,7 @@ export async function GET(request: Request) {
         ...(Array.isArray(model.supported_endpoints)
           ? { supported_endpoints: model.supported_endpoints }
           : {}),
+        ...(annotate ? annotate(model) : {}),
       });
 
       catalog[providerId] = bucket;

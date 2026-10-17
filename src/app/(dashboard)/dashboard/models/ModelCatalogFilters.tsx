@@ -71,7 +71,7 @@ function ModelCatalogOptionFilters({
   );
 }
 
-/** Filters with fixed choices (pricing, provider health, test result) and numeric minimums. */
+/** Fixed-choice filters (pricing, visibility, provider health, test result) and numeric minimums. */
 function ModelCatalogFixedFilters({
   filters,
   onChange,
@@ -91,6 +91,16 @@ function ModelCatalogFixedFilters({
         <option value="all">{t("allPricing")}</option>
         <option value="free">{t("freeOnly")}</option>
         <option value="paid">{t("nonFree")}</option>
+      </FilterSelect>
+
+      <FilterSelect
+        label={t("visibility")}
+        value={filters.visibility ?? "all"}
+        onChange={(visibility) => onChange({ visibility })}
+      >
+        <option value="all">{t("allVisibility")}</option>
+        <option value="visible">{t("visibleOnly")}</option>
+        <option value="hidden">{t("hiddenOnly")}</option>
       </FilterSelect>
 
       <FilterSelect

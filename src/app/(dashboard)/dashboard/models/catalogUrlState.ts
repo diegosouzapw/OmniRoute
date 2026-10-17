@@ -12,6 +12,7 @@ export const DEFAULT_MODEL_FILTERS: CatalogFilters = {
   pricing: "all",
   providerHealth: "all",
   testResult: "all",
+  visibility: "all",
   minContextLength: undefined,
   minMaxOutputTokens: undefined,
 };
@@ -29,6 +30,7 @@ const PRICING_VALUES = new Set(["free", "paid"]);
 const HEALTH_VALUES = new Set(["healthy", "degraded", "down"]);
 const TEST_RESULT_VALUES = new Set(["untested", "ok", "slow", "error"]);
 const COMBO_STATUS_VALUES = new Set(["active", "paused"]);
+const VISIBILITY_VALUES = new Set(["visible", "hidden"]);
 
 /** Whole numbers ≥ 0 only; anything else (empty, NaN, negative, fractional) means "no filter". */
 export function parseNonNegativeInt(raw: string | null | undefined): number | undefined {
@@ -58,6 +60,7 @@ export function parseModelFilters(params: URLSearchParams): CatalogFilters {
     pricing: pickAllowed(params.get("pricing"), PRICING_VALUES),
     providerHealth: pickAllowed(params.get("health"), HEALTH_VALUES),
     testResult: pickAllowed(onModelsTab ? params.get("testResult") : null, TEST_RESULT_VALUES),
+    visibility: pickAllowed(params.get("visibility"), VISIBILITY_VALUES),
     minContextLength: parseNonNegativeInt(params.get("minContext")),
     minMaxOutputTokens: parseNonNegativeInt(params.get("minOutput")),
   };
@@ -104,6 +107,7 @@ export function buildCatalogSearchParams(
     setIfActive(params, "pricing", modelFilters.pricing);
     setIfActive(params, "health", modelFilters.providerHealth);
     setIfActive(params, "testResult", modelFilters.testResult);
+    setIfActive(params, "visibility", modelFilters.visibility);
     setIfNumber(params, "minContext", modelFilters.minContextLength);
     setIfNumber(params, "minOutput", modelFilters.minMaxOutputTokens);
     return params;
@@ -176,6 +180,7 @@ export function hasActiveModelFilters(filters: CatalogFilters): boolean {
     Boolean(filters.pricing && filters.pricing !== "all") ||
     Boolean(filters.providerHealth && filters.providerHealth !== "all") ||
     Boolean(filters.testResult && filters.testResult !== "all") ||
+    Boolean(filters.visibility && filters.visibility !== "all") ||
     typeof filters.minContextLength === "number" ||
     typeof filters.minMaxOutputTokens === "number"
   );

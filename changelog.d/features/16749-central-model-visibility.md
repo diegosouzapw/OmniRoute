@@ -1,0 +1,1 @@
+- **feat(dashboard):** hide/show models across all providers from the Models catalog — a Visible toggle, an All/Visible/Hidden filter and "Hide/Show filtered" bulk actions write the same per-provider visibility that `/v1/models` honors ([#16749](https://github.com/diegosouzapw/OmniRoute/pull/16749)) — thanks @MuhammadUsamaMX

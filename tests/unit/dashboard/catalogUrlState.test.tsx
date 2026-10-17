@@ -65,7 +65,7 @@ describe("parseModelFilters", () => {
     expect(
       parseModelFilters(
         new URLSearchParams(
-          "query=chat&provider=alpha&type=chat&subtype=code&capability=tools&pricing=free&health=down&testResult=slow&minContext=8000&minOutput=4096"
+          "query=chat&provider=alpha&type=chat&subtype=code&capability=tools&pricing=free&health=down&testResult=slow&visibility=hidden&minContext=8000&minOutput=4096"
         )
       )
     ).toEqual({
@@ -77,6 +77,7 @@ describe("parseModelFilters", () => {
       pricing: "free",
       providerHealth: "down",
       testResult: "slow",
+      visibility: "hidden",
       minContextLength: 8000,
       minMaxOutputTokens: 4096,
     });

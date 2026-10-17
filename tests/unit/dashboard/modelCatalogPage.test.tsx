@@ -93,7 +93,7 @@ describe("ModelCatalogPage", () => {
     });
     await flush();
 
-    expect(fetch).toHaveBeenCalledWith("/api/models/catalog", expect.anything());
+    expect(fetch).toHaveBeenCalledWith("/api/models/catalog?includeHidden=1", expect.anything());
     expect(container.textContent).toContain("Alpha Labs");
     expect(container.textContent).toContain("Beta AI");
     expect(container.textContent).toContain("Free");
