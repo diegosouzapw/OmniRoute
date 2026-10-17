@@ -8,7 +8,7 @@ const {
   convertUsageToQuotaInfo,
   fetchGenericQuota,
   invalidateGenericQuotaCache,
-  invalidateGenericQuotaCacheOnStatus,
+  invalidateQuotaCacheOnStatus,
   registerGenericQuotaFetchers,
   __setGenericUsageFetcherForTests,
   __agePendingForceRefreshForTests,
@@ -225,7 +225,7 @@ test("invalidateGenericQuotaCache makes the next fetch bypass provider-inner usa
   invalidateGenericQuotaCache("agy", connectionId);
 });
 
-test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", async () => {
+test("invalidateQuotaCacheOnStatus drops cache on 429 and ignores 200", async () => {
   const connectionId = `agy-429-${Date.now()}`;
   const calls: Array<{ forceRefresh?: boolean }> = [];
   __setGenericUsageFetcherForTests(async (_conn, options) => {
@@ -237,7 +237,7 @@ test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", a
   await fetchGenericQuota(connectionId, connection);
   assert.equal(calls.length, 1);
 
-  invalidateGenericQuotaCacheOnStatus({
+  invalidateQuotaCacheOnStatus({
     provider: "agy",
     connectionId,
     status: 200,
@@ -246,7 +246,7 @@ test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", a
   await fetchGenericQuota(connectionId, connection);
   assert.equal(calls.length, 1, "200 must not drop the generic quota cache");
 
-  const dropped429 = invalidateGenericQuotaCacheOnStatus({
+  const dropped429 = invalidateQuotaCacheOnStatus({
     provider: "agy",
     connectionId,
     status: 429,
@@ -257,7 +257,7 @@ test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", a
   assert.equal(calls.length, 2, "429 must drop the generic quota cache");
   assert.equal(calls[1]?.forceRefresh, true);
 
-  invalidateGenericQuotaCacheOnStatus({
+  invalidateQuotaCacheOnStatus({
     provider: "agy",
     connectionId,
     status: 429,
@@ -267,7 +267,7 @@ test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", a
   assert.equal(calls.length, 2, "probe-origin 429 must not touch routing caches");
 
   assert.doesNotThrow(() =>
-    invalidateGenericQuotaCacheOnStatus({
+    invalidateQuotaCacheOnStatus({
       provider: "agy",
       connectionId: null,
       status: 429,
@@ -277,7 +277,7 @@ test("invalidateGenericQuotaCacheOnStatus drops cache on 429 and ignores 200", a
   invalidateGenericQuotaCache("agy", connectionId);
 });
 
-test("invalidateGenericQuotaCacheOnStatus trims to the same key fetchGenericQuota uses", async () => {
+test("invalidateQuotaCacheOnStatus trims to the same key fetchGenericQuota uses", async () => {
   const connectionId = `agy-trim-${Date.now()}`;
   const calls: Array<{ forceRefresh?: boolean }> = [];
   __setGenericUsageFetcherForTests(async (_conn, options) => {
@@ -289,7 +289,7 @@ test("invalidateGenericQuotaCacheOnStatus trims to the same key fetchGenericQuot
   await fetchGenericQuota(`  ${connectionId}  `, connection);
   assert.equal(calls.length, 1);
 
-  const dropped = invalidateGenericQuotaCacheOnStatus({
+  const dropped = invalidateQuotaCacheOnStatus({
     provider: "  agy  ",
     connectionId: `  ${connectionId}  `,
     status: 429,

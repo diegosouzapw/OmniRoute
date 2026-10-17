@@ -99,3 +99,23 @@ test("syncExecuteTranslatedBody seam keeps executeProviderRequestDeps synchroniz
   const streamingSyncCount = (streaming.match(/syncExecuteTranslatedBody\(translatedBody\)/g) ?? []).length;
   assert.ok(streamingSyncCount >= 2, "streamingResponse must sync on every translatedBody rebinding");
 });
+
+test("an upstream 429 drops quota caches through the shared dispatcher", () => {
+  const leaf = read(LEAF);
+  assert.match(
+    leaf,
+    /invalidateQuotaCacheOnStatus\(\{/,
+    "the 429 site must route through the shared quota cache dispatcher"
+  );
+  assert.equal(
+    leaf.includes("invalidateCodexQuotaCache"),
+    false,
+    "the codex cache drop moves into the provider registry"
+  );
+  assert.equal(
+    leaf.includes("invalidateGenericQuotaCacheOnStatus"),
+    false,
+    "the wrapper-only name is gone so bespoke providers are covered too"
+  );
+  assert.match(leaf, /Dropped generic quota cache after 429/);
+});

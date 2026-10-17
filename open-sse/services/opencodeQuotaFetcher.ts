@@ -9,7 +9,12 @@
  * parsing failures remain fail-open so quota checks never block on missing data.
  */
 
-import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  registerQuotaWindows,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { buildOpencodeBackgroundHeaders } from "../utils/opencodeHeaders.ts";
@@ -240,6 +245,7 @@ export function invalidateOpencodeQuotaCache(connectionId: string): void {
 export function registerOpencodeQuotaFetcher(): void {
   for (const provider of ["opencode-go", "opencode", "opencode-zen"] as const) {
     registerQuotaFetcher(provider, fetchOpencodeQuota);
+    registerQuotaCacheInvalidator(provider, invalidateOpencodeQuotaCache);
     registerMonitorFetcher(provider, fetchOpencodeQuota);
     registerQuotaWindows(provider, [
       OPENCODE_WINDOW_5H,

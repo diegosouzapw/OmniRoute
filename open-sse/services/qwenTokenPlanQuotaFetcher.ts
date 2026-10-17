@@ -27,7 +27,12 @@
  * 1h per connection. Registration: registerQwenTokenPlanQuotaFetcher() at startup.
  */
 
-import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  registerQuotaWindows,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
@@ -444,6 +449,7 @@ export function invalidateQwenTokenPlanQuotaCache(connectionId: string): void {
  */
 export function registerQwenTokenPlanQuotaFetcher(): void {
   registerQuotaFetcher("qwen-cloud-token-plan", fetchQwenTokenPlanQuota);
+  registerQuotaCacheInvalidator("qwen-cloud-token-plan", invalidateQwenTokenPlanQuotaCache);
   registerMonitorFetcher("qwen-cloud-token-plan", fetchQwenTokenPlanQuota);
   registerQuotaWindows("qwen-cloud-token-plan", [
     QWEN_TOKEN_PLAN_WINDOW_5H,

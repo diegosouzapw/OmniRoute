@@ -30,6 +30,7 @@
  */
 
 import {
+  registerQuotaCacheInvalidator,
   registerQuotaFetcher,
   registerQuotaWindows,
   type QuotaInfo,
@@ -234,6 +235,7 @@ export function invalidateLyceumQuotaCache(connectionId: string): void {
  */
 export function registerLyceumQuotaFetcher(): void {
   registerQuotaFetcher("lyceum", fetchLyceumQuota);
+  registerQuotaCacheInvalidator("lyceum", invalidateLyceumQuotaCache);
   registerMonitorFetcher("lyceum", fetchLyceumQuota);
   registerQuotaWindows("lyceum", [LYCEUM_WINDOW_CREDITS]);
 }

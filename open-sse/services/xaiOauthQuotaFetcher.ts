@@ -28,7 +28,12 @@ import {
   grokBillingSnapshotToQuotaInfo,
   GROK_WINDOW_WEEKLY,
 } from "./grokQuotaFetcher.ts";
-import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  registerQuotaWindows,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
@@ -132,6 +137,7 @@ export function invalidateXaiOauthQuotaCache(connectionId: string): void {
 export function registerXaiOauthQuotaFetcher(): void {
   for (const provider of XAI_OAUTH_PROVIDER_IDS) {
     registerQuotaFetcher(provider, fetchXaiOauthQuota);
+    registerQuotaCacheInvalidator(provider, invalidateXaiOauthQuotaCache);
     registerMonitorFetcher(provider, fetchXaiOauthQuota);
     registerQuotaWindows(provider, [GROK_WINDOW_WEEKLY]);
   }

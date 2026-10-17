@@ -31,7 +31,10 @@ import {
   isCodexPaidCreditsEnabled,
   type CodexPaidCredits,
 } from "@/lib/providers/codexPaidCredits";
-import { fetchNewApiAggregatorQuota } from "./newApiAggregatorQuotaFetcher.ts";
+import {
+  fetchNewApiAggregatorQuota,
+  invalidateNewApiAggregatorQuotaCache,
+} from "./newApiAggregatorQuotaFetcher.ts";
 import {
   isAntigravityQuotaProvider,
   selectAntigravityQuotaWindowNames,
@@ -138,6 +141,42 @@ export function registerQuotaFetcher(provider: string, fetcher: QuotaFetcher): v
 
 export function getQuotaFetcher(provider: string): QuotaFetcher | undefined {
   return quotaFetcherRegistry.get(provider) || quotaFetcherRegistry.get(provider.toLowerCase());
+}
+
+/**
+ * Per-provider cache invalidators used by the upstream-429 path. Each bespoke
+ * quota fetcher registers here how to drop its cached snapshot for one
+ * connection, under the same provider ids (aliases included) it passes to
+ * `registerQuotaFetcher`. `invalidateQuotaCacheOnStatus` resolves the
+ * invalidator per request; the generic quota cache stays the fallback for
+ * providers without one.
+ */
+type QuotaCacheInvalidator = (connectionId: string) => void;
+
+const quotaCacheInvalidatorRegistry = new Map<string, QuotaCacheInvalidator>();
+
+export function registerQuotaCacheInvalidator(
+  provider: string,
+  invalidator: QuotaCacheInvalidator
+): void {
+  quotaCacheInvalidatorRegistry.set(provider, invalidator);
+}
+
+export function getQuotaCacheInvalidator(provider: string): QuotaCacheInvalidator | undefined {
+  return (
+    quotaCacheInvalidatorRegistry.get(provider) ||
+    quotaCacheInvalidatorRegistry.get(provider.toLowerCase())
+  );
+}
+
+/** Test-only: drop every entry so a suite cannot leak registrations. */
+export function __resetQuotaCacheInvalidatorsForTests(): void {
+  quotaCacheInvalidatorRegistry.clear();
+}
+
+/** Test-only: entry count, so a storage-size test can assert no growth. */
+export function __quotaCacheInvalidatorCountForTests(): number {
+  return quotaCacheInvalidatorRegistry.size;
 }
 
 export function isQuotaPreflightEnabled(connection: Record<string, unknown>): boolean {
@@ -425,6 +464,10 @@ export function resolveDynamicQuotaFetcher(
   // Feature flag must be enabled
   if (!isFeatureFlagEnabled("NEWAPI_AGGREGATOR_BALANCE")) return undefined;
 
+  // The aggregator fetcher has no static registrar, so its invalidator is
+  // registered on the first dynamic resolution — the same moment the fetcher's
+  // cache can first be populated. Re-registering the same key is an overwrite.
+  registerQuotaCacheInvalidator(provider, invalidateNewApiAggregatorQuotaCache);
   return fetchNewApiAggregatorQuota;
 }
 

@@ -35,8 +35,7 @@ import { HTTP_STATUS, STREAM_RECOVERY } from "../../config/constants.ts";
 import { parseRetryAfterMs } from "../../services/apiKeyRotator.ts";
 import { createRecoverableStream, makeContinuationBody } from "../../services/streamRecovery.ts";
 import { persistCodexChildQuotaResponse } from "../../services/codexAccount/index.ts";
-import { invalidateCodexQuotaCache } from "../../services/codexQuotaFetcher.ts";
-import { invalidateGenericQuotaCacheOnStatus } from "../../services/genericQuotaFetcher.ts";
+import { invalidateQuotaCacheOnStatus } from "../../services/genericQuotaFetcher.ts";
 import {
   isRateLimitEnabled,
   withRateLimit,
@@ -400,16 +399,15 @@ export async function executeProviderRequest(
                     log?.debug?.("CODEX", persistedQuota.exhaustionLog);
                   }
                 }
-                if (res.response.status === 429) {
-                  invalidateCodexQuotaCache(String(attemptConnectionId));
-                }
               } catch (err) {
                 const errMessage = err instanceof Error ? err.message : String(err);
                 log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
               }
-            } else if (attemptConnectionId && res.response.status === 429) {
-              // Dropped generic quota cache after 429
-              invalidateGenericQuotaCacheOnStatus({
+            }
+            if (attemptConnectionId && res.response.status === 429) {
+              // Dropped generic quota cache after 429 — bespoke fetchers drop their
+              // own cache through the registry; the generic wrapper is the fallback.
+              invalidateQuotaCacheOnStatus({
                 provider,
                 connectionId: String(attemptConnectionId),
                 status: res.response.status,

@@ -1,4 +1,8 @@
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
@@ -164,6 +168,7 @@ export function registerContext7QuotaFetcher(): void {
     "context7",
     fetchContext7Quota as (id: string, conn?: Record<string, unknown>) => Promise<QuotaInfo | null>
   );
+  registerQuotaCacheInvalidator("context7", invalidateContext7QuotaCache);
   registerMonitorFetcher(
     "context7",
     fetchContext7Quota as (id: string, conn?: Record<string, unknown>) => Promise<QuotaInfo | null>

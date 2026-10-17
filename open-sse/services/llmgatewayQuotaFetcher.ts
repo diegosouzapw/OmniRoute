@@ -41,6 +41,7 @@
  */
 
 import {
+  registerQuotaCacheInvalidator,
   registerQuotaFetcher,
   registerQuotaWindows,
   type QuotaInfo,
@@ -320,6 +321,7 @@ export function invalidateLlmgatewayQuotaCache(connectionId: string): void {
  */
 export function registerLlmgatewayQuotaFetcher(): void {
   registerQuotaFetcher("llmgateway", fetchLlmgatewayQuota);
+  registerQuotaCacheInvalidator("llmgateway", invalidateLlmgatewayQuotaCache);
   registerMonitorFetcher("llmgateway", fetchLlmgatewayQuota);
   registerQuotaWindows("llmgateway", [LLMGATEWAY_WINDOW_MONTHLY, LLMGATEWAY_WINDOW_PREMIUM_WEEKLY]);
 }

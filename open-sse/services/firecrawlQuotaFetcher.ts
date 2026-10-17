@@ -22,7 +22,11 @@
  * Cache: 60s in-memory TTL keyed by connectionId.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { isUrlHost } from "../utils/urlHost.ts";
@@ -189,5 +193,6 @@ export function invalidateFirecrawlQuotaCache(connectionId: string): void {
 
 export function registerFirecrawlQuotaFetcher(): void {
   registerQuotaFetcher("firecrawl", fetchFirecrawlQuota);
+  registerQuotaCacheInvalidator("firecrawl", invalidateFirecrawlQuotaCache);
   registerMonitorFetcher("firecrawl", fetchFirecrawlQuota);
 }

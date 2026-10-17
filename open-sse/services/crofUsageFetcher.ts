@@ -29,7 +29,11 @@
  * Registration: call registerCrofUsageFetcher() once at server startup.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
@@ -181,5 +185,6 @@ export function invalidateCrofUsageCache(connectionId: string): void {
  */
 export function registerCrofUsageFetcher(): void {
   registerQuotaFetcher("crof", fetchCrofUsage);
+  registerQuotaCacheInvalidator("crof", invalidateCrofUsageCache);
   registerMonitorFetcher("crof", fetchCrofUsage);
 }

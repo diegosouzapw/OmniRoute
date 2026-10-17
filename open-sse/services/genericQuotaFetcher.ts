@@ -21,6 +21,7 @@ import { toNumberOrNull } from "@/shared/utils/numeric";
 import { hasOllamaPurchasedCredits } from "./ollamaPurchasedCredits.ts";
 import { getUsageForProvider, USAGE_FETCHER_PROVIDERS } from "./usage.ts";
 import {
+  getQuotaCacheInvalidator,
   getQuotaFetcher,
   registerQuotaFetcher,
   registerQuotaWindows,
@@ -502,11 +503,13 @@ export function invalidateGenericQuotaCache(provider: string, connectionId: stri
 }
 
 /**
- * Drop the generic quota cache after an upstream 429, matching Codex's
- * `invalidateCodexQuotaCache` on 429. Probe-origin failures must not mutate
- * routing caches (#9817).
+ * Drop the provider's cached quota snapshot after an upstream 429 so the next
+ * preflight reads fresh usage instead of serving a stale snapshot. A bespoke
+ * fetcher drops its own cache through the invalidator it registered for the
+ * provider; providers served by the generic wrapper keep the generic cache drop.
+ * Probe-origin failures must not mutate routing caches (#9817).
  */
-export function invalidateGenericQuotaCacheOnStatus(args: {
+export function invalidateQuotaCacheOnStatus(args: {
   provider: string | null | undefined;
   connectionId: string | null | undefined;
   status: number;
@@ -517,7 +520,9 @@ export function invalidateGenericQuotaCacheOnStatus(args: {
   const provider = typeof args.provider === "string" ? args.provider.trim() : "";
   const connectionId = typeof args.connectionId === "string" ? args.connectionId.trim() : "";
   if (!provider || !connectionId) return false;
-  invalidateGenericQuotaCache(provider, connectionId);
+  const invalidator = getQuotaCacheInvalidator(provider);
+  if (invalidator) invalidator(connectionId);
+  else invalidateGenericQuotaCache(provider, connectionId);
   return true;
 }
 

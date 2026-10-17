@@ -22,7 +22,12 @@ import {
   getCodexModelScope,
   isCodexSparkLimitDescriptor,
 } from "../config/codexQuotaScopes.ts";
-import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  registerQuotaWindows,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { getCodexBackendIdentityHeaders } from "../config/codexClient.ts";
@@ -520,6 +525,7 @@ export function invalidateCodexQuotaCache(connectionId: string): void {
  */
 export function registerCodexQuotaFetcher(): void {
   registerQuotaFetcher("codex", fetchCodexQuota);
+  registerQuotaCacheInvalidator("codex", invalidateCodexQuotaCache);
   registerMonitorFetcher("codex", fetchCodexQuota);
   registerQuotaWindows("codex", [
     CODEX_WINDOW_SESSION,

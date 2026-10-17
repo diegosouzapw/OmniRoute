@@ -17,7 +17,11 @@
  * Cache: 60s in-memory TTL keyed by connectionId.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import {
+  registerQuotaCacheInvalidator,
+  registerQuotaFetcher,
+  type QuotaInfo,
+} from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 import { isUrlHost } from "../utils/urlHost.ts";
@@ -211,6 +215,8 @@ export function invalidateTavilyQuotaCache(connectionId: string): void {
 export function registerTavilyQuotaFetcher(): void {
   registerQuotaFetcher("tavily-search", fetchTavilyQuota);
   registerQuotaFetcher("tavily", fetchTavilyQuota);
+  registerQuotaCacheInvalidator("tavily-search", invalidateTavilyQuotaCache);
+  registerQuotaCacheInvalidator("tavily", invalidateTavilyQuotaCache);
   registerMonitorFetcher("tavily-search", fetchTavilyQuota);
   registerMonitorFetcher("tavily", fetchTavilyQuota);
 }
