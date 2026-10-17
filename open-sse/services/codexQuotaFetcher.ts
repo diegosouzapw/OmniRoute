@@ -396,6 +396,11 @@ function getSelectedCodexRateLimit(
   return normalRateLimit;
 }
 
+function parseCodexPlan(data: Record<string, unknown>): string | undefined {
+  const rawPlan = data["plan_type"] ?? data["planType"];
+  return typeof rawPlan === "string" && rawPlan.trim() ? rawPlan.trim() : undefined;
+}
+
 function parseCodexUsageResponse(
   data: unknown,
   requestedModel?: string | null
@@ -446,8 +451,10 @@ function parseCodexUsageResponse(
   const bankedResetCredits = parseBankedResetCredits(obj);
   const paidCredits = parseCodexPaidCredits(obj.credits);
   const rateLimitReachedType = parseRateLimitReachedType(obj);
+  const plan = parseCodexPlan(obj);
 
   return {
+    ...(plan ? { plan } : {}),
     used: Math.round(worstPercentUsed * 100),
     total: 100,
     percentUsed: worstPercentUsed,

@@ -156,7 +156,7 @@ function normalizeResetAt(value: unknown): string | null {
   return null;
 }
 
-function parseResetTimeMs(resetAt: string | null | undefined): number {
+export function parseResetTimeMs(resetAt: string | null | undefined): number {
   if (!resetAt) return NaN;
   const resetTime = Date.parse(resetAt);
   if (Number.isFinite(resetTime)) return resetTime;
@@ -235,7 +235,7 @@ function toWindowSnapshot(window: unknown): QuotaWindowSnapshot | null {
  * purpose, and pulling the normal-scope entries back in would rank a request
  * against a window it cannot spend.
  */
-function getQuotaWindowEntries(
+export function getQuotaWindowEntries(
   quota: unknown
 ): Array<{ key: string; window: QuotaWindowSnapshot }> {
   if (!quota || !isRecord(quota) || !isRecord(quota.windows)) return [];

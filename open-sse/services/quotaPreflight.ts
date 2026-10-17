@@ -59,6 +59,8 @@ export interface QuotaWindowInfo {
 }
 
 export interface QuotaInfo {
+  /** Raw account plan identifier from the live usage fetch, when reported. */
+  plan?: string;
   used: number;
   total: number;
   /** Worst-case percentUsed across all known windows (legacy, single-signal). */

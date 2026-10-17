@@ -46,6 +46,9 @@ import {
 } from "./quotaScoring.ts";
 import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
+import { resolveQuotaWeightedScoring, scoreQuotaPace } from "./quotaPaceScoring.ts";
+import { resolvePlanCapacity } from "./quotaPlanCapacity.ts";
+import { isRecord } from "./comboData.ts";
 import { getInflight, incrementInflight } from "./quotaShareInflight.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
 import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
@@ -276,7 +279,7 @@ async function scoreQuotaAwareTargets<TScore extends object>({
   connectionById: Map<string, Record<string, unknown>>;
   expandedTargets: ResolvedComboTarget[];
   log: { warn?: (...args: unknown[]) => void };
-  scoreQuota: (quota: unknown) => TScore;
+  scoreQuota: (quota: unknown, target: ResolvedComboTarget) => TScore;
 }): Promise<Array<{ target: ResolvedComboTarget; index: number } & TScore>> {
   const quotaPromises = new Map<string, Promise<unknown>>();
 
@@ -309,7 +312,7 @@ async function scoreQuotaAwareTargets<TScore extends object>({
         quota = await quotaPromises.get(quotaKey)!;
       }
 
-      return { target, index, ...scoreQuota(quota) };
+      return { target, index, ...scoreQuota(quota, target) };
     }
   );
 }
@@ -723,7 +726,41 @@ type QuotaWeightedScored = {
   index: number;
   score: number;
   remainingPercent: number;
+  capacity?: number;
 };
+
+function scoreQuotaWeighted(
+  quota: unknown,
+  target: ResolvedComboTarget,
+  config: ReturnType<typeof resolveResetAwareConfig>,
+  scoring: "leftover" | "pace",
+  scoreNow: number
+): Pick<QuotaWeightedScored, "score" | "remainingPercent" | "capacity"> {
+  if (scoring !== "pace") {
+    return {
+      score: scoreResetAwareQuota(quota, config).score,
+      remainingPercent: getResetAwareRemainingPercent(quota),
+    };
+  }
+  const capacity = resolvePlanCapacity(
+    getResetAwareProvider(target),
+    isRecord(quota) ? quota.plan : undefined
+  );
+  return {
+    score: scoreQuotaPace(quota, config, scoreNow).score * capacity,
+    remainingPercent: getResetAwareRemainingPercent(quota),
+    capacity,
+  };
+}
+
+function getQuotaWeightedDrawWeight(entry: QuotaWeightedScored): number {
+  const load = getInflight(entry.target.connectionId ?? "");
+  // Only pace entries carry capacity; leftover retains its exact historical divisor.
+  if (entry.capacity !== undefined) {
+    return Math.max(0, entry.score) / (1 + load / entry.capacity);
+  }
+  return Math.max(0, entry.score) / (1 + load);
+}
 
 /**
  * Weighted draw over positive scores. `r` is in `[0, sum(w))`. First
@@ -792,16 +829,17 @@ export async function orderTargetsByQuotaWeighted(
     return state !== "OPEN";
   });
 
+  const scoring = resolveQuotaWeightedScoring(configSource);
+  // Pace compares every target against one instant, even if quota fetches finish apart.
+  // Do not read an extra clock in leftover mode: preserve its existing scoring path.
+  const scoreNow = scoring === "pace" ? Date.now() : 0;
   const scoredTargets = await scoreQuotaAwareTargets({
     comboName,
     config,
     connectionById,
     expandedTargets: liveTargets,
     log,
-    scoreQuota: (quota) => ({
-      score: scoreResetAwareQuota(quota, config).score,
-      remainingPercent: getResetAwareRemainingPercent(quota),
-    }),
+    scoreQuota: (quota, target) => scoreQuotaWeighted(quota, target, config, scoring, scoreNow),
   });
 
   // The live snapshot outranks the freshly-scored fetch on two counts: a 402
@@ -831,10 +869,7 @@ export async function orderTargetsByQuotaWeighted(
   const selected = poolA.length > 0 ? poolA : poolB;
   if (selected.length === 0) return [];
 
-  const weights = selected.map((entry) => {
-    const load = getInflight(entry.target.connectionId ?? "");
-    return Math.max(0, entry.score) / (1 + load);
-  });
+  const weights = selected.map(getQuotaWeightedDrawWeight);
   const sum = weights.reduce((acc, w) => acc + w, 0);
   let pickIndex: number | null = null;
   if (sum > 0) {

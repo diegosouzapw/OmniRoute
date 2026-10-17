@@ -249,6 +249,7 @@ export const comboRuntimeConfigSchema = z
     resetAwareTieBandPercent: z.coerce.number().min(0).max(100).optional(),
     resetAwareExhaustionGuardPercent: z.coerce.number().min(0).max(100).optional(),
     quotaWeightedFloorPercent: z.coerce.number().min(0).max(100).optional(),
+    quotaWeightedScoring: z.enum(["leftover", "pace"]).optional(),
     resetAwareQuotaCacheTtlMs: z.coerce.number().int().min(0).max(300_000).optional(),
     resetAwareQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
     resetWindowWindows: z.array(z.enum(["weekly", "session", "monthly"])).optional(),

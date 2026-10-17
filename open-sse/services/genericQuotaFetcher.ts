@@ -324,8 +324,14 @@ export function convertUsageToQuotaInfo(
 
   const normalized = normalizeQuotaWindows(providerScopedWindows, context);
   const { percentUsed, resetAt } = aggregateGroupedQuotaValues(providerScopedWindows);
+  const bootstrap = usageRecord.bootstrap as Record<string, unknown> | null | undefined;
+  const plan = [bootstrap?.organization_rate_limit_tier, usageRecord.plan]
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .find((value) => value.length > 0);
 
   return {
+    ...(plan ? { plan } : {}),
     used: 0,
     total: 0,
     percentUsed,
