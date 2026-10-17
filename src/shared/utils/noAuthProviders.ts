@@ -1,4 +1,9 @@
-import { NOAUTH_PROVIDERS, getProviderById } from "@/shared/constants/providers";
+import {
+  NOAUTH_PROVIDERS,
+  getProviderById,
+  resolveProviderId,
+  getProviderAlias,
+} from "@/shared/constants/providers";
 
 type ProviderWithAlias = { alias?: string };
 type NoAuthProviderEntry = { id: string; alias?: string };
@@ -78,4 +83,44 @@ export function isNoAuthRawProviderPrefix(providerId: string, prefix: string): b
   return (
     typeof provider?.alias === "string" && provider.alias !== providerId && prefix === providerId
   );
+}
+
+/**
+ * Compute the next `blockedProviders` list when enabling or disabling one or more providers.
+ * - When `enable` is true (unblock): removes target provider IDs and their aliases.
+ * - When `enable` is false (block): cleans any existing alias and adds canonical provider IDs.
+ */
+export function computeNextBlockedProviders(
+  currentBlocked: unknown,
+  targetIds: string | string[],
+  enable: boolean
+): string[] {
+  const current = normalizeBlockedProviderSet(currentBlocked);
+  const targets = Array.isArray(targetIds) ? targetIds : [targetIds];
+  const keysToClean = new Set<string>();
+
+  for (const rawId of targets) {
+    if (!rawId || typeof rawId !== "string") continue;
+    const canonicalId = resolveProviderId(rawId);
+    keysToClean.add(rawId);
+    keysToClean.add(canonicalId);
+    const alias = getProviderAlias(canonicalId);
+    if (alias) keysToClean.add(alias);
+    const baseId = canonicalId.replace(/-search$/, "");
+    if (baseId) keysToClean.add(baseId);
+  }
+
+  for (const key of keysToClean) {
+    current.delete(key);
+  }
+
+  if (!enable) {
+    for (const rawId of targets) {
+      if (rawId && typeof rawId === "string") {
+        current.add(resolveProviderId(rawId));
+      }
+    }
+  }
+
+  return Array.from(current);
 }

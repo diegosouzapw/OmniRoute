@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { getProviderAlias } from "@/shared/constants/providers";
+import { computeNextBlockedProviders } from "@/shared/utils/noAuthProviders";
 import type { ProviderEntry } from "../providerPageUtils";
 import ProviderCard from "./ProviderCard";
 import ProviderCountBadge from "./ProviderCountBadge";
@@ -55,15 +55,14 @@ export default function NoAuthProvidersSection({
   onError,
   testingMode,
   onBatchTest,
-  onToggleProvider,
+  onToggleProvider: _onToggleProvider,
 }: NoAuthProvidersSectionProps) {
   const t = useTranslations("providers");
+  const tc = useTranslations("common");
 
-  const handleUnblock = async (providerId: string) => {
-    const alias = getProviderAlias(providerId);
-    const keysToRemove = new Set([providerId, alias].filter(Boolean) as string[]);
+  const updateBlocked = async (targetIds: string | string[], enable: boolean) => {
     const previous = blockedProviders;
-    const next = previous.filter((p) => !keysToRemove.has(p));
+    const next = computeNextBlockedProviders(previous, targetIds, enable);
     onBlockedChange(next);
     try {
       const response = await fetch("/api/settings", {
@@ -107,17 +106,49 @@ export default function NoAuthProvidersSection({
           </span>
           {testingMode === "no-auth" ? t("testing") : t("testAll")}
         </button>
+        {visibleEntries.length > 0 && (
+          <button
+            type="button"
+            onClick={() =>
+              updateBlocked(
+                visibleEntries.map((e) => e.providerId),
+                false
+              )
+            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border bg-bg-subtle text-text-muted transition-colors hover:border-primary/40 hover:text-text-primary"
+            title={`${tc("disable")} ${tc("all")}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">block</span>
+            {tc("disable")} {tc("all")}
+          </button>
+        )}
+        {blockedEntries.length > 0 && (
+          <button
+            type="button"
+            onClick={() =>
+              updateBlocked(
+                blockedEntries.map((e) => e.providerId),
+                true
+              )
+            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border bg-bg-subtle text-text-muted transition-colors hover:border-primary/40 hover:text-text-primary"
+            title={`${tc("enable")} ${tc("all")}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+            {tc("enable")} {tc("all")}
+          </button>
+        )}
       </div>
       <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-        {visibleEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+        {visibleEntries.map(({ providerId, provider, stats }) => (
           <ProviderCard
             key={providerId}
             providerId={providerId}
             provider={provider}
             stats={stats}
             authType="no-auth"
-            onToggle={(active) => onToggleProvider(providerId, toggleAuthType, active)}
+            onToggle={(active) => updateBlocked(providerId, active)}
           />
         ))}
       </div>
@@ -143,7 +174,7 @@ export default function NoAuthProvidersSection({
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleUnblock(providerId)}
+                  onClick={() => updateBlocked(providerId, true)}
                   className="shrink-0 rounded-md border border-border px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:border-primary/40 hover:text-text-primary"
                   title={t("enableProvider")}
                 >
