@@ -1,0 +1,1 @@
+- **feat(api):** opt-in quota session recovery: a non-streaming chat/responses turn that hits a terminal quota error can be parked (encrypted, 24 h) with `x-omniroute-quota-recovery: auto` and polled at `GET /api/v1/quota-recoveries/{id}` instead of failing ([#14982](https://github.com/diegosouzapw/OmniRoute/pull/14982), closes #14981) — thanks @dongwook-chan

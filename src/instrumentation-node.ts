@@ -644,6 +644,9 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    const { startQuotaSessionRecovery } = await import("@/lib/quota/quotaSessionRecovery");
+    startQuotaSessionRecovery();
+    console.log("[STARTUP] Quota session recovery scheduler started (opt-in)");
     const { startQuotaAutoPing } = await import("@/lib/services/quotaAutoPing");
     startQuotaAutoPing();
     console.log("[STARTUP] Quota auto-ping scheduler started (opt-in, no-op until enabled)");
