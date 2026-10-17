@@ -63,6 +63,9 @@ export const BULK_IMPORT_PLACEHOLDER = `# Proxy Bulk Import
 #   user:pass:ip:port                 → with auth (user-pass-first)
 #   protocol://ip:port               → explicit protocol
 #   protocol://user:pass@ip:port     → explicit protocol + auth
+#   protocol://host:port:user:pass:name → explicit protocol + auth + chosen name
+#   Names may contain spaces. Use pipe-delimited input when fields contain colons.
+#   socks5://gateway.example.invalid:12000:session-1:example-password:UK 1
 #
 # FORMAT 3 — Protocol header mode:
 #   Put a bare protocol (http, https, socks5) on its own line to set

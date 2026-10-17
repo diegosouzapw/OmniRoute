@@ -10,6 +10,7 @@
  *        d. user:pass:ip:port
  *        e. protocol://ip:port
  *        f. protocol://user:pass@ip:port
+ *        g. protocol://host:port:user:pass:name
  *
  * Protocol header mode:
  *   If a line contains only a bare protocol name (http, https, socks5),
@@ -78,7 +79,8 @@ function pushShorthandEntry(
   portStr: string,
   username: string,
   password: string,
-  type: string
+  type: string,
+  name = `Imported ${host}:${portStr}`
 ): boolean {
   if (!host) {
     errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
@@ -95,7 +97,7 @@ function pushShorthandEntry(
     return false;
   }
   entries.push({
-    name: `Imported ${host}:${portStr}`,
+    name,
     host,
     port,
     username,
@@ -135,6 +137,58 @@ function parseShorthandLine(
     working = protocolMatch[2];
   }
 
+  // Preserve legacy user-info URIs before considering the custom host-first syntax.
+  const lastAt = working.lastIndexOf("@");
+  const legacyUserinfo =
+    lastAt > 0 && /^(\[[^\]]+\]|[^:\s]+)\s*:\s*\d+$/.test(working.slice(lastAt + 1).trim());
+  // The named host-first format is not a URI: @ is valid in its raw credentials.
+  const namedMatch =
+    protocolMatch && !legacyUserinfo
+      ? working.match(
+          /^(\[[^\]\r\n]{1,255}\]|[^:@\[\]\r\n]{1,255}):([^:\r\n]{0,10}):([^:\r\n]*):([^:\r\n]*):([^:\r\n]*)$/
+        )
+      : null;
+  if (namedMatch) {
+    const [, rawHost, rawPort, rawUser, rawPassword, rawName] = namedMatch;
+    const host = rawHost.trim().replace(/^\[|\]$/g, "");
+    const portStr = rawPort.trim();
+    const name = rawName.trim();
+    if (!name) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorMissingName" });
+      return false;
+    }
+    if (!/^\d+$/.test(portStr)) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidPort" });
+      return false;
+    }
+    return pushShorthandEntry(
+      entries,
+      errors,
+      lineNum,
+      host,
+      portStr,
+      rawUser.trim(),
+      rawPassword.trim(),
+      type,
+      name
+    );
+  }
+
+  if (protocolMatch && !legacyUserinfo && working.split(":").length >= 5) {
+    errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
+    return false;
+  }
+
+  return parseLegacyShorthandLine(working, lineNum, type, entries, errors);
+}
+
+function parseLegacyShorthandLine(
+  working: string,
+  lineNum: number,
+  type: string,
+  entries: ParsedProxyEntry[],
+  errors: ParseError[]
+): boolean {
   // Check for user:pass@host:port format (after protocol stripped)
   const atIdx = working.indexOf("@");
   if (atIdx > 0) {
