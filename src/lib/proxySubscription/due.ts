@@ -10,6 +10,40 @@ export interface DueCheckInput {
   enabled: boolean;
   lastFetchedAt: string | null;
   updateIntervalMinutes: number;
+  url?: string;
+}
+
+/** A feedless subscription has an empty URL: selector-only, never fetched. */
+export function isFeedlessSubscription(url: unknown): boolean {
+  return typeof url === "string" && url.trim() === "";
+}
+
+export interface FeedlessSyncInput {
+  url: string;
+  status: "ok" | "error" | "empty";
+  error: string | null;
+}
+
+export interface FeedlessSyncResult {
+  nodes: number;
+  needsCore: number;
+  boundProxies: number;
+  status: "ok" | "error" | "empty";
+  error: string | null;
+  applied: boolean;
+}
+
+/** Early return for a feedless subscription: no fetch, no write, status kept. */
+export function feedlessSyncResult(sub: FeedlessSyncInput): FeedlessSyncResult | null {
+  if (!isFeedlessSubscription(sub.url)) return null;
+  return {
+    nodes: 0,
+    needsCore: 0,
+    boundProxies: 0,
+    status: sub.status,
+    error: sub.error,
+    applied: false,
+  };
 }
 
 /**
@@ -23,6 +57,7 @@ export interface DueCheckInput {
  *    least `updateIntervalMinutes` (clamped to >= 0).
  */
 export function isSubscriptionDue(sub: DueCheckInput, now: number = Date.now()): boolean {
+  if (isFeedlessSubscription(sub.url)) return false;
   if (!sub.enabled) return false;
   const last = sub.lastFetchedAt ? Date.parse(sub.lastFetchedAt) : NaN;
   if (!Number.isFinite(last)) return true;
