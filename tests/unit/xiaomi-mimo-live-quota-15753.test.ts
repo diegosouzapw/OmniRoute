@@ -186,6 +186,12 @@ describe("xiaomi-mimo live Token Plan quota (#15753)", () => {
     const r = (await X.getXiaomiMimoUsage("conn-fallback", "xiaomi-mimo")) as UsageResult;
 
     assert.match(r.message ?? "", /console cookie/i, "hint must point at the cookie field");
+    const hint = r.message ?? "";
+    assert.match(hint, /XIAOMI_MIMO_CONSOLE_COOKIE/, "hint names the env var fallback");
+    assert.match(hint, /api-platform_serviceToken/, "hint names the cookie's session token");
+    assert.match(hint, /platform\.xiaomimimo\.com/, "hint says where to capture the cookie");
+    assert.match(hint, /browser session/i, "hint explains the cookie lifetime");
+    assert.match(hint, /inference key/i, "hint explains the tp-/mk- key cannot read quota");
     assert.ok(r.quotas, "self-tracked numbers stay usable");
     assert.equal(r.quotas.monthly.total, XIAOMI_LIMIT, "default limit = 4.1B Lite Credits");
   });

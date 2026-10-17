@@ -1,0 +1,1 @@
+- **fix(dashboard):** the connection quota card now shows the payload-level quota `message` next to parsed rows instead of hiding it whenever a row exists, so a self-tracked fallback (e.g. `xiaomi-mimo` with an expired console cookie) can no longer look like a live plan reading; the MiMo hint also gains the same cookie capture instructions Qwen prints.
