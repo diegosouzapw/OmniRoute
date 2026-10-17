@@ -16,7 +16,11 @@ export type HoistedCacheBoundary = "moved" | "kept" | "dropped";
 
 // Re-exported from its canonical home in claudeCodeConstraints.ts so existing
 // importers of this module keep working.
-export { relocateDirectiveOnlyMessages } from "../../services/claudeCodeConstraints.ts";
+import { relocateDirectiveOnlyMessages } from "../../services/claudeCodeConstraints.ts";
+import { resolveClaudeMidConversationSystemPolicy } from "../../services/claudeMidConversationSystem.ts";
+import { FORMATS } from "../../translator/formats.ts";
+
+export { relocateDirectiveOnlyMessages };
 
 /** Effective cache TTL of a `cache_control` value; Anthropic defaults to 5m when `ttl` is absent. */
 function effectiveTtl(marker: unknown): string {
@@ -221,4 +225,40 @@ export function hoistLeadingTextSystemMessages(payload: Record<string, unknown>)
     payload.system = blocks;
   }
   payload.messages = [...kept, ...messages.slice(i)];
+}
+
+/** Routing context of a native Claude upstream call (the target format is always Claude). */
+export type SystemRoleRoute = {
+  provider?: string | null;
+  sourceFormat?: string | null;
+};
+
+/**
+ * Picks how system/developer turns leave messages[] before a native Claude upstream call.
+ * Upstreams that accept mid-conversation system turns only get the leading run hoisted
+ * (and directive-only messages moved off messages[0]), so later turns keep their position
+ * and the cache prefix stays stable. Accepting `system` turns says nothing about OpenAI
+ * `developer` turns, so a body carrying one keeps the full hoist.
+ */
+export function liftSystemRoleMessages(
+  payload: Record<string, unknown>,
+  route?: SystemRoleRoute
+): void {
+  const preserveMidConversationSystem = resolveClaudeMidConversationSystemPolicy({
+    provider: route?.provider,
+    sourceFormat: route?.sourceFormat,
+    targetFormat: FORMATS.CLAUDE,
+  });
+  const messages = Array.isArray(payload.messages)
+    ? (payload.messages as Array<{ role?: unknown }>)
+    : [];
+  const hasDeveloperTurn = messages.some(
+    (m) => typeof m?.role === "string" && m.role.toLowerCase() === "developer"
+  );
+  if (preserveMidConversationSystem && !hasDeveloperTurn) {
+    hoistLeadingTextSystemMessages(payload);
+    relocateDirectiveOnlyMessages(payload);
+    return;
+  }
+  extractSystemRoleMessages(payload);
 }

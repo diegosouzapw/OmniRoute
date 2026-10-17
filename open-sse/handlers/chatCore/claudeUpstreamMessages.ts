@@ -12,7 +12,8 @@
  */
 
 import type { ClaudeContentBlock, ClaudeMessage } from "./claudeMessageTypes.ts";
-import { extractSystemRoleMessages, relocateHoistedCacheBoundary } from "./claudeSystemRole.ts";
+import { liftSystemRoleMessages, relocateHoistedCacheBoundary } from "./claudeSystemRole.ts";
+import type { SystemRoleRoute } from "./claudeSystemRole.ts";
 import { splitMisplacedToolResults } from "../../translator/helpers/claudeHelper.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
@@ -81,27 +82,25 @@ export function extractSystemMessagesToBody(payload: Record<string, unknown>) {
   payload.messages = messages.filter((m) => !isSystemRole(m.role));
 }
 
+function isNonEmptyTextOrOther(block: ClaudeContentBlock): boolean {
+  return block.type !== "text" || (typeof block.text === "string" && block.text.length > 0);
+}
+
 export function normalizeClaudeUpstreamMessages(
   payload: Record<string, unknown>,
-  options?: { preserveToolResultBlocks?: boolean },
+  options?: { preserveToolResultBlocks?: boolean } & SystemRoleRoute,
   log?: LoggerLike
 ) {
   const preserveToolResultBlocks = options?.preserveToolResultBlocks === true;
   if (!Array.isArray(payload.messages)) return;
-  let messages = payload.messages as ClaudeMessage[];
 
-  // Extract system/developer role messages into top-level system parameter.
-  extractSystemRoleMessages(payload);
-  messages = payload.messages as ClaudeMessage[];
+  // Lift system/developer role messages into the top-level system parameter.
+  liftSystemRoleMessages(payload, options);
+  const messages = payload.messages as ClaudeMessage[];
 
   // Anthropic rejects empty text blocks in native Messages payloads.
   for (const msg of messages) {
-    if (Array.isArray(msg.content)) {
-      msg.content = msg.content.filter(
-        (block: ClaudeContentBlock) =>
-          block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
-      );
-    }
+    if (Array.isArray(msg.content)) msg.content = msg.content.filter(isNonEmptyTextOrOther);
   }
 
   // Normalize unsupported content types without reintroducing the Claude -> OpenAI round-trip.
@@ -117,8 +116,7 @@ export function normalizeClaudeUpstreamMessages(
         block.type === "document"
       ) {
         const fileData = (block.file_url ?? block.file ?? block.document) as
-          | Record<string, unknown>
-          | undefined;
+          Record<string, unknown> | undefined;
         if (
           (block.type === "file" || block.type === "document") &&
           !fileData?.url &&
@@ -132,7 +130,9 @@ export function normalizeClaudeUpstreamMessages(
           const fileName =
             (block.file as Record<string, unknown>)?.name ?? block.name ?? "attachment";
           if (typeof fileContent === "string" && fileContent.length > 0) {
-            return [withCacheControl({ type: "text", text: `[${fileName}]\n${fileContent}` }, block)];
+            return [
+              withCacheControl({ type: "text", text: `[${fileName}]\n${fileContent}` }, block),
+            ];
           }
         }
         return [block];
@@ -155,7 +155,10 @@ export function normalizeClaudeUpstreamMessages(
               : JSON.stringify(resultContent);
         if (resultText.length > 0) {
           return [
-            withCacheControl({ type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` }, block),
+            withCacheControl(
+              { type: "text", text: `[Tool Result: ${toolId}]\n${resultText}` },
+              block
+            ),
           ];
         }
         return [];
