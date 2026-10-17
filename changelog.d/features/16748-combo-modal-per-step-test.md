@@ -1,0 +1,1 @@
+- **feat(dashboard):** per-step Test button in the combo create/edit modal — probes one model step (pinned account included) and shows latency or the error inline ([#16748](https://github.com/diegosouzapw/OmniRoute/pull/16748)) — thanks @smserwan

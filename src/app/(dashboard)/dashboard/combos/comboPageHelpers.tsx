@@ -27,3 +27,18 @@ export function AutoComboTruncatedNote({ results }) {
     </p>
   );
 }
+
+/** Secondary label under a combo step: what kind of step it is / how its account is picked. */
+export function getComboStepKindLabel(t, entry) {
+  if (entry?.kind === "combo-ref") {
+    return getI18nOrFallback(t, "builderComboRefStep", "Nested combo reference");
+  }
+  if (entry?.kind === "provider-wildcard") {
+    return getI18nOrFallback(t, "builderProviderWildcard", "All matching provider models");
+  }
+  if (entry?.connectionId) return getI18nOrFallback(t, "builderPinnedAccount", "Pinned account");
+  if (entry?.providerId) {
+    return getI18nOrFallback(t, "builderDynamicAccountShort", "Dynamic account");
+  }
+  return getI18nOrFallback(t, "builderLegacyEntry", "Legacy model entry");
+}
