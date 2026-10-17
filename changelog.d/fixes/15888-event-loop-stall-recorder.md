@@ -1,0 +1,1 @@
+- **fix(monitoring):** a silent event-loop freeze now leaves a trace — the server logs one line at resume with the stall length, memory and in-flight counts, and reports the count plus longest stall on the monitoring health payload ([#15888](https://github.com/diegosouzapw/OmniRoute/pull/15888)) — thanks @maxmad64bis, building on @morpheus9393's diagnosis from #13891
