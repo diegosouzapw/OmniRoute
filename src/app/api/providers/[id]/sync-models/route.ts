@@ -38,6 +38,7 @@ import {
   pruneStaleComboModelRefs,
 } from "@/lib/combos/staleModelPrune";
 import { logAuditEvent } from "@/lib/compliance/index";
+import { recordSyncedModelsForInbox } from "@/lib/newModelsInbox";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -475,6 +476,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
       const previous = await getSyncedAvailableModelsForConnection(logProvider, id);
       const synced = await replaceSyncedAvailableModelsForConnection(logProvider, id, discovered);
+      recordSyncedModelsForInbox(logProvider, synced);
       const prevIds = new Set(previous.map((m) => String(m.id)));
       const added = synced.filter((m) => !prevIds.has(String(m.id))).length;
       const removed = previous.filter(
@@ -641,6 +643,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       previousSyncedAvailableModels: previousSyncedAvailableModelsForConnection,
     });
 
+    recordSyncedModelsForInbox(logProvider, allFetchedModels);
     const effectiveAvailableModels = resolveEffectiveAvailableModels(
       freeFilterEmpty,
       discoveredModels,

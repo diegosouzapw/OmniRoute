@@ -1,0 +1,1 @@
+- **feat(dashboard):** "New models" inbox — model sync records each provider's listing (first sync seeds a baseline) and the Providers toolbar shows newly added models with an unread badge, grouped by provider, with mark-as-read ([#16864](https://github.com/diegosouzapw/OmniRoute/pull/16864)) — thanks @ErfanBagheri404
