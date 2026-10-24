@@ -1,5 +1,5 @@
 {
-  "root": ["auth", "common", "docs", "endpoint", "header", "landing", "publicSystem"],
+  "root": ["auth", "common", "docs", "endpoint", "header", "landing", "miniapp", "publicSystem"],
   "chrome": [
     "agentSkills",
     "analytics",
@@ -645,6 +645,7 @@
       "cloudSyncStatus",
       "codexKeyServiceMode",
       "common",
+      "conversations",
       "costs",
       "cursorAuthModal",
       "header",
@@ -939,6 +940,7 @@
       "header",
       "kiroAuthModal",
       "kiroSocialOAuthModal",
+      "logExport",
       "noAuthProvider",
       "oauthModal",
       "proxyConfigModal",
@@ -1299,6 +1301,7 @@
       "analytics",
       "breadcrumbs",
       "cache",
+      "cliproxyHealth",
       "cliproxyProviderExposure",
       "cloudSyncStatus",
       "codexKeyServiceMode",
@@ -1306,6 +1309,7 @@
       "connectionTest",
       "costs",
       "cursorAuthModal",
+      "darioPanel",
       "embeddedServices",
       "header",
       "kiroAuthModal",

@@ -1031,23 +1031,23 @@ export default function EditConnectionModal({
             )}
             {isChatGptWebCodex && (
               <div className="space-y-3 rounded-lg border border-border bg-bg-subtle p-3">
-                <p className="text-sm font-medium text-text-main">Codex-Toolverbindung</p>
+                <p className="text-sm font-medium text-text-main">{t("codexTunnelTitle")}</p>
                 <Input
-                  label="Tunnel-ID"
+                  label={t("tunnelIdLabel")}
                   value={formData.tunnelId}
                   onChange={(event) => setFormData({ ...formData, tunnelId: event.target.value })}
                   placeholder="tunnel_0123456789abcdef0123456789abcdef"
                 />
                 <Input
-                  label="Neuer Tunnel Runtime-Key"
+                  label={t("tunnelRuntimeKeyNewLabel")}
                   type="password"
                   value={formData.runtimeKey}
                   onChange={(event) => setFormData({ ...formData, runtimeKey: event.target.value })}
-                  hint="Nur zusammen mit einem frischen Cookie eingeben. Der Wert wird verschlüsselt gespeichert."
+                  hint={t("tunnelRuntimeKeyNewHint")}
                   autoComplete="off"
                 />
                 <Input
-                  label="ChatGPT-Custom-Connector"
+                  label={t("chatgptConnectorLabel")}
                   value={formData.connectorName}
                   onChange={(event) =>
                     setFormData({ ...formData, connectorName: event.target.value })
@@ -1071,7 +1071,7 @@ export default function EditConnectionModal({
                     }
                   }}
                 >
-                  {doctorLoading ? "Status wird geprüft …" : "Doctor-Status prüfen"}
+                  {doctorLoading ? t("doctorChecking") : t("doctorCheck")}
                 </Button>
                 {doctorStatus && (
                   <div className="grid grid-cols-2 gap-2 text-xs text-text-muted">

@@ -1,21 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Badge, Button, Card } from "@/shared/components";
 import type {
   CliproxyAccountHealth,
   CliproxyAccountHealthResult,
 } from "@/lib/services/cliproxyAccountHealth";
 
-const STATE_LABELS: Record<CliproxyAccountHealthResult["state"], string> = {
-  ready: "Account health",
-  disabled: "CLIProxyAPI is not installed",
-  missing_key: "Management key is not configured",
-  unreachable: "Management API is unreachable",
-  unauthorized: "Management key was rejected",
-  unsupported: "This CLIProxyAPI version does not expose account health",
-  invalid_response: "Management API returned an unsupported response",
-};
+function stateLabels(
+  t: ReturnType<typeof useTranslations>
+): Record<CliproxyAccountHealthResult["state"], string> {
+  return {
+    ready: t("stateReady"),
+    disabled: t("stateDisabled"),
+    missing_key: t("stateMissingKey"),
+    unreachable: t("stateUnreachable"),
+    unauthorized: t("stateUnauthorized"),
+    unsupported: t("stateUnsupported"),
+    invalid_response: t("stateInvalidResponse"),
+  };
+}
 
 function AccountRow({ account }: { account: CliproxyAccountHealth }) {
   const state = account.disabled
@@ -61,6 +66,7 @@ async function fetchAccountHealth(): Promise<CliproxyAccountHealthResult> {
 }
 
 export function CliproxyAccountHealthCard() {
+  const t = useTranslations("cliproxyHealth");
   const [result, setResult] = useState<CliproxyAccountHealthResult | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,29 +94,27 @@ export function CliproxyAccountHealthCard() {
 
   return (
     <Card
-      title="CLIProxyAPI accounts"
-      subtitle="Read-only status from the authenticated management API"
+      title={t("cardTitle")}
+      subtitle={t("cardSubtitle")}
       action={
         <Button variant="secondary" size="sm" onClick={handleRefresh} loading={loading}>
-          Refresh
+          {t("btnRefresh")}
         </Button>
       }
     >
       {result?.state === "ready" ? (
         result.accounts.length > 0 ? (
-          <ul aria-label="CLIProxyAPI account health">
+          <ul aria-label={t("listAria")}>
             {result.accounts.map((account) => (
               <AccountRow key={account.authIndex} account={account} />
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-text-muted">No CLIProxyAPI accounts found.</p>
+          <p className="text-sm text-text-muted">{t("noAccounts")}</p>
         )
       ) : (
         <p className="text-sm text-text-muted">
-          {loading && !result
-            ? "Loading account health…"
-            : STATE_LABELS[result?.state ?? "unreachable"]}
+          {loading && !result ? t("loading") : stateLabels(t)[result?.state ?? "unreachable"]}
         </p>
       )}
     </Card>

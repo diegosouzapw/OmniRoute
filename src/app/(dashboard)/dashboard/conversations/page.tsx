@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table,
@@ -57,10 +58,11 @@ interface ConversationRow {
 // (RequestLoggerV2) — reused here so "in progress" reads the same way in
 // both places.
 function ActiveSpinner() {
+  const t = useTranslations("conversations");
   return (
     <span
       className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-warning-bg border border-warning/30 shrink-0"
-      title="In progress"
+      title={t("statusInProgress")}
     >
       <span className="inline-block h-2.5 w-2.5 rounded-full border-2 border-warning border-t-transparent animate-spin" />
     </span>
@@ -120,15 +122,16 @@ function StatusBadge({ status }: { status: number | null }) {
 // from one the content-hash tracker merely counts as multi-turn while still
 // resending full history each request.
 function ContinuationBadge({ isGenuine }: { isGenuine: boolean }) {
+  const t = useTranslations("conversations");
   if (!isGenuine) return null;
   return (
     <Badge
       variant="success"
       size="sm"
-      title="Latest turn used previous_response_id and it resolved server-side"
+      title={t("continuationGenuineTitle")}
       icon={<Icon name="bolt" size={11} />}
     >
-      continuation
+      {t("continuationBadge")}
     </Badge>
   );
 }
@@ -141,15 +144,16 @@ function ContinuationBadge({ isGenuine }: { isGenuine: boolean }) {
 // grace period has actually elapsed). Server-computed so this badge never
 // disagrees with the actual persisted artifact state.
 function StalledBadge({ isStalled }: { isStalled: boolean }) {
+  const t = useTranslations("conversations");
   if (!isStalled) return null;
   return (
     <Badge
       variant="error"
       size="sm"
-      title="Latest turn didn't end in stop and nothing has continued for 5+ minutes"
+      title={t("stalledTitle")}
       icon={<Icon name="error" size={11} />}
     >
-      stalled
+      {t("stalledBadge")}
     </Badge>
   );
 }
@@ -179,10 +183,9 @@ function ConversationLogView({
   // comment for why), rendered as a provisional bubble below the real turns.
   livePartialText: string;
 }) {
+  const t = useTranslations("conversations");
   if (nodes.length === 0 && !livePartialText) {
-    return (
-      <div className="text-sm text-text-muted py-4">No turns recorded for this conversation.</div>
-    );
+    return <div className="text-sm text-text-muted py-4">{t("noTurns")}</div>;
   }
   return (
     <div className="flex flex-col gap-1.5 py-2 w-full min-w-0">
@@ -219,6 +222,7 @@ function ConversationLogView({
 }
 
 function ConversationsPageContent() {
+  const t = useTranslations("conversations");
   const router = useRouter();
   const searchParams = useSearchParams();
   // Read once on mount, mirroring dashboard/logs/page.tsx (#6830/#8354): re-reading the
@@ -618,7 +622,7 @@ function ConversationsPageContent() {
   //
   // Depends on activeConversationId, NOT the whole activeConversation
   // object: activeConversation gets a fresh object reference every list-poll
-  // tick (see the resync effect above, needed so "Goto latest request"
+  // tick (see the resync effect above, needed so the "Go to latest request" button
   // doesn't go stale) — on the SAME poll cadence as this effect's own
   // interval. Depending on the object would tear down and recreate this
   // setInterval every single tick, resetting its countdown each time and
@@ -783,15 +787,15 @@ function ConversationsPageContent() {
   return (
     <div className="flex flex-col gap-4">
       <SectionHeader
-        title="Conversations"
-        description={`${total} conversation${total === 1 ? "" : "s"} with 2+ turns`}
+        title={t("title")}
+        description={t("countSummary", { total })}
         actions={
           <Input
             type="number"
             min={1}
             step={1}
-            label="Auto-refresh (s)"
-            title="How often this list re-fetches from the server."
+            label={`${t("autoRefresh")} (s)`}
+            title={t("autoRefreshTitle")}
             className="w-36"
             inputClassName="font-mono"
             value={pollSeconds}
@@ -808,7 +812,7 @@ function ConversationsPageContent() {
 
       {loading && conversations.length === 0 && (
         <div className="flex items-center justify-center py-12 text-text-muted text-sm">
-          Loading conversations...
+          {t("loading")}
         </div>
       )}
 
@@ -867,17 +871,17 @@ function ConversationsPageContent() {
           <Table
             className="text-sm"
             containerClassName="hidden sm:block"
-            scrollbarLabel="Conversations"
+            scrollbarLabel={t("title")}
           >
             <TableHeader>
               <TableRow>
-                <TableHead>Conversation</TableHead>
-                <TableHead className="text-right">Turns</TableHead>
-                <TableHead>Continuation</TableHead>
-                <TableHead>Last Model</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Last Seen</TableHead>
+                <TableHead>{t("colConversation")}</TableHead>
+                <TableHead className="text-right">{t("colTurns")}</TableHead>
+                <TableHead>{t("colContinuation")}</TableHead>
+                <TableHead>{t("colLastModel")}</TableHead>
+                <TableHead>{t("colProvider")}</TableHead>
+                <TableHead>{t("colStatus")}</TableHead>
+                <TableHead className="text-right">{t("colLastSeen")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -935,7 +939,7 @@ function ConversationsPageContent() {
         bodyClassName="p-0"
         title={
           <span className="block min-w-0">
-            <span className="block text-sm font-semibold text-text-main">Conversation</span>
+            <span className="block text-sm font-semibold text-text-main">{t("drawerTitle")}</span>
             {activeConversation && (
               <span
                 title={activeConversation.id}
@@ -959,8 +963,8 @@ function ConversationsPageContent() {
                 icon="chevron_left"
                 onClick={goToPreviousConversation}
                 disabled={!hasPreviousConversation}
-                title="Previous conversation"
-                aria-label="Previous conversation"
+                title={t("prevConversation")}
+                aria-label={t("prevConversation")}
               />
               <Button
                 variant="ghost"
@@ -968,12 +972,12 @@ function ConversationsPageContent() {
                 icon="chevron_right"
                 onClick={goToNextConversation}
                 disabled={!hasNextConversation}
-                title="Next conversation"
-                aria-label="Next conversation"
+                title={t("nextConversation")}
+                aria-label={t("nextConversation")}
               />
               {activeConversation.lastCallLogId && (
                 <Button variant="outline" size="sm" onClick={gotoLatestRequest}>
-                  Goto latest request
+                  {t("gotoLatestRequest")}
                 </Button>
               )}
               <Button
@@ -981,8 +985,8 @@ function ConversationsPageContent() {
                 size="icon"
                 icon="vertical_align_bottom"
                 onClick={scrollToBottom}
-                title="Go to bottom"
-                aria-label="Go to bottom"
+                title={t("goToBottom")}
+                aria-label={t("goToBottom")}
               />
             </div>
             <div ref={attachContent} className="p-4 sm:p-6">
@@ -1022,11 +1026,12 @@ function ConversationsPageContent() {
 }
 
 export default function ConversationsPage() {
+  const t = useTranslations("conversations");
   return (
     <Suspense
       fallback={
         <div className="flex items-center justify-center py-12 text-text-muted text-sm">
-          Loading conversations...
+          {t("loading")}
         </div>
       }
     >

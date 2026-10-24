@@ -548,27 +548,19 @@ export default function QdrantConfigCard() {
         onClose={() => setTutorialOpen(false)}
         size="full"
         className="max-w-2xl"
-        title="Tutorial rápido: memória com Qdrant"
+        title={t("qdrantTutorialTitle")}
       >
-        <p className="text-sm text-text-muted">
-          O Qdrant guarda vetores e metadados das memórias para recuperar contexto relevante. Ele
-          não comprime tokens diretamente; a economia é indireta, ao evitar contexto sem relação com
-          a solicitação.
-        </p>
+        <p className="text-sm text-text-muted">{t("qdrantTutorialIntro")}</p>
         <ol className="mt-5 list-decimal space-y-3 pl-5 text-sm text-text-muted">
-          <li>Proteja o servidor com HTTPS e API key antes de uso produtivo.</li>
-          <li>
-            Informe host, porta, coleção e um modelo no formato provider/model com credencial
-            configurada.
-          </li>
-          <li>
-            A dimensão da coleção precisa ser igual à dimensão produzida pelo modelo. Uma coleção
-            existente de 2048 dimensões não aceita embeddings de 1536 dimensões.
-          </li>
-          <li>Salve, teste a conexão e execute o teste de busca. Só então ative o Qdrant.</li>
+          <li>{t("qdrantTutorialStep1")}</li>
+          <li>{t("qdrantTutorialStep2")}</li>
+          <li>{t("qdrantTutorialStep3")}</li>
+          <li>{t("qdrantTutorialStep4")}</li>
         </ol>
-        <pre className="mt-5 overflow-x-auto rounded-lg bg-bg-subtle p-3 text-xs">{`PUT /collections/minha_memoria\n{\n  "vectors": { "size": <dimensão-do-modelo>, "distance": "Cosine" }\n}`}</pre>
-        <p className="mt-5 text-xs text-text-muted">Créditos: Rafa Martins — rafacpti@gmail.com</p>
+        <pre className="mt-5 overflow-x-auto rounded-lg bg-bg-subtle p-3 text-xs">
+          {t("qdrantTutorialCode")}
+        </pre>
+        <p className="mt-5 text-xs text-text-muted">{t("qdrantTutorialCredits")}</p>
       </Modal>
     </Card>
   );

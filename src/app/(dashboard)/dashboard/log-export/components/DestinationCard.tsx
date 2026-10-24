@@ -3,6 +3,7 @@
 import Badge from "@/shared/components/Badge";
 import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
+import { useTranslations } from "next-intl";
 import type { LogExportDestination } from "../types";
 
 interface DestinationCardProps {
@@ -15,17 +16,19 @@ interface DestinationCardProps {
   onDelete: () => void;
 }
 
-function formatTimestamp(value: string | null): string {
-  if (!value) return "never";
+function formatTimestamp(value: string | null, neverLabel: string): string {
+  if (!value) return neverLabel;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
 }
 
-function statusBadge(destination: LogExportDestination) {
-  if (!destination.enabled) return <Badge variant="default">Disabled</Badge>;
-  if (destination.lastStatus === "failure") return <Badge variant="error">Failing</Badge>;
-  if (destination.lastStatus === "success") return <Badge variant="success">Healthy</Badge>;
-  return <Badge variant="info">Not run yet</Badge>;
+function statusBadge(destination: LogExportDestination, t: ReturnType<typeof useTranslations>) {
+  if (!destination.enabled) return <Badge variant="default">{t("statusDisabled")}</Badge>;
+  if (destination.lastStatus === "failure")
+    return <Badge variant="error">{t("statusFailing")}</Badge>;
+  if (destination.lastStatus === "success")
+    return <Badge variant="success">{t("statusHealthy")}</Badge>;
+  return <Badge variant="info">{t("statusNotRunYet")}</Badge>;
 }
 
 export function DestinationCard({
@@ -37,6 +40,7 @@ export function DestinationCard({
   onEdit,
   onDelete,
 }: DestinationCardProps) {
+  const t = useTranslations("logExport");
   return (
     <Card padding="sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -46,17 +50,20 @@ export function DestinationCard({
             <Badge variant="primary" size="sm">
               {destination.typeLabel}
             </Badge>
-            {statusBadge(destination)}
+            {statusBadge(destination, t)}
             {!destination.typeAvailable ? (
               <Badge variant="warning" size="sm">
-                Type not installed
+                {t("typeNotInstalled")}
               </Badge>
             ) : null}
           </div>
           <p className="mt-1 text-xs text-text-muted">
-            Last run {formatTimestamp(destination.lastRunAt)} · exported{" "}
-            {destination.exportedTotal.toLocaleString()} rows ·{" "}
-            {destination.pending.toLocaleString()} pending · cursor {destination.cursorRowId}
+            {t("metaLine", {
+              lastRun: formatTimestamp(destination.lastRunAt, t("never")),
+              exported: destination.exportedTotal.toLocaleString(),
+              pending: destination.pending.toLocaleString(),
+              cursor: destination.cursorRowId,
+            })}
           </p>
           {destination.lastError ? (
             <p className="mt-2 rounded-control bg-error-bg p-2 text-xs text-error">
@@ -67,19 +74,19 @@ export function DestinationCard({
 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="secondary" loading={busy === "test"} onClick={onTest}>
-            Test
+            {t("btnTest")}
           </Button>
           <Button size="sm" variant="secondary" loading={busy === "run"} onClick={onRun}>
-            Run now
+            {t("btnRunNow")}
           </Button>
           <Button size="sm" variant="ghost" loading={busy === "toggle"} onClick={onToggle}>
-            {destination.enabled ? "Disable" : "Enable"}
+            {destination.enabled ? t("btnDisable") : t("btnEnable")}
           </Button>
           <Button size="sm" variant="ghost" onClick={onEdit}>
-            Edit
+            {t("btnEdit")}
           </Button>
           <Button size="sm" variant="ghost" onClick={onDelete}>
-            Delete
+            {t("btnDelete")}
           </Button>
         </div>
       </div>

@@ -499,11 +499,11 @@ export default function CustomModelsSection({
               <option value="chat-completions">{t("chatCompletions")}</option>
               <option value="responses">{t("responsesApi")}</option>
               <option value="embeddings">{t("embeddings")}</option>
-              <option value="rerank">Rerank</option>
+              <option value="rerank">{t("rerank")}</option>
               <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
               <option value="audio-speech">{t("audioSpeech")}</option>
               <option value="images-generations">{t("imagesGenerations")}</option>
-              <option value="video">Video</option>
+              <option value="video">{t("video")}</option>
             </Select>
           </div>
           <div className="min-w-0 lg:w-48">
@@ -559,13 +559,13 @@ export default function CustomModelsSection({
             </span>
             <span
               className="text-xs text-text-main whitespace-nowrap"
-              title="Mark as free-tier (shown even when hide paid models is on)"
+              title={t("markFreeTierTitle")}
             >
               <Checkbox
                 id="custom-model-is-free"
                 checked={newIsFree}
                 onChange={(e) => setNewIsFree(e.target.checked)}
-                label="FREE"
+                label={t("freeBadge")}
               />
             </span>
           </div>
@@ -658,7 +658,7 @@ export default function CustomModelsSection({
                     )}
                     {model.isFree === true && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-success/15 text-success font-medium">
-                        FREE
+                        {t("freeBadge")}
                       </span>
                     )}
                     {model.supportedEndpoints?.includes("embeddings") && (
@@ -738,11 +738,11 @@ export default function CustomModelsSection({
                             <option value="chat-completions">{t("chatCompletions")}</option>
                             <option value="responses">{t("responsesApi")}</option>
                             <option value="embeddings">{t("embeddings")}</option>
-                            <option value="rerank">Rerank</option>
+                            <option value="rerank">{t("rerank")}</option>
                             <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
-                            <option value="video">Video</option>
+                            <option value="video">{t("video")}</option>
                           </Select>
                         </div>
                         <div className="min-w-0 lg:w-[11rem] lg:shrink-0">
@@ -811,7 +811,7 @@ export default function CustomModelsSection({
                               id={`custom-model-edit-free-${model.id}`}
                               checked={editingIsFree}
                               onChange={(e) => setEditingIsFree(e.target.checked)}
-                              label="FREE"
+                              label={t("freeBadge")}
                             />
                           </span>
                         </div>

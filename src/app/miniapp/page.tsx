@@ -39,6 +39,7 @@ const STREAM_URL = "/api/telegram/update";
 
 export default function TelegramMiniApp() {
   const t = useTranslations("publicSystem");
+  const tm = useTranslations("miniapp");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,14 +58,14 @@ export default function TelegramMiniApp() {
           ...prev,
           {
             role: "assistant",
-            content: `👋 Hi ${user.first_name || "there"}! Send a message to chat through your OmniRoute gateway.`,
+            content: tm("greeting", { name: user.first_name || tm("greetingFallbackName") }),
           },
         ]);
       }
     } else {
-      setError("This page must be opened inside the Telegram Mini App.");
+      setError(tm("errTelegramOnly"));
     }
-  }, []);
+  }, [tm]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -90,7 +91,7 @@ export default function TelegramMiniApp() {
         reply?: string;
         error?: string;
       } | null;
-      const reply = data?.reply || data?.error || "⚠️ No reply from gateway.";
+      const reply = data?.reply || data?.error || tm("errNoReply");
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
       setMessages((prev) => [
@@ -104,7 +105,7 @@ export default function TelegramMiniApp() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[480px] flex-col p-4">
-      <h1 className="ci-heading mb-3 text-lg">OmniRoute Mini App</h1>
+      <h1 className="ci-heading mb-3 text-lg">{tm("title")}</h1>
       {error && <p className="mb-3 text-[13px] text-error">{error}</p>}
 
       <div className="mb-3 flex flex-1 flex-col overflow-y-auto">
@@ -135,7 +136,7 @@ export default function TelegramMiniApp() {
           disabled={busy}
         />
         <Button onClick={send} disabled={busy || !input.trim()}>
-          {busy ? "…" : "Send"}
+          {busy ? "…" : tm("btnSend")}
         </Button>
       </div>
     </main>
