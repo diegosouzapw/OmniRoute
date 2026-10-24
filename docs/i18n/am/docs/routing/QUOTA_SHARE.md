@@ -338,7 +338,7 @@ if (candidate.quotaSoftPenalty) {
 | Unit (29 ፈተናዎች)    | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler፣ saturation gating፣ concurrency caps፣ የfairShare ስሌት፣ backlog queueing                                                                                                              |
 | Integration matrix | `npm run test:combo:matrix`                                            | በእውነተኛው combo pipeline በኩል የሚያልፍ ከጫፍ እስከ ጫፍ የማስተላለፊያ ውሳኔ፤ በቀጥታ ማገናኛዎች (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) በኩል የDRR ፍትሃዊነት + በsaturation ምክንያት ቅድሚያ መቀነስ |
 
-Integration matrix ከሁሉም 19 ይፋዊ ስትራቴጂዎች ጋር በCI ውስጥ ይሰራል። Unit suite
+Integration matrix ከሁሉም 21 ይፋዊ ስትራቴጂዎች ጋር በCI ውስጥ ይሰራል። Unit suite
 በተናጠል ማስኬድ ይቻላል።
 
 ---

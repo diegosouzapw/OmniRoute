@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Sumusuporta ng **20 routing strategy** (tingnan ang `src/shared/constants/routingStrategies.ts`):
+Sumusuporta ng **21 routing strategy** (tingnan ang `src/shared/constants/routingStrategies.ts`):
 
 | Estratehiya         | Pag-uugali                                                                                                               |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ Sumusuporta ng **20 routing strategy** (tingnan ang `src/shared/constants/routin
 | `cost-optimized`    | Inuuna ang pinakamurang healthy na target                                                                                |
 | `reset-aware`       | May kamalayan sa mga reset window ng provider                                                                            |
 | `reset-window`      | Pag-route batay sa reset window                                                                                          |
+| `expiry-first`      | Inuuna ang account na ang quota ay mag-e-expire nang hindi nagagamit                                                     |
 | `headroom`          | Inuuna ang may pinakamalaking natitirang quota headroom                                                                  |
 | `quota-weighted`    | Nilalaktawan ang mga exhausted na account, pagkatapos ay pumipili batay sa natitirang quota ÷ in-flight load             |
 | `strict-random`     | Tunay na uniform (walang quality weighting)                                                                              |

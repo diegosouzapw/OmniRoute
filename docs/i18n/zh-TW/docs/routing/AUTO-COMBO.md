@@ -245,7 +245,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的組合引擎支援 **20 種路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身透過 `auto` 策略公開；其他策略則可供持久化組合使用。
+OmniRoute 的組合引擎支援 **21 種路由策略**（宣告於 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身透過 `auto` 策略公開；其他策略則可供持久化組合使用。
 
 | 策略                | 說明                                                                                                                                  |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
@@ -260,6 +260,7 @@ OmniRoute 的組合引擎支援 **20 種路由策略**（宣告於 `src/shared/c
 | `cost-optimized`    | 根據目錄定價，將每次請求的成本降至最低                                                                                                |
 | `reset-aware` ⭐    | 依配額重設時間排定優先順序——重設週期較短者排名較高                                                                                    |
 | `reset-window`      | 優先選擇配額週期即將重設的目標                                                                                                        |
+| `expiry-first`      | 優先消耗即將過期作廢的配額：剩餘最多且重置最近的帳號先出隊                                                                            |
 | `headroom`          | 選擇剩餘配額空間最多的目標                                                                                                            |
 | `quota-weighted`    | 略過配額已耗盡的帳戶，再依剩餘配額除以進行中負載的比例，從其餘帳戶中選擇；現有對話會繼續固定至原目標                                  |
 | `strict-random`     | 不對重複項目進行去重的隨機選擇                                                                                                        |
@@ -770,9 +771,9 @@ SLA 感知欄位：
 
 ### 確定性路由決策矩陣（`npm run test:combo:matrix`）
 
-`tests/integration/combo-matrix/*.test.ts` 透過真實的組合管線搭配模擬的上游，端對端驗證全部 19 種公開策略的路由**決策**。涵蓋範圍包括：
+`tests/integration/combo-matrix/*.test.ts` 透過真實的組合管線搭配模擬的上游，端對端驗證全部 21 種公開策略的路由**決策**。涵蓋範圍包括：
 
-- 全部 19 種 `ROUTING_STRATEGY_VALUES` 策略（ordered、weighted、cost、context、fusion，……）。
+- 全部 21 種 `ROUTING_STRATEGY_VALUES` 策略（ordered、weighted、cost、context、fusion，……）。
 - `quota-share`（內部）端對端：透過真實的 `selectQuotaShareTarget` 接縫（`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`），驗證 DRR 公平性與飽和度降優先處理。
 - 涵蓋所有目標數量的 `context-relay` 通用交接。
 
@@ -802,5 +803,5 @@ SLA 感知欄位：
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 前綴剖析器 + 6 種變體                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 從即時連線建立記憶體內的 `AutoComboConfig`                                     |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 用於模擬提供者登錄檔的測試掛鉤                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（20 種策略）                                         |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（21 種策略）                                         |
 | `src/sse/handlers/chat.ts`                                | 整合：auto-prefix 短路處理                                                     |

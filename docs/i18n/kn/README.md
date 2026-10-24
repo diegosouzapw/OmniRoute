@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — ಉಚಿತ AI ಗೇಟ್ವೇ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — ಕೋಡಿಂಗ್ ಅನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬೇಡಿ. ಪ್ರತಿಯೊಂದು AI ಸಾಧನ → 375 ಪೂರೈಕೆದಾರರು — 150+ ಉಚಿತ — ಒಂದೇ ಎಂಡ್ಪಾಯಿಂಟ್ ಮೂಲಕ. Claude Code, Codex, Cursor, Cline, Copilot ಮತ್ತು Antigravity ಅನ್ನು ಸ್ವಯಂ-ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ ಉಚಿತ Claude / GPT / Gemini ಗೆ ಸಂಪರ್ಕಿಸಿ. RTK + Caveman ಸಂಯೋಜಿತ ಸಂಕೋಚನವು 15–95% ಟೋಕನ್ಗಳನ್ನು (~89% ಸರಾಸರಿ) ಉಳಿಸುತ್ತದೆ — ಎಂದಿಗೂ ಮಿತಿಗಳನ್ನು ತಲುಪಬೇಡಿ. 375 AI ಪೂರೈಕೆದಾರರು · 150+ ಉಚಿತ ಹಂತಗಳು · ~1.62B ಉಚಿತ ಟೋಕನ್ಗಳು/ತಿಂಗಳು · 20 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು · ಪ್ರಾರಂಭಿಸಲು $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — ಕೋಡಿಂಗ್ ಅನ್ನು ಎಂದಿಗೂ ನಿಲ್ಲಿಸಬೇಡಿ. ಪ್ರತಿಯೊಂದು AI ಸಾಧನ → 375 ಪೂರೈಕೆದಾರರು — 150+ ಉಚಿತ — ಒಂದೇ ಎಂಡ್ಪಾಯಿಂಟ್ ಮೂಲಕ. Claude Code, Codex, Cursor, Cline, Copilot ಮತ್ತು Antigravity ಅನ್ನು ಸ್ವಯಂ-ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ ಉಚಿತ Claude / GPT / Gemini ಗೆ ಸಂಪರ್ಕಿಸಿ. RTK + Caveman ಸಂಯೋಜಿತ ಸಂಕೋಚನವು 15–95% ಟೋಕನ್ಗಳನ್ನು (~89% ಸರಾಸರಿ) ಉಳಿಸುತ್ತದೆ — ಎಂದಿಗೂ ಮಿತಿಗಳನ್ನು ತಲುಪಬೇಡಿ. 375 AI ಪೂರೈಕೆದಾರರು · 150+ ಉಚಿತ ಹಂತಗಳು · ~1.62B ಉಚಿತ ಟೋಕನ್ಗಳು/ತಿಂಗಳು · 21 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು · ಪ್ರಾರಂಭಿಸಲು $0."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ವಿನಂತಿ ಹರಿವು: ನಿಮ್ಮ IDE ಅಥವಾ CLI (Claude Code, Cursor, Cline…) ಒಂದೇ ಲೋಕಲ್ ಎಂಡ್ಪಾಯಿಂಟ್ (http://localhost:20128/v1) ಅನ್ನು ಕರೆಯುತ್ತದೆ; OmniRoute ಸ್ಮಾರ್ಟ್ ರೂಟರ್ (RTK + Caveman ಸಂಕೋಚನ, 20 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು, ಸರ್ಕ್ಯೂಟ್ ಬ್ರೇಕರ್ಗಳು, TLS ಸ್ಟೆಲ್ತ್, MCP, A2A, ಗಾರ್ಡ್ರೈಲ್ಗಳು) ಅರ್ಹ ಮತ್ತು ಆರೋಗ್ಯಕರ ಗುರಿ ಉಳಿದಿರುವವರೆಗೆ 4 ಪೂರೈಕೆದಾರ ಶ್ರೇಣಿಗಳಲ್ಲಿ ಫಾಲ್ಬ್ಯಾಕ್ ಮಾಡಬಹುದು — ಶ್ರೇಣಿ 1 ಚಂದಾದಾರಿಕೆ, ಶ್ರೇಣಿ 2 API ಕೀಲಿ, ಶ್ರೇಣಿ 3 ಅಗ್ಗದ ಮತ್ತು ಶ್ರೇಣಿ 4 ಉಚಿತ."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute ವಿನಂತಿ ಹರಿವು: ನಿಮ್ಮ IDE ಅಥವಾ CLI (Claude Code, Cursor, Cline…) ಒಂದೇ ಲೋಕಲ್ ಎಂಡ್ಪಾಯಿಂಟ್ (http://localhost:20128/v1) ಅನ್ನು ಕರೆಯುತ್ತದೆ; OmniRoute ಸ್ಮಾರ್ಟ್ ರೂಟರ್ (RTK + Caveman ಸಂಕೋಚನ, 21 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು, ಸರ್ಕ್ಯೂಟ್ ಬ್ರೇಕರ್ಗಳು, TLS ಸ್ಟೆಲ್ತ್, MCP, A2A, ಗಾರ್ಡ್ರೈಲ್ಗಳು) ಅರ್ಹ ಮತ್ತು ಆರೋಗ್ಯಕರ ಗುರಿ ಉಳಿದಿರುವವರೆಗೆ 4 ಪೂರೈಕೆದಾರ ಶ್ರೇಣಿಗಳಲ್ಲಿ ಫಾಲ್ಬ್ಯಾಕ್ ಮಾಡಬಹುದು — ಶ್ರೇಣಿ 1 ಚಂದಾದಾರಿಕೆ, ಶ್ರೇಣಿ 2 API ಕೀಲಿ, ಶ್ರೇಣಿ 3 ಅಗ್ಗದ ಮತ್ತು ಶ್ರೇಣಿ 4 ಉಚಿತ."/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="20 ಕಾಂಬೋ ರೂಟಿಂಗ್ ತಂತ್ರಗಳಲ್ಲಿ 18ರ ಅನಿಮೇಟೆಡ್ ಉದಾಹರಣೆಗಳು — ಪ್ರತಿ ತಂತ್ರಕ್ಕೆ ಒಂದು ಟೈಲ್: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized ಮತ್ತು quota-weighted ಅನ್ನು ಅನಿಮೇಟ್ ಮಾಡಿಲ್ಲ; ಕೆಳಗಿನ ಕೋಷ್ಟಕವು ಎಲ್ಲಾ 20ನ್ನೂ ವಿವರಿಸುತ್ತದೆ."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="21 ಕಾಂಬೋ ರೂಟಿಂಗ್ ತಂತ್ರಗಳಲ್ಲಿ 18ರ ಅನಿಮೇಟೆಡ್ ಉದಾಹರಣೆಗಳು — ಪ್ರತಿ ತಂತ್ರಕ್ಕೆ ಒಂದು ಟೈಲ್: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted ಮತ್ತು expiry-first ಅನ್ನು ಅನಿಮೇಟ್ ಮಾಡಿಲ್ಲ; ಕೆಳಗಿನ ಕೋಷ್ಟಕವು ಎಲ್ಲಾ 21ನ್ನೂ ವಿವರಿಸುತ್ತದೆ."/>
 
 > **ಕಾಂಬೋ** ಎಂದರೆ OmniRoute **ಸ್ವಯಂಚಾಲಿತವಾಗಿ** ರೂಟ್ ಮಾಡುವ ಮಾದರಿಗಳ ಸರಣಿ. ಕೋಟಾ ಮುಗಿದರೆ, ಪೂರೈಕೆದಾರ ವಿಫಲವಾದರೆ ಅಥವಾ ವೆಚ್ಚಗಳು ಏರಿದರೆ, ಕಾಂಬೋ ಮುಂದಿನ ಅರ್ಹ ಮತ್ತು ಸುಸ್ಥಿತಿಯಲ್ಲಿರುವ ಮಾದರಿಗೆ ಸಾಗಬಹುದು. 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 ಅಥವಾ ನಿಮ್ಮದೇ ಆದದ್ದನ್ನು ನಿರ್ಮಿಸಿ — 20 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು
+### 🔀 ಅಥವಾ ನಿಮ್ಮದೇ ಆದದ್ದನ್ನು ನಿರ್ಮಿಸಿ — 21 ರೂಟಿಂಗ್ ತಂತ್ರಗಳು
 
-ಎಲ್ಲಾ **20** ತಂತ್ರಗಳು — ಪ್ರತಿ ಕಾಂಬೋ ಹಂತದಲ್ಲಿ ಬೇಕಾದಂತೆ ಮಿಶ್ರಣ ಮಾಡಿ ಮತ್ತು ಹೊಂದಿಸಿ:
+ಎಲ್ಲಾ **21** ತಂತ್ರಗಳು — ಪ್ರತಿ ಕಾಂಬೋ ಹಂತದಲ್ಲಿ ಬೇಕಾದಂತೆ ಮಿಶ್ರಣ ಮಾಡಿ ಮತ್ತು ಹೊಂದಿಸಿ:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>ಹಂತಗಳನ್ನು ಸರಪಳಿಯಾಗಿ ಜೋಡಿಸುತ್ತದೆ — ಪ್ರತಿ ಗುರಿಯ ಔಟ್ಪುಟ್ ಮುಂದಿನದಕ್ಕೆ ಇನ್ಪುಟ್ ಆಗುತ್ತದೆ 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>ಇಲ್ಲದಿದ್ದರೆ ಬಳಸದೆ ಅವಧಿ ಮುಗಿಯುವ ಕೋಟಾ ಹೊಂದಿರುವ ಖಾತೆಯನ್ನು ಮೊದಲು ಬಳಸುತ್ತದೆ: ಅತಿ ಹೆಚ್ಚು ಉಳಿಕೆ ಮತ್ತು ಅತಿ ಸಮೀಪದ ಮರುಹೊಂದಿಕೆ ಇರುವ ಖಾತೆ ಮೊದಲು ಹೋಗುತ್ತದೆ ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo ಎಂಜಿನ್ ಪ್ರತಿ ಅಭ್ಯರ್ಥಿಯನ್ನು **16 ಅಂಶಗಳ** (ಆರೋಗ್ಯ, ಕೋಟಾ, ವೆಚ್ಚ, ವಿಳಂಬ, ಕಾರ್ಯದ ಹೊಂದಾಣಿಕೆ, ಗುಣಮಟ್ಟ, ಸೆಷನ್ ಲಭ್ಯತೆ…) ಆಧಾರದ ಮೇಲೆ ಮೌಲ್ಯಮಾಪನ ಮಾಡುತ್ತದೆ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) ನೋಡಿ.</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ಅನ್ನು ವಿಶಿಷ್ಟವಾಗಿಸುವ ಅಂಶಗಳು — 13 ಸಾಮರ್ಥ್ಯಗಳಲ್ಲಿ 9router, OpenRouter, CLIProxyAPI ಮತ್ತು LiteLLM ಜೊತೆ ಹೋಲಿಸಿದ ದಿನಾಂಕಿತ ವೈಶಿಷ್ಟ್ಯಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್. OmniRoute: 375 ಪೂರೈಕೆದಾರರು, ಅಂತರ್ನಿರ್ಮಿತ 150+ ಉಚಿತ ಹಂತಗಳು, 20 ರೂಟಿಂಗ್ ಕಾರ್ಯತಂತ್ರಗಳು, 12-ಎಂಜಿನ್ ಟೋಕನ್ ಸಂಕುಚನ, 110 ಪರಿಕರಗಳನ್ನು ಹೊಂದಿರುವ ಅಂತರ್ನಿರ್ಮಿತ MCP ಸರ್ವರ್, A2A ಏಜೆಂಟ್ ಪ್ರೋಟೋಕಾಲ್, ನಿರಂತರ ಮೆಮೊರಿ, ಸುರಕ್ಷತಾ ನಿಯಂತ್ರಣಗಳು, ಕ್ಲೌಡ್ ಏಜೆಂಟ್ಗಳು, TLS ಫಿಂಗರ್ಪ್ರಿಂಟ್ ಸ್ಟೆಲ್ತ್, Desktop/Termux/PWA ಮತ್ತು 67 i18n UI ಸ್ಥಳೀಯ ಭಾಷೆಗಳು. OmniRoute MIT ಪರವಾನಗಿ ಹೊಂದಿದ್ದು, ಸ್ವಯಂ-ಹೋಸ್ಟ್ ಮಾಡಬಹುದಾಗಿದೆ. ಪ್ರತಿಸ್ಪರ್ಧಿಗಳ ಸಾಮರ್ಥ್ಯಗಳು ಮತ್ತು ಸಂಖ್ಯೆಗಳು ಬದಲಾಗಬಹುದು; ಲಿಂಕ್ ಮಾಡಲಾದ ವಿಧಾನವನ್ನು ನೋಡಿ."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute ಅನ್ನು ವಿಶಿಷ್ಟವಾಗಿಸುವ ಅಂಶಗಳು — 13 ಸಾಮರ್ಥ್ಯಗಳಲ್ಲಿ 9router, OpenRouter, CLIProxyAPI ಮತ್ತು LiteLLM ಜೊತೆ ಹೋಲಿಸಿದ ದಿನಾಂಕಿತ ವೈಶಿಷ್ಟ್ಯಗಳ ಸ್ನ್ಯಾಪ್ಶಾಟ್. OmniRoute: 375 ಪೂರೈಕೆದಾರರು, ಅಂತರ್ನಿರ್ಮಿತ 150+ ಉಚಿತ ಹಂತಗಳು, 21 ರೂಟಿಂಗ್ ಕಾರ್ಯತಂತ್ರಗಳು, 12-ಎಂಜಿನ್ ಟೋಕನ್ ಸಂಕುಚನ, 110 ಪರಿಕರಗಳನ್ನು ಹೊಂದಿರುವ ಅಂತರ್ನಿರ್ಮಿತ MCP ಸರ್ವರ್, A2A ಏಜೆಂಟ್ ಪ್ರೋಟೋಕಾಲ್, ನಿರಂತರ ಮೆಮೊರಿ, ಸುರಕ್ಷತಾ ನಿಯಂತ್ರಣಗಳು, ಕ್ಲೌಡ್ ಏಜೆಂಟ್ಗಳು, TLS ಫಿಂಗರ್ಪ್ರಿಂಟ್ ಸ್ಟೆಲ್ತ್, Desktop/Termux/PWA ಮತ್ತು 67 i18n UI ಸ್ಥಳೀಯ ಭಾಷೆಗಳು. OmniRoute MIT ಪರವಾನಗಿ ಹೊಂದಿದ್ದು, ಸ್ವಯಂ-ಹೋಸ್ಟ್ ಮಾಡಬಹುದಾಗಿದೆ. ಪ್ರತಿಸ್ಪರ್ಧಿಗಳ ಸಾಮರ್ಥ್ಯಗಳು ಮತ್ತು ಸಂಖ್ಯೆಗಳು ಬದಲಾಗಬಹುದು; ಲಿಂಕ್ ಮಾಡಲಾದ ವಿಧಾನವನ್ನು ನೋಡಿ."/>
 
 <sub>📊 ಸಂಪೂರ್ಣ ವಿಧಾನಶಾಸ್ತ್ರ &amp; 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM ಜೊತೆಗಿನ ಪ್ರತಿ ವೈಶಿಷ್ಟ್ಯದ ವಿವರವಾದ ಹೋಲಿಕೆ → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

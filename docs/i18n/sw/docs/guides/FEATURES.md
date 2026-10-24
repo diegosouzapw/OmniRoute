@@ -59,7 +59,7 @@ Miunganisho ya OpenRouter inaweza kuhifadhi `preset` maalumu kwa kila muunganish
 
 ## 🎨 Michanganyiko
 
-Unda michanganyiko ya uelekezaji wa modeli kwa mikakati 19 ya umma: priority, weighted, round-robin, context-relay, fill-first, p2c (uchaguzi wa nguvu-ya-mbili), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (mtoa-huduma-mzuri-wa-mwisho-anayejulikana), context-optimized, cache-optimized, **fusion** (tuma kwa kundi la modeli sambamba, kisha unganisha jibu moja kupitia mwamuzi), na **pipeline**. Kila mchanganyiko huunganisha modeli nyingi kwa ubadilishaji wa kiotomatiki endapo mojawapo itashindwa, na hujumuisha violezo vya haraka pamoja na ukaguzi wa utayari.
+Unda michanganyiko ya uelekezaji wa modeli kwa mikakati 21 ya umma: priority, weighted, round-robin, context-relay, fill-first, p2c (uchaguzi wa nguvu-ya-mbili), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (mtoa-huduma-mzuri-wa-mwisho-anayejulikana), context-optimized, cache-optimized, **fusion** (tuma kwa kundi la modeli sambamba, kisha unganisha jibu moja kupitia mwamuzi), na **pipeline**. Kila mchanganyiko huunganisha modeli nyingi kwa ubadilishaji wa kiotomatiki endapo mojawapo itashindwa, na hujumuisha violezo vya haraka pamoja na ukaguzi wa utayari.
 
 Maboresho ya hivi karibuni ya michanganyiko:
 

@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Yana daidaita ragowar quota da lokutan sake saiti na 5h da na mako-mako, sannan yana yin round-robin ga maki masu kama",
     "quotaWeighted": "Mai Nauyi Bisa Quota",
     "quotaWeightedDesc": "A tsallake asusun da quota ɗinsu ya ƙare, sannan a zaɓa daga sauran gwargwadon abin da ya rage, bayan an raba da nauyin buƙatun da ke gudana. Tattaunawar da ake yi za su ci gaba da kasancewa a asusun da aka ɗaure su.",
+    "expiryFirst": "Mai Ƙarewa Da Farko",
+    "expiryFirstDesc": "Yana fara amfani da asusun da quota ɗinsa za ta ƙare ba tare da amfani ba: wanda ya fi yawan saura kuma sake saitinsa ya fi kusa yana fara tafiya.",
     "strictRandom": "Bazuwar Tsantsa",
     "strictRandomDesc": "Cakuɗa katunan — yana amfani da kowane model sau ɗaya kafin sake cakuɗawa",
     "fusion": "Haɗewa",
@@ -3600,6 +3602,11 @@
         "when": "Kana karkatar da buƙatu tsakanin asusu da yawa masu bayanan telemetry na quota da lokutan sake saiti daban-daban.",
         "avoid": "Ba a samun bayanan quota ga yawancin asusu.",
         "example": "Fi son asusun mako-mako mai 60% wanda zai sake saitawa gobe maimakon asusun 80% wanda zai sake saitawa daga baya."
+      },
+      "expiry-first": {
+        "when": "Kana karkatar da buƙatu tsakanin asusu waɗanda ake sake saita quota ɗinsu bisa jadawali daban-daban kuma kana son amfani da quota da in ba haka ba za ta ƙare ba tare da amfani ba.",
+        "avoid": "Ba a samun bayanan telemetry na quota ga yawancin asusu, ko kana buƙatar tsayayyen tsari wanda ba ya la'akari da lokacin sake saiti.",
+        "example": "Fi son asusun da ya rage masa 80% wanda zai sake saitawa cikin minti 39 maimakon asusun da ya rage masa 48% wanda zai sake saitawa cikin awa 9 — ana amfani da quota da ke kusa da ƙarewa kafin ta tafi a banza."
       },
       "strict-random": {
         "when": "Yi amfani da wannan idan kana son rarrabawa daidai ƙwarai — ana amfani da kowane samfuri sau ɗaya kafin a maimaita.",
@@ -3815,6 +3822,13 @@
         "tip1": "Yi amfani da matakan asusu a bayyane ko tura buƙatu ta alamar asusu ga masu bayarwa masu bayanan sa ido kan kaso.",
         "tip2": "Daidaita nauyin zama da na mako-mako idan ƙarewa cikin gajeren lokaci ya fi haɗari.",
         "tip3": "Riƙe tazarar daidaito ƙanƙanta domin asusun da suke daidai su ci gaba da juyawa cikin adalci."
+      },
+      "expiry-first": {
+        "title": "Quota mai ƙarewa da farko",
+        "description": "Yana jera asusu bisa matsin ceto: babbar ragowar quota da ke kusa da wa'adin sake saitinta tana fara tafiya.",
+        "tip1": "Yana buƙatar telemetry na quota daga mai bayarwa; asusun da ba su da shi suna riƙe tsarin fifikonsu da aka jera.",
+        "tip2": "Makin da suka kusan daidaita suna juyawa a cikin tazarar daidaito domin asusu masu kama da juna su ci gaba da raba nauyi.",
+        "tip3": "Iyakance jeri ga rukunin quota da kowane samfuri ke biyan kuɗi a kansa a zahiri."
       },
       "strict-random": {
         "title": "Rarrabawa ta Hanyar Gauraya Tarin Kati",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Fi son asusun da ke da lafiyayyen ragowar ƙayyadadden kaso kuma lokutan sake saitinsu suka fi kusa",
     "quotaWeighted": "Mai Nauyi Bisa Ƙayyadadden Kaso",
     "quotaWeightedDesc": "Tsallake asusun da ƙayyadadden kasonsu ya ƙare, sannan zaɓi daga sauran gwargwadon adadin da ya rage, bayan an raba shi da nauyin buƙatun da ake sarrafawa. Tattaunawar da ke akwai za su ci gaba da kasancewa a kan asusun da aka ɗora su.",
+    "expiryFirst": "Mai Ƙarewa Da Farko",
+    "expiryFirstDesc": "Yana fara amfani da asusun da quota ɗinsa za ta ƙare ba tare da amfani ba: wanda ya fi yawan saura kuma sake saitinsa ya fi kusa yana fara tafiya.",
     "strictRandom": "Bazuwar Tsantsa",
     "strictRandomDesc": "Cakuɗa jerin — yana amfani da kowane asusu sau ɗaya kafin sake cakuɗawa",
     "stickyLimit": "Iyakar Mannewa",

@@ -279,7 +279,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Όλες οι στρατηγικές δρομολόγησης
 
-Η μηχανή combo του OmniRoute υποστηρίζει **20 στρατηγικές δρομολόγησης** (οι οποίες δηλώνονται στο `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Η ίδια η μηχανή Auto Combo είναι διαθέσιμη μέσω της στρατηγικής `auto`, ενώ οι υπόλοιπες είναι διαθέσιμες για αποθηκευμένα combo.
+Η μηχανή combo του OmniRoute υποστηρίζει **21 στρατηγικές δρομολόγησης** (οι οποίες δηλώνονται στο `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Η ίδια η μηχανή Auto Combo είναι διαθέσιμη μέσω της στρατηγικής `auto`, ενώ οι υπόλοιπες είναι διαθέσιμες για αποθηκευμένα combo.
 
 | Στρατηγική          | Περιγραφή                                                                                                                                                                                                                     |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -294,6 +294,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | Ελαχιστοποίηση του κόστους ανά αίτημα βάσει των τιμών του καταλόγου                                                                                                                                                           |
 | `reset-aware` ⭐    | Προτεραιοποίηση βάσει του χρόνου επαναφοράς του quota — τα σύντομα χρονικά παράθυρα επαναφοράς κατατάσσονται υψηλότερα                                                                                                        |
 | `reset-window`      | Προτίμηση στόχων των οποίων το χρονικό παράθυρο quota επαναφέρεται συντομότερα                                                                                                                                                |
+| `expiry-first`      | Καταναλώνει πρώτα τον λογαριασμό του οποίου η ποσόστωση διαφορετικά θα έληγε αχρησιμοποίητη: προηγείται το μεγαλύτερο υπόλοιπο με την πλησιέστερη επαναφορά                                                                   |
 | `headroom`          | Επιλογή του στόχου με το μεγαλύτερο διαθέσιμο περιθώριο quota                                                                                                                                                                 |
 | `quota-weighted`    | Παράλειψη εξαντλημένων λογαριασμών και, κατόπιν, επιλογή μεταξύ των υπολοίπων αναλογικά προς το εναπομένον quota διαιρεμένο με το φορτίο των αιτημάτων σε εξέλιξη· οι υπάρχουσες συνομιλίες παραμένουν καρφιτσωμένες          |
 | `strict-random`     | Τυχαία επιλογή χωρίς απαλοιφή διπλότυπων επαναλήψεων                                                                                                                                                                          |
@@ -843,11 +844,11 @@ offline-friendly) παρατίθενται στον πίνακα «Προφίλ 
 
 ### Ντετερμινιστικός πίνακας αποφάσεων δρομολόγησης (`npm run test:combo:matrix`)
 
-Το `tests/integration/combo-matrix/*.test.ts` αποδεικνύει την **απόφαση** δρομολόγησης όλων των 19
+Το `tests/integration/combo-matrix/*.test.ts` αποδεικνύει την **απόφαση** δρομολόγησης όλων των 21
 δημόσιων στρατηγικών από άκρο σε άκρο μέσω του πραγματικού αγωγού combo με εικονικό upstream.
 Η κάλυψη περιλαμβάνει:
 
-- Όλες τις 19 στρατηγικές `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Όλες τις 21 στρατηγικές `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (εσωτερικό) από άκρο σε άκρο: δικαιοσύνη DRR + αποπροτεραιοποίηση κορεσμού μέσω του
   πραγματικού σημείου σύνδεσης `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -881,5 +882,5 @@ offline-friendly) παρατίθενται στον πίνακα «Προφίλ 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Αναλυτής προθέματος `auto/` + 6 παραλλαγές                                                                                                                                   |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Δημιουργεί στη μνήμη το `AutoComboConfig` από ενεργές συνδέσεις                                                                                                              |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Άγκιστρο δοκιμών για προσομοίωση του μητρώου παρόχων                                                                                                                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 στρατηγικές)                                                                                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 στρατηγικές)                                                                                                                                   |
 | `src/sse/handlers/chat.ts`                                | Ενσωμάτωση: βραχυκύκλωση προθέματος auto                                                                                                                                     |

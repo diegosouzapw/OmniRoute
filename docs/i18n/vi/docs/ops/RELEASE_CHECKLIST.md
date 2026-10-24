@@ -146,7 +146,7 @@ mà không cần bất kỳ nhãn nào.
 - [ ] `npm run test:vitest` — đạt (máy chủ MCP, autoCombo, bộ nhớ đệm)
 - [ ] `npm run test:coverage` — đáp ứng ngưỡng 60/60/60/60 (câu lệnh/dòng/hàm/nhánh)
 - [ ] `npm run test:integration` — đạt (nếu thay đổi liên quan đến DB / trình xử lý)
-- [ ] `npm run test:combo:matrix` — đạt (ma trận chiến lược combo: chứng minh một cách xác định các quyết định lựa chọn của cả 19 chiến lược định tuyến công khai; chạy khi thay đổi định tuyến combo, phân giải chiến lược hoặc logic dự phòng)
+- [ ] `npm run test:combo:matrix` — đạt (ma trận chiến lược combo: chứng minh một cách xác định các quyết định lựa chọn của cả 21 chiến lược định tuyến công khai; chạy khi thay đổi định tuyến combo, phân giải chiến lược hoặc logic dự phòng)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **tùy chọn/thủ công** (kiểm thử nhanh có cổng kiểm soát với upstream thực; lấy ảnh chụp nhanh DB chỉ đọc từ VPS `root@192.168.0.15`; gọi các nhà cung cấp thực, tiêu tốn tín dụng; không bao giờ chạy trong CI; bỏ qua một cách an toàn nếu không có cổng kiểm soát)
 - [ ] `npm run test:combo:live:vps` — **tùy chọn/thủ công** (kiểm thử nhanh trực tiếp trên VPS Giai đoạn 3: 7 kịch bản HTTP với máy chủ `.15` đang hoạt động qua Node ESM thuần; yêu cầu `ssh root@192.168.0.15`; chỉ tạo/xóa các combo `__live_test__*`; gọi các nhà cung cấp thực; không bao giờ chạy trong CI)
 - [ ] `npm run test:e2e` — đạt (các thay đổi UI)

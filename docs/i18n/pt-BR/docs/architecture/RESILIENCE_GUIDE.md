@@ -903,7 +903,7 @@ limitação de taxa com bucketing por IP é o mesmo sinal que uma quota esgotada
 
 ## Outros Recursos de Resiliência
 
-- **20 estratégias de roteamento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — veja [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 estratégias de roteamento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — veja [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Roteamento sensível a reset** (v3.8.0) — prioriza conexões pelo horário de reset da cota.
 - **Degradação do modo background** — o `background: true` da Responses API é degradado para síncrono com aviso.
 - **Detecção dinâmica de limite de ferramentas** — aplica backoff aos provedores quando os limites de contagem de ferramentas são atingidos.

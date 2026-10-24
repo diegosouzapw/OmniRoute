@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Podržava **20 strategija usmjeravanja** (vidi `src/shared/constants/routingStrategies.ts`):
+Podržava **21 strategiju usmjeravanja** (vidi `src/shared/constants/routingStrategies.ts`):
 
 | Strategija          | Ponašanje                                                                             |
 | ------------------- | ------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Podržava **20 strategija usmjeravanja** (vidi `src/shared/constants/routingStra
 | `cost-optimized`    | Prvo najjeftiniji ispravni cilj                                                       |
 | `reset-aware`       | Svjestan prozora resetovanja provajdera                                               |
 | `reset-window`      | Usmjeravanje na osnovu prozora resetovanja                                            |
+| `expiry-first`      | Troši račun čija bi kvota inače istekla neiskorištena                                 |
 | `headroom`          | Prvo najviše preostalog prostora u kvoti                                              |
 | `quota-weighted`    | Preskače iscrpljene naloge, zatim bira prema preostaloj kvoti ÷ trenutnom opterećenju |
 | `strict-random`     | Zaista ravnomjerno (bez ponderisanja kvaliteta)                                       |

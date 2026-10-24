@@ -59,7 +59,7 @@ OpenRouter везе могу да чувају `preset` по вези у Advance
 
 ## 🎨 Комбо
 
-Направите комбо стратегије рутирања модела са 19 јавних стратегија: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (паралелно слање упита групи модела, а затим синтеза одговора преко судије) и **pipeline**. Сваки комбо повезује више модела уз аутоматски резервни механизам и укључује брзе шаблоне и провере спремности.
+Направите комбо стратегије рутирања модела са 21 јавном стратегијом: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (паралелно слање упита групи модела, а затим синтеза одговора преко судије) и **pipeline**. Сваки комбо повезује више модела уз аутоматски резервни механизам и укључује брзе шаблоне и провере спремности.
 
 Недавна побољшања комбоа:
 

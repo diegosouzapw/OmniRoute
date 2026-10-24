@@ -338,7 +338,7 @@ DB 設定（`quotaStore.*`）會覆寫環境變數。
 | 單元測試（29 項測試） | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR 排程器、飽和度閘控、並行數上限、fairShare 計算、待處理工作排入佇列                                                                                           |
 | 整合矩陣              | `npm run test:combo:matrix`                                            | 透過實際組合管線進行端對端路由決策；透過即時接縫（`registerQuotaFetcher`、`setLKGP`、`__setHeadroomSaturationFetcherForTests`）驗證 DRR 公平性與飽和度降優先處理 |
 
-整合矩陣會在 CI 中與全部 19 種公開策略一併執行。單元測試套件
+整合矩陣會在 CI 中與全部 21 種公開策略一併執行。單元測試套件
 亦可獨立執行。
 
 ---

@@ -282,7 +282,7 @@ ditentukan disalurkan kepada input `config.modePack` / `config.budgetCap` /
 
 ## Semua Strategi Penghalaan
 
-Enjin kombo OmniRoute menyokong **20 strategi penghalaan** (diisytiharkan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Enjin Auto Combo itu sendiri didedahkan di bawah strategi `auto`; strategi lain tersedia untuk kombo yang disimpan.
+Enjin kombo OmniRoute menyokong **21 strategi penghalaan** (diisytiharkan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Enjin Auto Combo itu sendiri didedahkan di bawah strategi `auto`; strategi lain tersedia untuk kombo yang disimpan.
 
 | Strategi            | Penerangan                                                                                                                                                                                                                    |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ Enjin kombo OmniRoute menyokong **20 strategi penghalaan** (diisytiharkan dalam 
 | `cost-optimized`    | Meminimumkan $ bagi setiap permintaan berdasarkan harga katalog                                                                                                                                                               |
 | `reset-aware` ⭐    | Mengutamakan berdasarkan masa penetapan semula kuota — tetingkap penetapan semula yang singkat diberi kedudukan lebih tinggi                                                                                                  |
 | `reset-window`      | Mengutamakan sasaran yang tetingkap kuotanya akan ditetapkan semula paling awal                                                                                                                                               |
+| `expiry-first`      | Menggunakan dahulu akaun yang kuotanya akan luput tanpa digunakan: baki tertinggi dengan tetapan semula terdekat didahulukan                                                                                                  |
 | `headroom`          | Memilih sasaran dengan lebihan kuota berbaki paling banyak                                                                                                                                                                    |
 | `quota-weighted`    | Melangkau akaun yang kehabisan kuota, kemudian memilih antara yang selebihnya mengikut nisbah kuota berbaki dibahagikan dengan beban sedang diproses; perbualan sedia ada kekal terikat                                       |
 | `strict-random`     | Pemilihan rawak tanpa penyahduplikasian ulangan                                                                                                                                                                               |
@@ -835,11 +836,11 @@ Lihat [`docs/guides/TIERS.md`](../guides/TIERS.md) untuk takrif peringkat dan pe
 
 ### Matriks keputusan penghalaan deterministik (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` membuktikan **keputusan** penghalaan bagi kesemua 19
+`tests/integration/combo-matrix/*.test.ts` membuktikan **keputusan** penghalaan bagi kesemua 21
 strategi awam secara hujung ke hujung melalui saluran kombo sebenar dengan huluan olok-olok.
 Liputan merangkumi:
 
-- Kesemua 19 strategi `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Kesemua 21 strategi `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (dalaman) secara hujung ke hujung: keadilan DRR + penurunan keutamaan akibat ketepuan melalui
   titik sambungan `selectQuotaShareTarget` sebenar (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -873,5 +874,5 @@ sengaja dikecualikan daripada CI kerana memerlukan kelayakan langsung dan akses 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Penghurai awalan `auto/` + 6 varian                                                                                            |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Membina `AutoComboConfig` dalam memori daripada sambungan aktif                                                                |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Cangkuk ujian untuk mengolah pendaftaran penyedia                                                                              |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategi)                                                                                        |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategi)                                                                                        |
 | `src/sse/handlers/chat.ts`                                | Penyepaduan: pintasan awalan automatik                                                                                         |

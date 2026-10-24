@@ -146,7 +146,7 @@ E2E, fără nicio etichetă.
 - [ ] `npm run test:vitest` — reușește (server MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — pragul 60/60/60/60 este îndeplinit (instrucțiuni/linii/funcții/ramuri)
 - [ ] `npm run test:integration` — reușește (dacă modificările afectează baza de date / gestionarii)
-- [ ] `npm run test:combo:matrix` — reușește (matricea strategiilor combo: demonstrează în mod determinist deciziile de selecție ale tuturor celor 19 strategii publice de rutare; rulați când modificați rutarea combo, rezolvarea strategiilor sau logica de rezervă)
+- [ ] `npm run test:combo:matrix` — reușește (matricea strategiilor combo: demonstrează în mod determinist deciziile de selecție ale tuturor celor 21 strategii publice de rutare; rulați când modificați rutarea combo, rezolvarea strategiilor sau logica de rezervă)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opțional/manual** (test smoke condiționat cu servicii upstream reale; preia de pe VPS `root@192.168.0.15` un instantaneu în mod doar pentru citire al bazei de date; apelează furnizori reali, consumă credite; nu rulează niciodată în CI; este omis fără probleme dacă nu este activată condiția)
 - [ ] `npm run test:combo:live:vps` — **opțional/manual** (test smoke live VPS din faza 3: 7 scenarii HTTP pe serverul live `.15`, prin Node ESM simplu; necesită `ssh root@192.168.0.15`; creează/șterge numai combinații `__live_test__*`; apelează furnizori reali; nu rulează niciodată în CI)
 - [ ] `npm run test:e2e` — reușește (modificări UI)

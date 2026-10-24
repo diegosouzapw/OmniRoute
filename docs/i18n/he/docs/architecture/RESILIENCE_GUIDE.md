@@ -715,7 +715,7 @@ limiting רגיל) מסווג דרך כלל ה-`status_429` כ-`rate_limit_excee
 
 ## תכונות שרידות נוספות
 
-- **20 אסטרטגיות ניתוב** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ראו [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 אסטרטגיות ניתוב** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ראו [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **ניתוב מודע-איפוס** (v3.8.0) — מתעדף חיבורים לפי זמן איפוס המכסה.
 - **ירידת רמה של מצב רקע** — Responses API עם `background: true` מושבת למצב סינכרוני עם אזהרה.
 - **זיהוי דינמי של מגבלת כלים** — מסתג מהספקים כשמגיעים למגבלות מספר הכלים.

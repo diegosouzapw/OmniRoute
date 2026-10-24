@@ -839,7 +839,7 @@ opencode кошикується за IP, а не за обліковим зап�
 
 ## Інші функції стійкості
 
-- **20 стратегій маршрутизації** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — див. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 стратегія маршрутизації** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — див. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Маршрутизація з урахуванням скидання** (v3.8.0) — надає пріоритет з'єднанням за часом скидання квоти.
 - **Деградація фонового режиму** — Responses API `background: true` деградує до синхронного режиму з попередженням.
 - **Динамічне виявлення ліміту інструментів** — тимчасово припиняє використання провайдерів при досягненні ліміту кількості інструментів.

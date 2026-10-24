@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Tasakaalustab järelejäänud kvooti, võttes arvesse 5 tunni ja nädalasi lähtestamisi, ning jaotab seejärel sarnase skooriga mudelite vahel ringmeetodil",
     "quotaWeighted": "Kvoodi järgi kaalutud",
     "quotaWeightedDesc": "Jäta ammendunud kontod vahele, seejärel vali ülejäänute seast proportsionaalselt allesjäänud kvoodiga, jagades selle pooleliolevate päringute koormusega. Olemasolevad vestlused jäävad samale kontole kinnistatuks.",
+    "expiryFirst": "Aeguv esimesena",
+    "expiryFirstDesc": "Kasutab esmalt konto, mille kvoot muidu kasutamata aeguks: esimesena tuleb suurim jääk koos lähima lähtestamisega.",
     "strictRandom": "Range juhuvalik",
     "strictRandomDesc": "Kaardipaki segamine — kasutab iga mudelit ühe korra enne paki uuesti segamist",
     "fusion": "Fusioon",
@@ -3600,6 +3602,11 @@
         "when": "Suunate päringuid mitme konto vahel, millel on kvooditelemeetria ja erinevad lähtestamisajad.",
         "avoid": "Kvooditelemeetria pole enamiku kontode jaoks saadaval.",
         "example": "Eelista homme lähtestatavat kontot, mille nädalakvoodist on alles 60%, hiljem lähtestatavale kontole, mille kvoodist on alles 80%."
+      },
+      "expiry-first": {
+        "when": "Suunate päringuid kontode vahel, mille kvoodid lähtestatakse erinevate ajakavade järgi, ja soovite ära kasutada kvoodi, mis muidu kasutamata aeguks.",
+        "avoid": "Enamikul kontodel puudub kvooditelemeetria või vajate stabiilset järjekorda, mis eirab lähtestamise aega.",
+        "example": "Eelistage kontot, millel on alles 80% ja mis lähtestatakse 39 minuti pärast, kontole, millel on alles 48% ja mis lähtestatakse 9 tunni pärast — aeguv kvoot kasutatakse ära enne, kui see kaotsi läheb."
       },
       "strict-random": {
         "when": "Kasuta, kui soovid täiesti ühtlast jaotust — enne kordamist kasutatakse iga mudelit ühe korra.",
@@ -3815,6 +3822,13 @@
         "tip1": "Kasutage kvooditelemeetriaga teenusepakkujate puhul selgelt määratud kontoetappe või kontosildipõhist marsruutimist.",
         "tip2": "Häälestage seansi- ja nädalapõhiseid kaale, kui lühiajaline ammendumine on riskantsem.",
         "tip3": "Hoidke viigivahemik väike, et samaväärseid kontosid roteeritaks endiselt õiglaselt."
+      },
+      "expiry-first": {
+        "title": "Aeguv kvoot esimesena",
+        "description": "Järjestab kontod päästesurve järgi: suur järelejäänud kvoot, mille lähtestamistähtaeg on lähedal, tuleb esimesena.",
+        "tip1": "Nõuab teenusepakkuja kvooditelemeetriat; kontod ilma selleta säilitavad oma loetletud prioriteedijärjekorra.",
+        "tip2": "Peaaegu võrdsed skoorid roteeruvad viigivahemiku piires, nii et sarnased kontod jagavad endiselt koormust.",
+        "tip3": "Piirake järjestamine kvoodikogumiga, mille vastu iga mudel tegelikult arveldab."
       },
       "strict-random": {
         "title": "Segatud kaardipaki jaotus",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Eelista kontosid, mille allesjäänud kvoot on piisav ja lähtestamine lähemal",
     "quotaWeighted": "Kvoodiga kaalutud",
     "quotaWeightedDesc": "Jäta ammendunud kontod vahele, seejärel vali ülejäänute seast proportsionaalselt allesjäänud kvoodiga, jagatuna pooleliolevate päringute koormusega. Olemasolevad vestlused jäävad seotuks.",
+    "expiryFirst": "Aeguv esimesena",
+    "expiryFirstDesc": "Kasutab esmalt konto, mille kvoot muidu kasutamata aeguks: esimesena tuleb suurim jääk koos lähima lähtestamisega.",
     "strictRandom": "Rangelt juhuslik",
     "strictRandomDesc": "Sega pakk — kasutab iga kontot ühe korra enne uut segamist",
     "stickyLimit": "Püsivuspiir",

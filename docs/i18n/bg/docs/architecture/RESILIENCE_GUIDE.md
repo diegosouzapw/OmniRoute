@@ -829,7 +829,7 @@ allowlist-семейството, чийто последно известен e
 
 ## Други функции за устойчивост
 
-- **20 стратегии за маршрутизиране** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — вижте [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 стратегии за маршрутизиране** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — вижте [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Маршрутизиране с отчитане на нулирането** (v3.8.0) — дава приоритет на връзките според времето на нулиране на квотата.
 - **Деградация на фоновия режим** — Responses API `background: true` се деградира до синхронен режим с предупреждение.
 - **Динамично откриване на лимит за инструменти** — ограничава доставчиците, когато бъде достигнат лимитът за брой инструменти.

@@ -310,7 +310,7 @@ src/                        # TypeScript（.ts / .tsx）
 ├── mitm/                   # MITM 代理（证书、DNS、目标路由）
 ├── shared/
 │   ├── components/         # React 组件（.tsx）
-│   ├── constants/          # 提供者定义（329 个）、MCP 作用域、20 种路由策略
+│   ├── constants/          # 提供者定义（329 个）、MCP 作用域、21 种路由策略
 │   ├── utils/              # 熔断器、清理器、身份验证辅助工具
 │   └── validation/         # Zod v4 模式
 └── sse/                    # SSE 代理管道

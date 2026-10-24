@@ -281,7 +281,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## យុទ្ធសាស្ត្រកំណត់ផ្លូវទាំងអស់
 
-ម៉ាស៊ីនបន្សំរបស់ OmniRoute គាំទ្រ **យុទ្ធសាស្ត្រកំណត់ផ្លូវចំនួន 20** (បានប្រកាសនៅក្នុង `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`)។ ម៉ាស៊ីន Auto Combo ផ្ទាល់ត្រូវបានបង្ហាញឱ្យប្រើក្រោមយុទ្ធសាស្ត្រ `auto` ចំណែកឯយុទ្ធសាស្ត្រផ្សេងទៀតអាចប្រើបានសម្រាប់បន្សំដែលបានរក្សាទុក។
+ម៉ាស៊ីនបន្សំរបស់ OmniRoute គាំទ្រ **យុទ្ធសាស្ត្រកំណត់ផ្លូវចំនួន 21** (បានប្រកាសនៅក្នុង `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`)។ ម៉ាស៊ីន Auto Combo ផ្ទាល់ត្រូវបានបង្ហាញឱ្យប្រើក្រោមយុទ្ធសាស្ត្រ `auto` ចំណែកឯយុទ្ធសាស្ត្រផ្សេងទៀតអាចប្រើបានសម្រាប់បន្សំដែលបានរក្សាទុក។
 
 | យុទ្ធសាស្ត្រ        | ការពិពណ៌នា                                                                                                                                                                                                               |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,6 +296,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | កាត់បន្ថយចំណាយ $ ក្នុងមួយសំណើ ដោយផ្អែកលើតម្លៃក្នុងកាតាឡុក                                                                                                                                                                |
 | `reset-aware` ⭐    | ផ្តល់អាទិភាពតាមពេលវេលាកំណត់កូតាឡើងវិញ — ចន្លោះពេលកំណត់ឡើងវិញខ្លីត្រូវបានដាក់ចំណាត់ថ្នាក់ខ្ពស់ជាង                                                                                                                         |
 | `reset-window`      | ផ្តល់អាទិភាពដល់គោលដៅដែលចន្លោះកូតារបស់វានឹងត្រូវកំណត់ឡើងវិញឆាប់បំផុត                                                                                                                                                      |
+| `expiry-first`      | ប្រើគណនីដែលកូតារបស់វានឹងផុតកំណត់ដោយមិនបានប្រើ ជាមុនសិន៖ គណនីដែលនៅសល់ច្រើនបំផុត ហើយកំណត់ឡើងវិញជិតបំផុត ត្រូវបានប្រើមុន                                                                                                    |
 | `headroom`          | ជ្រើសរើសគោលដៅដែលមានកូតានៅសល់ច្រើនបំផុត                                                                                                                                                                                   |
 | `quota-weighted`    | រំលងគណនីដែលអស់កូតា បន្ទាប់មកជ្រើសរើសក្នុងចំណោមគណនីដែលនៅសល់ តាមសមាមាត្រកូតាដែលនៅសល់ចែកនឹងបន្ទុកដែលកំពុងដំណើរការ; ការសន្ទនាដែលមានស្រាប់នៅតែត្រូវបានភ្ជាប់ជាប់នឹងគោលដៅដដែល                                                  |
 | `strict-random`     | ជ្រើសរើសចៃដន្យដោយមិនលុបជម្រើសដដែលៗចេញ                                                                                                                                                                                    |
@@ -841,11 +842,11 @@ offline-friendly) ត្រូវបានរាយក្នុងតារា�
 
 ### ម៉ាទ្រីសការសម្រេចចិត្តបញ្ជូនតាមផ្លូវបែបកំណត់ជាមុន (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` បញ្ជាក់អំពី **ការសម្រេចចិត្ត** បញ្ជូនតាមផ្លូវរបស់យុទ្ធសាស្ត្រសាធារណៈទាំង 19
+`tests/integration/combo-matrix/*.test.ts` បញ្ជាក់អំពី **ការសម្រេចចិត្ត** បញ្ជូនតាមផ្លូវរបស់យុទ្ធសាស្ត្រសាធារណៈទាំង 21
 ពីដើមដល់ចប់ តាមរយៈ pipeline combo ពិតប្រាកដ ដោយប្រើ upstream ក្លែងធ្វើ។
 វិសាលភាពគ្របដណ្តប់រួមមាន៖
 
-- យុទ្ធសាស្ត្រ `ROUTING_STRATEGY_VALUES` ទាំង 19 (ordered, weighted, cost, context, fusion, …)។
+- យុទ្ធសាស្ត្រ `ROUTING_STRATEGY_VALUES` ទាំង 21 (ordered, weighted, cost, context, fusion, …)។
 - `quota-share` (ខាងក្នុង) ពីដើមដល់ចប់៖ ភាពយុត្តិធម៌ DRR + ការបន្ថយអាទិភាពពេលឆ្អែត តាមរយៈ
   seam `selectQuotaShareTarget` ពិតប្រាកដ (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`)។
@@ -879,5 +880,5 @@ Smoke test ទាំងនេះសាកល្បងផ្លូវទំនា
 | `open-sse/services/autoCombo/autoPrefix.ts`               | កម្មវិធីញែកបុព្វបទ `auto/` + វ៉ារ្យ៉ង់ 6                                                                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | បង្កើត `AutoComboConfig` ក្នុងអង្គចងចាំពីការតភ្ជាប់ផ្ទាល់                                                                        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | ចំណុចភ្ជាប់សម្រាប់ការធ្វើតេស្ត ដើម្បីក្លែង provider registry                                                                     |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (យុទ្ធសាស្ត្រ 20)                                                                                      |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (យុទ្ធសាស្ត្រ 21)                                                                                      |
 | `src/sse/handlers/chat.ts`                                | ការរួមបញ្ចូល៖ ការឆ្លងកាត់ខ្លីសម្រាប់បុព្វបទស្វ័យប្រវត្តិ                                                                         |

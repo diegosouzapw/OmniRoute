@@ -1,7 +1,7 @@
 // tests/integration/combo-matrix/quota-aware.test.ts
 //
-// E2E matrix tests for the four quota-aware routing strategies:
-//   reset-aware, reset-window, headroom, lkgp
+// E2E matrix tests for the five quota-aware routing strategies:
+//   reset-aware, reset-window, expiry-first, headroom, lkgp
 //
 // Each test engineers a specific non-default provider ordering so that a pass
 // proves the selector actually reordered targets, not merely preserved definition
@@ -10,6 +10,9 @@
 // Strategy → state source → seeded via:
 //   reset-aware   → registerQuotaFetcher + scoreResetAwareQuota
 //   reset-window  → registerQuotaFetcher + getResetWindowTimestampMs
+//   expiry-first  → setQuotaCache (domain quota cache, as written by the
+//                   background usage poller; the strategy issues no fetcher
+//                   calls of its own)
 //   headroom      → __setHeadroomSaturationFetcherForTests
 //   lkgp          → setLKGP (key_value table, namespace='lkgp')
 
@@ -277,5 +280,52 @@ test("lkgp: last-known-good provider is prioritised above definition order", asy
     "claude",
     `lkgp: LKGP record names "claude" as last-known-good, so claude must be dispatched ` +
       `first despite being second in the combo definition. Got: ${first}`
+  );
+});
+// ── Strategy: expiry-first ─────────────────────────────────────────────────────
+//
+// Selector: orderTargetsByExpiryFirst (open-sse/services/combo/quotaStrategies.ts)
+// Salvage scoring: highest REMAINING quota with the NEAREST reset wins.
+//
+//   Pre-seed: domain quota cache (the table the background usage poller writes)
+//     codex  (1st in definition): 20% left, reset in 9 hours  → low salvage value
+//     claude (2nd in definition): 90% left, reset in 39 min   → high salvage value
+//
+// Expected: claude moved to front despite being second in combo definition.
+test("expiry-first: highest leftover with nearest reset dispatched first despite being second in definition", async () => {
+  const codexConn = await seedConnection("codex");
+  const claudeConn = await seedConnection("claude");
+
+  const { setQuotaCache } = await import("../../../src/domain/quotaCache.ts");
+  const isoFromNow = (ms: number) => new Date(Date.now() + ms).toISOString();
+  setQuotaCache(codexConn.id, "codex", {
+    weekly: { remainingPercentage: 20, resetAt: isoFromNow(9 * 3600_000) },
+  });
+  setQuotaCache(claudeConn.id, "claude", {
+    weekly: { remainingPercentage: 90, resetAt: isoFromNow(39 * 60_000) },
+  });
+
+  await combosDb.createCombo({
+    name: "m-expiry-first-qa",
+    strategy: "expiry-first",
+    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    models: [
+      // codex FIRST in definition — must be deprioritised (low leftover, far reset)
+      "codex/gpt-5",
+      // claude SECOND — must be moved to front (high leftover expiring soon)
+      "claude/claude-sonnet-4-6",
+    ],
+  });
+  h.installRecordingFetch();
+
+  const r = await handleChat(buildRequest({ body: body("m-expiry-first-qa") }));
+  assert.equal(r.status, 200, "request must succeed via claude (salvage-preferred) target");
+
+  const first = h.providersSeen()[0];
+  assert.equal(
+    first,
+    "claude",
+    `expiry-first: claude has the highest leftover (90%) with the nearest reset (39 min), ` +
+      `so claude must be dispatched first despite being second in the combo definition. Got: ${first}`
   );
 });

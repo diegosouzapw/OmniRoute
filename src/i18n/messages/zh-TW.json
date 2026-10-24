@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "平衡剩餘配額與 5 小時和每週重置，然後對相似分數進行迴圈賽",
     "quotaWeighted": "配額加權",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "臨期優先",
+    "expiryFirstDesc": "優先消耗即將過期作廢的配額：剩餘最多且重置最近的帳號先出隊。",
     "strictRandom": "嚴格隨機",
     "strictRandomDesc": "洗牌池模式：每個模型使用一次後再重新洗牌",
     "fusion": "融合",
@@ -3600,6 +3602,11 @@
         "when": "您可以使用配額遙測和不同的重置視窗跨多個帳戶進行路由。",
         "avoid": "大多數帳戶無法使用配額遙測。",
         "example": "寧願明天每週重置 60% 的帳戶，也不願稍後重置 80% 的帳戶。"
+      },
+      "expiry-first": {
+        "when": "在多個重置時間不同的帳號間路由，且希望優先用掉即將過期作廢的配額。",
+        "avoid": "大多數帳號缺少配額遙測，或需要與重置時間無關的穩定順序。",
+        "example": "優先選擇 39 分鐘後重置、剩餘 80% 的帳號，而非 9 小時後重置、剩餘 48% 的帳號——臨期配額先用掉。"
       },
       "strict-random": {
         "when": "適用於希望實現絕對均勻分配的場景，每個模型在重複前都會恰好使用一次。",
@@ -3815,6 +3822,13 @@
         "tip1": "對具有配額遙測的提供者使用顯式帳戶步驟或帳戶標籤路由。",
         "tip2": "當短期疲勞風險更大時，調整訓練次數與每週重量。",
         "tip3": "保持領帶較小，這樣等值帳戶仍然可以公平地輪換。"
+      },
+      "expiry-first": {
+        "title": "臨期配額優先",
+        "description": "按回收壓力排序帳號：剩餘配額多且臨近重置的帳號優先。",
+        "tip1": "依賴提供者配額遙測；無遙測的帳號保持列表中的優先級順序。",
+        "tip2": "相近得分在並列帶內輪換，同檔帳號仍能分攤負載。",
+        "tip3": "把排序限定在每個模型實際計費的配額桶上。"
       },
       "strict-random": {
         "title": "洗牌池分配",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "優先選擇剩餘配額正常且重置時間較近的帳戶",
     "quotaWeighted": "配額加權",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "臨期優先",
+    "expiryFirstDesc": "優先消耗即將過期作廢的配額：剩餘最多且重置最近的帳號先出隊。",
     "strictRandom": "嚴格隨機",
     "strictRandomDesc": "洗牌池模式：每個帳戶使用一次後再重新洗牌",
     "stickyLimit": "粘性限制",

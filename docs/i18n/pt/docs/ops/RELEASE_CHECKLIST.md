@@ -146,7 +146,7 @@ E2E, sem qualquer etiqueta.
 - [ ] `npm run test:vitest` — aprovado (servidor MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — limite de 60/60/60/60 cumprido (instruções/linhas/funções/ramos)
 - [ ] `npm run test:integration` — aprovado (se as alterações afetarem a BD/os processadores)
-- [ ] `npm run test:combo:matrix` — aprovado (matriz de estratégias combinadas: comprova, de forma determinística, as decisões de seleção das 19 estratégias públicas de encaminhamento; executar ao alterar o encaminhamento combinado, a resolução de estratégias ou a lógica de contingência)
+- [ ] `npm run test:combo:matrix` — aprovado (matriz de estratégias combinadas: comprova, de forma determinística, as decisões de seleção das 21 estratégias públicas de encaminhamento; executar ao alterar o encaminhamento combinado, a resolução de estratégias ou a lógica de contingência)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcional/manual** (teste rápido controlado com serviços externos reais; obtém um instantâneo da BD em modo só de leitura do VPS `root@192.168.0.15`; acede a fornecedores reais e consome créditos; nunca é executado em CI; é ignorado corretamente sem a ativação)
 - [ ] `npm run test:combo:live:vps` — **opcional/manual** (teste rápido em ambiente real no VPS da Fase 3: 7 cenários HTTP no servidor `.15` ativo através de Node ESM simples; requer `ssh root@192.168.0.15`; cria/elimina apenas combinações `__live_test__*`; acede a fornecedores reais; nunca é executado em CI)
 - [ ] `npm run test:e2e` — aprovado (alterações à IU)

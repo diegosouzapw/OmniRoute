@@ -146,7 +146,7 @@ quality-gate、quality-extended）をスキップし、高速で検出力の高�
 - [ ] `npm run test:vitest` — 成功（MCP サーバー、autoCombo、キャッシュ）
 - [ ] `npm run test:coverage` — 60/60/60/60 のゲートを満たしている（ステートメント/行/関数/分岐）
 - [ ] `npm run test:integration` — 成功（変更が DB / ハンドラーに影響する場合）
-- [ ] `npm run test:combo:matrix` — 成功（combo 戦略マトリクス: 公開されている 19 種類すべてのルーティング戦略の選択結果を決定論的に実証する。combo ルーティング、戦略解決、またはフォールバックロジックに変更を加えた場合に実行する）
+- [ ] `npm run test:combo:matrix` — 成功（combo 戦略マトリクス: 公開されている 21 種類すべてのルーティング戦略の選択結果を決定論的に実証する。combo ルーティング、戦略解決、またはフォールバックロジックに変更を加えた場合に実行する）
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **任意/手動**（ゲート付きの実アップストリームスモークテスト。VPS `root@192.168.0.15` から読み取り専用の DB スナップショットを取得する。実際のプロバイダーにアクセスし、クレジットを消費する。CI では実行されない。ゲートがなければ問題なくスキップされる）
 - [ ] `npm run test:combo:live:vps` — **任意/手動**（フェーズ 3 の VPS ライブスモークテスト: 素の Node ESM を使用し、稼働中の `.15` サーバーに対して 7 つの HTTP シナリオを実行する。`ssh root@192.168.0.15` が必要。`__live_test__*` combo のみを作成/削除する。実際のプロバイダーにアクセスする。CI では実行されない）
 - [ ] `npm run test:e2e` — 成功（UI の変更）

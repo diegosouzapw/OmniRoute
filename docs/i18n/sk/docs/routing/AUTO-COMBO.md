@@ -281,7 +281,7 @@ vyhodnotené hodnoty vstupujú do existujúcich vstupov mechanizmu `config.modeP
 
 ## Všetky stratégie smerovania
 
-Kombinačný mechanizmus OmniRoute podporuje **20 stratégií smerovania** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný mechanizmus Auto Combo je dostupný pod stratégiou `auto`; ostatné sú k dispozícii pre uložené kombinácie.
+Kombinačný mechanizmus OmniRoute podporuje **21 stratégií smerovania** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný mechanizmus Auto Combo je dostupný pod stratégiou `auto`; ostatné sú k dispozícii pre uložené kombinácie.
 
 | Stratégia           | Popis                                                                                                                                                                                                                                                      |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,6 +296,7 @@ Kombinačný mechanizmus OmniRoute podporuje **20 stratégií smerovania** (dekl
 | `cost-optimized`    | Minimalizácia ceny $ za požiadavku podľa cien v katalógu                                                                                                                                                                                                   |
 | `reset-aware` ⭐    | Uprednostnenie podľa času obnovenia kvóty — kratšie intervaly obnovenia sú hodnotené vyššie                                                                                                                                                                |
 | `reset-window`      | Uprednostnenie cieľov, ktorých interval kvóty sa obnoví najskôr                                                                                                                                                                                            |
+| `expiry-first`      | Čerpá účet, ktorého kvóta by inak prepadla nevyužitá: ako prvý ide účet s najvyšším zostatkom a najbližším resetom                                                                                                                                         |
 | `headroom`          | Výber cieľa s najväčšou zostávajúcou rezervou kvóty                                                                                                                                                                                                        |
 | `quota-weighted`    | Preskočenie vyčerpaných účtov a následný výber spomedzi ostatných v pomere zostávajúcej kvóty vydelenej počtom rozpracovaných požiadaviek; existujúce konverzácie zostávajú pripnuté                                                                       |
 | `strict-random`     | Náhodný výber bez odstraňovania opakovaní                                                                                                                                                                                                                  |
@@ -850,11 +851,11 @@ Definície úrovní a klasifikáciu poskytovateľov nájdete v dokumente [`docs/
 
 ### Deterministická matica rozhodnutí smerovania (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` overuje **rozhodnutie** smerovania všetkých 19
+`tests/integration/combo-matrix/*.test.ts` overuje **rozhodnutie** smerovania všetkých 21
 verejných stratégií od začiatku do konca prostredníctvom skutočného kombinovaného procesu so simulovanou upstream službou.
 Pokrytie zahŕňa:
 
-- Všetkých 19 stratégií `ROUTING_STRATEGY_VALUES` (usporiadané, vážené, nákladové, kontextové, fúzne, …).
+- Všetkých 21 stratégií `ROUTING_STRATEGY_VALUES` (usporiadané, vážené, nákladové, kontextové, fúzne, …).
 - `quota-share` (interná) od začiatku do konca: spravodlivosť DRR + zníženie priority pri saturácii prostredníctvom
   skutočného integračného bodu `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -888,5 +889,5 @@ zámerne vylúčené z CI, pretože vyžadujú živé prihlasovacie údaje a pr�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser predpony `auto/` + 6 variantov                                                                                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Vytvára objekt `AutoComboConfig` v pamäti zo živých pripojení                                                                                        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací bod na simulovanie registra poskytovateľov                                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratégií)                                                                                                             |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratégií)                                                                                                             |
 | `src/sse/handlers/chat.ts`                                | Integrácia: prednostné spracovanie predpony `auto/`                                                                                                  |

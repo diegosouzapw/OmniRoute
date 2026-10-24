@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Ó ń mú quota tó kù dọ́gba pẹ̀lú reset 5h àti ti ọ̀sẹ̀, lẹ́yìn náà ó ń ṣe round-robin fún àwọn score tó jọra",
     "quotaWeighted": "Tí a Fiwọn nípa Quota",
     "quotaWeightedDesc": "Fò kọjá àwọn account tí quota wọn ti tán, lẹ́yìn náà yan láàárín àwọn tó kù ní ìbámu pẹ̀lú iye tó ṣẹ́kù, tí a pín pẹ̀lú in-flight load. Àwọn ìjíròrò tó ti wà yóò dúró mọ́ account wọn.",
+    "expiryFirst": "Èyí Tí Ń Parí Lákọ̀ọ́kọ́",
+    "expiryFirstDesc": "Ó ń kọ́kọ́ lo àkọọ́lẹ̀ tí ìpín rẹ̀ ìbá parí láìlò: èyí tó ní ìyókù tó pọ̀ jù lọ pẹ̀lú àtúntò tó súnmọ́ jù lọ ló ń kọ́kọ́ lọ.",
     "strictRandom": "Àṣàyàn Aláìròtẹ́lẹ̀ Gidi",
     "strictRandomDesc": "Dà deck rú — ó máa ń lo model kọ̀ọ̀kan lẹ́ẹ̀kan kí ó tó tún wọn dà rú",
     "fusion": "Àkópapọ̀",
@@ -3600,6 +3602,11 @@
         "when": "O ń darí ìbéèrè la ọ̀pọ̀ àkọọ́lẹ̀ kọjá pẹ̀lú tẹlimẹ́tírì ìpín àti àwọn àkókò àtúntò tó yàtọ̀.",
         "avoid": "Tẹlimẹ́tírì ìpín kò sí fún ọ̀pọ̀ jù lọ àwọn àkọọ́lẹ̀.",
         "example": "Yan àkọọ́lẹ̀ tó ní 60% nínú ìpín ọ̀sẹ̀ rẹ̀, tí ìpín rẹ̀ yóò sì tún bẹ̀rẹ̀ lọ́la, dípò àkọọ́lẹ̀ tó ní 80% tí ìpín rẹ̀ yóò tún bẹ̀rẹ̀ nígbà tó yá."
+      },
+      "expiry-first": {
+        "when": "O ń darí ìbéèrè la àwọn àkọọ́lẹ̀ kọjá tí ìpín wọn ń tún bẹ̀rẹ̀ ní àwọn ìṣètò àkókò tó yàtọ̀, o sì fẹ́ lo ìpín tí ìbá parí láìlò.",
+        "avoid": "Tẹlimẹ́tírì ìpín kò sí fún ọ̀pọ̀ jù lọ àwọn àkọọ́lẹ̀, tàbí o nílò ètò tó dúró ṣinṣin tí kò ka àkókò àtúntò sí.",
+        "example": "Yan àkọọ́lẹ̀ tí 80% kù nínú rẹ̀ tí yóò tún bẹ̀rẹ̀ ní ìṣẹ́jú 39 dípò àkọọ́lẹ̀ tí 48% kù nínú rẹ̀ tí yóò tún bẹ̀rẹ̀ ní wákàtí 9 — a ń lo ìpín tó fẹ́rẹ̀ parí kí ó tó ṣòfò."
       },
       "strict-random": {
         "when": "Lò ó nígbà tí o bá fẹ́ ìpínkiri tó dọ́gba pátápátá — a ó lo àwòṣe kọ̀ọ̀kan lẹ́ẹ̀kan kí a tó tún un ṣe.",
@@ -3815,6 +3822,13 @@
         "tip1": "Lo àwọn ìgbésẹ̀ àkọọ́lẹ̀ pàtó tàbí ìdarí account-tag fún àwọn olùpèsè tó ní telemetry quota.",
         "tip2": "Ṣàtúnṣe àwọn ìwọ̀n session àti ti ọ̀sẹ̀ nígbà tí ewu lílo agbára tán fún ìgbà kúkúrú bá pọ̀ sí i.",
         "tip3": "Jẹ́ kí tie band kéré kí àwọn àkọọ́lẹ̀ tó dọ́gba lè máa yípo lọ́nà tó dọ́gba."
+      },
+      "expiry-first": {
+        "title": "Ìpín tó ń parí lákọ̀ọ́kọ́",
+        "description": "Ó ń to àwọn àkọọ́lẹ̀ ní ìbámu pẹ̀lú ìdààmú ìlò: ìpín púpọ̀ tó kù tó súnmọ́ àkókò àtúntò rẹ̀ ló ń kọ́kọ́ lọ.",
+        "tip1": "Ó nílò tẹlimẹ́tírì ìpín láti ọ̀dọ̀ olùpèsè; àwọn àkọọ́lẹ̀ tí kò ní in ń pa ètò ààyò wọn tí a tò sílẹ̀ mọ́.",
+        "tip2": "Àwọn score tó fẹ́rẹ̀ dọ́gba ń yípo nínú tie band kí àwọn àkọọ́lẹ̀ tó jọra ṣì lè máa pín ẹrù.",
+        "tip3": "Fi ìtòlẹ́sẹẹsẹ mọ́ àpò ìpín tí a ń gba owó àwòṣe kọ̀ọ̀kan lé lórí ní ti gidi."
       },
       "strict-random": {
         "title": "Pípín Nípasẹ̀ Dídàpọ̀ Dekini",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Fún àwọn àkọọ́lẹ̀ tí ìwọ̀n lílò tó kù ṣì dára tí àkókò ìtúnṣètò wọn sì sún mọ́lé ní ààyò",
     "quotaWeighted": "Ìwọ̀n Ìpín-lílo",
     "quotaWeightedDesc": "Fo àwọn àkọọ́lẹ̀ tí ìpín-lílo wọn ti tán, lẹ́yìn náà yan lára àwọn tó kù ní ìbámu pẹ̀lú iye tó ṣẹ́kù, kí o sì pín in pẹ̀lú ẹrù iṣẹ́ tó ń lọ lọ́wọ́. Àwọn ìjíròrò tó ti bẹ̀rẹ̀ yóò dúró lórí àkọọ́lẹ̀ wọn.",
+    "expiryFirst": "Èyí Tí Ń Parí Lákọ̀ọ́kọ́",
+    "expiryFirstDesc": "Ó ń kọ́kọ́ lo àkọọ́lẹ̀ tí ìpín rẹ̀ ìbá parí láìlò: èyí tó ní ìyókù tó pọ̀ jù lọ pẹ̀lú àtúntò tó súnmọ́ jù lọ ló ń kọ́kọ́ lọ.",
     "strictRandom": "Àṣàyàn Láìròtẹ́lẹ̀ Gédégbé",
     "strictRandomDesc": "Dapọ̀ àwọn káàdì — ó máa ń lo àkọọ́lẹ̀ kọ̀ọ̀kan lẹ́ẹ̀kan kí ó tó tún wọn dàpọ̀",
     "stickyLimit": "Ààlà Ìdúróṣinṣin",

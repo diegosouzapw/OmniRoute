@@ -59,7 +59,7 @@ As ligações OpenRouter podem armazenar um `preset` por ligação nas Definiç�
 
 ## 🎨 Combinações
 
-Crie combinações de encaminhamento de modelos com 19 estratégias públicas: prioridade, ponderada, round-robin, retransmissão de contexto, preenchimento prioritário, p2c (escolha entre duas opções), aleatória, menos utilizado, otimizada por custo, sensível à reposição, janela de reposição, margem disponível, aleatória estrita, automática, lkgp (último fornecedor funcional conhecido), otimizada por contexto, otimizada por cache, **fusão** (distribui o pedido em paralelo por um painel de modelos e, em seguida, sintetiza uma única resposta através de um avaliador) e **pipeline**. Cada combinação encadeia vários modelos com recurso alternativo automático e inclui modelos de configuração rápida e verificações de prontidão.
+Crie combinações de encaminhamento de modelos com 21 estratégias públicas: prioridade, ponderada, round-robin, retransmissão de contexto, preenchimento prioritário, p2c (escolha entre duas opções), aleatória, menos utilizado, otimizada por custo, sensível à reposição, janela de reposição, expiração primeiro, margem disponível, ponderada por quota, aleatória estrita, automática, lkgp (último fornecedor funcional conhecido), otimizada por contexto, otimizada por cache, **fusão** (distribui o pedido em paralelo por um painel de modelos e, em seguida, sintetiza uma única resposta através de um avaliador) e **pipeline**. Cada combinação encadeia vários modelos com recurso alternativo automático e inclui modelos de configuração rápida e verificações de prontidão.
 
 Melhorias recentes nas combinações:
 

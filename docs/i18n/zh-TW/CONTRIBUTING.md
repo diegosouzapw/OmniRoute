@@ -311,7 +311,7 @@ src/                        # TypeScript（.ts / .tsx）
 ├── mitm/                   # MITM Proxy（憑證、DNS、目標路由）
 ├── shared/
 │   ├── components/         # React 元件（.tsx）
-│   ├── constants/          # 提供者定義（329 個）、MCP 範圍、20 種路由策略
+│   ├── constants/          # 提供者定義（329 個）、MCP 範圍、21 種路由策略
 │   ├── utils/              # 斷路器、清理器、驗證輔助工具
 │   └── validation/         # Zod v4 結構描述
 └── sse/                    # SSE Proxy 管線

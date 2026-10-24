@@ -568,7 +568,7 @@ reached"）的 429 会在 `status_429` 规则被触及之前，就被配额文�
 
 ## 其他弹性功能
 
-- **20 种路由策略**（priority、weighted、round-robin、context-relay、fill-first、p2c、random、least-used、cost-optimized、reset-aware、reset-window、headroom、quota-weighted、strict-random、auto、lkgp、context-optimized、cache-optimized、fusion、pipeline）—— 参见 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)。
+- **21 种路由策略**（priority、weighted、round-robin、context-relay、fill-first、p2c、random、least-used、cost-optimized、reset-aware、reset-window、expiry-first、headroom、quota-weighted、strict-random、auto、lkgp、context-optimized、cache-optimized、fusion、pipeline）—— 参见 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)。
 - **重置感知路由**（v3.8.0）—— 按配额重置时间对连接进行优先级排序。
 - **后台模式降级** —— Responses API 的 `background: true` 会降级为同步执行并附带警告。
 - **动态工具数量限制检测** —— 当触及工具数量限制时，对提供者进行退避。

@@ -146,7 +146,7 @@ E2E matrisini herhangi bir etiket olmadan otomatik olarak atlar.
 - [ ] `npm run test:vitest` — başarılı (MCP sunucusu, autoCombo, önbellek)
 - [ ] `npm run test:coverage` — 60/60/60/60 eşiği karşılandı (ifadeler/satırlar/fonksiyonlar/dallar)
 - [ ] `npm run test:integration` — başarılı (değişiklikler DB / işleyicilere dokunuyorsa)
-- [ ] `npm run test:combo:matrix` — başarılı (combo stratejisi matrisi: herkese açık 19 yönlendirme stratejisinin seçim kararlarını deterministik olarak kanıtlar; combo yönlendirmesi, strateji çözümleme veya geri dönüş mantığı değiştirildiğinde çalıştırın)
+- [ ] `npm run test:combo:matrix` — başarılı (combo stratejisi matrisi: herkese açık 21 yönlendirme stratejisinin seçim kararlarını deterministik olarak kanıtlar; combo yönlendirmesi, strateji çözümleme veya geri dönüş mantığı değiştirildiğinde çalıştırın)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **isteğe bağlı/elle** (geçitli gerçek üst sistem duman testi; VPS `root@192.168.0.15` üzerinden salt okunur bir DB anlık görüntüsü alır; gerçek sağlayıcılara istek gönderir ve kredi harcar; CI'da hiçbir zaman çalışmaz; geçit olmadan düzgün biçimde atlanır)
 - [ ] `npm run test:combo:live:vps` — **isteğe bağlı/elle** (Aşama-3 VPS canlı duman testi: düz Node ESM aracılığıyla canlı `.15` sunucusuna karşı 7 HTTP senaryosu; `ssh root@192.168.0.15` gerektirir; yalnızca `__live_test__*` combo'larını oluşturur/siler; gerçek sağlayıcılara istek gönderir; CI'da hiçbir zaman çalışmaz)
 - [ ] `npm run test:e2e` — başarılı (UI değişiklikleri)

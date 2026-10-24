@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Palaiko **20 maršrutizavimo strategijų** (žr. `src/shared/constants/routingStrategies.ts`):
+Palaiko **21 maršrutizavimo strategiją** (žr. `src/shared/constants/routingStrategies.ts`):
 
 | Strategija          | Elgsena                                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Palaiko **20 maršrutizavimo strategijų** (žr. `src/shared/constants/routingSt
 | `cost-optimized`    | Pirmiausia pigiausias sveikas taikinys                                                                        |
 | `reset-aware`       | Atsižvelgia į teikėjų atstatymo langus                                                                        |
 | `reset-window`      | Maršrutizavimas pagal atstatymo langus                                                                        |
+| `expiry-first`      | Pirmiausia naudoja paskyrą, kurios kvota kitaip baigtų galioti nepanaudota                                    |
 | `headroom`          | Pirmiausia didžiausia likusi kvotos atsarga                                                                   |
 | `quota-weighted`    | Praleidžiamos išnaudotos paskyros, tada traukiama pagal likusią kvotą ÷ vykdomą apkrovą                       |
 | `strict-random`     | Tikrai tolygus (be kokybės svėrimo)                                                                           |

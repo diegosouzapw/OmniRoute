@@ -59,7 +59,7 @@ OpenRouter-anslutningar kan lagra ett `preset` per anslutning i Advanced Setting
 
 ## 🎨 Kombinationer
 
-Skapa kombinationer för modellroutning med 19 offentliga strategier: priority, weighted, round-robin, context-relay, fill-first, p2c (val mellan två alternativ), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (senast fungerande leverantör), context-optimized, cache-optimized, **fusion** (skickar parallellt till en panel av modeller och sammanställer sedan ett enda svar via en bedömare) och **pipeline**. Varje kombination kedjar flera modeller med automatisk reservväxling och innehåller snabbmallar och beredskapskontroller.
+Skapa kombinationer för modellroutning med 21 offentliga strategier: priority, weighted, round-robin, context-relay, fill-first, p2c (val mellan två alternativ), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (senast fungerande leverantör), context-optimized, cache-optimized, **fusion** (skickar parallellt till en panel av modeller och sammanställer sedan ett enda svar via en bedömare) och **pipeline**. Varje kombination kedjar flera modeller med automatisk reservväxling och innehåller snabbmallar och beredskapskontroller.
 
 Senaste förbättringarna av kombinationer:
 

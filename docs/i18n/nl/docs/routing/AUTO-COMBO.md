@@ -282,7 +282,7 @@ omgezette waarden worden doorgegeven aan de bestaande invoerwaarden `config.mode
 
 ## Alle routeringsstrategieën
 
-De combo-engine van OmniRoute ondersteunt **20 routeringsstrategieën** (gedeclareerd in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). De Auto Combo-engine zelf is beschikbaar via de strategie `auto`; de overige strategieën zijn beschikbaar voor opgeslagen combo's.
+De combo-engine van OmniRoute ondersteunt **21 routeringsstrategieën** (gedeclareerd in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). De Auto Combo-engine zelf is beschikbaar via de strategie `auto`; de overige strategieën zijn beschikbaar voor opgeslagen combo's.
 
 | Strategie           | Beschrijving                                                                                                                                                                                                                       |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ De combo-engine van OmniRoute ondersteunt **20 routeringsstrategieën** (gedecla
 | `cost-optimized`    | Minimaliseer de kosten per aanvraag op basis van catalogusprijzen                                                                                                                                                                  |
 | `reset-aware` ⭐    | Geef prioriteit op basis van de resettijd van quota — korte resetvensters krijgen een hogere positie                                                                                                                               |
 | `reset-window`      | Geef de voorkeur aan doelen waarvan het quotumvenster het eerst wordt gereset                                                                                                                                                      |
+| `expiry-first`      | Verbruikt eerst het account waarvan het quotum anders ongebruikt zou vervallen: het grootste restant met de dichtstbijzijnde reset gaat voor                                                                                       |
 | `headroom`          | Kies het doel met de meeste resterende quotumruimte                                                                                                                                                                                |
 | `quota-weighted`    | Sla uitgeputte accounts over en kies vervolgens uit de rest naar rato van het resterende quotum gedeeld door de actieve belasting; bestaande gesprekken blijven aan hun doel gekoppeld                                             |
 | `strict-random`     | Willekeurige selectie zonder deduplicatie van herhalingen                                                                                                                                                                          |
@@ -854,9 +855,9 @@ Zie [`docs/guides/TIERS.md`](../guides/TIERS.md) voor definities van niveaus en 
 
 ### Deterministische matrix voor routeringsbeslissingen (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` bewijst de routerings**beslissing** van alle 19 openbare strategieën end-to-end via de echte combopijplijn met een gesimuleerde upstream. De dekking omvat:
+`tests/integration/combo-matrix/*.test.ts` bewijst de routerings**beslissing** van alle 21 openbare strategieën end-to-end via de echte combopijplijn met een gesimuleerde upstream. De dekking omvat:
 
-- Alle 19 strategieën van `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Alle 21 strategieën van `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (intern) end-to-end: DRR-eerlijkheid + lagere prioriteit bij verzadiging via het echte `selectQuotaShareTarget`-aangrijpingspunt (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - `context-relay`-dekking voor universele overdracht voor elk aantal doelen.
 
@@ -886,5 +887,5 @@ Deze rooktests testen het echte communicatiepad (combo → provider → voltooii
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser voor het voorvoegsel `auto/` + 6 varianten                                                           |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Bouwt `AutoComboConfig` in het geheugen op basis van actieve verbindingen                                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testhook voor het mocken van het providerregister                                                           |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategieën)                                                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategieën)                                                                  |
 | `src/sse/handlers/chat.ts`                                | Integratie: vroegtijdige afhandeling van het auto-voorvoegsel                                               |

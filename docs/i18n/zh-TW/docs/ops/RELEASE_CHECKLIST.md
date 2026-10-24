@@ -146,7 +146,7 @@ quality-gate、quality-extended），並保留快速且高訊號的閘門：建�
 - [ ] `npm run test:vitest` — 通過（MCP 伺服器、autoCombo、快取）
 - [ ] `npm run test:coverage` — 符合 60/60/60/60 門檻（陳述式／程式行／函式／分支）
 - [ ] `npm run test:integration` — 通過（若變更涉及資料庫／處理常式）
-- [ ] `npm run test:combo:matrix` — 通過（組合策略矩陣：以確定性方式驗證全部 19 種公開路由策略的選擇決策；修改組合路由、策略解析或備援邏輯時執行）
+- [ ] `npm run test:combo:matrix` — 通過（組合策略矩陣：以確定性方式驗證全部 21 種公開路由策略的選擇決策；修改組合路由、策略解析或備援邏輯時執行）
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **選用／手動**（受閘門控制的真實上游煙霧測試；從 VPS `root@192.168.0.15` 取得唯讀資料庫快照；會存取真實提供者並消耗額度；絕不在 CI 中執行；未設定閘門時會正常略過）
 - [ ] `npm run test:combo:live:vps` — **選用／手動**（第 3 階段 VPS 即時煙霧測試：透過純 Node ESM 對即時 `.15` 伺服器執行 7 個 HTTP 情境；需要 `ssh root@192.168.0.15`；僅建立／刪除 `__live_test__*` 組合；會存取真實提供者；絕不在 CI 中執行）
 - [ ] `npm run test:e2e` — 通過（UI 變更）

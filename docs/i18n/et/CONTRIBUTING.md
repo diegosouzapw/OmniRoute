@@ -315,7 +315,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM-puhverserver (sertifikaat, DNS, sihtkohta marsruutimine)
 ├── shared/
 │   ├── components/         # Reacti komponendid (.tsx)
-│   ├── constants/          # Pakkujate definitsioonid (329), MCP ulatused, 20 marsruutimisstrateegiat
+│   ├── constants/          # Pakkujate definitsioonid (329), MCP ulatused, 21 marsruutimisstrateegiat
 │   ├── utils/              # Kaitselüliti, puhastaja, autentimise abifunktsioonid
 │   └── validation/         # Zod v4 skeemid
 └── sse/                    # SSE-puhverserveri konveier

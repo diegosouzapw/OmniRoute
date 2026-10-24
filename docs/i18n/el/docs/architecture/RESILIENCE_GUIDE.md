@@ -886,7 +886,7 @@ reached") ταξινομείται ως `quota_exhausted` από το fallback �
 
 ## Άλλες Δυνατότητες Ανθεκτικότητας
 
-- **20 στρατηγικές δρομολόγησης** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — δείτε το [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 στρατηγικές δρομολόγησης** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — δείτε το [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Δρομολόγηση με επίγνωση επαναφοράς** (v3.8.0) — δίνει προτεραιότητα στις συνδέσεις με βάση τον χρόνο επαναφοράς του quota.
 - **Υποβάθμιση της λειτουργίας background** — το Responses API με `background: true` υποβαθμίζεται σε σύγχρονη εκτέλεση με προειδοποίηση.
 - **Δυναμικός εντοπισμός ορίου εργαλείων** — εφαρμόζει backoff στους παρόχους όταν επιτυγχάνονται τα όρια στον αριθμό εργαλείων.

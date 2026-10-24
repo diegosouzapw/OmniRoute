@@ -146,7 +146,7 @@ E2E-matrixen over uden nogen label.
 - [ ] `npm run test:vitest` — bestået (MCP-server, autoCombo, cache)
 - [ ] `npm run test:coverage` — kravet på 60/60/60/60 er opfyldt (instruktioner/linjer/funktioner/grene)
 - [ ] `npm run test:integration` — bestået (hvis ændringer berører DB/håndteringsfunktioner)
-- [ ] `npm run test:combo:matrix` — bestået (matrix for combo-strategier: dokumenterer deterministisk udvælgelsesbeslutningerne for alle 19 offentlige routingstrategier; kør ved ændringer af combo-routing, strategiopløsning eller fallback-logik)
+- [ ] `npm run test:combo:matrix` — bestået (matrix for combo-strategier: dokumenterer deterministisk udvælgelsesbeslutningerne for alle 21 offentlige routingstrategier; kør ved ændringer af combo-routing, strategiopløsning eller fallback-logik)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **valgfri/manuel** (adgangsstyret smoke-test mod reelle upstream-tjenester; henter et skrivebeskyttet DB-snapshot fra VPS'en `root@192.168.0.15`; rammer reelle udbydere og koster kreditter; kører aldrig i CI; springes problemfrit over uden adgangsparameteren)
 - [ ] `npm run test:combo:live:vps` — **valgfri/manuel** (fase 3-VPS-smoke-test i produktion: 7 HTTP-scenarier mod den aktive `.15`-server via ren Node ESM; kræver `ssh root@192.168.0.15`; opretter/sletter kun `__live_test__*`-comboer; rammer reelle udbydere; kører aldrig i CI)
 - [ ] `npm run test:e2e` — bestået (UI-ændringer)

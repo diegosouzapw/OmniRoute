@@ -59,7 +59,7 @@ Conexiunile OpenRouter pot stoca un `preset` pentru fiecare conexiune în Setăr
 
 ## 🎨 Combinații
 
-Creați combinații de rutare a modelelor folosind 19 strategii publice: prioritate, ponderată, round-robin, retransmiterea contextului, completarea primului, p2c (alegerea puterii lui doi), aleatorie, cel mai puțin utilizat, optimizată pentru cost, adaptată la resetare, fereastră de resetare, capacitate disponibilă, strict aleatorie, automată, lkgp (ultimul furnizor cunoscut ca funcțional), optimizată pentru context, optimizată pentru cache, **fuziune** (trimite în paralel către un grup de modele, apoi sintetizează un singur răspuns prin intermediul unui arbitru) și **pipeline**. Fiecare combinație înlănțuie mai multe modele cu mecanism automat de rezervă și include șabloane rapide și verificări ale stării de pregătire.
+Creați combinații de rutare a modelelor folosind 21 strategii publice: prioritate, ponderată, round-robin, retransmiterea contextului, completarea primului, p2c (alegerea puterii lui doi), aleatorie, cel mai puțin utilizat, optimizată pentru cost, adaptată la resetare, fereastră de resetare, expirare întâi, capacitate disponibilă, ponderată după cotă, strict aleatorie, automată, lkgp (ultimul furnizor cunoscut ca funcțional), optimizată pentru context, optimizată pentru cache, **fuziune** (trimite în paralel către un grup de modele, apoi sintetizează un singur răspuns prin intermediul unui arbitru) și **pipeline**. Fiecare combinație înlănțuie mai multe modele cu mecanism automat de rezervă și include șabloane rapide și verificări ale stării de pregătire.
 
 Îmbunătățiri recente ale combinațiilor:
 

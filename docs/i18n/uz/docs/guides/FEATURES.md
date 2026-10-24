@@ -59,7 +59,7 @@ OpenRouter ulanishlari Kengaytirilgan sozlamalarda har bir ulanish uchun alohida
 
 ## 🎨 Kombinatsiyalar
 
-19 ta ommaviy strategiya bilan model yoʻnaltirish kombinatsiyalarini yarating: priority, weighted, round-robin, context-relay, fill-first, p2c (ikkita variant quvvati), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (oxirgi maʼlum yaxshi provayder), context-optimized, cache-optimized, **fusion** (modellar paneliga parallel ravishda soʻrov yuborib, soʻng hakam modeli orqali yagona javobni sintez qilish) va **pipeline**. Har bir kombinatsiya avtomatik zaxira mexanizmi yordamida bir nechta modelni zanjirlaydi hamda tezkor andozalar va tayyorlik tekshiruvlarini oʻz ichiga oladi.
+21 ta ommaviy strategiya bilan model yoʻnaltirish kombinatsiyalarini yarating: priority, weighted, round-robin, context-relay, fill-first, p2c (ikkita variant quvvati), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (oxirgi maʼlum yaxshi provayder), context-optimized, cache-optimized, **fusion** (modellar paneliga parallel ravishda soʻrov yuborib, soʻng hakam modeli orqali yagona javobni sintez qilish) va **pipeline**. Har bir kombinatsiya avtomatik zaxira mexanizmi yordamida bir nechta modelni zanjirlaydi hamda tezkor andozalar va tayyorlik tekshiruvlarini oʻz ichiga oladi.
 
 Kombinatsiyalardagi soʻnggi yaxshilanishlar:
 

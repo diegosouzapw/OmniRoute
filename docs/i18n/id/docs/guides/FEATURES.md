@@ -59,7 +59,7 @@ Koneksi OpenRouter dapat menyimpan `preset` per koneksi di Pengaturan Lanjutan. 
 
 ## 🎨 Kombo
 
-Buat kombo perutean model dengan 19 strategi publik: prioritas, berbobot, round-robin, context-relay, fill-first, p2c (pilihan dua pangkat), acak, paling jarang digunakan, dioptimalkan untuk biaya, reset-aware, reset-window, headroom, strict-random, otomatis, lkgp (penyedia terakhir yang diketahui berfungsi), dioptimalkan untuk konteks, dioptimalkan untuk cache, **fusion** (menyebarkan permintaan ke panel model secara paralel, lalu menyintesis satu jawaban melalui penilai), dan **pipeline**. Setiap kombo merangkai beberapa model dengan fallback otomatis serta mencakup templat cepat dan pemeriksaan kesiapan.
+Buat kombo perutean model dengan 21 strategi publik: prioritas, berbobot, round-robin, context-relay, fill-first, p2c (pilihan dua pangkat), acak, paling jarang digunakan, dioptimalkan untuk biaya, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, otomatis, lkgp (penyedia terakhir yang diketahui berfungsi), dioptimalkan untuk konteks, dioptimalkan untuk cache, **fusion** (menyebarkan permintaan ke panel model secara paralel, lalu menyintesis satu jawaban melalui penilai), dan **pipeline**. Setiap kombo merangkai beberapa model dengan fallback otomatis serta mencakup templat cepat dan pemeriksaan kesiapan.
 
 Peningkatan kombo terbaru:
 

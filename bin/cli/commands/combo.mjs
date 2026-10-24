@@ -22,6 +22,7 @@ const VALID_STRATEGIES = [
   "least-used",
   "strict-random",
   "reset-aware",
+  "expiry-first",
 ];
 
 const suggestSchema = [

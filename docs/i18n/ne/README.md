@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — निःशुल्क AI गेटवे
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिङ कहिल्यै नरोक्नुहोस्। प्रत्येक AI उपकरण → 375 प्रदायक — 150+ निःशुल्क — एउटै एन्डपोइन्टमार्फत। Claude Code, Codex, Cursor, Cline, Copilot र Antigravity लाई स्वतः-फल्ब्याकसहित निःशुल्क Claude / GPT / Gemini मा जोड्नुहोस्। RTK + Caveman को तहबद्ध कम्प्रेसनले 15–95% टोकन (~89% औसत) बचाउँछ — सीमामा कहिल्यै नपुग्नुहोस्। 375 AI प्रदायक · 150+ निःशुल्क टियर · ~1.62B निःशुल्क टोकन/महिना · 20 राउटिङ रणनीति · सुरु गर्न $0।"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — कोडिङ कहिल्यै नरोक्नुहोस्। प्रत्येक AI उपकरण → 375 प्रदायक — 150+ निःशुल्क — एउटै एन्डपोइन्टमार्फत। Claude Code, Codex, Cursor, Cline, Copilot र Antigravity लाई स्वतः-फल्ब्याकसहित निःशुल्क Claude / GPT / Gemini मा जोड्नुहोस्। RTK + Caveman को तहबद्ध कम्प्रेसनले 15–95% टोकन (~89% औसत) बचाउँछ — सीमामा कहिल्यै नपुग्नुहोस्। 375 AI प्रदायक · 150+ निःशुल्क टियर · ~1.62B निःशुल्क टोकन/महिना · 21 राउटिङ रणनीति · सुरु गर्न $0।"/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute अनुरोध प्रवाह: तपाईंको IDE वा CLI (Claude Code, Cursor, Cline…) ले एउटा लोकल एन्डपोइन्ट (http://localhost:20128/v1) लाई कल गर्छ; OmniRoute स्मार्ट राउटर (RTK + Caveman कम्प्रेसन, 20 राउटिङ रणनीतिहरू, सर्किट ब्रेकर, TLS स्टेल्थ, MCP, A2A, गार्डरेल) ले योग्य स्वस्थ लक्ष्य रहुञ्जेल 4 प्रोभाइडर तहहरूमा फलब्याक गर्न सक्छ — तह 1 Subscription, तह 2 API Key, तह 3 Cheap र तह 4 Free।"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute अनुरोध प्रवाह: तपाईंको IDE वा CLI (Claude Code, Cursor, Cline…) ले एउटा लोकल एन्डपोइन्ट (http://localhost:20128/v1) लाई कल गर्छ; OmniRoute स्मार्ट राउटर (RTK + Caveman कम्प्रेसन, 21 राउटिङ रणनीतिहरू, सर्किट ब्रेकर, TLS स्टेल्थ, MCP, A2A, गार्डरेल) ले योग्य स्वस्थ लक्ष्य रहुञ्जेल 4 प्रोभाइडर तहहरूमा फलब्याक गर्न सक्छ — तह 1 Subscription, तह 2 API Key, तह 3 Cheap र तह 4 Free।"/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="२० मध्ये १८ कम्बो राउटिङ रणनीतिका एनिमेटेड उदाहरणहरू — प्रत्येक रणनीतिका लागि एउटा टाइल: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline। cache-optimized र quota-weighted एनिमेट गरिएका छैनन्; तलको तालिकाले सबै २० वटाको वर्णन गर्छ।"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="२१ मध्ये १८ कम्बो राउटिङ रणनीतिका एनिमेटेड उदाहरणहरू — प्रत्येक रणनीतिका लागि एउटा टाइल: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline। cache-optimized, quota-weighted र expiry-first एनिमेट गरिएका छैनन्; तलको तालिकाले सबै २१ वटाको वर्णन गर्छ।"/>
 
 > **कम्बो** भनेको OmniRoute ले **स्वचालित रूपमा** राउट गर्ने मोडेलहरूको शृङ्खला हो। कोटा सकिएमा, प्रदायक असफल भएमा वा लागत आकस्मिक रूपमा बढेमा, कम्बो अर्को योग्य र स्वस्थ मोडेलमा जान सक्छ। 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 वा आफ्नै बनाउनुहोस् — २० राउटिङ रणनीतिहरू
+### 🔀 वा आफ्नै बनाउनुहोस् — २१ राउटिङ रणनीतिहरू
 
-सबै **२०** रणनीतिहरू — प्रत्येक कम्बो चरणमा मिलाउनुहोस् र संयोजन गर्नुहोस्:
+सबै **२१** रणनीतिहरू — प्रत्येक कम्बो चरणमा मिलाउनुहोस् र संयोजन गर्नुहोस्:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>चरणहरू शृङ्खलाबद्ध गर्छ — प्रत्येक लक्ष्यको आउटपुट अर्को लक्ष्यको इनपुट बन्छ 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>अन्यथा प्रयोग नगरी म्याद सकिने कोटा भएको खाता पहिले खर्च गर्छ: सबैभन्दा धेरै बाँकी र सबैभन्दा नजिकको रिसेट भएको खाता पहिले जान्छ ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo इन्जिनले प्रत्येक उम्मेदवारलाई **16 कारकहरू** (स्वास्थ्य, कोटा, लागत, विलम्बता, कार्य अनुकूलता, गुणस्तर, सत्र उपलब्धता…) का आधारमा अङ्क दिन्छ — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) हेर्नुहोस्।</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute लाई विशिष्ट बनाउने पक्षहरू — 13 क्षमताहरूमा 9router, OpenRouter, CLIProxyAPI र LiteLLM सँगको मिति उल्लेख गरिएको सुविधा तुलना। OmniRoute: 375 प्रदायकहरू, पूर्वनिर्मित 150+ निःशुल्क टियरहरू, 20 राउटिङ रणनीतिहरू, 12-इन्जिन टोकन सङ्कुचन, 110 उपकरणसहितको पूर्वनिर्मित MCP सर्भर, A2A एजेन्ट प्रोटोकल, स्थायी मेमोरी, सुरक्षा सीमाहरू, क्लाउड एजेन्टहरू, TLS फिङ्गरप्रिन्ट गोपनीयता, Desktop/Termux/PWA र 67 i18n UI लोकेलहरू। OmniRoute MIT इजाजतपत्रप्राप्त र स्व-होस्ट गर्न मिल्ने छ। प्रतिस्पर्धीका क्षमता र सङ्ख्याहरू परिवर्तन हुन सक्छन्; लिङ्क गरिएको कार्यविधि हेर्नुहोस्।"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute लाई विशिष्ट बनाउने पक्षहरू — 13 क्षमताहरूमा 9router, OpenRouter, CLIProxyAPI र LiteLLM सँगको मिति उल्लेख गरिएको सुविधा तुलना। OmniRoute: 375 प्रदायकहरू, पूर्वनिर्मित 150+ निःशुल्क टियरहरू, 21 राउटिङ रणनीतिहरू, 12-इन्जिन टोकन सङ्कुचन, 110 उपकरणसहितको पूर्वनिर्मित MCP सर्भर, A2A एजेन्ट प्रोटोकल, स्थायी मेमोरी, सुरक्षा सीमाहरू, क्लाउड एजेन्टहरू, TLS फिङ्गरप्रिन्ट गोपनीयता, Desktop/Termux/PWA र 67 i18n UI लोकेलहरू। OmniRoute MIT इजाजतपत्रप्राप्त र स्व-होस्ट गर्न मिल्ने छ। प्रतिस्पर्धीका क्षमता र सङ्ख्याहरू परिवर्तन हुन सक्छन्; लिङ्क गरिएको कार्यविधि हेर्नुहोस्।"/>
 
 <sub>📊 पूर्ण कार्यविधि &amp; 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM सँग प्रत्येक सुविधाको विस्तृत तुलना → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

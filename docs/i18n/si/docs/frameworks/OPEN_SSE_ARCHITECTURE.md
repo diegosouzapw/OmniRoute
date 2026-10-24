@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**මාර්ගගත උපායමාර්ග 20ක්** සඳහා සහාය දක්වයි (බලන්න `src/shared/constants/routingStrategies.ts`):
+**මාර්ගගත උපායමාර්ග 21ක්** සඳහා සහාය දක්වයි (බලන්න `src/shared/constants/routingStrategies.ts`):
 
 | උපායමාර්ගය          | හැසිරීම                                                                               |
 | ------------------- | ------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | ලාභදායීම සෞඛ්ය සම්පන්න ඉලක්කය පළමුව                                                   |
 | `reset-aware`       | සැපයුම්කරු නැවත සැකසීමේ කවුළු ගැන දැනුම්වත්                                           |
 | `reset-window`      | නැවත සැකසීමේ කවුළු-පදනම් මාර්ගගත කිරීම                                                |
+| `expiry-first`      | නැතහොත් භාවිත නොකර කල් ඉකුත් වන කෝටාවක් ඇති ගිණුම පළමුව වැය කරයි                      |
 | `headroom`          | වැඩිම ඉතිරි කෝටා ඉඩ ඇති එක පළමුව                                                      |
 | `quota-weighted`    | හිස් වූ ගිණුම් මඟහරින්න, ඉන්පසු ඉතිරි කෝටා ÷ ගමනාගමන බර අනුව තෝරන්න                   |
 | `strict-random`     | සැබවින්ම ඒකාකාර (ගුණාත්මක බර තැබීමක් නැත)                                             |

@@ -73,7 +73,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     id: "omni-combos-routing",
     name: "Combos & Routing",
     description:
-      "Create and manage routing combos with 19 strategies (priority, weighted, round-robin, Auto-combo, and more). Configure fallback chains, test routing outcomes, and retrieve combo metrics.",
+      "Create and manage routing combos with 21 strategies (priority, weighted, round-robin, Auto-combo, and more). Configure fallback chains, test routing outcomes, and retrieve combo metrics.",
     category: "api",
     area: "combos-routing",
     icon: "route",

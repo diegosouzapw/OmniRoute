@@ -262,7 +262,7 @@ vērtības tiek padotas dzinēja esošajām `config.modePack` / `config.budgetCa
 
 ## Visas maršrutēšanas stratēģijas
 
-OmniRoute kombināciju dzinējs atbalsta **20 maršrutēšanas stratēģijas** (deklarētas `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats Auto Combo dzinējs ir pieejams ar stratēģiju `auto`; pārējās stratēģijas ir pieejamas saglabātajām kombinācijām.
+OmniRoute kombināciju dzinējs atbalsta **21 maršrutēšanas stratēģiju** (deklarētas `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats Auto Combo dzinējs ir pieejams ar stratēģiju `auto`; pārējās stratēģijas ir pieejamas saglabātajām kombinācijām.
 
 | Stratēģija          | Apraksts                                                                                                                                                                                                          |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -277,6 +277,7 @@ OmniRoute kombināciju dzinējs atbalsta **20 maršrutēšanas stratēģijas** (
 | `cost-optimized`    | Izmaksu par pieprasījumu minimizēšana, ņemot vērā kataloga cenas                                                                                                                                                  |
 | `reset-aware` ⭐    | Prioritātes noteikšana pēc kvotas atiestatīšanas laika — īsāki atiestatīšanas periodi tiek novērtēti augstāk                                                                                                      |
 | `reset-window`      | Priekšroka mērķiem, kuru kvotas periods tiks atiestatīts visdrīzāk                                                                                                                                                |
+| `expiry-first`      | Vispirms izmanto kontu, kura kvota citādi beigtos neizmantota: pirmais ir lielākais atlikums ar tuvāko atiestatīšanu                                                                                              |
 | `headroom`          | Mērķa ar vislielāko atlikušo kvotas rezervi izvēle                                                                                                                                                                |
 | `quota-weighted`    | Izlaist kontus ar izsmeltu kvotu, pēc tam izvēlēties no pārējiem proporcionāli atlikušajai kvotai, kas dalīta ar izpildē esošo pieprasījumu slodzi; esošās sarunas paliek piesaistītas                            |
 | `strict-random`     | Nejauša izvēle bez atkārtojumu dedublēšanas                                                                                                                                                                       |
@@ -800,11 +801,11 @@ Līmeņu definīcijas un nodrošinātāju klasifikāciju skatiet failā [`docs/g
 
 ### Deterministisks maršrutēšanas lēmumu matrica (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` pierāda visu 19
-publisko stratēģiju maršrutēšanas **lēmumu** end-to-end caur reālo kombinācijas konveijeru ar
+`tests/integration/combo-matrix/*.test.ts` pierāda visu 21
+publiskās stratēģijas maršrutēšanas **lēmumu** end-to-end caur reālo kombinācijas konveijeru ar
 ģenerētu augšējo līmeni. Pārklājums ietver:
 
-- Visas 19 `ROUTING_STRATEGY_VALUES` stratēģijas (sakārtotas, svarītas, izmaksas, konteksts, saplūšana, …).
+- Visas 21 `ROUTING_STRATEGY_VALUES` stratēģijas (sakārtotas, svarītas, izmaksas, konteksts, saplūšana, …).
 - `quota-share` (iekšējs) end-to-end: DRR taisnīgums + piesātinājuma degradēšana caur
   reālo `selectQuotaShareTarget` šuvi (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -838,5 +839,5 @@ apzināti izslēgti no CI, jo tiem nepieciešami dzīvie akreditīvi un VPS piek
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksa parsētājs + 6 varianti                                                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Izveido atmiņā glabātu `AutoComboConfig` no aktīvajiem savienojumiem                                                                     |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testēšanas āķis pakalpojumu sniedzēju reģistra imitēšanai                                                                                |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratēģijas)                                                                                               |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratēģija)                                                                                                |
 | `src/sse/handlers/chat.ts`                                | Integrācija: auto-prefiksa agrīna apstrādes pārtraukšana                                                                                 |

@@ -146,7 +146,7 @@ secara automatik, tanpa sebarang label.
 - [ ] `npm run test:vitest` — lulus (pelayan MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — ambang 60/60/60/60 dipenuhi (pernyataan/baris/fungsi/cabang)
 - [ ] `npm run test:integration` — lulus (jika perubahan melibatkan DB / pengendali)
-- [ ] `npm run test:combo:matrix` — lulus (matriks strategi gabungan: membuktikan secara deterministik keputusan pemilihan bagi kesemua 19 strategi penghalaan awam; jalankan apabila mengubah penghalaan gabungan, resolusi strategi atau logik sandaran)
+- [ ] `npm run test:combo:matrix` — lulus (matriks strategi gabungan: membuktikan secara deterministik keputusan pemilihan bagi kesemua 21 strategi penghalaan awam; jalankan apabila mengubah penghalaan gabungan, resolusi strategi atau logik sandaran)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **pilihan/manual** (ujian asap huluan sebenar yang dikawal; mendapatkan petikan DB baca sahaja daripada VPS `root@192.168.0.15`; mengakses penyedia sebenar dan menggunakan kredit; tidak pernah dijalankan dalam CI; dilangkau dengan bersih tanpa kawalan tersebut)
 - [ ] `npm run test:combo:live:vps` — **pilihan/manual** (ujian asap langsung VPS Fasa 3: 7 senario HTTP terhadap pelayan `.15` langsung melalui Node ESM biasa; memerlukan `ssh root@192.168.0.15`; hanya mencipta/memadam gabungan `__live_test__*`; mengakses penyedia sebenar; tidak pernah dijalankan dalam CI)
 - [ ] `npm run test:e2e` — lulus (perubahan UI)

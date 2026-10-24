@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Lango la AI Lisilolipishwa
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Usiache kamwe kuandika msimbo. Kila zana ya AI → watoa huduma 375 — 150+ bila malipo — kupitia kituo kimoja. Claude Code, Codex, Cursor, Cline, Copilot na Antigravity kwenda kwenye Claude / GPT / Gemini BILA MALIPO kwa uhamishaji kiotomatiki inaposhindikana. Mfinyazo wa tabaka wa RTK + Caveman huokoa 15–95% ya tokeni (~89% kwa wastani) — usifikie kamwe vikomo. Watoa huduma 375 wa AI · viwango 150+ visivyolipishwa · ~tokeni bilioni 1.62 bila malipo kwa mwezi · mikakati 20 ya uelekezaji · $0 kuanza."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Usiache kamwe kuandika msimbo. Kila zana ya AI → watoa huduma 375 — 150+ bila malipo — kupitia kituo kimoja. Claude Code, Codex, Cursor, Cline, Copilot na Antigravity kwenda kwenye Claude / GPT / Gemini BILA MALIPO kwa uhamishaji kiotomatiki inaposhindikana. Mfinyazo wa tabaka wa RTK + Caveman huokoa 15–95% ya tokeni (~89% kwa wastani) — usifikie kamwe vikomo. Watoa huduma 375 wa AI · viwango 150+ visivyolipishwa · ~tokeni bilioni 1.62 bila malipo kwa mwezi · mikakati 21 ya uelekezaji · $0 kuanza."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Mtiririko wa maombi ya OmniRoute: IDE au CLI yako (Claude Code, Cursor, Cline…) inaita endpoint moja ya ndani (http://localhost:20128/v1); OmniRoute Smart Router (ukandamizaji wa RTK + Caveman, mikakati 20 ya uelekezaji, circuit breakers, TLS stealth, MCP, A2A, guardrails) inaweza kurejea katika ngazi 4 za watoa huduma wakati lengo linalofaa lenye afya linabaki — Ngazi 1 Usajili, Ngazi 2 API Key, Ngazi 3 Nafuu na Ngazi 4 Bure."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Mtiririko wa maombi ya OmniRoute: IDE au CLI yako (Claude Code, Cursor, Cline…) inaita endpoint moja ya ndani (http://localhost:20128/v1); OmniRoute Smart Router (ukandamizaji wa RTK + Caveman, mikakati 21 ya uelekezaji, circuit breakers, TLS stealth, MCP, A2A, guardrails) inaweza kurejea katika ngazi 4 za watoa huduma wakati lengo linalofaa lenye afya linabaki — Ngazi 1 Usajili, Ngazi 2 API Key, Ngazi 3 Nafuu na Ngazi 4 Bure."/>
 
 </div>
 
@@ -287,7 +287,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Mifano iliyohuishwa ya mikakati 18 kati ya 20 ya uelekezaji wa combo — kisanduku kimoja kwa kila mkakati: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized na quota-weighted hazijahuishwa; jedwali lililo hapa chini linafafanua mikakati yote 20."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Mifano iliyohuishwa ya mikakati 18 kati ya 21 ya uelekezaji wa combo — kisanduku kimoja kwa kila mkakati: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted na expiry-first hazijahuishwa; jedwali lililo hapa chini linafafanua mikakati yote 21."/>
 
 > **Combo** ni mnyororo wa modeli ambao OmniRoute huelekeza maombi kati yake **kiotomatiki**. Ikiwa kiwango kinachoruhusiwa kitaisha, mtoa huduma atashindwa, au gharama zitapanda ghafla, combo inaweza kuhamia kwenye modeli inayofuata inayostahiki na yenye afya nzuri. 🛡️
 
@@ -311,9 +311,9 @@ Hakuna combo ya kuunda. Weka modeli yako kuwa `auto` (au mojawapo ya vibadala vy
 
 ##
 
-### 🔀 Au unda yako mwenyewe — mikakati 20 ya uelekezaji
+### 🔀 Au unda yako mwenyewe — mikakati 21 ya uelekezaji
 
-Mikakati yote **20** — changanya na kulinganisha kwa kila hatua ya combo:
+Mikakati yote **21** — changanya na kulinganisha kwa kila hatua ya combo:
 
 <table>
   <tr>
@@ -421,6 +421,11 @@ Mikakati yote **20** — changanya na kulinganisha kwa kila hatua ya combo:
     <td nowrap><code>pipeline</code></td>
     <td>Unganisha hatua — matokeo ya kila lengo hutumika kama ingizo la linalofuata 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>Hutumia kwanza akaunti ambayo mgao wake ungeisha bila kutumika: salio kubwa zaidi lenye uwekaji upya wa karibu zaidi huenda kwanza ⏳</td>
+  </tr>
 </table>
 
 <sub>Injini ya Auto-Combo hutathmini kila chaguo kwa kutumia **vipengele 16** (afya, kiwango kinachoruhusiwa, gharama, muda wa kusubiri, ufaafu wa jukumu, ubora, upatikanaji wa kipindi…) — tazama [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
@@ -441,7 +446,7 @@ Mikakati yote **20** — changanya na kulinganisha kwa kila hatua ya combo:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Kinachofanya OmniRoute kuwa tofauti — muhtasari wa vipengele wa tarehe maalumu ukilinganisha na 9router, OpenRouter, CLIProxyAPI na LiteLLM katika uwezo 13. OmniRoute: watoa huduma 375, viwango 150+ vya bure vilivyojengewa ndani, mikakati 20 ya uelekezaji, ufinyazaji wa tokeni kwa injini 12, seva ya MCP iliyojengewa ndani yenye zana 110, itifaki ya mawakala ya A2A, kumbukumbu endelevu, vizuizi vya usalama, mawakala wa wingu, ufichaji wa alama za utambulisho za TLS, Desktop/Termux/PWA na lugha 67 za kiolesura cha i18n. OmniRoute ina leseni ya MIT na inaweza kupangishwa binafsi. Uwezo na idadi za washindani zinaweza kubadilika; angalia mbinu iliyounganishwa."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Kinachofanya OmniRoute kuwa tofauti — muhtasari wa vipengele wa tarehe maalumu ukilinganisha na 9router, OpenRouter, CLIProxyAPI na LiteLLM katika uwezo 13. OmniRoute: watoa huduma 375, viwango 150+ vya bure vilivyojengewa ndani, mikakati 21 ya uelekezaji, ufinyazaji wa tokeni kwa injini 12, seva ya MCP iliyojengewa ndani yenye zana 110, itifaki ya mawakala ya A2A, kumbukumbu endelevu, vizuizi vya usalama, mawakala wa wingu, ufichaji wa alama za utambulisho za TLS, Desktop/Termux/PWA na lugha 67 za kiolesura cha i18n. OmniRoute ina leseni ya MIT na inaweza kupangishwa binafsi. Uwezo na idadi za washindani zinaweza kubadilika; angalia mbinu iliyounganishwa."/>
 
 <sub>📊 Mbinu kamili &amp; maelezo ya kila kipengele ikilinganishwa na 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

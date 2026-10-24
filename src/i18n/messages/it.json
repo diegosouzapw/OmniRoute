@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Bilancia la quota rimanente rispetto a 5 ore e ai reimpostazioni settimanali, quindi esegue il round robin di punteggi simili",
     "quotaWeighted": "Ponderato per quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Prima in scadenza",
+    "expiryFirstDesc": "Consuma per primo l'account la cui quota altrimenti scadrebbe inutilizzata: va per primo il residuo più alto con il ripristino più vicino.",
     "strictRandom": "Casuale rigoroso",
     "strictRandomDesc": "Mazzo mescolato: utilizza ogni modello una volta prima di rimescolare",
     "fusion": "Fusione",
@@ -3600,6 +3602,11 @@
         "when": "Si esegue il percorso su più account con telemetria delle quote e diverse finestre di reimpostazione.",
         "avoid": "La telemetria delle quote non è disponibile per la maggior parte degli account.",
         "example": "Preferisci un account settimanale reimpostato al 60% domani rispetto a un account reimpostato all'80% in seguito."
+      },
+      "expiry-first": {
+        "when": "Si instrada tra account le cui quote si reimpostano con pianificazioni diverse e si vuole consumare la quota che altrimenti scadrebbe inutilizzata.",
+        "avoid": "La telemetria delle quote manca per la maggior parte degli account, oppure serve un ordine stabile che ignori i tempi di ripristino.",
+        "example": "Preferisci un account con l'80% residuo che si reimposta tra 39 minuti a uno con il 48% residuo che si reimposta tra 9 ore — la quota in scadenza viene consumata prima di andare persa."
       },
       "strict-random": {
         "when": "Usa questa opzione quando vuoi una distribuzione perfettamente uniforme: ogni modello viene usato una volta prima di ricominciare.",
@@ -3815,6 +3822,13 @@
         "tip1": "Utilizza passaggi espliciti dell'account o routing dei tag dell'account per i provider con telemetria delle quote.",
         "tip2": "Ottimizza la sessione rispetto ai pesi settimanali quando l'esaurimento a breve termine è più rischioso.",
         "tip3": "Mantieni la fascia di legame piccola in modo che i conti equivalenti continuino a ruotare equamente."
+      },
+      "expiry-first": {
+        "title": "Prima la quota in scadenza",
+        "description": "Classifica gli account in base alla pressione di recupero: un'elevata quota residua vicina alla scadenza del ripristino va per prima.",
+        "tip1": "Richiede la telemetria delle quote del provider; gli account che ne sono privi mantengono l'ordine di priorità elencato.",
+        "tip2": "I punteggi quasi in parità ruotano all'interno della fascia di parità, così gli account analoghi continuano a condividere il carico.",
+        "tip3": "Limita la classificazione al bucket di quota su cui ogni modello viene effettivamente fatturato."
       },
       "strict-random": {
         "title": "Distribuzione con mazzo rimescolato",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Preferisci account con una quota rimanente sana e reimpostazioni più vicine",
     "quotaWeighted": "Ponderato per quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Prima in scadenza",
+    "expiryFirstDesc": "Consuma per primo l'account la cui quota altrimenti scadrebbe inutilizzata: va per primo il residuo più alto con il ripristino più vicino.",
     "strictRandom": "Casuale rigoroso",
     "strictRandomDesc": "Mazzo mescolato: utilizza ogni account una volta prima di rimescolare",
     "stickyLimit": "Limite appiccicoso",

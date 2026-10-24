@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM starpniekserveris (sertifikāti, DNS, mērķu maršrutēšana)
 ├── shared/
 │   ├── components/         # React komponenti (.tsx)
-│   ├── constants/          # Nodrošinātāju definīcijas (329), MCP tvērumi, 20 maršrutēšanas stratēģijas
+│   ├── constants/          # Nodrošinātāju definīcijas (329), MCP tvērumi, 21 maršrutēšanas stratēģija
 │   ├── utils/              # Ķēdes pārtraucējs, sanitizētājs, autentifikācijas palīgfunkcijas
 │   └── validation/         # Zod v4 shēmas
 └── sse/                    # SSE starpniekservera konveijers

@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Équilibre le quota restant par rapport aux réinitialisations de 5 heures et hebdomadaires, puis compare les scores similaires",
     "quotaWeighted": "Pondéré selon les quotas",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Expiration d'abord",
+    "expiryFirstDesc": "Consomme d'abord le compte dont le quota expirerait sinon inutilisé : le plus grand reliquat avec la réinitialisation la plus proche passe en premier.",
     "strictRandom": "Aléatoire strict",
     "strictRandomDesc": "Paquet mélangé — utilise chaque modèle une fois avant de mélanger à nouveau",
     "fusion": "Fusion",
@@ -3600,6 +3602,11 @@
         "when": "Vous parcourez plusieurs comptes avec une télémétrie de quota et différentes fenêtres de réinitialisation.",
         "avoid": "La télémétrie des quotas n'est pas disponible pour la plupart des comptes.",
         "example": "Préférez une réinitialisation de compte hebdomadaire à 60 % demain plutôt qu'une réinitialisation de compte à 80 % plus tard."
+      },
+      "expiry-first": {
+        "when": "Vous routez entre des comptes dont les quotas se réinitialisent selon des calendriers différents et souhaitez consommer le quota qui expirerait sinon inutilisé.",
+        "avoid": "La télémétrie des quotas est absente pour la plupart des comptes, ou vous avez besoin d'un ordre stable qui ignore le moment de la réinitialisation.",
+        "example": "Préférez un compte avec 80 % restants qui se réinitialise dans 39 minutes à un compte avec 48 % restants qui se réinitialise dans 9 heures — le quota proche de l'expiration est consommé avant d'être perdu."
       },
       "strict-random": {
         "when": "À utiliser lorsque vous souhaitez une répartition parfaitement uniforme — chaque modèle est utilisé une fois avant répétition.",
@@ -3815,6 +3822,13 @@
         "tip1": "Utilisez des étapes de compte explicites ou un routage de balises de compte pour les fournisseurs disposant de télémétrie de quota.",
         "tip2": "Ajustez la séance par rapport aux poids hebdomadaires lorsque l’épuisement à court terme est plus risqué.",
         "tip3": "Gardez la bande de liaison petite afin que les comptes équivalents tournent toujours équitablement."
+      },
+      "expiry-first": {
+        "title": "Quota expirant en premier",
+        "description": "Classe les comptes selon la pression de récupération : un quota restant élevé proche de son échéance de réinitialisation passe en premier.",
+        "tip1": "Nécessite la télémétrie de quota du fournisseur ; les comptes qui en sont dépourvus conservent leur ordre de priorité indiqué.",
+        "tip2": "Les scores quasi ex æquo alternent dans la bande d'égalité afin que les comptes similaires continuent de se partager la charge.",
+        "tip3": "Limitez le classement au compartiment de quota sur lequel chaque modèle est réellement facturé."
       },
       "strict-random": {
         "title": "Distribution par mélange du jeu",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Préférez les comptes avec un quota restant sain et des réinitialisations plus proches",
     "quotaWeighted": "Pondéré par quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Expiration d'abord",
+    "expiryFirstDesc": "Consomme d'abord le compte dont le quota expirerait sinon inutilisé : le plus grand reliquat avec la réinitialisation la plus proche passe en premier.",
     "strictRandom": "Aléatoire strict",
     "strictRandomDesc": "Mélange aléatoire — utilise chaque compte une fois avant de mélanger à nouveau",
     "stickyLimit": "Limite collante",

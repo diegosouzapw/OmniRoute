@@ -317,7 +317,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM tarpinis serveris (sertifikatai, DNS, paskirties maršrutizavimas)
 ├── shared/
 │   ├── components/         # React komponentai (.tsx)
-│   ├── constants/          # Teikėjų apibrėžtys (329), MCP aprėptys, 20 maršrutizavimo strategijų
+│   ├── constants/          # Teikėjų apibrėžtys (329), MCP aprėptys, 21 maršrutizavimo strategija
 │   ├── utils/              # Grandinės pertraukiklis, valymo priemonė, autentifikavimo pagalbinės funkcijos
 │   └── validation/         # Zod v4 schemos
 └── sse/                    # SSE tarpinio serverio konvejeris

@@ -59,7 +59,7 @@ OpenRouter ಸಂಪರ್ಕಗಳು ಸುಧಾರಿತ ಸೆಟ್ಟಿ�
 
 ## 🎨 ಕಾಂಬೊಗಳು
 
-19 ಸಾರ್ವಜನಿಕ ಕಾರ್ಯತಂತ್ರಗಳೊಂದಿಗೆ ಮಾದರಿ ರೂಟಿಂಗ್ ಕಾಂಬೊಗಳನ್ನು ರಚಿಸಿ: priority, weighted, round-robin, context-relay, fill-first, p2c (ಎರಡು ಆಯ್ಕೆಗಳ ಶಕ್ತಿ), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (ಕೊನೆಯದಾಗಿ ಯಶಸ್ವಿಯಾದ ಪೂರೈಕೆದಾರ), context-optimized, cache-optimized, **fusion** (ಮಾದರಿಗಳ ಪ್ಯಾನೆಲ್ಗೆ ಸಮಾನಾಂತರವಾಗಿ ವಿನಂತಿಗಳನ್ನು ಕಳುಹಿಸಿ, ನಂತರ ನಿರ್ಣಾಯಕ ಮಾದರಿಯ ಮೂಲಕ ಒಂದೇ ಉತ್ತರವನ್ನು ಸಂಶ್ಲೇಷಿಸುವುದು), ಮತ್ತು **pipeline**. ಪ್ರತಿಯೊಂದು ಕಾಂಬೊ ಸ್ವಯಂಚಾಲಿತ ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ ಅನೇಕ ಮಾದರಿಗಳನ್ನು ಸರಪಳಿಯಾಗಿ ಜೋಡಿಸುತ್ತದೆ ಮತ್ತು ತ್ವರಿತ ಟೆಂಪ್ಲೇಟ್ಗಳು ಹಾಗೂ ಸನ್ನದ್ಧತಾ ಪರಿಶೀಲನೆಗಳನ್ನು ಒಳಗೊಂಡಿರುತ್ತದೆ.
+21 ಸಾರ್ವಜನಿಕ ಕಾರ್ಯತಂತ್ರಗಳೊಂದಿಗೆ ಮಾದರಿ ರೂಟಿಂಗ್ ಕಾಂಬೊಗಳನ್ನು ರಚಿಸಿ: priority, weighted, round-robin, context-relay, fill-first, p2c (ಎರಡು ಆಯ್ಕೆಗಳ ಶಕ್ತಿ), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (ಕೊನೆಯದಾಗಿ ಯಶಸ್ವಿಯಾದ ಪೂರೈಕೆದಾರ), context-optimized, cache-optimized, **fusion** (ಮಾದರಿಗಳ ಪ್ಯಾನೆಲ್ಗೆ ಸಮಾನಾಂತರವಾಗಿ ವಿನಂತಿಗಳನ್ನು ಕಳುಹಿಸಿ, ನಂತರ ನಿರ್ಣಾಯಕ ಮಾದರಿಯ ಮೂಲಕ ಒಂದೇ ಉತ್ತರವನ್ನು ಸಂಶ್ಲೇಷಿಸುವುದು), ಮತ್ತು **pipeline**. ಪ್ರತಿಯೊಂದು ಕಾಂಬೊ ಸ್ವಯಂಚಾಲಿತ ಫಾಲ್ಬ್ಯಾಕ್ನೊಂದಿಗೆ ಅನೇಕ ಮಾದರಿಗಳನ್ನು ಸರಪಳಿಯಾಗಿ ಜೋಡಿಸುತ್ತದೆ ಮತ್ತು ತ್ವರಿತ ಟೆಂಪ್ಲೇಟ್ಗಳು ಹಾಗೂ ಸನ್ನದ್ಧತಾ ಪರಿಶೀಲನೆಗಳನ್ನು ಒಳಗೊಂಡಿರುತ್ತದೆ.
 
 ಇತ್ತೀಚಿನ ಕಾಂಬೊ ಸುಧಾರಣೆಗಳು:
 

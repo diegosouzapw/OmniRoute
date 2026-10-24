@@ -282,7 +282,7 @@ zilizobainishwa huingizwa katika ingizo zilizopo za injini za `config.modePack` 
 
 ## Mikakati Yote ya Uelekezaji
 
-Injini ya michanganyiko ya OmniRoute inatumia **mikakati 20 ya uelekezaji** (iliyotangazwa katika `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Injini yenyewe ya Auto Combo inapatikana chini ya mkakati wa `auto`; mingine inapatikana kwa michanganyiko iliyohifadhiwa.
+Injini ya michanganyiko ya OmniRoute inatumia **mikakati 21 ya uelekezaji** (iliyotangazwa katika `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Injini yenyewe ya Auto Combo inapatikana chini ya mkakati wa `auto`; mingine inapatikana kwa michanganyiko iliyohifadhiwa.
 
 | Mkakati             | Maelezo                                                                                                                                                                                                                                               |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ Injini ya michanganyiko ya OmniRoute inatumia **mikakati 20 ya uelekezaji** (ili
 | `cost-optimized`    | Punguza gharama ya $ kwa kila ombi kulingana na bei za katalogi                                                                                                                                                                                       |
 | `reset-aware` ⭐    | Panga vipaumbele kwa muda wa kuweka upya kikomo — vipindi vifupi vya kuweka upya hupewa nafasi ya juu                                                                                                                                                 |
 | `reset-window`      | Pendelea malengo ambayo dirisha lao la kikomo litawekwa upya mapema zaidi                                                                                                                                                                             |
+| `expiry-first`      | Hutumia kwanza akaunti ambayo mgao wake ungeisha bila kutumika: salio kubwa zaidi lenye uwekaji upya wa karibu zaidi huenda kwanza                                                                                                                    |
 | `headroom`          | Chagua lengo lenye nafasi kubwa zaidi ya kikomo iliyosalia                                                                                                                                                                                            |
 | `quota-weighted`    | Ruka akaunti zilizoishiwa na kikomo, kisha chagua miongoni mwa zilizosalia kwa uwiano wa kikomo kilichobaki kilichogawanywa kwa mzigo unaoendelea; mazungumzo yaliyopo hubaki yamefungwa kwenye lengo lake                                            |
 | `strict-random`     | Uteuzi nasibu bila kuondoa marudio                                                                                                                                                                                                                    |
@@ -843,11 +844,11 @@ Tazama [`docs/guides/TIERS.md`](../guides/TIERS.md) kwa ufafanuzi wa viwango na 
 
 ### Matriki bainifu ya maamuzi ya uelekezaji (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` huthibitisha **uamuzi** wa uelekezaji wa mikakati yote 19
+`tests/integration/combo-matrix/*.test.ts` huthibitisha **uamuzi** wa uelekezaji wa mikakati yote 21
 ya umma kutoka mwanzo hadi mwisho kupitia mchakato halisi wa combo wenye mfumo wa juu ulioigwa.
 Ufunikaji unajumuisha:
 
-- Mikakati yote 19 ya `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Mikakati yote 21 ya `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (ya ndani) kutoka mwanzo hadi mwisho: usawa wa DRR + kupunguza kipaumbele wakati wa kujaa kupitia
   kiungio halisi cha `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -881,5 +882,5 @@ kwa makusudi kutoka CI kwa sababu yanahitaji vitambulisho halisi vya uthibitisha
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Kichanganuzi cha kiambishi awali `auto/` + vibadala 6                                                     |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Huunda `AutoComboConfig` katika kumbukumbu kutoka kwa miunganisho hai                                     |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Kiunganishi cha majaribio cha kuiga sajili ya watoa huduma                                                |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (mikakati 20)                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (mikakati 21)                                                                   |
 | `src/sse/handlers/chat.ts`                                | Ujumuishaji: njia ya mkato ya kiambishi awali kiotomatiki                                                 |

@@ -61,7 +61,7 @@ OpenRouter konekcije mogu pohraniti `preset` po konekciji u Advanced Settings. K
 
 ## 🎨 Kombo (Combos)
 
-Kreirajte kombo ruting modela pomoću 19 javnih strategija: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (distribucija na panel modela paralelno, a zatim sinteza jednog odgovora putem sudije), i **pipeline**. Svaki kombo povezuje više modela sa automatskim fallback-om i uključuje brze predloške (templates) i provjere spremnosti.
+Kreirajte kombo ruting modela pomoću 21 javne strategije: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (distribucija na panel modela paralelno, a zatim sinteza jednog odgovora putem sudije), i **pipeline**. Svaki kombo povezuje više modela sa automatskim fallback-om i uključuje brze predloške (templates) i provjere spremnosti.
 
 Nedavna poboljšanja komba:
 

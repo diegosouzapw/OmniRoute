@@ -705,7 +705,7 @@ allowlisted प्रदात्यासाठी IP-bucketed रेट लि
 
 ## इतर रेझिलियन्स वैशिष्ट्ये
 
-- **20 राउटिंग स्ट्रॅटेजीज** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) पहा.
+- **21 राउटिंग स्ट्रॅटेजीज** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) पहा.
 - **रीसेट-अवेअर राउटिंग** (v3.8.0) — कोटा रीसेट वेळेनुसार कनेक्शन्सना प्राधान्य देते.
 - **बॅकग्राउंड मोड डिग्रेडेशन** — Responses API `background: true` इशाऱ्यासह सिंक मध्ये डिग्रेड केले जाते.
 - **डायनॅमिक टूल लिमिट डिटेक्शन** — टूल संख्या मर्यादा गाठल्यावर प्रोव्हायडरना बॅक-ऑफ करते.

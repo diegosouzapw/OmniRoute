@@ -339,7 +339,7 @@ quota-share engine နှင့်အတူ အလိုအလျောက်စ
 | Unit (စမ်းသပ်မှု 29 ခု) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler၊ saturation gating၊ concurrency caps၊ fairShare တွက်ချက်မှု၊ backlog queueing                                                                                                                       |
 | Integration matrix      | `npm run test:combo:matrix`                                            | တကယ့် combo pipeline တစ်လျှောက် အစမှအဆုံး routing ဆုံးဖြတ်ချက်၊ live seams များ (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) မှတစ်ဆင့် DRR မျှတမှု + saturation deprioritization |
 
-integration matrix ကို public strategy 19 ခုစလုံးနှင့်အတူ CI တွင် လုပ်ဆောင်သည်။ Unit suite ကို
+integration matrix ကို public strategy 21 ခုစလုံးနှင့်အတူ CI တွင် လုပ်ဆောင်သည်။ Unit suite ကို
 သီးခြား လုပ်ဆောင်နိုင်သည်။
 
 ---

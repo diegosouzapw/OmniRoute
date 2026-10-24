@@ -337,7 +337,7 @@ quota-share engine එක සමඟ ස්වයංක්රීය පරීක�
 | ඒකක (පරීක්ෂණ 29ක්)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency සීමා, fairShare ගණිතය, backlog පෝලිම්ගත කිරීම                                                                                                             |
 | ඒකාබද්ධතා matrix එක | `npm run test:combo:matrix`                                            | සැබෑ combo pipeline එක හරහා මුල සිට අග දක්වා routing තීරණය; සජීවී seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) හරහා DRR සාධාරණත්වය + saturation deprioritization |
 
-ඒකාබද්ධතා matrix එක පොදු strategies 19ම සමඟ CI තුළ ධාවනය වේ. ඒකක පරීක්ෂණ කට්ටලය ස්වාධීනව ධාවනය කළ හැක.
+ඒකාබද්ධතා matrix එක පොදු strategies 21ම සමඟ CI තුළ ධාවනය වේ. ඒකක පරීක්ෂණ කට්ටලය ස්වාධීනව ධාවනය කළ හැක.
 
 ---
 

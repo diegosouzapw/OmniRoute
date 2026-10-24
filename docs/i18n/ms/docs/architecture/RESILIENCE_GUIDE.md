@@ -767,7 +767,7 @@ Batasan sebenar:
 
 ## Ciri Daya Tahan Lain
 
-- **20 strategi penghalaan** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — lihat [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 strategi penghalaan** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — lihat [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Penghalaan peka set semula** (v3.8.0) — mengutamakan sambungan mengikut masa set semula kuota.
 - **Degradasi mod latar belakang** — Responses API `background: true` didegradasikan kepada segerak dengan amaran.
 - **Pengesanan had alat dinamik** — menarik balik daripada pembekal apabila had bilangan alat dicapai.

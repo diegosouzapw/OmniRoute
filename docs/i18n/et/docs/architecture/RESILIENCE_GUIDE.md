@@ -760,7 +760,7 @@ kvoot. Tegelikud piirangud:
 
 ## Muud tõrkekindluse funktsioonid
 
-- **20 marsruutimisstrateegiat** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — vt [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 marsruutimisstrateegiat** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — vt [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Lähtestamisest teadlik marsruutimine** (v3.8.0) — seab ühendused prioriteeti kvoodi lähtestamise aja järgi.
 - **Taustarežiimi degraderumine** — Responses API `background: true` alandatakse hoiatusega sünkroonseks.
 - **Tööriistapiirangute dünaamiline tuvastus** — taganeb pakkujatest, kui tööriistade arvu piirangud täituvad.

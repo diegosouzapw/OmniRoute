@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (certificados, DNS, encaminhamento de destinos)
 ├── shared/
 │   ├── components/         # Componentes React (.tsx)
-│   ├── constants/          # Definições de fornecedores (329), âmbitos MCP, 20 estratégias de encaminhamento
+│   ├── constants/          # Definições de fornecedores (329), âmbitos MCP, 21 estratégias de encaminhamento
 │   ├── utils/              # Disjuntor, higienizador, auxiliares de autenticação
 │   └── validation/         # Esquemas Zod v4
 └── sse/                    # Pipeline do proxy SSE

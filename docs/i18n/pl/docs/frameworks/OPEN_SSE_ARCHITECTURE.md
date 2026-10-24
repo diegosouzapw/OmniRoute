@@ -233,7 +233,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Obsługuje **20 strategii routingu** (zobacz `src/shared/constants/routingStrategies.ts`):
+Obsługuje **21 strategii routingu** (zobacz `src/shared/constants/routingStrategies.ts`):
 
 | Strategia           | Zachowanie                                                                                            |
 | ------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -248,6 +248,7 @@ Obsługuje **20 strategii routingu** (zobacz `src/shared/constants/routingStrate
 | `cost-optimized`    | Najpierw najtańszy sprawny cel                                                                        |
 | `reset-aware`       | Uwzględnia okna resetowania dostawców                                                                 |
 | `reset-window`      | Routing oparty na oknach resetowania                                                                  |
+| `expiry-first`      | Najpierw zużywa konto, którego limit w przeciwnym razie wygasłby niewykorzystany                      |
 | `headroom`          | Najpierw cel z największym zapasem pozostałego limitu                                                 |
 | `quota-weighted`    | Pomija wyczerpane konta, a następnie losuje według pozostałego limitu ÷ bieżącego obciążenia          |
 | `strict-random`     | W pełni jednostajny (bez wag jakościowych)                                                            |

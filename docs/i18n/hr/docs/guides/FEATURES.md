@@ -59,7 +59,7 @@ OpenRouter veze mogu pohraniti `preset` po vezi u Advanced Settings. Kada je pos
 
 ## 🎨 Combosi
 
-Kreirajte combose za usmjeravanje modela s 19 javnih strategija: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralelno raspoređivanje na panel modela, zatim sinteza jednog odgovora putem suca) i **pipeline**. Svaki combo povezuje više modela s automatskim fallbackom te uključuje brze predloške i provjere spremnosti.
+Kreirajte combose za usmjeravanje modela s 21 javnom strategijom: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralelno raspoređivanje na panel modela, zatim sinteza jednog odgovora putem suca) i **pipeline**. Svaki combo povezuje više modela s automatskim fallbackom te uključuje brze predloške i provjere spremnosti.
 
 Nedavna poboljšanja comboa:
 

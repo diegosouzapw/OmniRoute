@@ -615,6 +615,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   handyman: Hammer,
   hearing: Ear,
   history: History,
+  hourglass_bottom: Hourglass,
   hourglass_empty: Hourglass,
   hourglass_top: Hourglass,
   image: Image,

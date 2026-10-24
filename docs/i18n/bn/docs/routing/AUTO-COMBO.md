@@ -258,7 +258,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## সমস্ত রাউটিং কৌশল
 
-OmniRoute-এর কম্বো ইঞ্জিন **20টি রাউটিং কৌশল** সমর্থন করে (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-এ ঘোষিত)। Auto Combo ইঞ্জিনটি `auto` কৌশলের অধীনে প্রকাশিত; অন্যগুলো সংরক্ষিত কম্বোর জন্য উপলভ্য।
+OmniRoute-এর কম্বো ইঞ্জিন **21টি রাউটিং কৌশল** সমর্থন করে (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-এ ঘোষিত)। Auto Combo ইঞ্জিনটি `auto` কৌশলের অধীনে প্রকাশিত; অন্যগুলো সংরক্ষিত কম্বোর জন্য উপলভ্য।
 
 | কৌশল                | বিবরণ                                                                                                                                                                                                                                 |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -273,6 +273,7 @@ OmniRoute-এর কম্বো ইঞ্জিন **20টি রাউটি�
 | `cost-optimized`    | ক্যাটালগের মূল্য অনুযায়ী প্রতি অনুরোধের খরচ সর্বনিম্ন করা                                                                                                                                                                            |
 | `reset-aware` ⭐    | কোটা রিসেটের সময় অনুযায়ী অগ্রাধিকার দেওয়া — স্বল্প রিসেট উইন্ডোকে উচ্চতর স্থানে রাখা                                                                                                                                               |
 | `reset-window`      | যেসব টার্গেটের কোটা উইন্ডো সবচেয়ে শিগগির রিসেট হবে, সেগুলোকে অগ্রাধিকার দেওয়া                                                                                                                                                       |
+| `expiry-first`      | যে অ্যাকাউন্টের কোটা অন্যথায় অব্যবহৃত অবস্থায় মেয়াদোত্তীর্ণ হয়ে যেত, সেটি আগে খরচ করে: সবচেয়ে বেশি অবশিষ্ট এবং সবচেয়ে নিকট রিসেটযুক্ত অ্যাকাউন্ট প্রথমে যায়                                                                    |
 | `headroom`          | সর্বাধিক অবশিষ্ট কোটা হেডরুমসহ টার্গেট বেছে নেওয়া                                                                                                                                                                                    |
 | `quota-weighted`    | কোটা শেষ হয়ে যাওয়া অ্যাকাউন্ট এড়িয়ে যাওয়া, তারপর অবশিষ্টগুলোর মধ্যে ইন-ফ্লাইট লোড দিয়ে ভাগ করা অবশিষ্ট কোটার অনুপাতে বেছে নেওয়া; বিদ্যমান কথোপকথনগুলো পিন করা থাকে                                                             |
 | `strict-random`     | পুনরাবৃত্তির ডিডুপ্লিকেশন ছাড়াই র্যান্ডম নির্বাচন                                                                                                                                                                                    |
@@ -805,11 +806,11 @@ offline-friendly) "প্রতি প্যাকের ওয়েট প্�
 
 ### নির্ধারিত রাউটিং-সিদ্ধান্ত ম্যাট্রিক্স (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` একটি মক করা আপস্ট্রিমসহ প্রকৃত কম্বো পাইপলাইনের মধ্য দিয়ে এন্ড-টু-এন্ডভাবে সব 19টি
+`tests/integration/combo-matrix/*.test.ts` একটি মক করা আপস্ট্রিমসহ প্রকৃত কম্বো পাইপলাইনের মধ্য দিয়ে এন্ড-টু-এন্ডভাবে সব 21টি
 পাবলিক স্ট্র্যাটেজির রাউটিং **সিদ্ধান্ত** প্রমাণ করে।
 কভারেজের অন্তর্ভুক্ত:
 
-- সব 19টি `ROUTING_STRATEGY_VALUES` স্ট্র্যাটেজি (ordered, weighted, cost, context, fusion, …)।
+- সব 21টি `ROUTING_STRATEGY_VALUES` স্ট্র্যাটেজি (ordered, weighted, cost, context, fusion, …)।
 - `quota-share` (অভ্যন্তরীণ) এন্ড-টু-এন্ড: প্রকৃত
   `selectQuotaShareTarget` সীমারেখার (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`) মাধ্যমে DRR ন্যায্যতা + স্যাচুরেশন ডিপ্রায়োরিটাইজেশন।
@@ -843,5 +844,5 @@ offline-friendly) "প্রতি প্যাকের ওয়েট প্�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` প্রিফিক্স পার্সার + ৬টি ভ্যারিয়েন্ট                                                               |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | লাইভ সংযোগ থেকে ইন-মেমরি `AutoComboConfig` তৈরি করে                                                        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | প্রোভাইডার রেজিস্ট্রি মক করার জন্য টেস্ট হুক                                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (২০টি কৌশল)                                                                      |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (২১টি কৌশল)                                                                      |
 | `src/sse/handlers/chat.ts`                                | ইন্টিগ্রেশন: অটো-প্রিফিক্স শর্ট-সার্কিট                                                                    |

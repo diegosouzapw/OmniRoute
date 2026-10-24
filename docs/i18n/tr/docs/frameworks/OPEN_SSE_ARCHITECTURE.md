@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 yönlendirme stratejisini** destekler (bkz. `src/shared/constants/routingStrategies.ts`):
+**21 yönlendirme stratejisini** destekler (bkz. `src/shared/constants/routingStrategies.ts`):
 
 | Strateji            | Davranış                                                                                  |
 | ------------------- | ----------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | Önce en ucuz sağlıklı hedef                                                               |
 | `reset-aware`       | Sağlayıcı sıfırlama pencerelerinin farkında                                               |
 | `reset-window`      | Sıfırlama penceresi tabanlı yönlendirme                                                   |
+| `expiry-first`      | Kotası aksi takdirde kullanılmadan sona erecek hesabı önce harcar                         |
 | `headroom`          | Önce en fazla kalan kota payına sahip olan                                                |
 | `quota-weighted`    | Tükenmiş hesapları atla, sonra kalan kota ÷ sürmekte olan yük oranına göre çek            |
 | `strict-random`     | Gerçekten tekdüze (kalite ağırlıklandırması yok)                                          |

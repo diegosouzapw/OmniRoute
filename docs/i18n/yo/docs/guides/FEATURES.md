@@ -59,7 +59,7 @@
 
 ## 🎨 Àwọn Àkópọ̀
 
-Ṣẹ̀dá àwọn àkópọ̀ ìdarí-ọ̀nà awoṣe pẹ̀lú ọgbọ́n gbogbogbò 19: priority, weighted, round-robin, context-relay, fill-first, p2c (yíyan agbára-méjì), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (olùpèsè-tó-dára-tí-a-mọ̀-kẹ́yìn), context-optimized, cache-optimized, **fusion** (pín iṣẹ́ jáde sí ẹgbẹ́ àwọn awoṣe ní ìṣọ̀kan, lẹ́yìn náà kí adájọ́ ṣàkópọ̀ ìdáhùn kan), àti **pipeline**. Àkópọ̀ kọ̀ọ̀kan so ọ̀pọ̀ awoṣe pọ̀ pẹ̀lú ìpadà-sẹ́yìn aládàáṣe, ó sì ní àwọn àdàkọ ìbẹ̀rẹ̀ kíákíá àti àwọn àyẹ̀wò ìmúrasílẹ̀.
+Ṣẹ̀dá àwọn àkópọ̀ ìdarí-ọ̀nà awoṣe pẹ̀lú ọgbọ́n gbogbogbò 21: priority, weighted, round-robin, context-relay, fill-first, p2c (yíyan agbára-méjì), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (olùpèsè-tó-dára-tí-a-mọ̀-kẹ́yìn), context-optimized, cache-optimized, **fusion** (pín iṣẹ́ jáde sí ẹgbẹ́ àwọn awoṣe ní ìṣọ̀kan, lẹ́yìn náà kí adájọ́ ṣàkópọ̀ ìdáhùn kan), àti **pipeline**. Àkópọ̀ kọ̀ọ̀kan so ọ̀pọ̀ awoṣe pọ̀ pẹ̀lú ìpadà-sẹ́yìn aládàáṣe, ó sì ní àwọn àdàkọ ìbẹ̀rẹ̀ kíákíá àti àwọn àyẹ̀wò ìmúrasílẹ̀.
 
 Àwọn ìlọsíwájú àkópọ̀ láìpẹ́:
 

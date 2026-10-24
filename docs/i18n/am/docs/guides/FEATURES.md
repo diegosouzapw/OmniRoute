@@ -59,7 +59,7 @@
 
 ## 🎨 ጥምረቶች
 
-በ19 ይፋዊ ስልቶች የሞዴል ማዘዋወሪያ ጥምረቶችን ይፍጠሩ፦ priority፣ weighted፣ round-robin፣ context-relay፣ fill-first፣ p2c (power-of-two choices)፣ random፣ least-used፣ cost-optimized፣ reset-aware፣ reset-window፣ headroom፣ strict-random፣ auto፣ lkgp (last-known-good-provider)፣ context-optimized፣ cache-optimized፣ **fusion** (ጥያቄውን በትይዩ ወደ ብዙ ሞዴሎች በማሰራጨት፣ ከዚያም በዳኛ አማካኝነት አንድ መልስ ማዋሃድ) እና **pipeline**። እያንዳንዱ ጥምረት በርካታ ሞዴሎችን ከራስ-ሰር fallback ጋር በሰንሰለት ያገናኛል፣ እንዲሁም ፈጣን አብነቶችንና የዝግጁነት ፍተሻዎችን ያካትታል።
+በ21 ይፋዊ ስልቶች የሞዴል ማዘዋወሪያ ጥምረቶችን ይፍጠሩ፦ priority፣ weighted፣ round-robin፣ context-relay፣ fill-first፣ p2c (power-of-two choices)፣ random፣ least-used፣ cost-optimized፣ reset-aware፣ reset-window፣ expiry-first፣ headroom፣ quota-weighted፣ strict-random፣ auto፣ lkgp (last-known-good-provider)፣ context-optimized፣ cache-optimized፣ **fusion** (ጥያቄውን በትይዩ ወደ ብዙ ሞዴሎች በማሰራጨት፣ ከዚያም በዳኛ አማካኝነት አንድ መልስ ማዋሃድ) እና **pipeline**። እያንዳንዱ ጥምረት በርካታ ሞዴሎችን ከራስ-ሰር fallback ጋር በሰንሰለት ያገናኛል፣ እንዲሁም ፈጣን አብነቶችንና የዝግጁነት ፍተሻዎችን ያካትታል።
 
 የቅርብ ጊዜ የጥምረት ማሻሻያዎች፦
 

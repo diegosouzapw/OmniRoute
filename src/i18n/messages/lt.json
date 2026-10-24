@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Subalansuoja likusią kvotą atsižvelgdamas į jos atkūrimą po 5 val. ir kas savaitę, tada cikliškai paskirsto užklausas panašius įverčius turintiems modeliams",
     "quotaWeighted": "Svertinis pagal kvotą",
     "quotaWeightedDesc": "Praleisti paskyras, kurių kvota išnaudota, tada iš likusių rinktis proporcingai likučio ir vykdomos apkrovos santykiui. Esami pokalbiai lieka susieti.",
+    "expiryFirst": "Pirmiausia baigiančios galioti",
+    "expiryFirstDesc": "Pirmiausia naudoja paskyrą, kurios kvota kitaip baigtų galioti nepanaudota: pirmenybė teikiama didžiausiam likučiui su artimiausiu atkūrimu.",
     "strictRandom": "Griežtas atsitiktinis parinkimas",
     "strictRandomDesc": "Kaladės maišymas — kiekvienas modelis panaudojamas po kartą prieš maišant iš naujo",
     "fusion": "Sintezė",
@@ -3600,6 +3602,11 @@
         "when": "Nukreipiate srautą per kelias paskyras, kurių kvotų telemetrija ir atnaujinimo laikai skiriasi.",
         "avoid": "Kvotų telemetrija nepasiekiama daugumai paskyrų.",
         "example": "Teikite pirmenybę paskyrai, kurioje liko 60 % savaitinės kvotos ir kuri bus atnaujinta rytoj, o ne paskyrai, kurioje liko 80 % kvotos, bet kuri bus atnaujinta vėliau."
+      },
+      "expiry-first": {
+        "when": "Nukreipiate srautą per paskyras, kurių kvotos atkuriamos pagal skirtingus tvarkaraščius, ir norite išnaudoti kvotą, kuri kitaip baigtų galioti nepanaudota.",
+        "avoid": "Daugumai paskyrų trūksta kvotų telemetrijos arba jums reikia stabilios tvarkos, kuri nepaiso atkūrimo laiko.",
+        "example": "Teikite pirmenybę paskyrai, kurioje liko 80 % ir kuri bus atkurta po 39 minučių, o ne paskyrai, kurioje liko 48 % ir kuri bus atkurta po 9 valandų — netrukus baigsianti galioti kvota sunaudojama prieš ją prarandant."
       },
       "strict-random": {
         "when": "Naudokite, kai norite tobulai tolygaus paskirstymo — kiekvienas modelis naudojamas po vieną kartą prieš kartojant.",
@@ -3815,6 +3822,13 @@
         "tip1": "Teikėjams, teikiantiems kvotos telemetriją, naudokite aiškiai nurodytus paskyrų žingsnius arba maršruto parinkimą pagal paskyrų žymas.",
         "tip2": "Derinkite sesijos ir savaitinius svorius, kai trumpalaikis kvotos išeikvojimas kelia didesnę riziką.",
         "tip3": "Palikite nedidelį vienodų įverčių intervalą, kad lygiavertės paskyros vis tiek būtų sąžiningai keičiamos."
+      },
+      "expiry-first": {
+        "title": "Pirmiausia baigianti galioti kvota",
+        "description": "Reitinguoja paskyras pagal išnaudojimo spaudimą: didelė likusi kvota, artima atkūrimo terminui, eina pirmiausia.",
+        "tip1": "Reikalinga teikėjo kvotos telemetrija; paskyros be jos išlaiko nurodytą prioriteto tvarką.",
+        "tip2": "Beveik vienodi įverčiai keičiasi vienodų įverčių intervale, todėl panašios paskyros vis tiek dalijasi apkrova.",
+        "tip3": "Apribokite reitingavimą tuo kvotos rinkiniu, pagal kurį kiekvienas modelis iš tikrųjų apmokestinamas."
       },
       "strict-random": {
         "title": "Maišomos kortų kaladės paskirstymas",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Teikti pirmenybę paskyroms, turinčioms pakankamą likusią kvotą ir artimesnį kvotos atsinaujinimo laiką",
     "quotaWeighted": "Pagal kvotos svorį",
     "quotaWeightedDesc": "Praleisti paskyras, kurių kvota išnaudota, tada iš likusių rinktis proporcingai likučio ir vykdomos apkrovos santykiui. Esami pokalbiai lieka susieti.",
+    "expiryFirst": "Pirmiausia baigiančios galioti",
+    "expiryFirstDesc": "Pirmiausia naudoja paskyrą, kurios kvota kitaip baigtų galioti nepanaudota: pirmenybė teikiama didžiausiam likučiui su artimiausiu atkūrimu.",
     "strictRandom": "Griežtai atsitiktinis",
     "strictRandomDesc": "Išmaišyti kaladę – prieš maišant iš naujo kiekviena paskyra panaudojama po vieną kartą",
     "stickyLimit": "Fiksuotas limitas",

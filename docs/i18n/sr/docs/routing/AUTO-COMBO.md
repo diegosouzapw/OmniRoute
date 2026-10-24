@@ -281,7 +281,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Све стратегије рутирања
 
-OmniRoute механизам за комбиновање подржава **20 стратегија рутирања** (декларисаних у `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам механизам Auto Combo доступан је под стратегијом `auto`; остале стратегије доступне су за сачуване комбинације.
+OmniRoute механизам за комбиновање подржава **21 стратегију рутирања** (декларисану у `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам механизам Auto Combo доступан је под стратегијом `auto`; остале стратегије доступне су за сачуване комбинације.
 
 | Стратегија          | Опис                                                                                                                                                                                                                |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -296,6 +296,7 @@ OmniRoute механизам за комбиновање подржава **20 �
 | `cost-optimized`    | Минимизовање трошка у $ по захтеву на основу цена из каталога                                                                                                                                                       |
 | `reset-aware` ⭐    | Одређивање приоритета према времену ресетовања квоте — краћи периоди ресетовања рангирају се више                                                                                                                   |
 | `reset-window`      | Давање предности циљевима чији се период квоте најскорије ресетује                                                                                                                                                  |
+| `expiry-first`      | Прво троши налог чија би квота иначе истекла неискоришћена: први иде налог са највећим остатком и најближим ресетовањем                                                                                             |
 | `headroom`          | Избор циља са највећом преосталом резервом квоте                                                                                                                                                                    |
 | `quota-weighted`    | Прескакање налога са исцрпљеном квотом, а затим избор међу осталима сразмерно преосталој квоти подељеној тренутним оптерећењем; постојећи разговори остају везани за исти циљ                                       |
 | `strict-random`     | Случајни избор без уклањања понављања                                                                                                                                                                               |
@@ -844,11 +845,11 @@ offline-friendly) наведене су у табели „Профили теж
 
 ### Deterministička matrica odluka o rutiranju (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` dokazuje **odluku** o rutiranju svih 19
-javnih strategija od kraja do kraja kroz stvarni combo pipeline sa mokovanim upstream-om.
+`tests/integration/combo-matrix/*.test.ts` dokazuje **odluku** o rutiranju svih 21
+javne strategije od kraja do kraja kroz stvarni combo pipeline sa mokovanim upstream-om.
 Pokrivenost uključuje:
 
-- Svih 19 strategija iz `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Svih 21 strategija iz `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interno) od kraja do kraja: DRR pravičnost + smanjenje prioriteta usled saturacije putem
   stvarnog seam-a `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -882,5 +883,5 @@ su izostavljeni iz CI-a jer zahtevaju prave kredencijale i pristup VPS-u.
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Парсер префикса `auto/` + 6 варијанти                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Прави `AutoComboConfig` у меморији на основу активних веза                                               |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Помоћна компонента за тестирање помоћу имитације регистра добављача                                      |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 стратегија)                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 стратегија)                                                                |
 | `src/sse/handlers/chat.ts`                                | Интеграција: рани излаз за auto-prefix                                                                   |

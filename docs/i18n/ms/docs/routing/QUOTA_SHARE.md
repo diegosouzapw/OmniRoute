@@ -352,7 +352,7 @@ Dua lapisan liputan automatik disertakan bersama enjin quota-share:
 | Unit (29 ujian)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Penjadual DRR, pengawalan ketepuan, had keserentakan, pengiraan fairShare, penggiliran baris gilir tunggakan                                                                                                                              |
 | Matriks integrasi | `npm run test:combo:matrix`                                            | Keputusan penghalaan hujung ke hujung melalui saluran gabungan sebenar; keadilan DRR + penurunan keutamaan akibat ketepuan melalui titik integrasi langsung (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matriks integrasi dijalankan dalam CI bersama kesemua 19 strategi awam. Suit unit
+Matriks integrasi dijalankan dalam CI bersama kesemua 21 strategi awam. Suit unit
 boleh dijalankan secara kendiri.
 
 ---

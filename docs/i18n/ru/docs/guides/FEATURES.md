@@ -59,7 +59,7 @@
 
 ## 🎨 Комбинации
 
-Создавайте комбинации маршрутизации моделей с 19 общедоступными стратегиями: priority, weighted, round-robin, context-relay, fill-first, p2c (выбор из двух вариантов), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (последний заведомо исправный провайдер), context-optimized, cache-optimized, **fusion** (параллельная отправка запроса группе моделей с последующим синтезом единого ответа моделью-судьёй) и **pipeline**. Каждая комбинация объединяет несколько моделей в цепочку с автоматическим переключением при сбое, а также включает быстрые шаблоны и проверки готовности.
+Создавайте комбинации маршрутизации моделей с 21 общедоступной стратегией: priority, weighted, round-robin, context-relay, fill-first, p2c (выбор из двух вариантов), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (последний заведомо исправный провайдер), context-optimized, cache-optimized, **fusion** (параллельная отправка запроса группе моделей с последующим синтезом единого ответа моделью-судьёй) и **pipeline**. Каждая комбинация объединяет несколько моделей в цепочку с автоматическим переключением при сбое, а также включает быстрые шаблоны и проверки готовности.
 
 Последние улучшения комбинаций:
 

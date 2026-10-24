@@ -312,7 +312,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy'si (sertifika, DNS, hedef yönlendirme)
 ├── shared/
 │   ├── components/         # React bileşenleri (.tsx)
-│   ├── constants/          # Sağlayıcı tanımları (329), MCP kapsamları, 20 yönlendirme stratejisi
+│   ├── constants/          # Sağlayıcı tanımları (329), MCP kapsamları, 21 yönlendirme stratejisi
 │   ├── utils/              # Devre kesici, temizleyici, kimlik doğrulama yardımcıları
 │   └── validation/         # Zod v4 şemaları
 └── sse/                    # SSE proxy işlem hattı

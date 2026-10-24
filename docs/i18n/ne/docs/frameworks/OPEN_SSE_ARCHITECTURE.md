@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 रुटिङ रणनीतिहरू** समर्थन गर्छ (हेर्नुहोस् `src/shared/constants/routingStrategies.ts`):
+**21 रुटिङ रणनीतिहरू** समर्थन गर्छ (हेर्नुहोस् `src/shared/constants/routingStrategies.ts`):
 
 | रणनीति              | व्यवहार                                                                                      |
 | ------------------- | -------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | सबैभन्दा सस्तो स्वस्थ लक्ष्य पहिले                                                           |
 | `reset-aware`       | प्रदायक रिसेट विन्डोहरूप्रति सचेत                                                            |
 | `reset-window`      | रिसेट विन्डो-आधारित रुटिङ                                                                    |
+| `expiry-first`      | अन्यथा प्रयोग नगरी म्याद सकिने कोटा भएको खाता पहिले खर्च गर्छ                                |
 | `headroom`          | सबैभन्दा बढी बाँकी कोटा हेडरूम भएको पहिले                                                    |
 | `quota-weighted`    | सकिएका खाताहरू छोड्ने, त्यसपछि बाँकी कोटा ÷ चालू लोड अनुसार छान्ने                           |
 | `strict-random`     | साँच्चै समान (गुणस्तर तौल बिना)                                                              |

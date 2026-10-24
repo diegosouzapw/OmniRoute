@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-תומך ב**20 אסטרטגיות ניתוב** (ראו `src/shared/constants/routingStrategies.ts`):
+תומך ב**21 אסטרטגיות ניתוב** (ראו `src/shared/constants/routingStrategies.ts`):
 
 | אסטרטגיה            | התנהגות                                                                     |
 | ------------------- | --------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | היעד התקין והזול ביותר קודם                                                 |
 | `reset-aware`       | מודע לחלונות האיפוס של הספק                                                 |
 | `reset-window`      | ניתוב מבוסס חלון איפוס                                                      |
+| `expiry-first`      | מנצל קודם את החשבון שהמכסה שלו הייתה פגה אחרת ללא שימוש                     |
 | `headroom`          | המרווח הגדול ביותר שנותר במכסה קודם                                         |
 | `quota-weighted`    | דילוג על חשבונות שמוצו, ואז הגרלה לפי מכסה שנותרה ÷ עומס פעיל (in-flight)   |
 | `strict-random`     | אחיד באמת (ללא שקלול איכות)                                                 |

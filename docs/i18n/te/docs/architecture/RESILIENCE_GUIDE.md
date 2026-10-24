@@ -799,7 +799,7 @@ IP-బకెట్ చేయబడిన రేట్ లిమిట్ అన�
 
 ## ఇతర స్థితిస్థాపకత లక్షణాలు
 
-- **20 రూటింగ్ వ్యూహాలు** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — చూడండి [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 రూటింగ్ వ్యూహాలు** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — చూడండి [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **రీసెట్-అవేర్ రూటింగ్** (v3.8.0) — కోటా రీసెట్ సమయం ఆధారంగా కనెక్షన్లకు ప్రాధాన్యత ఇస్తుంది.
 - **బ్యాక్గ్రౌండ్ మోడ్ క్షీణత** — Responses API `background: true` హెచ్చరికతో సింక్గా క్షీణించబడుతుంది.
 - **డైనమిక్ టూల్ పరిమితి గుర్తింపు** — టూల్ సంఖ్య పరిమితులు చేరినప్పుడు ప్రొవైడర్లను వెనక్కి తగ్గిస్తుంది.

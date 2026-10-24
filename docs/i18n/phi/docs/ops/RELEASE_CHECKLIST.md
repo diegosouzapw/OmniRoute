@@ -146,7 +146,7 @@ matrix, nang walang anumang label.
 - [ ] `npm run test:vitest` — pumasa (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — natugunan ang hangganang 60/60/60/60 (mga statement/linya/function/branch)
 - [ ] `npm run test:integration` — pumasa (kung may pagbabago sa DB / mga handler)
-- [ ] `npm run test:combo:matrix` — pumasa (matrix ng combo strategy: tiyak na pinatutunayan ang mga pasya sa pagpili ng lahat ng 19 na pampublikong routing strategy; patakbuhin kapag binabago ang combo routing, paglutas ng strategy, o fallback logic)
+- [ ] `npm run test:combo:matrix` — pumasa (matrix ng combo strategy: tiyak na pinatutunayan ang mga pasya sa pagpili ng lahat ng 21 na pampublikong routing strategy; patakbuhin kapag binabago ang combo routing, paglutas ng strategy, o fallback logic)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opsyonal/manwal** (may-gate na smoke test sa tunay na upstream; kumukuha ng read-only na snapshot ng DB mula sa VPS na `root@192.168.0.15`; gumagamit ng mga tunay na provider at kumokonsumo ng credits; hindi kailanman tumatakbo sa CI; maayos na nilalaktawan kapag wala ang gate)
 - [ ] `npm run test:combo:live:vps` — **opsyonal/manwal** (live smoke test ng Yugto-3 sa VPS: 7 HTTP scenario laban sa live na `.15` server gamit ang plain Node ESM; nangangailangan ng `ssh root@192.168.0.15`; gumagawa/nagbubura lamang ng mga combo na `__live_test__*`; gumagamit ng mga tunay na provider; hindi kailanman tumatakbo sa CI)
 - [ ] `npm run test:e2e` — pumasa (mga pagbabago sa UI)

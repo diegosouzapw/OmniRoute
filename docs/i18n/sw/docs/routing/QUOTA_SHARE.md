@@ -339,7 +339,7 @@ Tabaka mbili za ufunikaji wa kiotomatiki hutolewa pamoja na injini ya quota-shar
 | Kipimo (majaribio 29)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Kiratibu cha DRR, udhibiti wa ujazo, vikomo vya uendeshaji sambamba, hesabu za fairShare, upangaji wa foleni ya kazi zilizolimbikizwa                                                                                             |
 | Matriki ya ujumuishaji | `npm run test:combo:matrix`                                            | Uamuzi wa uelekezaji wa mwanzo hadi mwisho kupitia mchakato halisi wa combo; usawa wa DRR + kupunguza kipaumbele wakati wa ujazo kupitia sehemu hai (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matriki ya ujumuishaji huendeshwa katika CI pamoja na mikakati yote 19 ya umma. Kundi la majaribio ya kipimo
+Matriki ya ujumuishaji huendeshwa katika CI pamoja na mikakati yote 21 ya umma. Kundi la majaribio ya kipimo
 linaweza kuendeshwa kivyake.
 
 ---

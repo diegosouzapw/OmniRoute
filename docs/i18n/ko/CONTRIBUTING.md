@@ -308,7 +308,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM 프록시(인증서, DNS, 대상 라우팅)
 ├── shared/
 │   ├── components/         # React 컴포넌트(.tsx)
-│   ├── constants/          # 제공자 정의(329개), MCP 범위, 라우팅 전략 20개
+│   ├── constants/          # 제공자 정의(329개), MCP 범위, 라우팅 전략 21개
 │   ├── utils/              # 서킷 브레이커, 새니타이저, 인증 헬퍼
 │   └── validation/         # Zod v4 스키마
 └── sse/                    # SSE 프록시 파이프라인

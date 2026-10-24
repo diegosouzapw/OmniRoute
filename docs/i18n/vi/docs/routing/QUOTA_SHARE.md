@@ -352,7 +352,7 @@ Công cụ quota-share đi kèm hai lớp kiểm thử tự động:
 | Đơn vị (29 kiểm thử) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Bộ lập lịch DRR, cơ chế chặn khi bão hòa, giới hạn đồng thời, phép tính fairShare, xếp hàng backlog                                                                                                                            |
 | Ma trận tích hợp     | `npm run test:combo:matrix`                                            | Quyết định định tuyến đầu cuối thông qua pipeline tổ hợp thực tế; tính công bằng DRR + giảm ưu tiên khi bão hòa thông qua các điểm nối trực tiếp (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Ma trận tích hợp chạy trong CI cùng với toàn bộ 19 chiến lược công khai. Bộ kiểm thử đơn vị
+Ma trận tích hợp chạy trong CI cùng với toàn bộ 21 chiến lược công khai. Bộ kiểm thử đơn vị
 có thể chạy độc lập.
 
 ---

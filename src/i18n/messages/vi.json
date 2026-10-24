@@ -3497,6 +3497,8 @@
     "resetAwareDesc": "Cân bằng hạn ngạch còn lại với các mốc đặt lại sau 5 giờ và hằng tuần, sau đó xoay vòng các mô hình có điểm số tương tự",
     "quotaWeighted": "Theo trọng số hạn ngạch",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Hết hạn trước",
+    "expiryFirstDesc": "Ưu tiên dùng tài khoản có hạn ngạch sẽ hết hạn mà không được sử dụng: tài khoản còn nhiều nhất và có thời điểm đặt lại gần nhất được dùng trước.",
     "strictRandom": "Ngẫu nhiên nghiêm ngặt",
     "strictRandomDesc": "Trộn bài — sử dụng mỗi mô hình một lần trước khi trộn lại",
     "fusion": "Hợp nhất",
@@ -3618,6 +3620,11 @@
         "when": "Bạn định tuyến giữa nhiều tài khoản bằng dữ liệu đo từ xa về hạn ngạch và các chu kỳ đặt lại khác nhau.",
         "avoid": "Dữ liệu đo từ xa về hạn ngạch không khả dụng cho hầu hết các tài khoản.",
         "example": "Ưu tiên tài khoản có hạn ngạch theo tuần đang ở mức 60% và sẽ được đặt lại vào ngày mai hơn tài khoản ở mức 80% sẽ được đặt lại muộn hơn."
+      },
+      "expiry-first": {
+        "when": "Bạn định tuyến giữa các tài khoản có hạn ngạch đặt lại theo lịch khác nhau và muốn dùng hết hạn ngạch mà nếu không sẽ hết hạn mà không được sử dụng.",
+        "avoid": "Hầu hết tài khoản không có dữ liệu đo từ xa về hạn ngạch, hoặc bạn cần một thứ tự ổn định không phụ thuộc vào thời điểm đặt lại.",
+        "example": "Ưu tiên tài khoản còn 80% sẽ đặt lại sau 39 phút hơn tài khoản còn 48% sẽ đặt lại sau 9 giờ — hạn ngạch sắp hết hạn được dùng trước khi bị lãng phí."
       },
       "strict-random": {
         "when": "Sử dụng khi bạn muốn phân bổ hoàn toàn đồng đều — mỗi mô hình được sử dụng một lần trước khi lặp lại.",
@@ -3834,6 +3841,13 @@
         "tip1": "Sử dụng các bước tài khoản rõ ràng hoặc định tuyến theo thẻ tài khoản cho các nhà cung cấp có dữ liệu theo dõi hạn ngạch.",
         "tip2": "Điều chỉnh trọng số theo phiên và theo tuần khi rủi ro cạn kiệt trong ngắn hạn cao hơn.",
         "tip3": "Giữ khoảng chênh lệch nhỏ để các tài khoản tương đương vẫn được xoay vòng công bằng."
+      },
+      "expiry-first": {
+        "title": "Hạn ngạch sắp hết hạn trước",
+        "description": "Xếp hạng tài khoản theo mức độ cần tận dụng: hạn ngạch còn lại nhiều và gần hạn đặt lại được dùng trước.",
+        "tip1": "Cần dữ liệu đo từ xa về hạn ngạch từ nhà cung cấp; tài khoản không có dữ liệu này giữ nguyên thứ tự ưu tiên đã liệt kê.",
+        "tip2": "Các điểm số gần bằng nhau được xoay vòng trong khoảng chênh lệch để các tài khoản tương tự vẫn chia sẻ tải.",
+        "tip3": "Giới hạn việc xếp hạng trong nhóm hạn ngạch mà mỗi mô hình thực sự được tính phí."
       },
       "strict-random": {
         "title": "Phân phối theo bộ bài xáo trộn",
@@ -7465,6 +7479,8 @@
     "resetAwareDesc": "Ưu tiên các tài khoản có hạn ngạch còn lại ở mức tốt và thời điểm đặt lại sớm hơn",
     "quotaWeighted": "Theo trọng số hạn ngạch",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Hết hạn trước",
+    "expiryFirstDesc": "Ưu tiên dùng tài khoản có hạn ngạch sẽ hết hạn mà không được sử dụng: tài khoản còn nhiều nhất và có thời điểm đặt lại gần nhất được dùng trước.",
     "strictRandom": "Ngẫu nhiên nghiêm ngặt",
     "strictRandomDesc": "Trộn bộ bài — sử dụng mỗi tài khoản một lần trước khi trộn lại",
     "stickyLimit": "Giới hạn cố định",

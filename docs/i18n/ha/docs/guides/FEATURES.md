@@ -59,7 +59,7 @@ Haɗin OpenRouter na iya adana `preset` na musamman ga kowane haɗi a Advanced S
 
 ## 🎨 Haɗe-haɗe
 
-Ƙirƙiri haɗe-haɗen karkatar da samfurori ta amfani da dabarun jama'a guda 19: fifiko, mai nauyi, zagaye-bi-da-bi, isar da mahalli, fara-cikawa, p2c (zaɓuɓɓukan ƙarfi-na-biyu), bazuwar, mafi ƙarancin amfani, inganta-farashi, mai-lura-da-sake-saiti, tagar-sake-saiti, sararin-ragi, tsantsar-bazuwar, atomatik, lkgp (mai-bayarwa-na-ƙarshe-da-aka-san-yana-aiki), inganta-mahalli, inganta-ma'ajiyar-wucin-gadi, **fusion** (aika buƙata ga rukunin samfura a layi ɗaya, sannan a haɗa amsa guda ta hannun mai hukunci), da **pipeline**. Kowane haɗe-haɗe yana jeranta samfura da yawa tare da komawa ga madadin ta atomatik, kuma ya haɗa da samfuran farawa cikin sauri da binciken shirye-shiryen aiki.
+Ƙirƙiri haɗe-haɗen karkatar da samfurori ta amfani da dabarun jama'a guda 21: fifiko, mai nauyi, zagaye-bi-da-bi, isar da mahalli, fara-cikawa, p2c (zaɓuɓɓukan ƙarfi-na-biyu), bazuwar, mafi ƙarancin amfani, inganta-farashi, mai-lura-da-sake-saiti, tagar-sake-saiti, mai-ƙarewa-da-farko, sararin-ragi, mai-nauyi-bisa-quota, tsantsar-bazuwar, atomatik, lkgp (mai-bayarwa-na-ƙarshe-da-aka-san-yana-aiki), inganta-mahalli, inganta-ma'ajiyar-wucin-gadi, **fusion** (aika buƙata ga rukunin samfura a layi ɗaya, sannan a haɗa amsa guda ta hannun mai hukunci), da **pipeline**. Kowane haɗe-haɗe yana jeranta samfura da yawa tare da komawa ga madadin ta atomatik, kuma ya haɗa da samfuran farawa cikin sauri da binciken shirye-shiryen aiki.
 
 Ingantawa na baya-bayan nan ga haɗe-haɗe:
 

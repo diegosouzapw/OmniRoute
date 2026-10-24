@@ -146,7 +146,7 @@ unit shards፣ integration፣ vitest፣ lint/typecheck፣ docs-sync፣ `check:pa
 - [ ] `npm run test:vitest` — ያልፋል (MCP server፣ autoCombo፣ cache)
 - [ ] `npm run test:coverage` — የ60/60/60/60 መስፈርት ተሟልቷል (መግለጫዎች/መስመሮች/ፋንክሽኖች/ቅርንጫፎች)
 - [ ] `npm run test:integration` — ያልፋል (ለውጦቹ DB / handlersን የሚነኩ ከሆነ)
-- [ ] `npm run test:combo:matrix` — ያልፋል (የcombo ስትራቴጂ ማትሪክስ፦ የሁሉም 19 ይፋዊ የrouting ስትራቴጂዎች ምርጫ ውሳኔዎችን በወጥነት ያረጋግጣል፤ combo routing፣ strategy resolution ወይም fallback logicን ሲነኩ ያሂዱ)
+- [ ] `npm run test:combo:matrix` — ያልፋል (የcombo ስትራቴጂ ማትሪክስ፦ የሁሉም 21 ይፋዊ የrouting ስትራቴጂዎች ምርጫ ውሳኔዎችን በወጥነት ያረጋግጣል፤ combo routing፣ strategy resolution ወይም fallback logicን ሲነኩ ያሂዱ)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **አማራጭ/በእጅ** (በመቆጣጠሪያ የተገደበ የእውነተኛ-upstream smoke ሙከራ፤ ከVPS `root@192.168.0.15` የማንበብ-ብቻ DB snapshot ይጠቀማል፤ እውነተኛ providersን ይጠቀማል፣ credits ያስከፍላል፤ በCI ውስጥ ፈጽሞ አይሄድም፤ መቆጣጠሪያው ከሌለ በንጽሕና ይዘላል)
 - [ ] `npm run test:combo:live:vps` — **አማራጭ/በእጅ** (የPhase-3 VPS የቀጥታ smoke ሙከራ፦ በplain Node ESM በኩል በቀጥታ `.15` server ላይ 7 HTTP ሁኔታዎች፤ `ssh root@192.168.0.15` ያስፈልጋል፤ `__live_test__*` combosን ብቻ ይፈጥራል/ይሰርዛል፤ እውነተኛ providersን ይጠቀማል፤ በCI ውስጥ ፈጽሞ አይሄድም)
 - [ ] `npm run test:e2e` — ያልፋል (የUI ለውጦች)

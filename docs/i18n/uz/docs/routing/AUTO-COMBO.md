@@ -286,7 +286,7 @@ aniqlangan qiymatlar mexanizmning mavjud `config.modePack` / `config.budgetCap` 
 
 ## Barcha marshrutlash strategiyalari
 
-OmniRoute'ning kombinatsiya mexanizmi **20 ta marshrutlash strategiyasini** qoʻllab-quvvatlaydi (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ichida eʼlon qilingan). Auto Combo mexanizmining oʻzi `auto` strategiyasi orqali taqdim etiladi; qolganlari saqlangan kombinatsiyalar uchun mavjud.
+OmniRoute'ning kombinatsiya mexanizmi **21 ta marshrutlash strategiyasini** qoʻllab-quvvatlaydi (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ichida eʼlon qilingan). Auto Combo mexanizmining oʻzi `auto` strategiyasi orqali taqdim etiladi; qolganlari saqlangan kombinatsiyalar uchun mavjud.
 
 | Strategiya          | Tavsif                                                                                                                                                                                                                                                  |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -301,6 +301,7 @@ OmniRoute'ning kombinatsiya mexanizmi **20 ta marshrutlash strategiyasini** qoʻ
 | `cost-optimized`    | Katalog narxlarini hisobga olgan holda har bir soʻrov uchun $ xarajatni minimallashtirish                                                                                                                                                               |
 | `reset-aware` ⭐    | Kvotani tiklash vaqtiga qarab ustuvorlashtirish — qisqa tiklash oynalari yuqoriroq oʻringa qoʻyiladi                                                                                                                                                    |
 | `reset-window`      | Kvota oynasi eng tez tiklanadigan nishonlarni afzal koʻrish                                                                                                                                                                                             |
+| `expiry-first`      | Aks holda foydalanilmay muddati tugaydigan kvotali hisobni birinchi sarflaydi: eng katta qoldiqli va eng yaqin yangilanishli hisob birinchi navbatda tanlanadi                                                                                          |
 | `headroom`          | Eng koʻp qolgan kvota zaxirasiga ega nishonni tanlash                                                                                                                                                                                                   |
 | `quota-weighted`    | Kvotasi tugagan hisoblarni oʻtkazib yuborish, soʻng qolganlar orasidan qolgan kvotaning bajarilayotgan yuklamaga nisbatiga mutanosib ravishda tanlash; mavjud suhbatlar biriktirilgan holda qoladi                                                      |
 | `strict-random`     | Takrorlarni olib tashlamasdan tasodifiy tanlash                                                                                                                                                                                                         |
@@ -864,9 +865,9 @@ Daraja ta’riflari va provayderlar tasnifi uchun [`docs/guides/TIERS.md`](../gu
 
 ### Deterministik marshrutlash qarorlari matritsasi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` haqiqiy kombinatsiya konveyeri va taqlid qilingan yuqori oqim orqali barcha 19 ta ommaviy strategiyaning marshrutlash **qarori**ni boshidan oxirigacha tasdiqlaydi. Qamrov quyidagilarni oʻz ichiga oladi:
+`tests/integration/combo-matrix/*.test.ts` haqiqiy kombinatsiya konveyeri va taqlid qilingan yuqori oqim orqali barcha 21 ta ommaviy strategiyaning marshrutlash **qarori**ni boshidan oxirigacha tasdiqlaydi. Qamrov quyidagilarni oʻz ichiga oladi:
 
-- Barcha 19 ta `ROUTING_STRATEGY_VALUES` strategiyasi (ordered, weighted, cost, context, fusion, …).
+- Barcha 21 ta `ROUTING_STRATEGY_VALUES` strategiyasi (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (ichki) boshidan oxirigacha: haqiqiy `selectQuotaShareTarget` ulanish nuqtasi (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`) orqali DRR adolatliligi va toʻyinganlikdagi ustuvorlikni pasaytirish.
 - Har bir maqsad soni boʻyicha `context-relay` universal topshirish qamrovi.
 
@@ -896,5 +897,5 @@ Ushbu tezkor sinovlar haqiqiy uzatish yoʻlini (kombinatsiya → provayder → y
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksi parseri + 6 ta variant                                                                                                   |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Faol ulanishlardan xotiradagi `AutoComboConfig`ni yaratadi                                                                                |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayderlar reyestrini soxtalashtirish uchun test ilgagi                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 ta strategiya)                                                                                              |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 ta strategiya)                                                                                              |
 | `src/sse/handlers/chat.ts`                                | Integratsiya: auto-prefiks uchun qisqa tutashuv                                                                                           |

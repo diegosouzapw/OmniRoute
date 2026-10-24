@@ -282,7 +282,7 @@ valores resueltos alimentan las entradas existentes `config.modePack` / `config.
 
 ## Todas las estrategias de enrutamiento
 
-El motor de combos de OmniRoute admite **20 estrategias de enrutamiento** (declaradas en `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). El propio motor Auto Combo se expone mediante la estrategia `auto`; las demás están disponibles para los combos persistidos.
+El motor de combos de OmniRoute admite **21 estrategias de enrutamiento** (declaradas en `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). El propio motor Auto Combo se expone mediante la estrategia `auto`; las demás están disponibles para los combos persistidos.
 
 | Estrategia          | Descripción                                                                                                                                                                                                                          |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ El motor de combos de OmniRoute admite **20 estrategias de enrutamiento** (decla
 | `cost-optimized`    | Minimiza el coste en $ por solicitud según los precios del catálogo                                                                                                                                                                  |
 | `reset-aware` ⭐    | Prioriza según el momento de restablecimiento de la cuota: los intervalos de restablecimiento cortos tienen mayor prioridad                                                                                                          |
 | `reset-window`      | Prefiere los destinos cuya ventana de cuota se restablecerá antes                                                                                                                                                                    |
+| `expiry-first`      | Consume primero la cuenta cuya cuota, de otro modo, caducaría sin usarse: va primero el mayor remanente con el reinicio más cercano                                                                                                  |
 | `headroom`          | Selecciona el destino con el mayor margen de cuota restante                                                                                                                                                                          |
 | `quota-weighted`    | Omite las cuentas agotadas y selecciona entre las restantes en proporción a la cuota sobrante dividida por la carga en curso; las conversaciones existentes permanecen fijadas                                                       |
 | `strict-random`     | Selección aleatoria sin deduplicar las repeticiones                                                                                                                                                                                  |
@@ -843,11 +844,11 @@ Consulta [`docs/guides/TIERS.md`](../guides/TIERS.md) para conocer las definicio
 
 ### Matriz determinista de decisiones de enrutamiento (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` demuestra la **decisión** de enrutamiento de las 19
+`tests/integration/combo-matrix/*.test.ts` demuestra la **decisión** de enrutamiento de las 21
 estrategias públicas de extremo a extremo mediante el flujo real de combinación con un servicio ascendente simulado.
 La cobertura incluye:
 
-- Las 19 estrategias de `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Las 21 estrategias de `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interna) de extremo a extremo: equidad DRR + pérdida de prioridad por saturación mediante el
   punto de integración real `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -881,5 +882,5 @@ excluyen deliberadamente de CI porque requieren credenciales reales y acceso a u
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Analizador del prefijo `auto/` + 6 variantes                                                                      |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Crea una instancia de `AutoComboConfig` en memoria a partir de conexiones activas                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punto de extensión para pruebas que permite simular el registro de proveedores                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 estrategias)                                                                        |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 estrategias)                                                                        |
 | `src/sse/handlers/chat.ts`                                | Integración: cortocircuito para el prefijo auto                                                                   |

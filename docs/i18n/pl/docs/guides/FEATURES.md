@@ -59,7 +59,7 @@ Połączenia OpenRouter mogą przechowywać ustawienie `preset` dla każdego po�
 
 ## 🎨 Kombinacje
 
-Twórz kombinacje routingu modeli za pomocą 19 publicznych strategii: priorytetowej, ważonej, round-robin, przekazywania kontekstu, wypełniania od pierwszego, p2c (wybór spośród dwóch możliwości), losowej, najrzadziej używanej, zoptymalizowanej pod kątem kosztów, uwzględniającej reset, okna resetowania, zapasu, ściśle losowej, automatycznej, lkgp (ostatni znany działający dostawca), zoptymalizowanej pod kątem kontekstu, zoptymalizowanej pod kątem pamięci podręcznej, **fusion** (równoległe wysyłanie zapytań do panelu modeli, a następnie synteza jednej odpowiedzi przez model oceniający) oraz **pipeline**. Każda kombinacja łączy wiele modeli z automatycznym mechanizmem awaryjnym oraz zawiera szybkie szablony i kontrole gotowości.
+Twórz kombinacje routingu modeli za pomocą 21 publicznych strategii: priorytetowej, ważonej, round-robin, przekazywania kontekstu, wypełniania od pierwszego, p2c (wybór spośród dwóch możliwości), losowej, najrzadziej używanej, zoptymalizowanej pod kątem kosztów, uwzględniającej reset, okna resetowania, najpierw wygasającej, zapasu, ważonej limitem, ściśle losowej, automatycznej, lkgp (ostatni znany działający dostawca), zoptymalizowanej pod kątem kontekstu, zoptymalizowanej pod kątem pamięci podręcznej, **fusion** (równoległe wysyłanie zapytań do panelu modeli, a następnie synteza jednej odpowiedzi przez model oceniający) oraz **pipeline**. Każda kombinacja łączy wiele modeli z automatycznym mechanizmem awaryjnym oraz zawiera szybkie szablony i kontrole gotowości.
 
 Najnowsze ulepszenia kombinacji:
 

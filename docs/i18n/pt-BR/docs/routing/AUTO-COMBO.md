@@ -288,7 +288,7 @@ valores resolvidos alimentam as entradas existentes `config.modePack` / `config.
 
 ## Todas as estratégias de roteamento
 
-O mecanismo de combos do OmniRoute oferece suporte a **20 estratégias de roteamento** (declaradas em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio mecanismo de Auto Combo é disponibilizado pela estratégia `auto`; as demais estão disponíveis para combos persistidos.
+O mecanismo de combos do OmniRoute oferece suporte a **21 estratégias de roteamento** (declaradas em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio mecanismo de Auto Combo é disponibilizado pela estratégia `auto`; as demais estão disponíveis para combos persistidos.
 
 | Estratégia          | Descrição                                                                                                                                                                                                                     |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -303,6 +303,7 @@ O mecanismo de combos do OmniRoute oferece suporte a **20 estratégias de roteam
 | `cost-optimized`    | Minimiza o custo em $ por solicitação com base nos preços do catálogo                                                                                                                                                         |
 | `reset-aware` ⭐    | Prioriza pelo horário de redefinição da cota — janelas de redefinição mais curtas recebem uma classificação mais alta                                                                                                         |
 | `reset-window`      | Prefere destinos cuja janela de cota será redefinida mais cedo                                                                                                                                                                |
+| `expiry-first`      | Consome primeiro a conta cuja cota, de outra forma, expiraria sem uso: o maior saldo com a redefinição mais próxima vai primeiro                                                                                              |
 | `headroom`          | Escolhe o destino com a maior margem de cota restante                                                                                                                                                                         |
 | `quota-weighted`    | Ignora contas esgotadas e seleciona entre as demais proporcionalmente à cota restante dividida pela carga em andamento; conversas existentes permanecem vinculadas                                                            |
 | `strict-random`     | Seleção aleatória sem desduplicação de repetições                                                                                                                                                                             |
@@ -854,11 +855,11 @@ Consulte [`docs/guides/TIERS.md`](../guides/TIERS.md) para ver as definições d
 
 ### Matriz determinística de decisões de roteamento (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` comprova a **decisão** de roteamento de todas as 19
+`tests/integration/combo-matrix/*.test.ts` comprova a **decisão** de roteamento de todas as 21
 estratégias públicas de ponta a ponta, passando pelo pipeline real de combinação com um upstream simulado.
 A cobertura inclui:
 
-- Todas as 19 estratégias de `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Todas as 21 estratégias de `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interna) de ponta a ponta: equidade DRR + redução de prioridade por saturação por meio do
   ponto de integração real `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -892,5 +893,5 @@ intencionalmente excluídos da CI porque exigem credenciais reais e acesso a VPS
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Analisador do prefixo `auto/` + 6 variantes                                                                                                                   |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Cria `AutoComboConfig` em memória a partir de conexões ativas                                                                                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Gancho de teste para simular o registro de provedores                                                                                                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 estratégias)                                                                                                                    |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 estratégias)                                                                                                                    |
 | `src/sse/handlers/chat.ts`                                | Integração: desvio antecipado para o prefixo auto                                                                                                             |

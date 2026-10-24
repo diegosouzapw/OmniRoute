@@ -782,7 +782,7 @@ connectionId)`) — 형제 대상들이 고정된
 
 ## 기타 복원력 기능
 
-- **20가지 라우팅 전략** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) 참조.
+- **21가지 라우팅 전략** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) 참조.
 - **리셋 인식 라우팅** (v3.8.0) — 할당량 리셋 시간을 기준으로 연결의 우선순위를 지정합니다.
 - **백그라운드 모드 저하** — Responses API의 `background: true`가 경고와 함께 동기 방식으로 저하됩니다.
 - **동적 도구 제한 감지** — 도구 개수 제한에 도달하면 프로바이더를 백오프합니다.

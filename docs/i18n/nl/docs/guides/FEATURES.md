@@ -59,7 +59,7 @@ Voor OpenRouter-verbindingen kan per verbinding een `preset` worden opgeslagen o
 
 ## 🎨 Combinaties
 
-Maak modelrouteringscombinaties met 19 openbare strategieën: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (verdeel verzoeken parallel over een panel van modellen en laat vervolgens één antwoord samenstellen door een beoordelend model) en **pipeline**. Elke combinatie koppelt meerdere modellen aan elkaar met automatische fallback en bevat snelstartsjablonen en gereedheidscontroles.
+Maak modelrouteringscombinaties met 21 openbare strategieën: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (verdeel verzoeken parallel over een panel van modellen en laat vervolgens één antwoord samenstellen door een beoordelend model) en **pipeline**. Elke combinatie koppelt meerdere modellen aan elkaar met automatische fallback en bevat snelstartsjablonen en gereedheidscontroles.
 
 Recente verbeteringen aan combinaties:
 

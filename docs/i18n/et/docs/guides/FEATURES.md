@@ -59,7 +59,7 @@ OpenRouteri ühendused saavad hoida iga ühenduse kohta eraldi `preset` väärtu
 
 ## 🎨 Kombod
 
-Loo mudelite ruutimiskombosid 19 avaliku strateegiaga: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralleelne edastamine mudelite paneelile, misjärel üks vastus koostatakse kokku hindaja abil) ja **pipeline**. Iga kombo ühendab mitu mudelit automaatse tõrketaluvusega ning sisaldab kiirmalle ja valmisoleku kontrolle.
+Loo mudelite ruutimiskombosid 21 avaliku strateegiaga: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralleelne edastamine mudelite paneelile, misjärel üks vastus koostatakse kokku hindaja abil) ja **pipeline**. Iga kombo ühendab mitu mudelit automaatse tõrketaluvusega ning sisaldab kiirmalle ja valmisoleku kontrolle.
 
 Viimased kombode täiendused:
 

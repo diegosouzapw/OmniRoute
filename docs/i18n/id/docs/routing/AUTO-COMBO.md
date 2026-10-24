@@ -282,7 +282,7 @@ nilai yang telah ditetapkan diteruskan ke input `config.modePack` / `config.budg
 
 ## Semua Strategi Perutean
 
-Mesin kombo OmniRoute mendukung **20 strategi perutean** (dideklarasikan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Mesin Auto Combo sendiri tersedia melalui strategi `auto`; strategi lainnya tersedia untuk kombo yang dipersistenkan.
+Mesin kombo OmniRoute mendukung **21 strategi perutean** (dideklarasikan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Mesin Auto Combo sendiri tersedia melalui strategi `auto`; strategi lainnya tersedia untuk kombo yang dipersistenkan.
 
 | Strategi            | Deskripsi                                                                                                                                                                                                                       |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -297,6 +297,7 @@ Mesin kombo OmniRoute mendukung **20 strategi perutean** (dideklarasikan dalam `
 | `cost-optimized`    | Meminimalkan biaya $ per permintaan berdasarkan harga katalog                                                                                                                                                                   |
 | `reset-aware` ⭐    | Memprioritaskan berdasarkan waktu reset kuota — jendela reset yang singkat diberi peringkat lebih tinggi                                                                                                                        |
 | `reset-window`      | Memilih target yang jendela kuotanya akan direset paling cepat                                                                                                                                                                  |
+| `expiry-first`      | Menghabiskan akun yang kuotanya akan kedaluwarsa tanpa terpakai: sisa terbesar dengan reset terdekat didahulukan                                                                                                                |
 | `headroom`          | Memilih target dengan ruang sisa kuota terbesar                                                                                                                                                                                 |
 | `quota-weighted`    | Melewati akun yang kuotanya habis, lalu memilih dari sisanya secara proporsional terhadap sisa kuota yang dibagi beban yang sedang diproses; percakapan yang ada tetap terikat                                                  |
 | `strict-random`     | Pemilihan acak tanpa deduplikasi pengulangan                                                                                                                                                                                    |
@@ -847,9 +848,9 @@ Lihat [`docs/guides/TIERS.md`](../guides/TIERS.md) untuk definisi tier dan klasi
 
 ### Matriks keputusan perutean deterministik (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` membuktikan **keputusan** perutean dari seluruh 19 strategi publik secara menyeluruh melalui pipeline combo yang sebenarnya dengan upstream tiruan. Cakupannya meliputi:
+`tests/integration/combo-matrix/*.test.ts` membuktikan **keputusan** perutean dari seluruh 21 strategi publik secara menyeluruh melalui pipeline combo yang sebenarnya dengan upstream tiruan. Cakupannya meliputi:
 
-- Seluruh 19 strategi `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Seluruh 21 strategi `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (internal) secara menyeluruh: keadilan DRR + penurunan prioritas saat saturasi melalui seam `selectQuotaShareTarget` yang sebenarnya (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Cakupan serah-terima universal `context-relay` di seluruh jumlah target.
 
@@ -879,5 +880,5 @@ Smoke test ini menguji jalur komunikasi yang sebenarnya (combo → penyedia → 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiks `auto/` + 6 varian                                                                      |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Membuat `AutoComboConfig` dalam memori dari koneksi aktif                                              |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook pengujian untuk memalsukan registri penyedia                                                      |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategi)                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategi)                                                                |
 | `src/sse/handlers/chat.ts`                                | Integrasi: pintasan prefiks otomatis                                                                   |

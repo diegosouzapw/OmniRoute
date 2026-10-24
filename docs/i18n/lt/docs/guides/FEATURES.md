@@ -59,7 +59,7 @@ OpenRouter ryšiams išplėstiniuose nustatymuose galima išsaugoti kiekvienam r
 
 ## 🎨 Deriniai
 
-Kurkite modelių maršruto parinkimo derinius naudodami 19 viešų strategijų: priority, weighted, round-robin, context-relay, fill-first, p2c (dviejų pasirinkimų principas), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (paskutinis žinomas geras teikėjas), context-optimized, cache-optimized, **fusion** (lygiagrečiai išsiunčia užklausą modelių grupei, tada pasitelkia vertintoją vienam atsakymui susintetinti) ir **pipeline**. Kiekvienas derinys sujungia kelis modelius su automatiniu atsarginiu perjungimu, taip pat turi greituosius šablonus ir parengties patikras.
+Kurkite modelių maršruto parinkimo derinius naudodami 21 viešą strategiją: priority, weighted, round-robin, context-relay, fill-first, p2c (dviejų pasirinkimų principas), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (paskutinis žinomas geras teikėjas), context-optimized, cache-optimized, **fusion** (lygiagrečiai išsiunčia užklausą modelių grupei, tada pasitelkia vertintoją vienam atsakymui susintetinti) ir **pipeline**. Kiekvienas derinys sujungia kelis modelius su automatiniu atsarginiu perjungimu, taip pat turi greituosius šablonus ir parengties patikras.
 
 Naujausi derinių patobulinimai:
 

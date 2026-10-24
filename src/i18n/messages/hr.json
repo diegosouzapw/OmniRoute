@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Uravnotežuje preostalu kvotu uzimajući u obzir resetiranja nakon 5h i tjedan dana, zatim kružno raspoređuje modele sa sličnim rezultatima",
     "quotaWeighted": "Ponderirano prema kvoti",
     "quotaWeightedDesc": "Preskoči račune s iscrpljenom kvotom, a zatim odaberi među preostalima razmjerno preostaloj kvoti, podijeljenoj s opterećenjem zahtjeva u tijeku. Postojeći razgovori ostaju vezani uz isti račun.",
+    "expiryFirst": "Prvo istječuće",
+    "expiryFirstDesc": "Troši račun čija bi kvota inače istekla neiskorištena: prvi ide račun s najvećim ostatkom i najbližim resetiranjem.",
     "strictRandom": "Strogo nasumično",
     "strictRandomDesc": "Miješanje špila — koristi svaki model jednom prije ponovnog miješanja",
     "fusion": "Fuzija",
@@ -3600,6 +3602,11 @@
         "when": "Usmjeravate zahtjeve kroz više računa s telemetrijom kvote i različitim razdobljima resetiranja.",
         "avoid": "Telemetrija kvote nije dostupna za većinu računa.",
         "example": "Dajte prednost računu sa 60 % tjedne kvote koji se resetira sutra u odnosu na račun s 80 % kvote koji se resetira kasnije."
+      },
+      "expiry-first": {
+        "when": "Usmjeravate zahtjeve kroz račune čije se kvote resetiraju prema različitim rasporedima i želite potrošiti kvotu koja bi inače istekla neiskorištena.",
+        "avoid": "Telemetrija kvote nedostaje za većinu računa ili vam je potreban stabilan redoslijed koji zanemaruje vrijeme resetiranja.",
+        "example": "Dajte prednost računu s 80 % preostale kvote koji se resetira za 39 minuta u odnosu na račun s 48 % preostale kvote koji se resetira za 9 sati — kvota pred istekom troši se prije nego što propadne."
       },
       "strict-random": {
         "when": "Koristite kada želite savršeno ravnomjernu raspodjelu — svaki se model koristi jednom prije ponavljanja.",
@@ -3815,6 +3822,13 @@
         "tip1": "Koristite izričito definirane korake za račune ili usmjeravanje prema oznakama računa za pružatelje s telemetrijom kvote.",
         "tip2": "Podesite težine sesije u odnosu na tjedne težine kada je kratkoročna iscrpljenost rizičnija.",
         "tip3": "Zadržite pojas izjednačenosti malim kako bi jednakovrijedni računi i dalje ravnomjerno rotirali."
+      },
+      "expiry-first": {
+        "title": "Prvo kvota koja istječe",
+        "description": "Rangira račune prema pritisku iskorištavanja: velika preostala kvota blizu roka resetiranja ide prva.",
+        "tip1": "Zahtijeva telemetriju kvote pružatelja usluge; računi bez nje zadržavaju navedeni redoslijed prioriteta.",
+        "tip2": "Gotovo izjednačeni rezultati rotiraju unutar pojasa izjednačenosti, tako da srodni računi i dalje dijele opterećenje.",
+        "tip3": "Ograničite rangiranje na skupinu kvote prema kojoj se svaki model stvarno naplaćuje."
       },
       "strict-random": {
         "title": "Raspodjela miješanjem špila",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Preferiraj račune s dovoljno preostale kvote i skorijim resetiranjem",
     "quotaWeighted": "Ponderirano prema kvoti",
     "quotaWeightedDesc": "Preskoči račune s iscrpljenom kvotom, a zatim odaberi među preostalima razmjerno preostaloj kvoti, podijeljenoj s opterećenjem zahtjeva u tijeku. Postojeći razgovori ostaju vezani uz isti račun.",
+    "expiryFirst": "Prvo istječuće",
+    "expiryFirstDesc": "Troši račun čija bi kvota inače istekla neiskorištena: prvi ide račun s najvećim ostatkom i najbližim resetiranjem.",
     "strictRandom": "Strogo nasumično",
     "strictRandomDesc": "Promiješaj špil — koristi svaki račun jednom prije ponovnog miješanja",
     "stickyLimit": "Ograničenje zadržavanja",

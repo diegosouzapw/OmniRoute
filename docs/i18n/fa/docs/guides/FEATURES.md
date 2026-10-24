@@ -59,7 +59,7 @@
 
 ## 🎨 ترکیبها
 
-ترکیبهای مسیریابی مدل را با ۱۹ راهبرد عمومی ایجاد کنید: priority، weighted، round-robin، context-relay، fill-first، p2c (انتخاب از میان دو گزینه)، random، least-used، cost-optimized، reset-aware، reset-window، headroom، strict-random، auto، lkgp (آخرین ارائهدهنده سالم شناختهشده)، context-optimized، cache-optimized، **fusion** (ارسال همزمان درخواست به مجموعهای از مدلها و سپس ترکیب نتایج در قالب یک پاسخ توسط یک داور) و **pipeline**. هر ترکیب چندین مدل را همراه با جایگزینی خودکار بهصورت زنجیرهای متصل میکند و شامل الگوهای آماده و بررسیهای آمادگی است.
+ترکیبهای مسیریابی مدل را با ۲۱ راهبرد عمومی ایجاد کنید: priority، weighted، round-robin، context-relay، fill-first، p2c (انتخاب از میان دو گزینه)، random، least-used، cost-optimized، reset-aware، reset-window، expiry-first، headroom، quota-weighted، strict-random، auto، lkgp (آخرین ارائهدهنده سالم شناختهشده)، context-optimized، cache-optimized، **fusion** (ارسال همزمان درخواست به مجموعهای از مدلها و سپس ترکیب نتایج در قالب یک پاسخ توسط یک داور) و **pipeline**. هر ترکیب چندین مدل را همراه با جایگزینی خودکار بهصورت زنجیرهای متصل میکند و شامل الگوهای آماده و بررسیهای آمادگی است.
 
 بهبودهای اخیر ترکیبها:
 

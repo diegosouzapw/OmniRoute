@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (certificate, DNS, rutarea destinației)
 ├── shared/
 │   ├── components/         # Componente React (.tsx)
-│   ├── constants/          # Definiții ale furnizorilor (329), domenii MCP, 20 de strategii de rutare
+│   ├── constants/          # Definiții ale furnizorilor (329), domenii MCP, 21 de strategii de rutare
 │   ├── utils/              # Întrerupător de circuit, instrument de igienizare, funcții auxiliare pentru autentificare
 │   └── validation/         # Scheme Zod v4
 └── sse/                    # Flux de procesare proxy SSE

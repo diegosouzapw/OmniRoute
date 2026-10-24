@@ -59,7 +59,7 @@ Le connessioni OpenRouter possono memorizzare un `preset` specifico per connessi
 
 ## 🎨 Combinazioni
 
-Crea combinazioni per l'instradamento dei modelli con 19 strategie pubbliche: priority, weighted, round-robin, context-relay, fill-first, p2c (scelta tra due opzioni), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (ultimo provider noto come funzionante), context-optimized, cache-optimized, **fusion** (inoltra la richiesta in parallelo a un gruppo di modelli, quindi sintetizza un'unica risposta tramite un modello valutatore) e **pipeline**. Ogni combinazione concatena più modelli con fallback automatico e include modelli predefiniti rapidi e controlli di disponibilità.
+Crea combinazioni per l'instradamento dei modelli con 21 strategie pubbliche: priority, weighted, round-robin, context-relay, fill-first, p2c (scelta tra due opzioni), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (ultimo provider noto come funzionante), context-optimized, cache-optimized, **fusion** (inoltra la richiesta in parallelo a un gruppo di modelli, quindi sintetizza un'unica risposta tramite un modello valutatore) e **pipeline**. Ogni combinazione concatena più modelli con fallback automatico e include modelli predefiniti rapidi e controlli di disponibilità.
 
 Miglioramenti recenti alle combinazioni:
 

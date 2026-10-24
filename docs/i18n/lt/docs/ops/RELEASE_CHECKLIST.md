@@ -151,7 +151,7 @@ matricą be jokios žymos.
 - [ ] `npm run test:vitest` — sėkmingas (MCP serveris, autoCombo, podėlis)
 - [ ] `npm run test:coverage` — tenkinama 60/60/60/60 riba (sakiniai / eilutės / funkcijos / šakos)
 - [ ] `npm run test:integration` — sėkmingas (jei pakeitimai susiję su DB / apdorojimo funkcijomis)
-- [ ] `npm run test:combo:matrix` — sėkmingas (kombinuotųjų strategijų matrica: deterministiškai patvirtina visų 19 viešų maršruto parinkimo strategijų pasirinkimo sprendimus; paleisti keičiant kombinuotąjį maršruto parinkimą, strategijos nustatymą arba atsarginę logiką)
+- [ ] `npm run test:combo:matrix` — sėkmingas (kombinuotųjų strategijų matrica: deterministiškai patvirtina visų 21 viešosios maršruto parinkimo strategijos pasirinkimo sprendimus; paleisti keičiant kombinuotąjį maršruto parinkimą, strategijos nustatymą arba atsarginę logiką)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **neprivalomas / rankinis** (valdomas tikros išorinės sistemos bazinis testas; iš VPS `root@192.168.0.15` gauna tik skaitomą DB momentinę kopiją; kreipiasi į tikrus teikėjus ir naudoja kreditus; niekada nevykdomas CI; be aktyvinimo sąlygos korektiškai praleidžiamas)
 - [ ] `npm run test:combo:live:vps` — **neprivalomas / rankinis** (3-iojo etapo VPS bazinis testas tikroje aplinkoje: 7 HTTP scenarijai su veikiančiu `.15` serveriu naudojant paprastą Node ESM; reikalinga `ssh root@192.168.0.15`; sukuria ir pašalina tik `__live_test__*` kombinacijas; kreipiasi į tikrus teikėjus; niekada nevykdomas CI)
 - [ ] `npm run test:e2e` — sėkmingas (UI pakeitimams)

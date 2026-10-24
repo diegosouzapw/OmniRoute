@@ -283,7 +283,7 @@ feloldott értékek a motor meglévő `config.modePack` / `config.budgetCap` /
 
 ## Az összes útválasztási stratégia
 
-Az OmniRoute kombinációs motorja **20 útválasztási stratégiát** támogat (deklaráció: `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Maga az Auto Combo motor az `auto` stratégián keresztül érhető el; a többi stratégia a mentett kombinációkhoz használható.
+Az OmniRoute kombinációs motorja **21 útválasztási stratégiát** támogat (deklaráció: `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Maga az Auto Combo motor az `auto` stratégián keresztül érhető el; a többi stratégia a mentett kombinációkhoz használható.
 
 | Stratégia           | Leírás                                                                                                                                                                                                                                                      |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -298,6 +298,7 @@ Az OmniRoute kombinációs motorja **20 útválasztási stratégiát** támogat 
 | `cost-optimized`    | A kérésenkénti költség minimalizálása a katalógus árazása alapján                                                                                                                                                                                           |
 | `reset-aware` ⭐    | Prioritás a kvóta visszaállítási ideje alapján — a rövid visszaállítási időablakok magasabb besorolást kapnak                                                                                                                                               |
 | `reset-window`      | Azon célpontok előnyben részesítése, amelyek kvótaablaka a leghamarabb áll vissza                                                                                                                                                                           |
+| `expiry-first`      | Először azt a fiókot használja, amelynek kvótája különben kihasználatlanul lejárna: a legnagyobb maradék a legközelebbi visszaállítással kerül előre                                                                                                        |
 | `headroom`          | A legtöbb fennmaradó kvótatartalékkal rendelkező célpont kiválasztása                                                                                                                                                                                       |
 | `quota-weighted`    | A kimerített fiókok kihagyása, majd választás a többiek közül a fennmaradó kvóta és a folyamatban lévő terhelés hányadosával arányosan; a meglévő beszélgetések rögzítve maradnak                                                                           |
 | `strict-random`     | Véletlenszerű kiválasztás az ismétlődések kiszűrése nélkül                                                                                                                                                                                                  |
@@ -826,10 +827,10 @@ A szintek definícióit és a szolgáltatók besorolását lásd a [`docs/guides
 
 ### Determinisztikus útválasztási döntési mátrix (`npm run test:combo:matrix`)
 
-A `tests/integration/combo-matrix/*.test.ts` a valós kombinációs folyamaton és egy szimulált felsőbb szintű szolgáltatón keresztül, végponttól végpontig igazolja mind a 19 nyilvános stratégia útválasztási **döntését**.
+A `tests/integration/combo-matrix/*.test.ts` a valós kombinációs folyamaton és egy szimulált felsőbb szintű szolgáltatón keresztül, végponttól végpontig igazolja mind a 21 nyilvános stratégia útválasztási **döntését**.
 A lefedettség a következőket tartalmazza:
 
-- Mind a 19 `ROUTING_STRATEGY_VALUES` stratégia (ordered, weighted, cost, context, fusion, …).
+- Mind a 21 `ROUTING_STRATEGY_VALUES` stratégia (ordered, weighted, cost, context, fusion, …).
 - A `quota-share` (belső) végponttól végpontig: DRR-méltányosság + a telítettség miatti hátrasorolás a valós `selectQuotaShareTarget` kapcsolódási ponton keresztül (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - A `context-relay` univerzális átadási lefedettsége minden célszám esetén.
@@ -861,5 +862,5 @@ Ezek a próbatesztek a valós adatátviteli útvonalat használják (kombináci�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` előtag-értelmező + 6 változat                                                                              |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Memóriabeli `AutoComboConfig` konfigurációt hoz létre az aktív kapcsolatokból                                      |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Tesztkapcsolódási pont a szolgáltatói nyilvántartás utánzásához                                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratégia)                                                                           |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratégia)                                                                           |
 | `src/sse/handlers/chat.ts`                                | Integráció: automatikus előtag esetén rövidre zárás                                                                |

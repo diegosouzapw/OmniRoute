@@ -59,7 +59,7 @@ Njikọ OpenRouter nwere ike idobe `preset` nke njikọ ọ bụla na Advanced S
 
 ## 🎨 Combo
 
-Mepụta combo njikwa ụzọ model site na atụmatụ ọha 19: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (na-eziga arịrịọ n’otu oge gaa na panel model, wee jiri onye ọkaikpe chịkọta otu azịza), na **pipeline**. Combo ọ bụla na-ejikọta ọtụtụ model nwere fallback akpaghị aka ma tinyekwa template ngwa ngwa na nyocha ịdị njikere.
+Mepụta combo njikwa ụzọ model site na atụmatụ ọha 21: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (na-eziga arịrịọ n’otu oge gaa na panel model, wee jiri onye ọkaikpe chịkọta otu azịza), na **pipeline**. Combo ọ bụla na-ejikọta ọtụtụ model nwere fallback akpaghị aka ma tinyekwa template ngwa ngwa na nyocha ịdị njikere.
 
 Mmezi combo ndị e mere n’oge na-adịbeghị anya:
 

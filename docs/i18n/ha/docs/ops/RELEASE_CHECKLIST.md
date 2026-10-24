@@ -146,7 +146,7 @@ ta atomatik, ba tare da wani lakabi ba.
 - [ ] `npm run test:vitest` — ya wuce (sabar MCP, autoCombo, ma'ajiyar wucin gadi)
 - [ ] `npm run test:coverage` — an cika sharadin 60/60/60/60 (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — ya wuce (idan sauye-sauyen sun shafi DB / handlers)
-- [ ] `npm run test:combo:matrix` — ya wuce (matrix na dabarun combo: yana tabbatar da shawarwarin zaɓi na dukkan dabarun routing na jama'a guda 19 cikin ƙayyadadden tsari; gudanar da shi idan an taɓa combo routing, warware dabaru, ko tsarin fallback)
+- [ ] `npm run test:combo:matrix` — ya wuce (matrix na dabarun combo: yana tabbatar da shawarwarin zaɓi na dukkan dabarun routing na jama'a guda 21 cikin ƙayyadadden tsari; gudanar da shi idan an taɓa combo routing, warware dabaru, ko tsarin fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **na zaɓi/da hannu** (gwajin smoke na ainihin upstream mai shamaki; yana samo snapshot na DB mai karantawa kawai daga VPS `root@192.168.0.15`; yana tuntuɓar providers na ainihi, yana kashe credits; ba ya taɓa gudana a CI; yana tsallakewa ba tare da matsala ba idan babu shamakin)
 - [ ] `npm run test:combo:live:vps` — **na zaɓi/da hannu** (gwajin smoke na VPS kai tsaye na Mataki na 3: yanayin HTTP guda 7 a kan sabar `.15` mai aiki ta hanyar Node ESM kai tsaye; yana buƙatar `ssh root@192.168.0.15`; yana ƙirƙira/share combos na `__live_test__*` kawai; yana tuntuɓar providers na ainihi; ba ya taɓa gudana a CI)
 - [ ] `npm run test:e2e` — ya wuce (sauye-sauyen UI)

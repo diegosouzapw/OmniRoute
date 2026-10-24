@@ -659,7 +659,7 @@ reached") يُصنَّف `quota_exhausted` بواسطة آلية التراجع 
 
 ## ميزات المرونة الأخرى
 
-- **20 استراتيجية توجيه** (priority وweighted وround-robin وcontext-relay وfill-first وp2c وrandom وleast-used وcost-optimized وreset-aware وreset-window وheadroom وquota-weighted وstrict-random وauto وlkgp وcontext-optimized وcache-optimized وfusion وpipeline) — راجع [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 استراتيجية توجيه** (priority وweighted وround-robin وcontext-relay وfill-first وp2c وrandom وleast-used وcost-optimized وreset-aware وreset-window وexpiry-first وheadroom وquota-weighted وstrict-random وauto وlkgp وcontext-optimized وcache-optimized وfusion وpipeline) — راجع [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **التوجيه الواعي بإعادة التعيين** (v3.8.0) — يمنح الأولوية للاتصالات بحسب وقت إعادة تعيين الحصة.
 - **تدهور الوضع الخلفي** — يُرجَع `background: true` في Responses API إلى الوضع المتزامن مع تحذير.
 - **الاكتشاف الديناميكي لحدود الأدوات** — يتراجع عن المزوّدين عند بلوغ حدود عدد الأدوات.

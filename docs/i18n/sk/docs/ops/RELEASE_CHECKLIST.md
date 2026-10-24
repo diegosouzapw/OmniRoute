@@ -147,7 +147,7 @@ automaticky bez akéhokoľvek štítku.
 - [ ] `npm run test:vitest` — úspešné (server MCP, autoCombo, vyrovnávacia pamäť)
 - [ ] `npm run test:coverage` — splnený limit 60/60/60/60 (príkazy/riadky/funkcie/vetvy)
 - [ ] `npm run test:integration` — úspešné (ak zmeny ovplyvňujú DB/obslužné rutiny)
-- [ ] `npm run test:combo:matrix` — úspešné (matica stratégií combo: deterministicky overuje rozhodnutia o výbere všetkých 19 verejných smerovacích stratégií; spustite pri zmenách smerovania combo, rozlišovania stratégií alebo záložnej logiky)
+- [ ] `npm run test:combo:matrix` — úspešné (matica stratégií combo: deterministicky overuje rozhodnutia o výbere všetkých 21 verejných smerovacích stratégií; spustite pri zmenách smerovania combo, rozlišovania stratégií alebo záložnej logiky)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **voliteľné/manuálne** (rýchly test voči reálnym upstreamom chránený podmienkou; načíta snímku DB iba na čítanie z VPS `root@192.168.0.15`; používa skutočných poskytovateľov a spotrebúva kredity; nikdy sa nespúšťa v CI; bez splnenia podmienky sa korektne preskočí)
 - [ ] `npm run test:combo:live:vps` — **voliteľné/manuálne** (živý rýchly test VPS pre 3. fázu: 7 scenárov HTTP voči živému serveru `.15` prostredníctvom čistého Node ESM; vyžaduje `ssh root@192.168.0.15`; vytvára/odstraňuje iba kombinácie `__live_test__*`; používa skutočných poskytovateľov; nikdy sa nespúšťa v CI)
 - [ ] `npm run test:e2e` — úspešné (zmeny používateľského rozhrania)

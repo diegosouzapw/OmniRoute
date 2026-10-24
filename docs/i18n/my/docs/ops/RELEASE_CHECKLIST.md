@@ -121,7 +121,7 @@ matrix ကို အလိုအလျောက် ကျော်သည်။
 - [ ] `npm run test:vitest` — အောင်မြင်သည် (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 သတ်မှတ်ချက် ပြည့်မီသည် (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — အောင်မြင်သည် (ပြောင်းလဲမှုများက DB / handler များကို ထိခိုက်ပါက)
-- [ ] `npm run test:combo:matrix` — အောင်မြင်သည် (combo strategy matrix: အများပြည်သူသုံး routing strategy 19 ခုလုံး၏ ရွေးချယ်ဆုံးဖြတ်ချက်များကို တစ်သမတ်တည်းဖြစ်ကြောင်း သက်သေပြသည်; combo routing၊ strategy resolution သို့မဟုတ် fallback logic ကို ပြင်ဆင်သည့်အခါ run ပါ)
+- [ ] `npm run test:combo:matrix` — အောင်မြင်သည် (combo strategy matrix: အများပြည်သူသုံး routing strategy 21 ခုလုံး၏ ရွေးချယ်ဆုံးဖြတ်ချက်များကို တစ်သမတ်တည်းဖြစ်ကြောင်း သက်သေပြသည်; combo routing၊ strategy resolution သို့မဟုတ် fallback logic ကို ပြင်ဆင်သည့်အခါ run ပါ)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **ရွေးချယ်နိုင်/ကိုယ်တိုင်လုပ်ဆောင်ရန်** (gate ဖြင့် ကန့်သတ်ထားသော upstream အစစ် smoke test; VPS `root@192.168.0.15` မှ read-only DB snapshot ကို ရယူအသုံးပြုသည်; provider အစစ်များကို ခေါ်ယူသဖြင့် credit ကုန်ကျသည်; CI တွင် မည်သည့်အခါမျှ မ run ပါ; gate မရှိပါက ပြဿနာမဖြစ်စေဘဲ ကျော်သွားသည်)
 - [ ] `npm run test:combo:live:vps` — **ရွေးချယ်နိုင်/ကိုယ်တိုင်လုပ်ဆောင်ရန်** (Phase-3 VPS live smoke: ရိုးရိုး Node ESM မှတစ်ဆင့် live `.15` server ကို စမ်းသပ်သည့် HTTP scenario 7 ခု; `ssh root@192.168.0.15` လိုအပ်သည်; `__live_test__*` combo များကိုသာ ဖန်တီး/ဖျက်ပစ်သည်; provider အစစ်များကို ခေါ်ယူသည်; CI တွင် မည်သည့်အခါမျှ မ run ပါ)
 - [ ] `npm run test:e2e` — အောင်မြင်သည် (UI ပြောင်းလဲမှုများ)

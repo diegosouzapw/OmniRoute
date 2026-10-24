@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Līdzsvaro atlikušo kvotu, ņemot vērā 5h un nedēļas atiestatīšanu, un pēc tam cikliski izvēlas modeļus ar līdzīgu vērtējumu",
     "quotaWeighted": "Kvotu svēršana",
     "quotaWeightedDesc": "Izlaist kontus ar izsmeltu kvotu, pēc tam izvēlēties no pārējiem proporcionāli atlikumam, dalot ar pašlaik apstrādāto pieprasījumu slodzi. Esošās sarunas paliek piesaistītas.",
+    "expiryFirst": "Vispirms beidzošās",
+    "expiryFirstDesc": "Vispirms izmanto kontu, kura kvota citādi beigtos neizmantota: pirmais ir lielākais atlikums ar tuvāko atiestatīšanu.",
     "strictRandom": "Pilnīgi nejauša izvēle",
     "strictRandomDesc": "Sajauc modeļu secību — izmanto katru modeli vienreiz, pirms secību sajauc no jauna",
     "fusion": "Apvienošana",
@@ -3600,6 +3602,11 @@
         "when": "Jūs maršrutējat pieprasījumus starp vairākiem kontiem, izmantojot kvotu telemetriju un atšķirīgus atiestatīšanas periodus.",
         "avoid": "Lielākajai daļai kontu kvotu telemetrija nav pieejama.",
         "example": "Dodiet priekšroku kontam ar 60% nedēļas kvotas atlikumu, kas tiks atiestatīts rīt, nevis kontam ar 80% atlikumu, kas tiks atiestatīts vēlāk."
+      },
+      "expiry-first": {
+        "when": "Jūs maršrutējat pieprasījumus starp kontiem, kuru kvotas tiek atiestatītas pēc atšķirīgiem grafikiem, un vēlaties izlietot kvotu, kas citādi beigtos neizmantota.",
+        "avoid": "Lielākajai daļai kontu nav kvotu telemetrijas, vai arī jums ir nepieciešama stabila secība, kas neņem vērā atiestatīšanas laiku.",
+        "example": "Dodiet priekšroku kontam ar 80% atlikumu, kas tiks atiestatīts pēc 39 minūtēm, nevis kontam ar 48% atlikumu, kas tiks atiestatīts pēc 9 stundām — drīz beidzošā kvota tiek izlietota, pirms tā zūd."
       },
       "strict-random": {
         "when": "Izmantojiet, ja vēlaties pilnīgi vienmērīgu sadalījumu — katrs modelis tiek izmantots vienu reizi, pirms kāds tiek izmantots atkārtoti.",
@@ -3815,6 +3822,13 @@
         "tip1": "Pakalpojumu sniedzējiem ar kvotu telemetriju izmantojiet skaidri norādītas kontu darbības vai maršrutēšanu pēc kontu tagiem.",
         "tip2": "Pielāgojiet sesijas un nedēļas svarus, ja īstermiņa kvotas izsmelšana rada lielāku risku.",
         "tip3": "Uzturiet vienādu rezultātu diapazonu nelielu, lai līdzvērtīgi konti joprojām tiktu rotēti vienmērīgi."
+      },
+      "expiry-first": {
+        "title": "Vispirms beidzošā kvota",
+        "description": "Sarindo kontus pēc izmantošanas spiediena: liels atlikušās kvotas apjoms tuvu atiestatīšanas termiņam ir pirmais.",
+        "tip1": "Nepieciešama pakalpojumu sniedzēja kvotu telemetrija; konti bez tās saglabā norādīto prioritātes secību.",
+        "tip2": "Gandrīz vienādi rezultāti rotē vienādu rezultātu diapazonā, lai līdzīgi konti joprojām dalītu slodzi.",
+        "tip3": "Ierobežojiet sarindošanu ar to kvotas grupu, pēc kuras katrs modelis faktiski tiek norēķināts."
       },
       "strict-random": {
         "title": "Sajaukta kāršu klāja sadale",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Priekšroka kontiem ar pietiekamu atlikušo kvotu un tuvāku atiestatīšanas laiku",
     "quotaWeighted": "Svērtā atlase pēc kvotas",
     "quotaWeightedDesc": "Izlaist kontus ar izsmeltu kvotu, pēc tam izvēlēties no pārējiem proporcionāli atlikumam, dalot ar pašlaik apstrādāto pieprasījumu slodzi. Esošās sarunas paliek piesaistītas.",
+    "expiryFirst": "Vispirms beidzošās",
+    "expiryFirstDesc": "Vispirms izmanto kontu, kura kvota citādi beigtos neizmantota: pirmais ir lielākais atlikums ar tuvāko atiestatīšanu.",
     "strictRandom": "Stingri nejauši",
     "strictRandomDesc": "Sajaukt komplektu — izmanto katru kontu vienu reizi, pirms sajauc no jauna",
     "stickyLimit": "Piesaistes ierobežojums",

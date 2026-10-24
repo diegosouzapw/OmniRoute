@@ -15,6 +15,7 @@ const STRATEGY_COLORS: Record<string, string> = {
   "cost-optimized": "#22c55e",
   "reset-aware": "#f97316",
   "reset-window": "#f97316",
+  "expiry-first": "#fb7185",
   "strict-random": "#a855f7",
   auto: "#6366f1",
   lkgp: "#ec4899",

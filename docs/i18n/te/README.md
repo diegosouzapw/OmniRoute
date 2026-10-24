@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — ఉచిత AI గేట్వే
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — కోడింగ్ను ఎప్పుడూ ఆపకండి. ప్రతి AI సాధనం → 375 ప్రొవైడర్లు — 150+ ఉచితం — ఒకే ఎండ్పాయింట్ ద్వారా. Claude Code, Codex, Cursor, Cline, Copilot & Antigravityలను ఆటో-ఫాల్బ్యాక్తో ఉచిత Claude / GPT / Geminiలోకి అనుసంధానించండి. RTK + Caveman స్టాక్డ్ కంప్రెషన్ 15–95% టోకెన్లను ఆదా చేస్తుంది (సగటున ~89%) — పరిమితులను ఎన్నడూ చేరుకోకండి. 375 AI ప్రొవైడర్లు · 150+ ఉచిత టైర్లు · నెలకు ~1.62B ఉచిత టోకెన్లు · 20 రూటింగ్ వ్యూహాలు · ప్రారంభించడానికి $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — కోడింగ్ను ఎప్పుడూ ఆపకండి. ప్రతి AI సాధనం → 375 ప్రొవైడర్లు — 150+ ఉచితం — ఒకే ఎండ్పాయింట్ ద్వారా. Claude Code, Codex, Cursor, Cline, Copilot & Antigravityలను ఆటో-ఫాల్బ్యాక్తో ఉచిత Claude / GPT / Geminiలోకి అనుసంధానించండి. RTK + Caveman స్టాక్డ్ కంప్రెషన్ 15–95% టోకెన్లను ఆదా చేస్తుంది (సగటున ~89%) — పరిమితులను ఎన్నడూ చేరుకోకండి. 375 AI ప్రొవైడర్లు · 150+ ఉచిత టైర్లు · నెలకు ~1.62B ఉచిత టోకెన్లు · 21 రూటింగ్ వ్యూహాలు · ప్రారంభించడానికి $0."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute రిక్వెస్ట్ ఫ్లో: మీ IDE లేదా CLI (Claude Code, Cursor, Cline…) ఒకే లోకల్ ఎండ్పాయింట్ను (http://localhost:20128/v1) కాల్ చేస్తుంది; OmniRoute స్మార్ట్ రూటర్ (RTK + Caveman కంప్రెషన్, 20 రూటింగ్ స్ట్రాటజీలు, సర్క్యూట్ బ్రేకర్లు, TLS స్టెల్త్, MCP, A2A, గార్డ్రైల్స్) అర్హత పొందిన ఆరోగ్యకరమైన లక్ష్యం ఉన్నంత వరకు 4 ప్రొవైడర్ టైర్లలో ఫాల్బ్యాక్ చేయగలదు — టైర్ 1 సబ్స్క్రిప్షన్, టైర్ 2 API కీ, టైర్ 3 చౌక మరియు టైర్ 4 ఉచితం."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute రిక్వెస్ట్ ఫ్లో: మీ IDE లేదా CLI (Claude Code, Cursor, Cline…) ఒకే లోకల్ ఎండ్పాయింట్ను (http://localhost:20128/v1) కాల్ చేస్తుంది; OmniRoute స్మార్ట్ రూటర్ (RTK + Caveman కంప్రెషన్, 21 రూటింగ్ స్ట్రాటజీలు, సర్క్యూట్ బ్రేకర్లు, TLS స్టెల్త్, MCP, A2A, గార్డ్రైల్స్) అర్హత పొందిన ఆరోగ్యకరమైన లక్ష్యం ఉన్నంత వరకు 4 ప్రొవైడర్ టైర్లలో ఫాల్బ్యాక్ చేయగలదు — టైర్ 1 సబ్స్క్రిప్షన్, టైర్ 2 API కీ, టైర్ 3 చౌక మరియు టైర్ 4 ఉచితం."/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="20 కాంబో రూటింగ్ వ్యూహాల్లో 18కి యానిమేటెడ్ ఉదాహరణలు — ప్రతి వ్యూహానికి ఒక టైల్: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized మరియు quota-weighted యానిమేట్ చేయబడలేదు; దిగువ పట్టిక మొత్తం 20ని వివరిస్తుంది."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="21 కాంబో రూటింగ్ వ్యూహాల్లో 18కి యానిమేటెడ్ ఉదాహరణలు — ప్రతి వ్యూహానికి ఒక టైల్: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted మరియు expiry-first యానిమేట్ చేయబడలేదు; దిగువ పట్టిక మొత్తం 21ని వివరిస్తుంది."/>
 
 > **కాంబో** అనేది OmniRoute **స్వయంచాలకంగా** రూట్ చేసే మోడళ్ల గొలుసు. కోటా అయిపోయినా, ప్రొవైడర్ విఫలమైనా లేదా ఖర్చులు పెరిగినా, కాంబో తదుపరి అర్హత కలిగిన, సక్రమంగా పనిచేస్తున్న మోడల్కు మారగలదు. 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 లేదా మీ స్వంతదాన్ని నిర్మించండి — 20 రూటింగ్ వ్యూహాలు
+### 🔀 లేదా మీ స్వంతదాన్ని నిర్మించండి — 21 రూటింగ్ వ్యూహాలు
 
-మొత్తం **20** వ్యూహాలు — ప్రతి కాంబో దశలో కలిపి ఉపయోగించండి:
+మొత్తం **21** వ్యూహాలు — ప్రతి కాంబో దశలో కలిపి ఉపయోగించండి:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>దశలను గొలుసుగా కలుపుతుంది — ప్రతి లక్ష్యం యొక్క అవుట్పుట్ తదుపరి లక్ష్యానికి ఇన్పుట్గా వెళ్తుంది 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>లేకపోతే ఉపయోగించకుండానే గడువు ముగిసే కోటా ఉన్న ఖాతాను ముందుగా వినియోగిస్తుంది: అత్యధిక మిగులు మరియు అత్యంత సమీప రీసెట్ ఉన్న ఖాతా ముందు వెళ్తుంది ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo ఇంజిన్ ప్రతి అభ్యర్థిని **16 అంశాల** (స్థితి, కోటా, ఖర్చు, లేటెన్సీ, విధికి అనుకూలత, నాణ్యత, సెషన్ లభ్యత…) ఆధారంగా స్కోర్ చేస్తుంది — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) చూడండి.</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRouteను ప్రత్యేకంగా నిలబెట్టేది — 13 సామర్థ్యాల్లో 9router, OpenRouter, CLIProxyAPI మరియు LiteLLMతో తేదీతో కూడిన ఫీచర్ స్నాప్షాట్ పోలిక. OmniRoute: 375 ప్రొవైడర్లు, అంతర్నిర్మితంగా 150+ ఉచిత టియర్లు, 20 రూటింగ్ వ్యూహాలు, 12-ఇంజిన్ టోకెన్ కంప్రెషన్, 110 సాధనాలతో అంతర్నిర్మిత MCP సర్వర్, A2A ఏజెంట్ ప్రోటోకాల్, నిరంతర మెమరీ, గార్డ్రైల్స్, క్లౌడ్ ఏజెంట్లు, TLS ఫింగర్ప్రింట్ స్టెల్త్, Desktop/Termux/PWA మరియు 67 i18n UI లోకేల్లు. OmniRoute MIT లైసెన్స్తో అందుబాటులో ఉంది మరియు స్వయంగా హోస్ట్ చేసుకోవచ్చు. పోటీదారుల సామర్థ్యాలు మరియు సంఖ్యలు మారవచ్చు; లింక్ చేసిన పద్ధతిని చూడండి."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRouteను ప్రత్యేకంగా నిలబెట్టేది — 13 సామర్థ్యాల్లో 9router, OpenRouter, CLIProxyAPI మరియు LiteLLMతో తేదీతో కూడిన ఫీచర్ స్నాప్షాట్ పోలిక. OmniRoute: 375 ప్రొవైడర్లు, అంతర్నిర్మితంగా 150+ ఉచిత టియర్లు, 21 రూటింగ్ వ్యూహాలు, 12-ఇంజిన్ టోకెన్ కంప్రెషన్, 110 సాధనాలతో అంతర్నిర్మిత MCP సర్వర్, A2A ఏజెంట్ ప్రోటోకాల్, నిరంతర మెమరీ, గార్డ్రైల్స్, క్లౌడ్ ఏజెంట్లు, TLS ఫింగర్ప్రింట్ స్టెల్త్, Desktop/Termux/PWA మరియు 67 i18n UI లోకేల్లు. OmniRoute MIT లైసెన్స్తో అందుబాటులో ఉంది మరియు స్వయంగా హోస్ట్ చేసుకోవచ్చు. పోటీదారుల సామర్థ్యాలు మరియు సంఖ్యలు మారవచ్చు; లింక్ చేసిన పద్ధతిని చూడండి."/>
 
 <sub>📊 పూర్తి పద్ధతి &amp; 9router, OpenRouter, CLIProxyAPI &amp; LiteLLMతో ప్రతి ఫీచర్కు సంబంధించిన వివరణాత్మక పోలిక → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

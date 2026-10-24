@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 ta marshrutlash strategiyasini** qo'llab-quvvatlaydi (qarang: `src/shared/constants/routingStrategies.ts`):
+**21 ta marshrutlash strategiyasini** qo'llab-quvvatlaydi (qarang: `src/shared/constants/routingStrategies.ts`):
 
 | Strategiya          | Xatti-harakat                                                                                             |
 | ------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | Avval eng arzon sog'lom target                                                                            |
 | `reset-aware`       | Provider reset oynalarini hisobga oladi                                                                   |
 | `reset-window`      | Reset oynasiga asoslangan marshrutlash                                                                    |
+| `expiry-first`      | Aks holda foydalanilmay muddati tugaydigan kvotali hisobni birinchi sarflaydi                             |
 | `headroom`          | Avval eng ko'p qolgan kvota zaxirasiga ega bo'lgan target                                                 |
 | `quota-weighted`    | Kvotasi tugagan akkauntlarni o'tkazib yuboradi, so'ng qolgan kvota ÷ bajarilayotgan yuk bo'yicha tanlaydi |
 | `strict-random`     | Chinakam bir tekis (sifat vaznisiz)                                                                       |

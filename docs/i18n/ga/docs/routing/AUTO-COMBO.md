@@ -264,7 +264,7 @@ luachanna réitithe isteach sna hionchuir `config.modePack` / `config.budgetCap`
 
 ## Gach Straitéis Ródaithe
 
-Tacaíonn inneall teaglama OmniRoute le **20 straitéis ródaithe** (dearbhaithe in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Tá inneall Auto Combo féin ar fáil faoin straitéis `auto`; tá na cinn eile ar fáil do theaglamaí marthanacha.
+Tacaíonn inneall teaglama OmniRoute le **21 straitéis ródaithe** (dearbhaithe in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Tá inneall Auto Combo féin ar fáil faoin straitéis `auto`; tá na cinn eile ar fáil do theaglamaí marthanacha.
 
 | Straitéis           | Cur síos                                                                                                                                                                                                                   |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -279,6 +279,7 @@ Tacaíonn inneall teaglama OmniRoute le **20 straitéis ródaithe** (dearbhaithe
 | `cost-optimized`    | Íoslaghdaigh $ in aghaidh na hiarrata bunaithe ar phraghsáil na catalóige                                                                                                                                                  |
 | `reset-aware` ⭐    | Cuir in ord tosaíochta de réir am athshocraithe an chuóta — rangaítear fuinneoga gearra athshocraithe níos airde                                                                                                           |
 | `reset-window`      | Tabhair tosaíocht do spriocanna a n-athshocraítear a bhfuinneog chuóta is túisce                                                                                                                                           |
+| `expiry-first`      | Caitheann sé an cuntas a rachadh a chuóta in éag gan úsáid murach sin: téann an fuílleach is airde leis an athshocrú is gaire ar dtús                                                                                      |
 | `headroom`          | Roghnaigh an sprioc ag a bhfuil an méid is mó de spás breise cuóta fágtha                                                                                                                                                  |
 | `quota-weighted`    | Fág cuntais ídithe ar lár, ansin roghnaigh as an gcuid eile i gcomhréir leis an gcuóta atá fágtha roinnte ar an ualach atá ar siúl; fanann comhráite atá ann cheana pionnáilte                                             |
 | `strict-random`     | Roghnú randamach gan athdhúbláil a bhaint                                                                                                                                                                                  |
@@ -808,11 +809,11 @@ Féach ar [`docs/guides/TIERS.md`](../guides/TIERS.md) le haghaidh sainmhínithe
 
 ### Maitrícs chinntí ríochtála (`npm run test:combo:matrix`)
 
-Déanann `tests/integration/combo-matrix/*.test.ts` deimhniú go bhfuil an cinneadh **riochtála** de gach ceann de na 19
+Déanann `tests/integration/combo-matrix/*.test.ts` deimhniú go bhfuil an cinneadh **riochtála** de gach ceann de na 21
 straitéis phoiblí críochnaithe go hiomlán tríd an tseicheamh chomhcheangail fíor le huaschóras meaitseáilte.
 Tá an clúdach san áireamh:
 
-- Na 19 straitéis `ROUTING_STRATEGY_VALUES` uile (ordaithe, meáite, costas, comhthéacs, leá, …).
+- Na 21 straitéis `ROUTING_STRATEGY_VALUES` uile (ordaithe, meáite, costas, comhthéacs, leá, …).
 - `quota-share` (inmheánach) críochnaithe go hiomlán: cothromas DRR + tosaíocht sa chomhshó áitiúil trí
   seac `selectQuotaShareTarget` fíor (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -844,5 +845,5 @@ dílis faoin dearmad ó CI toisc go dteastaíonn diarbharrantaí beo agus rochta
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parsálaí réimíre `auto/` + 6 leagan                                                                                                 |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Tógann `AutoComboConfig` sa chuimhne ó naisc bheo                                                                                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Duán tástála chun bréagchlár soláthraithe a chruthú                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 straitéis)                                                                                            |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 straitéis)                                                                                            |
 | `src/sse/handlers/chat.ts`                                | Comhtháthú: gearrchiorcad réimíre uathoibríche                                                                                      |

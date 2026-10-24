@@ -149,7 +149,7 @@ quality-gate, quality-extended)를 건너뛰고 빠르고 신호도가 높은 �
 - [ ] `npm run test:vitest` — 통과(MCP 서버, autoCombo, 캐시)
 - [ ] `npm run test:coverage` — 60/60/60/60 기준 충족(구문/라인/함수/분기)
 - [ ] `npm run test:integration` — 통과(DB/핸들러와 관련된 변경 사항이 있는 경우)
-- [ ] `npm run test:combo:matrix` — 통과(콤보 전략 매트릭스: 공개된 19개 라우팅 전략의 선택 결정을 모두 결정론적으로 검증하며, 콤보 라우팅, 전략 결정 또는 폴백 로직을 수정한 경우 실행)
+- [ ] `npm run test:combo:matrix` — 통과(콤보 전략 매트릭스: 공개된 21개 라우팅 전략의 선택 결정을 모두 결정론적으로 검증하며, 콤보 라우팅, 전략 결정 또는 폴백 로직을 수정한 경우 실행)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **선택 사항/수동**(게이트로 제한된 실제 업스트림 스모크 테스트; VPS `root@192.168.0.15`에서 읽기 전용 DB 스냅샷을 가져옴; 실제 제공자를 호출하여 크레딧이 소모됨; CI에서는 절대 실행되지 않음; 게이트가 없으면 정상적으로 건너뜀)
 - [ ] `npm run test:combo:live:vps` — **선택 사항/수동**(3단계 VPS 라이브 스모크 테스트: 일반 Node ESM을 통해 실제 `.15` 서버를 대상으로 7개의 HTTP 시나리오 실행; `ssh root@192.168.0.15` 필요; `__live_test__*` 콤보만 생성/삭제; 실제 제공자를 호출함; CI에서는 절대 실행되지 않음)
 - [ ] `npm run test:e2e` — 통과(UI 변경 사항)

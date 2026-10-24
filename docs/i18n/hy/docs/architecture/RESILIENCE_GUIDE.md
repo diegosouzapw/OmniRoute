@@ -759,7 +759,7 @@ Allowlist-ում ներառված մատակարարի դեպքում ըստ IP-
 
 ## Կայունության այլ առանձնահատկություններ
 
-- **20 երթուղավորման ռազմավարություն** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — տես [AUTO-COMBO.md](../routing/AUTO-COMBO.md)։
+- **21 երթուղավորման ռազմավարություն** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — տես [AUTO-COMBO.md](../routing/AUTO-COMBO.md)։
 - **Reset-aware երթուղավորում** (v3.8.0) — առաջնահերթություն է տալիս կապերին ըստ քվոտայի վերականգնման ժամանակի։
 - **Background ռեժիմի դեգրադացիա** — Responses API-ի `background: true`-ն դեգրադացվում է մինչև սինխրոն ռեժիմ՝ նախազգուշացման հետ միասին։
 - **Գործիքների սահմանաչափի դինամիկ հայտնաբերում** — հետ է քաշում մատակարարներին, երբ հասնում են գործիքների քանակի սահմանաչափերին։

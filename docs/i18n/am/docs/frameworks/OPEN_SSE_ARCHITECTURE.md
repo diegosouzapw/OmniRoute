@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 የማዞሪያ ስትራቴጂዎችን** ይደግፋል (`src/shared/constants/routingStrategies.ts`ን ይመልከቱ)፦
+**21 የማዞሪያ ስትራቴጂዎችን** ይደግፋል (`src/shared/constants/routingStrategies.ts`ን ይመልከቱ)፦
 
 | ስትራቴጂ               | ባህሪይ                                                                       |
 | ------------------- | -------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | በመጀመሪያ ርካሹ ጤናማ ዒላማ                                                         |
 | `reset-aware`       | የአቅራቢዎችን የreset መስኮቶች ያውቃል                                                 |
 | `reset-window`      | በreset መስኮት ላይ የተመሰረተ ማዞሪያ                                                 |
+| `expiry-first`      | ያለበለዚያ ሳይጠቀሙበት የሚያልፍ ኮታ ያለውን መለያ ቀድሞ ይጠቀማል                                 |
 | `headroom`          | በመጀመሪያ ብዙ ቀሪ የኮታ ቦታ ያለው                                                    |
 | `quota-weighted`    | የተሟሉ መለያዎችን ዝለል፣ ከዚያ በቀሪ ኮታ ÷ በሂደት ላይ ያለ ጭነት ይመርጣል                         |
 | `strict-random`     | በእውነት እኩል (የጥራት ክብደት የለም)                                                  |

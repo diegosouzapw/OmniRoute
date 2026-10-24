@@ -146,7 +146,7 @@ matricu, bez ikakve oznake.
 - [ ] `npm run test:vitest` — prolazi (MCP poslužitelj, autoCombo, predmemorija)
 - [ ] `npm run test:coverage` — zadovoljen prag 60/60/60/60 (naredbe/retci/funkcije/grane)
 - [ ] `npm run test:integration` — prolazi (ako promjene utječu na bazu podataka / rukovatelje)
-- [ ] `npm run test:combo:matrix` — prolazi (matrica kombiniranih strategija: deterministički dokazuje odluke odabira za svih 19 javnih strategija usmjeravanja; pokrenite kada mijenjate kombinirano usmjeravanje, razrješavanje strategija ili pričuvnu logiku)
+- [ ] `npm run test:combo:matrix` — prolazi (matrica kombiniranih strategija: deterministički dokazuje odluke odabira za svih 21 javne strategije usmjeravanja; pokrenite kada mijenjate kombinirano usmjeravanje, razrješavanje strategija ili pričuvnu logiku)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **neobavezno/ručno** (uvjetovani probni test prema stvarnim vanjskim sustavima; dohvaća snimku baze podataka samo za čitanje s VPS-a `root@192.168.0.15`; poziva stvarne pružatelje usluga, troši kredite; nikada se ne izvodi u CI-ju; uredno se preskače bez uvjeta)
 - [ ] `npm run test:combo:live:vps` — **neobavezno/ručno** (VPS probni test uživo 3. faze: 7 HTTP scenarija prema aktivnom poslužitelju `.15` putem čistog Node ESM-a; zahtijeva `ssh root@192.168.0.15`; stvara/briše samo kombinacije `__live_test__*`; poziva stvarne pružatelje usluga; nikada se ne izvodi u CI-ju)
 - [ ] `npm run test:e2e` — prolazi (promjene korisničkog sučelja)

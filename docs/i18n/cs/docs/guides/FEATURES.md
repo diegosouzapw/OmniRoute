@@ -59,7 +59,7 @@ Připojení OpenRouter mohou v Rozšířených nastaveních ukládat `preset` pr
 
 ## 🎨 Kombinace
 
-Vytvářejte kombinace směrování modelů s 19 veřejnými strategiemi: priority, weighted, round-robin, context-relay, fill-first, p2c (výběr ze dvou možností), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (poslední známý funkční poskytovatel), context-optimized, cache-optimized, **fusion** (paralelně rozešle požadavek skupině modelů a poté pomocí hodnoticího modelu syntetizuje jednu odpověď) a **pipeline**. Každá kombinace řetězí více modelů s automatickým přechodem na záložní variantu a zahrnuje rychlé šablony a kontroly připravenosti.
+Vytvářejte kombinace směrování modelů s 21 veřejnými strategiemi: priority, weighted, round-robin, context-relay, fill-first, p2c (výběr ze dvou možností), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (poslední známý funkční poskytovatel), context-optimized, cache-optimized, **fusion** (paralelně rozešle požadavek skupině modelů a poté pomocí hodnoticího modelu syntetizuje jednu odpověď) a **pipeline**. Každá kombinace řetězí více modelů s automatickým přechodem na záložní variantu a zahrnuje rychlé šablony a kontroly připravenosti.
 
 Nedávná vylepšení kombinací:
 

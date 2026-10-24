@@ -59,7 +59,7 @@ OpenRouter-Verbindungen können in den erweiterten Einstellungen pro Verbindung 
 
 ## 🎨 Kombinationen
 
-Erstelle Modell-Routing-Kombinationen mit 19 öffentlichen Strategien: priority, weighted, round-robin, context-relay, fill-first, p2c (Auswahl aus zwei Optionen), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (zuletzt funktionierender Anbieter), context-optimized, cache-optimized, **fusion** (Anfragen werden parallel an eine Gruppe von Modellen verteilt und anschließend wird über ein Bewertungsmodell eine einzelne Antwort synthetisiert) und **pipeline**. Jede Kombination verkettet mehrere Modelle mit automatischem Fallback und umfasst Schnellvorlagen sowie Bereitschaftsprüfungen.
+Erstelle Modell-Routing-Kombinationen mit 21 öffentlichen Strategien: priority, weighted, round-robin, context-relay, fill-first, p2c (Auswahl aus zwei Optionen), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (zuletzt funktionierender Anbieter), context-optimized, cache-optimized, **fusion** (Anfragen werden parallel an eine Gruppe von Modellen verteilt und anschließend wird über ein Bewertungsmodell eine einzelne Antwort synthetisiert) und **pipeline**. Jede Kombination verkettet mehrere Modelle mit automatischem Fallback und umfasst Schnellvorlagen sowie Bereitschaftsprüfungen.
 
 Aktuelle Verbesserungen bei Kombinationen:
 

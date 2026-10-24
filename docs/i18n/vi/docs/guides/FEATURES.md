@@ -59,7 +59,7 @@ Các kết nối OpenRouter có thể lưu một `preset` riêng cho từng kế
 
 ## 🎨 Tổ hợp
 
-Tạo các tổ hợp định tuyến mô hình với 19 chiến lược công khai: ưu tiên, có trọng số, luân phiên, chuyển tiếp ngữ cảnh, lấp đầy trước, p2c (lựa chọn theo sức mạnh của hai phương án), ngẫu nhiên, ít được sử dụng nhất, tối ưu chi phí, nhận biết đặt lại, cửa sổ đặt lại, dung lượng dự phòng, ngẫu nhiên nghiêm ngặt, tự động, lkgp (nhà cung cấp hoạt động tốt gần nhất), tối ưu ngữ cảnh, tối ưu bộ nhớ đệm, **hợp nhất** (gửi song song đến một nhóm mô hình, sau đó tổng hợp một câu trả lời thông qua mô hình đánh giá) và **đường ống**. Mỗi tổ hợp liên kết nhiều mô hình với cơ chế dự phòng tự động, đồng thời bao gồm các mẫu thiết lập nhanh và kiểm tra trạng thái sẵn sàng.
+Tạo các tổ hợp định tuyến mô hình với 21 chiến lược công khai: ưu tiên, có trọng số, luân phiên, chuyển tiếp ngữ cảnh, lấp đầy trước, p2c (lựa chọn theo sức mạnh của hai phương án), ngẫu nhiên, ít được sử dụng nhất, tối ưu chi phí, nhận biết đặt lại, cửa sổ đặt lại, hết hạn trước, dung lượng dự phòng, theo trọng số hạn ngạch, ngẫu nhiên nghiêm ngặt, tự động, lkgp (nhà cung cấp hoạt động tốt gần nhất), tối ưu ngữ cảnh, tối ưu bộ nhớ đệm, **hợp nhất** (gửi song song đến một nhóm mô hình, sau đó tổng hợp một câu trả lời thông qua mô hình đánh giá) và **đường ống**. Mỗi tổ hợp liên kết nhiều mô hình với cơ chế dự phòng tự động, đồng thời bao gồm các mẫu thiết lập nhanh và kiểm tra trạng thái sẵn sàng.
 
 Các cải tiến gần đây đối với tổ hợp:
 

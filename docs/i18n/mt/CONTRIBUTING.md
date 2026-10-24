@@ -309,7 +309,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (ċertifikat, DNS, direzzjonar tad-destinazzjoni)
 ├── shared/
 │   ├── components/         # Komponenti React (.tsx)
-│   ├── constants/          # Definizzjonijiet tal-fornituri (329), ambiti MCP, 20 strateġija ta’ direzzjonar
+│   ├── constants/          # Definizzjonijiet tal-fornituri (329), ambiti MCP, 21 strateġija ta’ direzzjonar
 │   ├── utils/              # Circuit breaker, sanitizer, għodod awżiljarji tal-awtentikazzjoni
 │   └── validation/         # Skemi Zod v4
 └── sse/                    # Pipeline tal-proxy SSE

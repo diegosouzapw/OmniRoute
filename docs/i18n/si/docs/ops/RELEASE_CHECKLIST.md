@@ -147,7 +147,7 @@ E2E matrix එක ස්වයංක්රීයව මඟහරියි.
 - [ ] `npm run test:vitest` — සමත් (MCP සේවාදායකය, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 සීමාව සපුරා ඇත (ප්රකාශ/පේළි/ශ්රිත/ශාඛා)
 - [ ] `npm run test:integration` — සමත් (වෙනස්කම් DB / handlers වෙත බලපාන්නේ නම්)
-- [ ] `npm run test:combo:matrix` — සමත් (combo ක්රමෝපාය න්යාසය: පොදු routing ක්රමෝපාය 19 හිම තේරීම් තීරණ නියත ලෙස තහවුරු කරයි; combo routing, strategy resolution, හෝ fallback තර්කනය වෙනස් කරන විට ධාවනය කරන්න)
+- [ ] `npm run test:combo:matrix` — සමත් (combo ක්රමෝපාය න්යාසය: පොදු routing ක්රමෝපාය 21 හිම තේරීම් තීරණ නියත ලෙස තහවුරු කරයි; combo routing, strategy resolution, හෝ fallback තර්කනය වෙනස් කරන විට ධාවනය කරන්න)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **විකල්ප/අතින්** (gate එකක් සහිත සැබෑ upstream smoke පරීක්ෂණය; VPS `root@192.168.0.15` වෙතින් කියවීමට පමණක් හැකි DB snapshot එකක් ලබා ගනී; සැබෑ providers වෙත ඉල්ලීම් යවයි, credits වැය වේ; CI තුළ කිසිවිටෙක ධාවනය නොවේ; gate එක නොමැති විට නිසි ලෙස මඟහරියි)
 - [ ] `npm run test:combo:live:vps` — **විකල්ප/අතින්** (Phase-3 VPS සජීවී smoke පරීක්ෂණය: සරල Node ESM හරහා සජීවී `.15` සේවාදායකයට එරෙහි HTTP අවස්ථා 7ක්; `ssh root@192.168.0.15` අවශ්යයි; `__live_test__*` combos පමණක් සාදා/මකා දමයි; සැබෑ providers වෙත ඉල්ලීම් යවයි; CI තුළ කිසිවිටෙක ධාවනය නොවේ)
 - [ ] `npm run test:e2e` — සමත් (UI වෙනස්කම්)

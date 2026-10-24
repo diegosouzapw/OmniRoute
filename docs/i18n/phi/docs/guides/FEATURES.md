@@ -59,7 +59,7 @@ Maaaring mag-imbak ang mga koneksyon sa OpenRouter ng `preset` para sa bawat kon
 
 ## 🎨 Mga Combo
 
-Gumawa ng mga combo sa pagruruta ng modelo gamit ang 19 na pampublikong strategy: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (sabay-sabay na magpadala sa isang panel ng mga modelo, pagkatapos ay bumuo ng iisang sagot sa pamamagitan ng isang judge), at **pipeline**. Pinagkakawing ng bawat combo ang maraming modelo na may awtomatikong fallback at may kasamang mga mabilisang template at pagsusuri sa kahandaan.
+Gumawa ng mga combo sa pagruruta ng modelo gamit ang 21 na pampublikong strategy: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (sabay-sabay na magpadala sa isang panel ng mga modelo, pagkatapos ay bumuo ng iisang sagot sa pamamagitan ng isang judge), at **pipeline**. Pinagkakawing ng bawat combo ang maraming modelo na may awtomatikong fallback at may kasamang mga mabilisang template at pagsusuri sa kahandaan.
 
 Mga kamakailang pagpapahusay sa combo:
 

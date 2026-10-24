@@ -282,7 +282,7 @@ de upplösta värdena matas in i motorns befintliga indata `config.modePack` / `
 
 ## Alla routningsstrategier
 
-OmniRoutes kombinationsmotor stöder **20 routningsstrategier** (deklarerade i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Själva Auto Combo-motorn exponeras genom strategin `auto`; de övriga är tillgängliga för beständiga kombinationer.
+OmniRoutes kombinationsmotor stöder **21 routningsstrategier** (deklarerade i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Själva Auto Combo-motorn exponeras genom strategin `auto`; de övriga är tillgängliga för beständiga kombinationer.
 
 | Strategi            | Beskrivning                                                                                                                                                                                         |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ OmniRoutes kombinationsmotor stöder **20 routningsstrategier** (deklarerade i `
 | `cost-optimized`    | Minimera kostnaden per begäran utifrån katalogpriser                                                                                                                                                |
 | `reset-aware` ⭐    | Prioritera efter tidpunkt för kvotåterställning — korta återställningsfönster rankas högre                                                                                                          |
 | `reset-window`      | Föredra mål vars kvotfönster återställs snart                                                                                                                                                       |
+| `expiry-first`      | Förbrukar först kontot vars kvot annars skulle löpa ut oanvänd: störst återstod med närmast återställning går först                                                                                 |
 | `headroom`          | Välj målet med störst återstående kvotmarginal                                                                                                                                                      |
 | `quota-weighted`    | Hoppa över uttömda konton och välj sedan bland de återstående i proportion till kvarvarande kvot dividerad med pågående belastning; befintliga konversationer förblir låsta                         |
 | `strict-random`     | Slumpmässigt val utan deduplicering av upprepningar                                                                                                                                                 |
@@ -846,9 +847,9 @@ Se [`docs/guides/TIERS.md`](../guides/TIERS.md) för nivådefinitioner och klass
 
 ### Deterministisk matris för routningsbeslut (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` verifierar routnings**beslutet** för alla 19 offentliga strategier från början till slut genom den verkliga kombinationspipelinen med en simulerad uppströmsleverantör. Täckningen omfattar:
+`tests/integration/combo-matrix/*.test.ts` verifierar routnings**beslutet** för alla 21 offentliga strategier från början till slut genom den verkliga kombinationspipelinen med en simulerad uppströmsleverantör. Täckningen omfattar:
 
-- Alla 19 `ROUTING_STRATEGY_VALUES`-strategier (ordered, weighted, cost, context, fusion, …).
+- Alla 21 `ROUTING_STRATEGY_VALUES`-strategier (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (intern) från början till slut: DRR-rättvisa + nedprioritering vid mättnad via den verkliga `selectQuotaShareTarget`-skarven (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - `context-relay`-täckning för universell överlämning för varje antal mål.
 
@@ -878,5 +879,5 @@ Dessa röktester testar den verkliga kommunikationsvägen (kombination → lever
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser för prefixet `auto/` + 6 varianter                                                              |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Skapar `AutoComboConfig` i minnet från aktiva anslutningar                                             |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testkrok för mockning av leverantörsregistret                                                          |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategier)                                                              |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategier)                                                              |
 | `src/sse/handlers/chat.ts`                                | Integration: kortslutning för auto-prefix                                                              |

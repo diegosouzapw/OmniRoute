@@ -146,7 +146,7 @@ heç bir etiket olmadan E2E matrisini avtomatik ötürür.
 - [ ] `npm run test:vitest` — uğurla keçir (MCP serveri, autoCombo, keş)
 - [ ] `npm run test:coverage` — 60/60/60/60 həddi ödənilir (ifadələr/sətirlər/funksiyalar/budaqlar)
 - [ ] `npm run test:integration` — uğurla keçir (dəyişikliklər DB-yə / işləyicilərə toxunursa)
-- [ ] `npm run test:combo:matrix` — uğurla keçir (kombinasiya strategiyaları matrisi: 19 açıq marşrutlaşdırma strategiyasının hamısının seçim qərarlarını deterministik şəkildə təsdiqləyir; kombinasiya marşrutlaşdırmasına, strategiya həllinə və ya ehtiyat məntiqinə toxunduqda işə salın)
+- [ ] `npm run test:combo:matrix` — uğurla keçir (kombinasiya strategiyaları matrisi: 21 açıq marşrutlaşdırma strategiyasının hamısının seçim qərarlarını deterministik şəkildə təsdiqləyir; kombinasiya marşrutlaşdırmasına, strategiya həllinə və ya ehtiyat məntiqinə toxunduqda işə salın)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **ixtiyari/əl ilə** (şərtlə aktivləşdirilən real yuxarı axın smoke testi; VPS-dəki `root@192.168.0.15` ünvanından yalnız oxunan DB snapshot-ı əldə edir; real provayderlərə sorğu göndərir və kredit sərf edir; CI-da heç vaxt işə salınmır; şərt olmadan problemsiz şəkildə ötürülür)
 - [ ] `npm run test:combo:live:vps` — **ixtiyari/əl ilə** (Mərhələ 3 VPS canlı smoke testi: adi Node ESM vasitəsilə canlı `.15` serverinə qarşı 7 HTTP ssenarisi; `ssh root@192.168.0.15` tələb edir; yalnız `__live_test__*` kombinasiyalarını yaradır/silir; real provayderlərə sorğu göndərir; CI-da heç vaxt işə salınmır)
 - [ ] `npm run test:e2e` — uğurla keçir (UI dəyişiklikləri)

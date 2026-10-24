@@ -59,7 +59,7 @@ OpenRouter-ის კავშირებს გაფართოებულ 
 
 ## 🎨 კომბოები
 
-შექმენით მოდელების მარშრუტიზაციის კომბოები 19 საჯარო სტრატეგიით: priority, weighted, round-robin, context-relay, fill-first, p2c (ორი ვარიანტიდან არჩევა), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (ბოლო ცნობილი გამართული პროვაიდერი), context-optimized, cache-optimized, **fusion** (მოთხოვნის პარალელურად გაგზავნა მოდელების ჯგუფისთვის, შემდეგ კი ერთი პასუხის სინთეზირება შემფასებლის მეშვეობით) და **pipeline**. თითოეული კომბო რამდენიმე მოდელს აკავშირებს ავტომატური სარეზერვო გადართვით და მოიცავს სწრაფ შაბლონებსა და მზადყოფნის შემოწმებებს.
+შექმენით მოდელების მარშრუტიზაციის კომბოები 21 საჯარო სტრატეგიით: priority, weighted, round-robin, context-relay, fill-first, p2c (ორი ვარიანტიდან არჩევა), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (ბოლო ცნობილი გამართული პროვაიდერი), context-optimized, cache-optimized, **fusion** (მოთხოვნის პარალელურად გაგზავნა მოდელების ჯგუფისთვის, შემდეგ კი ერთი პასუხის სინთეზირება შემფასებლის მეშვეობით) და **pipeline**. თითოეული კომბო რამდენიმე მოდელს აკავშირებს ავტომატური სარეზერვო გადართვით და მოიცავს სწრაფ შაბლონებსა და მზადყოფნის შემოწმებებს.
 
 კომბოების ბოლო გაუმჯობესებები:
 

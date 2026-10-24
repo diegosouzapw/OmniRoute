@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 útválasztási stratégiát** támogat (lásd: `src/shared/constants/routingStrategies.ts`):
+**21 útválasztási stratégiát** támogat (lásd: `src/shared/constants/routingStrategies.ts`):
 
 | Stratégia           | Viselkedés                                                                                      |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | Először a legolcsóbb működő cél                                                                 |
 | `reset-aware`       | Figyelembe veszi a szolgáltatók visszaállítási ablakait                                         |
 | `reset-window`      | Visszaállítási ablakon alapuló útválasztás                                                      |
+| `expiry-first`      | Először azt a fiókot használja, amelynek kvótája különben kihasználatlanul lejárna              |
 | `headroom`          | Először a legnagyobb fennmaradó kvótájú cél                                                     |
 | `quota-weighted`    | Kihagyja a kimerült fiókokat, majd a maradék kvóta ÷ folyamatban lévő terhelés arányában sorsol |
 | `strict-random`     | Valóban egyenletes (minőségi súlyozás nélkül)                                                   |

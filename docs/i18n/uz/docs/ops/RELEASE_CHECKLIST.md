@@ -151,7 +151,7 @@ matritsasini hech qanday yorliqsiz avtomatik ravishda oʻtkazib yuboradi.
 - [ ] `npm run test:vitest` — muvaffaqiyatli (MCP serveri, autoCombo, kesh)
 - [ ] `npm run test:coverage` — 60/60/60/60 chegarasi bajarilgan (ifodalar/satrlar/funksiyalar/tarmoqlar)
 - [ ] `npm run test:integration` — muvaffaqiyatli (agar oʻzgarishlar DB / ishlov beruvchilarga taalluqli boʻlsa)
-- [ ] `npm run test:combo:matrix` — muvaffaqiyatli (combo strategiyalari matritsasi: barcha 19 ta ommaviy marshrutlash strategiyasining tanlov qarorlarini deterministik tarzda tasdiqlaydi; combo marshrutlash, strategiyani aniqlash yoki zaxira mantiqiga oʻzgartirish kiritilganda ishga tushiring)
+- [ ] `npm run test:combo:matrix` — muvaffaqiyatli (combo strategiyalari matritsasi: barcha 21 ta ommaviy marshrutlash strategiyasining tanlov qarorlarini deterministik tarzda tasdiqlaydi; combo marshrutlash, strategiyani aniqlash yoki zaxira mantiqiga oʻzgartirish kiritilganda ishga tushiring)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **ixtiyoriy/qoʻlda** (shart bilan yoqiladigan haqiqiy yuqori oqim smoke-sinovi; VPS `root@192.168.0.15` dan faqat oʻqish uchun moʻljallangan DB snapshotini oladi; haqiqiy provayderlarga murojaat qiladi, kredit sarflaydi; CI da hech qachon ishga tushmaydi; shart yoʻq boʻlsa muammosiz oʻtkazib yuboriladi)
 - [ ] `npm run test:combo:live:vps` — **ixtiyoriy/qoʻlda** (3-bosqich VPS jonli smoke-sinovi: oddiy Node ESM orqali jonli `.15` serveriga qarshi 7 ta HTTP ssenariysi; `ssh root@192.168.0.15` talab qilinadi; faqat `__live_test__*` combolarini yaratadi/oʻchiradi; haqiqiy provayderlarga murojaat qiladi; CI da hech qachon ishga tushmaydi)
 - [ ] `npm run test:e2e` — muvaffaqiyatli (UI oʻzgarishlari)

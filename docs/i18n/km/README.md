@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — ច្រកទ្វារ AI ឥតគិតថ្លៃ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — កុំឈប់សរសេរកូដ។ រាល់ឧបករណ៍ AI → អ្នកផ្តល់សេវា 375 — ឥតគិតថ្លៃ 150+ — តាមរយៈ endpoint តែមួយ។ Claude Code, Codex, Cursor, Cline, Copilot និង Antigravity ភ្ជាប់ទៅ Claude / GPT / Gemini ដោយឥតគិតថ្លៃ ជាមួយការប្តូរទៅជម្រើសបម្រុងដោយស្វ័យប្រវត្តិ។ ការបង្ហាប់ជាន់គ្នា RTK + Caveman សន្សំ token បាន 15–95% (ជាមធ្យម ~89%) — មិនប៉ះដែនកំណត់ទៀតឡើយ។ អ្នកផ្តល់សេវា AI 375 · កម្រិតឥតគិតថ្លៃ 150+ · token ឥតគិតថ្លៃ ~1.62B/ខែ · យុទ្ធសាស្ត្រកំណត់ផ្លូវ 20 · ចាប់ផ្តើមដោយ $0។"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — កុំឈប់សរសេរកូដ។ រាល់ឧបករណ៍ AI → អ្នកផ្តល់សេវា 375 — ឥតគិតថ្លៃ 150+ — តាមរយៈ endpoint តែមួយ។ Claude Code, Codex, Cursor, Cline, Copilot និង Antigravity ភ្ជាប់ទៅ Claude / GPT / Gemini ដោយឥតគិតថ្លៃ ជាមួយការប្តូរទៅជម្រើសបម្រុងដោយស្វ័យប្រវត្តិ។ ការបង្ហាប់ជាន់គ្នា RTK + Caveman សន្សំ token បាន 15–95% (ជាមធ្យម ~89%) — មិនប៉ះដែនកំណត់ទៀតឡើយ។ អ្នកផ្តល់សេវា AI 375 · កម្រិតឥតគិតថ្លៃ 150+ · token ឥតគិតថ្លៃ ~1.62B/ខែ · យុទ្ធសាស្ត្រកំណត់ផ្លូវ 21 · ចាប់ផ្តើមដោយ $0។"/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="លំហូរសំណើរបស់ OmniRoute៖ IDE ឬ CLI របស់អ្នក (Claude Code, Cursor, Cline…) ហៅចំណុចបញ្ចប់ក្នុងស្រុកតែមួយ (http://localhost:20128/v1); OmniRoute Smart Router (ការបង្ហាប់ RTK + Caveman, យុទ្ធសាស្ត្រផ្តល់ផ្លូវ 20, circuit breakers, TLS stealth, MCP, A2A, guardrails) អាចបម្លែងសម្រាប់នៅទូទាំងជាន់អ្នកផ្តល់សេវា 4 ខណៈគោលដៅដែលមានសិទ្ធិ និងមានសុខភាពល្អនៅតែមាន — ជាន់ 1 Subscription, ជាន់ 2 API Key, ជាន់ 3 Cheap និងជាន់ 4 Free។"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="លំហូរសំណើរបស់ OmniRoute៖ IDE ឬ CLI របស់អ្នក (Claude Code, Cursor, Cline…) ហៅចំណុចបញ្ចប់ក្នុងស្រុកតែមួយ (http://localhost:20128/v1); OmniRoute Smart Router (ការបង្ហាប់ RTK + Caveman, យុទ្ធសាស្ត្រផ្តល់ផ្លូវ 21, circuit breakers, TLS stealth, MCP, A2A, guardrails) អាចបម្លែងសម្រាប់នៅទូទាំងជាន់អ្នកផ្តល់សេវា 4 ខណៈគោលដៅដែលមានសិទ្ធិ និងមានសុខភាពល្អនៅតែមាន — ជាន់ 1 Subscription, ជាន់ 2 API Key, ជាន់ 3 Cheap និងជាន់ 4 Free។"/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="ឧទាហរណ៍មានចលនាសម្រាប់យុទ្ធសាស្ត្រកំណត់ផ្លូវបន្សំចំនួន 18 ក្នុងចំណោម 20 — មួយក្រឡាសម្រាប់មួយយុទ្ធសាស្ត្រ៖ priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline។ cache-optimized និង quota-weighted មិនមានចលនាទេ; តារាងខាងក្រោមពិពណ៌នាយុទ្ធសាស្ត្រទាំង 20។"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="ឧទាហរណ៍មានចលនាសម្រាប់យុទ្ធសាស្ត្រកំណត់ផ្លូវបន្សំចំនួន 18 ក្នុងចំណោម 21 — មួយក្រឡាសម្រាប់មួយយុទ្ធសាស្ត្រ៖ priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline។ cache-optimized, quota-weighted និង expiry-first មិនមានចលនាទេ; តារាងខាងក្រោមពិពណ៌នាយុទ្ធសាស្ត្រទាំង 21។"/>
 
 > **បន្សំ** គឺជាខ្សែសង្វាក់នៃម៉ូដែលដែល OmniRoute កំណត់ផ្លូវឆ្លងកាត់ដោយ **ស្វ័យប្រវត្តិ**។ ប្រសិនបើកូតាអស់ អ្នកផ្តល់សេវាបរាជ័យ ឬថ្លៃចំណាយកើនឡើងខ្លាំង បន្សំអាចប្តូរទៅម៉ូដែលដែលមានសុខភាពល្អ និងមានសិទ្ធិបន្ទាប់។ 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 ឬបង្កើតដោយខ្លួនឯង — យុទ្ធសាស្ត្រកំណត់ផ្លូវ 20
+### 🔀 ឬបង្កើតដោយខ្លួនឯង — យុទ្ធសាស្ត្រកំណត់ផ្លូវ 21
 
-យុទ្ធសាស្ត្រ **20** ទាំងអស់ — លាយបញ្ចូល និងផ្គូផ្គងតាមជំហាននីមួយៗនៃបន្សំ៖
+យុទ្ធសាស្ត្រ **21** ទាំងអស់ — លាយបញ្ចូល និងផ្គូផ្គងតាមជំហាននីមួយៗនៃបន្សំ៖
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>តភ្ជាប់ជំហានជាខ្សែសង្វាក់ — លទ្ធផលរបស់គោលដៅនីមួយៗត្រូវបញ្ជូនទៅគោលដៅបន្ទាប់ 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>ប្រើគណនីដែលកូតារបស់វានឹងផុតកំណត់ដោយមិនបានប្រើ ជាមុនសិន៖ គណនីដែលនៅសល់ច្រើនបំផុត ហើយកំណត់ឡើងវិញជិតបំផុត ត្រូវបានប្រើមុន ⏳</td>
+  </tr>
 </table>
 
 <sub>ម៉ាស៊ីន Auto-Combo ដាក់ពិន្ទុបេក្ខភាពនីមួយៗដោយផ្អែកលើ **កត្តាចំនួន 16** (ស្ថានភាពល្អ កូតា ថ្លៃចំណាយ ភាពយឺតយ៉ាវ ភាពសមស្របនឹងភារកិច្ច គុណភាព លទ្ធភាពប្រើប្រាស់សម័យ…) — សូមមើល [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)។</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="អ្វីដែលធ្វើឱ្យ OmniRoute លេចធ្លោខុសពីគេ — រូបភាពសង្ខេបលក្ខណៈពិសេសតាមពេលវេលា ប្រៀបធៀបជាមួយ 9router, OpenRouter, CLIProxyAPI និង LiteLLM លើសមត្ថភាពចំនួន 13។ OmniRoute៖ អ្នកផ្តល់សេវា 375, កម្រិតប្រើប្រាស់ឥតគិតថ្លៃជាង 150 ដែលភ្ជាប់មកស្រាប់, យុទ្ធសាស្ត្រកំណត់ផ្លូវ 20, ការបង្ហាប់តូខឹនដោយម៉ាស៊ីន 12, ម៉ាស៊ីនមេ MCP ដែលភ្ជាប់មកស្រាប់ជាមួយឧបករណ៍ 110, ពិធីការភ្នាក់ងារ A2A, អង្គចងចាំអចិន្ត្រៃយ៍, របាំងការពារ, ភ្នាក់ងារក្លោដ, ការលាក់ស្នាមសម្គាល់ TLS, Desktop/Termux/PWA និងភាសាមូលដ្ឋានចំណុចប្រទាក់អ្នកប្រើ i18n ចំនួន 67។ OmniRoute ប្រើអាជ្ញាបណ្ណ MIT និងអាចបង្ហោះដោយខ្លួនឯងបាន។ សមត្ថភាព និងចំនួនរបស់ដៃគូប្រកួតប្រជែងអាចផ្លាស់ប្តូរ; សូមមើលវិធីសាស្ត្រដែលបានភ្ជាប់។"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="អ្វីដែលធ្វើឱ្យ OmniRoute លេចធ្លោខុសពីគេ — រូបភាពសង្ខេបលក្ខណៈពិសេសតាមពេលវេលា ប្រៀបធៀបជាមួយ 9router, OpenRouter, CLIProxyAPI និង LiteLLM លើសមត្ថភាពចំនួន 13។ OmniRoute៖ អ្នកផ្តល់សេវា 375, កម្រិតប្រើប្រាស់ឥតគិតថ្លៃជាង 150 ដែលភ្ជាប់មកស្រាប់, យុទ្ធសាស្ត្រកំណត់ផ្លូវ 21, ការបង្ហាប់តូខឹនដោយម៉ាស៊ីន 12, ម៉ាស៊ីនមេ MCP ដែលភ្ជាប់មកស្រាប់ជាមួយឧបករណ៍ 110, ពិធីការភ្នាក់ងារ A2A, អង្គចងចាំអចិន្ត្រៃយ៍, របាំងការពារ, ភ្នាក់ងារក្លោដ, ការលាក់ស្នាមសម្គាល់ TLS, Desktop/Termux/PWA និងភាសាមូលដ្ឋានចំណុចប្រទាក់អ្នកប្រើ i18n ចំនួន 67។ OmniRoute ប្រើអាជ្ញាបណ្ណ MIT និងអាចបង្ហោះដោយខ្លួនឯងបាន។ សមត្ថភាព និងចំនួនរបស់ដៃគូប្រកួតប្រជែងអាចផ្លាស់ប្តូរ; សូមមើលវិធីសាស្ត្រដែលបានភ្ជាប់។"/>
 
 <sub>📊 វិធីសាស្ត្រពេញលេញ &amp; ព័ត៌មានលម្អិតតាមលក្ខណៈពិសេសនីមួយៗ ប្រៀបធៀបជាមួយ 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

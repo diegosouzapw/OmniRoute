@@ -354,7 +354,7 @@ To lag med automatisert testdekning følger med quota-share-motoren:
 | Enhet (29 tester)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-planlegger, metningsstyring, samtidighetsgrenser, fairShare-beregning, kølegging av restanser                                                                                                                                      |
 | Integrasjonsmatrise | `npm run test:combo:matrix`                                            | Ende-til-ende-rutingsbeslutning gjennom den reelle kombinasjonspipelinen; DRR-rettferdighet + nedprioritering ved metning via aktive integrasjonspunkter (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integrasjonsmatrisen kjøres i CI sammen med alle de 19 offentlige strategiene. Enhetstestpakken
+Integrasjonsmatrisen kjøres i CI sammen med alle de 21 offentlige strategiene. Enhetstestpakken
 kan kjøres separat.
 
 ---

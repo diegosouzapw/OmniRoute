@@ -146,7 +146,7 @@ go huathoibríoch, gan aon lipéad.
 - [ ] `npm run test:vitest` — éiríonn leis (freastalaí MCP, autoCombo, taisce)
 - [ ] `npm run test:coverage` — comhlíontar an tairseach 60/60/60/60 (ráitis/línte/feidhmeanna/brainsí)
 - [ ] `npm run test:integration` — éiríonn leis (má bhaineann na hathruithe leis an mbunachar sonraí / láimhseálaithe)
-- [ ] `npm run test:combo:matrix` — éiríonn leis (maitrís straitéisí teaglama: cruthaíonn sí cinntí roghnúcháin gach ceann de na 19 straitéis ródúcháin phoiblí go cinntitheach; rith í agus tú ag athrú ródú teaglama, réiteach straitéise, nó loighic chúltaca)
+- [ ] `npm run test:combo:matrix` — éiríonn leis (maitrís straitéisí teaglama: cruthaíonn sí cinntí roghnúcháin gach ceann de na 21 straitéis ródúcháin phoiblí go cinntitheach; rith í agus tú ag athrú ródú teaglama, réiteach straitéise, nó loighic chúltaca)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **roghnach/de láimh** (tástáil dheataigh rialaithe ar fhíorfhoinse réamhtheachtach; faigheann sí seat bunachair sonraí inléite amháin ó VPS `root@192.168.0.15`; déanann sí iarratais chuig fíorsholáthraithe agus cosnaíonn sí creidmheasanna; ní ritheann sí riamh in CI; scipeálann sí go néata gan an geata)
 - [ ] `npm run test:combo:live:vps` — **roghnach/de láimh** (tástáil dheataigh bheo VPS Chéim 3: 7 gcás HTTP i gcoinne an fhreastalaí bheo `.15` trí Node ESM lom; teastaíonn `ssh root@192.168.0.15`; ní chruthaíonn/scriosann sí ach teaglamaí `__live_test__*`; déanann sí iarratais chuig fíorsholáthraithe; ní ritheann sí riamh in CI)
 - [ ] `npm run test:e2e` — éiríonn leis (athruithe UI)

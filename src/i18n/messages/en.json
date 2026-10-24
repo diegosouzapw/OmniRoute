@@ -3497,6 +3497,8 @@
     "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
     "quotaWeighted": "Quota-Weighted",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to leftover, divided by in-flight load. Existing conversations stay pinned.",
+    "expiryFirst": "Expiry-First",
+    "expiryFirstDesc": "Spends the account whose quota would otherwise expire unused: the highest leftover with the nearest reset goes first.",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each model once before reshuffling",
     "fusion": "Fusion",
@@ -3618,6 +3620,11 @@
         "when": "You route across multiple accounts with quota telemetry and different reset windows.",
         "avoid": "Quota telemetry is unavailable for most accounts.",
         "example": "Prefer a 60% weekly account resetting tomorrow over an 80% account resetting later."
+      },
+      "expiry-first": {
+        "when": "You route across accounts whose quotas reset on different schedules and want to spend quota that would otherwise expire unused.",
+        "avoid": "Quota telemetry is missing for most accounts, or you need a stable order that ignores reset timing.",
+        "example": "Prefer an 80%-left account resetting in 39 minutes over a 48%-left account resetting in 9 hours — the near-expiry quota is spent before it is thrown away."
       },
       "strict-random": {
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
@@ -3834,6 +3841,13 @@
         "tip1": "Use explicit account steps or account-tag routing for providers with quota telemetry.",
         "tip2": "Tune session vs weekly weights when short-term exhaustion is more risky.",
         "tip3": "Keep the tie band small so equivalent accounts still rotate fairly."
+      },
+      "expiry-first": {
+        "title": "Expiring-quota first",
+        "description": "Ranks accounts by salvage pressure: high remaining quota close to its reset deadline goes first.",
+        "tip1": "Requires provider quota telemetry; accounts without it keep their listed priority order.",
+        "tip2": "Near-tie scores rotate within the tie band so sibling accounts still share load.",
+        "tip3": "Scope the ranking to the quota bucket each model actually bills against."
       },
       "strict-random": {
         "title": "Shuffle deck distribution",
@@ -7465,6 +7479,8 @@
     "resetAwareDesc": "Prefer accounts with healthy remaining quota and nearer resets",
     "quotaWeighted": "Quota-Weighted",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to leftover, divided by in-flight load. Existing conversations stay pinned.",
+    "expiryFirst": "Expiry-First",
+    "expiryFirstDesc": "Spends the account whose quota would otherwise expire unused: the highest leftover with the nearest reset goes first.",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each account once before reshuffling",
     "stickyLimit": "Sticky Limit",

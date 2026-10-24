@@ -146,7 +146,7 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 - [ ] `npm run test:vitest` — ఉత్తీర్ణం (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 గేట్ సంతృప్తి చెందింది (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — ఉత్తీర్ణం (మార్పులు DB / handlersను ప్రభావితం చేస్తే)
-- [ ] `npm run test:combo:matrix` — ఉత్తీర్ణం (combo వ్యూహ మ్యాట్రిక్స్: మొత్తం 19 పబ్లిక్ routing వ్యూహాల ఎంపిక నిర్ణయాలను నిర్దిష్టంగా నిరూపిస్తుంది; combo routing, strategy resolution లేదా fallback logicను మార్చినప్పుడు అమలు చేయండి)
+- [ ] `npm run test:combo:matrix` — ఉత్తీర్ణం (combo వ్యూహ మ్యాట్రిక్స్: మొత్తం 21 పబ్లిక్ routing వ్యూహాల ఎంపిక నిర్ణయాలను నిర్దిష్టంగా నిరూపిస్తుంది; combo routing, strategy resolution లేదా fallback logicను మార్చినప్పుడు అమలు చేయండి)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **ఐచ్ఛికం/మాన్యువల్** (గేట్ చేయబడిన వాస్తవ-upstream smoke పరీక్ష; VPS `root@192.168.0.15` నుండి చదవడానికి-మాత్రమే అనుమతిగల DB snapshotను తీసుకుంటుంది; వాస్తవ providersను సంప్రదిస్తుంది, credits ఖర్చవుతాయి; CIలో ఎప్పుడూ అమలు కాదు; గేట్ లేకపోతే లోపం లేకుండా దాటవేయబడుతుంది)
 - [ ] `npm run test:combo:live:vps` — **ఐచ్ఛికం/మాన్యువల్** (దశ-3 VPS ప్రత్యక్ష smoke పరీక్ష: సాధారణ Node ESM ద్వారా ప్రత్యక్ష `.15` serverపై 7 HTTP సందర్భాలు; `ssh root@192.168.0.15` అవసరం; `__live_test__*` combosను మాత్రమే సృష్టించి/తొలగిస్తుంది; వాస్తవ providersను సంప్రదిస్తుంది; CIలో ఎప్పుడూ అమలు కాదు)
 - [ ] `npm run test:e2e` — ఉత్తీర్ణం (UI మార్పులు)

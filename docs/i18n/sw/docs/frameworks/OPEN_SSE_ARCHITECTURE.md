@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Inasaidia **mikakati 20 ya uelekezaji** (tazama `src/shared/constants/routingStrategies.ts`):
+Inasaidia **mikakati 21 ya uelekezaji** (tazama `src/shared/constants/routingStrategies.ts`):
 
 | Mkakati             | Tabia                                                                                                        |
 | ------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ Inasaidia **mikakati 20 ya uelekezaji** (tazama `src/shared/constants/routingStr
 | `cost-optimized`    | Lengo lililo na afya na la gharama ndogo zaidi kwanza                                                        |
 | `reset-aware`       | Linatambua madirisha ya kuweka upya ya mtoa huduma                                                           |
 | `reset-window`      | Uelekezaji unaotegemea dirisha la kuweka upya                                                                |
+| `expiry-first`      | Hutumia kwanza akaunti ambayo mgao wake ungeisha bila kutumika                                               |
 | `headroom`          | Nafasi iliyobaki ya mgawo iliyo kubwa zaidi kwanza                                                           |
 | `quota-weighted`    | Ruka akaunti zilizokwishatumiwa, kisha chagua kwa mgawo uliobaki ÷ mzigo unaoendelea                         |
 | `strict-random`     | Sare kabisa (bila uzani wa ubora)                                                                            |

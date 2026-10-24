@@ -59,7 +59,7 @@ OpenRouter-yhteyksiin voidaan tallentaa yhteyskohtainen `preset` lisäasetuksiss
 
 ## 🎨 Yhdistelmät
 
-Luo mallien reititysyhdistelmiä 19 julkisella strategialla: priority, weighted, round-robin, context-relay, fill-first, p2c (kahden vaihtoehdon menetelmä), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (viimeksi toimivaksi tunnettu palveluntarjoaja), context-optimized, cache-optimized, **fusion** (lähettää pyynnön rinnakkain mallipaneelille ja koostaa sitten yhden vastauksen arviointimallin avulla) ja **pipeline**. Kukin yhdistelmä ketjuttaa useita malleja automaattisella varajärjestelyllä ja sisältää pikamalleja sekä valmiustarkistuksia.
+Luo mallien reititysyhdistelmiä 21 julkisella strategialla: priority, weighted, round-robin, context-relay, fill-first, p2c (kahden vaihtoehdon menetelmä), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (viimeksi toimivaksi tunnettu palveluntarjoaja), context-optimized, cache-optimized, **fusion** (lähettää pyynnön rinnakkain mallipaneelille ja koostaa sitten yhden vastauksen arviointimallin avulla) ja **pipeline**. Kukin yhdistelmä ketjuttaa useita malleja automaattisella varajärjestelyllä ja sisältää pikamalleja sekä valmiustarkistuksia.
 
 Yhdistelmien viimeaikaiset parannukset:
 

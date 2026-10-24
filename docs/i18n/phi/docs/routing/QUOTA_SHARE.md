@@ -339,7 +339,7 @@ Dalawang antas ng awtomatikong saklaw ang kasama sa quota-share engine:
 | Unit (29 na test)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, mga concurrency cap, fairShare math, pagpila ng backlog                                                                                                                                                         |
 | Integration matrix | `npm run test:combo:matrix`                                            | End-to-end na desisyon sa routing sa pamamagitan ng aktuwal na combo pipeline; DRR fairness + pagpapababa ng priyoridad dahil sa saturation gamit ang mga live seam (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Tumatakbo ang integration matrix sa CI kasama ng lahat ng 19 na pampublikong strategy. Maaaring
+Tumatakbo ang integration matrix sa CI kasama ng lahat ng 21 na pampublikong strategy. Maaaring
 patakbuhin nang hiwalay ang unit suite.
 
 ---

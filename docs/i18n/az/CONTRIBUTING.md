@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proksisi (sertifikat, DNS, hədəf marşrutlaşdırması)
 ├── shared/
 │   ├── components/         # React komponentləri (.tsx)
-│   ├── constants/          # Provayder tərifləri (329), MCP əhatə dairələri, 20 marşrutlaşdırma strategiyası
+│   ├── constants/          # Provayder tərifləri (329), MCP əhatə dairələri, 21 marşrutlaşdırma strategiyası
 │   ├── utils/              # Dövrə açarı, təmizləyici, autentifikasiya köməkçiləri
 │   └── validation/         # Zod v4 sxemləri
 └── sse/                    # SSE proksi emal xətti

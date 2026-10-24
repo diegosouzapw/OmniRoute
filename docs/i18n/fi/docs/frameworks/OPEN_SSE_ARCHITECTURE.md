@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Tukee **20 reititysstrategiaa** (katso `src/shared/constants/routingStrategies.ts`):
+Tukee **21 reititysstrategiaa** (katso `src/shared/constants/routingStrategies.ts`):
 
 | Strategia           | Toiminta                                                                                                       |
 | ------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Tukee **20 reititysstrategiaa** (katso `src/shared/constants/routingStrategies.t
 | `cost-optimized`    | Halvin kunnossa oleva kohde ensin                                                                              |
 | `reset-aware`       | Tietoinen palveluntarjoajien nollausikkunoista                                                                 |
 | `reset-window`      | Nollausikkunoihin perustuva reititys                                                                           |
+| `expiry-first`      | Kuluttaa ensin tilin, jonka kiintiö muuten vanhenisi käyttämättä                                               |
 | `headroom`          | Eniten jäljellä olevaa kiintiövaraa ensin                                                                      |
 | `quota-weighted`    | Ohittaa loppuun kulutetut tilit ja arpoo sitten jäljellä olevan kiintiön ÷ käsiteltävänä olevan kuorman mukaan |
 | `strict-random`     | Aidosti tasainen (ei laatupainotusta)                                                                          |

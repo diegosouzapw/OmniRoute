@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Menyokong **20 strategi penghalaan** (lihat `src/shared/constants/routingStrategies.ts`):
+Menyokong **21 strategi penghalaan** (lihat `src/shared/constants/routingStrategies.ts`):
 
 | Strategi            | Tingkah Laku                                                                             |
 | ------------------- | ---------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Menyokong **20 strategi penghalaan** (lihat `src/shared/constants/routingStrateg
 | `cost-optimized`    | Sasaran sihat termurah dahulu                                                            |
 | `reset-aware`       | Sedar tentang tetingkap tetapan semula pembekal                                          |
 | `reset-window`      | Penghalaan berasaskan tetingkap tetapan semula                                           |
+| `expiry-first`      | Menggunakan dahulu akaun yang kuotanya akan luput tanpa digunakan                        |
 | `headroom`          | Baki ruang kuota terbanyak dahulu                                                        |
 | `quota-weighted`    | Langkau akaun yang kehabisan, kemudian cabut mengikut baki kuota ÷ beban sedang diproses |
 | `strict-random`     | Benar-benar seragam (tiada pemberatan kualiti)                                           |

@@ -352,7 +352,7 @@ Dua lapisan cakupan otomatis disertakan bersama mesin quota-share:
 | Unit (29 pengujian) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Penjadwal DRR, pembatasan saturasi, batas konkurensi, perhitungan fairShare, antrean backlog                                                                                                                             |
 | Matriks integrasi   | `npm run test:combo:matrix`                                            | Keputusan perutean menyeluruh melalui pipeline kombinasi sebenarnya; keadilan DRR + penurunan prioritas akibat saturasi melalui seam aktif (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matriks integrasi dijalankan di CI bersama seluruh 19 strategi publik. Suite unit
+Matriks integrasi dijalankan di CI bersama seluruh 21 strategi publik. Suite unit
 dapat dijalankan secara mandiri.
 
 ---

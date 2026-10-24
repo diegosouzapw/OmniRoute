@@ -316,7 +316,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (asambodo, DNS, ntụgharị ebe a na-aga)
 ├── shared/
 │   ├── components/         # Komponentị React (.tsx)
-│   ├── constants/          # Nkọwa ndị na-eweta (329), oke MCP, atụmatụ ntụgharị 20
+│   ├── constants/          # Nkọwa ndị na-eweta (329), oke MCP, atụmatụ ntụgharị 21
 │   ├── utils/              # Circuit breaker, sanitizer, ndị enyemaka njirimara
 │   └── validation/         # Schema Zod v4
 └── sse/                    # Usoro proxy SSE

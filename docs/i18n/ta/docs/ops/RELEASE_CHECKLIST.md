@@ -147,7 +147,7 @@ Tests மட்டும் கொண்ட diffs (`tests/`-இன் கீழ�
 - [ ] `npm run test:vitest` — தேர்ச்சி (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 வரம்பு பூர்த்திசெய்யப்பட்டுள்ளது (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — தேர்ச்சி (மாற்றங்கள் DB / handlers-ஐத் தொட்டிருந்தால்)
-- [ ] `npm run test:combo:matrix` — தேர்ச்சி (combo strategy matrix: பொதுவாகக் கிடைக்கும் 19 routing strategy-களின் தேர்வு முடிவுகள் அனைத்தையும் நிர்ணயிக்கப்பட்ட முறையில் நிரூபிக்கிறது; combo routing, strategy resolution அல்லது fallback logic-ஐ மாற்றும்போது இயக்கவும்)
+- [ ] `npm run test:combo:matrix` — தேர்ச்சி (combo strategy matrix: பொதுவாகக் கிடைக்கும் 21 routing strategy-களின் தேர்வு முடிவுகள் அனைத்தையும் நிர்ணயிக்கப்பட்ட முறையில் நிரூபிக்கிறது; combo routing, strategy resolution அல்லது fallback logic-ஐ மாற்றும்போது இயக்கவும்)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **விருப்பத்திற்குரியது/கைமுறை** (கட்டுப்படுத்தப்பட்ட உண்மையான upstream smoke சோதனை; VPS `root@192.168.0.15`-இலிருந்து வாசிப்பதற்கு மட்டும் அனுமதிக்கப்பட்ட DB snapshot-ஐப் பெறுகிறது; உண்மையான provider-களை அணுகுகிறது, credit-கள் செலவாகும்; CI-இல் ஒருபோதும் இயங்காது; gate இல்லையெனில் சிக்கலின்றித் தவிர்க்கப்படும்)
 - [ ] `npm run test:combo:live:vps` — **விருப்பத்திற்குரியது/கைமுறை** (கட்டம்-3 VPS நேரடி smoke சோதனை: சாதாரண Node ESM வழியாக நேரடி `.15` server-க்கு எதிரான 7 HTTP சூழல்கள்; `ssh root@192.168.0.15` தேவை; `__live_test__*` combo-களை மட்டுமே உருவாக்கி/நீக்குகிறது; உண்மையான provider-களை அணுகுகிறது; CI-இல் ஒருபோதும் இயங்காது)
 - [ ] `npm run test:e2e` — தேர்ச்சி (UI மாற்றங்கள்)

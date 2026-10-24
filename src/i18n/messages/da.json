@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Afbalancerer resterende kvote mod 5 timer og ugentlige nulstillinger, og runder derefter lignende resultater",
     "quotaWeighted": "Kvotevægtet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Udløb først",
+    "expiryFirstDesc": "Bruger først den konto, hvis kvote ellers ville udløbe ubrugt: den største rest med den nærmeste nulstilling går først.",
     "strictRandom": "Strikt tilfældig",
     "strictRandomDesc": "Blandet kortbunke — bruger hver model én gang, før der blandes igen",
     "fusion": "Fusion",
@@ -3600,6 +3602,11 @@
         "when": "Du ruter på tværs af flere konti med kvotetelemetri og forskellige nulstillingsvinduer.",
         "avoid": "Kvotetelemetri er ikke tilgængelig for de fleste konti.",
         "example": "Foretrækker en 60 % ugentlig kontonulstilling i morgen frem for en 80 % kontonulstilling senere."
+      },
+      "expiry-first": {
+        "when": "Du ruter på tværs af konti, hvis kvoter nulstilles efter forskellige tidsplaner, og vil bruge kvote, der ellers ville udløbe ubrugt.",
+        "avoid": "Kvotetelemetri mangler for de fleste konti, eller du har brug for en stabil rækkefølge, der ignorerer nulstillingstidspunktet.",
+        "example": "Foretræk en konto med 80 % tilbage, der nulstilles om 39 minutter, frem for en konto med 48 % tilbage, der nulstilles om 9 timer — kvoten tæt på udløb bruges, før den går tabt."
       },
       "strict-random": {
         "when": "Brug denne, når du ønsker en helt jævn fordeling — hver model bruges én gang, før nogen gentages.",
@@ -3815,6 +3822,13 @@
         "tip1": "Brug eksplicitte kontotrin eller konto-tag-routing for udbydere med kvotetelemetri.",
         "tip2": "Juster session versus ugentlige vægte, når kortvarig udmattelse er mere risikabelt.",
         "tip3": "Hold bindebåndet lille, så tilsvarende konti stadig roterer nogenlunde."
+      },
+      "expiry-first": {
+        "title": "Udløbende kvote først",
+        "description": "Rangerer konti efter udnyttelsespres: høj resterende kvote tæt på nulstillingsfristen går først.",
+        "tip1": "Kræver kvotetelemetri fra udbyderen; konti uden den beholder deres angivne prioritetsrækkefølge.",
+        "tip2": "Næsten lige scorer roterer inden for lighedsbåndet, så søsterkonti stadig deler belastningen.",
+        "tip3": "Afgræns rangeringen til den kvotepulje, som hver model faktisk faktureres mod."
       },
       "strict-random": {
         "title": "Fordeling som et blandet kortspil",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Foretrækker konti med sund resterende kvote og nærmere nulstillinger",
     "quotaWeighted": "Kvotevægtet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Udløb først",
+    "expiryFirstDesc": "Bruger først den konto, hvis kvote ellers ville udløbe ubrugt: den største rest med den nærmeste nulstilling går først.",
     "strictRandom": "Strengt tilfældig",
     "strictRandomDesc": "Blandet kortbunke — bruger hver konto én gang, før der blandes igen",
     "stickyLimit": "Grænse for fastholdelse",

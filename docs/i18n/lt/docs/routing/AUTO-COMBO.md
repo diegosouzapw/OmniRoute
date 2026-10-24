@@ -284,7 +284,7 @@ nustatytos reikšmės perduodamos esamoms variklio `config.modePack` / `config.b
 
 ## Visos maršruto parinkimo strategijos
 
-„OmniRoute“ kombinacijų variklis palaiko **20 maršruto parinkimo strategijų** (deklaruotų `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats automatinio kombinavimo variklis pasiekiamas naudojant strategiją `auto`, o kitos strategijos gali būti naudojamos išsaugotoms kombinacijoms.
+„OmniRoute“ kombinacijų variklis palaiko **21 maršruto parinkimo strategiją** (deklaruotos `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats automatinio kombinavimo variklis pasiekiamas naudojant strategiją `auto`, o kitos strategijos gali būti naudojamos išsaugotoms kombinacijoms.
 
 | Strategija          | Aprašymas                                                                                                                                                                                                         |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -299,6 +299,7 @@ nustatytos reikšmės perduodamos esamoms variklio `config.modePack` / `config.b
 | `cost-optimized`    | Atsižvelgiant į katalogo kainas, sumažinama vienos užklausos kaina $                                                                                                                                              |
 | `reset-aware` ⭐    | Prioritetas nustatomas pagal kvotos atkūrimo laiką — trumpesni atkūrimo intervalai reitinguojami aukščiau                                                                                                         |
 | `reset-window`      | Pirmenybė teikiama tikslams, kurių kvotos intervalas bus atkurtas greičiausiai                                                                                                                                    |
+| `expiry-first`      | Pirmiausia naudoja paskyrą, kurios kvota kitaip baigtų galioti nepanaudota: pirmenybė teikiama didžiausiam likučiui su artimiausiu atkūrimu                                                                       |
 | `headroom`          | Pasirenkamas tikslas, turintis didžiausią likusios kvotos rezervą                                                                                                                                                 |
 | `quota-weighted`    | Išnaudotos paskyros praleidžiamos, o iš likusių pasirenkama proporcingai likusiai kvotai, padalytai iš vykdomų užklausų apkrovos; esami pokalbiai lieka priskirti tam pačiam tikslui                              |
 | `strict-random`     | Atsitiktinis pasirinkimas nešalinant pasikartojimų                                                                                                                                                                |
@@ -846,11 +847,11 @@ Lygių apibrėžtis ir teikėjų klasifikaciją žr. [`docs/guides/TIERS.md`](..
 
 ### Deterministinė maršruto parinkimo sprendimų matrica (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` patvirtina visų 19 viešųjų strategijų maršruto parinkimo **sprendimą**
+`tests/integration/combo-matrix/*.test.ts` patvirtina visų 21 viešosios strategijos maršruto parinkimo **sprendimą**
 nuo pradžios iki galo per tikrąjį derinių konvejerį, naudojant imituojamą išorinę paslaugą.
 Aprėpiama:
 
-- Visos 19 `ROUTING_STRATEGY_VALUES` strategijų (ordered, weighted, cost, context, fusion, …).
+- Visos 21 `ROUTING_STRATEGY_VALUES` strategija (ordered, weighted, cost, context, fusion, …).
 - Visapusis `quota-share` (vidinės strategijos) testavimas: DRR teisingumas + apkrovos prisotinimo prioriteto mažinimas per
   tikrąją `selectQuotaShareTarget` sąsają (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -884,5 +885,5 @@ sąmoningai neįtraukti į CI, nes jiems reikia tikrų prisijungimo duomenų ir 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefikso analizatorius + 6 variantai                                                                                                          |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Iš aktyvių ryšių atmintyje sukuria `AutoComboConfig`                                                                                                  |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testavimo sąsaja teikėjų registrui imituoti                                                                                                           |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategijų)                                                                                                             |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategija)                                                                                                             |
 | `src/sse/handlers/chat.ts`                                | Integracija: ankstyvas išėjimas pagal „auto“ prefiksą                                                                                                 |

@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Echilibrează cota rămasă față de 5 ore și resetări săptămânale, apoi scoruri similare la round-robin",
     "quotaWeighted": "Ponderat după cotă",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Expirare întâi",
+    "expiryFirstDesc": "Consumă mai întâi contul a cărui cotă altfel ar expira nefolosită: primul este cel mai mare rest cu cea mai apropiată resetare.",
     "strictRandom": "Aleatoriu strict",
     "strictRandomDesc": "Pachet amestecat — folosește fiecare model o dată înainte de a amesteca din nou",
     "fusion": "Fuziune",
@@ -3600,6 +3602,11 @@
         "when": "Rutați prin mai multe conturi cu telemetrie de cotă și ferestre diferite de resetare.",
         "avoid": "Telemetria cotelor nu este disponibilă pentru majoritatea conturilor.",
         "example": "Preferați o resetare a contului săptămânală de 60% mâine, față de o resetare a contului de 80% mai târziu."
+      },
+      "expiry-first": {
+        "when": "Rutați prin conturi ale căror cote se resetează după programe diferite și doriți să consumați cota care altfel ar expira nefolosită.",
+        "avoid": "Telemetria cotelor lipsește pentru majoritatea conturilor sau aveți nevoie de o ordine stabilă care ignoră momentul resetării.",
+        "example": "Preferați un cont cu 80% rămas care se resetează în 39 de minute în locul unui cont cu 48% rămas care se resetează în 9 ore — cota aproape expirată este consumată înainte de a se pierde."
       },
       "strict-random": {
         "when": "Utilizați când doriți o distribuție perfect uniformă — fiecare model este folosit o dată înainte de repetare.",
@@ -3815,6 +3822,13 @@
         "tip1": "Utilizați pași expliciți pentru cont sau rutarea etichetei de cont pentru furnizorii cu telemetrie de cotă.",
         "tip2": "Reglați sesiunea față de greutăți săptămânale atunci când epuizarea pe termen scurt este mai riscantă.",
         "tip3": "Păstrați banda de legătură mică, astfel încât conturile echivalente să se rotească în continuare echitabil."
+      },
+      "expiry-first": {
+        "title": "Întâi cota care expiră",
+        "description": "Clasifică conturile după presiunea de valorificare: o cotă rămasă mare, aproape de termenul de resetare, este prima.",
+        "tip1": "Necesită telemetria cotelor de la furnizor; conturile fără ea își păstrează ordinea de prioritate listată.",
+        "tip2": "Scorurile aproape egale se rotesc în banda de egalitate, astfel încât conturile similare continuă să împartă sarcina.",
+        "tip3": "Limitați clasamentul la grupul de cotă pe baza căruia este facturat efectiv fiecare model."
       },
       "strict-random": {
         "title": "Distribuție prin amestecarea pachetului",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Preferați conturile cu cotă rămasă sănătoasă și resetări mai apropiate",
     "quotaWeighted": "Ponderat în funcție de cotă",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Expirare întâi",
+    "expiryFirstDesc": "Consumă mai întâi contul a cărui cotă altfel ar expira nefolosită: primul este cel mai mare rest cu cea mai apropiată resetare.",
     "strictRandom": "Aleatoriu strict",
     "strictRandomDesc": "Amestecă pachetul — utilizează fiecare cont o dată înainte de a amesteca din nou",
     "stickyLimit": "Limită lipicioasă",

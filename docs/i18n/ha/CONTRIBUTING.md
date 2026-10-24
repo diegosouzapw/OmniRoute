@@ -316,7 +316,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Wakilin MITM (takardar shaida, DNS, tsara hanyar manufa)
 ├── shared/
 │   ├── components/         # Abubuwan React (.tsx)
-│   ├── constants/          # Ma'anar masu samarwa (329), iyakokin MCP, dabarun tsara hanya 20
+│   ├── constants/          # Ma'anar masu samarwa (329), iyakokin MCP, dabarun tsara hanya 21
 │   ├── utils/              # Mai katse da'ira, mai tsabtace bayanai, mataimakan tantancewa
 │   └── validation/         # Tsarukan Zod v4
 └── sse/                    # Bututun wakilin SSE

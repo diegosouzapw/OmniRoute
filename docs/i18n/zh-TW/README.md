@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — 免費的 AI 閘道
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不停下程式開發。每款 AI 工具 → 375 家提供者 — 150+ 家免費 — 全都透過單一端點。將 Claude Code、Codex、Cursor、Cline、Copilot 與 Antigravity 接入免費的 Claude / GPT / Gemini，並支援自動備援。RTK + Caveman 堆疊式壓縮可節省 15–95% 的 token（平均約 89%）— 永不觸及限制。375 家 AI 提供者 · 150+ 個免費方案 · 每月約 16.2 億個免費 token · 20 種路由策略 · $0 即可開始。"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — 永不停下程式開發。每款 AI 工具 → 375 家提供者 — 150+ 家免費 — 全都透過單一端點。將 Claude Code、Codex、Cursor、Cline、Copilot 與 Antigravity 接入免費的 Claude / GPT / Gemini，並支援自動備援。RTK + Caveman 堆疊式壓縮可節省 15–95% 的 token（平均約 89%）— 永不觸及限制。375 家 AI 提供者 · 150+ 個免費方案 · 每月約 16.2 億個免費 token · 21 種路由策略 · $0 即可開始。"/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：你的 IDE 或 CLI（Claude Code、Cursor、Cline……）呼叫一個本機端點（http://localhost:20128/v1）；OmniRoute 智慧路由器（RTK + Caveman 壓縮、20 種路由策略、斷路器、TLS 隱匿、MCP、A2A、護欄）可在仍有合格健康目標時，於 4 個提供者層級之間進行容錯轉移 —— 第 1 層訂閱、第 2 層 API 金鑰、第 3 層低成本、第 4 層免費。"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute 請求流程：你的 IDE 或 CLI（Claude Code、Cursor、Cline……）呼叫一個本機端點（http://localhost:20128/v1）；OmniRoute 智慧路由器（RTK + Caveman 壓縮、21 種路由策略、斷路器、TLS 隱匿、MCP、A2A、護欄）可在仍有合格健康目標時，於 4 個提供者層級之間進行容錯轉移 —— 第 1 層訂閱、第 2 層 API 金鑰、第 3 層低成本、第 4 層免費。"/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="20 種組合路由策略中 18 種的動畫範例——每種策略各一個圖塊：priority、fill-first、weighted、round-robin、p2c、least-used、random、strict-random、cost-optimized、headroom、reset-window、reset-aware、context-relay、context-optimized、lkgp、auto、fusion、pipeline。cache-optimized 與 quota-weighted 未製作動畫；下表說明全部 20 種策略。"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="21 種組合路由策略中 18 種的動畫範例——每種策略各一個圖塊：priority、fill-first、weighted、round-robin、p2c、least-used、random、strict-random、cost-optimized、headroom、reset-window、reset-aware、context-relay、context-optimized、lkgp、auto、fusion、pipeline。cache-optimized、quota-weighted 與 expiry-first 未製作動畫；下表說明全部 21 種策略。"/>
 
 > **組合**是一連串由 OmniRoute **自動**跨模型路由的模型鏈。如果配額耗盡、提供者發生故障或成本激增，組合便可移至下一個符合條件且運作正常的模型。🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 或自行建立——20 種路由策略
+### 🔀 或自行建立——21 種路由策略
 
-全部 **20** 種策略——可在每個組合步驟中混合搭配：
+全部 **21** 種策略——可在每個組合步驟中混合搭配：
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>串接各步驟——每個目標的輸出都會傳入下一個目標 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>優先消耗即將過期作廢的配額：剩餘最多且重置最近的帳號先出隊 ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo 引擎會根據 **16 項因素**（健康狀態、配額、成本、延遲、任務適配度、品質、工作階段可用性……）為每個候選項目評分 — 請參閱 [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)。</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特之處——與 9router、OpenRouter、CLIProxyAPI 及 LiteLLM 比較 13 項功能的特定日期快照。OmniRoute：支援 375 個提供者、內建 150+ 個免費方案、20 種路由策略、12 引擎權杖壓縮、內建具備 110 項工具的 MCP 伺服器、A2A 代理協定、持久記憶體、安全防護機制、雲端代理、TLS 指紋隱匿、Desktop/Termux/PWA，以及支援 67 種國際化使用者介面語系。OmniRoute 採用 MIT 授權並可自行託管。競品的功能與數量可能有所變更；請參閱連結中的方法論。"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute 的獨特之處——與 9router、OpenRouter、CLIProxyAPI 及 LiteLLM 比較 13 項功能的特定日期快照。OmniRoute：支援 375 個提供者、內建 150+ 個免費方案、21 種路由策略、12 引擎權杖壓縮、內建具備 110 項工具的 MCP 伺服器、A2A 代理協定、持久記憶體、安全防護機制、雲端代理、TLS 指紋隱匿、Desktop/Termux/PWA，以及支援 67 種國際化使用者介面語系。OmniRoute 採用 MIT 授權並可自行託管。競品的功能與數量可能有所變更；請參閱連結中的方法論。"/>
 
 <sub>📊 完整方法論及與 9router、OpenRouter、CLIProxyAPI 和 LiteLLM 的逐項功能比較詳情 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

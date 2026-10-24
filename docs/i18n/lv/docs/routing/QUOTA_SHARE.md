@@ -353,7 +353,7 @@ Kopā ar quota-share dzini tiek nodrošināti divi automatizētā pārklājuma l
 | Vienībtesti (29 testi) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR plānotājs, piesātinājuma kontrole, vienlaicīguma ierobežojumi, fairShare aprēķini, neizpildīto uzdevumu ievietošana rindā                                                                                                                             |
 | Integrācijas matrica   | `npm run test:combo:matrix`                                            | Pilna maršrutēšanas lēmuma pārbaude reālajā kombināciju konveijerā; DRR taisnīgums un prioritātes pazemināšana piesātinājuma gadījumā, izmantojot aktīvos saskarnes punktus (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integrācijas matrica tiek izpildīta CI vidē kopā ar visām 19 publiskajām stratēģijām. Vienībtestu komplektu
+Integrācijas matrica tiek izpildīta CI vidē kopā ar visu 21 publisko stratēģiju. Vienībtestu komplektu
 var izpildīt atsevišķi.
 
 ---

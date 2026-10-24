@@ -146,7 +146,7 @@ preskočijo matriko E2E brez kakršne koli oznake.
 - [ ] `npm run test:vitest` — uspešno (strežnik MCP, autoCombo, predpomnilnik)
 - [ ] `npm run test:coverage` — prag 60/60/60/60 dosežen (stavki/vrstice/funkcije/veje)
 - [ ] `npm run test:integration` — uspešno (če spremembe posegajo v podatkovno zbirko/obdelovalnike)
-- [ ] `npm run test:combo:matrix` — uspešno (matrika kombiniranih strategij: deterministično dokaže odločitve izbire vseh 19 javnih strategij usmerjanja; zaženite ob posegih v kombinirano usmerjanje, razreševanje strategij ali nadomestno logiko)
+- [ ] `npm run test:combo:matrix` — uspešno (matrika kombiniranih strategij: deterministično dokaže odločitve izbire vseh 21 javnih strategij usmerjanja; zaženite ob posegih v kombinirano usmerjanje, razreševanje strategij ali nadomestno logiko)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **izbirno/ročno** (omejen preizkus z resničnimi nadrejenimi sistemi; pridobi posnetek podatkovne zbirke samo za branje iz VPS `root@192.168.0.15`; uporablja resnične ponudnike in porablja dobroimetje; nikoli se ne izvaja v CI; brez omogočitve se pravilno preskoči)
 - [ ] `npm run test:combo:live:vps` — **izbirno/ročno** (preizkus VPS v živo 3. faze: 7 scenarijev HTTP proti strežniku `.15` v živo prek navadnega Node ESM; zahteva `ssh root@192.168.0.15`; ustvari/izbriše samo kombinacije `__live_test__*`; uporablja resnične ponudnike; nikoli se ne izvaja v CI)
 - [ ] `npm run test:e2e` — uspešno (spremembe uporabniškega vmesnika)

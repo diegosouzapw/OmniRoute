@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM-proxy (sertifikat, DNS, målruting)
 ├── shared/
 │   ├── components/         # React-komponenter (.tsx)
-│   ├── constants/          # Leverandørdefinisjoner (329), MCP-omfang, 20 rutingsstrategier
+│   ├── constants/          # Leverandørdefinisjoner (329), MCP-omfang, 21 rutingsstrategier
 │   ├── utils/              # Kretsbryter, rensing, autentiseringshjelpere
 │   └── validation/         # Zod v4-skjemaer
 └── sse/                    # SSE-proxypipeline

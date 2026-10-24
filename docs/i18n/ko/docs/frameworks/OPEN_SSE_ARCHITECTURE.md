@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20가지 라우팅 전략**을 지원합니다 (`src/shared/constants/routingStrategies.ts` 참조):
+**21가지 라우팅 전략**을 지원합니다 (`src/shared/constants/routingStrategies.ts` 참조):
 
 | 전략                | 동작                                                                     |
 | ------------------- | ------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | 정상 상태인 타겟 중 가장 저렴한 것 우선                                  |
 | `reset-aware`       | 프로바이더 리셋 윈도우를 고려                                            |
 | `reset-window`      | 리셋 윈도우 기반 라우팅                                                  |
+| `expiry-first`      | 그대로 두면 사용되지 않고 만료될 할당량을 가진 계정을 먼저 사용합니다    |
 | `headroom`          | 남은 할당량 여유분이 가장 많은 타겟 우선                                 |
 | `quota-weighted`    | 소진된 계정을 건너뛰고, 남은 할당량 ÷ 처리 중인 부하로 추첨              |
 | `strict-random`     | 완전한 균등 분포 (품질 가중치 없음)                                      |

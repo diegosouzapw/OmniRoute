@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Qolgan kvotani 5 soatlik va haftalik yangilanishlarni hisobga olgan holda muvozanatlashtiradi, so‘ng o‘xshash ballilarni navbatma-navbat tanlaydi",
     "quotaWeighted": "Kvota bo‘yicha vaznlangan",
     "quotaWeightedDesc": "Kvotasi tugagan hisoblarni o‘tkazib yuboradi, so‘ng qolganlari orasidan qolgan kvotaning bajarilayotgan so‘rovlar yuklamasiga nisbatiga mutanosib ravishda tanlaydi. Mavjud suhbatlar biriktirilganicha qoladi.",
+    "expiryFirst": "Muddati tugayotgani birinchi",
+    "expiryFirstDesc": "Aks holda foydalanilmay muddati tugaydigan kvotali hisobni birinchi sarflaydi: eng katta qoldiqli va eng yaqin yangilanishli hisob birinchi navbatda tanlanadi.",
     "strictRandom": "Qat’iy tasodifiy",
     "strictRandomDesc": "Aralashtirilgan dasta — qayta aralashtirishdan oldin har bir modeldan bir marta foydalanadi",
     "fusion": "Birlashtirish",
@@ -3600,6 +3602,11 @@
         "when": "Kvota telemetriyasi va turli tiklanish muddatlariga ega bir nechta hisoblar oʻrtasida yoʻnaltirasiz.",
         "avoid": "Aksariyat hisoblar uchun kvota telemetriyasi mavjud emas.",
         "example": "Keyinroq tiklanadigan 80% hisob oʻrniga ertaga tiklanadigan 60% haftalik hisobni afzal koʻring."
+      },
+      "expiry-first": {
+        "when": "Kvotalari turli jadvallar bo‘yicha tiklanadigan hisoblar o‘rtasida yo‘naltirasiz va aks holda foydalanilmay muddati tugaydigan kvotani sarflamoqchisiz.",
+        "avoid": "Aksariyat hisoblar uchun kvota telemetriyasi mavjud emas yoki sizga tiklanish vaqtini hisobga olmaydigan barqaror tartib kerak.",
+        "example": "9 soatdan keyin tiklanadigan, 48% qolgan hisob o‘rniga 39 daqiqadan keyin tiklanadigan, 80% qolgan hisobni afzal ko‘ring — muddati tugash arafasidagi kvota behuda ketishidan oldin sarflanadi."
       },
       "strict-random": {
         "when": "Mutlaqo teng taqsimlash kerak boʻlganda foydalaning — takrorlanishdan oldin har bir model bir martadan ishlatiladi.",
@@ -3815,6 +3822,13 @@
         "tip1": "Kvota telemetriyasiga ega provayderlar uchun aniq hisob bosqichlari yoki hisob teglari asosidagi marshrutlashdan foydalaning.",
         "tip2": "Qisqa muddatli kvota tugashi xavfliroq bo‘lsa, seans va haftalik og‘irliklarni sozlang.",
         "tip3": "Teng imkoniyatli hisoblar adolatli almashib turishi uchun tenglik diapazonini kichik saqlang."
+      },
+      "expiry-first": {
+        "title": "Muddati tugayotgan kvota birinchi",
+        "description": "Hisoblarni foydalanish bosimi bo‘yicha saralaydi: tiklanish muddatiga yaqin bo‘lgan katta qoldiq kvota birinchi navbatda tanlanadi.",
+        "tip1": "Provayder kvota telemetriyasi talab qilinadi; usiz hisoblar ro‘yxatdagi ustuvorlik tartibini saqlab qoladi.",
+        "tip2": "Deyarli teng ballar tenglik diapazoni ichida navbatma-navbat almashadi, shuning uchun o‘xshash hisoblar yukni baribir bo‘lishadi.",
+        "tip3": "Saralashni har bir model amalda hisob-kitob qilinadigan kvota guruhi bilan cheklang."
       },
       "strict-random": {
         "title": "Aralashtirilgan koloda taqsimoti",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Qolgan kvotasi yetarli va tiklanish vaqti yaqinroq boʻlgan hisoblarni afzal koʻrish",
     "quotaWeighted": "Kvota bo‘yicha vaznlangan",
     "quotaWeightedDesc": "Kvotasi tugagan hisoblarni o‘tkazib yuboradi, so‘ng qolganlari orasidan qolgan kvotaga to‘g‘ri, bajarilayotgan so‘rovlar yukiga esa teskari mutanosib ravishda tanlaydi. Mavjud suhbatlar biriktirilgan hisobda qoladi.",
+    "expiryFirst": "Muddati tugayotgani birinchi",
+    "expiryFirstDesc": "Aks holda foydalanilmay muddati tugaydigan kvotali hisobni birinchi sarflaydi: eng katta qoldiqli va eng yaqin yangilanishli hisob birinchi navbatda tanlanadi.",
     "strictRandom": "Qat’iy tasodifiy",
     "strictRandomDesc": "Aralashtiriladigan to‘plam — qayta aralashtirishdan oldin har bir hisobdan bir marta foydalanadi",
     "stickyLimit": "Biriktirish limiti",

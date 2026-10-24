@@ -807,7 +807,7 @@ account-bucketed അല്ല, IP-bucketed ആണ് — #9611 കാണുക):
 
 ## മറ്റ് റെസിലിയൻസ് സവിശേഷതകൾ
 
-- **20 റൂട്ടിംഗ് സ്ട്രാറ്റജികൾ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) കാണുക.
+- **21 റൂട്ടിംഗ് സ്ട്രാറ്റജികൾ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) കാണുക.
 - **റീസെറ്റ്-അവേർ റൂട്ടിംഗ്** (v3.8.0) — ക്വോട്ട റീസെറ്റ് സമയം അനുസരിച്ച് കണക്ഷനുകൾക്ക് മുൻഗണന നൽകുന്നു.
 - **ബാക്ക്ഗ്രൗണ്ട് മോഡ് ഡിഗ്രഡേഷൻ** — Responses API `background: true` മുന്നറിയിപ്പോടെ സിങ്ക് ആയി ഡിഗ്രേഡ് ചെയ്യപ്പെടുന്നു.
 - **ഡൈനാമിക് ടൂൾ ലിമിറ്റ് ഡിറ്റക്ഷൻ** — ടൂൾ കൗണ്ട് പരിധികൾ എത്തുമ്പോൾ പ്രൊവൈഡറുകളെ ബാക്ക്-ഓഫ് ചെയ്യുന്നു.

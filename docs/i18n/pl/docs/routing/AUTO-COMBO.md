@@ -286,7 +286,7 @@ dla pojedynczego żądania.
 
 ## Wszystkie strategie routingu
 
-Silnik kombinacji OmniRoute obsługuje **20 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest dostępny w ramach strategii `auto`; pozostałe strategie są dostępne dla utrwalonych kombinacji.
+Silnik kombinacji OmniRoute obsługuje **21 strategii routingu** (zadeklarowanych w `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam silnik Auto Combo jest dostępny w ramach strategii `auto`; pozostałe strategie są dostępne dla utrwalonych kombinacji.
 
 | Strategia           | Opis                                                                                                                                                                                                                                                             |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -301,6 +301,7 @@ Silnik kombinacji OmniRoute obsługuje **20 strategii routingu** (zadeklarowanyc
 | `cost-optimized`    | Minimalizacja kosztu $ na żądanie na podstawie cen katalogowych                                                                                                                                                                                                  |
 | `reset-aware` ⭐    | Ustalanie priorytetów według czasu resetowania limitu — krótsze okna resetowania mają wyższą pozycję                                                                                                                                                             |
 | `reset-window`      | Preferowanie elementów docelowych, których okno limitu zostanie zresetowane najwcześniej                                                                                                                                                                         |
+| `expiry-first`      | Najpierw zużywa konto, którego limit w przeciwnym razie wygasłby niewykorzystany: pierwsze idzie konto z największą resztą i najbliższym resetem                                                                                                                 |
 | `headroom`          | Wybór elementu docelowego z największym zapasem pozostałego limitu                                                                                                                                                                                               |
 | `quota-weighted`    | Pomijanie kont z wyczerpanym limitem, a następnie wybór spośród pozostałych proporcjonalnie do pozostałego limitu podzielonego przez bieżące obciążenie; istniejące konwersacje pozostają przypięte                                                              |
 | `strict-random`     | Wybór losowy bez usuwania powtórzeń                                                                                                                                                                                                                              |
@@ -820,11 +821,11 @@ Definicje poziomów i klasyfikację dostawców znajdziesz w [`docs/guides/TIERS.
 
 ### Deterministyczna macierz decyzji routingu (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` weryfikuje **decyzję** routingu dla wszystkich 19
+`tests/integration/combo-matrix/*.test.ts` weryfikuje **decyzję** routingu dla wszystkich 21
 publicznych strategii kompleksowo, za pośrednictwem rzeczywistego potoku kombinacji z pozorowanym dostawcą nadrzędnym.
 Pokrycie obejmuje:
 
-- Wszystkie 19 strategii `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Wszystkie 21 strategii `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - Kompleksowe testy `quota-share` (wewnętrznej): sprawiedliwość DRR i obniżanie priorytetu przy nasyceniu za pośrednictwem
   rzeczywistego punktu integracji `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -858,5 +859,5 @@ celowo wykluczone z CI, ponieważ wymagają rzeczywistych danych uwierzytelniaj�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiksu `auto/` + 6 wariantów                                                                 |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Tworzy w pamięci `AutoComboConfig` na podstawie aktywnych połączeń                                    |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Mechanizm testowy do mockowania rejestru dostawców                                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategii)                                                              |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategii)                                                              |
 | `src/sse/handlers/chat.ts`                                | Integracja: skrócona ścieżka dla prefiksu automatycznego                                              |

@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Yana goyon bayan **dabaru 20 na jagora** (duba `src/shared/constants/routingStrategies.ts`):
+Yana goyon bayan **dabaru 21 na jagora** (duba `src/shared/constants/routingStrategies.ts`):
 
 | Dabara              | Halayya                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ Yana goyon bayan **dabaru 20 na jagora** (duba `src/shared/constants/routingStra
 | `cost-optimized`    | Manufa mafi rahusa mai lafiya da farko                                                                       |
 | `reset-aware`       | Yana lura da tagogin sake saitin masu bada sabis                                                             |
 | `reset-window`      | Jagora bisa tagar sake saiti                                                                                 |
+| `expiry-first`      | Yana fara amfani da asusun da quota ɗinsa za ta ƙare ba tare da amfani ba                                    |
 | `headroom`          | Mafi yawancin ragowar quota da farko                                                                         |
 | `quota-weighted`    | Tsallake asusun da suka ƙare, sannan zaɓi bisa ragowar quota ÷ nauyin da ke gudana                           |
 | `strict-random`     | Daidaito na gaske (babu nauyin inganci)                                                                      |

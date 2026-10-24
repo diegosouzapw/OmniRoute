@@ -351,7 +351,7 @@ Soláthraítear dhá shraith de chumhdach uathoibrithe leis an inneall quota-sha
 | Aonad (29 tástáil)      | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Sceidealóir DRR, geatáil sáithiúcháin, teorainneacha comhthreomhaireachta, matamaitic fairShare, ciúáil riaráiste                                                                                                            |
 | Maitrís chomhtháthaithe | `npm run test:combo:matrix`                                            | Cinneadh ródaithe ó cheann ceann tríd an bhfíorphíblíne teaglamaí; cothroime DRR + ísliú tosaíochta de bharr sáithiúcháin trí chomhéadain bheo (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Ritheann an mhaitrís chomhtháthaithe in CI in éineacht leis na 19 straitéis phoiblí ar fad. Is féidir an tsraith aonad
+Ritheann an mhaitrís chomhtháthaithe in CI in éineacht leis na 21 straitéis phoiblí ar fad. Is féidir an tsraith aonad
 a rith ina haonar.
 
 ---

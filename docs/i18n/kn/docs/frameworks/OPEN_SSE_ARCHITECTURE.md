@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 ರೂಟಿಂಗ್ ತಂತ್ರಗಳನ್ನು** ಬೆಂಬಲಿಸುತ್ತದೆ (`src/shared/constants/routingStrategies.ts` ನೋಡಿ):
+**21 ರೂಟಿಂಗ್ ತಂತ್ರಗಳನ್ನು** ಬೆಂಬಲಿಸುತ್ತದೆ (`src/shared/constants/routingStrategies.ts` ನೋಡಿ):
 
 | ತಂತ್ರ               | ನಡವಳಿಕೆ                                                                                    |
 | ------------------- | ------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | ಅಗ್ಗದ ಆರೋಗ್ಯಕರ ಟಾರ್ಗೆಟ್ ಮೊದಲು                                                              |
 | `reset-aware`       | ಪ್ರೊವೈಡರ್ ರೀಸೆಟ್ ವಿಂಡೋಗಳ ಬಗ್ಗೆ ಅರಿವುಳ್ಳ                                                    |
 | `reset-window`      | ರೀಸೆಟ್ ವಿಂಡೋ-ಆಧಾರಿತ ರೂಟಿಂಗ್                                                                |
+| `expiry-first`      | ಇಲ್ಲದಿದ್ದರೆ ಬಳಸದೆ ಅವಧಿ ಮುಗಿಯುವ ಕೋಟಾ ಹೊಂದಿರುವ ಖಾತೆಯನ್ನು ಮೊದಲು ಬಳಸುತ್ತದೆ                     |
 | `headroom`          | ಹೆಚ್ಚಿನ ಉಳಿದ ಕೋಟಾ ಹೆಡ್ರೂಮ್ ಮೊದಲು                                                           |
 | `quota-weighted`    | ಖಾಲಿಯಾದ ಖಾತೆಗಳನ್ನು ಬಿಟ್ಟು, ನಂತರ ಉಳಿದ ಕೋಟಾ ÷ ಇನ್-ಫ್ಲೈಟ್ ಲೋಡ್ ಆಧಾರದ ಮೇಲೆ ಆಯ್ಕೆ               |
 | `strict-random`     | ನಿಜವಾದ ಏಕರೂಪ (ಗುಣಮಟ್ಟ ತೂಕವಿಲ್ಲ)                                                            |

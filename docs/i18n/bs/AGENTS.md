@@ -88,7 +88,7 @@ Klijent → /v1/chat/completions (Next.js ruta)
 
 API rute slijede dosljedan obrazac: `Ruta → CORS preflight → Zod validacija tijela → Opcionalna autentifikacija (extractApiKey/isValidApiKey) → Primjena pravila za API ključ → Delegiranje obrađivaču (open-sse)`. Ne postoji globalni Next.js middleware — presretanje je specifično za rutu.
 
-**Kombinovano usmjeravanje** (`open-sse/services/combo.ts`): 20 javnih strategija (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Svako odredište poziva `handleSingleModel()`, koji obavija `handleChatCore()` obradom grešaka po odredištu i provjerama prekidača strujnog kruga. Strategija `fusion` je izuzetak: paralelno šalje zahtjeve panelu modela, a zatim model-sudija sintetizira jedan konačni odgovor (`open-sse/services/fusion.ts`). Pogledajte `docs/routing/AUTO-COMBO.md` za Auto-Combo bodovanje sa 16 faktora i potpunu tabelu strategija, a `docs/architecture/RESILIENCE_GUIDE.md` za 3 sloja otpornosti.
+**Kombinovano usmjeravanje** (`open-sse/services/combo.ts`): 21 javna strategija (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Svako odredište poziva `handleSingleModel()`, koji obavija `handleChatCore()` obradom grešaka po odredištu i provjerama prekidača strujnog kruga. Strategija `fusion` je izuzetak: paralelno šalje zahtjeve panelu modela, a zatim model-sudija sintetizira jedan konačni odgovor (`open-sse/services/fusion.ts`). Pogledajte `docs/routing/AUTO-COMBO.md` za Auto-Combo bodovanje sa 16 faktora i potpunu tabelu strategija, a `docs/architecture/RESILIENCE_GUIDE.md` za 3 sloja otpornosti.
 
 ---
 
@@ -428,7 +428,7 @@ Za svaku netrivijalnu izmjenu prvo pročitajte odgovarajući detaljni dokument:
 | Navigacija repozitorija                                             | `docs/architecture/REPOSITORY_MAP.md`                   |
 | Arhitektura                                                         | `docs/architecture/ARCHITECTURE.md`                     |
 | Inženjerska referenca                                               | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
-| Auto-Combo (bodovanje pomoću 16 faktora, 20 strategija)             | `docs/routing/AUTO-COMBO.md`                            |
+| Auto-Combo (bodovanje pomoću 16 faktora, 21 strategija)             | `docs/routing/AUTO-COMBO.md`                            |
 | Otpornost (3 mehanizma)                                             | `docs/architecture/RESILIENCE_GUIDE.md`                 |
 | Ponovna reprodukcija zaključivanja                                  | `docs/routing/REASONING_REPLAY.md`                      |
 | Okvir za vještine                                                   | `docs/frameworks/SKILLS.md`                             |

@@ -746,7 +746,7 @@ IP-bucketed रेट लिमिट वही सिग्नल है जो
 
 ## अन्य रेज़िलिएन्स सुविधाएँ
 
-- **20 रूटिंग रणनीतियाँ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — देखें [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
+- **21 रूटिंग रणनीतियाँ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — देखें [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
 - **रीसेट-अवेयर रूटिंग** (v3.8.0) — कोटा रीसेट समय के अनुसार कनेक्शनों को प्राथमिकता देता है।
 - **बैकग्राउंड मोड डिग्रेडेशन** — Responses API का `background: true` चेतावनी के साथ सिंक मोड में डिग्रेड कर दिया जाता है।
 - **डायनामिक टूल लिमिट डिटेक्शन** — टूल संख्या सीमा पूरी होने पर प्रोवाइडर को बैक-ऑफ करता है।

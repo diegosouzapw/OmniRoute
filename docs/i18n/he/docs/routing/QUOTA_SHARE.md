@@ -350,7 +350,7 @@ if (candidate.quotaSoftPenalty) {
 | יחידה (29 בדיקות) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | מתזמן DRR, חסימה בעת רוויה, מגבלות מקביליות, חישובי fairShare, תור של עומס ממתין                                                                                                       |
 | מטריצת אינטגרציה  | `npm run test:combo:matrix`                                            | החלטת ניתוב מקצה לקצה דרך צינור השילובים האמיתי; הוגנות DRR + הורדת עדיפות בעת רוויה באמצעות ממשקים חיים (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-מטריצת האינטגרציה פועלת ב-CI לצד כל 19 האסטרטגיות הציבוריות. ניתן להריץ את חבילת בדיקות
+מטריצת האינטגרציה פועלת ב-CI לצד כל 21 האסטרטגיות הציבוריות. ניתן להריץ את חבילת בדיקות
 היחידה באופן עצמאי.
 
 ---

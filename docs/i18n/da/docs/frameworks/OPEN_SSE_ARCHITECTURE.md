@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Understøtter **20 routing-strategier** (se `src/shared/constants/routingStrategies.ts`):
+Understøtter **21 routing-strategier** (se `src/shared/constants/routingStrategies.ts`):
 
 | Strategi            | Adfærd                                                                                        |
 | ------------------- | --------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Understøtter **20 routing-strategier** (se `src/shared/constants/routingStrateg
 | `cost-optimized`    | Billigste sunde mål først                                                                     |
 | `reset-aware`       | Opmærksom på udbydernes nulstillingsvinduer                                                   |
 | `reset-window`      | Routing baseret på nulstillingsvinduer                                                        |
+| `expiry-first`      | Bruger først den konto, hvis kvote ellers ville udløbe ubrugt                                 |
 | `headroom`          | Mest resterende kvotefrirum først                                                             |
 | `quota-weighted`    | Spring opbrugte konti over, og træk derefter efter resterende kvote ÷ igangværende belastning |
 | `strict-random`     | Virkelig ensartet (ingen kvalitetsvægtning)                                                   |

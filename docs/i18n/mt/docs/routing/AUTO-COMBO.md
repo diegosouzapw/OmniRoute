@@ -274,7 +274,7 @@ valuri riżolti jiddaħħlu fl-inputs eżistenti `config.modePack` / `config.bud
 
 ## L-Istrateġiji Kollha tar-Rotot
 
-Il-magna tal-combos ta' OmniRoute tappoġġja **20 strateġija tar-rotot** (iddikjarati f'`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il-magna Auto Combo nnifisha hija esposta taħt l-istrateġija `auto`; l-oħrajn huma disponibbli għal combos persistiti.
+Il-magna tal-combos ta' OmniRoute tappoġġja **21 strateġija tar-rotot** (iddikjarati f'`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il-magna Auto Combo nnifisha hija esposta taħt l-istrateġija `auto`; l-oħrajn huma disponibbli għal combos persistiti.
 
 | Strateġija          | Deskrizzjoni                                                                                                                                                                                                                             |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -289,6 +289,7 @@ Il-magna tal-combos ta' OmniRoute tappoġġja **20 strateġija tar-rotot** (iddi
 | `cost-optimized`    | Imminimizza l-$ għal kull talba skont l-ipprezzar tal-katalgu                                                                                                                                                                            |
 | `reset-aware` ⭐    | Ipprijoritizza skont il-ħin tar-risettjar tal-kwota — intervalli ta' risettjar qosra jiġu kklassifikati ogħla                                                                                                                            |
 | `reset-window`      | Ippreferi miri li l-intervall tal-kwota tagħhom se jiġi risettjat l-aktar kmieni                                                                                                                                                         |
+| `expiry-first`      | Juża l-ewwel il-kont li l-kwota tiegħu inkella tiskadi mingħajr ma tintuża: l-akbar bilanċ bl-eqreb risettjar jgħaddi l-ewwel                                                                                                            |
 | `headroom`          | Agħżel il-mira bl-akbar marġni ta' kwota li fadal                                                                                                                                                                                        |
 | `quota-weighted`    | Aqbeż il-kontijiet eżawriti, imbagħad agħżel fost il-bqija proporzjonalment għall-kwota li fadal diviża bit-tagħbija għaddejja; il-konverżazzjonijiet eżistenti jibqgħu marbuta mal-istess mira                                          |
 | `strict-random`     | Għażla każwali mingħajr tneħħija ta' repetizzjonijiet                                                                                                                                                                                    |
@@ -841,11 +842,11 @@ Ara [`docs/guides/TIERS.md`](../guides/TIERS.md) għad-definizzjonijiet tal-live
 
 ### Matriċi deterministika tad-deċiżjonijiet tar-routing (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` juri d-**deċiżjoni** tar-routing tad-19-il
+`tests/integration/combo-matrix/*.test.ts` juri d-**deċiżjoni** tar-routing tal-21
 strateġija pubblika kollha minn tarf sa tarf permezz tal-pipeline reali tal-combo b’upstream simulat.
 Il-kopertura tinkludi:
 
-- Id-19-il strateġija kollha ta’ `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Il-21 strateġija kollha ta’ `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interna) minn tarf sa tarf: ġustizzja DRR + tnaqqis fil-prijorità minħabba saturazzjoni permezz tal-
   punt ta’ integrazzjoni reali `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -879,5 +880,5 @@ esklużi intenzjonalment mis-CI għax jeħtieġu kredenzjali attivi u aċċess g
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser tal-prefiss `auto/` + 6 varjanti                                                                        |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Jibni `AutoComboConfig` fil-memorja minn konnessjonijiet attivi                                                |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punt ta' aċċess għat-testijiet biex jiġi ssimulat ir-reġistru tal-fornituri                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateġija)                                                                      |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateġija)                                                                      |
 | `src/sse/handlers/chat.ts`                                | Integrazzjoni: short-circuit tal-prefiss auto                                                                  |

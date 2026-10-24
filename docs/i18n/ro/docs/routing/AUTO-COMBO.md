@@ -279,7 +279,7 @@ rezolvate alimentează intrările existente `config.modePack` / `config.budgetCa
 
 ## Toate strategiile de rutare
 
-Motorul de combinații OmniRoute acceptă **20 de strategii de rutare** (declarate în `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Motorul Auto Combo este expus prin strategia `auto`; celelalte strategii sunt disponibile pentru combinațiile persistate.
+Motorul de combinații OmniRoute acceptă **21 de strategii de rutare** (declarate în `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Motorul Auto Combo este expus prin strategia `auto`; celelalte strategii sunt disponibile pentru combinațiile persistate.
 
 | Strategie           | Descriere                                                                                                                                                                                                                                                     |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -294,6 +294,7 @@ Motorul de combinații OmniRoute acceptă **20 de strategii de rutare** (declara
 | `cost-optimized`    | Minimizează costul per solicitare pe baza prețurilor din catalog                                                                                                                                                                                              |
 | `reset-aware` ⭐    | Prioritizează în funcție de momentul resetării cotei — ferestrele scurte de resetare sunt clasate mai sus                                                                                                                                                     |
 | `reset-window`      | Preferă țintele a căror fereastră de cotă se resetează cel mai curând                                                                                                                                                                                         |
+| `expiry-first`      | Consumă mai întâi contul a cărui cotă altfel ar expira nefolosită: primul este cel mai mare rest cu cea mai apropiată resetare                                                                                                                                |
 | `headroom`          | Alege ținta cu cea mai mare marjă de cotă rămasă                                                                                                                                                                                                              |
 | `quota-weighted`    | Omite conturile cu cota epuizată, apoi alege dintre celelalte proporțional cu cota rămasă împărțită la încărcarea în curs; conversațiile existente rămân fixate                                                                                               |
 | `strict-random`     | Selecție aleatorie fără deduplicarea repetărilor                                                                                                                                                                                                              |
@@ -850,9 +851,9 @@ Consultați [`docs/guides/TIERS.md`](../guides/TIERS.md) pentru definițiile niv
 
 ### Matrice deterministă a deciziilor de rutare (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` demonstrează **decizia** de rutare a tuturor celor 19 strategii publice, de la un capăt la altul, prin conducta reală de combinație, cu un upstream simulat. Acoperirea include:
+`tests/integration/combo-matrix/*.test.ts` demonstrează **decizia** de rutare a tuturor celor 21 strategii publice, de la un capăt la altul, prin conducta reală de combinație, cu un upstream simulat. Acoperirea include:
 
-- Toate cele 19 strategii `ROUTING_STRATEGY_VALUES` (ordonate, ponderate, cost, context, fuziune, …).
+- Toate cele 21 strategii `ROUTING_STRATEGY_VALUES` (ordonate, ponderate, cost, context, fuziune, …).
 - `quota-share` (internă) de la un capăt la altul: echitate DRR + reducerea priorității la saturație prin punctul real de integrare `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Acoperirea transferului universal `context-relay` pentru fiecare număr de ținte.
 
@@ -882,5 +883,5 @@ Aceste teste smoke verifică traseul real de comunicație (combinație → furni
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser pentru prefixul `auto/` + 6 variante                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Construiește în memorie `AutoComboConfig` din conexiunile active                                               |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Mecanism de testare pentru simularea registrului de furnizori                                                  |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 de strategii)                                                                    |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 de strategii)                                                                    |
 | `src/sse/handlers/chat.ts`                                | Integrare: scurtcircuitare pentru prefixul auto                                                                |

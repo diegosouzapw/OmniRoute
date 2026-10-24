@@ -279,7 +279,7 @@ razrešene vrednosti se posredujejo obstoječim vhodom mehanizma `config.modePac
 
 ## Vse strategije usmerjanja
 
-Mehanizem kombinacij OmniRoute podpira **20 strategij usmerjanja** (deklariranih v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samodejni mehanizem kombinacij je na voljo v okviru strategije `auto`; druge strategije so na voljo za shranjene kombinacije.
+Mehanizem kombinacij OmniRoute podpira **21 strategij usmerjanja** (deklariranih v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samodejni mehanizem kombinacij je na voljo v okviru strategije `auto`; druge strategije so na voljo za shranjene kombinacije.
 
 | Strategija          | Opis                                                                                                                                                                                                                   |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -294,6 +294,7 @@ Mehanizem kombinacij OmniRoute podpira **20 strategij usmerjanja** (deklariranih
 | `cost-optimized`    | Zmanjšanje stroška v $ na zahtevo glede na cene v katalogu                                                                                                                                                             |
 | `reset-aware` ⭐    | Razvrščanje po času ponastavitve kvote — kratka časovna okna ponastavitve so uvrščena višje                                                                                                                            |
 | `reset-window`      | Prednost imajo cilji, katerih časovno okno kvote se bo ponastavilo najprej                                                                                                                                             |
+| `expiry-first`      | Najprej porabi račun, katerega kvota bi sicer potekla neporabljena: prvi je račun z največjim ostankom in najbližjo ponastavitvijo                                                                                     |
 | `headroom`          | Izbira cilja z največjo preostalo razpoložljivo kvoto                                                                                                                                                                  |
 | `quota-weighted`    | Preskok izčrpanih računov, nato izbira med preostalimi sorazmerno s preostalo kvoto, deljeno s trenutno obremenitvijo; obstoječi pogovori ostanejo pripeti                                                             |
 | `strict-random`     | Naključna izbira brez odstranjevanja ponovitev                                                                                                                                                                         |
@@ -848,9 +849,9 @@ Za opredelitve ravni in razvrstitev ponudnikov glejte [`docs/guides/TIERS.md`](.
 
 ### Deterministična matrika odločitev usmerjanja (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` preverja **odločitev** usmerjanja za vseh 19 javnih strategij od začetka do konca prek dejanskega cevovoda kombiniranja s simuliranim nadrejenim ponudnikom. Pokritost vključuje:
+`tests/integration/combo-matrix/*.test.ts` preverja **odločitev** usmerjanja za vseh 21 javnih strategij od začetka do konca prek dejanskega cevovoda kombiniranja s simuliranim nadrejenim ponudnikom. Pokritost vključuje:
 
-- Vseh 19 strategij `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Vseh 21 strategij `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - Celovito testiranje interne strategije `quota-share`: pravičnost DRR in znižanje prednosti ob nasičenosti prek dejanske testne točke `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Pokritost univerzalne predaje `context-relay` za vsako število ciljev.
 
@@ -880,5 +881,5 @@ Ti preizkusi delovanja preverjajo dejansko komunikacijsko pot (kombinacija → p
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Razčlenjevalnik predpone `auto/` + 6 različic                                                                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Iz aktivnih povezav v pomnilniku zgradi `AutoComboConfig`                                                                                                      |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testna kljuka za simuliranje registra ponudnikov                                                                                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategij)                                                                                                                       |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategij)                                                                                                                       |
 | `src/sse/handlers/chat.ts`                                | Integracija: kratkostična obravnava predpone `auto/`                                                                                                           |

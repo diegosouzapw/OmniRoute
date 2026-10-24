@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Безплатният AI шлюз
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Никога не спирайте да програмирате. Всеки AI инструмент → 375 доставчика — над 150 безплатни — чрез една крайна точка. Claude Code, Codex, Cursor, Cline, Copilot и Antigravity към БЕЗПЛАТНИ Claude / GPT / Gemini с автоматично резервно превключване. Комбинираната компресия RTK + Caveman спестява 15–95% от токените (~89% средно) — никога не достигайте ограниченията. 375 AI доставчика · над 150 безплатни нива · ~1,62 млрд. безплатни токена/месец · 20 стратегии за маршрутизиране · $0 за начало."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Никога не спирайте да програмирате. Всеки AI инструмент → 375 доставчика — над 150 безплатни — чрез една крайна точка. Claude Code, Codex, Cursor, Cline, Copilot и Antigravity към БЕЗПЛАТНИ Claude / GPT / Gemini с автоматично резервно превключване. Комбинираната компресия RTK + Caveman спестява 15–95% от токените (~89% средно) — никога не достигайте ограниченията. 375 AI доставчика · над 150 безплатни нива · ~1,62 млрд. безплатни токена/месец · 21 стратегии за маршрутизиране · $0 за начало."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Поток на заявка в OmniRoute: вашият IDE или CLI (Claude Code, Cursor, Cline…) извиква една локална крайна точка (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman компресия, 20 стратегии за маршрутизиране, circuit breakers, TLS stealth, MCP, A2A, guardrails) може да превключва резервно през 4 нива на доставчици, докато има подходяща здрава цел — Ниво 1 Абонамент, Ниво 2 API ключ, Ниво 3 Евтино и Ниво 4 Безплатно."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="Поток на заявка в OmniRoute: вашият IDE или CLI (Claude Code, Cursor, Cline…) извиква една локална крайна точка (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman компресия, 21 стратегии за маршрутизиране, circuit breakers, TLS stealth, MCP, A2A, guardrails) може да превключва резервно през 4 нива на доставчици, докато има подходяща здрава цел — Ниво 1 Абонамент, Ниво 2 API ключ, Ниво 3 Евтино и Ниво 4 Безплатно."/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Анимирани примери за 18 от 20-те стратегии за маршрутизиране на комбинации — по една плочка за всяка стратегия: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized и quota-weighted не са анимирани; таблицата по-долу описва всичките 20."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Анимирани примери за 18 от 21-те стратегии за маршрутизиране на комбинации — по една плочка за всяка стратегия: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted и expiry-first не са анимирани; таблицата по-долу описва всичките 21."/>
 
 > **Комбинацията** е верига от модели, между които OmniRoute маршрутизира **автоматично**. Ако квотата се изчерпи, доставчикът откаже или разходите рязко се повишат, комбинацията може да премине към следващия допустим и работещ модел. 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 Или създайте своя собствена — 20 стратегии за маршрутизиране
+### 🔀 Или създайте своя собствена — 21 стратегии за маршрутизиране
 
-Всички **20** стратегии — комбинирайте ги свободно за всяка стъпка от комбинацията:
+Всички **21** стратегии — комбинирайте ги свободно за всяка стъпка от комбинацията:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>Свързва стъпки във верига — изходът на всяка цел се подава към следващата 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>Изразходва акаунта, чиято квота иначе би изтекла неизползвана: първи е акаунтът с най-голям остатък и най-близко нулиране ⏳</td>
+  </tr>
 </table>
 
 <sub>Механизмът Auto-Combo оценява всеки кандидат по **16 фактора** (работоспособност, квота, цена, латентност, пригодност за задачата, качество, наличност на сесията…) — вижте [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="С какво OmniRoute се отличава — моментна снимка на функциите към определена дата спрямо 9router, OpenRouter, CLIProxyAPI и LiteLLM по 13 възможности. OmniRoute: 375 доставчика, над 150 вградени безплатни нива, 20 стратегии за маршрутизиране, компресиране на токени с 12 механизма, вграден MCP сървър със 110 инструмента, A2A протокол за агенти, постоянна памет, защитни механизми, облачни агенти, прикриване на TLS отпечатъка, Desktop/Termux/PWA и потребителски интерфейс на 67 езика. OmniRoute е лицензиран под MIT и може да се хоства самостоятелно. Възможностите и броят им при конкурентите може да се променят; вижте свързаната методология."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="С какво OmniRoute се отличава — моментна снимка на функциите към определена дата спрямо 9router, OpenRouter, CLIProxyAPI и LiteLLM по 13 възможности. OmniRoute: 375 доставчика, над 150 вградени безплатни нива, 21 стратегии за маршрутизиране, компресиране на токени с 12 механизма, вграден MCP сървър със 110 инструмента, A2A протокол за агенти, постоянна памет, защитни механизми, облачни агенти, прикриване на TLS отпечатъка, Desktop/Termux/PWA и потребителски интерфейс на 67 езика. OmniRoute е лицензиран под MIT и може да се хоства самостоятелно. Възможностите и броят им при конкурентите може да се променят; вижте свързаната методология."/>
 
 <sub>📊 Пълна методология и подробности за всяка функция спрямо 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

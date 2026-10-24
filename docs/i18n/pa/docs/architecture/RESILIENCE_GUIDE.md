@@ -680,7 +680,7 @@ IP-ਬਕਿਟਡ ਹੈ, ਖਾਤਾ-ਬਕਿਟਡ ਨਹੀਂ — ਵੇ�
 
 ## ਹੋਰ ਰੈਜ਼ੀਲੀਅੰਸ ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ
 
-- **20 ਰੂਟਿੰਗ ਰਣਨੀਤੀਆਂ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ਵੇਖੋ [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
+- **21 ਰੂਟਿੰਗ ਰਣਨੀਤੀਆਂ** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ਵੇਖੋ [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
 - **ਰੀਸੈੱਟ-ਜਾਣੂ ਰੂਟਿੰਗ** (v3.8.0) — ਕੋਟਾ ਰੀਸੈੱਟ ਸਮੇਂ ਅਨੁਸਾਰ ਕਨੈਕਸ਼ਨਾਂ ਨੂੰ ਤਰਜੀਹ ਦਿੰਦਾ ਹੈ।
 - **ਬੈਕਗ੍ਰਾਉਂਡ ਮੋਡ ਡਿਗ੍ਰੇਡੇਸ਼ਨ** — Responses API `background: true` ਚੇਤਾਵਨੀ ਸਮੇਤ ਸਿੰਕ ਵਿੱਚ ਡਿਗ੍ਰੇਡ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।
 - **ਡਾਇਨਾਮਿਕ ਟੂਲ ਸੀਮਾ ਖੋਜ** — ਜਦੋਂ ਟੂਲ ਗਿਣਤੀ ਸੀਮਾਵਾਂ ਪਹੁੰਚ ਜਾਂਦੀਆਂ ਹਨ ਤਾਂ ਪ੍ਰੋਵਾਈਡਰਾਂ ਨੂੰ ਬੈਕ-ਆਫ਼ ਕਰਦਾ ਹੈ।

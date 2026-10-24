@@ -348,7 +348,7 @@ Engine quota-share je dodáván se dvěma vrstvami automatizovaných testů:
 | Jednotkové testy (29 testů) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Plánovač DRR, blokování při saturaci, limity souběžnosti, výpočty fairShare, řazení nevyřízených požadavků do fronty                                                                                                                  |
 | Integrační matice           | `npm run test:combo:matrix`                                            | Komplexní rozhodování o směrování prostřednictvím skutečné pipeline kombinací; spravedlivost DRR + snížení priority při saturaci pomocí živých rozhraní (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integrační matice se spouští v CI společně se všemi 19 veřejnými strategiemi. Sadu
+Integrační matice se spouští v CI společně se všemi 21 veřejnými strategiemi. Sadu
 jednotkových testů lze spustit samostatně.
 
 ---

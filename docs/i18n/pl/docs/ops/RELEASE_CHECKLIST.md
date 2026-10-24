@@ -147,7 +147,7 @@ E2E, bez żadnej etykiety.
 - [ ] `npm run test:vitest` — zakończone pomyślnie (serwer MCP, autoCombo, pamięć podręczna)
 - [ ] `npm run test:coverage` — spełniony próg 60/60/60/60 (instrukcje/wiersze/funkcje/gałęzie)
 - [ ] `npm run test:integration` — zakończone pomyślnie (jeśli zmiany dotyczą bazy danych / procedur obsługi)
-- [ ] `npm run test:combo:matrix` — zakończone pomyślnie (macierz strategii combo: deterministycznie potwierdza decyzje wyboru wszystkich 19 publicznych strategii routingu; uruchom w przypadku zmian routingu combo, rozstrzygania strategii lub logiki rezerwowej)
+- [ ] `npm run test:combo:matrix` — zakończone pomyślnie (macierz strategii combo: deterministycznie potwierdza decyzje wyboru wszystkich 21 publicznych strategii routingu; uruchom w przypadku zmian routingu combo, rozstrzygania strategii lub logiki rezerwowej)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcjonalne/ręczne** (test dymny z kontrolowanym dostępem do rzeczywistych usług nadrzędnych; pobiera migawkę bazy danych tylko do odczytu z VPS `root@192.168.0.15`; korzysta z rzeczywistych dostawców i zużywa środki; nigdy nie jest uruchamiany w CI; bez ustawionej bramki jest prawidłowo pomijany)
 - [ ] `npm run test:combo:live:vps` — **opcjonalne/ręczne** (test dymny VPS na żywo fazy 3: 7 scenariuszy HTTP wykonywanych względem działającego serwera `.15` za pomocą zwykłego Node ESM; wymaga `ssh root@192.168.0.15`; tworzy/usuwa wyłącznie kombinacje `__live_test__*`; korzysta z rzeczywistych dostawców; nigdy nie jest uruchamiany w CI)
 - [ ] `npm run test:e2e` — zakończone pomyślnie (zmiany interfejsu użytkownika)

@@ -146,7 +146,7 @@ la matrice E2E, sans aucun label.
 - [ ] `npm run test:vitest` — réussi (serveur MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — seuil 60/60/60/60 atteint (instructions/lignes/fonctions/branches)
 - [ ] `npm run test:integration` — réussi (si les modifications concernent la base de données ou les gestionnaires)
-- [ ] `npm run test:combo:matrix` — réussi (matrice des stratégies combinées : valide de manière déterministe les décisions de sélection des 19 stratégies publiques de routage ; à exécuter lorsque le routage combiné, la résolution des stratégies ou la logique de repli sont modifiés)
+- [ ] `npm run test:combo:matrix` — réussi (matrice des stratégies combinées : valide de manière déterministe les décisions de sélection des 21 stratégies publiques de routage ; à exécuter lorsque le routage combiné, la résolution des stratégies ou la logique de repli sont modifiés)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **facultatif/manuel** (test de fumée soumis à une condition avec de vrais services en amont ; récupère un instantané en lecture seule de la base de données depuis le VPS `root@192.168.0.15` ; sollicite de vrais fournisseurs et consomme des crédits ; ne s’exécute jamais dans la CI ; est proprement ignoré sans la condition)
 - [ ] `npm run test:combo:live:vps` — **facultatif/manuel** (test de fumée en direct de phase 3 sur le VPS : 7 scénarios HTTP sur le serveur `.15` actif via Node ESM standard ; nécessite `ssh root@192.168.0.15` ; crée/supprime uniquement des combinaisons `__live_test__*` ; sollicite de vrais fournisseurs ; ne s’exécute jamais dans la CI)
 - [ ] `npm run test:e2e` — réussi (modifications de l’interface utilisateur)

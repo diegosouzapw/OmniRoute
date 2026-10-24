@@ -296,7 +296,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Tüm Yönlendirme Stratejileri
 
-OmniRoute'un combo motoru **20 yönlendirme stratejisini** destekler (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` içinde bildirilmiştir). Auto Combo motorunun kendisi `auto` stratejisi altında sunulur; diğerleri kalıcı combo'lar için kullanılabilir.
+OmniRoute'un combo motoru **21 yönlendirme stratejisini** destekler (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` içinde bildirilmiştir). Auto Combo motorunun kendisi `auto` stratejisi altında sunulur; diğerleri kalıcı combo'lar için kullanılabilir.
 
 | Strateji            | Açıklama                                                                                                                                                                                                                             |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -311,6 +311,7 @@ OmniRoute'un combo motoru **20 yönlendirme stratejisini** destekler (`src/share
 | `cost-optimized`    | Katalog fiyatlandırmasına göre istek başına maliyeti en aza indirme                                                                                                                                                                  |
 | `reset-aware` ⭐    | Kota sıfırlama zamanına göre önceliklendirme — kısa sıfırlama aralıkları daha üstte sıralanır                                                                                                                                        |
 | `reset-window`      | Kota aralığı en kısa sürede sıfırlanacak hedefleri tercih etme                                                                                                                                                                       |
+| `expiry-first`      | Kotası aksi takdirde kullanılmadan sona erecek hesabı önce harcar: en yüksek kalan miktara ve en yakın sıfırlamaya sahip hesap önce gelir                                                                                            |
 | `headroom`          | En fazla kalan kota payına sahip hedefi seçme                                                                                                                                                                                        |
 | `quota-weighted`    | Kotası tükenmiş hesapları atlama, ardından kalanlar arasından kalan kotanın devam eden yüke bölünmesiyle orantılı olarak seçim yapma; mevcut konuşmalar sabitlenmiş olarak kalır                                                     |
 | `strict-random`     | Tekrarları tekilleştirmeden rastgele seçim                                                                                                                                                                                           |
@@ -834,10 +835,10 @@ Katman tanımları ve sağlayıcı sınıflandırması için [`docs/guides/TIERS
 ### Deterministik yönlendirme-karar matrisi (`npm run test:combo:matrix`)
 
 `tests/integration/combo-matrix/*.test.ts`, gerçek combo işlem hattı ve sahte bir üst hizmet
-üzerinden 19 genel stratejinin tamamının uçtan uca yönlendirme **kararını** doğrular.
+üzerinden 21 genel stratejinin tamamının uçtan uca yönlendirme **kararını** doğrular.
 Kapsam şunları içerir:
 
-- 19 `ROUTING_STRATEGY_VALUES` stratejisinin tamamı (ordered, weighted, cost, context, fusion, …).
+- 21 `ROUTING_STRATEGY_VALUES` stratejisinin tamamı (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (dahili) uçtan uca: gerçek `selectQuotaShareTarget` bağlantı noktası üzerinden DRR adaleti + doygunluk durumunda önceliğin düşürülmesi (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - Her hedef sayısı genelinde `context-relay` evrensel devir kapsamı.
@@ -870,5 +871,5 @@ bilgileri ve VPS erişimi gerektirdikleri için kasıtlı olarak CI kapsamı dı
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` önek ayrıştırıcısı + 6 varyant                                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Canlı bağlantılardan bellek içi `AutoComboConfig` oluşturur                                                               |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Sağlayıcı kayıt defterini taklit etmek için test kancası                                                                  |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateji)                                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateji)                                                                                   |
 | `src/sse/handlers/chat.ts`                                | Entegrasyon: auto-prefix kısa devresi                                                                                     |

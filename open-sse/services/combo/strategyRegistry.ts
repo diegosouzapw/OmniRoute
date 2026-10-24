@@ -31,6 +31,7 @@ export type StrategyOrderingKind =
   | "cost-optimized"
   | "reset-aware"
   | "reset-window"
+  | "expiry-first"
   | "context-optimized"
   | "cache-optimized"
   | "headroom"
@@ -152,6 +153,10 @@ const STRATEGY_TRAIT_OVERRIDES: Record<AnyRoutingStrategyValue, StrategyTraitOve
   "cost-optimized": { ordering: "cost-optimized" },
   "reset-aware": { ordering: "reset-aware" },
   "reset-window": { ordering: "reset-window" },
+  "expiry-first": {
+    ordering: "expiry-first",
+    protectsFirstTargetFromAffinity: true,
+  },
   headroom: { ordering: "headroom" },
   "quota-weighted": {
     ordering: "quota-weighted",

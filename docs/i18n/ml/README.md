@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — സൗജന്യ AI ഗേറ്റ്വേ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — കോഡിംഗ് ഒരിക്കലും നിർത്തേണ്ടതില്ല. എല്ലാ AI ഉപകരണങ്ങളും → 375 ദാതാക്കൾ — 150+ സൗജന്യം — ഒരൊറ്റ എൻഡ്പോയിന്റിലൂടെ. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity എന്നിവയെ സ്വയമേവയുള്ള ഫാൾബാക്കോടെ സൗജന്യ Claude / GPT / Gemini-യുമായി ബന്ധിപ്പിക്കുന്നു. RTK + Caveman സംയോജിത കംപ്രഷൻ 15–95% ടോക്കണുകൾ ലാഭിക്കുന്നു (ശരാശരി ~89%) — ഒരിക്കലും പരിധിയിലെത്തില്ല. 375 AI ദാതാക്കൾ · 150+ സൗജന്യ ടയറുകൾ · പ്രതിമാസം ~1.62B സൗജന്യ ടോക്കണുകൾ · 20 റൂട്ടിംഗ് തന്ത്രങ്ങൾ · ആരംഭിക്കാൻ $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — കോഡിംഗ് ഒരിക്കലും നിർത്തേണ്ടതില്ല. എല്ലാ AI ഉപകരണങ്ങളും → 375 ദാതാക്കൾ — 150+ സൗജന്യം — ഒരൊറ്റ എൻഡ്പോയിന്റിലൂടെ. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity എന്നിവയെ സ്വയമേവയുള്ള ഫാൾബാക്കോടെ സൗജന്യ Claude / GPT / Gemini-യുമായി ബന്ധിപ്പിക്കുന്നു. RTK + Caveman സംയോജിത കംപ്രഷൻ 15–95% ടോക്കണുകൾ ലാഭിക്കുന്നു (ശരാശരി ~89%) — ഒരിക്കലും പരിധിയിലെത്തില്ല. 375 AI ദാതാക്കൾ · 150+ സൗജന്യ ടയറുകൾ · പ്രതിമാസം ~1.62B സൗജന്യ ടോക്കണുകൾ · 21 റൂട്ടിംഗ് തന്ത്രങ്ങൾ · ആരംഭിക്കാൻ $0."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute റിക്വസ്റ്റ് ഫ്ലോ: നിങ്ങളുടെ IDE-യോ CLI-യോ (Claude Code, Cursor, Cline…) ഒരു ലോക്കൽ എൻഡ്പോയിന്റിനെ (http://localhost:20128/v1) വിളിക്കുന്നു; യോഗ്യവും ആരോഗ്യകരവുമായ ഒരു ടാർഗെറ്റ് അവശേഷിക്കുമ്പോൾ OmniRoute സ്മാർട്ട് റൂട്ടറിന് (RTK + Caveman കംപ്രഷൻ, 20 റൂട്ടിംഗ് സ്ട്രാറ്റജികൾ, സർക്യൂട്ട് ബ്രേക്കറുകൾ, TLS സ്റ്റെൽത്ത്, MCP, A2A, ഗാർഡ്റെയിലുകൾ) 4 പ്രൊവൈഡർ ടയറുകളിലൂടെ ഫോൾബാക്ക് ചെയ്യാൻ കഴിയും — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap, Tier 4 Free."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute റിക്വസ്റ്റ് ഫ്ലോ: നിങ്ങളുടെ IDE-യോ CLI-യോ (Claude Code, Cursor, Cline…) ഒരു ലോക്കൽ എൻഡ്പോയിന്റിനെ (http://localhost:20128/v1) വിളിക്കുന്നു; യോഗ്യവും ആരോഗ്യകരവുമായ ഒരു ടാർഗെറ്റ് അവശേഷിക്കുമ്പോൾ OmniRoute സ്മാർട്ട് റൂട്ടറിന് (RTK + Caveman കംപ്രഷൻ, 21 റൂട്ടിംഗ് സ്ട്രാറ്റജികൾ, സർക്യൂട്ട് ബ്രേക്കറുകൾ, TLS സ്റ്റെൽത്ത്, MCP, A2A, ഗാർഡ്റെയിലുകൾ) 4 പ്രൊവൈഡർ ടയറുകളിലൂടെ ഫോൾബാക്ക് ചെയ്യാൻ കഴിയും — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap, Tier 4 Free."/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="20 കോംബോ റൂട്ടിംഗ് തന്ത്രങ്ങളിൽ 18 എണ്ണത്തിന്റെ ആനിമേറ്റഡ് ഉദാഹരണങ്ങൾ — ഓരോ തന്ത്രത്തിനും ഓരോ ടൈൽ: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted എന്നിവ ആനിമേറ്റ് ചെയ്തിട്ടില്ല; താഴെയുള്ള പട്ടികയിൽ 20 എണ്ണവും വിവരിച്ചിരിക്കുന്നു."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="21 കോംബോ റൂട്ടിംഗ് തന്ത്രങ്ങളിൽ 18 എണ്ണത്തിന്റെ ആനിമേറ്റഡ് ഉദാഹരണങ്ങൾ — ഓരോ തന്ത്രത്തിനും ഓരോ ടൈൽ: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted, expiry-first എന്നിവ ആനിമേറ്റ് ചെയ്തിട്ടില്ല; താഴെയുള്ള പട്ടികയിൽ 21 എണ്ണവും വിവരിച്ചിരിക്കുന്നു."/>
 
 > **കോംബോ** എന്നാൽ OmniRoute **സ്വയമേവ** റൂട്ട് ചെയ്യുന്ന മോഡലുകളുടെ ഒരു ശൃംഖലയാണ്. ക്വാട്ട തീരുകയോ, ഒരു പ്രൊവൈഡർ പരാജയപ്പെടുകയോ, ചെലവ് കുത്തനെ ഉയരുകയോ ചെയ്താൽ, കോംബോയ്ക്ക് യോഗ്യവും പ്രവർത്തനക്ഷമവുമായ അടുത്ത മോഡലിലേക്ക് മാറാനാകും. 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 അല്ലെങ്കിൽ നിങ്ങളുടേത് നിർമ്മിക്കുക — 20 റൂട്ടിംഗ് തന്ത്രങ്ങൾ
+### 🔀 അല്ലെങ്കിൽ നിങ്ങളുടേത് നിർമ്മിക്കുക — 21 റൂട്ടിംഗ് തന്ത്രങ്ങൾ
 
-**20** തന്ത്രങ്ങളും — ഓരോ കോംബോ ഘട്ടത്തിലും ഇഷ്ടാനുസരണം സംയോജിപ്പിക്കാം:
+**21** തന്ത്രങ്ങളും — ഓരോ കോംബോ ഘട്ടത്തിലും ഇഷ്ടാനുസരണം സംയോജിപ്പിക്കാം:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>ഘട്ടങ്ങളെ ശൃംഖലയാക്കുന്നു — ഓരോ ടാർഗറ്റിന്റെയും ഔട്ട്പുട്ട് അടുത്തതിലേക്ക് ഇൻപുട്ടായി നൽകുന്നു 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>അല്ലാത്തപക്ഷം ഉപയോഗിക്കാതെ കാലഹരണപ്പെടുന്ന ക്വോട്ടയുള്ള അക്കൗണ്ട് ആദ്യം ഉപയോഗിക്കുന്നു: ഏറ്റവും കൂടുതൽ ശേഷിക്കുന്നതും ഏറ്റവും അടുത്ത റീസെറ്റുള്ളതുമായ അക്കൗണ്ട് ആദ്യം പോകുന്നു ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo എഞ്ചിൻ ഓരോ സാധ്യതയെയും **16 ഘടകങ്ങളുടെ** (ആരോഗ്യം, ക്വോട്ട, ചെലവ്, ലേറ്റൻസി, ടാസ്ക് അനുയോജ്യത, ഗുണനിലവാരം, സെഷൻ ലഭ്യത…) അടിസ്ഥാനത്തിൽ സ്കോർ ചെയ്യുന്നു — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) കാണുക.</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="13 ശേഷികളിലായി 9router, OpenRouter, CLIProxyAPI, LiteLLM എന്നിവയുമായി താരതമ്യം ചെയ്യുന്ന, തീയതി രേഖപ്പെടുത്തിയ സവിശേഷതാ സ്നാപ്പ്ഷോട്ട് — OmniRoute-നെ വ്യത്യസ്തമാക്കുന്നത് എന്താണെന്ന് കാണിക്കുന്നു. OmniRoute: 375 ദാതാക്കൾ, അന്തർനിർമ്മിതമായ 150+ സൗജന്യ ടിയറുകൾ, 20 റൂട്ടിംഗ് തന്ത്രങ്ങൾ, 12-എഞ്ചിൻ ടോക്കൺ കംപ്രഷൻ, 110 ടൂളുകളുള്ള അന്തർനിർമ്മിത MCP സെർവർ, A2A ഏജന്റ് പ്രോട്ടോക്കോൾ, സ്ഥിരമായ മെമ്മറി, ഗാർഡ്റെയിലുകൾ, ക്ലൗഡ് ഏജന്റുകൾ, TLS ഫിംഗർപ്രിന്റ് മറയ്ക്കൽ, Desktop/Termux/PWA, കൂടാതെ 67 i18n UI ലൊക്കേലുകൾ. OmniRoute MIT ലൈസൻസുള്ളതും സ്വയം ഹോസ്റ്റ് ചെയ്യാവുന്നതുമാണ്. എതിരാളികളുടെ ശേഷികളും എണ്ണവും മാറിയേക്കാം; ലിങ്ക് ചെയ്തിരിക്കുന്ന രീതിശാസ്ത്രം കാണുക."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="13 ശേഷികളിലായി 9router, OpenRouter, CLIProxyAPI, LiteLLM എന്നിവയുമായി താരതമ്യം ചെയ്യുന്ന, തീയതി രേഖപ്പെടുത്തിയ സവിശേഷതാ സ്നാപ്പ്ഷോട്ട് — OmniRoute-നെ വ്യത്യസ്തമാക്കുന്നത് എന്താണെന്ന് കാണിക്കുന്നു. OmniRoute: 375 ദാതാക്കൾ, അന്തർനിർമ്മിതമായ 150+ സൗജന്യ ടിയറുകൾ, 21 റൂട്ടിംഗ് തന്ത്രങ്ങൾ, 12-എഞ്ചിൻ ടോക്കൺ കംപ്രഷൻ, 110 ടൂളുകളുള്ള അന്തർനിർമ്മിത MCP സെർവർ, A2A ഏജന്റ് പ്രോട്ടോക്കോൾ, സ്ഥിരമായ മെമ്മറി, ഗാർഡ്റെയിലുകൾ, ക്ലൗഡ് ഏജന്റുകൾ, TLS ഫിംഗർപ്രിന്റ് മറയ്ക്കൽ, Desktop/Termux/PWA, കൂടാതെ 67 i18n UI ലൊക്കേലുകൾ. OmniRoute MIT ലൈസൻസുള്ളതും സ്വയം ഹോസ്റ്റ് ചെയ്യാവുന്നതുമാണ്. എതിരാളികളുടെ ശേഷികളും എണ്ണവും മാറിയേക്കാം; ലിങ്ക് ചെയ്തിരിക്കുന്ന രീതിശാസ്ത്രം കാണുക."/>
 
 <sub>📊 സമ്പൂർണ്ണ രീതിശാസ്ത്രവും 9router, OpenRouter, CLIProxyAPI, LiteLLM എന്നിവയുമായുള്ള ഓരോ സവിശേഷതയുടെയും വിശദമായ താരതമ്യവും → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

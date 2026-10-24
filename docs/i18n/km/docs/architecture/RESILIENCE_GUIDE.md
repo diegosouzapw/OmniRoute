@@ -710,7 +710,7 @@ rate limit ដែល bucket តាម IP គឺជាសញ្ញាដូចគ
 
 ## លក្ខណៈពិសេស Resilience ផ្សេងៗទៀត
 
-- **យុទ្ធសាស្ត្រ routing ចំនួន 20** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — សូមមើល [AUTO-COMBO.md](../routing/AUTO-COMBO.md)។
+- **យុទ្ធសាស្ត្រ routing ចំនួន 21** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — សូមមើល [AUTO-COMBO.md](../routing/AUTO-COMBO.md)។
 - **Reset-aware routing** (v3.8.0) — ផ្តល់អាទិភាព connection តាមពេលវេលា reset quota។
 - **Background mode degradation** — Responses API `background: true` ត្រូវបានបន្ថយកម្រិតទៅជា sync ជាមួយការព្រមាន។
 - **Dynamic tool limit detection** — ថយក្រោយ (back off) provider នៅពេលដែនកំណត់ចំនួន tool ត្រូវបានឈានដល់។

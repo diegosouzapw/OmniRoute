@@ -309,7 +309,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM-Proxy (Zertifikate, DNS, Ziel-Routing)
 ├── shared/
 │   ├── components/         # React-Komponenten (.tsx)
-│   ├── constants/          # Anbieterdefinitionen (329), MCP-Berechtigungsbereiche, 20 Routing-Strategien
+│   ├── constants/          # Anbieterdefinitionen (329), MCP-Berechtigungsbereiche, 21 Routing-Strategien
 │   ├── utils/              # Circuit Breaker, Bereinigung, Authentifizierungshilfen
 │   └── validation/         # Zod-v4-Schemas
 └── sse/                    # SSE-Proxy-Pipeline

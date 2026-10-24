@@ -281,7 +281,7 @@ e kpebiri na-abanye na ntinye `config.modePack` / `config.budgetCap` /
 
 ## Usoro Ntụgharị Ụzọ Niile
 
-Injin ngwakọta OmniRoute na-akwado **usoro ntụgharị ụzọ 20** (akọwapụtara na `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). A na-ewepụta injin Auto Combo n’onwe ya n'okpuru usoro `auto`; ndị ọzọ dị maka ngwakọta ndị echekwara.
+Injin ngwakọta OmniRoute na-akwado **usoro ntụgharị ụzọ 21** (akọwapụtara na `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). A na-ewepụta injin Auto Combo n’onwe ya n'okpuru usoro `auto`; ndị ọzọ dị maka ngwakọta ndị echekwara.
 
 | Usoro               | Nkọwa                                                                                                                                                                                                  |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,6 +296,7 @@ Injin ngwakọta OmniRoute na-akwado **usoro ntụgharị ụzọ 20** (akọwap
 | `cost-optimized`    | Belata $ a na-akwụ maka arịrịọ ọ bụla dabere n’ọnụahịa dị na katalọgụ                                                                                                                                  |
 | `reset-aware` ⭐    | Nye ihe mkpa dabere n’oge nrụgharị oke ojiji — a na-enye windo nrụgharị dị mkpụmkpụ ọkwa dị elu                                                                                                        |
 | `reset-window`      | Họrọkarị ebumnuche nke windo oke ojiji ya ga-amalitegharị ngwa ngwa                                                                                                                                    |
+| `expiry-first`      | Na-ebu ụzọ jiri akaụntụ nke oke ojiji ya ga-agwụ n'enweghị ojiji: nke fọdụrụ kacha ukwuu nwere nrụgharị kacha nso na-aga mbụ                                                                           |
 | `headroom`          | Họrọ ebumnuche nke nwere ohere oke ojiji fọdụrụ kacha ukwuu                                                                                                                                            |
 | `quota-weighted`    | Mafee akaụntụ ndị oke ojiji ha gwụchara, wee họrọ n’etiti ndị fọdụrụ n’ogo kwekọrọ na oke ojiji fọdụrụ nke e kewara site n’ibu ọrụ na-aga n’ihu; mkparịta ụka ndị dị adị na-anọgide n’otu ebe          |
 | `strict-random`     | Nhọrọ enweghị usoro na-enweghị iwepụ ihe ndị megharịrị ugboro ugboro                                                                                                                                   |
@@ -841,11 +842,11 @@ Lee [`docs/guides/TIERS.md`](../guides/TIERS.md) maka nkọwa tier na nhazi nd�
 
 ### Matriks mkpebi routing na-agbanweghi agbanwe (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` na-egosi **mkpebi** routing nke strategies ọhaneze 19 niile
+`tests/integration/combo-matrix/*.test.ts` na-egosi **mkpebi** routing nke strategies ọhaneze 21 niile
 site na mbido ruo na ngwụcha n’ime ezigbo pipeline combo, site na upstream e mere mock.
 Mkpuchi ahụ gụnyere:
 
-- Strategies `ROUTING_STRATEGY_VALUES` 19 niile (ordered, weighted, cost, context, fusion, …).
+- Strategies `ROUTING_STRATEGY_VALUES` 21 niile (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (nke ime) site na mbido ruo na ngwụcha: izi ezi DRR + iweda mkpa mgbe saturation dị elu site na
   ezigbo oghere njikọ `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -879,5 +880,5 @@ wepụ ha na CI n’ihi na ha chọrọ credentials dị ndụ na ohere ịbanye
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Ntụgharị prefix `auto/` + ụdị 6                                                                                          |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Na-emepụta `AutoComboConfig` n'ime ebe nchekwa site na njikọ ndị na-arụ ọrụ                                              |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook ule maka imegharị provider registry                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (usoro 20)                                                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (usoro 21)                                                                                     |
 | `src/sse/handlers/chat.ts`                                | Njikọta: ụzọ mkpirisi auto-prefix                                                                                        |

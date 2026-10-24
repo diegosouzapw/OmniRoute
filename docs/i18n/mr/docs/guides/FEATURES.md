@@ -59,7 +59,7 @@ OpenRouter कनेक्शन्स Advanced Settings मध्ये प्�
 
 ## 🎨 कॉम्बोज
 
-19 सार्वजनिक धोरणांसह मॉडेल राउटिंग कॉम्बोज तयार करा: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (मॉडेल्सच्या पॅनेलकडे समांतरपणे विनंत्या पाठवून, त्यानंतर एका निर्णायक मॉडेलद्वारे एकच उत्तर संश्लेषित करणे), आणि **pipeline**. प्रत्येक कॉम्बो स्वयंचलित फॉलबॅकसह अनेक मॉडेल्सची साखळी तयार करतो आणि त्यामध्ये झटपट टेम्पलेट्स व तत्परता तपासण्या समाविष्ट असतात.
+21 सार्वजनिक धोरणांसह मॉडेल राउटिंग कॉम्बोज तयार करा: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (मॉडेल्सच्या पॅनेलकडे समांतरपणे विनंत्या पाठवून, त्यानंतर एका निर्णायक मॉडेलद्वारे एकच उत्तर संश्लेषित करणे), आणि **pipeline**. प्रत्येक कॉम्बो स्वयंचलित फॉलबॅकसह अनेक मॉडेल्सची साखळी तयार करतो आणि त्यामध्ये झटपट टेम्पलेट्स व तत्परता तपासण्या समाविष्ट असतात.
 
 कॉम्बोमधील अलीकडील सुधारणा:
 

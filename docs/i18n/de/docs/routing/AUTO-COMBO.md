@@ -278,7 +278,7 @@ aufgelösten Werte werden an die vorhandenen Eingaben `config.modePack` / `confi
 
 ## Alle Routing-Strategien
 
-Die Combo-Engine von OmniRoute unterstützt **20 Routing-Strategien** (deklariert in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Die Auto-Combo-Engine selbst ist über die Strategie `auto` verfügbar; die übrigen Strategien stehen für persistierte Combos zur Verfügung.
+Die Combo-Engine von OmniRoute unterstützt **21 Routing-Strategien** (deklariert in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Die Auto-Combo-Engine selbst ist über die Strategie `auto` verfügbar; die übrigen Strategien stehen für persistierte Combos zur Verfügung.
 
 | Strategie           | Beschreibung                                                                                                                                                                                                                               |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -293,6 +293,7 @@ Die Combo-Engine von OmniRoute unterstützt **20 Routing-Strategien** (deklarier
 | `cost-optimized`    | Kosten pro Anfrage anhand der Katalogpreise minimieren                                                                                                                                                                                     |
 | `reset-aware` ⭐    | Nach dem Zeitpunkt der Kontingentzurücksetzung priorisieren — kurze Rücksetzungsfenster werden höher eingestuft                                                                                                                            |
 | `reset-window`      | Ziele bevorzugen, deren Kontingentfenster am frühesten zurückgesetzt wird                                                                                                                                                                  |
+| `expiry-first`      | Verbraucht zuerst das Konto, dessen Quote sonst ungenutzt verfallen würde: der größte Rest mit dem nächsten Reset kommt zuerst                                                                                                             |
 | `headroom`          | Ziel mit dem größten verbleibenden Kontingentspielraum auswählen                                                                                                                                                                           |
 | `quota-weighted`    | Erschöpfte Konten überspringen und anschließend unter den übrigen proportional zum verbleibenden Kontingent, geteilt durch die laufende Last, auswählen; bestehende Konversationen bleiben angeheftet                                      |
 | `strict-random`     | Zufallsauswahl ohne Deduplizierung von Wiederholungen                                                                                                                                                                                      |
@@ -831,9 +832,9 @@ Definitionen der Tiers und die Klassifizierung der Anbieter finden Sie unter [`d
 
 ### Deterministische Matrix für Routing-Entscheidungen (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` belegt die Routing-**Entscheidung** aller 19 öffentlichen Strategien durchgängig über die echte Combo-Pipeline mit einem simulierten Upstream-Dienst. Die Abdeckung umfasst:
+`tests/integration/combo-matrix/*.test.ts` belegt die Routing-**Entscheidung** aller 21 öffentlichen Strategien durchgängig über die echte Combo-Pipeline mit einem simulierten Upstream-Dienst. Die Abdeckung umfasst:
 
-- Alle 19 Strategien aus `ROUTING_STRATEGY_VALUES` (geordnet, gewichtet, Kosten, Kontext, Fusion, …).
+- Alle 21 Strategien aus `ROUTING_STRATEGY_VALUES` (geordnet, gewichtet, Kosten, Kontext, Fusion, …).
 - `quota-share` (intern) durchgängig: DRR-Fairness + Herabstufung bei Sättigung über den echten `selectQuotaShareTarget`-Integrationspunkt (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - Universelle Übergabeabdeckung für `context-relay` über jede Anzahl von Zielen hinweg.
@@ -864,5 +865,5 @@ Diese Smoke-Tests prüfen den echten Übertragungspfad (Combo → Anbieter → V
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser für das Präfix `auto/` + 6 Varianten                                                                                        |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Erstellt eine speicherinterne `AutoComboConfig` aus aktiven Verbindungen                                                           |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test-Hook zum Mocking der Provider-Registry                                                                                        |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 Strategien)                                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 Strategien)                                                                                          |
 | `src/sse/handlers/chat.ts`                                | Integration: Kurzschluss für Auto-Präfixe                                                                                          |

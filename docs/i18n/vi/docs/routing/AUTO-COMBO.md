@@ -281,7 +281,7 @@ giá trị đã phân giải được truyền vào các đầu vào `config.mod
 
 ## Tất cả chiến lược định tuyến
 
-Công cụ combo của OmniRoute hỗ trợ **20 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được cung cấp dưới chiến lược `auto`; các chiến lược còn lại khả dụng cho các combo đã được lưu.
+Công cụ combo của OmniRoute hỗ trợ **21 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được cung cấp dưới chiến lược `auto`; các chiến lược còn lại khả dụng cho các combo đã được lưu.
 
 | Chiến lược          | Mô tả                                                                                                                                                                                                                 |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,6 +296,7 @@ Công cụ combo của OmniRoute hỗ trợ **20 chiến lược định tuyến
 | `cost-optimized`    | Giảm thiểu chi phí $ cho mỗi yêu cầu dựa trên giá trong danh mục                                                                                                                                                      |
 | `reset-aware` ⭐    | Ưu tiên theo thời điểm đặt lại hạn ngạch — các cửa sổ đặt lại ngắn được xếp hạng cao hơn                                                                                                                              |
 | `reset-window`      | Ưu tiên các mục tiêu có cửa sổ hạn ngạch sắp được đặt lại nhất                                                                                                                                                        |
+| `expiry-first`      | Ưu tiên dùng tài khoản có hạn ngạch sẽ hết hạn mà không được sử dụng: tài khoản còn nhiều nhất và có thời điểm đặt lại gần nhất được dùng trước                                                                       |
 | `headroom`          | Chọn mục tiêu có phần hạn ngạch còn lại lớn nhất                                                                                                                                                                      |
 | `quota-weighted`    | Bỏ qua các tài khoản đã hết hạn ngạch, sau đó chọn trong số còn lại theo tỷ lệ hạn ngạch còn lại chia cho tải đang xử lý; các cuộc hội thoại hiện có vẫn được ghim                                                    |
 | `strict-random`     | Chọn ngẫu nhiên mà không loại bỏ các lần lặp                                                                                                                                                                          |
@@ -848,11 +849,11 @@ Xem [`docs/guides/TIERS.md`](../guides/TIERS.md) để biết định nghĩa cá
 
 ### Ma trận quyết định định tuyến tất định (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` xác minh **quyết định** định tuyến của toàn bộ 19
+`tests/integration/combo-matrix/*.test.ts` xác minh **quyết định** định tuyến của toàn bộ 21
 chiến lược công khai từ đầu đến cuối thông qua pipeline combo thực với một upstream mô phỏng.
 Phạm vi bao phủ bao gồm:
 
-- Toàn bộ 19 chiến lược `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Toàn bộ 21 chiến lược `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (nội bộ) từ đầu đến cuối: tính công bằng DRR + hạ mức ưu tiên khi bão hòa thông qua
   điểm nối `selectQuotaShareTarget` thực (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -886,5 +887,5 @@ chủ ý loại khỏi CI vì yêu cầu thông tin xác thực thực tế và 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Trình phân tích tiền tố `auto/` + 6 biến thể                                                                                               |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Tạo `AutoComboConfig` trong bộ nhớ từ các kết nối đang hoạt động                                                                           |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook kiểm thử để mô phỏng sổ đăng ký nhà cung cấp                                                                                          |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 chiến lược)                                                                                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 chiến lược)                                                                                                  |
 | `src/sse/handlers/chat.ts`                                | Tích hợp: đoản mạch tiền tố tự động                                                                                                        |

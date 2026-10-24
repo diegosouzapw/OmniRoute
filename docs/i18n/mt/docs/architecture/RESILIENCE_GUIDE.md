@@ -763,7 +763,7 @@ skont l-IP huwa l-istess sinjal bħal kwota eżawrita. Limiti onesti:
 
 ## Karatteristiċi oħra tar-reżiljenza
 
-- **20-il strateġija ta' routing** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ara [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 strateġija ta' routing** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — ara [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Routing konxju tar-reset** (v3.8.0) — jagħti prijorità lill-konnessjonijiet skont il-ħin tar-reset tal-kwota.
 - **Degradazzjoni tal-modalità background** — il-`background: true` tar-Responses API jiġi degradat għal sync b'twissija.
 - **Sejbien dinamiku tal-limitu tal-għodod** — jagħmel backoff lill-providers meta jintlaħqu l-limiti tal-għadd ta' għodod.

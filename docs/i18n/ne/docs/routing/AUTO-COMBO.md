@@ -261,7 +261,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## सबै राउटिङ रणनीतिहरू
 
-OmniRoute को कम्बो इन्जिनले **20 वटा राउटिङ रणनीतिहरू** समर्थन गर्छ (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` मा घोषणा गरिएका)। Auto Combo इन्जिन स्वयं `auto` रणनीतिअन्तर्गत उपलब्ध छ; अन्य रणनीतिहरू सुरक्षित गरिएका कम्बोहरूका लागि उपलब्ध छन्।
+OmniRoute को कम्बो इन्जिनले **21 वटा राउटिङ रणनीतिहरू** समर्थन गर्छ (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` मा घोषणा गरिएका)। Auto Combo इन्जिन स्वयं `auto` रणनीतिअन्तर्गत उपलब्ध छ; अन्य रणनीतिहरू सुरक्षित गरिएका कम्बोहरूका लागि उपलब्ध छन्।
 
 | रणनीति              | विवरण                                                                                                                                                                                                                                |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -276,6 +276,7 @@ OmniRoute को कम्बो इन्जिनले **20 वटा रा�
 | `cost-optimized`    | क्याटलग मूल्य निर्धारणका आधारमा प्रत्येक अनुरोधको $ लागत न्यूनतम गर्ने                                                                                                                                                               |
 | `reset-aware` ⭐    | कोटा रिसेट समयका आधारमा प्राथमिकता दिने — छोटो रिसेट विन्डोलाई उच्च स्थान दिने                                                                                                                                                       |
 | `reset-window`      | सबैभन्दा चाँडै कोटा विन्डो रिसेट हुने लक्ष्यलाई प्राथमिकता दिने                                                                                                                                                                      |
+| `expiry-first`      | अन्यथा प्रयोग नगरी म्याद सकिने कोटा भएको खाता पहिले खर्च गर्छ: सबैभन्दा धेरै बाँकी र सबैभन्दा नजिकको रिसेट भएको खाता पहिले जान्छ                                                                                                     |
 | `headroom`          | सबैभन्दा धेरै बाँकी कोटा क्षमता भएको लक्ष्य छान्ने                                                                                                                                                                                   |
 | `quota-weighted`    | कोटा सकिएका खाताहरू छोडेर, बाँकी कोटालाई चालू लोडले भाग गर्दा प्राप्त अनुपातअनुसार बाँकी खातामध्ये छनोट गर्ने; विद्यमान संवादहरू एउटै लक्ष्यमा पिन रहन्छन्                                                                           |
 | `strict-random`     | दोहोरिएका लक्ष्यहरू नहटाई अनियमित छनोट गर्ने                                                                                                                                                                                         |
@@ -799,11 +800,11 @@ Tier 1 (सदस्यता) लाई बलियो प्राथमि�
 
 ### निर्धारणात्मक राउटिङ-निर्णय म्याट्रिक्स (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` ले नक्कली अपस्ट्रिमसहितको वास्तविक कम्बो पाइपलाइनमार्फत सबै 19
+`tests/integration/combo-matrix/*.test.ts` ले नक्कली अपस्ट्रिमसहितको वास्तविक कम्बो पाइपलाइनमार्फत सबै 21
 सार्वजनिक रणनीतिहरूको राउटिङ **निर्णय**लाई सुरुदेखि अन्त्यसम्म प्रमाणित गर्छ।
 कभरेजमा निम्न समावेश छन्:
 
-- सबै 19 वटा `ROUTING_STRATEGY_VALUES` रणनीतिहरू (ordered, weighted, cost, context, fusion, …)।
+- सबै 21 वटा `ROUTING_STRATEGY_VALUES` रणनीतिहरू (ordered, weighted, cost, context, fusion, …)।
 - `quota-share` (आन्तरिक) सुरुदेखि अन्त्यसम्म: वास्तविक `selectQuotaShareTarget` सीम (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`) मार्फत DRR निष्पक्षता + संतृप्ति प्राथमिकीकरण न्यूनीकरण।
 - प्रत्येक लक्षित सङ्ख्यामा `context-relay` को विश्वव्यापी हस्तान्तरण कभरेज।
@@ -836,5 +837,5 @@ Tier 1 (सदस्यता) लाई बलियो प्राथमि�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` प्रिफिक्स पार्सर + ६ भेरियन्टहरू                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | लाइभ जडानहरूबाट इन-मेमोरी `AutoComboConfig` निर्माण गर्छ                                                  |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | प्रदायक रजिस्ट्री मक गर्नका लागि परीक्षण हुक                                                              |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (२० रणनीतिहरू)                                                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (२१ रणनीतिहरू)                                                                  |
 | `src/sse/handlers/chat.ts`                                | एकीकरण: अटो-प्रिफिक्स सर्ट-सर्किट                                                                         |

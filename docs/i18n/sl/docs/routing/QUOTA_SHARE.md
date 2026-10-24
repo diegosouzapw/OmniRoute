@@ -346,7 +346,7 @@ Mehanizem quota-share vključuje dve ravni avtomatiziranega testiranja:
 | Enotski (29 testov)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Razporejevalnik DRR, omejevanje ob nasičenosti, omejitve sočasnosti, izračun fairShare, postavljanje čakalnih zahtev v vrsto                                                                                                         |
 | Integracijska matrika | `npm run test:combo:matrix`                                            | Celovita odločitev o usmerjanju skozi dejanski cevovod kombinacij; pravičnost DRR + znižanje prioritete ob nasičenosti prek aktivnih povezovalnih točk (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integracijska matrika se izvaja v CI skupaj z vsemi 19 javnimi strategijami. Enotsko zbirko
+Integracijska matrika se izvaja v CI skupaj z vsemi 21 javnimi strategijami. Enotsko zbirko
 je mogoče izvajati samostojno.
 
 ---

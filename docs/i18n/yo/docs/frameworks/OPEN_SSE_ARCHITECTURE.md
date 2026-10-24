@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Ó ṣe àtìlẹ́yìn fún **àwọn ìlànà ìtọ́sọ́nà 20** (wo `src/shared/constants/routingStrategies.ts`):
+Ó ṣe àtìlẹ́yìn fún **àwọn ìlànà ìtọ́sọ́nà 21** (wo `src/shared/constants/routingStrategies.ts`):
 
 | Ìlànà               | Bí ó ṣe ń ṣe                                                                             |
 | ------------------- | ---------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | Àfojúsùn aláàáfíà tó dinwọ jù ni àkọ́kọ́                                                   |
 | `reset-aware`       | Ó mọ̀ nípa àwọn window àtúnṣètò (reset) ti olùpèsè                                        |
 | `reset-window`      | Ìtọ́sọ́nà tó dá lórí window àtúnṣètò                                                       |
+| `expiry-first`      | Ó ń kọ́kọ́ lo àkọọ́lẹ̀ tí ìpín rẹ̀ ìbá parí láìlò                                             |
 | `headroom`          | Aya quota tó kù jù ni àkọ́kọ́                                                              |
 | `quota-weighted`    | Fò àwọn àkáàntì tí ó ti parẹ́, lẹ́yìn náà ó ń yan gẹ́gẹ́ bí quota tó kù ÷ ẹrù iṣẹ́ tó wà lọ́wọ́ |
 | `strict-random`     | Déédéé ní tòótọ́ (kò sí íwúwo didára)                                                     |

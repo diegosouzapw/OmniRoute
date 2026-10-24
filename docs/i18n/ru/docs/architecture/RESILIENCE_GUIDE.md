@@ -741,7 +741,7 @@ opencode бакетируется по IP, а не по аккаунту — с�
 
 ## Другие функции отказоустойчивости
 
-- **20 стратегий маршрутизации** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — см. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 стратегия маршрутизации** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — см. [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Маршрутизация с учётом сброса квоты** (v3.8.0) — приоритизирует подключения по времени сброса квоты.
 - **Деградация фонового режима** — `background: true` в Responses API деградирует до синхронного режима с предупреждением.
 - **Динамическое определение лимита инструментов** — отводит провайдеров при достижении лимитов на количество инструментов.

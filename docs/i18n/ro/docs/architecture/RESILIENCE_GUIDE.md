@@ -767,7 +767,7 @@ pe IP este același semnal ca o cotă epuizată. Limitări oneste:
 
 ## Alte funcționalități de reziliență
 
-- **20 de strategii de rutare** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consultați [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 de strategii de rutare** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consultați [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Rutare ținând cont de resetare (reset-aware)** (v3.8.0) — prioritizează conexiunile în funcție de momentul resetării cotei.
 - **Degradarea modului în fundal** — Responses API cu `background: true` este degradat la execuție sincronă, cu avertisment.
 - **Detectarea dinamică a limitei de unelte** — aplică backoff furnizorilor atunci când se ating limitele privind numărul de unelte.

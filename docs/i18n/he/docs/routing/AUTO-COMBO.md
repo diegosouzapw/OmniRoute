@@ -279,7 +279,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## כל אסטרטגיות הניתוב
 
-מנוע השילובים של OmniRoute תומך ב-**20 אסטרטגיות ניתוב** (המוצהרות ב-`src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). מנוע Auto Combo עצמו נחשף תחת האסטרטגיה `auto`; האחרות זמינות עבור שילובים שנשמרו.
+מנוע השילובים של OmniRoute תומך ב-**21 אסטרטגיות ניתוב** (המוצהרות ב-`src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). מנוע Auto Combo עצמו נחשף תחת האסטרטגיה `auto`; האחרות זמינות עבור שילובים שנשמרו.
 
 | אסטרטגיה            | תיאור                                                                                                                                                                                  |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -294,6 +294,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | מזעור העלות בדולרים לכל בקשה, בהתאם לתמחור בקטלוג                                                                                                                                      |
 | `reset-aware` ⭐    | תעדוף לפי מועד איפוס המכסה — חלונות איפוס קצרים מדורגים גבוה יותר                                                                                                                      |
 | `reset-window`      | העדפת יעדים שחלון המכסה שלהם יתאפס בהקדם                                                                                                                                               |
+| `expiry-first`      | מנצל קודם את החשבון שהמכסה שלו הייתה פגה אחרת ללא שימוש: היתרה הגבוהה ביותר עם האיפוס הקרוב ביותר קודמת                                                                                |
 | `headroom`          | בחירת היעד עם מרווח המכסה הגדול ביותר שנותר                                                                                                                                            |
 | `quota-weighted`    | דילוג על חשבונות שמכסתם מוצתה, ולאחר מכן בחירה מבין הנותרים ביחס למכסה שנותרה חלקי העומס הפעיל; שיחות קיימות נשארות מקובעות                                                            |
 | `strict-random`     | בחירה אקראית ללא הסרת כפילויות של חזרות                                                                                                                                                |
@@ -842,11 +843,11 @@ offline-friendly) מפורטות בטבלה "פרופילי משקל לפי חב
 
 ### מטריצת החלטות ניתוב דטרמיניסטית (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` מוכיחים את **החלטת** הניתוב של כל 19
+`tests/integration/combo-matrix/*.test.ts` מוכיחים את **החלטת** הניתוב של כל 21
 האסטרטגיות הציבוריות מקצה לקצה דרך צינור השילוב האמיתי, עם שירות חיצוני מדומה.
 הכיסוי כולל:
 
-- את כל 19 האסטרטגיות של `ROUTING_STRATEGY_VALUES` (לפי סדר, משוקלל, עלות, הקשר, מיזוג, …).
+- את כל 21 האסטרטגיות של `ROUTING_STRATEGY_VALUES` (לפי סדר, משוקלל, עלות, הקשר, מיזוג, …).
 - את `quota-share` (פנימי) מקצה לקצה: הוגנות DRR + הורדת עדיפות בעת רוויה דרך נקודת החיבור האמיתית `selectQuotaShareTarget`‏ (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - כיסוי העברה אוניברסלית של `context-relay` בכל מספר אפשרי של יעדים.
@@ -879,5 +880,5 @@ offline-friendly) מפורטות בטבלה "פרופילי משקל לפי חב
 | `open-sse/services/autoCombo/autoPrefix.ts`               | מפענח הקידומת `auto/` + 6 וריאציות                                                                       |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | בניית `AutoComboConfig` בזיכרון מחיבורים פעילים                                                          |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | נקודת חיבור לבדיקות לצורך הדמיית רישום ספקים                                                             |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`‏ (20 אסטרטגיות)                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`‏ (21 אסטרטגיות)                                                                |
 | `src/sse/handlers/chat.ts`                                | אינטגרציה: קיצור דרך עבור קידומת auto                                                                    |

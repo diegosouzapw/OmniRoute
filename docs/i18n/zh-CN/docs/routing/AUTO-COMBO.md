@@ -245,7 +245,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute 的组合引擎支持 **20 种路由策略**（声明于 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
+OmniRoute 的组合引擎支持 **21 种路由策略**（声明于 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
 
 | 策略                | 描述                                                                                                                              |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
@@ -260,6 +260,7 @@ OmniRoute 的组合引擎支持 **20 种路由策略**（声明于 `src/shared/c
 | `cost-optimized`    | 根据目录定价，将每个请求的费用降至最低                                                                                            |
 | `reset-aware` ⭐    | 按配额重置时间确定优先级——重置周期较短的目标排名更高                                                                              |
 | `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                    |
+| `expiry-first`      | 优先消耗即将过期作废的配额：剩余最多且重置最近的账号先出队                                                                        |
 | `headroom`          | 选择剩余配额余量最大的目标                                                                                                        |
 | `quota-weighted`    | 跳过配额已耗尽的账户，然后按照剩余配额除以进行中负载所得的比例，从其余账户中进行选择；现有对话会保持固定                          |
 | `strict-random`     | 随机选择，不对重复项去重                                                                                                          |
@@ -793,11 +794,11 @@ SLA 感知字段：
 
 ### 确定性路由决策矩阵（`npm run test:combo:matrix`）
 
-`tests/integration/combo-matrix/*.test.ts` 通过模拟的上游，在真实组合管线中对全部 19 种
+`tests/integration/combo-matrix/*.test.ts` 通过模拟的上游，在真实组合管线中对全部 21 种
 公开策略的路由**决策**进行端到端验证。
 覆盖范围包括：
 
-- 全部 19 种 `ROUTING_STRATEGY_VALUES` 策略（ordered、weighted、cost、context、fusion 等）。
+- 全部 21 种 `ROUTING_STRATEGY_VALUES` 策略（ordered、weighted、cost、context、fusion 等）。
 - `quota-share`（内部）端到端测试：通过真实的 `selectQuotaShareTarget` 接缝（`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`），验证 DRR 公平性与饱和时降权。
 - 覆盖各种目标数量下的 `context-relay` 通用交接行为。
@@ -830,5 +831,5 @@ SLA 感知字段：
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 前缀解析器 + 6 种变体                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 根据实时连接在内存中构建 `AutoComboConfig`                                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 用于模拟提供者注册表的测试钩子                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（20 种策略）                                       |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（21 种策略）                                       |
 | `src/sse/handlers/chat.ts`                                | 集成：auto-prefix 短路逻辑                                                   |

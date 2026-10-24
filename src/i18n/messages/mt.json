@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Jibbilanċja l-kwota li jifdal mar-risettjar ta' kull 5 sigħat u ta' kull ġimgħa, imbagħad juża round-robin għal punteġġi simili",
     "quotaWeighted": "Peżat skont il-kwota",
     "quotaWeightedDesc": "Aqbeż il-kontijiet li eżawrew il-kwota, imbagħad agħżel minn fost il-bqija proporzjonalment għall-kwota li fadal, diviża bit-tagħbija li tkun għaddejja. Il-konverżazzjonijiet eżistenti jibqgħu marbuta mal-istess kont.",
+    "expiryFirst": "L-Ewwel Dak Li Jiskadi",
+    "expiryFirstDesc": "Juża l-ewwel il-kont li l-kwota tiegħu inkella tiskadi mingħajr ma tintuża: l-akbar bilanċ bl-eqreb risettjar jgħaddi l-ewwel.",
     "strictRandom": "Każwali stretta",
     "strictRandomDesc": "Gverta mħallta — juża kull mudell darba qabel ma jerġa' jħallat",
     "fusion": "Fużjoni",
@@ -3600,6 +3602,11 @@
         "when": "Tidderieġi t-traffiku bejn diversi kontijiet b'telemetrija tal-kwota u perjodi differenti ta' tiġdid.",
         "avoid": "It-telemetrija tal-kwota mhijiex disponibbli għall-biċċa l-kbira tal-kontijiet.",
         "example": "Ippreferi kont b'60% tal-kwota ta' kull ġimgħa li tiġġedded għada minflok kont bi 80% li jiġġedded aktar tard."
+      },
+      "expiry-first": {
+        "when": "Tidderieġi t-traffiku bejn kontijiet li l-kwoti tagħhom jiġu risettjati skont skedi differenti u trid tuża l-kwota li inkella tiskadi mingħajr ma tintuża.",
+        "avoid": "It-telemetrija tal-kwota hija nieqsa għall-biċċa l-kbira tal-kontijiet, jew għandek bżonn ordni stabbli li ma jqisx il-ħin tar-risettjar.",
+        "example": "Ippreferi kont b'80% fadal li jiġi risettjat fi żmien 39 minuta minflok kont b'48% fadal li jiġi risettjat fi żmien 9 sigħat — il-kwota li waslet biex tiskadi tintuża qabel ma tinħela."
       },
       "strict-random": {
         "when": "Uża meta trid distribuzzjoni perfettament uniformi — kull mudell jintuża darba qabel ma jerġa' jintuża.",
@@ -3815,6 +3822,13 @@
         "tip1": "Uża passi espliċiti tal-kont jew direzzjonar permezz tat-tikketti tal-kontijiet għal fornituri b'telemetrija tal-kwota.",
         "tip2": "Aġġusta l-piżijiet tas-sessjoni mqabbla ma' dawk ta' kull ġimgħa meta l-eżawriment fuq żmien qasir ikun aktar riskjuż.",
         "tip3": "Żomm il-medda tal-parità żgħira sabiex il-kontijiet ekwivalenti xorta jduru b'mod ġust."
+      },
+      "expiry-first": {
+        "title": "L-ewwel il-kwota li qed tiskadi",
+        "description": "Jikklassifika l-kontijiet skont il-pressjoni tal-użu: kwota għolja li fadal qrib l-iskadenza tar-risettjar tagħha tgħaddi l-ewwel.",
+        "tip1": "Jeħtieġ telemetrija tal-kwota tal-fornitur; il-kontijiet mingħajrha jżommu l-ordni ta' prijorità elenkat tagħhom.",
+        "tip2": "Punteġġi kważi ndaqs jduru fil-medda tal-parità sabiex kontijiet simili xorta jaqsmu t-tagħbija.",
+        "tip3": "Illimita l-klassifikazzjoni għall-grupp tal-kwota li fuqu kull mudell fil-fatt jiġi ffatturat."
       },
       "strict-random": {
         "title": "Distribuzzjoni b'taħlit tal-gverta",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Ippreferi kontijiet bi kwota li fadal fi stat tajjeb u b’risettjar eqreb",
     "quotaWeighted": "Peżat skont il-kwota",
     "quotaWeightedDesc": "Aqbeż il-kontijiet li eżawrew il-kwota, imbagħad agħżel minn fost il-bqija proporzjonalment għall-kwota li fadal, diviża bit-tagħbija li tkun għaddejja. Il-konverżazzjonijiet eżistenti jibqgħu marbuta mal-istess kont.",
+    "expiryFirst": "L-Ewwel Dak Li Jiskadi",
+    "expiryFirstDesc": "Juża l-ewwel il-kont li l-kwota tiegħu inkella tiskadi mingħajr ma tintuża: l-akbar bilanċ bl-eqreb risettjar jgħaddi l-ewwel.",
     "strictRandom": "Każwali Stretta",
     "strictRandomDesc": "Ħawwad il-mazz — juża kull kont darba qabel jerġa’ jħawwad",
     "stickyLimit": "Limitu Persistenti",

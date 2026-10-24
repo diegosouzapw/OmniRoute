@@ -260,7 +260,7 @@ valori risolti alimentano gli input esistenti `config.modePack` / `config.budget
 
 ## Tutte le strategie di routing
 
-Il motore di combinazione di OmniRoute supporta **20 strategie di routing** (dichiarate in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il motore Auto Combo è esposto tramite la strategia `auto`; le altre sono disponibili per le combinazioni persistenti.
+Il motore di combinazione di OmniRoute supporta **21 strategie di routing** (dichiarate in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il motore Auto Combo è esposto tramite la strategia `auto`; le altre sono disponibili per le combinazioni persistenti.
 
 | Strategia           | Descrizione                                                                                                                                                                                                                                                         |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -275,6 +275,7 @@ Il motore di combinazione di OmniRoute supporta **20 strategie di routing** (dic
 | `cost-optimized`    | Riduce al minimo il costo per richiesta in base ai prezzi del catalogo                                                                                                                                                                                              |
 | `reset-aware` ⭐    | Assegna la priorità in base al tempo di reimpostazione della quota: le finestre di reimpostazione più brevi hanno una priorità maggiore                                                                                                                             |
 | `reset-window`      | Preferisce i target la cui finestra di quota viene reimpostata prima                                                                                                                                                                                                |
+| `expiry-first`      | Consuma per primo l'account la cui quota altrimenti scadrebbe inutilizzata: va per primo il residuo più alto con il ripristino più vicino                                                                                                                           |
 | `headroom`          | Sceglie il target con il maggior margine di quota residuo                                                                                                                                                                                                           |
 | `quota-weighted`    | Ignora gli account con quota esaurita, quindi sceglie tra i restanti in proporzione alla quota residua divisa per il carico in corso; le conversazioni esistenti rimangono vincolate                                                                                |
 | `strict-random`     | Selezione casuale senza deduplicazione delle ripetizioni                                                                                                                                                                                                            |
@@ -794,9 +795,9 @@ Consulta [`docs/guides/TIERS.md`](../guides/TIERS.md) per le definizioni dei liv
 
 ### Matrice deterministica delle decisioni di routing (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` verifica la **decisione** di routing di tutte le 19 strategie pubbliche end-to-end attraverso la pipeline combo reale, con un upstream simulato. La copertura include:
+`tests/integration/combo-matrix/*.test.ts` verifica la **decisione** di routing di tutte le 21 strategie pubbliche end-to-end attraverso la pipeline combo reale, con un upstream simulato. La copertura include:
 
-- Tutte le 19 strategie `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Tutte le 21 strategie `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interna) end-to-end: equità DRR + riduzione della priorità in caso di saturazione tramite il punto di integrazione reale `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Copertura del passaggio universale di `context-relay` per ogni numero di destinazioni.
 
@@ -826,5 +827,5 @@ Questi smoke test verificano il percorso di comunicazione reale (combo → provi
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser del prefisso `auto/` + 6 varianti                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Crea un `AutoComboConfig` in memoria dalle connessioni attive                                             |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook di test per simulare il registro dei provider                                                        |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategie)                                                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategie)                                                                  |
 | `src/sse/handlers/chat.ts`                                | Integrazione: cortocircuito del prefisso auto                                                             |

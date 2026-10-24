@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proksi ya MITM (cheti, DNS, uelekezaji lengwa)
 ├── shared/
 │   ├── components/         # Vijenzi vya React (.tsx)
-│   ├── constants/          # Ufafanuzi wa watoa huduma (329), mawanda ya MCP, mikakati 20 ya uelekezaji
+│   ├── constants/          # Ufafanuzi wa watoa huduma (329), mawanda ya MCP, mikakati 21 ya uelekezaji
 │   ├── utils/              # Kivunja saketi, kisafishaji, visaidizi vya uthibitishaji
 │   └── validation/         # Skima za Zod v4
 └── sse/                    # Msururu wa proksi wa SSE

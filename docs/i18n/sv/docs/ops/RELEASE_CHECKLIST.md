@@ -146,7 +146,7 @@ matrisen utan någon etikett.
 - [ ] `npm run test:vitest` — godkänt (MCP-server, autoCombo, cache)
 - [ ] `npm run test:coverage` — gränsvärdet 60/60/60/60 uppfyllt (satser/rader/funktioner/grenar)
 - [ ] `npm run test:integration` — godkänt (om ändringarna berör databasen/hanterare)
-- [ ] `npm run test:combo:matrix` — godkänt (matris för kombinationsstrategier: verifierar deterministiskt urvalsbesluten för samtliga 19 publika dirigeringsstrategier; kör när kombinationsdirigering, strategiupplösning eller reservlogik ändras)
+- [ ] `npm run test:combo:matrix` — godkänt (matris för kombinationsstrategier: verifierar deterministiskt urvalsbesluten för samtliga 21 publika dirigeringsstrategier; kör när kombinationsdirigering, strategiupplösning eller reservlogik ändras)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **valfritt/manuellt** (villkorat smoke-test mot verkliga uppströmstjänster; hämtar en skrivskyddad databasögonblicksbild från VPS `root@192.168.0.15`; anropar verkliga leverantörer och kostar krediter; körs aldrig i CI; hoppas över utan fel om villkoret saknas)
 - [ ] `npm run test:combo:live:vps` — **valfritt/manuellt** (VPS-smoke-test för fas 3: 7 HTTP-scenarier mot den aktiva `.15`-servern via ren Node ESM; kräver `ssh root@192.168.0.15`; skapar/tar endast bort kombinationer med namnet `__live_test__*`; anropar verkliga leverantörer; körs aldrig i CI)
 - [ ] `npm run test:e2e` — godkänt (UI-ändringar)

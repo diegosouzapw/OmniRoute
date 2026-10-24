@@ -146,7 +146,7 @@ kọjá laifọwọ́yi, láìsí àmì kankan.
 - [ ] `npm run test:vitest` — kọjá (server MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — ìlànà 60/60/60/60 ti pé (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — kọjá (bí àwọn àyípadà bá kan DB / handlers)
-- [ ] `npm run test:combo:matrix` — kọjá (matrix ọgbọ́n combo: ó fi hàn ní ọ̀nà tí ó ṣeé tún ṣe pé àwọn ìpinnu àṣàyàn gbogbo ọgbọ́n routing gbogbogbò 19 péye; ṣiṣẹ́ nígbà tí o bá kan combo routing, ìyànjú ọgbọ́n, tàbí fallback logic)
+- [ ] `npm run test:combo:matrix` — kọjá (matrix ọgbọ́n combo: ó fi hàn ní ọ̀nà tí ó ṣeé tún ṣe pé àwọn ìpinnu àṣàyàn gbogbo ọgbọ́n routing gbogbogbò 21 péye; ṣiṣẹ́ nígbà tí o bá kan combo routing, ìyànjú ọgbọ́n, tàbí fallback logic)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **àṣàyàn/pẹ̀lú ọwọ́** (ìdánwò smoke sí upstream gidi tí gate ń ṣàkóso; ó gba snapshot DB kíkà-nìkan láti VPS `root@192.168.0.15`; ó kan àwọn provider gidi, ó sì ń ná credit; kì í ṣiṣẹ́ nínú CI láé; ó máa fo dáadáa láìsí gate)
 - [ ] `npm run test:combo:live:vps` — **àṣàyàn/pẹ̀lú ọwọ́** (ìdánwò smoke VPS Phase-3: àwọn scenario HTTP 7 lòdì sí server `.15` tó ń ṣiṣẹ́ nípasẹ̀ Node ESM lásán; ó nílò `ssh root@192.168.0.15`; ó dá, ó sì pa àwọn combo `__live_test__*` nìkan; ó kan àwọn provider gidi; kì í ṣiṣẹ́ nínú CI láé)
 - [ ] `npm run test:e2e` — kọjá (àwọn àyípadà UI)

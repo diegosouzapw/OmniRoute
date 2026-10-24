@@ -282,7 +282,7 @@ hodnoty jsou předány do stávajících vstupů enginu `config.modePack` / `con
 
 ## Všechny strategie směrování
 
-Kombinační engine OmniRoute podporuje **20 strategií směrování** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný engine Auto Combo je dostupný pod strategií `auto`; ostatní strategie jsou k dispozici pro uložené kombinace.
+Kombinační engine OmniRoute podporuje **21 strategií směrování** (deklarovaných v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný engine Auto Combo je dostupný pod strategií `auto`; ostatní strategie jsou k dispozici pro uložené kombinace.
 
 | Strategie           | Popis                                                                                                                                                                                                                                |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ Kombinační engine OmniRoute podporuje **20 strategií směrování** (deklarov
 | `cost-optimized`    | Minimalizace ceny v $ za požadavek podle katalogových cen                                                                                                                                                                            |
 | `reset-aware` ⭐    | Prioritizace podle času resetování kvóty — kratší intervaly resetování mají vyšší prioritu                                                                                                                                           |
 | `reset-window`      | Upřednostnění cílů, jejichž interval kvóty se resetuje nejdříve                                                                                                                                                                      |
+| `expiry-first`      | Čerpá účet, jehož kvóta by jinak propadla nevyužitá: jako první jde účet s nejvyšším zůstatkem a nejbližším resetem                                                                                                                  |
 | `headroom`          | Výběr cíle s největší zbývající rezervou kvóty                                                                                                                                                                                       |
 | `quota-weighted`    | Přeskočení vyčerpaných účtů a následný výběr ze zbývajících úměrně zbytkové kvótě vydělené aktuální zátěží; existující konverzace zůstávají připnuté                                                                                 |
 | `strict-random`     | Náhodný výběr bez odstraňování opakování                                                                                                                                                                                             |
@@ -819,9 +820,9 @@ Definice úrovní a klasifikaci poskytovatelů najdete v souboru [`docs/guides/T
 
 ### Deterministická matice rozhodování o směrování (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` ověřuje **rozhodnutí** směrování všech 19 veřejných strategií v rámci kompletního reálného kombinačního kanálu s mockovaným upstreamem. Pokrytí zahrnuje:
+`tests/integration/combo-matrix/*.test.ts` ověřuje **rozhodnutí** směrování všech 21 veřejných strategií v rámci kompletního reálného kombinačního kanálu s mockovaným upstreamem. Pokrytí zahrnuje:
 
-- Všech 19 strategií `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Všech 21 strategií `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - Kompletní test `quota-share` (interní): spravedlnost DRR + snížení priority při saturaci prostřednictvím skutečného bodu `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Pokrytí univerzálního předávání `context-relay` pro každý počet cílů.
 
@@ -851,5 +852,5 @@ Tyto smoke testy prověřují skutečnou přenosovou cestu (kombo → poskytovat
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefixu `auto/` + 6 variant                                                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Sestavuje objekt `AutoComboConfig` v paměti z aktivních připojení                                                                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací rozhraní pro mockování registru poskytovatelů                                                                             |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategií)                                                                                            |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategií)                                                                                            |
 | `src/sse/handlers/chat.ts`                                | Integrace: zkratka pro prefix `auto/`                                                                                               |

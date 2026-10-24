@@ -284,7 +284,7 @@ za pojedinačni zahtjev.
 
 ## Sve strategije usmjeravanja
 
-OmniRouteov kombinirani mehanizam podržava **20 strategija usmjeravanja** (deklariranih u `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam mehanizam Auto Combo dostupan je putem strategije `auto`; ostale su dostupne za trajno spremljene kombinacije.
+OmniRouteov kombinirani mehanizam podržava **21 strategiju usmjeravanja** (deklariranu u `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Sam mehanizam Auto Combo dostupan je putem strategije `auto`; ostale su dostupne za trajno spremljene kombinacije.
 
 | Strategija          | Opis                                                                                                                                                                                                                             |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -299,6 +299,7 @@ OmniRouteov kombinirani mehanizam podržava **20 strategija usmjeravanja** (dekl
 | `cost-optimized`    | Minimizira trošak u $ po zahtjevu na temelju cijena iz kataloga                                                                                                                                                                  |
 | `reset-aware` ⭐    | Određuje prioritet prema vremenu poništavanja kvote — kraći intervali poništavanja rangirani su više                                                                                                                             |
 | `reset-window`      | Daje prednost odredištima čiji se interval kvote najranije poništava                                                                                                                                                             |
+| `expiry-first`      | Troši račun čija bi kvota inače istekla neiskorištena: prvi ide račun s najvećim ostatkom i najbližim resetiranjem                                                                                                               |
 | `headroom`          | Odabire odredište s najvećom preostalom rezervom kvote                                                                                                                                                                           |
 | `quota-weighted`    | Preskače iscrpljene račune, a zatim među ostalima odabire razmjerno preostaloj kvoti podijeljenoj s trenutačnim opterećenjem; postojeći razgovori ostaju prikvačeni                                                              |
 | `strict-random`     | Slučajni odabir bez uklanjanja ponavljanja                                                                                                                                                                                       |
@@ -844,11 +845,11 @@ Definicije razina i klasifikaciju pružatelja usluga potražite u dokumentu [`do
 
 ### Deterministička matrica odluka usmjeravanja (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` dokazuje **odluku** usmjeravanja svih 19
-javnih strategija od kraja do kraja kroz pravi combo cjevovod s lažnim upstream-om.
+`tests/integration/combo-matrix/*.test.ts` dokazuje **odluku** usmjeravanja svih 21
+javne strategije od kraja do kraja kroz pravi combo cjevovod s lažnim upstream-om.
 Pokrivenost uključuje:
 
-- Svih 19 strategija `ROUTING_STRATEGY_VALUES` (naručene, ponderirane, troškovna, kontekstualna, fuzijska, …).
+- Svih 21 strategija `ROUTING_STRATEGY_VALUES` (naručene, ponderirane, troškovna, kontekstualna, fuzijska, …).
 - `quota-share` (interno) od kraja do kraja: pravednost DRR + depriorizacija saturacije putem
   pravog šava `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -882,5 +883,5 @@ isključeni iz CI jer zahtijevaju stvarne vjerodajnice i VPS pristup.
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefiksa `auto/` + 6 varijanti                                                                                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Izrađuje `AutoComboConfig` u memoriji iz aktivnih veza                                                                                               |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testna pristupna točka za imitiranje registra pružatelja                                                                                             |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategija)                                                                                                            |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategija)                                                                                                            |
 | `src/sse/handlers/chat.ts`                                | Integracija: prečac za automatski prefiks                                                                                                            |

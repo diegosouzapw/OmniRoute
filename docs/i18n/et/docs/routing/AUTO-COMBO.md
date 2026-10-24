@@ -262,7 +262,7 @@ lahendatud väärtused edastatakse mootori olemasolevatele sisenditele `config.m
 
 ## Kõik marsruutimisstrateegiad
 
-OmniRoute'i kombinatsioonimootor toetab **20 marsruutimisstrateegiat** (deklareeritud failis `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo mootor ise on saadaval strateegia `auto` kaudu; teised strateegiad on saadaval salvestatud kombinatsioonide jaoks.
+OmniRoute'i kombinatsioonimootor toetab **21 marsruutimisstrateegiat** (deklareeritud failis `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo mootor ise on saadaval strateegia `auto` kaudu; teised strateegiad on saadaval salvestatud kombinatsioonide jaoks.
 
 | Strateegia          | Kirjeldus                                                                                                                                                                                                                           |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -277,6 +277,7 @@ OmniRoute'i kombinatsioonimootor toetab **20 marsruutimisstrateegiat** (deklaree
 | `cost-optimized`    | Kataloogihindade põhjal päringu maksumuse minimeerimine                                                                                                                                                                             |
 | `reset-aware` ⭐    | Prioriseerimine kvoodi lähtestamisaja järgi — lühemad lähtestusaknad paigutatakse ettepoole                                                                                                                                         |
 | `reset-window`      | Eelistatakse sihtmärke, mille kvoodiaken lähtestatakse kõige varem                                                                                                                                                                  |
+| `expiry-first`      | Kasutab esmalt konto, mille kvoot muidu kasutamata aeguks: esimesena tuleb suurim jääk koos lähima lähtestamisega                                                                                                                   |
 | `headroom`          | Suurima allesjäänud kvoodivaruga sihtmärgi valimine                                                                                                                                                                                 |
 | `quota-weighted`    | Ammendunud kontod jäetakse vahele, seejärel valitakse ülejäänute seast proportsionaalselt allesjäänud kvoodi ja poolelioleva koormuse suhtele; olemasolevad vestlused jäävad seotuks                                                |
 | `strict-random`     | Juhuvalik ilma korduste eemaldamiseta                                                                                                                                                                                               |
@@ -806,9 +807,9 @@ Tasemete määratlusi ja pakkujate klassifikatsiooni vaadake failist [`docs/guid
 
 ### Deterministliku marsruutimise otsuste maatriks (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` tõendab kõigi 19 avaliku strateegia marsruutimisotsust läbi reaalse kombo toru koos mockitud ülesvooluga. Katvus hõlmab:
+`tests/integration/combo-matrix/*.test.ts` tõendab kõigi 21 avaliku strateegia marsruutimisotsust läbi reaalse kombo toru koos mockitud ülesvooluga. Katvus hõlmab:
 
-- Kõiki 19 `ROUTING_STRATEGY_VALUES` strateegiat (järjestatud, kaalutud, kulu, kontekst, fusioon, …).
+- Kõiki 21 `ROUTING_STRATEGY_VALUES` strateegiat (järjestatud, kaalutud, kulu, kontekst, fusioon, …).
 - `quota-share` (sisemine) lõppläbiviimist: DRR ausus + küllastuse de-prioriseerimine läbi reaalse `selectQuotaShareTarget` õmbluse (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - `context-relay` universaalse üleandmise katvust igal sihtarvul.
@@ -837,5 +838,5 @@ Need suitsukatsed kasutavad reaalset kaabli teekonda (kombo → pakkuja → valm
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiksi `auto/` parser + 6 varianti                                                                                               |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Loob aktiivsete ühenduste põhjal mälusisese `AutoComboConfig`-i                                                                    |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testikonks pakkujate registri matkimiseks                                                                                          |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateegiat)                                                                                         |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateegiat)                                                                                         |
 | `src/sse/handlers/chat.ts`                                | Integratsioon: automaatprefiksi lühis                                                                                              |

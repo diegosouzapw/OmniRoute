@@ -270,7 +270,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## ਸਾਰੀਆਂ ਰਾਊਟਿੰਗ ਰਣਨੀਤੀਆਂ
 
-OmniRoute ਦਾ ਕੌਂਬੋ ਇੰਜਣ **20 ਰਾਊਟਿੰਗ ਰਣਨੀਤੀਆਂ** ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ਵਿੱਚ ਘੋਸ਼ਿਤ)। Auto Combo ਇੰਜਣ ਖੁਦ `auto` ਰਣਨੀਤੀ ਅਧੀਨ ਉਪਲਬਧ ਹੈ; ਬਾਕੀ ਰਣਨੀਤੀਆਂ ਸੁਰੱਖਿਅਤ ਕੀਤੇ ਕੌਂਬੋਜ਼ ਲਈ ਉਪਲਬਧ ਹਨ।
+OmniRoute ਦਾ ਕੌਂਬੋ ਇੰਜਣ **21 ਰਾਊਟਿੰਗ ਰਣਨੀਤੀਆਂ** ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ਵਿੱਚ ਘੋਸ਼ਿਤ)। Auto Combo ਇੰਜਣ ਖੁਦ `auto` ਰਣਨੀਤੀ ਅਧੀਨ ਉਪਲਬਧ ਹੈ; ਬਾਕੀ ਰਣਨੀਤੀਆਂ ਸੁਰੱਖਿਅਤ ਕੀਤੇ ਕੌਂਬੋਜ਼ ਲਈ ਉਪਲਬਧ ਹਨ।
 
 | ਰਣਨੀਤੀ              | ਵੇਰਵਾ                                                                                                                                                                                                                              |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -285,6 +285,7 @@ OmniRoute ਦਾ ਕੌਂਬੋ ਇੰਜਣ **20 ਰਾਊਟਿੰਗ ਰਣ�
 | `cost-optimized`    | ਕੈਟਾਲੌਗ ਕੀਮਤਾਂ ਦੇ ਆਧਾਰ 'ਤੇ ਪ੍ਰਤੀ ਬੇਨਤੀ $ ਨੂੰ ਘੱਟੋ-ਘੱਟ ਕਰੋ                                                                                                                                                                          |
 | `reset-aware` ⭐    | ਕੋਟਾ ਰੀਸੈੱਟ ਸਮੇਂ ਅਨੁਸਾਰ ਤਰਜੀਹ ਦਿਓ — ਛੋਟੀਆਂ ਰੀਸੈੱਟ ਵਿੰਡੋਜ਼ ਨੂੰ ਉੱਚਾ ਦਰਜਾ ਮਿਲਦਾ ਹੈ                                                                                                                                                   |
 | `reset-window`      | ਉਹਨਾਂ ਟਾਰਗੇਟਾਂ ਨੂੰ ਤਰਜੀਹ ਦਿਓ ਜਿਨ੍ਹਾਂ ਦੀ ਕੋਟਾ ਵਿੰਡੋ ਸਭ ਤੋਂ ਜਲਦੀ ਰੀਸੈੱਟ ਹੁੰਦੀ ਹੈ                                                                                                                                                     |
+| `expiry-first`      | ਉਸ ਖਾਤੇ ਨੂੰ ਪਹਿਲਾਂ ਖਰਚਦਾ ਹੈ ਜਿਸਦਾ ਕੋਟਾ ਨਹੀਂ ਤਾਂ ਬਿਨਾਂ ਵਰਤੇ ਖਤਮ ਹੋ ਜਾਂਦਾ: ਸਭ ਤੋਂ ਵੱਧ ਬਾਕੀ ਅਤੇ ਸਭ ਤੋਂ ਨੇੜਲੇ ਰੀਸੈੱਟ ਵਾਲਾ ਖਾਤਾ ਪਹਿਲਾਂ ਜਾਂਦਾ ਹੈ                                                                                         |
 | `headroom`          | ਸਭ ਤੋਂ ਵੱਧ ਬਚੀ ਹੋਈ ਕੋਟਾ ਗੁੰਜਾਇਸ਼ ਵਾਲਾ ਟਾਰਗੇਟ ਚੁਣੋ                                                                                                                                                                                  |
 | `quota-weighted`    | ਖਤਮ ਹੋ ਚੁੱਕੇ ਖਾਤਿਆਂ ਨੂੰ ਛੱਡੋ, ਫਿਰ ਬਾਕੀਆਂ ਵਿੱਚੋਂ ਬਚੇ ਹੋਏ ਕੋਟੇ ਨੂੰ ਚੱਲ ਰਹੇ ਲੋਡ ਨਾਲ ਭਾਗ ਦੇ ਅਨੁਪਾਤ ਵਿੱਚ ਚੁਣੋ; ਮੌਜੂਦਾ ਗੱਲਬਾਤਾਂ ਉਸੇ ਟਾਰਗੇਟ ਨਾਲ ਜੁੜੀਆਂ ਰਹਿੰਦੀਆਂ ਹਨ                                                                        |
 | `strict-random`     | ਦੁਹਰਾਵਾਂ ਨੂੰ ਡੀਡੁਪਲੀਕੇਟ ਕੀਤੇ ਬਿਨਾਂ ਬੇਤਰਤੀਬ ਚੋਣ                                                                                                                                                                                     |
@@ -837,11 +838,11 @@ offline-friendly) "ਹਰ ਪੈਕ ਲਈ ਵਜ਼ਨ ਪ੍ਰੋਫਾਈਲ
 
 ### ਨਿਰਧਾਰਿਤ ਰਾਊਟਿੰਗ-ਫੈਸਲਾ ਮੈਟ੍ਰਿਕਸ (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` ਇੱਕ ਮੌਕ ਕੀਤੇ ਅੱਪਸਟ੍ਰੀਮ ਨਾਲ ਅਸਲ ਕੌਂਬੋ ਪਾਈਪਲਾਈਨ ਰਾਹੀਂ ਸਾਰੀਆਂ 19
+`tests/integration/combo-matrix/*.test.ts` ਇੱਕ ਮੌਕ ਕੀਤੇ ਅੱਪਸਟ੍ਰੀਮ ਨਾਲ ਅਸਲ ਕੌਂਬੋ ਪਾਈਪਲਾਈਨ ਰਾਹੀਂ ਸਾਰੀਆਂ 21
 ਜਨਤਕ ਰਣਨੀਤੀਆਂ ਦੇ ਰਾਊਟਿੰਗ **ਫੈਸਲੇ** ਨੂੰ ਐਂਡ-ਟੂ-ਐਂਡ ਸਾਬਤ ਕਰਦਾ ਹੈ।
 ਕਵਰੇਜ ਵਿੱਚ ਸ਼ਾਮਲ ਹਨ:
 
-- ਸਾਰੀਆਂ 19 `ROUTING_STRATEGY_VALUES` ਰਣਨੀਤੀਆਂ (ordered, weighted, cost, context, fusion, …)।
+- ਸਾਰੀਆਂ 21 `ROUTING_STRATEGY_VALUES` ਰਣਨੀਤੀਆਂ (ordered, weighted, cost, context, fusion, …)।
 - `quota-share` (ਅੰਦਰੂਨੀ) ਐਂਡ-ਟੂ-ਐਂਡ: ਅਸਲ
   `selectQuotaShareTarget` ਸੀਮ (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`) ਰਾਹੀਂ DRR ਨਿਰਪੱਖਤਾ + ਸੈਚੂਰੇਸ਼ਨ ਡੀਪ੍ਰਾਇਰਟੀਕਰਨ।
@@ -875,5 +876,5 @@ offline-friendly) "ਹਰ ਪੈਕ ਲਈ ਵਜ਼ਨ ਪ੍ਰੋਫਾਈਲ
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ਪ੍ਰੀਫਿਕਸ ਪਾਰਸਰ + 6 ਵੇਰੀਐਂਟ                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | ਲਾਈਵ ਕਨੈਕਸ਼ਨਾਂ ਤੋਂ ਇਨ-ਮੈਮੋਰੀ `AutoComboConfig` ਬਣਾਉਂਦਾ ਹੈ                                             |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | ਪ੍ਰੋਵਾਈਡਰ ਰਜਿਸਟਰੀ ਨੂੰ ਮੌਕ ਕਰਨ ਲਈ ਟੈਸਟ ਹੁੱਕ                                                            |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 ਰਣਨੀਤੀਆਂ)                                                               |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 ਰਣਨੀਤੀਆਂ)                                                               |
 | `src/sse/handlers/chat.ts`                                | ਏਕੀਕਰਨ: ਆਟੋ-ਪ੍ਰੀਫਿਕਸ ਸ਼ਾਰਟ-ਸਰਕਿਟ                                                                      |

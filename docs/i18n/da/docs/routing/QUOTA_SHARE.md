@@ -350,7 +350,7 @@ Quota-share-motoren leveres med to lag automatiseret testdækning:
 | Enhed (29 tests)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-planlægger, mæthedsbegrænsning, samtidighedsgrænser, fairShare-beregning, køplacering af backlog                                                                                                                    |
 | Integrationsmatrix | `npm run test:combo:matrix`                                            | Komplet routingbeslutning gennem den faktiske kombinationspipeline; DRR-retfærdighed + nedprioritering ved mæthed via aktive grænseflader (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integrationsmatricen kører i CI sammen med alle 19 offentlige strategier. Enhedstestpakken kan køres selvstændigt.
+Integrationsmatricen kører i CI sammen med alle 21 offentlige strategier. Enhedstestpakken kan køres selvstændigt.
 
 ---
 

@@ -146,7 +146,7 @@ matrisen automatisk, uten noen etikett.
 - [ ] `npm run test:vitest` — bestått (MCP-server, autoCombo, hurtigbuffer)
 - [ ] `npm run test:coverage` — kravet på 60/60/60/60 er oppfylt (setninger/linjer/funksjoner/grener)
 - [ ] `npm run test:integration` — bestått (hvis endringene berører DB/behandlere)
-- [ ] `npm run test:combo:matrix` — bestått (matrise for combo-strategier: beviser deterministisk valgene til alle de 19 offentlige rutingsstrategiene; kjøres ved endringer i combo-ruting, strategioppløsning eller reservelogikk)
+- [ ] `npm run test:combo:matrix` — bestått (matrise for combo-strategier: beviser deterministisk valgene til alle de 21 offentlige rutingsstrategiene; kjøres ved endringer i combo-ruting, strategioppløsning eller reservelogikk)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **valgfri/manuell** (betinget røyktest mot reelle oppstrømstjenester; henter et skrivebeskyttet DB-øyeblikksbilde fra VPS-en `root@192.168.0.15`; bruker reelle leverandører og koster kreditter; kjøres aldri i CI; hoppes over uten feil når betingelsen ikke er aktivert)
 - [ ] `npm run test:combo:live:vps` — **valgfri/manuell** (fase 3-røyktest på aktiv VPS: 7 HTTP-scenarioer mot den aktive `.15`-serveren via vanlig Node ESM; krever `ssh root@192.168.0.15`; oppretter/sletter bare `__live_test__*`-comboer; bruker reelle leverandører; kjøres aldri i CI)
 - [ ] `npm run test:e2e` — bestått (UI-endringer)

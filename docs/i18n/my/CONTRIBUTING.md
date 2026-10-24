@@ -317,7 +317,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (လက်မှတ်၊ DNS၊ ပစ်မှတ်လမ်းကြောင်းသတ်မှတ်ခြင်း)
 ├── shared/
 │   ├── components/         # React component များ (.tsx)
-│   ├── constants/          # ပံ့ပိုးသူ သတ်မှတ်ချက်များ (329)၊ MCP scope များ၊ လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာ 20 ခု
+│   ├── constants/          # ပံ့ပိုးသူ သတ်မှတ်ချက်များ (329)၊ MCP scope များ၊ လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာ 21 ခု
 │   ├── utils/              # Circuit breaker၊ sanitizer၊ အထောက်အထားစိစစ်ရေး အထောက်အကူပြုကိရိယာများ
 │   └── validation/         # Zod v4 schema များ
 └── sse/                    # SSE proxy pipeline

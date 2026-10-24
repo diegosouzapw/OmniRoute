@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Støtter **20 rutingsstrategier** (se `src/shared/constants/routingStrategies.ts`):
+Støtter **21 rutingsstrategier** (se `src/shared/constants/routingStrategies.ts`):
 
 | Strategi            | Oppførsel                                                                                     |
 | ------------------- | --------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Støtter **20 rutingsstrategier** (se `src/shared/constants/routingStrategies.ts
 | `cost-optimized`    | Billigste fungerende mål først                                                                |
 | `reset-aware`       | Tar hensyn til leverandørens tilbakestillingsvinduer                                          |
 | `reset-window`      | Ruting basert på tilbakestillingsvindu                                                        |
+| `expiry-first`      | Bruker først kontoen der kvoten ellers ville utløpt ubrukt                                    |
 | `headroom`          | Mest gjenværende kvotehoderom først                                                           |
 | `quota-weighted`    | Hopper over oppbrukte kontoer, trekker deretter etter gjenværende kvote ÷ pågående belastning |
 | `strict-random`     | Helt uniform (ingen kvalitetsvekting)                                                         |

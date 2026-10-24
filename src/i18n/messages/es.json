@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Equilibra la cuota restante con los restablecimientos semanales y de 5 h, y luego realiza todos contra todos puntuaciones similares",
     "quotaWeighted": "Ponderado por cuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vencimiento primero",
+    "expiryFirstDesc": "Consume primero la cuenta cuya cuota, de otro modo, caducaría sin usarse: va primero el mayor remanente con el reinicio más cercano.",
     "strictRandom": "Aleatorio estricto",
     "strictRandomDesc": "Baraja — utiliza cada modelo una vez antes de volver a barajar",
     "fusion": "Fusión",
@@ -3600,6 +3602,11 @@
         "when": "Se enruta a través de varias cuentas con telemetría de cuotas y diferentes ventanas de restablecimiento.",
         "avoid": "La telemetría de cuotas no está disponible para la mayoría de las cuentas.",
         "example": "Prefiera un restablecimiento semanal del 60 % de la cuenta mañana a un restablecimiento del 80 % más tarde."
+      },
+      "expiry-first": {
+        "when": "Enruta entre cuentas cuyas cuotas se restablecen en horarios distintos y desea consumir la cuota que, de otro modo, caducaría sin usarse.",
+        "avoid": "Falta telemetría de cuotas en la mayoría de las cuentas o necesita un orden estable que ignore el momento del reinicio.",
+        "example": "Prefiera una cuenta con un 80 % restante que se restablece en 39 minutos frente a una con un 48 % restante que se restablece en 9 horas — la cuota a punto de vencer se consume antes de perderse."
       },
       "strict-random": {
         "when": "Úsalo cuando quieras una distribución perfectamente uniforme: cada modelo se usa una vez antes de repetirse.",
@@ -3815,6 +3822,13 @@
         "tip1": "Utilice pasos de cuenta explícitos o enrutamiento de etiquetas de cuenta para proveedores con telemetría de cuotas.",
         "tip2": "Sesión de ajuste versus pesas semanales cuando el agotamiento a corto plazo es más riesgoso.",
         "tip3": "Mantenga la banda de unión pequeña para que las cuentas equivalentes sigan rotando de manera justa."
+      },
+      "expiry-first": {
+        "title": "Cuota por vencer primero",
+        "description": "Ordena las cuentas según la presión de aprovechamiento: la cuota restante alta cercana a su plazo de reinicio va primero.",
+        "tip1": "Requiere telemetría de cuotas del proveedor; las cuentas sin ella mantienen su orden de prioridad indicado.",
+        "tip2": "Las puntuaciones casi empatadas rotan dentro de la banda de empate para que las cuentas similares sigan compartiendo la carga.",
+        "tip3": "Limite la clasificación al grupo de cuota con el que realmente factura cada modelo."
       },
       "strict-random": {
         "title": "Distribución por barajado",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Prefiere cuentas con cuota restante saludable y reinicios más cercanos",
     "quotaWeighted": "Ponderado por cuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vencimiento primero",
+    "expiryFirstDesc": "Consume primero la cuenta cuya cuota, de otro modo, caducaría sin usarse: va primero el mayor remanente con el reinicio más cercano.",
     "strictRandom": "Aleatorio estricto",
     "strictRandomDesc": "Baraja las cuentas: usa cada cuenta una vez antes de volver a barajar",
     "stickyLimit": "Límite fijo",

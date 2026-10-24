@@ -146,7 +146,7 @@ kiotomatiki, bila lebo yoyote.
 - [ ] `npm run test:vitest` — yanafaulu (seva ya MCP, autoCombo, akiba)
 - [ ] `npm run test:coverage` — sharti la 60/60/60/60 limetimizwa (kauli/mistari/vitendakazi/matawi)
 - [ ] `npm run test:integration` — yanafaulu (ikiwa mabadiliko yanahusisha DB / vishughulikiaji)
-- [ ] `npm run test:combo:matrix` — yanafaulu (matriki ya mikakati ya combo: huthibitisha kwa njia bainifu maamuzi ya uteuzi ya mikakati yote 19 ya umma ya uelekezaji; endesha unapobadilisha uelekezaji wa combo, utatuzi wa mkakati, au mantiki mbadala)
+- [ ] `npm run test:combo:matrix` — yanafaulu (matriki ya mikakati ya combo: huthibitisha kwa njia bainifu maamuzi ya uteuzi ya mikakati yote 21 ya umma ya uelekezaji; endesha unapobadilisha uelekezaji wa combo, utatuzi wa mkakati, au mantiki mbadala)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **si lazima/mwongozo** (jaribio la msingi lililodhibitiwa dhidi ya huduma halisi ya juu; huchukua nakala tuli ya DB ya kusoma pekee kutoka VPS `root@192.168.0.15`; hutumia watoa huduma halisi, hugharimu salio; haliendeshwi kamwe katika CI; hurukwa bila hitilafu ikiwa sharti halipo)
 - [ ] `npm run test:combo:live:vps` — **si lazima/mwongozo** (jaribio la msingi la moja kwa moja la VPS la Awamu ya 3: matukio 7 ya HTTP dhidi ya seva hai ya `.15` kupitia Node ESM ya kawaida; linahitaji `ssh root@192.168.0.15`; huunda/hufuta combo za `__live_test__*` pekee; hutumia watoa huduma halisi; haliendeshwi kamwe katika CI)
 - [ ] `npm run test:e2e` — yanafaulu (mabadiliko ya UI)

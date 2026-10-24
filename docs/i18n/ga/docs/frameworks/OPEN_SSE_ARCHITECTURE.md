@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Tacaíonn sé le **20 straitéis ródaithe** (féach `src/shared/constants/routingStrategies.ts`):
+Tacaíonn sé le **21 straitéis ródaithe** (féach `src/shared/constants/routingStrategies.ts`):
 
 | Straitéis           | Iompar                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Tacaíonn sé le **20 straitéis ródaithe** (féach `src/shared/constants/routi
 | `cost-optimized`    | An sprioc sláintiúil is saoire ar dtús                                                      |
 | `reset-aware`       | Ar an eolas faoi fhuinneoga athshocraithe an tsoláthraí                                     |
 | `reset-window`      | Ródú bunaithe ar fhuinneog athshocraithe                                                    |
+| `expiry-first`      | Caitheann sé an cuntas a rachadh a chuóta in éag gan úsáid murach sin                       |
 | `headroom`          | An spás cuóta is mó atá fágtha ar dtús                                                      |
 | `quota-weighted`    | Scipeáil cuntais ídithe, ansin tarraing de réir cuóta fágtha ÷ ualach atá ar siúl           |
 | `strict-random`     | Fíor-aonfhoirmeach (gan meáchan cáilíochta)                                                 |

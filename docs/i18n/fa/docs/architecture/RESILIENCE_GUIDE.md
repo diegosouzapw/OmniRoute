@@ -804,7 +804,7 @@ reached") توسط fallback مبتنی بر متن سهمیه
 
 ## سایر قابلیتهای تابآوری
 
-- **20 استراتژی مسیریابی** (priority، weighted، round-robin، context-relay، fill-first، p2c، random، least-used، cost-optimized، reset-aware، reset-window، headroom، quota-weighted، strict-random، auto، lkgp، context-optimized، cache-optimized، fusion، pipeline) — به [AUTO-COMBO.md](../routing/AUTO-COMBO.md) مراجعه کنید.
+- **21 استراتژی مسیریابی** (priority، weighted، round-robin، context-relay، fill-first، p2c، random، least-used، cost-optimized، reset-aware، reset-window، expiry-first، headroom، quota-weighted، strict-random، auto، lkgp، context-optimized، cache-optimized، fusion، pipeline) — به [AUTO-COMBO.md](../routing/AUTO-COMBO.md) مراجعه کنید.
 - **مسیریابی آگاه از ریست** (v3.8.0) — اتصالها را بر اساس زمان ریست سهمیه اولویتبندی میکند.
 - **تنزل حالت پسزمینه** — در Responses API گزینهی `background: true` همراه با هشدار به حالت همگام (sync) تنزل مییابد.
 - **تشخیص پویاي محدودیت ابزار** — وقتی به محدودیت تعداد ابزارها میرسد، از ارائهدهندگان عقبنشینی (back off) میکند.

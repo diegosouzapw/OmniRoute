@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Qalan kvotanı 5 saatlıq və həftəlik sıfırlanmalara əsasən balanslaşdırır, sonra oxşar xalları dairəvi qaydada növbələndirir",
     "quotaWeighted": "Kvotaya görə çəkili",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Müddəti bitənə üstünlük",
+    "expiryFirstDesc": "Əks halda istifadəsiz yanacaq kvotası olan hesabı xərcləyir: ən çox qalığı və ən yaxın sıfırlanması olan hesab birinci gedir.",
     "strictRandom": "Tam təsadüfi",
     "strictRandomDesc": "Qarışdırılmış dəst — yenidən qarışdırmazdan əvvəl hər modeldən bir dəfə istifadə edir",
     "fusion": "Birləşmə",
@@ -3600,6 +3602,11 @@
         "when": "Kvota telemetriyası və fərqli sıfırlanma intervalları olan bir neçə hesab arasında marşrutlaşdırma aparırsınız.",
         "avoid": "Əksər hesablar üçün kvota telemetriyası əlçatan deyil.",
         "example": "Daha gec sıfırlanan 80%-lik hesab əvəzinə sabah sıfırlanan 60%-lik həftəlik hesaba üstünlük verin."
+      },
+      "expiry-first": {
+        "when": "Kvotaları fərqli cədvəllərlə sıfırlanan hesablar arasında marşrutlaşdırma aparırsınız və əks halda istifadəsiz yanacaq kvotanı xərcləmək istəyirsiniz.",
+        "avoid": "Əksər hesablar üçün kvota telemetriyası yoxdur və ya sıfırlanma vaxtını nəzərə almayan sabit sıraya ehtiyacınız var.",
+        "example": "9 saata sıfırlanan, 48%-i qalmış hesab əvəzinə 39 dəqiqəyə sıfırlanan, 80%-i qalmış hesaba üstünlük verin — müddəti bitmək üzrə olan kvota itirilməzdən əvvəl xərclənir."
       },
       "strict-random": {
         "when": "Tamamilə bərabər paylanma istədikdə istifadə edin — təkrarlanmadan əvvəl hər model bir dəfə istifadə olunur.",
@@ -3815,6 +3822,13 @@
         "tip1": "Kvota telemetriyası olan provayderlər üçün açıq şəkildə göstərilən hesab addımlarından və ya hesab teqlərinə əsaslanan marşrutlaşdırmadan istifadə edin.",
         "tip2": "Qısamüddətli tükənmə daha riskli olduqda sessiya və həftəlik çəkiləri tənzimləyin.",
         "tip3": "Ekvivalent hesabların ədalətli şəkildə növbələnməsinə imkan vermək üçün bərabərlik diapazonunu kiçik saxlayın."
+      },
+      "expiry-first": {
+        "title": "Müddəti bitən kvota birinci",
+        "description": "Hesabları xilasetmə təzyiqinə görə sıralayır: sıfırlanma müddətinə yaxın olan yüksək qalıq kvota birinci gedir.",
+        "tip1": "Provayder kvota telemetriyası tələb olunur; onsuz hesablar siyahıdakı prioritet sırasını saxlayır.",
+        "tip2": "Demək olar ki, bərabər xallar bərabərlik diapazonu daxilində növbələnir ki, oxşar hesablar yükü yenə də bölüşsün.",
+        "tip3": "Sıralamanı hər modelin faktiki olaraq hesablandığı kvota bölməsi ilə məhdudlaşdırın."
       },
       "strict-random": {
         "title": "Qarışdırılan dəst üzrə bölgü",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Kifayət qədər qalıq kvotası olan və sıfırlanma vaxtı daha yaxın hesablara üstünlük ver",
     "quotaWeighted": "Kvotaya görə çəkili",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Müddəti bitənə üstünlük",
+    "expiryFirstDesc": "Əks halda istifadəsiz yanacaq kvotası olan hesabı xərcləyir: ən çox qalığı və ən yaxın sıfırlanması olan hesab birinci gedir.",
     "strictRandom": "Ciddi təsadüfi seçim",
     "strictRandomDesc": "Kart dəstini qarışdırır — yenidən qarışdırmazdan əvvəl hər hesabdan bir dəfə istifadə edir",
     "stickyLimit": "Sabit limit",

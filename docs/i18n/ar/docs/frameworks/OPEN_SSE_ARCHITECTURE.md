@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-يدعم **20 استراتيجية توجيه** (انظر `src/shared/constants/routingStrategies.ts`):
+يدعم **21 استراتيجية توجيه** (انظر `src/shared/constants/routingStrategies.ts`):
 
 | الاستراتيجية        | السلوك                                                                                              |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | الهدف السليم الأرخص تكلفةً أولًا                                                                    |
 | `reset-aware`       | مدرِك لفترات إعادة تعيين المزوّد                                                                    |
 | `reset-window`      | توجيه قائم على فترة إعادة التعيين                                                                   |
+| `expiry-first`      | يستهلك أولًا الحساب الذي ستنتهي حصته دون استخدام                                                    |
 | `headroom`          | الأكثر فائضًا متبقيًا من الحصة أولًا                                                                |
 | `quota-weighted`    | تخطّي الحسابات المستنفدة، ثم السحب وفق الحصة المتبقية ÷ الحمل الجاري                                |
 | `strict-random`     | عشوائية منتظمة حقًا (دون ترجيح بالجودة)                                                             |

@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Hỗ trợ **20 chiến lược định tuyến** (xem `src/shared/constants/routingStrategies.ts`):
+Hỗ trợ **21 chiến lược định tuyến** (xem `src/shared/constants/routingStrategies.ts`):
 
 | Chiến lược          | Hành vi                                                                                |
 | ------------------- | -------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Hỗ trợ **20 chiến lược định tuyến** (xem `src/shared/constants/rou
 | `cost-optimized`    | Ưu tiên target khỏe mạnh có chi phí rẻ nhất                                            |
 | `reset-aware`       | Nhận biết các cửa sổ reset của provider                                                |
 | `reset-window`      | Định tuyến dựa trên cửa sổ reset                                                       |
+| `expiry-first`      | Ưu tiên dùng tài khoản có hạn ngạch sẽ hết hạn mà không được sử dụng                   |
 | `headroom`          | Ưu tiên target còn nhiều dư địa hạn ngạch nhất                                         |
 | `quota-weighted`    | Bỏ qua các tài khoản đã cạn, sau đó rút theo hạn ngạch còn lại ÷ tải đang xử lý        |
 | `strict-random`     | Ngẫu nhiên đồng đều thực sự (không áp trọng số chất lượng)                             |

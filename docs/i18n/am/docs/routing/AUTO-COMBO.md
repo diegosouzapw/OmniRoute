@@ -276,7 +276,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## ሁሉም የማዞሪያ ስልቶች
 
-የOmniRoute combo engine **20 የማዞሪያ ስልቶችን** ይደግፋል (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ውስጥ የተወሰኑ)። Auto Combo engine ራሱ በ`auto` ስልት ስር ይቀርባል፤ ሌሎቹ ደግሞ ለተከማቹ combos ይገኛሉ።
+የOmniRoute combo engine **21 የማዞሪያ ስልቶችን** ይደግፋል (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` ውስጥ የተወሰኑ)። Auto Combo engine ራሱ በ`auto` ስልት ስር ይቀርባል፤ ሌሎቹ ደግሞ ለተከማቹ combos ይገኛሉ።
 
 | ስልት                 | መግለጫ                                                                                                                                                                                |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -291,6 +291,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | የcatalog ዋጋ አወጣጥን መሠረት በማድረግ በእያንዳንዱ request የሚከፈለውን $ መቀነስ                                                                                                                         |
 | `reset-aware` ⭐    | በኮታ reset ጊዜ መሠረት ቅድሚያ መስጠት — አጭር የreset ጊዜ መስኮቶች ከፍ ያለ ደረጃ ያገኛሉ                                                                                                                    |
 | `reset-window`      | የኮታ መስኮታቸው ቀድሞ reset የሚደረግላቸውን targets መምረጥ                                                                                                                                         |
+| `expiry-first`      | ያለበለዚያ ሳይጠቀሙበት የሚያልፍ ኮታ ያለውን መለያ ቀድሞ ይጠቀማል፦ ብዙ ቀሪ ኮታ ያለውና ዳግም ማስጀመሪያው የቀረበው መለያ ቀድሞ ይመረጣል                                                                                           |
 | `headroom`          | ከፍተኛው ቀሪ የኮታ አቅም ያለውን target መምረጥ                                                                                                                                                   |
 | `quota-weighted`    | ኮታቸውን የጨረሱ accountsን መዝለል፣ ከዚያም ቀሪውን ኮታ በበረራ ላይ ላለው ጭነት በማካፈል መጠን ከቀሪዎቹ መካከል መምረጥ፤ ነባር ውይይቶች እንደተሰኩ ይቆያሉ                                                                            |
 | `strict-random`     | ተደጋጋሚ ምርጫዎችን ሳያስወግድ በዘፈቀደ መምረጥ                                                                                                                                                      |
@@ -817,11 +818,11 @@ offline-friendly) «የክብደት መገለጫዎች በየጥቅሉ» ሰን�
 
 ### ውስን ውጤት የሚሰጥ የማዘዋወር-ውሳኔ ማትሪክስ (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` የሁሉንም 19 ይፋዊ
+`tests/integration/combo-matrix/*.test.ts` የሁሉንም 21 ይፋዊ
 ስልቶች የማዘዋወር **ውሳኔ**፣ በተመሰለ የላይኛው ዥረት አማካኝነት በእውነተኛው የኮምቦ የሥራ ሂደት በኩል ከጫፍ እስከ ጫፍ ያረጋግጣል።
 ሽፋኑ የሚከተሉትን ያካትታል፦
 
-- ሁሉንም 19 የ`ROUTING_STRATEGY_VALUES` ስልቶች (ordered፣ weighted፣ cost፣ context፣ fusion፣ …)።
+- ሁሉንም 21 የ`ROUTING_STRATEGY_VALUES` ስልቶች (ordered፣ weighted፣ cost፣ context፣ fusion፣ …)።
 - `quota-share` (ውስጣዊ) ከጫፍ እስከ ጫፍ፦ የDRR ፍትሐዊነት + በእውነተኛው `selectQuotaShareTarget` መገናኛ በኩል ሙሌትን በቅድሚያ አለመስጠት
   (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`)።
@@ -855,5 +856,5 @@ offline-friendly) «የክብደት መገለጫዎች በየጥቅሉ» ሰን�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ቅድመ ቅጥያ parser + 6 ልዩነቶች                                                                       |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | ከቀጥታ connections የin-memory `AutoComboConfig` ይገነባል                                                    |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | provider registryን ለመቅዳት የሙከራ hook                                                                     |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategies)                                                              |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 ስልቶች)                                                                    |
 | `src/sse/handlers/chat.ts`                                | ውህደት፦ የauto-prefix አጭር ዙር                                                                              |

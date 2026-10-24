@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Acceptă **20 de strategii de rutare** (consultați `src/shared/constants/routingStrategies.ts`):
+Acceptă **21 de strategii de rutare** (consultați `src/shared/constants/routingStrategies.ts`):
 
 | Strategie           | Comportament                                                                                     |
 | ------------------- | ------------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ Acceptă **20 de strategii de rutare** (consultați `src/shared/constants/routin
 | `cost-optimized`    | Mai întâi cea mai ieftină țintă sănătoasă                                                        |
 | `reset-aware`       | Ține cont de ferestrele de resetare ale furnizorului                                             |
 | `reset-window`      | Rutare bazată pe fereastra de resetare                                                           |
+| `expiry-first`      | Consumă mai întâi contul a cărui cotă altfel ar expira nefolosită                                |
 | `headroom`          | Mai întâi cea mai mare marjă de cotă rămasă                                                      |
 | `quota-weighted`    | Omite conturile epuizate, apoi alege după cota rămasă ÷ sarcina în curs                          |
 | `strict-random`     | Cu adevărat uniformă (fără ponderare după calitate)                                              |

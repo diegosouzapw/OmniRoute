@@ -856,7 +856,7 @@ allowlist, rate limit tí wọ́n ṣọ́ ní ìpín-IP jẹ́ àmì kannáà b
 
 ## Àwọn Ẹ̀ya Ìfaradà Mìíràn
 
-- **Àwọn ilana ìtọ́sọ́nà ogún** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — wo [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **Àwọn ilana ìtọ́sọ́nà mọ́kànlélógún** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — wo [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Ìtọ́sọ́nà reset-aware** (v3.8.0) — ó fi àwọn ìsopọ̀ síwájú gẹ́gẹ́ bí àkókò atúntò quota ṣe rí.
 - **Ìrẹ̀lẹ̀ ipò background** — Responses API `background: true` ti rẹ̀lẹ̀ sí sync pẹ̀lú ìkìlọ̀.
 - **Ìwárí ààlà irinṣẹ́ láìdúró** — ó fa àwọn olupese sẹ́yìn nígbà tí ààlà iye irinṣẹ́ bá ti de.

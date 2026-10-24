@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Brengt het resterende quotum in evenwicht met 5 uur en wekelijkse resets, waarna vergelijkbare scores worden afgerond",
     "quotaWeighted": "Gewogen op basis van quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vervaldatum eerst",
+    "expiryFirstDesc": "Verbruikt eerst het account waarvan het quotum anders ongebruikt zou vervallen: het grootste restant met de dichtstbijzijnde reset gaat voor.",
     "strictRandom": "Strikt willekeurig",
     "strictRandomDesc": "Geschud kaartspel — gebruikt elk model één keer voordat er opnieuw wordt geschud",
     "fusion": "Fusie",
@@ -3600,6 +3602,11 @@
         "when": "U routeert over meerdere accounts met quota-telemetrie en verschillende reset-vensters.",
         "avoid": "Quota-telemetrie is voor de meeste accounts niet beschikbaar.",
         "example": "Geef de voorkeur aan een wekelijkse account van 60% die morgen wordt gereset boven een account van 80% die later wordt gereset."
+      },
+      "expiry-first": {
+        "when": "U routeert over accounts waarvan de quota volgens verschillende schema's worden gereset en wilt quotum verbruiken dat anders ongebruikt zou vervallen.",
+        "avoid": "Quota-telemetrie ontbreekt voor de meeste accounts, of u hebt een stabiele volgorde nodig die het resetmoment negeert.",
+        "example": "Geef de voorkeur aan een account met 80% resterend dat over 39 minuten wordt gereset boven een account met 48% resterend dat over 9 uur wordt gereset — het bijna vervallende quotum wordt verbruikt voordat het verloren gaat."
       },
       "strict-random": {
         "when": "Gebruik dit als je een perfect gelijkmatige verdeling wilt: elk model wordt één keer gebruikt voordat de cyclus opnieuw begint.",
@@ -3815,6 +3822,13 @@
         "tip1": "Gebruik expliciete accountstappen of routering van accounttags voor providers met quota-telemetrie.",
         "tip2": "Stem de sessie af op de wekelijkse gewichten wanneer uitputting op korte termijn riskanter is.",
         "tip3": "Houd de band klein, zodat gelijkwaardige accounts nog steeds eerlijk roteren."
+      },
+      "expiry-first": {
+        "title": "Vervallend quotum eerst",
+        "description": "Rangschikt accounts op benuttingsdruk: een hoog resterend quotum dicht bij de resetdeadline gaat voor.",
+        "tip1": "Vereist quota-telemetrie van de provider; accounts zonder telemetrie behouden hun vermelde prioriteitsvolgorde.",
+        "tip2": "Bijna gelijke scores rouleren binnen de gelijkspelband, zodat vergelijkbare accounts de belasting blijven delen.",
+        "tip3": "Beperk de rangschikking tot de quotumbucket waarop elk model daadwerkelijk wordt gefactureerd."
       },
       "strict-random": {
         "title": "Verdeling met een geschud kaartspel",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Geef de voorkeur aan accounts met een gezond resterend quotum en een bijna-reset",
     "quotaWeighted": "Quotagewogen",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vervaldatum eerst",
+    "expiryFirstDesc": "Verbruikt eerst het account waarvan het quotum anders ongebruikt zou vervallen: het grootste restant met de dichtstbijzijnde reset gaat voor.",
     "strictRandom": "Strikt willekeurig",
     "strictRandomDesc": "Geschud kaartspel — elk account wordt één keer gebruikt voordat het kaartspel opnieuw wordt geschud",
     "stickyLimit": "Kleverige limiet",

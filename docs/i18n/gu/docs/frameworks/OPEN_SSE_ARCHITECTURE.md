@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 રાઉટિંગ વ્યૂહરચનાઓ** સપોર્ટ કરે છે (જુઓ `src/shared/constants/routingStrategies.ts`):
+**21 રાઉટિંગ વ્યૂહરચનાઓ** સપોર્ટ કરે છે (જુઓ `src/shared/constants/routingStrategies.ts`):
 
 | વ્યૂહરચના           | વર્તન                                                                                            |
 | ------------------- | ------------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | સૌથી સસ્તું તંદુરસ્ત ટાર્ગેટ પહેલા                                                               |
 | `reset-aware`       | પ્રોવાઇડર રીસેટ વિન્ડોને ધ્યાનમાં લે છે                                                          |
 | `reset-window`      | રીસેટ વિન્ડો આધારિત રાઉટિંગ                                                                      |
+| `expiry-first`      | જે એકાઉન્ટનો ક્વોટા અન્યથા વણવપરાયેલો સમાપ્ત થઈ જાત તેને પહેલા વાપરે છે                          |
 | `headroom`          | સૌથી વધુ બાકી ક્વોટા હેડરૂમ ધરાવતું પહેલા                                                        |
 | `quota-weighted`    | ખતમ થયેલ એકાઉન્ટ્સ અવગણે છે, પછી બાકી ક્વોટા ÷ ઇન-ફ્લાઇટ લોડ પ્રમાણે પસંદ કરે છે                 |
 | `strict-random`     | ખરેખર સમાન (કોઈ ગુણવત્તા વજન નહીં)                                                               |

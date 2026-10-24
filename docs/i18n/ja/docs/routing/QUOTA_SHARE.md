@@ -351,7 +351,7 @@ quota-share エンジンには、2 層の自動テストカバレッジが含ま
 | ユニット（29 テスト） | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR スケジューラー、飽和ゲーティング、同時実行数の上限、fairShare の計算、バックログのキューイング                                                                                                           |
 | 統合マトリクス        | `npm run test:combo:matrix`                                            | 実際のコンボパイプラインを通じたエンドツーエンドのルーティング決定。ライブシーム（`registerQuotaFetcher`、`setLKGP`、`__setHeadroomSaturationFetcherForTests`）を介した DRR の公平性および飽和時の優先度低下 |
 
-統合マトリクスは、19 個すべての公開ストラテジーとともに CI で実行されます。ユニットスイートは
+統合マトリクスは、21 個すべての公開ストラテジーとともに CI で実行されます。ユニットスイートは
 単独でも実行できます。
 
 ---

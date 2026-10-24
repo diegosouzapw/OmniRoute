@@ -59,7 +59,7 @@ OpenRouter bağlantıları Qabaqcıl Parametrlərdə hər bağlantı üçün ayr
 
 ## 🎨 Kombinasiyalar
 
-19 açıq strategiya ilə model marşrutlaşdırma kombinasiyaları yaradın: prioritet, çəkili, növbəli, kontekst ötürmə, əvvəlcə doldurma, p2c (iki seçim qüvvəsi), təsadüfi, ən az istifadə olunan, xərc baxımından optimallaşdırılmış, sıfırlanmanı nəzərə alan, sıfırlama pəncərəsi, ehtiyat tutumu, ciddi təsadüfi, avtomatik, lkgp (son məlum olan işlək provayder), kontekst baxımından optimallaşdırılmış, keş baxımından optimallaşdırılmış, **fusion** (model panelinə paralel sorğular göndərir, sonra hakim vasitəsilə vahid cavab sintez edir) və **pipeline**. Hər kombinasiya avtomatik ehtiyat keçidi ilə bir neçə modeli zəncirləyir və sürətli şablonlar ilə hazırlıq yoxlamalarını əhatə edir.
+21 açıq strategiya ilə model marşrutlaşdırma kombinasiyaları yaradın: prioritet, çəkili, növbəli, kontekst ötürmə, əvvəlcə doldurma, p2c (iki seçim qüvvəsi), təsadüfi, ən az istifadə olunan, xərc baxımından optimallaşdırılmış, sıfırlanmanı nəzərə alan, sıfırlama pəncərəsi, müddəti bitənə üstünlük, ehtiyat tutumu, kvotaya görə çəkili, ciddi təsadüfi, avtomatik, lkgp (son məlum olan işlək provayder), kontekst baxımından optimallaşdırılmış, keş baxımından optimallaşdırılmış, **fusion** (model panelinə paralel sorğular göndərir, sonra hakim vasitəsilə vahid cavab sintez edir) və **pipeline**. Hər kombinasiya avtomatik ehtiyat keçidi ilə bir neçə modeli zəncirləyir və sürətli şablonlar ilə hazırlıq yoxlamalarını əhatə edir.
 
 Kombinasiyalar üzrə son təkmilləşdirmələr:
 

@@ -282,7 +282,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Все стратегии маршрутизации
 
-Комбинированный движок OmniRoute поддерживает **20 стратегий маршрутизации** (объявлены в `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам движок Auto Combo доступен в рамках стратегии `auto`; остальные стратегии доступны для сохранённых комбинаций.
+Комбинированный движок OmniRoute поддерживает **21 стратегию маршрутизации** (объявлены в `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам движок Auto Combo доступен в рамках стратегии `auto`; остальные стратегии доступны для сохранённых комбинаций.
 
 | Стратегия           | Описание                                                                                                                                                                                                                                                 |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | Минимизация стоимости запроса в $ с учётом цен из каталога                                                                                                                                                                                               |
 | `reset-aware` ⭐    | Расстановка приоритетов по времени сброса квоты — короткие окна сброса получают более высокий приоритет                                                                                                                                                  |
 | `reset-window`      | Предпочтение целевым назначениям, у которых окно квоты будет сброшено раньше всего                                                                                                                                                                       |
+| `expiry-first`      | Сначала расходует аккаунт, чья квота иначе сгорела бы неиспользованной: первым идёт аккаунт с наибольшим остатком и ближайшим сбросом                                                                                                                    |
 | `headroom`          | Выбор целевого назначения с наибольшим остатком квоты                                                                                                                                                                                                    |
 | `quota-weighted`    | Пропуск аккаунтов с исчерпанной квотой и последующий выбор среди остальных пропорционально остатку квоты, делённому на текущую нагрузку; существующие диалоги остаются закреплёнными                                                                     |
 | `strict-random`     | Случайный выбор без устранения повторов                                                                                                                                                                                                                  |
@@ -821,9 +822,9 @@ registerStrategy("my-custom", new MyCustomStrategy());
 
 ### Детерминированная матрица решений маршрутизации (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` проверяет **решение** о маршрутизации для всех 19 публичных стратегий сквозным образом через реальный конвейер комбинаций с имитацией вышестоящего сервиса. Покрытие включает:
+`tests/integration/combo-matrix/*.test.ts` проверяет **решение** о маршрутизации для всех 21 публичной стратегии сквозным образом через реальный конвейер комбинаций с имитацией вышестоящего сервиса. Покрытие включает:
 
-- Все 19 стратегий `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Все 21 стратегия `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - Сквозную проверку `quota-share` (внутренняя стратегия): справедливость DRR и снижение приоритета при насыщении через реальную точку расширения `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Проверку универсальной передачи `context-relay` для любого количества целевых объектов.
 
@@ -853,5 +854,5 @@ registerStrategy("my-custom", new MyCustomStrategy());
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Парсер префикса `auto/` + 6 вариантов                                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Создает `AutoComboConfig` в памяти на основе активных подключений                                                        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Тестовый хук для имитации реестра провайдеров                                                                            |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 стратегий)                                                                                 |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 стратегия)                                                                                 |
 | `src/sse/handlers/chat.ts`                                | Интеграция: ранний выход для префикса `auto/`                                                                            |

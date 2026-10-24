@@ -147,7 +147,7 @@ SemVer 摘要，且 `last_updated` 已更新。不要让 `:latest` 继续指向�
 - [ ] `npm run test:vitest` — 通过（MCP 服务器、autoCombo、缓存）
 - [ ] `npm run test:coverage` — 满足 60/60/60/60 门槛（语句/行/函数/分支）
 - [ ] `npm run test:integration` — 通过（如果变更涉及 DB / 处理程序）
-- [ ] `npm run test:combo:matrix` — 通过（组合策略矩阵：以确定性方式验证全部 19 种公开路由策略的选择决策；修改组合路由、策略解析或回退逻辑时运行）
+- [ ] `npm run test:combo:matrix` — 通过（组合策略矩阵：以确定性方式验证全部 21 种公开路由策略的选择决策；修改组合路由、策略解析或回退逻辑时运行）
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **可选/手动**（受开关控制的真实上游冒烟测试；从 VPS `root@192.168.0.15` 获取只读 DB 快照；会调用真实提供者并消耗额度；绝不在 CI 中运行；未设置开关时会正常跳过）
 - [ ] `npm run test:combo:live:vps` — **可选/手动**（第 3 阶段 VPS 实时冒烟测试：使用纯 Node ESM 针对实时 `.15` 服务器执行 7 个 HTTP 场景；需要 `ssh root@192.168.0.15`；仅创建/删除 `__live_test__*` 组合；会调用真实提供者；绝不在 CI 中运行）
 - [ ] `npm run test:e2e` — 通过（UI 变更）

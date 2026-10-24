@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-支持 **20 种路由策略**（参见 `src/shared/constants/routingStrategies.ts`）：
+支持 **21 种路由策略**（参见 `src/shared/constants/routingStrategies.ts`）：
 
 | 策略                | 行为                                                        |
 | ------------------- | ----------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | 优先选择成本最低的健康目标                                  |
 | `reset-aware`       | 感知提供者的配额重置窗口                                    |
 | `reset-window`      | 基于重置窗口的路由                                          |
+| `expiry-first`      | 优先消耗即将过期作废的配额                                  |
 | `headroom`          | 优先选择剩余配额余量最多的目标                              |
 | `quota-weighted`    | 跳过已耗尽的账户，然后按“剩余配额 ÷ 在途负载”加权抽取       |
 | `strict-random`     | 真正的均匀随机（无质量加权）                                |

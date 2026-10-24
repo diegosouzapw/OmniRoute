@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-รองรับ**กลยุทธ์การกำหนดเส้นทาง 20 แบบ** (ดู `src/shared/constants/routingStrategies.ts`):
+รองรับ**กลยุทธ์การกำหนดเส้นทาง 21 แบบ** (ดู `src/shared/constants/routingStrategies.ts`):
 
 | กลยุทธ์             | พฤติกรรม                                                                                          |
 | ------------------- | ------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | เลือก target ที่พร้อมใช้งานและถูกที่สุดก่อน                                                       |
 | `reset-aware`       | รับรู้ถึงช่วงเวลารีเซ็ตของ provider                                                               |
 | `reset-window`      | กำหนดเส้นทางตามช่วงเวลารีเซ็ต                                                                     |
+| `expiry-first`      | ใช้บัญชีที่โควต้าจะหมดอายุโดยไม่ได้ใช้ก่อน                                                        |
 | `headroom`          | เลือกตัวที่มีโควตาเหลือมากที่สุดก่อน                                                              |
 | `quota-weighted`    | ข้ามบัญชีที่หมดโควตา แล้วสุ่มตามโควตาที่เหลือหารด้วยโหลดที่กำลังทำงาน                             |
 | `strict-random`     | สุ่มแบบเท่าเทียมอย่างแท้จริง (ไม่มีการถ่วงน้ำหนักคุณภาพ)                                          |

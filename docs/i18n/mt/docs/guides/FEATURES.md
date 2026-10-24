@@ -57,7 +57,7 @@ Il-konnessjonijiet tal-OpenRouter jistgħu jistivixxu `preset` ta' konnessjoni w
 
 ## 🎨 Combos
 
-Oħloq kombinazzjonijiet ta' rotta tal-mudell b'19 strateġiji pubbliċi: priorità, ponderat, round-robin, context-relay, fill-first, p2c (power-of-two choices), casual, l-iktar użat, ottimizzat għal-ispejjeż, konxju tat-twaqqif, tieqa tat-twaqqif, headroom, random stret, awtomatiku, lkgp (last-known-good-provider), ottimizzat għal-kontest, ottimizzat għal-cache, **fusion** (faxx griż lejn pannell ta' mudelli b'mod parallelu, imbagħad sinteżi risposta waħda permezz ta' ġudikant), u **pipeline**. Kull kombo jgħaqqad diversi mudelli b'fallback awtomatiku u jinkludi mudelli rapidi u verifiki ta' lestija.
+Oħloq kombinazzjonijiet ta' rotta tal-mudell b'21 strateġija pubblika: priorità, ponderat, round-robin, context-relay, fill-first, p2c (power-of-two choices), casual, l-iktar użat, ottimizzat għal-ispejjeż, konxju tat-twaqqif, tieqa tat-twaqqif, l-ewwel dak li jiskadi, headroom, peżat skont il-kwota, random stret, awtomatiku, lkgp (last-known-good-provider), ottimizzat għal-kontest, ottimizzat għal-cache, **fusion** (faxx griż lejn pannell ta' mudelli b'mod parallelu, imbagħad sinteżi risposta waħda permezz ta' ġudikant), u **pipeline**. Kull kombo jgħaqqad diversi mudelli b'fallback awtomatiku u jinkludi mudelli rapidi u verifiki ta' lestija.
 
 Titjib reċenti tal-kombos:
 

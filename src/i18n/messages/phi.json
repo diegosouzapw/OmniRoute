@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Binabalanse ang natitirang quota laban sa 5h at lingguhang pag-reset, pagkatapos ay round-robins ang mga katulad na marka",
     "quotaWeighted": "Tinimbang ayon sa Quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Mag-e-expire Muna",
+    "expiryFirstDesc": "Inuuna ang account na ang quota ay mag-e-expire nang hindi nagagamit: nauuna ang may pinakamalaking natitira at pinakamalapit na pag-reset.",
     "strictRandom": "Ganap na Random",
     "strictRandomDesc": "Naka-shuffle na deck — ginagamit nang isang beses ang bawat modelo bago muling i-shuffle",
     "fusion": "Pagsasanib",
@@ -3600,6 +3602,11 @@
         "when": "Nagruruta ka sa maraming account na may quota telemetry at iba't ibang mga reset window.",
         "avoid": "Hindi available ang quota telemetry para sa karamihan ng mga account.",
         "example": "Mas gusto ang isang 60% lingguhang pag-reset ng account bukas kaysa sa isang 80% na pag-reset ng account sa ibang pagkakataon."
+      },
+      "expiry-first": {
+        "when": "Nagruruta ka sa mga account na ang mga quota ay nire-reset sa magkakaibang iskedyul at gusto mong gamitin ang quota na kung hindi ay mag-e-expire nang hindi nagagamit.",
+        "avoid": "Walang quota telemetry ang karamihan ng mga account, o kailangan mo ng matatag na pagkakasunod-sunod na hindi isinasaalang-alang ang oras ng pag-reset.",
+        "example": "Mas piliin ang account na may natitirang 80% na magre-reset sa loob ng 39 minuto kaysa sa account na may natitirang 48% na magre-reset sa loob ng 9 na oras — nagagamit ang malapit nang mag-expire na quota bago ito masayang."
       },
       "strict-random": {
         "when": "Gamitin kapag gusto mo ng ganap na pantay na pamamahagi — gagamitin muna nang tig-iisang beses ang bawat modelo bago umulit.",
@@ -3815,6 +3822,13 @@
         "tip1": "Gumamit ng mga tahasang hakbang sa account o pagruruta ng tag ng account para sa mga provider na may quota telemetry.",
         "tip2": "Tune session vs lingguhang timbang kapag ang panandaliang pagkahapo ay mas mapanganib.",
         "tip3": "Panatilihing maliit ang tie band para patas pa rin ang pag-ikot ng mga katumbas na account."
+      },
+      "expiry-first": {
+        "title": "Inuuna ang mag-e-expire na quota",
+        "description": "Niraranggo ang mga account ayon sa presyon ng paggamit: nauuna ang malaking natitirang quota na malapit na sa deadline ng pag-reset nito.",
+        "tip1": "Nangangailangan ng quota telemetry ng provider; pinapanatili ng mga account na wala nito ang nakalistang priority order.",
+        "tip2": "Umiikot sa loob ng tie band ang halos magkakapantay na score para patuloy na maghati sa load ang magkakatulad na account.",
+        "tip3": "Limitahan ang ranggo sa quota bucket na talagang pinagbabatayan ng singil ng bawat model."
       },
       "strict-random": {
         "title": "Pamamahagi gamit ang shuffle deck",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Mas gusto ang mga account na may malusog na natitirang quota at mas malapit na pag-reset",
     "quotaWeighted": "Tinimbang ayon sa Quota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Mag-e-expire Muna",
+    "expiryFirstDesc": "Inuuna ang account na ang quota ay mag-e-expire nang hindi nagagamit: nauuna ang may pinakamalaking natitira at pinakamalapit na pag-reset.",
     "strictRandom": "Mahigpit na Sapalaran",
     "strictRandomDesc": "Barahang hinalo — ginagamit nang isang beses ang bawat account bago muling haluin",
     "stickyLimit": "Malagkit na Limitasyon",

@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Podporuje **20 smerovacích stratégií** (pozri `src/shared/constants/routingStrategies.ts`):
+Podporuje **21 smerovacích stratégií** (pozri `src/shared/constants/routingStrategies.ts`):
 
 | Stratégia           | Správanie                                                                            |
 | ------------------- | ------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ Podporuje **20 smerovacích stratégií** (pozri `src/shared/constants/routingSt
 | `cost-optimized`    | Najskôr najlacnejší funkčný cieľ                                                     |
 | `reset-aware`       | Zohľadňuje okná resetovania poskytovateľa                                            |
 | `reset-window`      | Smerovanie na základe okien resetovania                                              |
+| `expiry-first`      | Čerpá účet, ktorého kvóta by inak prepadla nevyužitá                                 |
 | `headroom`          | Najskôr najväčšia zostávajúca rezerva kvóty                                          |
 | `quota-weighted`    | Preskočí vyčerpané účty, potom vyberá podľa zvyšnej kvóty ÷ prebiehajúca záťaž       |
 | `strict-random`     | Skutočne rovnomerný (bez váženia kvality)                                            |

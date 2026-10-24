@@ -651,7 +651,7 @@ connectionId)`)——一般的模型清單組合中,同層目標本身並未固�
 
 ## 其他韌性功能
 
-- **20 種路由策略**（priority、weighted、round-robin、context-relay、fill-first、p2c、random、least-used、cost-optimized、reset-aware、reset-window、headroom、quota-weighted、strict-random、auto、lkgp、context-optimized、cache-optimized、fusion、pipeline）— 請參閱 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)。
+- **21 種路由策略**（priority、weighted、round-robin、context-relay、fill-first、p2c、random、least-used、cost-optimized、reset-aware、reset-window、expiry-first、headroom、quota-weighted、strict-random、auto、lkgp、context-optimized、cache-optimized、fusion、pipeline）— 請參閱 [AUTO-COMBO.md](../routing/AUTO-COMBO.md)。
 - **重置感知路由**（v3.8.0）— 依配額重置時間優先選擇連線。
 - **背景模式降級** — Responses API 的 `background: true` 會降級為同步模式並附上警告。
 - **動態工具上限偵測** — 達到工具數量上限時，對提供者進行退避。

@@ -339,7 +339,7 @@ Duas camadas de cobertura automatizada acompanham o mecanismo quota-share:
 | Unitários (29 testes) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Agendador DRR, bloqueio por saturação, limites de simultaneidade, cálculo de fairShare, enfileiramento do backlog                                                                                                                        |
 | Matriz de integração  | `npm run test:combo:matrix`                                            | Decisão de roteamento de ponta a ponta pelo pipeline real de combos; justiça do DRR + despriorização por saturação por meio de pontos de integração ativos (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-A matriz de integração é executada na CI junto com todas as 19 estratégias públicas. A suíte de testes unitários
+A matriz de integração é executada na CI junto com todas as 21 estratégias públicas. A suíte de testes unitários
 pode ser executada de forma independente.
 
 ---

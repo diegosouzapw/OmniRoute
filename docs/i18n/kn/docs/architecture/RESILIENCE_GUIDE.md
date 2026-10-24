@@ -786,7 +786,7 @@ quota-text fallback (`buildSubscriptionQuotaFallback`,
 
 ## ಇತರ ಸ್ಥೈರ್ಯ ವೈಶಿಷ್ಟ್ಯಗಳು
 
-- **20 ರೌಟಿಂಗ್ ತಂತ್ರಗಳು** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ನೋಡಿ.
+- **21 ರೌಟಿಂಗ್ ತಂತ್ರಗಳು** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ನೋಡಿ.
 - **ರೀಸೆಟ್-ಅವೇರ್ ರೌಟಿಂಗ್** (v3.8.0) — ಕೋಟಾ ಮರುಹೊಂದಿಸುವ ಸಮಯದ ಮೂಲಕ ಸಂಪರ್ಕಗಳಿಗೆ ಆದ್ಯತೆ ನೀಡುತ್ತದೆ.
 - **ಹಿನ್ನೆಲೆ ಮೋಡ್ ಡಿಗ್ರಡೇಶನ್** — Responses API `background: true` ಅನ್ನು ಎಚ್ಚರಿಕೆಯೊಂದಿಗೆ ಸಿಂಕ್ ಗೆ ಇಳಿಸಲಾಗುತ್ತದೆ.
 - **ಡೈನಾಮಿಕ್ ಟೂಲ್ ಲಿಮಿಟ್ ಪತ್ತೆ** — ಟೂಲ್ ಸಂಖ್ಯೆಯ ಮಿತಿಗಳನ್ನು ತಲುಪಿದಾಗ ಪ್ರೊವೈಡರ್ಗಳನ್ನು ಹಿಮ್ಮೆಟ್ಟಿಸುತ್ತದೆ.

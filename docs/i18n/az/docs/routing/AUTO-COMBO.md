@@ -294,7 +294,7 @@ müəyyən edilmiş dəyərlər mühərrikin mövcud `config.modePack` / `config
 
 ## Bütün Marşrutlaşdırma Strategiyaları
 
-OmniRoute-un kombinasiya mühərriki **20 marşrutlaşdırma strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` daxilində elan edilib). Auto Combo mühərrikinin özü `auto` strategiyası vasitəsilə təqdim olunur; digərləri yadda saxlanılan kombinasiyalar üçün əlçatandır.
+OmniRoute-un kombinasiya mühərriki **21 marşrutlaşdırma strategiyasını** dəstəkləyir (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` daxilində elan edilib). Auto Combo mühərrikinin özü `auto` strategiyası vasitəsilə təqdim olunur; digərləri yadda saxlanılan kombinasiyalar üçün əlçatandır.
 
 | Strategiya          | Təsvir                                                                                                                                                                                                                |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -309,6 +309,7 @@ OmniRoute-un kombinasiya mühərriki **20 marşrutlaşdırma strategiyasını** 
 | `cost-optimized`    | Kataloq qiymətlərinə əsasən hər sorğu üçün $ məbləğini minimuma endir                                                                                                                                                 |
 | `reset-aware` ⭐    | Kvotanın sıfırlanma vaxtına əsasən prioritetləşdir — qısa sıfırlanma pəncərələri daha yuxarı sıralanır                                                                                                                |
 | `reset-window`      | Kvota pəncərəsi ən tez sıfırlanacaq hədəflərə üstünlük ver                                                                                                                                                            |
+| `expiry-first`      | Əks halda istifadəsiz yanacaq kvotası olan hesabı xərcləyir: ən çox qalığı və ən yaxın sıfırlanması olan hesab birinci gedir                                                                                          |
 | `headroom`          | Ən çox qalan kvota ehtiyatına malik hədəfi seç                                                                                                                                                                        |
 | `quota-weighted`    | Kvotası tükənmiş hesabları ötür, sonra qalanlar arasından qalıq kvotanın icradakı yükə bölünməsi ilə mütənasib şəkildə seçim et; mövcud söhbətlər öz hədəfinə sabitlənmiş qalır                                       |
 | `strict-random`     | Təkrarların deduplikasiyası olmadan təsadüfi seçim                                                                                                                                                                    |
@@ -854,11 +855,11 @@ Səviyyə tərifləri və provayder təsnifatı üçün [`docs/guides/TIERS.md`]
 
 ### Deterministik marşrutlaşdırma qərarı matrisi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` real kombinasiya konveyeri və imitasiya edilmiş yuxarı axın vasitəsilə bütün 19
+`tests/integration/combo-matrix/*.test.ts` real kombinasiya konveyeri və imitasiya edilmiş yuxarı axın vasitəsilə bütün 21
 ictimai strategiyanın marşrutlaşdırma **qərarını** başdan sona yoxlayır.
 Əhatə dairəsinə daxildir:
 
-- Bütün 19 `ROUTING_STRATEGY_VALUES` strategiyası (ordered, weighted, cost, context, fusion, …).
+- Bütün 21 `ROUTING_STRATEGY_VALUES` strategiyası (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (daxili) başdan sona: real `selectQuotaShareTarget` əlaqə nöqtəsi (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`) vasitəsilə DRR ədalətliliyi + doyma zamanı prioritetin azaldılması.
 - Hər bir hədəf sayı üzrə `context-relay` universal ötürmə əhatəsi.
@@ -891,5 +892,5 @@ real giriş məlumatları və VPS-ə giriş tələb etdiyinə görə qəsdən CI
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiks analizatoru + 6 variant                                                                                          |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Aktiv bağlantılardan yaddaşdaxili `AutoComboConfig` yaradır                                                                      |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder reyestrini imitasiya etmək üçün test qoşulma nöqtəsi                                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategiya)                                                                                        |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategiya)                                                                                        |
 | `src/sse/handlers/chat.ts`                                | İnteqrasiya: auto-prefiks üçün qısa dövrə                                                                                        |

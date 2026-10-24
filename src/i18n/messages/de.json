@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Gewichtet Restquote gegen 5h- und Wochen-Resets und rotiert ähnliche Scores per Round Robin",
     "quotaWeighted": "Kontingentgewichtet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Ablauf zuerst",
+    "expiryFirstDesc": "Verbraucht zuerst das Konto, dessen Quote sonst ungenutzt verfallen würde: der größte Rest mit dem nächsten Reset kommt zuerst.",
     "strictRandom": "Strikte Zufallsauswahl",
     "strictRandomDesc": "Mischverfahren – verwendet jedes Modell einmal, bevor neu gemischt wird",
     "fusion": "Fusion",
@@ -3600,6 +3602,11 @@
         "when": "Du routest über mehrere Konten mit Quota-Telemetrie und unterschiedlichen Reset-Fenstern.",
         "avoid": "Für die meisten Konten fehlen Quota-Telemetriedaten.",
         "example": "Bevorzuge ein Konto mit 60 % Wochen-Restquote und Reset morgen vor 80 % mit späterem Reset."
+      },
+      "expiry-first": {
+        "when": "Du routest über Konten, deren Quoten nach unterschiedlichen Zeitplänen zurückgesetzt werden, und willst Quote verbrauchen, die sonst ungenutzt verfallen würde.",
+        "avoid": "Für die meisten Konten fehlt Quota-Telemetrie, oder du brauchst eine stabile Reihenfolge, die den Reset-Zeitpunkt ignoriert.",
+        "example": "Bevorzuge ein Konto mit 80 % Rest und Reset in 39 Minuten vor einem mit 48 % Rest und Reset in 9 Stunden — die bald verfallende Quote wird verbraucht, bevor sie verloren geht."
       },
       "strict-random": {
         "when": "Verwenden Sie diese Option, wenn Sie eine vollkommen gleichmäßige Verteilung wünschen – jedes Modell wird einmal verwendet, bevor es erneut ausgewählt wird.",
@@ -3815,6 +3822,13 @@
         "tip1": "Nutze explizite Kontoschritte oder Tag-Routing für Provider mit Quota-Telemetrie.",
         "tip2": "Passe 5h- und Wochengewichtung an, wenn kurzfristige Erschöpfung riskant ist.",
         "tip3": "Halte das Tie-Band klein, damit gleichwertige Konten fair rotieren."
+      },
+      "expiry-first": {
+        "title": "Verfallende Quote zuerst",
+        "description": "Ordnet Konten nach Verfallsdruck: hohe Restquote kurz vor ihrem Reset-Termin kommt zuerst.",
+        "tip1": "Erfordert Quota-Telemetrie des Providers; Konten ohne sie behalten ihre gelistete Prioritätsreihenfolge.",
+        "tip2": "Nahezu gleiche Scores rotieren innerhalb des Tie-Bands, sodass gleichwertige Konten die Last weiterhin teilen.",
+        "tip3": "Beschränke das Ranking auf den Quota-Bucket, gegen den jedes Modell tatsächlich abrechnet."
       },
       "strict-random": {
         "title": "Shuffle-Deck-Verteilung",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Bevorzugt Konten mit gesunder Restquote und näherem Reset",
     "quotaWeighted": "Kontingentgewichtet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Ablauf zuerst",
+    "expiryFirstDesc": "Verbraucht zuerst das Konto, dessen Quote sonst ungenutzt verfallen würde: der größte Rest mit dem nächsten Reset kommt zuerst.",
     "strictRandom": "Strikte Zufallsauswahl",
     "strictRandomDesc": "Kartenstapelprinzip – jedes Konto wird einmal verwendet, bevor neu gemischt wird",
     "stickyLimit": "Sticky-Limit",

@@ -146,7 +146,7 @@ E2E secara otomatis, tanpa label apa pun.
 - [ ] `npm run test:vitest` — lulus (server MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — ambang 60/60/60/60 terpenuhi (pernyataan/baris/fungsi/cabang)
 - [ ] `npm run test:integration` — lulus (jika perubahan menyentuh DB / handler)
-- [ ] `npm run test:combo:matrix` — lulus (matriks strategi combo: membuktikan keputusan pemilihan seluruh 19 strategi perutean publik secara deterministik; jalankan saat menyentuh perutean combo, resolusi strategi, atau logika fallback)
+- [ ] `npm run test:combo:matrix` — lulus (matriks strategi combo: membuktikan keputusan pemilihan seluruh 21 strategi perutean publik secara deterministik; jalankan saat menyentuh perutean combo, resolusi strategi, atau logika fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opsional/manual** (smoke test real-upstream yang dilindungi gate; mengambil snapshot DB hanya-baca dari VPS `root@192.168.0.15`; mengakses penyedia nyata dan menggunakan kredit; tidak pernah berjalan di CI; dilewati secara bersih tanpa gate)
 - [ ] `npm run test:combo:live:vps` — **opsional/manual** (smoke test langsung VPS Fase-3: 7 skenario HTTP terhadap server `.15` yang aktif melalui Node ESM biasa; memerlukan `ssh root@192.168.0.15`; hanya membuat/menghapus combo `__live_test__*`; mengakses penyedia nyata; tidak pernah berjalan di CI)
 - [ ] `npm run test:e2e` — lulus (perubahan UI)

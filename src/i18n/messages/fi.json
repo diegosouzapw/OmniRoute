@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Tasaa jäljellä olevan kiintiön 5 tuntia ja viikoittaisia nollauksia vastaan ja kierrättää sitten samanlaiset pisteet",
     "quotaWeighted": "Kiintiöpainotettu",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vanheneva ensin",
+    "expiryFirstDesc": "Kuluttaa ensin tilin, jonka kiintiö muuten vanhenisi käyttämättä: suurin jäljellä oleva määrä lähimmällä nollauksella menee ensin.",
     "strictRandom": "Täysin satunnainen",
     "strictRandomDesc": "Sekoitettu pakka — käyttää kutakin mallia kerran ennen uudelleensekoitusta",
     "fusion": "Fuusio",
@@ -3600,6 +3602,11 @@
         "when": "Reitit useiden tilien välillä kiintiötelemetrialla ja erilaisilla palautusikkunoilla.",
         "avoid": "Kiintiötelemetria ei ole käytettävissä useimmilla tileillä.",
         "example": "Mieluummin 60 % viikoittainen tilin nollaus huomenna kuin 80 % tilin nollaus myöhemmin."
+      },
+      "expiry-first": {
+        "when": "Reitität tilien välillä, joiden kiintiöt nollautuvat eri aikatauluissa, ja haluat käyttää kiintiön, joka muuten vanhenisi käyttämättä.",
+        "avoid": "Useimmilta tileiltä puuttuu kiintiötelemetria, tai tarvitset vakaan järjestyksen, joka ei huomioi nollauksen ajoitusta.",
+        "example": "Suosi tiliä, jossa on 80 % jäljellä ja joka nollautuu 39 minuutin kuluttua, tilin sijaan, jossa on 48 % jäljellä ja joka nollautuu 9 tunnin kuluttua — pian vanheneva kiintiö käytetään ennen kuin se menee hukkaan."
       },
       "strict-random": {
         "when": "Käytä, kun haluat täysin tasaisen jakautumisen — kutakin mallia käytetään kerran ennen toistoa.",
@@ -3815,6 +3822,13 @@
         "tip1": "Käytä tarkkoja tilivaiheita tai tilitunnisteen reititystä tarjoajille, joilla on kiintiötelemetria.",
         "tip2": "Viritä istunto vs. viikoittaiset painot, kun lyhytaikainen uupumus on riskialtisempaa.",
         "tip3": "Pidä sidenauha pienenä, jotta vastaavat tilit pyörivät edelleen tasaisesti."
+      },
+      "expiry-first": {
+        "title": "Vanheneva kiintiö ensin",
+        "description": "Järjestää tilit hyödyntämispaineen mukaan: suuri jäljellä oleva kiintiö lähellä nollauksen määräaikaa menee ensin.",
+        "tip1": "Vaatii palveluntarjoajan kiintiötelemetrian; tilit ilman sitä säilyttävät luetellun prioriteettijärjestyksensä.",
+        "tip2": "Lähes tasapisteet vuorottelevat tasapistealueen sisällä, joten samankaltaiset tilit jakavat edelleen kuormaa.",
+        "tip3": "Rajaa järjestys siihen kiintiöerään, jota vastaan kukin malli todellisuudessa laskutetaan."
       },
       "strict-random": {
         "title": "Sekoitetun pakan jakauma",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Suosi tilejä, joilla on terve jäljellä oleva kiintiö ja lähempänä nollauksia",
     "quotaWeighted": "Kiintiöpainotettu",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Vanheneva ensin",
+    "expiryFirstDesc": "Kuluttaa ensin tilin, jonka kiintiö muuten vanhenisi käyttämättä: suurin jäljellä oleva määrä lähimmällä nollauksella menee ensin.",
     "strictRandom": "Tiukka satunnaisvalinta",
     "strictRandomDesc": "Sekoittuva pakka — käyttää kutakin tiliä kerran ennen uutta sekoitusta",
     "stickyLimit": "Pysyvyysraja",

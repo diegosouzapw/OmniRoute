@@ -146,7 +146,7 @@ na-akpaghị aka, na-enweghị label ọ bụla.
 - [ ] `npm run test:vitest` — gafere (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — gate 60/60/60/60 emezuola (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — gafere (ọ bụrụ na mgbanwe metụtara DB / handlers)
-- [ ] `npm run test:combo:matrix` — gafere (matrix atụmatụ combo: na-egosi n'ụzọ a pụrụ ịtụkwasị obi mkpebi nhọrọ nke atụmatụ routing ọha niile 19; gbaa ya mgbe a metụrụ combo routing, strategy resolution, ma ọ bụ fallback logic)
+- [ ] `npm run test:combo:matrix` — gafere (matrix atụmatụ combo: na-egosi n'ụzọ a pụrụ ịtụkwasị obi mkpebi nhọrọ nke atụmatụ routing ọha niile 21; gbaa ya mgbe a metụrụ combo routing, strategy resolution, ma ọ bụ fallback logic)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **nhọrọ/jiri aka mee** (nnwale anwụrụ ọkụ real-upstream nke gate na-achịkwa; na-enweta snapshot DB read-only site na VPS `root@192.168.0.15`; na-akpọtụrụ ezigbo providers, na-eri credits; anaghị agba ọsọ na CI ma ọlị; na-awụli ya nke ọma mgbe gate adịghị)
 - [ ] `npm run test:combo:live:vps` — **nhọrọ/jiri aka mee** (nnwale anwụrụ ọkụ VPS dị ndụ nke Phase-3: ọnọdụ HTTP 7 megide server `.15` dị ndụ site na Node ESM nkịtị; chọrọ `ssh root@192.168.0.15`; na-emepụta/na-ehichapụ naanị combo `__live_test__*`; na-akpọtụrụ ezigbo providers; anaghị agba ọsọ na CI ma ọlị)
 - [ ] `npm run test:e2e` — gafere (mgbanwe UI)

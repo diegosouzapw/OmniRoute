@@ -59,7 +59,7 @@ Sambungan OpenRouter boleh menyimpan `preset` bagi setiap sambungan dalam Tetapa
 
 ## 🎨 Kombo
 
-Cipta kombo penghalaan model dengan 19 strategi awam: priority, weighted, round-robin, context-relay, fill-first, p2c (pilihan kuasa dua), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (penyedia-terakhir-yang-diketahui-baik), context-optimized, cache-optimized, **fusion** (menghantar permintaan kepada sekumpulan model secara selari, kemudian mensintesis satu jawapan melalui penilai), dan **pipeline**. Setiap kombo merantaikan berbilang model dengan sandaran automatik serta menyertakan templat pantas dan semakan kesiapsiagaan.
+Cipta kombo penghalaan model dengan 21 strategi awam: priority, weighted, round-robin, context-relay, fill-first, p2c (pilihan kuasa dua), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (penyedia-terakhir-yang-diketahui-baik), context-optimized, cache-optimized, **fusion** (menghantar permintaan kepada sekumpulan model secara selari, kemudian mensintesis satu jawapan melalui penilai), dan **pipeline**. Setiap kombo merantaikan berbilang model dengan sandaran automatik serta menyertakan templat pantas dan semakan kesiapsiagaan.
 
 Penambahbaikan kombo terkini:
 

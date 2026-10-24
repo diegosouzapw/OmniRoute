@@ -352,7 +352,7 @@ Quota-share'i mootoriga tarnitakse kaks automatiseeritud testimise kihti:
 | Ühiktestid (29 testi)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-plaanur, küllastuse piiramine, samaaegsuspiirangud, fairShare'i arvutused, tööjärje haldamine                                                                                                                                 |
 | Integratsioonimaatriks | `npm run test:combo:matrix`                                            | Täielik marsruutimisotsus läbi tegeliku kombinatsioonikonveieri; DRR-i õiglus ja küllastuse tõttu prioriteedi vähendamine aktiivsete liideste kaudu (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integratsioonimaatriks käivitatakse CI-s koos kõigi 19 avaliku strateegiaga. Ühiktestide komplekti
+Integratsioonimaatriks käivitatakse CI-s koos kõigi 21 avaliku strateegiaga. Ühiktestide komplekti
 saab käivitada eraldiseisvalt.
 
 ---

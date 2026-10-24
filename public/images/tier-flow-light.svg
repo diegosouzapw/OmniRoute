@@ -29,7 +29,7 @@
   <!-- Router box -->
   <rect x="200" y="152" width="400" height="72" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
   <text x="400" y="177" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">OmniRoute Smart Router</text>
-  <text x="400" y="196" text-anchor="middle" font-size="10" fill="#3b82f6">RTK compression · Caveman terse-mode · Auto-Combo (19 strategies)</text>
+  <text x="400" y="196" text-anchor="middle" font-size="10" fill="#3b82f6">RTK compression · Caveman terse-mode · Auto-Combo (21 strategies)</text>
   <text x="400" y="213" text-anchor="middle" font-size="10" fill="#3b82f6">Circuit breaker · MCP server (110 tools) · A2A · Memory · Guardrails</text>
 
   <!-- Arrows from router to tiers -->

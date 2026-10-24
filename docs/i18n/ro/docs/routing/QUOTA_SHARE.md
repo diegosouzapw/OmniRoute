@@ -352,7 +352,7 @@ Motorul quota-share include două niveluri de acoperire cu teste automate:
 | Unitare (29 de teste) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Planificatorul DRR, controlul saturației, limitele de concurență, calculele fairShare, plasarea în coadă a operațiunilor restante                                                                                                                |
 | Matrice de integrare  | `npm run test:combo:matrix`                                            | Decizia de rutare de la un capăt la altul prin pipeline-ul real de combinații; echitatea DRR + deprioritizarea în caz de saturație prin puncte de integrare active (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matricea de integrare rulează în CI alături de toate cele 19 strategii publice. Suita de teste unitare
+Matricea de integrare rulează în CI alături de toate cele 21 strategii publice. Suita de teste unitare
 poate fi rulată independent.
 
 ---

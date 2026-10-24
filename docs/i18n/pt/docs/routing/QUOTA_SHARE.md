@@ -339,7 +339,7 @@ O motor quota-share inclui duas camadas de cobertura automatizada:
 | Unitário (29 testes) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Agendador DRR, controlo de saturação, limites de simultaneidade, cálculos de fairShare, colocação em fila do backlog                                                                                                                                 |
 | Matriz de integração | `npm run test:combo:matrix`                                            | Decisão de encaminhamento de ponta a ponta através do pipeline real de combinações; equidade DRR + despriorização por saturação através de pontos de integração ativos (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-A matriz de integração é executada em CI juntamente com as 19 estratégias públicas. O conjunto de testes unitários
+A matriz de integração é executada em CI juntamente com as 21 estratégias públicas. O conjunto de testes unitários
 pode ser executado de forma autónoma.
 
 ---

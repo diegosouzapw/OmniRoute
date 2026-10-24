@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Mendukung **20 strategi routing** (lihat `src/shared/constants/routingStrategies.ts`):
+Mendukung **21 strategi routing** (lihat `src/shared/constants/routingStrategies.ts`):
 
 | Strategi            | Perilaku                                                                                        |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Mendukung **20 strategi routing** (lihat `src/shared/constants/routingStrategies
 | `cost-optimized`    | Target sehat termurah lebih dulu                                                                |
 | `reset-aware`       | Menyadari jendela reset provider                                                                |
 | `reset-window`      | Routing berbasis jendela reset                                                                  |
+| `expiry-first`      | Menghabiskan akun yang kuotanya akan kedaluwarsa tanpa terpakai                                 |
 | `headroom`          | Headroom kuota tersisa terbanyak lebih dulu                                                     |
 | `quota-weighted`    | Lewati akun yang habis, lalu undi berdasarkan sisa kuota ÷ beban in-flight                      |
 | `strict-random`     | Benar-benar seragam (tanpa pembobotan kualitas)                                                 |

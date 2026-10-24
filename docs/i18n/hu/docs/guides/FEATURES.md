@@ -59,7 +59,7 @@ Az OpenRouter-kapcsolatok kapcsolatonként egy `preset` értéket tárolhatnak a
 
 ## 🎨 Kombinációk
 
-Hozzon létre modellútválasztási kombinációkat 19 nyilvános stratégiával: priority, weighted, round-robin, context-relay, fill-first, p2c (kettő közül a jobb választása), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (utolsó ismert működő szolgáltató), context-optimized, cache-optimized, **fusion** (a kérés párhuzamos kiküldése egy modellpanelnek, majd egyetlen válasz szintetizálása egy bíráló segítségével), valamint **pipeline**. Minden kombináció több modellt fűz össze automatikus tartalékra váltással, továbbá gyorssablonokat és készenléti ellenőrzéseket is tartalmaz.
+Hozzon létre modellútválasztási kombinációkat 21 nyilvános stratégiával: priority, weighted, round-robin, context-relay, fill-first, p2c (kettő közül a jobb választása), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (utolsó ismert működő szolgáltató), context-optimized, cache-optimized, **fusion** (a kérés párhuzamos kiküldése egy modellpanelnek, majd egyetlen válasz szintetizálása egy bíráló segítségével), valamint **pipeline**. Minden kombináció több modellt fűz össze automatikus tartalékra váltással, továbbá gyorssablonokat és készenléti ellenőrzéseket is tartalmaz.
 
 A kombinációk legújabb fejlesztései:
 

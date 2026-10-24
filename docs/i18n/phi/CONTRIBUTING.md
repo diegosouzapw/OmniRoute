@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (sertipiko, DNS, pagruruta ng target)
 ├── shared/
 │   ├── components/         # Mga React component (.tsx)
-│   ├── constants/          # Mga depinisyon ng provider (329), MCP scope, 20 estratehiya sa pagruruta
+│   ├── constants/          # Mga depinisyon ng provider (329), MCP scope, 21 estratehiya sa pagruruta
 │   ├── utils/              # Circuit breaker, sanitizer, mga helper sa pagpapatotoo
 │   └── validation/         # Mga Zod v4 schema
 └── sse/                    # Pipeline ng SSE proxy

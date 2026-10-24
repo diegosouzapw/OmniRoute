@@ -146,7 +146,7 @@ unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifac
 - [ ] `npm run test:vitest` — સફળ (MCP સર્વર, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 ગેટ સંતોષાય છે (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — સફળ (જો ફેરફારો DB / handlers ને અસર કરતા હોય)
-- [ ] `npm run test:combo:matrix` — સફળ (combo strategy matrix: તમામ 19 જાહેર routing strategies ના પસંદગી નિર્ણયો નિર્ધારિત રીતે સાબિત કરે છે; combo routing, strategy resolution અથવા fallback logic માં ફેરફાર કરતી વખતે ચલાવો)
+- [ ] `npm run test:combo:matrix` — સફળ (combo strategy matrix: તમામ 21 જાહેર routing strategies ના પસંદગી નિર્ણયો નિર્ધારિત રીતે સાબિત કરે છે; combo routing, strategy resolution અથવા fallback logic માં ફેરફાર કરતી વખતે ચલાવો)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **વૈકલ્પિક/મેન્યુઅલ** (ગેટેડ વાસ્તવિક-upstream smoke; VPS `root@192.168.0.15` માંથી read-only DB snapshot લે છે; વાસ્તવિક providers ને હિટ કરે છે અને credits ખર્ચે છે; CI માં ક્યારેય ચાલતું નથી; gate વિના સ્વચ્છ રીતે skip થાય છે)
 - [ ] `npm run test:combo:live:vps` — **વૈકલ્પિક/મેન્યુઅલ** (Phase-3 VPS live smoke: સાદા Node ESM મારફતે live `.15` સર્વર સામે 7 HTTP scenarios; `ssh root@192.168.0.15` જરૂરી છે; માત્ર `__live_test__*` combos બનાવે/કાઢી નાખે છે; વાસ્તવિક providers ને હિટ કરે છે; CI માં ક્યારેય ચાલતું નથી)
 - [ ] `npm run test:e2e` — સફળ (UI ફેરફારો)

@@ -348,7 +348,7 @@ De quota-share-engine wordt geleverd met twee lagen geautomatiseerde testdekking
 | Unit (29 tests)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-planner, verzadigingsbewaking, gelijktijdigheidslimieten, fairShare-berekening, wachtrijvorming van achterstallige taken                                                                                               |
 | Integratiematrix | `npm run test:combo:matrix`                                            | End-to-end-routeringsbeslissing via de echte combinatiepipeline; DRR-eerlijkheid + lagere prioriteit bij verzadiging via live-aansluitpunten (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-De integratiematrix wordt in CI uitgevoerd naast alle 19 openbare strategieën. De unitsuite kan zelfstandig worden uitgevoerd.
+De integratiematrix wordt in CI uitgevoerd naast alle 21 openbare strategieën. De unitsuite kan zelfstandig worden uitgevoerd.
 
 ---
 

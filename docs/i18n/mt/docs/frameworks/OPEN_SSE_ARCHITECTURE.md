@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Tappoġġja **20 strateġija ta' routing** (ara `src/shared/constants/routingStrategies.ts`):
+Tappoġġja **21 strateġija ta' routing** (ara `src/shared/constants/routingStrategies.ts`):
 
 | Strateġija          | Imġieba                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Tappoġġja **20 strateġija ta' routing** (ara `src/shared/constants/routingStr
 | `cost-optimized`    | L-ewwel l-orħos target f'saħħtu                                                                 |
 | `reset-aware`       | Konxja tat-twieqi tar-reset tal-fornitur                                                        |
 | `reset-window`      | Routing ibbażat fuq it-tieqa tar-reset                                                          |
+| `expiry-first`      | Juża l-ewwel il-kont li l-kwota tiegħu inkella tiskadi mingħajr ma tintuża                      |
 | `headroom`          | L-ewwel dak bl-iktar spazju tal-kwota li jifdal                                                 |
 | `quota-weighted`    | Taqbeż il-kontijiet eżawriti, imbagħad tagħżel skond il-kwota li jifdal ÷ it-tagħbija in-flight |
 | `strict-random`     | Uniformi verament (l-ebda piz ta' kwalità)                                                      |

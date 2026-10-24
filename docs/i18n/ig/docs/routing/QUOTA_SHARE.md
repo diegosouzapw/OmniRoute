@@ -352,7 +352,7 @@ Engine quota-share ahụ nwere ọkwa abụọ nke mkpuchi nnwale akpaghị aka:
 | Unit (nnwale 29)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Scheduler DRR, gating saturation, oke concurrency, mgbakọ fairShare, na itinye ihe na backlog queue                                                                                                                 |
 | Matrix integration | `npm run test:combo:matrix`                                            | Mkpebi routing site na mmalite ruo na njedebe n'ime combo pipeline n'ezie; izi ezi DRR + ibelata mkpa saturation site na seams dị ndụ (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matrix integration ahụ na-agba na CI yana strategy ọha niile dị 19. Enwere ike
+Matrix integration ahụ na-agba na CI yana strategy ọha niile dị 21. Enwere ike
 ịgba unit suite ahụ naanị ya.
 
 ---

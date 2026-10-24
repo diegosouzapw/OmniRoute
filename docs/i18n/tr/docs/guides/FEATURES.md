@@ -59,7 +59,7 @@ OpenRouter bağlantıları, Advanced Settings bölümünde bağlantı başına b
 
 ## 🎨 Kombolar
 
-19 herkese açık stratejiyle model yönlendirme komboları oluşturun: öncelik, ağırlıklı, round-robin, bağlam aktarma, önce doldurma, p2c (iki seçenekten güçlü olan), rastgele, en az kullanılan, maliyet optimizasyonlu, sıfırlama duyarlı, sıfırlama penceresi, kullanılabilir kapasite, katı rastgele, otomatik, lkgp (son bilinen iyi sağlayıcı), bağlam optimizasyonlu, önbellek optimizasyonlu, **fusion** (bir model paneline paralel olarak dağıtım yapar, ardından bir hakem aracılığıyla tek bir yanıt sentezler) ve **pipeline**. Her kombo, otomatik yedeklemeyle birden fazla modeli zincirler ve hızlı şablonlar ile hazırlık kontrolleri içerir.
+21 herkese açık stratejiyle model yönlendirme komboları oluşturun: öncelik, ağırlıklı, round-robin, bağlam aktarma, önce doldurma, p2c (iki seçenekten güçlü olan), rastgele, en az kullanılan, maliyet optimizasyonlu, sıfırlama duyarlı, sıfırlama penceresi, önce süresi dolan, kullanılabilir kapasite, kota ağırlıklı, katı rastgele, otomatik, lkgp (son bilinen iyi sağlayıcı), bağlam optimizasyonlu, önbellek optimizasyonlu, **fusion** (bir model paneline paralel olarak dağıtım yapar, ardından bir hakem aracılığıyla tek bir yanıt sentezler) ve **pipeline**. Her kombo, otomatik yedeklemeyle birden fazla modeli zincirler ve hızlı şablonlar ile hazırlık kontrolleri içerir.
 
 Son kombo iyileştirmeleri:
 

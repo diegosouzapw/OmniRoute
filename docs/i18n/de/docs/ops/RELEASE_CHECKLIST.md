@@ -146,7 +146,7 @@ Matrix automatisch und ohne Label.
 - [ ] `npm run test:vitest` — erfolgreich (MCP-Server, autoCombo, Cache)
 - [ ] `npm run test:coverage` — Schwellenwert 60/60/60/60 erfüllt (Anweisungen/Zeilen/Funktionen/Verzweigungen)
 - [ ] `npm run test:integration` — erfolgreich (wenn Änderungen DB/Handler betreffen)
-- [ ] `npm run test:combo:matrix` — erfolgreich (Matrix der Combo-Strategien: weist die Auswahlentscheidungen aller 19 öffentlichen Routing-Strategien deterministisch nach; ausführen, wenn Combo-Routing, Strategieauflösung oder Fallback-Logik geändert werden)
+- [ ] `npm run test:combo:matrix` — erfolgreich (Matrix der Combo-Strategien: weist die Auswahlentscheidungen aller 21 öffentlichen Routing-Strategien deterministisch nach; ausführen, wenn Combo-Routing, Strategieauflösung oder Fallback-Logik geändert werden)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **optional/manuell** (abgesicherter Smoke-Test gegen reale Upstreams; bezieht einen schreibgeschützten DB-Snapshot vom VPS `root@192.168.0.15`; greift auf reale Provider zu und verbraucht Guthaben; wird niemals in CI ausgeführt; wird ohne gesetzte Freigabe sauber übersprungen)
 - [ ] `npm run test:combo:live:vps` — **optional/manuell** (Phase-3-VPS-Live-Smoke-Test: 7 HTTP-Szenarien gegen den laufenden `.15`-Server über reines Node ESM; erfordert `ssh root@192.168.0.15`; erstellt/löscht ausschließlich `__live_test__*`-Combos; greift auf reale Provider zu; wird niemals in CI ausgeführt)
 - [ ] `npm run test:e2e` — erfolgreich (UI-Änderungen)

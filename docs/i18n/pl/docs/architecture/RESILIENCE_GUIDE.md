@@ -743,7 +743,7 @@ co wyczerpany limit przydziału. Uczciwe ograniczenia:
 
 ## Inne funkcje odporności na awarie
 
-- **20 strategii routingu** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — zobacz [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 strategii routingu** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — zobacz [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Routing reset-aware** (v3.8.0) — nadaje priorytet połączeniom według czasu resetu limitu.
 - **Degradacja trybu pracy w tle** — Responses API z `background: true` jest degradowane do wywołania synchronicznego z ostrzeżeniem.
 - **Dynamiczne wykrywanie limitów liczby narzędzi** — wycofuje dostawców po osiągnięciu limitów liczby narzędzi.

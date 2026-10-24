@@ -784,7 +784,7 @@ signal အတူတူပင်ဖြစ်ပါသည်။ ရိုးသာ
 
 ## အခြား Resilience Feature များ
 
-- **20 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ကို ကြည့်ပါ။
+- **21 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) ကို ကြည့်ပါ။
 - **Reset-aware routing** (v3.8.0) — quota reset အချိန်အရ connections များကို ဦးစားပေးသည်။
 - **Background mode degradation** — Responses API `background: true` ကို သတိပေးချက်ဖြင့် sync သို့ လျှော့ချပေးသည်။
 - **Dynamic tool limit detection** — tool အရေအတွက် ကန့်သတ်ချက်များ ရောက်ရှိသောအခါ providers များကို back off လုပ်စေသည်။

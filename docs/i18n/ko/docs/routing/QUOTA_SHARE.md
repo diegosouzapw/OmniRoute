@@ -339,7 +339,7 @@ quota-share 엔진에는 두 계층의 자동화된 테스트 커버리지가 �
 | 단위 테스트(29개) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR 스케줄러, 포화도 게이팅, 동시성 상한, fairShare 계산, 백로그 큐잉                                                                                                                        |
 | 통합 매트릭스     | `npm run test:combo:matrix`                                            | 실제 콤보 파이프라인을 통한 엔드투엔드 라우팅 결정, 라이브 심(`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`)을 통한 DRR 공정성 및 포화 상태 우선순위 하향 조정 |
 
-통합 매트릭스는 CI에서 19개의 모든 공개 전략과 함께 실행됩니다. 단위 테스트 스위트는
+통합 매트릭스는 CI에서 21개의 모든 공개 전략과 함께 실행됩니다. 단위 테스트 스위트는
 독립적으로 실행할 수 있습니다.
 
 ---

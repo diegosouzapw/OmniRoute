@@ -57,7 +57,7 @@ Is féidir le ceangail OpenRouter stóráil `preset` in aghaidh an cheangail i S
 
 ## 🎨 Ceangail
 
-Cruthaigh combos ródaithe samhail le 19 straitéis phoiblí: tosaíocht, méáite, timthriall, aisréalta comhthéacs, líonadh-ar dtús, p2c (cumhacht dhá rogha), randamach, úsáid is lú, costas-optimálaithe, athshocrú-bhunaithe, fuinneog-athshocrú, headroom, randamacht dhílis, uathoibríoch, lkgp (soláthraí dea-aitheanta is déanaí), comhthéacs-optimálaithe, taisce-optimálaithe, **cumasc** (seol amach go cothrom le pionna samhlanna i bhfíor-am, ansin déan sintéis ar fhreagra amháin trí bhreitheamh), agus **píobáin**. Ceangail gach combo samhlanna iolracha le aisfhalú uathoibríoch agus cuimsíonn sé teimpléid thapa agus seiceálta réidhochta.
+Cruthaigh combos ródaithe samhail le 21 straitéis phoiblí: tosaíocht, méáite, timthriall, aisréalta comhthéacs, líonadh-ar dtús, p2c (cumhacht dhá rogha), randamach, úsáid is lú, costas-optimálaithe, athshocrú-bhunaithe, fuinneog-athshocrú, éag-ar-dtús, headroom, ualaithe de réir cuóta, randamacht dhílis, uathoibríoch, lkgp (soláthraí dea-aitheanta is déanaí), comhthéacs-optimálaithe, taisce-optimálaithe, **cumasc** (seol amach go cothrom le pionna samhlanna i bhfíor-am, ansin déan sintéis ar fhreagra amháin trí bhreitheamh), agus **píobáin**. Ceangail gach combo samhlanna iolracha le aisfhalú uathoibríoch agus cuimsíonn sé teimpléid thapa agus seiceálta réidhochta.
 
 Feabhsuithe déanaí ar combos:
 

@@ -316,7 +316,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proksi MITM (sertifikat, DNS, perutean target)
 ├── shared/
 │   ├── components/         # Komponen React (.tsx)
-│   ├── constants/          # Definisi penyedia (329), cakupan MCP, 20 strategi perutean
+│   ├── constants/          # Definisi penyedia (329), cakupan MCP, 21 strategi perutean
 │   ├── utils/              # Pemutus sirkuit, sanitizer, pembantu autentikasi
 │   └── validation/         # Skema Zod v4
 └── sse/                    # Pipeline proksi SSE

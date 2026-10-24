@@ -263,7 +263,7 @@ omsatte værdier føres ind i motorens eksisterende `config.modePack`- / `config
 
 ## Alle routingstrategier
 
-OmniRoutes kombinationsmotor understøtter **20 routingstrategier** (deklareret i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Selve Auto Combo-motoren er tilgængelig under strategien `auto`; de øvrige er tilgængelige for gemte kombinationer.
+OmniRoutes kombinationsmotor understøtter **21 routingstrategier** (deklareret i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Selve Auto Combo-motoren er tilgængelig under strategien `auto`; de øvrige er tilgængelige for gemte kombinationer.
 
 | Strategi            | Beskrivelse                                                                                                                                                                                                                |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -278,6 +278,7 @@ OmniRoutes kombinationsmotor understøtter **20 routingstrategier** (deklareret 
 | `cost-optimized`    | Minimer $ pr. anmodning ud fra katalogpriser                                                                                                                                                                               |
 | `reset-aware` ⭐    | Prioriter efter tidspunktet for nulstilling af kvoten — korte nulstillingsvinduer rangeres højere                                                                                                                          |
 | `reset-window`      | Foretræk mål, hvis kvotevindue nulstilles snarest                                                                                                                                                                          |
+| `expiry-first`      | Bruger først den konto, hvis kvote ellers ville udløbe ubrugt: den største rest med den nærmeste nulstilling går først                                                                                                     |
 | `headroom`          | Vælg målet med den største resterende kvotemargen                                                                                                                                                                          |
 | `quota-weighted`    | Spring opbrugte konti over, og vælg derefter blandt resten proportionalt med den resterende kvote divideret med igangværende belastning; eksisterende samtaler forbliver fastgjort                                         |
 | `strict-random`     | Tilfældig udvælgelse uden deduplikering af gentagelser                                                                                                                                                                     |
@@ -829,9 +830,9 @@ Se [`docs/guides/TIERS.md`](../guides/TIERS.md) for definitioner af niveauer og 
 
 ### Deterministisk matrix for routingbeslutninger (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` dokumenterer routingens **beslutning** for alle 19 offentlige strategier fra ende til anden gennem den rigtige kombinationspipeline med en simuleret upstream-tjeneste. Dækningen omfatter:
+`tests/integration/combo-matrix/*.test.ts` dokumenterer routingens **beslutning** for alle 21 offentlige strategier fra ende til anden gennem den rigtige kombinationspipeline med en simuleret upstream-tjeneste. Dækningen omfatter:
 
-- Alle 19 `ROUTING_STRATEGY_VALUES`-strategier (ordered, weighted, cost, context, fusion, …).
+- Alle 21 `ROUTING_STRATEGY_VALUES`-strategier (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (intern) fra ende til anden: DRR-retfærdighed + nedprioritering ved mætning via det rigtige `selectQuotaShareTarget`-integrationspunkt (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - `context-relay`-dækning af universel overdragelse på tværs af alle antal destinationer.
 
@@ -861,5 +862,5 @@ Disse smoketests afprøver den rigtige kommunikationsvej (kombination → udbyde
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser til præfikset `auto/` + 6 varianter                                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Bygger `AutoComboConfig` i hukommelsen ud fra aktive forbindelser                                                           |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test-hook til simulering af udbyderregisteret                                                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategier)                                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategier)                                                                                   |
 | `src/sse/handlers/chat.ts`                                | Integration: tidlig afslutning for auto-præfiks                                                                             |

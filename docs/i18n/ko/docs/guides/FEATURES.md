@@ -59,7 +59,7 @@ OpenRouter 연결은 Advanced Settings에서 연결별 `preset`을 저장할 수
 
 ## 🎨 콤보
 
-19가지 공개 전략으로 모델 라우팅 콤보를 생성합니다: priority, weighted, round-robin, context-relay, fill-first, p2c(power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp(last-known-good-provider), context-optimized, cache-optimized, **fusion**(여러 모델 패널에 병렬로 요청한 다음 심사 모델을 통해 하나의 답변으로 종합), **pipeline**. 각 콤보는 자동 폴백을 통해 여러 모델을 연결하며, 빠른 템플릿과 준비 상태 검사를 포함합니다.
+21가지 공개 전략으로 모델 라우팅 콤보를 생성합니다: priority, weighted, round-robin, context-relay, fill-first, p2c(power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp(last-known-good-provider), context-optimized, cache-optimized, **fusion**(여러 모델 패널에 병렬로 요청한 다음 심사 모델을 통해 하나의 답변으로 종합), **pipeline**. 각 콤보는 자동 폴백을 통해 여러 모델을 연결하며, 빠른 템플릿과 준비 상태 검사를 포함합니다.
 
 최근 콤보 개선 사항:
 

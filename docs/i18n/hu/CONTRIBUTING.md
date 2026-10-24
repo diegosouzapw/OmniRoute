@@ -312,7 +312,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM-proxy (tanúsítvány, DNS, célútválasztás)
 ├── shared/
 │   ├── components/         # React-komponensek (.tsx)
-│   ├── constants/          # Szolgáltatódefiníciók (329), MCP-hatókörök, 20 útválasztási stratégia
+│   ├── constants/          # Szolgáltatódefiníciók (329), MCP-hatókörök, 21 útválasztási stratégia
 │   ├── utils/              # Áramkör-megszakító, tisztító, hitelesítési segédfüggvények
 │   └── validation/         # Zod v4-sémák
 └── sse/                    # SSE-proxyfeldolgozási lánc

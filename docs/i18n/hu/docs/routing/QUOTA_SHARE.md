@@ -352,7 +352,7 @@ A quota-share motorhoz két automatizált tesztréteg tartozik:
 | Egységteszt (29 teszt) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-ütemező, telítettségi kapuzás, párhuzamossági korlátok, fairShare-számítás, hátralék sorba állítása                                                                                                                                               |
 | Integrációs mátrix     | `npm run test:combo:matrix`                                            | Teljes körű útválasztási döntés a tényleges kombófeldolgozási folyamaton keresztül; DRR-méltányosság és telítettségalapú hátrasorolás élő illesztési pontokon keresztül (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Az integrációs mátrix a CI-ben mind a 19 nyilvános stratégiával együtt fut. Az egységtesztcsomag
+Az integrációs mátrix a CI-ben mind a 21 nyilvános stratégiával együtt fut. Az egységtesztcsomag
 önállóan is futtatható.
 
 ---

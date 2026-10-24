@@ -860,7 +860,7 @@ samme signalet som en oppbrukt kvote. Ærlige begrensninger:
 
 ## Andre feiltoleransefunksjoner
 
-- **20 rutingstrategier** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — se [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 rutingstrategier** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — se [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Tilbakestillingskorrigert ruting** (v3.8.0) — prioriterer tilkoblinger etter tidspunkt for kvotetilbakestilling.
 - **Degradering av bakgrunnsmodus** — Responses API `background: true` degraderes til synkron med advarsel.
 - **Dynamisk gjenkjenning av verktøygrenser** — tar ned trykket mot tilbydere når grensen for antall verktøy nås.

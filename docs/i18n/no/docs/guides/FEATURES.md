@@ -59,7 +59,7 @@ OpenRouter-tilkoblinger kan lagre en `preset` per tilkobling i Avanserte innstil
 
 ## 🎨 Kombinasjoner
 
-Opprett kombinasjoner for modellruting med 19 offentlige strategier: prioritet, vektet, round-robin, kontekstoverføring, fyll-først, p2c (valg mellom to alternativer), tilfeldig, minst brukt, kostnadsoptimalisert, tilbakestillingsbevisst, tilbakestillingsvindu, tilgjengelig kapasitet, strengt tilfeldig, automatisk, lkgp (sist kjente fungerende leverandør), kontekstoptimalisert, hurtigbufferoptimalisert, **fusion** (send parallelt til et panel av modeller, og syntetiser deretter ett svar via en dommer) og **pipeline**. Hver kombinasjon kjeder sammen flere modeller med automatisk reserve og inkluderer hurtigmaler og beredskapskontroller.
+Opprett kombinasjoner for modellruting med 21 offentlige strategier: prioritet, vektet, round-robin, kontekstoverføring, fyll-først, p2c (valg mellom to alternativer), tilfeldig, minst brukt, kostnadsoptimalisert, tilbakestillingsbevisst, tilbakestillingsvindu, utløp først, tilgjengelig kapasitet, kvotevektet, strengt tilfeldig, automatisk, lkgp (sist kjente fungerende leverandør), kontekstoptimalisert, hurtigbufferoptimalisert, **fusion** (send parallelt til et panel av modeller, og syntetiser deretter ett svar via en dommer) og **pipeline**. Hver kombinasjon kjeder sammen flere modeller med automatisk reserve og inkluderer hurtigmaler og beredskapskontroller.
 
 Nylige forbedringer av kombinasjoner:
 

@@ -284,7 +284,7 @@ valores resolvidos alimentam as entradas `config.modePack` / `config.budgetCap` 
 
 ## Todas as Estratégias de Encaminhamento
 
-O motor de combinações do OmniRoute suporta **20 estratégias de encaminhamento** (declaradas em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio motor de Combinação Automática é disponibilizado através da estratégia `auto`; as restantes estão disponíveis para combinações persistidas.
+O motor de combinações do OmniRoute suporta **21 estratégias de encaminhamento** (declaradas em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio motor de Combinação Automática é disponibilizado através da estratégia `auto`; as restantes estão disponíveis para combinações persistidas.
 
 | Estratégia          | Descrição                                                                                                                                                                                                                |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -299,6 +299,7 @@ O motor de combinações do OmniRoute suporta **20 estratégias de encaminhament
 | `cost-optimized`    | Minimizar o custo em $ por pedido com base nos preços do catálogo                                                                                                                                                        |
 | `reset-aware` ⭐    | Dar prioridade com base na hora de reposição da quota — os períodos de reposição mais curtos têm maior prioridade                                                                                                        |
 | `reset-window`      | Preferir destinos cujo período de quota seja reposto mais cedo                                                                                                                                                           |
+| `expiry-first`      | Consome primeiro a conta cuja quota, de outro modo, expiraria sem ser usada: o maior saldo com a redefinição mais próxima vai primeiro                                                                                   |
 | `headroom`          | Escolher o destino com a maior margem de quota restante                                                                                                                                                                  |
 | `quota-weighted`    | Ignorar contas esgotadas e escolher entre as restantes proporcionalmente à quota restante dividida pela carga em curso; as conversas existentes mantêm-se fixas                                                          |
 | `strict-random`     | Seleção aleatória sem eliminação de repetições                                                                                                                                                                           |
@@ -817,9 +818,9 @@ Consulte [`docs/guides/TIERS.md`](../guides/TIERS.md) para obter as definições
 
 ### Matriz determinística de decisões de encaminhamento (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` comprova a **decisão** de encaminhamento das 19 estratégias públicas, de ponta a ponta, através do pipeline de combinação real com um serviço a montante simulado. A cobertura inclui:
+`tests/integration/combo-matrix/*.test.ts` comprova a **decisão** de encaminhamento das 21 estratégias públicas, de ponta a ponta, através do pipeline de combinação real com um serviço a montante simulado. A cobertura inclui:
 
-- Todas as 19 estratégias `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Todas as 21 estratégias `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (interna) de ponta a ponta: equidade DRR + despriorização por saturação através do ponto de integração real `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Cobertura da transferência universal de `context-relay` para todas as quantidades de destinos.
 
@@ -849,5 +850,5 @@ Estes smoke tests exercitam o percurso de comunicação real (combinação → f
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Analisador do prefixo `auto/` + 6 variantes                                                                    |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Cria uma `AutoComboConfig` em memória a partir de ligações ativas                                              |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Gancho de teste para simular o registo de fornecedores                                                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 estratégias)                                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 estratégias)                                                                     |
 | `src/sse/handlers/chat.ts`                                | Integração: curto-circuito do prefixo automático                                                               |

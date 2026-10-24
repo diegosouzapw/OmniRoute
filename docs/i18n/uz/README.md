@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — Bepul AI shlyuzi
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Kod yozishni hech qachon to‘xtatmang. Har bir AI vositasi → 375 ta provayder — 150+ tasi bepul — bitta endpoint orqali. Claude Code, Codex, Cursor, Cline, Copilot va Antigravity vositalarini avtomatik zaxira yo‘naltirishi bilan BEPUL Claude / GPT / Gemini’ga ulang. RTK + Caveman birgalikdagi siqish tokenlarni 15–95% (~89% o‘rtacha) tejaydi — hech qachon limitga yetmang. 375 ta AI provayderi · 150+ ta bepul tarif · oyiga ~1.62 mlrd bepul token · 20 ta yo‘naltirish strategiyasi · boshlash uchun $0."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Kod yozishni hech qachon to‘xtatmang. Har bir AI vositasi → 375 ta provayder — 150+ tasi bepul — bitta endpoint orqali. Claude Code, Codex, Cursor, Cline, Copilot va Antigravity vositalarini avtomatik zaxira yo‘naltirishi bilan BEPUL Claude / GPT / Gemini’ga ulang. RTK + Caveman birgalikdagi siqish tokenlarni 15–95% (~89% o‘rtacha) tejaydi — hech qachon limitga yetmang. 375 ta AI provayderi · 150+ ta bepul tarif · oyiga ~1.62 mlrd bepul token · 21 ta yo‘naltirish strategiyasi · boshlash uchun $0."/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute soʻrov oqimi: IDE yoki CLI’ingiz (Claude Code, Cursor, Cline…) yagona mahalliy endpoint’ga (http://localhost:20128/v1) murojaat qiladi; OmniRoute Smart Router (RTK + Caveman siqishi, 20 ta yoʻnaltirish strategiyasi, avtomatik oʻchirgichlar, TLS yashirinligi, MCP, A2A, himoya mexanizmlari) mos va sogʻlom nishon mavjud ekan, provayderlarning 4 ta darajasi boʻylab zaxira yoʻnalishga oʻta oladi — 1-daraja: Obuna, 2-daraja: API kaliti, 3-daraja: Arzon va 4-daraja: Bepul."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute soʻrov oqimi: IDE yoki CLI’ingiz (Claude Code, Cursor, Cline…) yagona mahalliy endpoint’ga (http://localhost:20128/v1) murojaat qiladi; OmniRoute Smart Router (RTK + Caveman siqishi, 21 ta yoʻnaltirish strategiyasi, avtomatik oʻchirgichlar, TLS yashirinligi, MCP, A2A, himoya mexanizmlari) mos va sogʻlom nishon mavjud ekan, provayderlarning 4 ta darajasi boʻylab zaxira yoʻnalishga oʻta oladi — 1-daraja: Obuna, 2-daraja: API kaliti, 3-daraja: Arzon va 4-daraja: Bepul."/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="20 ta combo marshrutlash strategiyasidan 18 tasi uchun animatsiyali misollar — har bir strategiya uchun bittadan katak: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized va quota-weighted animatsiya qilinmagan; quyidagi jadvalda barcha 20 tasi tavsiflangan."/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="21 ta combo marshrutlash strategiyasidan 18 tasi uchun animatsiyali misollar — har bir strategiya uchun bittadan katak: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline. cache-optimized, quota-weighted va expiry-first animatsiya qilinmagan; quyidagi jadvalda barcha 21 tasi tavsiflangan."/>
 
 > **Combo** — bu OmniRoute **avtomatik ravishda** marshrutlaydigan modellar zanjiri. Kvota tugasa, provayder ishlamay qolsa yoki xarajatlar keskin oshsa, combo keyingi mos va sogʻlom modelga oʻtishi mumkin. 🛡️
 
@@ -378,9 +378,9 @@ Combo yaratish shart emas. Modelingizni `auto`ga (yoki uning variantlaridan biri
 
 ##
 
-### 🔀 Yoki oʻzingiznikini yarating — 20 ta marshrutlash strategiyasi
+### 🔀 Yoki oʻzingiznikini yarating — 21 ta marshrutlash strategiyasi
 
-Barcha **20** ta strategiya — har bir combo bosqichida aralashtirib qoʻllang:
+Barcha **21** ta strategiya — har bir combo bosqichida aralashtirib qoʻllang:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ Barcha **20** ta strategiya — har bir combo bosqichida aralashtirib qoʻllang:
     <td nowrap><code>pipeline</code></td>
     <td>Bosqichlarni zanjirlaydi — har bir nishonning chiqishi keyingisiga uzatiladi 🔗</td>
   </tr>
+  <tr>
+    <td align="center">21</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>Aks holda foydalanilmay muddati tugaydigan kvotali hisobni birinchi sarflaydi: eng katta qoldiqli va eng yaqin yangilanishli hisob birinchi navbatda tanlanadi ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo mexanizmi har bir nomzodni **16 ta omil** (holat, kvota, xarajat, kechikish, vazifaga moslik, sifat, sessiya mavjudligi…) bo‘yicha baholaydi — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) hujjatiga qarang.</sub>
@@ -508,7 +513,7 @@ Barcha **20** ta strategiya — har bir combo bosqichida aralashtirib qoʻllang:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute’ning o‘ziga xos jihatlari — 13 ta imkoniyat bo‘yicha 9router, OpenRouter, CLIProxyAPI va LiteLLM bilan muayyan sanadagi funksiyalar taqqoslanishi. OmniRoute: 375 ta provayder, 150 dan ortiq ichki bepul tarif, 20 ta marshrutlash strategiyasi, 12 dvigatelli token siqish, 110 ta vositaga ega ichki MCP serveri, A2A agent protokoli, doimiy xotira, himoya cheklovlari, bulutli agentlar, TLS raqamli izi orqali yashirinlik, Desktop/Termux/PWA va 67 ta mahalliylashtirilgan foydalanuvchi interfeysi tili. OmniRoute MIT litsenziyasiga ega va o‘z serveringizda joylashtirilishi mumkin. Raqobatchilarning imkoniyatlari va ko‘rsatkichlari o‘zgarishi mumkin; havola qilingan metodologiyaga qarang."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute’ning o‘ziga xos jihatlari — 13 ta imkoniyat bo‘yicha 9router, OpenRouter, CLIProxyAPI va LiteLLM bilan muayyan sanadagi funksiyalar taqqoslanishi. OmniRoute: 375 ta provayder, 150 dan ortiq ichki bepul tarif, 21 ta marshrutlash strategiyasi, 12 dvigatelli token siqish, 110 ta vositaga ega ichki MCP serveri, A2A agent protokoli, doimiy xotira, himoya cheklovlari, bulutli agentlar, TLS raqamli izi orqali yashirinlik, Desktop/Termux/PWA va 67 ta mahalliylashtirilgan foydalanuvchi interfeysi tili. OmniRoute MIT litsenziyasiga ega va o‘z serveringizda joylashtirilishi mumkin. Raqobatchilarning imkoniyatlari va ko‘rsatkichlari o‘zgarishi mumkin; havola qilingan metodologiyaga qarang."/>
 
 <sub>📊 To‘liq metodologiya va har bir funksiya bo‘yicha 9router, OpenRouter, CLIProxyAPI hamda LiteLLM bilan batafsil taqqoslash → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

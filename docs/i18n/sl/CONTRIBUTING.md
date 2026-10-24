@@ -316,7 +316,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Posredniški strežnik MITM (potrdilo, DNS, usmerjanje ciljev)
 ├── shared/
 │   ├── components/         # Komponente React (.tsx)
-│   ├── constants/          # Definicije ponudnikov (329), obsegi MCP, 20 strategij usmerjanja
+│   ├── constants/          # Definicije ponudnikov (329), obsegi MCP, 21 strategij usmerjanja
 │   ├── utils/              # Odklopnik, čistilnik in pomočniki za preverjanje pristnosti
 │   └── validation/         # Sheme Zod v4
 └── sse/                    # Posredniški cevovod SSE

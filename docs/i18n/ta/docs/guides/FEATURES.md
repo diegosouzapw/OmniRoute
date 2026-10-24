@@ -59,7 +59,7 @@ OpenRouter இணைப்புகள், Advanced Settings என்பதி�
 
 ## 🎨 காம்போக்கள்
 
-19 பொது உத்திகளுடன் மாதிரி வழிச்செலுத்தல் காம்போக்களை உருவாக்கவும்: priority, weighted, round-robin, context-relay, fill-first, p2c (இரண்டு தேர்வுகளின் சக்தி), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (கடைசியாகச் சரியாக இயங்கிய வழங்குநர்), context-optimized, cache-optimized, **fusion** (பல மாதிரிகளைக் கொண்ட குழுவிற்கு இணையாகக் கோரிக்கைகளை அனுப்பி, பின்னர் ஒரு மதிப்பீட்டாளர் மூலம் ஒரே பதிலைத் தொகுத்தல்), மற்றும் **pipeline**. ஒவ்வொரு காம்போவும் தானியங்கு மாற்றுவழியுடன் பல மாதிரிகளைத் தொடராக இணைக்கிறது; மேலும் விரைவு வார்ப்புருக்கள் மற்றும் தயார்நிலைச் சோதனைகளையும் கொண்டுள்ளது.
+21 பொது உத்திகளுடன் மாதிரி வழிச்செலுத்தல் காம்போக்களை உருவாக்கவும்: priority, weighted, round-robin, context-relay, fill-first, p2c (இரண்டு தேர்வுகளின் சக்தி), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (கடைசியாகச் சரியாக இயங்கிய வழங்குநர்), context-optimized, cache-optimized, **fusion** (பல மாதிரிகளைக் கொண்ட குழுவிற்கு இணையாகக் கோரிக்கைகளை அனுப்பி, பின்னர் ஒரு மதிப்பீட்டாளர் மூலம் ஒரே பதிலைத் தொகுத்தல்), மற்றும் **pipeline**. ஒவ்வொரு காம்போவும் தானியங்கு மாற்றுவழியுடன் பல மாதிரிகளைத் தொடராக இணைக்கிறது; மேலும் விரைவு வார்ப்புருக்கள் மற்றும் தயார்நிலைச் சோதனைகளையும் கொண்டுள்ளது.
 
 சமீபத்திய காம்போ மேம்பாடுகள்:
 

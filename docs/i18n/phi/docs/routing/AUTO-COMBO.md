@@ -282,7 +282,7 @@ na-resolve na value ay ipinapasa sa mga umiiral na input na `config.modePack` / 
 
 ## Lahat ng Istratehiya sa Pagruruta
 
-Sinusuportahan ng combo engine ng OmniRoute ang **20 istratehiya sa pagruruta** (idineklara sa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ang Auto Combo engine mismo ay inilalantad sa ilalim ng istratehiyang `auto`; magagamit naman ang iba para sa mga naka-persist na combo.
+Sinusuportahan ng combo engine ng OmniRoute ang **21 istratehiya sa pagruruta** (idineklara sa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ang Auto Combo engine mismo ay inilalantad sa ilalim ng istratehiyang `auto`; magagamit naman ang iba para sa mga naka-persist na combo.
 
 | Istratehiya         | Paglalarawan                                                                                                                                                                                                                     |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ Sinusuportahan ng combo engine ng OmniRoute ang **20 istratehiya sa pagruruta** 
 | `cost-optimized`    | Paliitin ang $ kada request batay sa pagpepresyo sa catalog                                                                                                                                                                      |
 | `reset-aware` ⭐    | Magtakda ng prayoridad ayon sa oras ng pag-reset ng quota — mas mataas ang ranggo ng maiikling reset window                                                                                                                      |
 | `reset-window`      | Piliin ang mga target na pinakamalapit nang mag-reset ang quota window                                                                                                                                                           |
+| `expiry-first`      | Inuuna ang account na ang quota ay mag-e-expire nang hindi nagagamit: nauuna ang may pinakamalaking natitira at pinakamalapit na pag-reset                                                                                       |
 | `headroom`          | Piliin ang target na may pinakamaraming natitirang espasyo sa quota                                                                                                                                                              |
 | `quota-weighted`    | Laktawan ang mga account na ubos na ang quota, pagkatapos ay pumili mula sa natitira nang proporsyonal sa natitirang quota na hinati sa in-flight load; mananatiling naka-pin ang mga umiiral na pag-uusap                       |
 | `strict-random`     | Random na pagpili nang walang pag-aalis ng mga pag-uulit                                                                                                                                                                         |
@@ -847,10 +848,10 @@ Tingnan ang [`docs/guides/TIERS.md`](../guides/TIERS.md) para sa mga depinisyon 
 
 ### Deterministikong matrix ng desisyon sa pagruruta (`npm run test:combo:matrix`)
 
-Pinatutunayan ng `tests/integration/combo-matrix/*.test.ts` ang **desisyon** sa pagruruta ng lahat ng 19 na pampublikong strategy mula simula hanggang dulo sa pamamagitan ng tunay na combo pipeline na may mock na upstream.
+Pinatutunayan ng `tests/integration/combo-matrix/*.test.ts` ang **desisyon** sa pagruruta ng lahat ng 21 na pampublikong strategy mula simula hanggang dulo sa pamamagitan ng tunay na combo pipeline na may mock na upstream.
 Kabilang sa saklaw ang:
 
-- Lahat ng 19 na strategy ng `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Lahat ng 21 na strategy ng `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (internal) mula simula hanggang dulo: pagiging patas ng DRR + pagbaba ng priyoridad dahil sa saturation sa pamamagitan ng tunay na seam na `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - Saklaw ng universal handoff ng `context-relay` sa bawat bilang ng target.
@@ -881,5 +882,5 @@ Sinusubukan ng mga smoke test na ito ang tunay na wire path (combo → provider 
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser ng prefix na `auto/` + 6 na variant                                                                      |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Bumubuo ng in-memory na `AutoComboConfig` mula sa mga aktibong koneksyon                                        |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook para sa pag-mock ng provider registry                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 diskarte)                                                                         |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 diskarte)                                                                         |
 | `src/sse/handlers/chat.ts`                                | Integrasyon: short-circuit ng auto-prefix                                                                       |

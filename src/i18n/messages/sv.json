@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Balanserar återstående kvot mot 5 timmars och veckovisa återställningar och slår sedan runt liknande resultat",
     "quotaWeighted": "Kvotviktad",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Utgång först",
+    "expiryFirstDesc": "Förbrukar först kontot vars kvot annars skulle löpa ut oanvänd: störst återstod med närmast återställning går först.",
     "strictRandom": "Strikt slumpmässig",
     "strictRandomDesc": "Blanda kortleken — använder varje modell en gång innan den blandas om",
     "fusion": "Fusion",
@@ -3600,6 +3602,11 @@
         "when": "Du ruttar över flera konton med kvottelemetri och olika återställningsfönster.",
         "avoid": "Kvottelemetri är inte tillgängligt för de flesta konton.",
         "example": "Föredrar en kontoåterställning på 60 % per vecka i morgon framför en återställning på 80 % senare."
+      },
+      "expiry-first": {
+        "when": "Du ruttar över konton vars kvoter återställs enligt olika scheman och vill förbruka kvot som annars skulle löpa ut oanvänd.",
+        "avoid": "Kvottelemetri saknas för de flesta konton, eller så behöver du en stabil ordning som ignorerar återställningstidpunkten.",
+        "example": "Föredra ett konto med 80 % kvar som återställs om 39 minuter framför ett konto med 48 % kvar som återställs om 9 timmar — kvoten som snart löper ut förbrukas innan den går förlorad."
       },
       "strict-random": {
         "when": "Använd när du vill ha en helt jämn fördelning — varje modell används en gång innan någon upprepas.",
@@ -3815,6 +3822,13 @@
         "tip1": "Använd explicita kontosteg eller routing för kontotaggar för leverantörer med kvottelemetri.",
         "tip2": "Justera sessionen kontra veckovikter när kortvarig utmattning är mer riskabel.",
         "tip3": "Håll bandet litet så att motsvarande konton fortfarande roterar rättvist."
+      },
+      "expiry-first": {
+        "title": "Utgående kvot först",
+        "description": "Rangordnar konton efter utnyttjandetryck: hög återstående kvot nära återställningsfristen går först.",
+        "tip1": "Kräver kvottelemetri från leverantören; konton utan den behåller sin angivna prioritetsordning.",
+        "tip2": "Nästan lika poäng roterar inom likhetsbandet så att likvärdiga konton fortfarande delar på lasten.",
+        "tip3": "Avgränsa rangordningen till den kvothink som varje modell faktiskt debiteras mot."
       },
       "strict-random": {
         "title": "Kortleksbaserad fördelning",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Föredrar konton med sund återstående kvot och närmare återställningar",
     "quotaWeighted": "Kvotviktad",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Utgång först",
+    "expiryFirstDesc": "Förbrukar först kontot vars kvot annars skulle löpa ut oanvänd: störst återstod med närmast återställning går först.",
     "strictRandom": "Strikt slumpval",
     "strictRandomDesc": "Blanda kortleken — använder varje konto en gång innan den blandas om",
     "stickyLimit": "Gräns för beständighet",

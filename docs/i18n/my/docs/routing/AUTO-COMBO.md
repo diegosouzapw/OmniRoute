@@ -259,7 +259,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာအားလုံး
 
-OmniRoute ၏ combo engine သည် **လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာ 20 မျိုး**ကို ပံ့ပိုးထားသည် (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` တွင် ကြေညာထားသည်)။ Auto Combo engine ကိုယ်တိုင်ကို `auto` မဟာဗျူဟာအောက်တွင် အသုံးပြုနိုင်ပြီး အခြားမဟာဗျူဟာများကို သိမ်းဆည်းထားသော combo များအတွက် အသုံးပြုနိုင်သည်။
+OmniRoute ၏ combo engine သည် **လမ်းကြောင်းရွေးချယ်မှု မဟာဗျူဟာ 21 မျိုး**ကို ပံ့ပိုးထားသည် (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` တွင် ကြေညာထားသည်)။ Auto Combo engine ကိုယ်တိုင်ကို `auto` မဟာဗျူဟာအောက်တွင် အသုံးပြုနိုင်ပြီး အခြားမဟာဗျူဟာများကို သိမ်းဆည်းထားသော combo များအတွက် အသုံးပြုနိုင်သည်။
 
 | မဟာဗျူဟာ            | ဖော်ပြချက်                                                                                                                                                                                                                          |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -274,6 +274,7 @@ OmniRoute ၏ combo engine သည် **လမ်းကြောင်းရွ�
 | `cost-optimized`    | catalog စျေးနှုန်းများအရ request တစ်ခုချင်းစီအတွက် ကုန်ကျစရိတ် $ ကို အနည်းဆုံးဖြစ်စေခြင်း                                                                                                                                           |
 | `reset-aware` ⭐    | quota ပြန်လည်သတ်မှတ်ချိန်အလိုက် ဦးစားပေးခြင်း — reset window တိုသော target များကို ပိုမိုဦးစားပေးအဆင့် သတ်မှတ်ခြင်း                                                                                                                 |
 | `reset-window`      | quota window အစောဆုံး ပြန်လည်သတ်မှတ်မည့် target များကို ဦးစားပေးခြင်း                                                                                                                                                               |
+| `expiry-first`      | မသုံးဘဲထားပါက သက်တမ်းကုန်သွားမည့် ခွဲတမ်းရှိသော အကောင့်ကို ဦးစွာသုံးသည်- အများဆုံးကျန်ရှိပြီး ပြန်လည်သတ်မှတ်ချိန် အနီးဆုံးဖြစ်သော အကောင့်ကို ဦးစားပေးသည်                                                                            |
 | `headroom`          | ကျန်ရှိသည့် quota headroom အများဆုံးရှိသော target ကို ရွေးချယ်ခြင်း                                                                                                                                                                 |
 | `quota-weighted`    | quota ကုန်ဆုံးသွားသော account များကို ကျော်ပြီး၊ ကျန်ရှိသော account များထဲမှ ကျန် quota ကို လက်ရှိလုပ်ဆောင်နေသော load ဖြင့် စားထားသည့် အချိုးအလိုက် ရွေးချယ်ခြင်း၊ ရှိပြီးသား စကားဝိုင်းများကို မူလ target တွင် ဆက်လက်ချိတ်ထားခြင်း |
 | `strict-random`     | ထပ်ခါတလဲလဲဖြစ်မှုများကို ဖယ်ရှားခြင်းမရှိသော ကျပန်းရွေးချယ်မှု                                                                                                                                                                      |
@@ -806,10 +807,10 @@ Tier 1 (subscription) ကို အထူးဦးစားပေးရန် `t
 
 ### တစ်သမတ်တည်း ရလဒ်ထွက်သည့် routing ဆုံးဖြတ်ချက် matrix (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` သည် အတုယူထားသော upstream နှင့် တကယ့် combo pipeline တစ်လျှောက် public strategy 19 ခုစလုံး၏ routing **ဆုံးဖြတ်ချက်** ကို အစမှအဆုံး အတည်ပြုသည်။
+`tests/integration/combo-matrix/*.test.ts` သည် အတုယူထားသော upstream နှင့် တကယ့် combo pipeline တစ်လျှောက် public strategy 21 ခုစလုံး၏ routing **ဆုံးဖြတ်ချက်** ကို အစမှအဆုံး အတည်ပြုသည်။
 လွှမ်းခြုံမှုတွင် အောက်ပါတို့ ပါဝင်သည်-
 
-- `ROUTING_STRATEGY_VALUES` strategy 19 ခုစလုံး (ordered, weighted, cost, context, fusion, …)။
+- `ROUTING_STRATEGY_VALUES` strategy 21 ခုစလုံး (ordered, weighted, cost, context, fusion, …)။
 - `quota-share` (internal) အစမှအဆုံး- တကယ့် `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`) မှတစ်ဆင့် DRR မျှတမှု + ပြည့်ဝနေမှုကို ဦးစားပေးမှုလျှော့ချခြင်း။
 - Target အရေအတွက်တိုင်းအတွက် `context-relay` universal-handoff လွှမ်းခြုံမှု။
@@ -841,5 +842,5 @@ Tier 1 (subscription) ကို အထူးဦးစားပေးရန် `t
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ရှေ့ဆက်စကားလုံး parser + မူကွဲ 6 ခု                                                                                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | လက်ရှိချိတ်ဆက်မှုများမှ memory အတွင်းရှိ `AutoComboConfig` ကို တည်ဆောက်သည်                                                                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | provider registry ကို mock လုပ်ရန် test hook                                                                                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (နည်းဗျူဟာ 20 ခု)                                                                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (နည်းဗျူဟာ 21 ခု)                                                                                                                |
 | `src/sse/handlers/chat.ts`                                | ပေါင်းစည်းမှု- auto-prefix short-circuit                                                                                                                   |

@@ -310,7 +310,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proksi (sertifikat, DNS, maqsadli marshrutlash)
 ├── shared/
 │   ├── components/         # React komponentlari (.tsx)
-│   ├── constants/          # Provayder ta’riflari (329 ta), MCP qamrovlari, 20 ta marshrutlash strategiyasi
+│   ├── constants/          # Provayder ta’riflari (329 ta), MCP qamrovlari, 21 ta marshrutlash strategiyasi
 │   ├── utils/              # O‘chirgich, tozalovchi, autentifikatsiya yordamchilari
 │   └── validation/         # Zod v4 sxemalari
 └── sse/                    # SSE proksi konveyeri

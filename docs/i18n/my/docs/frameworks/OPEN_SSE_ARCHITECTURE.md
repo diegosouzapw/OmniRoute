@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**routing strategy 20 ခု** ကို ပံ့ပိုးပေးသည် (`src/shared/constants/routingStrategies.ts` ကို ကြည့်ပါ)-
+**routing strategy 21 ခု** ကို ပံ့ပိုးပေးသည် (`src/shared/constants/routingStrategies.ts` ကို ကြည့်ပါ)-
 
 | နည်းဗျူဟာ           | လုပ်ဆောင်ပုံ                                                                                            |
 | ------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | ကျန်းမာသော target များအနက် စျေးနှုန်းအသက်သာဆုံးကို ဦးစားပေးခြင်း                                        |
 | `reset-aware`       | provider reset window များကို ထည့်စဉ်းစားခြင်း                                                          |
 | `reset-window`      | Reset window အခြေခံ routing                                                                             |
+| `expiry-first`      | မသုံးဘဲထားပါက သက်တမ်းကုန်သွားမည့် ခွဲတမ်းရှိသော အကောင့်ကို ဦးစွာသုံးသည်                                 |
 | `headroom`          | ကျန်ရှိနေသော quota headroom အများဆုံးကို ဦးစားပေးခြင်း                                                  |
 | `quota-weighted`    | ကုန်ခမ်းသွားသော account များကို ကျော်သွားပြီး ကျန်ရှိ quota ÷ in-flight load ဖြင့် ရွေးချယ်ခြင်း        |
 | `strict-random`     | အစစ်အမှန် ညီညာသော ကျပန်းရွေးချယ်ခြင်း (အရည်အသွေး weighting မရှိ)                                        |

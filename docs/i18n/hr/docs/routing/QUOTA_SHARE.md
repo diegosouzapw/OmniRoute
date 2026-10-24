@@ -354,7 +354,7 @@ Mehanizam quota-share isporučuje se s dvije razine automatizirane pokrivenosti:
 | Jedinični (29 testova) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR raspoređivač, ograničavanje prema zasićenju, ograničenja istodobnosti, izračun fairShare, stavljanje zaostalih zahtjeva u red čekanja                                                                                                    |
 | Integracijska matrica  | `npm run test:combo:matrix`                                            | Odluka o usmjeravanju od početka do kraja kroz stvarni kombinirani proces; pravednost DRR-a + smanjenje prioriteta pri zasićenju putem aktivnih spojnih točaka (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integracijska matrica izvršava se u CI-ju zajedno sa svih 19 javnih strategija. Jedinični paket testova
+Integracijska matrica izvršava se u CI-ju zajedno sa svih 21 javnom strategijom. Jedinični paket testova
 može se pokrenuti samostalno.
 
 ---

@@ -872,7 +872,7 @@ allowlist-ში შესული პროვაიდერისთვი�
 
 ## მდგრადობის სხვა ფუნქციები
 
-- **მარშრუტიზაციის 20 სტრატეგია** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — იხილეთ [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **მარშრუტიზაციის 21 სტრატეგია** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — იხილეთ [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **განულების დროის გათვალისწინებით მარშრუტიზაცია** (v3.8.0) — კავშირებს კვოტის განულების დროის მიხედვით ანიჭებს პრიორიტეტს.
 - **ფონური რეჟიმის დეგრადაცია** — Responses API-ის `background: true` გაფრთხილებით სინქრონულ რეჟიმამდე დეგრადირდება.
 - **ინსტრუმენტების ლიმიტის დინამიკური აღმოჩენა** — ინსტრუმენტების რაოდენობის ლიმიტის მიღწევისას პროვაიდერებს დროებით გამორიცხავს.

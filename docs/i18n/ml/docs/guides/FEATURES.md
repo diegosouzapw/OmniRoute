@@ -59,7 +59,7 @@ OpenRouter കണക്ഷനുകൾക്ക് Advanced Settings-ൽ ഓര�
 
 ## 🎨 കോംബോകൾ
 
-19 പൊതു സ്ട്രാറ്റജികൾ ഉപയോഗിച്ച് മോഡൽ റൂട്ടിംഗ് കോംബോകൾ സൃഷ്ടിക്കുക: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (മോഡലുകളുടെ ഒരു പാനലിലേക്ക് സമാന്തരമായി അഭ്യർത്ഥനകൾ അയച്ച്, തുടർന്ന് ഒരു ജഡ്ജ് വഴി ഒറ്റ ഉത്തരം സമന്വയിപ്പിക്കുന്നു), കൂടാതെ **pipeline**. ഓരോ കോംബോയും സ്വയമേവയുള്ള fallback ഉപയോഗിച്ച് ഒന്നിലധികം മോഡലുകളെ ശൃംഖലയാക്കുകയും ദ്രുത ടെംപ്ലേറ്റുകളും സന്നദ്ധതാ പരിശോധനകളും ഉൾപ്പെടുത്തുകയും ചെയ്യുന്നു.
+21 പൊതു സ്ട്രാറ്റജികൾ ഉപയോഗിച്ച് മോഡൽ റൂട്ടിംഗ് കോംബോകൾ സൃഷ്ടിക്കുക: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (മോഡലുകളുടെ ഒരു പാനലിലേക്ക് സമാന്തരമായി അഭ്യർത്ഥനകൾ അയച്ച്, തുടർന്ന് ഒരു ജഡ്ജ് വഴി ഒറ്റ ഉത്തരം സമന്വയിപ്പിക്കുന്നു), കൂടാതെ **pipeline**. ഓരോ കോംബോയും സ്വയമേവയുള്ള fallback ഉപയോഗിച്ച് ഒന്നിലധികം മോഡലുകളെ ശൃംഖലയാക്കുകയും ദ്രുത ടെംപ്ലേറ്റുകളും സന്നദ്ധതാ പരിശോധനകളും ഉൾപ്പെടുത്തുകയും ചെയ്യുന്നു.
 
 സമീപകാല കോംബോ മെച്ചപ്പെടുത്തലുകൾ:
 

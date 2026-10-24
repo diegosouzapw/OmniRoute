@@ -59,7 +59,7 @@ Povezave OpenRouter lahko v naprednih nastavitvah shranijo `preset` za posamezno
 
 ## 🎨 Kombinacije
 
-Ustvarite kombinacije za usmerjanje modelov z 19 javnimi strategijami: priority, weighted, round-robin, context-relay, fill-first, p2c (izbira med dvema možnostma), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (zadnji znani delujoči ponudnik), context-optimized, cache-optimized, **fusion** (vzporedno razpošlje zahtevo skupini modelov, nato pa prek ocenjevalnega modela sintetizira en odgovor) in **pipeline**. Vsaka kombinacija verižno poveže več modelov s samodejnim preklopom ob napaki ter vključuje hitre predloge in preverjanja pripravljenosti.
+Ustvarite kombinacije za usmerjanje modelov z 21 javnimi strategijami: priority, weighted, round-robin, context-relay, fill-first, p2c (izbira med dvema možnostma), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (zadnji znani delujoči ponudnik), context-optimized, cache-optimized, **fusion** (vzporedno razpošlje zahtevo skupini modelov, nato pa prek ocenjevalnega modela sintetizira en odgovor) in **pipeline**. Vsaka kombinacija verižno poveže več modelov s samodejnim preklopom ob napaki ter vključuje hitre predloge in preverjanja pripravljenosti.
 
 Nedavne izboljšave kombinacij:
 

@@ -49,7 +49,7 @@ export const COMBO_STRATEGY_DISPATCH_LEAVES = {
  * derivado das chaves do registry tipado de traits (`COMBO_STRATEGY_REGISTRY`).
  *
  * Cobertura esperada (em `main` do gate): este set ∪ IMPLICIT_DEFAULT_STRATEGIES deve
- * igualar o canônico. 20 estratégias canônicas + 1 interna (`quota-share`) = 21 entradas;
+ * igualar o canônico. 21 estratégias canônicas + 1 interna (`quota-share`) = 22 entradas;
  * IMPLICIT_DEFAULT_STRATEGIES continua vazio.
  */
 export const HANDLED_COMBO_STRATEGIES: readonly string[] = REGISTERED_COMBO_STRATEGIES;

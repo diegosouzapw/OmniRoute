@@ -313,7 +313,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM ፕሮክሲ (የምስክር ወረቀት፣ DNS፣ የመዳረሻ ማዘዋወር)
 ├── shared/
 │   ├── components/         # React ኮምፖነንቶች (.tsx)
-│   ├── constants/          # የአቅራቢ ትርጓሜዎች (329)፣ MCP ወሰኖች፣ 20 የማዘዋወር ስልቶች
+│   ├── constants/          # የአቅራቢ ትርጓሜዎች (329)፣ MCP ወሰኖች፣ 21 የማዘዋወር ስልቶች
 │   ├── utils/              # የወረዳ መቋረጫ፣ ማጽጃ፣ የማረጋገጫ ረዳቶች
 │   └── validation/         # Zod v4 ንድፎች
 └── sse/                    # SSE የፕሮክሲ ቧንቧ መስመር

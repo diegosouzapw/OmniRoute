@@ -282,7 +282,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## همهٔ راهبردهای مسیریابی
 
-موتور ترکیبی OmniRoute از **20 راهبرد مسیریابی** پشتیبانی میکند (تعریفشده در `src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). خود موتور Auto Combo تحت راهبرد `auto` ارائه میشود؛ سایر راهبردها برای ترکیبهای ذخیرهشده در دسترس هستند.
+موتور ترکیبی OmniRoute از **21 راهبرد مسیریابی** پشتیبانی میکند (تعریفشده در `src/shared/constants/routingStrategies.ts` ← `ROUTING_STRATEGY_VALUES`). خود موتور Auto Combo تحت راهبرد `auto` ارائه میشود؛ سایر راهبردها برای ترکیبهای ذخیرهشده در دسترس هستند.
 
 | راهبرد              | توضیحات                                                                                                                                                                                             |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | کمینهسازی هزینهٔ دلاری هر درخواست با توجه به قیمتگذاری کاتالوگ                                                                                                                                      |
 | `reset-aware` ⭐    | اولویتبندی بر اساس زمان بازنشانی سهمیه — پنجرههای بازنشانی کوتاهتر در رتبهٔ بالاتر قرار میگیرند                                                                                                     |
 | `reset-window`      | ترجیح هدفهایی که پنجرهٔ سهمیهشان زودتر بازنشانی میشود                                                                                                                                               |
+| `expiry-first`      | ابتدا حسابی را مصرف می‌کند که سهمیه‌اش در غیر این صورت بدون استفاده منقضی می‌شود: بیشترین باقیمانده با نزدیک‌ترین بازنشانی در اولویت است                                                            |
 | `headroom`          | انتخاب هدفی که بیشترین ظرفیت باقیمانده در سهمیه را دارد                                                                                                                                             |
 | `quota-weighted`    | صرفنظر از حسابهای دارای سهمیهٔ تمامشده، سپس انتخاب از میان بقیه متناسب با سهمیهٔ باقیمانده تقسیم بر بارِ در حال پردازش؛ گفتگوهای موجود به هدف خود متصل میمانند                                      |
 | `strict-random`     | انتخاب تصادفی بدون حذف موارد تکراری                                                                                                                                                                 |
@@ -846,10 +847,10 @@ offline-friendly) در جدول «پروفایلهای وزن برای هر بس
 
 ### ماتریس قطعی تصمیمگیری مسیریابی (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` **تصمیم** مسیریابی هر ۱۹ راهبرد عمومی را بهصورت سرتاسری، از طریق خط لولهٔ واقعی combo و با upstream شبیهسازیشده، اثبات میکند.
+`tests/integration/combo-matrix/*.test.ts` **تصمیم** مسیریابی هر ۲۱ راهبرد عمومی را بهصورت سرتاسری، از طریق خط لولهٔ واقعی combo و با upstream شبیهسازیشده، اثبات میکند.
 پوشش شامل موارد زیر است:
 
-- هر ۱۹ راهبرد `ROUTING_STRATEGY_VALUES` (ordered، weighted، cost، context، fusion، …).
+- هر ۲۱ راهبرد `ROUTING_STRATEGY_VALUES` (ordered، weighted، cost، context، fusion، …).
 - `quota-share` (داخلی) بهصورت سرتاسری: عدالت DRR + کاهش اولویت هنگام اشباع، از طریق نقطهٔ اتصال واقعی `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - پوشش واگذاری همگانی `context-relay` برای تمام تعدادهای ممکن هدف.
@@ -882,5 +883,5 @@ offline-friendly) در جدول «پروفایلهای وزن برای هر بس
 | `open-sse/services/autoCombo/autoPrefix.ts`               | تجزیهکننده پیشوند `auto/` + ۶ گونه                                                                             |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | ساخت `AutoComboConfig` درونحافظهای از اتصالهای فعال                                                            |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | قلاب آزمایش برای شبیهسازی رجیستری ارائهدهنده                                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (۲۰ راهبرد)                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (۲۱ راهبرد)                                                                          |
 | `src/sse/handlers/chat.ts`                                | یکپارچهسازی: اتصال کوتاه پیشوند خودکار                                                                         |

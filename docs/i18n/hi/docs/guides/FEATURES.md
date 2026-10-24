@@ -59,7 +59,7 @@ OpenRouter कनेक्शन उन्नत सेटिंग्स मे
 
 ## 🎨 कॉम्बो
 
-19 सार्वजनिक रणनीतियों के साथ मॉडल रूटिंग कॉम्बो बनाएँ: priority, weighted, round-robin, context-relay, fill-first, p2c (दो विकल्पों की शक्ति), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (अंतिम-ज्ञात-कार्यशील-प्रदाता), context-optimized, cache-optimized, **fusion** (मॉडलों के एक पैनल को समानांतर रूप से अनुरोध भेजना, फिर एक निर्णायक के माध्यम से एक उत्तर संश्लेषित करना), और **pipeline**। प्रत्येक कॉम्बो स्वचालित फ़ॉलबैक के साथ कई मॉडलों को श्रृंखलाबद्ध करता है और इसमें त्वरित टेम्पलेट तथा तत्परता जाँच शामिल होती हैं।
+21 सार्वजनिक रणनीतियों के साथ मॉडल रूटिंग कॉम्बो बनाएँ: priority, weighted, round-robin, context-relay, fill-first, p2c (दो विकल्पों की शक्ति), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (अंतिम-ज्ञात-कार्यशील-प्रदाता), context-optimized, cache-optimized, **fusion** (मॉडलों के एक पैनल को समानांतर रूप से अनुरोध भेजना, फिर एक निर्णायक के माध्यम से एक उत्तर संश्लेषित करना), और **pipeline**। प्रत्येक कॉम्बो स्वचालित फ़ॉलबैक के साथ कई मॉडलों को श्रृंखलाबद्ध करता है और इसमें त्वरित टेम्पलेट तथा तत्परता जाँच शामिल होती हैं।
 
 कॉम्बो में हाल के सुधार:
 

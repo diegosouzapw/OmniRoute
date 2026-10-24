@@ -804,7 +804,7 @@ IP es la misma señal que una cuota agotada. Limitaciones honestas:
 
 ## Otras funciones de resiliencia
 
-- **20 estrategias de enrutamiento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consulta [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 estrategias de enrutamiento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consulta [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Enrutamiento sensible al reinicio (reset-aware)** (v3.8.0) — prioriza las conexiones según el momento de reinicio de la cuota.
 - **Degradación del modo en segundo plano** — el `background: true` de la Responses API se degrada a síncrono con una advertencia.
 - **Detección dinámica del límite de herramientas** — aplica retroceso a los proveedores cuando se alcanzan los límites de cantidad de herramientas.

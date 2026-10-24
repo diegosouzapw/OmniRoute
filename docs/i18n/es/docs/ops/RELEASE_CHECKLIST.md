@@ -147,7 +147,7 @@ E2E automáticamente, sin ninguna etiqueta.
 - [ ] `npm run test:vitest` — superada (servidor MCP, autoCombo, caché)
 - [ ] `npm run test:coverage` — se satisface el umbral 60/60/60/60 (sentencias/líneas/funciones/ramas)
 - [ ] `npm run test:integration` — superada (si los cambios afectan a la BD o a los controladores)
-- [ ] `npm run test:combo:matrix` — superada (matriz de estrategias combinadas: demuestra de forma determinista las decisiones de selección de las 19 estrategias públicas de enrutamiento; ejecutar al modificar el enrutamiento combinado, la resolución de estrategias o la lógica de respaldo)
+- [ ] `npm run test:combo:matrix` — superada (matriz de estrategias combinadas: demuestra de forma determinista las decisiones de selección de las 21 estrategias públicas de enrutamiento; ejecutar al modificar el enrutamiento combinado, la resolución de estrategias o la lógica de respaldo)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcional/manual** (prueba de humo restringida contra servicios ascendentes reales; obtiene una instantánea de BD de solo lectura del VPS `root@192.168.0.15`; utiliza proveedores reales y consume créditos; nunca se ejecuta en la CI; se omite correctamente sin la habilitación)
 - [ ] `npm run test:combo:live:vps` — **opcional/manual** (prueba de humo en vivo de la fase 3 en el VPS: 7 escenarios HTTP contra el servidor `.15` activo mediante Node ESM sin dependencias adicionales; requiere `ssh root@192.168.0.15`; crea/elimina únicamente combinaciones `__live_test__*`; utiliza proveedores reales; nunca se ejecuta en la CI)
 - [ ] `npm run test:e2e` — superada (cambios en la IU)

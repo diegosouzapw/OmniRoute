@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 रूटिंग रणनीतींना** समर्थन देते (पहा `src/shared/constants/routingStrategies.ts`):
+**21 रूटिंग रणनीतींना** समर्थन देते (पहा `src/shared/constants/routingStrategies.ts`):
 
 | रणनीत               | वर्तन                                                                                           |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | प्रथम सर्वात स्वस्त निरोगी टार्गेट                                                              |
 | `reset-aware`       | प्रदाता रीसेट विंडोजची जाणीव असलेले                                                             |
 | `reset-window`      | रीसेट विंडो-आधारित रूटिंग                                                                       |
+| `expiry-first`      | ज्या खात्याचा कोटा अन्यथा न वापरता संपला असता ते खाते आधी वापरते                                |
 | `headroom`          | प्रथम सर्वाधिक शिल्लक कोटा हेडरूम असलेले                                                        |
 | `quota-weighted`    | संपलेली खाती वगळा, नंतर शिल्लक कोटा ÷ इन-फ्लाइट भारानुसार निवड करा                              |
 | `strict-random`     | खरोखर एकसमान (गुणवत्ता वजन नाही)                                                                |

@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Balanserer gjenværende kvote mot 5 timer og ukentlige tilbakestillinger, og runder deretter lignende resultater",
     "quotaWeighted": "Kvotevektet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Utløp først",
+    "expiryFirstDesc": "Bruker først kontoen der kvoten ellers ville utløpt ubrukt: største rest med nærmeste tilbakestilling går først.",
     "strictRandom": "Helt tilfeldig",
     "strictRandomDesc": "Bland kortstokken – bruker hver modell én gang før ny blanding",
     "fusion": "Fusjon",
@@ -3600,6 +3602,11 @@
         "when": "Du ruter over flere kontoer med kvotetelemetri og forskjellige tilbakestillingsvinduer.",
         "avoid": "Kvotetelemetri er utilgjengelig for de fleste kontoer.",
         "example": "Foretrekk en 60 % ukentlig kontotilbakestilling i morgen fremfor en 80 % kontotilbakestilling senere."
+      },
+      "expiry-first": {
+        "when": "Du ruter over kontoer der kvotene tilbakestilles etter ulike tidsplaner, og vil bruke kvote som ellers ville utløpt ubrukt.",
+        "avoid": "Kvotetelemetri mangler for de fleste kontoer, eller du trenger en stabil rekkefølge som ignorerer tilbakestillingstidspunktet.",
+        "example": "Foretrekk en konto med 80 % igjen som tilbakestilles om 39 minutter fremfor en konto med 48 % igjen som tilbakestilles om 9 timer — kvoten som snart utløper, brukes før den går tapt."
       },
       "strict-random": {
         "when": "Bruk når du ønsker helt jevn fordeling – hver modell brukes én gang før en modell brukes på nytt.",
@@ -3815,6 +3822,13 @@
         "tip1": "Bruk eksplisitte kontotrinn eller konto-tag-ruting for leverandører med kvotetelemetri.",
         "tip2": "Juster økten kontra ukentlige vekter når kortvarig utmattelse er mer risikabelt.",
         "tip3": "Hold båndet lite slik at tilsvarende kontoer fortsatt roterer ganske."
+      },
+      "expiry-first": {
+        "title": "Utløpende kvote først",
+        "description": "Rangerer kontoer etter utnyttelsespress: høy gjenværende kvote nær tilbakestillingsfristen går først.",
+        "tip1": "Krever kvotetelemetri fra leverandøren; kontoer uten den beholder sin oppførte prioritetsrekkefølge.",
+        "tip2": "Nesten like poengsummer roterer innenfor likhetsbåndet, slik at tilsvarende kontoer fortsatt deler belastningen.",
+        "tip3": "Avgrens rangeringen til kvotebøtten hver modell faktisk faktureres mot."
       },
       "strict-random": {
         "title": "Kortstokkfordeling",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Foretrekk kontoer med sunn gjenværende kvote og nærmere tilbakestillinger",
     "quotaWeighted": "Kvotevektet",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Utløp først",
+    "expiryFirstDesc": "Bruker først kontoen der kvoten ellers ville utløpt ubrukt: største rest med nærmeste tilbakestilling går først.",
     "strictRandom": "Rent tilfeldig",
     "strictRandomDesc": "Blandet kortstokk — bruker hver konto én gang før den blandes på nytt",
     "stickyLimit": "Sticky-grense",

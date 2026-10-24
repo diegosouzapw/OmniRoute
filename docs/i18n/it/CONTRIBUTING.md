@@ -313,7 +313,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (certificati, DNS, instradamento delle destinazioni)
 ├── shared/
 │   ├── components/         # Componenti React (.tsx)
-│   ├── constants/          # Definizioni dei provider (329), ambiti MCP, 20 strategie di instradamento
+│   ├── constants/          # Definizioni dei provider (329), ambiti MCP, 21 strategie di instradamento
 │   ├── utils/              # Circuit breaker, sanitizzatore, helper di autenticazione
 │   └── validation/         # Schemi Zod v4
 └── sse/                    # Pipeline del proxy SSE

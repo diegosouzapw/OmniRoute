@@ -279,7 +279,7 @@ warware suna shiga shigarwar `config.modePack` / `config.budgetCap` /
 
 ## Dukkan Dabarun Turowa
 
-Injin haɗa-hadar OmniRoute yana goyon bayan **dabarun turowa guda 20** (waɗanda aka ayyana a cikin `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ana samar da injin Auto Combo kansa ƙarƙashin dabarar `auto`; sauran kuwa suna samuwa ga haɗa-hadar da aka adana.
+Injin haɗa-hadar OmniRoute yana goyon bayan **dabarun turowa guda 21** (waɗanda aka ayyana a cikin `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ana samar da injin Auto Combo kansa ƙarƙashin dabarar `auto`; sauran kuwa suna samuwa ga haɗa-hadar da aka adana.
 
 | Dabara              | Bayani                                                                                                                                                                                                          |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -294,6 +294,7 @@ Injin haɗa-hadar OmniRoute yana goyon bayan **dabarun turowa guda 20** (waɗand
 | `cost-optimized`    | Rage $ na kowace buƙata bisa farashin kundin                                                                                                                                                                    |
 | `reset-aware` ⭐    | Ba da fifiko bisa lokacin sake saita ƙa'idar kaso — tagogin sake saiti gajeru suna samun matsayi mafi girma                                                                                                     |
 | `reset-window`      | Fi son manufofin da tagar ƙa'idar kasonsu za ta sake saitawa da wuri                                                                                                                                            |
+| `expiry-first`      | Yana fara amfani da asusun da quota ɗinsa za ta ƙare ba tare da amfani ba: wanda ya fi yawan saura kuma sake saitinsa ya fi kusa yana fara tafiya                                                               |
 | `headroom`          | Zaɓi manufa mai mafi yawan sararin ƙa'idar kaso da ya rage                                                                                                                                                      |
 | `quota-weighted`    | Tsallake asusun da ƙa'idar kasonsu ta ƙare, sannan zaɓi daga sauran gwargwadon ragowar ƙa'idar kaso da aka raba da nauyin buƙatun da ake sarrafawa; tattaunawar da ake da su za su ci gaba da kasancewa a manne |
 | `strict-random`     | Bazuwar zaɓi ba tare da cire maimaituwa ba                                                                                                                                                                      |
@@ -841,10 +842,10 @@ Duba [`docs/guides/TIERS.md`](../guides/TIERS.md) don ma’anonin tier da rarrab
 ### Matrix ɗin yanke shawarar routing mai tabbataccen sakamako (`npm run test:combo:matrix`)
 
 `tests/integration/combo-matrix/*.test.ts` yana tabbatar da **shawarar** routing ta dukkan dabarun
-jama'a guda 19 daga farko zuwa ƙarshe ta hanyar ainihin combo pipeline tare da upstream na kwaikwayo.
+jama'a guda 21 daga farko zuwa ƙarshe ta hanyar ainihin combo pipeline tare da upstream na kwaikwayo.
 Rufewar ta haɗa da:
 
-- Dukkan dabarun `ROUTING_STRATEGY_VALUES` guda 19 (ordered, weighted, cost, context, fusion, …).
+- Dukkan dabarun `ROUTING_STRATEGY_VALUES` guda 21 (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (na ciki) daga farko zuwa ƙarshe: adalcin DRR + rage fifikon saturation ta hanyar
   ainihin mashigar `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -878,5 +879,5 @@ cire su daga CI da gangan saboda suna buƙatar live credentials da damar shiga V
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Mai tantance prefix na `auto/` + nau'uka guda 6                                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Yana gina `AutoComboConfig` na cikin ƙwaƙwalwa daga haɗin da ke aiki kai tsaye                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Mahadar gwaji don kwaikwayon rajistar masu samarwa                                                             |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (dabaru 20)                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (dabaru 21)                                                                          |
 | `src/sse/handlers/chat.ts`                                | Haɗawa: dakatarwar gajeriyar hanya ta auto-prefix                                                              |

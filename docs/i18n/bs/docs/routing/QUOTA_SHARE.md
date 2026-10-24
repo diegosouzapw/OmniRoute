@@ -313,7 +313,7 @@ Dva sloja automatizovane pokrivenosti dolaze uz quota-share engine:
 | Jedinični (29 testova) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, saturation gating, concurrency caps, fairShare matematika, backlog queueing                                                                                                             |
 | Integraciona matrica   | `npm run test:combo:matrix`                                            | End-to-end odluka o rutiranju kroz stvarni combo pipeline; DRR pravičnost + saturation deprioritization putem live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integraciona matrica se pokreće u CI-u zajedno sa svih 19 javnih strategija. Jedinični paket se može pokrenuti samostalno.
+Integraciona matrica se pokreće u CI-u zajedno sa svih 21 javnom strategijom. Jedinični paket se može pokrenuti samostalno.
 
 ---
 

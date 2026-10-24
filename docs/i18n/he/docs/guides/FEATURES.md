@@ -59,7 +59,7 @@
 
 ## 🎨 שילובים
 
-צרו שילובים לניתוב מודלים באמצעות 19 אסטרטגיות ציבוריות: priority, weighted, round-robin, context-relay, fill-first, p2c (בחירה בין שתי אפשרויות), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (הספק האחרון שידוע כתקין), context-optimized, cache-optimized, **fusion** (שליחה במקביל לקבוצת מודלים, ולאחר מכן סינתזה של תשובה אחת באמצעות שופט) ו-**pipeline**. כל שילוב משרשר מספר מודלים עם מעבר אוטומטי לחלופה וכולל תבניות מהירות ובדיקות מוכנות.
+צרו שילובים לניתוב מודלים באמצעות 21 אסטרטגיות ציבוריות: priority, weighted, round-robin, context-relay, fill-first, p2c (בחירה בין שתי אפשרויות), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (הספק האחרון שידוע כתקין), context-optimized, cache-optimized, **fusion** (שליחה במקביל לקבוצת מודלים, ולאחר מכן סינתזה של תשובה אחת באמצעות שופט) ו-**pipeline**. כל שילוב משרשר מספר מודלים עם מעבר אוטומטי לחלופה וכולל תבניות מהירות ובדיקות מוכנות.
 
 שיפורים אחרונים בשילובים:
 

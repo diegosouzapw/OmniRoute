@@ -59,7 +59,7 @@
 
 ## 🎨 คอมโบ
 
-สร้างคอมโบการกำหนดเส้นทางโมเดลด้วยกลยุทธ์สาธารณะ 19 แบบ ได้แก่ priority, weighted, round-robin, context-relay, fill-first, p2c (ตัวเลือกแบบ power-of-two), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (ผู้ให้บริการล่าสุดที่ทราบว่าใช้งานได้), context-optimized, cache-optimized, **fusion** (กระจายคำขอไปยังกลุ่มโมเดลแบบขนาน แล้วสังเคราะห์เป็นคำตอบเดียวผ่านโมเดลผู้ตัดสิน) และ **pipeline** แต่ละคอมโบเชื่อมโยงหลายโมเดลเข้าด้วยกัน พร้อมการสลับไปใช้ตัวเลือกสำรองโดยอัตโนมัติ รวมถึงมีเทมเพลตแบบด่วนและการตรวจสอบความพร้อม
+สร้างคอมโบการกำหนดเส้นทางโมเดลด้วยกลยุทธ์สาธารณะ 21 แบบ ได้แก่ priority, weighted, round-robin, context-relay, fill-first, p2c (ตัวเลือกแบบ power-of-two), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (ผู้ให้บริการล่าสุดที่ทราบว่าใช้งานได้), context-optimized, cache-optimized, **fusion** (กระจายคำขอไปยังกลุ่มโมเดลแบบขนาน แล้วสังเคราะห์เป็นคำตอบเดียวผ่านโมเดลผู้ตัดสิน) และ **pipeline** แต่ละคอมโบเชื่อมโยงหลายโมเดลเข้าด้วยกัน พร้อมการสลับไปใช้ตัวเลือกสำรองโดยอัตโนมัติ รวมถึงมีเทมเพลตแบบด่วนและการตรวจสอบความพร้อม
 
 การปรับปรุงคอมโบล่าสุด:
 

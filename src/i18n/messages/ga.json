@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Cothromaíonn sé an cuóta atá fágtha i bhfianaise athshocruithe 5h agus athshocruithe seachtainiúla, ansin rothlaíonn sé idir múnlaí a bhfuil scóir chosúla acu",
     "quotaWeighted": "Ualaithe de réir Cuóta",
     "quotaWeightedDesc": "Scipeáil cuntais ídithe, ansin roghnaigh as na cinn eile i gcomhréir leis an méid atá fágtha, roinnte ar an ualach atá ar siúl. Fanann comhráite atá ann cheana ceangailte.",
+    "expiryFirst": "Éag ar dtús",
+    "expiryFirstDesc": "Caitheann sé an cuntas a rachadh a chuóta in éag gan úsáid murach sin: téann an fuílleach is airde leis an athshocrú is gaire ar dtús.",
     "strictRandom": "Randamach Docht",
     "strictRandomDesc": "Meascann sé deic — úsáideann sé gach múnla uair amháin sula meascann sé arís",
     "fusion": "Comhleá",
@@ -3600,6 +3602,11 @@
         "when": "Déanann tú ródú thar ilchuntais a bhfuil teileiméadracht chuóta agus tréimhsí éagsúla athshocraithe acu.",
         "avoid": "Níl teileiméadracht chuóta ar fáil d’fhormhór na gcuntas.",
         "example": "B’fhearr cuntas seachtainiúil atá ag 60% agus a athshocrófar amárach ná cuntas atá ag 80% agus a athshocrófar níos déanaí."
+      },
+      "expiry-first": {
+        "when": "Déanann tú ródú thar chuntais a n-athshocraítear a gcuótaí de réir sceidil éagsúla agus ba mhaith leat cuóta a chaitheamh a rachadh in éag gan úsáid murach sin.",
+        "avoid": "Níl teileiméadracht chuóta ar fáil d’fhormhór na gcuntas, nó teastaíonn ord seasmhach uait nach dtugann aird ar uainiú an athshocraithe.",
+        "example": "B’fhearr cuntas a bhfuil 80% fágtha air agus a athshocrófar i gceann 39 nóiméad ná cuntas a bhfuil 48% fágtha air agus a athshocrófar i gceann 9 n-uaire — caitear an cuóta atá ar tí dul in éag sula gcuirtear amú é."
       },
       "strict-random": {
         "when": "Úsáid nuair is mian leat dáileadh breá cothrom — úsáidtear gach múnla uair amháin sula n-úsáidtear aon cheann arís.",
@@ -3815,6 +3822,13 @@
         "tip1": "Úsáid céimeanna cuntais sainráite nó ródú de réir clibeanna cuntais do sholáthraithe a bhfuil teiliméadracht chuóta acu.",
         "tip2": "Coigeartaigh meáchain seisiúin agus seachtainiúla nuair is mó an riosca a bhaineann le hídiú gearrthéarmach.",
         "tip3": "Coinnigh an banda comhscóir cúng ionas go rothlaítear cuntais choibhéiseacha go cothrom fós."
+      },
+      "expiry-first": {
+        "title": "Cuóta atá ag dul in éag ar dtús",
+        "description": "Rangaíonn sé cuntais de réir brú tarrthála: téann cuóta ard atá fágtha gar dá spriocdháta athshocraithe ar dtús.",
+        "tip1": "Teastaíonn teileiméadracht chuóta ón soláthraí; coinníonn cuntais gan í a n-ord tosaíochta liostaithe.",
+        "tip2": "Rothlaíonn scóir atá beagnach comhionann laistigh den bhanda comhscóir ionas go roinneann cuntais ghaolmhara an t-ualach fós.",
+        "tip3": "Teorannaigh an rangú don bhuicéad cuóta a ngearrtar gach samhail ina choinne i ndáiríre."
       },
       "strict-random": {
         "title": "Dáileadh deice measctha",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Tabhair tús áite do chuntais a bhfuil cuóta maith fágtha acu agus a athshocrófar níos luaithe",
     "quotaWeighted": "Ualaithe de réir Cuóta",
     "quotaWeightedDesc": "Scipeáil cuntais ídithe, ansin roghnaigh as na cinn eile i gcomhréir leis an méid atá fágtha, roinnte ar an ualach idir lámha. Fanann comhráite atá ann cheana ceangailte leis an gcuntas céanna.",
+    "expiryFirst": "Éag ar dtús",
+    "expiryFirstDesc": "Caitheann sé an cuntas a rachadh a chuóta in éag gan úsáid murach sin: téann an fuílleach is airde leis an athshocrú is gaire ar dtús.",
     "strictRandom": "Randamach Docht",
     "strictRandomDesc": "Suaitheadh deice — úsáidtear gach cuntas uair amháin sula suaitheadh an deic arís",
     "stickyLimit": "Teorainn Ghreamaitheach",

@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20 రూటింగ్ వ్యూహాలకు** మద్దతు ఇస్తుంది (`src/shared/constants/routingStrategies.ts` చూడండి):
+**21 రూటింగ్ వ్యూహాలకు** మద్దతు ఇస్తుంది (`src/shared/constants/routingStrategies.ts` చూడండి):
 
 | వ్యూహం              | ప్రవర్తన                                                                                 |
 | ------------------- | ---------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | ముందుగా చౌకైన ఆరోగ్యకరమైన లక్ష్యం                                                        |
 | `reset-aware`       | ప్రొవైడర్ రీసెట్ విండోల గురించి తెలిసినది                                                |
 | `reset-window`      | రీసెట్ విండో-ఆధారిత రూటింగ్                                                              |
+| `expiry-first`      | లేకపోతే ఉపయోగించకుండానే గడువు ముగిసే కోటా ఉన్న ఖాతాను ముందుగా వినియోగిస్తుంది            |
 | `headroom`          | అత్యధికంగా మిగిలిన కోటా హెడ్రూమ్ ముందుగా                                                 |
 | `quota-weighted`    | అయిపోయిన ఖాతాలను దాటవేసి, తర్వాత మిగిలిన కోటా ÷ ఇన్-ఫ్లైట్ లోడ్ ఆధారంగా ఎంపిక            |
 | `strict-random`     | నిజంగా ఏకరీతి (నాణ్యత బరువులు లేవు)                                                      |

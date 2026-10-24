@@ -261,7 +261,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 모든 라우팅 전략
 
-OmniRoute의 콤보 엔진은 **20가지 라우팅 전략**을 지원합니다(`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`에 선언됨). Auto Combo 엔진 자체는 `auto` 전략으로 제공되며, 나머지는 저장된 콤보에서 사용할 수 있습니다.
+OmniRoute의 콤보 엔진은 **21가지 라우팅 전략**을 지원합니다(`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`에 선언됨). Auto Combo 엔진 자체는 `auto` 전략으로 제공되며, 나머지는 저장된 콤보에서 사용할 수 있습니다.
 
 | 전략                | 설명                                                                                                                                                                                         |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -276,6 +276,7 @@ OmniRoute의 콤보 엔진은 **20가지 라우팅 전략**을 지원합니다(`
 | `cost-optimized`    | 카탈로그 가격을 기준으로 요청당 비용 최소화                                                                                                                                                  |
 | `reset-aware` ⭐    | 할당량 재설정 시간을 기준으로 우선순위 지정 — 재설정 주기가 짧을수록 높은 순위                                                                                                               |
 | `reset-window`      | 할당량 기간이 가장 빨리 재설정되는 대상 선호                                                                                                                                                 |
+| `expiry-first`      | 그대로 두면 사용되지 않고 만료될 할당량을 가진 계정을 먼저 사용합니다. 남은 양이 가장 많고 재설정이 가장 가까운 계정이 먼저 선택됩니다                                                       |
 | `headroom`          | 남은 할당량 여유가 가장 많은 대상 선택                                                                                                                                                       |
 | `quota-weighted`    | 할당량을 소진한 계정은 건너뛴 다음, 남은 할당량을 진행 중인 부하로 나눈 값에 비례하여 나머지 대상 중에서 선택. 기존 대화는 해당 대상에 고정됨                                                |
 | `strict-random`     | 반복 항목을 중복 제거하지 않는 무작위 선택                                                                                                                                                   |
@@ -794,10 +795,10 @@ Tier 1(구독)을 강하게 선호하려면 `tierPriority` 가중치를 높이�
 ### 결정론적 라우팅 결정 매트릭스(`npm run test:combo:matrix`)
 
 `tests/integration/combo-matrix/*.test.ts`는 모의 업스트림을 사용하는 실제 콤보 파이프라인을 통해
-19개의 모든 공개 전략에 대한 라우팅 **결정**을 엔드투엔드로 검증합니다.
+21개의 모든 공개 전략에 대한 라우팅 **결정**을 엔드투엔드로 검증합니다.
 커버리지에는 다음이 포함됩니다.
 
-- 19개의 모든 `ROUTING_STRATEGY_VALUES` 전략(ordered, weighted, cost, context, fusion, …).
+- 21개의 모든 `ROUTING_STRATEGY_VALUES` 전략(ordered, weighted, cost, context, fusion, …).
 - `quota-share`(내부) 엔드투엔드: 실제 `selectQuotaShareTarget` 연결 지점(`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`)을 통한 DRR 공정성 및 포화 상태 우선순위 하향 조정.
 - 모든 대상 수에 대한 `context-relay` 범용 핸드오프 커버리지.
@@ -830,5 +831,5 @@ VPS 액세스가 필요하므로 의도적으로 CI에서 제외됩니다.
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 접두사 파서 + 6개 변형                                                                           |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 활성 연결에서 인메모리 `AutoComboConfig` 생성                                                            |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 공급자 레지스트리 모킹을 위한 테스트 훅                                                                  |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`(20개 전략)                                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`(21개 전략)                                                                     |
 | `src/sse/handlers/chat.ts`                                | 통합: auto-prefix 단락 평가                                                                              |

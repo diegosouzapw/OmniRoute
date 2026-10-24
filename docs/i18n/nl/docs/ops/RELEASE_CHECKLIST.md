@@ -146,7 +146,7 @@ matrix automatisch over, zonder label.
 - [ ] `npm run test:vitest` — geslaagd (MCP-server, autoCombo, cache)
 - [ ] `npm run test:coverage` — drempel van 60/60/60/60 gehaald (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — geslaagd (als wijzigingen betrekking hebben op de database/handlers)
-- [ ] `npm run test:combo:matrix` — geslaagd (matrix met combinatiestrategieën: toont deterministisch de selectiebeslissingen van alle 19 openbare routeringsstrategieën aan; uitvoeren bij wijzigingen aan combinatieroutering, strategiebepaling of fallbacklogica)
+- [ ] `npm run test:combo:matrix` — geslaagd (matrix met combinatiestrategieën: toont deterministisch de selectiebeslissingen van alle 21 openbare routeringsstrategieën aan; uitvoeren bij wijzigingen aan combinatieroutering, strategiebepaling of fallbacklogica)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **optioneel/handmatig** (afgeschermde smoke-test met echte upstreams; gebruikt een alleen-lezen databasesnapshot van VPS `root@192.168.0.15`; benadert echte providers en kost credits; wordt nooit in CI uitgevoerd; wordt zonder de activeringsvariabele netjes overgeslagen)
 - [ ] `npm run test:combo:live:vps` — **optioneel/handmatig** (live VPS-smoke-test uit fase 3: 7 HTTP-scenario's tegen de live `.15`-server via gewone Node ESM; vereist `ssh root@192.168.0.15`; maakt en verwijdert uitsluitend combinaties met `__live_test__*`; benadert echte providers; wordt nooit in CI uitgevoerd)
 - [ ] `npm run test:e2e` — geslaagd (UI-wijzigingen)

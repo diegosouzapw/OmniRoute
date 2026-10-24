@@ -146,7 +146,7 @@ maatriksi automaatselt vahele ilma ühegi sildita.
 - [ ] `npm run test:vitest` — läbitud (MCP-server, autoCombo, vahemälu)
 - [ ] `npm run test:coverage` — lävend 60/60/60/60 on täidetud (laused/read/funktsioonid/harud)
 - [ ] `npm run test:integration` — läbitud (kui muudatused puudutavad andmebaasi / töötlejaid)
-- [ ] `npm run test:combo:matrix` — läbitud (kombostrateegiate maatriks: tõendab deterministlikult kõigi 19 avaliku marsruutimisstrateegia valikuotsuseid; käivita kombomarsruutimise, strateegia lahendamise või varuloogika muutmisel)
+- [ ] `npm run test:combo:matrix` — läbitud (kombostrateegiate maatriks: tõendab deterministlikult kõigi 21 avaliku marsruutimisstrateegia valikuotsuseid; käivita kombomarsruutimise, strateegia lahendamise või varuloogika muutmisel)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **valikuline/käsitsi** (piiratud suitsutest tegeliku ülesvooluteenusega; hangib VPS-ist `root@192.168.0.15` kirjutuskaitstud andmebaasi hetktõmmise; pöördub tegelike teenusepakkujate poole ja kulutab krediiti; ei käivitu kunagi CI-s; jäetakse piirava muutuja puudumisel korrektselt vahele)
 - [ ] `npm run test:combo:live:vps` — **valikuline/käsitsi** (3. etapi VPS-i reaalne suitsutest: 7 HTTP-stsenaariumi reaalserveri `.15` vastu tavalise Node ESM-i kaudu; nõuab käsku `ssh root@192.168.0.15`; loob ja kustutab ainult `__live_test__*` kombosid; pöördub tegelike teenusepakkujate poole; ei käivitu kunagi CI-s)
 - [ ] `npm run test:e2e` — läbitud (kasutajaliidese muudatused)

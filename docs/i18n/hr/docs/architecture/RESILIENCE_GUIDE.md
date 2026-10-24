@@ -761,7 +761,7 @@ ograničenjima:
 
 ## Ostale značajke otpornosti
 
-- **20 strategija usmjeravanja** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — vidi [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 strategija usmjeravanja** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — vidi [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Usmjeravanje svjesno resetiranja** (v3.8.0) — daje prioritet vezama prema vremenu resetiranja kvote.
 - **Degradacija pozadinskog načina rada** — Responses API `background: true` degradira se na sinkrono izvođenje s upozorenjem.
 - **Dinamičko otkrivanje ograničenja broja alata** — povlači davatelje kada se dosegne ograničenje broja alata.

@@ -884,7 +884,7 @@ agrupado por IP é o mesmo sinal que uma quota esgotada. Limitações honestas:
 
 ## Outras Funcionalidades de Resiliência
 
-- **20 estratégias de encaminhamento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consulte [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 estratégias de encaminhamento** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — consulte [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Encaminhamento sensível à reposição** (v3.8.0) — dá prioridade a ligações com base na hora de reposição da quota.
 - **Degradação do modo em segundo plano** — o `background: true` da Responses API é degradado para síncrono, com aviso.
 - **Deteção dinâmica de limites de ferramentas** — faz backoff aos fornecedores quando os limites de número de ferramentas são atingidos.

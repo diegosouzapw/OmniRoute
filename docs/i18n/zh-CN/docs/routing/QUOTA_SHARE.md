@@ -327,7 +327,7 @@ if (candidate.quotaSoftPenalty) {
 | 单元测试（29 项测试） | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR 调度器、饱和度门控、并发上限、fairShare 计算、积压队列                                                                                                         |
 | 集成矩阵              | `npm run test:combo:matrix`                                            | 通过真实组合流水线进行端到端路由决策；通过实时接入点（`registerQuotaFetcher`、`setLKGP`、`__setHeadroomSaturationFetcherForTests`）验证 DRR 公平性和饱和度降优先级 |
 
-集成矩阵会在 CI 中与全部 19 种公共策略一同运行。单元测试套件
+集成矩阵会在 CI 中与全部 21 种公共策略一同运行。单元测试套件
 可以独立运行。
 
 ---

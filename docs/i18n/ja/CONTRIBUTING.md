@@ -310,7 +310,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITMプロキシ（証明書、DNS、ターゲットルーティング）
 ├── shared/
 │   ├── components/         # Reactコンポーネント（.tsx）
-│   ├── constants/          # プロバイダー定義（329件）、MCPスコープ、20種類のルーティング戦略
+│   ├── constants/          # プロバイダー定義（329件）、MCPスコープ、21種類のルーティング戦略
 │   ├── utils/              # サーキットブレーカー、サニタイザー、認証ヘルパー
 │   └── validation/         # Zod v4スキーマ
 └── sse/                    # SSEプロキシパイプライン

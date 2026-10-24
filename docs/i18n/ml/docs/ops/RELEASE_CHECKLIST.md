@@ -147,7 +147,7 @@ E2E matrix സ്വയമേവ ഒഴിവാക്കും.
 - [ ] `npm run test:vitest` — വിജയിക്കുന്നു (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — 60/60/60/60 gate പാലിച്ചിരിക്കുന്നു (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — വിജയിക്കുന്നു (മാറ്റങ്ങൾ DB / handler-ുകളെ ബാധിക്കുന്നുവെങ്കിൽ)
-- [ ] `npm run test:combo:matrix` — വിജയിക്കുന്നു (combo strategy matrix: പൊതുവായി ലഭ്യമായ 19 routing strategy-കളുടെയും തിരഞ്ഞെടുപ്പ് തീരുമാനങ്ങൾ നിർണ്ണായകമായി തെളിയിക്കുന്നു; combo routing, strategy resolution, അല്ലെങ്കിൽ fallback logic എന്നിവയിൽ മാറ്റം വരുത്തുമ്പോൾ പ്രവർത്തിപ്പിക്കുക)
+- [ ] `npm run test:combo:matrix` — വിജയിക്കുന്നു (combo strategy matrix: പൊതുവായി ലഭ്യമായ 21 routing strategy-കളുടെയും തിരഞ്ഞെടുപ്പ് തീരുമാനങ്ങൾ നിർണ്ണായകമായി തെളിയിക്കുന്നു; combo routing, strategy resolution, അല്ലെങ്കിൽ fallback logic എന്നിവയിൽ മാറ്റം വരുത്തുമ്പോൾ പ്രവർത്തിപ്പിക്കുക)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **ഐച്ഛികം/സ്വമേധയാ** (gate ചെയ്ത യഥാർത്ഥ-upstream smoke പരിശോധന; VPS `root@192.168.0.15`-ൽ നിന്ന് വായിക്കാൻ മാത്രം കഴിയുന്ന DB snapshot ഉപയോഗിക്കുന്നു; യഥാർത്ഥ provider-ുകളെ സമീപിക്കുകയും credit-ുകൾ ചെലവാക്കുകയും ചെയ്യുന്നു; CI-യിൽ ഒരിക്കലും പ്രവർത്തിക്കില്ല; gate ഇല്ലെങ്കിൽ പ്രശ്നങ്ങളില്ലാതെ ഒഴിവാക്കപ്പെടുന്നു)
 - [ ] `npm run test:combo:live:vps` — **ഐച്ഛികം/സ്വമേധയാ** (Phase-3 VPS live smoke: plain Node ESM വഴി live `.15` server-നെതിരെ 7 HTTP scenario-കൾ; `ssh root@192.168.0.15` ആവശ്യമാണ്; `__live_test__*` combo-കൾ മാത്രം സൃഷ്ടിക്കുകയും ഇല്ലാതാക്കുകയും ചെയ്യുന്നു; യഥാർത്ഥ provider-ുകളെ സമീപിക്കുന്നു; CI-യിൽ ഒരിക്കലും പ്രവർത്തിക്കില്ല)
 - [ ] `npm run test:e2e` — വിജയിക്കുന്നു (UI മാറ്റങ്ങൾ)

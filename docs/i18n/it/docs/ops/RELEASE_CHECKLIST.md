@@ -146,7 +146,7 @@ E2E, senza alcuna etichetta.
 - [ ] `npm run test:vitest` — superato (server MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — soglia 60/60/60/60 soddisfatta (istruzioni/righe/funzioni/rami)
 - [ ] `npm run test:integration` — superato (se le modifiche interessano il DB o gli handler)
-- [ ] `npm run test:combo:matrix` — superato (matrice delle strategie combo: dimostra in modo deterministico le decisioni di selezione di tutte le 19 strategie pubbliche di routing; eseguire quando si modificano il routing combo, la risoluzione delle strategie o la logica di fallback)
+- [ ] `npm run test:combo:matrix` — superato (matrice delle strategie combo: dimostra in modo deterministico le decisioni di selezione di tutte le 21 strategie pubbliche di routing; eseguire quando si modificano il routing combo, la risoluzione delle strategie o la logica di fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **facoltativo/manuale** (smoke test con upstream reale protetto da un gate; recupera uno snapshot del DB in sola lettura dal VPS `root@192.168.0.15`; interroga provider reali e consuma crediti; non viene mai eseguito nella CI; viene ignorato correttamente senza il gate)
 - [ ] `npm run test:combo:live:vps` — **facoltativo/manuale** (smoke test live VPS della Fase 3: 7 scenari HTTP sul server `.15` live tramite Node ESM puro; richiede `ssh root@192.168.0.15`; crea/elimina solo combo `__live_test__*`; interroga provider reali; non viene mai eseguito nella CI)
 - [ ] `npm run test:e2e` — superato (modifiche all'interfaccia utente)

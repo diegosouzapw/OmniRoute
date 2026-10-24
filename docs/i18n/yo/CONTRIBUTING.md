@@ -316,7 +316,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Aṣojú MITM (ìwé-ẹ̀rí, DNS, afisona ibi-àfojúsùn)
 ├── shared/
 │   ├── components/         # Àwọn èròjà React (.tsx)
-│   ├── constants/          # Àwọn ìtumọ̀ olùpèsè (329), àwọn ààlà MCP, ọgbọ́n afisona 20
+│   ├── constants/          # Àwọn ìtumọ̀ olùpèsè (329), àwọn ààlà MCP, ọgbọ́n afisona 21
 │   ├── utils/              # Olùdáwọ́lé àyíká, olùsọ̀dọ̀tí, àwọn olùrànlọ́wọ́ ìfàṣẹsí
 │   └── validation/         # Àwọn àwòrán Zod v4
 └── sse/                    # Ọ̀nà ìṣiṣẹ́ aṣojú SSE

@@ -59,7 +59,7 @@
 
 ## 🎨 បន្សំ
 
-បង្កើតបន្សំកំណត់ផ្លូវម៉ូដែលជាមួយយុទ្ធសាស្ត្រសាធារណៈចំនួន 19៖ priority, weighted, round-robin, context-relay, fill-first, p2c (ជម្រើសពីរដែលមានអានុភាព), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (អ្នកផ្តល់សេវាដែលដំណើរការល្អចុងក្រោយ), context-optimized, cache-optimized, **fusion** (បញ្ជូនទៅកាន់ក្រុមម៉ូដែលជាច្រើនស្របពេលគ្នា បន្ទាប់មកសំយោគចម្លើយតែមួយតាមរយៈម៉ូដែលវិនិច្ឆ័យ) និង **pipeline**។ បន្សំនីមួយៗភ្ជាប់ម៉ូដែលជាច្រើនជាលំដាប់ ជាមួយការប្តូរទៅជម្រើសបម្រុងដោយស្វ័យប្រវត្តិ ព្រមទាំងរួមបញ្ចូលពុម្ពរហ័ស និងការត្រួតពិនិត្យភាពរួចរាល់។
+បង្កើតបន្សំកំណត់ផ្លូវម៉ូដែលជាមួយយុទ្ធសាស្ត្រសាធារណៈចំនួន 21៖ priority, weighted, round-robin, context-relay, fill-first, p2c (ជម្រើសពីរដែលមានអានុភាព), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (អ្នកផ្តល់សេវាដែលដំណើរការល្អចុងក្រោយ), context-optimized, cache-optimized, **fusion** (បញ្ជូនទៅកាន់ក្រុមម៉ូដែលជាច្រើនស្របពេលគ្នា បន្ទាប់មកសំយោគចម្លើយតែមួយតាមរយៈម៉ូដែលវិនិច្ឆ័យ) និង **pipeline**។ បន្សំនីមួយៗភ្ជាប់ម៉ូដែលជាច្រើនជាលំដាប់ ជាមួយការប្តូរទៅជម្រើសបម្រុងដោយស្វ័យប្រវត្តិ ព្រមទាំងរួមបញ្ចូលពុម្ពរហ័ស និងការត្រួតពិនិត្យភាពរួចរាល់។
 
 ការកែលម្អបន្សំថ្មីៗ៖
 

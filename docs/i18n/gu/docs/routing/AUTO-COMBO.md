@@ -258,7 +258,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## તમામ રાઉટિંગ વ્યૂહરચનાઓ
 
-OmniRouteનું કોમ્બો એન્જિન **20 રાઉટિંગ વ્યૂહરચનાઓ**ને સપોર્ટ કરે છે (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`માં જાહેર કરેલી). Auto Combo એન્જિન પોતે `auto` વ્યૂહરચના હેઠળ ઉપલબ્ધ છે; બાકીની વ્યૂહરચનાઓ સંગ્રહિત કોમ્બો માટે ઉપલબ્ધ છે.
+OmniRouteનું કોમ્બો એન્જિન **21 રાઉટિંગ વ્યૂહરચનાઓ**ને સપોર્ટ કરે છે (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`માં જાહેર કરેલી). Auto Combo એન્જિન પોતે `auto` વ્યૂહરચના હેઠળ ઉપલબ્ધ છે; બાકીની વ્યૂહરચનાઓ સંગ્રહિત કોમ્બો માટે ઉપલબ્ધ છે.
 
 | વ્યૂહરચના           | વર્ણન                                                                                                                                                                                                                       |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -273,6 +273,7 @@ OmniRouteનું કોમ્બો એન્જિન **20 રાઉટિં
 | `cost-optimized`    | કેટલોગ કિંમતને આધારે દરેક વિનંતી દીઠ $ ઘટાડવા                                                                                                                                                                               |
 | `reset-aware` ⭐    | ક્વોટા રીસેટ સમય અનુસાર પ્રાથમિકતા આપવી — ટૂંકી રીસેટ વિન્ડોને ઊંચો ક્રમ મળે                                                                                                                                                |
 | `reset-window`      | એવા લક્ષ્યોને પ્રાધાન્ય આપવું જેમની ક્વોટા વિન્ડો સૌથી વહેલી રીસેટ થાય                                                                                                                                                      |
+| `expiry-first`      | જે એકાઉન્ટનો ક્વોટા અન્યથા વણવપરાયેલો સમાપ્ત થઈ જાત તેને પહેલા વાપરે છે: સૌથી વધુ બાકી અને સૌથી નજીકના રીસેટવાળું એકાઉન્ટ પહેલા જાય છે                                                                                      |
 | `headroom`          | સૌથી વધુ બાકી ક્વોટા હેડરૂમ ધરાવતું લક્ષ્ય પસંદ કરવું                                                                                                                                                                       |
 | `quota-weighted`    | ક્વોટા ખૂટી ગયેલા એકાઉન્ટ છોડીને, બાકીનામાંથી ચાલુ વિનંતીઓના લોડ વડે ભાગેલા બાકી ક્વોટાના પ્રમાણમાં પસંદગી કરવી; હાલની વાતચીતો નિર્ધારિત લક્ષ્ય સાથે જોડાયેલી રહે                                                           |
 | `strict-random`     | પુનરાવર્તનોનું ડિડુપ્લિકેશન કર્યા વિના રેન્ડમ પસંદગી                                                                                                                                                                        |
@@ -824,11 +825,11 @@ Tier 1 (સબ્સ્ક્રિપ્શન)ને મજબૂત પ્ર
 
 ### નિશ્ચિત રૂટિંગ-નિર્ણય મેટ્રિક્સ (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` મોક અપસ્ટ્રીમ સાથે વાસ્તવિક કોમ્બો પાઇપલાઇન મારફતે તમામ 19
+`tests/integration/combo-matrix/*.test.ts` મોક અપસ્ટ્રીમ સાથે વાસ્તવિક કોમ્બો પાઇપલાઇન મારફતે તમામ 21
 જાહેર સ્ટ્રેટેજીના રૂટિંગ **નિર્ણય**ને એન્ડ-ટુ-એન્ડ સાબિત કરે છે.
 કવરેજમાં આનો સમાવેશ થાય છે:
 
-- તમામ 19 `ROUTING_STRATEGY_VALUES` સ્ટ્રેટેજીઓ (ordered, weighted, cost, context, fusion, …).
+- તમામ 21 `ROUTING_STRATEGY_VALUES` સ્ટ્રેટેજીઓ (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (આંતરિક) એન્ડ-ટુ-એન્ડ: વાસ્તવિક `selectQuotaShareTarget` સીમ મારફતે DRR નિષ્પક્ષતા + સંતૃપ્તિનું અપ્રાધાન્યીકરણ (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - દરેક લક્ષ્ય ગણતરીમાં `context-relay` યુનિવર્સલ-હેન્ડઑફ કવરેજ.
@@ -861,5 +862,5 @@ Tier 1 (સબ્સ્ક્રિપ્શન)ને મજબૂત પ્ર
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` પ્રિફિક્સ પાર્સર + 6 વેરિઅન્ટ્સ                                                             |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | લાઇવ કનેક્શન્સમાંથી ઇન-મેમરી `AutoComboConfig` બનાવે છે                                             |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | પ્રોવાઇડર રજિસ્ટ્રીને મોક કરવા માટે ટેસ્ટ હૂક                                                       |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 વ્યૂહરચનાઓ)                                                           |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 વ્યૂહરચનાઓ)                                                           |
 | `src/sse/handlers/chat.ts`                                | એકીકરણ: ઑટો-પ્રિફિક્સ શોર્ટ-સર્કિટ                                                                  |

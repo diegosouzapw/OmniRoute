@@ -146,7 +146,7 @@ awtomatikament, mingħajr ebda tikketta.
 - [ ] `npm run test:vitest` — jirnexxi (server MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — il-limitu 60/60/60/60 huwa ssodisfat (dikjarazzjonijiet/linji/funzjonijiet/fergħat)
 - [ ] `npm run test:integration` — jirnexxi (jekk il-bidliet jaffettwaw id-DB / il-handlers)
-- [ ] `npm run test:combo:matrix` — jirnexxi (matriċi tal-istrateġiji combo: tipprova b’mod deterministiku d-deċiżjonijiet tal-għażla tad-19-il strateġija pubblika tar-routing; ħaddmu meta tibdel ir-routing combo, ir-riżoluzzjoni tal-istrateġiji, jew il-loġika ta’ fallback)
+- [ ] `npm run test:combo:matrix` — jirnexxi (matriċi tal-istrateġiji combo: tipprova b’mod deterministiku d-deċiżjonijiet tal-għażla tad-21 strateġija pubblika tar-routing; ħaddmu meta tibdel ir-routing combo, ir-riżoluzzjoni tal-istrateġiji, jew il-loġika ta’ fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **mhux obbligatorju/manwali** (test smoke ikkontrollat b’upstream reali; jikseb snapshot tad-DB li jinqara biss mill-VPS `root@192.168.0.15`; juża providers reali u jiswa krediti; qatt ma jitħaddem fis-CI; jinqabeż mingħajr problemi mingħajr il-kontroll)
 - [ ] `npm run test:combo:live:vps` — **mhux obbligatorju/manwali** (test smoke live tal-VPS tal-Fażi 3: 7 xenarji HTTP kontra s-server live `.15` permezz ta’ Node ESM sempliċi; jeħtieġ `ssh root@192.168.0.15`; joħloq/iħassar biss combos `__live_test__*`; juża providers reali; qatt ma jitħaddem fis-CI)
 - [ ] `npm run test:e2e` — jirnexxi (bidliet fl-UI)

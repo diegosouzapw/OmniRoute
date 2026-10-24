@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Baki baki kuota dengan tetapan semula 5j dan mingguan, kemudian round-robin markah yang serupa",
     "quotaWeighted": "Berwajaran Kuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Luput Dahulu",
+    "expiryFirstDesc": "Menggunakan dahulu akaun yang kuotanya akan luput tanpa digunakan: baki tertinggi dengan tetapan semula terdekat didahulukan.",
     "strictRandom": "Rawak Ketat",
     "strictRandomDesc": "Dek yang dikocok — menggunakan setiap model sekali sebelum dikocok semula",
     "fusion": "Gabungan",
@@ -3600,6 +3602,11 @@
         "when": "Anda membuat laluan merentasi berbilang akaun dengan telemetri kuota dan tetingkap tetapan semula yang berbeza.",
         "avoid": "Telemetri kuota tidak tersedia untuk kebanyakan akaun.",
         "example": "Lebih suka penetapan semula akaun mingguan 60% esok berbanding penetapan semula akaun 80% kemudian."
+      },
+      "expiry-first": {
+        "when": "Anda membuat laluan merentasi akaun yang kuotanya ditetapkan semula mengikut jadual berbeza dan ingin menggunakan kuota yang sebaliknya akan luput tanpa digunakan.",
+        "avoid": "Telemetri kuota tiada untuk kebanyakan akaun, atau anda memerlukan susunan stabil yang mengabaikan masa tetapan semula.",
+        "example": "Utamakan akaun dengan baki 80% yang ditetapkan semula dalam 39 minit berbanding akaun dengan baki 48% yang ditetapkan semula dalam 9 jam — kuota yang hampir luput digunakan sebelum terbuang."
       },
       "strict-random": {
         "when": "Gunakan apabila anda mahukan pengagihan yang benar-benar sekata — setiap model digunakan sekali sebelum diulangi.",
@@ -3815,6 +3822,13 @@
         "tip1": "Gunakan langkah akaun eksplisit atau penghalaan teg akaun untuk pembekal dengan telemetri kuota.",
         "tip2": "Sesi talaan vs berat mingguan apabila keletihan jangka pendek lebih berisiko.",
         "tip3": "Pastikan jalur seri kecil supaya akaun yang setara masih berputar secara adil."
+      },
+      "expiry-first": {
+        "title": "Kuota hampir luput dahulu",
+        "description": "Menyusun akaun mengikut tekanan penggunaan: baki kuota tinggi yang hampir dengan tarikh akhir tetapan semula didahulukan.",
+        "tip1": "Memerlukan telemetri kuota pembekal; akaun tanpanya mengekalkan susunan keutamaan yang disenaraikan.",
+        "tip2": "Markah yang hampir seri bergilir dalam jalur seri supaya akaun yang serupa masih berkongsi beban.",
+        "tip3": "Hadkan kedudukan kepada baldi kuota yang benar-benar menjadi asas pengebilan setiap model."
       },
       "strict-random": {
         "title": "Pengagihan seperti dek yang dikocok",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Lebih suka akaun dengan baki kuota yang sihat dan penetapan semula yang lebih hampir",
     "quotaWeighted": "Berwajaran Kuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Luput Dahulu",
+    "expiryFirstDesc": "Menggunakan dahulu akaun yang kuotanya akan luput tanpa digunakan: baki tertinggi dengan tetapan semula terdekat didahulukan.",
     "strictRandom": "Rawak Ketat",
     "strictRandomDesc": "Kocok dek — menggunakan setiap akaun sekali sebelum dikocok semula",
     "stickyLimit": "Had Melekit",

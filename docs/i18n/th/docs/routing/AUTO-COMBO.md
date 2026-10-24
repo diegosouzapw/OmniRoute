@@ -279,7 +279,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## กลยุทธ์การกำหนดเส้นทางทั้งหมด
 
-เอนจินคอมโบของ OmniRoute รองรับ **กลยุทธ์การกำหนดเส้นทาง 20 รูปแบบ** (ประกาศไว้ใน `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`) ตัวเอนจิน Auto Combo เองเปิดให้ใช้งานภายใต้กลยุทธ์ `auto` ส่วนกลยุทธ์อื่นๆ พร้อมใช้งานสำหรับคอมโบที่บันทึกไว้
+เอนจินคอมโบของ OmniRoute รองรับ **กลยุทธ์การกำหนดเส้นทาง 21 รูปแบบ** (ประกาศไว้ใน `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`) ตัวเอนจิน Auto Combo เองเปิดให้ใช้งานภายใต้กลยุทธ์ `auto` ส่วนกลยุทธ์อื่นๆ พร้อมใช้งานสำหรับคอมโบที่บันทึกไว้
 
 | กลยุทธ์             | คำอธิบาย                                                                                                                                                                                           |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -294,6 +294,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | ลดค่าใช้จ่าย $ ต่อคำขอให้ต่ำที่สุดตามราคาที่ระบุในแค็ตตาล็อก                                                                                                                                       |
 | `reset-aware` ⭐    | จัดลำดับความสำคัญตามเวลารีเซ็ตโควตา — ช่วงเวลารีเซ็ตสั้นจะมีอันดับสูงกว่า                                                                                                                          |
 | `reset-window`      | เลือกเป้าหมายที่ช่วงเวลาโควตาจะรีเซ็ตเร็วที่สุดก่อน                                                                                                                                                |
+| `expiry-first`      | ใช้บัญชีที่โควต้าจะหมดอายุโดยไม่ได้ใช้ก่อน: บัญชีที่เหลือมากที่สุดและรีเซ็ตใกล้ที่สุดจะถูกใช้ก่อน                                                                                                  |
 | `headroom`          | เลือกเป้าหมายที่มีโควตาคงเหลือมากที่สุด                                                                                                                                                            |
 | `quota-weighted`    | ข้ามบัญชีที่โควตาหมดแล้ว จากนั้นเลือกจากบัญชีที่เหลือตามสัดส่วนโควตาคงเหลือหารด้วยโหลดที่กำลังประมวลผล โดยบทสนทนาที่มีอยู่จะยังคงตรึงไว้กับเป้าหมายเดิม                                            |
 | `strict-random`     | สุ่มโดยไม่ลบรายการที่เลือกซ้ำ                                                                                                                                                                      |
@@ -845,9 +846,9 @@ offline-friendly) แสดงอยู่ในตาราง "โปรไฟ
 
 ### เมทริกซ์การตัดสินใจกำหนดเส้นทางแบบกำหนดผลลัพธ์ได้ (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` พิสูจน์ **การตัดสินใจ** กำหนดเส้นทางของกลยุทธ์สาธารณะทั้ง 19 รายการแบบต้นทางถึงปลายทางผ่านไปป์ไลน์ combo จริง โดยจำลองระบบต้นทาง ความครอบคลุมประกอบด้วย:
+`tests/integration/combo-matrix/*.test.ts` พิสูจน์ **การตัดสินใจ** กำหนดเส้นทางของกลยุทธ์สาธารณะทั้ง 21 รายการแบบต้นทางถึงปลายทางผ่านไปป์ไลน์ combo จริง โดยจำลองระบบต้นทาง ความครอบคลุมประกอบด้วย:
 
-- กลยุทธ์ `ROUTING_STRATEGY_VALUES` ทั้ง 19 รายการ (ordered, weighted, cost, context, fusion, …)
+- กลยุทธ์ `ROUTING_STRATEGY_VALUES` ทั้ง 21 รายการ (ordered, weighted, cost, context, fusion, …)
 - `quota-share` (ภายใน) แบบต้นทางถึงปลายทาง: ความเป็นธรรมของ DRR + การลดลำดับความสำคัญเมื่ออิ่มตัวผ่านจุดเชื่อมต่อ `selectQuotaShareTarget` จริง (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`)
 - ความครอบคลุมของการส่งต่อแบบสากลสำหรับ `context-relay` ในทุกจำนวนเป้าหมาย
@@ -878,5 +879,5 @@ offline-friendly) แสดงอยู่ในตาราง "โปรไฟ
 | `open-sse/services/autoCombo/autoPrefix.ts`               | ตัวแยกวิเคราะห์คำนำหน้า `auto/` + ตัวแปร 6 แบบ                                                                  |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | สร้าง `AutoComboConfig` ในหน่วยความจำจากการเชื่อมต่อที่ใช้งานอยู่                                               |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | จุดเชื่อมสำหรับการทดสอบเพื่อจำลองรีจิสทรีของผู้ให้บริการ                                                        |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 กลยุทธ์)                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 กลยุทธ์)                                                                          |
 | `src/sse/handlers/chat.ts`                                | การผสานรวม: ลัดวงจรด้วยคำนำหน้า auto                                                                            |

@@ -282,7 +282,7 @@ arvot syötetään moottorin olemassa oleviin `config.modePack` / `config.budget
 
 ## Kaikki reititysstrategiat
 
-OmniRouten yhdistelmämoottori tukee **20 reititysstrategiaa** (määritelty tiedostossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo -moottori on käytettävissä `auto`-strategialla; muut strategiat ovat käytettävissä tallennetuille yhdistelmille.
+OmniRouten yhdistelmämoottori tukee **21 reititysstrategiaa** (määritelty tiedostossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo -moottori on käytettävissä `auto`-strategialla; muut strategiat ovat käytettävissä tallennetuille yhdistelmille.
 
 | Strategia           | Kuvaus                                                                                                                                                                                                                                          |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ OmniRouten yhdistelmämoottori tukee **20 reititysstrategiaa** (määritelty tie
 | `cost-optimized`    | Minimoi pyynnön hinta ($) luettelohinnoittelun perusteella                                                                                                                                                                                      |
 | `reset-aware` ⭐    | Priorisoi kiintiön nollausajan mukaan — lyhyemmät nollausjaksot sijoitetaan korkeammalle                                                                                                                                                        |
 | `reset-window`      | Suosi kohteita, joiden kiintiöjakso nollautuu pian                                                                                                                                                                                              |
+| `expiry-first`      | Kuluttaa ensin tilin, jonka kiintiö muuten vanhenisi käyttämättä: suurin jäljellä oleva määrä lähimmällä nollauksella menee ensin                                                                                                               |
 | `headroom`          | Valitse kohde, jolla on eniten jäljellä olevaa kiintiövaraa                                                                                                                                                                                     |
 | `quota-weighted`    | Ohita loppuun käytetyt tilit ja valitse sitten muiden joukosta suhteessa jäljellä olevaan kiintiöön jaettuna käynnissä olevalla kuormalla; olemassa olevat keskustelut pysyvät kiinnitettyinä                                                   |
 | `strict-random`     | Satunnainen valinta ilman toistojen poistamista                                                                                                                                                                                                 |
@@ -844,9 +845,9 @@ Katso tasojen määritelmät ja palveluntarjoajien luokittelu tiedostosta [`docs
 
 ### Deterministinen reitityspäätösten matriisi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` todentaa kaikkien 19 julkisen strategian reititys**päätöksen** päästä päähän todellisen yhdistelmäputken kautta käyttämällä jäljiteltyä ylävirran palvelua. Kattavuuteen sisältyvät:
+`tests/integration/combo-matrix/*.test.ts` todentaa kaikkien 21 julkisen strategian reititys**päätöksen** päästä päähän todellisen yhdistelmäputken kautta käyttämällä jäljiteltyä ylävirran palvelua. Kattavuuteen sisältyvät:
 
-- Kaikki 19 `ROUTING_STRATEGY_VALUES`-strategiaa (ordered, weighted, cost, context, fusion, …).
+- Kaikki 21 `ROUTING_STRATEGY_VALUES`-strategiaa (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (sisäinen) päästä päähän: DRR-oikeudenmukaisuus ja saturoitumisen prioriteetin alentaminen todellisen `selectQuotaShareTarget`-sauman kautta (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - `context-relay`-strategian yleisen luovutuksen kattavuus kaikilla kohdemäärillä.
 
@@ -876,5 +877,5 @@ Nämä savukokeet testaavat todellisen tiedonsiirtopolun (yhdistelmä → palvel
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/`-etuliitteen jäsennin + 6 muunnelmaa                                                                 |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Luo muistissa olevan `AutoComboConfig`-määrityksen aktiivisista yhteyksistä                                 |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testikoukku palveluntarjoajarekisterin jäljittelyä varten                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategiaa)                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategiaa)                                                                   |
 | `src/sse/handlers/chat.ts`                                | Integraatio: auto-etuliitteen oikopolku                                                                     |

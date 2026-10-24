@@ -310,7 +310,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM-välityspalvelin (varmenne, DNS, kohdereititys)
 ├── shared/
 │   ├── components/         # React-komponentit (.tsx)
-│   ├── constants/          # Palveluntarjoajien määritykset (329), MCP-käyttöalueet, 20 reititysstrategiaa
+│   ├── constants/          # Palveluntarjoajien määritykset (329), MCP-käyttöalueet, 21 reititysstrategiaa
 │   ├── utils/              # Katkaisija, puhdistaja, todennuksen apufunktiot
 │   └── validation/         # Zod v4 -skeemat
 └── sse/                    # SSE-välitysputki

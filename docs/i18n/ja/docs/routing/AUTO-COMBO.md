@@ -257,7 +257,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## すべてのルーティング戦略
 
-OmniRoute のコンボエンジンは **20 種類のルーティング戦略**（`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` で宣言）をサポートしています。Auto Combo エンジン自体は `auto` 戦略として公開されており、その他の戦略は保存済みコンボで利用できます。
+OmniRoute のコンボエンジンは **21 種類のルーティング戦略**（`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` で宣言）をサポートしています。Auto Combo エンジン自体は `auto` 戦略として公開されており、その他の戦略は保存済みコンボで利用できます。
 
 | 戦略                | 説明                                                                                                                                                                                                                 |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -272,6 +272,7 @@ OmniRoute のコンボエンジンは **20 種類のルーティング戦略**�
 | `cost-optimized`    | カタログ価格に基づき、リクエストあたりのコストを最小化                                                                                                                                                               |
 | `reset-aware` ⭐    | クォータのリセット時刻に基づいて優先順位付け — リセット期間が短いものほど上位                                                                                                                                        |
 | `reset-window`      | クォータ期間のリセットが最も近いターゲットを優先                                                                                                                                                                     |
+| `expiry-first`      | 放置すると未使用のまま失効するクォータを持つアカウントから消費します。残量が最も多く、リセットが最も近いアカウントが優先されます                                                                                     |
 | `headroom`          | クォータの残余余力が最も大きいターゲットを選択                                                                                                                                                                       |
 | `quota-weighted`    | クォータを使い切ったアカウントを除外し、残りから「残存クォータ÷処理中の負荷」の比率に応じて選択。既存の会話は同じターゲットに固定                                                                                    |
 | `strict-random`     | 重複排除を行わないランダム選択                                                                                                                                                                                       |
@@ -781,9 +782,9 @@ Tier 1（サブスクリプション）を強く優先するには、`tierPriori
 
 ### 決定論的ルーティング判断マトリックス（`npm run test:combo:matrix`）
 
-`tests/integration/combo-matrix/*.test.ts`は、モック化されたアップストリームを使用し、実際のコンボパイプラインを通じて、公開されている19の全戦略におけるルーティングの**判断**をエンドツーエンドで検証します。カバレッジには以下が含まれます。
+`tests/integration/combo-matrix/*.test.ts`は、モック化されたアップストリームを使用し、実際のコンボパイプラインを通じて、公開されている21の全戦略におけるルーティングの**判断**をエンドツーエンドで検証します。カバレッジには以下が含まれます。
 
-- 19の全`ROUTING_STRATEGY_VALUES`戦略（ordered、weighted、cost、context、fusionなど）。
+- 21の全`ROUTING_STRATEGY_VALUES`戦略（ordered、weighted、cost、context、fusionなど）。
 - `quota-share`（内部）のエンドツーエンド検証：実際の`selectQuotaShareTarget`シーム（`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`）を介したDRRの公平性と、飽和状態にあるターゲットの優先度低下。
 - すべてのターゲット数にわたる`context-relay`のユニバーサルハンドオフのカバレッジ。
 
@@ -813,5 +814,5 @@ Tier 1（サブスクリプション）を強く優先するには、`tierPriori
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/`プレフィックスパーサー + 6つのバリアント                                                                |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | 稼働中の接続からインメモリの`AutoComboConfig`を構築                                                            |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | プロバイダーレジストリをモックするためのテストフック                                                           |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（20種類の戦略）                                                                      |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（21種類の戦略）                                                                      |
 | `src/sse/handlers/chat.ts`                                | 統合：auto-prefixのショートサーキット                                                                          |

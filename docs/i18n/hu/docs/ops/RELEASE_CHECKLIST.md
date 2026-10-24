@@ -146,7 +146,7 @@ automatikusan, címke nélkül is kihagyják az E2E-mátrixot.
 - [ ] `npm run test:vitest` — sikeres (MCP-kiszolgáló, autoCombo, gyorsítótár)
 - [ ] `npm run test:coverage` — a 60/60/60/60 lefedettségi küszöb teljesül (utasítások/sorok/függvények/elágazások)
 - [ ] `npm run test:integration` — sikeres (ha a módosítások érintik az adatbázist vagy a kezelőket)
-- [ ] `npm run test:combo:matrix` — sikeres (kombinált stratégiamátrix: determinisztikusan igazolja mind a 19 nyilvános útválasztási stratégia kiválasztási döntéseit; futtasd, ha a módosítások érintik a kombinált útválasztást, a stratégiafeloldást vagy a tartaléklogikát)
+- [ ] `npm run test:combo:matrix` — sikeres (kombinált stratégiamátrix: determinisztikusan igazolja mind a 21 nyilvános útválasztási stratégia kiválasztási döntéseit; futtasd, ha a módosítások érintik a kombinált útválasztást, a stratégiafeloldást vagy a tartaléklogikát)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcionális/manuális** (kapuval védett, valós upstreamet használó smoke teszt; csak olvasható adatbázis-pillanatképet tölt be a `root@192.168.0.15` VPS-ről; valós szolgáltatókat ér el, krediteket használ; soha nem fut a CI-ben; a kapu nélkül szabályosan kihagyásra kerül)
 - [ ] `npm run test:combo:live:vps` — **opcionális/manuális** (3. fázisú élő VPS smoke teszt: 7 HTTP-forgatókönyv az élő `.15` kiszolgálóval szemben, egyszerű Node ESM használatával; `ssh root@192.168.0.15` hozzáférést igényel; kizárólag `__live_test__*` kombinációkat hoz létre és töröl; valós szolgáltatókat ér el; soha nem fut a CI-ben)
 - [ ] `npm run test:e2e` — sikeres (felhasználói felületet érintő módosítások esetén)

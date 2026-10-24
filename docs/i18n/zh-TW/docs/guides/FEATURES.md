@@ -59,7 +59,7 @@ OpenRouter 連線可在「進階設定」中儲存每個連線專屬的 `preset`
 
 ## 🎨 組合
 
-使用 19 種公開策略建立模型路由組合：priority、weighted、round-robin、context-relay、fill-first、p2c（兩個選項的冪次選擇）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（最後已知可用的提供者）、context-optimized、cache-optimized、**fusion**（並行分派至一組模型，再由評審模型整合成單一答案），以及 **pipeline**。每個組合都會串接多個模型並支援自動備援，且包含快速範本與就緒狀態檢查。
+使用 21 種公開策略建立模型路由組合：priority、weighted、round-robin、context-relay、fill-first、p2c（兩個選項的冪次選擇）、random、least-used、cost-optimized、reset-aware、reset-window、expiry-first、headroom、quota-weighted、strict-random、auto、lkgp（最後已知可用的提供者）、context-optimized、cache-optimized、**fusion**（並行分派至一組模型，再由評審模型整合成單一答案），以及 **pipeline**。每個組合都會串接多個模型並支援自動備援，且包含快速範本與就緒狀態檢查。
 
 近期的組合功能改進：
 

@@ -350,7 +350,7 @@ Su quota-share moduliu pateikiami du automatizuotos testų aprėpties lygmenys:
 | Modulių (29 testai) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR planuoklis, prisotinimo ribojimas, lygiagretumo ribos, fairShare skaičiavimai, neatliktų užduočių įtraukimas į eilę                                                                                                                                |
 | Integravimo matrica | `npm run test:combo:matrix`                                            | Ištisinis maršruto parinkimo sprendimo testavimas tikrame kombinacijų konvejeryje; DRR teisingumas ir prioriteto mažinimas dėl prisotinimo naudojant veikiančias sąsajas (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integravimo matrica vykdoma CI aplinkoje kartu su visomis 19 viešųjų strategijų. Modulių testų rinkinį
+Integravimo matrica vykdoma CI aplinkoje kartu su visa 21 viešąja strategija. Modulių testų rinkinį
 galima vykdyti atskirai.
 
 ---

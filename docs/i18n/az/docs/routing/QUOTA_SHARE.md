@@ -350,7 +350,7 @@ Quota-share mühərriki iki səviyyəli avtomatlaşdırılmış test əhatəsi i
 | Modul (29 test)     | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR planlaşdırıcısı, doyma nəzarəti, paralellik limitləri, fairShare hesablamaları, növbəyə yığılma                                                                                                                                                     |
 | İnteqrasiya matrisi | `npm run test:combo:matrix`                                            | Real kombinasiya konveyeri vasitəsilə başdan sona marşrutlaşdırma qərarı; canlı inteqrasiya nöqtələri (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) vasitəsilə DRR ədalətliliyi və doyma zamanı prioritetin azaldılması |
 
-İnteqrasiya matrisi CI-də bütün 19 açıq strategiya ilə birlikdə icra olunur. Modul test dəsti ayrıca icra edilə bilər.
+İnteqrasiya matrisi CI-də bütün 21 açıq strategiya ilə birlikdə icra olunur. Modul test dəsti ayrıca icra edilə bilər.
 
 ---
 

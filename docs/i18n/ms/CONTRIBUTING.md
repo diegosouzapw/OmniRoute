@@ -310,7 +310,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proksi MITM (sijil, DNS, penghalaan sasaran)
 ├── shared/
 │   ├── components/         # Komponen React (.tsx)
-│   ├── constants/          # Takrif penyedia (329), skop MCP, 20 strategi penghalaan
+│   ├── constants/          # Takrif penyedia (329), skop MCP, 21 strategi penghalaan
 │   ├── utils/              # Pemutus litar, pensanitasi, pembantu pengesahan
 │   └── validation/         # Skema Zod v4
 └── sse/                    # Talian paip proksi SSE

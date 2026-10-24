@@ -346,7 +346,7 @@ Die Quota-Share-Engine wird mit zwei Ebenen automatisierter Tests ausgeliefert:
 | Unit-Tests (29 Tests) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-Scheduler, Sättigungssteuerung, Nebenläufigkeitsgrenzen, fairShare-Berechnung, Einreihung in die Rückstauwarteschlange                                                                                                      |
 | Integrationsmatrix    | `npm run test:combo:matrix`                                            | Durchgängige Routing-Entscheidung über die reale Kombinationspipeline; DRR-Fairness und Herabpriorisierung bei Sättigung über Live-Schnittstellen (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Die Integrationsmatrix wird in der CI zusammen mit allen 19 öffentlichen Strategien ausgeführt. Die Unit-Test-Suite kann eigenständig ausgeführt werden.
+Die Integrationsmatrix wird in der CI zusammen mit allen 21 öffentlichen Strategien ausgeführt. Die Unit-Test-Suite kann eigenständig ausgeführt werden.
 
 ---
 

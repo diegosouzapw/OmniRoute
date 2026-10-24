@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Husawazisha mgawo uliosalia dhidi ya saa 5 na uwekaji upya wa kila wiki, kisha uwekaji alama sawa",
     "quotaWeighted": "Iliyowekewa Uzani kwa Kiwango",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Inayoisha Kwanza",
+    "expiryFirstDesc": "Hutumia kwanza akaunti ambayo mgao wake ungeisha bila kutumika: salio kubwa zaidi lenye uwekaji upya wa karibu zaidi huenda kwanza.",
     "strictRandom": "Nasibu Madhubuti",
     "strictRandomDesc": "Changanya karata — hutumia kila modeli mara moja kabla ya kuchanganya tena",
     "fusion": "Muunganisho",
@@ -3600,6 +3602,11 @@
         "when": "Unapitia akaunti nyingi ukitumia telemetry ya kiasi na madirisha tofauti ya kuweka upya.",
         "avoid": "Kiwango cha telemetry hakipatikani kwa akaunti nyingi.",
         "example": "Pendelea 60% ya kila wiki ya kuweka upya akaunti kesho juu ya 80% ya kuweka upya akaunti baadaye."
+      },
+      "expiry-first": {
+        "when": "Unapitisha maombi kwenye akaunti ambazo mgao wake huwekwa upya kwa ratiba tofauti na unataka kutumia mgao ambao vinginevyo ungeisha bila kutumika.",
+        "avoid": "Telemetry ya mgao haipatikani kwa akaunti nyingi, au unahitaji mpangilio thabiti usiozingatia muda wa kuweka upya.",
+        "example": "Pendelea akaunti iliyobaki na 80% inayowekwa upya baada ya dakika 39 kuliko akaunti iliyobaki na 48% inayowekwa upya baada ya saa 9 — mgao unaokaribia kuisha hutumika kabla haujapotea."
       },
       "strict-random": {
         "when": "Tumia unapotaka usambazaji ulio sawa kabisa — kila modeli itumike mara moja kabla ya kurudia.",
@@ -3815,6 +3822,13 @@
         "tip1": "Tumia hatua za akaunti wazi au uelekezaji wa lebo ya akaunti kwa watoa huduma walio na kiwango cha telemetry.",
         "tip2": "Rejesha kipindi dhidi ya uzani wa kila wiki wakati uchovu wa muda mfupi ni hatari zaidi.",
         "tip3": "Weka bendi ndogo ili akaunti zinazolingana bado zizunguke kwa usawa."
+      },
+      "expiry-first": {
+        "title": "Mgao unaoisha kwanza",
+        "description": "Hupanga akaunti kwa shinikizo la matumizi: mgao mkubwa uliobaki ulio karibu na tarehe yake ya kuwekwa upya huenda kwanza.",
+        "tip1": "Inahitaji telemetry ya mgao ya mtoa huduma; akaunti zisizo nayo hubaki na mpangilio wao wa kipaumbele ulioorodheshwa.",
+        "tip2": "Alama zinazokaribia kulingana huzunguka ndani ya bendi ya usawa ili akaunti zinazofanana bado zigawane mzigo.",
+        "tip3": "Weka mpangilio ndani ya kapu la mgao ambalo kila modeli hutozwa nalo kwa kweli."
       },
       "strict-random": {
         "title": "Ugawaji kwa kuchanganya karata",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Pendelea akaunti zilizo na kiasi kilichosalia cha afya na uwekaji upya wa karibu zaidi",
     "quotaWeighted": "Yenye Uzito wa Mgao",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Inayoisha Kwanza",
+    "expiryFirstDesc": "Hutumia kwanza akaunti ambayo mgao wake ungeisha bila kutumika: salio kubwa zaidi lenye uwekaji upya wa karibu zaidi huenda kwanza.",
     "strictRandom": "Nasibu Kabisa",
     "strictRandomDesc": "Changanya staha — hutumia kila akaunti mara moja kabla ya kuchanganya tena",
     "stickyLimit": "Kikomo cha Ubandikaji",

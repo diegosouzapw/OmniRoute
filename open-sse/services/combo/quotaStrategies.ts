@@ -42,17 +42,21 @@ import {
   scoreResetAwareQuota,
   getResetAwareRemainingPercent,
   getResetWindowRemainingMs,
+  resolveExpiryFirstConfig,
+  scoreExpiryFirstQuota,
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
 import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
 import { getInflight, incrementInflight } from "./quotaShareInflight.ts";
 import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
-import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
+import { getQuotaFetchScope, quotaWindowNamesForScope } from "../antigravityQuotaFamily.ts";
+import { getCodexQuotaWindowFilterForModel } from "../../config/codexQuotaScopes.ts";
 import {
   getQuotaSnapshotFetchedAt,
   getQuotaWeightedRemainingPercent,
   isQuotaExhaustedForRequest,
+  getQuotaCache,
 } from "../../../src/domain/quotaCache.ts";
 
 /**
@@ -598,6 +602,145 @@ export async function orderTargetsByResetWindow(
   if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
 
   return rotateLeadingTies(scoredTargets, tiedTargets, `reset-window:${comboName}`).map(
+    (entry) => entry.target
+  );
+}
+
+type CachedQuotaRow = {
+  remainingPercentage?: number;
+  resetAt?: string | null;
+  fractionReported?: boolean;
+};
+
+/**
+ * Local coercion for a cached remaining-percentage value. open-sse must not
+ * import from src/, so this mirrors src/shared/utils/numeric.ts `toNumber(v, NaN)`:
+ * numbers pass through, non-empty strings are parsed, anything else is NaN.
+ * Non-finite results are rejected by the caller's Number.isFinite guard.
+ */
+function coerceRemainingPercent(v: unknown): number {
+  if (typeof v === "number") return v;
+  if (typeof v === "string" && v.trim().length > 0) return Number(v.trim());
+  return Number.NaN;
+}
+
+/**
+ * Model-scoped quota view for one combo target. Mirrors the conversion in
+ * buildConnectionQuotaWindowsView but (a) filters windows to the family the
+ * requested model actually spends — the same scoping the health gate applies —
+ * and (b) skips windows whose fraction upstream never reported
+ * (fractionReported === false), which are unknown, NOT exhausted.
+ * Returns null when nothing usable remains, so the caller can tell "no
+ * telemetry" apart from "telemetry says empty".
+ */
+export function buildScopedExpiryQuotaView(
+  connectionId: string,
+  provider: string | null | undefined,
+  modelStr: string | null | undefined
+): Record<string, unknown> | null {
+  const quotas = (getQuotaCache(connectionId) as { quotas?: Record<string, CachedQuotaRow> } | null)
+    ?.quotas;
+  if (!quotas) return null;
+
+  let names = quotaWindowNamesForScope(Object.keys(quotas), {
+    provider,
+    requestedModel: modelStr,
+  });
+  if (provider === "codex") {
+    const filter = getCodexQuotaWindowFilterForModel(modelStr);
+    if (filter) names = names.filter(filter);
+    // Codex reserve_* display-only rows never reach the cache, so no extra
+    // filter is needed here.
+  }
+
+  const windows: Record<string, { percentUsed: number; resetAt: string | null }> = {};
+  for (const name of names) {
+    const quota = quotas[name];
+    if (quota?.fractionReported === false) continue; // unknown, not exhausted
+    const remainingPercent = coerceRemainingPercent(quota?.remainingPercentage);
+    if (!Number.isFinite(remainingPercent)) continue;
+    windows[name.toLowerCase()] = {
+      percentUsed: Math.min(1, Math.max(0, 1 - remainingPercent / 100)),
+      resetAt:
+        typeof quota?.resetAt === "string" && quota.resetAt.trim().length > 0
+          ? quota.resetAt
+          : null,
+    };
+  }
+  return Object.keys(windows).length > 0 ? { windows } : null;
+}
+
+/**
+ * Orders combo targets for `expiry-first`: the account whose quota is closest
+ * to being thrown away goes first. Quota source is the domain quota cache only
+ * — no fetcher calls, no network I/O, no TTL knobs; staleness is owned by
+ * whatever populates the cache, the same trust the provider-level strategy and
+ * the dashboard already place in it.
+ */
+export async function orderTargetsByExpiryFirst(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
+) {
+  if (targets.length === 0) return targets;
+
+  // Reuse the expander for its filtering only (isActive / testStatus /
+  // allowlist / rate-limit / quota-exhaustion). Its connectionById map carries
+  // full connection records, giving the projection each target's provider.
+  const { connectionById, expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    targets,
+    comboName,
+    log,
+    apiKeyAllowedConnectionIds
+  );
+  if (expandedTargets.length === 0) return expandedTargets;
+
+  const expiryConfig = resolveExpiryFirstConfig(configSource);
+  // One `now` anchor per ordering pass, matching the reset-window sibling.
+  const now = Date.now();
+
+  const scoredTargets = expandedTargets.map((target, index) => {
+    const connection = target.connectionId ? connectionById.get(target.connectionId) : undefined;
+    // connectionById only fills for providers with a registered quota fetcher;
+    // the step's own provider string carries the same scope otherwise.
+    const provider =
+      connection && typeof connection.provider === "string"
+        ? connection.provider
+        : target.provider || null;
+    return {
+      target,
+      index,
+      score: target.connectionId
+        ? scoreExpiryFirstQuota(
+            buildScopedExpiryQuotaView(target.connectionId, provider, target.modelStr),
+            expiryConfig,
+            now
+          ).score
+        : 0,
+    };
+  });
+
+  scoredTargets.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.index - b.index;
+  });
+
+  const bestScore = scoredTargets[0]?.score ?? 0;
+  if (bestScore <= 0) {
+    // Everything scored zero — keep the expanded (priority) order, no
+    // rotation. Matches the provider level.
+    return expandedTargets;
+  }
+  // Relative tie band: the score is a rate (usable/hours), not a 0-1 value, so
+  // an absolute band would silently disable rotation at high urgency and tie
+  // the whole pool at low urgency. The score > 0 guard keeps exhausted /
+  // no-telemetry targets out of the rotation even at tieBandPercent = 100.
+  const tiedTargets = scoredTargets.filter(
+    (entry) => entry.score > 0 && (bestScore - entry.score) / bestScore <= expiryConfig.tieBand
+  );
+  return rotateLeadingTies(scoredTargets, tiedTargets, `expiry-first:${comboName}`).map(
     (entry) => entry.target
   );
 }

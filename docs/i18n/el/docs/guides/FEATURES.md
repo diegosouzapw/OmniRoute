@@ -59,7 +59,7 @@
 
 ## 🎨 Combos
 
-Δημιουργήστε combos δρομολόγησης μοντέλων με 19 δημόσιες στρατηγικές: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (αποστολή σε ομάδα μοντέλων παράλληλα, στη συνέχεια σύνθεση μίας απάντησης μέσω κριτή) και **pipeline**. Κάθε combo συνδυάζει πολλαπλά μοντέλα με αυτόματη εναλλακτική δρομολόγηση και περιλαμβάνει γρήγορα πρότυπα και ελέγχους ετοιμότητας.
+Δημιουργήστε combos δρομολόγησης μοντέλων με 21 δημόσιες στρατηγικές: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (αποστολή σε ομάδα μοντέλων παράλληλα, στη συνέχεια σύνθεση μίας απάντησης μέσω κριτή) και **pipeline**. Κάθε combo συνδυάζει πολλαπλά μοντέλα με αυτόματη εναλλακτική δρομολόγηση και περιλαμβάνει γρήγορα πρότυπα και ελέγχους ετοιμότητας.
 
 Πρόσφατες βελτιώσεις combo:
 

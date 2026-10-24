@@ -905,7 +905,7 @@ dengan kuota yang habis. Batasan yang jujur:
 
 ## Fitur Ketahanan Lainnya
 
-- **20 strategi routing** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — lihat [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 strategi routing** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — lihat [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Reset-aware routing** (v3.8.0) — memprioritaskan koneksi berdasarkan waktu reset kuota.
 - **Degradasi mode background** — Responses API `background: true` didegradasi ke sinkron dengan peringatan.
 - **Deteksi batas jumlah tool dinamis** — mundur dari provider saat batas jumlah tool tercapai.

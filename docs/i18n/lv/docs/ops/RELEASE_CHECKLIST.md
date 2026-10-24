@@ -146,7 +146,7 @@ matricu bez jebkādas etiķetes.
 - [ ] `npm run test:vitest` — sekmīgi (MCP serveris, autoCombo, kešatmiņa)
 - [ ] `npm run test:coverage` — izpildīta 60/60/60/60 prasība (priekšraksti/rindas/funkcijas/zari)
 - [ ] `npm run test:integration` — sekmīgi (ja izmaiņas skar DB/apstrādātājus)
-- [ ] `npm run test:combo:matrix` — sekmīgi (combo stratēģiju matrica: deterministiski pierāda visu 19 publisko maršrutēšanas stratēģiju atlases lēmumus; palaidiet, ja tiek mainīta combo maršrutēšana, stratēģiju noteikšana vai atkāpšanās loģika)
+- [ ] `npm run test:combo:matrix` — sekmīgi (combo stratēģiju matrica: deterministiski pierāda visas 21 publiskās maršrutēšanas stratēģijas atlases lēmumus; palaidiet, ja tiek mainīta combo maršrutēšana, stratēģiju noteikšana vai atkāpšanās loģika)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **neobligāts/manuāls** (nosacīti izpildāms īsts augšupstraumes dūmu tests; no VPS `root@192.168.0.15` iegūst tikai lasāmu DB momentuzņēmumu; izmanto īstus pakalpojumu sniedzējus un patērē kredītus; nekad netiek palaists CI; bez aktivizēšanas nosacījuma tiek korekti izlaists)
 - [ ] `npm run test:combo:live:vps` — **neobligāts/manuāls** (3. posma VPS reālais dūmu tests: 7 HTTP scenāriji pret reālo `.15` serveri, izmantojot vienkāršu Node ESM; nepieciešams `ssh root@192.168.0.15`; izveido/dzēš tikai `__live_test__*` combo; izmanto īstus pakalpojumu sniedzējus; nekad netiek palaists CI)
 - [ ] `npm run test:e2e` — sekmīgi (UI izmaiņas)

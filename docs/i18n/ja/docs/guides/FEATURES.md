@@ -59,7 +59,7 @@ OpenRouter接続では、「Advanced Settings」で接続ごとの`preset`を保
 
 ## 🎨 コンボ
 
-19種類の公開戦略を使用してモデルルーティングコンボを作成できます：priority、weighted、round-robin、context-relay、fill-first、p2c（power-of-two choices）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、cache-optimized、**fusion**（複数モデルのパネルへ並列にリクエストを送り、judgeを介して1つの回答に統合）、**pipeline**。各コンボは複数のモデルを自動フォールバック付きで連結し、クイックテンプレートと準備状況チェックを備えています。
+21種類の公開戦略を使用してモデルルーティングコンボを作成できます：priority、weighted、round-robin、context-relay、fill-first、p2c（power-of-two choices）、random、least-used、cost-optimized、reset-aware、reset-window、expiry-first、headroom、quota-weighted、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、cache-optimized、**fusion**（複数モデルのパネルへ並列にリクエストを送り、judgeを介して1つの回答に統合）、**pipeline**。各コンボは複数のモデルを自動フォールバック付きで連結し、クイックテンプレートと準備状況チェックを備えています。
 
 最近のコンボの改善点：
 

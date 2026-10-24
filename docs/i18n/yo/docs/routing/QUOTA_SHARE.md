@@ -352,7 +352,7 @@ a sì mọ̀ọ́mọ̀ yọ ọ́ kúrò nínú `ROUTING_STRATEGY_VALUES` kí �
 | Unit (ìdánwò 29) | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, ìdènà nígbà ìkúnwọ̀n, àwọn òpin ìṣiṣẹ́ ní ìgbà kan náà, ìṣirò fairShare, fífi backlog sínú ìlà                                                                                                               |
 | Matrix ìṣọ̀kan    | `npm run test:combo:matrix`                                            | Ìpinnu ìdarí ipa-ọ̀nà láti ìbẹ̀rẹ̀ dé òpin nípasẹ̀ pipeline combo gidi; ìdájọ́ òdodo DRR + yíyọ ìkúnwọ̀n sí ipò àìkókó nípasẹ̀ àwọn seam tó ń ṣiṣẹ́ (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matrix ìṣọ̀kan náà ń ṣiṣẹ́ nínú CI pẹ̀lú gbogbo àwọn ọgbọ́n gbangba 19. A lè ṣiṣẹ́ àkójọpọ̀ ìdánwò unit
+Matrix ìṣọ̀kan náà ń ṣiṣẹ́ nínú CI pẹ̀lú gbogbo àwọn ọgbọ́n gbangba 21. A lè ṣiṣẹ́ àkójọpọ̀ ìdánwò unit
 lọ́tọ̀.
 
 ---

@@ -41,7 +41,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │       ├── auto-combo/   # Auto-combo engine dashboard
 │   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
 │   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, etc.)
-│   │   │       ├── combos/       # Model combo management (20 strategies + 4 templates)
+│   │   │       ├── combos/       # Model combo management (21 strategies + 4 templates)
 │   │   │       ├── costs/        # Cost tracking per provider/model
 │   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
 │   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
@@ -279,7 +279,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ### Core Proxy
 - **375 AI providers** with automatic format translation
 - **Provider categories**: Free (90+ free tiers), OAuth, API Key, Self-Hosted, Custom (OpenAI/Anthropic-compatible)
-- **20 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline
+- **21 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
 - **Context Relay strategy**: Session handoff summaries on account rotation for continuity
 - **Auto-combo engine**: Self-healing routing optimization with **16-factor scoring** (see `docs/routing/AUTO-COMBO.md`), bandit exploration, progressive cooldown
@@ -311,7 +311,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ### Dashboard Pages (50+ sections)
 - **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
-- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 20 strategies
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 21 strategies
 - **Auto-Combo** — Auto-combo engine dashboard with scoring metrics
 - **Analytics** — Token consumption, cost, heatmaps, distributions
 - **Health** — Uptime, memory, latency percentiles, circuit breakers
@@ -379,7 +379,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 
 3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
 
-4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 20 strategies including auto-combo with self-healing and context-relay for session continuity.
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 21 strategies including auto-combo with self-healing and context-relay for session continuity.
 
 5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
 
@@ -475,7 +475,7 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 ## v3.8.x Highlights
 
 - **375-provider catalog** with 150+ free tiers, one-click account imports, and bulk key add
-- **20 routing strategies** — including `fusion` (parallel panel + judge synthesis), `pipeline`, `reset-aware`, `reset-window`, `headroom`, and `context-relay`
+- **21 routing strategies** — including `fusion` (parallel panel + judge synthesis), `pipeline`, `reset-aware`, `reset-window`, `headroom`, and `context-relay`
 - **16-factor Auto-Combo scoring** with bandit exploration and progressive cooldown
 - **MCP server expanded to 110 tools / 33 scopes** (canonical + memory/skill/agentSkill/githubSkill/pool/notion/obsidian/localCorpus/gamification/plugin modules)
 - **Cloud Agents** (Codex Cloud, Cursor, Devin, Jules), **Guardrails**, **Evals**, **Webhooks**, **Compliance** frameworks

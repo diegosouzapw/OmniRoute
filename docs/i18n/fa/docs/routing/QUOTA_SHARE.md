@@ -353,7 +353,7 @@ if (candidate.quotaSoftPenalty) {
 | واحد (29 تست)      | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | زمانبند DRR، کنترل اشباع، سقفهای همزمانی، محاسبات fairShare، صفبندی backlog                                                                                                                       |
 | ماتریس یکپارچهسازی | `npm run test:combo:matrix`                                            | تصمیمگیری مسیریابی سرتاسری از طریق خط لوله واقعی combo؛ عدالت DRR و کاهش اولویت هنگام اشباع از طریق نقاط اتصال زنده (`registerQuotaFetcher`، `setLKGP`، `__setHeadroomSaturationFetcherForTests`) |
 
-ماتریس یکپارچهسازی در CI در کنار هر 19 استراتژی عمومی اجرا میشود. مجموعه تست واحد
+ماتریس یکپارچهسازی در CI در کنار هر 21 استراتژی عمومی اجرا میشود. مجموعه تست واحد
 را میتوان بهصورت مستقل اجرا کرد.
 
 ---

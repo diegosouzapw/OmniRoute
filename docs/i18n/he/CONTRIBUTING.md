@@ -310,7 +310,7 @@ src/                        # TypeScript‏ (.ts / .tsx)
 ├── mitm/                   # פרוקסי MITM‏ (אישור, DNS, ניתוב יעד)
 ├── shared/
 │   ├── components/         # רכיבי React‏ (.tsx)
-│   ├── constants/          # הגדרות ספקים (329), תחומי MCP,‏ 20 אסטרטגיות ניתוב
+│   ├── constants/          # הגדרות ספקים (329), תחומי MCP,‏ 21 אסטרטגיות ניתוב
 │   ├── utils/              # מנתק מעגל, מנקה קלט, עזרי אימות
 │   └── validation/         # סכמות Zod v4
 └── sse/                    # צינור עיבוד פרוקסי SSE

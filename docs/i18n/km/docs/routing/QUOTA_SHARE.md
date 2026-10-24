@@ -339,7 +339,7 @@ Hooks របស់ទំព័រ៖
 | Unit (29 តេស្ត)      | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR scheduler, ការគ្រប់គ្រងដោយផ្អែកលើ saturation, កម្រិត concurrency, ការគណនា fairShare, ការតម្រៀបចូលជួររបស់ backlog                                                                                                          |
 | ម៉ាទ្រីស Integration | `npm run test:combo:matrix`                                            | ការសម្រេចចិត្តបញ្ជូនផ្លូវពីដើមដល់ចប់តាមរយៈ pipeline combo ពិតប្រាកដ; ភាពយុត្តិធម៌របស់ DRR + ការបន្ថយអាទិភាពដោយសារ saturation តាមរយៈ seam ផ្ទាល់ (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-ម៉ាទ្រីស integration ដំណើរការក្នុង CI រួមជាមួយយុទ្ធសាស្ត្រសាធារណៈទាំង 19។ សំណុំតេស្ត unit
+ម៉ាទ្រីស integration ដំណើរការក្នុង CI រួមជាមួយយុទ្ធសាស្ត្រសាធារណៈទាំង 21។ សំណុំតេស្ត unit
 អាចដំណើរការដាច់ដោយឡែកបាន។
 
 ---

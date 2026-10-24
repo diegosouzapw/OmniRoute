@@ -59,7 +59,7 @@ OpenRouter savienojumos sadaļā Advanced Settings var saglabāt katram savienoj
 
 ## 🎨 Kombinācijas
 
-Izveidojiet modeļu maršrutēšanas kombinācijas ar 19 publiskām stratēģijām: prioritāte, svērtā izvēle, cikliskā izvēle, konteksta pārsūtīšana, pirmā aizpildīšana, p2c (divu iespēju izvēle), nejauša izvēle, vismazāk izmantotā, izmaksu optimizēta, atiestatīšanai pielāgota, atiestatīšanas logs, rezerves kapacitāte, stingri nejauša izvēle, automātiska, lkgp (pēdējais zināmais labais pakalpojumu sniedzējs), kontekstam optimizēta, kešatmiņai optimizēta, **fusion** (paralēli nosūta pieprasījumu modeļu panelim un pēc tam sintezē vienu atbildi, izmantojot vērtētāju) un **pipeline**. Katra kombinācija sasaista vairākus modeļus ar automātisku atkāpšanos un ietver ātrās veidnes un gatavības pārbaudes.
+Izveidojiet modeļu maršrutēšanas kombinācijas ar 21 publisku stratēģiju: prioritāte, svērtā izvēle, cikliskā izvēle, konteksta pārsūtīšana, pirmā aizpildīšana, p2c (divu iespēju izvēle), nejauša izvēle, vismazāk izmantotā, izmaksu optimizēta, atiestatīšanai pielāgota, atiestatīšanas logs, vispirms beidzošās, rezerves kapacitāte, kvotu svērtā izvēle, stingri nejauša izvēle, automātiska, lkgp (pēdējais zināmais labais pakalpojumu sniedzējs), kontekstam optimizēta, kešatmiņai optimizēta, **fusion** (paralēli nosūta pieprasījumu modeļu panelim un pēc tam sintezē vienu atbildi, izmantojot vērtētāju) un **pipeline**. Katra kombinācija sasaista vairākus modeļus ar automātisku atkāpšanos un ietver ātrās veidnes un gatavības pārbaudes.
 
 Jaunākie kombināciju uzlabojumi:
 

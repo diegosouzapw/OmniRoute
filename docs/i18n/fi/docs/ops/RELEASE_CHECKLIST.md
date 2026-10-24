@@ -147,7 +147,7 @@ automaattisesti ilman tunnistetta.
 - [ ] `npm run test:vitest` — läpäisee (MCP-palvelin, autoCombo, välimuisti)
 - [ ] `npm run test:coverage` — 60/60/60/60-raja täyttyy (lausekkeet/rivit/funktiot/haarat)
 - [ ] `npm run test:integration` — läpäisee (jos muutokset koskevat tietokantaa tai käsittelijöitä)
-- [ ] `npm run test:combo:matrix` — läpäisee (yhdistelmästrategioiden matriisi: todentaa deterministisesti kaikkien 19 julkisen reititysstrategian valintapäätökset; suorita, kun muutokset koskevat yhdistelmäreititystä, strategian ratkaisua tai varalogiikkaa)
+- [ ] `npm run test:combo:matrix` — läpäisee (yhdistelmästrategioiden matriisi: todentaa deterministisesti kaikkien 21 julkisen reititysstrategian valintapäätökset; suorita, kun muutokset koskevat yhdistelmäreititystä, strategian ratkaisua tai varalogiikkaa)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **valinnainen/manuaalinen** (ehdollinen savutesti todellista ylävirtaa vasten; hakee vain luku -tilassa olevan tietokantavedoksen VPS-palvelimelta `root@192.168.0.15`; käyttää todellisia palveluntarjoajia ja kuluttaa krediittejä; ei koskaan suoriteta CI:ssä; ohitetaan siististi ilman ehtoa)
 - [ ] `npm run test:combo:live:vps` — **valinnainen/manuaalinen** (vaiheen 3 VPS-savukoe: 7 HTTP-skenaariota toimivaa `.15`-palvelinta vasten pelkällä Node ESM:llä; vaatii yhteyden `ssh root@192.168.0.15`; luo ja poistaa vain `__live_test__*`-yhdistelmiä; käyttää todellisia palveluntarjoajia; ei koskaan suoriteta CI:ssä)
 - [ ] `npm run test:e2e` — läpäisee (käyttöliittymämuutokset)

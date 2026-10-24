@@ -146,7 +146,7 @@ E2E automaticamente, sem qualquer rótulo.
 - [ ] `npm run test:vitest` — aprovado (servidor MCP, autoCombo, cache)
 - [ ] `npm run test:coverage` — limite 60/60/60/60 atendido (instruções/linhas/funções/branches)
 - [ ] `npm run test:integration` — aprovado (se as alterações afetarem o banco de dados/handlers)
-- [ ] `npm run test:combo:matrix` — aprovado (matriz de estratégias combinadas: comprova deterministicamente as decisões de seleção de todas as 19 estratégias públicas de roteamento; execute ao alterar o roteamento combinado, a resolução de estratégias ou a lógica de fallback)
+- [ ] `npm run test:combo:matrix` — aprovado (matriz de estratégias combinadas: comprova deterministicamente as decisões de seleção de todas as 21 estratégias públicas de roteamento; execute ao alterar o roteamento combinado, a resolução de estratégias ou a lógica de fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcional/manual** (smoke test protegido com upstream real; obtém um snapshot somente leitura do banco de dados a partir do VPS `root@192.168.0.15`; acessa provedores reais e consome créditos; nunca é executado na CI; é ignorado de forma limpa sem a condição de habilitação)
 - [ ] `npm run test:combo:live:vps` — **opcional/manual** (smoke test ao vivo da Fase 3 no VPS: 7 cenários HTTP executados no servidor `.15` ativo via Node ESM puro; requer `ssh root@192.168.0.15`; cria/exclui apenas combinações `__live_test__*`; acessa provedores reais; nunca é executado na CI)
 - [ ] `npm run test:e2e` — aprovado (alterações na UI)

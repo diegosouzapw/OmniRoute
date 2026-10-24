@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Vyrovnává zbývající kvótu proti 5h a týdenním resetům a poté srovnává podobná skóre",
     "quotaWeighted": "Vážené podle kvóty",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Nejdřív expirující",
+    "expiryFirstDesc": "Čerpá účet, jehož kvóta by jinak propadla nevyužitá: jako první jde účet s nejvyšším zůstatkem a nejbližším resetem.",
     "strictRandom": "Přísná náhoda",
     "strictRandomDesc": "Zamíchejte balíček karet – každý model se před zamícháním jednou použije",
     "fusion": "Sloučení",
@@ -3600,6 +3602,11 @@
         "when": "Směrujete přes více účtů pomocí kvótové telemetrie a různých resetovacích oken.",
         "avoid": "Telemetrie kvót není pro většinu účtů dostupná.",
         "example": "Upřednostněte 60% týdenní resetování účtu zítra před 80% resetováním účtu později."
+      },
+      "expiry-first": {
+        "when": "Směrujete přes účty, jejichž kvóty se resetují podle různých plánů, a chcete vyčerpat kvótu, která by jinak propadla nevyužitá.",
+        "avoid": "Většina účtů nemá telemetrii kvót, nebo potřebujete stabilní pořadí, které ignoruje načasování resetu.",
+        "example": "Upřednostněte účet s 80 % zbývající kvóty a resetem za 39 minut před účtem se 48 % a resetem za 9 hodin — kvóta těsně před vypršením se vyčerpá dřív, než propadne."
       },
       "strict-random": {
         "when": "Použijte, když chcete rovnoměrné rozložení — každý model se použije jednou před opakováním.",
@@ -3815,6 +3822,13 @@
         "tip1": "Používejte explicitní kroky účtu nebo směrování značek účtu pro poskytovatele s telemetrií kvót.",
         "tip2": "Vylaďte sezení vs týdenní váhy, když je krátkodobé vyčerpání rizikovější.",
         "tip3": "Udržujte pásek na kravatě malý, aby se ekvivalentní účty stále střídaly spravedlivě."
+      },
+      "expiry-first": {
+        "title": "Nejdřív expirující kvóta",
+        "description": "Řadí účty podle tlaku na využití: vysoká zbývající kvóta blízko termínu resetu jde první.",
+        "tip1": "Vyžaduje telemetrii kvót od poskytovatele; účty bez ní si ponechají uvedené pořadí priority.",
+        "tip2": "Téměř shodná skóre se střídají v pásmu shody, takže sesterské účty stále sdílejí zátěž.",
+        "tip3": "Omezte pořadí na kvótový koš, ze kterého se daný model skutečně účtuje."
       },
       "strict-random": {
         "title": "Rozložení typu zamíchaného balíčku",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Preferujte účty se zdravou zbývající kvótou a bližšími resety",
     "quotaWeighted": "Vážené podle kvóty",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Nejdřív expirující",
+    "expiryFirstDesc": "Čerpá účet, jehož kvóta by jinak propadla nevyužitá: jako první jde účet s nejvyšším zůstatkem a nejbližším resetem.",
     "strictRandom": "Přísná náhoda",
     "strictRandomDesc": "Zamíchá balíček karet – každý účet se použije jednou před zamícháním",
     "stickyLimit": "Lepkavý Limit",

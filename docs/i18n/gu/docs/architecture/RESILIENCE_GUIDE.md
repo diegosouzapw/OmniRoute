@@ -736,7 +736,7 @@ subscription-quota ટેક્સ્ટ હોય ("monthly usage limit reached
 
 ## અન્ય રેઝિલિયન્સ સુવિધાઓ
 
-- **20 રાઉટિંગ સ્ટ્રેટેજી** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — જુઓ [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 રાઉટિંગ સ્ટ્રેટેજી** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — જુઓ [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **રીસેટ-અવેર રાઉટિંગ** (v3.8.0) — ક્વોટા રીસેટ સમય પ્રમાણે કનેક્શનોને પ્રાથમિકતા આપે છે.
 - **બેકગ્રાઉન્ડ મોડ ડિગ્રેડેશન** — Responses API `background: true` ચેતવણી સાથે સિંક પર ડિગ્રેડ થાય છે.
 - **ડાયનામિક ટૂલ લિમિટ ડિટેક્શન** — ટૂલ સંખ્યાની મર્યાદા પૂરી થાય ત્યારે પ્રોવાઇડર્સને બેક-ઓફ કરે છે.

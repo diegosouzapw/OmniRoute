@@ -340,7 +340,7 @@ Injin quota-share yana zuwa da matakai biyu na gwaje-gwaje masu sarrafa kansu:
 | Naúra (gwaje-gwaje 29)   | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | Mai tsara jadawalin DRR, katange saturation, iyakokin concurrency, lissafin fairShare, jerin jiran backlog                                                                                                 |
 | Matrix na haɗaɗɗen gwaji | `npm run test:combo:matrix`                                            | Shawarar routing daga farko zuwa ƙarshe ta cikin ainihin combo pipeline; adalcin DRR + rage fifikon saturation ta live seams (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Matrix na haɗaɗɗen gwaji yana gudana a cikin CI tare da dukkan dabarun jama'a guda 19. Za a iya
+Matrix na haɗaɗɗen gwaji yana gudana a cikin CI tare da dukkan dabarun jama'a guda 21. Za a iya
 gudanar da rukunin gwajin naúra shi kaɗai.
 
 ---

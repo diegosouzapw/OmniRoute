@@ -831,7 +831,7 @@ quota épuisé. Limites assumées :
 
 ## Autres fonctionnalités de résilience
 
-- **20 stratégies de routage** (priorité, pondérée, round-robin, relais de contexte, fill-first, p2c, aléatoire, moins utilisée, optimisée par coût, sensible à la réinitialisation, fenêtre de réinitialisation, marge disponible, pondérée par quota, strictement aléatoire, auto, lkgp, optimisée par contexte, optimisée par cache, fusion, pipeline) — voir [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **21 stratégies de routage** (priorité, pondérée, round-robin, relais de contexte, fill-first, p2c, aléatoire, moins utilisée, optimisée par coût, sensible à la réinitialisation, fenêtre de réinitialisation, expiration d'abord, marge disponible, pondérée par quota, strictement aléatoire, auto, lkgp, optimisée par contexte, optimisée par cache, fusion, pipeline) — voir [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Routage sensible à la réinitialisation** (v3.8.0) — hiérarchise les connexions selon l'heure de réinitialisation du quota.
 - **Dégradation du mode arrière-plan** — `background: true` de l'API Responses est dégradé en mode synchrone avec un avertissement.
 - **Détection dynamique de la limite d'outils** — met en retrait les fournisseurs lorsque les limites du nombre d'outils sont atteintes.

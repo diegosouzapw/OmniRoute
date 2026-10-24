@@ -59,7 +59,7 @@ As conexões do OpenRouter podem armazenar um `preset` por conexão nas Configur
 
 ## 🎨 Combos
 
-Crie combos de roteamento de modelos com 19 estratégias públicas: priority, weighted, round-robin, context-relay, fill-first, p2c (escolhas de potência de dois), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (último provedor conhecido como funcional), context-optimized, cache-optimized, **fusion** (distribui a solicitação para um painel de modelos em paralelo e, em seguida, sintetiza uma única resposta por meio de um juiz) e **pipeline**. Cada combo encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.
+Crie combos de roteamento de modelos com 21 estratégias públicas: priority, weighted, round-robin, context-relay, fill-first, p2c (escolhas de potência de dois), random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp (último provedor conhecido como funcional), context-optimized, cache-optimized, **fusion** (distribui a solicitação para um painel de modelos em paralelo e, em seguida, sintetiza uma única resposta por meio de um juiz) e **pipeline**. Cada combo encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.
 
 Melhorias recentes nos combos:
 

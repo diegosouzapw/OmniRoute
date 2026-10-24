@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Na-akwado **usoro nhazi ụzọ 20** (lee `src/shared/constants/routingStrategies.ts`):
+Na-akwado **usoro nhazi ụzọ 21** (lee `src/shared/constants/routingStrategies.ts`):
 
 | Usoro               | Omume                                                                                 |
 | ------------------- | ------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Na-akwado **usoro nhazi ụzọ 20** (lee `src/shared/constants/routingStrategie
 | `cost-optimized`    | Lekwasịrị dị mma nke dị ọnụ ala kacha bu ụzọ                                          |
 | `reset-aware`       | Nke maara oge reset nke onye na-enye ọrụ                                              |
 | `reset-window`      | Nhazi ụzọ dabere na oge reset                                                         |
+| `expiry-first`      | Na-ebu ụzọ jiri akaụntụ nke oke ojiji ya ga-agwụ n'enweghị ojiji                      |
 | `headroom`          | Nke nwere ohere quota fọdụrụ kacha ukwuu bu ụzọ                                       |
 | `quota-weighted`    | Gafere akaụntụ gwụrụ ike, wee họrọ dabere na quota fọdụrụ ÷ ibu nọ n'ọrụ ugbu a       |
 | `strict-random`     | Nke hàrà otu n'ezie (enweghị ibu dabere na mma)                                       |

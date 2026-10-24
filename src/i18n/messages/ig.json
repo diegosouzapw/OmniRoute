@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Na-eme ka oke fọdụrụ kwekọọ na nrụgharị awa 5 na nke izu, mesịa na-ekesa akara ndị yiri ibe ha n'usoro okirikiri",
     "quotaWeighted": "E Ji Oke Tụọ Arọ",
     "quotaWeightedDesc": "Gafee akaụntụ ndị oke ha gwụchara, mesịa họrọ n'etiti ndị fọdụrụ dịka oke ihe fọdụrụ si dị, kewaa ya site n'ibu ọrụ na-aga n'ihu. Mkparịta ụka ndị dị adị na-anọgide n'otu ebe e kenyere ha.",
+    "expiryFirst": "Nke Na-agwụ Mbụ",
+    "expiryFirstDesc": "Na-ebu ụzọ jiri akaụntụ nke oke ojiji ya ga-agwụ n'enweghị ojiji: nke fọdụrụ kacha ukwuu nwere nrụgharị kacha nso na-aga mbụ.",
     "strictRandom": "Nhọrọ Enweghị Usoro Kpamkpam",
     "strictRandomDesc": "Gwakọta oche kaadị — na-eji model ọ bụla otu ugboro tupu ịgwakọta oche ahụ ọzọ",
     "fusion": "Njikọta",
@@ -3600,6 +3602,11 @@
         "when": "Ị na-ebufe arịrịọ n'etiti ọtụtụ akaụntụ nwere telemetry oke ojiji na oge nrụgharị dị iche iche.",
         "avoid": "Telemetry oke ojiji adịghị maka ọtụtụ akaụntụ.",
         "example": "Họrọ akaụntụ nwere oke ojiji kwa izu nke dị na 60% ma ga-amalitegharị echi karịa akaụntụ dị na 80% nke ga-amalitegharị ma e mesịa."
+      },
+      "expiry-first": {
+        "when": "Ị na-ebufe arịrịọ n'etiti akaụntụ ndị a na-arụgharị oke ojiji ha n'usoro oge dị iche iche, ma ịchọrọ iji oke ojiji nke ga-agwụ n'enweghị ojiji.",
+        "avoid": "Telemetry oke ojiji adịghị maka ọtụtụ akaụntụ, ma ọ bụ ịchọrọ usoro kwụsiri ike nke na-adịghị eleba anya n'oge nrụgharị.",
+        "example": "Họrọ akaụntụ fọdụrụ 80% nke a ga-arụgharị n'ime nkeji 39 karịa akaụntụ fọdụrụ 48% nke a ga-arụgharị n'ime awa 9 — a na-eji oke ojiji dị nso ịgwụ tupu ọ funahụ."
       },
       "strict-random": {
         "when": "Jiri ya mgbe ịchọrọ nkesa hà nhata nke ọma — a ga-eji model ọ bụla otu ugboro tupu e megharịa nke ọ bụla.",
@@ -3815,6 +3822,13 @@
         "tip1": "Jiri account steps doro anya ma ọ bụ routing dabere na account-tag maka provider nwere quota telemetry.",
         "tip2": "Hazie ịdị arọ nke session na nke weekly mgbe mmebi quota nke obere oge nwere ihe ize ndụ karịa.",
         "tip3": "Debe tie band ka ọ pere mpe ka account ndị hà nhata wee na-atụgharịkwa n'ụzọ ziri ezi."
+      },
+      "expiry-first": {
+        "title": "Oke ojiji na-agwụ mbụ",
+        "description": "Na-ahazi akaụntụ dịka nrụgide nzọpụta si dị: oke ojiji fọdụrụ dị ukwuu nke dị nso n'oge nrụgharị ya na-aga mbụ.",
+        "tip1": "Chọrọ telemetry oke ojiji nke provider; akaụntụ na-enweghị ya na-edebe usoro mkpa ha edepụtara.",
+        "tip2": "Akara ndị fọrọ nke nta ka ha hà nhata na-atụgharị n'ime tie band ka akaụntụ ndị yiri ibe ha nọgide na-ekerịta ibu.",
+        "tip3": "Kpachie nhazi ahụ na ngwugwu oke ojiji nke ụdịdị ọ bụla na-akwụ ụgwọ n'ezie."
       },
       "strict-random": {
         "title": "Nkesa Deck A Gwakọtara",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Họrọ akaụntụ nwere oke fọdụrụ dị mma na nrụgharị dị nso",
     "quotaWeighted": "E Ji Kvota Tụọ Ibu",
     "quotaWeightedDesc": "Mafere akaụntụ ndị kvota ha gwụrụ, wee họrọ n’etiti ndị fọdụrụ dịka oke kvota ha fọdụrụ si dị, kewaa ya site n’ibu arịrịọ ndị a na-ahazi ugbu a. Mkparịta ụka ndị dị adị ga-anọgide n’akaụntụ e kenyere ha.",
+    "expiryFirst": "Nke Na-agwụ Mbụ",
+    "expiryFirstDesc": "Na-ebu ụzọ jiri akaụntụ nke oke ojiji ya ga-agwụ n'enweghị ojiji: nke fọdụrụ kacha ukwuu nwere nrụgharị kacha nso na-aga mbụ.",
     "strictRandom": "Nhọrọ Enweghị Usoro Kpamkpam",
     "strictRandomDesc": "Gwakọta kaadị — jiri akaụntụ ọ bụla otu ugboro tupu ịgwakọta ha ọzọ",
     "stickyLimit": "Oke Ịrapara",

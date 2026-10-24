@@ -349,7 +349,7 @@ Två lager av automatiserad testtäckning medföljer quota-share-motorn:
 | Enhet (29 tester)  | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR-schemaläggare, mättnadsstyrning, samtidighetsgränser, fairShare-beräkningar, köhantering av eftersläpning                                                                                                              |
 | Integrationsmatris | `npm run test:combo:matrix`                                            | Heltäckande routningsbeslut genom den verkliga kombinationspipelinen; DRR-rättvisa + nedprioritering vid mättnad via aktiva kopplingspunkter (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Integrationsmatrisen körs i CI tillsammans med samtliga 19 offentliga strategier. Enhetstestsviten
+Integrationsmatrisen körs i CI tillsammans med samtliga 21 offentliga strategier. Enhetstestsviten
 kan köras fristående.
 
 ---

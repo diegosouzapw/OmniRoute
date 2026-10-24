@@ -146,7 +146,7 @@ matricu, bez ikakve oznake.
 - [ ] `npm run test:vitest` — prolazi (MCP server, autoCombo, predmemorija)
 - [ ] `npm run test:coverage` — zadovoljen prag 60/60/60/60 (naredbe/linije/funkcije/grane)
 - [ ] `npm run test:integration` — prolazi (ako promjene utiču na DB / rukovaoce)
-- [ ] `npm run test:combo:matrix` — prolazi (matrica kombinovanih strategija: deterministički dokazuje odluke odabira svih 19 javnih strategija usmjeravanja; pokrenuti pri izmjenama kombinovanog usmjeravanja, razrješavanja strategija ili rezervne logike)
+- [ ] `npm run test:combo:matrix` — prolazi (matrica kombinovanih strategija: deterministički dokazuje odluke odabira svih 21 javne strategije usmjeravanja; pokrenuti pri izmjenama kombinovanog usmjeravanja, razrješavanja strategija ili rezervne logike)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcionalno/ručno** (ograničeni smoke test sa stvarnim upstream servisima; preuzima snimak DB-a samo za čitanje s VPS-a `root@192.168.0.15`; koristi stvarne pružaoce usluga i troši kredite; nikada se ne pokreće u CI-ju; uredno se preskače bez aktivacijske varijable)
 - [ ] `npm run test:combo:live:vps` — **opcionalno/ručno** (VPS smoke test faze 3: 7 HTTP scenarija prema aktivnom `.15` serveru putem običnog Node ESM-a; zahtijeva `ssh root@192.168.0.15`; kreira/briše samo `__live_test__*` kombinacije; koristi stvarne pružaoce usluga; nikada se ne pokreće u CI-ju)
 - [ ] `npm run test:e2e` — prolazi (UI promjene)

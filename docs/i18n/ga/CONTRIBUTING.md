@@ -317,7 +317,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Seachfhreastalaí MITM (teastas, DNS, ródú sprice)
 ├── shared/
 │   ├── components/         # Comhpháirteanna React (.tsx)
-│   ├── constants/          # Sainmhínithe soláthraithe (329), scóip MCP, 20 straitéis ródaithe
+│   ├── constants/          # Sainmhínithe soláthraithe (329), scóip MCP, 21 straitéis ródaithe
 │   ├── utils/              # Scoradán ciorcaid, sláintitheoir, cúntóirí fíordheimhnithe
 │   └── validation/         # Scéimeanna Zod v4
 └── sse/                    # Píblíne seachfhreastalaí SSE

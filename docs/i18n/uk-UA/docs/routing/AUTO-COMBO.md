@@ -282,7 +282,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Усі стратегії маршрутизації
 
-Комбінований рушій OmniRoute підтримує **20 стратегій маршрутизації** (оголошених у `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам рушій Auto Combo доступний через стратегію `auto`; інші стратегії доступні для збережених комбінацій.
+Комбінований рушій OmniRoute підтримує **21 стратегію маршрутизації** (оголошено в `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Сам рушій Auto Combo доступний через стратегію `auto`; інші стратегії доступні для збережених комбінацій.
 
 | Стратегія           | Опис                                                                                                                                                                                                                  |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -297,6 +297,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | Мінімізація вартості запиту з урахуванням цін у каталозі                                                                                                                                                              |
 | `reset-aware` ⭐    | Пріоритизація за часом скидання квоти — коротші вікна скидання мають вищий пріоритет                                                                                                                                  |
 | `reset-window`      | Надання переваги цілям, вікно квоти яких буде скинуто найшвидше                                                                                                                                                       |
+| `expiry-first`      | Спершу витрачає обліковий запис, квота якого інакше згоріла б невикористаною: першим іде запис із найбільшим залишком і найближчим скиданням                                                                          |
 | `headroom`          | Вибір цілі з найбільшим залишковим запасом квоти                                                                                                                                                                      |
 | `quota-weighted`    | Пропуск облікових записів із вичерпаною квотою, а потім вибір серед решти пропорційно до залишку квоти, поділеного на поточне навантаження; наявні розмови залишаються закріпленими                                   |
 | `strict-random`     | Випадковий вибір без усунення повторів                                                                                                                                                                                |
@@ -847,9 +848,9 @@ registerStrategy("my-custom", new MyCustomStrategy());
 
 ### Детермінована матриця рішень маршрутизації (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` перевіряє **рішення** щодо маршрутизації для всіх 19 публічних стратегій наскрізно через реальний конвеєр комбінації з імітованим висхідним сервісом. Покриття включає:
+`tests/integration/combo-matrix/*.test.ts` перевіряє **рішення** щодо маршрутизації для всіх 21 публічної стратегії наскрізно через реальний конвеєр комбінації з імітованим висхідним сервісом. Покриття включає:
 
-- Усі 19 стратегій `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
+- Усі 21 стратегія `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
 - Наскрізну перевірку `quota-share` (внутрішня стратегія): справедливість DRR + зниження пріоритету в разі насичення через реальну точку інтеграції `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
 - Перевірку універсальної передачі `context-relay` для кожної кількості цілей.
 
@@ -879,5 +880,5 @@ registerStrategy("my-custom", new MyCustomStrategy());
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Парсер префікса `auto/` + 6 варіантів                                                                                               |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Створює в пам’яті `AutoComboConfig` з активних підключень                                                                           |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Тестовий механізм для імітації реєстру провайдерів                                                                                  |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 стратегій)                                                                                            |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 стратегія)                                                                                            |
 | `src/sse/handlers/chat.ts`                                | Інтеграція: раннє завершення обробки для префікса `auto/`                                                                           |

@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Menyeimbangkan sisa kuota dengan reset 5 jam dan mingguan, lalu menghitung skor serupa secara round-robin",
     "quotaWeighted": "Berbobot Kuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Kedaluwarsa Dulu",
+    "expiryFirstDesc": "Menghabiskan akun yang kuotanya akan kedaluwarsa tanpa terpakai: sisa terbesar dengan reset terdekat didahulukan.",
     "strictRandom": "Acak Ketat",
     "strictRandomDesc": "Kocok dek — menggunakan setiap model satu kali sebelum mengocok ulang",
     "fusion": "Fusi",
@@ -3600,6 +3602,11 @@
         "when": "Anda merutekan beberapa akun dengan telemetri kuota dan jendela pengaturan ulang yang berbeda.",
         "avoid": "Telemetri kuota tidak tersedia untuk sebagian besar akun.",
         "example": "Lebih suka pengaturan ulang akun mingguan 60% besok daripada pengaturan ulang akun 80% nanti."
+      },
+      "expiry-first": {
+        "when": "Anda merutekan beberapa akun yang kuotanya direset pada jadwal berbeda dan ingin memakai kuota yang jika tidak akan kedaluwarsa tanpa terpakai.",
+        "avoid": "Telemetri kuota tidak tersedia untuk sebagian besar akun, atau Anda memerlukan urutan stabil yang mengabaikan waktu reset.",
+        "example": "Utamakan akun dengan sisa 80% yang direset dalam 39 menit dibanding akun dengan sisa 48% yang direset dalam 9 jam — kuota yang hampir kedaluwarsa terpakai sebelum terbuang."
       },
       "strict-random": {
         "when": "Gunakan saat Anda menginginkan distribusi yang sepenuhnya merata — setiap model digunakan satu kali sebelum diulang.",
@@ -3815,6 +3822,13 @@
         "tip1": "Gunakan langkah akun eksplisit atau perutean tag akun untuk penyedia dengan telemetri kuota.",
         "tip2": "Sesi penyesuaian vs beban mingguan ketika kelelahan jangka pendek lebih berisiko.",
         "tip3": "Jaga agar tali pengikatnya tetap kecil sehingga akun-akun yang setara masih dapat berputar dengan adil."
+      },
+      "expiry-first": {
+        "title": "Kuota kedaluwarsa dulu",
+        "description": "Mengurutkan akun berdasarkan tekanan pemanfaatan: sisa kuota tinggi yang mendekati tenggat reset didahulukan.",
+        "tip1": "Memerlukan telemetri kuota penyedia; akun tanpa telemetri tetap memakai urutan prioritas yang tercantum.",
+        "tip2": "Skor yang hampir seri bergiliran dalam rentang seri sehingga akun sejenis tetap berbagi beban.",
+        "tip3": "Batasi peringkat pada bucket kuota yang benar-benar menjadi dasar penagihan setiap model."
       },
       "strict-random": {
         "title": "Distribusi dengan pengacakan dek",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Lebih suka akun dengan sisa kuota yang sehat dan hampir disetel ulang",
     "quotaWeighted": "Berbobot Kuota",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Kedaluwarsa Dulu",
+    "expiryFirstDesc": "Menghabiskan akun yang kuotanya akan kedaluwarsa tanpa terpakai: sisa terbesar dengan reset terdekat didahulukan.",
     "strictRandom": "Acak Ketat",
     "strictRandomDesc": "Kocok tumpukan — menggunakan setiap akun satu kali sebelum mengocok ulang",
     "stickyLimit": "Batas Lengket",

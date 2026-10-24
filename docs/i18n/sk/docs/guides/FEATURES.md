@@ -59,7 +59,7 @@ Pripojenia OpenRouter môžu v rozšírených nastaveniach ukladať `preset` pre
 
 ## 🎨 Kombinácie
 
-Vytvárajte kombinácie smerovania modelov s 19 verejnými stratégiami: podľa priority, vážené, round-robin, prenos kontextu, postupné napĺňanie, p2c (výber z dvoch možností), náhodné, najmenej používané, optimalizované podľa nákladov, zohľadňujúce reset, podľa okna resetu, podľa rezervy, striktne náhodné, automatické, lkgp (posledný známy funkčný poskytovateľ), optimalizované podľa kontextu, optimalizované podľa vyrovnávacej pamäte, **fusion** (paralelné rozoslanie panelu modelov a následná syntéza jednej odpovede pomocou rozhodovacieho modelu) a **pipeline**. Každá kombinácia reťazí viacero modelov s automatickým záložným prepnutím a zahŕňa rýchle šablóny a kontroly pripravenosti.
+Vytvárajte kombinácie smerovania modelov s 21 verejnými stratégiami: podľa priority, vážené, round-robin, prenos kontextu, postupné napĺňanie, p2c (výber z dvoch možností), náhodné, najmenej používané, optimalizované podľa nákladov, zohľadňujúce reset, podľa okna resetu, najskôr expirujúce, podľa rezervy, vážené podľa kvóty, striktne náhodné, automatické, lkgp (posledný známy funkčný poskytovateľ), optimalizované podľa kontextu, optimalizované podľa vyrovnávacej pamäte, **fusion** (paralelné rozoslanie panelu modelov a následná syntéza jednej odpovede pomocou rozhodovacieho modelu) a **pipeline**. Každá kombinácia reťazí viacero modelov s automatickým záložným prepnutím a zahŕňa rýchle šablóny a kontroly pripravenosti.
 
 Nedávne vylepšenia kombinácií:
 

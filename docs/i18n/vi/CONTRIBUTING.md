@@ -311,7 +311,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # Proxy MITM (chứng chỉ, DNS, định tuyến đích)
 ├── shared/
 │   ├── components/         # Các thành phần React (.tsx)
-│   ├── constants/          # Định nghĩa nhà cung cấp (329), phạm vi MCP, 20 chiến lược định tuyến
+│   ├── constants/          # Định nghĩa nhà cung cấp (329), phạm vi MCP, 21 chiến lược định tuyến
 │   ├── utils/              # Bộ ngắt mạch, trình làm sạch, trình trợ giúp xác thực
 │   └── validation/         # Các lược đồ Zod v4
 └── sse/                    # Quy trình proxy SSE

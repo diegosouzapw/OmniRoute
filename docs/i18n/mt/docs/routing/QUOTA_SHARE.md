@@ -352,7 +352,7 @@ tidher bħala għażla li tista’ tintgħażel mill-utent fl-UI jew fl-API.
 | Unità (29 test)           | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | L-iskedatur DRR, l-imblukkar tas-saturazzjoni, il-limiti tal-konkorrenza, il-kalkoli ta’ fairShare, u t-tqegħid tax-xogħol pendenti fi kju                                                                                                                                             |
 | Matriċi ta’ integrazzjoni | `npm run test:combo:matrix`                                            | Deċiżjoni tar-routing minn tarf sa tarf permezz tal-pipeline reali tal-kombinazzjonijiet; l-ekwità tad-DRR + it-tnaqqis tal-prijorità minħabba s-saturazzjoni permezz ta’ punti ta’ integrazzjoni attivi (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) |
 
-Il-matriċi ta’ integrazzjoni taħdem fis-CI flimkien mad-19-il strateġija pubblika kollha. Is-sett ta’ testijiet tal-unità
+Il-matriċi ta’ integrazzjoni taħdem fis-CI flimkien mad-21 strateġija pubblika kollha. Is-sett ta’ testijiet tal-unità
 jista’ jitħaddem waħdu.
 
 ---

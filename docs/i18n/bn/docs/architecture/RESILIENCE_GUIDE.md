@@ -723,7 +723,7 @@ reached") থাকলে, `status_429` নিয়মে পৌঁছানো
 
 ## অন্যান্য রেজিলিয়েন্স ফিচার
 
-- **২০টি রাউটিং স্ট্র্যাটেজি** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — দেখুন [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
+- **২১টি রাউটিং স্ট্র্যাটেজি** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — দেখুন [AUTO-COMBO.md](../routing/AUTO-COMBO.md)।
 - **রিসেট-সচেতন রাউটিং** (v3.8.0) — কোটা রিসেট সময় অনুযায়ী কানেকশনগুলোকে অগ্রাধিকার দেয়।
 - **ব্যাকগ্রাউন্ড মোড ডিগ্রেডেশন** — Responses API-এর `background: true` সতর্কতাসহ সিঙ্ক-এ ডিগ্রেড হয়।
 - **ডাইনামিক টুল লিমিট ডিটেকশন** — টুল সংখ্যা সীমায় পৌঁছালে প্রোভাইডারদের ব্যাক অফ করে।

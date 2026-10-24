@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Подржава **20 стратегија рутирања** (погледај `src/shared/constants/routingStrategies.ts`):
+Подржава **21 стратегију рутирања** (погледај `src/shared/constants/routingStrategies.ts`):
 
 | Стратегија          | Понашање                                                                            |
 | ------------------- | ----------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | Прво најјефтинији исправан циљ                                                      |
 | `reset-aware`       | Свестан прозора ресетовања провајдера                                               |
 | `reset-window`      | Рутирање на основу прозора ресетовања                                               |
+| `expiry-first`      | Прво троши налог чија би квота иначе истекла неискоришћена                          |
 | `headroom`          | Прво највише преосталог простора у квоти                                            |
 | `quota-weighted`    | Прескаче исцрпљене налоге, затим бира према преосталој квоти ÷ тренутном оптерећењу |
 | `strict-random`     | Заиста равномерно (без пондерисања квалитета)                                       |

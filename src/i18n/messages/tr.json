@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Kalan kotayı 5 saatlik ve haftalık sıfırlamalara karşı dengeler, ardından benzer puanları bir kez eşleştirme",
     "quotaWeighted": "Kota Ağırlıklı",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Önce Süresi Dolan",
+    "expiryFirstDesc": "Kotası aksi takdirde kullanılmadan sona erecek hesabı önce harcar: en yüksek kalan miktara ve en yakın sıfırlamaya sahip hesap önce gelir.",
     "strictRandom": "Kesin Rastgele",
     "strictRandomDesc": "Karıştırma destesi: yeniden karıştırmadan önce her modeli bir kez kullanır.",
     "fusion": "Füzyon",
@@ -3600,6 +3602,11 @@
         "when": "Kota telemetrisi ve farklı sıfırlama pencereleri ile birden fazla hesaba yönlendirme yaparsınız.",
         "avoid": "Kota telemetrisi çoğu hesapta kullanılamaz.",
         "example": "Daha sonra yapılacak %80'lik hesap sıfırlama yerine, haftalık %60'lık hesabın yarın sıfırlanmasını tercih edin."
+      },
+      "expiry-first": {
+        "when": "Kotaları farklı zamanlamalarla sıfırlanan hesaplar arasında yönlendirme yaparsınız ve aksi takdirde kullanılmadan sona erecek kotayı harcamak istersiniz.",
+        "avoid": "Çoğu hesapta kota telemetrisi yoktur veya sıfırlama zamanlamasını yok sayan sabit bir sıraya ihtiyacınız vardır.",
+        "example": "9 saat içinde sıfırlanan, %48'i kalmış bir hesap yerine 39 dakika içinde sıfırlanan, %80'i kalmış bir hesabı tercih edin — süresi dolmak üzere olan kota boşa gitmeden harcanır."
       },
       "strict-random": {
         "when": "Tamamen eşit dağılım istediğinizde kullanın — tekrara geçmeden önce her model bir kez kullanılır.",
@@ -3815,6 +3822,13 @@
         "tip1": "Kota telemetrisi olan sağlayıcılar için açık hesap adımlarını veya hesap etiketi yönlendirmesini kullanın.",
         "tip2": "Kısa süreli tükenmenin daha riskli olduğu durumlarda seansı haftalık ağırlıklara göre ayarlayın.",
         "tip3": "Eşdeğer hesapların adil bir şekilde dönmeye devam etmesi için kravat bandını küçük tutun."
+      },
+      "expiry-first": {
+        "title": "Önce süresi dolan kota",
+        "description": "Hesapları kullanım aciliyetine göre sıralar: sıfırlama süresine yakın, kalan kotası yüksek hesap önce gelir.",
+        "tip1": "Sağlayıcı kota telemetrisi gerektirir; telemetrisi olmayan hesaplar listelenen öncelik sırasını korur.",
+        "tip2": "Neredeyse eşit puanlar eşitlik bandı içinde dönüşümlü kullanılır, böylece benzer hesaplar yükü paylaşmaya devam eder.",
+        "tip3": "Sıralamayı her modelin fiilen faturalandırıldığı kota kovasıyla sınırlayın."
       },
       "strict-random": {
         "title": "Deste karıştırmalı dağıtım",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Kalan kotası sağlıklı olan ve sıfırlamaya daha yakın olan hesapları tercih edin",
     "quotaWeighted": "Kota Ağırlıklı",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Önce Süresi Dolan",
+    "expiryFirstDesc": "Kotası aksi takdirde kullanılmadan sona erecek hesabı önce harcar: en yüksek kalan miktara ve en yakın sıfırlamaya sahip hesap önce gelir.",
     "strictRandom": "Katı Rastgele",
     "strictRandomDesc": "Karıştırma destesi — yeniden karıştırmadan önce her hesabı bir kez kullanır",
     "stickyLimit": "Yapışkan Sınır",

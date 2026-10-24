@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Uravnoteži preostalo kvoto glede na ponastavitve na 5 ur in tedenske ponastavitve, nato pa med podobno ocenjenimi krožno razporeja zahteve",
     "quotaWeighted": "Uteženo glede na kvoto",
     "quotaWeightedDesc": "Preskoči račune z izčrpano kvoto, nato pa med preostalimi izbira sorazmerno s preostalo kvoto, deljeno z obremenitvijo zaradi zahtev v teku. Obstoječi pogovori ostanejo pripeti.",
+    "expiryFirst": "Najprej potekajoče",
+    "expiryFirstDesc": "Najprej porabi račun, katerega kvota bi sicer potekla neporabljena: prvi je račun z največjim ostankom in najbližjo ponastavitvijo.",
     "strictRandom": "Strogo naključno",
     "strictRandomDesc": "Premešani komplet — vsak model se uporabi enkrat pred ponovnim mešanjem",
     "fusion": "Združevanje",
@@ -3600,6 +3602,11 @@
         "when": "Zahteve usmerjate prek več računov s telemetrijo kvot in različnimi obdobji ponastavitve.",
         "avoid": "Telemetrija kvot za večino računov ni na voljo.",
         "example": "Dajte prednost računu s tedensko kvoto, ki je 60 % porabljena in se ponastavi jutri, pred računom, katerega kvota je 80 % porabljena in se ponastavi pozneje."
+      },
+      "expiry-first": {
+        "when": "Zahteve usmerjate prek računov, katerih kvote se ponastavljajo po različnih urnikih, in želite porabiti kvoto, ki bi sicer potekla neporabljena.",
+        "avoid": "Za večino računov telemetrija kvot ni na voljo ali pa potrebujete stabilen vrstni red, ki ne upošteva časa ponastavitve.",
+        "example": "Dajte prednost računu z 80 % preostale kvote, ki se ponastavi čez 39 minut, pred računom z 48 % preostale kvote, ki se ponastavi čez 9 ur — kvota tik pred potekom se porabi, preden propade."
       },
       "strict-random": {
         "when": "Uporabite, ko želite popolnoma enakomerno porazdelitev — vsak model se uporabi enkrat, preden se kateri koli ponovno uporabi.",
@@ -3815,6 +3822,13 @@
         "tip1": "Za ponudnike s telemetrijo kvot uporabite izrecne korake računov ali usmerjanje na podlagi oznak računov.",
         "tip2": "Prilagodite uteži za sejo in teden, kadar je kratkoročno izčrpanje bolj tvegano.",
         "tip3": "Pas izenačenosti naj bo ozek, da se enakovredni računi še vedno pravično izmenjujejo."
+      },
+      "expiry-first": {
+        "title": "Najprej kvota, ki poteka",
+        "description": "Razvrsti račune glede na pritisk porabe: velika preostala kvota blizu roka ponastavitve je prva.",
+        "tip1": "Zahteva telemetrijo kvot ponudnika; računi brez nje ohranijo naveden prednostni vrstni red.",
+        "tip2": "Skoraj enake ocene se izmenjujejo znotraj pasu izenačenosti, tako da si podobni računi še vedno delijo obremenitev.",
+        "tip3": "Razvrščanje omejite na skupino kvote, po kateri se posamezni model dejansko obračuna."
       },
       "strict-random": {
         "title": "Porazdelitev s premešanim kompletom kart",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Daj prednost računom z zadostno preostalo kvoto in bližnjimi ponastavitvami",
     "quotaWeighted": "Uteženo glede na kvoto",
     "quotaWeightedDesc": "Preskoči račune z izčrpano kvoto, nato pa med preostalimi izbira sorazmerno s preostalo kvoto, deljeno s trenutno obremenitvijo. Obstoječi pogovori ostanejo pripeti.",
+    "expiryFirst": "Najprej potekajoče",
+    "expiryFirstDesc": "Najprej porabi račun, katerega kvota bi sicer potekla neporabljena: prvi je račun z največjim ostankom in najbližjo ponastavitvijo.",
     "strictRandom": "Strogo naključno",
     "strictRandomDesc": "Premešaj komplet — vsak račun uporabi enkrat pred ponovnim mešanjem",
     "stickyLimit": "Omejitev vezave",

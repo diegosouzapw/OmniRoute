@@ -762,7 +762,7 @@ opencode `FULL_TEXT_RULE_PROVIDERS` मा छैन), त्यसैले ब
 
 ## अन्य रिजिलियन्स सुविधाहरू
 
-- **20 राउटिङ रणनीतिहरू** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) हेर्नुहोस्।
+- **21 राउटिङ रणनीतिहरू** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md) हेर्नुहोस्।
 - **Reset-aware राउटिङ** (v3.8.0) — कोटा रिसेट समयअनुसार कनेक्सनहरूलाई प्राथमिकता दिन्छ।
 - **Background मोड डिग्रेडेसन** — Responses API को `background: true` चेतावनीसहित sync मा डिग्रेड गरिन्छ।
 - **डायनामिक टुल सीमा पत्ता लगाउने** — टुल संख्या सीमा पुग्दा प्रोभाइडरहरूलाई ब्याक अफ गर्छ।

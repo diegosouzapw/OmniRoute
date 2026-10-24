@@ -3480,6 +3480,8 @@
     "resetAwareDesc": "Bilansuje pozostały quota z resetami 5-godzinnymi i tygodniowymi, a następnie stosuje round-robin dla podobnych wyników",
     "quotaWeighted": "Ważone według limitu",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Najpierw wygasające",
+    "expiryFirstDesc": "Najpierw zużywa konto, którego limit w przeciwnym razie wygasłby niewykorzystany: pierwsze idzie konto z największą resztą i najbliższym resetem.",
     "strictRandom": "Ściśle losowo",
     "strictRandomDesc": "Tasowanie talii — używa każdego model raz przed ponownym przetasowaniem",
     "fusion": "Fuzja",
@@ -3600,6 +3602,11 @@
         "when": "Gdy kierujesz ruch przez wiele kont z telemetryczną obsługą quota i różnymi oknami resetowania.",
         "avoid": "Gdy telemetria quota jest niedostępna dla większości kont.",
         "example": "Preferowanie tygodniowego konta wykorzystanego w 60%, które resetuje się jutro, nad kontem wykorzystanym w 80%, które resetuje się później."
+      },
+      "expiry-first": {
+        "when": "Gdy kierujesz ruch przez konta, których limity resetują się według różnych harmonogramów, i chcesz zużyć limit, który w przeciwnym razie wygasłby niewykorzystany.",
+        "avoid": "Gdy dla większości kont brakuje telemetrii limitów lub potrzebujesz stabilnej kolejności, która ignoruje moment resetu.",
+        "example": "Preferuj konto z 80% pozostałego limitu, które resetuje się za 39 minut, zamiast konta z 48% pozostałego limitu, które resetuje się za 9 godzin — limit bliski wygaśnięcia zostaje zużyty, zanim przepadnie."
       },
       "strict-random": {
         "when": "Używaj, gdy chcesz uzyskać idealnie równomierne rozłożenie — każdy model jest używany raz przed powtórzeniem.",
@@ -3815,6 +3822,13 @@
         "tip1": "Użyj jawnych kroków konta lub routingu opartego na tagach kont dla providers z telemetryczną obsługą quota.",
         "tip2": "Dostosuj wagi sesyjne w stosunku do tygodniowych, gdy krótkoterminowe wyczerpanie jest bardziej ryzykowne.",
         "tip3": "Utrzymuj wąskie pasmo remisowe, aby równorzędne konta nadal rotowały sprawiedliwie."
+      },
+      "expiry-first": {
+        "title": "Najpierw wygasający limit",
+        "description": "Szereguje konta według presji wykorzystania: wysoki pozostały limit blisko terminu resetu idzie pierwszy.",
+        "tip1": "Wymaga telemetrii limitów od dostawcy; konta bez niej zachowują swoją wymienioną kolejność priorytetów.",
+        "tip2": "Niemal równe wyniki rotują w paśmie remisowym, dzięki czemu podobne konta nadal dzielą obciążenie.",
+        "tip3": "Ogranicz ranking do puli limitu, według której każdy model jest faktycznie rozliczany."
       },
       "strict-random": {
         "title": "Rozkład losowy bez powtórzeń (Shuffle)",
@@ -7441,6 +7455,8 @@
     "resetAwareDesc": "Preferuj konta ze zdrową pozostałą quota i bliskim czasem resetu",
     "quotaWeighted": "Ważone limitem",
     "quotaWeightedDesc": "Skip exhausted accounts, then pick among the rest in proportion to reset-aware leftover.",
+    "expiryFirst": "Najpierw wygasające",
+    "expiryFirstDesc": "Najpierw zużywa konto, którego limit w przeciwnym razie wygasłby niewykorzystany: pierwsze idzie konto z największą resztą i najbliższym resetem.",
     "strictRandom": "Ściśle losowo",
     "strictRandomDesc": "Tasowanie talii — używa każdego konta raz przed ponownym przetasowaniem",
     "stickyLimit": "Limit trwałego przypisania",

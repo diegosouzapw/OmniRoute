@@ -348,7 +348,7 @@ Quota-share mexanizmi bilan birga avtomatlashtirilgan qamrovning ikki qatlami ta
 | Modul (29 ta test)      | `node --import tsx/esm --test tests/unit/quota-share-strategy.test.ts` | DRR rejalashtiruvchisi, to‘yinganlikni cheklash, parallellik limitlari, fairShare hisobi, navbatga to‘plash                                                                                                                                             |
 | Integratsiya matritsasi | `npm run test:combo:matrix`                                            | Haqiqiy kombinatsiya konveyeri orqali boshidan oxirigacha marshrutlash qarori; jonli ulanish nuqtalari (`registerQuotaFetcher`, `setLKGP`, `__setHeadroomSaturationFetcherForTests`) orqali DRR adolatliligi va to‘yinganlikda ustuvorlikni pasaytirish |
 
-Integratsiya matritsasi CI’da barcha 19 ta ommaviy strategiya bilan birga ishga tushiriladi. Modul testlari to‘plamini alohida ishga tushirish mumkin.
+Integratsiya matritsasi CI’da barcha 21 ta ommaviy strategiya bilan birga ishga tushiriladi. Modul testlari to‘plamini alohida ishga tushirish mumkin.
 
 ---
 

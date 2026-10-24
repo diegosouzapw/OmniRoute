@@ -13,7 +13,7 @@
 
 # 🚀 OmniRoute — বিনামূল্যের AI গেটওয়ে
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — কোডিং কখনো থামাবেন না। প্রতিটি AI টুল → 375টি প্রোভাইডার — 150টির বেশি বিনামূল্যে — একটি এন্ডপয়েন্টের মাধ্যমে। Claude Code, Codex, Cursor, Cline, Copilot ও Antigravity-কে স্বয়ংক্রিয় ফলব্যাকসহ বিনামূল্যের Claude / GPT / Gemini-এর সঙ্গে যুক্ত করুন। RTK + Caveman-এর স্তরভিত্তিক কম্প্রেশন 15–95% টোকেন সাশ্রয় করে (গড়ে ~89%) — কখনো সীমায় পৌঁছাবেন না। 375টি AI প্রোভাইডার · 150টির বেশি বিনামূল্যের টিয়ার · প্রতি মাসে ~1.62B বিনামূল্যের টোকেন · 20টি রাউটিং কৌশল · শুরু করতে $0।"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — কোডিং কখনো থামাবেন না। প্রতিটি AI টুল → 375টি প্রোভাইডার — 150টির বেশি বিনামূল্যে — একটি এন্ডপয়েন্টের মাধ্যমে। Claude Code, Codex, Cursor, Cline, Copilot ও Antigravity-কে স্বয়ংক্রিয় ফলব্যাকসহ বিনামূল্যের Claude / GPT / Gemini-এর সঙ্গে যুক্ত করুন। RTK + Caveman-এর স্তরভিত্তিক কম্প্রেশন 15–95% টোকেন সাশ্রয় করে (গড়ে ~89%) — কখনো সীমায় পৌঁছাবেন না। 375টি AI প্রোভাইডার · 150টির বেশি বিনামূল্যের টিয়ার · প্রতি মাসে ~1.62B বিনামূল্যের টোকেন · 21টি রাউটিং কৌশল · শুরু করতে $0।"/>
 
 </div>
 
@@ -263,7 +263,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute রিকোয়েস্ট প্রবাহ: আপনার IDE বা CLI (Claude Code, Cursor, Cline…) একটি লোকাল এন্ডপয়েন্টে (http://localhost:20128/v1) কল করে; OmniRoute Smart Router (RTK + Caveman কম্প্রেশন, ২০টি রাউটিং স্ট্র্যাটেজি, সার্কিট ব্রেকার, TLS স্টিলথ, MCP, A2A, গার্ডরেল) একটি যোগ্য সুস্থ টার্গেট থাকা পর্যন্ত ৪টি প্রোভাইডার টিয়ার জুড়ে ফলব্যাক করতে পারে — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap এবং Tier 4 Free।"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute রিকোয়েস্ট প্রবাহ: আপনার IDE বা CLI (Claude Code, Cursor, Cline…) একটি লোকাল এন্ডপয়েন্টে (http://localhost:20128/v1) কল করে; OmniRoute Smart Router (RTK + Caveman কম্প্রেশন, ২১টি রাউটিং স্ট্র্যাটেজি, সার্কিট ব্রেকার, TLS স্টিলথ, MCP, A2A, গার্ডরেল) একটি যোগ্য সুস্থ টার্গেট থাকা পর্যন্ত ৪টি প্রোভাইডার টিয়ার জুড়ে ফলব্যাক করতে পারে — Tier 1 Subscription, Tier 2 API Key, Tier 3 Cheap এবং Tier 4 Free।"/>
 
 </div>
 
@@ -354,7 +354,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="২০টি কম্বো রাউটিং কৌশলের মধ্যে ১৮টির অ্যানিমেটেড উদাহরণ — প্রতি কৌশলের জন্য একটি টাইল: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline। cache-optimized এবং quota-weighted অ্যানিমেটেড নয়; নিচের টেবিলে সব ২০টির বর্ণনা রয়েছে।"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="২১টি কম্বো রাউটিং কৌশলের মধ্যে ১৮টির অ্যানিমেটেড উদাহরণ — প্রতি কৌশলের জন্য একটি টাইল: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, lkgp, auto, fusion, pipeline। cache-optimized, quota-weighted এবং expiry-first অ্যানিমেটেড নয়; নিচের টেবিলে সব ২১টির বর্ণনা রয়েছে।"/>
 
 > একটি **কম্বো** হলো মডেলের এমন একটি শৃঙ্খল, যার মধ্যে OmniRoute **স্বয়ংক্রিয়ভাবে** রাউট করে। কোটা ফুরিয়ে গেলে, কোনো প্রদানকারী ব্যর্থ হলে বা খরচ বেড়ে গেলে, কম্বোটি পরবর্তী উপযুক্ত ও সচল মডেলে যেতে পারে। 🛡️
 
@@ -378,9 +378,9 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🔀 অথবা নিজেরটি তৈরি করুন — ২০টি রাউটিং কৌশল
+### 🔀 অথবা নিজেরটি তৈরি করুন — ২১টি রাউটিং কৌশল
 
-সব **২০টি** কৌশল — প্রতিটি কম্বো ধাপে ইচ্ছেমতো মিশিয়ে ব্যবহার করুন:
+সব **২১টি** কৌশল — প্রতিটি কম্বো ধাপে ইচ্ছেমতো মিশিয়ে ব্যবহার করুন:
 
 <table>
   <tr>
@@ -488,6 +488,11 @@ curl http://localhost:20128/v1/chat/completions \
     <td nowrap><code>pipeline</code></td>
     <td>ধাপগুলোকে শৃঙ্খলিত করে — প্রতিটি টার্গেটের আউটপুট পরেরটিতে ইনপুট হিসেবে যায় 🔗</td>
   </tr>
+  <tr>
+    <td align="center">২১</td>
+    <td nowrap><code>expiry-first</code></td>
+    <td>যে অ্যাকাউন্টের কোটা অন্যথায় অব্যবহৃত অবস্থায় মেয়াদোত্তীর্ণ হয়ে যেত, সেটি আগে খরচ করে: সবচেয়ে বেশি অবশিষ্ট এবং সবচেয়ে নিকট রিসেটযুক্ত অ্যাকাউন্ট প্রথমে যায় ⏳</td>
+  </tr>
 </table>
 
 <sub>Auto-Combo ইঞ্জিন প্রতিটি প্রার্থীকে **১৬টি বিষয়ের** (স্বাস্থ্য, কোটা, খরচ, ল্যাটেন্সি, কাজের উপযোগিতা, গুণমান, সেশন উপলভ্যতা…) ভিত্তিতে স্কোর করে — দেখুন [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)।</sub>
@@ -508,7 +513,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-কে যেসব বৈশিষ্ট্য স্বতন্ত্র করে — ১৩টি সক্ষমতার ভিত্তিতে 9router, OpenRouter, CLIProxyAPI এবং LiteLLM-এর সঙ্গে একটি নির্দিষ্ট সময়ের ফিচার তুলনামূলক চিত্র। OmniRoute: ৩৭৫টি প্রোভাইডার, অন্তর্নির্মিত ১৫০টির বেশি ফ্রি টিয়ার, ২০টি রাউটিং কৌশল, ১২-ইঞ্জিন টোকেন কম্প্রেশন, ১১০টি টুলসহ অন্তর্নির্মিত MCP সার্ভার, A2A এজেন্ট প্রোটোকল, স্থায়ী মেমোরি, গার্ডরেইল, ক্লাউড এজেন্ট, TLS ফিঙ্গারপ্রিন্ট স্টেলথ, Desktop/Termux/PWA এবং ৬৭টি i18n UI লোকেল। OmniRoute MIT লাইসেন্সপ্রাপ্ত এবং স্ব-হোস্টযোগ্য। প্রতিযোগীদের সক্ষমতা ও সংখ্যা পরিবর্তিত হতে পারে; লিঙ্ক করা পদ্ধতি দেখুন।"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute-কে যেসব বৈশিষ্ট্য স্বতন্ত্র করে — ১৩টি সক্ষমতার ভিত্তিতে 9router, OpenRouter, CLIProxyAPI এবং LiteLLM-এর সঙ্গে একটি নির্দিষ্ট সময়ের ফিচার তুলনামূলক চিত্র। OmniRoute: ৩৭৫টি প্রোভাইডার, অন্তর্নির্মিত ১৫০টির বেশি ফ্রি টিয়ার, ২১টি রাউটিং কৌশল, ১২-ইঞ্জিন টোকেন কম্প্রেশন, ১১০টি টুলসহ অন্তর্নির্মিত MCP সার্ভার, A2A এজেন্ট প্রোটোকল, স্থায়ী মেমোরি, গার্ডরেইল, ক্লাউড এজেন্ট, TLS ফিঙ্গারপ্রিন্ট স্টেলথ, Desktop/Termux/PWA এবং ৬৭টি i18n UI লোকেল। OmniRoute MIT লাইসেন্সপ্রাপ্ত এবং স্ব-হোস্টযোগ্য। প্রতিযোগীদের সক্ষমতা ও সংখ্যা পরিবর্তিত হতে পারে; লিঙ্ক করা পদ্ধতি দেখুন।"/>
 
 <sub>📊 9router, OpenRouter, CLIProxyAPI ও LiteLLM-এর সঙ্গে তুলনার পূর্ণাঙ্গ পদ্ধতি ও প্রতিটি ফিচারের বিস্তারিত → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 

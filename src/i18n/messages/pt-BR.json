@@ -3497,6 +3497,8 @@
     "resetAwareDesc": "Equilibra a cota restante com redefinições de 5h e semanais e, em seguida, faz um round-robin de pontuações semelhantes",
     "quotaWeighted": "Ponderado por cota",
     "quotaWeightedDesc": "Ignora contas esgotadas e escolhe entre as restantes na proporção da cota restante com reconhecimento de reset.",
+    "expiryFirst": "Expiração primeiro",
+    "expiryFirstDesc": "Consome primeiro a conta cuja cota, de outra forma, expiraria sem uso: o maior saldo com a redefinição mais próxima vai primeiro.",
     "strictRandom": "Aleatório Estrito",
     "strictRandomDesc": "Baralho embaralhado — usa cada modelo uma vez antes de reembaralhar",
     "fusion": "Fusão",
@@ -3618,6 +3620,11 @@
         "when": "Você roteia várias contas com telemetria de cota e diferentes janelas de redefinição.",
         "avoid": "A telemetria de cota não está disponível para a maioria das contas.",
         "example": "Prefira uma redefinição semanal de 60% da conta amanhã a uma redefinição de 80% da conta mais tarde."
+      },
+      "expiry-first": {
+        "when": "Você roteia entre contas cujas cotas são redefinidas em cronogramas diferentes e quer consumir a cota que, de outra forma, expiraria sem uso.",
+        "avoid": "A telemetria de cota não está disponível para a maioria das contas, ou você precisa de uma ordem estável que ignore o momento da redefinição.",
+        "example": "Prefira uma conta com 80% restantes que é redefinida em 39 minutos a uma conta com 48% restantes que é redefinida em 9 horas — a cota prestes a expirar é consumida antes de ser desperdiçada."
       },
       "strict-random": {
         "when": "Você quer distribuição perfeitamente uniforme — cada modelo é usado uma vez antes de repetir.",
@@ -3834,6 +3841,13 @@
         "tip1": "Use etapas de conta explícitas ou roteamento de tags de conta para provedores com telemetria de cota.",
         "tip2": "Ajuste a sessão versus pesos semanais quando a exaustão de curto prazo for mais arriscada.",
         "tip3": "Mantenha a faixa de amarração pequena para que contas equivalentes ainda girem de forma justa."
+      },
+      "expiry-first": {
+        "title": "Cota expirando primeiro",
+        "description": "Classifica as contas pela pressão de aproveitamento: cota restante alta próxima do prazo de redefinição vai primeiro.",
+        "tip1": "Requer telemetria de cota do provedor; contas sem ela mantêm a ordem de prioridade listada.",
+        "tip2": "Pontuações quase empatadas se alternam dentro da faixa de empate para que contas semelhantes continuem dividindo a carga.",
+        "tip3": "Restrinja a classificação ao bucket de cota no qual cada modelo é de fato cobrado."
       },
       "strict-random": {
         "title": "Distribuição estritamente uniforme",
@@ -7465,6 +7479,8 @@
     "resetAwareDesc": "Prefira contas com cota restante saudável e redefinições mais próximas",
     "quotaWeighted": "Ponderado por cota",
     "quotaWeightedDesc": "Ignora contas esgotadas e escolhe entre as restantes na proporção da cota restante com reconhecimento de reset.",
+    "expiryFirst": "Expiração primeiro",
+    "expiryFirstDesc": "Consome primeiro a conta cuja cota, de outra forma, expiraria sem uso: o maior saldo com a redefinição mais próxima vai primeiro.",
     "strictRandom": "Aleatório Estrito",
     "strictRandomDesc": "Baralho embaralhado — usa cada conta uma vez antes de reembaralhar",
     "stickyLimit": "Limite Fixo",

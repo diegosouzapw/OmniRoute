@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Suporta **20 estratégias de encaminhamento** (ver `src/shared/constants/routingStrategies.ts`):
+Suporta **21 estratégias de encaminhamento** (ver `src/shared/constants/routingStrategies.ts`):
 
 | Estratégia          | Comportamento                                                                            |
 | ------------------- | ---------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Suporta **20 estratégias de encaminhamento** (ver `src/shared/constants/routing
 | `cost-optimized`    | O alvo saudável mais barato primeiro                                                     |
 | `reset-aware`       | Tem em conta as janelas de reposição do fornecedor                                       |
 | `reset-window`      | Encaminhamento baseado em janelas de reposição                                           |
+| `expiry-first`      | Consome primeiro a conta cuja quota, de outro modo, expiraria sem ser usada              |
 | `headroom`          | Maior margem de quota restante primeiro                                                  |
 | `quota-weighted`    | Salta contas esgotadas e depois sorteia por quota restante ÷ carga em curso              |
 | `strict-random`     | Verdadeiramente uniforme (sem ponderação por qualidade)                                  |

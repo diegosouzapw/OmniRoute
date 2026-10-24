@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20種類のルーティング戦略**をサポートしています（`src/shared/constants/routingStrategies.ts` を参照）：
+**21種類のルーティング戦略**をサポートしています（`src/shared/constants/routingStrategies.ts` を参照）：
 
 | 戦略                | 動作                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------ |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | 正常なターゲットの中で最も安価なものを優先                                                 |
 | `reset-aware`       | プロバイダーのリセットウィンドウを考慮                                                     |
 | `reset-window`      | リセットウィンドウに基づくルーティング                                                     |
+| `expiry-first`      | 放置すると未使用のまま失効するクォータを持つアカウントから消費します                       |
 | `headroom`          | 残りクォータの余裕が最も大きいものを優先                                                   |
 | `quota-weighted`    | 枯渇したアカウントをスキップし、残りクォータ ÷ 処理中負荷で抽選                            |
 | `strict-random`     | 真に一様（品質による重み付けなし）                                                         |

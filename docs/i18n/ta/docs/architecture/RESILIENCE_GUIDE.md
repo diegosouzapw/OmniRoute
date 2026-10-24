@@ -912,7 +912,7 @@ limiting) `status_429` விதி வழியாக `rate_limit_exceeded` எ
 
 ## பிற மீட்சித்திறன் அம்சங்கள்
 
-- **20 வழித்தட உத்திகள்** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md)-ஐப் பார்க்கவும்.
+- **21 வழித்தட உத்திகள்** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, auto, lkgp, context-optimized, cache-optimized, fusion, pipeline) — [AUTO-COMBO.md](../routing/AUTO-COMBO.md)-ஐப் பார்க்கவும்.
 - **மீட்டமைப்பை உணரும் வழித்தடம்** (v3.8.0) — ஒதுக்கீட்டு மீட்டமைப்பு நேரத்தின் அடிப்படையில் இணைப்புகளுக்கு முன்னுரிமை அளிக்கிறது.
 - **பின்னணிப் பயன்முறை தரக்குறைப்பு** — Responses API `background: true`, எச்சரிக்கையுடன் ஒத்திசைவு முறைக்குத் தரக்குறைக்கப்படுகிறது.
 - **இயங்குநிலை கருவி வரம்புக் கண்டறிதல்** — கருவிகளின் எண்ணிக்கை வரம்பை எட்டும்போது வழங்குநர்களிடமிருந்து பின்வாங்குகிறது.

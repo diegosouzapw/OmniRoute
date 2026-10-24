@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-**20ଟି ରାଉଟିଂ କୌଶଳ** ସମର୍ଥନ କରେ (`src/shared/constants/routingStrategies.ts` ଦେଖନ୍ତୁ):
+**21ଟି ରାଉଟିଂ କୌଶଳ** ସମର୍ଥନ କରେ (`src/shared/constants/routingStrategies.ts` ଦେଖନ୍ତୁ):
 
 | କୌଶଳ                | ଆଚରଣ                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 | `cost-optimized`    | ସବୁଠାରୁ ଶସ୍ତା ସୁସ୍ଥ (healthy) ଟାର୍ଗେଟ ପ୍ରଥମେ                                                  |
 | `reset-aware`       | provider reset window ବିଷୟରେ ସଚେତନ                                                            |
 | `reset-window`      | reset window-ଆଧାରିତ ରାଉଟିଂ                                                                    |
+| `expiry-first`      | ଅନ୍ୟଥା ବ୍ୟବହାର ନହୋଇ ମିଆଦ ସରିଯାଉଥିବା କୋଟା ଥିବା ଆକାଉଣ୍ଟକୁ ପ୍ରଥମେ ବ୍ୟବହାର କରେ                    |
 | `headroom`          | ସର୍ବାଧିକ ଅବଶିଷ୍ଟ quota headroom ଥିବା ଟାର୍ଗେଟ ପ୍ରଥମେ                                           |
 | `quota-weighted`    | ସମାପ୍ତ ହୋଇଯାଇଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଛାଡ଼ି ଦିଏ, ତାପରେ ଅବଶିଷ୍ଟ quota ÷ in-flight ଲୋଡ୍ ଅନୁଯାୟୀ ବାଛେ |
 | `strict-random`     | ପ୍ରକୃତରେ ସମାନ (କୌଣସି ଗୁଣବତ୍ତା ଓଜନ ନାହିଁ)                                                      |

@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Atbalsta **20 maršrutēšanas stratēģijas** (skat. `src/shared/constants/routingStrategies.ts`):
+Atbalsta **21 maršrutēšanas stratēģiju** (skat. `src/shared/constants/routingStrategies.ts`):
 
 | Stratēģija          | Darbība                                                                                              |
 | ------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Atbalsta **20 maršrutēšanas stratēģijas** (skat. `src/shared/constants/rout
 | `cost-optimized`    | Vispirms lētākais funkcionējošais mērķis                                                             |
 | `reset-aware`       | Ņem vērā pakalpojumu sniedzēju atiestatīšanas logus                                                  |
 | `reset-window`      | Maršrutēšana, balstīta atiestatīšanas logos                                                          |
+| `expiry-first`      | Vispirms izmanto kontu, kura kvota citādi beigtos neizmantota                                        |
 | `headroom`          | Vispirms mērķis ar lielāko atlikušās kvotas rezervi                                                  |
 | `quota-weighted`    | Izlaiz izsmeltos kontus, pēc tam izlozē pēc atlikušās kvotas ÷ notiekošās slodzes                    |
 | `strict-random`     | Patiesi vienmērīga izvēle (bez kvalitātes svēršanas)                                                 |

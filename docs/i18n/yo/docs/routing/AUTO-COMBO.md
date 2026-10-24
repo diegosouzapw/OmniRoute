@@ -281,7 +281,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Gbogbo Àwọn Ọ̀nà Ìdarí
 
-Ẹ́ńjìnnì combo OmniRoute ṣe àtìlẹ́yìn fún **ọ̀nà ìdarí 20** (tí a kéde nínú `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ẹ́ńjìnnì Auto Combo fúnra rẹ̀ wà lábẹ́ ọ̀nà `auto`; àwọn yòókù sì wà fún àwọn combo tí a ti fi pamọ́.
+Ẹ́ńjìnnì combo OmniRoute ṣe àtìlẹ́yìn fún **ọ̀nà ìdarí 21** (tí a kéde nínú `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ẹ́ńjìnnì Auto Combo fúnra rẹ̀ wà lábẹ́ ọ̀nà `auto`; àwọn yòókù sì wà fún àwọn combo tí a ti fi pamọ́.
 
 | Ọ̀nà                 | Àpèjúwe                                                                                                                                                                                             |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,6 +296,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 | `cost-optimized`    | Dín $ fún ìbéèrè kọ̀ọ̀kan kù gẹ́gẹ́ bí ìdíyelé katalọ́ọ̀gù                                                                                                                                                |
 | `reset-aware` ⭐    | Ṣètò ààyò nípa àkókò àtúntò ìpín — àwọn fèrèsé àtúntò kúkúrú ni a gbé ga                                                                                                                            |
 | `reset-window`      | Fẹ́ràn àwọn ibi-àfojúsùn tí fèrèsé ìpín wọn yóò tún bẹ̀rẹ̀ láìpẹ́ jù                                                                                                                                    |
+| `expiry-first`      | Ó ń kọ́kọ́ lo àkọọ́lẹ̀ tí ìpín rẹ̀ ìbá parí láìlò: èyí tó ní ìyókù tó pọ̀ jù lọ pẹ̀lú àtúntò tó súnmọ́ jù lọ ló ń kọ́kọ́ lọ                                                                                   |
 | `headroom`          | Yan ibi-àfojúsùn tó ní àyè ìpín tó ṣẹ́kù jù                                                                                                                                                          |
 | `quota-weighted`    | Fò àwọn àkọọ́lẹ̀ tí ìpín wọn ti tán kọjá, lẹ́yìn náà yan láàárín àwọn tó ṣẹ́kù ní ìbámu pẹ̀lú ìpín tó ṣẹ́kù tí a pín pẹ̀lú ẹrù tó ń lọ lọ́wọ́; àwọn ìjíròrò tó ti wà yóò dúró ní dídì mọ́ ọn                  |
 | `strict-random`     | Yíyan aláìlétò láìyọ àwọn àtúnṣe kúrò                                                                                                                                                               |
@@ -843,10 +844,10 @@ Wo [`docs/guides/TIERS.md`](../guides/TIERS.md) fún àwọn ìtumọ̀ ipele à
 
 ### Matrix ìpinnu routing tí kò yípadà (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` fi ìpinnu routing gbogbo ọgbọ́n gbogbogbò 19 hàn láti ìbẹ̀rẹ̀ dé òpin nípasẹ̀ pipeline combo gidi pẹ̀lú upstream àfarawé.
+`tests/integration/combo-matrix/*.test.ts` fi ìpinnu routing gbogbo ọgbọ́n gbogbogbò 21 hàn láti ìbẹ̀rẹ̀ dé òpin nípasẹ̀ pipeline combo gidi pẹ̀lú upstream àfarawé.
 Ìbojú náà ní:
 
-- Gbogbo ọgbọ́n `ROUTING_STRATEGY_VALUES` 19 (ordered, weighted, cost, context, fusion, …).
+- Gbogbo ọgbọ́n `ROUTING_STRATEGY_VALUES` 21 (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (ti inú) láti ìbẹ̀rẹ̀ dé òpin: ìdájọ́ òdodo DRR + fífi ohun tó ti kún jù sí ipò kékeré nípasẹ̀ seam `selectQuotaShareTarget` gidi (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
 - Ìbojú `context-relay` universal-handoff kọjá gbogbo iye target.
@@ -878,5 +879,5 @@ Suite yìí ń ṣiṣẹ́ nínú CI (iṣẹ́ `test:integration`) pẹ̀lú `
 | `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefix `auto/` + àwọn variant 6                                                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Ṣẹ̀dá `AutoComboConfig` inú-memory láti inú àwọn connection tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́                                  |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook ìdánwò fún ṣíṣe àfarawé provider registry                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (àwọn strategy 20)                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (àwọn strategy 21)                                                                   |
 | `src/sse/handlers/chat.ts`                                | Ìsopọ̀: short-circuit prefix auto                                                                               |

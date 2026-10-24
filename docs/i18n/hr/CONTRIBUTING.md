@@ -314,7 +314,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (certifikat, DNS, usmjeravanje prema odredištu)
 ├── shared/
 │   ├── components/         # React komponente (.tsx)
-│   ├── constants/          # Definicije pružatelja (329), MCP opsezi, 20 strategija usmjeravanja
+│   ├── constants/          # Definicije pružatelja (329), MCP opsezi, 21 strategija usmjeravanja
 │   ├── utils/              # Prekidač strujnog kruga, alat za sanitizaciju, pomoćni alati za autentifikaciju
 │   └── validation/         # Zod v4 sheme
 └── sse/                    # SSE proxy cjevovod

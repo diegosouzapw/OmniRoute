@@ -226,7 +226,7 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Toetab **20 suunamisstrateegiat** (vaata `src/shared/constants/routingStrategies.ts`):
+Toetab **21 suunamisstrateegiat** (vaata `src/shared/constants/routingStrategies.ts`):
 
 | Strateegia          | Käitumine                                                                                      |
 | ------------------- | ---------------------------------------------------------------------------------------------- |
@@ -241,6 +241,7 @@ Toetab **20 suunamisstrateegiat** (vaata `src/shared/constants/routingStrategies
 | `cost-optimized`    | Kõigepealt odavaim töökorras sihtmärk                                                          |
 | `reset-aware`       | Teadlik teenusepakkuja lähtestusakendest                                                       |
 | `reset-window`      | Lähtestusaknapõhine suunamine                                                                  |
+| `expiry-first`      | Kasutab esmalt konto, mille kvoot muidu kasutamata aeguks                                      |
 | `headroom`          | Kõigepealt suurima allesjäänud kvoodivaruga                                                    |
 | `quota-weighted`    | Jätab ammendunud kontod vahele, seejärel valib allesjäänud kvoodi ÷ käimasoleva koormuse järgi |
 | `strict-random`     | Tõeliselt ühtlane (ilma kvaliteedikaalutuseta)                                                 |

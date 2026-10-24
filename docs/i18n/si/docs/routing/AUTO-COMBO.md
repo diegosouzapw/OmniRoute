@@ -260,7 +260,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## සියලුම රවුටින් ක්රමෝපායන්
 
-OmniRoute හි combo එන්ජිම **රවුටින් ක්රමෝපායන් 20කට** සහාය දක්වයි (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` තුළ ප්රකාශ කර ඇත). Auto Combo එන්ජිම `auto` ක්රමෝපාය යටතේ නිරාවරණය කර ඇත; අනෙක් ඒවා සුරැකි combos සඳහා ලබා ගත හැක.
+OmniRoute හි combo එන්ජිම **රවුටින් ක්රමෝපායන් 21කට** සහාය දක්වයි (`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` තුළ ප්රකාශ කර ඇත). Auto Combo එන්ජිම `auto` ක්රමෝපාය යටතේ නිරාවරණය කර ඇත; අනෙක් ඒවා සුරැකි combos සඳහා ලබා ගත හැක.
 
 | ක්රමෝපාය            | විස්තරය                                                                                                                                                                                                              |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -275,6 +275,7 @@ OmniRoute හි combo එන්ජිම **රවුටින් ක්රම�
 | `cost-optimized`    | නාමාවලි මිලකරණයට අනුව එක් ඉල්ලීමකට වැය වන $ ප්රමාණය අවම කිරීම                                                                                                                                                        |
 | `reset-aware` ⭐    | කෝටාව යළි සැකසෙන වේලාව අනුව ප්රමුඛත්වය දීම — කෙටි යළි-සැකසුම් කවුළු ඉහළින් ශ්රේණිගත කෙරේ                                                                                                                             |
 | `reset-window`      | කෝටා කවුළුව ඉක්මනින්ම යළි සැකසෙන ඉලක්කවලට ප්රමුඛත්වය දීම                                                                                                                                                             |
+| `expiry-first`      | නැතහොත් භාවිත නොකර කල් ඉකුත් වන කෝටාවක් ඇති ගිණුම පළමුව වැය කරයි: වැඩිම ඉතිරිය සහ ආසන්නතම යළි සැකසීම ඇති ගිණුම පළමුව යයි                                                                                             |
 | `headroom`          | වැඩිම ඉතිරි කෝටා ඉඩක් ඇති ඉලක්කය තේරීම                                                                                                                                                                               |
 | `quota-weighted`    | කෝටාව අවසන් වූ ගිණුම් මඟ හැර, ඉතිරි ඒවා අතර, ඉතිරි කෝටාව පියාසර-අතරතුර භාරයෙන් බෙදූ අනුපාතයට අනුව තේරීම; පවතින සංවාද එකම ඉලක්කයට අමුණා තබයි                                                                          |
 | `strict-random`     | පුනරාවර්තන අනුපිටපත් ඉවත් කිරීමකින් තොර අහඹු තේරීම                                                                                                                                                                   |
@@ -818,9 +819,9 @@ Tier 1 (දායකත්වය) දැඩි ලෙස ප්රිය කි�
 
 ### නිශ්චිත routing-තීරණ අනුකෘතිය (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` විසින් mock කළ upstream එකක් සමඟ සැබෑ combo pipeline එක හරහා පොදු උපායමාර්ග 19ම සඳහා routing **තීරණය** ආරම්භයේ සිට අවසානය දක්වා තහවුරු කරයි. ආවරණයට පහත දෑ ඇතුළත් වේ:
+`tests/integration/combo-matrix/*.test.ts` විසින් mock කළ upstream එකක් සමඟ සැබෑ combo pipeline එක හරහා පොදු උපායමාර්ග 21ම සඳහා routing **තීරණය** ආරම්භයේ සිට අවසානය දක්වා තහවුරු කරයි. ආවරණයට පහත දෑ ඇතුළත් වේ:
 
-- `ROUTING_STRATEGY_VALUES` උපායමාර්ග 19ම (ordered, weighted, cost, context, fusion, …).
+- `ROUTING_STRATEGY_VALUES` උපායමාර්ග 21ම (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (අභ්යන්තර) ආරම්භයේ සිට අවසානය දක්වා: සැබෑ `selectQuotaShareTarget` seam එක (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`) හරහා DRR සාධාරණත්වය + සංතෘප්ති ප්රමුඛතාව අඩු කිරීම.
 - සෑම target සංඛ්යාවක් පුරාම `context-relay` සාර්වත්රික-handoff ආවරණය.
 
@@ -850,5 +851,5 @@ Tier 1 (දායකත්වය) දැඩි ලෙස ප්රිය කි�
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` උපසර්ග විග්රහකය + ප්රභේද 6ක්                                                                                             |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | සජීවී සම්බන්ධතාවලින් මතකය තුළ `AutoComboConfig` ගොඩනඟයි                                                                          |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | සැපයුම්කරු රෙජිස්ට්රිය අනුකරණය කිරීම සඳහා පරීක්ෂණ සම්බන්ධකය                                                                      |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (උපායමාර්ග 20ක්)                                                                                       |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (උපායමාර්ග 21ක්)                                                                                       |
 | `src/sse/handlers/chat.ts`                                | ඒකාබද්ධ කිරීම: auto-prefix කෙටි-පරිපථනය                                                                                          |
